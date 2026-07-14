@@ -146,9 +146,15 @@ const PerpsClosePositionView: React.FC = () => {
     : parseFloat(position.entryPrice);
 
   // Mark price used as the reference for HyperLiquid's oracle price band. Falls
-  // back to the mid/mark currentPrice when the mark price is unavailable.
+  // back to the mid/mark currentPrice when the mark price is missing or does
+  // not parse to a finite positive number (otherwise a NaN reference would
+  // silently skip the band check).
   const markPrice = priceData[position.symbol]?.markPrice;
-  const referencePrice = markPrice ? parseFloat(markPrice) : currentPrice;
+  const parsedMarkPrice = markPrice ? parseFloat(markPrice) : NaN;
+  const referencePrice =
+    Number.isFinite(parsedMarkPrice) && parsedMarkPrice > 0
+      ? parsedMarkPrice
+      : currentPrice;
 
   // Use ref to access latest price without triggering fee recalculations
   // This prevents continuous recalculations on every WebSocket price update
@@ -561,8 +567,9 @@ const PerpsClosePositionView: React.FC = () => {
     setCloseAmountUSDString(formatCloseAmountUSD(newUSDAmount));
   };
 
-  // Hide provider-level limit price required error on this UI
-  // Only display the minimum amount error (e.g. minimum $10) and suppress others
+  // Hide provider-level limit price required error on this UI. Surface the
+  // minimum amount error (e.g. minimum $10) and the "limit price too far"
+  // band error — both are blocking, so Close must explain why it is disabled.
   const filteredErrors = useMemo(() => {
     const minimumAmountErrorPrefix = strings(
       'perps.order.validation.minimum_amount',
@@ -570,9 +577,14 @@ const PerpsClosePositionView: React.FC = () => {
         amount: '',
       },
     ).replace(/\s+$/, '');
+    const limitPriceTooFarError = strings(
+      'perps.order.limit_price_modal.limit_price_too_far',
+    );
     // The actual minimum amount string includes the amount placeholder; match by key detection.
-    return validationResult.errors.filter((err) =>
-      err.startsWith(minimumAmountErrorPrefix),
+    return validationResult.errors.filter(
+      (err) =>
+        err.startsWith(minimumAmountErrorPrefix) ||
+        err === limitPriceTooFarError,
     );
   }, [validationResult.errors]);
 

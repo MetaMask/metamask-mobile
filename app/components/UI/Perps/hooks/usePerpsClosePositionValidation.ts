@@ -202,8 +202,14 @@ export function usePerpsClosePositionValidation(
       if (orderType === 'limit' && !isNaN(limitPriceNum) && limitPriceNum > 0) {
         // Reference (oracle/mark) price the protocol's price band is evaluated
         // against. Prefer the mark price; fall back to the mid/mark currentPrice
-        // when the reference is unavailable.
-        const bandReferencePrice = referencePrice ?? currentPrice;
+        // when the reference is unavailable or not a finite positive number
+        // (?? would keep a NaN reference and silently skip the band check).
+        const bandReferencePrice =
+          referencePrice !== undefined &&
+          Number.isFinite(referencePrice) &&
+          referencePrice > 0
+            ? referencePrice
+            : currentPrice;
 
         // Block the close when the limit price is outside HyperLiquid's allowed
         // band from the reference price. HyperLiquid rejects such orders

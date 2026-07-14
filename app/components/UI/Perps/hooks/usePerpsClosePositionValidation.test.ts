@@ -365,6 +365,34 @@ describe('usePerpsClosePositionValidation', () => {
     expect(result.current.isValid).toBe(false);
   });
 
+  it('falls back to currentPrice for the band when the reference price is not finite', async () => {
+    // A NaN reference (e.g. an unparseable mark price) must not skip the band
+    // check. With currentPrice far below the limit price, the fallback still
+    // blocks the close.
+    mockValidateClosePosition.mockResolvedValue({ isValid: true });
+
+    const params = {
+      ...defaultParams,
+      orderType: 'limit' as const,
+      limitPrice: '50000',
+      currentPrice: 1000,
+      referencePrice: NaN,
+    };
+
+    const { result } = renderHook(() =>
+      usePerpsClosePositionValidation(params),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isValidating).toBe(false);
+    });
+
+    expect(result.current.isValid).toBe(false);
+    expect(result.current.errors).toContain(
+      strings('perps.order.limit_price_modal.limit_price_too_far'),
+    );
+  });
+
   it('should return error for market order with 0% close', async () => {
     mockValidateClosePosition.mockResolvedValue({ isValid: true });
 

@@ -99,10 +99,16 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
     : passedCurrentPrice;
 
   // Mark price used as the reference for HyperLiquid's oracle price band. Falls
-  // back to the mid/mark currentPrice when the mark price is unavailable.
-  const referencePrice = currentPriceData?.markPrice
+  // back to the mid/mark currentPrice when the mark price is missing or does
+  // not parse to a finite positive number (otherwise a NaN reference would
+  // silently skip the band check).
+  const parsedMarkPrice = currentPriceData?.markPrice
     ? parseFloat(currentPriceData.markPrice)
-    : currentPrice;
+    : NaN;
+  const referencePrice =
+    Number.isFinite(parsedMarkPrice) && parsedMarkPrice > 0
+      ? parsedMarkPrice
+      : currentPrice;
 
   // Get top of book (bid/ask) data for Bid/Ask preset buttons
   // Note: Mid price comes from currentPrice above (from allMids stream)

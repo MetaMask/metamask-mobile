@@ -1060,6 +1060,32 @@ describe('PerpsClosePositionView', () => {
       expect(queryByText(otherError)).toBeNull();
     });
 
+    it('displays the limit price too far error so Close explains why it is disabled', () => {
+      // A blocking band error (e.g. after the market moves) must be surfaced,
+      // otherwise Close is disabled without any explanation.
+      const tooFarError = strings(
+        'perps.order.limit_price_modal.limit_price_too_far',
+      );
+      const suppressedError = 'Limit price is required';
+
+      usePerpsClosePositionValidationMock.mockReturnValue({
+        isValid: false,
+        errors: [tooFarError, suppressedError],
+        warnings: [],
+      });
+
+      const { getByText, queryByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // The blocking band error is visible
+      expect(getByText(tooFarError)).toBeDefined();
+      // Provider-level errors remain suppressed
+      expect(queryByText(suppressedError)).toBeNull();
+    });
+
     it('handles Max button press while editing input', async () => {
       const track = jest.fn();
       usePerpsEventTrackingMock.mockImplementation(
