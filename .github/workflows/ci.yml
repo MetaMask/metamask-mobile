@@ -1063,14 +1063,12 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  # Integration tests are optional during the PoC rollout — they still run for
-  # signal, but failures/cancellations must not block merge. Revert
-  # continue-on-error and the ci-status-gate exemption once the suite is stable.
+  # Integration tests are optional during the PoC rollout — they run in parallel
+  # for signal but are not wired into merge, Sonar, or check-all-jobs-pass.
   integration-tests:
     name: Integration tests
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
-    continue-on-error: true
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -1690,7 +1688,6 @@ jobs:
       - scripts
       - unit-tests
       - component-view-tests
-      - integration-tests
       - merge-unit-and-component-view-tests
       - check-workflows
       - prepare-ci-js-deps
