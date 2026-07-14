@@ -78,6 +78,19 @@ describe('useQrScannerCameraPermission', () => {
     expect(mockRequestPermission).not.toHaveBeenCalled();
   });
 
+  it('marks permission check complete when requestPermission throws', async () => {
+    mockRequestPermission.mockRejectedValue(new Error('permission denied'));
+
+    const { result } = renderHook(() =>
+      useQrScannerCameraPermission({ isActive: true }),
+    );
+
+    await flushAsyncEffects();
+
+    expect(mockRequestPermission).toHaveBeenCalled();
+    expect(result.current.permissionCheckCompleted).toBe(true);
+  });
+
   it('re-requests permission when app returns to foreground without permission', async () => {
     Object.defineProperty(AppState, 'currentState', {
       configurable: true,
