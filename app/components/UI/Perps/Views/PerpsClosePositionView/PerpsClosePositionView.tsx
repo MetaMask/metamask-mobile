@@ -259,6 +259,11 @@ const PerpsClosePositionView: React.FC = () => {
   // marginUsed embeds unrealized PnL at the current mark price, so for limit
   // orders we swap that current-price PnL for the limit-price PnL (effectivePnL).
   // For market orders effectivePnL equals unrealizedPnl, so this is a no-op.
+  //
+  // "You'll receive" is intentionally an estimate: this swaps out the full
+  // current unrealizedPnl (price + accrued funding) and adds back only the
+  // limit-price price spread. Funding that accrues between now and when the
+  // limit order fills is unknowable, so we deliberately do not project it here.
   const effectiveMargin = useMemo(
     () => marginUsed - unrealizedPnl + effectivePnL,
     [marginUsed, unrealizedPnl, effectivePnL],
