@@ -14,13 +14,17 @@ import {
 } from '../../core/state';
 import type { TVActiveChart } from '../../core/types';
 import type { SetSubPaneLayoutMessage } from '../../messages/contract';
-import { isSubPaneIndicator } from './studies';
 
 const MIN_MAIN_PX = 72;
 
 export function hasActiveSubPaneIndicators(): boolean {
-  for (const name of getActiveStudies().keys()) {
-    if (isSubPaneIndicator(name)) return true;
+  const widget = getWidget();
+  if (!widget) return false;
+  const chart = widget.activeChart();
+  for (const studyId of getActiveStudies().values()) {
+    const study = chart.getStudyById(studyId);
+    const paneIdx = study?.paneIndex?.();
+    if (paneIdx !== undefined && paneIdx > 0) return true;
   }
   return false;
 }

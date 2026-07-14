@@ -179,9 +179,9 @@ Follow existing test patterns covering:
 
 ### A/B Test Flags
 
-| Redux Property                  | LaunchDarkly Key                    | Variants             | Purpose                           |
-| -------------------------------- | ------------------------------------ | -------------------- | ---------------------------------- |
-| `perpsTAT1937AbtestButtonColor` | `perps-tat1937-abtest-button-color` | `control`, `colors`  | Button color A/B test (TAT-1937)  |
+| Redux Property                  | LaunchDarkly Key                    | Variants            | Purpose                          |
+| ------------------------------- | ----------------------------------- | ------------------- | -------------------------------- |
+| `perpsTAT1937AbtestButtonColor` | `perps-tat1937-abtest-button-color` | `control`, `colors` | Button color A/B test (TAT-1937) |
 
 `control` (white/white) is the required fallback variant for `useABTest` and is therefore the default experience; `colors` (green long / red short) is the active-experiment variant.
 

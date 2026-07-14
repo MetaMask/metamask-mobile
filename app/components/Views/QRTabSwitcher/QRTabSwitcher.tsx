@@ -76,13 +76,6 @@ export const createQRScannerNavDetails =
   createNavigationDetails<QRTabSwitcherParams>(Routes.QR_TAB_SWITCHER);
 
 const QRTabSwitcher = () => {
-  // Start tracing component loading
-  const isFirstRender = useRef(true);
-
-  if (isFirstRender.current) {
-    trace({ name: TraceName.QRTabSwitcher });
-  }
-
   const route = useRoute();
   const navigation = useNavigation<AppNavigationProp>();
   const { onScanError, onScanSuccess, onStartScan, origin } =
@@ -184,10 +177,9 @@ const QRTabSwitcher = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
 
-  // End trace when component has finished initial loading
   useEffect(() => {
+    trace({ name: TraceName.QRTabSwitcher });
     endTrace({ name: TraceName.QRTabSwitcher });
-    isFirstRender.current = false;
   }, []);
 
   const goBack = () => {
@@ -196,8 +188,11 @@ const QRTabSwitcher = () => {
     }
 
     navigation.goBack();
+    const scanErrorCallback = onScanError;
     try {
-      onScanError?.(USER_CANCELLED);
+      if (scanErrorCallback) {
+        scanErrorCallback(USER_CANCELLED);
+      }
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.warn(`Error setting onScanError: ${error.message}`);

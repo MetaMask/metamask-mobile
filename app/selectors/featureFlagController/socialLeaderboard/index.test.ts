@@ -1,4 +1,5 @@
 import {
+  selectAiSocialLeaderboardOnboardingEnabled,
   selectSocialAIQuickBuyStreamQuotesEnabled,
   selectSocialLeaderboardEnabled,
   selectSocialLeaderboardPerpsEnabled,
@@ -127,6 +128,74 @@ describe('selectSocialLeaderboardPerpsEnabled', () => {
       aiSocialLeaderboardPerpsEnabled: {
         enabled: 'invalid',
         minimumVersion: 123,
+      },
+    });
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectAiSocialLeaderboardOnboardingEnabled', () => {
+  let mockHasMinimumRequiredVersion: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHasMinimumRequiredVersion = jest.spyOn(
+      remoteFeatureFlagModule,
+      'hasMinimumRequiredVersion',
+    );
+    mockHasMinimumRequiredVersion.mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    mockHasMinimumRequiredVersion?.mockRestore();
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    const result = selectAiSocialLeaderboardOnboardingEnabled.resultFunc({
+      aiSocialLeaderboardOnboardingEnabled: {
+        enabled: true,
+        minimumVersion: '7.72.0',
+      },
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is explicitly disabled', () => {
+    const result = selectAiSocialLeaderboardOnboardingEnabled.resultFunc({
+      aiSocialLeaderboardOnboardingEnabled: {
+        enabled: false,
+        minimumVersion: '7.72.0',
+      },
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it('defaults to false when remote flag is absent', () => {
+    const result = selectAiSocialLeaderboardOnboardingEnabled.resultFunc({});
+
+    expect(result).toBe(false);
+  });
+
+  it('defaults to false when remote flag has an invalid shape', () => {
+    const result = selectAiSocialLeaderboardOnboardingEnabled.resultFunc({
+      aiSocialLeaderboardOnboardingEnabled: {
+        enabled: 'invalid',
+        minimumVersion: 123,
+      },
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when enabled but version requirement is not met', () => {
+    mockHasMinimumRequiredVersion.mockReturnValue(false);
+    const result = selectAiSocialLeaderboardOnboardingEnabled.resultFunc({
+      aiSocialLeaderboardOnboardingEnabled: {
+        enabled: true,
+        minimumVersion: '99.0.0',
       },
     });
 
