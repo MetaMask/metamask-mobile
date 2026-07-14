@@ -130,13 +130,19 @@ jobs:
     outputs:
       fingerprint: ${{ steps.publish.outputs.fingerprint }}
     steps:
-      # Use the default ref (refs/pull/N/merge on pull_request, github.sha otherwise) so the
-      # fingerprint is computed against the SAME working tree that `build-android-e2e.yml`,
-      # `build-ios-e2e.yml`, and `run-e2e-workflow.yml` check out and build/test against.
-      # Posting on `pull_request.head.sha` while fingerprinting the PR head tree would let
-      # two PRs with identical heads but different merges collide on the cache key — and the
-      # native build then runs against a different (merge) tree than the one we fingerprinted.
-      - uses: actions/checkout@v6
+      # Default: fingerprint the PR merge tree (or push/schedule commit).
+      - name: Checkout repository
+        if: ${{ needs.get_requirements.outputs.native_build_needed != 'false' || github.event_name != 'pull_request' }}
+        uses: actions/checkout@v6
+
+      # Test-only PRs reuse main native builds — fingerprint main HEAD so the lookup
+      # key matches completed ci.yml runs on the main branch.
+      - name: Checkout main for test-only fingerprint
+        if: ${{ needs.get_requirements.outputs.native_build_needed == 'false' && github.event_name == 'pull_request' }}
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 1
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -153,7 +159,7 @@ jobs:
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
-          post-status: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
+          post-status: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && needs.get_requirements.outputs.native_build_needed == 'true' }}
           # Commit statuses must be posted on a real commit SHA (not the merge ref).
           # `find-reusable-build` looks up the status via `run.head_sha` from
           # `listWorkflowRuns`, which GitHub reports as the PR head SHA for pull_request
@@ -164,8 +170,8 @@ jobs:
   dedupe:
     name: Dedupe
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' }}
     needs:
       - get_requirements
     steps:
@@ -213,8 +219,8 @@ jobs:
   git-safe-dependencies:
     name: Run `@lavamoat/git-safe-dependencies`
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' }}
     needs:
       - get_requirements
     steps:
@@ -255,8 +261,8 @@ jobs:
   scripts:
     name: Run `${{ matrix.scripts }}`
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' }}
     needs:
       - get_requirements
     strategy:
@@ -314,8 +320,8 @@ jobs:
   js-bundle-size-check:
     name: JS bundle size check
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' }}
     needs:
       - get_requirements
     permissions:
@@ -627,8 +633,8 @@ jobs:
   check-workflows:
     name: Check workflows
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' }}
     needs:
       - get_requirements
     steps:
@@ -649,8 +655,8 @@ jobs:
   prepare-ci-js-deps:
     name: Prepare CI JS dependencies
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' }}
     needs:
       - get_requirements
     steps:
@@ -676,8 +682,8 @@ jobs:
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -751,8 +757,8 @@ jobs:
   merge-unit-and-component-view-tests:
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: [prepare-ci-js-deps, unit-tests, component-view-tests]
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ github.event_name != 'merge_group' && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ github.event_name != 'merge_group' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -933,8 +939,8 @@ jobs:
   component-view-tests:
     name: Component view tests
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -1050,10 +1056,11 @@ jobs:
     # ai_performance_test_tags == '[]'  → AI ran and found no perf-relevant changes: skip.
     # ai_performance_test_tags == ''    → conservative fallback (AI failed) or run-performance-tests label: run all tests.
     # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
     if: >-
       ${{
         inputs.runner_provider != 'bitrise' &&
+        inputs.runner_provider != 'namespace' &&
         github.event_name == 'pull_request' &&
         !cancelled() &&
         (
@@ -1072,6 +1079,7 @@ jobs:
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
       pr_number: ${{ github.event.pull_request.number }}
+      reuse_main_builds: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
     secrets: inherit
     permissions:
       contents: write
@@ -1081,10 +1089,11 @@ jobs:
 
   build-android-apks:
     name: 'Build Android APKs'
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
     if: >-
       ${{
         inputs.runner_provider != 'bitrise' &&
+        inputs.runner_provider != 'namespace' &&
         !cancelled() &&
         needs.get_requirements.outputs.android_e2e_needed == 'true' &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
@@ -1102,6 +1111,7 @@ jobs:
       metamask_environment: 'e2e'
       source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
       runner_provider: ${{ inputs.runner_provider }}
+      reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
     secrets: inherit
 
   prepare-e2e-timings:
@@ -1157,10 +1167,11 @@ jobs:
 
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
     if: >-
       ${{
         inputs.runner_provider != 'bitrise' &&
+        inputs.runner_provider != 'namespace' &&
         !cancelled() &&
         needs.build-android-apks.result == 'success' &&
         (needs.prepare-e2e-timings.result == 'success' || needs.prepare-e2e-timings.result == 'failure' || needs.prepare-e2e-timings.result == 'skipped')
@@ -1199,6 +1210,7 @@ jobs:
     with:
       source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
       runner_provider: ${{ inputs.runner_provider }}
+      reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
     secrets: inherit
 
   ios-tests-ready:
@@ -1235,10 +1247,11 @@ jobs:
 
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
     if: >-
       ${{
         inputs.runner_provider != 'bitrise' &&
+        inputs.runner_provider != 'namespace' &&
         !cancelled() &&
         needs.build-android-apks.result == 'success'
       }}
@@ -1264,7 +1277,7 @@ jobs:
   appium-smoke-tests-ios:
     name: 'Appium Smoke Tests (iOS)'
     # Main push/schedule: always run when the iOS build succeeded.
-    # PRs: skipped by default; add run-appium-ios-tests to also run Appium iOS
+    # PRs: skipped by default; add run-appium-ios-tests, or change page-objects/selectors/locators/framework
     # (same smart-selected tags as other E2E jobs).
     if: >-
       ${{
@@ -1321,8 +1334,8 @@ jobs:
   report-fixture-validation:
     name: 'Report Fixture Validation'
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ inputs.runner_provider != 'bitrise' && !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
     needs: [validate-e2e-fixtures]
     permissions:
       pull-requests: write
@@ -1362,8 +1375,8 @@ jobs:
     name: SonarCloud analysis
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: merge-unit-and-component-view-tests
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ inputs.runner_provider != 'bitrise' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1430,8 +1443,8 @@ jobs:
     name: SonarCloud quality gate status
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: sonar-cloud
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ inputs.runner_provider != 'bitrise' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1506,7 +1519,7 @@ jobs:
   cleanup-ci-js-deps:
     name: Delete CI JS deps artifact
     runs-on: ubuntu-latest
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
     if: ${{ always() && inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
     needs:
       - unit-tests
@@ -1540,8 +1553,8 @@ jobs:
     name: Check all jobs pass
     # Run the aggregate gate even when optional dependencies are skipped.
     # The composite action decides which skipped jobs are acceptable.
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ always() && !cancelled() && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ always() && !cancelled() && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' }}
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs:
       - get_requirements
@@ -1588,8 +1601,8 @@ jobs:
     name: Log merge group failure
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     # Only run this job if the merge group event fails, skip on forks
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ inputs.runner_provider != 'bitrise' && github.event_name == 'merge_group' && failure() }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && github.event_name == 'merge_group' && failure() }}
     needs:
       - check-all-jobs-pass
     steps:

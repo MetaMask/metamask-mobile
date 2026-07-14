@@ -313,6 +313,7 @@
     "whitelistPaths": {}
   },
   "PreferencesController": {
+    "advancedGasFee": {},
     "featureFlags": {},
     "ipfsGateway": "https://dweb.link/ipfs/",
     "useTokenDetection": true,
@@ -518,6 +519,10 @@
       "mainnet": [],
       "testnet": []
     },
+    "recentlyViewedMarkets": {
+      "mainnet": [],
+      "testnet": []
+    },
     "tradeConfigurations": {
       "mainnet": {},
       "testnet": {}
@@ -528,6 +533,10 @@
     },
     "hip3ConfigVersion": 0,
     "perpsBalances": {},
+    "recentlyViewedMarkets": {
+      "mainnet": [],
+      "testnet": []
+    },
     "selectedPaymentToken": null,
     "cachedMarketDataByProvider": {},
     "cachedUserDataByProvider": {}
@@ -821,6 +830,7 @@
     "predictThePitchPositions": {},
     "predictThePitchPrizePool": {},
     "clientVersionRequirements": null,
+    "firstPredictOnUs": null,
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
@@ -851,9 +861,11 @@
   "QrSyncController": {
     "phase": "idle",
     "connectionStatus": "disconnected",
+    "pendingSecretImports": null,
+    "provisioningMetadata": null,
+    "provisioningStatus": null,
     "otp": null,
-    "error": null,
-    "importPlan": null
+    "error": null
   },
   "AiDigestController": {
     "marketInsights": {},
