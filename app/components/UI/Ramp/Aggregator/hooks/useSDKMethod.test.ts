@@ -132,7 +132,9 @@ describe('useSDKMethod', () => {
       rerender(() =>
         useSDKMethod('getDefaultFiatCurrency', regionId as '/regions/cl'),
       );
-      expect(jsonStringifySpy.mock.calls.length).toBeGreaterThan(callsAfterMount);
+      expect(jsonStringifySpy.mock.calls.length).toBeGreaterThan(
+        callsAfterMount,
+      );
 
       jsonStringifySpy.mockRestore();
     });
