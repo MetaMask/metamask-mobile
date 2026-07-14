@@ -25,10 +25,7 @@ const enableAddDeviceSyncFlag = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureMultichainAccountsAccountDetails(),
     ...remoteFeaturePredictGtmOnboardingModalDisabled(),
-    addDeviceSyncEnabled: {
-      enabled: true,
-      minimumVersion: '1.0.0',
-    },
+    addDeviceSyncEnabled: true,
   });
 };
 

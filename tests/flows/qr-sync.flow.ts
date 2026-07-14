@@ -48,15 +48,15 @@ export const applyQrSyncSrpReadyPayload = async ({
   walletName = QR_SYNC_EXTENSION_WALLET_NAME,
   accountName = QR_SYNC_EXTENSION_ACCOUNT_NAME,
 }: ApplyQrSyncSrpOptions): Promise<void> => {
-  const params = new URLSearchParams({
-    mnemonic,
-    isPrimary: String(isPrimary),
-    walletName,
-    accountName,
-  });
-  await openE2EUrl(
-    `${E2EDeeplinkSchemes.QR_SYNC}apply-sync-ready?${params.toString()}`,
-  );
+  // Prefer encodeURIComponent over URLSearchParams (`+` for spaces) so Android
+  // Intent / Appium mobile:deepLink deliver a stable query string.
+  const query = [
+    `mnemonic=${encodeURIComponent(mnemonic)}`,
+    `isPrimary=${encodeURIComponent(String(isPrimary))}`,
+    `walletName=${encodeURIComponent(walletName)}`,
+    `accountName=${encodeURIComponent(accountName)}`,
+  ].join('&');
+  await openE2EUrl(`${E2EDeeplinkSchemes.QR_SYNC}apply-sync-ready?${query}`);
 };
 
 /**

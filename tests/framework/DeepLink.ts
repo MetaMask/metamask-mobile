@@ -4,7 +4,9 @@
 import { createLogger } from './logger.ts';
 import { E2EDeeplinkSchemes } from './Constants.ts';
 import { FrameworkDetector } from './FrameworkDetector.ts';
-import { executeMobileDeepLink } from './PlaywrightUtilities.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
+import { executeMobileDeepLink, getDriver } from './PlaywrightUtilities.ts';
+import { sleep } from './Utilities.ts';
 
 const logger = createLogger({
   name: 'E2E - DeepLink',
@@ -34,6 +36,19 @@ export async function openE2EUrl(url: string): Promise<void> {
 
   if (FrameworkDetector.isAppium()) {
     await executeMobileDeepLink(mappedUrl);
+    // Warm Android sessions often need a brief settle for RN Linking / onNewIntent.
+    if (PlatformDetector.isAndroid()) {
+      const drv = getDriver();
+      const pkg =
+        (drv?.capabilities?.['appium:appPackage'] as string | undefined) ||
+        (drv?.capabilities?.appPackage as string | undefined);
+      if (pkg) {
+        await drv.activateApp(pkg);
+      }
+      await sleep(1_500);
+    } else {
+      await sleep(500);
+    }
     return;
   }
 

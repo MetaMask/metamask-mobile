@@ -619,29 +619,32 @@ const ImportFromSecretRecoveryPhrase = ({
                     {strings(
                       'import_from_seed.enter_your_secret_recovery_phrase',
                     )}
-                    {isAddDeviceSyncEnabled && (
-                      <>
-                        {' '}
-                        {strings('import_from_seed.or')}{' '}
-                        <Text
-                          variant={TextVariant.BodyMd}
-                          color={TextColor.PrimaryDefault}
-                          testID={
-                            ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID
-                          }
-                          onPress={() =>
-                            navigation.navigate(
-                              Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-                            )
-                          }
-                        >
-                          {strings(
-                            'import_from_seed.import_wallet_from_extension',
-                          )}
-                        </Text>
-                      </>
-                    )}
+                    {isAddDeviceSyncEnabled ? (
+                      <> {strings('import_from_seed.or')} </>
+                    ) : null}
                   </Text>
+                  {isAddDeviceSyncEnabled && (
+                    <TouchableOpacity
+                      accessibilityRole="link"
+                      onPress={() =>
+                        navigation.navigate(
+                          Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+                        )
+                      }
+                      testID={
+                        ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID
+                      }
+                    >
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.PrimaryDefault}
+                      >
+                        {strings(
+                          'import_from_seed.import_wallet_from_extension',
+                        )}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                   {!isAddDeviceSyncEnabled && (
                     <TouchableOpacity
                       onPress={showWhatIsSeedPhrase}

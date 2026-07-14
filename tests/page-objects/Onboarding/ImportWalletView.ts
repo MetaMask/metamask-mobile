@@ -15,6 +15,7 @@ import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import { FrameworkDetector } from '../../framework/FrameworkDetector';
 
 class ImportWalletView {
   get container(): EncapsulatedElementType {
@@ -272,6 +273,27 @@ class ImportWalletView {
   }
 
   async tapImportFromExtensionLink(): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      try {
+        await UnifiedGestures.waitAndTap(this.importFromExtensionLink, {
+          description: 'Import from MetaMask extension link',
+          timeout: 8_000,
+        });
+        return;
+      } catch {
+        // Nested/legacy renders may omit resource-id on Android — fall back to copy.
+        const linkByText = await PlaywrightMatchers.getElementByText(
+          'import from the MetaMask extension',
+          false,
+        );
+        await PlaywrightGestures.waitAndTap(linkByText, {
+          description: 'Import from MetaMask extension link (by text)',
+          timeout: 15_000,
+        });
+        return;
+      }
+    }
+
     await UnifiedGestures.waitAndTap(this.importFromExtensionLink, {
       description: 'Import from MetaMask extension link',
       timeout: 15_000,
