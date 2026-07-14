@@ -70,6 +70,13 @@ jest.mock('@metamask/keyring-api', () => ({
   TrxAccountType: {
     Eoa: 'tron:eoa',
   },
+  XlmScope: {
+    Pubnet: 'stellar:pubnet',
+    Testnet: 'stellar:testnet',
+  },
+  XlmAccountType: {
+    Account: 'stellar:account',
+  },
 }));
 jest.mock('@metamask/rpc-errors', () => ({}));
 jest.mock('@metamask/network-controller', () => ({}));
