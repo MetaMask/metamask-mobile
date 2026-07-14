@@ -1,26 +1,23 @@
 import React, { useCallback, useRef } from 'react';
-import { Modal, View } from 'react-native';
+import { Modal } from 'react-native';
 import {
   BottomSheet,
   BottomSheetHeader,
   BottomSheetRef,
+  Box,
 } from '@metamask/design-system-react-native';
 import { GasFeeToken } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
-import { useStyles } from '../../../../../../component-library/hooks';
 import { updateSelectedGasFeeToken } from '../../../../../../util/transaction-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { GasFeeTokenListItem } from '../gas-fee-token-list-item';
-import styleSheet from './gas-fee-token-modal.styles';
 
 export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
   const transactionMeta = useTransactionMetadataRequest();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-
-  const { styles } = useStyles(styleSheet, {});
 
   const {
     id: transactionId = '',
@@ -78,7 +75,7 @@ export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
         >
           {strings('gas_fee_token_modal.title')}
         </BottomSheetHeader>
-        <View style={styles.contentContainer}>
+        <Box twClassName="flex flex-col">
           {gasFeeTokenAddresses.map((tokenAddress: Hex) => (
             <GasFeeTokenListItem
               key={tokenAddress}
@@ -91,7 +88,7 @@ export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
               onClick={handleTokenClick}
             />
           ))}
-        </View>
+        </Box>
       </BottomSheet>
     </Modal>
   );
