@@ -753,6 +753,9 @@ describe('PerpsMarketListView', () => {
     if (originalConsoleError) {
       console.error = originalConsoleError;
     }
+    // Safety net: prevent fake-timer leaks across tests if a fake-timer
+    // test fails before reaching its own jest.useRealTimers() call.
+    jest.useRealTimers();
   });
 
   describe('Component Rendering', () => {
@@ -2035,6 +2038,9 @@ describe('PerpsMarketListView', () => {
           marketTypeFilter: 'all' as const,
           setMarketTypeFilter: jest.fn(),
         },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
+        },
         marketCounts: {
           crypto: 0,
           stocks: 0,
@@ -2102,6 +2108,9 @@ describe('PerpsMarketListView', () => {
         marketTypeFilterState: {
           marketTypeFilter: 'all' as const,
           setMarketTypeFilter: jest.fn(),
+        },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
         },
         marketCounts: {
           crypto: 1,
@@ -2173,6 +2182,9 @@ describe('PerpsMarketListView', () => {
         marketTypeFilterState: {
           marketTypeFilter: 'all' as const,
           setMarketTypeFilter: jest.fn(),
+        },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
         },
         marketCounts: {
           crypto: 0,
@@ -2263,6 +2275,9 @@ describe('PerpsMarketListView', () => {
           marketTypeFilter: 'all' as const,
           setMarketTypeFilter: jest.fn(),
         },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
+        },
         marketCounts: {
           crypto: 1,
           stocks: 0,
@@ -2323,6 +2338,9 @@ describe('PerpsMarketListView', () => {
         marketTypeFilterState: {
           marketTypeFilter: 'all' as const,
           setMarketTypeFilter: jest.fn(),
+        },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
         },
         marketCounts: {
           crypto: 1,
@@ -2397,6 +2415,9 @@ describe('PerpsMarketListView', () => {
         marketTypeFilterState: {
           marketTypeFilter: 'all' as const,
           setMarketTypeFilter: jest.fn(),
+        },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
         },
         marketCounts: {
           crypto: 1,

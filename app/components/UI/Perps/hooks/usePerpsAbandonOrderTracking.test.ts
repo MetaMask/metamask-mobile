@@ -67,6 +67,12 @@ describe('usePerpsAbandonOrderTracking', () => {
     } as unknown as ReturnType<typeof usePerpsEventTracking>);
   });
 
+  afterEach(() => {
+    // Restores Date.now (and any other spies) so the pinned timestamp
+    // doesn't leak into other test files in the same worker.
+    jest.restoreAllMocks();
+  });
+
   it('emits abandon_order on beforeRemove (back / hardware back)', () => {
     renderTracking();
     fire(nav, 'beforeRemove');

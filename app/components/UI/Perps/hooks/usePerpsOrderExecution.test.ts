@@ -313,6 +313,15 @@ describe('usePerpsOrderExecution', () => {
           handlePerpsCufOrdersDelivered([{ orderId: 'lim1' }]);
         });
 
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceLimitOrderToOrderRendered,
+            ),
+            data: expect.objectContaining({ success: true }),
+          }),
+        );
+
         // Flush the scheduled fallback so no timer leaks past the test.
         act(() => {
           jest.runOnlyPendingTimers();
