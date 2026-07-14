@@ -25,8 +25,6 @@ import {
   type X25519KeyPair,
 } from './crypto';
 import type { MoonpayFrameMessage } from './MoonpayFrame';
-// eslint-disable-next-line import-x/no-restricted-paths
-import useSumSubDemo from '../SumSubDemo/useSumSubDemo';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -104,9 +102,15 @@ const truncate = (s: string, head = 12, tail = 6): string =>
 // Hook
 // ---------------------------------------------------------------------------
 
-const useMoonpayIdentityFlow = () => {
-  const { launchSumSubSDK } = useSumSubDemo();
+export interface UseMoonpayIdentityFlowOptions {
+  // Launches the SumSub verification flow. Called automatically once the
+  // MoonPay flow reaches the `done` phase with `kycRequired === true`.
+  launchSumSubSDK: (moonPayAccessToken: string | null) => Promise<void> | void;
+}
 
+const useMoonpayIdentityFlow = ({
+  launchSumSubSDK,
+}: UseMoonpayIdentityFlowOptions) => {
   // ---- Core state ----
   const [phase, setPhase] = useState<Phase>('terms');
   const [statusMessage, setStatusMessage] = useState<string>('');
@@ -386,13 +390,19 @@ const useMoonpayIdentityFlow = () => {
       setPhase('done');
       setStatusMessage('KYC check complete.');
       pushDebug(`Step 4 kyc-required result (${country})`, result, 'success');
-      // Starting the sumsub sdk whatever the result is for the sake of demo
-      launchSumSubSDK(accessToken);
     } catch (err) {
       setErrorMessage(`KYC check failed: ${err}`);
       setPhase('error');
     }
-  }, [accessToken, submission, pushDebug, launchSumSubSDK]);
+  }, [accessToken, submission, pushDebug]);
+
+  // ---------- Step 5: hand off to SumSub ----------
+  // Explicitly triggered from the done panel once the customer has seen the
+  // kyc-required result. Passes the MoonPay access token to the SumSub flow.
+  const launchSumSub = useCallback(() => {
+    pushDebug('Step 5 launching SumSub', null, 'info');
+    launchSumSubSDK(accessToken);
+  }, [accessToken, launchSumSubSDK, pushDebug]);
 
   // ---------- Frame URLs ----------
   const checkFrameUrl = useMemo(() => {
@@ -458,6 +468,7 @@ const useMoonpayIdentityFlow = () => {
     authFrameUrl,
     acceptTermsAndCreateSession,
     runKycCheck,
+    launchSumSub,
     handleFrameMessage,
     handleCheckFrameError,
     handleAuthFrameError,

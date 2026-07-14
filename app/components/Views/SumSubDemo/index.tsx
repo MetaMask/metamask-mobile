@@ -8,7 +8,6 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
-import useSumSubDemo from './useSumSubDemo';
 
 const styles = StyleSheet.create({
   container: {
@@ -46,9 +45,16 @@ const styles = StyleSheet.create({
   },
 });
 
-const SumSubDemo = () => {
+interface SumSubDemoProps {
+  sdkResult?: Record<string, unknown> | null;
+  status?: string | null;
+}
+
+const SumSubDemo: React.FC<SumSubDemoProps> = ({
+  sdkResult = null,
+  status = null,
+}) => {
   const { colors } = useTheme();
-  const { sdkResult, status } = useSumSubDemo();
 
   return (
     <SafeAreaView

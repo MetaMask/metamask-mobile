@@ -507,7 +507,8 @@ const LoadingPanel: React.FC<{ message: string }> = ({ message }) => (
 const DonePanel: React.FC<{
   result: KycRequiredResponse;
   colors: ThemeColors;
-}> = ({ result, colors }) => (
+  onLaunchSumSub: () => void;
+}> = ({ result, colors, onLaunchSumSub }) => (
   <View
     style={[
       styles.panel,
@@ -534,6 +535,13 @@ const DonePanel: React.FC<{
         {JSON.stringify(result, null, 2)}
       </Text>
     </View>
+    <Button
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Lg}
+      onPress={onLaunchSumSub}
+    >
+      Launch SumSub verification
+    </Button>
   </View>
 );
 
@@ -665,7 +673,11 @@ const ErrorPanel: React.FC<{
   </View>
 );
 
-const MoonpayDemo: React.FC = () => {
+interface MoonpayDemoProps {
+  launchSumSubSDK: (moonPayAccessToken: string | null) => Promise<void> | void;
+}
+
+const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ launchSumSubSDK }) => {
   const { colors } = useTheme();
 
   const {
@@ -689,10 +701,11 @@ const MoonpayDemo: React.FC = () => {
     authFrameUrl,
     acceptTermsAndCreateSession,
     runKycCheck,
+    launchSumSub,
     handleFrameMessage,
     handleCheckFrameError,
     handleAuthFrameError,
-  } = useMoonpayIdentityFlow();
+  } = useMoonpayIdentityFlow({ launchSumSubSDK });
 
   const {
     resetState,
@@ -753,17 +766,6 @@ const MoonpayDemo: React.FC = () => {
           {statusMessage ? ` — ${statusMessage}` : ''}
         </Text>
 
-        {debugEvents.length > 0 && (
-          <DebugPanel
-            events={debugEvents}
-            onClear={clearDebug}
-            colors={colors}
-            phase={phase}
-            showCheckFrame={showCheckFrame}
-            onToggleCheckFrameVisibility={() => setShowCheckFrame((v) => !v)}
-          />
-        )}
-
         {phase === 'terms' && (
           <TermsPanel
             email={email}
@@ -800,11 +802,26 @@ const MoonpayDemo: React.FC = () => {
         {phase === 'submit' && <LoadingPanel message={statusMessage} />}
 
         {phase === 'done' && kycResult && (
-          <DonePanel result={kycResult} colors={colors} />
+          <DonePanel
+            result={kycResult}
+            colors={colors}
+            onLaunchSumSub={launchSumSub}
+          />
         )}
 
         {phase === 'error' && errorMessage && (
           <ErrorPanel message={errorMessage} colors={colors} />
+        )}
+
+        {debugEvents.length > 0 && (
+          <DebugPanel
+            events={debugEvents}
+            onClear={clearDebug}
+            colors={colors}
+            phase={phase}
+            showCheckFrame={showCheckFrame}
+            onToggleCheckFrameVisibility={() => setShowCheckFrame((v) => !v)}
+          />
         )}
       </ScrollView>
 
