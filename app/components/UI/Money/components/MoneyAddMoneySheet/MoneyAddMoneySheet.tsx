@@ -29,7 +29,10 @@ import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import Logger from '../../../../../util/Logger';
 import {
   useMoneyAccountDeposit,
   type InitiateDepositOptions,
@@ -67,6 +70,7 @@ const MoneyAddMoneySheet: React.FC = () => {
     tokenBalanceByChain,
   } = useMusdBalance();
   const { initiateDeposit } = useMoneyAccountDeposit();
+  const { goToBuy } = useRampNavigation();
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
   const transactions = useSelector(selectTransactions);
@@ -160,7 +164,34 @@ const MoneyAddMoneySheet: React.FC = () => {
     startDeposit({ autoSelectFiatPayment: true, intent: 'card' });
   }, [startDeposit, trackSurfaceClicked]);
 
+  const parsedMusdFiat = Number(fiatBalanceAggregated);
+  const hasParsedFiatBalance =
+    Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
+  const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
+
   const handleMoveMusd = useCallback(() => {
+    // With no mUSD anywhere there is nothing to move, so the row routes to
+    // Ramps to buy mUSD instead.
+    if (!hasMusdBalance) {
+      trackSurfaceClicked({
+        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_MUSD,
+        redirect_target: SCREEN_NAMES.RAMPS_BUY,
+      });
+
+      sheetRef.current?.onCloseBottomSheet(() => {
+        goToBuy({
+          assetId:
+            MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
+        }).catch((error) => {
+          Logger.error(
+            error as Error,
+            '[MoneyAddMoneySheet] Failed to open the Ramps buy flow for mUSD',
+          );
+        });
+      });
+      return;
+    }
+
     let sourceChainId: Hex = MUSD_CONVERSION_DEFAULT_CHAIN_ID;
     let bestBalance = new BigNumber(0);
     for (const [chainId, balance] of Object.entries(
@@ -185,12 +216,13 @@ const MoneyAddMoneySheet: React.FC = () => {
         chainId: sourceChainId,
       },
     });
-  }, [startDeposit, tokenBalanceByChain, trackSurfaceClicked]);
-
-  const parsedMusdFiat = Number(fiatBalanceAggregated);
-  const hasParsedFiatBalance =
-    Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
-  const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
+  }, [
+    goToBuy,
+    hasMusdBalance,
+    startDeposit,
+    tokenBalanceByChain,
+    trackSurfaceClicked,
+  ]);
 
   const moveMusdAmount = useMemo(
     () => moneyFormatUsd(new BigNumber(tokenBalanceAggregated)),
@@ -232,7 +264,6 @@ const MoneyAddMoneySheet: React.FC = () => {
       icon: IconName.Add,
       onPress: handleMoveMusd,
       testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
-      disabled: !hasMusdBalance,
     },
     {
       label: strings('money.add_money_sheet.bank_account'),
