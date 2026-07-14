@@ -929,6 +929,116 @@ describe('usePerpsClosePosition', () => {
         });
       });
 
+      describe('failure toasts on a rejected promise (catch path)', () => {
+        it('shows the market full-close failure toast when the promise rejects', async () => {
+          mockClosePosition.mockRejectedValue(new Error('network error'));
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                orderType: 'market',
+              }),
+            ).rejects.toThrow();
+          });
+
+          expect(mockShowToast).toHaveBeenCalledWith(
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .full.closeFullPositionFailed,
+          );
+        });
+
+        it('shows the market partial-close failure toast when the promise rejects', async () => {
+          mockClosePosition.mockRejectedValue(new Error('network error'));
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                size: '0.05',
+                orderType: 'market',
+              }),
+            ).rejects.toThrow();
+          });
+
+          expect(mockShowToast).toHaveBeenCalledWith(
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .partial.closePartialPositionFailed,
+          );
+        });
+
+        it('shows the limit full-close failure toast when the promise rejects', async () => {
+          mockClosePosition.mockRejectedValue(new Error('network error'));
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                orderType: 'limit',
+                limitPrice: '51000',
+              }),
+            ).rejects.toThrow();
+          });
+
+          expect(mockShowToast).toHaveBeenCalledWith(
+            mockPerpsToastOptions.positionManagement.closePosition.limitClose
+              .full.fullPositionCloseFailed,
+          );
+        });
+
+        it('shows the limit partial-close failure toast when the promise rejects', async () => {
+          mockClosePosition.mockRejectedValue(new Error('network error'));
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                size: '0.05',
+                orderType: 'limit',
+                limitPrice: '51000',
+              }),
+            ).rejects.toThrow();
+          });
+
+          expect(mockShowToast).toHaveBeenCalledWith(
+            mockPerpsToastOptions.positionManagement.closePosition.limitClose
+              .partial.partialPositionCloseFailed,
+          );
+        });
+
+        it('does not double-show the failure toast for a returned failure result', async () => {
+          // A { success: false } result shows the failure toast then throws; the
+          // catch must not show it a second time. Submission + one failure = 2.
+          mockClosePosition.mockResolvedValue({
+            success: false,
+            error: 'limit_order_failed',
+          });
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                size: '0.05',
+                orderType: 'limit',
+                limitPrice: '51000',
+              }),
+            ).rejects.toThrow();
+          });
+
+          expect(mockShowToast).toHaveBeenCalledTimes(2);
+        });
+      });
+
       describe('toast sequence verification', () => {
         it('should show toasts in correct order for successful market close', async () => {
           const successResult: OrderResult = {
