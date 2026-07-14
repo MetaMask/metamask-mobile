@@ -93,15 +93,19 @@ export function useNoPayTokenQuotesAlert() {
     hasPositiveRequiredAmount;
 
   // Withdraws with token selection enabled must have the pay config
-  // (isPostQuote) and a destination token set on the controller before
-  // confirming. Blocks the timing races where initialisation never
-  // completed, so no quotes were fetched and the transaction previously
-  // submitted without the conversion.
+  // (isPostQuote) set on the controller before confirming. Blocks the
+  // timing race where initialisation (e.g. Predict account state) never
+  // completed. A destination token is not required here: withdraws with no
+  // preferred or last-used token intentionally leave payToken unset and
+  // default to a direct, same-token transfer (see getBestToken). That case
+  // is safe and is not the race this alert guards against; the actual
+  // conversion-pending case is covered by shouldShowPostQuoteNoQuotesAlert
+  // above, which does require payToken.
   const shouldShowWithdrawNotInitialisedAlert =
     canSelectWithdrawToken &&
     !isQuotesLoading &&
     hasPositiveRequiredAmount &&
-    (!payToken || !isPostQuote);
+    !isPostQuote;
 
   // Pay-type deposits and conversions must have a payment token set on the
   // controller (or a fiat payment method selected) before confirming. Blocks

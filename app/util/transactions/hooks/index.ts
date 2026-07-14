@@ -283,13 +283,16 @@ function validateRequiredQuote(
 
   // Quotes can be empty for a direct route in the window before the
   // controller stores the no-op quote. Allow that only when the pay config
-  // and destination token are set and no conversion is pending, so a withdraw
-  // that lost its quotes or was never initialised cannot submit without the
+  // is set and no conversion is pending. A destination token is not
+  // required: withdraws with no preferred or last-used token intentionally
+  // leave paymentToken unset and default to a direct, same-token transfer
+  // (see getBestToken in useAutomaticTransactionPayToken), which never
+  // populates sourceAmounts either. A withdraw that lost its quotes or
+  // never initialised isPostQuote still cannot submit without the
   // conversion.
   const isValidatedDirectRoute =
     !isQuoteRequiredType &&
     data?.isPostQuote === true &&
-    Boolean(data.paymentToken) &&
     !data.sourceAmounts?.length;
 
   if (isValidatedDirectRoute) {

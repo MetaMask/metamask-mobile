@@ -448,22 +448,25 @@ describe('useNoPayTokenQuotesAlert', () => {
       ]);
     });
 
-    it('returns alert when the destination token is not set', () => {
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: undefined,
-      } as ReturnType<typeof useTransactionPayToken>);
-
-      const { result } = runHook();
-
-      expect(result.current).toEqual([BLOCKING_ALERT]);
-    });
-
     it('returns alert when the pay config is not initialised', () => {
       useTransactionPayIsPostQuoteMock.mockReturnValue(false);
 
       const { result } = runHook();
 
       expect(result.current).toEqual([BLOCKING_ALERT]);
+    });
+
+    it('returns no alerts once the pay config is initialised, even with no destination token set', () => {
+      // Withdraws with no preferred or last-used token intentionally leave
+      // payToken unset and default to a direct, same-token transfer.
+      useTransactionPayIsPostQuoteMock.mockReturnValue(true);
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
     });
 
     it('returns no alerts when the destination token and pay config are set', () => {

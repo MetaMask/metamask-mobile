@@ -612,6 +612,24 @@ describe('getTransactionControllerHooks', () => {
       expect(result).toStrictEqual({ transactionHash: undefined });
     });
 
+    it('does not throw for predict withdraw with no preferred or last-used token and no pending conversion', async () => {
+      // Withdraws with no preferred or last-used token intentionally leave
+      // paymentToken unset and default to a direct, same-token transfer
+      // (see getBestToken in useAutomaticTransactionPayToken).
+      const hooks = getTransactionControllerHooks(
+        buildPayStateRequest({
+          isPostQuote: true,
+          paymentToken: undefined,
+          quotes: [],
+          sourceAmounts: [],
+        }),
+      );
+
+      const result = await hooks.publish?.(PREDICT_WITHDRAW_TX);
+
+      expect(result).toStrictEqual({ transactionHash: undefined });
+    });
+
     it('does not throw for predict withdraw when an executable quote is in state', async () => {
       const hooks = getTransactionControllerHooks(
         buildPayStateRequest({
