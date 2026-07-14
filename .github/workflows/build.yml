@@ -131,13 +131,13 @@ jobs:
         with:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         if: ${{ inputs.runner_provider != 'namespace' }}
         with:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
@@ -214,7 +214,7 @@ jobs:
         with:
           ref: ${{ inputs.source_branch }}
           submodules: recursive
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         if: ${{ inputs.runner_provider != 'namespace' }}
         with:
           ref: ${{ inputs.source_branch }}
@@ -242,7 +242,7 @@ jobs:
 
       # Node first so we can download/extract/verify; no yarn install here.
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 
@@ -258,7 +258,7 @@ jobs:
 
       - name: Restore node_modules cache
         if: ${{ needs.prepare.outputs.should_cache == 'true' }}
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             node_modules
@@ -271,7 +271,7 @@ jobs:
       # All other branches: download tarball artifact from setup-dependencies job.
       - name: Download node_modules tarball
         if: ${{ needs.prepare.outputs.should_cache != 'true' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
 
@@ -422,7 +422,7 @@ jobs:
 
       - name: Setup Java
         if: matrix.platform == 'android'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -532,7 +532,7 @@ jobs:
           env.CONFIGURATION != 'Debug' &&
           env.METAMASK_BUILD_TYPE == 'main' &&
           env.METAMASK_ENVIRONMENT == 'production'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ runner.temp }}/bundletool-all.jar
           key: bundletool-1.18.3-jar
@@ -554,7 +554,7 @@ jobs:
           inputs.build_name == 'main-rc' &&
           env.CONFIGURATION != 'Debug' &&
           env.METAMASK_BUILD_TYPE == 'main'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-play-store-check-slack
           path: android-play-store-check-slack.md
@@ -570,7 +570,7 @@ jobs:
       # Upload build artifacts (only if build succeeded)
       - name: Upload iOS simulator app
         if: matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-app-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_simulator_path }}
@@ -578,7 +578,7 @@ jobs:
 
       - name: Upload iOS IPA
         if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-ipa-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_ipa_path }}
@@ -586,7 +586,7 @@ jobs:
 
       - name: Upload iOS xcarchive
         if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-xcarchive-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_archive_path }}
@@ -594,7 +594,7 @@ jobs:
 
       - name: Upload iOS sourcemap
         if: matrix.platform == 'ios' && (env.IS_SIM_BUILD != 'true' || env.IS_DEVICE_BUILD == 'true')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-sourcemaps-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_sourcemap_path }}
@@ -603,7 +603,7 @@ jobs:
       # Dev builds (CONFIGURATION=Debug): APK + test APK (for E2E)
       - name: Upload Android APK (dev)
         if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-apk-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_apk_path }}
@@ -611,7 +611,7 @@ jobs:
 
       - name: Upload Android test APK (dev)
         if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug' && steps.rename.outputs.android_test_apk_path != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-test-apk-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_test_apk_path }}
@@ -620,7 +620,7 @@ jobs:
       # Release builds: APK and AAB as separate artifacts
       - name: Upload Android APK (release)
         if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-apk-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_apk_path }}
@@ -632,7 +632,7 @@ jobs:
           env.CONFIGURATION != 'Debug' &&
           env.METAMASK_ENVIRONMENT == 'production' &&
           steps.rename.outputs.android_aab_path != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-aab-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_aab_path }}
@@ -640,7 +640,7 @@ jobs:
 
       - name: Upload Android sourcemaps
         if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-sourcemaps-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_sourcemap_dir }}
@@ -648,7 +648,7 @@ jobs:
 
       - name: Upload build environment JSON
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-env-${{ inputs.build_name }}-${{ matrix.platform }}
           path: build-env.json
@@ -672,7 +672,7 @@ jobs:
         with:
           fetch-depth: 1
           ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         if: ${{ inputs.runner_provider != 'namespace' }}
         with:
           fetch-depth: 1
@@ -693,7 +693,7 @@ jobs:
         run: ./scripts/set-build-version.sh "$BUILD_NUMBER"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 

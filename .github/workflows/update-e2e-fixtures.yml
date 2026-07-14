@@ -49,7 +49,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Get PR details
         id: pr
@@ -90,7 +90,7 @@ jobs:
       IS_FORK: ${{ steps.is-fork.outputs.IS_FORK }}
       PR_NUMBER: ${{ inputs.pr_number }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Determine whether this PR is from a fork
         id: is-fork
@@ -111,7 +111,7 @@ jobs:
       PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
       RUN_ID: ${{ steps.validate-ci.outputs.RUN_ID }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Checkout pull request
         run: gh pr checkout "${PR_NUMBER}"
@@ -208,12 +208,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.prepare.outputs.BRANCH }}
 
       - name: Restore .metamask folder (Foundry download cache for install:foundryup)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -257,7 +257,7 @@ jobs:
           PREBUILT_IOS_APP_PATH: artifacts/main-e2e-MetaMask.app
 
       - name: Cache updated fixture
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: tests/framework/fixtures/json/default-fixture.json
           key: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
@@ -276,7 +276,7 @@ jobs:
     if: ${{ !cancelled() && needs.update-fixtures.result == 'success' && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Checkout pull request
         run: gh pr checkout "${PR_NUMBER}"
@@ -285,7 +285,7 @@ jobs:
           PR_NUMBER: ${{ needs.prepare.outputs.PR_NUMBER }}
 
       - name: Restore updated fixture
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: tests/framework/fixtures/json/default-fixture.json
           key: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
@@ -302,7 +302,7 @@ jobs:
 
       - name: Set up Node.js
         if: steps.fixture-changes.outputs.HAS_CHANGES == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: yarn
@@ -372,7 +372,7 @@ jobs:
       - is-fork-pull-request
       - check-status
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Post comment if the update failed
         run: |

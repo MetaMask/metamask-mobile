@@ -46,7 +46,7 @@ jobs:
     name: Post Slack Notification
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.source_branch }}
           fetch-depth: 0
@@ -54,12 +54,12 @@ jobs:
       - name: Download Android Play Store check report (optional)
         id: download-play-store-check
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: android-play-store-check-slack
           path: android-play-store-check-out
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn

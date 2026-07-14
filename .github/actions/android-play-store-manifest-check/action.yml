@@ -16,7 +16,7 @@ runs:
     # Third-party actions such as android-actions/setup-android are not allowlisted for this org;
     # install SDK components with Google's cmdline-tools + sdkmanager (same packages as android/build.gradle).
     - name: Cache Gradle
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.gradle/caches
@@ -27,7 +27,7 @@ runs:
 
     - name: Cache Android SDK
       id: android-sdk-cache
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/android-sdk
         key: ${{ runner.os }}-android-sdk-manifest-v2-cmd11076708-api35-ndk26.1-cmake322
@@ -82,7 +82,7 @@ runs:
 
     - name: Restore .metamask folder
       id: restore-metamask
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: .metamask
         key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -121,7 +121,7 @@ runs:
 
     - name: Cache bundletool
       id: bundletool-cache
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ${{ runner.temp }}/bundletool-all.jar
         key: bundletool-1.18.3-jar

@@ -44,13 +44,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.head_ref || github.ref }}
           clean: true
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '24.16.0'
           cache: 'yarn'
@@ -170,7 +170,7 @@ jobs:
 
       - name: Upload API specs test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: api-specs-test-results
           path: tests/reports/
@@ -178,7 +178,7 @@ jobs:
 
       - name: Upload API specs screenshots
         if: failure() || cancelled()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: api-specs-screenshots
           path: tests/artifacts/

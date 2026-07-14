@@ -221,7 +221,7 @@ jobs:
         id: download-reusable-metadata
         if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
           path: .e2e-reusable-metadata/android
@@ -278,7 +278,7 @@ jobs:
         id: download-reusable-apk
         if: ${{ steps.validate-reusable-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
           path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
@@ -290,7 +290,7 @@ jobs:
         id: download-reusable-test-apk
         if: ${{ steps.validate-reusable-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
           path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
@@ -437,7 +437,7 @@ jobs:
       - name: Restore .metamask folder
         if: ${{ inputs.runner_provider != 'namespace' }}
         id: restore-metamask
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -683,7 +683,7 @@ jobs:
       - name: Upload Android APK (current)
         id: upload-apk
         if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release.apk
           path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
@@ -714,7 +714,7 @@ jobs:
       - name: Upload Android build metadata (current)
         id: upload-metadata
         if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
           path: .e2e-build-metadata/android.json
@@ -725,7 +725,7 @@ jobs:
       - name: Upload Android Test APK (current)
         id: upload-test-apk
         if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release-androidTest.apk
           path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk

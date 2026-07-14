@@ -259,7 +259,7 @@ jobs:
           pattern: 'test-e2e-main-*-android-*'
       - name: Download shards test artifacts (XMLs + Screenshots) (current)
         if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         continue-on-error: true
         with:
           path: all-test-artifacts/
@@ -284,7 +284,7 @@ jobs:
           retention-days: 7
       - name: Upload all test artifacts (XMLs + Screenshots) (current)
         if: ${{ inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-smoke-android-all-test-artifacts
           path: all-test-artifacts/
@@ -319,7 +319,7 @@ jobs:
           retention-days: 7
       - name: Upload JSON test report (current)
         if: ${{ steps.create-json-report.outcome == 'success' && inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-e2e-android-json-report
           path: test/test-results/test-runs-android.json

@@ -177,7 +177,7 @@ jobs:
 
       - name: Restore .metamask folder
         if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -249,13 +249,13 @@ jobs:
           path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
       - name: Download Android app APK (current)
         if: ${{ inputs.platform == 'android' && inputs.runner_provider != 'namespace' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
           path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
       - name: Download Android test APK (current)
         if: ${{ inputs.platform == 'android' && inputs.runner_provider != 'namespace' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
           path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
@@ -285,7 +285,7 @@ jobs:
           path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
       - name: Download iOS build artifacts (current)
         if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
@@ -348,7 +348,7 @@ jobs:
         if: ${{ github.run_attempt > 1 && inputs.runner_provider != 'namespace' }}
         id: download-previous-results-current
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: test-e2e-${{ inputs.artifact_name_prefix }}${{ inputs.test-suite-name }}-junit-results
           path: ./previous-test-results/
@@ -378,7 +378,7 @@ jobs:
         if: ${{ inputs.runner_provider != 'namespace' }}
         id: download-frozen-timings-current
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: e2e-timings-${{ github.run_id }}
           path: ./e2e-timings/
@@ -438,7 +438,7 @@ jobs:
           retention-days: 7
       - name: Upload JUnit XML results (current)
         if: ${{ always() && inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-e2e-${{ inputs.artifact_name_prefix }}${{ inputs.test-suite-name }}-junit-results
           path: tests/reports/
@@ -453,7 +453,7 @@ jobs:
           retention-days: 7
       - name: Upload Screenshots (current)
         if: ${{ failure() && inputs.runner_provider != 'namespace' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-e2e-${{ inputs.artifact_name_prefix }}${{ inputs.test-suite-name }}-screenshots
           path: tests/artifacts/
