@@ -741,24 +741,7 @@ describe('Perps Feature Flag Selectors', () => {
     });
 
     describe('default behavior (disabled by default)', () => {
-      it('returns false when remote flag is not set and local env var is not set', () => {
-        delete process.env.MM_PERPS_CLOSE_POSITION_LIMIT_ORDER_ENABLED;
-        const result = selectPerpsClosePositionLimitOrderEnabledFlag(
-          createEmptyFlagsState(),
-        );
-        expect(result).toBe(false);
-      });
-
-      it('returns true when local env var is explicitly true', () => {
-        process.env.MM_PERPS_CLOSE_POSITION_LIMIT_ORDER_ENABLED = 'true';
-        const result = selectPerpsClosePositionLimitOrderEnabledFlag(
-          createEmptyFlagsState(),
-        );
-        expect(result).toBe(true);
-      });
-
-      it('returns false when local env var is explicitly false', () => {
-        process.env.MM_PERPS_CLOSE_POSITION_LIMIT_ORDER_ENABLED = 'false';
+      it('returns false when remote flag is not set', () => {
         const result = selectPerpsClosePositionLimitOrderEnabledFlag(
           createEmptyFlagsState(),
         );
@@ -766,10 +749,9 @@ describe('Perps Feature Flag Selectors', () => {
       });
     });
 
-    describe('hybrid flag behavior', () => {
+    describe('remote flag behavior', () => {
       it('uses remote flag when valid and enabled', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(true);
-        process.env.MM_PERPS_CLOSE_POSITION_LIMIT_ORDER_ENABLED = 'false';
 
         const stateWithEnabledRemoteFlag = {
           engine: {
@@ -795,7 +777,6 @@ describe('Perps Feature Flag Selectors', () => {
 
       it('uses remote flag when valid but disabled', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(true);
-        process.env.MM_PERPS_CLOSE_POSITION_LIMIT_ORDER_ENABLED = 'true';
 
         const stateWithDisabledRemoteFlag = {
           engine: {
@@ -819,9 +800,8 @@ describe('Perps Feature Flag Selectors', () => {
         expect(result).toBe(false);
       });
 
-      it('uses remote flag (false) when enabled but version check fails', () => {
+      it('returns false when enabled but version check fails', () => {
         mockHasMinimumRequiredVersion.mockReturnValue(false);
-        process.env.MM_PERPS_CLOSE_POSITION_LIMIT_ORDER_ENABLED = 'true';
 
         const stateWithVersionCheckFailure = {
           engine: {
@@ -845,9 +825,7 @@ describe('Perps Feature Flag Selectors', () => {
         expect(result).toBe(false);
       });
 
-      it('falls back to local flag (false by default) when remote flag is invalid', () => {
-        delete process.env.MM_PERPS_CLOSE_POSITION_LIMIT_ORDER_ENABLED;
-
+      it('returns false when remote flag is invalid', () => {
         const stateWithInvalidRemoteFlag = {
           engine: {
             backgroundState: {
@@ -870,9 +848,7 @@ describe('Perps Feature Flag Selectors', () => {
         expect(result).toBe(false);
       });
 
-      it('falls back to local flag when RemoteFeatureFlagController is undefined', () => {
-        delete process.env.MM_PERPS_CLOSE_POSITION_LIMIT_ORDER_ENABLED;
-
+      it('returns false when RemoteFeatureFlagController is undefined', () => {
         const stateWithUndefinedController = {
           engine: {
             backgroundState: {
