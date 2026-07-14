@@ -251,6 +251,15 @@ const PerpsClosePositionView: React.FC = () => {
     return priceDiff * absSize;
   }, [entryPrice, absSize, isLong, orderType, limitPrice, currentPrice, pnl]); // Exclude effectivePrice from deps
 
+  // Margin returned on close, adjusted for the price the order will settle at.
+  // marginUsed embeds unrealized PnL at the current mark price, so for limit
+  // orders we swap that current-price PnL for the limit-price PnL (effectivePnL).
+  // For market orders effectivePnL equals unrealizedPnl, so this is a no-op.
+  const effectiveMargin = useMemo(
+    () => marginUsed - unrealizedPnl + effectivePnL,
+    [marginUsed, unrealizedPnl, effectivePnL],
+  );
+
   // Calculate fees using the unified fee hook
   const closingValue = useMemo(
     () => positionValue * (closePercentage / 100),
@@ -296,13 +305,13 @@ const PerpsClosePositionView: React.FC = () => {
   // Round each component separately to match what user sees in UI
   // This ensures: displayed margin - displayed fees = displayed receive amount
   const receiveAmount = useMemo(() => {
-    const marginPortion = (closePercentage / 100) * marginUsed;
+    const marginPortion = (closePercentage / 100) * effectiveMargin;
     // Round margin and fees to 2 decimals (what user sees)
     const roundedMargin = Math.round(marginPortion * 100) / 100;
     const roundedFees = Math.round(feeResults.totalFee * 100) / 100;
     // Subtract rounded values for transparent calculation
     return roundedMargin - roundedFees;
-  }, [closePercentage, marginUsed, feeResults.totalFee]);
+  }, [closePercentage, effectiveMargin, feeResults.totalFee]);
 
   // Get minimum order amount for this asset
   const { minimumOrderAmount } = useMinimumOrderAmount({
@@ -553,7 +562,7 @@ const PerpsClosePositionView: React.FC = () => {
 
   const Summary = (
     <PerpsCloseSummary
-      totalMargin={(closePercentage / 100) * marginUsed}
+      totalMargin={(closePercentage / 100) * effectiveMargin}
       totalPnl={effectivePnL * (closePercentage / 100)}
       totalFees={feeResults.totalFee}
       originalTotalFees={feeResults.undiscountedTotalFee}

@@ -1212,7 +1212,8 @@ describe('PerpsClosePositionView', () => {
           const [closePercentage] = React.useState(100);
 
           const entryPrice = parseFloat(mockPosition.entryPrice);
-          const initialMargin = parseFloat(mockPosition.marginUsed);
+          const marginUsed = parseFloat(mockPosition.marginUsed);
+          const unrealizedPnl = parseFloat(mockPosition.unrealizedPnl);
           const absSize = Math.abs(parseFloat(mockPosition.size));
           const isLong = parseFloat(mockPosition.size) > 0;
 
@@ -1228,8 +1229,9 @@ describe('PerpsClosePositionView', () => {
             : entryPrice - effectivePrice;
           const effectivePnL = priceDiff * absSize;
 
-          // Calculate effective margin
-          const effectiveMargin = initialMargin + effectivePnL;
+          // marginUsed embeds P&L at the current mark price, so swap that
+          // current-price P&L for the limit-price P&L (mirrors the component).
+          const effectiveMargin = marginUsed - unrealizedPnl + effectivePnL;
 
           // Calculate receive amount
           const receiveAmount =
@@ -1251,11 +1253,11 @@ describe('PerpsClosePositionView', () => {
         // Effective P&L at limit price: (130 - 100) * 2 = 60
         expect(getByTestId('effective-pnl').props.children).toBe(60);
 
-        // Effective margin: 200 + 60 = 260
-        expect(getByTestId('effective-margin').props.children).toBe(260);
+        // Effective margin: 200 - 40 (current P&L) + 60 (limit P&L) = 220
+        expect(getByTestId('effective-margin').props.children).toBe(220);
 
-        // Receive amount: 260 - 26 = 234
-        expect(getByTestId('receive-amount').props.children).toBe(234);
+        // Receive amount: 220 - 26 = 194
+        expect(getByTestId('receive-amount').props.children).toBe(194);
       });
 
       it('calculates position value using limit price for fee calculations', () => {
