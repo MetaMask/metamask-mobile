@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- Fixed confirmation tooltip bottom sheet surface mismatch in Pure Black theme (#TBD)
-
 ## [8.1.1]
 
 ### Fixed
