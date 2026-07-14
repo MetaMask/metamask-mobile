@@ -57,33 +57,137 @@ describe('Metamask Pay Metrics', () => {
     };
   });
 
-  it('returns nothing if perps_deposit', () => {
+  it('derives baseline properties if perps_deposit without metamaskPay', () => {
     request.transactionMeta.type = TransactionType.perpsDeposit;
 
     const result = getMetaMaskPayProperties(request);
 
     expect(result).toStrictEqual({
-      properties: {},
+      properties: {
+        mm_pay: true,
+        mm_pay_payment_method_selected: 'crypto',
+        mm_pay_use_case: 'perps_deposit',
+      },
       sensitiveProperties: {},
     });
   });
 
-  it('returns nothing if predict_withdraw', () => {
+  it('derives baseline properties if predict_withdraw without metamaskPay', () => {
     request.transactionMeta.type = TransactionType.predictWithdraw;
 
     const result = getMetaMaskPayProperties(request);
 
     expect(result).toStrictEqual({
-      properties: {},
+      properties: {
+        mm_pay: true,
+        mm_pay_payment_method_selected: 'crypto',
+        mm_pay_use_case: 'predict_withdraw',
+      },
       sensitiveProperties: {},
     });
   });
 
   it.each([
-    TransactionType.moneyAccountDeposit,
-    TransactionType.moneyAccountWithdraw,
-  ])('returns nothing if %s without controller state', (type) => {
-    request.transactionMeta.type = type;
+    [TransactionType.moneyAccountDeposit, 'money_account_deposit'],
+    [TransactionType.moneyAccountWithdraw, 'money_account_withdraw'],
+  ])(
+    'derives baseline properties if %s without metamaskPay',
+    (type, expectedUseCase) => {
+      request.transactionMeta.type = type;
+
+      const result = getMetaMaskPayProperties(request);
+
+      expect(result).toStrictEqual({
+        properties: {
+          mm_pay: true,
+          mm_pay_payment_method_selected: 'crypto',
+          mm_pay_use_case: expectedUseCase,
+        },
+        sensitiveProperties: {},
+      });
+    },
+  );
+
+  it('includes chain_selected in baseline when metamaskPay has chainId but no tokenAddress', () => {
+    request.transactionMeta.type = TransactionType.moneyAccountDeposit;
+    request.transactionMeta.metamaskPay = { chainId: '0x1' } as never;
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: {
+        mm_pay: true,
+        mm_pay_chain_selected: '0x1',
+        mm_pay_payment_method_selected: 'crypto',
+        mm_pay_use_case: 'money_account_deposit',
+      },
+      sensitiveProperties: {},
+    });
+  });
+
+  it('includes token_selected in baseline when controller state has paymentToken', () => {
+    request.transactionMeta.type = TransactionType.moneyAccountDeposit;
+
+    getStateMock.mockReturnValue({
+      engine: {
+        backgroundState: {
+          TransactionPayController: {
+            transactionData: {
+              'child-1': {
+                paymentToken: { symbol: 'USDC', chainId: '0x1' },
+              },
+            },
+          },
+        },
+      },
+    } as never);
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: {
+        mm_pay: true,
+        mm_pay_payment_method_selected: 'crypto',
+        mm_pay_token_selected: 'USDC',
+        mm_pay_use_case: 'money_account_deposit',
+      },
+      sensitiveProperties: {},
+    });
+  });
+
+  it('derives fiat payment method in baseline from controller state', () => {
+    request.transactionMeta.type = TransactionType.moneyAccountDeposit;
+
+    getStateMock.mockReturnValue({
+      engine: {
+        backgroundState: {
+          TransactionPayController: {
+            transactionData: {
+              'child-1': {
+                fiatPayment: {
+                  selectedPaymentMethodId: '/payments/debit-credit-card',
+                },
+              },
+            },
+          },
+        },
+      },
+    } as never);
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: {
+        mm_pay: true,
+        mm_pay_payment_method_selected: 'debit_credit_card',
+        mm_pay_use_case: 'money_account_deposit',
+      },
+      sensitiveProperties: {},
+    });
+  });
+
+  it('does not derive baseline for non-PAY_TYPE without metamaskPay', () => {
+    request.transactionMeta.type = TransactionType.simpleSend;
 
     const result = getMetaMaskPayProperties(request);
 
@@ -394,6 +498,9 @@ describe('Metamask Pay Metrics', () => {
 
     expect(result).toStrictEqual({
       properties: {
+        mm_pay: true,
+        mm_pay_payment_method_selected: 'crypto',
+        mm_pay_use_case: 'predict_deposit',
         polymarket_account_created: true,
       },
       sensitiveProperties: {},
@@ -410,6 +517,9 @@ describe('Metamask Pay Metrics', () => {
 
     expect(result).toStrictEqual({
       properties: {
+        mm_pay: true,
+        mm_pay_payment_method_selected: 'crypto',
+        mm_pay_use_case: 'predict_deposit',
         polymarket_account_created: false,
       },
       sensitiveProperties: {},
@@ -426,6 +536,9 @@ describe('Metamask Pay Metrics', () => {
 
     expect(result).toStrictEqual({
       properties: {
+        mm_pay: true,
+        mm_pay_payment_method_selected: 'crypto',
+        mm_pay_use_case: 'predict_deposit_and_order',
         polymarket_account_created: true,
       },
       sensitiveProperties: {},
@@ -442,6 +555,9 @@ describe('Metamask Pay Metrics', () => {
 
     expect(result).toStrictEqual({
       properties: {
+        mm_pay: true,
+        mm_pay_payment_method_selected: 'crypto',
+        mm_pay_use_case: 'predict_deposit_and_order',
         polymarket_account_created: false,
       },
       sensitiveProperties: {},

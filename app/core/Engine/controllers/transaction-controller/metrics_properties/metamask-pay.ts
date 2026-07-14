@@ -181,11 +181,14 @@ function addPayTypeProperties(
 ) {
   const { metamaskPay, id: transactionId } = transaction;
 
-  if (
-    !metamaskPay?.chainId ||
-    !metamaskPay?.tokenAddress ||
-    properties.mm_pay
-  ) {
+  if (properties.mm_pay) {
+    return;
+  }
+
+  if (!metamaskPay?.chainId || !metamaskPay?.tokenAddress) {
+    if (hasTransactionType(transaction, PAY_TYPES)) {
+      addPayTypeBaselineProperties(properties, transaction, state);
+    }
     return;
   }
 
@@ -280,6 +283,48 @@ function addPayTypeProperties(
     if (fiatChainTarget) {
       properties.mm_pay_fiat_chain_target = fiatChainTarget;
     }
+  }
+}
+
+/**
+ * Sets baseline mm_pay_* properties for PAY_TYPE transactions when
+ * metamaskPay metadata is incomplete (e.g. early failures before token
+ * selection). Derives what it can from the transaction type and
+ * TransactionPayController state without requiring chainId/tokenAddress.
+ */
+function addPayTypeBaselineProperties(
+  properties: JsonMap,
+  transaction: TransactionMeta,
+  state: RootState,
+) {
+  properties.mm_pay = true;
+  properties.mm_pay_payment_method_selected = 'crypto';
+
+  if (transaction.metamaskPay?.chainId) {
+    properties.mm_pay_chain_selected = transaction.metamaskPay.chainId;
+  }
+
+  for (const [types, useCase] of USE_CASE_MAP) {
+    if (hasTransactionType(transaction, types)) {
+      properties.mm_pay_use_case = useCase;
+      break;
+    }
+  }
+
+  const txPayData =
+    state?.engine?.backgroundState?.TransactionPayController?.transactionData?.[
+      transaction.id
+    ];
+
+  if (txPayData?.paymentToken?.symbol) {
+    properties.mm_pay_token_selected = txPayData.paymentToken.symbol;
+  }
+
+  if (txPayData?.fiatPayment?.selectedPaymentMethodId) {
+    properties.mm_pay_payment_method_selected =
+      normalizeMetaMaskPayPaymentMethod(
+        txPayData.fiatPayment.selectedPaymentMethodId,
+      );
   }
 }
 
