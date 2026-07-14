@@ -1,7 +1,13 @@
 import React, { useRef } from 'react';
 import { fontStyles } from '../../../../../../styles/common';
 import { strings } from '../../../../../../../locales/i18n';
-import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
+import {
+  Modal,
+  StyleSheet,
+  View,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native';
 import Text from '../../../../../Base/Text';
 import StyledButton from '../../../../../UI/StyledButton';
 import PropTypes from 'prop-types';
@@ -128,12 +134,19 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
   const displayWarning = String(proposedNonce) !== String(nonce);
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      onClose={close}
-      twClassName={surfaceClass}
-      testID="custom-nonce-modal"
+    <Modal
+      visible
+      transparent
+      animationType="none"
+      statusBarTranslucent
+      onRequestClose={handleClose}
     >
+      <BottomSheet
+        ref={bottomSheetRef}
+        onClose={close}
+        twClassName={surfaceClass}
+        testID="custom-nonce-modal"
+      >
       <View style={styles.modalContainer}>
         <Text bold centered style={styles.title}>
           {strings('transaction.edit_transaction_nonce')}
@@ -228,7 +241,8 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
           {strings('transaction.save')}
         </StyledButton>
       </View>
-    </BottomSheet>
+      </BottomSheet>
+    </Modal>
   );
 };
 

@@ -9,7 +9,18 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { View } = jest.requireActual('react-native');
 
   const MockBottomSheet = ReactActual.forwardRef(
-    ({ children, onClose, testID }, ref) => {
+    (
+      {
+        children,
+        onClose,
+        testID,
+      }: {
+        children: React.ReactNode;
+        onClose?: () => void;
+        testID?: string;
+      },
+      ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+    ) => {
       ReactActual.useImperativeHandle(ref, () => ({
         onCloseBottomSheet: () => {
           onClose?.();
