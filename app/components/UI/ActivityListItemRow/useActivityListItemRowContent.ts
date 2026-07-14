@@ -25,8 +25,10 @@ import {
   applyDisplaySign,
   type ActivityKind,
   type ActivityListItem,
+  enrichTokenFromApi,
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
+  isFailedOrCancelledTransfer,
   isUnlimitedApprovalAmount,
   shouldShowPlusSign,
   type TokenAmount,
@@ -54,12 +56,23 @@ function isPerpsFundingKind(type: ActivityKind): boolean {
   return type === 'perpsPaidFundingFees' || type === 'perpsReceivedFundingFees';
 }
 
+/**
+ * Perps trade fills, whose amount is realized PnL (gains green, losses red).
+ * Excludes orders, funds, and funding — they show a notional and stay neutral.
+ */
+function isPerpsPnlKind(type: ActivityKind): boolean {
+  return (
+    type.startsWith('perps') &&
+    !isPerpsFundsKind(type) &&
+    !isPerpsFundingKind(type)
+  );
+}
+
 function isPerpsTradeKind(type: ActivityKind): boolean {
   return (
-    (type.startsWith('perps') &&
-      !isPerpsFundsKind(type) &&
-      !isPerpsFundingKind(type)) ||
+    isPerpsPnlKind(type) ||
     type.startsWith('market') ||
+    type.startsWith('limit') ||
     type.startsWith('stopMarket')
   );
 }
@@ -276,10 +289,10 @@ function withDomainStatusSuffix(
   status: ActivityListItem['status'],
 ): string {
   if (status === 'failed') {
-    return `${title}—${strings('transaction.failed')}`;
+    return `${title} — ${strings('transaction.failed')}`;
   }
   if (status === 'cancelled') {
-    return `${title}—${strings('transaction.canceled')}`;
+    return `${title} — ${strings('transaction.canceled')}`;
   }
   return title;
 }
@@ -465,6 +478,8 @@ function resolveCoreContent(
       const pendingLabel = item.type === 'receive' ? 'Receiving' : 'Sending';
       const failedLabel =
         item.type === 'receive' ? 'Receive failed' : 'Send failed';
+      const cancelledLabel =
+        item.type === 'receive' ? 'Receive cancelled' : 'Send cancelled';
       const subtitlePrefix = item.type === 'receive' ? 'From' : 'To';
 
       return {
@@ -472,6 +487,7 @@ function resolveCoreContent(
           success: withOptionalSymbol(label, symbol),
           pending: withOptionalSymbol(pendingLabel, symbol),
           failed: failedLabel,
+          cancelled: cancelledLabel,
         }),
         subtitle: `${subtitlePrefix}: ${shortAddress(address) ?? strings('transactions.unavailable')}`,
         primaryToken: token,
@@ -1120,17 +1136,45 @@ export function useActivityListItemRowContent(
         )
       : undefined;
 
+  const isLending =
+    item.type === 'lendingDeposit' || item.type === 'lendingWithdrawal';
+  const lendingAssetIds: string[] = [];
+  if (isLending) {
+    if (
+      'destinationToken' in item.data &&
+      item.data.destinationToken?.assetId
+    ) {
+      lendingAssetIds.push(item.data.destinationToken.assetId);
+    }
+    if ('sourceToken' in item.data && item.data.sourceToken?.assetId) {
+      lendingAssetIds.push(item.data.sourceToken.assetId);
+    }
+  }
+  const lendingTokenData = useTokensData(lendingAssetIds);
+
   const content = resolveCoreContent(item, bridgeHistoryItem);
+
+  let basePrimaryToken: TokenAmount | undefined;
+  if (isSpendingCap) {
+    basePrimaryToken = spendingCapToken?.amount ? spendingCapToken : undefined;
+  } else if (isLending) {
+    basePrimaryToken = enrichTokenFromApi(
+      content.primaryToken,
+      lendingTokenData,
+    );
+  } else {
+    basePrimaryToken = content.primaryToken;
+  }
   const primaryToken = enrichStablecoinTokenMetadata(
-    isSpendingCap
-      ? spendingCapToken?.amount
-        ? spendingCapToken
-        : undefined
-      : content.primaryToken,
+    basePrimaryToken,
     networkChainId,
   );
+
+  const baseSecondaryToken = isLending
+    ? enrichTokenFromApi(content.secondaryToken, lendingTokenData)
+    : content.secondaryToken;
   const secondaryToken = enrichStablecoinTokenMetadata(
-    content.secondaryToken,
+    baseSecondaryToken,
     networkChainId,
   );
   const isPerpsFunding = isPerpsFundingKind(item.type);
@@ -1177,13 +1221,29 @@ export function useActivityListItemRowContent(
       })
     : undefined;
 
-  const primaryAmount =
+  const rawPrimaryAmount =
     domainFiatAmount ?? resolveAmount(primaryToken, item.type);
-  const secondaryAmount = domainFiatAmount
-    ? isFundsRow
-      ? fundsTokenSecondaryAmount(primaryToken)
-      : undefined
-    : (resolvedSecondaryAmount ?? secondaryFiatAmount ?? primaryFiatAmount);
+
+  const resolveRawSecondaryAmount = (): string | undefined => {
+    // USD-denominated (perps/predict) rows: the token line only makes sense for
+    // funds movements; other domain rows have no secondary line.
+    if (domainFiatAmount) {
+      return isFundsRow ? fundsTokenSecondaryAmount(primaryToken) : undefined;
+    }
+    // Non-domain rows: prefer the secondary token amount, then its fiat, then a
+    // primary fiat fallback.
+    return resolvedSecondaryAmount ?? secondaryFiatAmount ?? primaryFiatAmount;
+  };
+
+  // A failed or cancelled send/receive moved nothing, so the transfer amount
+  // (surfaced from the attempted/original tx) is misleading — suppress it here
+  // so every consumer of this resolver (the list row and the details amount
+  // header) stays consistent.
+  const suppressTransferAmount = isFailedOrCancelledTransfer(item);
+  const primaryAmount = suppressTransferAmount ? undefined : rawPrimaryAmount;
+  const secondaryAmount = suppressTransferAmount
+    ? undefined
+    : resolveRawSecondaryAmount();
 
   const perpsMarketSymbol = isPerpsMarketAvatarKind(item.type)
     ? 'sourceToken' in item.data
@@ -1194,17 +1254,24 @@ export function useActivityListItemRowContent(
     ? getPredictActivity(item)?.icon
     : undefined;
 
+  let avatarTokens: TokenAmount[];
+  if (isSpendingCap && spendingCapToken) {
+    avatarTokens = [spendingCapToken];
+  } else if (isLending && primaryToken) {
+    avatarTokens = [primaryToken];
+  } else {
+    avatarTokens = resolveAvatarTokens(item, bridgeHistoryItem);
+  }
+
   return {
     ...content,
-    avatarTokens:
-      isSpendingCap && spendingCapToken
-        ? [spendingCapToken]
-        : resolveAvatarTokens(item, bridgeHistoryItem),
+    avatarTokens,
     avatarIconUrl: predictIconUrl,
     perpsMarketSymbol,
     primaryToken,
     secondaryToken,
     primaryAmount,
     secondaryAmount,
+    isPnlAmount: isPerpsPnlKind(item.type),
   };
 }

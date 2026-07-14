@@ -1,20 +1,34 @@
 import { resolveCurrentPriceColor } from '../AdvancedChart.types';
 
-describe('resolveCurrentPriceColor', () => {
-  const themeSuccessDefault = 'theme-success-token';
+const themeSuccessDefault = 'theme-success';
 
-  it('prefers lastValuePillColor over currentPriceLineColorOverride and line color', () => {
-    expect(
-      resolveCurrentPriceColor({
-        lastValuePillColor: 'pill-color',
-        currentPriceLineColorOverride: 'current-color',
-        lineColorOverride: 'line-color',
-        themeSuccessDefault,
-      }),
-    ).toBe('pill-color');
+describe('resolveCurrentPriceColor', () => {
+  it('falls back to themeSuccessDefault when everything is omitted', () => {
+    expect(resolveCurrentPriceColor({ themeSuccessDefault })).toBe(
+      'theme-success',
+    );
   });
 
-  it('falls back to currentPriceLineColorOverride then line color', () => {
+  it('uses successColorOverride when lineColorOverride is unset', () => {
+    expect(
+      resolveCurrentPriceColor({
+        successColorOverride: 'success-color',
+        themeSuccessDefault,
+      }),
+    ).toBe('success-color');
+  });
+
+  it('prefers lineColorOverride over successColorOverride', () => {
+    expect(
+      resolveCurrentPriceColor({
+        lineColorOverride: 'line-color',
+        successColorOverride: 'success-color',
+        themeSuccessDefault,
+      }),
+    ).toBe('line-color');
+  });
+
+  it('prefers currentPriceLineColorOverride over line/success colors', () => {
     expect(
       resolveCurrentPriceColor({
         currentPriceLineColorOverride: 'current-color',
@@ -22,12 +36,17 @@ describe('resolveCurrentPriceColor', () => {
         themeSuccessDefault,
       }),
     ).toBe('current-color');
+  });
 
+  it('prefers lastValuePillColor over everything else', () => {
     expect(
       resolveCurrentPriceColor({
+        lastValuePillColor: 'pill-color',
+        currentPriceLineColorOverride: 'current-color',
         lineColorOverride: 'line-color',
+        successColorOverride: 'success-color',
         themeSuccessDefault,
       }),
-    ).toBe('line-color');
+    ).toBe('pill-color');
   });
 });

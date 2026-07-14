@@ -27,6 +27,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import {
@@ -34,8 +35,8 @@ import {
   type InitiateDepositOptions,
 } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
-import { useRegionHasNativeFiatProvider } from '../../hooks/useRegionHasNativeFiatProvider';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
+import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
+import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDepositAssetId';
 import { selectTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import MoneySheetOptionsList, {
@@ -59,7 +60,6 @@ const MoneyAddMoneySheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const surfaceClass = useElevatedSurface();
 
   const {
     fiatBalanceAggregated,
@@ -71,7 +71,10 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
   const transactions = useSelector(selectTransactions);
-  const regionHasNativeFiatProvider = useRegionHasNativeFiatProvider();
+  // Derive the deposit asset (CAIP-19) from the same vault config the deposit
+  // flow uses, so the entry gate checks the exact asset the deposit targets.
+  const depositAssetId = useMoneyAccountDepositAssetId();
+  const regionHasFiatProvider = useRegionHasFiatProvider(depositAssetId);
   const isFiatDepositEnabled = useMemo(
     () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
     [enabledTransactionTypes],
@@ -149,7 +152,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
-    startDeposit();
+    startDeposit({ intent: 'convert' });
   }, [startDeposit, trackSurfaceClicked]);
 
   const handleDepositFunds = useCallback(() => {
@@ -197,8 +200,9 @@ const MoneyAddMoneySheet: React.FC = () => {
     () => moneyFormatUsd(new BigNumber(tokenBalanceAggregated)),
     [tokenBalanceAggregated],
   );
-  const moveMusdLabel = hasMusdBalance
-    ? strings('money.add_money_sheet.move_musd', { amount: moveMusdAmount })
+  // Mask only the amount; keep the mUSD symbol visible in privacy mode.
+  const moveMusdLabel: MoneySheetOption['label'] = hasMusdBalance
+    ? { maskedText: moveMusdAmount, suffix: MUSD_TOKEN.symbol }
     : strings('money.add_money_sheet.add_musd');
 
   const baseOptions: MoneySheetOption[] = [
@@ -209,7 +213,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       disabled: !hasAnyCryptoBalance,
     },
-    ...(isFiatDepositEnabled && regionHasNativeFiatProvider
+    ...(isFiatDepositEnabled && regionHasFiatProvider
       ? [
           {
             label: strings(
@@ -256,7 +260,6 @@ const MoneyAddMoneySheet: React.FC = () => {
       goBack={handleGoBack}
       testID={MoneyAddMoneySheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingSm}>

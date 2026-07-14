@@ -115,6 +115,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
       expect(trackedEvent.name).toBe('Ramps Transaction Completed');
       expect(trackedEvent.properties).toEqual({
         ramp_type: 'UNIFIED_BUY_2',
+        provider_order_id: 'order-1',
         amount_source: 100,
         amount_destination: 0.5,
         exchange_rate: 200,
@@ -145,6 +146,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
           name: 'Ramps Transaction Failed',
           properties: expect.objectContaining({
             ramp_type: 'UNIFIED_BUY_2',
+            provider_order_id: 'order-1',
             chain_id: 'eip155:1',
             provider_onramp: 'Transak',
             error_message: 'card_declined',
@@ -209,6 +211,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
           name: 'Ramps Transaction Completed',
           properties: expect.objectContaining({
             ramp_type: 'UNIFIED_BUY_2',
+            provider_order_id: 'order-1',
             chain_id: 'eip155:1',
             country: 'US',
             provider_onramp: 'Transak',
@@ -365,6 +368,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
         ramp_surface: 'money_account',
         region: 'us-ca',
         country: 'us-ca',
+        provider_order_id: 'order-1',
         error_message: 'Payment was declined by the bank',
         provider_onramp: 'Transak',
         amount_source: 100,
@@ -821,7 +825,10 @@ describe('handleOrderStatusChangedForMetrics', () => {
         'Ramps Transaction Completed',
       );
       expect(mockTrackEvent.mock.calls[0][0].properties).toEqual(
-        expect.objectContaining({ ramp_type: 'UNIFIED_BUY_2' }),
+        expect.objectContaining({
+          ramp_type: 'UNIFIED_BUY_2',
+          provider_order_id: 'order-1',
+        }),
       );
     });
 
@@ -835,7 +842,10 @@ describe('handleOrderStatusChangedForMetrics', () => {
         'Ramps Transaction Failed',
       );
       expect(mockTrackEvent.mock.calls[0][0].properties).toEqual(
-        expect.objectContaining({ ramp_type: 'UNIFIED_BUY_2' }),
+        expect.objectContaining({
+          ramp_type: 'UNIFIED_BUY_2',
+          provider_order_id: 'order-1',
+        }),
       );
     });
 

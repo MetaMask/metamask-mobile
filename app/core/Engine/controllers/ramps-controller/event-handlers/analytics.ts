@@ -95,6 +95,8 @@ function buildHeadlessTransactionFailedParams(
     ramp_surface: context.rampSurface,
     region: context.region,
     country: context.region,
+    // TRAM-3696: a terminal headless failure always has an order. Never empty.
+    ...(order.providerOrderId && { provider_order_id: order.providerOrderId }),
     error_message: order.statusDescription || 'transaction_failed',
     provider_onramp: order.provider?.name || '',
     amount_source: Number(order.fiatAmount),
@@ -151,6 +153,8 @@ function buildV2AnalyticsPayload(
 
   const unifiedBuyBase = {
     ramp_type: 'UNIFIED_BUY_2' as const,
+    // TRAM-3696: join key back to the provider order. Never emit empty string.
+    ...(order.providerOrderId && { provider_order_id: order.providerOrderId }),
     amount_source: order.fiatAmount,
     amount_destination: cryptoAmount,
     exchange_rate: order.exchangeRate ?? computedExchangeRate,
