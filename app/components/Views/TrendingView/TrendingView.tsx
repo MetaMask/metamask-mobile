@@ -4,7 +4,6 @@ import React, {
   useMemo,
   useRef,
   useState,
-  type PropsWithChildren,
 } from 'react';
 import { TouchableOpacity } from 'react-native';
 import {
@@ -133,10 +132,13 @@ const useExploreTabNavigationEffect = (opts: {
   );
 };
 
-interface ExploreTabsProps extends PropsWithChildren {
+interface ExploreTabsProps {
   tabsListRef: React.RefObject<TabsListRef | null>;
   previousTabRef: React.MutableRefObject<ExploreTabName>;
   pendingExploreEntrySourceRef: React.MutableRefObject<string | undefined>;
+  // Narrower than `PropsWithChildren`'s `ReactNode` to match what `TabsList`
+  // actually requires — see `tabElements` below, which is what's passed in.
+  children: React.ReactElement[];
 }
 
 /**
