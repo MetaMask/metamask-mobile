@@ -270,6 +270,19 @@ class QuoteView {
             `//*[@name='${testId}']`,
           );
         }
+        // Bring off-screen list rows into the viewport (Detox scrolls similarly).
+        try {
+          const scrollView = await PlaywrightMatchers.getElementById(
+            QuoteViewSelectorIDs.TOKEN_LIST,
+            { exact: true },
+          );
+          await PlaywrightGestures.scrollIntoView(tokenElement, {
+            scrollableElement: scrollView,
+            scrollParams: { direction: 'up' },
+          });
+        } catch {
+          // Token may already be visible, or search already filtered the list.
+        }
         await PlaywrightAssertions.expectElementToBeVisible(tokenElement, {
           timeout: TIMEOUT.TOKEN_SELECT,
           description: `Token ${symbol} should be visible`,

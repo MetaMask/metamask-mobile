@@ -33,6 +33,9 @@ export async function runEthToBaseBridgeFlow(
   });
   await QuoteView.tapDestinationToken();
   await QuoteView.selectNetwork(destNetwork);
+  // Search filters the list — required on Android where ETH for Base is
+  // often below the fold (Detox used scrollToElement instead).
+  await QuoteView.typeSearchToken(sourceSymbol);
   await QuoteView.tapToken(destChainId, sourceSymbol);
   // Open keypad by tapping source amount input (keypad is in BottomSheet, closed after token selection)
   await QuoteView.tapSourceAmountInput();
