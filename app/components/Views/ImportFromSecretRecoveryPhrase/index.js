@@ -626,6 +626,9 @@ const ImportFromSecretRecoveryPhrase = ({
                         <Text
                           variant={TextVariant.BodyMd}
                           color={TextColor.PrimaryDefault}
+                          testID={
+                            ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID
+                          }
                           onPress={() =>
                             navigation.navigate(
                               Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,

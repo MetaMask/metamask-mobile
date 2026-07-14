@@ -38,6 +38,7 @@ import {
   selectQrSyncPresentation,
   selectQrSyncShouldShowOtpSheet,
 } from '../../../selectors/qrSyncController';
+import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
 
 const Points = ({
   number,
@@ -150,9 +151,9 @@ const AddDeviceToWallet = () => {
   }, [manualQrPayload, submitQrPayload]);
 
   const triggerManualQrSubmit = useCallback(() => {
-    handleManualQrSubmit().catch((error: unknown) => {
+    handleManualQrSubmit().catch((submitError: unknown) => {
       Logger.error(
-        error as Error,
+        submitError as Error,
         'AddDeviceToWallet: failed to submit manual QR payload',
       );
     });
@@ -163,7 +164,10 @@ const AddDeviceToWallet = () => {
   }
 
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-default')}>
+    <SafeAreaView
+      style={tw.style('flex-1 bg-default')}
+      testID={AddDeviceToWalletTestIds.SCREEN}
+    >
       <HeaderCompactStandard onBack={handleBack} />
       <Box twClassName="flex-1 gap-5 px-4 py-4">
         <Image
@@ -211,6 +215,7 @@ const AddDeviceToWallet = () => {
 
         <Box twClassName="mt-auto gap-4">
           <Button
+            testID={AddDeviceToWalletTestIds.SCAN_QR_CODE_BUTTON}
             twClassName="w-full"
             onPress={openQRScanner}
             isDisabled={isBusy}
@@ -244,6 +249,7 @@ const AddDeviceToWallet = () => {
                 Paste the QR code payload here when testing on an emulator.
               </Text>
               <TextField
+                testID={AddDeviceToWalletTestIds.MANUAL_QR_INPUT}
                 value={manualQrPayload}
                 onChangeText={setManualQrPayload}
                 placeholder="Paste QR payload"
@@ -256,6 +262,7 @@ const AddDeviceToWallet = () => {
                 }}
               />
               <Button
+                testID={AddDeviceToWalletTestIds.MANUAL_QR_SUBMIT_BUTTON}
                 twClassName="w-full"
                 onPress={triggerManualQrSubmit}
                 isDisabled={!manualQrPayload.trim() || isBusy}

@@ -1,0 +1,163 @@
+import { E2EDeeplinkSchemes } from '../framework/Constants';
+import { openE2EUrl } from '../framework/DeepLink';
+import Assertions from '../framework/Assertions';
+import OnboardingView from '../page-objects/Onboarding/OnboardingView';
+import OnboardingSheet from '../page-objects/Onboarding/OnboardingSheet';
+import ImportWalletView from '../page-objects/Onboarding/ImportWalletView';
+import CreatePasswordView from '../page-objects/Onboarding/CreatePasswordView';
+import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
+import AddDeviceToWalletView from '../page-objects/Onboarding/AddDeviceToWalletView';
+import AddWalletView from '../page-objects/Onboarding/AddWalletView';
+import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
+import WalletView from '../page-objects/wallet/WalletView';
+import {
+  closeOnboardingModals,
+  dismissOnboardingInterestQuestionnaire,
+  loginToApp,
+} from './wallet.flow';
+import {
+  IDENTITY_TEAM_PASSWORD,
+  IDENTITY_TEAM_SEED_PHRASE,
+  IDENTITY_TEAM_SEED_PHRASE_2,
+} from '../smoke/identity/utils/constants';
+
+const SEEDLESS_ONBOARDING_ENABLED =
+  process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
+  process.env.SEEDLESS_ONBOARDING_ENABLED === undefined;
+
+export const QR_SYNC_EXTENSION_WALLET_NAME = 'Extension Wallet';
+export const QR_SYNC_EXTENSION_ACCOUNT_NAME = 'Synced Account';
+
+export interface ApplyQrSyncSrpOptions {
+  mnemonic: string;
+  isPrimary?: boolean;
+  walletName?: string;
+  accountName?: string;
+}
+
+/**
+ * Injects an SRP sync-ready payload via the E2E QR sync deep link.
+ * Requires HAS_TEST_OVERRIDES and the Add Device screen mounted so
+ * useQrSyncImportNavigation can continue the flow.
+ */
+export const applyQrSyncSrpReadyPayload = async ({
+  mnemonic,
+  isPrimary = true,
+  walletName = QR_SYNC_EXTENSION_WALLET_NAME,
+  accountName = QR_SYNC_EXTENSION_ACCOUNT_NAME,
+}: ApplyQrSyncSrpOptions): Promise<void> => {
+  const params = new URLSearchParams({
+    mnemonic,
+    isPrimary: String(isPrimary),
+    walletName,
+    accountName,
+  });
+  await openE2EUrl(
+    `${E2EDeeplinkSchemes.QR_SYNC}apply-sync-ready?${params.toString()}`,
+  );
+};
+
+/**
+ * New-user path: onboarding → Import SRP → extension link → inject sync-ready
+ * → create password → MetaMetrics → wallet home.
+ */
+export const completeNewUserQrSyncSrp = async ({
+  mnemonic = IDENTITY_TEAM_SEED_PHRASE,
+  password = IDENTITY_TEAM_PASSWORD,
+  optInToMetrics = true,
+}: {
+  mnemonic?: string;
+  password?: string;
+  optInToMetrics?: boolean;
+} = {}): Promise<void> => {
+  await Assertions.expectElementToBeVisible(
+    OnboardingView.existingWalletButton,
+    {
+      description: 'Have an existing wallet button should be visible',
+    },
+  );
+  await OnboardingView.tapHaveAnExistingWallet();
+
+  if (SEEDLESS_ONBOARDING_ENABLED) {
+    await OnboardingSheet.tapImportSeedButton();
+  }
+
+  await Assertions.expectElementToBeVisible(ImportWalletView.container, {
+    description: 'Import from seed screen should be visible',
+  });
+  await ImportWalletView.tapImportFromExtensionLink();
+  await AddDeviceToWalletView.expectScreenVisible();
+
+  await applyQrSyncSrpReadyPayload({
+    mnemonic,
+    isPrimary: true,
+    walletName: QR_SYNC_EXTENSION_WALLET_NAME,
+    accountName: QR_SYNC_EXTENSION_ACCOUNT_NAME,
+  });
+
+  await Assertions.expectElementToBeVisible(CreatePasswordView.container, {
+    description: 'Create password screen should open after QR sync inject',
+    timeout: 20_000,
+  });
+  await CreatePasswordView.enterPassword(password);
+  await CreatePasswordView.reEnterPassword(password);
+  await CreatePasswordView.tapIUnderstandCheckBox();
+  await CreatePasswordView.tapCreatePasswordButton();
+
+  await Assertions.expectElementToBeVisible(MetaMetricsOptInView.container, {
+    description: 'MetaMetrics Opt-In should be visible',
+  });
+  if (!optInToMetrics) {
+    await MetaMetricsOptInView.tapMetricsCheckbox();
+  }
+  await MetaMetricsOptInView.tapAgreeButton();
+
+  if (optInToMetrics) {
+    await dismissOnboardingInterestQuestionnaire();
+    await Assertions.expectElementToBeVisible(WalletView.container, {
+      description: 'Wallet home should be visible after QR sync onboarding',
+      timeout: 20_000,
+    });
+  }
+  await closeOnboardingModals(false);
+};
+
+/**
+ * Existing-user path: login → Add Wallet → Link extension → inject sync-ready
+ * → wallet home with one additional SRP imported.
+ *
+ * Uses SRP #2 by default so it does not collide with the fixture primary wallet.
+ * Layout/Phase C is not asserted — existing-user path is still partial.
+ */
+export const completeExistingUserQrSyncSrp = async ({
+  mnemonic = IDENTITY_TEAM_SEED_PHRASE_2,
+}: {
+  mnemonic?: string;
+} = {}): Promise<void> => {
+  await loginToApp();
+  await WalletView.tapIdenticon();
+  await Assertions.expectElementToBeVisible(
+    AccountListBottomSheet.accountList,
+    {
+      description: 'Account list should be visible',
+    },
+  );
+  await AccountListBottomSheet.tapAddWalletButton();
+  await AddWalletView.expectScreenVisible();
+  await AddWalletView.tapLinkMetaMaskExtension();
+  await AddDeviceToWalletView.expectScreenVisible();
+
+  await applyQrSyncSrpReadyPayload({
+    mnemonic,
+    // Existing-user path accepts any mnemonic; keep primary for clarity.
+    isPrimary: true,
+    walletName: QR_SYNC_EXTENSION_WALLET_NAME,
+    accountName: QR_SYNC_EXTENSION_ACCOUNT_NAME,
+  });
+
+  await Assertions.expectElementToBeVisible(WalletView.container, {
+    description:
+      'Wallet home should be visible after existing-user QR sync import',
+    timeout: 30_000,
+  });
+};

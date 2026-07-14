@@ -256,6 +256,27 @@ class ImportWalletView {
       description: 'Import Wallet Title',
     });
   }
+
+  get importFromExtensionLink(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID,
+          { exact: true },
+        ),
+    });
+  }
+
+  async tapImportFromExtensionLink(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.importFromExtensionLink, {
+      description: 'Import from MetaMask extension link',
+      timeout: 15_000,
+    });
+  }
 }
 
 export default new ImportWalletView();

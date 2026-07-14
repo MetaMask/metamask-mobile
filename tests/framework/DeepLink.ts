@@ -8,6 +8,11 @@ const logger = createLogger({
   name: 'E2E - DeepLink',
 });
 
+const E2E_SCHEME_TO_METAMASK_PREFIX: Record<E2EDeeplinkSchemes, string> = {
+  [E2EDeeplinkSchemes.PERPS]: 'metamask://e2e/perps/',
+  [E2EDeeplinkSchemes.QR_SYNC]: 'metamask://e2e/qr-sync/',
+};
+
 export async function openE2EUrl(url: string): Promise<void> {
   logger.debug(`Opening E2E DeepLink: ${url}`);
   // Map any E2E scheme to the declared "metamask" scheme for both platforms
@@ -15,7 +20,7 @@ export async function openE2EUrl(url: string): Promise<void> {
   for (const deeplinkScheme of Object.values(E2EDeeplinkSchemes)) {
     if (url.startsWith(deeplinkScheme)) {
       const pathSuffix = url.slice(deeplinkScheme.length); // <path>?<query>
-      mappedUrl = `metamask://e2e/perps/${pathSuffix}`;
+      mappedUrl = `${E2E_SCHEME_TO_METAMASK_PREFIX[deeplinkScheme]}${pathSuffix}`;
       logger.debug(`Mapped E2E DeepLink to metamask scheme: ${mappedUrl}`);
       break;
     }
