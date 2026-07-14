@@ -140,6 +140,20 @@ describe('activity list helpers', () => {
       });
       expect(isGasTokenFeeWithAmount(item)).toBe(false);
     });
+
+    it('is false when gasToken amount is zero (decimal or hex)', () => {
+      for (const amount of ['0', '0x0']) {
+        const item = makeItem({
+          type: 'send',
+          data: {
+            from: '0xfrom',
+            to: '0xto',
+            fees: [{ type: 'gasToken', amount, decimals: 6, symbol: 'USDC' }],
+          },
+        });
+        expect(isGasTokenFeeWithAmount(item)).toBe(false);
+      }
+    });
   });
 
   describe('shouldPreferLocalActivityItem / preferLocalOrApiActivityItem', () => {
@@ -172,6 +186,7 @@ describe('activity list helpers', () => {
       const local = makeItem({
         type: 'contractInteraction',
         data: {
+          from: '0xfrom',
           to: '0xto',
           fees: [
             { type: 'gasToken', amount: '100', decimals: 6, symbol: 'USDT' },

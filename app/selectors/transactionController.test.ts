@@ -520,7 +520,7 @@ describe('TransactionController Selectors', () => {
 
       expect(
         selectLocalTransactions(state)
-          .map((tx) => tx.id)
+          .map((tx) => ('id' in tx ? tx.id : undefined))
           .sort(),
       ).toEqual(['fee', 'send']);
     });

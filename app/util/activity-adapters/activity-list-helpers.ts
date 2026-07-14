@@ -27,16 +27,31 @@ export function isSpendingCapWithAmount(item: ActivityListItem): boolean {
 }
 
 /**
- * True when the item has a gas-token fee (ERC-20 gas payment) with an amount.
- * Used to prefer local Activity rows over confirmed API copies that only have
- * a native network fee (TMCU-1064).
+ * True when fee.amount is a non-zero integer (decimal or hex). Empty / invalid
+ * strings are treated as no amount.
+ */
+function hasNonZeroFeeAmount(amount: string | undefined): boolean {
+  if (!amount) {
+    return false;
+  }
+  try {
+    return BigInt(amount) > 0n;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * True when the item has a gas-token fee (ERC-20 gas payment) with a non-zero
+ * amount. Used to prefer local Activity rows over confirmed API copies that
+ * only have a native network fee (TMCU-1064).
  */
 export function isGasTokenFeeWithAmount(item: ActivityListItem): boolean {
   if (!('fees' in item.data) || !item.data.fees?.length) {
     return false;
   }
   return item.data.fees.some(
-    (fee) => fee.type === 'gasToken' && Boolean(fee.amount),
+    (fee) => fee.type === 'gasToken' && hasNonZeroFeeAmount(fee.amount),
   );
 }
 
