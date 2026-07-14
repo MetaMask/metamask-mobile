@@ -101,6 +101,29 @@ describe('useActivityAmountsFiat', () => {
     expect(result.current.totalFiat).toBe('$9');
   });
 
+  it('excludes the un-sent token value from the total for a cancelled send', () => {
+    mockUseSelectorState({
+      currentCurrency: 'usd',
+      conversionRate: 2,
+      contractExchangeRates: {
+        [tokenAddress]: {
+          price: 3,
+        },
+      },
+      multichainAssetRates: {},
+    });
+
+    const { result } = renderHook(() =>
+      useActivityAmountsFiat({
+        ...activityWithTokenAndFees,
+        status: 'cancelled',
+      }),
+    );
+
+    // Total is fees only ($2 + $1); the never-sent $6 token value is excluded.
+    expect(result.current.totalFiat).toBe('$3');
+  });
+
   it('labels a non-native resource fee by its resource and excludes it from fiat/total', () => {
     const tronFees: ActivityFee[] = [
       {

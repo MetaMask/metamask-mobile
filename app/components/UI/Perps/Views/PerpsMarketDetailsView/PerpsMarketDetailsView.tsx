@@ -105,6 +105,7 @@ import {
   usePerpsLiveAccount,
   usePerpsLiveOrders,
   usePerpsLivePrices,
+  usePerpsLiveFocusedPrice,
 } from '../../hooks/stream';
 import { usePerpsLiveCandles } from '../../hooks/stream/usePerpsLiveCandles';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
@@ -397,10 +398,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     [openOrders],
   );
 
-  // Subscribe to live prices for current position price
+  // Subscribe to live prices for current position price (allMids baseline, ~2 s)
   const livePrices = usePerpsLivePrices({
     symbols: market?.symbol ? [market.symbol] : [],
     throttleMs: 1000,
+  });
+
+  // Fast focused price via activeAssetCtx projection (~0.5 s, TAT-3334).
+  // Prefer focused price on this detail screen; fall back to the allMids
+  // baseline so the display is never blank on first render.
+  const focusedPrice = usePerpsLiveFocusedPrice({
+    symbol: market?.symbol ?? '',
+    enabled: Boolean(market?.symbol),
   });
 
   // Get current price for the symbol
@@ -408,7 +417,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Falls back to mid price if mark price unavailable
   const currentPrice = useMemo(() => {
     if (!market?.symbol) return 0;
-    const priceData = livePrices[market.symbol];
+    // Prefer the fast focused price; fall back to allMids baseline
+    const priceData = focusedPrice ?? livePrices[market.symbol];
     if (priceData?.markPrice) {
       return parseFloat(priceData.markPrice);
     }
@@ -416,7 +426,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       return parseFloat(priceData.price);
     }
     return 0;
-  }, [livePrices, market?.symbol]);
+  }, [focusedPrice, livePrices, market?.symbol]);
 
   // A/B Testing: Button color test (TAT-1937)
   const {
