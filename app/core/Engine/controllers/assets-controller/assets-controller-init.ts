@@ -14,6 +14,7 @@ import type { MessengerClientInitFunction } from '../../types';
 import { type AssetsControllerInitMessenger } from '../../messengers/assets-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
+import { selectAssetEnrichmentEnabled } from '../../../../selectors/featureFlagController/assetEnrichmentEnabled';
 import { store } from '../../../../store';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
 
@@ -148,6 +149,10 @@ export const assetsControllerInit: MessengerClientInitFunction<
     stakedBalanceDataSourceConfig: {
       pollInterval: 30_000,
       enabled: true,
+    },
+    snapDataSourceConfig: {
+      assetEnrichmentEnabled: () =>
+        selectAssetEnrichmentEnabled(store.getState()),
     },
     isOnboarded: () => selectCompletedOnboarding(store.getState()),
   });

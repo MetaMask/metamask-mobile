@@ -181,6 +181,9 @@ describe('assetsControllerInit', () => {
           pollInterval: 30_000,
           enabled: true,
         },
+        snapDataSourceConfig: {
+          assetEnrichmentEnabled: expect.any(Function),
+        },
       }),
     );
   });
@@ -478,6 +481,68 @@ describe('assetsControllerInit', () => {
         | undefined;
       expect(isBasicFunctionality).toBeDefined();
       expect(isBasicFunctionality?.()).toBe(false);
+    });
+  });
+
+  describe('snapDataSourceConfig.assetEnrichmentEnabled', () => {
+    it('returns true when stellarAccounts flag is enabled', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+        onboarding: { completedOnboarding: false },
+        engine: {
+          backgroundState: {
+            KeyringController: { isUnlocked: true },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                stellarAccounts: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      } as ReturnType<typeof store.getState>);
+
+      assetsControllerInit(getInitRequestMock());
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const assetEnrichmentEnabled =
+        constructorCall.snapDataSourceConfig?.assetEnrichmentEnabled;
+
+      expect(assetEnrichmentEnabled).toBeDefined();
+      expect((assetEnrichmentEnabled as () => boolean)()).toBe(true);
+    });
+
+    it('returns false when stellarAccounts flag is disabled', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+        onboarding: { completedOnboarding: false },
+        engine: {
+          backgroundState: {
+            KeyringController: { isUnlocked: true },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                stellarAccounts: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+            },
+          },
+        },
+      } as ReturnType<typeof store.getState>);
+
+      assetsControllerInit(getInitRequestMock());
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const assetEnrichmentEnabled =
+        constructorCall.snapDataSourceConfig?.assetEnrichmentEnabled;
+
+      expect(assetEnrichmentEnabled).toBeDefined();
+      expect((assetEnrichmentEnabled as () => boolean)()).toBe(false);
     });
   });
 });
