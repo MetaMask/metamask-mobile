@@ -32,6 +32,13 @@ const spotItem: FeedSpotItem = {
   hasValueData: true,
   hasPnlData: true,
   isPnlPositive: true,
+  tokenAvatar: {
+    positionId: 'pos-spot-1',
+    chain: 'ethereum',
+    tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+    tokenImageUrl: null,
+    tokenSymbol: 'PEPE',
+  },
 };
 
 const perpItem: FeedPerpItem = {
@@ -53,6 +60,13 @@ const perpItem: FeedPerpItem = {
   hasValueData: true,
   hasPnlData: true,
   isPnlPositive: true,
+  tokenAvatar: {
+    positionId: 'pos-perp-1',
+    chain: 'hyperliquid',
+    tokenAddress: '',
+    tokenImageUrl: null,
+    tokenSymbol: 'ETH',
+  },
 };
 
 describe('FeedItemRow', () => {

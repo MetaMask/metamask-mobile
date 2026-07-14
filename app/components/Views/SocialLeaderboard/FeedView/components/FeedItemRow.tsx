@@ -1,4 +1,5 @@
 import {
+  AvatarTokenSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -17,6 +18,7 @@ import { strings } from '../../../../../../locales/i18n';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 import PerpBadges from '../../components/PerpBadges';
+import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import type { FeedItem } from '../types';
 import { formatFeedTimestamp } from '../../utils/formatters';
 import {
@@ -24,7 +26,6 @@ import {
   getFeedTradeButtonTestId,
   getFeedTraderTestId,
 } from '../FeedView.testIds';
-import FeedTokenIcon from './FeedTokenIcon';
 
 const AVATAR_SIZE = 24;
 
@@ -128,9 +129,10 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
         gap={3}
         twClassName="bg-muted rounded-2xl p-3"
       >
-        <FeedTokenIcon
-          symbol={symbol}
-          chainIdHex={item.type === 'spot' ? item.chainIdHex : undefined}
+        <PositionTokenAvatar
+          position={item.tokenAvatar}
+          size={AvatarTokenSize.Md}
+          showChainBadge
         />
 
         <Box twClassName="flex-1 min-w-0">

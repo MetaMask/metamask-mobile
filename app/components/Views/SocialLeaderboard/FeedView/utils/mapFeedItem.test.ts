@@ -16,6 +16,13 @@ describe('mapFeedItem', () => {
       traderId: 'profile-1',
       username: 'dutchiono',
       traderAddress: '0x1111111111111111111111111111111111111111',
+      tokenAvatar: {
+        positionId: 'pos-spot-1',
+        chain: 'ethereum',
+        tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+        tokenImageUrl: null,
+        tokenSymbol: 'PEPE',
+      },
       action: 'bought',
       tokenSymbol: 'PEPE',
       tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',

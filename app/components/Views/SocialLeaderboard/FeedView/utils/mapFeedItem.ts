@@ -17,6 +17,7 @@ import {
   formatSignedUsd,
   formatUsd,
 } from '../../utils/formatters';
+import type { PositionTokenAvatarData } from '../../components/PositionTokenAvatar';
 import type {
   FeedAction,
   FeedItem,
@@ -187,6 +188,23 @@ function buildFeedItemPresentation(
   };
 }
 
+/**
+ * Builds the token avatar payload for the shared `PositionTokenAvatar`, which
+ * resolves the icon via the Clicker URL → MetaMask CDN → monogram fallback
+ * (and the Hyperliquid perp logo when `chain` is `hyperliquid`). Keeps the raw
+ * social-api `chain` name and `tokenSymbol` so that resolution matches the
+ * trader-profile position list exactly.
+ */
+function buildTokenAvatar(coreItem: CoreFeedItem): PositionTokenAvatarData {
+  return {
+    positionId: coreItem.positionId,
+    chain: coreItem.chain,
+    tokenAddress: coreItem.tokenAddress,
+    tokenImageUrl: coreItem.tokenImageUrl ?? null,
+    tokenSymbol: coreItem.tokenSymbol,
+  };
+}
+
 function mapPerpFeedItem(
   coreItem: CoreFeedItem,
   trade: Trade | undefined,
@@ -210,6 +228,7 @@ function mapPerpFeedItem(
     timestamp: timestampMs,
     subHeader,
     ...presentation,
+    tokenAvatar: buildTokenAvatar(coreItem),
     type: 'perps',
     marketSymbol: displaySymbol,
     marketName: displaySymbol,
@@ -244,6 +263,7 @@ function mapSpotFeedItem(
     timestamp: timestampMs,
     subHeader,
     ...presentation,
+    tokenAvatar: buildTokenAvatar(coreItem),
     type: 'spot',
     tokenSymbol: coreItem.tokenSymbol,
     tokenName: coreItem.tokenName,

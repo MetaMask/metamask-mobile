@@ -1,4 +1,5 @@
 import type { CaipChainId } from '@metamask/utils';
+import type { PositionTokenAvatarData } from '../components/PositionTokenAvatar';
 
 /**
  * Feed audience filter. `all` shows every trader's activity; `following` shows
@@ -45,6 +46,12 @@ interface FeedItemBase {
   hasPnlData: boolean;
   /** Whether the P&L is positive (green) or negative (red). */
   isPnlPositive: boolean;
+  /**
+   * Token avatar data (image url + address/chain/symbol) consumed by the shared
+   * `PositionTokenAvatar`, which resolves the Clicker URL → MetaMask CDN →
+   * monogram fallback (and the Hyperliquid perp logo) exactly like the profile.
+   */
+  tokenAvatar: PositionTokenAvatarData;
 }
 
 /**

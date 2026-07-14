@@ -36,6 +36,13 @@ const spotItem: FeedItem = {
   tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
   chain: 'eip155:1',
   chainIdHex: '0x1',
+  tokenAvatar: {
+    positionId: 'pos-feed-1',
+    chain: 'ethereum',
+    tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+    tokenImageUrl: null,
+    tokenSymbol: 'PEPE',
+  },
 };
 
 const perpItem: FeedItem = {
@@ -57,6 +64,13 @@ const perpItem: FeedItem = {
   tradeSymbol: 'ETH',
   direction: 'long',
   leverage: 8,
+  tokenAvatar: {
+    positionId: 'pos-feed-2',
+    chain: 'hyperliquid',
+    tokenAddress: '',
+    tokenImageUrl: null,
+    tokenSymbol: 'ETH',
+  },
 };
 
 const buildResult = (
