@@ -18,6 +18,12 @@ import type { LedgerTransactionModalParams } from '../../components/UI/LedgerMod
 // Browser params
 import type { BrowserParams } from '../../components/Views/Browser/Browser.types';
 import type { ActivityDetailsParams } from '../../components/Views/ActivityDetails/ActivityDetails.types';
+import type {
+  AssetStackParamList,
+  SettingsStackParamList,
+  WalletTabHomeParamList,
+  WalletTabStackParamList,
+} from '../../components/Nav/Main/types/navigation';
 
 // Bridge params
 import type { BatchSellTokenSelectRouteParams } from '../../components/UI/Bridge/Views/BatchSellTokenSelect/types';
@@ -115,11 +121,6 @@ import type {
   AssetViewParams,
 } from '../../components/Views/Asset/Asset.types';
 import type { NftDetailsParams } from '../../components/Views/NftDetails/NftDetails.types';
-import type { TokenDetailsRouteParams } from '../../components/UI/TokenDetails/constants/constants';
-import type {
-  PriceAlertRouteParams,
-  CreatePriceAlertRouteParams,
-} from '../../components/UI/Assets/PriceAlerts/constants';
 
 // Stake params
 import type {
@@ -373,7 +374,7 @@ export type RootStackParamList = {
   WalletView: undefined;
   BrowserTabHome: BrowserParams | NestedNavigationParams | undefined;
   BrowserView: BrowserParams | undefined;
-  SettingsView: NestedNavigationParams | undefined;
+  SettingsView: NavigatorScreenParams<SettingsStackParamList> | undefined;
   DeprecatedNetworkDetails: undefined;
 
   // Ramp routes
@@ -605,7 +606,7 @@ export type RootStackParamList = {
   Settings: undefined;
   ContactsSettings: undefined;
   CompanySettings: undefined;
-  AdvancedSettings: undefined;
+  AdvancedSettings: SettingsStackParamList['AdvancedSettings'];
   ResetPassword: undefined;
   ContactForm: ContactFormParams | undefined;
   DeveloperOptions: undefined;
@@ -685,8 +686,10 @@ export type RootStackParamList = {
   SimpleWebview: SimpleWebviewParams | undefined;
 
   // Wallet routes
-  WalletTabHome: NestedNavigationParams | undefined;
-  WalletTabStackFlow: NestedNavigationParams | undefined;
+  WalletTabHome: NavigatorScreenParams<WalletTabHomeParamList> | undefined;
+  WalletTabStackFlow:
+    | NavigatorScreenParams<WalletTabStackParamList>
+    | undefined;
   WalletConnectSessionsView: undefined;
   DeFiFullView: undefined;
   NftFullView: undefined;
@@ -988,13 +991,10 @@ export type RootStackParamList = {
   ConfirmAddAsset: ConfirmAddAssetParams | undefined;
 
   // Asset detail stack routes (nested under the `Asset` navigator)
-  AssetStackFlow: NestedNavigationParams | undefined;
-  SecurityTrust: TokenDetailsRouteParams & {
-    isPricePositive?: boolean;
-    useAmbientColor?: boolean;
-  };
-  CreatePriceAlert: CreatePriceAlertRouteParams;
-  ManagePriceAlerts: PriceAlertRouteParams;
+  AssetStackFlow: NavigatorScreenParams<AssetStackParamList> | undefined;
+  SecurityTrust: AssetStackParamList['SecurityTrust'];
+  CreatePriceAlert: AssetStackParamList['CreatePriceAlert'];
+  ManagePriceAlerts: AssetStackParamList['ManagePriceAlerts'];
 
   // NFT detail routes
   NftDetails: NftDetailsParams;
