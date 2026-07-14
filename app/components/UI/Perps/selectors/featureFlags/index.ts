@@ -141,18 +141,15 @@ export const selectPerpsRelatedMarketsEnabledFlag = createSelector(
  */
 export const selectPerpsClosePositionLimitOrderEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
-  (_remoteFeatureFlags) => 
-    // TODO: TEMPORARY - hardcoded to true to always show the feature. Revert before merging.
-     true
-
+  (remoteFeatureFlags) => {
     // Default to false if no flag is set (disabled by default)
-    // const localFlag =
-    //   process.env.MM_PERPS_CLOSE_POSITION_LIMIT_ORDER_ENABLED === 'true';
-    // const remoteFlag =
-    //   _remoteFeatureFlags?.perpsClosePositionLimitOrderEnabled as unknown as VersionGatedFeatureFlag;
-    //
-    // return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
-  ,
+    const localFlag =
+      process.env.MM_PERPS_CLOSE_POSITION_LIMIT_ORDER_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsClosePositionLimitOrderEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
 );
 
 /**
