@@ -14,6 +14,7 @@ import { QrSyncSecretTypes } from './constants';
 import { completeExistingUserQrSyncImport } from './completeExistingUserQrSyncImport';
 import { navigateToQrSyncImport } from './navigateToQrSyncImport';
 import { showAlreadySyncedSheet } from './showAlreadySyncedSheet';
+import { showImportFailedSheet } from './showImportFailedSheet';
 import type { QrSyncSecretImportEntry } from './types';
 import Logger from '../../util/Logger';
 
@@ -52,11 +53,12 @@ const finishExistingUserSyncWithoutMnemonic = async (
   navigation: AppNavigationProp,
 ): Promise<void> => {
   const accountsBefore = await Engine.context.KeyringController.getAccounts();
+  let importFailed = false;
 
   try {
     await Engine.context.QrSyncController.importRemainingSecrets();
   } catch {
-    // Best-effort: continue to home / already-synced sheet.
+    importFailed = true;
   }
 
   const accountsAfter = await Engine.context.KeyringController.getAccounts();
@@ -64,6 +66,13 @@ const finishExistingUserSyncWithoutMnemonic = async (
 
   Engine.context.QrSyncController.resetState();
   navigation.navigate(Routes.WALLET_VIEW);
+
+  // Thrown failures are real import errors. Unchanged account count after a
+  // successful importRemainingSecrets call means the secrets were already here.
+  if (importFailed && !addedNewAccounts) {
+    showImportFailedSheet(navigation);
+    return;
+  }
 
   if (!addedNewAccounts) {
     showAlreadySyncedSheet(navigation);
@@ -101,7 +110,7 @@ export const useQrSyncImportNavigation = ({
     if (completedOnboarding) {
       // Prefer live controller state — Redux can lag/strip ephemeral secrets.
       const pendingSecretImports =
-        Engine.context.QrSyncController.state.pendingSecretImports;
+        Engine.context.QrSyncController.state?.pendingSecretImports;
       const mnemonic =
         resolveMnemonicFromPendingSecrets(pendingSecretImports) ??
         qrSyncMnemonic;

@@ -27,7 +27,11 @@ jest.mock('../Engine', () => ({
   context: {
     KeyringController: {
       state: {
-        keyrings: [] as { type: string; metadata: { id: string } }[],
+        keyrings: [] as {
+          type: string;
+          accounts: string[];
+          metadata: { id: string; name: string };
+        }[],
       },
       withKeyringV2: (...args: unknown[]) => mockWithKeyringV2(...args),
     },
@@ -61,7 +65,8 @@ const setHdKeyringCount = (count: number) => {
     { length: count },
     (_, index) => ({
       type: ExtendedKeyringTypes.hd,
-      metadata: { id: `hd-${index}` },
+      accounts: [],
+      metadata: { id: `hd-${index}`, name: `HD Key Tree ${index}` },
     }),
   );
 };

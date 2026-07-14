@@ -24,8 +24,6 @@ export const DUPLICATE_MNEMONIC_ERROR_MESSAGES = [
 export const DUPLICATE_MNEMONIC_ERROR_MESSAGE =
   DUPLICATE_MNEMONIC_ERROR_MESSAGES[0];
 
-const EXISTING_USER_IMPORT_TIMEOUT_MS = 20_000;
-
 /** Prevents Add Device + QR scanner from starting two imports at once. */
 let inFlightExistingUserImport: Promise<void> | null = null;
 
@@ -132,27 +130,6 @@ const showAlreadySyncedAndGoHome = (navigation: AppNavigationProp): void => {
   showAlreadySyncedSheet(navigation);
 };
 
-const withTimeout = async <T>(
-  promise: Promise<T>,
-  timeoutMs: number,
-): Promise<T> => {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-  try {
-    return await Promise.race([
-      promise,
-      new Promise<T>((_, reject) => {
-        timeoutId = setTimeout(() => {
-          reject(new Error('QR_SYNC_IMPORT_TIMEOUT'));
-        }, timeoutMs);
-      }),
-    ]);
-  } finally {
-    if (timeoutId !== undefined) {
-      clearTimeout(timeoutId);
-    }
-  }
-};
-
 const runExistingUserQrSyncImport = async (
   navigation: AppNavigationProp,
   mnemonic: string,
@@ -164,10 +141,9 @@ const runExistingUserQrSyncImport = async (
       return;
     }
 
-    await withTimeout(
-      importNewSecretRecoveryPhrase(mnemonic),
-      EXISTING_USER_IMPORT_TIMEOUT_MS,
-    );
+    // Do not race import against a timer — Multichain/keyring import cannot be
+    // cancelled, and a timeout would leave late vault mutations after failure UI.
+    await importNewSecretRecoveryPhrase(mnemonic);
     Engine.context.QrSyncController.resetState();
     navigation.navigate(Routes.WALLET_VIEW);
   } catch (error) {
