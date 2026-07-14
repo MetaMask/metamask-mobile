@@ -217,4 +217,13 @@ export const createStyles = (colors: Theme['colors']) =>
     footerButton: {
       flex: 1,
     },
+    roeSignBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      marginRight: 4,
+      borderRadius: 6,
+      backgroundColor: colors.background.default,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
   });
