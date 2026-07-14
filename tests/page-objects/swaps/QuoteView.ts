@@ -14,6 +14,7 @@ import {
   PlaywrightGestures,
   PlatformDetector,
   PlaywrightElement,
+  sleep,
 } from '../../framework';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 import {
@@ -29,6 +30,8 @@ const TIMEOUT = {
   NETWORK_SELECT: 10000,
   TOKEN_SELECT: 30000,
   KEYPAD_DIGIT: 10000,
+  /** Matches useSearchTokens debouncedSearch (300ms) + list settle. */
+  TOKEN_SEARCH_SETTLE: 1000,
 } as const;
 
 class QuoteView {
@@ -260,33 +263,51 @@ class QuoteView {
       },
       appium: async () => {
         const testId = this.getTokenElementId(chainId, symbol);
-        let tokenElement: PlaywrightElement;
-        if (await PlatformDetector.isAndroid()) {
-          tokenElement = await PlaywrightMatchers.getElementById(testId, {
-            exact: false,
-          });
-        } else {
-          tokenElement = await PlaywrightMatchers.getElementByXPath(
+        const isAndroid = await PlatformDetector.isAndroid();
+        const resolveToken = async (): Promise<PlaywrightElement> => {
+          if (isAndroid) {
+            return PlaywrightMatchers.getElementById(testId, {
+              exact: false,
+            });
+          }
+          // Lazy xpath re-queries each poll — a fixed $$ match can stay
+          // displayed:false on iOS after search/list virtualization.
+          return PlaywrightMatchers.getLazyElementByXPath(
             `//*[@name='${testId}']`,
           );
-        }
-        // Bring off-screen list rows into the viewport (Detox scrolls similarly).
+        };
+
+        let tokenElement = await resolveToken();
+
+        // Prefer waiting first. Forced scrollIntoView on a not-yet-displayed
+        // iOS search hit burns maxScrolls against a stale element (CI fail).
         try {
-          const scrollView = await PlaywrightMatchers.getElementById(
-            QuoteViewSelectorIDs.TOKEN_LIST,
-            { exact: true },
-          );
-          await PlaywrightGestures.scrollIntoView(tokenElement, {
-            scrollableElement: scrollView,
-            scrollParams: { direction: 'up' },
+          await PlaywrightAssertions.expectElementToBeVisible(tokenElement, {
+            timeout: 5000,
+            description: `Token ${symbol} visible without scroll`,
           });
         } catch {
-          // Token may already be visible, or search already filtered the list.
+          if (isAndroid) {
+            try {
+              const scrollView = await PlaywrightMatchers.getElementById(
+                QuoteViewSelectorIDs.TOKEN_LIST,
+                { exact: true },
+              );
+              tokenElement = await resolveToken();
+              await PlaywrightGestures.scrollIntoView(tokenElement, {
+                scrollableElement: scrollView,
+                scrollParams: { direction: 'up' },
+              });
+            } catch {
+              // Token may already be visible after search filters the list.
+            }
+          }
+          tokenElement = await resolveToken();
+          await PlaywrightAssertions.expectElementToBeVisible(tokenElement, {
+            timeout: TIMEOUT.TOKEN_SELECT,
+            description: `Token ${symbol} should be visible`,
+          });
         }
-        await PlaywrightAssertions.expectElementToBeVisible(tokenElement, {
-          timeout: TIMEOUT.TOKEN_SELECT,
-          description: `Token ${symbol} should be visible`,
-        });
         await PlaywrightGestures.waitAndTap(tokenElement, {
           checkForDisplayed: true,
           checkForEnabled: true,
@@ -306,6 +327,8 @@ class QuoteView {
       appium: async () => {
         const searchField = await asPlaywrightElement(this.searchToken);
         await searchField.fill(symbol);
+        // Wait for BridgeTokenSelector debouncedSearch (300ms) + result settle.
+        await sleep(TIMEOUT.TOKEN_SEARCH_SETTLE);
       },
     });
   }
