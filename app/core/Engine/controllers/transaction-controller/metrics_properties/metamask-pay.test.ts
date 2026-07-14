@@ -721,7 +721,7 @@ describe('Metamask Pay Metrics', () => {
       },
     } as never);
 
-    const result = getMetaMaskPayProperties(request);
+    const result = getMetaMaskPayProperties(request) as TransactionMetrics;
 
     expect(result.properties).toStrictEqual(
       expect.objectContaining({
@@ -758,7 +758,7 @@ describe('Metamask Pay Metrics', () => {
       },
     } as never);
 
-    const result = getMetaMaskPayProperties(request);
+    const result = getMetaMaskPayProperties(request) as TransactionMetrics;
 
     expect(result.properties).toStrictEqual(
       expect.objectContaining({
