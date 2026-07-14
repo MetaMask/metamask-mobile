@@ -26,12 +26,7 @@ import ErrorView from '../../Aggregator/components/ErrorView';
 import Logger from '../../../../../util/Logger';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
-import {
-  emitOrderConfirmedAnalyticsFromCallback,
-  emitTerminalOrderAnalyticsFromCallback,
-  isTerminalOrderStatus,
-} from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
-import { setHeadlessOrderContext } from '../../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
+import { completeHeadlessCheckoutCallback } from './completeHeadlessCheckoutCallback';
 import {
   BottomSheet,
   HeaderStandard,
@@ -410,54 +405,27 @@ const Checkout = () => {
         // close the session, and unwind out of the ramp stack so the caller
         // regains foreground. Skip RAMPS_ORDER_DETAILS — the headless consumer
         // drives its own UI.
-        const session = getSession(headlessSessionId);
-        if (headlessSessionId && session) {
-          const rampsOrder = await getOrderFromCallback(
+        if (
+          await completeHeadlessCheckoutCallback({
+            headlessSessionId,
+            session: getSession(headlessSessionId),
             providerCode,
-            navState.url,
+            callbackUrl: navState.url,
             walletAddress,
-          );
-          if (!rampsOrder) {
-            throw new Error('Order could not be retrieved from callback');
-          }
-          addOrder(rampsOrder);
-
-          // TRAM-3623/3691: carry the headless context (surface + region) so the
-          // terminal RAMPS_TRANSACTION_FAILED is tagged HEADLESS — whether it
-          // fails now (read by emitTerminalOrderAnalyticsFromCallback below) or
-          // later via polling/relaunch. Mirrors useTransakRouting; safe here
-          // because this branch is already headless-gated.
-          setHeadlessOrderContext(rampsOrder.providerOrderId, {
-            rampSurface: headlessRampSurface,
-            region: regionCode ?? '',
-          });
-
-          // TRAM-3738 / TRAM-3691: headless callback skips OrderDetails, so
-          // non-terminal orders emit Confirmed here; terminal orders emit
-          // Completed/Failed directly (never polled).
-          if (isTerminalOrderStatus(rampsOrder.status)) {
-            emitTerminalOrderAnalyticsFromCallback(rampsOrder);
-          } else {
-            emitOrderConfirmedAnalyticsFromCallback(rampsOrder, {
-              rampType: 'HEADLESS',
-              rampSurface: headlessRampSurface,
-              region: regionCode,
-            });
-          }
-
-          dispatch(protectWalletModalVisible());
-          try {
-            session.callbacks.onOrderCreated(rampsOrder.providerOrderId);
-          } catch (callbackError) {
-            Logger.error(
-              callbackError as Error,
-              'UnifiedCheckout: onOrderCreated callback threw',
-            );
-          }
-          hasTerminatedHeadlessSessionRef.current = true;
-          closeSession(headlessSessionId, { reason: 'completed' });
-          closeSourceRef.current = 'callback_success';
-          dismissActiveHeadlessFlow();
+            headlessRampSurface,
+            regionCode,
+            getOrderFromCallback,
+            addOrder,
+            dispatch,
+            dismissActiveHeadlessFlow,
+            onHeadlessSessionTerminated: () => {
+              hasTerminatedHeadlessSessionRef.current = true;
+            },
+            onCallbackSuccessCloseSource: () => {
+              closeSourceRef.current = 'callback_success';
+            },
+          })
+        ) {
           return;
         }
 

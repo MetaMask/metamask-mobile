@@ -11,9 +11,17 @@ export const RAMP_SURFACE = {
 
 export type RampSurface = (typeof RAMP_SURFACE)[keyof typeof RAMP_SURFACE];
 
+/** Shared across funnel events that support the full buy/sell/deposit ramp taxonomy. */
+type RampTypeFunnel =
+  | 'DEPOSIT'
+  | 'SELL'
+  | 'BUY'
+  | 'UNIFIED_BUY'
+  | 'UNIFIED_BUY_2';
+
 interface RampsButtonClicked {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
+  ramp_type: RampTypeFunnel;
   user_id?: string;
   region: string;
   location: string;
@@ -44,7 +52,7 @@ interface RampsPaymentMethodSelected {
 
 interface RampsTokenSelected {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
+  ramp_type: RampTypeFunnel;
   user_id?: string;
   region: string;
   chain_id: string;
