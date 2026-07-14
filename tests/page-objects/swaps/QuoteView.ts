@@ -88,11 +88,17 @@ class QuoteView {
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT,
-          { exact: true },
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            `//*[@name='${QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT}' or @name='textfieldsearch' or contains(@label,'Enter token name') or contains(@name,'Enter token name')]`,
+          ),
+      },
     });
   }
 
@@ -139,13 +145,17 @@ class QuoteView {
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON,
-          {
-            exact: true,
-          },
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            `//*[contains(@name,'${QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON}')]`,
+          ),
+      },
     });
   }
 
@@ -171,12 +181,41 @@ class QuoteView {
   }
 
   async enterAmount(amount: string): Promise<void> {
-    for (const digit of amount) {
-      const button = Matchers.getElementByText(digit);
-      await Gestures.waitAndTap(button, {
-        elemDescription: `Tapping on keyboard digit ${digit}`,
-      });
-    }
+    await encapsulatedAction({
+      detox: async () => {
+        for (const digit of amount) {
+          const button = Matchers.getElementByText(digit);
+          await Gestures.waitAndTap(button, {
+            elemDescription: `Tapping on keyboard digit ${digit}`,
+          });
+        }
+      },
+      appium: async () => {
+        // iOS: keypad keys are not reliably found via accessibility-id / text;
+        // use name XPath (same pattern as enterSourceTokenAmount).
+        const isAndroid = await PlatformDetector.isAndroid();
+        for (const digit of amount.split('')) {
+          const keyName =
+            digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
+          const el = isAndroid
+            ? await PlaywrightMatchers.getElementById(keyName, {
+                exact: true,
+              })
+            : await PlaywrightMatchers.getElementByXPath(
+                `//*[contains(@name,'${keyName}')]`,
+              );
+          await PlaywrightAssertions.expectElementToBeVisible(el, {
+            timeout: TIMEOUT.KEYPAD_DIGIT,
+            description: `Keypad digit ${digit} should be visible`,
+          });
+          await PlaywrightGestures.waitAndTap(el, {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            delay: 1000,
+          });
+        }
+      },
+    });
   }
 
   async tapSearchToken(): Promise<void> {
@@ -303,21 +342,46 @@ class QuoteView {
         });
       },
       appium: async () => {
-        const scrollView = await PlaywrightMatchers.getElementById(
-          QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL,
-          { exact: true },
+        // Tap the "Rate" label (not the rate value / rate-arrow-button).
+        // Tapping BRIDGE_VIEW_SCROLL can hit rate-arrow-button and open
+        // QuoteSelectorView (swap providers), which blocks the confirm flow.
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.rateLabel),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+          },
         );
-        await PlaywrightGestures.waitAndTap(scrollView, {
-          checkForDisplayed: true,
-          checkForEnabled: true,
-        });
       },
     });
   }
 
   async tapDestinationToken(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.destinationTokenArea, {
-      description: 'Tap destination asset picker',
+    await encapsulatedAction({
+      detox: async () => {
+        await UnifiedGestures.waitAndTap(this.destinationTokenArea, {
+          description: 'Tap destination asset picker',
+        });
+      },
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.destinationTokenArea),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            delay: 1000,
+          },
+        );
+        // Confirm token selector opened — TextInput can lag behind navigation.
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(this.searchToken),
+          {
+            timeout: TIMEOUT.SWAP_SCREEN_VISIBLE,
+            description:
+              'Token search input visible after opening destination token picker',
+          },
+        );
+      },
     });
   }
 
@@ -477,30 +541,7 @@ class QuoteView {
             delay: 1000,
           },
         );
-        const isAndroid = await PlatformDetector.isAndroid();
-        for (const digit of amount.split('')) {
-          const keyName =
-            digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
-          let el: PlaywrightElement;
-          if (isAndroid) {
-            el = await PlaywrightMatchers.getElementById(keyName, {
-              exact: true,
-            });
-          } else {
-            el = await PlaywrightMatchers.getElementByXPath(
-              `//*[contains(@name,'${keyName}')]`,
-            );
-          }
-          await PlaywrightAssertions.expectElementToBeVisible(el, {
-            timeout: TIMEOUT.KEYPAD_DIGIT,
-            description: `Keypad digit ${digit} should be visible`,
-          });
-          await PlaywrightGestures.waitAndTap(el, {
-            checkForDisplayed: true,
-            checkForEnabled: true,
-            delay: 1000,
-          });
-        }
+        await this.enterAmount(amount);
       },
     });
   }
