@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 
 import { Theme } from '../../../../../../util/theme/models';
+import { getElevatedSurfaceColor } from '../../../../../../util/theme/themeUtils';
 import Device from '../../../../../../util/device';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -8,7 +9,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     modalContainer: {
-      backgroundColor: theme.colors.background.default,
+      backgroundColor: getElevatedSurfaceColor(theme),
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,
       paddingBottom: Device.isIphoneX() ? 20 : 0,
