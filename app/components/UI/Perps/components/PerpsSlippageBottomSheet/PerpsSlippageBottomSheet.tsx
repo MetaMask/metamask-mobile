@@ -1,25 +1,28 @@
 import {
-  ButtonBaseSize,
-  ButtonFilter,
-  IconName,
-} from '@metamask/design-system-react-native';
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
-import { strings } from '../../../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
+  Box,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import Text, {
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonSize,
+  FilterButtonVariant,
+  IconName,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../../util/theme';
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { strings } from '../../../../../../locales/i18n';
 import {
   PERPS_SLIPPAGE_QUICK_PICKS_BPS,
   bpsToPercent,
@@ -29,7 +32,6 @@ import {
   getPerpsSlippageConfigSelector,
 } from '../../Perps.testIds';
 import PerpsCustomSlippageBottomSheet from './PerpsCustomSlippageBottomSheet';
-import { createStyles } from './PerpsSlippageBottomSheet.styles';
 
 interface PerpsSlippageBottomSheetProps {
   isVisible: boolean;
@@ -48,8 +50,6 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
   onClose,
   onSave,
 }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const [selectedBps, setSelectedBps] = useState(currentValueBps);
@@ -62,10 +62,22 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
     }
   }, [isVisible, currentValueBps]);
 
+  // Custom sheet unmounts the main BottomSheet; reopen when it remounts.
+  useEffect(() => {
+    if (isVisible && !isCustomOpen) {
+      bottomSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isVisible, isCustomOpen]);
+
   const isCustom = !matchesPreset(selectedBps);
 
-  const handlePresetPress = useCallback((bps: number) => {
-    setSelectedBps(bps);
+  const groupValue = useMemo(
+    () => (isCustom ? '' : String(selectedBps)),
+    [isCustom, selectedBps],
+  );
+
+  const handleFilterChange = useCallback((value: string) => {
+    setSelectedBps(Number(value));
   }, []);
 
   const handleOpenCustom = useCallback(() => {
@@ -86,15 +98,15 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
     onClose();
   }, [onSave, onClose, selectedBps]);
 
-  const footerButtonProps = [
-    {
-      label: strings('perps.slippage.set'),
-      testID: PerpsSlippageConfigSelectorsIDs.SET,
-      variant: ButtonVariants.Primary,
-      size: ButtonSize.Lg,
+  const primaryButtonProps = useMemo(
+    () => ({
+      children: strings('perps.slippage.set'),
       onPress: handleSet,
-    },
-  ];
+      size: ButtonSize.Lg,
+      testID: PerpsSlippageConfigSelectorsIDs.SET,
+    }),
+    [handleSet],
+  );
 
   if (!isVisible) return null;
 
@@ -109,62 +121,55 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
     );
   }
 
-  const customLabel = isCustom ? `${bpsToPercent(selectedBps)}%` : undefined;
+  const customLabel = isCustom ? `${bpsToPercent(selectedBps)}%` : null;
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      shouldNavigateBack={false}
-      onClose={onClose}
-    >
+    <BottomSheet ref={bottomSheetRef} onClose={onClose}>
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.slippage.config_title')}
-        </Text>
+        {strings('perps.slippage.config_title')}
       </BottomSheetHeader>
 
-      <View style={styles.container}>
-        <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
-          style={styles.description}
-        >
+      <Box twClassName="px-4 pb-4">
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('perps.slippage.config_description')}
         </Text>
 
-        <View style={styles.chipRow}>
-          {PERPS_SLIPPAGE_QUICK_PICKS_BPS.map((bps) => {
-            const pct = bpsToPercent(bps);
-            const isSelected = !isCustom && selectedBps === bps;
-            return (
-              <ButtonFilter
-                key={bps}
-                isActive={isSelected}
-                size={ButtonBaseSize.Lg}
-                onPress={() => handlePresetPress(bps)}
-                testID={getPerpsSlippageConfigSelector.preset(pct)}
-                style={styles.chip}
-              >
-                {`${pct}%`}
-              </ButtonFilter>
-            );
-          })}
-
-          <ButtonFilter
-            isActive={isCustom}
-            size={ButtonBaseSize.Lg}
-            onPress={handleOpenCustom}
-            testID={PerpsSlippageConfigSelectorsIDs.EDIT_CHIP}
-            startIconName={IconName.Edit}
-            accessibilityLabel={strings('perps.slippage.custom')}
-            style={isCustom && customLabel ? styles.chip : styles.editChip}
+        <Box twClassName="mt-4 w-full">
+          <FilterButtonGroup
+            value={groupValue}
+            onChange={handleFilterChange}
+            variant={FilterButtonVariant.Primary}
+            twClassName="grow justify-center gap-2"
           >
-            {isCustom && customLabel ? customLabel : ''}
-          </ButtonFilter>
-        </View>
-      </View>
+            {PERPS_SLIPPAGE_QUICK_PICKS_BPS.map((bps) => {
+              const pct = bpsToPercent(bps);
+              return (
+                <FilterButton
+                  key={bps}
+                  value={String(bps)}
+                  size={FilterButtonSize.Lg}
+                  testID={getPerpsSlippageConfigSelector.preset(pct)}
+                >
+                  {`${pct}%`}
+                </FilterButton>
+              );
+            })}
+            <FilterButton
+              isSelected={isCustom}
+              variant={FilterButtonVariant.Primary}
+              size={FilterButtonSize.Lg}
+              onPress={handleOpenCustom}
+              testID={PerpsSlippageConfigSelectorsIDs.EDIT_CHIP}
+              startIconName={IconName.Edit}
+              accessibilityLabel={strings('perps.slippage.custom')}
+            >
+              {customLabel}
+            </FilterButton>
+          </FilterButtonGroup>
+        </Box>
+      </Box>
 
-      <BottomSheetFooter buttonPropsArray={footerButtonProps} />
+      <BottomSheetFooter primaryButtonProps={primaryButtonProps} />
     </BottomSheet>
   );
 };

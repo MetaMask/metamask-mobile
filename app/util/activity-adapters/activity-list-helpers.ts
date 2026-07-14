@@ -6,11 +6,25 @@ import {
 } from './adapters/environment';
 import type { ActivityListItem, TokenAmount } from './types';
 
-const hidePlusSignActivityTypes = new Set<ActivityListItem['type']>([
+export const SPENDING_CAP_KINDS = new Set<ActivityListItem['type']>([
   'approveSpendingCap',
   'increaseSpendingCap',
   'revokeSpendingCap',
 ]);
+
+const hidePlusSignActivityTypes = SPENDING_CAP_KINDS;
+
+/**
+ * True when a spending-cap item carries a cap amount — an explicit `amount` or
+ * an unlimited approval.
+ */
+export function isSpendingCapWithAmount(item: ActivityListItem): boolean {
+  if (!SPENDING_CAP_KINDS.has(item.type)) {
+    return false;
+  }
+  const token = 'token' in item.data ? item.data.token : undefined;
+  return Boolean(token?.amount || token?.isUnlimitedApproval);
+}
 
 export type ActivityListFilter =
   | { assetId: CaipAssetType }
@@ -23,6 +37,19 @@ export type GroupedActivityListItem =
 
 export function shouldShowPlusSign(activityType: ActivityListItem['type']) {
   return !hidePlusSignActivityTypes.has(activityType);
+}
+
+/**
+ * A send/receive that failed or was cancelled moved no tokens, so its transfer
+ * amount (surfaced from the attempted/original transaction) is misleading. The
+ * row, the details amount header, and the details total all suppress it via this
+ * predicate so they stay consistent.
+ */
+export function isFailedOrCancelledTransfer(item: ActivityListItem): boolean {
+  return (
+    (item.status === 'failed' || item.status === 'cancelled') &&
+    (item.type === 'send' || item.type === 'receive')
+  );
 }
 
 export const isSameLocalDay = (date: Date, otherDate: Date) =>
@@ -76,6 +103,26 @@ export const getActivityValue = (item: ActivityListItem) => {
 
   return undefined;
 };
+
+export function enrichTokenFromApi(
+  token: TokenAmount | undefined,
+  dataByAssetId: Record<string, { symbol?: string; decimals?: number }>,
+): TokenAmount | undefined {
+  if (!token?.assetId) {
+    return token;
+  }
+  const listToken = dataByAssetId[token.assetId.toLowerCase()];
+  if (!listToken) {
+    return token;
+  }
+  const symbol = token.symbol ?? listToken.symbol;
+  const decimals = token.decimals ?? listToken.decimals;
+  return {
+    ...token,
+    ...(symbol ? { symbol } : {}),
+    ...(decimals === undefined ? {} : { decimals }),
+  };
+}
 
 export const getActivityFromTo = (item: ActivityListItem) => {
   const { data } = item;

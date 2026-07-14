@@ -7,6 +7,16 @@ import { type OrderBookLevel } from '@metamask/perps-controller';
 export const MAX_ORDER_BOOK_LEVELS = 20;
 
 /**
+ * Depth cap for Hyperliquid's fast order book stream (~0.5s cadence).
+ * When `fast: true` is passed to `usePerpsLiveOrderBook`, the API returns at
+ * most 5 levels per side regardless of the requested `levels` value, so this
+ * is the only value that should be paired with `fast: true` — passing a
+ * larger `levels` (e.g. MAX_ORDER_BOOK_LEVELS) alongside `fast: true` sends
+ * contradictory depth signals to the API.
+ */
+export const FAST_ORDER_BOOK_LEVELS = 5;
+
+/**
  * Parameters for Hyperliquid L2Book API aggregation.
  */
 export interface AggregationParams {

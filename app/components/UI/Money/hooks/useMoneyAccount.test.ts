@@ -52,7 +52,10 @@ jest.mock('../utils/moneyAccountTransactions');
 jest.mock(
   '../../../Views/confirmations/components/confirm/confirm-component',
   () => ({
-    ConfirmationLoader: { CustomAmount: 'customAmount' },
+    ConfirmationLoader: {
+      CustomAmount: 'customAmount',
+      AdvancedCustomAmount: 'advancedCustomAmount',
+    },
   }),
 );
 
@@ -203,7 +206,7 @@ describe('useMoneyAccountDeposit', () => {
     );
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken: undefined,
       autoSelectFiatPayment: undefined,
@@ -229,7 +232,7 @@ describe('useMoneyAccountDeposit', () => {
     });
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken: undefined,
       autoSelectFiatPayment: true,
@@ -260,7 +263,7 @@ describe('useMoneyAccountDeposit', () => {
     });
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken,
       autoSelectFiatPayment: undefined,
@@ -270,7 +273,7 @@ describe('useMoneyAccountDeposit', () => {
     clearMoneyAccountDepositIntent(observedBatchId);
   });
 
-  it('defaults intent to "convert" when omitted', async () => {
+  it('registers no intent when omitted, leaving it to be derived from the transaction', async () => {
     let observedBatchId: string | undefined;
     mockAddTransactionBatch.mockImplementationOnce(async (args) => {
       observedBatchId = (args as { batchId: string }).batchId;
@@ -283,7 +286,7 @@ describe('useMoneyAccountDeposit', () => {
       await result.current.initiateDeposit();
     });
 
-    expect(getMoneyAccountDepositIntent(observedBatchId)).toBe('convert');
+    expect(getMoneyAccountDepositIntent(observedBatchId)).toBeUndefined();
     clearMoneyAccountDepositIntent(observedBatchId);
   });
 
@@ -444,7 +447,7 @@ describe('useMoneyAccountWithdrawal', () => {
     );
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
 

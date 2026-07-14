@@ -9,9 +9,14 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Hex } from '@metamask/utils';
-import { selectLocalTransactions } from '../../../../selectors/transactionController';
+import {
+  selectLocalTransactions,
+  selectReplacedLocalTransactions,
+} from '../../../../selectors/transactionController';
 import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
+import { findBridgeHistoryItem } from '../../../../util/bridge/findBridgeHistoryItem';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { selectAllTokens } from '../../../../selectors/tokensController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
@@ -96,27 +101,57 @@ function getTransactionGroupKey(tx: TransactionMeta): string {
   return `${chainId}:${from}:${tx.id}`;
 }
 
+type GroupMember = TransactionMeta & { isSmartTransaction?: boolean };
+
+const byTimeAscending = (a: GroupMember, b: GroupMember) =>
+  (a.time ?? 0) - (b.time ?? 0);
+
 function buildTransactionGroups(
-  transactions: (TransactionMeta & { isSmartTransaction?: boolean })[],
+  transactions: GroupMember[],
+  replacedTransactions: TransactionMeta[] = [],
 ): TransactionGroup[] {
   const groupsByKey = new Map<
     string,
-    (TransactionMeta & { isSmartTransaction?: boolean })[]
+    { representatives: GroupMember[]; replaced: GroupMember[] }
   >();
 
   for (const tx of transactions) {
     const key = getTransactionGroupKey(tx);
-    const group = groupsByKey.get(key) ?? [];
-    group.push(tx);
-    groupsByKey.set(key, group);
+    const entry = groupsByKey.get(key) ?? { representatives: [], replaced: [] };
+    entry.representatives.push(tx);
+    groupsByKey.set(key, entry);
   }
 
-  return [...groupsByKey.values()].map((groupTransactions) => {
-    const sorted = [...groupTransactions].sort(
-      (a, b) => (a.time ?? 0) - (b.time ?? 0),
-    );
+  // Merge replaced (speed-up/cancel) originals into their nonce group so the
+  // earliest attempt can drive the group's type/amount. Only merge into groups
+  // that already exist — a replaced tx with no surviving representative must not
+  // create a new row (it would duplicate the row shown for its replacement).
+  // Representatives (non-replaced) and replaced txs are disjoint by construction,
+  // so no id-dedupe is needed here.
+  for (const tx of replacedTransactions) {
+    groupsByKey.get(getTransactionGroupKey(tx))?.replaced.push(tx);
+  }
+
+  return [...groupsByKey.values()].map(({ representatives, replaced }) => {
+    const sortedRepresentatives = [...representatives].sort(byTimeAscending);
+    // Put replaced attempts before representatives so an equal-`time` original
+    // still wins the earliest slot (the surviving replacement must never be
+    // treated as the original). Only build the merged list when there's
+    // something to merge — the common (no-replacement) group reuses the single
+    // representatives sort.
+    const sorted = replaced.length
+      ? [...replaced, ...sortedRepresentatives].sort(byTimeAscending)
+      : sortedRepresentatives;
+
+    // Earliest attempt (usually the pre-replacement original) drives the type
+    // and amount. The status, by contrast, must come from the surviving
+    // (non-replaced) attempt: a replaced original can be *newer* than the winner
+    // — e.g. the first-broadcast tx confirmed and the higher-gas speed-up was
+    // dropped — so picking the latest attempt overall would show the dropped
+    // replacement's "failed" status for a transfer that actually succeeded.
     const initialTransaction = sorted[0];
-    const primaryTransaction = sorted[sorted.length - 1];
+    const primaryTransaction =
+      sortedRepresentatives[sortedRepresentatives.length - 1];
     const nonce = initialTransaction.txParams?.nonce;
 
     return {
@@ -161,12 +196,56 @@ function getBridgeActivityStatus(
 }
 
 /**
- * Derives source+destination token enrichment from swap metadata stored on TransactionMeta.
+ * Builds a {@link TokenAmount} from a bridge/swaps quote asset. Requires only a
+ * symbol (so it still resolves a leg whose atomic amount isn't populated yet);
+ * amount/decimals/assetId are included when present.
+ */
+function tokenFromQuoteAsset(
+  direction: TokenAmount['direction'],
+  asset: { symbol?: string; decimals?: number; assetId?: string } | undefined,
+  amount: string | undefined,
+): TokenAmount | undefined {
+  if (!asset?.symbol) {
+    return undefined;
+  }
+  return {
+    direction,
+    symbol: asset.symbol,
+    ...(amount ? { amount } : {}),
+    ...(asset.decimals === undefined ? {} : { decimals: asset.decimals }),
+    ...(asset.assetId ? { assetId: asset.assetId } : {}),
+  };
+}
+
+/**
+ * Derives source+destination token enrichment for a swap.
+ *
+ * Unified swaps store their token metadata in the bridge/swaps quote, not on the
+ * legacy TransactionMeta fields, so on-device resolution (`sourceTokenSymbol` /
+ * `swapMetaData` / native fallback) can miss a leg — most visibly a native
+ * destination — leaving the row as `swapIncomplete` (empty "You received", no
+ * fees, no "Swap again") until the indexer backfills a full copy. Prefer the
+ * quote (symbol always, amount/decimals/assetId when present) so the row resolves
+ * to a complete swap immediately and reactively; fall back to the legacy
+ * on-device fields for older SwapsController transactions with no bridge quote.
  */
 function getSwapTokenEnrichment(
   tx: TransactionMeta,
   nativeSymbol: string | undefined,
+  bridgeHistoryItem: BridgeHistoryItem | undefined,
 ): { sourceToken?: TokenAmount; destinationToken?: TokenAmount } {
+  const quote = bridgeHistoryItem?.quote;
+  const quoteSourceToken = tokenFromQuoteAsset(
+    'out',
+    quote?.srcAsset,
+    quote?.srcTokenAmount,
+  );
+  const quoteDestinationToken = tokenFromQuoteAsset(
+    'in',
+    quote?.destAsset,
+    quote?.destTokenAmount ?? quote?.minDestTokenAmount,
+  );
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const meta = tx as any;
   const srcSymbol: string | undefined =
@@ -179,21 +258,25 @@ function getSwapTokenEnrichment(
     srcSymbol ??
     (meta.destinationTokenAddress && nativeSymbol ? nativeSymbol : undefined);
 
-  if (!effectiveSrcSymbol && !dstSymbol) return {};
-
-  const sourceToken: TokenAmount | undefined = effectiveSrcSymbol
+  const legacySourceToken: TokenAmount | undefined = effectiveSrcSymbol
     ? { direction: 'out', symbol: effectiveSrcSymbol }
     : undefined;
-  const destinationToken: TokenAmount | undefined = dstSymbol
+  const legacyDestinationToken: TokenAmount | undefined = dstSymbol
     ? { direction: 'in', symbol: dstSymbol }
     : undefined;
 
-  return { sourceToken, destinationToken };
+  // The quote is strictly richer than the legacy symbol-only fallback, so it
+  // wins when present.
+  return {
+    sourceToken: quoteSourceToken ?? legacySourceToken,
+    destinationToken: quoteDestinationToken ?? legacyDestinationToken,
+  };
 }
 
 export function useLocalActivityItems(): ActivityListItem[] {
   // Outgoing / user-initiated txs only — excludes incoming spam from TransactionController.
   const localTransactions = useSelector(selectLocalTransactions);
+  const replacedTransactions = useSelector(selectReplacedLocalTransactions);
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -215,7 +298,10 @@ export function useLocalActivityItems(): ActivityListItem[] {
   return useMemo(() => {
     const items: ActivityListItem[] = [];
     const accountAddress = groupEvmAccount?.address?.toLowerCase();
-    const groupedTransactions = buildTransactionGroups(transactionMetaList);
+    const groupedTransactions = buildTransactionGroups(
+      transactionMetaList,
+      replacedTransactions,
+    );
 
     for (const baseGroup of groupedTransactions) {
       const { primaryTransaction: tx } = baseGroup;
@@ -246,6 +332,15 @@ export function useLocalActivityItems(): ActivityListItem[] {
         }
       }
 
+      // Bridge/swaps history item for this tx — carries the quote used to
+      // enrich swap tokens (and status) when the local TransactionMeta doesn't.
+      const bridgeHistoryItem = findBridgeHistoryItem({
+        bridgeHistory,
+        transactionMetaId: tx.id,
+        transactionActionId: tx.actionId,
+        transactionHash: tx.hash,
+      });
+
       // Bridge activity status override
       const activityStatus = getBridgeActivityStatus(tx, bridgeHistory);
 
@@ -253,6 +348,7 @@ export function useLocalActivityItems(): ActivityListItem[] {
       const { sourceToken, destinationToken } = getSwapTokenEnrichment(
         tx,
         nativeAssetSymbol,
+        bridgeHistoryItem,
       );
 
       const isEarliestNonce = computeIsEarliestNonce(tx, transactionMetaList);
@@ -273,6 +369,7 @@ export function useLocalActivityItems(): ActivityListItem[] {
     return items;
   }, [
     transactionMetaList,
+    replacedTransactions,
     bridgeHistory,
     networkConfigurations,
     allTokens,

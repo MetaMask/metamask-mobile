@@ -130,12 +130,14 @@ const selectTransactionControllerState = (state: RootState) =>
 
 const selectTransactionsStrict = createSelector(
   selectTransactionControllerState,
-  (transactionControllerState) => transactionControllerState.transactions,
+  (transactionControllerState) =>
+    transactionControllerState?.transactions ?? [],
 );
 
 const selectTransactionBatchesStrict = createSelector(
   selectTransactionControllerState,
-  (transactionControllerState) => transactionControllerState.transactionBatches,
+  (transactionControllerState) =>
+    transactionControllerState?.transactionBatches,
 );
 
 export const selectRequiredTransactionIds = createSelector(
@@ -199,13 +201,34 @@ export const selectTransactions = createDeepEqualSelector(
   },
 );
 
+/**
+ * A transaction is "replaced" once its speed-up/cancel replacement has fully
+ * committed: the controller sets `replacedBy` (replacement hash) and
+ * `replacedById` (replacement id) while the original keeps its own `hash`.
+ */
+function isReplacedTransaction(
+  transaction: Pick<TransactionMeta, 'replacedBy' | 'replacedById' | 'hash'>,
+): boolean {
+  const { replacedBy, replacedById, hash } = transaction;
+  return Boolean(replacedBy && replacedById && hash);
+}
+
+/** Whether a transaction was sent from the active account's EVM address. */
+function belongsToActiveAccount(
+  transaction: LocalTransaction,
+  activeEvmAddress: string | undefined,
+): boolean {
+  const fromAddress = transaction.txParams?.from;
+  if (!fromAddress || !activeEvmAddress) {
+    return false;
+  }
+  return areAddressesEqual(fromAddress, activeEvmAddress);
+}
+
 export const selectNonReplacedTransactions = createDeepEqualSelector(
   selectTransactionsStrict,
   (transactions) =>
-    transactions.filter(
-      ({ replacedBy, replacedById, hash }) =>
-        !(replacedBy && replacedById && hash),
-    ),
+    transactions.filter((transaction) => !isReplacedTransaction(transaction)),
 );
 
 export const selectSortedTransactions = createDeepEqualSelector(
@@ -304,28 +327,16 @@ export const selectLocalTransactions = createDeepEqualSelector(
   ) => {
     const activeEvmAddress = groupEvmAccount?.address ?? fallbackEvmAddress;
 
-    const transactions = nonReplacedTransactions.filter((transaction) => {
-      if (requiredTransactionIds.has(transaction.id)) {
-        return false;
-      }
-
-      const fromAddress = transaction.txParams?.from;
-      if (!fromAddress || !activeEvmAddress) {
-        return false;
-      }
-
-      return areAddressesEqual(fromAddress, activeEvmAddress);
-    });
+    const transactions = nonReplacedTransactions.filter(
+      (transaction) =>
+        !requiredTransactionIds.has(transaction.id) &&
+        belongsToActiveAccount(transaction, activeEvmAddress),
+    );
 
     const pendingSmartTransactionsForActiveAddress =
-      pendingSmartTransactions.filter((transaction) => {
-        const fromAddress = transaction.txParams?.from;
-        if (!fromAddress || !activeEvmAddress) {
-          return false;
-        }
-
-        return areAddressesEqual(fromAddress, activeEvmAddress);
-      });
+      pendingSmartTransactions.filter((transaction) =>
+        belongsToActiveAccount(transaction, activeEvmAddress),
+      );
 
     return dedupeTransactions([
       ...transactions,
@@ -334,11 +345,43 @@ export const selectLocalTransactions = createDeepEqualSelector(
   },
 );
 
+/**
+ * Replaced (speed-up/cancel) local transactions for the active account — the
+ * inverse of what {@link selectNonReplacedTransactions} keeps. The activity list
+ * drops these so it shows one row per nonce, but the redesigned list re-merges
+ * them into their nonce group so the original attempt still drives the group's
+ * type and amount (its live replacement drives the status). Address/required
+ * filtering mirrors {@link selectLocalTransactions} so the two align by nonce.
+ */
+export const selectReplacedLocalTransactions = createDeepEqualSelector(
+  [
+    selectTransactionsStrict,
+    selectSelectedAccountGroupEvmInternalAccount,
+    selectEvmAddress,
+    selectRequiredTransactionIds,
+  ],
+  (
+    transactions,
+    groupEvmAccount,
+    fallbackEvmAddress,
+    requiredTransactionIds,
+  ) => {
+    const activeEvmAddress = groupEvmAccount?.address ?? fallbackEvmAddress;
+
+    return transactions.filter(
+      (transaction) =>
+        isReplacedTransaction(transaction) &&
+        !requiredTransactionIds.has(transaction.id) &&
+        belongsToActiveAccount(transaction, activeEvmAddress),
+    );
+  },
+);
+
 export const selectSwapsTransactions = createSelector(
   selectTransactionControllerState,
   (transactionControllerState) =>
     //@ts-expect-error - This is populated at the app level, the TransactionController is not aware of this property
-    transactionControllerState.swapsTransactions ?? {},
+    transactionControllerState?.swapsTransactions ?? {},
 );
 
 export const selectTransactionMetadataById = createDeepEqualSelector(

@@ -36,11 +36,14 @@ export {
 } from './fiat';
 export {
   activityMatchesAssetId,
+  enrichTokenFromApi,
   formatActivityListDateHeader,
   getActivityFromTo,
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  isFailedOrCancelledTransfer,
+  isSpendingCapWithAmount,
   shouldShowPlusSign,
   type GroupedActivityListItem,
 } from './activity-list-helpers';
