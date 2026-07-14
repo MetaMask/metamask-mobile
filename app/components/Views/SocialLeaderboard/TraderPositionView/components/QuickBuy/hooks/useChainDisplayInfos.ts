@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { ImageSource } from 'expo-image';
+import type { ImageSourcePropType } from 'react-native';
 import { useSelector } from 'react-redux';
 import { resolveNetworkDisplayName } from '../../../../../../UI/NetworkMultiSelector/NetworkMultiSelectorUtils';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../../../selectors/networkController';
@@ -9,7 +9,7 @@ import { getNetworkImageSource } from '../../../../../../../util/networks';
 export interface ChainOption {
   chainId: string | null;
   name: string;
-  imageSource: ImageSource | number | undefined;
+  imageSource: ImageSourcePropType | undefined;
 }
 
 export function useChainDisplayInfos(chainIds: string[]): ChainOption[] {

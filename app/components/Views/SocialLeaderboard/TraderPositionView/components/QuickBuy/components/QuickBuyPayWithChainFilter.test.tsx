@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import type { ImageSource } from 'expo-image';
+import type { ImageSourcePropType } from 'react-native';
 import QuickBuyPayWithChainFilter from './QuickBuyPayWithChainFilter';
 import type { ChainOption } from '../hooks/useChainDisplayInfos';
 
@@ -14,7 +14,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 const mockImageSource = {
   uri: 'https://example.com/eth.png',
-} as ImageSource;
+} as ImageSourcePropType;
 
 const createChains = (): ChainOption[] => [
   { chainId: null, name: 'All', imageSource: undefined },
