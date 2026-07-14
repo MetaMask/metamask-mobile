@@ -96,7 +96,6 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('../../Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({
     goToBuy: jest.fn(),
-    goToAggregator: jest.fn(),
   }),
 }));
 

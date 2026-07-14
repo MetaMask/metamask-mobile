@@ -70,7 +70,6 @@ describe('useGasSponsorshipWarningAlert', () => {
     });
     mockUseRampNavigation.mockReturnValue({
       goToBuy: jest.fn(),
-      goToAggregator: jest.fn(),
       goToSell: jest.fn(),
     });
     mockUseIsGasSponsored.mockReturnValue(true);

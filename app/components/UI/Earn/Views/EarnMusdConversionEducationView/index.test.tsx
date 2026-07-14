@@ -153,7 +153,6 @@ describe('EarnMusdConversionEducationView', () => {
   const mockInitiateConversion = jest.fn();
   const mockInitiateMaxConversion = jest.fn();
   const mockClearError = jest.fn();
-  const mockGoToAggregator = jest.fn();
   const mockGetPreferredPaymentToken = jest.fn();
   const mockGetChainIdForBuyFlow = jest.fn();
   const mockNavigation = {
@@ -220,7 +219,6 @@ describe('EarnMusdConversionEducationView', () => {
 
     mockUseRampNavigation.mockReturnValue({
       goToBuy: jest.fn(),
-      goToAggregator: mockGoToAggregator,
       goToSell: jest.fn(),
     });
     mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
@@ -309,7 +307,6 @@ describe('EarnMusdConversionEducationView', () => {
           Routes.WALLET.HOME,
           expect.anything(),
         );
-        expect(mockGoToAggregator).not.toHaveBeenCalled();
       });
     });
 
@@ -502,8 +499,7 @@ describe('EarnMusdConversionEducationView', () => {
       const mockGoToBuy = jest.fn();
       mockUseRampNavigation.mockReturnValue({
         goToBuy: mockGoToBuy,
-        goToAggregator: mockGoToAggregator,
-        goToSell: jest.fn(),
+          goToSell: jest.fn(),
       });
 
       mockUseMusdConversionFlowData.mockReturnValue({

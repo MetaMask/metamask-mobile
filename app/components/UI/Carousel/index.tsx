@@ -27,7 +27,7 @@ import {
   isActive,
 } from './fetchCarouselSlidesFromContentful';
 import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
-import { createTokenSelectionNavDetails } from '../Ramp/Views/TokenSelection/TokenSelection';
+import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { subscribeToContentPreviewToken } from '../../../actions/notification/helpers';
 import {
   BANNER_EVENT_DISPLAY,
@@ -190,7 +190,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
           ...s,
           navigation: {
             type: 'function',
-            navigate: () => createTokenSelectionNavDetails(),
+            navigate: () => createBuyNavigationDetails(),
           },
         };
       }

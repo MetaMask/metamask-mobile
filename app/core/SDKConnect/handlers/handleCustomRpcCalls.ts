@@ -12,7 +12,7 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import handleSendMessage from './handleSendMessage';
 import { Connection } from '../Connection';
-import { createTokenSelectionNavDetails } from '../../../components/UI/Ramp/Views/TokenSelection/TokenSelection';
+import { createBuyNavigationDetails } from '../../../components/UI/Ramp/Aggregator/routes/utils';
 
 export const handleCustomRpcCalls = async ({
   rpc,
@@ -120,7 +120,7 @@ export const handleCustomRpcCalls = async ({
       );
       navigation?.navigate(Routes.BRIDGE.ROOT);
     } else {
-      navigation?.navigate(...createTokenSelectionNavDetails());
+      navigation?.navigate(...createBuyNavigationDetails());
     }
 
     if (connection) {
