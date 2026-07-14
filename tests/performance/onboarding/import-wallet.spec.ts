@@ -3,6 +3,7 @@ import TimerHelper from '../../framework/TimerHelper';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import { Performance, PerformanceOnboarding } from '../../tags.performance.js';
 import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
+// MMQA-1667 verification: performance-only PR should reuse main builds (incl. BrowserStack apps).
 import {
   asPlaywrightElement,
   PlatformDetector,
