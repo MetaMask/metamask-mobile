@@ -77,6 +77,7 @@ export type SocialLeaderboardSource =
   | 'home_carousel'
   | 'leaderboard'
   | 'trader_profile'
+  | 'trader_feed'
   | 'profile_position'
   | 'asset_details'
   | 'market_insights'
@@ -100,7 +101,7 @@ export type LeaderboardScreenViewedSource = Extract<
 
 export type TraderProfileScreenViewedSource = Extract<
   SocialLeaderboardSource,
-  'leaderboard' | 'home_carousel' | 'notification' | 'deep_link'
+  'leaderboard' | 'home_carousel' | 'notification' | 'deep_link' | 'trader_feed'
 >;
 
 export type TraderFollowInteractionSource = Extract<

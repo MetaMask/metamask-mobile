@@ -1,5 +1,5 @@
 import '../../../../../../../tests/component-view/mocks';
-import { waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import {
   CryptoCurrency,
   FiatCurrency,
@@ -136,6 +136,83 @@ describe('Aggregator Quotes screen', () => {
         expect.anything(),
       );
     });
+  });
+
+  it('displays sell quote amount and shows CTA after pressing the quote', async () => {
+    const sellQuote = buildSellQuote({
+      amountOut: 45.5,
+      providerFee: 2.5,
+      networkFee: 1.0,
+    });
+    const getSellQuotes = jest.fn().mockResolvedValue({
+      quotes: [sellQuote],
+      sorted: [],
+      customActions: [],
+    });
+
+    const { render } = renderAggregatorQuotesView({
+      rampType: RampType.SELL,
+      amount: 50,
+      selectedAsset: ETH,
+      selectedFiatCurrency: EUR,
+      selectedPaymentMethodId: PAYMENT_METHOD_ID,
+      selectedAddress: WALLET_ADDRESS,
+      sdkMocks: { getSellQuotes },
+    });
+
+    expect(await render.findByText('MoonPay (Staging)')).toBeOnTheScreen();
+
+    fireEvent.press(await render.findByText('MoonPay (Staging)'));
+
+    expect(
+      await render.findByText('Continue with MoonPay (Staging)'),
+    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(render.getByText(/45\.5/)).toBeOnTheScreen();
+    });
+  });
+
+  it('renders multiple sell quotes and reveals second provider via "Explore more options"', async () => {
+    const moonpayQuote = buildSellQuote({
+      amountOut: 38.42,
+    });
+    const transakQuote = buildSellQuote({
+      provider: {
+        id: '/providers/transak-staging',
+        name: 'Transak (Staging)',
+        description: '',
+        hqAddress: '',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 90 },
+        features: {} as never,
+        environmentType: '' as never,
+      },
+      amountOut: 37.5,
+    });
+
+    const getSellQuotes = jest.fn().mockResolvedValue({
+      quotes: [moonpayQuote, transakQuote],
+      sorted: [],
+      customActions: [],
+    });
+
+    const { render } = renderAggregatorQuotesView({
+      rampType: RampType.SELL,
+      amount: 50,
+      selectedAsset: ETH,
+      selectedFiatCurrency: EUR,
+      selectedPaymentMethodId: PAYMENT_METHOD_ID,
+      selectedAddress: WALLET_ADDRESS,
+      sdkMocks: { getSellQuotes },
+    });
+
+    // First (recommended) quote is visible immediately
+    expect(await render.findByText('MoonPay (Staging)')).toBeOnTheScreen();
+
+    // Expand to see other providers
+    fireEvent.press(await render.findByText('Explore more options'));
+
+    expect(await render.findByText('Transak (Staging)')).toBeOnTheScreen();
   });
 
   it('loads buy quotes via getQuotes and renders the recommended provider', async () => {

@@ -87,12 +87,14 @@ jest.mock(
 const mockToggleTraderNotification = jest.fn();
 const mockIsTraderNotificationEnabled = jest.fn((_traderId: string) => true);
 
-let mockNotificationPreferences = {
+const defaultNotificationPreferences = {
   ...DEFAULT_SOCIAL_AI_PREFERENCES,
   mutedTraderProfileIds: [
     ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
   ],
 };
+
+let mockNotificationPreferences = { ...defaultNotificationPreferences };
 
 const channelsDisabledPreferences = {
   ...DEFAULT_SOCIAL_AI_PREFERENCES,
@@ -292,12 +294,7 @@ describe('TopTradersView', () => {
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
     mockHasNotificationPreferences.mockReturnValue(true);
     mockRouteParams = {};
-    mockNotificationPreferences = {
-      ...DEFAULT_SOCIAL_AI_PREFERENCES,
-      mutedTraderProfileIds: [
-        ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
-      ],
-    };
+    mockNotificationPreferences = { ...defaultNotificationPreferences };
     mockIsTraderNotificationEnabled.mockReturnValue(true);
   });
 
@@ -308,7 +305,7 @@ describe('TopTradersView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the Top Traders title in the scrollable title section', () => {
+  it('renders the Weekly Top Traders title in the scrollable title section', () => {
     renderWithProvider(<TopTradersView />);
 
     expect(
