@@ -30,8 +30,6 @@ import {
   remoteFeatureFlagPerpsDisabledForPredictSmoke,
 } from './helpers/predict-helpers.js';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
-import ToastModal from '../../page-objects/wallet/ToastModal.js';
-import { waitForWalletHomePlaywright } from '../../flows/wallet.flow.js';
 
 /*
 Test Scenario: Cash out on open position - Spurs vs. Pelicans
@@ -127,13 +125,7 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
           await POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS(mockServer);
           await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'cash-out');
 
-          // Top toast covers the market-details back control until it auto-dismisses.
-          await ToastModal.waitForToastToDismiss();
           await PredictDetailsPage.tapBackButton();
-          // Wait for wallet home before scrolling — Android scrollIntoView
-          // fails with getElementRect(elementId=undefined) if wallet-scroll-view
-          // is not yet in the hierarchy after market-details pop.
-          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
           await WalletView.scrollAndTapPredictionsSection();
           await WalletView.tapOnAvailableBalance();
           await Assertions.expectTextDisplayed(positionDetails.newBalance, {

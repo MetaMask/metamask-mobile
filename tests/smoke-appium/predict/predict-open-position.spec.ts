@@ -19,15 +19,12 @@ import {
   POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
-import ToastModal from '../../page-objects/wallet/ToastModal.js';
 import { predictOpenPositionAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-open-position.analytics.js';
 import {
   loginForPredictTests,
   remoteFeatureFlagPerpsDisabledForPredictSmoke,
 } from './helpers/predict-helpers.js';
 import { CELTICS_NETS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
-import { waitForWalletHomePlaywright } from '../../flows/wallet.flow.js';
-import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
 
 /*
 Test Scenario: Open position on Celtics vs. Nets market
@@ -122,18 +119,11 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
 
           await PredictDetailsPage.tapOpenPosition();
 
-          // Top toast covers the market-details back control until it auto-dismisses.
-          await ToastModal.waitForToastToDismiss();
           await PredictDetailsPage.tapBackButton();
-          await PredictMarketList.waitForScreenToDisplay({
-            description:
-              'Predict market list should be visible after opening position',
-          });
           await Assertions.expectTextDisplayed(positionDetails.newBalance, {
             description: `USDC balance should display ${positionDetails.newBalance} after opening position`,
           });
           await PredictMarketList.tapBackButton();
-          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
 
           await WalletView.scrollAndTapPredictionsPosition(
             positionDetails.name,
@@ -154,7 +144,6 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
           );
 
           await PredictDetailsPage.tapBackButton();
-          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
           await WalletView.scrollAndTapPredictionsSection();
           await Assertions.expectTextDisplayed(positionDetails.newBalance);
         },

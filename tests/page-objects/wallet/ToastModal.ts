@@ -50,9 +50,8 @@ class ToastModal {
   }
 
   /**
-   * If a toast is visible, waits for it to disappear. Otherwise returns
+   * If a bottom toast is visible, waits for it to disappear. Otherwise returns
    * immediately. Never fails the test when no toast is shown or dismiss is slow.
-   * Used before tapping header back controls that top toasts can cover.
    */
   async waitForToastToDismiss(
     options: {
