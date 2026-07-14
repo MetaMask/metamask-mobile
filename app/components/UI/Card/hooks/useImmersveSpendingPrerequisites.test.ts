@@ -66,6 +66,28 @@ describe('useImmersveSpendingPrerequisites', () => {
     });
   });
 
+  it('resolves to null and records the error without throwing on failure', async () => {
+    mockCard.getSpendingPrerequisites.mockRejectedValue(new Error('boom'));
+
+    const { result } = renderHook(() =>
+      useImmersveSpendingPrerequisites({
+        fundingSourceId: 'fs-1',
+        kycRegion: 'GB',
+      }),
+    );
+
+    let action;
+    await act(async () => {
+      // Must not throw — a throw here (or in the setState updater) crashed the
+      // KYC processing screen with a render error.
+      action = await result.current.refresh();
+    });
+
+    expect(action).toBeNull();
+    expect(result.current.nextAction).toBeNull();
+    expect(result.current.error).toBeTruthy();
+  });
+
   it('polls while pending and stops once actionable', async () => {
     jest.useFakeTimers();
     mockCard.getSpendingPrerequisites

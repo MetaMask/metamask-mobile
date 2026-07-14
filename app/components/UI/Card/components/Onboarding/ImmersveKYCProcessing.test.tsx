@@ -78,13 +78,16 @@ const POLLING_TIMEOUT_MS = 30000;
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 
-const setNextAction = (nextAction: ImmersveNextAction | null) => {
+const setNextAction = (
+  nextAction: ImmersveNextAction | null,
+  error: string | null = null,
+) => {
   (useImmersveSpendingPrerequisites as jest.Mock).mockReturnValue({
     nextAction,
     refresh: mockRefresh,
     prerequisites: [],
     isLoading: false,
-    error: null,
+    error,
   });
 };
 
@@ -164,5 +167,17 @@ describe('ImmersveKYCProcessing', () => {
       index: 0,
       routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
     });
+  });
+
+  it('shows the error message instead of the spinner on failure', () => {
+    setNextAction(null, 'Something went wrong');
+    const { getByTestId, queryByTestId } = render(<ImmersveKYCProcessing />);
+
+    expect(getByTestId('immersve-kyc-processing-error').props.children).toBe(
+      'Something went wrong',
+    );
+    expect(queryByTestId('immersve-kyc-processing-spinner')).toBeNull();
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockReset).not.toHaveBeenCalled();
   });
 });

@@ -40,7 +40,7 @@ const ImmersveKYCProcessing = () => {
   const fundingSourceId = useSelector(selectImmersveFundingSourceId);
   const hasOpenedWebview = useRef(false);
 
-  const { nextAction, refresh } = useImmersveSpendingPrerequisites({
+  const { nextAction, error, refresh } = useImmersveSpendingPrerequisites({
     fundingSourceId: fundingSourceId ?? undefined,
     kycRegion: countryKey,
     kycRedirectUrl: KYC_REDIRECT_URL,
@@ -108,13 +108,27 @@ const ImmersveKYCProcessing = () => {
 
   const renderFormFields = () => (
     <Box twClassName="flex flex-1 items-center justify-center">
-      <AnimatedSpinner testID="immersve-kyc-processing-spinner" />
-      <Text
-        variant={TextVariant.BodyMd}
-        twClassName="text-center text-text-alternative mt-4 px-4"
-      >
-        {strings('card.card_onboarding.immersve_kyc_processing.helper_text')}
-      </Text>
+      {error ? (
+        <Text
+          variant={TextVariant.BodyMd}
+          twClassName="text-center text-error-default px-4"
+          testID="immersve-kyc-processing-error"
+        >
+          {error}
+        </Text>
+      ) : (
+        <>
+          <AnimatedSpinner testID="immersve-kyc-processing-spinner" />
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-center text-text-alternative mt-4 px-4"
+          >
+            {strings(
+              'card.card_onboarding.immersve_kyc_processing.helper_text',
+            )}
+          </Text>
+        </>
+      )}
     </Box>
   );
 
