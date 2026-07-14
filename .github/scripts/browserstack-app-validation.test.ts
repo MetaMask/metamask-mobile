@@ -5,6 +5,7 @@ import path from 'node:path';
 const {
   assertBrowserStackAppUrl,
   assertBrowserStackCustomId,
+  isMainBranchBrowserStackCustomId,
   writeGithubOutputs,
 } = require('./browserstack-app-validation.cjs');
 
@@ -24,7 +25,10 @@ describe('browserstack-app-validation', () => {
     ).toThrow('Invalid test');
   });
 
-  it('accepts expected custom_id formats with branch slug', () => {
+  it('accepts stable and run-scoped custom_id formats with branch slug', () => {
+    expect(
+      assertBrowserStackCustomId('MetaMask-Android-With-SRP-main', 'with-srp'),
+    ).toBe('MetaMask-Android-With-SRP-main');
     expect(
       assertBrowserStackCustomId(
         'MetaMask-Android-With-SRP-main-123',
@@ -45,10 +49,37 @@ describe('browserstack-app-validation', () => {
     ).toBe('MetaMask-Android-With-SRP-feature_x-789');
   });
 
-  it('rejects legacy custom_id formats without branch slug', () => {
+  it('rejects legacy custom_id formats without a letterful branch slug', () => {
     expect(() =>
       assertBrowserStackCustomId('MetaMask-Android-With-SRP-123', 'with-srp'),
     ).toThrow('Invalid with-srp custom_id');
+  });
+
+  it('detects main-branch custom_ids only', () => {
+    expect(
+      isMainBranchBrowserStackCustomId(
+        'MetaMask-Android-With-SRP-main',
+        'with-srp',
+      ),
+    ).toBe(true);
+    expect(
+      isMainBranchBrowserStackCustomId(
+        'MetaMask-Android-With-SRP-main-999',
+        'with-srp',
+      ),
+    ).toBe(true);
+    expect(
+      isMainBranchBrowserStackCustomId(
+        'MetaMask-Android-With-SRP-feature_x',
+        'with-srp',
+      ),
+    ).toBe(false);
+    expect(
+      isMainBranchBrowserStackCustomId(
+        'MetaMask-Android-With-SRP-maintenance-1',
+        'with-srp',
+      ),
+    ).toBe(false);
   });
 
   it('writes only validated single-line GitHub outputs', () => {
