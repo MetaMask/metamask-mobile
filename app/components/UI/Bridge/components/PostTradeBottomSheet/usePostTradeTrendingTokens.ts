@@ -83,13 +83,7 @@ export const usePostTradeTrendingTokens = ({
       POST_TRADE_TRENDING_TOKENS_QUERY_KEY,
       NetworkToCaipChainId.ETHEREUM,
     ],
-    queryFn: async () => {
-      try {
-        return await getSortedTrendingTokens(NetworkToCaipChainId.ETHEREUM);
-      } catch {
-        return [];
-      }
-    },
+    queryFn: () => getSortedTrendingTokens(NetworkToCaipChainId.ETHEREUM),
     enabled: isFallbackEnabled,
     staleTime: STALE_TIME_MS,
     cacheTime: STALE_TIME_MS,

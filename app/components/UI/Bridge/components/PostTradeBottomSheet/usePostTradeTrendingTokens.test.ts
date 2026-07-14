@@ -23,13 +23,16 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(() => 'usd'),
 }));
 
-const mockGetTrendingTokens = getTrendingTokens as jest.MockedFunction<
-  typeof getTrendingTokens
->;
+const mockGetTrendingTokens = jest.mocked(getTrendingTokens);
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, cacheTime: Infinity } },
+    logger: {
+      log: () => undefined,
+      warn: () => undefined,
+      error: () => undefined,
+    },
   });
 
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
@@ -238,8 +241,11 @@ describe('usePostTradeTrendingTokens', () => {
     );
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
       expect(mockGetTrendingTokens).toHaveBeenCalledTimes(2);
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
     expect(result.current.tokens).toEqual([lineaToken]);
