@@ -38,6 +38,8 @@ export enum TokenDetailsSource {
   PriceAlertNotification = 'price_alert_notification',
   /** Watchlist section on the homepage */
   WatchlistHomepage = 'watchlist_homepage',
+  /** Full-screen watchlist view */
+  WatchlistFullscreen = 'watchlist_fullscreen',
   /** Fallback when source cannot be determined */
   Unknown = 'unknown',
 }
