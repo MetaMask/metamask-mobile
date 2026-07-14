@@ -11,6 +11,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import {
+  type TransactionData,
   TransactionPayControllerMessenger,
   TransactionPayPublishHook,
 } from '@metamask/transaction-pay-controller';
@@ -37,7 +38,10 @@ import { getTransactionById } from '..';
 import { accountSupports7702 } from '../account-supports-7702';
 import { isSendBundleSupported } from '../sentinel-api';
 import { Delegation7702PublishHook } from './delegation-7702-publish';
-import { QUOTE_REQUIRED_TRANSACTION_TYPES } from '../../../components/Views/confirmations/constants/confirmations';
+import {
+  PERPS_DEPOSIT_TRANSACTION_TYPES,
+  QUOTE_REQUIRED_TRANSACTION_TYPES,
+} from '../../../components/Views/confirmations/constants/confirmations';
 import {
   getPostQuoteTransactionType,
   hasTransactionType,
@@ -236,13 +240,18 @@ function validateRequiredQuote(
     QUOTE_REQUIRED_TRANSACTION_TYPES,
   );
 
+  const isPerpsDeposit = hasTransactionType(
+    transactionMeta,
+    PERPS_DEPOSIT_TRANSACTION_TYPES,
+  );
+
   const postQuoteType = getPostQuoteTransactionType(transactionMeta);
 
   const isPostQuoteWithdraw =
     Boolean(postQuoteType) &&
     selectPayQuoteConfig(state, postQuoteType).enabled === true;
 
-  if (!isQuoteRequiredType && !isPostQuoteWithdraw) {
+  if (!isQuoteRequiredType && !isPostQuoteWithdraw && !isPerpsDeposit) {
     return;
   }
 
@@ -256,6 +265,14 @@ function validateRequiredQuote(
   // No-op quotes also count: the controller validated the route as direct.
   if (quotes.length) {
     return;
+  }
+
+  if (isPerpsDeposit) {
+    if (isValidatedDirectPerpsDeposit(data)) {
+      return;
+    }
+
+    throw new Error('MetaMask Pay: Cannot submit without quote');
   }
 
   // Older controller versions store no quotes at all for direct routes.
@@ -273,6 +290,46 @@ function validateRequiredQuote(
   }
 
   throw new Error('MetaMask Pay: Cannot submit without quote');
+}
+
+/**
+ * A perps deposit may submit without quotes only when the user pays with the
+ * deposit token itself and the controller recorded no pending conversion.
+ * Anything else (payment token missing or different, or a required conversion
+ * without a quote) means the deposit would land without funds, so it must not
+ * submit.
+ *
+ * @param data - Pay state for the transaction.
+ * @returns Whether direct submission is safe.
+ */
+function isValidatedDirectPerpsDeposit(
+  data: TransactionData | undefined,
+): boolean {
+  const paymentToken = data?.paymentToken;
+
+  if (!paymentToken) {
+    return false;
+  }
+
+  const tokens = data?.tokens ?? [];
+  const requiredToken = tokens.find((token) => !token.skipIfBalance);
+
+  const isPayingWithRequiredToken =
+    Boolean(requiredToken) &&
+    requiredToken?.chainId === paymentToken.chainId &&
+    requiredToken?.address.toLowerCase() === paymentToken.address.toLowerCase();
+
+  if (!isPayingWithRequiredToken) {
+    return false;
+  }
+
+  const hasRequiredConversion = (data?.sourceAmounts ?? []).some(
+    (sourceAmount) =>
+      !tokens.find((token) => token.address === sourceAmount.targetTokenAddress)
+        ?.skipIfBalance,
+  );
+
+  return !hasRequiredConversion;
 }
 
 function getSmartTransactionCommonParams(state: RootState, chainId: Hex) {

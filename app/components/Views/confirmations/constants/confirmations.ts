@@ -143,3 +143,13 @@ export const MM_PAY_TRANSACTION_TYPES = [
 export const QUOTE_REQUIRED_TRANSACTION_TYPES = [
   TransactionType.moneyAccountDeposit,
 ] as const;
+
+/**
+ * Perps deposit transaction types. They require a Pay quote at publish time
+ * unless the user pays with the deposit token itself and no conversion is
+ * pending.
+ */
+export const PERPS_DEPOSIT_TRANSACTION_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
+] as const;
