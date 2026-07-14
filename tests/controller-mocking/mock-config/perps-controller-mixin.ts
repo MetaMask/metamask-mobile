@@ -641,6 +641,24 @@ export function buildE2EMockStreamManagerPlain(): Record<
         return () => undefined;
       },
     },
+    /**
+     * Focused single-symbol price channel (production FocusedPriceStreamChannel).
+     * `usePerpsLiveFocusedPrice` calls `focusedPrice.subscribeToSymbol` on mount
+     * for detail/ticket/order-book screens; omitting it made those screens throw
+     * `TypeError: undefined is not a function` right after tapping a market row,
+     * which surfaced as "market row not found" in Detox/Appium perps flows.
+     */
+    focusedPrice: {
+      getSnapshot: (): PriceUpdate | undefined | null => null,
+      clearCache: (): void => undefined,
+      subscribeToSymbol: (params: {
+        symbol: string;
+        callback: (update: PriceUpdate | undefined) => void;
+      }) => {
+        setTimeout(() => params.callback(mockPrices[params.symbol]), 0);
+        return () => undefined;
+      },
+    },
     marketData: {
       getSnapshot: () => mockService.getMockMarkets(),
       refresh: async (): Promise<void> => {

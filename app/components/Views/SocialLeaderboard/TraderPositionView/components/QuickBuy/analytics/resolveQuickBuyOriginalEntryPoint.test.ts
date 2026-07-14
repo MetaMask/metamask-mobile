@@ -24,6 +24,12 @@ describe('resolveQuickBuyOriginalEntryPointFromProfile', () => {
       'trader_profile',
     );
   });
+
+  it('maps trader_feed to trader_feed', () => {
+    expect(resolveQuickBuyOriginalEntryPointFromProfile('trader_feed')).toBe(
+      'trader_feed',
+    );
+  });
 });
 
 describe('resolveQuickBuyOriginalEntryPointFromPositionSource', () => {
@@ -37,6 +43,9 @@ describe('resolveQuickBuyOriginalEntryPointFromPositionSource', () => {
     expect(
       resolveQuickBuyOriginalEntryPointFromPositionSource('deep_link'),
     ).toBe('deep_link');
+    expect(
+      resolveQuickBuyOriginalEntryPointFromPositionSource('home_carousel'),
+    ).toBe('home_carousel');
     expect(
       resolveQuickBuyOriginalEntryPointFromPositionSource('profile_position'),
     ).toBe('trader_profile');

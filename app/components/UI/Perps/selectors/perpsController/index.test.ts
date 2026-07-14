@@ -13,6 +13,7 @@ import {
   selectPerpsInitializationState,
   selectPerpsPayWithToken,
   selectIsPerpsBalanceSelected,
+  selectPerpsRecentlyViewedMarkets,
 } from './index';
 
 describe('PerpsController Selectors', () => {
@@ -813,6 +814,81 @@ describe('PerpsController Selectors', () => {
       const result = selectIsPerpsBalanceSelected(mockState);
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPerpsRecentlyViewedMarkets', () => {
+    it('returns recently viewed symbols for the current network', () => {
+      const mockState = createMockState({
+        isTestnet: false,
+        recentlyViewedMarkets: {
+          mainnet: [
+            { symbol: 'BTC', viewedAt: Date.now() },
+            { symbol: 'ETH', viewedAt: Date.now() - 1000 },
+          ],
+          testnet: [],
+        },
+      });
+
+      const result = selectPerpsRecentlyViewedMarkets(mockState);
+
+      expect(result).toEqual(['BTC', 'ETH']);
+    });
+
+    it('excludes entries older than the TTL', () => {
+      const dayMs = 24 * 60 * 60 * 1000;
+      const mockState = createMockState({
+        isTestnet: false,
+        recentlyViewedMarkets: {
+          mainnet: [
+            { symbol: 'BTC', viewedAt: Date.now() },
+            { symbol: 'STALE', viewedAt: Date.now() - dayMs - 1000 },
+          ],
+          testnet: [],
+        },
+      });
+
+      const result = selectPerpsRecentlyViewedMarkets(mockState);
+
+      expect(result).toEqual(['BTC']);
+    });
+
+    it('returns an empty array when there is no recently viewed history', () => {
+      const mockState = createMockState({
+        isTestnet: false,
+        recentlyViewedMarkets: {
+          mainnet: [],
+          testnet: [],
+        },
+      });
+
+      const result = selectPerpsRecentlyViewedMarkets(mockState);
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns an empty array when PerpsController state is undefined', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PerpsController: undefined,
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectPerpsRecentlyViewedMarkets(mockState);
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns an empty array when recentlyViewedMarkets is missing entirely', () => {
+      const mockState = createMockState({
+        isTestnet: false,
+      });
+
+      const result = selectPerpsRecentlyViewedMarkets(mockState);
+
+      expect(result).toEqual([]);
     });
   });
 
