@@ -1,12 +1,15 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '@metamask/design-tokens';
+import { Theme } from '../../../../../../../../../util/theme/models';
 import {
   fontStyles,
   colors as importedColors,
 } from '../../../../../../../../../styles/common';
+import { getElevatedSurfaceColor } from '../../../../../../../../../util/theme/themeUtils';
 
-const styleSheet = (colors: Theme['colors']) =>
-  StyleSheet.create({
+const styleSheet = (theme: Theme) => {
+  const { colors } = theme;
+
+  return StyleSheet.create({
     wrapper: {
       marginLeft: 'auto',
       maxWidth: '100%',
@@ -61,7 +64,7 @@ const styleSheet = (colors: Theme['colors']) =>
       color: colors.error.default,
     },
     valueModal: {
-      backgroundColor: colors.background.muted,
+      backgroundColor: getElevatedSurfaceColor(theme),
       paddingTop: 24,
       paddingBottom: 34,
       paddingHorizontal: 16,
@@ -94,5 +97,6 @@ const styleSheet = (colors: Theme['colors']) =>
       textAlign: 'center',
     },
   });
+};
 
 export default styleSheet;
