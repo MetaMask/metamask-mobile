@@ -13,11 +13,14 @@ export const FeedViewSelectorsIDs = {
   TYPE_SELECTOR_SHEET: 'feed-view-type-selector-sheet',
   TYPE_SELECTOR_BACKDROP: 'feed-view-type-selector-backdrop',
   TRADE_BUTTON: 'feed-view-trade-button',
+  TRADE_CARD: 'feed-view-trade-card',
 } as const;
 
 export const getFeedItemTestId = (id: string) => `feed-item-${id}`;
 export const getFeedTradeButtonTestId = (id: string) =>
   `${FeedViewSelectorsIDs.TRADE_BUTTON}-${id}`;
+export const getFeedTradeCardTestId = (id: string) =>
+  `${FeedViewSelectorsIDs.TRADE_CARD}-${id}`;
 export const getFeedAudienceOptionTestId = (audience: string) =>
   `${FeedViewSelectorsIDs.AUDIENCE_TOGGLE}-${audience}`;
 export const getFeedTypeOptionTestId = (type: string) =>

@@ -12,6 +12,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback } from 'react';
+import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
@@ -21,6 +22,7 @@ import { formatFeedTimestamp } from '../../utils/formatters';
 import {
   getFeedItemTestId,
   getFeedTradeButtonTestId,
+  getFeedTradeCardTestId,
 } from '../FeedView.testIds';
 import FeedTokenIcon from './FeedTokenIcon';
 
@@ -95,77 +97,85 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({ item, onTradePress }) => {
         </Button>
       </Box>
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={3}
-        twClassName="bg-muted rounded-2xl p-3"
+      <Pressable
+        onPress={handleTradePress}
+        accessibilityRole="button"
+        accessibilityLabel={`${strings('social_leaderboard.feed.trade')} ${symbol}`}
+        testID={getFeedTradeCardTestId(item.id)}
+        style={({ pressed }) => (pressed ? { opacity: 0.6 } : undefined)}
       >
-        <FeedTokenIcon
-          symbol={symbol}
-          chainIdHex={item.type === 'spot' ? item.chainIdHex : undefined}
-        />
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={3}
+          twClassName="bg-muted rounded-2xl p-3"
+        >
+          <FeedTokenIcon
+            symbol={symbol}
+            chainIdHex={item.type === 'spot' ? item.chainIdHex : undefined}
+          />
 
-        <Box twClassName="flex-1 min-w-0">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={1}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              numberOfLines={1}
-              twClassName="shrink"
+          <Box twClassName="flex-1 min-w-0">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
             >
-              {symbol}
-            </Text>
-            {item.type === 'perps' ? (
-              <PerpBadges
-                direction={item.direction}
-                leverage={item.leverage}
-                testID={`feed-item-perp-badges-${item.id}`}
-              />
-            ) : null}
-          </Box>
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            numberOfLines={1}
-          >
-            {item.subHeader}
-          </Text>
-        </Box>
-
-        {(item.hasValueData || item.hasPnlData) && (
-          <Box alignItems={BoxAlignItems.End}>
-            {item.hasValueData ? (
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
                 numberOfLines={1}
+                twClassName="shrink"
               >
-                {item.valueLabel}
+                {symbol}
               </Text>
-            ) : null}
-            {item.hasPnlData ? (
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName={
-                  item.isPnlPositive
-                    ? 'text-success-default'
-                    : 'text-error-default'
-                }
-                numberOfLines={1}
-              >
-                {item.pnlLabel}
-              </Text>
-            ) : null}
+              {item.type === 'perps' ? (
+                <PerpBadges
+                  direction={item.direction}
+                  leverage={item.leverage}
+                  testID={`feed-item-perp-badges-${item.id}`}
+                />
+              ) : null}
+            </Box>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+            >
+              {item.subHeader}
+            </Text>
           </Box>
-        )}
-      </Box>
+
+          {(item.hasValueData || item.hasPnlData) && (
+            <Box alignItems={BoxAlignItems.End}>
+              {item.hasValueData ? (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                  numberOfLines={1}
+                >
+                  {item.valueLabel}
+                </Text>
+              ) : null}
+              {item.hasPnlData ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName={
+                    item.isPnlPositive
+                      ? 'text-success-default'
+                      : 'text-error-default'
+                  }
+                  numberOfLines={1}
+                >
+                  {item.pnlLabel}
+                </Text>
+              ) : null}
+            </Box>
+          )}
+        </Box>
+      </Pressable>
     </Box>
   );
 };

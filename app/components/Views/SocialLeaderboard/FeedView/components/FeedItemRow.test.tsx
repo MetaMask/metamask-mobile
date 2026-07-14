@@ -6,6 +6,7 @@ import type { FeedPerpItem, FeedSpotItem } from '../types';
 import {
   getFeedItemTestId,
   getFeedTradeButtonTestId,
+  getFeedTradeCardTestId,
 } from '../FeedView.testIds';
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -105,6 +106,17 @@ describe('FeedItemRow', () => {
     );
 
     fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('spot-1')));
+
+    expect(onTradePress).toHaveBeenCalledWith(spotItem);
+  });
+
+  it('calls onTradePress with the item when the detail card is pressed', () => {
+    const onTradePress = jest.fn();
+    renderWithProvider(
+      <FeedItemRow item={spotItem} onTradePress={onTradePress} />,
+    );
+
+    fireEvent.press(screen.getByTestId(getFeedTradeCardTestId('spot-1')));
 
     expect(onTradePress).toHaveBeenCalledWith(spotItem);
   });
