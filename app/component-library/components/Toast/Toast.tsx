@@ -7,12 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Dimensions,
-  LayoutChangeEvent,
-  Pressable,
-  View,
-} from 'react-native';
+import { Dimensions, LayoutChangeEvent, Pressable, View } from 'react-native';
 import Animated, {
   cancelAnimation,
   runOnJS,
