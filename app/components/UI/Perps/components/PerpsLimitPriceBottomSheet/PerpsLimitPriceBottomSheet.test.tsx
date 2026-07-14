@@ -73,12 +73,20 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 // Mock BigNumber
-jest.mock('bignumber.js', () => ({
-  BigNumber: jest.fn().mockImplementation((value) => ({
+jest.mock('bignumber.js', () => {
+  const MockBigNumber = jest.fn().mockImplementation((value) => ({
     multipliedBy: jest.fn().mockReturnThis(),
     toString: jest.fn(() => value.toString()),
-  })),
-}));
+  }));
+  // Expose both the named and default export so modules importing either style
+  // (e.g. orderUtils uses `import BigNumber from 'bignumber.js'`) resolve a
+  // constructor.
+  return {
+    __esModule: true,
+    default: MockBigNumber,
+    BigNumber: MockBigNumber,
+  };
+});
 
 // Mock stream hooks
 jest.mock('../../hooks/stream', () => ({

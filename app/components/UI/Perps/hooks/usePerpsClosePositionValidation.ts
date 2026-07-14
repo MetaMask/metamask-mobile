@@ -6,6 +6,8 @@ import {
   type ClosePositionParams,
   type OrderType,
 } from '@metamask/perps-controller';
+import { LIMIT_PRICE_CONFIG } from '../constants/perpsConfig';
+import { isPriceOutsideDeviationBand } from '../utils/orderUtils';
 import { usePerpsTrading } from './usePerpsTrading';
 
 interface UsePerpsClosePositionValidationParams {
@@ -15,6 +17,7 @@ interface UsePerpsClosePositionValidationParams {
   orderType: OrderType;
   limitPrice?: string;
   currentPrice: number;
+  referencePrice?: number; // Reference (oracle/mark) price used for the deviation band; falls back to currentPrice
   positionSize: number; // Absolute size of the position
   positionValue: number; // Total position value in USD
   minimumOrderAmount: number; // Minimum order size in USD
@@ -106,6 +109,7 @@ export function usePerpsClosePositionValidation(
     orderType,
     limitPrice,
     currentPrice,
+    referencePrice,
     minimumOrderAmount,
     closingValue,
     receiveAmount,
@@ -194,8 +198,30 @@ export function usePerpsClosePositionValidation(
         );
       }
 
-      // Limit order specific validation (price warning only - required check is done by protocol)
+      // Limit order specific validation
       if (orderType === 'limit' && !isNaN(limitPriceNum) && limitPriceNum > 0) {
+        // Reference (oracle/mark) price the protocol's price band is evaluated
+        // against. Prefer the mark price; fall back to the mid/mark currentPrice
+        // when the reference is unavailable.
+        const bandReferencePrice = referencePrice ?? currentPrice;
+
+        // Block the close when the limit price is outside HyperLiquid's allowed
+        // band from the reference price. HyperLiquid rejects such orders
+        // ("oracleRejected"). This lives in the Close button validation (rather
+        // than only in the limit-price sheet) so it re-evaluates as the market
+        // moves after the price was set — not just while it is being entered.
+        if (
+          isPriceOutsideDeviationBand(
+            limitPriceNum,
+            bandReferencePrice,
+            LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
+          )
+        ) {
+          errors.push(
+            strings('perps.order.limit_price_modal.limit_price_too_far'),
+          );
+        }
+
         // Add warning if the limit price is far from the live mark price
         // (currentPrice), so this deliberately compares against the mark, not
         // the limit-based executionPrice used for the notional check above.
@@ -241,6 +267,7 @@ export function usePerpsClosePositionValidation(
     orderType,
     limitPrice,
     currentPrice,
+    referencePrice,
     minimumOrderAmount,
     closingValue,
     receiveAmount,

@@ -145,6 +145,12 @@ const PerpsClosePositionView: React.FC = () => {
     ? parseFloat(priceData[position.symbol].price)
     : parseFloat(position.entryPrice);
 
+  // Mark price used as the reference for HyperLiquid's oracle price band. Falls
+  // back to the mid/mark currentPrice when the mark price is unavailable.
+  const referencePrice = priceData[position.symbol]?.markPrice
+    ? parseFloat(priceData[position.symbol].markPrice)
+    : currentPrice;
+
   // Use ref to access latest price without triggering fee recalculations
   // This prevents continuous recalculations on every WebSocket price update
   const currentPriceRef = useRef(currentPrice);
@@ -340,6 +346,7 @@ const PerpsClosePositionView: React.FC = () => {
     // market. Limit-price valuation is applied separately via positionValue/
     // closingValue below.
     currentPrice,
+    referencePrice,
     positionSize: absSize,
     positionValue,
     minimumOrderAmount,
