@@ -18,6 +18,10 @@ import styleSheet from './PerpsMarketFiltersBar.styles';
  * - Row 1: Category badges (Crypto, Stocks, Commodities, Forex)
  * - Row 2: Sort dropdown (volume, price change, funding rate, etc.)
  *
+ * Both rows render by default; pass `showCategoryRow={false}` or
+ * `showSortRow={false}` to render just one row (e.g. so a caller can
+ * place other content — like a rail — between the two rows).
+ *
  * @example
  * ```tsx
  * <PerpsMarketFiltersBar
@@ -37,6 +41,8 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   showWatchlistBadge,
   isWatchlistSelected,
   onWatchlistToggle,
+  showCategoryRow = true,
+  showSortRow = true,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -44,17 +50,19 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   return (
     <View style={styles.container} testID={testID}>
       {/* Row 1: Category Badges (+ optional watchlist star badge) */}
-      <PerpsMarketCategoryBadges
-        selectedCategory={marketTypeFilter}
-        onCategorySelect={onCategorySelect}
-        showWatchlistBadge={showWatchlistBadge}
-        isWatchlistSelected={isWatchlistSelected}
-        onWatchlistToggle={onWatchlistToggle}
-        testID={testID ? `${testID}-categories` : undefined}
-      />
+      {showCategoryRow && (
+        <PerpsMarketCategoryBadges
+          selectedCategory={marketTypeFilter}
+          onCategorySelect={onCategorySelect}
+          showWatchlistBadge={showWatchlistBadge}
+          isWatchlistSelected={isWatchlistSelected}
+          onWatchlistToggle={onWatchlistToggle}
+          testID={testID ? `${testID}-categories` : undefined}
+        />
+      )}
 
       {/* Row 2: Market count (left) + Sort dropdown (right) — hidden when watchlist filter is active */}
-      {!isWatchlistSelected && (
+      {showSortRow && !isWatchlistSelected && (
         <View style={styles.sortRow}>
           <Text
             variant={TextVariant.BodySM}
