@@ -526,10 +526,7 @@ function getServerPort(resourceType: ResourceType): number {
  * const url2 = getDappUrl(1);
  */
 export function getDappUrl(index: number): string {
-  const isAndroid = FrameworkDetector.isDetox()
-    ? device.getPlatform() === 'android'
-    : true; // Appium single emulator assumption
-  const port = isAndroid
+  const port = PlatformDetector.isAndroid()
     ? FALLBACK_DAPP_SERVER_PORT + index
     : getDappPort(index);
   return `http://localhost:${port}`;
