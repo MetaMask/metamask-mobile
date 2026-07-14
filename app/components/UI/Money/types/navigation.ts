@@ -1,5 +1,6 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { AccountsApiActivity } from './moneyActivity';
+import type { ConfirmationParams } from '../../../Views/confirmations/components/confirm/confirm-component';
 
 /**
  * Param list for screens inside the Money tab stack (`MoneyTabScreenStack`).
@@ -14,12 +15,13 @@ export type MoneyScreensStackParamList = {
 
 /**
  * Param list for screens inside the Money confirmation stack
- * (`MoneyConfirmationScreenStack`).
+ * (`MoneyConfirmationScreenStack`). Deposit/withdraw navigate here via
+ * `useConfirmNavigation()` with `ConfirmationParams`.
  */
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyConfirmationsNavigationParamList = {
-  RedesignedConfirmations: undefined;
+  RedesignedConfirmations: ConfirmationParams | undefined;
 };
 
 /**
