@@ -75,7 +75,7 @@ export const ScamWarning: React.FC<ScamWarningProps> = ({
         </Text>
         <View style={styles.warningReason}>
           <Icon
-            name={IconName.Flag}
+            name={IconName.Warning}
             size={IconSize.Sm}
             color={colors.error.default}
             style={styles.warningReasonIcon}

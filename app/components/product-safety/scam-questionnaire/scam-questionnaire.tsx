@@ -58,14 +58,14 @@ const QUESTION_DEFS: Record<
   },
   1: {
     id: 'q2',
-    icon: IconName.Coin,
+    icon: IconName.MoneyBag,
     titleKey: 'scam_questionnaire.q2.title',
     subtitleKey: 'scam_questionnaire.q2.subtitle',
     options: Q2_OPTIONS,
   },
   2: {
     id: 'q3',
-    icon: IconName.Call,
+    icon: IconName.MessageQuestion,
     titleKey: 'scam_questionnaire.q3.title',
     subtitleKey: 'scam_questionnaire.q3.subtitle',
     options: Q3_OPTIONS,
