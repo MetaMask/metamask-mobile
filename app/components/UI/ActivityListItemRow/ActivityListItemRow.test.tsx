@@ -1153,6 +1153,64 @@ describe('ActivityListItemRow — row content', () => {
     jest.mocked(useTokensData).mockReturnValue({});
   });
 
+  it('resolves a lending-deposit token symbol/decimals from the tokens API and scales the amount', () => {
+    const assetId =
+      'eip155:42161/erc20:0x0000000000000000000000000000000000000002';
+    jest.mocked(useTokensData).mockReturnValue({
+      [assetId]: {
+        assetId,
+        symbol: 'USDT',
+        decimals: 6,
+        name: 'Tether USD',
+        iconUrl: '',
+      },
+    });
+
+    // The adapter carries only the atomic amount + asset id (the tx targets the
+    // pool, so symbol/decimals aren't in local metadata). Without decimals the
+    // amount would render unscaled (10,000 instead of 0.01).
+    const item = makeItem({
+      type: 'lendingDeposit',
+      status: 'success',
+      chainId: 'eip155:42161',
+      sourceToken: { amount: '10000', direction: 'out', assetId },
+    });
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-0.01 USDT',
+    );
+    expect(getByTestId('avatar-token-USDT')).toBeOnTheScreen();
+
+    jest.mocked(useTokensData).mockReturnValue({});
+  });
+
+  it('renders a lending-deposit amount from adapter-provided decimals without an API lookup', () => {
+    // When the adapter already resolved symbol/decimals, the row scales the
+    // amount without depending on the tokens API (which returns nothing here).
+    const item = makeItem({
+      type: 'lendingDeposit',
+      status: 'success',
+      sourceToken: {
+        amount: '10000',
+        decimals: 6,
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-0.01 USDC',
+    );
+  });
+
   it('renders cross-token bridge as swapped with token pair subtitle', () => {
     const item = makeItem({
       type: 'bridge',
