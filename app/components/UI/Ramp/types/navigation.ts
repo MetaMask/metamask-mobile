@@ -12,6 +12,7 @@ import type { KycWebviewParams } from '../Views/NativeFlow/KycWebview';
 import type { HeadlessHostParams } from '../Views/HeadlessHost/HeadlessHost';
 import type { RampsOrderDetailsParams } from '../utils/rampsNavigation';
 import type { SimpleRampBuildQuoteParams } from '../Aggregator/types/navigation';
+import type { BuildQuoteParams as RampAggregatorBuildQuoteParams } from '../Aggregator/Views/BuildQuote/BuildQuote';
 
 // Modal params.
 import type { PaymentSelectionModalParams } from '../Views/Modals/PaymentSelectionModal/PaymentSelectionModal';
@@ -90,6 +91,28 @@ export type RampTokenListRootParamList = {
   RampTokenSelectionRoot:
     | NavigatorScreenParams<RampScreensStackParamList>
     | undefined;
+  RampModals: NavigatorScreenParams<RampModalsNavigationParamList> | undefined;
+};
+
+/**
+ * Param list for Aggregator main screens (`MainRoutes` in Aggregator/routes).
+ */
+// ParamListBase requires `type`; `interface` cannot satisfy it.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type RampAggregatorScreensStackParamList = {
+  BuildQuote: RampAggregatorBuildQuoteParams | undefined;
+  BuildQuoteHasStarted: RampAggregatorBuildQuoteParams | undefined;
+  Quotes: undefined;
+  Checkout: undefined;
+};
+
+/**
+ * Param list for the outer Aggregator `RampRoutes` stack (`Ramp` + `RampModals`).
+ */
+// ParamListBase requires `type`; `interface` cannot satisfy it.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type RampAggregatorRootParamList = {
+  Ramp: NavigatorScreenParams<RampAggregatorScreensStackParamList> | undefined;
   RampModals: NavigatorScreenParams<RampModalsNavigationParamList> | undefined;
 };
 
