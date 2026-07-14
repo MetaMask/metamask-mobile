@@ -186,7 +186,7 @@ describe('FeedView', () => {
 
     expect(mockPlayImpact).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('mock-quick-buy-open')).toBeOnTheScreen();
-    expect(mockQuickBuyAnalyticsContext).toEqual({ source: 'social_feed' });
+    expect(mockQuickBuyAnalyticsContext).toEqual({ source: 'trader_feed' });
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
@@ -200,7 +200,7 @@ describe('FeedView', () => {
       Routes.PERPS.ROOT,
       expect.objectContaining({
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: expect.objectContaining({ source: 'social_feed' }),
+        params: expect.objectContaining({ source: 'trader_feed' }),
       }),
     );
   });
@@ -216,7 +216,7 @@ describe('FeedView', () => {
         traderId: 'trader-1',
         traderName: 'dutchiono',
         traderAddress: '0x1111111111111111111111111111111111111111',
-        source: 'social_feed',
+        source: 'trader_feed',
       }),
     );
   });

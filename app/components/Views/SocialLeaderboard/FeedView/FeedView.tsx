@@ -157,7 +157,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
             symbol: item.tradeSymbol,
             name: item.marketName,
           } as PerpsMarketData,
-          source: 'social_feed',
+          source: 'trader_feed',
         },
       });
     },
@@ -171,7 +171,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         traderId: item.traderId,
         traderName: item.username,
         traderAddress: item.traderAddress,
-        source: 'social_feed',
+        source: 'trader_feed',
       });
     },
     [navigation],
@@ -373,7 +373,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         target={quickBuyTarget}
         onClose={handleQuickBuyClose}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        analyticsContext={{ source: 'social_feed' }}
+        analyticsContext={{ source: 'trader_feed' }}
       />
     </Box>
   );

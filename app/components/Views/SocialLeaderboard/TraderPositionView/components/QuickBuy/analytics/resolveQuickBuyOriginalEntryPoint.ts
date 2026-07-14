@@ -9,6 +9,7 @@ const PROFILE_SOURCE_TO_ENTRY_POINT: Record<
   home_carousel: 'home_carousel',
   notification: 'notification',
   deep_link: 'trader_profile',
+  trader_feed: 'trader_feed',
 };
 
 const POSITION_SOURCE_TO_ENTRY_POINT: Partial<
@@ -49,6 +50,7 @@ const QUICK_BUY_ORIGINAL_ENTRY_POINTS: readonly QuickBuyOriginalEntryPoint[] = [
   'notification',
   'deep_link',
   'home_carousel',
+  'trader_feed',
 ];
 
 /** Validates a route param into the Quick Buy `original_entry_point` enum. */
