@@ -13,6 +13,7 @@ describe('mapFeedItem', () => {
     expect(result).toMatchObject({
       type: 'spot',
       id: 'pos-spot-1-1700000000',
+      traderId: 'profile-1',
       username: 'dutchiono',
       traderAddress: '0x1111111111111111111111111111111111111111',
       action: 'bought',
@@ -44,6 +45,7 @@ describe('mapFeedItem', () => {
     expect(result).toMatchObject({
       type: 'perps',
       action: 'closed',
+      traderId: 'profile-2',
       marketSymbol: 'ETH',
       tradeSymbol: 'ETH',
       direction: 'long',

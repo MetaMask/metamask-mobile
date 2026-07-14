@@ -21,6 +21,8 @@ export type FeedPerpDirection = 'long' | 'short';
 interface FeedItemBase {
   /** Stable id for list keying. */
   id: string;
+  /** Clicker profile id (UUID), used to open the trader profile. */
+  traderId: string;
   /** Trader display name. */
   username: string;
   /** Trader address, used for the avatar fallback + profile source. */

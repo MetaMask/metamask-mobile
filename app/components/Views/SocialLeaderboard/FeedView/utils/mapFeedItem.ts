@@ -202,6 +202,7 @@ function mapPerpFeedItem(
 
   return {
     id: `${coreItem.positionId}-${coreItem.timestamp}`,
+    traderId: coreItem.actor.profileId,
     username: coreItem.actor.name,
     traderAddress: coreItem.actor.address,
     avatarUri: coreItem.actor.imageUrl ?? undefined,
@@ -235,6 +236,7 @@ function mapSpotFeedItem(
 
   return {
     id: `${coreItem.positionId}-${coreItem.timestamp}`,
+    traderId: coreItem.actor.profileId,
     username: coreItem.actor.name,
     traderAddress: coreItem.actor.address,
     avatarUri: coreItem.actor.imageUrl ?? undefined,

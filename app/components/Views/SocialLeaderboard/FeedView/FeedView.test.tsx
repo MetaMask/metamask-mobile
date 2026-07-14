@@ -6,6 +6,7 @@ import FeedView from './FeedView';
 import {
   FeedViewSelectorsIDs,
   getFeedTradeButtonTestId,
+  getFeedTraderTestId,
   getFeedTypeOptionTestId,
 } from './FeedView.testIds';
 import type { FeedItem, FeedSection } from './types';
@@ -19,6 +20,7 @@ const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const spotItem: FeedItem = {
   id: 'feed-1',
   type: 'spot',
+  traderId: 'trader-1',
   username: 'dutchiono',
   traderAddress: '0x1111111111111111111111111111111111111111',
   action: 'bought',
@@ -39,6 +41,7 @@ const spotItem: FeedItem = {
 const perpItem: FeedItem = {
   id: 'feed-2',
   type: 'perps',
+  traderId: 'trader-2',
   username: 'aparjey',
   traderAddress: '0x2222222222222222222222222222222222222222',
   action: 'closed',
@@ -198,6 +201,22 @@ describe('FeedView', () => {
       expect.objectContaining({
         screen: Routes.PERPS.MARKET_DETAILS,
         params: expect.objectContaining({ source: 'social_feed' }),
+      }),
+    );
+  });
+
+  it('navigates to the trader profile when the trader identity is pressed', () => {
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedTraderTestId('feed-1')));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.PROFILE,
+      expect.objectContaining({
+        traderId: 'trader-1',
+        traderName: 'dutchiono',
+        traderAddress: '0x1111111111111111111111111111111111111111',
+        source: 'social_feed',
       }),
     );
   });
