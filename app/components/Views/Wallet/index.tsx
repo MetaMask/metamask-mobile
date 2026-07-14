@@ -214,7 +214,8 @@ const createStyles = ({ colors }: Theme) =>
     portfolioHeaderCluster: {
       flexDirection: 'column',
       gap: 16,
-      paddingBottom: 12,
+      // MMQA-1667: intentional 1px layout delta so Smart E2E sees a real app change
+      paddingBottom: 13,
     },
     tabContainer: {
       flex: 1,
@@ -578,7 +579,8 @@ const Wallet = ({
       ({ offset }: { index: number; offset: number }) => {
         // Add offset for content above tokens (balance, carousel, etc.)
         // Approximate: AccountGroupBalance (~200px) + Carousel (~150px) + padding
-        const CONTENT_OFFSET_ABOVE_TOKENS = 400;
+        // MMQA-1667 verification: nudge offset so this PR is not comment-only.
+        const CONTENT_OFFSET_ABOVE_TOKENS = 401;
         scrollViewRef.current?.scrollTo({
           y: CONTENT_OFFSET_ABOVE_TOKENS + offset,
           animated: true,
