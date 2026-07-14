@@ -275,10 +275,11 @@ function validateRequiredQuote(
     throw new Error('MetaMask Pay: Cannot submit without quote');
   }
 
-  // Older controller versions store no quotes at all for direct routes.
-  // Allow those only when the pay config and destination token are set and
-  // no conversion is pending, so a withdraw that lost its quotes or was
-  // never initialised cannot submit without the conversion.
+  // Quotes can still be empty for a direct route in the window before the
+  // controller stores the no-op quote. Allow that only when the pay config
+  // and destination token are set and no conversion is pending, so a withdraw
+  // that lost its quotes or was never initialised cannot submit without the
+  // conversion.
   const isValidatedDirectRoute =
     !isQuoteRequiredType &&
     data?.isPostQuote === true &&

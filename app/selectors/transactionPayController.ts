@@ -1,22 +1,19 @@
-import { TransactionPayQuote } from '@metamask/transaction-pay-controller';
+import {
+  TransactionPayQuote,
+  TransactionPayStrategy,
+} from '@metamask/transaction-pay-controller';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 
 /**
- * Strategy value stored on no-op quotes by newer versions of the
- * TransactionPayController. A no-op quote marks a route the controller
- * validated as needing no conversion. Mirrors `TransactionPayStrategy.None`.
- */
-const NO_OP_QUOTE_STRATEGY = 'none';
-
-/**
- * Check whether a quote is a no-op quote. No-op quotes cannot be executed
- * and must be ignored anywhere quotes drive fees, steps, or routing UI.
+ * Check whether a quote is a no-op quote. The controller stores one when a
+ * route needs no conversion. No-op quotes cannot be executed and must be
+ * ignored anywhere quotes drive fees, steps, or routing UI.
  */
 export function isNoOpQuote(
   quote: Pick<TransactionPayQuote<unknown>, 'strategy'>,
 ): boolean {
-  return (quote.strategy as string) === NO_OP_QUOTE_STRATEGY;
+  return quote.strategy === TransactionPayStrategy.None;
 }
 
 const selectTransactionPayControllerState = (state: RootState) =>
