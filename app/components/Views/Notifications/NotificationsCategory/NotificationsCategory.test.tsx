@@ -23,9 +23,12 @@ jest.mock('../../../../selectors/notifications', () => ({
     mockIsMetamaskNotificationsEnabled,
 }));
 
-jest.mock('../../../../selectors/featureFlagController/socialLeaderboard', () => ({
-  selectSocialLeaderboardEnabled: () => mockIsSocialLeaderboardEnabled,
-}));
+jest.mock(
+  '../../../../selectors/featureFlagController/socialLeaderboard',
+  () => ({
+    selectSocialLeaderboardEnabled: () => mockIsSocialLeaderboardEnabled,
+  }),
+);
 
 jest.mock('../../../../selectors/featureFlagController/priceAlerts', () => ({
   selectPriceAlertsEnabled: () => mockIsPriceAlertsEnabled,
@@ -68,7 +71,9 @@ describe('NotificationsCategory', () => {
   it('shows the socialAI tab when the social leaderboard flag is enabled', () => {
     mockIsSocialLeaderboardEnabled = true;
 
-    const { getByTestId } = render(<NotificationsCategory onSelect={jest.fn()} />);
+    const { getByTestId } = render(
+      <NotificationsCategory onSelect={jest.fn()} />,
+    );
 
     expect(getByTestId('notifications-category-socialAI')).toBeTruthy();
   });
@@ -79,10 +84,7 @@ describe('NotificationsCategory', () => {
       <NotificationsCategory onSelect={onSelect} />,
     );
 
-    fireEvent(
-      getByTestId('notifications-category-perps'),
-      'onPress',
-    );
+    fireEvent(getByTestId('notifications-category-perps'), 'onPress');
 
     expect(onSelect).toHaveBeenCalledWith('perps');
   });
@@ -94,7 +96,9 @@ describe('NotificationsCategory', () => {
       <NotificationsCategory onSelect={jest.fn()} />,
     );
 
-    expect(queryByTestId(NotificationsCategorySelectorsIDs.CONTAINER)).toBeNull();
+    expect(
+      queryByTestId(NotificationsCategorySelectorsIDs.CONTAINER),
+    ).toBeNull();
     expect(
       queryByTestId(NotificationsCategorySelectorsIDs.SKELETON),
     ).toBeTruthy();
@@ -120,6 +124,8 @@ describe('NotificationsCategory', () => {
       <NotificationsCategory onSelect={jest.fn()} />,
     );
 
-    expect(queryByTestId(NotificationsCategorySelectorsIDs.CONTAINER)).toBeNull();
+    expect(
+      queryByTestId(NotificationsCategorySelectorsIDs.CONTAINER),
+    ).toBeNull();
   });
 });

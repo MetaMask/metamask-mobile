@@ -21,7 +21,5 @@ export function getCategoryTitle(categoryId: string): string {
 
 export function getCategoryDescription(categoryId: string): string {
   const stem = CATEGORY_ID_TO_I18N_STEM[categoryId];
-  return stem
-    ? strings(`app_settings.notifications_opts.${stem}_desc`)
-    : '';
+  return stem ? strings(`app_settings.notifications_opts.${stem}_desc`) : '';
 }

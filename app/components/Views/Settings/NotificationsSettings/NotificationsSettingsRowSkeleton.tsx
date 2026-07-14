@@ -51,11 +51,7 @@ const NotificationsSettingsRowSkeleton = () => {
                   Wallet activity
                 </Text>
               </Skeleton>
-              <Skeleton
-                width={100}
-                height={12}
-                twClassName="rounded-md mt-2"
-              />
+              <Skeleton width={100} height={12} twClassName="rounded-md mt-2" />
             </Box>
           </Box>
           <Skeleton hideChildren twClassName="rounded-md">
