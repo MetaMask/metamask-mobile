@@ -13,15 +13,12 @@ import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/
  * payload for an order processed by the global FiatOrders observer
  * (`app/components/UI/Ramp/index.tsx`).
  *
- * TRAM-3623 scope note: this is the DEPOSIT path only. The observer polls the
- * redux `fiatOrders` store (`getPendingOrders`), which is fed exclusively by
- * `addFiatOrder` (native Deposit via `useHandleNewOrder`, plus the aggregator
- * paths). Headless buy orders are added through
- * `RampsController.addOrder` (`useTransakRouting` -> `useRampsOrders`) and never
- * enter the redux store, so they do not flow through this observer. Headless
- * terminal success/failure are emitted directly by `useTransakRouting`
- * (`RAMPS_TRANSACTION_CONFIRMED` / `RAMPS_ORDER_FAILED`). Hence `ramp_type`
- * stays hardcoded `'DEPOSIT'` here and no `ramp_surface` is emitted.
+ * TRAM-3755: this observer path covers legacy/native orders in the redux
+ * `fiatOrders` store (`getPendingOrders`), fed by `addFiatOrder`. Headless buy
+ * orders go through `RampsController.addOrder` and emit terminal analytics from
+ * `useTransakRouting` instead. Non-headless terminal events here use
+ * `ramp_type: 'UNIFIED_BUY_2'` (Deposit funnel literal retired) and no
+ * `ramp_surface`.
  */
 function getDepositAnalyticsPayload(
   fiatOrder: FiatOrder,
@@ -67,7 +64,7 @@ function getDepositAnalyticsPayload(
   };
 
   const baseAnalyticsData = {
-    ramp_type: 'DEPOSIT' as const,
+    ramp_type: 'UNIFIED_BUY_2' as const,
     // TRAM-3696: join key back to the provider order. Never emit empty string.
     ...((order.providerOrderId || fiatOrder.id) && {
       provider_order_id: order.providerOrderId || fiatOrder.id,

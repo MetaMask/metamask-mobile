@@ -67,7 +67,7 @@ const V2EnterAddress = (): React.JSX.Element => {
 
   // Headless deposit (TRAM-3623): tag RAMPS_ADDRESS_ENTERED with
   // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when this screen is
-  // part of a headless buy flow; keep 'DEPOSIT' otherwise.
+  // part of a headless buy flow; keep 'UNIFIED_BUY_2' otherwise.
   const { headlessDepositRampProps } = useHeadlessRampProps(headlessSessionId);
 
   const transakRoutingConfig = useMemo(

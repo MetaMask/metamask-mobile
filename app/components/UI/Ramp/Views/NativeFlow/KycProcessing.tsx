@@ -49,7 +49,7 @@ const V2KycProcessing = () => {
 
   // Headless deposit (TRAM-3623): flip the KYC outcome events to
   // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when in a headless
-  // flow; keep 'DEPOSIT' otherwise.
+  // flow; keep 'UNIFIED_BUY_2' otherwise.
   const { headlessDepositRampProps } = useHeadlessRampProps(headlessSessionId);
 
   const {

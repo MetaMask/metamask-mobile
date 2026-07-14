@@ -231,7 +231,7 @@ const V2BankDetails = () => {
       await confirmPayment(order.providerOrderId, paymentMethodId);
 
       trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
-        ramp_type: 'DEPOSIT',
+        ramp_type: 'UNIFIED_BUY_2',
         provider_order_id: order.providerOrderId,
         amount_source: Number(order.fiatAmount),
         amount_destination: Number(order.cryptoAmount),

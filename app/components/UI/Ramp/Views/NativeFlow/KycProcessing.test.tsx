@@ -231,7 +231,7 @@ describe('V2KycProcessing', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
         'RAMPS_KYC_APPLICATION_APPROVED',
         expect.objectContaining({
-          ramp_type: 'DEPOSIT',
+          ramp_type: 'UNIFIED_BUY_2',
         }),
       );
     });
@@ -259,7 +259,7 @@ describe('V2KycProcessing', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
         'RAMPS_KYC_APPLICATION_FAILED',
         expect.objectContaining({
-          ramp_type: 'DEPOSIT',
+          ramp_type: 'UNIFIED_BUY_2',
         }),
       );
     });
