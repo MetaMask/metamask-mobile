@@ -18,6 +18,10 @@ import {
   PERPS_CUF_STREAM_TIMEOUT_MS,
 } from '../constants/perpsCufTags';
 import { endTrace, TraceName } from '../../../../util/trace';
+import {
+  PERPS_EVENT_PROPERTY as PERPS_CHART_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE as PERPS_CHART_EVENT_VALUE,
+} from '@metamask/perps-controller/constants';
 
 jest.mock('./usePerpsTrading');
 jest.mock('../../../../util/trace', () => {
@@ -561,6 +565,9 @@ describe('usePerpsOrderExecution', () => {
           tradeWithToken: true,
           mmPayTokenSelected: 'USDC',
           mmPayNetworkSelected: 'ethereum',
+          chartLibrary: 'advanced',
+        } as NonNullable<OrderParams['trackingData']> & {
+          chartLibrary: string;
         },
       };
 
@@ -584,6 +591,9 @@ describe('usePerpsOrderExecution', () => {
           [PERPS_EVENT_PROPERTY.STATUS]:
             PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]: 'advanced',
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
           [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
           [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
         }),
@@ -694,6 +704,9 @@ describe('usePerpsOrderExecution', () => {
           tradeWithToken: true,
           mmPayTokenSelected: 'USDC',
           mmPayNetworkSelected: 'ethereum',
+          chartLibrary: 'advanced',
+        } as NonNullable<OrderParams['trackingData']> & {
+          chartLibrary: string;
         },
       };
 
@@ -717,6 +730,9 @@ describe('usePerpsOrderExecution', () => {
         expect.objectContaining({
           [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]: 'advanced',
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
           [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
           [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
         }),
@@ -810,6 +826,9 @@ describe('usePerpsOrderExecution', () => {
           tradeWithToken: true,
           mmPayTokenSelected: 'USDC',
           mmPayNetworkSelected: 'ethereum',
+          chartLibrary: 'advanced',
+        } as NonNullable<OrderParams['trackingData']> & {
+          chartLibrary: string;
         },
       };
 
@@ -830,6 +849,9 @@ describe('usePerpsOrderExecution', () => {
         expect.objectContaining({
           [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]: 'advanced',
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
           [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
           [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
         }),

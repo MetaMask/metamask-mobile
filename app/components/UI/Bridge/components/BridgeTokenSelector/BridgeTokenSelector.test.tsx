@@ -15,6 +15,7 @@ import {
   BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID,
 } from './BatchSellAssetPickerBanner';
 import { BATCH_SELL_ASSET_PICKER_BANNER_LOCATION } from './useBatchSellAssetPickerBanner';
+import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
 
 let mockBridgeFeatureFlags: {
   chainRanking?: { chainId: CaipChainId; name?: string }[];
@@ -189,6 +190,10 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     setIsSelectingToken: jest.fn(() => ({
       type: 'bridge/setIsSelectingToken',
     })),
+    setSourceAmount: jest.fn((amount: string | undefined) => ({
+      type: 'bridge/setSourceAmount',
+      payload: amount,
+    })),
     selectTokenSelectorNetworkFilter: jest.fn(
       (state: { bridge: { tokenSelectorNetworkFilter?: CaipChainId } }) =>
         state.bridge.tokenSelectorNetworkFilter,
@@ -275,6 +280,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 const mockTrackEvent = jest.fn();
+const mockResetBridgeControllerState = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
@@ -282,6 +288,7 @@ jest.mock('../../../../../core/Engine', () => ({
       BridgeController: {
         trackUnifiedSwapBridgeEvent: (...args: unknown[]) =>
           mockTrackEvent(...args),
+        resetState: () => mockResetBridgeControllerState(),
       },
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('bearer-token'),
