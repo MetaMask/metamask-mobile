@@ -141,35 +141,32 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
 
   const handleAudienceChange = useCallback(
     (next: FeedAudience) => {
-      setAudience((current) => {
-        if (current === next) {
-          return current;
-        }
+      if (audience === next) {
+        return;
+      }
 
-        track(MetaMetricsEvents.SOCIAL_TRADER_FEED_AUDIENCE_FILTER_CHANGED, {
-          [SocialLeaderboardEventProperties.FEED_AUDIENCE]: next,
-        });
-        return next;
+      track(MetaMetricsEvents.SOCIAL_TRADER_FEED_AUDIENCE_FILTER_CHANGED, {
+        [SocialLeaderboardEventProperties.FEED_AUDIENCE]: next,
       });
+      setAudience(next);
     },
-    [track],
+    [audience, track],
   );
 
   const handleTypeFilterChange = useCallback(
     (next: FeedTypeFilter) => {
-      setTypeFilter((current) => {
-        if (current === next) {
-          return current;
-        }
+      if (typeFilter === next) {
+        return;
+      }
 
-        track(MetaMetricsEvents.SOCIAL_TRADER_FEED_TYPE_FILTER_CHANGED, {
-          [SocialLeaderboardEventProperties.FEED_TYPE_FILTER]: next,
-          [SocialLeaderboardEventProperties.PREVIOUS_FEED_TYPE_FILTER]: current,
-        });
-        return next;
+      track(MetaMetricsEvents.SOCIAL_TRADER_FEED_TYPE_FILTER_CHANGED, {
+        [SocialLeaderboardEventProperties.FEED_TYPE_FILTER]: next,
+        [SocialLeaderboardEventProperties.PREVIOUS_FEED_TYPE_FILTER]:
+          typeFilter,
       });
+      setTypeFilter(next);
     },
-    [track],
+    [typeFilter, track],
   );
 
   const handleTradePress = useCallback(

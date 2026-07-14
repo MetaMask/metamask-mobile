@@ -182,4 +182,27 @@ describe('SocialTradersTabsView', () => {
       },
     );
   });
+
+  it('does not mislabel a swipe as tap after tapping the already-active tab', () => {
+    renderWithProvider(<SocialTradersTabsView />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialTradersTabsViewSelectorsIDs.TABS}-tab-0`),
+    );
+    expect(mockTrack).not.toHaveBeenCalled();
+    mockTrack.mockClear();
+
+    const pager = screen.getByTestId(SocialTradersTabsViewSelectorsIDs.PAGER);
+    act(() => {
+      pager.props.onPageSelected({ nativeEvent: { position: 1 } });
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TAB_CHANGED,
+      {
+        tab: 'tab_feed',
+        interaction_type: 'swipe',
+      },
+    );
+  });
 });
