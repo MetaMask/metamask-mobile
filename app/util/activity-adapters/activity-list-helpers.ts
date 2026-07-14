@@ -26,6 +26,20 @@ export function isSpendingCapWithAmount(item: ActivityListItem): boolean {
   return Boolean(token?.amount || token?.isUnlimitedApproval);
 }
 
+/**
+ * True when the item has a gas-token fee (ERC-20 gas payment) with an amount.
+ * Used to prefer local Activity rows over confirmed API copies that only have
+ * a native network fee (TMCU-1064).
+ */
+export function isGasTokenFeeWithAmount(item: ActivityListItem): boolean {
+  if (!('fees' in item.data) || !item.data.fees?.length) {
+    return false;
+  }
+  return item.data.fees.some(
+    (fee) => fee.type === 'gasToken' && Boolean(fee.amount),
+  );
+}
+
 export type ActivityListFilter =
   | { assetId: CaipAssetType }
   | { networks: string[] };

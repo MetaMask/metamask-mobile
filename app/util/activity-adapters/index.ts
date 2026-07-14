@@ -43,6 +43,7 @@ export {
   getGroupedActivityListItemKey,
   groupActivityListItems,
   isFailedOrCancelledTransfer,
+  isGasTokenFeeWithAmount,
   isSpendingCapWithAmount,
   shouldShowPlusSign,
   type GroupedActivityListItem,

@@ -15,6 +15,9 @@ import {
   selectRequiredTransactionIds,
   selectRequiredTransactionHashes,
   selectRequiredTransactions,
+  selectGasPaymentTransactionIds,
+  selectGasPaymentTransactionHashes,
+  selectExcludedActivityTransactionHashes,
   selectSwapsTransactions,
   selectTransactionBatchMetadataById,
   selectTransactionMetadataById,
@@ -218,6 +221,93 @@ describe('TransactionController Selectors', () => {
     });
   });
 
+  describe('selectGasPaymentTransactionIds', () => {
+    it('returns ids for gas_payment transactions', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'send',
+                  type: TransactionType.simpleSend,
+                },
+                {
+                  id: 'fee',
+                  type: TransactionType.gasPayment,
+                },
+              ],
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectGasPaymentTransactionIds(state)).toStrictEqual(
+        new Set(['fee']),
+      );
+    });
+  });
+
+  describe('selectGasPaymentTransactionHashes', () => {
+    it('returns lower-cased hashes for gas_payment transactions', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'fee',
+                  type: TransactionType.gasPayment,
+                  hash: '0xABC',
+                },
+                {
+                  id: 'fee-pending',
+                  type: TransactionType.gasPayment,
+                },
+              ],
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectGasPaymentTransactionHashes(state)).toStrictEqual(
+        new Set(['0xabc']),
+      );
+    });
+  });
+
+  describe('selectExcludedActivityTransactionHashes', () => {
+    it('unions required child hashes and gas_payment hashes', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'parent',
+                  requiredTransactionIds: ['child'],
+                },
+                {
+                  id: 'child',
+                  hash: '0xCHILD',
+                },
+                {
+                  id: 'fee',
+                  type: TransactionType.gasPayment,
+                  hash: '0xFEE',
+                },
+              ],
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectExcludedActivityTransactionHashes(state)).toStrictEqual(
+        new Set(['0xchild', '0xfee']),
+      );
+    });
+  });
+
   describe('selectRelatedChainIdsByTransactionId', () => {
     const buildState = (transactions: unknown[]) =>
       ({
@@ -334,6 +424,33 @@ describe('TransactionController Selectors', () => {
     it('filters required child transactions before nonce dedupe', () => {
       expect(selectLocalTransactions(buildLocalTxState())).toStrictEqual([
         expect.objectContaining({ id: 'parent' }),
+      ]);
+    });
+
+    it('filters gas_payment fee legs from the local activity list', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'send',
+            chainId: '0x1',
+            time: 200,
+            type: TransactionType.simpleSend,
+            selectedGasFeeToken: '0xtoken',
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+          {
+            id: 'fee',
+            chainId: '0x1',
+            time: 201,
+            type: TransactionType.gasPayment,
+            hash: '0xfee',
+            txParams: { from: evmAddress, nonce: '0x2' },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'send' }),
       ]);
     });
 

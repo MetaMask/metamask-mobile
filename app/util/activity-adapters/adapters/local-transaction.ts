@@ -24,7 +24,7 @@ import {
 } from './constants';
 import {
   getKnownTokenMetadata,
-  getLocalTransactionFees,
+  getLocalActivityFees,
   getLocalTransactionStatus,
   getTokenApprovalAmountFromData,
   isUnlimitedApprovalAmount,
@@ -60,12 +60,13 @@ export function mapLocalTransaction(
   const nativeSymbol =
     transactionGroup.nativeAssetSymbol ?? nativeAsset?.symbol;
 
-  // Base network (gas) fee in the chain's native token, derived from the tx
-  // receipt. Spread into `data` for types that surface fees in the UI.
-  const fees = getLocalTransactionFees(
+  // Native network fee (from receipt) plus optional ERC-20 gas-token fee when
+  // `selectedGasFeeToken` is set. Spread into `data` for types that surface fees.
+  const fees = getLocalActivityFees(
     transactionGroup,
     nativeAsset,
     nativeSymbol,
+    environment,
   );
 
   const getNativeToken = (

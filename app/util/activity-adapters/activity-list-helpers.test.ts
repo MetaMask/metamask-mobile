@@ -7,6 +7,7 @@ import {
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  isGasTokenFeeWithAmount,
   isSpendingCapWithAmount,
   shouldShowPlusSign,
 } from './activity-list-helpers';
@@ -93,6 +94,49 @@ describe('activity list helpers', () => {
         },
       });
       expect(isSpendingCapWithAmount(item)).toBe(false);
+    });
+  });
+
+  describe('isGasTokenFeeWithAmount', () => {
+    it('is true when fees include a gasToken fee with an amount', () => {
+      const item = makeItem({
+        type: 'send',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          fees: [
+            {
+              type: 'gasToken',
+              amount: '100',
+              decimals: 6,
+              symbol: 'USDC',
+            },
+          ],
+        },
+      });
+      expect(isGasTokenFeeWithAmount(item)).toBe(true);
+    });
+
+    it('is false when fees only include a native base fee', () => {
+      const item = makeItem({
+        type: 'send',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          fees: [
+            { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
+          ],
+        },
+      });
+      expect(isGasTokenFeeWithAmount(item)).toBe(false);
+    });
+
+    it('is false when there are no fees', () => {
+      const item = makeItem({
+        type: 'send',
+        data: { from: '0xfrom', to: '0xto' },
+      });
+      expect(isGasTokenFeeWithAmount(item)).toBe(false);
     });
   });
 

@@ -162,6 +162,41 @@ export const selectRequiredTransactionHashes = createSelector(
     ),
 );
 
+/**
+ * STX gas-token fee legs (`TransactionType.gasPayment`) are batch siblings of
+ * the user action. Activity should not show them as separate rows (TMCU-1064).
+ */
+export const selectGasPaymentTransactionIds = createSelector(
+  selectTransactionsStrict,
+  (transactions) =>
+    new Set(
+      transactions
+        .filter((tx) => tx.type === TransactionType.gasPayment)
+        .map((tx) => tx.id),
+    ),
+);
+
+export const selectGasPaymentTransactionHashes = createSelector(
+  selectTransactionsStrict,
+  (transactions) =>
+    new Set(
+      transactions
+        .filter((tx) => tx.type === TransactionType.gasPayment)
+        .map((tx) => tx.hash?.toLowerCase())
+        .filter((hash): hash is string => Boolean(hash)),
+    ),
+);
+
+/**
+ * Hashes that Activity API feeds should drop: MetaMask Pay / required children
+ * plus gas-token fee payment legs.
+ */
+export const selectExcludedActivityTransactionHashes = createSelector(
+  [selectRequiredTransactionHashes, selectGasPaymentTransactionHashes],
+  (requiredHashes, gasPaymentHashes) =>
+    new Set([...requiredHashes, ...gasPaymentHashes]),
+);
+
 export const selectRelatedChainIdsByTransactionId = createSelector(
   selectTransactionsStrict,
   (transactions) => {
@@ -317,6 +352,7 @@ export const selectLocalTransactions = createDeepEqualSelector(
     selectSelectedAccountGroupEvmInternalAccount,
     selectEvmAddress,
     selectRequiredTransactionIds,
+    selectGasPaymentTransactionIds,
   ],
   (
     nonReplacedTransactions,
@@ -324,12 +360,14 @@ export const selectLocalTransactions = createDeepEqualSelector(
     groupEvmAccount,
     fallbackEvmAddress,
     requiredTransactionIds,
+    gasPaymentTransactionIds,
   ) => {
     const activeEvmAddress = groupEvmAccount?.address ?? fallbackEvmAddress;
 
     const transactions = nonReplacedTransactions.filter(
       (transaction) =>
         !requiredTransactionIds.has(transaction.id) &&
+        !gasPaymentTransactionIds.has(transaction.id) &&
         belongsToActiveAccount(transaction, activeEvmAddress),
     );
 
@@ -359,12 +397,14 @@ export const selectReplacedLocalTransactions = createDeepEqualSelector(
     selectSelectedAccountGroupEvmInternalAccount,
     selectEvmAddress,
     selectRequiredTransactionIds,
+    selectGasPaymentTransactionIds,
   ],
   (
     transactions,
     groupEvmAccount,
     fallbackEvmAddress,
     requiredTransactionIds,
+    gasPaymentTransactionIds,
   ) => {
     const activeEvmAddress = groupEvmAccount?.address ?? fallbackEvmAddress;
 
@@ -372,6 +412,7 @@ export const selectReplacedLocalTransactions = createDeepEqualSelector(
       (transaction) =>
         isReplacedTransaction(transaction) &&
         !requiredTransactionIds.has(transaction.id) &&
+        !gasPaymentTransactionIds.has(transaction.id) &&
         belongsToActiveAccount(transaction, activeEvmAddress),
     );
   },

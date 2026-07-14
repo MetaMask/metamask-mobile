@@ -99,6 +99,7 @@ import {
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  isGasTokenFeeWithAmount,
   isSpendingCapWithAmount,
   type ActivityKind,
   type GroupedActivityListItem,
@@ -396,7 +397,17 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           confirmed.type === localItem.type &&
           isSpendingCapWithAmount(localItem) &&
           !isSpendingCapWithAmount(confirmed);
-        if (localOutCategorizesConfirmed || localHasRicherSpendingCap) {
+        // Gasless/STX: local meta has selectedGasFeeToken; the accounts API
+        // only returns a native network fee. Prefer local so Details can show
+        // the gas-token fee (TMCU-1064).
+        const localHasGasTokenFee =
+          isGasTokenFeeWithAmount(localItem) &&
+          !isGasTokenFeeWithAmount(confirmed);
+        if (
+          localOutCategorizesConfirmed ||
+          localHasRicherSpendingCap ||
+          localHasGasTokenFee
+        ) {
           localWinsHashes.add(hash);
         }
       }
