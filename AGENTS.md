@@ -210,6 +210,7 @@ If the user asks to implement a ticket directly from Jira:
 | Performance               | `/docs/performance/`                         |
 | Storybook                 | `/docs/readme/storybook.md`                  |
 | Troubleshooting           | `/docs/readme/troubleshooting.md`            |
+| Explore Search (handover + agent knowledge base) | `/docs/explore/explore-search-handover.md` |
 | MetaMask Contributor Docs | https://github.com/MetaMask/contributor-docs |
 | E2E CI Decision Tree      | `.github/guidelines/E2E_DECISION_TREE.md`    |
 
