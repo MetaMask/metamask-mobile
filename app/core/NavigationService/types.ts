@@ -134,10 +134,8 @@ import type {
   SendFlowParams,
   SendAmountParams,
   SendConfirmParams,
-  SendRecipientParams,
-  SendAssetParams,
-  SendParams,
 } from '../../components/Views/SendFlow/SendFlow.types';
+import type { SendStackParamList } from '../../components/Views/confirmations/components/send/types/navigation';
 
 // Predict params
 import type {
@@ -595,7 +593,7 @@ export type RootStackParamList = {
 
   // Send flow routes
   SendTo: SendFlowParams | undefined;
-  Amount: SendAmountParams | undefined;
+  Amount: SendAmountParams | SendStackParamList['Amount'];
   Confirm: SendConfirmParams | undefined;
 
   // Account backup routes
@@ -979,9 +977,9 @@ export type RootStackParamList = {
   CardUnlinkMoneyAccountSheet: MoneyUnlinkCardSheetRouteParams | undefined;
 
   // Send routes
-  Recipient: SendRecipientParams | undefined;
-  Asset: AssetViewParams | SendAssetParams | undefined;
-  Send: NestedNavigationParams | SendParams | undefined;
+  Recipient: SendStackParamList['Recipient'];
+  Asset: AssetViewParams | SendStackParamList['Asset'];
+  Send: NavigatorScreenParams<SendStackParamList> | undefined;
 
   // Add asset routes
   AddAsset: AddAssetParams | undefined;
