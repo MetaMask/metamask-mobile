@@ -28,6 +28,13 @@ import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
+import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import {
+  SocialLeaderboardEventProperties,
+  SocialLeaderboardEventValues,
+  useSocialLeaderboardAnalytics,
+} from '../analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   QuickBuy,
   TOP_TRADERS_QUICK_BUY_FEATURES,
@@ -78,6 +85,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation();
+  const { track } = useSocialLeaderboardAnalytics();
 
   // Default to "Following": the backend "leaderboard" scope isn't implemented
   // yet, so the feed opens on the Following scope (the only one the API serves).
@@ -131,11 +139,65 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
     setIsQuickBuyVisible(false);
   }, []);
 
+  const handleAudienceChange = useCallback(
+    (next: FeedAudience) => {
+      setAudience((current) => {
+        if (current === next) {
+          return current;
+        }
+
+        track(MetaMetricsEvents.SOCIAL_TRADER_FEED_AUDIENCE_FILTER_CHANGED, {
+          [SocialLeaderboardEventProperties.FEED_AUDIENCE]: next,
+        });
+        return next;
+      });
+    },
+    [track],
+  );
+
+  const handleTypeFilterChange = useCallback(
+    (next: FeedTypeFilter) => {
+      setTypeFilter((current) => {
+        if (current === next) {
+          return current;
+        }
+
+        track(MetaMetricsEvents.SOCIAL_TRADER_FEED_TYPE_FILTER_CHANGED, {
+          [SocialLeaderboardEventProperties.FEED_TYPE_FILTER]: next,
+          [SocialLeaderboardEventProperties.PREVIOUS_FEED_TYPE_FILTER]: current,
+        });
+        return next;
+      });
+    },
+    [track],
+  );
+
   const handleTradePress = useCallback(
     (item: FeedItem) => {
       playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
 
+      const sharedTradeProps = {
+        [SocialLeaderboardEventProperties.SOURCE]: 'trader_feed',
+        [SocialLeaderboardEventProperties.TRADER_ADDRESS]: item.traderAddress,
+        [SocialLeaderboardEventProperties.TRADER_USERNAME]: item.username,
+        [SocialLeaderboardEventProperties.FEED_ACTION]: item.action,
+        [SocialLeaderboardEventProperties.FEED_AUDIENCE]: audience,
+        [SocialLeaderboardEventProperties.FEED_TYPE_FILTER]: typeFilter,
+      };
+
       if (item.type === 'spot') {
+        const caip19 = toAssetId(item.tokenAddress, item.chain);
+
+        track(MetaMetricsEvents.SOCIAL_TRADER_FEED_ITEM_TRADE_CLICKED, {
+          ...sharedTradeProps,
+          [SocialLeaderboardEventProperties.TRADE_TYPE]:
+            SocialLeaderboardEventValues.TRADE_TYPE.SPOT,
+          [SocialLeaderboardEventProperties.ASSET_NAME]: item.tokenSymbol,
+          ...(caip19
+            ? { [SocialLeaderboardEventProperties.CAIP19]: caip19 }
+            : {}),
+        });
+
         setQuickBuyTarget({
           tokenAddress: item.tokenAddress,
           tokenSymbol: item.tokenSymbol,
@@ -146,6 +208,14 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         return;
       }
 
+      track(MetaMetricsEvents.SOCIAL_TRADER_FEED_ITEM_TRADE_CLICKED, {
+        ...sharedTradeProps,
+        [SocialLeaderboardEventProperties.TRADE_TYPE]:
+          SocialLeaderboardEventValues.TRADE_TYPE.PERPS,
+        [SocialLeaderboardEventProperties.ASSET_NAME]: item.marketSymbol,
+        [SocialLeaderboardEventProperties.PERPS_MARKET]: item.tradeSymbol,
+      });
+
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
@@ -153,11 +223,11 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
             symbol: item.tradeSymbol,
             name: item.marketName,
           } as PerpsMarketData,
-          source: 'social_feed',
+          source: 'trader_feed',
         },
       });
     },
-    [navigation],
+    [audience, navigation, track, typeFilter],
   );
 
   const renderItem = useCallback(
@@ -335,7 +405,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
           value={typeFilter}
           onPress={() => setIsTypeSheetOpen(true)}
         />
-        <FeedAudienceToggle value={audience} onChange={setAudience} />
+        <FeedAudienceToggle value={audience} onChange={handleAudienceChange} />
       </Box>
 
       {content}
@@ -343,7 +413,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
       <FeedTypeSheet
         isOpen={isTypeSheetOpen}
         value={typeFilter}
-        onChange={setTypeFilter}
+        onChange={handleTypeFilterChange}
         onClose={() => setIsTypeSheetOpen(false)}
       />
 
@@ -352,7 +422,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         target={quickBuyTarget}
         onClose={handleQuickBuyClose}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        analyticsContext={{ source: 'social_feed' }}
+        analyticsContext={{ source: 'trader_feed' }}
       />
     </Box>
   );

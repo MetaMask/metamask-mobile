@@ -69,7 +69,7 @@ export type QuickBuySheetSource =
   | 'notification'
   | 'profile_position'
   | 'leaderboard'
-  | 'social_feed'
+  | 'trader_feed'
   | 'asset_details'
   | 'market_insights'
   | 'security_trust'
