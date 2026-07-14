@@ -14,10 +14,6 @@ import {
   type HeadlessOrderContext,
 } from '../headlessOrderContextRegistry';
 import {
-  hasEmittedConfirmedOrderAnalytics,
-  markConfirmedOrderAnalyticsEmitted,
-} from '../confirmedOrderAnalyticsRegistry';
-import {
   hasEmittedTerminalOrderAnalytics,
   markTerminalOrderAnalyticsEmitted,
 } from '../terminalOrderAnalyticsRegistry';
@@ -319,10 +315,6 @@ export function handleOrderStatusChangedForMetrics({
  * Emits `RAMPS_TRANSACTION_CONFIRMED` when a callback-fetched order is first
  * observed in a non-terminal state (TRAM-3738). Terminal orders emit via
  * `emitTerminalOrderAnalyticsFromCallback` instead.
- *
- * Dedup against repeat callback observations (e.g. headless checkout retry
- * after `onOrderCreated` throws) is enforced by
- * `confirmedOrderAnalyticsRegistry` — the single emit authority for this path.
  */
 export function emitOrderConfirmedAnalyticsFromCallback(
   order: RampsOrder,
@@ -335,9 +327,6 @@ export function emitOrderConfirmedAnalyticsFromCallback(
   if (isTerminalOrderStatus(order.status)) {
     return;
   }
-  if (hasEmittedConfirmedOrderAnalytics(order)) {
-    return;
-  }
   try {
     const params = buildRampsTransactionConfirmedParams(order, options);
     analytics.trackEvent(
@@ -347,7 +336,6 @@ export function emitOrderConfirmedAnalyticsFromCallback(
         .addProperties({ ...params })
         .build(),
     );
-    markConfirmedOrderAnalyticsEmitted(order);
   } catch (error) {
     Logger.error(error as Error, {
       message:
