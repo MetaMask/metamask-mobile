@@ -104,6 +104,26 @@ export const getActivityValue = (item: ActivityListItem) => {
   return undefined;
 };
 
+export function enrichTokenFromApi(
+  token: TokenAmount | undefined,
+  dataByAssetId: Record<string, { symbol?: string; decimals?: number }>,
+): TokenAmount | undefined {
+  if (!token?.assetId) {
+    return token;
+  }
+  const listToken = dataByAssetId[token.assetId.toLowerCase()];
+  if (!listToken) {
+    return token;
+  }
+  const symbol = token.symbol ?? listToken.symbol;
+  const decimals = token.decimals ?? listToken.decimals;
+  return {
+    ...token,
+    ...(symbol ? { symbol } : {}),
+    ...(decimals === undefined ? {} : { decimals }),
+  };
+}
+
 export const getActivityFromTo = (item: ActivityListItem) => {
   const { data } = item;
   const rawFrom = (() => {

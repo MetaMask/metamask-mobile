@@ -25,6 +25,7 @@ import {
   applyDisplaySign,
   type ActivityKind,
   type ActivityListItem,
+  enrichTokenFromApi,
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
   isFailedOrCancelledTransfer,
@@ -1135,17 +1136,45 @@ export function useActivityListItemRowContent(
         )
       : undefined;
 
+  const isLending =
+    item.type === 'lendingDeposit' || item.type === 'lendingWithdrawal';
+  const lendingAssetIds: string[] = [];
+  if (isLending) {
+    if (
+      'destinationToken' in item.data &&
+      item.data.destinationToken?.assetId
+    ) {
+      lendingAssetIds.push(item.data.destinationToken.assetId);
+    }
+    if ('sourceToken' in item.data && item.data.sourceToken?.assetId) {
+      lendingAssetIds.push(item.data.sourceToken.assetId);
+    }
+  }
+  const lendingTokenData = useTokensData(lendingAssetIds);
+
   const content = resolveCoreContent(item, bridgeHistoryItem);
+
+  let basePrimaryToken: TokenAmount | undefined;
+  if (isSpendingCap) {
+    basePrimaryToken = spendingCapToken?.amount ? spendingCapToken : undefined;
+  } else if (isLending) {
+    basePrimaryToken = enrichTokenFromApi(
+      content.primaryToken,
+      lendingTokenData,
+    );
+  } else {
+    basePrimaryToken = content.primaryToken;
+  }
   const primaryToken = enrichStablecoinTokenMetadata(
-    isSpendingCap
-      ? spendingCapToken?.amount
-        ? spendingCapToken
-        : undefined
-      : content.primaryToken,
+    basePrimaryToken,
     networkChainId,
   );
+
+  const baseSecondaryToken = isLending
+    ? enrichTokenFromApi(content.secondaryToken, lendingTokenData)
+    : content.secondaryToken;
   const secondaryToken = enrichStablecoinTokenMetadata(
-    content.secondaryToken,
+    baseSecondaryToken,
     networkChainId,
   );
   const isPerpsFunding = isPerpsFundingKind(item.type);
@@ -1225,12 +1254,18 @@ export function useActivityListItemRowContent(
     ? getPredictActivity(item)?.icon
     : undefined;
 
+  let avatarTokens: TokenAmount[];
+  if (isSpendingCap && spendingCapToken) {
+    avatarTokens = [spendingCapToken];
+  } else if (isLending && primaryToken) {
+    avatarTokens = [primaryToken];
+  } else {
+    avatarTokens = resolveAvatarTokens(item, bridgeHistoryItem);
+  }
+
   return {
     ...content,
-    avatarTokens:
-      isSpendingCap && spendingCapToken
-        ? [spendingCapToken]
-        : resolveAvatarTokens(item, bridgeHistoryItem),
+    avatarTokens,
     avatarIconUrl: predictIconUrl,
     perpsMarketSymbol,
     primaryToken,
