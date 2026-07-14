@@ -8,6 +8,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+// MMQA-1667 opposite verification: app JS change must NOT take the test-only reuse path.
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { SectionRefreshHandle } from '../Homepage/types';
 
