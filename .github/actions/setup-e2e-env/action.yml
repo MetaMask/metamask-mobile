@@ -191,7 +191,7 @@ runs:
     - name: Restore Android system image from cache
       if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' && inputs.runner_provider != 'namespace' }}
       id: android-system-image-cache
-      uses: actions/cache/restore@v5
+      uses: actions/cache/restore@v6
       with:
         path: /opt/android-sdk/system-images/android-${{ inputs.android-api-level }}/${{ inputs.android-tag }}/${{ inputs.android-abi }}
         key: android-system-image-v1-${{ runner.os }}-api${{ inputs.android-api-level }}-${{ inputs.android-tag }}-${{ inputs.android-abi }}
@@ -248,7 +248,7 @@ runs:
           github.event_name != 'merge_group' &&
           github.ref == 'refs/heads/main'
         }}
-      uses: actions/cache/save@v5
+      uses: actions/cache/save@v6
       with:
         path: /opt/android-sdk/system-images/android-${{ inputs.android-api-level }}/${{ inputs.android-tag }}/${{ inputs.android-abi }}
         key: android-system-image-v1-${{ runner.os }}-api${{ inputs.android-api-level }}-${{ inputs.android-tag }}-${{ inputs.android-abi }}
@@ -323,7 +323,7 @@ runs:
 
     - name: Restore Yarn cache
       if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: |
           node_modules
@@ -371,7 +371,7 @@ runs:
 
     - name: Restore Bundler cache
       if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' && inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ios/vendor/bundle
         key: ${{ inputs.cache-prefix }}-bundler-${{ inputs.platform }}-${{ runner.os }}-${{ hashFiles('ios/Gemfile.lock') }}
@@ -429,7 +429,7 @@ runs:
     - name: Restore CocoaPods specs cache
       if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' && inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
       id: cocoapods-specs-cache
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ~/.cocoapods/repos
         key: ${{ runner.os }}-cocoapods-specs-${{ hashFiles('ios/Podfile.lock') }}

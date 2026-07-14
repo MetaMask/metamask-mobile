@@ -88,7 +88,7 @@ jobs:
           command: yarn install --immutable
       - name: Restore .metamask folder
         id: restore-metamask
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}

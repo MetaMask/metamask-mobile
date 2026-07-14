@@ -394,7 +394,7 @@ jobs:
       - name: Restore .metamask folder
         if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
         id: restore-metamask
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -426,7 +426,7 @@ jobs:
 
       - name: Restore yarn cache (reuse-hit path)
         if: ${{ inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build != 'true' }}
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             node_modules
@@ -447,7 +447,7 @@ jobs:
       - name: Restore .metamask folder (reuse-hit path)
         if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build != 'true' }}
         id: restore-metamask-lean
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -491,7 +491,7 @@ jobs:
       - name: Restore iOS app matching fingerprint from branch cache
         if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
         id: cache-restore
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
@@ -500,7 +500,7 @@ jobs:
       - name: Restore iOS app matching fingerprint from main cache
         if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' && steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         id: cache-restore-main
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app

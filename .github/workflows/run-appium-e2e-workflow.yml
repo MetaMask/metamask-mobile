@@ -108,7 +108,7 @@ jobs:
 
       - name: Cache ffmpeg (Homebrew)
         if: ${{ inputs.platform == 'ios' }}
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/mms-ffmpeg
           key: brew-ffmpeg-${{ runner.os }}-v1
@@ -223,7 +223,7 @@ jobs:
 
       - name: Restore WDA DerivedData cache
         if: ${{ inputs.platform == 'ios' }}
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/appium-wda
           key: wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}

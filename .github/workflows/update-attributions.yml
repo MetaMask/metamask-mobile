@@ -117,7 +117,7 @@ jobs:
       - name: Generate Attributions
         run: yarn build:attribution
       - name: Cache attributions file
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           path: attribution.txt
           key: cache-build-${{ needs.prepare.outputs.COMMIT_SHA }}
@@ -158,7 +158,7 @@ jobs:
         id: commit-sha
         run: echo "COMMIT_SHA=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
       - name: Restore attributions file
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: attribution.txt
           key: cache-build-${{ needs.prepare.outputs.COMMIT_SHA }}

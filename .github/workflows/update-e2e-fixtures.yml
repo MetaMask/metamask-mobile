@@ -213,7 +213,7 @@ jobs:
           ref: ${{ needs.prepare.outputs.BRANCH }}
 
       - name: Restore .metamask folder (Foundry download cache for install:foundryup)
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -257,7 +257,7 @@ jobs:
           PREBUILT_IOS_APP_PATH: artifacts/main-e2e-MetaMask.app
 
       - name: Cache updated fixture
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           path: tests/framework/fixtures/json/default-fixture.json
           key: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
@@ -285,7 +285,7 @@ jobs:
           PR_NUMBER: ${{ needs.prepare.outputs.PR_NUMBER }}
 
       - name: Restore updated fixture
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: tests/framework/fixtures/json/default-fixture.json
           key: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
