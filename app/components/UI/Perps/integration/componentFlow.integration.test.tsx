@@ -38,19 +38,24 @@ describe('Perps component flows — integration', () => {
           },
         });
 
-        // Act
-        const placeOrderButton = await screen.findByTestId(
-          PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-        );
-        await waitFor(() => {
-          expect(
-            placeOrderButton.props.disabled ??
-              placeOrderButton.props.accessibilityState?.disabled,
-          ).not.toBe(true);
+        // Act — PerpsOrderView re-renders while fees/validation settle; always
+        // re-query the button inside waitFor to avoid stale unmounted nodes.
+        await act(async () => {
+          await new Promise<void>((resolve) => setTimeout(resolve, 0));
         });
+        await waitFor(
+          () => {
+            expect(
+              screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+            ).not.toBeDisabled();
+          },
+          { timeout: 10000 },
+        );
 
         await act(async () => {
-          fireEvent.press(placeOrderButton);
+          fireEvent.press(
+            screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+          );
         });
 
         // Assert
