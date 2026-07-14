@@ -23,13 +23,9 @@ const FEATURE_FLAG: CardFeatureFlag = {
   immersve: {
     network: 'base-sepolia',
     cardProgramId: 'program-1',
-    fundingChannelId: 'channel-1',
-    kycType: 'immersve-conducted',
-    kycHiddenSteps: ['region', 'contact-channels', 'expected-spend'],
-    spendableCurrency: 'USD',
-    spendableAmount: '1000000',
-    countries: ['GB'],
+    fundingType: 'base-sepolia-usdc-universal-evm',
   },
+  immersveCountries: ['GB'],
 };
 
 function makeJwt(expMs: number): string {
@@ -242,8 +238,20 @@ describe('ImmersveProvider', () => {
   });
 
   describe('onboarding state machine', () => {
-    it('createFundingSource posts the login-wallet body', async () => {
+    it('createFundingSource resolves the funding channel by fundingTypeName then posts', async () => {
       const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [
+          {
+            id: 'arb-channel',
+            fundingTypeName: 'arbitrum-sepolia-usdc-universal-evm',
+          },
+          {
+            id: 'base-channel',
+            fundingTypeName: 'base-sepolia-usdc-universal-evm',
+          },
+        ],
+      });
       service.post.mockResolvedValue({
         id: 'fs-1',
         network: 'base-sepolia',
@@ -251,11 +259,15 @@ describe('ImmersveProvider', () => {
 
       const result = await provider.createFundingSource(TOKENS);
 
+      expect(service.get).toHaveBeenCalledWith(
+        '/api/accounts/cardholder-1/funding-channels',
+        TOKENS,
+      );
       expect(service.post).toHaveBeenCalledWith(
         '/api/funding-sources',
         {
           accountId: 'cardholder-1',
-          fundingChannelId: 'channel-1',
+          fundingChannelId: 'base-channel',
           fundingAddress: '0xabc',
         },
         TOKENS,
@@ -263,7 +275,22 @@ describe('ImmersveProvider', () => {
       expect(result.id).toBe('fs-1');
     });
 
-    it('createFundingSource throws when fundingChannelId is unconfigured', async () => {
+    it('createFundingSource throws when no channel matches the configured fundingType', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [
+          {
+            id: 'arb-channel',
+            fundingTypeName: 'arbitrum-sepolia-usdc-universal-evm',
+          },
+        ],
+      });
+      await expect(provider.createFundingSource(TOKENS)).rejects.toBeInstanceOf(
+        CardProviderError,
+      );
+    });
+
+    it('createFundingSource throws when fundingType is unconfigured', async () => {
       const { provider } = createProvider({ immersve: { cardProgramId: 'p' } });
       await expect(provider.createFundingSource(TOKENS)).rejects.toBeInstanceOf(
         CardProviderError,
@@ -289,7 +316,7 @@ describe('ImmersveProvider', () => {
       );
     });
 
-    it('getSpendingPrerequisites posts program config + kycHiddenSteps', async () => {
+    it('getSpendingPrerequisites posts cardProgramId + hardcoded constants', async () => {
       const { provider, service } = createProvider();
       service.post.mockResolvedValue({ prerequisites: [] });
 
@@ -304,11 +331,11 @@ describe('ImmersveProvider', () => {
         expect.objectContaining({
           cardProgramId: 'program-1',
           fundingSourceId: 'fs-1',
-          spendableAmount: '1000000',
+          spendableAmount: 999999999,
           spendableCurrency: 'USD',
           kycType: 'immersve-conducted',
           kycRegion: 'GB',
-          kycHiddenSteps: ['region', 'contact-channels', 'expected-spend'],
+          kycHiddenSteps: ['region', 'contact-channels'],
         }),
         TOKENS,
       );

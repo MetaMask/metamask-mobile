@@ -383,7 +383,7 @@ export class CardController extends BaseController<
           | CardFeatureFlag
           | undefined,
       );
-      const immersveCountries = cardFeature?.immersve?.countries ?? [];
+      const immersveCountries = cardFeature?.immersveCountries ?? [];
       const map = deriveCountryProviderMap(
         Object.fromEntries(
           immersveCountries.map((c) => [c, true] as [string, boolean]),
