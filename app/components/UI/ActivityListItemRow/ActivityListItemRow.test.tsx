@@ -455,6 +455,42 @@ describe('ActivityListItemRow — row content', () => {
     expect(getByTestId('avatar-token-USDC')).toBeOnTheScreen();
   });
 
+  it('shows "Send cancelled" and hides the amount for a cancelled send', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'cancelled',
+      to: '0x1234567890',
+      token: { amount: '10', symbol: 'USDC', direction: 'out' },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Send cancelled',
+    );
+    // The amount is suppressed — a cancelled send moved nothing.
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+    expect(queryByTestId('activity-secondary-amount-0xabc')).toBeNull();
+  });
+
+  it('shows "Send failed" and hides the amount for a failed send', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'failed',
+      to: '0x1234567890',
+      token: { amount: '10', symbol: 'USDC', direction: 'out' },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Send failed',
+    );
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+  });
+
   it('renders receive title, sender subtitle, and positive primary amount', () => {
     const item = makeItem({
       type: 'receive',
@@ -1814,12 +1850,12 @@ describe('getLocalTransactionStatus — all local transaction status paths', () 
     expect(getLocalTransactionStatus(group)).toBe('failed');
   });
 
-  it('maps cancelled (cancel-type tx) → failed', () => {
+  it('maps a confirmed cancel-type tx → cancelled (not failed)', () => {
     const group = makeGroup({
       status: TransactionStatus.confirmed,
       type: 'cancel',
     });
-    expect(getLocalTransactionStatus(group)).toBe('failed');
+    expect(getLocalTransactionStatus(group)).toBe('cancelled');
   });
 
   it('maps submitted → pending', () => {
