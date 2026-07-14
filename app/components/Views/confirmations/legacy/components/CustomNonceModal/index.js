@@ -19,7 +19,9 @@ import {
   isPureBlackEnabled,
 } from '../../../../../../util/theme/themeUtils';
 
-const createStyles = (theme) => {
+// TODO(Pure Black): Remove createStyles export and dedicated styles tests once
+// pure black ships by default or this modal migrates to MMDS BottomSheet.
+export const createStyles = (theme) => {
   const { colors } = theme;
 
   return StyleSheet.create({
