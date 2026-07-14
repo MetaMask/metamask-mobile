@@ -59,9 +59,15 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
     if (isVisible) {
       setSelectedBps(currentValueBps);
       setIsCustomOpen(false);
-      bottomSheetRef.current?.onOpenBottomSheet();
     }
   }, [isVisible, currentValueBps]);
+
+  // Custom sheet unmounts the main BottomSheet; reopen when it remounts.
+  useEffect(() => {
+    if (isVisible && !isCustomOpen) {
+      bottomSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isVisible, isCustomOpen]);
 
   const isCustom = !matchesPreset(selectedBps);
 

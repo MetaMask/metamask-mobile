@@ -22,6 +22,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
+const mockOnOpenBottomSheet = jest.fn();
+
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactActual = jest.requireActual('react');
@@ -42,7 +44,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       }>,
     ) => {
       ReactActual.useImperativeHandle(ref, () => ({
-        onOpenBottomSheet: jest.fn(),
+        onOpenBottomSheet: mockOnOpenBottomSheet,
         onCloseBottomSheet: (callback?: () => void) => {
           onClose?.();
           callback?.();
@@ -184,5 +186,35 @@ describe('PerpsSlippageBottomSheet', () => {
     expect(
       screen.getByTestId(PerpsSlippageConfigSelectorsIDs.EDIT_CHIP),
     ).toBeOnTheScreen();
+  });
+
+  it('re-opens the main bottom sheet after custom sheet closes', () => {
+    render(<PerpsSlippageBottomSheet {...defaultProps} />);
+
+    expect(mockOnOpenBottomSheet).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.EDIT_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('mock-custom-cancel'));
+
+    expect(mockOnOpenBottomSheet).toHaveBeenCalledTimes(2);
+    expect(screen.getByTestId('bottom-sheet')).toBeOnTheScreen();
+  });
+
+  it('re-opens the main bottom sheet after custom sheet saves', () => {
+    render(<PerpsSlippageBottomSheet {...defaultProps} />);
+
+    expect(mockOnOpenBottomSheet).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.EDIT_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('mock-custom-save-450'));
+
+    expect(mockOnOpenBottomSheet).toHaveBeenCalledTimes(2);
+    expect(
+      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.EDIT_CHIP),
+    ).toHaveTextContent('4.5%');
   });
 });
