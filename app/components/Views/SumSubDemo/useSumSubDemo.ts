@@ -37,7 +37,9 @@ async function createSession(
       vendorId: 'moonpay',
       vendorUserId: 'mockedId',
       jwtToken,
-      moonPayAccessToken,
+      vendorMetadata: {
+        moonPayAccessToken
+      },
     }),
   });
 
