@@ -328,6 +328,64 @@ describe('usePerpsLiveMovers', () => {
     expect(staysItemAfter).toBe(staysItemBefore);
   });
 
+  it('rebuilds from the fresh base item when another market field changes while the percent stays the same', async () => {
+    mockSubscribeToSymbols.mockReturnValue(jest.fn());
+
+    const makeMarketWithLeverage = (
+      symbol: string,
+      rawPercent: number,
+      maxLeverage: number,
+    ): PerpsMarketData =>
+      ({
+        symbol,
+        name: symbol,
+        change24hPercent: formatPercentage(rawPercent),
+        maxLeverage,
+      }) as unknown as PerpsMarketData;
+
+    const itemsV1 = [
+      {
+        market: makeMarketWithLeverage('STAYS', 3, 10),
+        isWatchlisted: false,
+      },
+    ];
+
+    const { result, rerender } = renderHook(
+      ({ items }: { items: PerpsFeedItem[] }) =>
+        usePerpsLiveMovers({ items, direction: 'gainers', maxCount: 12 }),
+      { initialProps: { items: itemsV1 } },
+    );
+
+    await waitFor(() => {
+      expect(result.current).toHaveLength(1);
+    });
+
+    const staysItemBefore = result.current[0];
+    expect(
+      (staysItemBefore.market as unknown as { maxLeverage: number })
+        .maxLeverage,
+    ).toBe(10);
+
+    // A REST refresh delivers a new feed item for the same symbol with an
+    // unchanged displayed percent but a different `maxLeverage` — this must
+    // not be mistaken for a no-op WebSocket tick and must not reuse the
+    // stale item.
+    const itemsV2 = [
+      {
+        market: makeMarketWithLeverage('STAYS', 3, 20),
+        isWatchlisted: false,
+      },
+    ];
+
+    rerender({ items: itemsV2 });
+
+    const staysItemAfter = result.current[0];
+    expect(staysItemAfter).not.toBe(staysItemBefore);
+    expect(
+      (staysItemAfter.market as unknown as { maxLeverage: number }).maxLeverage,
+    ).toBe(20);
+  });
+
   it('unsubscribes and freezes the displayed data when disabled', async () => {
     const mockUnsubscribe = jest.fn();
     mockSubscribeToSymbols.mockReturnValue(mockUnsubscribe);

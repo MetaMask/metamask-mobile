@@ -47,9 +47,14 @@ interface RankedMovers {
  * Pure rank/filter/sort/slice pass, extracted so both the render-time memo
  * below and the off-render tick-throttling logic share one implementation.
  *
- * Reuses `previousItems`' object identity for any symbol whose displayed
- * value is unchanged, so memoized pill components relying on shallow prop
- * comparison skip re-rendering too.
+ * Reuses `previousItems`' object identity for a symbol only when its base
+ * feed item (from `previousBaseItems`) is the exact same object the
+ * previous render used *and* its displayed percent is unchanged — i.e. the
+ * only thing that could have moved is a WebSocket tick already reflected in
+ * `previous`. If the base item itself changed (e.g. a REST refresh updated
+ * `maxLeverage` or another field while the percent stayed the same), the
+ * base item identity differs, so this always rebuilds from the fresh base
+ * instead of returning stale data.
  */
 const rankMovers = (
   baseItems: PerpsFeedItem[],
@@ -57,6 +62,7 @@ const rankMovers = (
   maxCount: number,
   livePercents: Record<string, number>,
   previousItems: PerpsFeedItem[],
+  previousBaseItems: PerpsFeedItem[],
 ): RankedMovers => {
   const merged = baseItems.map((item) => {
     const livePercent = livePercents[item.market.symbol];
@@ -81,14 +87,19 @@ const rankMovers = (
   const previousBySymbol = new Map(
     previousItems.map((item) => [item.market.symbol, item]),
   );
+  const previousBaseBySymbol = new Map(
+    previousBaseItems.map((item) => [item.market.symbol, item]),
+  );
 
   const rankedItems = sorted
     .map((market) => {
       const base = baseBySymbol.get(market.symbol);
       if (!base) return undefined;
       const previous = previousBySymbol.get(market.symbol);
+      const previousBase = previousBaseBySymbol.get(market.symbol);
       if (
         previous &&
+        previousBase === base &&
         previous.market.change24hPercent === market.change24hPercent
       ) {
         return previous;
@@ -149,6 +160,11 @@ export const usePerpsLiveMovers = ({
   // as the basis the tick throttle compares fresh ticks against.
   const previousItemsRef = useRef<PerpsFeedItem[]>(EMPTY_ITEMS);
   const renderedFingerprintRef = useRef<string>('');
+  // The `items` (base feed) the last committed render was built from. Used
+  // to tell a WebSocket-tick-only render (base item identity unchanged) apart
+  // from a base-data render (e.g. REST refresh delivered a new feed item)
+  // even when the displayed percent happens to match in both cases.
+  const previousBaseItemsRef = useRef<PerpsFeedItem[]>(EMPTY_ITEMS);
 
   const symbols = useMemo(
     () => items.map(({ market }) => market.symbol),
@@ -174,6 +190,7 @@ export const usePerpsLiveMovers = ({
       maxCount,
       livePercentsRef.current,
       previousItemsRef.current,
+      previousBaseItemsRef.current,
     );
     // tickVersion is intentionally a dependency purely to force a re-run
     // when a live tick (which doesn't otherwise change any of these inputs)
@@ -184,7 +201,16 @@ export const usePerpsLiveMovers = ({
   useEffect(() => {
     previousItemsRef.current = displayed;
     renderedFingerprintRef.current = fingerprint;
-  }, [displayed, fingerprint]);
+    // Only advance the "base items used to build `displayed`" marker when a
+    // rank pass actually ran against `items` — while disabled, `displayed`
+    // is the frozen previous result, not something built from the latest
+    // `items`, so recording `items` here would make an unrelated base-data
+    // change during the disabled period look like a no-op WebSocket tick
+    // once re-enabled.
+    if (enabled) {
+      previousBaseItemsRef.current = items;
+    }
+  }, [displayed, fingerprint, items, enabled]);
 
   // Latest ranking params, readable from the subscription callback below
   // without making the subscription effect resubscribe on every
@@ -225,6 +251,7 @@ export const usePerpsLiveMovers = ({
       max,
       livePercentsRef.current,
       previousItemsRef.current,
+      previousBaseItemsRef.current,
     );
     if (nextFingerprint === renderedFingerprintRef.current) return;
     setTickVersion((version) => version + 1);

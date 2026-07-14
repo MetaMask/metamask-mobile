@@ -74,6 +74,43 @@ interface PerpsBlockProps {
   navigation: NavigationProp<PerpsNavigationParamList>;
 }
 
+interface PerpsMoverPillProps {
+  item: PerpsFeedItem;
+  index: number;
+}
+
+/**
+ * Wraps `PerpsPillItem` with a stable `onCardPress`, so unchanged items
+ * (which `usePerpsLiveMovers` keeps at the same object identity — see that
+ * hook) actually skip re-rendering through `PerpsPillItem`'s `React.memo`.
+ * An inline `onCardPress` passed directly at the `renderItem` call site
+ * would be a new function on every render, busting that memoization.
+ */
+const PerpsMoverPill: React.FC<PerpsMoverPillProps> = React.memo(
+  ({ item, index }) => {
+    const onCardPress = useCallback(
+      () =>
+        trackExploreInteracted({
+          interaction_type: 'section_item_tapped',
+          tab_name: 'Now',
+          section_name: 'perps_movers',
+          asset_type: 'perp',
+          position: index,
+          item_clicked: item.market.symbol,
+        }),
+      [index, item.market.symbol],
+    );
+
+    return (
+      <PerpsPillItem
+        item={item}
+        marketDetailsSourceSection="perps_movers"
+        onCardPress={onCardPress}
+      />
+    );
+  },
+);
+
 // Matches PillScrollList's default maxPills — PerpsBlock doesn't override it,
 // so the movers hook should rank/display exactly as many as will be shown.
 const PERPS_MOVERS_MAX_COUNT = 12;
@@ -167,20 +204,7 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
         data={pillData}
         isLoading={perps.isLoading}
         renderItem={(item, index) => (
-          <PerpsPillItem
-            item={item}
-            marketDetailsSourceSection="perps_movers"
-            onCardPress={() =>
-              trackExploreInteracted({
-                interaction_type: 'section_item_tapped',
-                tab_name: 'Now',
-                section_name: 'perps_movers',
-                asset_type: 'perp',
-                position: index,
-                item_clicked: item.market.symbol,
-              })
-            }
-          />
+          <PerpsMoverPill item={item} index={index} />
         )}
         keyExtractor={(item) => item.market.symbol}
         Skeleton={CryptoMoversSkeleton}
