@@ -1,4 +1,5 @@
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import { ORDER_SLIPPAGE_CONFIG } from '@metamask/perps-controller';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import {
@@ -1980,7 +1981,7 @@ describe('PerpsClosePositionView', () => {
         slippage: {
           usdAmount: undefined, // undefined for full close to bypass $10 minimum validation
           priceAtCalculation: 3000, // effectivePrice: currentPrice for market orders
-          maxSlippageBps: 300, // maxSlippageBps: 3% slippage tolerance (300 basis points) - conservative default
+          maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps, // 3% market slippage tolerance
         },
       });
     });
@@ -3158,6 +3159,40 @@ describe('PerpsClosePositionView', () => {
           }),
         );
       });
+    });
+
+    it('closes the limit-price sheet if the flag flips off while it is open', () => {
+      // Arrange - flag on, switch to a limit order so the limit-price sheet
+      // auto-opens (before any price has been entered)
+      selectPerpsClosePositionLimitOrderEnabledFlagMock.mockReturnValue(true);
+
+      const { getByTestId, queryByTestId, store } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      fireEvent.press(
+        getByTestId(PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON),
+      );
+      fireEvent.press(
+        getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
+      );
+
+      // Assert - the limit-price sheet is open
+      expect(queryByTestId('limit-price-confirm-button')).toBeDefined();
+
+      // Act - the flag flips off mid-session while the sheet is still open
+      selectPerpsClosePositionLimitOrderEnabledFlagMock.mockReturnValue(false);
+      act(() => {
+        store.dispatch({
+          type: 'SET_PRIMARY_CURRENCY',
+          primaryCurrency: 'USD',
+        });
+      });
+
+      // Assert - the limit-price sheet is closed immediately
+      expect(queryByTestId('limit-price-confirm-button')).toBeNull();
     });
   });
 });

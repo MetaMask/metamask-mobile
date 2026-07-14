@@ -791,9 +791,11 @@ const PerpsClosePositionView: React.FC = () => {
         )}
       </View>
 
-      {/* Limit Price Bottom Sheet */}
+      {/* Limit Price Bottom Sheet - gated on the derived order type so a
+          mid-session flag flip closes it immediately (effectiveOrderType can
+          only be 'limit' while the feature flag is enabled). */}
       <PerpsLimitPriceBottomSheet
-        isVisible={isLimitPriceVisible}
+        isVisible={isLimitPriceVisible && effectiveOrderType === 'limit'}
         onClose={() => {
           setIsLimitPriceVisible(false);
           // If user dismisses without entering a price, revert order type to market
