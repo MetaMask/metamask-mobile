@@ -11,9 +11,10 @@ dev_load_js_env() {
   if [[ -f "$js_env_file" ]]; then
     # Strip CR so a CRLF .js.env (common on Windows/Git Bash) doesn't leave
     # trailing \r in exported values like ADB_SERIAL. No-op on LF files.
-    # shellcheck disable=SC1090
+    # eval, not `source <(...)`: macOS bash 3.2 silently reads zero bytes
+    # when sourcing a process substitution.
     set -a
-    source <(tr -d '\r' < "$js_env_file")
+    eval "$(tr -d '\r' < "$js_env_file")"
     set +a
   fi
 }

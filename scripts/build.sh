@@ -26,7 +26,9 @@ loadJSEnv(){
 		then
 			# Strip CR so a CRLF .js.env (common on Windows/Git Bash) doesn't
 			# leave trailing \r in exported values. No-op on LF files.
-			source <(tr -d '\r' < "$JS_ENV_FILE")
+			# eval, not `source <(...)`: macOS bash 3.2 silently reads zero
+			# bytes when sourcing a process substitution.
+			eval "$(tr -d '\r' < "$JS_ENV_FILE")"
 		fi
 	fi
 }

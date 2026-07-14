@@ -51,6 +51,15 @@ const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
 
+// True when the module being resolved was requested from a file inside
+// @metamask/perps-controller. Normalizes separators first so this works on
+// Windows (`\`) too; the surrounding `/` deliberately require a file *inside*
+// the package, not just a package-name prefix.
+const isPerpsControllerOrigin = (context) =>
+  (context.originModulePath ?? '')
+    .replace(/\\/g, '/')
+    .includes('/@metamask/perps-controller/');
+
 module.exports = function (baseConfig) {
   const defaultConfig = mergeConfig(baseConfig, getDefaultConfig(__dirname));
   const {
@@ -127,12 +136,9 @@ module.exports = function (baseConfig) {
           // published dist (extension-only). The dynamic import() uses webpackIgnore
           // but babel's dynamicImportToRequire rewrites it to require(), causing Metro
           // to resolve it statically. Return an empty module stub.
-          // Match either path separator so this works on Windows (`\`) too.
           if (
             moduleName === './providers/MYXProvider' &&
-            /[\\/]@metamask[\\/]perps-controller[\\/]/.test(
-              context.originModulePath ?? '',
-            )
+            isPerpsControllerOrigin(context)
           ) {
             return { type: 'empty' };
           }
@@ -142,13 +148,10 @@ module.exports = function (baseConfig) {
           // (the ESM build correctly imports `@nktkas/hyperliquid`, confirming this is
           // a CJS-transpile bug in the published package). Redirect to the real package
           // until upstream ships a patched release.
-          // Match either path separator so this works on Windows (`\`) too.
           if (
             moduleName ===
               'file:///home/runner/work/hyperliquid/hyperliquid/src/mod.ts' &&
-            /[\\/]@metamask[\\/]perps-controller[\\/]/.test(
-              context.originModulePath ?? '',
-            )
+            isPerpsControllerOrigin(context)
           ) {
             return context.resolveRequest(
               context,
