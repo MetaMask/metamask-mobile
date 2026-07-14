@@ -441,6 +441,92 @@ describe('mapLocalTransaction', () => {
     });
   });
 
+  it('categorizes a sped-up (retry) replacement by its originalType once the original is dropped', () => {
+    // After the replacement confirms, the original send is dropped from the
+    // list, so the retry becomes both the initial and primary transaction. A
+    // retry preserves the original txParams, so it must still render as a Send
+    // (not the contractInteraction default) with the correct amount/recipient.
+    const transaction = {
+      chainId: mainnet,
+      id: 'retry-id',
+      hash: '0xspedup',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.retry,
+      originalType: TransactionType.simpleSend,
+      txParams: {
+        from,
+        to,
+        value: '0x1',
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'send',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1716367781000,
+      hash: '0xspedup',
+      data: {
+        from,
+        to,
+        token: {
+          amount: '0x1',
+          assetId: 'eip155:1/slip44:60',
+          decimals: 18,
+          direction: 'out',
+          symbol: 'ETH',
+        },
+      },
+    });
+  });
+
+  it('falls back to contractInteraction for a retry with no originalType', () => {
+    const transaction = {
+      chainId: mainnet,
+      id: 'retry-id',
+      hash: '0xspedup',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.retry,
+      txParams: {
+        from,
+        to,
+        value: '0x1',
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(mapLocalTransaction(makeGroup(transaction)).type).toBe(
+      'contractInteraction',
+    );
+  });
+
+  it('does not remap a cancel replacement (zero-value self-send stays contractInteraction)', () => {
+    // Cancel rewrites txParams to a zero-value self-send, so remapping it to the
+    // original category would show a misleading amount/recipient. Left as-is
+    // pending the deeper grouping fix that retains the original transaction.
+    const transaction = {
+      chainId: mainnet,
+      id: 'cancel-id',
+      hash: '0xcancel',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.cancel,
+      originalType: TransactionType.simpleSend,
+      txParams: {
+        from,
+        to: from,
+        value: '0x0',
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(mapLocalTransaction(makeGroup(transaction)).type).toBe(
+      'contractInteraction',
+    );
+  });
+
   it('maps an approval amount from transaction calldata', () => {
     const transaction = {
       chainId: base,

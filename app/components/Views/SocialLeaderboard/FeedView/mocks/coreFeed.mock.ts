@@ -9,6 +9,11 @@ import type {
  * adapter and hook tests. Timestamps are Unix seconds, matching the API.
  */
 
+/** Extra fields present on raw feed payloads but not yet on `CoreFeedItem`. */
+type CoreFeedItemOverrides = Partial<CoreFeedItem> & {
+  marginUsd?: number | null;
+};
+
 const buildTrade = (overrides: Partial<Trade> = {}): Trade => ({
   direction: 'buy',
   intent: 'enter',
@@ -52,46 +57,47 @@ export const mockSpotFeedItem = (
 
 /** A closed perp long on Hyperliquid. */
 export const mockPerpFeedItem = (
-  overrides: Partial<CoreFeedItem> = {},
-): CoreFeedItem => ({
-  positionId: 'pos-perp-1',
-  tokenSymbol: 'ETH',
-  tokenName: 'Ethereum',
-  tokenAddress: '',
-  chain: 'hyperliquid',
-  positionAmount: 5,
-  boughtUsd: 50600,
-  soldUsd: 0,
-  realizedPnl: 8000,
-  costBasis: 50600,
-  trades: [
-    buildTrade({
-      direction: 'sell',
-      intent: 'exit',
-      tokenAmount: 5,
-      usdCost: 88000,
-      timestamp: 1_700_000_500,
-      classification: 'perp',
-      perpPositionType: 'long',
-      perpLeverage: 8,
-    }),
-  ],
-  lastTradeAt: 1_700_000_500,
-  tokenImageUrl: null,
-  currentValueUSD: 0,
-  pnlValueUsd: 8000,
-  pnlPercent: 12,
-  perpPositionType: 'long',
-  perpLeverage: 8,
-  actor: {
-    profileId: 'profile-2',
-    address: '0x2222222222222222222222222222222222222222',
-    name: 'aparjey',
-    imageUrl: null,
-  },
-  timestamp: 1_700_000_500,
-  ...overrides,
-});
+  overrides: CoreFeedItemOverrides = {},
+): CoreFeedItem =>
+  ({
+    positionId: 'pos-perp-1',
+    tokenSymbol: 'ETH',
+    tokenName: 'Ethereum',
+    tokenAddress: '',
+    chain: 'hyperliquid',
+    positionAmount: 5,
+    boughtUsd: 50600,
+    soldUsd: 0,
+    realizedPnl: 8000,
+    costBasis: 50600,
+    trades: [
+      buildTrade({
+        direction: 'sell',
+        intent: 'exit',
+        tokenAmount: 5,
+        usdCost: 88000,
+        timestamp: 1_700_000_500,
+        classification: 'perp',
+        perpPositionType: 'long',
+        perpLeverage: 8,
+      }),
+    ],
+    lastTradeAt: 1_700_000_500,
+    tokenImageUrl: null,
+    currentValueUSD: 0,
+    pnlValueUsd: 8000,
+    pnlPercent: 12,
+    perpPositionType: 'long',
+    perpLeverage: 8,
+    actor: {
+      profileId: 'profile-2',
+      address: '0x2222222222222222222222222222222222222222',
+      name: 'aparjey',
+      imageUrl: null,
+    },
+    timestamp: 1_700_000_500,
+    ...overrides,
+  }) as CoreFeedItem;
 
 /** Wraps items in a `FeedResponse` with cursor pagination. */
 export const mockFeedResponse = (
