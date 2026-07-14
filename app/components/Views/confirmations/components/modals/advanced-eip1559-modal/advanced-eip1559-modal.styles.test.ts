@@ -3,7 +3,12 @@ import { AppThemeKey, Theme } from '../../../../../../util/theme/models';
 
 const MOCK_ELEVATED_SURFACE_COLOR = 'mock-elevated-surface-color';
 
+let mockIsPureBlackEnabled = false;
+
 jest.mock('../../../../../../util/theme/themeUtils', () => ({
+  get isPureBlackEnabled() {
+    return mockIsPureBlackEnabled;
+  },
   getElevatedSurfaceColor: jest.fn(() => MOCK_ELEVATED_SURFACE_COLOR),
 }));
 
@@ -18,11 +23,37 @@ const darkThemeModel: Theme = {
 };
 
 describe('advanced-eip1559-modal.styles', () => {
+  beforeEach(() => {
+    mockIsPureBlackEnabled = false;
+  });
+
   it('uses elevated surface color for the modal container', () => {
     const styles = styleSheet({
       theme: darkThemeModel,
     });
 
     expect(styles.container.backgroundColor).toBe(MOCK_ELEVATED_SURFACE_COLOR);
+  });
+
+  it('does not apply muted border when pure black preview is off', () => {
+    const styles = styleSheet({
+      theme: darkThemeModel,
+    });
+
+    expect(styles.container.borderWidth).toBe(0);
+    expect(styles.container.borderColor).toBeUndefined();
+  });
+
+  it('applies muted border in pure black dark mode', () => {
+    mockIsPureBlackEnabled = true;
+
+    const styles = styleSheet({
+      theme: darkThemeModel,
+    });
+
+    expect(styles.container.borderWidth).toBe(1);
+    expect(styles.container.borderColor).toBe(
+      darkThemeModel.colors.border.muted,
+    );
   });
 });
