@@ -108,9 +108,13 @@ const mockAllMarkets = [
   ...mockMarketsWithInvalidVolume,
 ];
 
+const NOW = 1_700_000_000_000; // fixed epoch ms for deterministic listedAt math
+const DAYS_AGO = (days: number) => NOW - days * 24 * 60 * 60 * 1000;
+
 describe('usePerpsMarketListView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Date, 'now').mockReturnValue(NOW);
 
     // Reset sortMarkets mock to pass through by default
     mockSortMarkets.mockImplementation(({ markets }) => markets);
@@ -156,6 +160,10 @@ describe('usePerpsMarketListView', () => {
 
     // Mock Redux selectors by identity so call order doesn't matter
     mockSelectorState({ watchlist: ['BTC', 'ETH'] });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('Initial State', () => {
@@ -664,18 +672,18 @@ describe('usePerpsMarketListView', () => {
         {
           ...createMockMarket('BTC', '$1B'),
           isHip3: false,
-          listedAt: Date.now() - 5 * 24 * 60 * 60 * 1000, // 5 days ago
+          listedAt: DAYS_AGO(5), // 5 days ago
         },
         {
           ...createMockMarket('AAPL', '$2B'),
           marketType: 'stock' as const,
           isHip3: true,
-          listedAt: Date.now() - 10 * 24 * 60 * 60 * 1000, // 10 days ago
+          listedAt: DAYS_AGO(10), // 10 days ago
         },
         {
           ...createMockMarket('OLDCOIN', '$500M'),
           isHip3: false,
-          listedAt: Date.now() - 45 * 24 * 60 * 60 * 1000, // 45 days ago, not new
+          listedAt: DAYS_AGO(45), // 45 days ago, not new
         },
       ];
 
@@ -989,19 +997,19 @@ describe('usePerpsMarketListView', () => {
         {
           ...createMockMarket('SHIB2', '$100M'),
           isHip3: false,
-          listedAt: Date.now() - 3 * 24 * 60 * 60 * 1000, // 3 days ago, new
+          listedAt: DAYS_AGO(3), // 3 days ago, new
         },
         {
           ...createMockMarket('CASHCAT', '$50M'),
           marketType: 'stock' as const,
           isHip3: true,
-          listedAt: Date.now() - 20 * 24 * 60 * 60 * 1000, // 20 days ago, new
+          listedAt: DAYS_AGO(20), // 20 days ago, new
         },
         {
           ...createMockMarket('OLDIPO', '$30M'),
           marketType: 'pre-ipo' as const,
           isHip3: true,
-          listedAt: Date.now() - 60 * 24 * 60 * 60 * 1000, // 60 days ago, not new
+          listedAt: DAYS_AGO(60), // 60 days ago, not new
         },
       ];
 
