@@ -342,16 +342,29 @@ class QuoteView {
         });
       },
       appium: async () => {
-        // Tap the "Rate" label (not the rate value / rate-arrow-button).
-        // Tapping BRIDGE_VIEW_SCROLL can hit rate-arrow-button and open
-        // QuoteSelectorView (swap providers), which blocks the confirm flow.
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.rateLabel),
-          {
+        // Prefer the "Rate" label (not rate-arrow-button) when a quote is present —
+        // tapping BRIDGE_VIEW_SCROLL can open QuoteSelectorView (swap providers).
+        // When there is no quote (e.g. RWA geo-block), Rate is absent; fall back
+        // to the scroll view so the keypad can still be dismissed.
+        try {
+          await PlaywrightGestures.waitAndTap(
+            await asPlaywrightElement(this.rateLabel),
+            {
+              checkForDisplayed: true,
+              checkForEnabled: true,
+              timeout: 5000,
+            },
+          );
+        } catch {
+          const scrollView = await PlaywrightMatchers.getElementById(
+            QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL,
+            { exact: true },
+          );
+          await PlaywrightGestures.waitAndTap(scrollView, {
             checkForDisplayed: true,
             checkForEnabled: true,
-          },
-        );
+          });
+        }
       },
     });
   }
