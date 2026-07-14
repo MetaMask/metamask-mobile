@@ -3518,6 +3518,16 @@ describe('CardController — Immersve onboarding pass-throughs', () => {
     expect(result).toStrictEqual({ id: 'fs-1' });
   });
 
+  it('getFundingSources delegates to the active provider with valid tokens', async () => {
+    const getFundingSources = jest.fn().mockResolvedValue([{ id: 'fs-1' }]);
+    const { controller } = withValidSession({ getFundingSources });
+
+    const result = await controller.getFundingSources();
+
+    expect(getFundingSources).toHaveBeenCalledWith(mockTokenSet);
+    expect(result).toStrictEqual([{ id: 'fs-1' }]);
+  });
+
   it('getSpendingPrerequisites forwards fundingSourceId + params with tokens', async () => {
     const getSpendingPrerequisites = jest
       .fn()

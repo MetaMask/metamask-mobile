@@ -143,6 +143,18 @@ interface ImmersveFundingSourceResponse {
   network?: string;
 }
 
+interface ImmersveFundingSourceListItem {
+  id: string;
+  balance?: string;
+  balanceCurrency?: string;
+  network?: string;
+  fundingChannelId?: string;
+}
+
+interface ImmersveFundingSourcesResponse {
+  items?: ImmersveFundingSourceListItem[];
+}
+
 export class ImmersveProvider implements ICardProvider {
   readonly id = 'immersve' as const;
 
@@ -394,6 +406,33 @@ export class ImmersveProvider implements ICardProvider {
       };
     } catch (error) {
       throw mapApiError(error, 'createFundingSource');
+    }
+  }
+
+  async getFundingSources(
+    tokens: CardAuthTokens,
+  ): Promise<CardFundingSourceResult[]> {
+    const accountId = tokens.cardholderAccountId;
+    if (!accountId) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'getFundingSources: missing cardholder account id',
+      );
+    }
+
+    try {
+      const { items } = await this.service.get<ImmersveFundingSourcesResponse>(
+        `/api/accounts/${accountId}/funding-sources`,
+        tokens,
+      );
+      return (items ?? []).map((item) => ({
+        id: item.id,
+        network: item.network,
+        balance: item.balance,
+        balanceCurrency: item.balanceCurrency,
+      }));
+    } catch (error) {
+      throw mapApiError(error, 'getFundingSources');
     }
   }
 

@@ -1102,6 +1102,18 @@ export class CardController extends BaseController<
     return this.#withAuthRetry((tokens) => createFundingSource(tokens));
   }
 
+  async getFundingSources(): Promise<CardFundingSourceResult[]> {
+    const provider = this.getActiveProvider();
+    const getFundingSources = provider.getFundingSources?.bind(provider);
+    if (!getFundingSources) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Listing funding sources not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getFundingSources(tokens));
+  }
+
   async getSpendingPrerequisites(
     fundingSourceId: string,
     params: CardSpendingPrerequisitesParams,

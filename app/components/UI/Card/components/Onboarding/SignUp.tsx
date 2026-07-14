@@ -39,6 +39,8 @@ import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAcc
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { useImmersveSiweAuth } from '../../hooks/useImmersveSiweAuth';
+import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
+import { deriveNextImmersveAction } from '../../util/immersvePrerequisites';
 import { getCardProviderErrorMessage } from '../../util/getCardProviderErrorMessage';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -57,7 +59,7 @@ import {
   selectCardFeatureFlag,
   selectImmersveOnboardingEnabled,
 } from '../../../../../selectors/featureFlagController/card';
-import { HUBSPOT_WAITLIST_URL } from '../../constants';
+import { HUBSPOT_WAITLIST_URL, KYC_REDIRECT_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 
 const buildWaitlistUrl = (countryName: string, email?: string): string => {
@@ -101,6 +103,7 @@ const SignUp = () => {
     selectAccountByScope('eip155:0')?.address,
   );
   const { signIn: immersveSignIn } = useImmersveSiweAuth();
+  const routeImmersve = useImmersveOnboardingRouter();
   const [isImmersveSubmitting, setIsImmersveSubmitting] = useState(false);
   const [immersveError, setImmersveError] = useState<string | null>(null);
 
@@ -233,18 +236,28 @@ const SignUp = () => {
     setImmersveError(null);
     setIsImmersveSubmitting(true);
     try {
+      const controller = Engine.context.CardController;
       await immersveSignIn({
         country: selectedCountry.key,
         address: immersveAddress,
       });
-      // createFundingSource fails if this account is already a cardholder —
-      // that failure is how we block a second sign-up for the same SRP.
-      const { id } = await Engine.context.CardController.createFundingSource();
+      // Resume existing cardholders instead of blindly creating a funding source
+      // (which 403s FUNDING_SOURCE_EXISTS): fetch their funding source, create one
+      // only if none exists.
+      // ponytail: one funding source per cardholder in this program — take the
+      // first; match by fundingChannelId if multiple channels ever appear.
+      const existing = await controller.getFundingSources();
+      const { id } = existing[0] ?? (await controller.createFundingSource());
       dispatch(setImmersveFundingSourceId(id));
-      navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER, {
-        countryKey: selectedCountry.key,
-        immersve: true,
+
+      // Read where the user actually stopped and route there.
+      const { prerequisites } = await controller.getSpendingPrerequisites(id, {
+        kycRegion: selectedCountry.key,
+        kycRedirectUrl: KYC_REDIRECT_URL,
+      });
+      routeImmersve(deriveNextImmersveAction(prerequisites), {
         email,
+        countryKey: selectedCountry.key,
       });
     } catch (e) {
       setImmersveError(getCardProviderErrorMessage(e));
@@ -257,7 +270,7 @@ const SignUp = () => {
     email,
     immersveSignIn,
     dispatch,
-    navigation,
+    routeImmersve,
   ]);
 
   const handleJoinWaitlist = useCallback(() => {

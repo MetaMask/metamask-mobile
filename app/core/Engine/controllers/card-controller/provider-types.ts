@@ -494,6 +494,9 @@ export interface ICardProvider {
   createFundingSource?(
     tokens: CardAuthTokens,
   ): Promise<CardFundingSourceResult>;
+  getFundingSources?(
+    tokens: CardAuthTokens,
+  ): Promise<CardFundingSourceResult[]>;
   patchContactDetails?(
     details: CardContactDetails,
     tokens: CardAuthTokens,

@@ -307,6 +307,45 @@ describe('ImmersveProvider', () => {
       });
     });
 
+    it('getFundingSources GETs the account funding-sources and maps items', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [
+          {
+            id: 'fs-1',
+            network: 'base-sepolia',
+            balance: '1000000',
+            balanceCurrency: 'USDC',
+            fundingChannelId: 'base-channel',
+          },
+        ],
+      });
+
+      const result = await provider.getFundingSources(TOKENS);
+
+      expect(service.get).toHaveBeenCalledWith(
+        '/api/accounts/cardholder-1/funding-sources',
+        TOKENS,
+      );
+      expect(result).toStrictEqual([
+        {
+          id: 'fs-1',
+          network: 'base-sepolia',
+          balance: '1000000',
+          balanceCurrency: 'USDC',
+        },
+      ]);
+    });
+
+    it('getFundingSources returns an empty array when there are no items', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({});
+
+      await expect(provider.getFundingSources(TOKENS)).resolves.toStrictEqual(
+        [],
+      );
+    });
+
     it('patchContactDetails PATCHes the account contact-details path', async () => {
       const { provider, service } = createProvider();
       service.patch.mockResolvedValue({});

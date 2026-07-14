@@ -76,6 +76,8 @@ jest.mock('../../util/validatePassword');
 const mockSetUserLocation = jest.fn();
 const mockSetSelectedCountry = jest.fn();
 const mockCreateFundingSource = jest.fn();
+const mockGetFundingSources = jest.fn();
+const mockGetSpendingPrerequisites = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     CardController: {
@@ -84,8 +86,19 @@ jest.mock('../../../../../core/Engine', () => ({
         mockSetSelectedCountry(...args),
       createFundingSource: (...args: unknown[]) =>
         mockCreateFundingSource(...args),
+      getFundingSources: (...args: unknown[]) => mockGetFundingSources(...args),
+      getSpendingPrerequisites: (...args: unknown[]) =>
+        mockGetSpendingPrerequisites(...args),
     },
   },
+}));
+
+// Post-SIWE routing is unit-tested in useImmersveOnboardingRouter.test.ts;
+// here we assert SignUp resolves the funding source + prerequisites and hands
+// the derived action to the router.
+const mockRouteImmersve = jest.fn();
+jest.mock('../../hooks/useImmersveOnboardingRouter', () => ({
+  useImmersveOnboardingRouter: () => mockRouteImmersve,
 }));
 
 // Immersve onboarding-entry mocks (SIWE + selected-account binding)
@@ -564,13 +577,27 @@ describe('SignUp Component', () => {
       expect(mockSetSelectedCountry).toHaveBeenCalledWith('GB');
     });
 
-    it('signs in with SIWE, creates a funding source, then navigates to the phone step', async () => {
+    const enableImmersve = () => {
       const { selectImmersveOnboardingEnabled } = jest.requireMock(
         '../../../../../selectors/featureFlagController/card',
       );
       (selectImmersveOnboardingEnabled as jest.Mock).mockReturnValue(true);
+    };
+
+    it('new user: SIWE, creates a funding source (empty list), then routes the derived action', async () => {
+      enableImmersve();
       mockImmersveSignIn.mockResolvedValue({ done: true });
+      mockGetFundingSources.mockResolvedValue([]);
       mockCreateFundingSource.mockResolvedValue({ id: 'fs-1' });
+      mockGetSpendingPrerequisites.mockResolvedValue({
+        prerequisites: [
+          {
+            stage: 'kyc',
+            status: 'action-required',
+            actionType: 'submit_contact_phone',
+          },
+        ],
+      });
 
       const { getByTestId } = render(
         <Provider store={createTestStore({ geoLocation: 'GB' })}>
@@ -587,22 +614,55 @@ describe('SignUp Component', () => {
         country: 'GB',
         address: IMMERSVE_TEST_ADDRESS,
       });
+      expect(mockGetFundingSources).toHaveBeenCalled();
       expect(mockCreateFundingSource).toHaveBeenCalled();
       await waitFor(() =>
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
-          { countryKey: 'GB', immersve: true, email: 'gb@example.com' },
-        ),
+        expect(mockGetSpendingPrerequisites).toHaveBeenCalledWith('fs-1', {
+          kycRegion: 'GB',
+          kycRedirectUrl: 'https://metamask.io/card/kyc-complete',
+        }),
+      );
+      expect(mockRouteImmersve).toHaveBeenCalledWith(
+        { type: 'contact', needsEmail: false, needsPhone: true },
+        { email: 'gb@example.com', countryKey: 'GB' },
       );
     });
 
-    it('blocks sign-up (no navigation) when funding-source creation fails', async () => {
-      const { selectImmersveOnboardingEnabled } = jest.requireMock(
-        '../../../../../selectors/featureFlagController/card',
-      );
-      (selectImmersveOnboardingEnabled as jest.Mock).mockReturnValue(true);
+    it('existing user: reuses the funding source (no create) and routes to their state', async () => {
+      enableImmersve();
       mockImmersveSignIn.mockResolvedValue({ done: true });
-      mockCreateFundingSource.mockRejectedValue(new Error('already exists'));
+      mockGetFundingSources.mockResolvedValue([{ id: 'fs-existing' }]);
+      // Empty prerequisites → all satisfied → active.
+      mockGetSpendingPrerequisites.mockResolvedValue({ prerequisites: [] });
+
+      const { getByTestId } = render(
+        <Provider store={createTestStore({ geoLocation: 'GB' })}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('signup-email-input'), 'gb@example.com');
+      await act(async () => {
+        fireEvent.press(getByTestId('signup-continue-button'));
+      });
+
+      expect(mockCreateFundingSource).not.toHaveBeenCalled();
+      await waitFor(() =>
+        expect(mockGetSpendingPrerequisites).toHaveBeenCalledWith(
+          'fs-existing',
+          expect.anything(),
+        ),
+      );
+      expect(mockRouteImmersve).toHaveBeenCalledWith(
+        { type: 'active' },
+        { email: 'gb@example.com', countryKey: 'GB' },
+      );
+    });
+
+    it('surfaces an inline error and does not route when resolution fails', async () => {
+      enableImmersve();
+      mockImmersveSignIn.mockResolvedValue({ done: true });
+      mockGetFundingSources.mockRejectedValue(new Error('boom'));
 
       const { getByTestId, queryByTestId } = render(
         <Provider store={createTestStore({ geoLocation: 'GB' })}>
@@ -615,11 +675,7 @@ describe('SignUp Component', () => {
         fireEvent.press(getByTestId('signup-continue-button'));
       });
 
-      expect(mockCreateFundingSource).toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
-        expect.anything(),
-      );
+      expect(mockRouteImmersve).not.toHaveBeenCalled();
       expect(queryByTestId('signup-immersve-error-text')).toBeOnTheScreen();
     });
 

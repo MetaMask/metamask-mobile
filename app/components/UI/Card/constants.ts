@@ -34,6 +34,10 @@ export const SUPPORTED_ASSET_NETWORKS: CardNetwork[] = [
 export const CARD_SUPPORT_EMAIL = 'metamask@cl-cards.com';
 export const HUBSPOT_WAITLIST_URL =
   'https://share.hsforms.com/1kNZXeod7TU2xEy0BxmQxJw2urwb';
+// Fixed sentinel Immersve redirects the user to when they exit the hosted KYC
+// UI; the KYC webview watches for it to know onboarding-in-webview is done, and
+// it is passed to spending-prerequisites as kycRedirectUrl.
+export const KYC_REDIRECT_URL = 'https://metamask.io/card/kyc-complete';
 export const NON_PRODUCTION_ENVIRONMENTS = [
   'e2e',
   'dev',

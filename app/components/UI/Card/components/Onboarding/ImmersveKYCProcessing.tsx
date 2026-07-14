@@ -7,15 +7,13 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { selectImmersveFundingSourceId } from '../../../../../core/redux/slices/card';
 import { useImmersveSpendingPrerequisites } from '../../hooks/useImmersveSpendingPrerequisites';
+import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens } from '../../util/metrics';
+import { KYC_REDIRECT_URL } from '../../constants';
 import OnboardingStep from './OnboardingStep';
 import AnimatedSpinner from '../../../AnimatedSpinner';
-
-// Fixed sentinel Immersve redirects the user to when they exit the hosted KYC
-// UI; the webview watches for it to know onboarding-in-webview is done.
-export const KYC_REDIRECT_URL = 'https://metamask.io/card/kyc-complete';
 
 // While the user waits on this screen, poll spending-prerequisites; give up after
 // this window and send them to the "we'll notify you" pending screen. Immersve
@@ -38,6 +36,7 @@ const ImmersveKYCProcessing = () => {
   const { countryKey } = useParams<{ countryKey?: string }>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const fundingSourceId = useSelector(selectImmersveFundingSourceId);
+  const route = useImmersveOnboardingRouter();
   const hasOpenedWebview = useRef(false);
 
   const { nextAction, error, refresh } = useImmersveSpendingPrerequisites({
@@ -75,22 +74,15 @@ const ImmersveKYCProcessing = () => {
           params: { url: nextAction.url ?? '', redirectUrl: KYC_REDIRECT_URL },
         });
       }
-    } else if (type === 'rejected') {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: Routes.CARD.ONBOARDING.KYC_FAILED }],
-      });
-    } else if (type === 'funding' || type === 'active') {
-      // ponytail: interim terminus — approved users park on the pending screen.
-      // Branch 6b replaces this with SpendingLimit + ERC-20 approve + createCard.
-      navigation.reset({
-        index: 0,
-        routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
-      });
+    } else if (type === 'funding' || type === 'active' || type === 'rejected') {
+      // Terminal transitions (funding → SpendingLimit, active → toast + Home,
+      // rejected → KYC_FAILED) share the onboarding router with SignUp.
+      route(nextAction, { countryKey });
     }
-    // ponytail: 'contact'/'expected_spend' shouldn't occur (contact pre-supplied,
-    // expected-spend collected in-webview); left on the spinner if they do.
-  }, [nextAction, navigation]);
+    // 'pending' keeps polling (see the timeout effect). 'contact'/'expected_spend'
+    // shouldn't occur here (contact pre-supplied upstream, expected-spend collected
+    // in-webview) — left on the spinner if they do.
+  }, [nextAction, navigation, route, countryKey]);
 
   // 30s cutoff only while background checks are pending (not during the webview).
   useEffect(() => {

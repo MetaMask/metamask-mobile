@@ -1,11 +1,11 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
-import ImmersveKYCProcessing, {
-  KYC_REDIRECT_URL,
-} from './ImmersveKYCProcessing';
+import ImmersveKYCProcessing from './ImmersveKYCProcessing';
 import Routes from '../../../../../constants/navigation/Routes';
+import { KYC_REDIRECT_URL } from '../../constants';
 import { useImmersveSpendingPrerequisites } from '../../hooks/useImmersveSpendingPrerequisites';
+import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
 import type { ImmersveNextAction } from '../../util/immersvePrerequisites';
 
 jest.mock('@react-navigation/native', () => ({
@@ -23,8 +23,10 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 }));
 
 jest.mock('../../hooks/useImmersveSpendingPrerequisites');
+jest.mock('../../hooks/useImmersveOnboardingRouter');
 
 const mockRefresh = jest.fn().mockResolvedValue(null);
+const mockRoute = jest.fn();
 
 jest.mock('../../../AnimatedSpinner', () => {
   const ReactActual = jest.requireActual('react');
@@ -99,6 +101,7 @@ describe('ImmersveKYCProcessing', () => {
       navigate: mockNavigate,
       reset: mockReset,
     });
+    (useImmersveOnboardingRouter as jest.Mock).mockReturnValue(mockRoute);
     setNextAction(null);
   });
 
@@ -129,11 +132,12 @@ describe('ImmersveKYCProcessing', () => {
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
-  it('does not navigate while pending', () => {
+  it('does not navigate or route while pending', () => {
     setNextAction({ type: 'pending' });
     render(<ImmersveKYCProcessing />);
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockReset).not.toHaveBeenCalled();
+    expect(mockRoute).not.toHaveBeenCalled();
   });
 
   it('resets to KYC_PENDING after the pending timeout', () => {
@@ -149,24 +153,36 @@ describe('ImmersveKYCProcessing', () => {
     });
   });
 
-  it('resets to KYC_FAILED when rejected', () => {
-    setNextAction({ type: 'rejected' });
+  it('routes rejected through the onboarding router', () => {
+    const action: ImmersveNextAction = { type: 'rejected' };
+    setNextAction(action);
     render(<ImmersveKYCProcessing />);
 
-    expect(mockReset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [{ name: Routes.CARD.ONBOARDING.KYC_FAILED }],
-    });
+    expect(mockRoute).toHaveBeenCalledWith(action, { countryKey: 'GB' });
   });
 
-  it('parks approved (active) on the interim pending terminus', () => {
-    setNextAction({ type: 'active' });
+  it('routes approved (active) through the onboarding router', () => {
+    const action: ImmersveNextAction = { type: 'active' };
+    setNextAction(action);
     render(<ImmersveKYCProcessing />);
 
-    expect(mockReset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
-    });
+    expect(mockRoute).toHaveBeenCalledWith(action, { countryKey: 'GB' });
+  });
+
+  it('routes funding through the onboarding router', () => {
+    const action: ImmersveNextAction = {
+      type: 'funding',
+      write: {
+        abi: [],
+        contractAddress: '0xusdc',
+        method: 'approve',
+        params: {},
+      },
+    };
+    setNextAction(action);
+    render(<ImmersveKYCProcessing />);
+
+    expect(mockRoute).toHaveBeenCalledWith(action, { countryKey: 'GB' });
   });
 
   it('shows the error message instead of the spinner on failure', () => {
