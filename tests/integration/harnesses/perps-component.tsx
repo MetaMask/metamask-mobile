@@ -103,6 +103,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
+import { type PriceUpdate } from '@metamask/perps-controller';
 
 import { buildPerpsFlowHarness, type PerpsFlowHarness } from './perps-flow';
 import type { PerpsHarnessOptions } from './perps';
@@ -269,6 +270,23 @@ function topOfBookChannel(
   };
 }
 
+function focusedPriceChannel(
+  prices: NonNullable<PerpsComponentRenderOptions['streamOverrides']>['prices'],
+) {
+  return {
+    subscribe: (): (() => void) => noopUnsubscribe,
+    subscribeToSymbol: (params: {
+      symbol: string;
+      callback: (update: PriceUpdate | undefined) => void;
+    }): (() => void) => {
+      const update = prices?.[params.symbol];
+      params.callback(update);
+      return noopUnsubscribe;
+    },
+    getSnapshot: () => null,
+  };
+}
+
 function createTestStreamManager(
   streamOverrides: PerpsComponentRenderOptions['streamOverrides'] = {},
 ): PerpsStreamManager {
@@ -293,6 +311,7 @@ function createTestStreamManager(
   return {
     prices: pricesChannel(prices),
     topOfBook: topOfBookChannel(topOfBook),
+    focusedPrice: focusedPriceChannel(prices),
     positions: channelWithInitialValue(streamOverrides.positions ?? []),
     account: channelWithInitialValue(account),
     orders: channelWithInitialValue([]),

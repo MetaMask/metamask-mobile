@@ -793,7 +793,18 @@ jobs:
           path: tests/coverage/
       - name: Aggregate test counts and gather coverage reports
         shell: bash
+        env:
+          INTEGRATION_TESTS_RESULT: ${{ needs.integration-tests.result }}
         run: |
+          echo "Upstream integration-tests result: ${INTEGRATION_TESTS_RESULT}"
+          integration_shard_count=$(
+            find ./tests/coverage -maxdepth 1 -type d -name 'coverage-integration-*' 2>/dev/null | wc -l | tr -d ' '
+          )
+          echo "Integration coverage shards present: ${integration_shard_count}"
+          if [[ "$INTEGRATION_TESTS_RESULT" =~ ^(failure|cancelled)$ ]]; then
+            echo "::warning::Integration tests did not fully succeed; merging available coverage shards only."
+          fi
+
           unit_total=0
           for file in ./tests/coverage/coverage-unit-*/count.json; do
             [ -f "$file" ] || continue
@@ -1502,7 +1513,8 @@ jobs:
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: merge-unit-and-component-view-tests
     # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    # Run when merged coverage is ready even if optional integration shards failed upstream.
+    if: ${{ always() && !cancelled() && needs.merge-unit-and-component-view-tests.result == 'success' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1570,7 +1582,7 @@ jobs:
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: sonar-cloud
     # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ always() && !cancelled() && needs.sonar-cloud.result == 'success' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
