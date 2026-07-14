@@ -270,17 +270,16 @@ function topOfBookChannel(
   };
 }
 
-function focusedPriceChannel(
-  prices: NonNullable<PerpsComponentRenderOptions['streamOverrides']>['prices'],
-) {
+function focusedPriceChannel() {
   return {
     subscribe: (): (() => void) => noopUnsubscribe,
     subscribeToSymbol: (params: {
       symbol: string;
       callback: (update: PriceUpdate | undefined) => void;
     }): (() => void) => {
-      const update = prices?.[params.symbol];
-      params.callback(update);
+      // Match component-view harness: undefined lets callers fall back to
+      // central price cache (usePerpsLivePrices) on first render.
+      params.callback(undefined);
       return noopUnsubscribe;
     },
     getSnapshot: () => null,
@@ -311,7 +310,7 @@ function createTestStreamManager(
   return {
     prices: pricesChannel(prices),
     topOfBook: topOfBookChannel(topOfBook),
-    focusedPrice: focusedPriceChannel(prices),
+    focusedPrice: focusedPriceChannel(),
     positions: channelWithInitialValue(streamOverrides.positions ?? []),
     account: channelWithInitialValue(account),
     orders: channelWithInitialValue([]),
