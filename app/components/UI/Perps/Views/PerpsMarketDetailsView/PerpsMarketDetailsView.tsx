@@ -715,6 +715,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       source_section,
       existingPosition,
       openOrders.length,
+      isWatchlist,
       isPerpsInsightsEnabled,
       perpsInsightsReport,
       isServiceInterruptionBannerEnabled,
