@@ -266,7 +266,10 @@ describe('setupTransactionControllerListeners', () => {
     expect(handleShowNotification).toHaveBeenCalledWith(MOCK_TRANSACTION_META);
     expect(handleTransactionApprovedEventForMetrics).toHaveBeenCalledWith(
       MOCK_TRANSACTION_META,
-      expect.objectContaining({ getState: expect.any(Function), initMessenger: expect.anything() }),
+      expect.objectContaining({
+        getState: expect.any(Function),
+        initMessenger: expect.anything(),
+      }),
     );
   });
 
