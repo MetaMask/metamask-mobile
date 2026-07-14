@@ -20,8 +20,6 @@ interface IntervalBarProps {
   onIntervalSelect?: (interval: string) => void;
   chartType?: ChartType;
   onChartTypeSelect?: (type: ChartType) => void;
-  /** Override background color for the selected pill (A/B test). */
-  selectedColor?: string;
 }
 
 const IntervalBar: React.FC<IntervalBarProps> = ({
@@ -29,7 +27,6 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
   onIntervalSelect,
   chartType,
   onChartTypeSelect,
-  selectedColor,
 }) => {
   const tw = useTailwind();
 
@@ -54,10 +51,7 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
               style={({ pressed }) =>
                 tw.style(
                   PILL_BASE,
-                  isSelected &&
-                    (selectedColor
-                      ? { backgroundColor: selectedColor }
-                      : 'bg-muted'),
+                  isSelected && 'bg-muted',
                   pressed && 'opacity-70',
                 )
               }
@@ -70,18 +64,7 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
                 variant={TextVariant.BodySm}
                 fontWeight={isSelected ? FontWeight.Bold : FontWeight.Medium}
                 twClassName={
-                  isSelected
-                    ? selectedColor
-                      ? 'text-success-inverse'
-                      : 'text-text-default'
-                    : selectedColor
-                      ? undefined
-                      : 'text-text-alternative'
-                }
-                style={
-                  !isSelected && selectedColor
-                    ? { color: selectedColor }
-                    : undefined
+                  isSelected ? 'text-text-default' : 'text-text-alternative'
                 }
               >
                 {interval}
