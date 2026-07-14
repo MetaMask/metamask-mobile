@@ -75,14 +75,36 @@ jest.mock('../../util/validatePassword');
 // Mock Engine
 const mockSetUserLocation = jest.fn();
 const mockSetSelectedCountry = jest.fn();
+const mockCreateFundingSource = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     CardController: {
       setUserLocation: (...args: unknown[]) => mockSetUserLocation(...args),
       setSelectedCountry: (...args: unknown[]) =>
         mockSetSelectedCountry(...args),
+      createFundingSource: (...args: unknown[]) =>
+        mockCreateFundingSource(...args),
     },
   },
+}));
+
+// Immersve onboarding-entry mocks (SIWE + selected-account binding)
+const mockImmersveSignIn = jest.fn();
+jest.mock('../../hooks/useImmersveSiweAuth', () => ({
+  useImmersveSiweAuth: () => ({
+    signIn: mockImmersveSignIn,
+    isAuthenticating: false,
+    error: null,
+  }),
+}));
+jest.mock('../../../../hooks/multichainAccounts/useAccountGroupName', () => ({
+  useAccountGroupName: () => 'Account 1',
+}));
+const IMMERSVE_TEST_ADDRESS = '0x1234567890123456789012345678901234567890';
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: () => () => ({
+    address: IMMERSVE_TEST_ADDRESS,
+  }),
 }));
 
 // Mock OnboardingStep
@@ -536,9 +558,69 @@ describe('SignUp Component', () => {
       expect(
         queryByTestId('signup-country-not-available-text'),
       ).not.toBeOnTheScreen();
-      // Password field remains visible (not waitlist mode)
-      expect(getByTestId('signup-password-input')).toBeOnTheScreen();
+      // Immersve mode: password hidden, account picker shown instead
+      expect(queryByTestId('signup-password-input')).not.toBeOnTheScreen();
+      expect(getByTestId('signup-immersve-account-select')).toBeOnTheScreen();
       expect(mockSetSelectedCountry).toHaveBeenCalledWith('GB');
+    });
+
+    it('signs in with SIWE, creates a funding source, then navigates to the phone step', async () => {
+      const { selectImmersveOnboardingEnabled } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/card',
+      );
+      (selectImmersveOnboardingEnabled as jest.Mock).mockReturnValue(true);
+      mockImmersveSignIn.mockResolvedValue({ done: true });
+      mockCreateFundingSource.mockResolvedValue({ id: 'fs-1' });
+
+      const { getByTestId } = render(
+        <Provider store={createTestStore({ geoLocation: 'GB' })}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('signup-email-input'), 'gb@example.com');
+      await act(async () => {
+        fireEvent.press(getByTestId('signup-continue-button'));
+      });
+
+      expect(mockImmersveSignIn).toHaveBeenCalledWith({
+        country: 'GB',
+        address: IMMERSVE_TEST_ADDRESS,
+      });
+      expect(mockCreateFundingSource).toHaveBeenCalled();
+      await waitFor(() =>
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
+          { countryKey: 'GB', immersve: true, email: 'gb@example.com' },
+        ),
+      );
+    });
+
+    it('blocks sign-up (no navigation) when funding-source creation fails', async () => {
+      const { selectImmersveOnboardingEnabled } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/card',
+      );
+      (selectImmersveOnboardingEnabled as jest.Mock).mockReturnValue(true);
+      mockImmersveSignIn.mockResolvedValue({ done: true });
+      mockCreateFundingSource.mockRejectedValue(new Error('already exists'));
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={createTestStore({ geoLocation: 'GB' })}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('signup-email-input'), 'gb@example.com');
+      await act(async () => {
+        fireEvent.press(getByTestId('signup-continue-button'));
+      });
+
+      expect(mockCreateFundingSource).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
+        expect.anything(),
+      );
+      expect(queryByTestId('signup-immersve-error-text')).toBeOnTheScreen();
     });
 
     it('does not re-run auto-selection when getRegionByCode reference changes after initial selection', () => {

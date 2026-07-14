@@ -8725,7 +8725,9 @@
         "invalid_email": "Invalid email address",
         "invalid_password": "Password must be 15+ characters long. It cannot contain non-printable characters or consecutive spaces.",
         "join_waitlist": "Join waitlist",
-        "country_not_available": "Card sign-up isn't available in your country yet."
+        "country_not_available": "Card sign-up isn't available in your country yet.",
+        "account_label": "Account",
+        "account_description": "Your MetaMask Card will be associated with this account."
       },
       "confirm_email": {
         "title": "Confirm your email",
@@ -9364,7 +9366,6 @@
       "referee_error_description": "Check your connection and try again.",
       "referee_contact_support": "Contact support",
       "referee_priority_support_disclaimer": "By contacting priority support you will connect your wallet.",
-      "referral_tag_label": "VIP",
       "last_updated": "Last updated: {{time}}",
       "swaps_volume_info_label": "Swaps volume information",
       "swaps_volume_info_title": "Swaps volume",
