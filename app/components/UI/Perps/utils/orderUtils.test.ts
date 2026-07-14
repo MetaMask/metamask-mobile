@@ -628,6 +628,33 @@ describe('orderUtils', () => {
 
       expect(result).toBe(true);
     });
+
+    it('shows full-position limit-close orders (non-TP/SL) in Market Details orders section', () => {
+      const result = shouldDisplayOrderInMarketDetailsOrders(
+        {
+          ...mockReduceOnlyOrder,
+          isTrigger: false,
+          detailedOrderType: 'Limit',
+        },
+        mockLongPosition,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('shows full-position limit-close orders for short positions in Market Details orders section', () => {
+      const result = shouldDisplayOrderInMarketDetailsOrders(
+        {
+          ...mockReduceOnlyOrder,
+          side: 'buy',
+          isTrigger: false,
+          detailedOrderType: 'Limit',
+        },
+        mockShortPosition,
+      );
+
+      expect(result).toBe(true);
+    });
   });
 
   describe('buildDisplayOrdersWithSyntheticTpsl', () => {

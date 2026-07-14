@@ -150,17 +150,26 @@ export const usePerpsClosePosition = (
           }
         }
 
-        // Close position with slippage parameters for consistent validation
+        // Limit closes rest at the user-specified price, so the market
+        // slippage/price-staleness protection does not apply. Forwarding
+        // usdAmount/priceAtCalculation would make the provider compare the live
+        // market price against the calculation-time price and reject the order
+        // with "Price moved too much" whenever the market has drifted. Send the
+        // exact size and limit price instead, and only pass slippage parameters
+        // for market orders.
+        const isLimitOrder = orderType === 'limit';
         const result = await closePosition({
           symbol: position.symbol,
           size, // If undefined, will close full position
           orderType,
           price: limitPrice,
           trackingData,
-          // Pass through slippage parameters
-          usdAmount: slippage?.usdAmount,
-          priceAtCalculation: slippage?.priceAtCalculation,
-          maxSlippageBps: slippage?.maxSlippageBps,
+          // Pass through slippage parameters (market orders only)
+          usdAmount: isLimitOrder ? undefined : slippage?.usdAmount,
+          priceAtCalculation: isLimitOrder
+            ? undefined
+            : slippage?.priceAtCalculation,
+          maxSlippageBps: isLimitOrder ? undefined : slippage?.maxSlippageBps,
           // Pass live position to avoid getPositions() API call (prevents 429 rate limiting)
           position,
         });
@@ -203,23 +212,30 @@ export const usePerpsClosePosition = (
           // Call success callback
           options?.onSuccess?.(result);
         } else {
-          // Limit orders surface failures via the centralized error handler below;
-          // only market orders get a dedicated failure toast here.
-          if (orderType === 'market') {
+          if (orderType === 'market' && isFullClose) {
             // Market full close failed
-            if (isFullClose) {
-              showToast(
-                PerpsToastOptions.positionManagement.closePosition.marketClose
-                  .full.closeFullPositionFailed,
-              );
-            }
+            showToast(
+              PerpsToastOptions.positionManagement.closePosition.marketClose
+                .full.closeFullPositionFailed,
+            );
+          } else if (orderType === 'market') {
             // Market partial close failed
-            else {
-              showToast(
-                PerpsToastOptions.positionManagement.closePosition.marketClose
-                  .partial.closePartialPositionFailed,
-              );
-            }
+            showToast(
+              PerpsToastOptions.positionManagement.closePosition.marketClose
+                .partial.closePartialPositionFailed,
+            );
+          } else if (isFullClose) {
+            // Limit full close failed
+            showToast(
+              PerpsToastOptions.positionManagement.closePosition.limitClose.full
+                .fullPositionCloseFailed,
+            );
+          } else {
+            // Limit partial close failed
+            showToast(
+              PerpsToastOptions.positionManagement.closePosition.limitClose
+                .partial.partialPositionCloseFailed,
+            );
           }
 
           // Use centralized error handler for all errors

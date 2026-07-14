@@ -155,6 +155,7 @@ export interface PerpsToastOptionsConfig {
             amount: string,
             assetSymbol: string,
           ) => PerpsToastOptions;
+          fullPositionCloseFailed: PerpsToastOptions;
         };
         partial: {
           partialPositionCloseSubmitted: (
@@ -162,6 +163,7 @@ export interface PerpsToastOptionsConfig {
             amount: string,
             assetSymbol: string,
           ) => PerpsToastOptions;
+          partialPositionCloseFailed: PerpsToastOptions;
           switchToMarketOrderMissingLimitPrice: PerpsToastOptions;
         };
       };
@@ -884,6 +886,13 @@ const usePerpsToasts = (): {
                   }),
                 ),
               }),
+              fullPositionCloseFailed: {
+                ...perpsBaseToastOptions.error,
+                labelOptions: getPerpsToastLabels(
+                  strings('perps.close_position.failed_to_place_close_order'),
+                  strings('perps.close_position.your_position_is_still_active'),
+                ),
+              },
             },
             partial: {
               partialPositionCloseSubmitted: (
@@ -901,6 +910,15 @@ const usePerpsToasts = (): {
                   }),
                 ),
               }),
+              partialPositionCloseFailed: {
+                ...perpsBaseToastOptions.error,
+                labelOptions: getPerpsToastLabels(
+                  strings(
+                    'perps.close_position.failed_to_place_partial_close_order',
+                  ),
+                  strings('perps.close_position.your_position_is_still_active'),
+                ),
+              },
               switchToMarketOrderMissingLimitPrice: {
                 ...perpsBaseToastOptions.info,
                 labelOptions: getPerpsToastLabels(

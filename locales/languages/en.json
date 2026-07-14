@@ -1604,6 +1604,8 @@
       "funds_are_available_to_trade": "Funds are available to trade",
       "failed_to_close_position": "Failed to close position",
       "failed_to_partially_close_position": "Failed to partially close position",
+      "failed_to_place_close_order": "Failed to place close order",
+      "failed_to_place_partial_close_order": "Failed to place partial close order",
       "your_position_is_still_active": "Your position is still active",
       "fox_points_earned": "{{points}} Fox Points earned!",
       "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",

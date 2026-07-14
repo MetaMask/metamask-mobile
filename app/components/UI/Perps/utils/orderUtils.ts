@@ -284,14 +284,25 @@ export const isOrderAssociatedWithFullPosition = (
 /**
  * Determines whether an order should be shown in Market Details > Orders.
  *
- * - All non-reduce-only orders are shown.
- * - Reduce-only orders are shown only when they are NOT full-position TP/SL.
+ * All non-reduce-only orders are shown. Plain reduce-only orders (e.g. a limit
+ * close on a long position) are also shown, matching the home "Perpetuals"
+ * section. Only full-position TP/SL orders are hidden here, since they are
+ * surfaced in the position card's Auto-close section instead.
  */
 export const shouldDisplayOrderInMarketDetailsOrders = (
   order: Order,
   position?: Position,
 ): boolean => {
   if (!order.reduceOnly) {
+    return true;
+  }
+
+  // Only TP/SL trigger orders are relocated to the Auto-close section. A plain
+  // limit-close order is a regular open order and must stay in the list even
+  // when it closes the full position.
+  const isTpSlOrder =
+    order.isTrigger === true || isTPSLOrder(order.detailedOrderType);
+  if (!isTpSlOrder) {
     return true;
   }
 

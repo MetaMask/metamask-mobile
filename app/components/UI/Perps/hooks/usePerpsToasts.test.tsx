@@ -879,6 +879,42 @@ describe('usePerpsToasts', () => {
           isBold: false,
         });
       });
+
+      it('returns limit close full position failed configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.closePosition
+            .limitClose.full.fullPositionCloseFailed;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationMoment.Error,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to place close order', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Your position is still active', isBold: false },
+        ]);
+      });
+
+      it('returns limit close partial position failed configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.closePosition
+            .limitClose.partial.partialPositionCloseFailed;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationMoment.Error,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to place partial close order', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Your position is still active', isBold: false },
+        ]);
+      });
     });
 
     describe('positionManagement.margin', () => {
