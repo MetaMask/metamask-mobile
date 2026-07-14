@@ -287,6 +287,9 @@ class QuoteView {
             description: `Token ${symbol} visible without scroll`,
           });
         } catch {
+          // Keyboard / FlatList clipping can leave rows displayed:false even
+          // after search — force blur again, then wait.
+          await PlaywrightGestures.dismissKeyboardAfterTokenSearch();
           if (isAndroid) {
             try {
               const scrollView = await PlaywrightMatchers.getElementById(
@@ -329,6 +332,9 @@ class QuoteView {
         await searchField.fill(symbol);
         // Wait for BridgeTokenSelector debouncedSearch (300ms) + result settle.
         await sleep(TIMEOUT.TOKEN_SEARCH_SETTLE);
+        // iOS soft keyboard covers the list (rows stay displayed:false).
+        // tapOutside alone is flaky — also tap the pills strip to force blur.
+        await PlaywrightGestures.dismissKeyboardAfterTokenSearch();
       },
     });
   }
