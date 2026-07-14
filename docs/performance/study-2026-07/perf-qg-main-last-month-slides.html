@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Performance Quality Gates · main · last 30 days</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0c1210;
+    --bg-elev: #141c19;
+    --ink: #e8f0eb;
+    --muted: #8fa399;
+    --line: rgba(232, 240, 235, 0.1);
+    --pass: #3dcf8e;
+    --pass-dim: rgba(61, 207, 142, 0.18);
+    --fail: #ff6b4a;
+    --fail-dim: rgba(255, 107, 74, 0.16);
+    --accent: #f4b860;
+    --accent-2: #7ec8a3;
+    --warn: #f0c14a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Sora", system-ui, sans-serif;
+    overflow: hidden;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 55% at 12% -10%, rgba(244, 184, 96, 0.18), transparent 55%),
+      radial-gradient(ellipse 70% 50% at 100% 0%, rgba(62, 160, 120, 0.14), transparent 50%),
+      radial-gradient(ellipse 60% 40% at 70% 110%, rgba(255, 107, 74, 0.1), transparent 50%),
+      linear-gradient(160deg, #0c1210 0%, #101816 45%, #0b100e 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .deck {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    width: 100%;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: clamp(2rem, 4vw, 3.5rem) clamp(2rem, 5vw, 4.5rem);
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+    pointer-events: none;
+    transition: opacity 420ms ease, transform 420ms ease;
+  }
+
+  .slide.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  .eyebrow {
+    font-size: 0.78rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 0.85rem;
+  }
+
+  h1, h2 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+  }
+
+  h1 { font-size: clamp(2.4rem, 5.5vw, 4.2rem); max-width: 14ch; }
+  h2 { font-size: clamp(1.8rem, 3.6vw, 2.8rem); margin-bottom: 0.4rem; }
+
+  .subtitle {
+    margin-top: 1.1rem;
+    font-size: clamp(1rem, 1.5vw, 1.25rem);
+    color: var(--muted);
+    max-width: 42ch;
+    font-weight: 300;
+    line-height: 1.55;
+  }
+
+  .hero-meta {
+    margin-top: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .hero-meta div strong {
+    display: block;
+    font-family: "Fraunces", serif;
+    font-size: 1.65rem;
+    color: var(--ink);
+  }
+
+  .hero-meta div span {
+    font-size: 0.82rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 900px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .stat {
+    background: linear-gradient(160deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 1.25rem 1.35rem;
+    backdrop-filter: blur(8px);
+  }
+
+  .stat .n {
+    font-family: "Fraunces", serif;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    line-height: 1;
+  }
+
+  .stat .l {
+    margin-top: 0.45rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  .stat.fail .n { color: var(--fail); }
+  .stat.pass .n { color: var(--pass); }
+  .stat.accent .n { color: var(--accent); }
+
+  .lede {
+    color: var(--muted);
+    max-width: 58ch;
+    line-height: 1.55;
+    margin: 0.35rem 0 1.5rem;
+    font-size: 0.98rem;
+  }
+
+  .bars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding-right: 0.35rem;
+  }
+
+  .bar-row {
+    display: grid;
+    grid-template-columns: minmax(10rem, 22rem) 1fr 4.2rem;
+    gap: 0.85rem;
+    align-items: center;
+  }
+
+  .bar-row .name {
+    font-size: 0.78rem;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .track {
+    height: 12px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #c4472e, var(--fail));
+    width: 0;
+    transition: width 900ms cubic-bezier(.2,.8,.2,1);
+  }
+
+  .slide.active .fill { width: var(--w); }
+
+  .fill.ok {
+    background: linear-gradient(90deg, #1f8a5b, var(--pass));
+  }
+
+  .bar-row .pct {
+    font-variant-numeric: tabular-nums;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .bar-row .pct.bad { color: var(--fail); }
+  .bar-row .pct.good { color: var(--pass); }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  @media (max-width: 900px) {
+    .cards { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: linear-gradient(165deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 1.25rem 1.35rem 1.35rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--fail);
+  }
+
+  .card.ok::before { background: var(--pass); }
+
+  .card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.85rem;
+    line-height: 1.35;
+    padding-right: 3.5rem;
+  }
+
+  .pill {
+    position: absolute;
+    top: 1.15rem;
+    right: 1.15rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.28rem 0.55rem;
+    border-radius: 999px;
+    background: var(--fail-dim);
+    color: var(--fail);
+  }
+
+  .card.ok .pill {
+    background: var(--pass-dim);
+    color: var(--pass);
+  }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.65rem;
+  }
+
+  .metrics div {
+    background: rgba(0,0,0,0.22);
+    border-radius: 12px;
+    padding: 0.65rem 0.7rem;
+  }
+
+  .metrics .k {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.2rem;
+  }
+
+  .metrics .v {
+    font-family: "Fraunces", serif;
+    font-size: 1.15rem;
+  }
+
+  .insights {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 1.25rem;
+    margin-top: 1rem;
+    flex: 1;
+  }
+
+  @media (max-width: 900px) {
+    .insights { grid-template-columns: 1fr; }
+  }
+
+  .insight-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .insight {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 1rem 1.15rem;
+    background: rgba(255,255,255,0.025);
+  }
+
+  .insight strong {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: var(--accent);
+    font-size: 0.92rem;
+  }
+
+  .insight p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .callout {
+    border-radius: 22px;
+    padding: 1.5rem;
+    background:
+      linear-gradient(145deg, rgba(244,184,96,0.14), rgba(244,184,96,0.03)),
+      var(--bg-elev);
+    border: 1px solid rgba(244,184,96,0.28);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.85rem;
+  }
+
+  .callout h3 {
+    font-family: "Fraunces", serif;
+    font-size: 1.55rem;
+    line-height: 1.2;
+  }
+
+  .callout p { color: var(--muted); line-height: 1.5; font-size: 0.92rem; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.72rem;
+    margin-top: 0.6rem;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 0.42rem 0.45rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  th {
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 0.62rem;
+  }
+
+  td.num { font-variant-numeric: tabular-nums; text-align: right; }
+  th.num { text-align: right; }
+
+  tr:hover td { background: rgba(255,255,255,0.025); }
+
+  .fail-cell { color: var(--fail); font-weight: 600; }
+  .pass-cell { color: var(--pass); font-weight: 600; }
+
+  .table-wrap {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgba(0,0,0,0.18);
+  }
+
+  .nav {
+    position: fixed;
+    z-index: 5;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem clamp(1.2rem, 3vw, 2rem);
+    background: linear-gradient(to top, rgba(8,12,10,0.92), rgba(8,12,10,0));
+    pointer-events: none;
+  }
+
+  .nav > * { pointer-events: auto; }
+
+  .dots {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.2);
+    border: 0;
+    cursor: pointer;
+    transition: width 200ms ease, background 200ms ease;
+  }
+
+  .dot.active {
+    width: 22px;
+    background: var(--accent);
+  }
+
+  .hint {
+    color: var(--muted);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+  }
+
+  .btns { display: flex; gap: 0.45rem; }
+
+  .btns button {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 0.45rem 0.85rem;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.78rem;
+  }
+
+  .btns button:hover { background: rgba(255,255,255,0.12); }
+
+  .brand-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 1.6rem;
+  }
+
+  .fox {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f4b860, #ff6b4a);
+    box-shadow: 0 0 24px rgba(244,184,96,0.35);
+  }
+
+  .brand-mark span {
+    font-size: 0.85rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .cols-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 900px) {
+    .cols-3 { grid-template-columns: 1fr; }
+  }
+
+  .chip {
+    display: inline-block;
+    font-size: 0.68rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+    color: var(--muted);
+    margin-bottom: 0.55rem;
+  }
+</style>
+</head>
+<body>
+  <div class="deck" id="deck">
+
+    <!-- 1 TITLE -->
+    <section class="slide active" data-title="Title">
+      <div class="brand-mark"><div class="fox"></div><span>MetaMask Mobile · QA Performance</span></div>
+      <p class="eyebrow">Quality gate study</p>
+      <h1>Performance on <em style="color:var(--accent);font-style:normal;">main</em></h1>
+      <p class="subtitle">A 30-day look at every performance scenario: pass rates, fail rates, thresholds, and how far failures overshoot the gate.</p>
+      <div class="hero-meta">
+        <div><strong>Jun 15 – Jul 14</strong><span>2026 · UTC window</span></div>
+        <div><strong>561 runs</strong><span>completed workflow runs</span></div>
+        <div><strong>20 scenarios</strong><span>with quality gates</span></div>
+        <div><strong>12,218</strong><span>QG observations</span></div>
+      </div>
+    </section>
+
+    <!-- 2 SCOPE -->
+    <section class="slide" data-title="Scope">
+      <p class="eyebrow">What we measured</p>
+      <h2>Scope & method</h2>
+      <p class="lede">Artifacts from <code style="color:var(--accent)">run-performance-e2e.yml</code> on <strong>main</strong> only. Pass/fail is quality-gate outcome (<code style="color:var(--muted)">qualityGates.passed</code>). Over% is how much the failing step exceeded its threshold.</p>
+      <div class="stats">
+        <div class="stat accent"><div class="n">30d</div><div class="l">Rolling window</div></div>
+        <div class="stat"><div class="n">561</div><div class="l">Completed runs parsed</div></div>
+        <div class="stat fail"><div class="n">20</div><div class="l">Scenarios tracked</div></div>
+        <div class="stat pass"><div class="n">1</div><div class="l">Scenario with 100% pass</div></div>
+      </div>
+      <div class="cards" style="margin-top:1.25rem">
+        <div class="card ok">
+          <span class="pill">Healthy band</span>
+          <h3>Launch paths stay solid</h3>
+          <p style="color:var(--muted);font-size:0.9rem;line-height:1.5">Cold→Login 5.9% fail · Cold→Onboarding 1.3% · Warm→Login 4.3%</p>
+        </div>
+        <div class="card">
+          <span class="pill">Watch list</span>
+          <h3>Onboarding & account creation dominate fails</h3>
+          <p style="color:var(--muted);font-size:0.9rem;line-height:1.5">Import SRP onboarding 59% · Account creation 37% · Unlock after import 25%</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 FAIL LEADERBOARD -->
+    <section class="slide" data-title="Fail rates">
+      <p class="eyebrow">Fail rate leaderboard</p>
+      <h2>Where quality gates break</h2>
+      <p class="lede">Sorted by fail %. Threshold shown is the primary (most common failing) step gate.</p>
+      <div class="bars" id="failBars"></div>
+    </section>
+
+    <!-- 4 WORST FOUR -->
+    <section class="slide" data-title="Worst">
+      <p class="eyebrow">Deep dive</p>
+      <h2>Highest fail-rate scenarios</h2>
+      <p class="lede">Pass % · Fail % · Threshold · Mean / mode of over% when the gate fails.</p>
+      <div class="cards">
+        <div class="card">
+          <span class="pill">59.0% fail</span>
+          <h3>Onboarding Import SRP +50 (SRP 3)</h3>
+          <div class="metrics">
+            <div><span class="k">Pass</span><span class="v" style="color:var(--pass)">41%</span></div>
+            <div><span class="k">Thr</span><span class="v">1980ms</span></div>
+            <div><span class="k">Obs</span><span class="v">542</span></div>
+            <div><span class="k">Over% mean</span><span class="v">16.3</span></div>
+            <div><span class="k">Over% mode</span><span class="v">5.3</span></div>
+            <div><span class="k">Over% med</span><span class="v">13.1</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <span class="pill">36.9% fail</span>
+          <h3>Account creation after fresh install</h3>
+          <div class="metrics">
+            <div><span class="k">Pass</span><span class="v" style="color:var(--pass)">63%</span></div>
+            <div><span class="k">Thr</span><span class="v">3300ms</span></div>
+            <div><span class="k">Obs</span><span class="v">423</span></div>
+            <div><span class="k">Over% mean</span><span class="v">92.7</span></div>
+            <div><span class="k">Over% mode</span><span class="v">77.7</span></div>
+            <div><span class="k">Over% med</span><span class="v">95.8</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <span class="pill">24.9% fail</span>
+          <h3>Cold Start after importing a wallet</h3>
+          <div class="metrics">
+            <div><span class="k">Pass</span><span class="v" style="color:var(--pass)">75%</span></div>
+            <div><span class="k">Thr</span><span class="v">2200ms</span></div>
+            <div><span class="k">Obs</span><span class="v">489</span></div>
+            <div><span class="k">Over% mean</span><span class="v">73.2</span></div>
+            <div><span class="k">Over% mode</span><span class="v">4.2</span></div>
+            <div><span class="k">Over% med</span><span class="v">37.2</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <span class="pill">22.5% fail</span>
+          <h3>Uniswap connect / edit accounts</h3>
+          <div class="metrics">
+            <div><span class="k">Pass</span><span class="v" style="color:var(--pass)">78%</span></div>
+            <div><span class="k">Thr</span><span class="v">24200ms</span></div>
+            <div><span class="k">Obs</span><span class="v">494</span></div>
+            <div><span class="k">Over% mean</span><span class="v">170.5</span></div>
+            <div><span class="k">Over% mode</span><span class="v">45.9</span></div>
+            <div><span class="k">Over% med</span><span class="v">227.5</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 HEALTHY -->
+    <section class="slide" data-title="Healthy">
+      <p class="eyebrow">Bright spots</p>
+      <h2>Most reliable scenarios</h2>
+      <p class="lede">Fail rate under 8%. These are stable quality-gate baselines on main.</p>
+      <div class="cols-3">
+        <div class="card ok">
+          <span class="chip">Launch</span>
+          <span class="pill">0% fail</span>
+          <h3>Predict Available Balance</h3>
+          <div class="metrics">
+            <div><span class="k">Pass</span><span class="v" style="color:var(--pass)">100%</span></div>
+            <div><span class="k">Thr</span><span class="v">5500</span></div>
+            <div><span class="k">Obs</span><span class="v">716</span></div>
+          </div>
+        </div>
+        <div class="card ok">
+          <span class="chip">Assets</span>
+          <span class="pill">0.3% fail</span>
+          <h3>Asset View</h3>
+          <div class="metrics">
+            <div><span class="k">Pass</span><span class="v" style="color:var(--pass)">99.7%</span></div>
+            <div><span class="k">Thr</span><span class="v">7150</span></div>
+            <div><span class="k">Obs</span><span class="v">709</span></div>
+          </div>
+        </div>
+        <div class="card ok">
+          <span class="chip">Wallet</span>
+          <span class="pill">0.6% fail</span>
+          <h3>Aggregated Balance</h3>
+          <div class="metrics">
+            <div><span class="k">Pass</span><span class="v" style="color:var(--pass)">99.4%</span></div>
+            <div><span class="k">Thr</span><span class="v">22000</span></div>
+            <div><span class="k">Obs</span><span class="v">706</span></div>
+          </div>
+        </div>
+        <div class="card ok">
+          <span class="chip">Launch</span>
+          <span class="pill">1.3% fail</span>
+          <h3>Cold Start → Onboarding</h3>
+          <div class="metrics">
+            <div><span class="k">Pass</span><span class="v" style="color:var(--pass)">98.7%</span></div>
+            <div><span class="k">Thr</span><span class="v">4400</span></div>
+            <div><span class="k">Over mode</span><span class="v">30.2%</span></div>
+          </div>
+        </div>
+        <div class="card ok">
+          <span class="chip">Predict</span>
+          <span class="pill">3.6% fail</span>
+          <h3>Predict Market Details</h3>
+          <div class="metrics">
+            <div><span class="k">Pass</span><span class="v" style="color:var(--pass)">96.4%</span></div>
+            <div><span class="k">Thr</span><span class="v">4400</span></div>
+            <div><span class="k">Over mean</span><span class="v">30%</span></div>
+          </div>
+        </div>
+        <div class="card ok">
+          <span class="chip">Launch</span>
+          <span class="pill">5.9% fail</span>
+          <h3>Cold Start → Login</h3>
+          <div class="metrics">
+            <div><span class="k">Pass</span><span class="v" style="color:var(--pass)">94.1%</span></div>
+            <div><span class="k">Thr</span><span class="v">4950</span></div>
+            <div><span class="k">Over mode</span><span class="v">106.5%</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 MEAN VS MODE -->
+    <section class="slide" data-title="Patterns">
+      <p class="eyebrow">Failure shape</p>
+      <h2>Mean vs mode of over%</h2>
+      <div class="insights">
+        <div class="insight-list">
+          <div class="insight">
+            <strong>Chronic but mild misses</strong>
+            <p>Onboarding Import SRP: fail rate 59%, but over% mode is only <em style="color:var(--ink)">5.3%</em> and mean 16.3%. Gates are scraped often by a little — not catastrophic latency spikes.</p>
+          </div>
+          <div class="insight">
+            <strong>Outlier-heavy fails</strong>
+            <p>Unlock after import: mean over% <em style="color:var(--ink)">73%</em> vs mode <em style="color:var(--ink)">4.2%</em>. Most fails barely miss; a long tail of bad sessions inflates the mean.</p>
+          </div>
+          <div class="insight">
+            <strong>Consistently slow when it fails</strong>
+            <p>Account creation: mode 77.7% and median 95.8% over a 3300ms gate. When it fails, it usually fails by nearly 2× — a product/perf issue, not noise.</p>
+          </div>
+        </div>
+        <div class="callout">
+          <h3>How to read over%</h3>
+          <p><strong style="color:var(--accent)">Mode</strong> ≈ typical failure magnitude.<br/>
+          <strong style="color:var(--accent)">Mean</strong> ≈ pulled up by outliers.<br/><br/>
+          High mean + low mode ⇒ flaky infra / device spikes.<br/>
+          High mean + high mode ⇒ the gate is systematically too tight for current builds.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 FULL TABLE -->
+    <section class="slide" data-title="All scenarios">
+      <p class="eyebrow">Appendix</p>
+      <h2>All 20 scenarios</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th class="num">Obs</th>
+              <th class="num">Pass %</th>
+              <th class="num">Fail %</th>
+              <th class="num">Thr ms</th>
+              <th class="num">Over% mean</th>
+              <th class="num">Over% mode</th>
+              <th class="num">Over% med</th>
+            </tr>
+          </thead>
+          <tbody id="fullTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 8 TAKEAWAYS -->
+    <section class="slide" data-title="Takeaways">
+      <p class="eyebrow">Next steps</p>
+      <h2>Takeaways</h2>
+      <div class="insights" style="grid-template-columns:1fr 1fr">
+        <div class="insight-list">
+          <div class="insight">
+            <strong>1. Prioritize onboarding import + account creation</strong>
+            <p>Highest fail rates on main. Account creation overshoots by ~2× when it fails — investigate token-list render path after new account.</p>
+          </div>
+          <div class="insight">
+            <strong>2. Unlock after import needs both perf work and outlier triage</strong>
+            <p>25% fail against 2200ms. Mode is tiny (4%); separate “near miss” vs “>7s outlier” cohorts before moving the gate.</p>
+          </div>
+          <div class="insight">
+            <strong>3. Uniswap interaction is expensive when it trips</strong>
+            <p>22.5% fail with thr 24200ms and mean over% 170%. Functional timeouts and QG misses both show up here.</p>
+          </div>
+        </div>
+        <div class="insight-list">
+          <div class="insight">
+            <strong>4. Keep launch baselines as the north star</strong>
+            <p>Cold→Onboarding, Asset View, Aggregated Balance, Predict Available Balance prove the gate framework can stay green.</p>
+          </div>
+          <div class="insight">
+            <strong>5. Watch Seedless / Perps / Predict deposit</strong>
+            <p>Mid-pack fail rates (6–14%). Not urgent like top offenders, but enough volume to catch regressions early.</p>
+          </div>
+          <div class="callout" style="min-height:auto;padding:1.15rem 1.25rem">
+            <h3 style="font-size:1.2rem">Data source</h3>
+            <p>GitHub Actions <code style="color:var(--accent)">aggregated-reports</code> · branch <code style="color:var(--accent)">main</code> · Jun 15–Jul 14, 2026</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9 CLOSER -->
+    <section class="slide" data-title="Close">
+      <div class="brand-mark"><div class="fox"></div><span>MetaMask Mobile · QA Performance</span></div>
+      <p class="eyebrow">Summary</p>
+      <h1 style="max-width:18ch">Gates tell a clear story on <em style="color:var(--accent);font-style:normal;">main</em>.</h1>
+      <p class="subtitle">Launch is healthy. Onboarding import, account creation, unlock-after-import, and Uniswap are where quality gates burn time — and where the next perf wins live.</p>
+      <div class="hero-meta">
+        <div><strong>59%</strong><span>worst fail rate (Import SRP)</span></div>
+        <div><strong>100%</strong><span>best pass rate (Predict Balance)</span></div>
+        <div><strong>20</strong><span>scenarios monitored</span></div>
+        <div><strong>30 days</strong><span>of evidence on main</span></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="nav">
+    <div class="dots" id="dots"></div>
+    <div class="hint">← → · space · click dots</div>
+    <div class="btns">
+      <button type="button" id="prev">Prev</button>
+      <button type="button" id="next">Next</button>
+    </div>
+  </div>
+
+<script>
+const scenarios = [
+  { name: "Onboarding Import SRP +50 (SRP 3)", short: "Onboarding Import SRP +50", obs: 542, pass: 41.0, fail: 59.0, thr: 1980, overMean: 16.3, overMode: 5.3, overMed: 13.1 },
+  { name: "Account creation after fresh install", short: "Account creation (fresh)", obs: 423, pass: 63.1, fail: 36.9, thr: 3300, overMean: 92.7, overMode: 77.7, overMed: 95.8 },
+  { name: "Cold Start after importing a wallet", short: "Cold Start after import", obs: 489, pass: 75.1, fail: 24.9, thr: 2200, overMean: 73.2, overMode: 4.2, overMed: 37.2 },
+  { name: "Uniswap connect / edit accounts", short: "Uniswap connect / edit", obs: 494, pass: 77.5, fail: 22.5, thr: 24200, overMean: 170.5, overMode: 45.9, overMed: 227.5 },
+  { name: "Import SRP +50 (SRP 1+2+3)", short: "Import SRP +50 (login)", obs: 407, pass: 85.7, fail: 14.3, thr: 1870, overMean: 100.2, overMode: 3.2, overMed: 22.7 },
+  { name: "Perps add funds", short: "Perps add funds", obs: 705, pass: 86.1, fail: 13.9, thr: 3850, overMean: 43.5, overMode: 0.5, overMed: 27.4 },
+  { name: "Seedless Onboarding: Apple Login", short: "Seedless Apple Login", obs: 638, pass: 88.6, fail: 11.4, thr: 6600, overMean: 25.0, overMode: 0.3, overMed: 17.7 },
+  { name: "Cross-chain swap ETH→SOL", short: "Cross-chain swap ETH→SOL", obs: 629, pass: 89.0, fail: 11.0, thr: 2420, overMean: 35.2, overMode: 13.0, overMed: 22.2 },
+  { name: "Seedless Onboarding: Google Login", short: "Seedless Google Login", obs: 641, pass: 91.4, fail: 8.6, thr: 5500, overMean: 27.6, overMode: 35.7, overMed: 25.2 },
+  { name: "Perps open/close position", short: "Perps open/close", obs: 415, pass: 92.8, fail: 7.2, thr: 15400, overMean: 18.0, overMode: 1.3, overMed: 10.9 },
+  { name: "Swap ETH→LINK", short: "Swap ETH→LINK", obs: 710, pass: 93.4, fail: 6.6, thr: 2750, overMean: 19.8, overMode: 1.1, overMed: 14.6 },
+  { name: "Predict Deposit", short: "Predict Deposit", obs: 626, pass: 93.6, fail: 6.4, thr: 6600, overMean: 37.6, overMode: 8.8, overMed: 33.5 },
+  { name: "Cold Start → Login", short: "Cold Start → Login", obs: 715, pass: 94.1, fail: 5.9, thr: 4950, overMean: 39.3, overMode: 106.5, overMed: 20.9 },
+  { name: "Warm Start → Login", short: "Warm Start → Login", obs: 607, pass: 95.7, fail: 4.3, thr: 3300, overMean: 383.8, overMode: 27.5, overMed: 433.5 },
+  { name: "Warm Start: Login → Wallet", short: "Warm Start: Login→Wallet", obs: 630, pass: 96.3, fail: 3.7, thr: 2750, overMean: 15.9, overMode: 4.9, overMed: 9.4 },
+  { name: "Predict Market Details", short: "Predict Market Details", obs: 701, pass: 96.4, fail: 3.6, thr: 4400, overMean: 30.0, overMode: 2.3, overMed: 32.0 },
+  { name: "Cold Start → Onboarding", short: "Cold Start → Onboarding", obs: 715, pass: 98.7, fail: 1.3, thr: 4400, overMean: 29.4, overMode: 30.2, overMed: 5.5 },
+  { name: "Aggregated Balance Loading", short: "Aggregated Balance", obs: 706, pass: 99.4, fail: 0.6, thr: 22000, overMean: 59.6, overMode: 139.2, overMed: 44.6 },
+  { name: "Asset View", short: "Asset View", obs: 709, pass: 99.7, fail: 0.3, thr: 7150, overMean: 4.1, overMode: 7.1, overMed: 4.1 },
+  { name: "Predict Available Balance", short: "Predict Available Balance", obs: 716, pass: 100.0, fail: 0.0, thr: 5500, overMean: null, overMode: null, overMed: null },
+];
+
+const slides = [...document.querySelectorAll('.slide')];
+const dots = document.getElementById('dots');
+let idx = 0;
+
+slides.forEach((_, i) => {
+  const b = document.createElement('button');
+  b.className = 'dot' + (i === 0 ? ' active' : '');
+  b.type = 'button';
+  b.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+  b.addEventListener('click', () => go(i));
+  dots.appendChild(b);
+});
+
+function go(n) {
+  idx = (n + slides.length) % slides.length;
+  slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+  [...dots.children].forEach((d, i) => d.classList.toggle('active', i === idx));
+  // retrigger bar animation when entering fail slide
+  if (slides[idx].dataset.title === 'Fail rates') {
+    requestAnimationFrame(() => {
+      document.querySelectorAll('#failBars .fill').forEach(el => {
+        el.style.width = '0';
+        void el.offsetWidth;
+        el.style.width = el.style.getPropertyValue('--w') || el.dataset.w;
+      });
+    });
+  }
+}
+
+document.getElementById('prev').onclick = () => go(idx - 1);
+document.getElementById('next').onclick = () => go(idx + 1);
+
+window.addEventListener('keydown', (e) => {
+  if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); go(idx + 1); }
+  if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); go(idx - 1); }
+  if (e.key === 'Home') go(0);
+  if (e.key === 'End') go(slides.length - 1);
+});
+
+// Fail bars
+const bars = document.getElementById('failBars');
+scenarios.forEach(s => {
+  const row = document.createElement('div');
+  row.className = 'bar-row';
+  const bad = s.fail >= 15;
+  row.innerHTML = `
+    <div class="name" title="${s.name}">${s.short}</div>
+    <div class="track"><div class="fill ${bad ? '' : 'ok'}" style="--w:${Math.max(s.fail, 0.8)}%"></div></div>
+    <div class="pct ${bad ? 'bad' : 'good'}">${s.fail.toFixed(1)}%</div>
+  `;
+  bars.appendChild(row);
+});
+
+// Full table
+const tbody = document.getElementById('fullTable');
+scenarios.forEach(s => {
+  const tr = document.createElement('tr');
+  const fmt = v => v == null ? '—' : v;
+  tr.innerHTML = `
+    <td>${s.name}</td>
+    <td class="num">${s.obs}</td>
+    <td class="num pass-cell">${s.pass}%</td>
+    <td class="num fail-cell">${s.fail}%</td>
+    <td class="num">${s.thr}</td>
+    <td class="num">${fmt(s.overMean)}</td>
+    <td class="num">${fmt(s.overMode)}</td>
+    <td class="num">${fmt(s.overMed)}</td>
+  `;
+  tbody.appendChild(tr);
+});
+</script>
+</body>
+</html>
