@@ -1,18 +1,16 @@
 import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Button,
-  ButtonIcon,
-  ButtonIconSize,
   ButtonVariant,
   ButtonSize,
   Text,
   TextVariant,
-  IconName as IconNameComponent,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
@@ -33,6 +31,7 @@ const ImmersveKYCModal: React.FC = () => {
   const { url, redirectUrl } = useParams<ImmersveKYCModalParams>();
   const navigation = useNavigation();
   const tw = useTailwind();
+  const insets = useSafeAreaInsets();
   const [status, setStatus] = useState<WebViewStatus>('loading');
   const [retryKey, setRetryKey] = useState(0);
 
@@ -62,19 +61,18 @@ const ImmersveKYCModal: React.FC = () => {
   );
 
   return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-default')}
-      edges={['top', 'bottom']}
+    <View
+      style={[
+        tw.style('flex-1 bg-default'),
+        { paddingTop: insets.top, paddingBottom: insets.bottom },
+      ]}
+      testID="immersve-kyc-container"
     >
-      <View style={tw.style('flex-row items-center h-11')}>
-        <ButtonIcon
-          size={ButtonIconSize.Md}
-          iconName={IconNameComponent.ArrowLeft}
-          onPress={handleClose}
-          style={tw.style('mx-4')}
-          testID="immersve-kyc-back-button"
-        />
-      </View>
+      <HeaderStandard
+        onBack={handleClose}
+        backButtonProps={{ testID: 'immersve-kyc-back-button' }}
+        twClassName="bg-background-default"
+      />
       {status === 'error' ? (
         <View
           style={tw.style('flex-1 justify-center items-center p-6 gap-4')}
@@ -124,7 +122,7 @@ const ImmersveKYCModal: React.FC = () => {
           )}
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

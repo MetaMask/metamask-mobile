@@ -42,21 +42,27 @@ jest.mock('@metamask/design-system-react-native', () => {
         { onPress, testID },
         children,
       ),
-    ButtonIcon: ({
-      onPress,
-      testID,
+    HeaderStandard: ({
+      onBack,
+      backButtonProps,
     }: {
-      onPress?: () => void;
-      testID?: string;
+      onBack?: () => void;
+      backButtonProps?: { testID?: string };
     }) =>
-      ActualReact.createElement(TouchableOpacity, { onPress, testID }, 'Back'),
+      ActualReact.createElement(
+        TouchableOpacity,
+        { onPress: onBack, testID: backButtonProps?.testID },
+        'Back',
+      ),
     ButtonVariant: { Primary: 'Primary' },
     ButtonSize: { Md: 'Md' },
-    ButtonIconSize: { Md: 'Md' },
     TextVariant: { BodyMd: 'BodyMd' },
-    IconName: { ArrowLeft: 'ArrowLeft' },
   };
 });
+
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
+}));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
