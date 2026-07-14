@@ -1,6 +1,12 @@
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
-import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+  TraceContext,
+} from '../../util/trace';
 import { whenEngineReady } from '../../util/analytics/whenEngineReady';
 import { isE2EMockOAuth } from '../../util/environment';
 
@@ -255,11 +261,15 @@ export class OAuthService {
   #handleOAuthLoginProductionPath = async (
     loginHandler: BaseLoginHandler,
     web3AuthNetwork: Web3AuthNetwork,
+    parentTraceContext?: TraceContext,
   ): Promise<HandleOAuthLoginResult> => {
     try {
       let data: AuthResponse, handleCodeFlowResult: HandleOAuthLoginResult;
 
-      const result = await this.#executeProviderLogin(loginHandler);
+      const result = await this.#executeProviderLogin(
+        loginHandler,
+        parentTraceContext,
+      );
       const authConnection = loginHandler.authConnection;
 
       Logger.log('handleOAuthLogin: before getAuthToken');
@@ -270,6 +280,7 @@ export class OAuthService {
           trace({
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
             op: TraceOperation.OnboardingSecurityOp,
+            parentContext: parentTraceContext,
           });
           data = await loginHandler.getAuthTokens(
             { ...result, web3AuthNetwork },
@@ -287,6 +298,7 @@ export class OAuthService {
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokensError,
             op: TraceOperation.OnboardingError,
             tags: { errorMessage },
+            parentContext: parentTraceContext,
           });
           endTrace({
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokensError,
@@ -319,6 +331,7 @@ export class OAuthService {
           trace({
             name: TraceName.OnboardingOAuthSeedlessAuthenticate,
             op: TraceOperation.OnboardingSecurityOp,
+            parentContext: parentTraceContext,
           });
           handleCodeFlowResult = await this.handleSeedlessAuthenticate(
             data,
@@ -334,6 +347,7 @@ export class OAuthService {
             name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
             op: TraceOperation.OnboardingError,
             tags: { errorMessage },
+            parentContext: parentTraceContext,
           });
           endTrace({
             name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
@@ -411,6 +425,7 @@ export class OAuthService {
 
   #executeProviderLogin = async (
     loginHandler: BaseLoginHandler,
+    parentTraceContext?: TraceContext,
   ): Promise<LoginHandlerResult> => {
     let providerLoginSuccess = false;
     const providerLoginStartedAt = Date.now();
@@ -418,6 +433,7 @@ export class OAuthService {
       trace({
         name: TraceName.OnboardingOAuthProviderLogin,
         op: TraceOperation.OnboardingSecurityOp,
+        parentContext: parentTraceContext,
       });
       const loginResult = await loginHandler.login();
       if (!loginResult) {
@@ -443,6 +459,7 @@ export class OAuthService {
           name: TraceName.OnboardingOAuthProviderLoginError,
           op: TraceOperation.OnboardingError,
           tags: { errorMessage },
+          parentContext: parentTraceContext,
         });
         endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
       }
@@ -482,6 +499,11 @@ export class OAuthService {
   handleOAuthLogin = async (
     loginHandler: BaseLoginHandler,
     userClickedRehydration: boolean,
+    // Optional onboarding trace context supplied by the UI. When present, the
+    // provider-login / get-auth-tokens / seedless-authenticate spans nest under
+    // it (the social-login attempt) instead of surfacing as disconnected root
+    // transactions in Sentry. Omitted by callers outside onboarding.
+    parentTraceContext?: TraceContext,
   ): Promise<HandleOAuthLoginResult> => {
     const web3AuthNetwork = this.config.web3AuthNetwork;
 
@@ -501,6 +523,7 @@ export class OAuthService {
     return await this.#handleOAuthLoginProductionPath(
       loginHandler,
       web3AuthNetwork,
+      parentTraceContext,
     );
   };
 

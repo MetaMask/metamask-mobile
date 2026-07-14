@@ -241,6 +241,42 @@ describe('Trace', () => {
       expect(setMeasurementMock).toHaveBeenCalledTimes(1);
       expect(setMeasurementMock).toHaveBeenCalledWith('tag3', 123, 'none');
     });
+
+    it('falls back to Date.now when performance.timeOrigin is broken (RN Android)', () => {
+      updateCachedConsent(true);
+      const dateNowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(1_784_058_945_744);
+      const originalTimeOrigin = performance.timeOrigin;
+      const originalNow = performance.now;
+      Object.defineProperty(performance, 'timeOrigin', {
+        configurable: true,
+        value: 0,
+      });
+      performance.now = jest.fn(() => 20_863_969.339);
+
+      try {
+        trace({
+          id: ID_MOCK,
+          name: NAME_MOCK,
+        });
+
+        expect(startSpanManualMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            startTime: 1_784_058_945_744,
+          }),
+          expect.any(Function),
+        );
+      } finally {
+        Object.defineProperty(performance, 'timeOrigin', {
+          configurable: true,
+          value: originalTimeOrigin,
+        });
+        performance.now = originalNow;
+        dateNowSpy.mockRestore();
+        endTrace({ name: NAME_MOCK, id: ID_MOCK });
+      }
+    });
   });
 
   describe('endTrace', () => {

@@ -797,7 +797,11 @@ function startTrace(request: TraceRequest): TraceContext {
     return span;
   };
 
-  return startSpan(request, (spanOptions) =>
+  // Pass the resolved epoch-ms startTime so start/end share one clock. Omitting
+  // it lets Sentry pick wall-clock start while endTrace still passes our
+  // performance-based stamp — when timeOrigin is broken that pair is invalid
+  // and Sentry silently drops the transaction.
+  return startSpan({ ...request, startTime }, (spanOptions) =>
     startSpanManual(spanOptions, callback),
   );
 }
@@ -869,8 +873,23 @@ function initSpan(_span: Span, request: TraceRequest) {
   }
 }
 
+/**
+ * Absolute timestamp in milliseconds since the Unix epoch.
+ *
+ * Used as Sentry `startTime` / `span.end(timestamp)`. The SDK converts values
+ * `> 9999999999` from ms → seconds; smaller values are treated as seconds as-is.
+ * On some React Native Android builds `performance.timeOrigin` is `0`, so
+ * `timeOrigin + now` is only a few million (uptime ms) and gets misread as
+ * "seconds since 1970" — Sentry then silently drops the transaction. Fall back
+ * to `Date.now()` whenever the performance clock is not a plausible epoch ms.
+ */
 function getPerformanceTimestamp(): number {
-  return performance.timeOrigin + performance.now();
+  const performanceMs = performance.timeOrigin + performance.now();
+  // Any real epoch-ms timestamp for MetaMask is well above 1e11 (≈ 1973).
+  if (!Number.isFinite(performanceMs) || performanceMs < 1e11) {
+    return Date.now();
+  }
+  return performanceMs;
 }
 
 function tryCatchMaybePromise<T>(

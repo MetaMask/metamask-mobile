@@ -599,6 +599,14 @@ export function setEASUpdateContext(): void {
   }
 }
 
+/**
+ * Whether the current Sentry client is initialized with outbound reporting enabled.
+ * Used to avoid calling Sentry.init again mid-flow (which orphans in-flight transactions).
+ */
+export function isSentryEnabled(): boolean {
+  return Boolean(Sentry.getClient()?.getOptions()?.enabled);
+}
+
 // Setup sentry remote error reporting
 export async function setupSentry(
   forceEnabled: boolean = false,

@@ -74,6 +74,7 @@ import {
   trace,
   hasMetricsConsent,
   discardBufferedTraces,
+  updateCachedConsent,
 } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
@@ -95,7 +96,7 @@ import {
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { setupSentry } from '../../../util/sentry/utils';
+import { isSentryEnabled, setupSentry } from '../../../util/sentry/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
@@ -677,6 +678,8 @@ const Onboarding = () => {
               const result = await OAuthLoginService.handleOAuthLogin(
                 fallbackHandler,
                 !createWallet,
+                // Nest the retry's auth spans under the still-open social-login attempt.
+                socialLoginTraceCtx.current,
               );
               handlePostSocialLogin(
                 result as OAuthLoginResult,
@@ -832,10 +835,26 @@ const Onboarding = () => {
       // Continue with the social login flow
       navigation.navigate('Onboarding');
 
-      // Enable metrics for OAuth users
+      // Enable metrics for OAuth users. Social login opts in before any real Sentry
+      // onboarding spans can be created. Order matters:
+      // 1) persist controller opt-in
+      // 2) update the sync consent cache so trace() is not buffered
+      // 3) re-init Sentry ONLY when it isn't already enabled — calling Sentry.init
+      //    again mid-journey overwrites the client and orphans in-flight
+      //    OnboardingJourneyOverall transactions (they finish in logs but never land).
+      //    In __DEV__, index.js already force-enabled via setupSentry(__DEV__).
+      // 4) drop pre-consent buffered starts; mount journey was undefined and must be
+      //    recreated below after consent is live. If we had to re-init, also drop any
+      //    journey context created under the previous client.
       await metrics.enable(true);
+      updateCachedConsent(true);
+      const sentryWasAlreadyEnabled = isSentryEnabled();
+      if (!sentryWasAlreadyEnabled) {
+        await setupSentry(true);
+        // Spans started under the previous (disabled/rebuilt) client are invalid.
+        onboardingTraceCtx.current = undefined;
+      }
       discardBufferedTraces();
-      await setupSentry();
 
       const accountType = getSocialAccountType(provider, !createWallet);
       metrics.trackEvent(
@@ -850,13 +869,12 @@ const Onboarding = () => {
       );
 
       // The mount effect (below) already started an OnboardingJourneyOverall span. If metrics
-      // opt-in consent was already granted at mount, that span is a REAL span in tracesByKey and
-      // the user is actively continuing their journey — reuse it rather than ending it, which
-      // would record a continuing journey as abandoned and inflate abandonment metrics.
-      // If consent was still buffered at mount, trace() returned undefined and the buffered entry
-      // was just discarded above, so start a real journey span now. Duplicate keys are handled
-      // centrally in startTrace (the previous span is finished with a capped, neutral timestamp),
-      // so even an unexpected collision cannot orphan a cleanup timer.
+      // opt-in consent was already granted at mount (or __DEV__ force-enabled Sentry), that
+      // span is a REAL span in tracesByKey and the user is actively continuing their journey
+      // — reuse it rather than ending it, which would record a continuing journey as abandoned
+      // and inflate abandonment metrics.
+      // If consent was still buffered at mount, or we re-inited Sentry above, start a real
+      // journey span now. Duplicate keys are handled centrally in startTrace.
       if (!onboardingTraceCtx.current) {
         onboardingTraceCtx.current = trace({
           name: TraceName.OnboardingJourneyOverall,
@@ -948,6 +966,9 @@ const Onboarding = () => {
             const result = await OAuthLoginService.handleOAuthLogin(
               loginHandler,
               !createWallet,
+              // Nest provider-login / get-auth-tokens / seedless-authenticate spans under
+              // the social-login attempt so backend + web3auth time shows in the journey.
+              socialLoginTraceCtx.current,
             );
             handlePostSocialLogin(
               result as OAuthLoginResult,

@@ -81,7 +81,14 @@ import { AccountType } from '../../../constants/onboarding';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ATTRIBUTION_DEFAULT_TTL_MS } from '../../../core/redux/slices/attribution';
-import { endTrace, trace, TraceName } from '../../../util/trace';
+import {
+  discardBufferedTraces,
+  endTrace,
+  trace,
+  TraceName,
+  updateCachedConsent,
+} from '../../../util/trace';
+import { isSentryEnabled, setupSentry } from '../../../util/sentry/utils';
 
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');
@@ -232,6 +239,14 @@ jest.mock('../../../util/trace', () => ({
     .fn()
     .mockReturnValue({ _buffered: true, _name: 'test', _id: 'test' }),
   endTrace: jest.fn(),
+  updateCachedConsent: jest.fn(),
+  discardBufferedTraces: jest.fn(),
+}));
+
+jest.mock('../../../util/sentry/utils', () => ({
+  ...jest.requireActual('../../../util/sentry/utils'),
+  isSentryEnabled: jest.fn().mockReturnValue(false),
+  setupSentry: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockCreateEventBuilder = jest.fn().mockReturnValue({
@@ -967,6 +982,8 @@ describe('Onboarding', () => {
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
         false,
+        // Social-login attempt trace context forwarded so auth spans nest under it.
+        expect.anything(),
       );
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
@@ -1023,6 +1040,7 @@ describe('Onboarding', () => {
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
         false,
+        expect.anything(),
       );
       // On Android, should navigate directly to ChoosePassword, not SocialLoginSuccessNewUser
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -1082,6 +1100,7 @@ describe('Onboarding', () => {
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockAppleHandler',
         false,
+        expect.anything(),
       );
       // On iOS with Apple login, should navigate to SocialLoginSuccessNewUser
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -1425,6 +1444,7 @@ describe('Onboarding', () => {
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockAppleHandler',
         true,
+        expect.anything(),
       );
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
@@ -1614,6 +1634,7 @@ describe('Onboarding', () => {
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
         false,
+        expect.anything(),
       );
     });
 
@@ -1697,6 +1718,7 @@ describe('Onboarding', () => {
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
         true,
+        expect.anything(),
       );
     });
 
@@ -3460,6 +3482,7 @@ describe('Onboarding', () => {
       (Device.isIos as jest.Mock).mockReturnValue(false);
       (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(1);
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      (isSentryEnabled as jest.Mock).mockReturnValue(false);
 
       appStateHandlers = [];
       appStateRemoveMocks = [];
@@ -3485,6 +3508,9 @@ describe('Onboarding', () => {
     });
 
     it('reuses the mount journey span for social login instead of ending it as abandoned', async () => {
+      // Mirror __DEV__: Sentry is already force-enabled, so we must not re-init
+      // mid-flow (that would orphan the in-flight mount journey span).
+      (isSentryEnabled as jest.Mock).mockReturnValue(true);
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
         existingUser: false,
@@ -3538,6 +3564,60 @@ describe('Onboarding', () => {
           name: TraceName.OnboardingJourneyOverall,
         }),
       );
+    });
+
+    it('force-enables Sentry when disabled and syncs consent before recreating social-login journey spans', async () => {
+      (isSentryEnabled as jest.Mock).mockReturnValue(false);
+      mockTrace.mockReturnValueOnce(undefined);
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        await googleLogin(true);
+      });
+
+      await waitFor(() => {
+        expect(mockAnalytics.optIn).toHaveBeenCalled();
+      });
+      expect(updateCachedConsent).toHaveBeenCalledWith(true);
+      expect(setupSentry).toHaveBeenCalledWith(true);
+      expect(discardBufferedTraces).toHaveBeenCalled();
+
+      const updateConsentOrder = (updateCachedConsent as jest.Mock).mock
+        .invocationCallOrder[0];
+      const setupSentryOrder = (setupSentry as jest.Mock).mock
+        .invocationCallOrder[0];
+      const discardOrder = (discardBufferedTraces as jest.Mock).mock
+        .invocationCallOrder[0];
+      expect(updateConsentOrder).toBeLessThan(setupSentryOrder);
+      expect(setupSentryOrder).toBeLessThan(discardOrder);
+    });
+
+    it('does not re-init Sentry mid social-login when it is already enabled', async () => {
+      (isSentryEnabled as jest.Mock).mockReturnValue(true);
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        await googleLogin(true);
+      });
+
+      await waitFor(() => {
+        expect(mockAnalytics.optIn).toHaveBeenCalled();
+      });
+      expect(updateCachedConsent).toHaveBeenCalledWith(true);
+      expect(setupSentry).not.toHaveBeenCalled();
+      expect(discardBufferedTraces).toHaveBeenCalled();
     });
 
     it('does not end the social login attempt as abandoned when OAuth succeeds before the grace period', async () => {
