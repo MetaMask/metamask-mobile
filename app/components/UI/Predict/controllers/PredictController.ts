@@ -75,6 +75,7 @@ import {
   ActiveOrderState,
   ClaimParams,
   ConnectionStatus,
+  ConnectionStatusCallback,
   CryptoPriceHistoryPoint,
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
@@ -429,6 +430,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'searchMarkets',
   'selectPaymentToken',
   'setSelectedPaymentToken',
+  'subscribeToConnectionStatus',
   'subscribeToCryptoPrices',
   'subscribeToGameUpdates',
   'subscribeToMarketPrices',
@@ -2597,6 +2599,24 @@ export class PredictController extends BaseController<
    *
    * @returns Connection status for sports, market, and RTDS data WebSocket channels
    */
+  /**
+   * Subscribes to WebSocket connection-status changes for live data feeds.
+   * The callback fires immediately with the current status and thereafter only
+   * on real transitions, replacing per-subscriber polling.
+   *
+   * @param callback - Function invoked with the current {@link ConnectionStatus}.
+   * @returns Unsubscribe function to clean up the subscription.
+   */
+  public subscribeToConnectionStatus(
+    callback: ConnectionStatusCallback,
+  ): () => void {
+    const provider = this.provider;
+    if (!provider?.subscribeToConnectionStatus) {
+      return () => undefined;
+    }
+    return provider.subscribeToConnectionStatus(callback);
+  }
+
   public getConnectionStatus(): ConnectionStatus {
     const provider = this.provider;
     if (!provider?.getConnectionStatus) {

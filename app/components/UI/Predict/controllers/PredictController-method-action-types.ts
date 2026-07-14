@@ -292,6 +292,17 @@ export type PredictControllerGetConnectionStatusAction = {
   handler: PredictController['getConnectionStatus'];
 };
 
+/**
+ * Subscribes to WebSocket connection-status changes for live data feeds.
+ *
+ * @param callback - Function invoked with the current connection status.
+ * @returns Unsubscribe function to clean up the subscription.
+ */
+export type PredictControllerSubscribeToConnectionStatusAction = {
+  type: `PredictController:subscribeToConnectionStatus`;
+  handler: PredictController['subscribeToConnectionStatus'];
+};
+
 export type PredictControllerClearOrderErrorAction = {
   type: `PredictController:clearOrderError`;
   handler: PredictController['clearOrderError'];
@@ -428,6 +439,7 @@ export type PredictControllerMethodActions =
   | PredictControllerSubscribeToOrderbookAction
   | PredictControllerSubscribeToCryptoPricesAction
   | PredictControllerGetConnectionStatusAction
+  | PredictControllerSubscribeToConnectionStatusAction
   | PredictControllerClearOrderErrorAction
   | PredictControllerOnPlaceOrderSuccessAction
   | PredictControllerClearActiveOrderTransactionIdAction
