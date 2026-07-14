@@ -46,6 +46,7 @@ export const useImmersveOnboardingRouter = () => {
         case 'expected_spend':
           navigation.navigate(Routes.CARD.ONBOARDING.KYC_PROCESSING, {
             countryKey,
+            kycUrl: action.type === 'kyc' ? action.url : undefined,
           });
           break;
         case 'funding':

@@ -22,6 +22,20 @@ export interface ImmersveKYCModalParams {
 
 type WebViewStatus = 'loading' | 'loaded' | 'error';
 
+// Simple callback registry so the opener (ImmersveKYCProcessing) learns when the
+// webview closes. Needed because this modal is a transparentModal that keeps the
+// presenting screen mounted without blurring it, so useFocusEffect never re-fires
+// on close — mirrors RegionSelectorModal's setOnValueChange pattern.
+let onCloseCallback: (() => void) | null = null;
+
+export const setImmersveKycOnClose = (callback: () => void) => {
+  onCloseCallback = callback;
+};
+
+export const clearImmersveKycOnClose = () => {
+  onCloseCallback = null;
+};
+
 /**
  * Hosted Immersve-conducted KYC webview. Completion is detected by watching for navigation to `redirectUrl`
  * — the URL Immersve sends the user to on exit — after which the modal closes
@@ -35,7 +49,10 @@ const ImmersveKYCModal: React.FC = () => {
   const [status, setStatus] = useState<WebViewStatus>('loading');
   const [retryKey, setRetryKey] = useState(0);
 
-  const handleClose = useCallback(() => {
+  // Any close (header back, or the Immersve page's X → redirect) re-polls the
+  // opener so it can route forward (completed) or prompt to reopen (bailed).
+  const closeModal = useCallback(() => {
+    onCloseCallback?.();
     navigation.goBack();
   }, [navigation]);
 
@@ -54,10 +71,10 @@ const ImmersveKYCModal: React.FC = () => {
   const handleNavigationStateChange = useCallback(
     (navState: WebViewNavigation) => {
       if (redirectUrl && navState.url.startsWith(redirectUrl)) {
-        navigation.goBack();
+        closeModal();
       }
     },
-    [redirectUrl, navigation],
+    [redirectUrl, closeModal],
   );
 
   return (
@@ -69,7 +86,7 @@ const ImmersveKYCModal: React.FC = () => {
       testID="immersve-kyc-container"
     >
       <HeaderStandard
-        onBack={handleClose}
+        onBack={closeModal}
         backButtonProps={{ testID: 'immersve-kyc-back-button' }}
         twClassName="bg-background-default"
       />

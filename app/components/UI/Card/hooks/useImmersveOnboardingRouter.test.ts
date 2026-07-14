@@ -64,10 +64,22 @@ describe('useImmersveOnboardingRouter', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CARD.ONBOARDING.KYC_PROCESSING,
-        { countryKey: 'GB' },
+        { countryKey: 'GB', kycUrl: undefined },
       );
     },
   );
+
+  it('forwards the kyc url to KYC_PROCESSING so it can skip the first poll', () => {
+    getRoute()(
+      { type: 'kyc', url: 'https://verify.immersve.com/abc' },
+      { countryKey: 'GB' },
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CARD.ONBOARDING.KYC_PROCESSING,
+      { countryKey: 'GB', kycUrl: 'https://verify.immersve.com/abc' },
+    );
+  });
 
   it('routes funding to SpendingLimit onboarding flow', () => {
     getRoute()({

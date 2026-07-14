@@ -957,7 +957,9 @@ export type RootStackParamList = {
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
   CardOnboardingKYCPending: undefined;
-  CardOnboardingKYCProcessing: { countryKey?: string } | undefined;
+  CardOnboardingKYCProcessing:
+    | { countryKey?: string; kycUrl?: string }
+    | undefined;
   CardModals: NestedNavigationParams | undefined;
   CardAddFundsModal: undefined;
   CardAssetSelectionModal: undefined;

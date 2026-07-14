@@ -1,7 +1,14 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -12,6 +19,10 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens } from '../../util/metrics';
 import { KYC_REDIRECT_URL } from '../../constants';
+import {
+  setImmersveKycOnClose,
+  clearImmersveKycOnClose,
+} from '../ImmersveKYCModal/ImmersveKYCModal';
 import OnboardingStep from './OnboardingStep';
 import AnimatedSpinner from '../../../AnimatedSpinner';
 
@@ -33,17 +44,32 @@ const POLLING_TIMEOUT_MS = 30000;
  */
 const ImmersveKYCProcessing = () => {
   const navigation = useNavigation();
-  const { countryKey } = useParams<{ countryKey?: string }>();
+  const { countryKey, kycUrl } = useParams<{
+    countryKey?: string;
+    kycUrl?: string;
+  }>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const fundingSourceId = useSelector(selectImmersveFundingSourceId);
   const route = useImmersveOnboardingRouter();
   const hasOpenedWebview = useRef(false);
 
-  const { nextAction, error, refresh } = useImmersveSpendingPrerequisites({
-    fundingSourceId: fundingSourceId ?? undefined,
-    kycRegion: countryKey,
-    kycRedirectUrl: KYC_REDIRECT_URL,
-  });
+  const openKycWebview = useCallback(
+    (url: string) => {
+      hasOpenedWebview.current = true;
+      navigation.navigate(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.IMMERSVE_KYC,
+        params: { url, redirectUrl: KYC_REDIRECT_URL },
+      });
+    },
+    [navigation],
+  );
+
+  const { nextAction, error, isLoading, refresh } =
+    useImmersveSpendingPrerequisites({
+      fundingSourceId: fundingSourceId ?? undefined,
+      kycRegion: countryKey,
+      kycRedirectUrl: KYC_REDIRECT_URL,
+    });
 
   useEffect(() => {
     trackEvent(
@@ -53,12 +79,29 @@ const ImmersveKYCProcessing = () => {
     );
   }, [trackEvent, createEventBuilder]);
 
-  // Re-poll on entry and whenever the webview modal is dismissed back to here.
-  useFocusEffect(
-    useCallback(() => {
+  // Initial poll (needed for the resume/no-url entry).
+  useEffect(() => {
+    refresh().catch(() => undefined);
+  }, [refresh]);
+
+  // Entry shortcut: SignUp already derived the KYC url, so open the webview
+  // immediately instead of re-polling and flashing the spinner first.
+  useEffect(() => {
+    if (kycUrl && !hasOpenedWebview.current) {
+      openKycWebview(kycUrl);
+    }
+  }, [kycUrl, openKycWebview]);
+
+  // Re-poll when the webview closes. The transparentModal keeps this screen
+  // mounted without blurring it, so useFocusEffect can't detect the close — the
+  // modal invokes this callback instead. The poll then decides: kyc still
+  // action-required ⇒ the user bailed (show a reopen prompt); otherwise route.
+  useEffect(() => {
+    setImmersveKycOnClose(() => {
       refresh().catch(() => undefined);
-    }, [refresh]),
-  );
+    });
+    return () => clearImmersveKycOnClose();
+  }, [refresh]);
 
   useEffect(() => {
     if (!nextAction) {
@@ -66,23 +109,16 @@ const ImmersveKYCProcessing = () => {
     }
     const { type } = nextAction;
     if (type === 'kyc') {
-      // Open the hosted KYC webview once; re-poll (not re-open) drives the rest.
+      // Auto-open the webview the first time only; after the user has been there
+      // once, a re-poll that still returns kyc means they closed it without
+      // finishing → the reopen prompt (below) takes over instead of re-opening.
       if (!hasOpenedWebview.current) {
-        hasOpenedWebview.current = true;
-        navigation.navigate(Routes.CARD.MODALS.ID, {
-          screen: Routes.CARD.MODALS.IMMERSVE_KYC,
-          params: { url: nextAction.url ?? '', redirectUrl: KYC_REDIRECT_URL },
-        });
+        openKycWebview(nextAction.url ?? '');
       }
     } else if (type === 'funding' || type === 'active' || type === 'rejected') {
-      // Terminal transitions (funding → SpendingLimit, active → toast + Home,
-      // rejected → KYC_FAILED) share the onboarding router with SignUp.
       route(nextAction, { countryKey });
     }
-    // 'pending' keeps polling (see the timeout effect). 'contact'/'expected_spend'
-    // shouldn't occur here (contact pre-supplied upstream, expected-spend collected
-    // in-webview) — left on the spinner if they do.
-  }, [nextAction, navigation, route, countryKey]);
+  }, [nextAction, navigation, route, countryKey, openKycWebview]);
 
   // 30s cutoff only while background checks are pending (not during the webview).
   useEffect(() => {
@@ -98,6 +134,13 @@ const ImmersveKYCProcessing = () => {
     return () => clearTimeout(id);
   }, [nextAction?.type, navigation]);
 
+  // User came back from the webview with KYC still outstanding ⇒ prompt to reopen
+  // (never auto-reopen — they may have closed it deliberately). Gated on !isLoading
+  // so the in-flight re-poll after a *completed* KYC shows the spinner, not a flash
+  // of this prompt.
+  const isReopenPrompt =
+    !isLoading && nextAction?.type === 'kyc' && hasOpenedWebview.current;
+
   const renderFormFields = () => (
     <Box twClassName="flex flex-1 items-center justify-center">
       {error ? (
@@ -108,6 +151,20 @@ const ImmersveKYCProcessing = () => {
         >
           {error}
         </Text>
+      ) : isReopenPrompt ? (
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={() =>
+            openKycWebview((nextAction?.type === 'kyc' && nextAction.url) || '')
+          }
+          testID="immersve-kyc-processing-reopen-button"
+        >
+          {strings(
+            'card.card_onboarding.immersve_kyc_processing.continue_button',
+          )}
+        </Button>
       ) : (
         <>
           <AnimatedSpinner testID="immersve-kyc-processing-spinner" />
@@ -126,9 +183,15 @@ const ImmersveKYCProcessing = () => {
 
   return (
     <OnboardingStep
-      title={strings('card.card_onboarding.immersve_kyc_processing.title')}
+      title={strings(
+        isReopenPrompt
+          ? 'card.card_onboarding.immersve_kyc_processing.incomplete_title'
+          : 'card.card_onboarding.immersve_kyc_processing.title',
+      )}
       description={strings(
-        'card.card_onboarding.immersve_kyc_processing.description',
+        isReopenPrompt
+          ? 'card.card_onboarding.immersve_kyc_processing.incomplete_description'
+          : 'card.card_onboarding.immersve_kyc_processing.description',
       )}
       formFields={renderFormFields()}
       actions={null}

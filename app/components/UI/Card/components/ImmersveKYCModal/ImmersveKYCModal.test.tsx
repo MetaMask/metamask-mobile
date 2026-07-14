@@ -1,6 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import ImmersveKYCModal from './ImmersveKYCModal';
+import ImmersveKYCModal, {
+  setImmersveKycOnClose,
+  clearImmersveKycOnClose,
+} from './ImmersveKYCModal';
 
 const mockGoBack = jest.fn();
 
@@ -92,6 +95,7 @@ describe('ImmersveKYCModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     capturedProps = {};
+    clearImmersveKycOnClose();
   });
 
   it('renders the WebView with the Android camera flag enabled', () => {
@@ -119,6 +123,26 @@ describe('ImmersveKYCModal', () => {
   it('closes when the back button is pressed', () => {
     const { getByTestId } = render(<ImmersveKYCModal />);
     fireEvent.press(getByTestId('immersve-kyc-back-button'));
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('fires the registered onClose callback on redirect close', () => {
+    const onClose = jest.fn();
+    setImmersveKycOnClose(onClose);
+    render(<ImmersveKYCModal />);
+    capturedProps.onNavigationStateChange?.({
+      url: 'https://metamask.io/card/kyc-complete?status=done',
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('fires the registered onClose callback on back-button close', () => {
+    const onClose = jest.fn();
+    setImmersveKycOnClose(onClose);
+    const { getByTestId } = render(<ImmersveKYCModal />);
+    fireEvent.press(getByTestId('immersve-kyc-back-button'));
+    expect(onClose).toHaveBeenCalledTimes(1);
     expect(mockGoBack).toHaveBeenCalled();
   });
 });
