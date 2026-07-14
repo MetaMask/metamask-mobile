@@ -279,6 +279,66 @@ export function mapLocalTransaction(
         })
       : undefined;
   };
+
+  const getLendingDepositSourceToken = () => {
+    const suppliedTokenBalanceChange =
+      initialTransaction.simulationData?.tokenBalanceChanges?.find(
+        ({ isDecrease, standard }) => isDecrease && standard === 'erc20',
+      );
+
+    if (suppliedTokenBalanceChange) {
+      return getContractToken({
+        amount: BigInt(suppliedTokenBalanceChange.difference).toString(),
+        transaction: initialTransaction,
+        direction: 'out',
+        contractAddress: suppliedTokenBalanceChange.address,
+      });
+    }
+
+    const fromAddress = from.toLowerCase();
+    const poolAddress = to.toLowerCase();
+    const logs = initialTransaction.txReceipt?.logs ?? [];
+    const isUserOutgoingTransfer = (
+      eventTopic: string | undefined,
+      logFrom: string | undefined,
+    ): boolean => {
+      const senderAddress = logFrom
+        ? `0x${logFrom.slice(-40)}`.toLowerCase()
+        : undefined;
+      return (
+        eventTopic?.toLowerCase() === environment.tokenTransferLogTopicHash &&
+        senderAddress === fromAddress
+      );
+    };
+    const sentTokenLog =
+      logs.find(({ topics: [eventTopic, logFrom, logTo] = [] }) => {
+        const recipientAddress = logTo
+          ? `0x${logTo.slice(-40)}`.toLowerCase()
+          : undefined;
+        return (
+          isUserOutgoingTransfer(eventTopic, logFrom) &&
+          recipientAddress === poolAddress
+        );
+      }) ??
+      logs.find(({ topics: [eventTopic, logFrom] = [] }) =>
+        isUserOutgoingTransfer(eventTopic, logFrom),
+      );
+
+    if (sentTokenLog) {
+      return getContractToken({
+        amount: BigInt(String(sentTokenLog.data)).toString(),
+        transaction: initialTransaction,
+        direction: 'out',
+        contractAddress: sentTokenLog.address,
+      });
+    }
+
+    return getContractToken({
+      transaction: initialTransaction,
+      direction: 'out',
+      contractAddress: initialTransaction.txParams.to,
+    });
+  };
   const getDirectWrappedTokenActivity = (): ActivityListItem | undefined => {
     if (!methodId) {
       return undefined;
@@ -694,11 +754,7 @@ export function mapLocalTransaction(
         hash,
         raw: { type: 'localTransaction', data: transactionGroup },
         data: {
-          sourceToken: getContractToken({
-            transaction: initialTransaction,
-            direction: 'out',
-            contractAddress: initialTransaction.txParams.to,
-          }),
+          sourceToken: getLendingDepositSourceToken(),
           ...(fees ? { fees } : {}),
         },
       };
