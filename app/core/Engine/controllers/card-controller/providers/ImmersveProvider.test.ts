@@ -24,7 +24,7 @@ const FEATURE_FLAG: CardFeatureFlag = {
     network: 'base-sepolia',
     cardProgramId: 'program-1',
     partnerAccountId: 'partner-1',
-    fundingType: 'base-sepolia-usdc-universal-evm',
+    fundingChannelId: 'base-channel',
   },
   immersveCountries: ['GB'],
 };
@@ -257,20 +257,8 @@ describe('ImmersveProvider', () => {
   });
 
   describe('onboarding state machine', () => {
-    it('createFundingSource resolves the funding channel by fundingTypeName then posts', async () => {
+    it('createFundingSource posts with the flag fundingChannelId', async () => {
       const { provider, service } = createProvider();
-      service.get.mockResolvedValue({
-        items: [
-          {
-            id: 'arb-channel',
-            fundingTypeName: 'arbitrum-sepolia-usdc-universal-evm',
-          },
-          {
-            id: 'base-channel',
-            fundingTypeName: 'base-sepolia-usdc-universal-evm',
-          },
-        ],
-      });
       service.post.mockResolvedValue({
         id: 'fs-1',
         network: 'base-sepolia',
@@ -278,12 +266,8 @@ describe('ImmersveProvider', () => {
 
       const result = await provider.createFundingSource(TOKENS);
 
-      // Funding channels are listed under the partner account (from the flag)...
-      expect(service.get).toHaveBeenCalledWith(
-        '/api/accounts/partner-1/funding-channels',
-        TOKENS,
-      );
-      // ...but the funding source is still created for the cardholder.
+      // No funding-channels lookup — the concrete id comes straight from the flag.
+      expect(service.get).not.toHaveBeenCalled();
       expect(service.post).toHaveBeenCalledWith(
         '/api/funding-sources',
         {
@@ -296,31 +280,7 @@ describe('ImmersveProvider', () => {
       expect(result.id).toBe('fs-1');
     });
 
-    it('createFundingSource throws when partnerAccountId is unconfigured', async () => {
-      const { provider } = createProvider({
-        immersve: { fundingType: 'base-sepolia-usdc-universal-evm' },
-      });
-      await expect(provider.createFundingSource(TOKENS)).rejects.toBeInstanceOf(
-        CardProviderError,
-      );
-    });
-
-    it('createFundingSource throws when no channel matches the configured fundingType', async () => {
-      const { provider, service } = createProvider();
-      service.get.mockResolvedValue({
-        items: [
-          {
-            id: 'arb-channel',
-            fundingTypeName: 'arbitrum-sepolia-usdc-universal-evm',
-          },
-        ],
-      });
-      await expect(provider.createFundingSource(TOKENS)).rejects.toBeInstanceOf(
-        CardProviderError,
-      );
-    });
-
-    it('createFundingSource throws when fundingType is unconfigured', async () => {
+    it('createFundingSource throws when fundingChannelId is unconfigured', async () => {
       const { provider } = createProvider({ immersve: { cardProgramId: 'p' } });
       await expect(provider.createFundingSource(TOKENS)).rejects.toBeInstanceOf(
         CardProviderError,

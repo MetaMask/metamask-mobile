@@ -134,18 +134,6 @@ interface ImmersveFundingSourceResponse {
   network?: string;
 }
 
-interface ImmersveFundingChannel {
-  id: string;
-  fundingTypeName: string;
-  network?: string;
-  mode?: string;
-  storageAddress?: string;
-}
-
-interface ImmersveFundingChannelsResponse {
-  items: ImmersveFundingChannel[];
-}
-
 export class ImmersveProvider implements ICardProvider {
   readonly id = 'immersve' as const;
 
@@ -196,7 +184,7 @@ export class ImmersveProvider implements ICardProvider {
   }
 
   private requireProgramValue(
-    key: 'cardProgramId' | 'fundingType' | 'partnerAccountId',
+    key: 'cardProgramId' | 'fundingChannelId',
   ): string {
     const value = this.programConfig[key];
     if (!value) {
@@ -379,7 +367,7 @@ export class ImmersveProvider implements ICardProvider {
     }
 
     try {
-      const fundingChannelId = await this.#resolveFundingChannelId(tokens);
+      const fundingChannelId = this.requireProgramValue('fundingChannelId');
       const response = await this.service.post<ImmersveFundingSourceResponse>(
         '/api/funding-sources',
         {
@@ -398,25 +386,6 @@ export class ImmersveProvider implements ICardProvider {
     } catch (error) {
       throw mapApiError(error, 'createFundingSource');
     }
-  }
-
-  async #resolveFundingChannelId(tokens: CardAuthTokens): Promise<string> {
-    const fundingType = this.requireProgramValue('fundingType');
-    // Funding channels are defined on the partner account (fixed per program/env),
-    // not the individual cardholder — read it from the feature flag.
-    const partnerAccountId = this.requireProgramValue('partnerAccountId');
-    const { items } = await this.service.get<ImmersveFundingChannelsResponse>(
-      `/api/accounts/${partnerAccountId}/funding-channels`,
-      tokens,
-    );
-    const match = items?.find((c) => c.fundingTypeName === fundingType);
-    if (!match) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        `No Immersve funding channel for type ${fundingType}`,
-      );
-    }
-    return match.id;
   }
 
   async patchContactDetails(
