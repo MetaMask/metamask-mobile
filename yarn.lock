@@ -18311,7 +18311,7 @@ __metadata:
 
 "@tommasini/react-native-scrollable-tab-view@patch:@tommasini/react-native-scrollable-tab-view@npm%3A1.1.1#~/.yarn/patches/@tommasini-react-native-scrollable-tab-view-npm-1.1.1-153a9df479.patch":
   version: 1.1.1
-  resolution: "@tommasini/react-native-scrollable-tab-view@patch:@tommasini/react-native-scrollable-tab-view@npm%3A1.1.1#~/.yarn/patches/@tommasini-react-native-scrollable-tab-view-npm-1.1.1-153a9df479.patch::version=1.1.1&hash=851ebf"
+  resolution: "@tommasini/react-native-scrollable-tab-view@patch:@tommasini/react-native-scrollable-tab-view@npm%3A1.1.1#~/.yarn/patches/@tommasini-react-native-scrollable-tab-view-npm-1.1.1-153a9df479.patch::version=1.1.1&hash=bfcea5"
   dependencies:
     "@react-native-community/viewpager": "npm:3.3.0"
     create-react-class: "npm:^15.6.2"
@@ -18320,7 +18320,7 @@ __metadata:
     react-timer-mixin: "npm:^0.13.3"
   peerDependencies:
     react-native: ">=0.20.0"
-  checksum: 10/7ab44b78d8bcaa8b773cd0f02d0f5dc081dab4ad4104b06229d5e4105b954568a11509503d3c9f75497139ba34c2efbda9c3123ef29ec357e7a93b476fbb0e47
+  checksum: 10/a9d6652f5e95aba8b8d30a24ff1b997bdae34479e9ac66b818b9cb8fab994b773dc329d0d535e2771f6b1550df53cef9f2b169e7cdf02a209c76b6dcb167bd4e
   languageName: node
   linkType: hard
 
