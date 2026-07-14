@@ -1484,9 +1484,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               orderForm.direction,
             ),
             chartLibrary,
-            tradeAction: currentMarketPosition
-              ? 'increase_exposure'
-              : 'create_position',
             tradeWithToken: hasCustomTokenSelected,
             ...(hasCustomTokenSelected &&
               payToken && {
