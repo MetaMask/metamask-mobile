@@ -61,6 +61,6 @@ export async function fetchNotificationCategories(
   locale: string,
 ): Promise<NotificationCategoryMetadata[]> {
   return new Promise((resolve) =>
-    setTimeout(() => resolve(MOCK_NOTIFICATION_CATEGORIES), 5000),
+    setTimeout(() => resolve(MOCK_NOTIFICATION_CATEGORIES), 100),
   );
 }
