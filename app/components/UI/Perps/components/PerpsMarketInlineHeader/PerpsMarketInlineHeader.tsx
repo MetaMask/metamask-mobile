@@ -84,6 +84,9 @@ export const PerpsMarketInlineHeader = ({
             iconName={IconName.ArrowDown}
             size={ButtonIconSize.Sm}
             onPress={onMarketListPress}
+            // Keep the chevron visually small but expand the touch target to
+            // ~44dp so it stays reliably tappable (accessibility).
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             testID={PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON}
             accessibilityLabel={strings('perps.market_details.market_list')}
           />

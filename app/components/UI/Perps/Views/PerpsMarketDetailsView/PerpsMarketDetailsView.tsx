@@ -1470,20 +1470,25 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
+        gap={2}
         twClassName="px-4 pb-2"
         testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_SUMMARY}
       >
-        <LivePriceHeader
-          symbol={market.symbol}
-          testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
-          testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
-          currentPrice={syncedChartCurrentPrice}
-          size="large"
-        />
+        {/* Flexible wrapper lets the price shrink; the button stays fixed. */}
+        <Box twClassName="flex-1">
+          <LivePriceHeader
+            symbol={market.symbol}
+            testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
+            testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
+            currentPrice={syncedChartCurrentPrice}
+            size="large"
+          />
+        </Box>
         <ButtonIcon
           iconName={IconName.Expand}
           size={ButtonIconSize.Md}
           onPress={handleFullscreenChartOpen}
+          style={styles.marketSummaryFullscreenButton}
           testID={PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON}
           accessibilityLabel={strings('perps.market_details.fullscreen_chart')}
         />

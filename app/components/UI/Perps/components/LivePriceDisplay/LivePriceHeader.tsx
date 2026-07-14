@@ -36,6 +36,12 @@ const styleSheet = () =>
       flexDirection: 'row',
       alignItems: 'baseline',
       gap: 6,
+      // Allow the row to shrink within a constrained parent so long prices or
+      // larger system font sizes don't overflow adjacent content.
+      flexShrink: 1,
+    },
+    price: {
+      flexShrink: 1,
     },
   });
 
@@ -120,13 +126,21 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text variant={priceVariant} color={priceColor} testID={testIDPrice}>
+      <Text
+        variant={priceVariant}
+        color={priceColor}
+        style={styles.price}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+        testID={testIDPrice}
+      >
         {formattedPrice}
       </Text>
       <Text
         variant={changeVariant}
         fontWeight={changeFontWeight}
         color={changeColor}
+        numberOfLines={1}
         testID={testIDChange}
       >
         {formattedChange}

@@ -158,6 +158,24 @@ describe('PerpsMarketInlineHeader', () => {
       expect(onMarketListPress).toHaveBeenCalled();
     });
 
+    it('expands the market list button touch target with hitSlop', () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketInlineHeader
+          market={mockMarket}
+          useDetailLayout
+          onMarketListPress={jest.fn()}
+          testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+          currentPrice={45000}
+        />,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON).props
+          .hitSlop,
+      ).toEqual({ top: 10, bottom: 10, left: 10, right: 10 });
+    });
+
     it('does not render the market list button without a handler', () => {
       const { queryByTestId } = renderWithProvider(
         <PerpsMarketInlineHeader
