@@ -128,6 +128,16 @@ const PerpsClosePositionView: React.FC = () => {
   // State for limit price
   const [limitPrice, setLimitPrice] = useState('');
 
+  // Defensive gate: if the feature flag is disabled (or flips off mid-session)
+  // while a limit order is selected, fall back to a market close so the limit
+  // price row and confirm path can never submit a limit order behind the flag.
+  useEffect(() => {
+    if (!isClosePositionLimitOrderEnabled && orderType !== 'market') {
+      setOrderType('market');
+      setLimitPrice('');
+    }
+  }, [isClosePositionLimitOrderEnabled, orderType]);
+
   // Subscribe to real-time price with 1s debounce for position closing
   const priceData = usePerpsLivePrices({
     symbols: [position.symbol],
@@ -224,13 +234,10 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Calculate position value and effective margin
   // For limit orders, use limit price for display calculations
-  const positionValue = useMemo(() => {
-    const priceToUse =
-      orderType === 'limit' && limitPrice
-        ? parseFloat(limitPrice)
-        : currentPrice;
-    return absSize * priceToUse;
-  }, [absSize, orderType, limitPrice, currentPrice]);
+  const positionValue = useMemo(
+    () => absSize * effectivePrice,
+    [absSize, effectivePrice],
+  );
 
   // Calculate P&L based on effective price (limit price for limit orders)
   // Use ref for market price to prevent recalculation on every WebSocket update
@@ -242,12 +249,11 @@ const PerpsClosePositionView: React.FC = () => {
     if (orderType === 'market') {
       return pnl;
     }
-    const priceToUse = limitPrice ? parseFloat(limitPrice) : currentPrice;
     const priceDiff = isLong
-      ? priceToUse - entryPrice
-      : entryPrice - priceToUse;
+      ? effectivePrice - entryPrice
+      : entryPrice - effectivePrice;
     return priceDiff * absSize;
-  }, [entryPrice, absSize, isLong, orderType, limitPrice, currentPrice, pnl]); // Exclude effectivePrice from deps
+  }, [entryPrice, absSize, isLong, orderType, effectivePrice, pnl]);
 
   // Margin returned on close, adjusted for the price the order will settle at.
   // marginUsed embeds unrealized PnL at the current mark price, so for limit
