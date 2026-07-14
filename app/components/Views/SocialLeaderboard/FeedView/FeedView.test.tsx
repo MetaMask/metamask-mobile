@@ -10,7 +10,7 @@ import {
   getFeedTradeButtonTestId,
   getFeedTypeOptionTestId,
 } from './FeedView.testIds';
-import type { FeedItem, FeedSection } from './types';
+import type { FeedItem, FeedSection, FeedTypeFilter } from './types';
 import type { UseTraderFeedResult } from './hooks/useTraderFeed';
 
 const mockNavigate = jest.fn();
@@ -129,6 +129,17 @@ jest.mock('../TraderPositionView/components/QuickBuy', () => {
       },
     },
     TOP_TRADERS_QUICK_BUY_FEATURES: {},
+  };
+});
+
+let handleTypeFilterChange: ((value: FeedTypeFilter) => void) | undefined;
+
+jest.mock('./components/FeedTypeSheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const Actual = jest.requireActual('./components/FeedTypeSheet').default;
+  return (props: React.ComponentProps<typeof Actual>) => {
+    handleTypeFilterChange = props.onChange;
+    return ReactActual.createElement(Actual, props);
   };
 });
 
@@ -265,6 +276,25 @@ describe('FeedView', () => {
       {
         feed_type_filter: 'tokens',
         previous_feed_type_filter: 'all',
+      },
+    );
+  });
+
+  it('tracks chained type filter changes with the correct previous value', () => {
+    renderWithProvider(<FeedView />);
+
+    act(() => {
+      handleTypeFilterChange?.('tokens');
+      handleTypeFilterChange?.('perps');
+    });
+
+    expect(mockTrack).toHaveBeenCalledTimes(2);
+    expect(mockTrack).toHaveBeenNthCalledWith(
+      2,
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_TYPE_FILTER_CHANGED,
+      {
+        feed_type_filter: 'perps',
+        previous_feed_type_filter: 'tokens',
       },
     );
   });
