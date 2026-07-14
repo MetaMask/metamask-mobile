@@ -101,11 +101,18 @@ const QRScanner = ({
 
   const mountedRef = useRef<boolean>(true);
   const shouldReadBarCodeRef = useRef<boolean>(true);
+  const [isMounted, setIsMounted] = useState(true);
   const [isCameraActive, setIsCameraActive] = useState(true);
   const [addDeviceScannerUiState, setAddDeviceScannerUiState] =
     useState<AddDeviceScannerUiState>(AddDeviceScannerUiState.Searching);
 
   const isAddDeviceScanner = origin === Routes.ONBOARDING.ADD_DEVICE_TO_WALLET;
+
+  const setMounted = useCallback((mounted: boolean) => {
+    mountedRef.current = mounted;
+    setIsMounted(mounted);
+  }, []);
+  const markUnmounted = useCallback(() => setMounted(false), [setMounted]);
 
   const cameraDevice = useCameraDevice('back');
   const { hasPermission, permissionCheckCompleted } =
@@ -146,16 +153,16 @@ const QRScanner = ({
 
   useFocusEffect(
     useCallback(() => {
-      mountedRef.current = true;
+      setMounted(true);
       shouldReadBarCodeRef.current = true;
       setIsCameraActive(true);
 
       return () => {
-        mountedRef.current = false;
+        markUnmounted();
         shouldReadBarCodeRef.current = false;
         setIsCameraActive(false);
       };
-    }, []),
+    }, [setMounted, markUnmounted]),
   );
   useEffect(() => {
     if (
@@ -178,13 +185,13 @@ const QRScanner = ({
   ]);
 
   const end = useCallback(() => {
-    mountedRef.current = false;
+    markUnmounted();
     shouldReadBarCodeRef.current = false;
     setIsCameraActive(false);
     if (shouldDismissOnScan) {
       navigation.goBack();
     }
-  }, [navigation, shouldDismissOnScan]);
+  }, [navigation, shouldDismissOnScan, markUnmounted]);
 
   const showAlertForInvalidAddress = () => {
     Alert.alert(
@@ -203,7 +210,7 @@ const QRScanner = ({
   const showAlertForURLRedirection = useCallback(
     (url: string): Promise<boolean> =>
       new Promise((resolve) => {
-        mountedRef.current = false;
+        markUnmounted();
         navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.MODAL.MODAL_CONFIRMATION,
           params: {
@@ -219,7 +226,7 @@ const QRScanner = ({
           },
         });
       }),
-    [navigation],
+    [navigation, markUnmounted],
   );
 
   const onBarCodeRead = useCallback(
@@ -369,7 +376,7 @@ const QRScanner = ({
               })
               .build(),
           );
-          mountedRef.current = false;
+          markUnmounted();
           return;
         }
 
@@ -452,7 +459,7 @@ const QRScanner = ({
           onStartScan(data).then(() => {
             onScanSuccess(data);
           });
-          mountedRef.current = false;
+          markUnmounted();
         } else {
           trackEvent(
             createEventBuilder(MetaMetricsEvents.QR_SCANNED)
@@ -468,7 +475,7 @@ const QRScanner = ({
             strings('qr_scanner.error'),
             strings('qr_scanner.attempting_sync_from_wallet_error'),
           );
-          mountedRef.current = false;
+          markUnmounted();
         }
       } else {
         if (origin === Routes.ONBOARDING.ADD_DEVICE_TO_WALLET) {
@@ -523,12 +530,11 @@ const QRScanner = ({
               })
               .build(),
           );
-          navigation.goBack();
+          end();
           Alert.alert(
             strings('qr_scanner.error'),
             strings('qr_scanner.attempting_to_scan_with_wallet_locked'),
           );
-          mountedRef.current = false;
           return;
         }
 
@@ -686,7 +692,7 @@ const QRScanner = ({
               })
               .build(),
           );
-          mountedRef.current = false;
+          markUnmounted();
           return;
         }
 
@@ -757,6 +763,7 @@ const QRScanner = ({
       origin,
       isAddDeviceScanner,
       end,
+      markUnmounted,
       showAlertForURLRedirection,
       navigation,
       onStartScan,
@@ -863,7 +870,7 @@ const QRScanner = ({
       <Camera
         style={styles.preview}
         device={cameraDevice}
-        isActive={mountedRef.current && isCameraActive}
+        isActive={isMounted && isCameraActive}
         codeScanner={codeScanner}
         torch="off"
         onError={onError}

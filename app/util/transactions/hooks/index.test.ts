@@ -127,6 +127,7 @@ describe('getTransactionControllerHooks', () => {
       bufferSubsequent: 0.05,
       enableDepositWalletWithdraw: false,
       enableMoneyAccountTransactions: {},
+      prefilledAmount: { default: { enabled: false }, overrides: {} },
       slippage: 0.005,
       stxDisabled: false,
     });

@@ -1059,7 +1059,31 @@
         "all": "All",
         "tokens": "Tokens",
         "perps": "Perps"
+      },
+      "notifications_banner": {
+        "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
+        "open_settings": "Open settings"
       }
+    },
+    "onboarding": {
+      "slide_trade": {
+        "title": "Trade like a pro",
+        "description": "Track in real time when they swap or trade perps, tokens, and real-world assets."
+      },
+      "slide_follow": {
+        "title": "Follow the best",
+        "description": "Tap to follow the top three traders who are up big this week."
+      },
+      "slide_notify": {
+        "title": "Never miss a move",
+        "description_followed": "When a trader you follow makes a move, you'll get a notification. One tap to do the same.",
+        "description_default": "When you're ready, follow a trader to get notified the moment they make a move."
+      },
+      "next": "Next",
+      "follow_top_three": "Follow the top three",
+      "maybe_later": "Maybe later",
+      "got_it": "Got it",
+      "allow_notifications": "Allow notifications"
     },
     "notification_preferences": {
       "title": "Top traders",
@@ -1666,6 +1690,8 @@
       "loss_percent_placeholder": "Loss",
       "profit_roe_placeholder": "% Profit",
       "loss_roe_placeholder": "% Loss",
+      "toggle_take_profit_sign": "Toggle take profit return sign",
+      "toggle_stop_loss_sign": "Toggle stop loss return sign",
       "usd_label": "$",
       "take_profit_invalid_price": "Take profit must be {{direction}} {{priceType}} price",
       "stop_loss_invalid_price": "Stop loss must be {{direction}} {{priceType}} price",
@@ -2179,6 +2205,8 @@
       "filter_badge_label": "Watchlist",
       "suggested": "Suggested"
     },
+    "recently_viewed": "Recently viewed",
+    "recently_searched": "Recently searched",
     "market_count": "{{count}} market",
     "market_count_plural": "{{count}} markets",
     "no_tokens_found": "No tokens found",
@@ -2631,6 +2659,11 @@
     "markets_won": "Markets won",
     "won_markets_text": "Won {{count}} market{{s}}",
     "available_balance": "Available balance",
+    "balance_error": {
+      "title": "Couldn't load your balance",
+      "description": "Your funds are safe. Check your connection and try again.",
+      "retry": "Retry"
+    },
     "portfolio": {
       "available_amount": "{{amount}} available",
       "value_accessibility": "Portfolio value, {{value}}",
@@ -4023,6 +4056,12 @@
         "description": "Reset the push notification pre-prompt flag to re-trigger the sheet on next eligible launch.",
         "reset_prompt": "Reset push pre-prompt"
       },
+      "social_leaderboard": {
+        "title": "Social Leaderboard",
+        "description": "Reset the Social Leaderboard onboarding so it shows again the next time the feature is opened.",
+        "onboarding_seen": "Onboarding seen: {{seen}}",
+        "reset_onboarding": "Reset onboarding"
+      },
       "haptics": {
         "title": "Haptics",
         "description": "Preview haptic feedback on a physical device. This bypasses in-app reduced-haptics and the remote kill switch so you can evaluate each pattern. Simulators often do not play haptics.",
@@ -5230,7 +5269,14 @@
     "enable_device_passcode_android": "Unlock with device PIN?"
   },
   "authentication": {
-    "auth_prompt_desc": "Please authenticate in order to use MetaMask"
+    "auth_prompt_desc": "Please authenticate in order to use MetaMask",
+    "labels": {
+      "remember_me": "Remember Me",
+      "face_id": "Face ID",
+      "touch_id": "Touch ID",
+      "device_authentication": "Device Authentication",
+      "device_passcode": "Device Passcode"
+    }
   },
   "accountApproval": {
     "title": "CONNECT REQUEST",
@@ -10239,5 +10285,9 @@
   },
   "stepper_card": {
     "more_information": "More information"
+  },
+  "token_watchlist": {
+    "added_to_watchlist": "Added to Watchlist",
+    "removed_from_watchlist": "Removed from Watchlist"
   }
 }
