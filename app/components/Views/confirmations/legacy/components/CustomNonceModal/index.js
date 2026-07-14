@@ -1,28 +1,50 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { fontStyles } from '../../../../../../styles/common';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  Modal,
-  StyleSheet,
-  View,
-  TextInput,
-  TouchableOpacity,
-} from 'react-native';
+import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import ModalDragger from '../../../../../Base/ModalDragger';
 import Text from '../../../../../Base/Text';
 import StyledButton from '../../../../../UI/StyledButton';
+import Modal from 'react-native-modal';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
-import { BottomSheet } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../../util/theme';
+import { AppThemeKey } from '../../../../../../util/theme/models';
 import { isNumber } from '../../../../../../util/number';
 import {
+  getElevatedSurfaceColor,
   isPureBlackEnabled,
-  useElevatedSurface,
 } from '../../../../../../util/theme/themeUtils';
 
-const createStyles = (colors) =>
-  StyleSheet.create({
+const createStyles = (theme) => {
+  const { colors } = theme;
+
+  return StyleSheet.create({
+    bottomModal: {
+      justifyContent: 'flex-end',
+      margin: 0,
+    },
+    keyboardAwareWrapper: {
+      flex: 1,
+      justifyContent: 'flex-end',
+    },
+    modal: {
+      minHeight: 200,
+      backgroundColor: getElevatedSurfaceColor(theme),
+      ...(isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark
+        ? {
+            borderTopWidth: 1,
+            borderLeftWidth: 1,
+            borderRightWidth: 1,
+            borderColor: colors.border.muted,
+          }
+        : null),
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+    },
     modalContainer: {
       margin: 24,
     },
@@ -87,7 +109,6 @@ const createStyles = (colors) =>
     actionRow: {
       flexDirection: 'row',
       marginBottom: 15,
-      paddingHorizontal: 16,
     },
     actionButton: {
       flex: 1,
@@ -105,13 +126,13 @@ const createStyles = (colors) =>
       color: colors.primary.default,
     },
   });
+};
 
 const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
   const [nonce, onChangeText] = React.useState(nonceValue);
-  const bottomSheetRef = useRef(null);
-  const { colors, themeAppearance } = useTheme();
-  const surfaceClass = useElevatedSurface();
-  const styles = createStyles(colors);
+  const theme = useTheme();
+  const { colors, themeAppearance } = theme;
+  const styles = createStyles(theme);
 
   const incrementDecrementNonce = (isDecrement) => {
     const currentNonce = Number(nonce);
@@ -121,127 +142,132 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
     onChangeText(clampedValue);
   };
 
-  const handleClose = () => {
-    bottomSheetRef.current?.onCloseBottomSheet();
-  };
-
   const saveAndClose = () => {
     const numberNonce = Number(nonce);
     save(numberNonce);
-    bottomSheetRef.current?.onCloseBottomSheet();
+    close();
   };
 
   const displayWarning = String(proposedNonce) !== String(nonce);
 
   return (
     <Modal
-      visible
-      transparent
-      animationType="none"
-      statusBarTranslucent
-      onRequestClose={handleClose}
+      isVisible
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      style={styles.bottomModal}
+      backdropColor={colors.overlay.default}
+      backdropOpacity={1}
+      animationInTiming={600}
+      animationOutTiming={600}
+      onBackdropPress={close}
+      onBackButtonPress={close}
+      onSwipeComplete={close}
+      swipeDirection={'down'}
+      propagateSwipe
+      useNativeDriver
     >
-      <BottomSheet
-        ref={bottomSheetRef}
-        onClose={close}
-        twClassName={surfaceClass}
-        testID="custom-nonce-modal"
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.keyboardAwareWrapper}
       >
-        <View style={styles.modalContainer}>
-          <Text bold centered style={styles.title}>
-            {strings('transaction.edit_transaction_nonce')}
-          </Text>
-          <View style={styles.nonceInputContainer}>
-            <TextInput
-              // disable keyboard for now
-              showSoftInputOnFocus={false}
-              keyboardType="numeric"
-              // autoFocus
-              autoCapitalize="none"
-              autoCorrect={false}
-              onChangeText={(text) => {
-                if (isNumber(text)) {
-                  onChangeText(text);
-                }
-              }}
-              placeholder={String(proposedNonce)}
-              placeholderTextColor={colors.text.muted}
-              spellCheck={false}
-              editable
-              style={styles.nonceInput}
-              value={String(nonce)}
-              numberOfLines={1}
-              onSubmitEditing={saveAndClose}
-              keyboardAppearance={themeAppearance}
-            />
-          </View>
-          <Text centered style={styles.currentSuggested}>
-            {strings('transaction.current_suggested_nonce')}{' '}
-            <Text bold>{proposedNonce}</Text>
-          </Text>
-          <View style={styles.incrementDecrementNonceContainer}>
-            <TouchableOpacity
-              style={styles.incrementHit}
-              onPress={() => incrementDecrementNonce(true)}
-              testID={'decrement-nonce'}
-            >
-              <EvilIcons
-                name="minus"
-                size={64}
-                style={styles.incrementDecrementIcon}
+        <SafeAreaView style={styles.modal}>
+          <ModalDragger />
+          <View style={styles.modalContainer}>
+            <Text bold centered style={styles.title}>
+              {strings('transaction.edit_transaction_nonce')}
+            </Text>
+            <View style={styles.nonceInputContainer}>
+              <TextInput
+                // disable keyboard for now
+                showSoftInputOnFocus={false}
+                keyboardType="numeric"
+                // autoFocus
+                autoCapitalize="none"
+                autoCorrect={false}
+                onChangeText={(text) => {
+                  if (isNumber(text)) {
+                    onChangeText(text);
+                  }
+                }}
+                placeholder={String(proposedNonce)}
+                placeholderTextColor={colors.text.muted}
+                spellCheck={false}
+                editable
+                style={styles.nonceInput}
+                value={String(nonce)}
+                numberOfLines={1}
+                onSubmitEditing={saveAndClose}
+                keyboardAppearance={themeAppearance}
               />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.incrementHit}
-              onPress={() => incrementDecrementNonce(false)}
-              testID={'increment-nonce'}
-            >
-              <EvilIcons
-                name="plus"
-                size={64}
-                style={styles.incrementDecrementIcon}
-              />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.descWarningContainer}>
-            {displayWarning ? (
-              <View style={styles.nonceWarning}>
-                <Icon
-                  name="exclamation-circle"
-                  color={colors.warning.default}
-                  size={16}
-                  style={styles.icon}
+            </View>
+            <Text centered style={styles.currentSuggested}>
+              {strings('transaction.current_suggested_nonce')}{' '}
+              <Text bold>{proposedNonce}</Text>
+            </Text>
+            <View style={styles.incrementDecrementNonceContainer}>
+              <TouchableOpacity
+                style={styles.incrementHit}
+                onPress={() => incrementDecrementNonce(true)}
+                testID={'decrement-nonce'}
+              >
+                <EvilIcons
+                  name="minus"
+                  size={64}
+                  style={styles.incrementDecrementIcon}
                 />
-                <Text style={styles.nonceWarningText}>
-                  {strings('transaction.nonce_warning')}
-                </Text>
-              </View>
-            ) : null}
-            <Text bold style={styles.desc}>
-              {strings('transaction.this_is_an_advanced')}
-            </Text>
-            <Text style={styles.desc}>
-              {strings('transaction.think_of_the_nonce')}
-            </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.incrementHit}
+                onPress={() => incrementDecrementNonce(false)}
+                testID={'increment-nonce'}
+              >
+                <EvilIcons
+                  name="plus"
+                  size={64}
+                  style={styles.incrementDecrementIcon}
+                />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.descWarningContainer}>
+              {displayWarning ? (
+                <View style={styles.nonceWarning}>
+                  <Icon
+                    name="exclamation-circle"
+                    color={colors.warning.default}
+                    size={16}
+                    style={styles.icon}
+                  />
+                  <Text style={styles.nonceWarningText}>
+                    {strings('transaction.nonce_warning')}
+                  </Text>
+                </View>
+              ) : null}
+              <Text bold style={styles.desc}>
+                {strings('transaction.this_is_an_advanced')}
+              </Text>
+              <Text style={styles.desc}>
+                {strings('transaction.think_of_the_nonce')}
+              </Text>
+            </View>
           </View>
-        </View>
-        <View style={styles.actionRow}>
-          <StyledButton
-            type={'normal'}
-            containerStyle={styles.actionButton}
-            onPress={handleClose}
-          >
-            {strings('transaction.cancel')}
-          </StyledButton>
-          <StyledButton
-            type={'blue'}
-            onPress={saveAndClose}
-            containerStyle={styles.actionButton}
-          >
-            {strings('transaction.save')}
-          </StyledButton>
-        </View>
-      </BottomSheet>
+          <View style={styles.actionRow}>
+            <StyledButton
+              type={'normal'}
+              containerStyle={styles.actionButton}
+              onPress={close}
+            >
+              {strings('transaction.cancel')}
+            </StyledButton>
+            <StyledButton
+              type={'blue'}
+              onPress={() => saveAndClose(nonce)}
+              containerStyle={styles.actionButton}
+            >
+              {strings('transaction.save')}
+            </StyledButton>
+          </View>
+        </SafeAreaView>
+      </KeyboardAwareScrollView>
     </Modal>
   );
 };

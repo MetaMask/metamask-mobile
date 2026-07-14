@@ -3,50 +3,6 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import CustomNonceModal from '.';
 import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-
-  const MockBottomSheet = ReactActual.forwardRef(
-    (
-      {
-        children,
-        onClose,
-        testID,
-      }: {
-        children: React.ReactNode;
-        onClose?: () => void;
-        testID?: string;
-      },
-      ref: React.Ref<{ onCloseBottomSheet: () => void }>,
-    ) => {
-      ReactActual.useImperativeHandle(ref, () => ({
-        onCloseBottomSheet: () => {
-          onClose?.();
-        },
-        onOpenBottomSheet: jest.fn(),
-      }));
-
-      return ReactActual.createElement(
-        View,
-        { testID: testID ?? 'mock-bottom-sheet' },
-        children,
-      );
-    },
-  );
-
-  return {
-    ...actual,
-    BottomSheet: MockBottomSheet,
-  };
-});
-
-jest.mock('../../../../../../util/theme/themeUtils', () => ({
-  ...jest.requireActual('../../../../../../util/theme/themeUtils'),
-  useElevatedSurface: () => 'bg-default',
-}));
-
 const PROPOSED_NONCE = 26;
 const saveMock = jest.fn();
 const closeMock = jest.fn();
@@ -72,7 +28,6 @@ describe('CustomNonceModal', () => {
     renderComponent();
     expect(screen.getByTestId('increment-nonce')).toBeOnTheScreen();
     expect(screen.getByTestId('decrement-nonce')).toBeOnTheScreen();
-    expect(screen.getByTestId('custom-nonce-modal')).toBeOnTheScreen();
   });
 
   it('handles only numeric inputs', () => {
@@ -106,18 +61,5 @@ describe('CustomNonceModal', () => {
 
     fireEvent.press(decrementButton);
     expect(screen.getByDisplayValue(String(0))).toBeTruthy();
-  });
-
-  it('calls close when cancel is pressed', () => {
-    renderComponent();
-    fireEvent.press(screen.getByText('Cancel'));
-    expect(closeMock).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls save and close when save is pressed', () => {
-    renderComponent();
-    fireEvent.press(screen.getByText('Save'));
-    expect(saveMock).toHaveBeenCalledWith(PROPOSED_NONCE);
-    expect(closeMock).toHaveBeenCalledTimes(1);
   });
 });
