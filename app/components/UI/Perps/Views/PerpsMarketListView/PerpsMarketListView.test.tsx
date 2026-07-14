@@ -443,10 +443,16 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   })),
 }));
 
+// Stable references so useSelector doesn't warn about a selector returning a
+// new array/object identity on every call when nothing has actually changed.
+const mockEmptyWatchlistMarkets: string[] = [];
+const mockEmptyRecentlyViewedMarkets: string[] = [];
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(() => true),
-  selectPerpsWatchlistMarkets: jest.fn(() => []),
-  selectPerpsRecentlyViewedMarkets: jest.fn(() => []),
+  selectPerpsWatchlistMarkets: jest.fn(() => mockEmptyWatchlistMarkets),
+  selectPerpsRecentlyViewedMarkets: jest.fn(
+    () => mockEmptyRecentlyViewedMarkets,
+  ),
   selectPerpsMarketFilterPreferences: jest.fn(() => ({
     optionId: 'volume',
     direction: 'desc',
@@ -2245,6 +2251,19 @@ describe('PerpsMarketListView', () => {
         }),
       );
 
+      // The same blur also abandons the flushed-but-unsettled query. Its
+      // count was never settled, so results_count must be omitted (not
+      // recorded as 0 — that would misreport "no results" while still loading).
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SEARCH_ABANDONED,
+        expect.objectContaining({ [PEP.SEARCH_QUERY]: 'bt' }),
+      );
+      const searchAbandonedProps =
+        mockTrack.mock.calls.find(
+          ([name]) => name === MetaMetricsEvents.PERPS_SEARCH_ABANDONED,
+        )?.[1] ?? {};
+      expect(searchAbandonedProps).not.toHaveProperty(PEP.RESULTS_COUNT);
+
       jest.useRealTimers();
     });
 
@@ -2310,6 +2329,74 @@ describe('PerpsMarketListView', () => {
       expect(queryIdx).toBeLessThan(tapIdx);
 
       jest.useRealTimers();
+    });
+
+    it('reports accurate result_rank and results_count when a suggested watchlist result is tapped', () => {
+      mockWatchlistFlagEnabled = true;
+
+      const watchlistMarket = mockMarketData[0]; // BTC — "Bitcoin" matches 't'
+      const suggestedMarket = mockMarketData[1]; // ETH — "Ethereum" matches 't'
+
+      mockUsePerpsMarketListView.mockReturnValue({
+        markets: [],
+        searchState: {
+          searchQuery: 't',
+          setSearchQuery: mockSetSearchQuery,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc' as const,
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: true,
+          setShowFavoritesOnly: jest.fn(),
+          hasWatchlistMarkets: true,
+          watchlistMarketObjects: [watchlistMarket],
+          suggestedMarkets: [suggestedMarket],
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all' as const,
+          setMarketTypeFilter: jest.fn(),
+        },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
+        },
+        marketCounts: {
+          crypto: 3,
+          stocks: 0,
+          'pre-ipo': 0,
+          indices: 0,
+          etfs: 0,
+          commodities: 0,
+          forex: 0,
+          new: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // The rendered collection is watchlist rows + suggested rows (both
+      // match the query), so the suggested row is the 2nd visible result —
+      // filteredMarkets (empty here) would have reported rank omitted /
+      // results_count 0 instead.
+      fireEvent.press(
+        screen.getByTestId(`suggested-row-${suggestedMarket.symbol}`),
+      );
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SEARCH_RESULT_TAPPED,
+        expect.objectContaining({
+          [PEP.SEARCH_QUERY]: 't',
+          [PEP.RESULTS_COUNT]: 2,
+          [PEP.RESULT_RANK]: 2,
+          [PEP.ASSET]: suggestedMarket.symbol,
+        }),
+      );
     });
 
     it('resets the full session on abandonment so query_count does not inflate across sessions', () => {

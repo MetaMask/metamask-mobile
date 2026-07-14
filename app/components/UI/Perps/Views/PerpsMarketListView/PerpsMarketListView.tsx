@@ -64,6 +64,8 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
+import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
+import { selectPerpsWatchlistMarkets } from '../../selectors/perpsController';
 
 const PerpsMarketListView = ({
   onMarketSelect,
@@ -148,7 +150,11 @@ const PerpsMarketListView = ({
     null,
   );
   const lastEmittedSearchQueryRef = useRef<string>('');
-  const lastEmittedSearchResultsCountRef = useRef<number>(0);
+  // undefined means the count was never settled (e.g. a blur/unmount flush
+  // while markets were still loading) — distinct from a settled 0 results.
+  const lastEmittedSearchResultsCountRef = useRef<number | undefined>(
+    undefined,
+  );
   const searchStartTimeRef = useRef<number | null>(null);
   const searchQueryCountRef = useRef<number>(0);
   // query awaiting the debounce (typed but not yet emitted). Flushed
@@ -167,6 +173,61 @@ const PerpsMarketListView = ({
   // Destructure recently viewed state
   const { recentlyViewedMarketObjects } = recentlyViewedState;
 
+  // Used to mirror PerpsWatchlistMarketsV2's suggested-section visibility gate
+  // (hidden once the watchlist is full) so analytics match what's rendered.
+  const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
+
+  const trimmedSearchQuery = searchQuery.trim().toLowerCase();
+
+  // Watchlist rows visible in watchlist mode, filtered by the active search
+  // query — mirrors the filtering PerpsWatchlistMarketsV2 applies to its
+  // `markets` prop when a query is active.
+  const visibleWatchlistMarkets = useMemo(
+    () =>
+      trimmedSearchQuery
+        ? watchlistMarketObjects.filter(
+            (m) =>
+              m.symbol.toLowerCase().includes(trimmedSearchQuery) ||
+              m.name.toLowerCase().includes(trimmedSearchQuery),
+          )
+        : watchlistMarketObjects,
+    [watchlistMarketObjects, trimmedSearchQuery],
+  );
+
+  // Suggested markets visible in watchlist mode, filtered by the active
+  // search query and hidden once the watchlist is full — mirrors
+  // PerpsWatchlistMarketsV2's `hasSuggested && !isWatchlistFull` gate.
+  const visibleSuggestedMarkets = useMemo(() => {
+    if (watchlistSymbols.length >= WATCHLIST_LIMIT) {
+      return [];
+    }
+    return trimmedSearchQuery
+      ? (suggestedMarkets?.filter(
+          (m) =>
+            m.symbol.toLowerCase().includes(trimmedSearchQuery) ||
+            m.name.toLowerCase().includes(trimmedSearchQuery),
+        ) ?? [])
+      : (suggestedMarkets ?? []);
+  }, [suggestedMarkets, trimmedSearchQuery, watchlistSymbols.length]);
+
+  // The collection actually rendered to the user, used to derive search
+  // analytics (result rank / count) so tapping a suggested watchlist result
+  // reports accurate metrics instead of being computed against filteredMarkets,
+  // which excludes suggestions.
+  const visibleSearchResults = useMemo(
+    () =>
+      isWatchlistEnabled && showFavoritesOnly
+        ? [...visibleWatchlistMarkets, ...visibleSuggestedMarkets]
+        : filteredMarkets,
+    [
+      isWatchlistEnabled,
+      showFavoritesOnly,
+      visibleWatchlistMarkets,
+      visibleSuggestedMarkets,
+      filteredMarkets,
+    ],
+  );
+
   // Handler for market press (defined early to avoid use-before-define)
   const handleMarketPress = useCallback(
     (market: PerpsMarketData, sourceSectionOverride?: string) => {
@@ -183,7 +244,8 @@ const PerpsMarketListView = ({
         } else if (trimmedQuery) {
           source_section = PERPS_EVENT_VALUE.SOURCE_SECTION.ACTIVE_SEARCH;
           const resultRank =
-            filteredMarkets.findIndex((m) => m.symbol === market.symbol) + 1;
+            visibleSearchResults.findIndex((m) => m.symbol === market.symbol) +
+            1;
           const timeToTapMs =
             searchStartTimeRef.current !== null
               ? Date.now() - searchStartTimeRef.current
@@ -194,7 +256,7 @@ const PerpsMarketListView = ({
           flushPendingSearchQueryRef.current();
           track(MetaMetricsEvents.PERPS_SEARCH_RESULT_TAPPED, {
             [PERPS_EVENT_PROPERTY.SEARCH_QUERY]: trimmedQuery.toLowerCase(),
-            [PERPS_EVENT_PROPERTY.RESULTS_COUNT]: filteredMarkets.length,
+            [PERPS_EVENT_PROPERTY.RESULTS_COUNT]: visibleSearchResults.length,
             ...(resultRank > 0
               ? { [PERPS_EVENT_PROPERTY.RESULT_RANK]: resultRank }
               : {}),
@@ -239,7 +301,7 @@ const PerpsMarketListView = ({
       searchQuery,
       showFavoritesOnly,
       marketTypeFilter,
-      filteredMarkets,
+      visibleSearchResults,
       track,
     ],
   );
@@ -337,7 +399,7 @@ const PerpsMarketListView = ({
     resultsSettled = true,
   ) => {
     const normalizedQuery = trimmedQuery.toLowerCase();
-    const resultCount = filteredMarkets.length;
+    const resultCount = visibleSearchResults.length;
     const hasResults = resultCount > 0;
     const activeChips = [
       ...(showFavoritesOnly
@@ -354,7 +416,9 @@ const PerpsMarketListView = ({
         : 'browse';
 
     lastEmittedSearchQueryRef.current = normalizedQuery;
-    lastEmittedSearchResultsCountRef.current = resultsSettled ? resultCount : 0;
+    lastEmittedSearchResultsCountRef.current = resultsSettled
+      ? resultCount
+      : undefined;
     if (resultsSettled) {
       flushedUnsettledSearchQueryRef.current = null;
     }
@@ -405,7 +469,7 @@ const PerpsMarketListView = ({
     pendingSearchQueryRef.current = null;
     flushedUnsettledSearchQueryRef.current = null;
     lastEmittedSearchQueryRef.current = '';
-    lastEmittedSearchResultsCountRef.current = 0;
+    lastEmittedSearchResultsCountRef.current = undefined;
     searchStartTimeRef.current = null;
     searchQueryCountRef.current = 0;
   }, []);
@@ -437,15 +501,21 @@ const PerpsMarketListView = ({
     }
     track(MetaMetricsEvents.PERPS_SEARCH_ABANDONED, {
       [PERPS_EVENT_PROPERTY.SEARCH_QUERY]: lastEmittedSearchQueryRef.current,
-      [PERPS_EVENT_PROPERTY.RESULTS_COUNT]:
-        lastEmittedSearchResultsCountRef.current,
+      // Omitted (not 0) when the count never settled — e.g. abandoning while
+      // markets were still loading — matching PERPS_SEARCH_QUERY's handling.
+      ...(lastEmittedSearchResultsCountRef.current !== undefined
+        ? {
+            [PERPS_EVENT_PROPERTY.RESULTS_COUNT]:
+              lastEmittedSearchResultsCountRef.current,
+          }
+        : {}),
       query_count: searchQueryCountRef.current,
       ...(searchStartTimeRef.current !== null
         ? { time_in_search_ms: Date.now() - searchStartTimeRef.current }
         : {}),
     });
     lastEmittedSearchQueryRef.current = '';
-    lastEmittedSearchResultsCountRef.current = 0;
+    lastEmittedSearchResultsCountRef.current = undefined;
   }, [track]);
 
   // Debounced Search Query tracking — fires ~500ms after the query stabilises.
@@ -501,7 +571,7 @@ const PerpsMarketListView = ({
   }, [
     searchQuery,
     isLoadingMarkets,
-    filteredMarkets.length,
+    visibleSearchResults.length,
     emitSearchAbandoned,
     resetSearchSession,
   ]);
@@ -608,29 +678,15 @@ const PerpsMarketListView = ({
     // Mirrors PerpsHome behavior, without the collapsible "Show more" toggle.
     // Only reachable when the watchlist flag is enabled (pill is hidden otherwise).
     // When a search query is active both watchlist rows and suggested markets are
-    // filtered inline so the user can find any relevant market by name or symbol.
+    // filtered (via the memoized visibleWatchlistMarkets / visibleSuggestedMarkets
+    // above) so the user can find any relevant market by name or symbol, and so
+    // search analytics (visibleSearchResults) match what's rendered here.
     // "No tokens found" is only shown when nothing matches in either section.
     if (isWatchlistEnabled && showFavoritesOnly) {
-      const trimmedQuery = searchQuery.trim().toLowerCase();
-      const visibleWatchlistMarkets = trimmedQuery
-        ? watchlistMarketObjects.filter(
-            (m) =>
-              m.symbol.toLowerCase().includes(trimmedQuery) ||
-              m.name.toLowerCase().includes(trimmedQuery),
-          )
-        : watchlistMarketObjects;
-      const visibleSuggestedMarkets = trimmedQuery
-        ? suggestedMarkets?.filter(
-            (m) =>
-              m.symbol.toLowerCase().includes(trimmedQuery) ||
-              m.name.toLowerCase().includes(trimmedQuery),
-          )
-        : suggestedMarkets;
-
       if (
-        trimmedQuery &&
+        trimmedSearchQuery &&
         visibleWatchlistMarkets.length === 0 &&
-        !visibleSuggestedMarkets?.length
+        !visibleSuggestedMarkets.length
       ) {
         return (
           <PerpsMarketListEmptyState
