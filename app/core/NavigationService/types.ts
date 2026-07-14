@@ -74,6 +74,11 @@ import type {
   PerpsStackParamList,
 } from '../../components/UI/Perps/types/navigation';
 import type { MoneyNavigationParamList } from '../../components/UI/Money/types/navigation';
+import type {
+  CardModalsNavigationParamList,
+  CardRootParamList,
+  CardScreensStackParamList,
+} from '../../components/UI/Card/types/navigation';
 import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import type { MarketInsightsRouteParams } from '../../components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView';
 import type { MoreTokenActionsMenuParams } from '../../components/UI/TokenDetails/components/MoreTokenActionsMenu';
@@ -81,8 +86,6 @@ import type { SecurityBadgeBottomSheetParams } from '../../components/UI/TokenDe
 import type { MAPickerSheetParams } from '../../components/UI/Charts/AdvancedChart/MAPickerSheet';
 import type { AgenticCliApprovalParams } from '../../components/Views/AgenticCliApproval/types';
 import type { AgenticCliDashboardWebviewParams } from '../../components/Views/AgenticCliDashboardWebview/types';
-import type { CreditBalanceTooltipParams } from '../../components/UI/Card/components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet';
-import type { MoneyUnlinkCardSheetRouteParams } from '../../components/UI/Card/components/MoneyUnlinkCardSheet/MoneyUnlinkCardSheet';
 import type { MoneyDeeplinkModalParams } from '../../components/UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 import type { TradingSignalsSetupParams } from '../../components/Views/SocialLeaderboard/components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet';
 import type { ExploreFeedRouteParams } from '../../components/Views/TrendingView/TrendingView';
@@ -198,9 +201,6 @@ import type {
 } from '../../components/Views/RevealPrivateCredential/RevealPrivateCredential.types';
 
 // Card params
-import type { CardConfirmModalParams } from '../../components/UI/Card/Card.types';
-import type { ShippingAddress } from '../../components/UI/Card/util/buildUserAddress';
-
 // Account actions params
 import type {
   AccountActionsParams,
@@ -927,25 +927,17 @@ export type RootStackParamList = {
   ///: END:ONLY_INCLUDE_IF
 
   // Card routes
-  CardScreens: undefined;
-  CardHome: undefined;
-  CardWelcome: undefined;
-  CardAuthentication: { showAuthPrompt?: boolean } | undefined;
-  CardSpendingLimit: { flow: string } | undefined;
-  ChooseYourCard:
-    | { flow: string; shippingAddress?: ShippingAddress }
-    | undefined;
-  CardCashback: undefined;
-  CardCreditRedeem: undefined;
-  ReviewOrder: undefined;
-  OrderCompleted:
-    | {
-        paymentMethod?: string;
-        transactionHash?: string;
-        fromUpgrade?: boolean;
-      }
-    | undefined;
-  CardOnboarding: undefined;
+  CardScreens: NavigatorScreenParams<CardRootParamList> | undefined;
+  CardHome: CardScreensStackParamList['CardHome'];
+  CardWelcome: CardScreensStackParamList['CardWelcome'];
+  CardAuthentication: CardScreensStackParamList['CardAuthentication'];
+  CardSpendingLimit: CardScreensStackParamList['CardSpendingLimit'];
+  ChooseYourCard: CardScreensStackParamList['ChooseYourCard'];
+  CardCashback: CardScreensStackParamList['CardCashback'];
+  CardCreditRedeem: CardScreensStackParamList['CardCreditRedeem'];
+  ReviewOrder: CardScreensStackParamList['ReviewOrder'];
+  OrderCompleted: CardScreensStackParamList['OrderCompleted'];
+  CardOnboarding: CardScreensStackParamList['CardOnboarding'];
   CardOnboardingSignUp: undefined;
   CardOnboardingConfirmEmail: undefined;
   CardOnboardingSetPhoneNumber: undefined;
@@ -957,26 +949,21 @@ export type RootStackParamList = {
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
   CardOnboardingKYCPending: undefined;
-  CardModals: NestedNavigationParams | undefined;
-  CardAddFundsModal: undefined;
-  CardAssetSelectionModal: undefined;
-  CardRegionSelectionModal: undefined;
-  CardConfirmModal: CardConfirmModalParams | undefined;
-  CardPasswordModal: undefined;
-  CardRecurringFeeModal: undefined;
-  CardDaimoPayModal: undefined;
-  CardViewPinModal: { imageUrl: string };
-  CardSpendingLimitOptionsModal: {
-    currentLimitType: 'full' | 'restricted';
-    currentCustomLimit: string;
-    callerRoute: string;
-    callerParams?: Record<string, unknown>;
-  };
-  CardWaitlistFormModal: { url: string };
-  CardForgotPasswordModal: { location?: 'us' | 'international' } | undefined;
-  CardCreditBalanceTooltipModal: CreditBalanceTooltipParams | undefined;
-  CardCreditRefundTooltipModal: { isMoneyAccount?: boolean } | undefined;
-  CardUnlinkMoneyAccountSheet: MoneyUnlinkCardSheetRouteParams | undefined;
+  CardModals: NavigatorScreenParams<CardModalsNavigationParamList> | undefined;
+  CardAddFundsModal: CardModalsNavigationParamList['CardAddFundsModal'];
+  CardAssetSelectionModal: CardModalsNavigationParamList['CardAssetSelectionModal'];
+  CardRegionSelectionModal: CardModalsNavigationParamList['CardRegionSelectionModal'];
+  CardConfirmModal: CardModalsNavigationParamList['CardConfirmModal'];
+  CardPasswordModal: CardModalsNavigationParamList['CardPasswordModal'];
+  CardRecurringFeeModal: CardModalsNavigationParamList['CardRecurringFeeModal'];
+  CardDaimoPayModal: CardModalsNavigationParamList['CardDaimoPayModal'];
+  CardViewPinModal: CardModalsNavigationParamList['CardViewPinModal'];
+  CardSpendingLimitOptionsModal: CardModalsNavigationParamList['CardSpendingLimitOptionsModal'];
+  CardWaitlistFormModal: CardModalsNavigationParamList['CardWaitlistFormModal'];
+  CardForgotPasswordModal: CardModalsNavigationParamList['CardForgotPasswordModal'];
+  CardCreditBalanceTooltipModal: CardModalsNavigationParamList['CardCreditBalanceTooltipModal'];
+  CardCreditRefundTooltipModal: CardModalsNavigationParamList['CardCreditRefundTooltipModal'];
+  CardUnlinkMoneyAccountSheet: CardModalsNavigationParamList['CardUnlinkMoneyAccountSheet'];
 
   // Send routes
   Recipient: SendRecipientParams | undefined;
