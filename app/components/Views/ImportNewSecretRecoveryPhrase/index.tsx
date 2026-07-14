@@ -34,6 +34,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { ImportSRPIDs } from './SRPImport.testIds';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
+import { DUPLICATE_MNEMONIC_ERROR_MESSAGES } from '../../../core/QrSync/duplicateMnemonicError';
 import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
 import TitleStandard from '../../../component-library/components-temp/TitleStandard';
 import {
@@ -218,9 +219,10 @@ const ImportNewSecretRecoveryPhrase = () => {
 
       navigation.navigate('WalletView');
     } catch (e) {
-      switch ((e as Error)?.message) {
-        case 'This mnemonic has already been imported.':
-        case 'This Secret Recovery Phrase has already been imported.':
+      const errorMessage = (e as Error)?.message;
+      switch (errorMessage) {
+        case DUPLICATE_MNEMONIC_ERROR_MESSAGES[0]:
+        case DUPLICATE_MNEMONIC_ERROR_MESSAGES[1]:
           Alert.alert(
             strings('import_new_secret_recovery_phrase.error_duplicate_srp'),
           );

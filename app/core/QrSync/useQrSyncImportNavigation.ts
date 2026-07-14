@@ -13,8 +13,8 @@ import Engine from '../Engine';
 import { QrSyncSecretTypes } from './constants';
 import { completeExistingUserQrSyncImport } from './completeExistingUserQrSyncImport';
 import { navigateToQrSyncImport } from './navigateToQrSyncImport';
-import { showAlreadySyncedSheet } from './showAlreadySyncedSheet';
-import { showImportFailedSheet } from './showImportFailedSheet';
+import { showAlreadySyncedSheet } from '../../components/Views/AddDeviceToWallet/showAlreadySyncedSheet';
+import { showImportFailedSheet } from '../../components/Views/AddDeviceToWallet/showImportFailedSheet';
 import type { QrSyncSecretImportEntry } from './types';
 import Logger from '../../util/Logger';
 

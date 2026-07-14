@@ -62,15 +62,21 @@ jest.mock('./navigateToQrSyncImport', () => ({
     mockNavigateToQrSyncImport(...args),
 }));
 
-jest.mock('./showAlreadySyncedSheet', () => ({
-  showAlreadySyncedSheet: (...args: unknown[]) =>
-    mockShowAlreadySyncedSheet(...args),
-}));
+jest.mock(
+  '../../components/Views/AddDeviceToWallet/showAlreadySyncedSheet',
+  () => ({
+    showAlreadySyncedSheet: (...args: unknown[]) =>
+      mockShowAlreadySyncedSheet(...args),
+  }),
+);
 
-jest.mock('./showImportFailedSheet', () => ({
-  showImportFailedSheet: (...args: unknown[]) =>
-    mockShowImportFailedSheet(...args),
-}));
+jest.mock(
+  '../../components/Views/AddDeviceToWallet/showImportFailedSheet',
+  () => ({
+    showImportFailedSheet: (...args: unknown[]) =>
+      mockShowImportFailedSheet(...args),
+  }),
+);
 
 jest.mock('../../util/Logger', () => ({
   error: jest.fn(),

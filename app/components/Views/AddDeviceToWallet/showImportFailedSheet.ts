@@ -1,6 +1,6 @@
-import { strings } from '../../../locales/i18n';
-import Routes from '../../constants/navigation/Routes';
-import type { AppNavigationProp } from '../NavigationService/types';
+import { strings } from '../../../../locales/i18n';
+import Routes from '../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 /**
  * Shows the shared SuccessErrorSheet when existing-user QR sync import fails.

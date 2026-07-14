@@ -1,18 +1,12 @@
-import { KeyringType } from '@metamask/keyring-api/v2';
-import { mnemonicPhraseToBytes } from '@metamask/key-tree';
-
 import Routes from '../../constants/navigation/Routes';
-import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import type { AppNavigationProp } from '../NavigationService/types';
 import {
   completeExistingUserQrSyncImport,
   DUPLICATE_MNEMONIC_ERROR_MESSAGES,
   isDuplicateMnemonicError,
-  isMnemonicAlreadyOnDevice,
 } from './completeExistingUserQrSyncImport';
 
 const mockImportNewSecretRecoveryPhrase = jest.fn();
-const mockWithKeyringV2 = jest.fn();
 const mockResetState = jest.fn();
 const mockNavigate = jest.fn();
 const mockShowAlreadySyncedSheet = jest.fn();
@@ -25,33 +19,27 @@ jest.mock('../../actions/multiSrp', () => ({
 
 jest.mock('../Engine', () => ({
   context: {
-    KeyringController: {
-      state: {
-        keyrings: [] as {
-          type: string;
-          accounts: string[];
-          metadata: { id: string; name: string };
-        }[],
-      },
-      withKeyringV2: (...args: unknown[]) => mockWithKeyringV2(...args),
-    },
     QrSyncController: {
       resetState: () => mockResetState(),
     },
   },
 }));
 
-jest.mock('./showAlreadySyncedSheet', () => ({
-  showAlreadySyncedSheet: (...args: unknown[]) =>
-    mockShowAlreadySyncedSheet(...args),
-}));
+jest.mock(
+  '../../components/Views/AddDeviceToWallet/showAlreadySyncedSheet',
+  () => ({
+    showAlreadySyncedSheet: (...args: unknown[]) =>
+      mockShowAlreadySyncedSheet(...args),
+  }),
+);
 
-jest.mock('./showImportFailedSheet', () => ({
-  showImportFailedSheet: (...args: unknown[]) =>
-    mockShowImportFailedSheet(...args),
-}));
-
-import Engine from '../Engine';
+jest.mock(
+  '../../components/Views/AddDeviceToWallet/showImportFailedSheet',
+  () => ({
+    showImportFailedSheet: (...args: unknown[]) =>
+      mockShowImportFailedSheet(...args),
+  }),
+);
 
 const mockNavigation = {
   navigate: mockNavigate,
@@ -60,22 +48,9 @@ const mockNavigation = {
 const TEST_MNEMONIC =
   'test test test test test test test test test test test junk';
 
-const setHdKeyringCount = (count: number) => {
-  Engine.context.KeyringController.state.keyrings = Array.from(
-    { length: count },
-    (_, index) => ({
-      type: ExtendedKeyringTypes.hd,
-      accounts: [],
-      metadata: { id: `hd-${index}`, name: `HD Key Tree ${index}` },
-    }),
-  );
-};
-
 describe('completeExistingUserQrSyncImport', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    setHdKeyringCount(0);
-    mockWithKeyringV2.mockResolvedValue(false);
     mockImportNewSecretRecoveryPhrase.mockResolvedValue({
       address: '0xabc',
       discoveredAccountsCount: 1,
@@ -85,7 +60,6 @@ describe('completeExistingUserQrSyncImport', () => {
   it('imports the mnemonic, resets QR sync, and navigates to the wallet home', async () => {
     await completeExistingUserQrSyncImport(mockNavigation, TEST_MNEMONIC);
 
-    expect(mockWithKeyringV2).not.toHaveBeenCalled();
     expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
       TEST_MNEMONIC,
     );
@@ -93,32 +67,6 @@ describe('completeExistingUserQrSyncImport', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     expect(mockShowAlreadySyncedSheet).not.toHaveBeenCalled();
     expect(mockShowImportFailedSheet).not.toHaveBeenCalled();
-  });
-
-  it('shows already-synced sheet and navigates home when pre-check finds the mnemonic', async () => {
-    setHdKeyringCount(1);
-    mockWithKeyringV2.mockImplementationOnce(
-      async (
-        _selector: unknown,
-        operation: (args: {
-          keyring: { mnemonic: Uint8Array };
-        }) => Promise<boolean>,
-      ) =>
-        operation({
-          keyring: { mnemonic: mnemonicPhraseToBytes(TEST_MNEMONIC) },
-        }),
-    );
-
-    await completeExistingUserQrSyncImport(mockNavigation, TEST_MNEMONIC);
-
-    expect(mockWithKeyringV2).toHaveBeenCalledWith(
-      { type: KeyringType.Hd, index: 0 },
-      expect.any(Function),
-    );
-    expect(mockImportNewSecretRecoveryPhrase).not.toHaveBeenCalled();
-    expect(mockResetState).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
-    expect(mockShowAlreadySyncedSheet).toHaveBeenCalledWith(mockNavigation);
   });
 
   it.each([...DUPLICATE_MNEMONIC_ERROR_MESSAGES])(
@@ -136,90 +84,18 @@ describe('completeExistingUserQrSyncImport', () => {
     },
   );
 
-  it('treats any already-imported message as a duplicate', () => {
+  it('returns false for non-exact duplicate messages', () => {
     expect(
       isDuplicateMnemonicError(
         new Error('Wallet already been imported on this device'),
       ),
-    ).toBe(true);
+    ).toBe(false);
   });
 
-  it('detects matching string and byte mnemonics in isMnemonicAlreadyOnDevice', async () => {
-    setHdKeyringCount(1);
-    mockWithKeyringV2.mockImplementationOnce(
-      async (
-        _selector: unknown,
-        operation: (args: {
-          keyring: { mnemonic: string };
-        }) => Promise<boolean>,
-      ) => operation({ keyring: { mnemonic: TEST_MNEMONIC.toUpperCase() } }),
-    );
-    await expect(isMnemonicAlreadyOnDevice(TEST_MNEMONIC)).resolves.toBe(true);
-
-    setHdKeyringCount(1);
-    mockWithKeyringV2.mockImplementationOnce(
-      async (
-        _selector: unknown,
-        operation: (args: {
-          keyring: { mnemonic: Uint8Array };
-        }) => Promise<boolean>,
-      ) =>
-        operation({
-          keyring: { mnemonic: mnemonicPhraseToBytes(TEST_MNEMONIC) },
-        }),
-    );
-    await expect(isMnemonicAlreadyOnDevice(TEST_MNEMONIC)).resolves.toBe(true);
-
-    setHdKeyringCount(1);
-    mockWithKeyringV2.mockImplementationOnce(
-      async (
-        _selector: unknown,
-        operation: (args: {
-          keyring: { mnemonic: Uint8Array };
-        }) => Promise<boolean>,
-      ) =>
-        operation({
-          keyring: {
-            mnemonic: mnemonicPhraseToBytes(
-              'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
-            ),
-          },
-        }),
-    );
-    await expect(isMnemonicAlreadyOnDevice(TEST_MNEMONIC)).resolves.toBe(false);
-  });
-
-  it('returns false when keyring mnemonic is missing', async () => {
-    setHdKeyringCount(1);
-    mockWithKeyringV2.mockImplementationOnce(
-      async (
-        _selector: unknown,
-        operation: (args: { keyring: { mnemonic: null } }) => Promise<boolean>,
-      ) => operation({ keyring: { mnemonic: null } }),
-    );
-
-    await expect(isMnemonicAlreadyOnDevice(TEST_MNEMONIC)).resolves.toBe(false);
-  });
-
-  it('returns false when mnemonic byte lengths differ', async () => {
-    setHdKeyringCount(1);
-    mockWithKeyringV2.mockImplementationOnce(
-      async (
-        _selector: unknown,
-        operation: (args: {
-          keyring: { mnemonic: Uint8Array };
-        }) => Promise<boolean>,
-      ) => operation({ keyring: { mnemonic: new Uint8Array([1, 2, 3]) } }),
-    );
-
-    await expect(isMnemonicAlreadyOnDevice(TEST_MNEMONIC)).resolves.toBe(false);
-  });
-
-  it('returns false when keyring inspection throws', async () => {
-    setHdKeyringCount(1);
-    mockWithKeyringV2.mockRejectedValueOnce(new Error('vault locked'));
-
-    await expect(isMnemonicAlreadyOnDevice(TEST_MNEMONIC)).resolves.toBe(false);
+  it('returns false when error is not an Error instance', () => {
+    expect(
+      isDuplicateMnemonicError('This mnemonic has already been imported.'),
+    ).toBe(false);
   });
 
   it('shows import-failed sheet and navigates home when import fails for a non-duplicate reason', async () => {
@@ -253,8 +129,6 @@ describe('completeExistingUserQrSyncImport', () => {
       TEST_MNEMONIC,
     );
 
-    // Flush pre-check so the shared import starts.
-    await Promise.resolve();
     await Promise.resolve();
 
     expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledTimes(1);
