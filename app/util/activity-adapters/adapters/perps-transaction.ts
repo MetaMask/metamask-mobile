@@ -1,20 +1,14 @@
 /**
- * Maps Perps provider transaction items (HyperLiquid etc.) into the shared
- * `ActivityListItem` shape. Lives in mobile until shared
+ * Maps a `PerpsTransaction` (from the perps domain's `transform*ToTransactions`
+ * helpers) into the shared `ActivityListItem` shape. Lives in mobile until
  * `@metamask/activity-adapters` publishes an equivalent.
  *
- * Source: `PerpsTransaction` from `app/components/UI/Perps/types/transactionHistory.ts`,
- * produced by the perps domain layer's `transform*ToTransactions` helpers.
- *
- * Defaults (pending product confirmation — see TMCU-860):
- * trade/funding amounts are rendered USD-fiat style via the structured
- * `*Number` fields; `sourceToken` carries the position size (e.g. `2.01 ETH`)
- * or funding market so rows can render it as a subtitle. `status` defaults to
- * `'success'` for trades/funding (already executed) and is derived from
- * `depositWithdrawal.status` for funds movements. `chainId` is caller-injected
- * (HyperLiquid has no public CAIP-2; callers pass Arbitrum). Open `order`
- * entries are not mapped — the feed only surfaces executed history.
+ * Notes: trade/funding amounts render USD-fiat from the structured `*Number`
+ * fields; `chainId` is caller-injected (HyperLiquid has no CAIP-2 — callers
+ * pass Arbitrum); open `order` entries are dropped (executed history only).
+ * See TMCU-860 for pending product confirmation of the display defaults.
  */
+import { DETAILED_ORDER_TYPES } from '@metamask/perps-controller';
 import type { CaipChainId } from '@metamask/utils';
 import {
   FillType,
@@ -23,6 +17,11 @@ import {
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
   type PerpsTransaction,
 } from '../../../components/UI/Perps/types/transactionHistory';
+import {
+  resolveOrderDirection,
+  isClosingOrder,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+} from '../../../components/UI/Perps/utils/orderDirection';
 import type { ActivityListItem, Status, TokenAmount } from '../types';
 
 interface QuoteAsset {
@@ -150,33 +149,26 @@ function mapOrderStatus(
   return null;
 }
 
-type PerpsOrderDirection = 'long' | 'short';
-
-function resolveOrderDirection(
-  side: 'buy' | 'sell',
-  isClosing: boolean,
-): PerpsOrderDirection {
-  if (isClosing) {
-    return side === 'sell' ? 'long' : 'short';
-  }
-  return side === 'buy' ? 'long' : 'short';
-}
-
 function mapOrderKind(
   order: NonNullable<PerpsTransaction['order']>,
 ): ActivityListItem['type'] | null {
-  const { side, reduceOnly, isTrigger, detailedOrderType, type } = order;
+  const { side, detailedOrderType, type } = order;
   if (side !== 'buy' && side !== 'sell') {
     return null;
   }
 
-  const isClosing = Boolean(reduceOnly || isTrigger);
+  // Open/close + direction come from the same helpers that build the perps
+  // order title (formatOrderLabel), so title and kind can't disagree.
+  const isClosing = isClosingOrder(order);
   const direction = resolveOrderDirection(side, isClosing);
-  const isStop = Boolean(detailedOrderType?.toLowerCase().includes('stop'));
+  const isStopMarket = detailedOrderType === DETAILED_ORDER_TYPES.STOP_MARKET;
   const isLimit = type === 'limit';
 
-  // Stop orders are a triggered market close with their own dedicated kind.
-  if (isStop) {
+  // Only Stop Market orders get the dedicated stop kind. The other trigger
+  // variants (Stop Limit, Take Profit Limit/Market) have no dedicated kinds
+  // and keep their structural limit/market close kinds below, so a limit
+  // order is never displayed as a market order.
+  if (isStopMarket) {
     return direction === 'long'
       ? 'stopMarketCloseLong'
       : 'stopMarketCloseShort';

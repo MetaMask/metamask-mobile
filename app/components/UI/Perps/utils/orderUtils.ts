@@ -7,6 +7,7 @@ import {
 } from '@metamask/perps-controller';
 import BigNumber from 'bignumber.js';
 import { Position } from '../hooks';
+import { resolveOrderDirection, isClosingOrder } from './orderDirection';
 
 /**
  * Optional debug logger for order utility functions.
@@ -490,20 +491,10 @@ export const willFlipPosition = (
  * @returns Formatted order label string
  */
 export const formatOrderLabel = (order: Order): string => {
-  const { side, detailedOrderType, orderType, reduceOnly, isTrigger } = order;
+  const { side, detailedOrderType, orderType } = order;
 
-  // Determine if this is a closing order
-  const isClosing = Boolean(reduceOnly || isTrigger);
-
-  // Determine direction based on whether it's closing or not
-  let direction: string;
-  if (isClosing) {
-    // For closing orders: sell closes long, buy closes short
-    direction = side === 'sell' ? 'long' : 'short';
-  } else {
-    // For opening orders: buy is long, sell is short
-    direction = side === 'buy' ? 'long' : 'short';
-  }
+  const isClosing = isClosingOrder(order);
+  const direction = resolveOrderDirection(side, isClosing);
 
   // Get the order type string
   // Use detailedOrderType if available (e.g., "Stop Market", "Take Profit Limit")
@@ -527,18 +518,14 @@ export const formatOrderLabel = (order: Order): string => {
  * @returns Direction string ("long" or "short" for opening, "Close Long" or "Close Short" for closing)
  */
 export const getOrderLabelDirection = (order: Order): string => {
-  const { side, reduceOnly, isTrigger } = order;
-
-  // Determine if this is a closing order
-  const isClosing = Boolean(reduceOnly || isTrigger);
+  const isClosing = isClosingOrder(order);
+  const direction = resolveOrderDirection(order.side, isClosing);
 
   if (isClosing) {
-    // For closing orders: sell closes long, buy closes short
-    return side === 'sell' ? 'Close Long' : 'Close Short';
+    return direction === 'long' ? 'Close Long' : 'Close Short';
   }
 
-  // For opening orders: buy is long, sell is short
-  return side === 'buy' ? 'long' : 'short';
+  return direction;
 };
 
 /**

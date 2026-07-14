@@ -80,6 +80,8 @@ import MultichainTransactionsFooter from '../MultichainTransactionsView/Multicha
 import { getAddressUrl } from '../../../core/Multichain/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { hasTransactionType } from '../confirmations/utils/transaction';
 import styleSheet from './ActivityList.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
@@ -410,9 +412,11 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
         if (
           isPerpsEnabled &&
-          (tx.type === TransactionType.perpsDeposit ||
-            tx.type === TransactionType.perpsDepositAndOrder ||
-            tx.type === TransactionType.perpsWithdraw)
+          hasTransactionType(tx, [
+            TransactionType.perpsDeposit,
+            TransactionType.perpsDepositAndOrder,
+            TransactionType.perpsWithdraw,
+          ])
         ) {
           return false;
         }

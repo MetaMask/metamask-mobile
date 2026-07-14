@@ -29,6 +29,7 @@ import {
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
   isFailedOrCancelledTransfer,
+  isPerpsOrderKind,
   isUnlimitedApprovalAmount,
   shouldShowPlusSign,
   type Status,
@@ -70,12 +71,7 @@ function isPerpsPnlKind(type: ActivityKind): boolean {
 }
 
 function isPerpsTradeKind(type: ActivityKind): boolean {
-  return (
-    isPerpsPnlKind(type) ||
-    type.startsWith('market') ||
-    type.startsWith('limit') ||
-    type.startsWith('stopMarket')
-  );
+  return isPerpsPnlKind(type) || isPerpsOrderKind(type);
 }
 
 function isPerpsMarketAvatarKind(type: ActivityKind): boolean {
@@ -83,20 +79,11 @@ function isPerpsMarketAvatarKind(type: ActivityKind): boolean {
 }
 
 /**
- * Perps order rows (market/limit/stop). Their right column shows the order's
- * lifecycle status (Filled / Canceled / Rejected), not a notional amount: the
- * notional duplicates the size subtitle and is misleading for canceled/rejected
- * orders, which moved no money. Realized PnL lives on the trade fill, not the
- * order. Mirrors the extension's Orders view.
+ * Perps order rows show lifecycle status in the amount slot instead of a
+ * notional: the notional duplicates the size subtitle and misleads for
+ * canceled/rejected orders. Realized PnL lives on the trade fill. Mirrors the
+ * extension's Orders view.
  */
-function isPerpsOrderKind(type: ActivityKind): boolean {
-  return (
-    type.startsWith('market') ||
-    type.startsWith('limit') ||
-    type.startsWith('stopMarket')
-  );
-}
-
 function resolvePerpsOrderStatusLabel(status: Status): string {
   switch (status) {
     case 'cancelled':

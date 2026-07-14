@@ -13,7 +13,10 @@ import { resolveTransactionIconName } from './resolveIconType';
 import { useActivityListItemRowContent } from './useActivityListItemRowContent';
 import { useNftActivityImage } from './useNftActivityImage';
 import type { ActivityListItemRowProps } from './ActivityListItemRow.types';
-import type { ActivityKind } from '../../../util/activity-adapters';
+import {
+  isPerpsOrderKind,
+  type ActivityKind,
+} from '../../../util/activity-adapters';
 
 export { resolveActivityListItemTitle } from './useActivityListItemRowContent';
 export { resolveIconType } from './resolveIconType';
@@ -26,9 +29,7 @@ function isSingleNetworkDomainKind(type: ActivityKind): boolean {
   return (
     type.startsWith('perps') ||
     type.startsWith('prediction') ||
-    type.startsWith('market') ||
-    type.startsWith('limit') ||
-    type.startsWith('stopMarket')
+    isPerpsOrderKind(type)
   );
 }
 

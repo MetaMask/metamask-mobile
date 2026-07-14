@@ -528,9 +528,6 @@ describe('mapPerpsTransaction', () => {
         'Market close long',
         { orderType: 'market', side: 'sell', reduceOnly: true },
         'marketCloseLong',
-      ],
-      // Stop (trigger) closes: direction from side, market/limit collapses to
-      // the dedicated stop kind.
       [
         'Stop market close short',
         {
@@ -550,6 +547,46 @@ describe('mapPerpsTransaction', () => {
           detailedOrderType: 'Stop Market',
         },
         'stopMarketCloseLong',
+      ],
+      [
+        'Stop limit close short',
+        {
+          orderType: 'limit',
+          side: 'buy',
+          isTrigger: true,
+          detailedOrderType: 'Stop Limit',
+        },
+        'limitCloseShort',
+      ],
+      [
+        'Stop limit close long',
+        {
+          orderType: 'limit',
+          side: 'sell',
+          isTrigger: true,
+          detailedOrderType: 'Stop Limit',
+        },
+        'limitCloseLong',
+      ],
+      [
+        'Take profit market close long',
+        {
+          orderType: 'market',
+          side: 'sell',
+          isTrigger: true,
+          detailedOrderType: 'Take Profit Market',
+        },
+        'marketCloseLong',
+      ],
+      [
+        'Take profit limit close short',
+        {
+          orderType: 'limit',
+          side: 'buy',
+          isTrigger: true,
+          detailedOrderType: 'Take Profit Limit',
+        },
+        'limitCloseShort',
       ],
     ] as const)(
       'maps a real %s order to the matching Activity kind',

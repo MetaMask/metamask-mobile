@@ -760,7 +760,10 @@ describe('ActivityList', () => {
   // TMCU-1066: a perps deposit/withdrawal is a real Arbitrum USDC tx, so it also
   // lands in the generic EVM stream. The perps source already surfaces it, so
   // the generic copy is dropped to stop it double-rendering across filters.
-  const makePerpsLocalTx = (txType: TransactionType) => ({
+  const makePerpsLocalTx = (
+    txType: TransactionType,
+    nestedTxTypes?: TransactionType[],
+  ) => ({
     type: 'contractInteraction' as const,
     chainId: 'eip155:1',
     status: 'pending' as const,
@@ -775,6 +778,11 @@ describe('ActivityList', () => {
           hash: '0xperpsdep',
           id: 'perps-dep-id',
           type: txType,
+          ...(nestedTxTypes
+            ? {
+                nestedTransactions: nestedTxTypes.map((type) => ({ type })),
+              }
+            : {}),
           txParams: { from: '0xevm', nonce: '0x1' },
         },
       },
@@ -806,6 +814,25 @@ describe('ActivityList', () => {
       expect(screen.queryByTestId('row-0xperpsdep')).toBeNull();
     },
   );
+
+  it('suppresses the generic EVM copy of a batch-wrapped perps withdraw when perps is enabled', () => {
+    selectorValues.perpsEnabled = true;
+    (useLocalActivityItems as jest.Mock).mockReturnValue([
+      makePerpsLocalTx(TransactionType.batch, [TransactionType.perpsWithdraw]),
+    ]);
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+
+    render(<ActivityList header={<></>} />);
+
+    expect(screen.queryByTestId('row-0xperpsdep')).toBeNull();
+  });
 
   it('keeps the generic EVM copy of a perps deposit when perps is disabled', () => {
     selectorValues.perpsEnabled = false;

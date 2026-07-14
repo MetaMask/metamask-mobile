@@ -77,12 +77,32 @@ function useOpenPerpsHome() {
   }, [navigation]);
 }
 
-function StatusAndDateRows({ item }: { item: PerpsActivityListItem }) {
+
+function resolveOrderStatusLabel(status: PerpsActivityListItem['status']) {
+  switch (status) {
+    case 'cancelled':
+      return strings('transactions.activity_order_status_canceled');
+    case 'failed':
+      return strings('transactions.activity_order_status_rejected');
+    case 'pending':
+      return strings('transactions.activity_order_status_open');
+    default:
+      return strings('transactions.activity_order_status_filled');
+  }
+}
+
+function StatusAndDateRows({
+  item,
+  statusLabel,
+}: {
+  item: PerpsActivityListItem;
+  statusLabel?: string;
+}) {
   return (
     <>
       <ActivityDetailRow
         label={strings('activity_details.status')}
-        value={<ActivityDetailsStatus status={item.status} />}
+        value={<ActivityDetailsStatus status={item.status} label={statusLabel} />}
         testID={ActivityDetailsSelectorsIDs.STATUS_ROW}
       />
       <ActivityDetailRow
@@ -193,7 +213,10 @@ function OrderDetails({
       }
       metadata={
         <ActivityDetailSection>
-          <StatusAndDateRows item={item} />
+          <StatusAndDateRows
+            item={item}
+            statusLabel={resolveOrderStatusLabel(item.status)}
+          />
           <ActivityDetailRow
             label={strings('perps.transactions.order.size')}
             value={order?.size ? getPerpsPriceValue(order.size) : undefined}
