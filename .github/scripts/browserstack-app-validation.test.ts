@@ -83,7 +83,8 @@ describe('browserstack-app-validation', () => {
   });
 
   it('writes only validated single-line GitHub outputs', () => {
-    const outputPath = path.join(os.tmpdir(), `gh-output-${Date.now()}.txt`);
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gh-output-'));
+    const outputPath = path.join(tempDir, 'gh-output-test.txt');
     writeGithubOutputs(outputPath, {
       found: 'true',
       'with-srp-browserstack-url': 'bs://abc123',
@@ -92,6 +93,6 @@ describe('browserstack-app-validation', () => {
     expect(fs.readFileSync(outputPath, 'utf8')).toBe(
       'found=true\nwith-srp-browserstack-url=bs://abc123\n',
     );
-    fs.unlinkSync(outputPath);
+    fs.rmSync(tempDir, { recursive: true, force: true });
   });
 });
