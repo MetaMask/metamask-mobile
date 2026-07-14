@@ -34,7 +34,8 @@ test.describe(PerformanceOnboarding, () => {
     async ({ currentDeviceDetails, driver, performanceTracker }) => {
       const timer1 = new TimerHelper(
         'Time since the user clicks on "Create new wallet" button until "Social sign up" is visible',
-        { ios: 1500, android: 1800 },
+        // MMQA-1667: bump thresholds so this is a real perf-spec delta (not comment-only).
+        { ios: 1520, android: 1820 },
         currentDeviceDetails.platform,
       );
       const timer2 = new TimerHelper(
@@ -63,7 +64,7 @@ test.describe(PerformanceOnboarding, () => {
         { ios: 21000, android: 5000 },
         currentDeviceDetails.platform,
       );
-      const walletTokenLoadTimeoutMs = 60_000;
+      const walletTokenLoadTimeoutMs = 60_500; // MMQA-1667 path verification
 
       const productionFeatureFlags = await fetchProductionFeatureFlags(
         'main',
