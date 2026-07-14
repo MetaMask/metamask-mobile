@@ -25,12 +25,18 @@ import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFie
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
 import PerpsMarketList from '../../components/PerpsMarketList';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
+import PerpsRecentlyViewedRail, {
+  RECENTLY_VIEWED_SOURCE_SECTION,
+} from '../../components/PerpsRecentlyViewedRail';
 import {
   usePerpsMarketListView,
   usePerpsMeasurement,
   usePerpsNavigation,
 } from '../../hooks';
-import { selectPerpsWatchlistEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPerpsWatchlistEnabledFlag,
+  selectPerpsRecentlyViewedEnabledFlag,
+} from '../../selectors/featureFlags';
 import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketRowSkeleton from './components/PerpsMarketRowSkeleton';
 import PerpsMarketListEmptyState from './components/PerpsMarketListEmptyState';
@@ -92,6 +98,9 @@ const PerpsMarketListView = ({
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
+  const isRecentlyViewedEnabled = useSelector(
+    selectPerpsRecentlyViewedEnabledFlag,
+  );
 
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
@@ -102,6 +111,7 @@ const PerpsMarketListView = ({
     sortState,
     favoritesState,
     marketTypeFilterState,
+    recentlyViewedState,
     isLoading: isLoadingMarkets,
     error,
   } = usePerpsMarketListView({
@@ -154,17 +164,23 @@ const PerpsMarketListView = ({
   const flushPendingSearchQueryRef = useRef<() => void>(() => {
     // Assigned below once flushPendingSearchQuery is defined.
   });
+  // Destructure recently viewed state
+  const { recentlyViewedMarketObjects } = recentlyViewedState;
 
   // Handler for market press (defined early to avoid use-before-define)
   const handleMarketPress = useCallback(
-    (market: PerpsMarketData) => {
+    (market: PerpsMarketData, sourceSectionOverride?: string) => {
       if (onMarketSelect) {
         onMarketSelect(market);
       } else {
-        // Compute source_section so asset_details can include it in PERPS_SCREEN_VIEWED
+        // Compute source_section so asset_details can include it in PERPS_SCREEN_VIEWED.
+        // Callers like the Recently Viewed rail pass an explicit override since
+        // that section is orthogonal to the current search/watchlist/category state.
         let source_section: string;
         const trimmedQuery = searchQuery.trim();
-        if (trimmedQuery) {
+        if (sourceSectionOverride) {
+          source_section = sourceSectionOverride;
+        } else if (trimmedQuery) {
           source_section = PERPS_EVENT_VALUE.SOURCE_SECTION.ACTIVE_SEARCH;
           const resultRank =
             filteredMarkets.findIndex((m) => m.symbol === market.symbol) + 1;
@@ -760,7 +776,34 @@ const PerpsMarketListView = ({
           showWatchlistBadge={isWatchlistEnabled}
           isWatchlistSelected={showFavoritesOnly}
           onWatchlistToggle={handleWatchlistToggle}
+          showSortRow={false}
           testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
+        />
+      )}
+
+      {isRecentlyViewedEnabled &&
+        !isLoadingMarkets &&
+        !error &&
+        !searchQuery.trim() &&
+        !(isWatchlistEnabled && showFavoritesOnly) && (
+          <PerpsRecentlyViewedRail
+            markets={recentlyViewedMarketObjects}
+            onMarketPress={(market) =>
+              handleMarketPress(market, RECENTLY_VIEWED_SOURCE_SECTION)
+            }
+          />
+        )}
+
+      {!isLoadingMarkets && !error && (
+        <PerpsMarketFiltersBar
+          selectedOptionId={selectedOptionId}
+          onSortPress={() => setIsSortFieldSheetVisible(true)}
+          marketTypeFilter={marketTypeFilter}
+          onCategorySelect={handleCategorySelect}
+          marketCount={filteredMarkets.length}
+          isWatchlistSelected={showFavoritesOnly}
+          showCategoryRow={false}
+          testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`}
         />
       )}
 

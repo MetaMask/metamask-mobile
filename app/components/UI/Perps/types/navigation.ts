@@ -63,6 +63,8 @@ export type PerpsStackParamList = {
     source?: string;
     /** Analytics: market-list discovery section (search, watchlist, category, all_markets) */
     source_section?: string;
+    /** Analytics: chart library active when the order flow started */
+    chartLibrary?: string;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 

@@ -145,6 +145,7 @@ import { getAuthenticatedUserStorageServiceMessenger } from './authenticated-use
 import { getCardControllerMessenger } from './card-controller-messenger';
 import { getClientControllerMessenger } from './client-controller-messenger';
 import { getQrSyncControllerMessenger } from './qr-sync-controller-messenger';
+import { getQrSyncProvisioningServiceMessenger } from './qr-sync-provisioning-service-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
 import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
 import { getConfigRegistryApiServiceMessenger } from './config-registry-api-service-messenger.ts';
@@ -473,6 +474,10 @@ export const MESSENGER_FACTORIES = {
   },
   QrSyncController: {
     getMessenger: getQrSyncControllerMessenger,
+    getInitMessenger: noop,
+  },
+  QrSyncProvisioningService: {
+    getMessenger: getQrSyncProvisioningServiceMessenger,
     getInitMessenger: noop,
   },
   ClientController: {

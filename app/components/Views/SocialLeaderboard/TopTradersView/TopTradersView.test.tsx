@@ -70,15 +70,31 @@ const mockNavigate = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockRefresh = jest.fn();
 const mockHasNotificationPreferences = jest.fn(() => true);
+const mockOpenSystemSettings = jest.fn();
+let mockRouteParams: {
+  source?: string;
+  showNotificationsBanner?: boolean;
+} = {};
+
+jest.mock(
+  '../../../../util/notifications/services/NotificationService',
+  () => ({
+    __esModule: true,
+    default: { openSystemSettings: () => mockOpenSystemSettings() },
+  }),
+);
+
 const mockToggleTraderNotification = jest.fn();
 const mockIsTraderNotificationEnabled = jest.fn((_traderId: string) => true);
 
-let mockNotificationPreferences = {
+const defaultNotificationPreferences = {
   ...DEFAULT_SOCIAL_AI_PREFERENCES,
   mutedTraderProfileIds: [
     ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
   ],
 };
+
+let mockNotificationPreferences = { ...defaultNotificationPreferences };
 
 const channelsDisabledPreferences = {
   ...DEFAULT_SOCIAL_AI_PREFERENCES,
@@ -103,7 +119,7 @@ jest.mock('@react-navigation/native', () => {
       }
       return navigation;
     },
-    useRoute: () => ({ params: {} }),
+    useRoute: () => ({ params: mockRouteParams }),
   };
 });
 
@@ -277,12 +293,8 @@ describe('TopTradersView', () => {
     mockSelectSocialLeaderboardEnabled.mockReturnValue(true);
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
     mockHasNotificationPreferences.mockReturnValue(true);
-    mockNotificationPreferences = {
-      ...DEFAULT_SOCIAL_AI_PREFERENCES,
-      mutedTraderProfileIds: [
-        ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
-      ],
-    };
+    mockRouteParams = {};
+    mockNotificationPreferences = { ...defaultNotificationPreferences };
     mockIsTraderNotificationEnabled.mockReturnValue(true);
   });
 
@@ -293,7 +305,7 @@ describe('TopTradersView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the Top Traders title in the scrollable title section', () => {
+  it('renders the Weekly Top Traders title in the scrollable title section', () => {
     renderWithProvider(<TopTradersView />);
 
     expect(
@@ -350,6 +362,75 @@ describe('TopTradersView', () => {
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.NOTIFICATION_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  describe('notifications nudge banner', () => {
+    it('is hidden by default (no route param)', () => {
+      renderWithProvider(<TopTradersView />);
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.NOTIFICATIONS_BANNER),
+      ).toBeNull();
+    });
+
+    it('renders when the showNotificationsBanner route param is set', () => {
+      mockRouteParams = { showNotificationsBanner: true };
+      renderWithProvider(<TopTradersView />);
+
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.NOTIFICATIONS_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens system settings and dismisses when the CTA is pressed', () => {
+      mockRouteParams = { showNotificationsBanner: true };
+      renderWithProvider(<TopTradersView />);
+
+      fireEvent.press(screen.getByText('Open settings'));
+
+      expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.NOTIFICATIONS_BANNER),
+      ).toBeNull();
+    });
+
+    it('dismisses when the close button is pressed', () => {
+      mockRouteParams = { showNotificationsBanner: true };
+      renderWithProvider(<TopTradersView />);
+
+      fireEvent.press(screen.getByLabelText('Close banner'));
+
+      expect(mockOpenSystemSettings).not.toHaveBeenCalled();
+      expect(
+        screen.queryByTestId(TopTradersViewSelectorsIDs.NOTIFICATIONS_BANNER),
+      ).toBeNull();
+    });
+
+    it('auto-dismisses after the timeout window', () => {
+      jest.useFakeTimers();
+      try {
+        mockRouteParams = { showNotificationsBanner: true };
+        renderWithProvider(<TopTradersView />);
+
+        expect(
+          screen.getByTestId(TopTradersViewSelectorsIDs.NOTIFICATIONS_BANNER),
+        ).toBeOnTheScreen();
+
+        act(() => {
+          jest.advanceTimersByTime(20000);
+        });
+
+        expect(
+          screen.queryByTestId(TopTradersViewSelectorsIDs.NOTIFICATIONS_BANNER),
+        ).toBeNull();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
   });
 
   it('navigates to the socialAI notification settings section when notification button is pressed and preferences exist', () => {

@@ -429,6 +429,38 @@ describe('TransactionDetailsHero', () => {
       expect(queryByText('You received')).toBeNull();
     });
 
+    it('falls back to decoded mUSD amount when targetFiat is 0 for mUSD-to-mUSD moneyAccountWithdraw', () => {
+      const oneMusdTransferData =
+        '0xa9059cbb000000000000000000000000d8da6bf26964af9d7eed9e03e53415d37aa9604500000000000000000000000000000000000000000000000000000000000f4240';
+
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.batch,
+          chainId: CHAIN_IDS.MONAD,
+          txParams: { data: '0x123', to: '0x456' },
+          nestedTransactions: [
+            { type: TransactionType.moneyAccountWithdraw },
+            {
+              type: TransactionType.tokenMethodTransfer,
+              to: MUSD_TOKEN_ADDRESS,
+              data: oneMusdTransferData,
+            },
+          ],
+          metamaskPay: {
+            tokenAddress: MUSD_TOKEN_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
+            targetFiat: '0',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText(/-\$1$/)).toBeDefined();
+      expect(queryByText(/\$0/)).toBeNull();
+    });
+
     it('renders single-row hero for cross-chain mUSD moneyAccountWithdraw', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {

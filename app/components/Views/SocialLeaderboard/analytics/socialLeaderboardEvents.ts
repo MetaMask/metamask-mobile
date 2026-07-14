@@ -18,14 +18,19 @@ export const SocialLeaderboardEventProperties = {
   IS_FOLLOWING: 'is_following',
   IS_OPEN: 'is_open',
   NOTIFICATION_SUBTYPE: 'notification_subtype',
+  INTERACTION_TYPE: 'interaction_type',
+  NUX_STEP: 'nux_step',
   NOTIFICATION_TEMPLATE_VARIANT: 'notification_template_variant',
   PREVIOUS_CHAIN_FILTER: 'previous_chain_filter',
+  SCREEN: 'screen',
   SOURCE: 'source',
   TAB: 'tab',
   TRADER_ADDRESS: 'trader_address',
   TRADER_HAS_PROFILE_PICTURE_SET: 'trader_has_profile_picture_set',
   TRADER_RANK: 'trader_rank',
   TRADER_USERNAME: 'trader_username',
+  TRADERS_FOLLOWED_COUNT: 'traders_followed_count',
+  TRADERS_PRE_SELECTED_COUNT: 'traders_pre_selected_count',
 } as const;
 
 /** Closed-set property values used by enum-typed properties. */
@@ -33,6 +38,20 @@ export const SocialLeaderboardEventValues = {
   ACTION: {
     FOLLOW: 'follow',
     UNFOLLOW: 'unfollow',
+  },
+  INTERACTION_TYPE: {
+    ALLOW_NOTIFICATIONS: 'allow_notifications',
+    BACK: 'back',
+    CONTINUE: 'continue',
+    DISMISSED: 'dismissed',
+    FOLLOW_TOP_THREE: 'follow_top_three',
+    GOT_IT: 'got_it',
+    MAYBE_LATER: 'maybe_later',
+  },
+  NUX_STEP: {
+    STEP_1: 'step_1',
+    STEP_2: 'step_2',
+    STEP_3: 'step_3',
   },
   TAB: {
     OPEN: 'open',
@@ -58,6 +77,7 @@ export type SocialLeaderboardSource =
   | 'home_carousel'
   | 'leaderboard'
   | 'trader_profile'
+  | 'trader_feed'
   | 'profile_position'
   | 'asset_details'
   | 'market_insights'
@@ -81,12 +101,12 @@ export type LeaderboardScreenViewedSource = Extract<
 
 export type TraderProfileScreenViewedSource = Extract<
   SocialLeaderboardSource,
-  'leaderboard' | 'home_carousel' | 'notification' | 'deep_link'
+  'leaderboard' | 'home_carousel' | 'notification' | 'deep_link' | 'trader_feed'
 >;
 
 export type TraderFollowInteractionSource = Extract<
   SocialLeaderboardSource,
-  'leaderboard' | 'trader_profile' | 'home_carousel'
+  'leaderboard' | 'trader_profile' | 'home_carousel' | 'nux'
 >;
 
 export type FollowTradingTokenSource = Extract<
