@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
 import PerpsLimitPriceBottomSheet from './PerpsLimitPriceBottomSheet';
+import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 
 // Mock dependencies - only what's absolutely necessary
 jest.mock('react-native-gesture-handler', () => ({
@@ -225,21 +226,28 @@ jest.mock(
           label: string;
           onPress: () => void;
           disabled?: boolean;
+          isDisabled?: boolean;
+          testID?: string;
         }[];
       }) => (
         <View>
-          {buttonPropsArray?.map((buttonProps, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={buttonProps.onPress}
-              disabled={buttonProps.disabled || false}
-              accessibilityState={{
-                disabled: buttonProps.disabled === true,
-              }}
-            >
-              <Text>{buttonProps.label}</Text>
-            </TouchableOpacity>
-          ))}
+          {buttonPropsArray?.map((buttonProps, index) => {
+            const isDisabled =
+              buttonProps.isDisabled === true || buttonProps.disabled === true;
+            return (
+              <TouchableOpacity
+                key={index}
+                testID={buttonProps.testID}
+                onPress={buttonProps.onPress}
+                disabled={isDisabled}
+                accessibilityState={{
+                  disabled: isDisabled,
+                }}
+              >
+                <Text>{buttonProps.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       ),
     };
@@ -655,7 +663,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
       expect(mockOnClose).not.toHaveBeenCalled();
     });
 
-    it('calls onConfirm with empty string when no limit price set', () => {
+    it('keeps Set disabled and does not submit when no limit price is set', () => {
       // Arrange
       const mockOnConfirm = jest.fn();
       render(
@@ -669,11 +677,11 @@ describe('PerpsLimitPriceBottomSheet', () => {
         'perps.order.limit_price_modal.set',
       );
 
-      // Act - Force press even though disabled for testing
+      // Act - pressing a disabled button should be a no-op
       fireEvent.press(confirmButton);
 
-      // Assert
-      expect(mockOnConfirm).toHaveBeenCalledWith('');
+      // Assert - the button is disabled and confirm is not called
+      expect(mockOnConfirm).not.toHaveBeenCalled();
     });
   });
 
@@ -972,6 +980,123 @@ describe('PerpsLimitPriceBottomSheet', () => {
       expect(
         screen.getByText('perps.order.limit_price_modal.limit_price_above'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Max deviation from market price (closing a position)', () => {
+    it('warns and disables Set when the price is more than 95% away from the market price', () => {
+      // Arrange - 999999999 is a valid integer for HyperLiquid but is far beyond
+      // the 95% band from the 3000 market price, so HyperLiquid would reject it
+      // ("oracleRejected"). Block it up front.
+      render(
+        <PerpsLimitPriceBottomSheet
+          {...defaultProps}
+          isClosingPosition
+          limitPrice="999999999"
+          currentPrice={3000}
+        />,
+      );
+
+      // Assert - the too-far warning is shown and Set is disabled
+      expect(
+        screen.getByText('perps.order.limit_price_modal.limit_price_too_far'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      ).toBeDisabled();
+    });
+
+    it('warns and disables Set when the price is far below the market price', () => {
+      // Arrange - 100 is ~96.7% below the 3000 market price (beyond the 95% band)
+      render(
+        <PerpsLimitPriceBottomSheet
+          {...defaultProps}
+          isClosingPosition
+          limitPrice="100"
+          currentPrice={3000}
+        />,
+      );
+
+      // Assert
+      expect(
+        screen.getByText('perps.order.limit_price_modal.limit_price_too_far'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      ).toBeDisabled();
+    });
+
+    it('does not warn and keeps Set enabled when the price is within the 95% band', () => {
+      // Arrange - 3100 is ~3.3% from the 3000 market price, well within the band
+      render(
+        <PerpsLimitPriceBottomSheet
+          {...defaultProps}
+          isClosingPosition
+          limitPrice="3100"
+          currentPrice={3000}
+        />,
+      );
+
+      // Assert - no too-far warning and Set is enabled
+      expect(
+        screen.queryByText('perps.order.limit_price_modal.limit_price_too_far'),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(
+          PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      ).toBeEnabled();
+    });
+
+    it('keeps Set enabled for a high limit price still within the ratio band', () => {
+      // Arrange - 30000 is 10x the 3000 market price. The reference price (3000)
+      // is 10% of the limit price, above the 5% floor, so it is allowed. This
+      // guards against a purely additive deviation check that would wrongly
+      // block anything above ~2x the market price.
+      render(
+        <PerpsLimitPriceBottomSheet
+          {...defaultProps}
+          isClosingPosition
+          limitPrice="30000"
+          currentPrice={3000}
+        />,
+      );
+
+      // Assert - no too-far warning and Set is enabled
+      expect(
+        screen.queryByText('perps.order.limit_price_modal.limit_price_too_far'),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(
+          PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      ).toBeEnabled();
+    });
+
+    it('does not apply the deviation block when opening a normal limit order', () => {
+      // Arrange - same far-off price, but not closing a position. Opening a
+      // normal limit order must not be blocked by this close-only validation.
+      render(
+        <PerpsLimitPriceBottomSheet
+          {...defaultProps}
+          limitPrice="999999999"
+          currentPrice={3000}
+        />,
+      );
+
+      // Assert - no too-far warning and Set is enabled
+      expect(
+        screen.queryByText('perps.order.limit_price_modal.limit_price_too_far'),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(
+          PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      ).toBeEnabled();
     });
   });
 });

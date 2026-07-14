@@ -284,6 +284,40 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   }, [limitPrice, currentPrice, direction, isClosingPosition]);
 
   /**
+   * HyperLiquid rejects orders whose price is more than 95% away from the
+   * reference (mark) price ("oracleRejected"). The check is ratio-based: the
+   * smaller of the limit price and the reference price must be at least 5%
+   * (1 - 0.95) of the larger one. Equivalently, the reference price can't be
+   * lower than 5% of the limit price (blocks fat-fingered highs like
+   * 999999999), and the limit price can't be lower than 5% of the reference
+   * price (blocks fat-fingered lows). Block submission up front so the order
+   * does not fail at the exchange.
+   *
+   * Only applied when closing a position. Opening a normal limit order is left
+   * to the order form's own validation.
+   */
+  const exceedsMaxDeviation = React.useMemo(() => {
+    if (!isClosingPosition) {
+      return false;
+    }
+    const parsedLimit = parseFloat(limitPrice.replace(/[$,]/g, ''));
+    const price = Number(currentPrice);
+    if (
+      !price ||
+      price <= 0 ||
+      !Number.isFinite(parsedLimit) ||
+      parsedLimit <= 0
+    ) {
+      return false;
+    }
+    const minPrice = Math.min(parsedLimit, price);
+    const maxPrice = Math.max(parsedLimit, price);
+    return (
+      minPrice < (1 - LIMIT_PRICE_CONFIG.MaxDeviationFromMarket) * maxPrice
+    );
+  }, [isClosingPosition, limitPrice, currentPrice]);
+
+  /**
    * Calculate limit price based on percentage from the current limit price (or
    * market price when no limit price is set yet).
    * @param percentage - Percentage to add/subtract from current price
@@ -323,7 +357,8 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         !limitPrice ||
         limitPrice === '' ||
         limitPrice === '0' ||
-        parseFloat(limitPrice.replace(/[$,]/g, '')) <= 0,
+        parseFloat(limitPrice.replace(/[$,]/g, '')) <= 0 ||
+        exceedsMaxDeviation,
     },
   ];
 
@@ -359,8 +394,14 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
           </View>
           <Text style={styles.limitPriceCurrency}>USD</Text>
         </View>
-        {limitPriceWarning && (
-          <Text style={styles.errorText}>{limitPriceWarning}</Text>
+        {exceedsMaxDeviation ? (
+          <Text style={styles.errorText}>
+            {strings('perps.order.limit_price_modal.limit_price_too_far')}
+          </Text>
+        ) : (
+          limitPriceWarning && (
+            <Text style={styles.errorText}>{limitPriceWarning}</Text>
+          )
         )}
         {/* Current market price below input */}
         <Text style={styles.marketPriceText}>
