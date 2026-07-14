@@ -44,6 +44,9 @@ export const rampsControllerInit: MessengerClientInitFunction<
     // request omits `redirectUrl`, so aggregator quotes would come back without
     // the buy-widget URL the headless Checkout WebView needs; supply the same
     // callback base the UB2 flow uses so the widened path can open the WebView.
+    // TODO(TRAM-3757): Derive this default redirect URL inside RampsController
+    // from its RampsEnvironment (RampsService.getBaseUrl) instead of injecting
+    // it from the client here; this callback duplicates a value core already has.
     getDefaultRedirectUrl: () => getRampCallbackBaseUrl(),
   });
 
