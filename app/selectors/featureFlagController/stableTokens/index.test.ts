@@ -1,4 +1,5 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import type { Json } from '@metamask/utils';
 import { Hex } from '@metamask/utils';
 import { selectStablecoins, STABLE_TOKENS_FLAG } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
@@ -8,7 +9,7 @@ jest.mock('../../../core/Engine', () => ({
   init: () => mockedEngine.init(),
 }));
 
-const getMockedFeatureFlag = (value: unknown) => ({
+const getMockedFeatureFlag = (value: Json) => ({
   engine: {
     backgroundState: {
       RemoteFeatureFlagController: {
