@@ -44,7 +44,11 @@ jest.mock('../../../util/notifications/categories', () => ({
   ...jest.requireActual('../../../util/notifications/categories'),
   useNotificationCategories: () => ({
     categories: [
-      { categoryId: 'walletActivity', ausKeys: ['walletActivity'], icon: 'Clock' },
+      {
+        categoryId: 'walletActivity',
+        ausKeys: ['walletActivity'],
+        icon: 'Clock',
+      },
       { categoryId: 'perps', ausKeys: ['perps'], icon: 'Candlestick' },
       { categoryId: 'marketing', ausKeys: ['marketing'], icon: 'Campaign' },
     ],

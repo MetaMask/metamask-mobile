@@ -184,8 +184,8 @@ const NotificationSettingsSection = ({
     pushNotificationsEnabled: 0,
     inAppNotificationsEnabled: 0,
   });
-  const sectionExists = targetAusKeysInPreferences(ausKeys, preferences)
-    .length > 0;
+  const sectionExists =
+    targetAusKeysInPreferences(ausKeys, preferences).length > 0;
   const sectionPrefs = sectionExists
     ? {
         pushNotificationsEnabled: isChannelEnabledForAusKeys(
@@ -262,7 +262,13 @@ const NotificationSettingsSection = ({
         }
       });
     },
-    [ausKeys, categoryId, clearPendingChannelToggle, preferences, updateSectionChannel],
+    [
+      ausKeys,
+      categoryId,
+      clearPendingChannelToggle,
+      preferences,
+      updateSectionChannel,
+    ],
   );
 
   useEffect(() => {
