@@ -21,7 +21,7 @@ export const __resetUpgradesInFlightForTesting = () => {
 };
 
 export const upgradeMoneyAccount =
-  (): ThunkAction<void, RootState, unknown, AnyAction> =>
+  (signal?: AbortSignal): ThunkAction<void, RootState, unknown, AnyAction> =>
   (_dispatch, getState) => {
     const address = selectPrimaryMoneyAccount(getState())?.address;
     if (!address || !isStrictHexString(address)) {
@@ -42,7 +42,10 @@ export const upgradeMoneyAccount =
     whenMoneyAccountUpgradeReady()
       .then(
         () =>
-          Engine.context.MoneyAccountUpgradeController.upgradeAccount(address),
+          Engine.context.MoneyAccountUpgradeController.upgradeAccountWithRetry(
+            address,
+            { signal },
+          ),
         (error: unknown) => {
           // The controller isn't ready: the feature flag is off, the keyring
           // is locked, or bootstrap failed. "Not ready" is a normal state, and
@@ -56,7 +59,13 @@ export const upgradeMoneyAccount =
         },
       )
       .catch((error: unknown) => {
-        // Reached only for errors thrown by upgradeAccount itself.
+        // Reached only for errors thrown by upgradeAccountWithRetry itself.
+        // An aborted run (screen lost focus) is a normal way for the retry
+        // loop to end, not a failure worth reporting.
+        if (signal?.aborted) {
+          Logger.log(LOG_PREFIX, 'upgrade aborted; skipping', { address });
+          return;
+        }
         const wrapped =
           error instanceof Error ? error : new Error(String(error));
         const step = isMoneyAccountUpgradeStepError(error)

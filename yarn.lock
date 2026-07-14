@@ -9381,21 +9381,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-upgrade-controller@npm:^2.2.0":
-  version: 2.2.1
-  resolution: "@metamask/money-account-upgrade-controller@npm:2.2.1"
+"@metamask/money-account-upgrade-controller@npm:@metamask-previews/money-account-upgrade-controller@2.2.1-preview-10d0bd75c":
+  version: 2.2.1-preview-10d0bd75c
+  resolution: "@metamask-previews/money-account-upgrade-controller@npm:2.2.1-preview-10d0bd75c"
   dependencies:
-    "@metamask/authenticated-user-storage": "npm:^3.0.0"
+    "@metamask/authenticated-user-storage": "npm:^3.0.1"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/chomp-api-service": "npm:^3.1.0"
     "@metamask/delegation-controller": "npm:^3.0.2"
     "@metamask/delegation-core": "npm:^2.2.1"
     "@metamask/delegation-deployments": "npm:^1.4.0"
     "@metamask/keyring-controller": "npm:^27.1.0"
-    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/messenger": "npm:^2.0.0"
     "@metamask/network-controller": "npm:^34.0.0"
     "@metamask/utils": "npm:^11.11.0"
-  checksum: 10/9b29106b4399a5591eed33c95d781d1eed37862c36877c1fe2b3a6ac905cd10e63bce37916af8c040442f5ee99332c8643ab638ed2b4510e8baaea50328fa725
+  checksum: 10/24d657435e91ffcfde0ee989cf8ece367912a20cd8f10d89a205057abd704f5785dbec048b5c92a15c05bf06e1d504212e9775759c941268859dc3f863a82385
   languageName: node
   linkType: hard
 
@@ -35902,7 +35902,7 @@ __metadata:
     "@metamask/money-account-api-data-service": "npm:^0.3.0"
     "@metamask/money-account-balance-service": "npm:^2.3.0"
     "@metamask/money-account-controller": "npm:^0.2.0"
-    "@metamask/money-account-upgrade-controller": "npm:^2.2.0"
+    "@metamask/money-account-upgrade-controller": "npm:@metamask-previews/money-account-upgrade-controller@2.2.1-preview-10d0bd75c"
     "@metamask/multichain-account-service": "npm:^11.0.0"
     "@metamask/multichain-api-client": "npm:^0.11.0"
     "@metamask/multichain-api-middleware": "npm:^3.1.1"

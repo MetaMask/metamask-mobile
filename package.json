@@ -319,7 +319,7 @@
     "@metamask/money-account-api-data-service": "^0.3.0",
     "@metamask/money-account-balance-service": "^2.3.0",
     "@metamask/money-account-controller": "^0.2.0",
-    "@metamask/money-account-upgrade-controller": "^2.2.0",
+    "@metamask/money-account-upgrade-controller": "npm:@metamask-previews/money-account-upgrade-controller@2.2.1-preview-10d0bd75c",
     "@metamask/multichain-account-service": "^11.0.0",
     "@metamask/multichain-api-client": "^0.11.0",
     "@metamask/multichain-api-middleware": "^3.1.1",

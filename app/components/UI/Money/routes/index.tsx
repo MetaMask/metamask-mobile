@@ -19,7 +19,7 @@ import MoneyLinkCardSheet from '../components/MoneyLinkCardSheet';
 import MoneyEarnCryptoInfoSheet from '../components/MoneyEarnCryptoInfoSheet';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
-import { useUpgradeMoneyAccountOnMount } from '../hooks/useUpgradeMoneyAccountOnMount';
+import { useUpgradeMoneyAccountOnFocus } from '../hooks/useUpgradeMoneyAccountOnFocus';
 import MoneyGeoBlockSheet from '../components/MoneyGeoBlockSheet/MoneyGeoBlockSheet';
 import type {
   MoneyConfirmationsNavigationParamList,
@@ -36,7 +36,7 @@ const ModalStack = createNativeStackNavigator<MoneyModalsNavigationParamList>();
 const MoneyTabScreenStack = () => {
   const { colors } = useTheme();
 
-  useUpgradeMoneyAccountOnMount();
+  useUpgradeMoneyAccountOnFocus();
 
   return (
     <TabStack.Navigator
@@ -65,7 +65,7 @@ const MoneyConfirmationScreenStack = () => {
   const { colors } = useTheme();
   const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
 
-  useUpgradeMoneyAccountOnMount();
+  useUpgradeMoneyAccountOnFocus();
 
   return (
     <ConfirmationStack.Navigator

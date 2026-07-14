@@ -13,7 +13,7 @@ jest.mock('../../core/Engine', () => ({
   default: {
     context: {
       MoneyAccountUpgradeController: {
-        upgradeAccount: jest.fn(),
+        upgradeAccountWithRetry: jest.fn(),
       },
     },
   },
@@ -39,7 +39,7 @@ jest.mock(
 );
 
 const mockUpgradeAccount = Engine.context.MoneyAccountUpgradeController
-  .upgradeAccount as jest.Mock;
+  .upgradeAccountWithRetry as jest.Mock;
 const mockSelectPrimaryMoneyAccount =
   selectPrimaryMoneyAccount as unknown as jest.Mock;
 const mockLogError = Logger.error as jest.Mock;
@@ -63,13 +63,62 @@ describe('upgradeMoneyAccount', () => {
     mockUpgradeAccount.mockResolvedValue(undefined);
   });
 
-  it('calls MoneyAccountUpgradeController.upgradeAccount with the primary money account address', async () => {
+  it('calls MoneyAccountUpgradeController.upgradeAccountWithRetry with the primary money account address', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
 
     upgradeMoneyAccount()(dispatch, getState, undefined);
     await flushPromises();
 
-    expect(mockUpgradeAccount).toHaveBeenCalledWith(ADDRESS);
+    expect(mockUpgradeAccount).toHaveBeenCalledWith(ADDRESS, {
+      signal: undefined,
+    });
+  });
+
+  it('passes the provided AbortSignal to upgradeAccountWithRetry', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    const abortController = new AbortController();
+
+    upgradeMoneyAccount(abortController.signal)(dispatch, getState, undefined);
+    await flushPromises();
+
+    expect(mockUpgradeAccount).toHaveBeenCalledWith(ADDRESS, {
+      signal: abortController.signal,
+    });
+  });
+
+  it('logs quietly (no Sentry error) when the upgrade rejects after the signal aborted', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    const abortController = new AbortController();
+    mockUpgradeAccount.mockImplementationOnce(() => {
+      abortController.abort();
+      return Promise.reject(new Error('Money Account upgrade retry aborted'));
+    });
+
+    upgradeMoneyAccount(abortController.signal)(dispatch, getState, undefined);
+    await flushPromises();
+
+    expect(mockLogError).not.toHaveBeenCalled();
+    expect(mockLogLog).toHaveBeenCalledWith(
+      expect.stringContaining('upgradeMoneyAccount'),
+      'upgrade aborted; skipping',
+      { address: ADDRESS },
+    );
+  });
+
+  it('allows a new upgrade after an aborted one settles', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    const abortController = new AbortController();
+    mockUpgradeAccount.mockImplementationOnce(() => {
+      abortController.abort();
+      return Promise.reject(new Error('Money Account upgrade retry aborted'));
+    });
+
+    upgradeMoneyAccount(abortController.signal)(dispatch, getState, undefined);
+    await flushPromises();
+    upgradeMoneyAccount()(dispatch, getState, undefined);
+    await flushPromises();
+
+    expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
   });
 
   it('skips the call and logs when there is no primary money account', () => {
@@ -218,7 +267,11 @@ describe('upgradeMoneyAccount', () => {
     await flushPromises();
 
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
-    expect(mockUpgradeAccount).toHaveBeenNthCalledWith(1, ADDRESS);
-    expect(mockUpgradeAccount).toHaveBeenNthCalledWith(2, OTHER_ADDRESS);
+    expect(mockUpgradeAccount).toHaveBeenNthCalledWith(1, ADDRESS, {
+      signal: undefined,
+    });
+    expect(mockUpgradeAccount).toHaveBeenNthCalledWith(2, OTHER_ADDRESS, {
+      signal: undefined,
+    });
   });
 });
