@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 
 import { Theme } from '../../../../../../util/theme/models';
+import { getElevatedSurfaceColor } from '../../../../../../util/theme/themeUtils';
 import { fontStyles } from '../../../../../../styles/common';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -13,7 +14,7 @@ const styleSheet = (params: { theme: Theme }) => {
       position: 'absolute',
     },
     container: {
-      backgroundColor: theme.colors.background.default,
+      backgroundColor: getElevatedSurfaceColor(theme),
       paddingHorizontal: 8,
       paddingVertical: 8,
     },
