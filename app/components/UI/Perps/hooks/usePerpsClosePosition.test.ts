@@ -1,7 +1,11 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
-import { type OrderResult, type Position } from '@metamask/perps-controller';
+import {
+  ORDER_SLIPPAGE_CONFIG,
+  type OrderResult,
+  type Position,
+} from '@metamask/perps-controller';
 import { usePerpsClosePosition } from './usePerpsClosePosition';
 import { usePerpsTrading } from './usePerpsTrading';
 
@@ -210,7 +214,7 @@ describe('usePerpsClosePosition', () => {
           slippage: {
             usdAmount: '2500',
             priceAtCalculation: 50000,
-            maxSlippageBps: 100,
+            maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps,
           },
         });
       });
@@ -243,7 +247,7 @@ describe('usePerpsClosePosition', () => {
           slippage: {
             usdAmount: '2500',
             priceAtCalculation: 50000,
-            maxSlippageBps: 300,
+            maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps,
           },
         });
       });
@@ -255,7 +259,7 @@ describe('usePerpsClosePosition', () => {
           orderType: 'market',
           usdAmount: '2500',
           priceAtCalculation: 50000,
-          maxSlippageBps: 300,
+          maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps,
         }),
       );
     });

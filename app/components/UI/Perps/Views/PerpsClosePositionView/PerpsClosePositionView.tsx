@@ -128,15 +128,13 @@ const PerpsClosePositionView: React.FC = () => {
   // State for limit price
   const [limitPrice, setLimitPrice] = useState('');
 
-  // Defensive gate: if the feature flag is disabled (or flips off mid-session)
-  // while a limit order is selected, fall back to a market close so the limit
-  // price row and confirm path can never submit a limit order behind the flag.
-  useEffect(() => {
-    if (!isClosePositionLimitOrderEnabled && orderType !== 'market') {
-      setOrderType('market');
-      setLimitPrice('');
-    }
-  }, [isClosePositionLimitOrderEnabled, orderType]);
+  // Gate the order type on the feature flag. Deriving it (instead of only
+  // resetting state in an effect) guarantees that a disabled — or mid-session
+  // flipped-off — flag can never drive limit UI, calculations, validation, or
+  // submission, with no one-render window before an effect would run.
+  const effectiveOrderType: OrderType = isClosePositionLimitOrderEnabled
+    ? orderType
+    : 'market';
 
   // Subscribe to real-time price with 1s debounce for position closing
   const priceData = usePerpsLivePrices({
@@ -173,14 +171,14 @@ const PerpsClosePositionView: React.FC = () => {
   // Calculate effective price for calculations
   // For limit orders, use limit price when available; otherwise use current market price
   const effectivePrice = useMemo(() => {
-    if (orderType === 'limit' && limitPrice) {
+    if (effectiveOrderType === 'limit' && limitPrice) {
       const parsed = parseFloat(limitPrice);
       if (!isNaN(parsed) && parsed > 0) {
         return parsed;
       }
     }
     return currentPrice;
-  }, [orderType, limitPrice, currentPrice]);
+  }, [effectiveOrderType, limitPrice, currentPrice]);
 
   // Calculate display values directly from closePercentage for immediate updates
   const { closeAmount, calculatedUSDString } = useMemo(() => {
@@ -232,28 +230,27 @@ const PerpsClosePositionView: React.FC = () => {
   // Keep pnl reference for backwards compatibility with event tracking
   const pnl = unrealizedPnl;
 
-  // Calculate position value and effective margin
-  // For limit orders, use limit price for display calculations
+  // Position value at the effective price (limit price for limit orders)
   const positionValue = useMemo(
     () => absSize * effectivePrice,
     [absSize, effectivePrice],
   );
 
-  // Calculate P&L based on effective price (limit price for limit orders)
-  // Use ref for market price to prevent recalculation on every WebSocket update
+  // P&L at the effective price. For limit orders this recomputes when the
+  // effective (limit or mark) price changes; for market orders it uses the
+  // live unrealized PnL.
   const entryPrice = parseFloat(position.entryPrice);
   const effectivePnL = useMemo(() => {
-    // Calculate P&L based on the effective price (limit price for limit orders)
     // For long positions: (effectivePrice - entryPrice) * absSize
     // For short positions: (entryPrice - effectivePrice) * absSize
-    if (orderType === 'market') {
+    if (effectiveOrderType === 'market') {
       return pnl;
     }
     const priceDiff = isLong
       ? effectivePrice - entryPrice
       : entryPrice - effectivePrice;
     return priceDiff * absSize;
-  }, [entryPrice, absSize, isLong, orderType, effectivePrice, pnl]);
+  }, [entryPrice, absSize, isLong, effectiveOrderType, effectivePrice, pnl]);
 
   // Margin returned on close, adjusted for the price the order will settle at.
   // marginUsed embeds unrealized PnL at the current mark price, so for limit
@@ -280,7 +277,7 @@ const PerpsClosePositionView: React.FC = () => {
   );
 
   const feeResults = usePerpsOrderFees({
-    orderType,
+    orderType: effectiveOrderType,
     amount: closingValueString,
     symbol: position.symbol,
     isClosing: true,
@@ -336,7 +333,7 @@ const PerpsClosePositionView: React.FC = () => {
     symbol: position.symbol,
     closePercentage,
     closeAmount: closeAmount.toString(),
-    orderType,
+    orderType: effectiveOrderType,
     limitPrice,
     // Pass the live mark price (not the limit price) so the "limit price far
     // from market" warning and protocol validation compare against the real
@@ -396,10 +393,10 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Auto-open limit price bottom sheet when switching to limit order
   useEffect(() => {
-    if (orderType === 'limit' && !limitPrice) {
+    if (effectiveOrderType === 'limit' && !limitPrice) {
       setIsLimitPriceVisible(true);
     }
-  }, [orderType, limitPrice]);
+  }, [effectiveOrderType, limitPrice]);
 
   const handleConfirm = async () => {
     // For full close, don't send size parameter
@@ -407,7 +404,7 @@ const PerpsClosePositionView: React.FC = () => {
     const isFullClose = closePercentage === 100;
 
     // For limit orders, validate price
-    if (orderType === 'limit' && !limitPrice) {
+    if (effectiveOrderType === 'limit' && !limitPrice) {
       return;
     }
 
@@ -417,8 +414,8 @@ const PerpsClosePositionView: React.FC = () => {
     await handleClosePosition({
       position: livePosition,
       size: sizeToClose || '',
-      orderType,
-      limitPrice: orderType === 'limit' ? limitPrice : undefined,
+      orderType: effectiveOrderType,
+      limitPrice: effectiveOrderType === 'limit' ? limitPrice : undefined,
       trackingData: {
         totalFee: feeResults.totalFee,
         marketPrice: currentPrice,
@@ -440,7 +437,7 @@ const PerpsClosePositionView: React.FC = () => {
         usdAmount: isFullClose ? undefined : closingValueString,
         priceAtCalculation: effectivePrice,
         maxSlippageBps:
-          orderType === 'limit'
+          effectiveOrderType === 'limit'
             ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps // 1% for limit orders
             : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps, // 3% for market orders
       },
@@ -615,7 +612,9 @@ const PerpsClosePositionView: React.FC = () => {
         )}
         title={strings('perps.close_position.title')}
         isLoading={isClosing}
-        orderType={isClosePositionLimitOrderEnabled ? orderType : undefined}
+        orderType={
+          isClosePositionLimitOrderEnabled ? effectiveOrderType : undefined
+        }
         onOrderTypePress={
           isClosePositionLimitOrderEnabled
             ? () => setIsOrderTypeVisible(true)
@@ -668,7 +667,7 @@ const PerpsClosePositionView: React.FC = () => {
         )}
 
         {/* Limit Price - only show for limit orders (still hidden during input to avoid overlap) */}
-        {orderType === 'limit' && !isInputFocused && (
+        {effectiveOrderType === 'limit' && !isInputFocused && (
           <View style={styles.detailsWrapper}>
             <View style={styles.inputGroupContainer}>
               <TouchableOpacity
@@ -775,9 +774,9 @@ const PerpsClosePositionView: React.FC = () => {
             onPress={handleConfirm}
             isDisabled={
               isClosing ||
-              (orderType === 'limit' &&
+              (effectiveOrderType === 'limit' &&
                 (!limitPrice || parseFloat(limitPrice) <= 0)) ||
-              (orderType === 'market' && closePercentage === 0) ||
+              (effectiveOrderType === 'market' && closePercentage === 0) ||
               !validationResult.isValid
             }
             isLoading={isClosing}

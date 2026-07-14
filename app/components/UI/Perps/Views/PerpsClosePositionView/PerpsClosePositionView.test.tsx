@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import {
@@ -3090,6 +3090,74 @@ describe('PerpsClosePositionView', () => {
 
       // Assert - header reflects the limit order type
       expect(getByText(strings('perps.order.limit'))).toBeDefined();
+    });
+
+    it('falls back to a market close if the flag flips off after a limit order is selected', async () => {
+      // Arrange - flag on, a limit order selected with a confirmed price
+      selectPerpsClosePositionLimitOrderEnabledFlagMock.mockReturnValue(true);
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+
+      const { getByTestId, queryByTestId, store } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      fireEvent.press(
+        getByTestId(PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON),
+      );
+      fireEvent.press(
+        getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
+      );
+      mockLimitPriceConfirmValue = '130';
+      fireEvent.press(
+        getByTestId(PerpsClosePositionViewSelectorsIDs.LIMIT_PRICE_ROW),
+      );
+      fireEvent.press(getByTestId('limit-price-confirm-button'));
+
+      // Assert - the limit price row is showing while the flag is enabled
+      expect(
+        getByTestId(PerpsClosePositionViewSelectorsIDs.LIMIT_PRICE_ROW),
+      ).toBeDefined();
+
+      // Act - the flag flips off mid-session; a store update makes the view
+      // re-read the (now disabled) flag through useSelector
+      selectPerpsClosePositionLimitOrderEnabledFlagMock.mockReturnValue(false);
+      act(() => {
+        store.dispatch({
+          type: 'SET_PRIMARY_CURRENCY',
+          primaryCurrency: 'USD',
+        });
+      });
+
+      // Assert - the limit UI is gone immediately, without waiting for an effect
+      expect(
+        queryByTestId(PerpsClosePositionViewSelectorsIDs.LIMIT_PRICE_ROW),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON),
+      ).toBeNull();
+
+      // Act - confirm the close
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      );
+
+      // Assert - a market close is submitted, never a limit order behind the flag
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalledWith(
+          expect.objectContaining({
+            orderType: 'market',
+            limitPrice: undefined,
+          }),
+        );
+      });
     });
   });
 });
