@@ -27,6 +27,7 @@ import {
   type ActivityListItem,
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
+  isFailedOrCancelledTransfer,
   isUnlimitedApprovalAmount,
   shouldShowPlusSign,
   type TokenAmount,
@@ -476,6 +477,8 @@ function resolveCoreContent(
       const pendingLabel = item.type === 'receive' ? 'Receiving' : 'Sending';
       const failedLabel =
         item.type === 'receive' ? 'Receive failed' : 'Send failed';
+      const cancelledLabel =
+        item.type === 'receive' ? 'Receive cancelled' : 'Send cancelled';
       const subtitlePrefix = item.type === 'receive' ? 'From' : 'To';
 
       return {
@@ -483,6 +486,7 @@ function resolveCoreContent(
           success: withOptionalSymbol(label, symbol),
           pending: withOptionalSymbol(pendingLabel, symbol),
           failed: failedLabel,
+          cancelled: cancelledLabel,
         }),
         subtitle: `${subtitlePrefix}: ${shortAddress(address) ?? strings('transactions.unavailable')}`,
         primaryToken: token,
@@ -1188,13 +1192,29 @@ export function useActivityListItemRowContent(
       })
     : undefined;
 
-  const primaryAmount =
+  const rawPrimaryAmount =
     domainFiatAmount ?? resolveAmount(primaryToken, item.type);
-  const secondaryAmount = domainFiatAmount
-    ? isFundsRow
-      ? fundsTokenSecondaryAmount(primaryToken)
-      : undefined
-    : (resolvedSecondaryAmount ?? secondaryFiatAmount ?? primaryFiatAmount);
+
+  const resolveRawSecondaryAmount = (): string | undefined => {
+    // USD-denominated (perps/predict) rows: the token line only makes sense for
+    // funds movements; other domain rows have no secondary line.
+    if (domainFiatAmount) {
+      return isFundsRow ? fundsTokenSecondaryAmount(primaryToken) : undefined;
+    }
+    // Non-domain rows: prefer the secondary token amount, then its fiat, then a
+    // primary fiat fallback.
+    return resolvedSecondaryAmount ?? secondaryFiatAmount ?? primaryFiatAmount;
+  };
+
+  // A failed or cancelled send/receive moved nothing, so the transfer amount
+  // (surfaced from the attempted/original tx) is misleading — suppress it here
+  // so every consumer of this resolver (the list row and the details amount
+  // header) stays consistent.
+  const suppressTransferAmount = isFailedOrCancelledTransfer(item);
+  const primaryAmount = suppressTransferAmount ? undefined : rawPrimaryAmount;
+  const secondaryAmount = suppressTransferAmount
+    ? undefined
+    : resolveRawSecondaryAmount();
 
   const perpsMarketSymbol = isPerpsMarketAvatarKind(item.type)
     ? 'sourceToken' in item.data

@@ -41,6 +41,7 @@ export {
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  isFailedOrCancelledTransfer,
   isSpendingCapWithAmount,
   shouldShowPlusSign,
   type GroupedActivityListItem,
