@@ -44,6 +44,7 @@ import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
+import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import {
   Box,
@@ -178,6 +179,14 @@ const ImportFromSecretRecoveryPhrase = ({
     }
   }, [isQrSyncImport, qrSyncPrimaryMnemonic]);
 
+  // Ownership marker: this screen is also reachable outside onboarding (e.g. the QR device-sync
+  // flow in AddDeviceToWallet). Onboarding traces must only be ended by the flow that owns them,
+  // so gate cleanup on the explicit PREVIOUS_SCREEN === ONBOARDING marker set by
+  // Onboarding.onPressImport. Do NOT infer ownership from route.params.onboardingTraceCtx:
+  // buffered tracing (consent not yet decided) legitimately returns undefined for a trace that is
+  // still owned by onboarding.
+  const isOnboardingFlow = route?.params?.[PREVIOUS_SCREEN] === ONBOARDING;
+
   // Fix 2: if the user leaves this screen without completing the import, close the spans this
   // import flow opened so they are not left running for 5 minutes.
   //
@@ -197,6 +206,9 @@ const ImportFromSecretRecoveryPhrase = ({
   // owned by Onboarding's own unmount cleanup.
   useEffect(
     () => () => {
+      if (!isOnboardingFlow) {
+        return;
+      }
       endTrace({
         name: TraceName.OnboardingExistingSrpImport,
         data: { success: false },
@@ -206,7 +218,7 @@ const ImportFromSecretRecoveryPhrase = ({
         data: { success: false },
       });
     },
-    [],
+    [isOnboardingFlow],
   );
 
   const { isEnabled: isMetricsEnabled } = useAnalytics();
@@ -560,20 +572,24 @@ const ImportFromSecretRecoveryPhrase = ({
         }
 
         // TERMINAL path: navigation.reset ejects the user to the error screen and unmounts this
-        // flow, so there is no re-entry from here. Close all three spans that this import flow
-        // opened so none is left to be force-closed by the 5-min trace cleanup timer.
+        // flow, so there is no re-entry from here. Close all spans that this import flow opened
+        // so none is left to be force-closed by the 5-min trace cleanup timer. The onboarding
+        // journey spans are only ended when this screen was opened from onboarding (ownership
+        // marker), since they do not exist in other flows such as QR device sync.
         endTrace({
           name: TraceName.OnboardingSRPAccountImportTime,
           data: { success: false },
         });
-        endTrace({
-          name: TraceName.OnboardingExistingSrpImport,
-          data: { success: false },
-        });
-        endTrace({
-          name: TraceName.OnboardingJourneyOverall,
-          data: { success: false },
-        });
+        if (isOnboardingFlow) {
+          endTrace({
+            name: TraceName.OnboardingExistingSrpImport,
+            data: { success: false },
+          });
+          endTrace({
+            name: TraceName.OnboardingJourneyOverall,
+            data: { success: false },
+          });
+        }
 
         // Navigate to error screen based on metrics consent
         navigation.reset({

@@ -430,6 +430,61 @@ export function trace<T>(
 }
 
 /**
+ * Compute the effective end timestamp for a pending trace, capped at the
+ * trace's maximum lifetime (startTime + TRACES_CLEANUP_INTERVAL).
+ *
+ * JavaScript timers can execute hours late when the app is backgrounded, and
+ * endTrace can likewise be invoked long after the app returns to the
+ * foreground. Capping the end timestamp guarantees a manual trace governed by
+ * the cleanup interval is never recorded with a duration exceeding it.
+ *
+ * @param pendingTrace - The pending trace being finished.
+ * @param requestedEndTime - The requested end timestamp, if any.
+ * @returns The capped end timestamp to record on the span.
+ */
+function getEffectiveEndTime(
+  pendingTrace: PendingTrace,
+  requestedEndTime?: number,
+): number {
+  const maximumEndTime = pendingTrace.startTime + TRACES_CLEANUP_INTERVAL;
+  const endTime = requestedEndTime ?? getPerformanceTimestamp();
+
+  // Guard against non-finite timestamps (e.g. environments without a
+  // performance implementation) so NaN never propagates into span.end().
+  if (!Number.isFinite(maximumEndTime)) {
+    return endTime;
+  }
+  if (!Number.isFinite(endTime)) {
+    return maximumEndTime;
+  }
+
+  return Math.min(endTime, maximumEndTime);
+}
+
+/**
+ * Finish a pending trace and remove it from the pending map.
+ * The recorded end timestamp is capped at the trace's maximum lifetime.
+ *
+ * @param key - The trace key in the pending map.
+ * @param pendingTrace - The pending trace to finish.
+ * @param requestedEndTime - The requested end timestamp, if any.
+ * @returns The effective (capped) end timestamp that was recorded.
+ */
+function finishPendingTrace(
+  key: string,
+  pendingTrace: PendingTrace,
+  requestedEndTime?: number,
+): number {
+  const effectiveEndTime = getEffectiveEndTime(pendingTrace, requestedEndTime);
+
+  pendingTrace.end(effectiveEndTime);
+  clearTimeout(pendingTrace.timeoutId);
+  tracesByKey.delete(key);
+
+  return effectiveEndTime;
+}
+
+/**
  * End a pending trace that was started without a callback.
  * Does nothing if the pending trace cannot be found.
  *
@@ -438,16 +493,19 @@ export function trace<T>(
 export function endTrace(request: EndTraceRequest): void {
   const { name, timestamp } = request;
   const id = getTraceId(request);
-
-  if (getCachedConsent() !== true) {
-    bufferTraceEndCallLocal(request);
-    return;
-  }
-
   const key = getTraceKey(request);
   const pendingTrace = tracesByKey.get(key);
 
+  // An active span (started while consent was enabled) must remain closable
+  // even if the cached consent changes afterwards, so check the pending map
+  // before consulting consent. Only buffer the end request when there is no
+  // active trace to finish.
   if (!pendingTrace) {
+    if (getCachedConsent() !== true) {
+      bufferTraceEndCallLocal(request);
+      return;
+    }
+
     log('No pending trace found', name, id);
     return;
   }
@@ -459,13 +517,9 @@ export function endTrace(request: EndTraceRequest): void {
     }
   }
 
-  pendingTrace.end(timestamp);
-
-  clearTimeout(pendingTrace.timeoutId);
-  tracesByKey.delete(key);
+  const endTime = finishPendingTrace(key, pendingTrace, timestamp);
 
   const { request: pendingRequest, startTime } = pendingTrace;
-  const endTime = timestamp ?? getPerformanceTimestamp();
   const duration = endTime - startTime;
 
   log('Finished trace', name, id, duration, { request: pendingRequest });
@@ -700,14 +754,42 @@ function startTrace(request: TraceRequest): TraceContext {
       initSpan(span, request);
     }
 
-    const timeoutId = setTimeout(() => {
+    const key = getTraceKey(request);
+
+    // Duplicate key: safely finish the previous span with a capped timestamp
+    // and clear its timeout before registering the new trace, so the previous
+    // cleanup timer can never delete or interfere with the newer trace.
+    const previousTrace = tracesByKey.get(key);
+    if (previousTrace) {
+      log('Replacing pending trace with duplicate key', name, id);
+      finishPendingTrace(key, previousTrace);
+    }
+
+    const pendingTrace: PendingTrace = {
+      end,
+      request,
+      startTime,
+      // Placeholder, reassigned below once the cleanup timer is registered.
+      timeoutId: undefined as unknown as NodeJS.Timeout,
+      span,
+    };
+
+    pendingTrace.timeoutId = setTimeout(() => {
+      // Defensive identity check: a stale timer must never touch a newer
+      // trace registered under the same key.
+      if (tracesByKey.get(key) !== pendingTrace) {
+        return;
+      }
+
       log('Trace cleanup due to timeout', name, id);
-      end();
-      tracesByKey.delete(getTraceKey(request));
+
+      // The timer only fires at or after the maximum lifetime (possibly hours
+      // late when the app was backgrounded), so record the capped timestamp
+      // rather than the current time.
+      end(startTime + TRACES_CLEANUP_INTERVAL);
+      tracesByKey.delete(key);
     }, TRACES_CLEANUP_INTERVAL);
 
-    const pendingTrace = { end, request, startTime, timeoutId, span };
-    const key = getTraceKey(request);
     tracesByKey.set(key, pendingTrace);
 
     log('Started trace', name, id, request);

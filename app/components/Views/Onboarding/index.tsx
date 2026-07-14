@@ -225,6 +225,28 @@ const Onboarding = () => {
     }
   }, []);
 
+  // Ending the social-login attempt (or the overall journey) does not automatically end the
+  // OAuth child spans started inside OAuthService (provider login, BYOA token request, seedless
+  // authenticate). Their finally blocks only run when the underlying promises settle, which never
+  // happens if the user abandons the flow in the external browser. The underlying operations
+  // cannot safely be aborted, so finalize their traces here through the central capped lifecycle:
+  // endTrace records at most startTime + TRACES_CLEANUP_INTERVAL, and safely no-ops when the span
+  // has already been closed by its own finally block.
+  const finalizeInFlightOAuthTraces = useCallback(() => {
+    endTrace({
+      name: TraceName.OnboardingOAuthProviderLogin,
+      data: { success: false, abandoned: true },
+    });
+    endTrace({
+      name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+      data: { success: false, abandoned: true },
+    });
+    endTrace({
+      name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+      data: { success: false, abandoned: true },
+    });
+  }, []);
+
   // Fix 5 (OAuth abandonment): OAuth normally backgrounds the app to open the browser, so we must
   // NOT end the social-login span on 'background' — that would truncate every healthy login.
   // Instead we arm on background-during-attempt and evaluate on FOREGROUND RETURN.
@@ -827,24 +849,21 @@ const Onboarding = () => {
           .build(),
       );
 
-      // The mount effect (below) already started an OnboardingJourneyOverall span keyed on this
-      // TraceName. If metrics opt-in consent was already granted at mount, that span is a REAL span sitting in
-      // tracesByKey (discardBufferedTraces only clears the pre-consent buffer, not active spans).
-      // Starting a second span with the same key here would orphan the first span's 5-min cleanup
-      // timeout, which later fires and deletes THIS active span. End the mount span first so the
-      // social-login journey span is the only one tracked. Safe no-op if the mount span was only
-      // buffered (consent was null at mount) and already discarded above.
-      endTrace({
-        name: TraceName.OnboardingJourneyOverall,
-        data: { success: false },
-      });
-
-      // use new trace instead of buffered trace for social login
-      onboardingTraceCtx.current = trace({
-        name: TraceName.OnboardingJourneyOverall,
-        op: TraceOperation.OnboardingUserJourney,
-        tags: getTraceTags(store.getState()),
-      });
+      // The mount effect (below) already started an OnboardingJourneyOverall span. If metrics
+      // opt-in consent was already granted at mount, that span is a REAL span in tracesByKey and
+      // the user is actively continuing their journey — reuse it rather than ending it, which
+      // would record a continuing journey as abandoned and inflate abandonment metrics.
+      // If consent was still buffered at mount, trace() returned undefined and the buffered entry
+      // was just discarded above, so start a real journey span now. Duplicate keys are handled
+      // centrally in startTrace (the previous span is finished with a capped, neutral timestamp),
+      // so even an unexpected collision cannot orphan a cleanup timer.
+      if (!onboardingTraceCtx.current) {
+        onboardingTraceCtx.current = trace({
+          name: TraceName.OnboardingJourneyOverall,
+          op: TraceOperation.OnboardingUserJourney,
+          tags: getTraceTags(store.getState()),
+        });
+      }
 
       if (createWallet) {
         track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
@@ -1178,6 +1197,13 @@ const Onboarding = () => {
       if (notificationTimer.current) {
         clearTimeout(notificationTimer.current);
       }
+      // Journey-level cleanup: if a social-login attempt is still in flight when the screen
+      // unmounts, close it and its OAuth child spans — their finally blocks may never run if the
+      // underlying promises never settle after the app was backgrounded for OAuth.
+      if (socialLoginTraceCtx.current) {
+        finalizeInFlightOAuthTraces();
+        endSocialLoginAttemptTrace(false);
+      }
       // Close the overall-journey span on unmount so it is never left open to be force-closed
       // by the 5-min trace cleanup timer (which also does not fire reliably while the app is
       // backgrounded during OAuth). success:false is correct here because every SUCCESSFUL
@@ -1225,6 +1251,9 @@ const Onboarding = () => {
         }
         abandonmentTimerRef.current = setTimeout(() => {
           if (socialLoginTraceCtx.current) {
+            // Finalize the OAuth child spans (provider login, token request) before the
+            // attempt span: their promises may never settle after abandonment.
+            finalizeInFlightOAuthTraces();
             endSocialLoginAttemptTrace(false);
           }
         }, OAUTH_ABANDONMENT_GRACE_MS);
@@ -1234,9 +1263,10 @@ const Onboarding = () => {
       subscription.remove();
       if (abandonmentTimerRef.current) {
         clearTimeout(abandonmentTimerRef.current);
+        abandonmentTimerRef.current = null;
       }
     };
-  }, [endSocialLoginAttemptTrace]);
+  }, [endSocialLoginAttemptTrace, finalizeInFlightOAuthTraces]);
 
   useEffect(() => {
     updateNavBar();

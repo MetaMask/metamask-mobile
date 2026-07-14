@@ -49,7 +49,7 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../Engine/controllers/seedless-onboarding-controller/error';
-import { TraceName, TraceOperation } from '../../util/trace';
+import { TraceName, TraceOperation, type TraceContext } from '../../util/trace';
 import { analytics } from '../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../Analytics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
@@ -1968,6 +1968,101 @@ describe('Authentication', () => {
       );
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
+    });
+
+    it('forwards parentContext from unlockWallet to rehydrateSeedPhrase when supplied', async () => {
+      const mockParentContext = {
+        spanId: 'onboarding-journey-span',
+      } as unknown as TraceContext;
+      const rehydrateSpy = jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.unlockWallet({
+        password: mockPassword,
+        authPreference: mockAuthData,
+        parentContext: mockParentContext,
+      });
+
+      expect(rehydrateSpy).toHaveBeenCalledWith(
+        mockPassword,
+        mockParentContext,
+      );
+
+      rehydrateSpy.mockRestore();
+    });
+
+    it('preserves the one-argument rehydrateSeedPhrase call for ordinary unlockWallet callers', async () => {
+      const rehydrateSpy = jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.unlockWallet({
+        password: mockPassword,
+        authPreference: mockAuthData,
+      });
+
+      // Strict arity: no parentContext argument is passed when none was supplied.
+      expect(rehydrateSpy).toHaveBeenCalledWith(mockPassword);
+
+      rehydrateSpy.mockRestore();
+    });
+
+    it('nests OnboardingFetchSrps under the provided parent context', async () => {
+      const mockParentContext = {
+        spanId: 'onboarding-journey-span',
+      } as unknown as TraceContext;
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: mockSeedPhrase1,
+          type: SecretType.Mnemonic,
+          itemId: 'primary-srp-id',
+          dataType: EncAccountDataType.PrimarySrp,
+        },
+      ]);
+      jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.rehydrateSeedPhrase(mockPassword, mockParentContext);
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingFetchSrps,
+          parentContext: mockParentContext,
+        }),
+      );
+    });
+
+    it('starts OnboardingFetchSrps without a parent context when called with one argument', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: mockSeedPhrase1,
+          type: SecretType.Mnemonic,
+          itemId: 'primary-srp-id',
+          dataType: EncAccountDataType.PrimarySrp,
+        },
+      ]);
+      jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.rehydrateSeedPhrase(mockPassword);
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingFetchSrps,
+          parentContext: undefined,
+        }),
+      );
     });
 
     it('rehydrate with multiple seed phrases', async () => {

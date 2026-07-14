@@ -55,7 +55,9 @@ import {
   InteractionManager,
   BackHandler,
   Animated,
+  AppState,
   Platform,
+  type AppStateStatus,
 } from 'react-native';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { getVaultFromBackup } from '../../../core/BackupVault';
@@ -79,7 +81,7 @@ import { AccountType } from '../../../constants/onboarding';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ATTRIBUTION_DEFAULT_TTL_MS } from '../../../core/redux/slices/attribution';
-import { endTrace, TraceName } from '../../../util/trace';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');
@@ -3418,6 +3420,274 @@ describe('Onboarding', () => {
       });
 
       Platform.OS = 'ios';
+    });
+  });
+
+  describe('onboarding trace lifecycle', () => {
+    const mockOAuthService = jest.requireMock(
+      '../../../core/OAuthService/OAuthService',
+    ).default;
+    const mockCreateLoginHandler = jest.requireMock(
+      '../../../core/OAuthService/OAuthLoginHandlers',
+    ).createLoginHandler;
+    const mockTrace = trace as jest.Mock;
+    const mockEndTrace = endTrace as jest.Mock;
+
+    let appStateHandlers: ((state: AppStateStatus) => void)[] = [];
+    let appStateRemoveMocks: jest.Mock[] = [];
+
+    const dispatchAppStateChange = (nextState: AppStateStatus) => {
+      act(() => {
+        appStateHandlers.forEach((handler) => handler(nextState));
+      });
+    };
+
+    const openSheetAndGetGoogleLogin = async () => {
+      const { getByTestId, unmount } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        { state: mockInitialState },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      return {
+        googleLogin: navCall[1].params.onPressContinueWithGoogle,
+        unmount,
+      };
+    };
+
+    beforeEach(() => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(true);
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(1);
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+
+      appStateHandlers = [];
+      appStateRemoveMocks = [];
+      jest
+        .spyOn(AppState, 'addEventListener')
+        .mockImplementation((event, handler) => {
+          if (event === 'change') {
+            appStateHandlers.push(handler as (state: AppStateStatus) => void);
+          }
+          const remove = jest.fn();
+          appStateRemoveMocks.push(remove);
+          return { remove } as unknown as ReturnType<
+            typeof AppState.addEventListener
+          >;
+        });
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+      jest.clearAllMocks();
+      mockNavigate.mockReset();
+      mockSeedlessOnboardingEnabled.mockReset();
+    });
+
+    it('reuses the mount journey span for social login instead of ending it as abandoned', async () => {
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        await googleLogin(true);
+        await flushPromises();
+      });
+
+      // The journey span started on mount is reused: no second start and no
+      // abandonment end while the user is actively continuing.
+      const journeyStartCalls = mockTrace.mock.calls.filter(
+        ([request]) => request?.name === TraceName.OnboardingJourneyOverall,
+      );
+      expect(journeyStartCalls).toHaveLength(1);
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingJourneyOverall,
+        }),
+      );
+    });
+
+    it('starts a journey span for social login when the mount trace was buffered', async () => {
+      // Consent buffered at mount: trace() legitimately returns undefined.
+      mockTrace.mockReturnValueOnce(undefined);
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        await googleLogin(true);
+        await flushPromises();
+      });
+
+      const journeyStartCalls = mockTrace.mock.calls.filter(
+        ([request]) => request?.name === TraceName.OnboardingJourneyOverall,
+      );
+      expect(journeyStartCalls).toHaveLength(2);
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingJourneyOverall,
+        }),
+      );
+    });
+
+    it('does not end the social login attempt as abandoned when OAuth succeeds before the grace period', async () => {
+      let resolveLogin!: (value: unknown) => void;
+      mockOAuthService.handleOAuthLogin.mockReturnValue(
+        new Promise((resolve) => {
+          resolveLogin = resolve;
+        }),
+      );
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        googleLogin(true);
+        await flushPromises();
+      });
+
+      jest.useFakeTimers();
+      dispatchAppStateChange('background');
+      dispatchAppStateChange('active');
+
+      // OAuth callback resolves within the grace window.
+      await act(async () => {
+        resolveLogin({
+          type: 'success',
+          existingUser: false,
+          accountName: 'test@example.com',
+        });
+        for (let i = 0; i < 10; i += 1) {
+          await Promise.resolve();
+        }
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingSocialLoginAttempt,
+        data: { success: true },
+      });
+
+      mockEndTrace.mockClear();
+      act(() => {
+        jest.advanceTimersByTime(30_000);
+      });
+
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingSocialLoginAttempt,
+        }),
+      );
+    });
+
+    it('ends the attempt and finalizes OAuth child traces when OAuth remains unresolved after the grace period', async () => {
+      mockOAuthService.handleOAuthLogin.mockReturnValue(
+        new Promise(() => {
+          // Never settles: user abandoned the flow in the external browser.
+        }),
+      );
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        googleLogin(true);
+        await flushPromises();
+      });
+
+      jest.useFakeTimers();
+      mockEndTrace.mockClear();
+      dispatchAppStateChange('background');
+      dispatchAppStateChange('active');
+
+      act(() => {
+        jest.advanceTimersByTime(30_000);
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingOAuthProviderLogin,
+        data: { success: false, abandoned: true },
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+        data: { success: false, abandoned: true },
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+        data: { success: false, abandoned: true },
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingSocialLoginAttempt,
+        data: { success: false },
+      });
+    });
+
+    it('clears AppState listeners and timers on unmount and finalizes an in-flight attempt', async () => {
+      mockOAuthService.handleOAuthLogin.mockReturnValue(
+        new Promise(() => {
+          // Never settles.
+        }),
+      );
+
+      const { googleLogin, unmount } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        googleLogin(true);
+        await flushPromises();
+      });
+
+      jest.useFakeTimers();
+      dispatchAppStateChange('background');
+      dispatchAppStateChange('active');
+
+      mockEndTrace.mockClear();
+      unmount();
+
+      // The in-flight attempt and its OAuth child traces are finalized once.
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingSocialLoginAttempt,
+        data: { success: false },
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingOAuthProviderLogin,
+        data: { success: false, abandoned: true },
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.OnboardingJourneyOverall,
+        data: { success: false },
+      });
+
+      // AppState subscriptions are removed on unmount.
+      expect(
+        appStateRemoveMocks.some((remove) => remove.mock.calls.length > 0),
+      ).toBe(true);
+
+      // The armed abandonment timer is cleared: advancing time produces no
+      // further trace end calls.
+      const callCountAfterUnmount = mockEndTrace.mock.calls.length;
+      act(() => {
+        jest.advanceTimersByTime(60_000);
+      });
+      expect(mockEndTrace.mock.calls.length).toBe(callCountAfterUnmount);
     });
   });
 

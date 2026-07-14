@@ -369,6 +369,177 @@ describe('Trace', () => {
     });
   });
 
+  describe('trace lifecycle limits', () => {
+    const createSpanMock = () => {
+      const spanEndMock = jest.fn();
+      const spanMock = { end: spanEndMock } as unknown as Span;
+      return { spanEndMock, spanMock };
+    };
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('ends an active span even if cached consent changes after the trace started', () => {
+      updateCachedConsent(true);
+
+      const { spanEndMock, spanMock } = createSpanMock();
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({ name: NAME_MOCK, id: ID_MOCK });
+
+      // Consent changes during onboarding (e.g. cached consent reset) while
+      // the span started under enabled consent is still active.
+      updateCachedConsent(false);
+
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+
+      expect(spanEndMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('buffers the end request only when no active trace exists and consent is not enabled', async () => {
+      updateCachedConsent(false);
+      discardBufferedTraces();
+
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+
+      // The buffered end call is replayed on flush once consent is enabled.
+      updateCachedConsent(true);
+      await flushBufferedTraces();
+
+      // No span was ever started, so nothing is sent to Sentry.
+      expect(startSpanManualMock).not.toHaveBeenCalled();
+    });
+
+    it('caps a requested end timestamp at the five-minute maximum lifetime', () => {
+      updateCachedConsent(true);
+
+      const startTime = 1_000;
+      const { spanEndMock, spanMock } = createSpanMock();
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({ name: NAME_MOCK, id: ID_MOCK, startTime });
+
+      // Simulates endTrace running hours late after the app was backgrounded.
+      endTrace({
+        name: NAME_MOCK,
+        id: ID_MOCK,
+        timestamp: startTime + TRACES_CLEANUP_INTERVAL + 3 * 60 * 60 * 1000,
+      });
+
+      expect(spanEndMock).toHaveBeenCalledTimes(1);
+      expect(spanEndMock).toHaveBeenCalledWith(
+        startTime + TRACES_CLEANUP_INTERVAL,
+      );
+    });
+
+    it('records at most five minutes when the cleanup timer runs after an extended background period', () => {
+      jest.useFakeTimers();
+      updateCachedConsent(true);
+
+      const startTime = 5_000;
+      const { spanEndMock, spanMock } = createSpanMock();
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({ name: NAME_MOCK, id: ID_MOCK, startTime });
+
+      // Timers can execute hours late after backgrounding; regardless of when
+      // the cleanup runs, the recorded end time is the capped maximum.
+      jest.advanceTimersByTime(TRACES_CLEANUP_INTERVAL + 1);
+
+      expect(spanEndMock).toHaveBeenCalledTimes(1);
+      expect(spanEndMock).toHaveBeenCalledWith(
+        startTime + TRACES_CLEANUP_INTERVAL,
+      );
+    });
+
+    it('finishes the previous span with a capped timestamp when a duplicate trace key is started', () => {
+      updateCachedConsent(true);
+
+      const startTime = 1_000;
+      const first = createSpanMock();
+      const second = createSpanMock();
+      startSpanManualMock
+        .mockImplementationOnce((_, fn) =>
+          fn(first.spanMock, () => {
+            // Intentionally empty
+          }),
+        )
+        .mockImplementationOnce((_, fn) =>
+          fn(second.spanMock, () => {
+            // Intentionally empty
+          }),
+        );
+
+      trace({ name: NAME_MOCK, id: ID_MOCK, startTime });
+      trace({ name: NAME_MOCK, id: ID_MOCK, startTime });
+
+      // The previous span is finished immediately, never exceeding its cap.
+      expect(first.spanEndMock).toHaveBeenCalledTimes(1);
+      expect(first.spanEndMock.mock.calls[0][0]).toBeLessThanOrEqual(
+        startTime + TRACES_CLEANUP_INTERVAL,
+      );
+      expect(second.spanEndMock).not.toHaveBeenCalled();
+
+      // The new trace remains active and closable.
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+      expect(second.spanEndMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not let an old duplicate-key timeout delete the newer span', () => {
+      jest.useFakeTimers();
+      updateCachedConsent(true);
+
+      const first = createSpanMock();
+      const second = createSpanMock();
+      startSpanManualMock
+        .mockImplementationOnce((_, fn) =>
+          fn(first.spanMock, () => {
+            // Intentionally empty
+          }),
+        )
+        .mockImplementationOnce((_, fn) =>
+          fn(second.spanMock, () => {
+            // Intentionally empty
+          }),
+        );
+
+      trace({ name: NAME_MOCK, id: ID_MOCK, startTime: 0 });
+
+      // Four minutes later the same key is started again.
+      jest.advanceTimersByTime(4 * 60 * 1000);
+      trace({ name: NAME_MOCK, id: ID_MOCK, startTime: 4 * 60 * 1000 });
+
+      expect(first.spanEndMock).toHaveBeenCalledTimes(1);
+
+      // Two more minutes pass — past the first trace's original five-minute
+      // mark. Its (cleared) timer must not end or delete the newer trace.
+      jest.advanceTimersByTime(2 * 60 * 1000);
+      expect(second.spanEndMock).not.toHaveBeenCalled();
+
+      // The newer trace is still tracked and ends normally.
+      endTrace({ name: NAME_MOCK, id: ID_MOCK });
+      expect(second.spanEndMock).toHaveBeenCalledTimes(1);
+
+      // No further cleanup fires for either trace.
+      jest.advanceTimersByTime(TRACES_CLEANUP_INTERVAL + 1);
+      expect(first.spanEndMock).toHaveBeenCalledTimes(1);
+      expect(second.spanEndMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('trace timeout cleanup', () => {
     beforeEach(() => {
       jest.useFakeTimers();
