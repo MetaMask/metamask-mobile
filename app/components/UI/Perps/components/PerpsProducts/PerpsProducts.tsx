@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -21,8 +21,10 @@ import { selectPerpsProductsEnabledFlag } from '../../selectors/featureFlags';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import {
   usePerpsCategories,
+  NEW_CATEGORY,
   type PerpsCategory,
 } from '../../hooks/usePerpsCategories';
+import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { getCategoryIconName } from '../../constants/categoryIcons';
 import { ExplorePill } from '../../../Trending/components/ExplorePill';
 import { PillScrollList } from '../../../Trending/components/PillScrollList';
@@ -46,7 +48,9 @@ const PRODUCTS_ROW_COUNT = 2;
  * PerpsProducts – grid of category pills for the Perps home screen.
  *
  * Categories are driven by `MARKET_CATEGORIES` from `@metamask/perps-controller`.
- * Pills whose category has zero available markets are hidden.
+ * Pills whose category has zero available markets are hidden. A leading
+ * "New" pill is shown when any market was listed within the last 30 days
+ * (see `useHasNewMarkets`).
  * Tapping a pill navigates to the Markets list screen with that category
  * pre-selected via `defaultMarketTypeFilter`.
  */
@@ -59,7 +63,13 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const categoriesWithLabels = usePerpsCategories();
+  const categories = usePerpsCategories();
+  const hasNewMarkets = useHasNewMarkets();
+
+  const categoriesWithLabels = useMemo(
+    () => (hasNewMarkets ? [NEW_CATEGORY, ...categories] : categories),
+    [categories, hasNewMarkets],
+  );
 
   const handlePillPress = useCallback(
     (category: Exclude<MarketTypeFilter, 'all'>, pillPosition: number) => {

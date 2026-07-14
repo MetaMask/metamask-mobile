@@ -54,6 +54,16 @@ export const isWithinLast30Days = (listedAt: number): boolean =>
   Date.now() - listedAt < THIRTY_DAYS_MS;
 
 /**
+ * Returns true when a market was listed within the last 30 days. Shared by the
+ * "Recently added" home rail, the "New" market-list filter, and the "New" badge
+ * so all three surfaces agree on the same criterion.
+ *
+ * @param listedAt - Epoch milliseconds timestamp (from PerpsMarketData.listedAt), if known
+ */
+export const isRecentlyListed = (listedAt: number | undefined): boolean =>
+  listedAt !== undefined && isWithinLast30Days(listedAt);
+
+/**
  * Formats the time elapsed since a market was listed as a compact relative label.
  * Used on the "Recently added" rail tiles.
  *

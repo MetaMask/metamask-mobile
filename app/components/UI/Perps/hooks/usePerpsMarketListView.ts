@@ -14,6 +14,7 @@ import {
   type SortOptionId,
 } from '@metamask/perps-controller';
 import { isHip3Filter } from '../utils/marketCategoryMapping';
+import { isRecentlyListed } from '../utils/time';
 import {
   selectPerpsWatchlistMarkets,
   selectPerpsRecentlyViewedMarkets,
@@ -243,9 +244,12 @@ export const usePerpsMarketListView = ({
       return searchedMarkets.filter((market) => !market.isHip3);
     }
 
-    // Special handling for 'new' filter - shows uncategorized HIP-3 markets
+    // Special handling for 'new' filter - shows markets listed within the last
+    // 30 days (same criterion as the home "Recently added" rail).
     if (marketTypeFilter === 'new') {
-      return searchedMarkets.filter((market) => market.isNewMarket);
+      return searchedMarkets.filter((market) =>
+        isRecentlyListed(market.listedAt),
+      );
     }
 
     // HIP-3 category filter: marketTypeFilter === marketType in v8+
@@ -341,7 +345,7 @@ export const usePerpsMarketListView = ({
     ) as Record<Exclude<MarketTypeFilter, 'all'>, number>;
 
     allMarkets.forEach((market) => {
-      if (market.isNewMarket) {
+      if (isRecentlyListed(market.listedAt)) {
         counts.new++;
       }
       if (!market.isHip3) {

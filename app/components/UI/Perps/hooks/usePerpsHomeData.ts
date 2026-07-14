@@ -27,7 +27,7 @@ import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
 import { usePerpsConnection } from './usePerpsConnection';
 import { getSuggestedWatchlistMarkets } from '../utils/marketUtils';
-import { isWithinLast30Days } from '../utils/time';
+import { isRecentlyListed } from '../utils/time';
 
 interface UsePerpsHomeDataParams {
   positionsLimit?: number;
@@ -258,9 +258,7 @@ export const usePerpsHomeData = ({
   const recentlyAddedMarkets = useMemo(
     () =>
       allMarkets
-        .filter(
-          (m) => m.listedAt !== undefined && isWithinLast30Days(m.listedAt),
-        )
+        .filter((m) => isRecentlyListed(m.listedAt))
         .sort((a, b) => (b.listedAt as number) - (a.listedAt as number)),
     [allMarkets],
   );

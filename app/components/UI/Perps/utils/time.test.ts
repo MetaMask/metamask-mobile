@@ -1,6 +1,7 @@
 import {
   formatDurationForDisplay,
   isWithinLast30Days,
+  isRecentlyListed,
   formatTimeSinceListing,
 } from './time';
 
@@ -62,6 +63,30 @@ describe('isWithinLast30Days', () => {
 
   it('returns false for a timestamp 31 days ago', () => {
     expect(isWithinLast30Days(NOW - 31 * 24 * 60 * 60 * 1000)).toBe(false);
+  });
+});
+
+describe('isRecentlyListed', () => {
+  const NOW = 1_700_000_000_000; // fixed epoch ms for determinism
+
+  beforeEach(() => {
+    jest.spyOn(Date, 'now').mockReturnValue(NOW);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('returns true for a listedAt timestamp within the last 30 days', () => {
+    expect(isRecentlyListed(NOW - 5 * 24 * 60 * 60 * 1000)).toBe(true);
+  });
+
+  it('returns false for a listedAt timestamp older than 30 days', () => {
+    expect(isRecentlyListed(NOW - 31 * 24 * 60 * 60 * 1000)).toBe(false);
+  });
+
+  it('returns false when listedAt is undefined', () => {
+    expect(isRecentlyListed(undefined)).toBe(false);
   });
 });
 
