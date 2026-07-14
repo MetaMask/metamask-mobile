@@ -116,31 +116,23 @@ function realizedPnlPercent(
 
 function resolvePnlValue(
   coreItem: CoreFeedItem,
-  isPerp: boolean,
   isClosed: boolean,
 ): number | null | undefined {
-  if (isPerp) {
-    return coreItem.pnlValueUsd ?? coreItem.realizedPnl;
-  }
   if (isClosed) {
-    return coreItem.realizedPnl;
+    return coreItem.pnlValueUsd ?? coreItem.realizedPnl;
   }
   return coreItem.pnlValueUsd;
 }
 
 function resolvePnlPercent(
   coreItem: CoreFeedItem,
-  isPerp: boolean,
   isClosed: boolean,
 ): number | null {
-  if (isPerp) {
+  if (isClosed) {
     return (
       coreItem.pnlPercent ??
       realizedPnlPercent(coreItem.realizedPnl, coreItem.boughtUsd)
     );
-  }
-  if (isClosed) {
-    return realizedPnlPercent(coreItem.realizedPnl, coreItem.boughtUsd);
   }
   return coreItem.pnlPercent ?? null;
 }
@@ -165,11 +157,10 @@ function resolveValueLabel(
 
 function buildFeedItemPresentation(
   coreItem: CoreFeedItem,
-  isPerp: boolean,
   isClosed: boolean,
 ): FeedItemPresentation {
-  const pnlValue = resolvePnlValue(coreItem, isPerp, isClosed);
-  const pnlPercent = resolvePnlPercent(coreItem, isPerp, isClosed);
+  const pnlValue = resolvePnlValue(coreItem, isClosed);
+  const pnlPercent = resolvePnlPercent(coreItem, isClosed);
   const hasValueData = isClosed
     ? isPresentNumber(pnlValue)
     : isPresentNumber(coreItem.currentValueUSD);
@@ -277,7 +268,7 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
   const trade = findTriggeringTrade(trades ?? [], timestampMs);
   const action = resolveAction(trade, isPerp, isClosed);
   const subHeader = buildSubHeader(trade);
-  const presentation = buildFeedItemPresentation(coreItem, isPerp, isClosed);
+  const presentation = buildFeedItemPresentation(coreItem, isClosed);
 
   if (isPerp) {
     return mapPerpFeedItem(
