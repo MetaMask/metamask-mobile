@@ -632,7 +632,9 @@ describe('BaanxProvider', () => {
       );
     });
 
-    it('propagates a 403 from a sub-request as an auth token error', async () => {
+    it('does not treat a 403 sub-request as an auth error (degrades gracefully)', async () => {
+      // 403 is a business-rule rejection, not a revoked token, so it is
+      // swallowed like other transient failures rather than forcing re-auth.
       const get = jest.fn().mockImplementation((path: string) => {
         if (path === '/v1/user') {
           return Promise.reject(new CardApiError(403, path, ''));
@@ -640,14 +642,12 @@ describe('BaanxProvider', () => {
         return Promise.resolve(null);
       });
 
-      const promise = buildProvider(get).getCardHomeData('0xabc', tokens);
+      const result = await buildProvider(get).getCardHomeData('0xabc', tokens);
 
-      await expect(promise).rejects.toMatchObject({
-        code: CardProviderErrorCode.InvalidCredentials,
-        statusCode: 403,
-      });
-      await expect(promise.catch((e) => isCardAuthTokenError(e))).resolves.toBe(
-        true,
+      expect(result.account).toBeNull();
+      expect(result.card).toBeNull();
+      expect(isCardAuthTokenError(new CardApiError(403, '/v1/user', ''))).toBe(
+        false,
       );
     });
 

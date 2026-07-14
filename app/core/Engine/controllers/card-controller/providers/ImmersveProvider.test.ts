@@ -287,6 +287,26 @@ describe('ImmersveProvider', () => {
       );
     });
 
+    it('createFundingSource maps a 403 to Forbidden (not a revoked token) and surfaces the errorCode', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockRejectedValue(
+        new CardApiError(
+          403,
+          '/api/funding-sources',
+          JSON.stringify({
+            statusCode: 403,
+            errorCode: 'FUNDING_SOURCE_EXISTS',
+          }),
+        ),
+      );
+
+      await expect(provider.createFundingSource(TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Forbidden,
+        statusCode: 403,
+        errorCode: 'FUNDING_SOURCE_EXISTS',
+      });
+    });
+
     it('patchContactDetails PATCHes the account contact-details path', async () => {
       const { provider, service } = createProvider();
       service.patch.mockResolvedValue({});

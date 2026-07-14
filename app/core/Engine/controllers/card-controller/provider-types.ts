@@ -15,6 +15,7 @@ export enum CardProviderErrorCode {
   AccountDisabled = 'account_disabled',
   InvalidOtp = 'invalid_otp',
   Conflict = 'conflict',
+  Forbidden = 'forbidden',
   NotFound = 'not_found',
   NoCard = 'no_card',
   ServerError = 'server_error',
@@ -26,22 +27,25 @@ export enum CardProviderErrorCode {
 export class CardProviderError extends Error {
   readonly code: CardProviderErrorCode;
   readonly statusCode?: number;
+  readonly errorCode?: string;
 
   constructor(
     code: CardProviderErrorCode,
     message: string,
     statusCode?: number,
+    errorCode?: string,
   ) {
     super(message);
     this.name = 'CardProviderError';
     this.code = code;
     this.statusCode = statusCode;
+    this.errorCode = errorCode;
   }
 }
 
 export function isCardAuthTokenError(error: unknown): boolean {
   const statusCode = (error as { statusCode?: unknown }).statusCode;
-  return error instanceof Error && (statusCode === 401 || statusCode === 403);
+  return error instanceof Error && statusCode === 401;
 }
 
 export class CardLinkageInProgressError extends Error {
