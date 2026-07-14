@@ -187,6 +187,8 @@ export const getPerpsMarketRowItemSelector = {
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-token-logo`,
   assetLabel: (symbol: string) =>
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-asset-label`,
+  tickerSuffix: (symbol: string) =>
+    `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-ticker-suffix`,
   badge: (symbol: string) =>
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-badge`,
   addButton: (symbol: string) =>
@@ -205,6 +207,15 @@ export const PerpsRelatedMarketsSelectorsIDs = {
 
 export const getPerpsRelatedMarketsSelector = {
   tile: (symbol: string) => `perps-market-tile-card-${symbol}`,
+};
+
+// ========================================
+// PERPS RECENTLY VIEWED RAIL SELECTORS
+// ========================================
+
+export const PerpsRecentlyViewedRailSelectorsIDs = {
+  RAIL: 'perps-recently-viewed-rail',
+  PILL_GRID: 'perps-recently-viewed-pill-grid',
 };
 
 // ========================================
@@ -321,6 +332,10 @@ export const PerpsTPSLViewSelectorsIDs = {
   SET_BUTTON: 'perps-tpsl-set-button',
   TAKE_PROFIT_PRICE_INPUT: 'perps-tpsl-tp-input',
   STOP_LOSS_PRICE_INPUT: 'perps-tpsl-sl-input',
+  TAKE_PROFIT_PERCENTAGE_INPUT: 'perps-tpsl-tp-percentage-input',
+  STOP_LOSS_PERCENTAGE_INPUT: 'perps-tpsl-sl-percentage-input',
+  TAKE_PROFIT_ROE_SIGN_BADGE: 'perps-tpsl-tp-roe-sign-badge',
+  STOP_LOSS_ROE_SIGN_BADGE: 'perps-tpsl-sl-roe-sign-badge',
 } as const;
 
 export const getPerpsTPSLViewSelector = {

@@ -3,7 +3,11 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-import { QrSyncPhases } from '../../../core/QrSync/constants';
+import {
+  QrSyncPhases,
+  QrSyncProvisioningStatuses,
+  QrSyncSecretTypes,
+} from '../../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import AddDeviceToWallet from './index';
 import { completeExistingUserQrSyncImport } from '../../../core/QrSync/completeExistingUserQrSyncImport';
@@ -264,6 +268,7 @@ describe('AddDeviceToWallet', () => {
         getByText(strings('app_settings.add_device.waiting_for_extension')),
       ).toBeOnTheScreen();
     });
+
     it('does not render the manual QR input outside dev', () => {
       const globalWithDev = global as unknown as { __DEV__: boolean };
       const originalDev = globalWithDev.__DEV__;
@@ -300,23 +305,20 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('QR sync import navigation', () => {
-    it('navigates to import when sync-ready provides import data for new users', async () => {
-      renderComponent(
-        {
-          phase: QrSyncPhases.REVIEWING_IMPORT,
-          importPlan: [
-            {
-              index: 0,
-              value: 'word1 word2 word3',
-              type: 'MNEMONIC',
-              accountName: null,
-              hiddenIndexes: [],
-              isPrimary: true,
-            },
-          ],
-        },
-        false,
-      );
+    const pendingSecretImports = [
+      {
+        index: 0,
+        value: 'word1 word2 word3',
+        type: QrSyncSecretTypes.MNEMONIC,
+        isPrimary: true,
+      },
+    ];
+
+    it('navigates to import when awaiting password with pending secrets', async () => {
+      renderComponent({
+        provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+        pendingSecretImports,
+      });
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
@@ -330,113 +332,11 @@ describe('AddDeviceToWallet', () => {
       expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
     });
 
-    it('auto-imports and navigates home for existing users when sync-ready arrives', async () => {
-      const mnemonic =
-        'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12';
-
-      renderComponent(
-        {
-          phase: QrSyncPhases.REVIEWING_IMPORT,
-          importPlan: [
-            {
-              index: 0,
-              value: mnemonic,
-              type: 'MNEMONIC',
-              accountName: null,
-              hiddenIndexes: [],
-              isPrimary: true,
-            },
-          ],
-        },
-        true,
-      );
-
-      await waitFor(() => {
-        expect(mockCompleteExistingUserQrSyncImport).toHaveBeenCalledWith(
-          expect.objectContaining({ navigate: mockNavigate }),
-          mnemonic,
-        );
-      });
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        expect.anything(),
-      );
-    });
-
-    it('auto-imports for existing users when sync-ready omits isPrimary', async () => {
-      const mnemonic =
-        'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12';
-
-      renderComponent(
-        {
-          phase: QrSyncPhases.COMPLETED,
-          importPlan: [
-            {
-              index: 0,
-              value: mnemonic,
-              type: 'MNEMONIC',
-              accountName: null,
-              hiddenIndexes: [],
-              isPrimary: false,
-            },
-          ],
-        },
-        true,
-      );
-
-      await waitFor(() => {
-        expect(mockCompleteExistingUserQrSyncImport).toHaveBeenCalledWith(
-          expect.objectContaining({ navigate: mockNavigate }),
-          mnemonic,
-        );
-      });
-    });
-
-    it.each([true, false])(
-      'does not navigate or auto-import while the scanner is open (completedOnboarding=%s)',
-      async (completedOnboarding) => {
-        mockIsQrTabSwitcherOpen = true;
-
-        renderComponent(
-          {
-            phase: QrSyncPhases.REVIEWING_IMPORT,
-            importPlan: [
-              {
-                index: 0,
-                value: 'word1 word2 word3',
-                type: 'MNEMONIC',
-                accountName: null,
-                hiddenIndexes: [],
-                isPrimary: true,
-              },
-            ],
-          },
-          completedOnboarding,
-        );
-
-        await waitFor(() => {
-          expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
-          expect(mockNavigate).not.toHaveBeenCalledWith(
-            Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-            expect.anything(),
-          );
-        });
-      },
-    );
-
-    it('navigates to import after sync completes for new users', async () => {
+    it('navigates to import after sync completes while secrets are still pending', async () => {
       renderComponent({
         phase: QrSyncPhases.COMPLETED,
-        importPlan: [
-          {
-            index: 0,
-            value: 'word1 word2 word3',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
-            isPrimary: true,
-          },
-        ],
+        provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+        pendingSecretImports,
       });
 
       await waitFor(() => {
@@ -451,19 +351,10 @@ describe('AddDeviceToWallet', () => {
       expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
     });
 
-    it('does not navigate to import when sync failed with stale import data', async () => {
+    it('does not navigate to import when sync failed with stale secret data', async () => {
       renderComponent({
         phase: QrSyncPhases.FAILED,
-        importPlan: [
-          {
-            index: 0,
-            value: 'word1 word2 word3',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
-            isPrimary: true,
-          },
-        ],
+        pendingSecretImports,
         error: {
           code: 'SYNC_FAILED',
           message: 'Sync failed',
