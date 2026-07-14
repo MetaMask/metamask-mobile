@@ -1,11 +1,8 @@
 import { StyleSheet } from 'react-native';
-import { AppThemeKey, Theme } from '../../../../../../util/theme/models';
-import { isPureBlackEnabled } from '../../../../../../util/theme/themeUtils';
+import { Theme } from '../../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  const isPureBlackDark =
-    isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark;
 
   return StyleSheet.create({
     container: {
@@ -32,13 +29,9 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 12,
       paddingHorizontal: 12,
     },
-    // TODO(Pure Black): Remove isPureBlackDark guard once selection uses MMDS tokens.
-    // Keep the left-edge indicator only; primary.muted band clashes on pure black sheets.
-    selectedOption: isPureBlackDark
-      ? {}
-      : {
-          backgroundColor: theme.colors.primary.muted,
-        },
+    selectedOption: {
+      backgroundColor: theme.colors.primary.muted,
+    },
     leftSection: {
       flexDirection: 'row',
       alignItems: 'center',
