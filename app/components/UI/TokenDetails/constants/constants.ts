@@ -36,6 +36,8 @@ export enum TokenDetailsSource {
   Swap = 'swap',
   /** Price alert notification deeplink */
   PriceAlertNotification = 'price_alert_notification',
+  /** Watchlist section on the homepage */
+  WatchlistHomepage = 'watchlist_homepage',
   /** Fallback when source cannot be determined */
   Unknown = 'unknown',
 }
