@@ -22,7 +22,6 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
 import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
-import { selectTokenWatchlistEnabled } from '../../Assets/selectors/featureFlags';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   AMBIENT_NEGATIVE_COLOR,
@@ -115,15 +114,11 @@ jest.mock('../hooks/useTokenBalance', () => ({
   useTokenBalance: () => mockUseTokenBalance(),
 }));
 
-const mockToggleWatchlist = jest.fn();
-const mockUseTokenWatchlist = jest.fn(() => ({
-  isWatched: false,
-  isLoading: false,
-  toggle: mockToggleWatchlist,
-}));
-jest.mock('../../Assets/watchlist/hooks/useTokenWatchlist', () => ({
-  useTokenWatchlist: () => mockUseTokenWatchlist(),
-}));
+jest.mock('../../Assets/watchlist/components/WatchlistStarButton', () => {
+  const MockedStarButton = () => null;
+  MockedStarButton.displayName = 'WatchlistStarButton';
+  return { __esModule: true, default: MockedStarButton };
+});
 
 const mockUseTokenBuyability = jest.fn();
 jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
@@ -312,10 +307,6 @@ jest.mock('../../../../selectors/featureFlagController/priceAlerts', () => ({
   selectPriceAlertsEnabled: jest.fn(() => false),
 }));
 
-jest.mock('../../Assets/selectors/featureFlags', () => ({
-  selectTokenWatchlistEnabled: jest.fn(() => false),
-}));
-
 const mockUseIsPriceAlertsChainSupported = jest.fn<
   boolean,
   [string | null | undefined, { enabled?: boolean }?]
@@ -472,7 +463,6 @@ describe('TokenDetails', () => {
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
       if (selector === selectPriceAlertsEnabled) return false;
-      if (selector === selectTokenWatchlistEnabled) return false;
       return undefined;
     });
   });
@@ -1529,139 +1519,14 @@ describe('TokenDetails', () => {
     });
   });
 
-  describe('watchlist star toggle', () => {
-    const enableWatchlist = () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectNetworkConfigurationByChainId)
-          return { name: 'Ethereum' };
-        if (selector === selectNetworkConfigurations)
-          return { '0x1': { nativeCurrency: 'ETH' } };
-        if (selector === selectCurrencyRates)
-          return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
-        if (selector === selectPerpsEnabledFlag) return false;
-        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
-        if (selector === getRampNetworks) return [];
-        if (selector === selectDepositActiveFlag) return false;
-        if (selector === selectDepositMinimumVersionFlag) return null;
-        if (selector === selectPriceAlertsEnabled) return false;
-        if (selector === selectTokenWatchlistEnabled) return true;
-        return undefined;
-      });
-    };
-
-    afterEach(() => {
-      mockToggleWatchlist.mockClear();
-      mockShowToast.mockClear();
-    });
-
-    it('passes onStarPress to header when watchlist is enabled and caip19AssetId is resolved', () => {
-      enableWatchlist();
-
+  describe('watchlist star button', () => {
+    it('passes starButton ReactNode to header', () => {
       render(<TokenDetails />);
 
       expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          onStarPress: expect.any(Function),
-          isWatched: false,
+          starButton: expect.anything(),
         }),
-      );
-    });
-
-    it('passes undefined onStarPress when watchlist flag is disabled', () => {
-      render(<TokenDetails />);
-
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ onStarPress: undefined }),
-      );
-    });
-
-    it('passes undefined onStarPress when caip19AssetId cannot be resolved', () => {
-      enableWatchlist();
-      mockRouteParams.mockReturnValue({
-        ...defaultRouteParams,
-        address: '',
-        chainId: undefined,
-      });
-
-      render(<TokenDetails />);
-
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ onStarPress: undefined }),
-      );
-    });
-
-    it('passes isWatched=true to header when token is on watchlist', () => {
-      enableWatchlist();
-      mockUseTokenWatchlist.mockReturnValue({
-        isWatched: true,
-        isLoading: false,
-        toggle: mockToggleWatchlist,
-      });
-
-      render(<TokenDetails />);
-
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ isWatched: true }),
-      );
-    });
-
-    it('calls toggleWatchlist and shows toast when star is pressed', () => {
-      enableWatchlist();
-
-      render(<TokenDetails />);
-
-      const lastCall = mockTokenDetailsInlineHeader.mock.calls.at(-1);
-      const { onStarPress } = lastCall?.[0] as { onStarPress: () => void };
-
-      act(() => {
-        onStarPress();
-      });
-
-      expect(mockToggleWatchlist).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-    });
-
-    it('fires WATCHLIST_TOKEN_ADDED analytics when adding to watchlist', () => {
-      enableWatchlist();
-      mockUseTokenWatchlist.mockReturnValue({
-        isWatched: false,
-        isLoading: false,
-        toggle: mockToggleWatchlist,
-      });
-
-      render(<TokenDetails />);
-
-      const lastCall = mockTokenDetailsInlineHeader.mock.calls.at(-1);
-      const { onStarPress } = lastCall?.[0] as { onStarPress: () => void };
-
-      act(() => {
-        onStarPress();
-      });
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.WATCHLIST_TOKEN_ADDED,
-      );
-    });
-
-    it('fires WATCHLIST_TOKEN_REMOVED analytics when removing from watchlist', () => {
-      enableWatchlist();
-      mockUseTokenWatchlist.mockReturnValue({
-        isWatched: true,
-        isLoading: false,
-        toggle: mockToggleWatchlist,
-      });
-
-      render(<TokenDetails />);
-
-      const lastCall = mockTokenDetailsInlineHeader.mock.calls.at(-1);
-      const { onStarPress } = lastCall?.[0] as { onStarPress: () => void };
-
-      act(() => {
-        onStarPress();
-      });
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED,
       );
     });
   });

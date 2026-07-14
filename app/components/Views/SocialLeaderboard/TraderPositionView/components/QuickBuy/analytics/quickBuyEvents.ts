@@ -89,4 +89,5 @@ export type QuickBuyOriginalEntryPoint =
   | 'trader_profile'
   | 'notification'
   | 'deep_link'
-  | 'home_carousel';
+  | 'home_carousel'
+  | 'trader_feed';

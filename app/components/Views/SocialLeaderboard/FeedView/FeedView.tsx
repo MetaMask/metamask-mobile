@@ -23,7 +23,11 @@ import {
   type SectionListRenderItemInfo,
 } from 'react-native';
 import Routes from '../../../../constants/navigation/Routes';
-import { ImpactMoment, playImpact } from '../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../util/haptics';
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
@@ -233,11 +237,28 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
     [audience, navigation, track, typeFilter],
   );
 
+  const handleTraderPress = useCallback(
+    (item: FeedItem) => {
+      playSelection().catch(() => undefined);
+      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+        traderId: item.traderId,
+        traderName: item.username,
+        traderAddress: item.traderAddress,
+        source: 'trader_feed',
+      });
+    },
+    [navigation],
+  );
+
   const renderItem = useCallback(
     ({ item }: SectionListRenderItemInfo<FeedItem, FeedSection>) => (
-      <FeedItemRow item={item} onTradePress={handleTradePress} />
+      <FeedItemRow
+        item={item}
+        onTradePress={handleTradePress}
+        onTraderPress={handleTraderPress}
+      />
     ),
-    [handleTradePress],
+    [handleTradePress, handleTraderPress],
   );
 
   const renderSectionHeader = useCallback(

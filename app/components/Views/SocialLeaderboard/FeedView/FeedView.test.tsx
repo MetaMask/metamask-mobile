@@ -8,6 +8,7 @@ import {
   FeedViewSelectorsIDs,
   getFeedAudienceOptionTestId,
   getFeedTradeButtonTestId,
+  getFeedTraderTestId,
   getFeedTypeOptionTestId,
 } from './FeedView.testIds';
 import type { FeedItem, FeedSection, FeedTypeFilter } from './types';
@@ -21,6 +22,7 @@ const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const spotItem: FeedItem = {
   id: 'feed-1',
   type: 'spot',
+  traderId: 'trader-1',
   username: 'dutchiono',
   traderAddress: '0x1111111111111111111111111111111111111111',
   action: 'bought',
@@ -36,11 +38,19 @@ const spotItem: FeedItem = {
   tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
   chain: 'eip155:1',
   chainIdHex: '0x1',
+  tokenAvatar: {
+    positionId: 'pos-feed-1',
+    chain: 'ethereum',
+    tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+    tokenImageUrl: null,
+    tokenSymbol: 'PEPE',
+  },
 };
 
 const perpItem: FeedItem = {
   id: 'feed-2',
   type: 'perps',
+  traderId: 'trader-2',
   username: 'aparjey',
   traderAddress: '0x2222222222222222222222222222222222222222',
   action: 'closed',
@@ -56,6 +66,13 @@ const perpItem: FeedItem = {
   tradeSymbol: 'ETH',
   direction: 'long',
   leverage: 8,
+  tokenAvatar: {
+    positionId: 'pos-feed-2',
+    chain: 'hyperliquid',
+    tokenAddress: '',
+    tokenImageUrl: null,
+    tokenSymbol: 'ETH',
+  },
 };
 
 const buildResult = (
@@ -248,6 +265,22 @@ describe('FeedView', () => {
         perps_market: 'ETH',
         feed_audience: 'following',
         feed_type_filter: 'all',
+      }),
+    );
+  });
+
+  it('navigates to the trader profile when the trader identity is pressed', () => {
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedTraderTestId('feed-1')));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.PROFILE,
+      expect.objectContaining({
+        traderId: 'trader-1',
+        traderName: 'dutchiono',
+        traderAddress: '0x1111111111111111111111111111111111111111',
+        source: 'trader_feed',
       }),
     );
   });
