@@ -155,7 +155,7 @@ runs:
       # Skip apt-get install on namespace — libpulse0 / libglu1-mesa / libnss3 / libxss1
       # are baked into the metamask-android-build image.
       if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' && runner.os == 'Linux' && inputs.runner_provider != 'namespace' }}
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
       with:
         timeout_minutes: 5
         max_attempts: 3
@@ -314,7 +314,7 @@ runs:
 
     - name: Corepack
       id: corepack
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
       with:
         timeout_minutes: ${{ fromJSON(inputs.js-retry-timeout-minutes) }}
         max_attempts: 3
@@ -335,7 +335,7 @@ runs:
 
     - name: Install JavaScript dependencies with retry
       id: yarn-install
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
       with:
         timeout_minutes: ${{ fromJSON(inputs.js-retry-timeout-minutes) }}
         max_attempts: 3
@@ -439,7 +439,7 @@ runs:
 
     - name: Install CocoaPods via bundler
       if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
       with:
         timeout_minutes: ${{ fromJSON(inputs.pod-install-timeout-minutes) }}
         max_attempts: 3

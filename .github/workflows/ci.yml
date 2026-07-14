@@ -80,7 +80,7 @@ jobs:
         env:
           BUNDLE_GEMFILE: ios/Gemfile
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -95,14 +95,14 @@ jobs:
 
       - name: Install Foundry if cache missed
         if: steps.restore-metamask.outputs.cache-hit != 'true'
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn install:foundryup
       - name: Clean state and following up dependencies installation with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 20
           max_attempts: 3
@@ -148,7 +148,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -193,7 +193,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -202,7 +202,7 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
       - name: Deduplicate dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -242,7 +242,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -251,7 +251,7 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
       - name: Run @lavamoat/git-safe-dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -298,7 +298,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -365,7 +365,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4.0.0
         with:
           timeout_minutes: 10
           max_attempts: 3
