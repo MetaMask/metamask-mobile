@@ -3,6 +3,7 @@ import {
   isTPSLOrder,
   type OrderParams,
   type Order,
+  type OrderDirection,
   type PerpsDebugLogger,
 } from '@metamask/perps-controller';
 import BigNumber from 'bignumber.js';
@@ -550,6 +551,26 @@ export const getOrderLabelDirection = (order: Order): string => {
 
   // For opening orders: buy is long, sell is short
   return side === 'buy' ? 'long' : 'short';
+};
+
+/**
+ * Returns the position direction ('long' | 'short') an order corresponds to.
+ *
+ * For closing orders (reduce-only or trigger) the order side is the inverse of
+ * the position it acts on: a sell closes a long, a buy closes a short. For
+ * opening orders the side maps directly (buy = long, sell = short).
+ *
+ * @param order - The order object
+ * @returns The position direction the order corresponds to
+ */
+export const getOrderPositionDirection = (order: Order): OrderDirection => {
+  const isClosing = Boolean(order.reduceOnly || order.isTrigger);
+
+  if (isClosing) {
+    return order.side === 'sell' ? 'long' : 'short';
+  }
+
+  return order.side === 'buy' ? 'long' : 'short';
 };
 
 /**

@@ -8,6 +8,7 @@ import {
   formatOrderLabel,
   resolveOrderDisplayPriceAndLabel,
   getOrderLabelDirection,
+  getOrderPositionDirection,
   getOrderDirection,
   willFlipPosition,
   determineMakerStatus,
@@ -286,6 +287,66 @@ describe('orderUtils', () => {
       };
 
       expect(getOrderLabelDirection(order)).toBe('Close Short');
+    });
+  });
+
+  describe('getOrderPositionDirection', () => {
+    const baseOrder: Order = {
+      orderId: '1',
+      symbol: 'BTC',
+      side: 'buy',
+      orderType: 'limit',
+      size: '1',
+      originalSize: '1',
+      price: '50000',
+      filledSize: '0',
+      remainingSize: '1',
+      status: 'open',
+      timestamp: Date.now(),
+      reduceOnly: false,
+      isTrigger: false,
+    };
+
+    it('returns "long" for an opening buy order', () => {
+      expect(getOrderPositionDirection({ ...baseOrder, side: 'buy' })).toBe(
+        'long',
+      );
+    });
+
+    it('returns "short" for an opening sell order', () => {
+      expect(getOrderPositionDirection({ ...baseOrder, side: 'sell' })).toBe(
+        'short',
+      );
+    });
+
+    it('returns "long" for a reduce-only sell (limit close of a long)', () => {
+      expect(
+        getOrderPositionDirection({
+          ...baseOrder,
+          side: 'sell',
+          reduceOnly: true,
+        }),
+      ).toBe('long');
+    });
+
+    it('returns "short" for a reduce-only buy (limit close of a short)', () => {
+      expect(
+        getOrderPositionDirection({
+          ...baseOrder,
+          side: 'buy',
+          reduceOnly: true,
+        }),
+      ).toBe('short');
+    });
+
+    it('returns "long" for a trigger sell (TP/SL closing a long)', () => {
+      expect(
+        getOrderPositionDirection({
+          ...baseOrder,
+          side: 'sell',
+          isTrigger: true,
+        }),
+      ).toBe('long');
     });
   });
 

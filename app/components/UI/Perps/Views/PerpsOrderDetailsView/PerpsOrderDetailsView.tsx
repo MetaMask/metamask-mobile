@@ -41,6 +41,7 @@ import {
 } from '../../utils/formatUtils';
 import {
   formatOrderLabel,
+  getOrderPositionDirection,
   getValidOrderPrice,
   getValidTriggerPrice,
   inferTriggerConditionKey,
@@ -201,10 +202,15 @@ const PerpsOrderDetailsView: React.FC = () => {
 
     setIsCanceling(true);
 
+    // Reduce-only/trigger orders close a position, so their side is the inverse
+    // of the position direction (a sell closes a long). Derive the position
+    // direction so the toast matches the order shown in the UI.
+    const orderDirection = getOrderPositionDirection(order);
+
     // Show in-progress toast
     showToast(
       PerpsToastOptions.orderManagement.shared.cancellationInProgress(
-        order.side === 'buy' ? 'long' : 'short',
+        orderDirection,
         order.size,
         order.symbol,
         order.orderType,
@@ -223,7 +229,7 @@ const PerpsOrderDetailsView: React.FC = () => {
           PerpsToastOptions.orderManagement.shared.cancellationSuccess(
             order.reduceOnly,
             order.orderType,
-            order.side === 'buy' ? 'long' : 'short',
+            orderDirection,
             order.size,
             order.symbol,
           ),
