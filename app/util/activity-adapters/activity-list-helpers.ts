@@ -40,6 +40,53 @@ export function isGasTokenFeeWithAmount(item: ActivityListItem): boolean {
   );
 }
 
+/**
+ * Whether a local Activity row should win over a same-hash API/confirmed copy.
+ * Shared by the Activity list dedup and Activity Details resolution so the
+ * gas-token / spending-cap / out-categorize rules stay aligned (TMCU-1064).
+ *
+ * Gas-token preference requires matching types so a degraded local
+ * `contractInteraction` cannot permanently beat a richer API `send`/`swap`.
+ */
+export function shouldPreferLocalActivityItem(
+  localItem: ActivityListItem,
+  apiItem: ActivityListItem,
+): boolean {
+  const localOutCategorizesApi =
+    apiItem.type !== localItem.type &&
+    localItem.type !== 'contractInteraction' &&
+    localItem.type !== 'swapIncomplete';
+
+  const localHasRicherSpendingCap =
+    apiItem.type === localItem.type &&
+    isSpendingCapWithAmount(localItem) &&
+    !isSpendingCapWithAmount(apiItem);
+
+  const localHasGasTokenFee =
+    apiItem.type === localItem.type &&
+    isGasTokenFeeWithAmount(localItem) &&
+    !isGasTokenFeeWithAmount(apiItem);
+
+  return (
+    localOutCategorizesApi || localHasRicherSpendingCap || localHasGasTokenFee
+  );
+}
+
+/**
+ * Picks local vs API Activity for Details (and list-aligned resolution).
+ */
+export function preferLocalOrApiActivityItem(
+  localItem: ActivityListItem,
+  apiItem: ActivityListItem | undefined,
+): ActivityListItem {
+  if (!apiItem) {
+    return localItem;
+  }
+  return shouldPreferLocalActivityItem(localItem, apiItem)
+    ? localItem
+    : apiItem;
+}
+
 export type ActivityListFilter =
   | { assetId: CaipAssetType }
   | { networks: string[] };

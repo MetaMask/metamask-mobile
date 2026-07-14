@@ -99,8 +99,8 @@ import {
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
-  isGasTokenFeeWithAmount,
-  isSpendingCapWithAmount,
+  isFailedOrCancelledTransfer,
+  preferLocalOrApiActivityItem,
   type ActivityKind,
   type GroupedActivityListItem,
 } from '../../../util/activity-adapters';
@@ -386,28 +386,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         if (!hash) continue;
         const confirmed = confirmedItemByHash.get(hash);
         if (!confirmed) continue;
-        const localOutCategorizesConfirmed =
-          confirmed.type !== localItem.type &&
-          localItem.type !== 'contractInteraction' &&
-          localItem.type !== 'swapIncomplete';
-        // Same-kind spending caps: the accounts API returns no calldata for an
-        // approve, so its confirmed copy has no cap amount. Prefer the local
-        // copy, which decodes the amount from calldata.
-        const localHasRicherSpendingCap =
-          confirmed.type === localItem.type &&
-          isSpendingCapWithAmount(localItem) &&
-          !isSpendingCapWithAmount(confirmed);
-        // Gasless/STX: local meta has selectedGasFeeToken; the accounts API
-        // only returns a native network fee. Prefer local so Details can show
-        // the gas-token fee (TMCU-1064).
-        const localHasGasTokenFee =
-          isGasTokenFeeWithAmount(localItem) &&
-          !isGasTokenFeeWithAmount(confirmed);
-        if (
-          localOutCategorizesConfirmed ||
-          localHasRicherSpendingCap ||
-          localHasGasTokenFee
-        ) {
+        if (preferLocalOrApiActivityItem(localItem, confirmed) === localItem) {
           localWinsHashes.add(hash);
         }
       }

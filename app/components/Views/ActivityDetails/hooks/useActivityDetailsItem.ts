@@ -3,8 +3,7 @@ import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import {
   type ActivityListItem,
-  isGasTokenFeeWithAmount,
-  isSpendingCapWithAmount,
+  preferLocalOrApiActivityItem,
 } from '../../../../util/activity-adapters';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list's data sources; route-isolation backlog */
@@ -149,38 +148,6 @@ function getPreferredApiItem(
   return undefined;
 }
 
-function preferLocalOrApi(
-  localItem: ActivityListItem,
-  apiItem: ActivityListItem | undefined,
-): ActivityListItem {
-  if (!apiItem) {
-    return localItem;
-  }
-  const hasMatchingType = apiItem.type === localItem.type;
-  const isLocalLessCategorized =
-    localItem.type === 'contractInteraction' ||
-    localItem.type === 'swapIncomplete';
-  // Spending caps: the accounts API returns no calldata for an approve, so
-  // its confirmed copy has no cap amount. Keep the local copy (decoded from
-  // calldata) when only it carries the amount, so the details screen shows
-  // the cap.
-  const localHasRicherSpendingCap =
-    isSpendingCapWithAmount(localItem) && !isSpendingCapWithAmount(apiItem);
-  // Gasless/STX: local meta has selectedGasFeeToken; the accounts API only
-  // returns a native network fee. Prefer local so Details keep the gas-token
-  // fee (TMCU-1064).
-  const localHasGasTokenFee =
-    isGasTokenFeeWithAmount(localItem) && !isGasTokenFeeWithAmount(apiItem);
-  if (
-    (hasMatchingType || isLocalLessCategorized) &&
-    !localHasRicherSpendingCap &&
-    !localHasGasTokenFee
-  ) {
-    return apiItem;
-  }
-  return localItem;
-}
-
 export function useActivityDetailsItem(
   txIdentifier: string | undefined,
   chainId?: CaipChainId,
@@ -268,7 +235,7 @@ export function useActivityDetailsItem(
     }
 
     if (localItem) {
-      return preferLocalOrApi(localItem, apiItem);
+      return preferLocalOrApiActivityItem(localItem, apiItem);
     }
 
     // Live local missed (STX hash flip / TC prune) but we still have the
@@ -276,7 +243,7 @@ export function useActivityDetailsItem(
     // so a gas-token (or richer spending-cap) fee is not discarded for a
     // native-only API copy.
     if (preloadedResolvedItem?.raw?.type === 'localTransaction') {
-      return preferLocalOrApi(preloadedResolvedItem, apiItem);
+      return preferLocalOrApiActivityItem(preloadedResolvedItem, apiItem);
     }
 
     if (nonEvmItem) {

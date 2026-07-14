@@ -527,7 +527,10 @@ export function mapLocalTransaction(
     }
     // No asset moves in an upgrade — the only ETH movement is gas, so the row
     // shows the gas paid as a native-asset amount (rendered like any other tx).
-    const gasAmount = fees?.find((fee) => fee.type === 'base')?.amount;
+    // Gasless upgrades may only carry a `gasToken` fee (no native `base`).
+    const gasAmount =
+      fees?.find((fee) => fee.type === 'base')?.amount ??
+      fees?.find((fee) => fee.type === 'gasToken')?.amount;
     return {
       type: 'smartAccountUpgrade',
       chainId,

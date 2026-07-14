@@ -190,6 +190,32 @@ describe('useActivityDetailsItem', () => {
     expect(result.current).toBe(local);
   });
 
+  it('prefers a richer API send over a local contractInteraction that only has a gas-token fee', () => {
+    const local = makeItem({
+      type: 'contractInteraction',
+      hash: '0xdegraded',
+      data: {
+        to: '0xto',
+        fees: [
+          { type: 'gasToken', amount: '100', decimals: 6, symbol: 'USDT' },
+        ],
+      },
+    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    const api = makeItem({
+      type: 'send',
+      hash: '0xdegraded',
+      data: {
+        from: '0xfrom',
+        to: '0xto',
+        fees: [{ type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' }],
+      },
+    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    setSources({ local: [local], confirmed: [api] });
+
+    const { result } = renderHook(() => useActivityDetailsItem('0xdegraded'));
+    expect(result.current).toBe(api);
+  });
+
   it('resolves a local item by TransactionMeta id when the display hash changed', () => {
     const local = makeItem({
       type: 'send',

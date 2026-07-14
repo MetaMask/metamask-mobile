@@ -76,13 +76,35 @@ export function getLocalTransactionFees(
 /**
  * Fee paid with a selected gas fee token (ERC-20). Shown on the primary
  * Activity row so STX `gas_payment` siblings can be hidden (TMCU-1064).
+ *
+ * Skips the native sentinel (`0x000…000`) — confirmations may select it for
+ * STX while gas is still paid in native — and skips terminal-fail statuses so
+ * quoted unpaid gas is not shown on dropped/rejected/failed sends.
  */
 export function getLocalGasTokenFee(
   transaction: TransactionGroup['primaryTransaction'],
   environment: ActivityAdapterEnvironment = mobileActivityAdapterEnvironment,
 ): ActivityFee | undefined {
-  const { selectedGasFeeToken, gasFeeTokens, chainId } = transaction;
+  const { selectedGasFeeToken, gasFeeTokens, chainId, status } = transaction;
   if (!selectedGasFeeToken || !gasFeeTokens?.length) {
+    return undefined;
+  }
+
+  if (
+    environment.equalsIgnoreCase(
+      selectedGasFeeToken,
+      environment.nativeTokenAddress,
+    )
+  ) {
+    return undefined;
+  }
+
+  if (
+    status === TransactionStatus.failed ||
+    status === TransactionStatus.dropped ||
+    status === TransactionStatus.rejected ||
+    status === TransactionStatus.cancelled
+  ) {
     return undefined;
   }
 

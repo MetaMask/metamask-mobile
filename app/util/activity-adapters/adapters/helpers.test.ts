@@ -305,6 +305,56 @@ describe('getLocalGasTokenFee', () => {
       } as unknown as Parameters<typeof getLocalGasTokenFee>[0]),
     ).toBeUndefined();
   });
+
+  it('returns undefined when the native sentinel is selected as the gas fee token', () => {
+    const nativeSentinel = '0x0000000000000000000000000000000000000000';
+    expect(
+      getLocalGasTokenFee({
+        chainId: '0x1',
+        selectedGasFeeToken: nativeSentinel,
+        gasFeeTokens: [
+          {
+            tokenAddress: nativeSentinel,
+            amount: '0x64',
+            decimals: 18,
+            symbol: 'ETH',
+            balance: '0x0',
+            gas: '0x0',
+            maxFeePerGas: '0x0',
+            maxPriorityFeePerGas: '0x0',
+            rateWei: '0x0',
+            recipient: '0x1',
+          },
+        ],
+        txParams: {},
+      } as unknown as Parameters<typeof getLocalGasTokenFee>[0]),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when the transaction failed and gas was never paid', () => {
+    expect(
+      getLocalGasTokenFee({
+        chainId: '0x1',
+        status: TransactionStatus.failed,
+        selectedGasFeeToken: tokenAddress,
+        gasFeeTokens: [
+          {
+            tokenAddress,
+            amount: '0x64',
+            decimals: 18,
+            symbol: 'mUSD',
+            balance: '0x0',
+            gas: '0x0',
+            maxFeePerGas: '0x0',
+            maxPriorityFeePerGas: '0x0',
+            rateWei: '0x0',
+            recipient: '0x1',
+          },
+        ],
+        txParams: {},
+      } as unknown as Parameters<typeof getLocalGasTokenFee>[0]),
+    ).toBeUndefined();
+  });
 });
 
 describe('getLocalActivityFees', () => {
