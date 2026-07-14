@@ -21,10 +21,7 @@ const styleSheet = (params: {
       marginBottom: isCompact ? 0 : 8,
     },
     modalContent: {
-      backgroundColor: theme.colors.background.section,
       paddingBottom: 34,
-      borderTopLeftRadius: 8,
-      borderTopRightRadius: 8,
     },
     modalExpandedContent: {
       paddingHorizontal: 16,

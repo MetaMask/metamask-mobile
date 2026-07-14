@@ -1,9 +1,13 @@
-import React, { ReactNode, useState } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
-import { TouchableOpacity, View } from 'react-native';
+import React, { ReactNode, useCallback, useRef, useState } from 'react';
+import {
+  BottomSheet,
+  BottomSheetRef,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
+import { Modal, TouchableOpacity, View } from 'react-native';
 
 import { useStyles } from '../../../../../../component-library/hooks';
-import BottomModal from '../bottom-modal';
+import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 import CopyButton from '../copy-button';
 import styleSheet from './expandable.styles';
 
@@ -32,6 +36,16 @@ const Expandable = ({
 }: ExpandableProps) => {
   const { styles } = useStyles(styleSheet, { isCompact });
   const [expanded, setExpanded] = useState(false);
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const surfaceClass = useElevatedSurface();
+
+  const handleClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const handleSheetClosed = useCallback(() => {
+    setExpanded(false);
+  }, []);
 
   return (
     <>
@@ -46,25 +60,31 @@ const Expandable = ({
         {collapsedContent}
       </TouchableOpacity>
       {expanded && (
-        <BottomModal onClose={() => setExpanded(false)}>
-          <View style={styles.modalContent}>
-            <HeaderStandard
-              title={expandedContentTitle}
-              onClose={() => setExpanded(false)}
-              closeButtonProps={{
-                testID: collapseButtonTestID ?? 'collapseButtonTestID',
-              }}
-            />
-            <View style={styles.modalExpandedContent}>
-              {copyText && (
-                <View style={styles.copyButtonContainer}>
-                  <CopyButton copyText={copyText} />
-                </View>
-              )}
-              {expandedContent}
+        <Modal visible transparent animationType="none">
+          <BottomSheet
+            ref={bottomSheetRef}
+            onClose={handleSheetClosed}
+            twClassName={surfaceClass}
+          >
+            <View style={styles.modalContent}>
+              <HeaderStandard
+                title={expandedContentTitle}
+                onClose={handleClose}
+                closeButtonProps={{
+                  testID: collapseButtonTestID ?? 'collapseButtonTestID',
+                }}
+              />
+              <View style={styles.modalExpandedContent}>
+                {copyText && (
+                  <View style={styles.copyButtonContainer}>
+                    <CopyButton copyText={copyText} />
+                  </View>
+                )}
+                {expandedContent}
+              </View>
             </View>
-          </View>
-        </BottomModal>
+          </BottomSheet>
+        </Modal>
       )}
     </>
   );
