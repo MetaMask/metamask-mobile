@@ -60,6 +60,11 @@ export function resolveIconType(type: ActivityKind): string {
     case 'marketCloseShort':
     case 'limitShort':
     case 'limitCloseShort':
+    case 'marketLong':
+    case 'stopMarketCloseLong':
+    case 'marketCloseLong':
+    case 'limitLong':
+    case 'limitCloseLong':
       return 'interaction';
   }
 }

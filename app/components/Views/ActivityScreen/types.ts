@@ -62,6 +62,11 @@ export const PERPS_ACTIVITY_FILTER_KINDS: Record<
     'limitShort',
     'limitCloseShort',
     'stopMarketCloseShort',
+    'marketLong',
+    'marketCloseLong',
+    'limitLong',
+    'limitCloseLong',
+    'stopMarketCloseLong',
   ]),
   [PerpsActivityFilter.Fundings]: new Set<ActivityKind>([
     'perpsPaidFundingFees',

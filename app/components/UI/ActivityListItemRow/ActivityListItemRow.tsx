@@ -100,6 +100,7 @@ function ResolvedActivityListItemRow({
       primaryAmount={content.primaryAmount}
       primaryToken={content.primaryToken}
       amountIsPnl={content.isPnlAmount}
+      amountIsMuted={content.isMutedAmount}
       secondaryAmount={content.secondaryAmount}
       styles={styles}
       subtitle={content.subtitle}

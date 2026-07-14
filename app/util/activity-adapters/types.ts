@@ -66,6 +66,11 @@ export type ActivityKind =
   | 'marketCloseShort'
   | 'limitShort'
   | 'limitCloseShort'
+  | 'marketLong'
+  | 'stopMarketCloseLong'
+  | 'marketCloseLong'
+  | 'limitLong'
+  | 'limitCloseLong'
   | 'nftMint';
 
 export interface TokenAmount {
@@ -219,7 +224,12 @@ export type ActivityListItem =
       | 'stopMarketCloseShort'
       | 'marketCloseShort'
       | 'limitShort'
-      | 'limitCloseShort',
+      | 'limitCloseShort'
+      | 'marketLong'
+      | 'stopMarketCloseLong'
+      | 'marketCloseLong'
+      | 'limitLong'
+      | 'limitCloseLong',
       {
         from?: string;
         to?: string;

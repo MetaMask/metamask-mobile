@@ -97,6 +97,11 @@ export function TemplateLoader({
     case 'marketCloseShort':
     case 'limitShort':
     case 'limitCloseShort':
+    case 'marketLong':
+    case 'stopMarketCloseLong':
+    case 'marketCloseLong':
+    case 'limitLong':
+    case 'limitCloseLong':
       return <PerpsDetails item={item} />;
     default:
       return <DefaultDetails item={item} />;

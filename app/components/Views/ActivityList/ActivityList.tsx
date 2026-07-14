@@ -408,6 +408,15 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         if (raw?.type !== 'localTransaction') return true;
         const tx = raw.data.primaryTransaction;
 
+        if (
+          isPerpsEnabled &&
+          (tx.type === TransactionType.perpsDeposit ||
+            tx.type === TransactionType.perpsDepositAndOrder ||
+            tx.type === TransactionType.perpsWithdraw)
+        ) {
+          return false;
+        }
+
         const txChainId = tx.chainId?.toLowerCase() ?? '';
         const relatedChainIds = relatedChainIdsByTransactionId.get(tx.id) ?? [
           txChainId,
@@ -505,6 +514,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       bridgeHistory,
       relatedChainIdsByTransactionId,
       maliciousTokenKeys,
+      isPerpsEnabled,
     ]);
 
     const data = useMemo<ActivityListItem[]>(() => {
@@ -1141,7 +1151,11 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         return;
       }
       listRef.current?.scrollToOffset({ offset: 0, animated: false });
-    }, [typeFilter, networkFilter, subFilterKinds]);
+
+      if (scrollY) {
+        scrollY.value = 0;
+      }
+    }, [typeFilter, networkFilter, subFilterKinds, scrollY]);
 
     const runAutoScroll = useCallback(() => {
       handleScroll();

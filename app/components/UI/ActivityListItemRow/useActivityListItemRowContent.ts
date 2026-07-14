@@ -29,6 +29,7 @@ import {
   getHumanReadableTokenAmount,
   isUnlimitedApprovalAmount,
   shouldShowPlusSign,
+  type Status,
   type TokenAmount,
   toMarketRateLookupToken,
 } from '../../../util/activity-adapters';
@@ -77,6 +78,34 @@ function isPerpsTradeKind(type: ActivityKind): boolean {
 
 function isPerpsMarketAvatarKind(type: ActivityKind): boolean {
   return isPerpsTradeKind(type) || isPerpsFundingKind(type);
+}
+
+/**
+ * Perps order rows (market/limit/stop). Their right column shows the order's
+ * lifecycle status (Filled / Canceled / Rejected), not a notional amount: the
+ * notional duplicates the size subtitle and is misleading for canceled/rejected
+ * orders, which moved no money. Realized PnL lives on the trade fill, not the
+ * order. Mirrors the extension's Orders view.
+ */
+function isPerpsOrderKind(type: ActivityKind): boolean {
+  return (
+    type.startsWith('market') ||
+    type.startsWith('limit') ||
+    type.startsWith('stopMarket')
+  );
+}
+
+function resolvePerpsOrderStatusLabel(status: Status): string {
+  switch (status) {
+    case 'cancelled':
+      return strings('transactions.activity_order_status_canceled');
+    case 'failed':
+      return strings('transactions.activity_order_status_rejected');
+    case 'pending':
+      return strings('transactions.activity_order_status_open');
+    default:
+      return strings('transactions.activity_order_status_filled');
+  }
 }
 
 function isPredictTradeKind(type: ActivityKind): boolean {
@@ -299,6 +328,10 @@ function resolveFallbackTitle(item: ActivityListItem): string {
   const base =
     ACTIVITY_FALLBACK_TITLE_RESOLVERS[item.type]?.() ??
     strings('transactions.interaction');
+
+  if (isPerpsOrderKind(item.type)) {
+    return base;
+  }
   return withDomainStatusSuffix(base, item.status);
 }
 
@@ -1188,13 +1221,18 @@ export function useActivityListItemRowContent(
       })
     : undefined;
 
-  const primaryAmount =
-    domainFiatAmount ?? resolveAmount(primaryToken, item.type);
-  const secondaryAmount = domainFiatAmount
-    ? isFundsRow
-      ? fundsTokenSecondaryAmount(primaryToken)
-      : undefined
-    : (resolvedSecondaryAmount ?? secondaryFiatAmount ?? primaryFiatAmount);
+  const isOrderRow = isPerpsOrderKind(item.type);
+
+  const primaryAmount = isOrderRow
+    ? resolvePerpsOrderStatusLabel(item.status)
+    : (domainFiatAmount ?? resolveAmount(primaryToken, item.type));
+  const secondaryAmount = isOrderRow
+    ? undefined
+    : domainFiatAmount
+      ? isFundsRow
+        ? fundsTokenSecondaryAmount(primaryToken)
+        : undefined
+      : (resolvedSecondaryAmount ?? secondaryFiatAmount ?? primaryFiatAmount);
 
   const perpsMarketSymbol = isPerpsMarketAvatarKind(item.type)
     ? 'sourceToken' in item.data
@@ -1218,5 +1256,6 @@ export function useActivityListItemRowContent(
     primaryAmount,
     secondaryAmount,
     isPnlAmount: isPerpsPnlKind(item.type),
+    isMutedAmount: isOrderRow,
   };
 }

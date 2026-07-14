@@ -150,45 +150,47 @@ function mapOrderStatus(
   return null;
 }
 
-/**
- * Classifies a historical `order` entry into an Activity row type.
- *
- * Direction (long/short) and open vs close come from the display `title` the
- * perps domain produces ("Limit short", "Market close short", …) — fragile, but
- * the only side/close signal on the record. Limit vs market, however, is taken
- * from the *structured* `order.type`, so a limit order is never displayed as a
- * market order.
- *
- * The shared `ActivityListItem` union only models *short* order kinds today, so
- * long orders are explicitly excluded (return `null`) rather than silently
- * mismatched onto a "short" kind.
- * TODO: add long order kinds to the union and map them here.
- */
-function mapOrderKind(
-  transaction: PerpsTransaction,
-): ActivityListItem['type'] | null {
-  const title = transaction.title.toLowerCase();
+type PerpsOrderDirection = 'long' | 'short';
 
-  // Long orders aren't representable yet — drop them explicitly so they don't
-  // fall through and get misclassified as a short order below.
-  if (title.includes('long') || title.includes('buy')) {
+function resolveOrderDirection(
+  side: 'buy' | 'sell',
+  isClosing: boolean,
+): PerpsOrderDirection {
+  if (isClosing) {
+    return side === 'sell' ? 'long' : 'short';
+  }
+  return side === 'buy' ? 'long' : 'short';
+}
+
+function mapOrderKind(
+  order: NonNullable<PerpsTransaction['order']>,
+): ActivityListItem['type'] | null {
+  const { side, reduceOnly, isTrigger, detailedOrderType, type } = order;
+  if (side !== 'buy' && side !== 'sell') {
     return null;
   }
 
+  const isClosing = Boolean(reduceOnly || isTrigger);
+  const direction = resolveOrderDirection(side, isClosing);
+  const isStop = Boolean(detailedOrderType?.toLowerCase().includes('stop'));
+  const isLimit = type === 'limit';
+
   // Stop orders are a triggered market close with their own dedicated kind.
-  if (title.includes('stop')) {
-    return 'stopMarketCloseShort';
+  if (isStop) {
+    return direction === 'long'
+      ? 'stopMarketCloseLong'
+      : 'stopMarketCloseShort';
   }
-
-  const isLimit = transaction.order?.type === 'limit';
-
-  if (title.includes('close')) {
-    return isLimit ? 'limitCloseShort' : 'marketCloseShort';
+  if (isClosing) {
+    if (isLimit) {
+      return direction === 'long' ? 'limitCloseLong' : 'limitCloseShort';
+    }
+    return direction === 'long' ? 'marketCloseLong' : 'marketCloseShort';
   }
-  if (title.includes('short') || title.includes('sell')) {
-    return isLimit ? 'limitShort' : 'marketShort';
+  if (isLimit) {
+    return direction === 'long' ? 'limitLong' : 'limitShort';
   }
-  return null;
+  return direction === 'long' ? 'marketLong' : 'marketShort';
 }
 
 /**
@@ -290,7 +292,7 @@ export function mapPerpsTransaction({
     }
 
     const status = mapOrderStatus(order);
-    const kind = mapOrderKind(transaction);
+    const kind = mapOrderKind(order);
     if (!status || !kind) {
       return null;
     }
