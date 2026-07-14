@@ -17,6 +17,7 @@ import {
   useLogSocialQueryError,
 } from '../../../../../util/social/socialServiceTelemetry';
 import { formatTradeDayLabel } from '../../utils/formatters';
+import { FEED_CAIP2_CHAINS } from '../feed-constants';
 import { mapFeedItem } from '../utils/mapFeedItem';
 import type {
   FeedAudience,
@@ -121,7 +122,7 @@ export const useTraderFeed = (
 
   const queryClient = useQueryClient();
   const queryKey = useMemo(
-    () => ['SocialService:fetchFeed', { scope }],
+    () => ['SocialService:fetchFeed', { scope, chains: FEED_CAIP2_CHAINS }],
     [scope],
   );
 
@@ -139,6 +140,7 @@ export const useTraderFeed = (
       return messenger.call('SocialService:fetchFeed', {
         scope,
         limit: FEED_PAGE_LIMIT,
+        chains: [...FEED_CAIP2_CHAINS],
         ...(pageParam ? { olderThan: pageParam } : {}),
       });
     },
@@ -180,7 +182,7 @@ export const useTraderFeed = (
     extraMessage: 'Trader feed fetch failed',
     source: 'useTraderFeed',
     endpoint: 'feed',
-    queryParams: { scope },
+    queryParams: { scope, chains: FEED_CAIP2_CHAINS.join(',') },
   });
 
   const { hasNextPage, isFetchingNextPage, fetchNextPage, isError, refetch } =
