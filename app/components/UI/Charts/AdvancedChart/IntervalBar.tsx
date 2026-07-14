@@ -95,7 +95,6 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
         chartType={chartType}
         onChartTypeSelect={onChartTypeSelect}
         containerTwClassName="shrink-0 rounded-lg border border-border-muted p-0.5"
-        selectedColor={selectedColor}
       />
     </Box>
   );

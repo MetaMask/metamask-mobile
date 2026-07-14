@@ -16,8 +16,6 @@ interface ChartTypeToggleProps {
   onChartTypeSelect?: (type: ChartType) => void;
   /** Outer container classes; defaults to time-range row spacing. */
   containerTwClassName?: string;
-  /** Override icon color when ambient A/B is active. */
-  selectedColor?: string;
 }
 
 const DEFAULT_CONTAINER_CLASS =
@@ -27,7 +25,6 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
   chartType,
   onChartTypeSelect,
   containerTwClassName = DEFAULT_CONTAINER_CLASS,
-  selectedColor,
 }) => {
   const tw = useTailwind();
 
@@ -56,11 +53,9 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
           name={IconName.Diagram}
           size={IconSize.Sm}
           twClassName={
-            selectedColor
-              ? `text-[${selectedColor}]`
-              : chartType === ChartType.Line
-                ? 'text-icon-default'
-                : 'text-icon-alternative'
+            chartType === ChartType.Line
+              ? 'text-icon-default'
+              : 'text-icon-alternative'
           }
         />
       </Pressable>
@@ -81,11 +76,9 @@ const ChartTypeToggle: React.FC<ChartTypeToggleProps> = ({
           name={IconName.Candlestick}
           size={IconSize.Sm}
           twClassName={
-            selectedColor
-              ? `text-[${selectedColor}]`
-              : chartType === ChartType.Candles
-                ? 'text-icon-default'
-                : 'text-icon-alternative'
+            chartType === ChartType.Candles
+              ? 'text-icon-default'
+              : 'text-icon-alternative'
           }
         />
       </Pressable>
