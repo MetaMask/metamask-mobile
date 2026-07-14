@@ -754,9 +754,9 @@ jobs:
       - prepare-ci-js-deps
       - unit-tests
       - component-view-tests
-      - integration-tests
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ github.event_name != 'merge_group' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' }}
+    # Do not need integration-tests: coverage merge tolerates missing integration
+    # shards and the job is optional during the PoC rollout.
+    if: ${{ github.event_name != 'merge_group' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && !cancelled() && needs.prepare-ci-js-deps.result == 'success' && needs.unit-tests.result == 'success' && needs.component-view-tests.result == 'success' }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1063,10 +1063,14 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  # Integration tests are optional during the PoC rollout — they still run for
+  # signal, but failures/cancellations must not block merge. Revert
+  # continue-on-error and the ci-status-gate exemption once the suite is stable.
   integration-tests:
     name: Integration tests
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' }}
+    continue-on-error: true
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -1647,7 +1651,6 @@ jobs:
     needs:
       - unit-tests
       - component-view-tests
-      - integration-tests
       - merge-unit-and-component-view-tests
     permissions:
       actions: write

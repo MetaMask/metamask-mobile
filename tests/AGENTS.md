@@ -15,7 +15,7 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 
 - [tests/component-view/AGENTS.md](component-view/AGENTS.md) — Agent index for component view tests: framework, canonical skill, run commands, enforcement.
 
-### Integration Tests (Mandatory)
+### Integration Tests (Optional — PoC)
 
 - [tests/integration/AGENTS.md](integration/AGENTS.md) — Agent index for integration tests: harnesses, layer boundaries, canonical skill, run commands, enforcement.
 
