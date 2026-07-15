@@ -191,7 +191,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       !isAddMusdIntent && !isDepositPrefillEnabled,
     );
     const [isPreparingQuote, setIsPreparingQuote] = useState(false);
-    const isPreparingQuoteRef = useRef(false);
+    // React batches rapid presses before the state update rerenders, so keep a
+    // synchronous guard separate from the render state.
+    const isAmountUpdateInProgressRef = useRef(false);
     const wasKeyboardEverVisible = useRef(isKeyboardVisible);
     if (isKeyboardVisible) {
       wasKeyboardEverVisible.current = true;
@@ -256,12 +258,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     });
 
     const handleDone = useCallback(async () => {
-      if (isPreparingQuoteRef.current) {
+      if (isAmountUpdateInProgressRef.current) {
         return;
       }
 
       if (isMoneyAccountDeposit) {
-        isPreparingQuoteRef.current = true;
+        isAmountUpdateInProgressRef.current = true;
         setIsPreparingQuote(true);
         setIsKeyboardVisible(false);
       }
@@ -293,7 +295,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         return;
       } finally {
         if (isMoneyAccountDeposit) {
-          isPreparingQuoteRef.current = false;
+          isAmountUpdateInProgressRef.current = false;
           setIsPreparingQuote(false);
         }
       }

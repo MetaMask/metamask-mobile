@@ -682,6 +682,8 @@ describe('CustomAmountInfo', () => {
         fireEvent.press(doneButton);
       });
 
+      // Both presses occur before React rerenders, so the synchronous guard
+      // must prevent the second amount update.
       expect(updateTokenAmount).toHaveBeenCalledTimes(1);
       expect(
         getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props.pointerEvents,
