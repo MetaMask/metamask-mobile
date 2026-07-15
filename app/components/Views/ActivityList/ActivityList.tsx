@@ -72,8 +72,8 @@ import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridge
 import {
   getSwapBridgeTxActivityTitle,
   handleUnifiedSwapsTxHistoryItemClick,
+  isBridgeTxHistoryItemBridge,
 } from '../../UI/Bridge/utils/transaction-history';
-import MultichainBridgeTransactionListItem from '../../UI/MultichainBridgeTransactionListItem';
 import TransactionsFooter from '../../UI/Transactions/TransactionsFooter';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import MultichainTransactionsFooter from '../MultichainTransactionsView/MultichainTransactionsFooter';
@@ -82,7 +82,6 @@ import { getAddressUrl } from '../../../core/Multichain/utils';
 import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
 import styleSheet from './ActivityList.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
-import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { useTransactionAutoScroll } from './useTransactionAutoScroll';
 import useBlockExplorer from '../../hooks/useBlockExplorer';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
@@ -172,7 +171,6 @@ interface ActivityListProps {
   header?: React.ReactElement;
   tabLabel?: string;
   chainId?: string; // used by non-EVM list items for explorer links
-  location?: TransactionDetailLocation;
   /**
    * Shared value updated on the UI thread with the list's vertical scroll
    * offset, for driving scroll-linked animations in the parent.
@@ -190,15 +188,7 @@ export interface ActivityListHandle {
 
 const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
   (
-    {
-      header,
-      chainId,
-      location,
-      scrollY,
-      typeFilter,
-      networkFilter,
-      subFilterKinds,
-    },
+    { header, chainId, scrollY, typeFilter, networkFilter, subFilterKinds },
     ref,
   ) => {
     const navigation = useNavigation();
@@ -818,6 +808,27 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         const { raw } = item;
         if (!raw) return;
 
+        // Non-EVM swaps/bridges submitted from this device carry a
+        // bridge-history entry. Cross-chain bridges keep their dedicated
+        // bridge-status screen, mirroring hasDedicatedDetailScreen for local
+        // EVM bridges; same-chain swaps fall through to the shared detail flows.
+        if (raw.type === 'keyringTransaction') {
+          const keyringBridgeHistoryItem = getBridgeHistoryItemByHash(
+            item.hash,
+          );
+          if (
+            keyringBridgeHistoryItem &&
+            isBridgeTxHistoryItemBridge(keyringBridgeHistoryItem)
+          ) {
+            handleUnifiedSwapsTxHistoryItemClick({
+              navigation,
+              multiChainTx: raw.data,
+              bridgeTxHistoryItem: keyringBridgeHistoryItem,
+            });
+            return;
+          }
+        }
+
         if (isTransactionsRedesignEnabled) {
           const detailsRoute = getActivityDetailsRoute(item);
           if (detailsRoute) {
@@ -1219,30 +1230,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       }
 
       const { item } = groupedItem;
-      const raw = item.raw;
 
-      // Non-EVM bridge transactions: route to MultichainBridgeTransactionListItem.
-      if (raw?.type === 'keyringTransaction') {
-        const srcTxHash = raw.data.id;
-        const bridgeHistoryItem = getBridgeHistoryItemByHash(srcTxHash);
-        if (bridgeHistoryItem) {
-          return (
-            <MultichainBridgeTransactionListItem
-              transaction={raw.data}
-              bridgeHistoryItem={bridgeHistoryItem}
-              navigation={navigation}
-              index={index}
-              location={location}
-              showDestinationPerspective={
-                !configuredNonEVMChainIds.includes(raw.data.chain)
-              }
-            />
-          );
-        }
-      }
-
-      // All other items (API EVM confirmed, completed local EVM, non-EVM non-bridge):
-      // render from the shared ActivityListItem shape.
+      // All items (API EVM confirmed, completed local EVM, non-EVM) render from
+      // the shared ActivityListItem shape.
       //
       // Preserve the legacy Activity title for swap/bridge rows (e.g.
       // "Swap ETH to USDC", "Bridge to Optimism") by deriving it from bridge

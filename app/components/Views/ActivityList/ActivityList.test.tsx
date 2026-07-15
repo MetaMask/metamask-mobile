@@ -326,18 +326,6 @@ jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
   resolveActivityListItemTitle: jest.fn(() => 'Activity title'),
 }));
 
-jest.mock('../../UI/MultichainBridgeTransactionListItem', () => {
-  const { Text, View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ transaction }: { transaction: { id: string } }) => (
-      <View testID={`bridge-${transaction.id}`}>
-        <Text>Bridge tx</Text>
-      </View>
-    ),
-  };
-});
-
 jest.mock('../../UI/Transactions/TransactionsFooter', () => {
   const { Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
@@ -382,7 +370,13 @@ jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
   useBridgeHistoryItemBySrcTxHash: jest.fn(() => ({
     bridgeHistoryItemsBySrcTxHash: {
       '0xconfirmed': { title: 'bridge-history' },
+      // Same-chain swap (no quote → not a cross-chain bridge).
       solanaBridge: { title: 'solana-bridge' },
+      // Cross-chain bridge (src and dest chains differ).
+      solanaCross: {
+        title: 'solana-cross-bridge',
+        quote: { srcChainId: 'solana:mainnet', destChainId: 1 },
+      },
     },
   })),
 }));
@@ -390,6 +384,11 @@ jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
 jest.mock('../../UI/Bridge/utils/transaction-history', () => ({
   getSwapBridgeTxActivityTitle: jest.fn(() => 'Bridge title'),
   handleUnifiedSwapsTxHistoryItemClick: jest.fn(),
+  isBridgeTxHistoryItemBridge: jest.fn(
+    (item: { quote?: { srcChainId?: unknown; destChainId?: unknown } }) =>
+      item?.quote !== undefined &&
+      item.quote.srcChainId !== item.quote.destChainId,
+  ),
 }));
 
 jest.mock('../../../util/multichain/multichainTransactionTokenScan', () => ({
@@ -1711,7 +1710,7 @@ describe('ActivityList', () => {
     });
   });
 
-  it('renders non-EVM bridge rows and footer when only non-EVM chains are enabled', () => {
+  it('renders non-EVM swap/bridge rows through ActivityListItemRow with the bridge-history title', () => {
     selectorValues.enabledEvm = [];
     selectorValues.enabledNonEvm = ['solana:mainnet'];
     selectorValues.nonEvmState = {
@@ -1732,11 +1731,53 @@ describe('ActivityList', () => {
 
     render(<ActivityList chainId="solana:mainnet" />);
 
-    expect(screen.getByTestId('bridge-solanaBridge')).toBeOnTheScreen();
+    expect(screen.getByTestId('row-solanaBridge')).toBeOnTheScreen();
+    expect(screen.getByText('Bridge title')).toBeOnTheScreen();
     fireEvent.press(screen.getByTestId('non-evm-footer'));
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       params: { url: 'https://solana.explorer/address/sol' },
       screen: 'SimpleWebview',
     });
+  });
+
+  it('routes non-EVM cross-chain bridge taps to the unified swaps detail screen', () => {
+    selectorValues.enabledNonEvm = ['solana:mainnet'];
+    selectorValues.nonEvmState = {
+      transactions: [{ chain: 'solana:mainnet', id: 'solanaCross' }],
+    };
+
+    render(<ActivityList header={<></>} />);
+
+    fireEvent.press(screen.getByTestId('row-solanaCross'));
+
+    expect(handleUnifiedSwapsTxHistoryItemClick).toHaveBeenCalledWith({
+      navigation: expect.any(Object),
+      multiChainTx: { chain: 'solana:mainnet', id: 'solanaCross' },
+      bridgeTxHistoryItem: expect.objectContaining({
+        title: 'solana-cross-bridge',
+      }),
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('opens the multichain details sheet for non-EVM same-chain swaps with bridge history', () => {
+    selectorValues.enabledNonEvm = ['solana:mainnet'];
+    selectorValues.nonEvmState = {
+      transactions: [
+        { chain: 'solana:mainnet', id: 'solanaBridge', from: [], to: [] },
+      ],
+    };
+
+    render(<ActivityList header={<></>} />);
+
+    fireEvent.press(screen.getByTestId('row-solanaBridge'));
+
+    expect(handleUnifiedSwapsTxHistoryItemClick).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      expect.objectContaining({
+        screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
+      }),
+    );
   });
 });
