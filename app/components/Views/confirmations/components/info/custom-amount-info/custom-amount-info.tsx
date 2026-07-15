@@ -227,10 +227,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
     const showLoadingReview = isAmountUpdating || isQuotesLoading;
-    const showMoneyAccountLoadingReview =
-      isMoneyAccountDeposit && showLoadingReview;
     const isResultReady =
-      showMoneyAccountLoadingReview ||
+      showLoadingReview ||
       isTransactionResultReady ||
       (isAddMusdIntent && !isKeyboardVisible);
     const hasSourceAmount = useTransactionPayHasSourceAmount();
@@ -262,11 +260,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         return;
       }
 
-      if (isMoneyAccountDeposit) {
-        isAmountUpdateInProgressRef.current = true;
-        setIsAmountUpdating(true);
-        setIsKeyboardVisible(false);
-      }
+      isAmountUpdateInProgressRef.current = true;
+      setIsAmountUpdating(true);
+      setIsKeyboardVisible(false);
 
       try {
         await updateTokenAmount();
@@ -288,23 +284,18 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             toastRef?.current?.closeToast(),
           ),
         );
-        if (isMoneyAccountDeposit) {
-          setIsKeyboardVisible(true);
-        }
+        setIsKeyboardVisible(true);
         // Keep keyboard visible so the user can retry; do not advance the flow.
         return;
       } finally {
-        if (isMoneyAccountDeposit) {
-          isAmountUpdateInProgressRef.current = false;
-          setIsAmountUpdating(false);
-        }
+        isAmountUpdateInProgressRef.current = false;
+        setIsAmountUpdating(false);
       }
       EngineService.flushState();
       setIsKeyboardVisible(false);
       onAmountSubmit?.();
     }, [
       amountFiat,
-      isMoneyAccountDeposit,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
       toastRef,
@@ -357,11 +348,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               !hasAccountNoFunds &&
               (isPrefillPending || isDepositPrefillLoading)
             }
-            onPress={
-              showMoneyAccountLoadingReview ? undefined : handleAmountPress
-            }
+            onPress={showLoadingReview ? undefined : handleAmountPress}
             disabled={!hasPaymentOption}
-            showCursor={isKeyboardVisible && !showMoneyAccountLoadingReview}
+            showCursor={isKeyboardVisible && !showLoadingReview}
           />
           {!hidePayTokenAmount &&
             disablePay !== true &&
@@ -396,7 +385,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {isResultReady && (
             <Box
-              pointerEvents={showMoneyAccountLoadingReview ? 'none' : 'auto'}
+              pointerEvents={showLoadingReview ? 'none' : 'auto'}
               testID={CustomAmountInfoTestIds.REVIEW_ROWS}
             >
               {supportAccountSelection &&
@@ -408,7 +397,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 <PayWithRow isResultReady />
               )}
               {!hasAccountNoFunds &&
-                (showMoneyAccountLoadingReview ? (
+                (showLoadingReview ? (
                   <PaymentDetailsSkeleton />
                 ) : showPaymentDetails && !isAwaitingPrefillResult ? (
                   <>
@@ -438,7 +427,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             </Text>
           )}
           {isKeyboardVisible &&
-            !showMoneyAccountLoadingReview &&
+            !showLoadingReview &&
             (hasPaymentOption || hasAccountNoFunds) && (
               <DepositKeyboard
                 hidePercentageButtons={
@@ -460,7 +449,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {(!hasPaymentOption || hasAccountNoFunds) &&
             !hideBuyForNoFunds &&
             !isDepositPrefillEnabled && <BuySection />}
-          {(!isKeyboardVisible || showMoneyAccountLoadingReview) && (
+          {(!isKeyboardVisible || showLoadingReview) && (
             <ConfirmButton
               alertTitle={alertTitle}
               disableConfirm={
@@ -469,7 +458,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 isPrefillPending ||
                 isAwaitingPrefillResult
               }
-              isLoadingReview={showMoneyAccountLoadingReview}
+              isLoadingReview={showLoadingReview}
               onContinue={trackContinue}
             />
           )}
