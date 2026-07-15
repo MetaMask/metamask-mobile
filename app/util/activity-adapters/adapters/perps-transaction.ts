@@ -1,19 +1,12 @@
 /**
- * Maps Perps provider transaction items (HyperLiquid etc.) into the shared
- * `ActivityListItem` shape. Lives in mobile until shared
+ * Maps a `PerpsTransaction` (from the perps domain's `transform*ToTransactions`
+ * helpers) into the shared `ActivityListItem` shape. Lives in mobile until
  * `@metamask/activity-adapters` publishes an equivalent.
  *
- * Source: `PerpsTransaction` from `app/components/UI/Perps/types/transactionHistory.ts`,
- * produced by the perps domain layer's `transform*ToTransactions` helpers.
- *
- * Defaults (pending product confirmation — see TMCU-860):
- * trade/funding amounts are rendered USD-fiat style via the structured
- * `*Number` fields; `sourceToken` carries the position size (e.g. `2.01 ETH`)
- * or funding market so rows can render it as a subtitle. `status` defaults to
- * `'success'` for trades/funding (already executed) and is derived from
- * `depositWithdrawal.status` for funds movements. `chainId` is caller-injected
- * (HyperLiquid has no public CAIP-2; callers pass Arbitrum). Open `order`
- * entries are not mapped — the feed only surfaces executed history.
+ * Notes: trade/funding amounts render USD-fiat from the structured `*Number`
+ * fields; `chainId` is caller-injected (HyperLiquid has no CAIP-2 — callers
+ * pass Arbitrum); open `order` entries are dropped (executed history only).
+ * See TMCU-860 for pending product confirmation of the display defaults.
  */
 import type { CaipChainId } from '@metamask/utils';
 import {
@@ -23,6 +16,11 @@ import {
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
   type PerpsTransaction,
 } from '../../../components/UI/Perps/types/transactionHistory';
+import {
+  resolveOrderDirection,
+  isClosingOrder,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+} from '../../../components/UI/Perps/utils/orderDirection';
 import type { ActivityListItem, Status, TokenAmount } from '../types';
 
 interface QuoteAsset {
@@ -150,45 +148,38 @@ function mapOrderStatus(
   return null;
 }
 
-/**
- * Classifies a historical `order` entry into an Activity row type.
- *
- * Direction (long/short) and open vs close come from the display `title` the
- * perps domain produces ("Limit short", "Market close short", …) — fragile, but
- * the only side/close signal on the record. Limit vs market, however, is taken
- * from the *structured* `order.type`, so a limit order is never displayed as a
- * market order.
- *
- * The shared `ActivityListItem` union only models *short* order kinds today, so
- * long orders are explicitly excluded (return `null`) rather than silently
- * mismatched onto a "short" kind.
- * TODO: add long order kinds to the union and map them here.
- */
 function mapOrderKind(
-  transaction: PerpsTransaction,
+  order: NonNullable<PerpsTransaction['order']>,
 ): ActivityListItem['type'] | null {
-  const title = transaction.title.toLowerCase();
-
-  // Long orders aren't representable yet — drop them explicitly so they don't
-  // fall through and get misclassified as a short order below.
-  if (title.includes('long') || title.includes('buy')) {
+  const { side, detailedOrderType, type } = order;
+  if (side !== 'buy' && side !== 'sell') {
     return null;
   }
 
-  // Stop orders are a triggered market close with their own dedicated kind.
-  if (title.includes('stop')) {
-    return 'stopMarketCloseShort';
-  }
+  // Open/close + direction come from the same helpers that build the perps
+  // order title (formatOrderLabel), so title and kind can't disagree.
+  const isClosing = isClosingOrder(order);
+  const direction = resolveOrderDirection(side, isClosing);
+  const isLimit = type === 'limit';
 
-  const isLimit = transaction.order?.type === 'limit';
+  const isStopMarket =
+    Boolean(detailedOrderType?.toLowerCase().includes('stop')) && !isLimit;
 
-  if (title.includes('close')) {
-    return isLimit ? 'limitCloseShort' : 'marketCloseShort';
+  if (isStopMarket) {
+    return direction === 'long'
+      ? 'stopMarketCloseLong'
+      : 'stopMarketCloseShort';
   }
-  if (title.includes('short') || title.includes('sell')) {
-    return isLimit ? 'limitShort' : 'marketShort';
+  if (isClosing) {
+    if (isLimit) {
+      return direction === 'long' ? 'limitCloseLong' : 'limitCloseShort';
+    }
+    return direction === 'long' ? 'marketCloseLong' : 'marketCloseShort';
   }
-  return null;
+  if (isLimit) {
+    return direction === 'long' ? 'limitLong' : 'limitShort';
+  }
+  return direction === 'long' ? 'marketLong' : 'marketShort';
 }
 
 /**
@@ -290,7 +281,7 @@ export function mapPerpsTransaction({
     }
 
     const status = mapOrderStatus(order);
-    const kind = mapOrderKind(transaction);
+    const kind = mapOrderKind(order);
     if (!status || !kind) {
       return null;
     }
