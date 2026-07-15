@@ -1529,5 +1529,71 @@ describe('useTransactionPayMetrics', () => {
       const errors = lastProps()?.mm_pay_quote_errors as Array<unknown>;
       expect(errors).toHaveLength(2);
     });
+
+    it('does not duplicate entries on subsequent non-loading re-renders', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      // Drive a single failed cycle: loading true → false
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      rerender({});
+      await act(async () => noop());
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+      rerender({});
+      await act(async () => noop());
+
+      // Re-render 3 more times while still non-loading (quotes still [])
+      rerender({});
+      await act(async () => noop());
+      rerender({});
+      await act(async () => noop());
+      rerender({});
+      await act(async () => noop());
+
+      const errors = lastProps()?.mm_pay_quote_errors as Array<unknown>;
+      expect(errors).toHaveLength(1);
+    });
+
+    it('records null pay_token fields when no payToken is selected', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: noop as never,
+      });
+
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      // Drive a failed cycle: loading true → false with no quotes
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      rerender({});
+      await act(async () => noop());
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+      rerender({});
+      await act(async () => noop());
+
+      const errors = lastProps()?.mm_pay_quote_errors as Array<Record<string, unknown>>;
+      expect(errors).toHaveLength(1);
+      expect(errors?.[0]).toMatchObject({
+        pay_token: {
+          symbol: null,
+          chainId: null,
+          address: null,
+        },
+      });
+    });
+
   });
 });

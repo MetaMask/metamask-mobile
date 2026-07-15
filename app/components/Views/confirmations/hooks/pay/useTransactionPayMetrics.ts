@@ -127,7 +127,7 @@ export function useTransactionPayMetrics() {
         },
         amount: sendingValue,
         percentage_amount: percentageMatch ? Number(percentageMatch[1]) : null,
-        percentage_max: inputType !== undefined ? isMaxAmount : null,
+        percentage_max: percentageMatch ? isMaxAmount : null,
         error_message: 'unknown',
       },
     ];
