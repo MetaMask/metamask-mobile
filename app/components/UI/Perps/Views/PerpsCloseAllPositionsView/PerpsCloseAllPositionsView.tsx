@@ -1,23 +1,20 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { NotificationMoment } from '../../../../../util/haptics';
-import { strings } from '../../../../../../locales/i18n';
-import BottomSheet, {
+import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
   BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import BottomSheetFooter, {
+  Box,
+  ButtonSize,
   ButtonsAlignment,
-} from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import Text, {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
+import { NotificationMoment } from '../../../../../util/haptics';
+import { strings } from '../../../../../../locales/i18n';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../../component-library/components/Toast/Toast.types';
 import {
@@ -222,54 +219,47 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
     }
   }, [externalSheetRef, handleClose, handleKeepPositions]);
 
-  const footerButtons = useMemo(
-    () => [
-      {
-        label: strings('perps.close_all_modal.keep_positions'),
-        onPress: handleKeepButtonPress,
-        variant: ButtonVariants.Secondary,
-        size: ButtonSize.Lg,
-        style: styles.footerButtonSecondary,
-        disabled: isClosing,
-      },
-      {
-        label: isClosing
-          ? strings('perps.close_all_modal.closing')
-          : strings('perps.close_all_modal.close_all'),
-        onPress: handleCloseAll,
-        variant: ButtonVariants.Primary,
-        size: ButtonSize.Lg,
-        disabled: isClosing,
-        danger: true,
-      },
-    ],
-    [
-      handleKeepButtonPress,
-      handleCloseAll,
-      isClosing,
-      styles.footerButtonSecondary,
-    ],
+  const secondaryButtonProps = useMemo(
+    () => ({
+      children: strings('perps.close_all_modal.keep_positions'),
+      onPress: handleKeepButtonPress,
+      size: ButtonSize.Lg,
+      isDisabled: isClosing,
+    }),
+    [handleKeepButtonPress, isClosing],
   );
+
+  const primaryButtonProps = useMemo(
+    () => ({
+      children: isClosing
+        ? strings('perps.close_all_modal.closing')
+        : strings('perps.close_all_modal.close_all'),
+      onPress: handleCloseAll,
+      size: ButtonSize.Lg,
+      isDisabled: isClosing,
+      isDanger: true,
+    }),
+    [handleCloseAll, isClosing],
+  );
+
+  const goBack = externalSheetRef ? undefined : navigation.goBack;
+  const onClose = externalSheetRef ? onExternalClose : undefined;
 
   // Show loading state while fetching positions
   if (isInitialLoading) {
     return (
-      <BottomSheet
-        ref={sheetRef}
-        shouldNavigateBack={!externalSheetRef}
-        onClose={externalSheetRef ? onExternalClose : undefined}
-      >
+      <BottomSheet ref={sheetRef} goBack={goBack} onClose={onClose}>
         <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('perps.close_all_modal.title')}
-          </Text>
+          {strings('perps.close_all_modal.title')}
         </BottomSheetHeader>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator
-            size="large"
-            color={theme.colors.primary.default}
-          />
-        </View>
+        <Box paddingHorizontal={4}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator
+              size="large"
+              color={theme.colors.primary.default}
+            />
+          </View>
+        </Box>
       </BottomSheet>
     );
   }
@@ -277,41 +267,34 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   // Show empty state if no positions
   if (!positions || positions.length === 0) {
     return (
-      <BottomSheet
-        ref={sheetRef}
-        shouldNavigateBack={!externalSheetRef}
-        onClose={externalSheetRef ? onExternalClose : undefined}
-      >
+      <BottomSheet ref={sheetRef} goBack={goBack} onClose={onClose}>
         <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('perps.close_all_modal.title')}
-          </Text>
+          {strings('perps.close_all_modal.title')}
         </BottomSheetHeader>
-        <View style={styles.emptyContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('perps.position.no_positions')}
-          </Text>
-        </View>
+        <Box paddingHorizontal={4}>
+          <View style={styles.emptyContainer}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {strings('perps.position.no_positions')}
+            </Text>
+          </View>
+        </Box>
       </BottomSheet>
     );
   }
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      shouldNavigateBack={!externalSheetRef}
-      onClose={externalSheetRef ? onExternalClose : undefined}
-    >
+    <BottomSheet ref={sheetRef} goBack={goBack} onClose={onClose}>
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.close_all_modal.title')}
-        </Text>
+        {strings('perps.close_all_modal.title')}
       </BottomSheetHeader>
 
-      <View style={styles.contentContainer}>
+      <Box paddingHorizontal={4} twClassName="py-2">
         <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
           style={styles.description}
         >
           {strings('perps.close_all_modal.description')}
@@ -324,8 +307,8 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
               color={theme.colors.primary.default}
             />
             <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
               style={styles.loadingText}
             >
               {strings('perps.close_all_modal.closing')}
@@ -352,12 +335,12 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             enableTooltips={false}
           />
         )}
-      </View>
+      </Box>
 
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
-        buttonPropsArray={footerButtons}
-        style={styles.footerContainer}
+        secondaryButtonProps={secondaryButtonProps}
+        primaryButtonProps={primaryButtonProps}
       />
     </BottomSheet>
   );

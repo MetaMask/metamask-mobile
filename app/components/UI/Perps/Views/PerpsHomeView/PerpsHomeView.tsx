@@ -15,6 +15,7 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import {
+  BottomSheetRef,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -112,7 +113,7 @@ import {
 } from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { BottomSheetRef as ComponentLibraryBottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import PerpsNavigationCard, {
   NavigationItem,
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
@@ -209,7 +210,7 @@ const PerpsHomeView = ({
   const [showCloseAllSheet, setShowCloseAllSheet] = useState(false);
   const [showCancelAllSheet, setShowCancelAllSheet] = useState(false);
   const closeAllSheetRef = useRef<BottomSheetRef>(null);
-  const cancelAllSheetRef = useRef<BottomSheetRef>(null);
+  const cancelAllSheetRef = useRef<ComponentLibraryBottomSheetRef>(null);
 
   // Use hook for eligibility checks and action handlers
   // Pass button location for tracking deposit entry point

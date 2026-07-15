@@ -45,56 +45,87 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const mockReact = jest.requireActual<typeof React>('react');
-    return mockReact.forwardRef(
-      (props: { children: React.ReactNode }, _ref) => <>{props.children}</>,
-    );
-  },
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const MockReact = jest.requireActual('react');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => 'BottomSheetHeader',
-);
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetFooter',
-  () => {
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-
-    return {
-      __esModule: true,
-      default: ({
-        buttonPropsArray,
+  const BottomSheet = MockReact.forwardRef(
+    (
+      {
+        children,
       }: {
-        buttonPropsArray?: {
-          label: string;
-          onPress: () => void;
-          disabled?: boolean;
-        }[];
-      }) => (
-        <View>
-          {buttonPropsArray?.map((buttonProps, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={buttonProps.onPress}
-              disabled={buttonProps.disabled}
-            >
-              <Text>{buttonProps.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      ),
-      ButtonsAlignment: {
-        Horizontal: 'Horizontal',
-        Vertical: 'Vertical',
+        children: React.ReactNode;
       },
+      ref: React.Ref<{
+        onOpenBottomSheet: () => void;
+        onCloseBottomSheet: (callback?: () => void) => void;
+      }>,
+    ) => {
+      MockReact.useImperativeHandle(ref, () => ({
+        onOpenBottomSheet: jest.fn(),
+        onCloseBottomSheet: (callback?: () => void) => {
+          callback?.();
+        },
+      }));
+
+      return <View>{children}</View>;
+    },
+  );
+  BottomSheet.displayName = 'BottomSheet';
+
+  const BottomSheetHeader = ({ children }: { children: React.ReactNode }) => (
+    <View>
+      {typeof children === 'string' ? <Text>{children}</Text> : children}
+    </View>
+  );
+
+  const BottomSheetFooter = ({
+    primaryButtonProps,
+    secondaryButtonProps,
+  }: {
+    primaryButtonProps?: {
+      children?: React.ReactNode;
+      onPress?: () => void;
+      isDisabled?: boolean;
     };
-  },
-);
+    secondaryButtonProps?: {
+      children?: React.ReactNode;
+      onPress?: () => void;
+      isDisabled?: boolean;
+    };
+  }) => (
+    <View>
+      {secondaryButtonProps && (
+        <TouchableOpacity
+          onPress={secondaryButtonProps.onPress}
+          disabled={secondaryButtonProps.isDisabled}
+        >
+          <Text>{secondaryButtonProps.children}</Text>
+        </TouchableOpacity>
+      )}
+      {primaryButtonProps && (
+        <TouchableOpacity
+          onPress={primaryButtonProps.onPress}
+          disabled={primaryButtonProps.isDisabled}
+        >
+          <Text>{primaryButtonProps.children}</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
+  return {
+    ...actual,
+    BottomSheet,
+    BottomSheetHeader,
+    BottomSheetFooter,
+    ButtonsAlignment: {
+      Horizontal: 'Horizontal',
+      Vertical: 'Vertical',
+    },
+  };
+});
 
 jest.mock('../../components/PerpsCloseSummary', () => 'PerpsCloseSummary');
 
