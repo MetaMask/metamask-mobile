@@ -45,7 +45,6 @@ on:
         description: >-
           @expo/fingerprint hash from native-build-fingerprint. When set, try to
           reuse prior BrowserStack performance APKs (repack JS unless test-only).
-          This is the reuse path for branches with app changes.
         default: ''
       main_branch_only:
         required: false
@@ -55,14 +54,14 @@ on:
           (app JS unchanged). When false, fingerprint hit still reuses native
           APKs but repacks the JS bundle like E2E.
         default: false
-      reuse_latest_main_builds:
+      lt_username:
         required: false
-        type: boolean
-        description: >-
-          When true, use the newest matching APK artifacts from a main-branch
-          run without requiring a fingerprint, then upload them to BrowserStack
-          as-is. This mode is intended for test-only changes.
-        default: false
+        type: string
+        description: 'TestMu AI username (from manual dispatch or secrets upstream)'
+      lt_access_key:
+        required: false
+        type: string
+        description: 'TestMu AI access key (from manual dispatch or secrets upstream)'
     outputs:
       with-srp-browserstack-url:
         description: 'BrowserStack URL for with-SRP version'
@@ -82,6 +81,18 @@ on:
       without-srp-version:
         description: 'App version for without-SRP build'
         value: ${{ jobs.upload-to-browserstack.outputs.without-srp-version }}
+      with-srp-testmu-url:
+        description: 'TestMu AI URL for with-SRP version'
+        value: ${{ jobs.upload-to-testmu.outputs.with-srp-testmu-url }}
+      without-srp-testmu-url:
+        description: 'TestMu AI URL for without-SRP version'
+        value: ${{ jobs.upload-to-testmu.outputs.without-srp-testmu-url }}
+      with-srp-testmu-version:
+        description: 'App version for with-SRP TestMu upload'
+        value: ${{ jobs.upload-to-testmu.outputs.with-srp-version }}
+      without-srp-testmu-version:
+        description: 'App version for without-SRP TestMu upload'
+        value: ${{ jobs.upload-to-testmu.outputs.without-srp-version }}
   workflow_dispatch:
     inputs:
       description:
@@ -146,7 +157,7 @@ jobs:
     needs: [check-builds-needed]
     if: >-
       needs.check-builds-needed.outputs.builds-needed == 'true' &&
-      (inputs.source_fingerprint || inputs.reuse_latest_main_builds)
+      inputs.source_fingerprint
     outputs:
       found: ${{ steps.finalize.outputs.found }}
       run-id: ${{ steps.finalize.outputs.run-id }}
@@ -170,7 +181,6 @@ jobs:
           workflow-file: ci.yml
           main-branch-only: ${{ inputs.main_branch_only }}
           max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
-          latest-main-only: ${{ inputs.reuse_latest_main_builds }}
 
       - name: Find reusable performance APKs on run-performance-e2e.yml
         id: find-perf
@@ -183,7 +193,6 @@ jobs:
           workflow-file: run-performance-e2e.yml
           main-branch-only: ${{ inputs.main_branch_only }}
           max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
-          latest-main-only: ${{ inputs.reuse_latest_main_builds }}
 
       - name: Find reusable performance APKs on run-performance-e2e-manual.yml
         id: find-manual
@@ -196,7 +205,6 @@ jobs:
           workflow-file: run-performance-e2e-manual.yml
           main-branch-only: ${{ inputs.main_branch_only }}
           max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
-          latest-main-only: ${{ inputs.reuse_latest_main_builds }}
 
       # Select a candidate run only. found=true is deferred until both APK downloads
       # succeed (mirrors build-android-e2e.yml gate: never skip native build on lookup alone).
@@ -803,3 +811,86 @@ jobs:
             echo "❌ Both APK uploads failed. Failing step."
             exit 1
           fi
+
+  upload-to-testmu:
+    name: Upload APKs to TestMu AI
+    runs-on: ubuntu-latest
+    needs: [check-builds-needed, build-with-srp, build-without-srp]
+    if: needs.check-builds-needed.outputs.builds-needed == 'true' && needs.build-with-srp.result == 'success' && needs.build-without-srp.result == 'success' && inputs.lt_username != '' && inputs.lt_access_key != ''
+    continue-on-error: true
+    outputs:
+      with-srp-testmu-url: ${{ steps.testmu-upload.outputs.with-srp-testmu-url }}
+      without-srp-testmu-url: ${{ steps.testmu-upload.outputs.without-srp-testmu-url }}
+      with-srp-version: ${{ steps.testmu-upload.outputs.with-srp-version }}
+      without-srp-version: ${{ steps.testmu-upload.outputs.without-srp-version }}
+
+    steps:
+      - name: Download with-SRP APK
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk-${{ inputs.build_variant == 'exp' && 'main-exp-with-srp' || inputs.build_variant == 'rc' && 'main-rc-with-srp' || 'main-e2e-bs-with-srp' }}
+          path: artifacts/with-srp
+
+      - name: Download without-SRP APK
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk-${{ inputs.build_variant == 'exp' && 'main-exp-without-srp' || inputs.build_variant == 'rc' && 'main-rc-without-srp' || 'main-e2e-bs-without-srp' }}
+          path: artifacts/without-srp
+
+      - name: Upload APKs to TestMu AI
+        id: testmu-upload
+        env:
+          LT_USERNAME: ${{ inputs.lt_username }}
+          LT_ACCESS_KEY: ${{ inputs.lt_access_key }}
+        run: |
+          set +e
+          echo "Uploading APKs to TestMu AI..."
+
+          WITH_SRP_APP_URL=""
+          WITHOUT_SRP_APP_URL=""
+
+          WITH_SRP_APK=$(find artifacts/with-srp -name "*.apk" | head -1)
+          WITHOUT_SRP_APK=$(find artifacts/without-srp -name "*.apk" | head -1)
+
+          if [ -n "$WITH_SRP_APK" ]; then
+            echo "Uploading with-SRP APK to TestMu AI: $WITH_SRP_APK"
+            WITH_SRP_RESPONSE=$(curl -u "$LT_USERNAME:$LT_ACCESS_KEY" \
+              -X POST "https://manual-api.lambdatest.com/app/upload/realDevice" \
+              -F "appFile=@$WITH_SRP_APK" \
+              -F "name=MetaMask-Android-With-SRP-${{ github.run_id }}")
+
+            WITH_SRP_APP_URL=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_url // .appUrl // empty')
+            if [ -n "$WITH_SRP_APP_URL" ]; then
+              echo "✅ With-SRP APK uploaded to TestMu AI: $WITH_SRP_APP_URL"
+              {
+                echo "with-srp-testmu-url=$WITH_SRP_APP_URL"
+                echo "with-srp-version=${{ needs.build-with-srp.outputs.semantic_version }}"
+              } >> "$GITHUB_OUTPUT"
+            else
+              echo "❌ With-SRP TestMu upload failed: $WITH_SRP_RESPONSE"
+            fi
+          fi
+
+          if [ -n "$WITHOUT_SRP_APK" ]; then
+            echo "Uploading without-SRP APK to TestMu AI: $WITHOUT_SRP_APK"
+            WITHOUT_SRP_RESPONSE=$(curl -u "$LT_USERNAME:$LT_ACCESS_KEY" \
+              -X POST "https://manual-api.lambdatest.com/app/upload/realDevice" \
+              -F "appFile=@$WITHOUT_SRP_APK" \
+              -F "name=MetaMask-Android-Without-SRP-${{ github.run_id }}")
+
+            WITHOUT_SRP_APP_URL=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_url // .appUrl // empty')
+            if [ -n "$WITHOUT_SRP_APP_URL" ]; then
+              echo "✅ Without-SRP APK uploaded to TestMu AI: $WITHOUT_SRP_APP_URL"
+              {
+                echo "without-srp-testmu-url=$WITHOUT_SRP_APP_URL"
+                echo "without-srp-version=${{ needs.build-without-srp.outputs.semantic_version }}"
+              } >> "$GITHUB_OUTPUT"
+            else
+              echo "❌ Without-SRP TestMu upload failed: $WITHOUT_SRP_RESPONSE"
+            fi
+          fi
+
+          echo ""
+          echo "=== TestMu AI Upload Summary ==="
+          echo "With-SRP:    ${WITH_SRP_APP_URL:-FAILED}"
+          echo "Without-SRP: ${WITHOUT_SRP_APP_URL:-FAILED}"
