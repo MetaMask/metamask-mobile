@@ -67,9 +67,9 @@ const TopTradersSection = () => {
           error as Error,
           'TopTradersSection: failed to update leaderboard visibility',
         );
-      } finally {
-        setIsUpdating(false);
       }
+      // Not a `finally`: React Compiler can't lower try/finally and bails on it.
+      setIsUpdating(false);
     },
     [createEventBuilder, dispatch, isUpdating, trackEvent],
   );
