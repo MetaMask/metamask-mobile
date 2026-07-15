@@ -42,10 +42,17 @@ export type PerpsClosePositionModalsNavigationParamList = {
   PerpsTooltip: PerpsTooltipViewRouteParams;
 };
 
-/** Shared order / redesigned-confirmation params for the Perps trade flow. */
-// Object-literal type (not interface) so it retains an implicit index signature
-// and stays assignable to `Record<string, unknown>` (e.g. redirect params).
-export interface PerpsOrderRouteParams {
+/**
+ * Shared order / redesigned-confirmation params for the Perps trade flow.
+ *
+ * Declared as an object-literal `type` (not `interface`) so it keeps an implicit
+ * index signature and stays assignable to `Record<string, unknown>` (e.g. when
+ * passed as tutorial `redirectParams`). The eslint-disable mirrors
+ * `PerpsStackParamList` below, whose auto-fix would otherwise convert this to an
+ * `interface` and drop the implicit index signature.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsOrderRouteParams = {
   direction: 'long' | 'short';
   asset: string;
   defaultSzDecimals?: number;
@@ -63,7 +70,7 @@ export interface PerpsOrderRouteParams {
   /** Analytics: chart library active when the order flow started */
   chartLibrary?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-}
+};
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
