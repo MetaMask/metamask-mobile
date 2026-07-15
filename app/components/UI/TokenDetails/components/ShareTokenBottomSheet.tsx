@@ -17,9 +17,7 @@ import {
   BottomSheetFooter,
   BottomSheetHeader,
   Box,
-  Button,
   ButtonSize,
-  ButtonVariant,
   IconName,
   Text,
   TextColor,
@@ -334,7 +332,6 @@ const ShareTokenBottomSheet = ({
           children: strings('share_token.share'),
           onPress: handleNativeShare,
           size: ButtonSize.Lg,
-          variant: ButtonVariant.Primary,
           startIconName: IconName.Share,
           testID: 'share-token-native-share-button',
         }}

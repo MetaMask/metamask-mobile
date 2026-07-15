@@ -288,12 +288,13 @@ jest.mock('../../Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => false),
 }));
 
-const mockUsePerpsMarketForAsset = jest.fn((_symbol: string | null) => ({
+const defaultUsePerpsMarketForAssetImpl = (_symbol: string | null) => ({
   hasPerpsMarket: false,
   marketData: null,
   isLoading: false,
   error: null,
-}));
+});
+const mockUsePerpsMarketForAsset = jest.fn(defaultUsePerpsMarketForAssetImpl);
 jest.mock('../../Perps/hooks/usePerpsMarketForAsset', () => ({
   usePerpsMarketForAsset: (symbol: string | null) =>
     mockUsePerpsMarketForAsset(symbol),
@@ -450,6 +451,9 @@ describe('TokenDetails', () => {
       networkModal: null,
     });
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
+    mockUsePerpsMarketForAsset.mockImplementation(
+      defaultUsePerpsMarketForAssetImpl,
+    );
 
     mockUseTokenBalance.mockReturnValue({
       balance: '1.5',
@@ -474,11 +478,6 @@ describe('TokenDetails', () => {
       if (selector === selectPriceAlertsEnabled) return false;
       return undefined;
     });
-  });
-
-  afterEach(() => {
-    mockAutoResolveMarketInsights = true;
-    mockLatestMarketInsightsResolver = undefined;
   });
 
   it('renders loader when txLoading is true', () => {
