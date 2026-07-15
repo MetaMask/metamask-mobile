@@ -1,5 +1,4 @@
 import {
-  CHAIN_IDS,
   TransactionMeta,
   TransactionStatus,
   TransactionType,
@@ -14,24 +13,14 @@ import Logger from '../../../../util/Logger';
 import { fromTokenMinimalUnitString } from '../../../../util/number/bigint';
 import { strings } from '../../../../../locales/i18n';
 import { store } from '../../../../store';
-import {
-  selectCurrencyRates,
-  selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-import {
-  renderShortAddress,
-  toChecksumAddress,
-} from '../../../../util/address';
+import { renderShortAddress } from '../../../../util/address';
 import {
   MUSD_DECIMALS,
-  MUSD_TOKEN_ADDRESS_BY_CHAIN,
   TOAST_TRACKING_CLEANUP_DELAY_MS,
 } from '../../Earn/constants/musd';
-import { moneyFormatFiat } from '../utils/moneyFormatFiat';
+import { moneyFormatUsd } from '../utils/moneyFormatFiat';
 import { TELLER_ABI } from '../utils/moneyAccountTransactions';
 import {
   isMoneyAccountTx,
@@ -115,50 +104,17 @@ function decodeTellerAmount(
   return undefined;
 }
 
-function getMusdFiatRate(): BigNumber | undefined {
-  const state = store.getState();
-  const tokenMarketData = selectTokenMarketData(state);
-  const currencyRates = selectCurrencyRates(state);
-  const networkConfigurations = selectNetworkConfigurations(state);
-
-  const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
-  if (!musdAddress) return undefined;
-
-  const checksumAddress = toChecksumAddress(musdAddress);
-  const chainConfig = networkConfigurations?.[CHAIN_IDS.MAINNET];
-  const nativeCurrency = chainConfig?.nativeCurrency;
-  const conversionRate = nativeCurrency
-    ? currencyRates?.[nativeCurrency]?.conversionRate
-    : undefined;
-
-  const priceInNativeCurrency =
-    tokenMarketData?.[CHAIN_IDS.MAINNET]?.[checksumAddress]?.price ??
-    tokenMarketData?.[CHAIN_IDS.MAINNET]?.[musdAddress]?.price;
-
-  if (!conversionRate || priceInNativeCurrency === undefined) return undefined;
-  return new BigNumber(priceInNativeCurrency).times(conversionRate);
-}
-
 export function formatMusdAmountForToast(amountWei: bigint): string {
   const musdDecimal = new BigNumber(
     fromTokenMinimalUnitString(amountWei.toString(), MUSD_DECIMALS),
   );
-  const rate = getMusdFiatRate();
-  const currentCurrency = selectCurrentCurrency(store.getState());
-
-  if (!rate || !currentCurrency) {
-    return `${musdDecimal.toFixed(2)} mUSD`;
-  }
-  return moneyFormatFiat(musdDecimal.times(rate), currentCurrency);
+  return moneyFormatUsd(musdDecimal);
 }
 
 function formatMetamaskPayFiat(value: unknown): string | undefined {
   const fiat = Number(value);
   if (Number.isNaN(fiat) || fiat <= 0) return undefined;
-  return moneyFormatFiat(
-    new BigNumber(fiat),
-    selectCurrentCurrency(store.getState()),
-  );
+  return moneyFormatUsd(new BigNumber(fiat));
 }
 
 function navigateToMoneyTransactionDetails(transactionId: string) {
