@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
-import { View, FlatList } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { View, FlatList, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   Button,
@@ -19,6 +19,7 @@ import TrendingTokensSkeleton from '../../../../Trending/components/TrendingToke
 import { TokenDetailsSource } from '../../../../TokenDetails/constants/constants';
 import { strings } from '../../../../../../../locales/i18n';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
+import WatchlistEditableRow from './WatchlistEditableRow';
 import styleSheet from './WatchlistFullScreenView.styles';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 
@@ -28,6 +29,7 @@ const WatchlistFullScreenView = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { data, isLoading } = useTokenWatchlistQuery();
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const displayTokens = useMemo(
     () => (data ?? []).slice().reverse().map(mapWatchlistTokenToTrendingAsset),
@@ -35,6 +37,12 @@ const WatchlistFullScreenView = () => {
   );
 
   const hasItems = displayTokens.length > 0;
+
+  useEffect(() => {
+    if (isEditMode && !hasItems) {
+      setIsEditMode(false);
+    }
+  }, [isEditMode, hasItems]);
 
   const handleBack = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -45,10 +53,14 @@ const WatchlistFullScreenView = () => {
   // TODO(ASSETS-XXXX): wire up search functionality in a follow-up ticket
   const handleSearchPress = useCallback(() => undefined, []);
 
-  // TODO(ASSETS-XXXX): wire up edit functionality in a follow-up ticket
-  const handleEditPress = useCallback(() => undefined, []);
+  const handleEditPress = useCallback(() => setIsEditMode(true), []);
+  const handleDonePress = useCallback(() => setIsEditMode(false), []);
 
   const endButtonIconProps = useMemo(() => {
+    if (isEditMode) {
+      return [];
+    }
+
     const buttons = [];
 
     if (hasItems) {
@@ -68,17 +80,40 @@ const WatchlistFullScreenView = () => {
     });
 
     return buttons;
-  }, [hasItems, handleSearchPress, handleEditPress]);
+  }, [isEditMode, hasItems, handleSearchPress, handleEditPress]);
+
+  const endAccessory = useMemo(() => {
+    if (!isEditMode) {
+      return undefined;
+    }
+    return (
+      <TouchableOpacity
+        onPress={handleDonePress}
+        testID={WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON}
+        accessibilityRole="button"
+        accessibilityLabel={strings('token_watchlist.done')}
+      >
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {strings('token_watchlist.done')}
+        </Text>
+      </TouchableOpacity>
+    );
+  }, [isEditMode, handleDonePress]);
 
   const renderItem = useCallback(
-    ({ item, index }: { item: TrendingAsset; index: number }) => (
-      <TrendingTokenRowItem
-        token={item}
-        position={index}
-        tokenDetailsSource={TokenDetailsSource.WatchlistFullscreen}
-      />
-    ),
-    [],
+    ({ item, index }: { item: TrendingAsset; index: number }) => {
+      if (isEditMode) {
+        return <WatchlistEditableRow token={item} position={index} />;
+      }
+      return (
+        <TrendingTokenRowItem
+          token={item}
+          position={index}
+          tokenDetailsSource={TokenDetailsSource.WatchlistFullscreen}
+        />
+      );
+    },
+    [isEditMode],
   );
 
   const keyExtractor = useCallback((item: TrendingAsset) => item.assetId, []);
@@ -90,12 +125,17 @@ const WatchlistFullScreenView = () => {
     >
       <HeaderStandard
         includesTopInset
-        onBack={handleBack}
-        backButtonProps={{
-          accessibilityLabel: 'Back',
-          testID: WatchlistFullScreenViewSelectorsIDs.BACK_BUTTON,
-        }}
+        onBack={isEditMode ? undefined : handleBack}
+        backButtonProps={
+          isEditMode
+            ? undefined
+            : {
+                accessibilityLabel: 'Back',
+                testID: WatchlistFullScreenViewSelectorsIDs.BACK_BUTTON,
+              }
+        }
         endButtonIconProps={endButtonIconProps}
+        endAccessory={endAccessory}
         testID={WatchlistFullScreenViewSelectorsIDs.HEADER}
       />
 

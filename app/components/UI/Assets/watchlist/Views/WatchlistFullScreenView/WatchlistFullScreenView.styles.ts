@@ -22,6 +22,19 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       paddingHorizontal: 16,
     },
+    editableRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    dragHandle: {
+      paddingRight: 8,
+    },
+    unwatchStar: {
+      paddingLeft: 8,
+    },
+    editableRowContent: {
+      flex: 1,
+    },
   });
 };
 
