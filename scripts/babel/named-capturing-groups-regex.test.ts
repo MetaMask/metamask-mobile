@@ -32,6 +32,9 @@ describe('named capturing group regex (Hermes profile)', () => {
       },
       presets: [
         [
+          // babel-preset-expo is provided transitively via @expo/metro-config + Metro
+          // (see .depcheckrc.yml); require() is required to load a Babel preset by value.
+          // eslint-disable-next-line import-x/no-extraneous-dependencies, @typescript-eslint/no-require-imports
           require('babel-preset-expo'),
           {
             unstable_transformProfile: 'hermes-stable',
