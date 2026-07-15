@@ -21,4 +21,5 @@ export const mockedPerpsFeatureFlagsEnabledState: Record<
   perpsTerminalBackendEnabled: mockEnabledPerpsLDFlag,
   perpsRecentlyAddedEnabled: mockEnabledPerpsLDFlag,
   perpsShowFullAssetNames: mockEnabledPerpsLDFlag,
+  perpsClosePositionLimitOrderEnabled: mockEnabledPerpsLDFlag,
 };

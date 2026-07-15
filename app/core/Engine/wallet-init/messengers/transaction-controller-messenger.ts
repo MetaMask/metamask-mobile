@@ -14,9 +14,11 @@ import {
 import {
   TransactionControllerAddTransactionAction,
   TransactionControllerAddTransactionBatchAction,
+  TransactionControllerApproveTransactionsWithSameNonceAction,
   TransactionControllerEstimateGasBatchAction,
+  TransactionControllerGetNonceLockAction,
   TransactionControllerGetStateAction,
-  TransactionControllerMessenger,
+  TransactionControllerIsAtomicBatchSupportedAction,
   TransactionControllerStateChangeEvent,
   TransactionControllerTransactionApprovedEvent,
   TransactionControllerTransactionConfirmedEvent,
@@ -67,42 +69,7 @@ import type {
   PredictControllerPublishAction,
 } from '../../../../components/UI/Predict/controllers/PredictController-method-action-types';
 
-export function getTransactionControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<TransactionControllerMessenger>,
-    MessengerEvents<TransactionControllerMessenger>
-  >,
-): TransactionControllerMessenger {
-  const messenger: TransactionControllerMessenger = new Messenger({
-    namespace: 'TransactionController',
-    parent: rootMessenger,
-  });
-  rootMessenger.delegate({
-    actions: [
-      'AccountsController:getSelectedAccount',
-      'AccountsController:getState',
-      `ApprovalController:addRequest`,
-      'GasFeeController:fetchGasFeeEstimates',
-      'KeyringController:getState',
-      'KeyringController:signEip7702Authorization',
-      'KeyringController:signTransaction',
-      'NetworkController:findNetworkClientIdByChainId',
-      'NetworkController:getEIP1559Compatibility',
-      'NetworkController:getNetworkClientById',
-      'NetworkController:getNetworkClientRegistry',
-      'NetworkController:getState',
-      'RemoteFeatureFlagController:getState',
-    ],
-    events: [
-      'AccountActivityService:transactionUpdated',
-      'NetworkController:stateChange',
-    ],
-    messenger,
-  });
-  return messenger;
-}
-
-type InitMessengerActions =
+export type TransactionControllerInitMessengerActions =
   | AccountsControllerGetStateAction
   | AccountsControllerGetSelectedAccountAction
   | AccountTrackerControllerGetStateAction
@@ -128,8 +95,11 @@ type InitMessengerActions =
   | SmartTransactionsControllerSubmitSignedTransactionsAction
   | TransactionControllerAddTransactionAction
   | TransactionControllerAddTransactionBatchAction
+  | TransactionControllerApproveTransactionsWithSameNonceAction
   | TransactionControllerEstimateGasBatchAction
+  | TransactionControllerGetNonceLockAction
   | TransactionControllerGetStateAction
+  | TransactionControllerIsAtomicBatchSupportedAction
   | TransactionControllerUpdateTransactionAction
   | TransactionPayControllerActions
   | AnalyticsControllerActions
@@ -137,7 +107,7 @@ type InitMessengerActions =
   | PredictControllerBeforeSignAction
   | PredictControllerPublishAction;
 
-type InitMessengerEvents =
+export type TransactionControllerInitMessengerEvents =
   | BridgeStatusControllerEvents
   | KeyringControllerUnlockEvent
   | TransactionControllerStateChangeEvent
@@ -154,8 +124,8 @@ type InitMessengerEvents =
 
 export type TransactionControllerInitMessenger = Messenger<
   'TransactionControllerInit',
-  InitMessengerActions,
-  InitMessengerEvents
+  TransactionControllerInitMessengerActions,
+  TransactionControllerInitMessengerEvents
 >;
 
 export function getTransactionControllerInitMessenger(
@@ -198,8 +168,11 @@ export function getTransactionControllerInitMessenger(
       'SmartTransactionsController:submitSignedTransactions',
       'TransactionController:addTransaction',
       'TransactionController:addTransactionBatch',
+      'TransactionController:approveTransactionsWithSameNonce',
       'TransactionController:estimateGasBatch',
+      'TransactionController:getNonceLock',
       'TransactionController:getState',
+      'TransactionController:isAtomicBatchSupported',
       'TransactionController:updateTransaction',
       'TransactionPayController:getAmountData',
       'TransactionPayController:getDelegationTransaction',
