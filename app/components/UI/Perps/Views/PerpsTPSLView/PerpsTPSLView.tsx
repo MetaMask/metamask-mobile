@@ -48,10 +48,6 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
-import {
-  TPSL_ROE_SIGN_TOGGLED_INTERACTION,
-  TPSL_ROE_SIGN_PROPERTY,
-} from '../../constants/perpsEventsLocal';
 
 const PerpsTPSLView: React.FC = () => {
   const navigation = useNavigation();
@@ -188,8 +184,7 @@ const PerpsTPSLView: React.FC = () => {
   });
 
   // Extract form state and handlers for easier access
-  const { takeProfitPrice, stopLossPrice, takeProfitSign, stopLossSign } =
-    tpslForm.formState;
+  const { takeProfitPrice, stopLossPrice } = tpslForm.formState;
 
   const {
     handleTakeProfitPriceChange,
@@ -211,8 +206,6 @@ const PerpsTPSLView: React.FC = () => {
     handleStopLossPercentageButton,
     handleTakeProfitOff,
     handleStopLossOff,
-    handleTakeProfitSignToggle,
-    handleStopLossSignToggle,
   } = tpslForm.buttons;
 
   const {
@@ -235,7 +228,7 @@ const PerpsTPSLView: React.FC = () => {
     ? PERPS_EVENT_VALUE.SCREEN_TYPE.EDIT_TPSL
     : PERPS_EVENT_VALUE.SCREEN_TYPE.CREATE_TPSL;
 
-  const { track } = usePerpsEventTracking({
+  usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: tpslScreenType,
@@ -268,8 +261,12 @@ const PerpsTPSLView: React.FC = () => {
       } else if (focusedInput === 'stopLossPrice') {
         handleStopLossPriceChange(value);
       } else if (focusedInput === 'stopLossPercentage') {
-        // The sign badge owns the sign; feed the keypad digits as a magnitude.
-        handleStopLossPercentageChange(value);
+        const trimmedValue = value.trim();
+        const valueToUse =
+          trimmedValue.length === 1 && trimmedValue !== '0'
+            ? `-${value}`
+            : value.trim();
+        handleStopLossPercentageChange(valueToUse);
       }
     },
     [
@@ -403,16 +400,11 @@ const PerpsTPSLView: React.FC = () => {
           ? PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
           : PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
         positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
-        // Display strings are unsigned magnitudes (the badge renders the sign),
-        // so recompose the sign for analytics — a negative TP / gain-side SL
-        // must report the signed RoE, not the bare magnitude.
         takeProfitPercentage: formattedTakeProfitPercentage
-          ? (takeProfitSign === '-' ? -1 : 1) *
-            parseFloat(formattedTakeProfitPercentage.replace('%', ''))
+          ? parseFloat(formattedTakeProfitPercentage.replace('%', ''))
           : undefined,
         stopLossPercentage: formattedStopLossPercentage
-          ? (stopLossSign === '-' ? -1 : 1) *
-            parseFloat(formattedStopLossPercentage.replace('%', ''))
+          ? parseFloat(formattedStopLossPercentage.replace('%', ''))
           : undefined,
         isEditingExistingPosition,
         entryPrice: effectiveEntryPrice,
@@ -439,8 +431,6 @@ const PerpsTPSLView: React.FC = () => {
     position,
     formattedTakeProfitPercentage,
     formattedStopLossPercentage,
-    takeProfitSign,
-    stopLossSign,
     isEditingExistingPosition,
     effectiveEntryPrice,
   ]);
@@ -462,55 +452,6 @@ const PerpsTPSLView: React.FC = () => {
     }
     handleStopLossOff();
   }, [focusedInput, dismissKeypad, handleStopLossOff]);
-
-  // Sign-badge press handlers: toggle the RoE sign (the hook clears the field)
-  // and report the interaction. `takeProfitSign`/`stopLossSign` here are the
-  // pre-toggle values, so the new sign is the flipped value.
-  const handleTakeProfitSignPress = useCallback(() => {
-    if (focusedInput) {
-      dismissKeypad();
-    }
-    handleTakeProfitSignToggle();
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        TPSL_ROE_SIGN_TOGGLED_INTERACTION,
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: tpslScreenType,
-      [PERPS_EVENT_PROPERTY.ASSET]: asset,
-      [PERPS_EVENT_PROPERTY.ACTION]: PERPS_EVENT_VALUE.ACTION.TP,
-      [TPSL_ROE_SIGN_PROPERTY]: takeProfitSign === '+' ? '-' : '+',
-    });
-  }, [
-    focusedInput,
-    dismissKeypad,
-    handleTakeProfitSignToggle,
-    track,
-    tpslScreenType,
-    asset,
-    takeProfitSign,
-  ]);
-
-  const handleStopLossSignPress = useCallback(() => {
-    if (focusedInput) {
-      dismissKeypad();
-    }
-    handleStopLossSignToggle();
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        TPSL_ROE_SIGN_TOGGLED_INTERACTION,
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: tpslScreenType,
-      [PERPS_EVENT_PROPERTY.ASSET]: asset,
-      [PERPS_EVENT_PROPERTY.ACTION]: PERPS_EVENT_VALUE.ACTION.SL,
-      [TPSL_ROE_SIGN_PROPERTY]: stopLossSign === '-' ? '+' : '-',
-    });
-  }, [
-    focusedInput,
-    dismissKeypad,
-    handleStopLossSignToggle,
-    track,
-    tpslScreenType,
-    asset,
-    stopLossSign,
-  ]);
 
   return (
     <SafeAreaView
@@ -676,7 +617,7 @@ const PerpsTPSLView: React.FC = () => {
               <View
                 style={[
                   styles.inputContainer,
-                  takeProfitError && styles.inputError,
+                  !isValid && takeProfitError && styles.inputError,
                 ]}
               >
                 <Text
@@ -714,32 +655,11 @@ const PerpsTPSLView: React.FC = () => {
               <View
                 style={[
                   styles.inputContainer,
-                  takeProfitError && styles.inputError,
+                  !isValid && takeProfitError && styles.inputError,
                 ]}
               >
-                <TouchableOpacity
-                  style={styles.roeSignBadge}
-                  onPress={handleTakeProfitSignPress}
-                  disabled={inputsDisabled}
-                  testID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE}
-                  accessibilityRole="button"
-                  accessibilityLabel={strings(
-                    'perps.tpsl.toggle_take_profit_sign',
-                  )}
-                  accessibilityState={{ disabled: inputsDisabled }}
-                >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                  >
-                    {takeProfitSign}
-                  </Text>
-                </TouchableOpacity>
                 <Input
                   ref={takeProfitPercentageRef}
-                  testID={
-                    PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PERCENTAGE_INPUT
-                  }
                   isStateStylesDisabled
                   twClassName="bg-transparent border-0"
                   style={styles.input}
@@ -808,7 +728,7 @@ const PerpsTPSLView: React.FC = () => {
               )}
 
             {/* Error message */}
-            {Boolean(takeProfitError) && (
+            {!isValid && Boolean(takeProfitError) && (
               <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
                 {takeProfitError}
               </Text>
@@ -872,8 +792,7 @@ const PerpsTPSLView: React.FC = () => {
               <View
                 style={[
                   styles.inputContainer,
-                  (stopLossError || stopLossLiquidationError) &&
-                    styles.inputError,
+                  !isValid && stopLossError && styles.inputError,
                 ]}
               >
                 <Text
@@ -911,31 +830,11 @@ const PerpsTPSLView: React.FC = () => {
               <View
                 style={[
                   styles.inputContainer,
-                  (stopLossError || stopLossLiquidationError) &&
-                    styles.inputError,
+                  !isValid && stopLossError && styles.inputError,
                 ]}
               >
-                <TouchableOpacity
-                  style={styles.roeSignBadge}
-                  onPress={handleStopLossSignPress}
-                  disabled={inputsDisabled}
-                  testID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE}
-                  accessibilityRole="button"
-                  accessibilityLabel={strings(
-                    'perps.tpsl.toggle_stop_loss_sign',
-                  )}
-                  accessibilityState={{ disabled: inputsDisabled }}
-                >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                  >
-                    {stopLossSign}
-                  </Text>
-                </TouchableOpacity>
                 <Input
                   ref={stopLossPercentageRef}
-                  testID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_PERCENTAGE_INPUT}
                   isStateStylesDisabled
                   twClassName="bg-transparent border-0"
                   style={styles.input}
@@ -996,7 +895,7 @@ const PerpsTPSLView: React.FC = () => {
             )}
 
             {/* Error message */}
-            {Boolean(stopLossError || stopLossLiquidationError) && (
+            {!isValid && Boolean(stopLossError || stopLossLiquidationError) && (
               <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
                 {stopLossError || stopLossLiquidationError}
               </Text>
