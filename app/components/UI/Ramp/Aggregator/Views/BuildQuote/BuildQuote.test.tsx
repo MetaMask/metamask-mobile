@@ -870,14 +870,14 @@ describe('BuildQuote View', () => {
       expect(getByRoleButton(`0.25 ${symbol}`)).toBeTruthy();
 
       fireEvent.press(getByRoleButton(`0.25 ${symbol}`));
-      fireEvent.press(getByRoleButton('MAX'));
+      fireEvent.press(getByRoleButton('Max'));
       expect(getByRoleButton(`1 ${symbol}`)).toBeTruthy();
     });
 
     it('updates the amount input up to the max considering gas for native asset', async () => {
       render(BuildQuote);
       const initialAmount = '0';
-      const quickAmount = 'MAX';
+      const quickAmount = 'Max';
       mockUseRampSDKValues = {
         ...mockUseRampSDKInitialValues,
         isBuy: false,
