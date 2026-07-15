@@ -1884,9 +1884,9 @@
         "commodity": "Commodity",
         "crypto": "Crypto",
         "forex": "Forex",
-        "stock": "Stock",
-        "pre-ipo": "Pre-IPO",
-        "index": "Index",
+        "stock": "STOCK",
+        "pre-ipo": "PRE-IPO",
+        "index": "INDEX",
         "etf": "ETF"
       }
     },
