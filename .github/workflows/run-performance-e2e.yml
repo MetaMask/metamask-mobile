@@ -286,11 +286,107 @@ jobs:
             echo "   Reasoning: $REASONING"
           fi
 
+  # Manual workflow_dispatch: mirror CI test-only reuse (compare branch vs main).
+  # workflow_call already passes reuse_main_builds from get-requirements / ci.yml.
+  detect-reuse-main-builds:
+    name: Detect reuse main builds (manual)
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      !inputs.browserstack_app_url_android_onboarding &&
+      !inputs.browserstack_app_url_android_imported_wallet &&
+      inputs.reuse_main_builds != true
+    outputs:
+      reuse_main_builds: ${{ steps.set.outputs.reuse_main_builds }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Fetch main for change detection
+        run: git fetch --depth=1 origin main
+
+      - name: Filter changed files vs main
+        id: filter
+        uses: dorny/paths-filter@9d7afb8d214ad99e78fbd4247752c4caed2b6e4c # v4.0.0
+        with:
+          base: main
+          filters: .github/rules/filter-rules.yml
+          list-files: shell
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Compute native build need (same flags as CI)
+        id: flags
+        env:
+          # Use pull_request so test-only / platform logic matches get-requirements CI path
+          # (schedule/push short-circuit to always native-build).
+          GITHUB_EVENT_NAME: pull_request
+          IS_FORK: 'false'
+          SHOULD_SKIP_E2E: 'false'
+          ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
+          ALL_CHANGES_FILES: ${{ steps.filter.outputs.all_changes_files }}
+          IGNORABLE_COUNT: ${{ steps.filter.outputs.e2e_ignorable_count }}
+          E2E_TEST_FILES_COUNT: ${{ steps.filter.outputs.e2e_test_files_count }}
+          E2E_TEST_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.e2e_test_or_ignorable_count }}
+          E2E_WORKFLOWS_COUNT: ${{ steps.filter.outputs.e2e_relevant_workflows_count }}
+          ANDROID_COUNT: ${{ steps.filter.outputs.android_count }}
+          IOS_COUNT: ${{ steps.filter.outputs.ios_count }}
+          ANDROID_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.android_or_ignorable_count }}
+          IOS_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.ios_or_ignorable_count }}
+        run: node .github/scripts/run-compute-e2e-platform-flags.cjs
+
+      - name: Set reuse_main_builds
+        id: set
+        env:
+          NATIVE_BUILD_NEEDED: ${{ steps.flags.outputs.native_build_needed }}
+        run: |
+          if [ "$NATIVE_BUILD_NEEDED" = "false" ]; then
+            echo "reuse_main_builds=true" >> "$GITHUB_OUTPUT"
+            echo "✅ Test-only changes vs main — reuse main BrowserStack apps (same as CI)"
+          else
+            echo "reuse_main_builds=false" >> "$GITHUB_OUTPUT"
+            echo "🔨 Native-relevant changes (or empty/non-test-only diff) — build Android apps"
+          fi
+
+  effective-reuse-main-builds:
+    name: Effective reuse main builds
+    runs-on: ubuntu-latest
+    needs: [detect-reuse-main-builds]
+    if: >-
+      always() &&
+      !cancelled() &&
+      (needs.detect-reuse-main-builds.result == 'success' || needs.detect-reuse-main-builds.result == 'skipped')
+    outputs:
+      reuse_main_builds: ${{ steps.set.outputs.reuse_main_builds }}
+    steps:
+      - name: Consolidate reuse_main_builds
+        id: set
+        env:
+          INPUT_REUSE: ${{ inputs.reuse_main_builds }}
+          DETECTED_REUSE: ${{ needs.detect-reuse-main-builds.outputs.reuse_main_builds }}
+        run: |
+          if [ "$INPUT_REUSE" = "true" ] || [ "$DETECTED_REUSE" = "true" ]; then
+            echo "reuse_main_builds=true" >> "$GITHUB_OUTPUT"
+            echo "Effective reuse_main_builds=true (input=${INPUT_REUSE:-false}, detected=${DETECTED_REUSE:-false})"
+          else
+            echo "reuse_main_builds=false" >> "$GITHUB_OUTPUT"
+            echo "Effective reuse_main_builds=false (input=${INPUT_REUSE:-false}, detected=${DETECTED_REUSE:-false})"
+          fi
+
   resolve-main-browserstack-urls:
     name: Resolve main-branch BrowserStack Android apps
     runs-on: ubuntu-latest
+    needs: [effective-reuse-main-builds]
     if: >-
-      inputs.reuse_main_builds &&
+      always() &&
+      !cancelled() &&
+      needs.effective-reuse-main-builds.result == 'success' &&
+      needs.effective-reuse-main-builds.outputs.reuse_main_builds == 'true' &&
       !inputs.browserstack_app_url_android_onboarding &&
       !inputs.browserstack_app_url_android_imported_wallet
     outputs:
@@ -318,15 +414,21 @@ jobs:
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
-    needs: [determine-branch-name, resolve-main-browserstack-urls]
+    needs:
+      [
+        determine-branch-name,
+        resolve-main-browserstack-urls,
+        effective-reuse-main-builds,
+      ]
     # Build/upload when not reusing main, or when main reuse lookup found nothing.
     if: >-
       always() &&
       !cancelled() &&
+      (needs.effective-reuse-main-builds.result == 'success' || needs.effective-reuse-main-builds.result == 'skipped') &&
       (needs.resolve-main-browserstack-urls.result == 'skipped' || needs.resolve-main-browserstack-urls.result == 'success') &&
       (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet) &&
       (
-        !inputs.reuse_main_builds ||
+        needs.effective-reuse-main-builds.outputs.reuse_main_builds != 'true' ||
         needs.resolve-main-browserstack-urls.outputs.found != 'true'
       )
     with:
