@@ -39,9 +39,15 @@ import {
   clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
+import type {
+  CardModalsNavigationParamList,
+  CardRootParamList,
+  CardScreensStackParamList,
+} from '../types/navigation';
 
-const Stack = createNativeStackNavigator();
-const ModalsStack = createNativeStackNavigator();
+const ScreensStack = createNativeStackNavigator<CardScreensStackParamList>();
+const RootStack = createNativeStackNavigator<CardRootParamList>();
+const ModalsStack = createNativeStackNavigator<CardModalsNavigationParamList>();
 
 // All Card main screens render their own header via HeaderStandard, so hide
 // the navigator chrome by default.
@@ -52,7 +58,9 @@ const mainScreenOptions: NativeStackNavigationOptions = { headerShown: false };
 const spendingLimitScreenOptions = ({
   route,
 }: {
-  route: { params?: { flow?: 'manage' | 'enable' | 'onboarding' } };
+  route: {
+    params?: CardScreensStackParamList['CardSpendingLimit'];
+  };
 }): NativeStackNavigationOptions => ({
   headerShown: false,
   gestureEnabled: route.params?.flow !== 'onboarding',
@@ -69,37 +77,43 @@ const MainRoutes = () => {
   );
 
   return (
-    <Stack.Navigator
+    <ScreensStack.Navigator
       initialRouteName={initialRouteName}
       screenOptions={mainScreenOptions}
     >
-      <Stack.Screen name={Routes.CARD.HOME} component={CardHome} />
-      <Stack.Screen name={Routes.CARD.WELCOME} component={CardWelcome} />
-      <Stack.Screen
+      <ScreensStack.Screen name={Routes.CARD.HOME} component={CardHome} />
+      <ScreensStack.Screen name={Routes.CARD.WELCOME} component={CardWelcome} />
+      <ScreensStack.Screen
         name={Routes.CARD.CHOOSE_YOUR_CARD}
         component={ChooseYourCard}
       />
-      <Stack.Screen name={Routes.CARD.REVIEW_ORDER} component={ReviewOrder} />
-      <Stack.Screen
+      <ScreensStack.Screen
+        name={Routes.CARD.REVIEW_ORDER}
+        component={ReviewOrder}
+      />
+      <ScreensStack.Screen
         name={Routes.CARD.ORDER_COMPLETED}
         component={OrderCompleted}
       />
-      <Stack.Screen name={Routes.CARD.CASHBACK} component={Cashback} />
-      <Stack.Screen name={Routes.CARD.CREDIT_REDEEM} component={CreditRedeem} />
-      <Stack.Screen
+      <ScreensStack.Screen name={Routes.CARD.CASHBACK} component={Cashback} />
+      <ScreensStack.Screen
+        name={Routes.CARD.CREDIT_REDEEM}
+        component={CreditRedeem}
+      />
+      <ScreensStack.Screen
         name={Routes.CARD.AUTHENTICATION}
         component={CardAuthentication}
       />
-      <Stack.Screen
+      <ScreensStack.Screen
         name={Routes.CARD.SPENDING_LIMIT}
         component={SpendingLimit}
         options={spendingLimitScreenOptions}
       />
-      <Stack.Screen
+      <ScreensStack.Screen
         name={Routes.CARD.ONBOARDING.ROOT}
         component={OnboardingNavigator}
       />
-    </Stack.Navigator>
+    </ScreensStack.Navigator>
   );
 };
 
@@ -174,12 +188,12 @@ const CardModalsRoutes = () => (
 );
 
 const CardRoutes = () => (
-  <Stack.Navigator
+  <RootStack.Navigator
     initialRouteName={Routes.CARD.HOME}
     screenOptions={{ headerShown: false }}
   >
-    <Stack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
-    <Stack.Screen
+    <RootStack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
+    <RootStack.Screen
       name={Routes.CARD.MODALS.ID}
       component={CardModalsRoutes}
       options={{
@@ -187,7 +201,7 @@ const CardRoutes = () => (
         ...transparentModalScreenOptions,
       }}
     />
-  </Stack.Navigator>
+  </RootStack.Navigator>
 );
 
 export default withCardSDK(CardRoutes);
