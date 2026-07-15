@@ -17,7 +17,11 @@ interface SendButtonProps extends HomepageActionButtonSlotProps {
   onSend: () => void;
 }
 
-const SendButton = ({ actionPosition, onSend }: SendButtonProps) => {
+const SendButton = ({
+  actionPosition,
+  allowTwoLineLabel,
+  onSend,
+}: SendButtonProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const label = strings('homepage.action_buttons.send');
@@ -34,6 +38,7 @@ const SendButton = ({ actionPosition, onSend }: SendButtonProps) => {
 
   return (
     <HomepageActionButton
+      allowTwoLineLabel={allowTwoLineLabel}
       iconName={IconName.Send}
       isDisabled={!canSignTransactions}
       label={label}

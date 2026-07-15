@@ -23,7 +23,10 @@ import type { HomepageActionButtonSlotProps } from '../types';
  * Opens Batch Sell (trade-menu flow). Label matches Figma "Batch Swap".
  * `batchSellLocation` left as Unknown until analytics defines a home entrypoint.
  */
-const BatchSwapButton = ({ actionPosition }: HomepageActionButtonSlotProps) => {
+const BatchSwapButton = ({
+  actionPosition,
+  allowTwoLineLabel,
+}: HomepageActionButtonSlotProps) => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isBatchSellEnabled = useSelector(selectBatchSellEnabled);
@@ -52,6 +55,7 @@ const BatchSwapButton = ({ actionPosition }: HomepageActionButtonSlotProps) => {
 
   return (
     <HomepageActionButton
+      allowTwoLineLabel={allowTwoLineLabel}
       iconName={IconName.Merge}
       isDisabled={isDisabled}
       label={label}

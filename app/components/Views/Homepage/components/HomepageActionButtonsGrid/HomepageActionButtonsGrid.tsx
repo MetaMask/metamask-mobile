@@ -24,24 +24,26 @@ const renderButton = (
   id: HomepageActionButtonId,
   actionPosition: (typeof ACTION_POSITION_BY_INDEX)[number],
   onSend: () => void,
+  allowTwoLineLabel: boolean,
 ) => {
+  const slotProps = { actionPosition, allowTwoLineLabel };
   switch (id) {
     case 'buy':
-      return <BuyButton actionPosition={actionPosition} />;
+      return <BuyButton {...slotProps} />;
     case 'sell':
-      return <SellButton actionPosition={actionPosition} />;
+      return <SellButton {...slotProps} />;
     case 'swap':
-      return <SwapButton actionPosition={actionPosition} />;
+      return <SwapButton {...slotProps} />;
     case 'send':
-      return <SendButton actionPosition={actionPosition} onSend={onSend} />;
+      return <SendButton {...slotProps} onSend={onSend} />;
     case 'perps':
-      return <PerpsButton actionPosition={actionPosition} />;
+      return <PerpsButton {...slotProps} />;
     case 'predict':
-      return <PredictButton actionPosition={actionPosition} />;
+      return <PredictButton {...slotProps} />;
     case 'batch_swap':
-      return <BatchSwapButton actionPosition={actionPosition} />;
+      return <BatchSwapButton {...slotProps} />;
     case 'traders':
-      return <TradersButton actionPosition={actionPosition} />;
+      return <TradersButton {...slotProps} />;
     default: {
       const exhaustive: never = id;
       return exhaustive;
@@ -56,6 +58,7 @@ const renderButton = (
 const HomepageActionButtonsGrid = ({
   rowOrder,
   onSend,
+  allowTwoLineLabel = false,
 }: HomepageActionButtonsGridProps) => {
   const rows = getOrderedButtonRows(rowOrder);
 
@@ -76,7 +79,7 @@ const HomepageActionButtonsGrid = ({
               ACTION_POSITION_BY_INDEX[rowIndex * 4 + colIndex];
             return (
               <React.Fragment key={id}>
-                {renderButton(id, actionPosition, onSend)}
+                {renderButton(id, actionPosition, onSend, allowTwoLineLabel)}
               </React.Fragment>
             );
           })}

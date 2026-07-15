@@ -17,7 +17,10 @@ import HomepageActionButton from '../HomepageActionButton';
 import { HomepageActionButtonsGridTestIds } from '../HomepageActionButtonsGrid.testIds';
 import type { HomepageActionButtonSlotProps } from '../types';
 
-const PredictButton = ({ actionPosition }: HomepageActionButtonSlotProps) => {
+const PredictButton = ({
+  actionPosition,
+  allowTwoLineLabel,
+}: HomepageActionButtonSlotProps) => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
@@ -43,6 +46,7 @@ const PredictButton = ({ actionPosition }: HomepageActionButtonSlotProps) => {
 
   return (
     <HomepageActionButton
+      allowTwoLineLabel={allowTwoLineLabel}
       iconName={IconName.Sparkle}
       isDisabled={isDisabled}
       label={label}

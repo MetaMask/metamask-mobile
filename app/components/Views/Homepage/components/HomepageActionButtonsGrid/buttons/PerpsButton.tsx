@@ -17,7 +17,10 @@ import HomepageActionButton from '../HomepageActionButton';
 import { HomepageActionButtonsGridTestIds } from '../HomepageActionButtonsGrid.testIds';
 import type { HomepageActionButtonSlotProps } from '../types';
 
-const PerpsButton = ({ actionPosition }: HomepageActionButtonSlotProps) => {
+const PerpsButton = ({
+  actionPosition,
+  allowTwoLineLabel,
+}: HomepageActionButtonSlotProps) => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -53,6 +56,7 @@ const PerpsButton = ({ actionPosition }: HomepageActionButtonSlotProps) => {
 
   return (
     <HomepageActionButton
+      allowTwoLineLabel={allowTwoLineLabel}
       iconName={IconName.Candlestick}
       isDisabled={isDisabled}
       label={label}

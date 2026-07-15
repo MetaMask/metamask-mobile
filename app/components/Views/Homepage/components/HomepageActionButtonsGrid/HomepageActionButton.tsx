@@ -20,6 +20,8 @@ export interface HomepageActionButtonProps {
   label: string;
   onPress: () => void;
   isDisabled?: boolean;
+  /** When true, label wraps to 2 lines before tail ellipsis. */
+  allowTwoLineLabel?: boolean;
   testID?: string;
 }
 
@@ -32,9 +34,11 @@ const HomepageActionButton = ({
   label,
   onPress,
   isDisabled = false,
+  allowTwoLineLabel = false,
   testID,
 }: HomepageActionButtonProps) => {
   const tw = useTailwind();
+  const labelNumberOfLines = allowTwoLineLabel ? 2 : 1;
 
   return (
     <Pressable
@@ -61,9 +65,14 @@ const HomepageActionButton = ({
       </Box>
       <Text
         color={TextColor.TextDefault}
+        ellipsizeMode="tail"
         fontWeight={FontWeight.Medium}
-        numberOfLines={1}
-        twClassName="mt-2 w-full text-center"
+        numberOfLines={labelNumberOfLines}
+        twClassName={
+          allowTwoLineLabel
+            ? 'mt-2 min-h-[40px] w-full text-center'
+            : 'mt-2 w-full text-center'
+        }
         variant={TextVariant.BodySm}
       >
         {label}

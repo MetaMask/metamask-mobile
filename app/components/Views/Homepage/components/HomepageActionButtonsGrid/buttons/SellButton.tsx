@@ -14,7 +14,10 @@ import HomepageActionButton from '../HomepageActionButton';
 import { HomepageActionButtonsGridTestIds } from '../HomepageActionButtonsGrid.testIds';
 import type { HomepageActionButtonSlotProps } from '../types';
 
-const SellButton = ({ actionPosition }: HomepageActionButtonSlotProps) => {
+const SellButton = ({
+  actionPosition,
+  allowTwoLineLabel,
+}: HomepageActionButtonSlotProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { goToSell } = useRampNavigation();
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -32,6 +35,7 @@ const SellButton = ({ actionPosition }: HomepageActionButtonSlotProps) => {
 
   return (
     <HomepageActionButton
+      allowTwoLineLabel={allowTwoLineLabel}
       iconName={IconName.Minus}
       isDisabled={!canSignTransactions}
       label={label}

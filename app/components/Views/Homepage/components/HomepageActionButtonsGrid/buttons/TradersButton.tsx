@@ -17,7 +17,10 @@ import HomepageActionButton from '../HomepageActionButton';
 import { HomepageActionButtonsGridTestIds } from '../HomepageActionButtonsGrid.testIds';
 import type { HomepageActionButtonSlotProps } from '../types';
 
-const TradersButton = ({ actionPosition }: HomepageActionButtonSlotProps) => {
+const TradersButton = ({
+  actionPosition,
+  allowTwoLineLabel,
+}: HomepageActionButtonSlotProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isSocialLeaderboardEnabled = useSelector(
@@ -40,6 +43,7 @@ const TradersButton = ({ actionPosition }: HomepageActionButtonSlotProps) => {
 
   return (
     <HomepageActionButton
+      allowTwoLineLabel={allowTwoLineLabel}
       iconName={IconName.User}
       isDisabled={!isSocialLeaderboardEnabled}
       label={label}

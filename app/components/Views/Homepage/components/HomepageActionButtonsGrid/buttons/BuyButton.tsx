@@ -12,7 +12,10 @@ import HomepageActionButton from '../HomepageActionButton';
 import { HomepageActionButtonsGridTestIds } from '../HomepageActionButtonsGrid.testIds';
 import type { HomepageActionButtonSlotProps } from '../types';
 
-const BuyButton = ({ actionPosition }: HomepageActionButtonSlotProps) => {
+const BuyButton = ({
+  actionPosition,
+  allowTwoLineLabel,
+}: HomepageActionButtonSlotProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { goToBuy } = useRampNavigation();
   const label = strings('homepage.action_buttons.buy');
@@ -29,6 +32,7 @@ const BuyButton = ({ actionPosition }: HomepageActionButtonSlotProps) => {
 
   return (
     <HomepageActionButton
+      allowTwoLineLabel={allowTwoLineLabel}
       iconName={IconName.Add}
       label={label}
       onPress={handlePress}

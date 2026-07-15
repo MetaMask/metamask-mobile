@@ -19,7 +19,10 @@ import HomepageActionButton from '../HomepageActionButton';
 import { HomepageActionButtonsGridTestIds } from '../HomepageActionButtonsGrid.testIds';
 import type { HomepageActionButtonSlotProps } from '../types';
 
-const SwapButton = ({ actionPosition }: HomepageActionButtonSlotProps) => {
+const SwapButton = ({
+  actionPosition,
+  allowTwoLineLabel,
+}: HomepageActionButtonSlotProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
@@ -44,6 +47,7 @@ const SwapButton = ({ actionPosition }: HomepageActionButtonSlotProps) => {
 
   return (
     <HomepageActionButton
+      allowTwoLineLabel={allowTwoLineLabel}
       iconName={IconName.SwapVertical}
       isDisabled={isDisabled}
       label={label}
