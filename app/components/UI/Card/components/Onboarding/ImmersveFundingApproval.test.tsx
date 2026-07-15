@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import ImmersveFundingApproval from './ImmersveFundingApproval';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -12,8 +12,43 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+jest.mock('../../../../../util/networks');
+
+jest.mock('../../../../../core/redux/slices/card', () => ({
+  selectImmersveFundingSourceId: 'select-funding-source-id',
+}));
+
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: 'select-account-by-scope',
+}));
+
+jest.mock('../../../../../selectors/settings', () => ({
+  selectAvatarAccountType: 'select-avatar-account-type',
+}));
+
+jest.mock('../../../../hooks/multichainAccounts/useAccountGroupName', () => ({
+  useAccountGroupName: jest.fn(() => null),
+}));
+
+const MOCK_ACCOUNT = {
+  address: '0xAccount',
+  metadata: { name: 'Account 1' },
+};
+const mockSelectAccountByScope = jest.fn(() => MOCK_ACCOUNT);
+
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => 'fs-1'),
+  useSelector: jest.fn((selector: unknown) => {
+    switch (selector) {
+      case 'select-funding-source-id':
+        return 'fs-1';
+      case 'select-account-by-scope':
+        return mockSelectAccountByScope;
+      case 'select-avatar-account-type':
+        return 'default';
+      default:
+        return undefined;
+    }
+  }),
 }));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -56,8 +91,17 @@ jest.mock('../../util/metrics', () => ({
 jest.mock('./OnboardingStep', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
-  return ({ formFields }: { formFields: React.ReactNode }) =>
-    ReactActual.createElement(View, { testID: 'onboarding-step' }, formFields);
+  return ({
+    formFields,
+    actions,
+  }: {
+    formFields: React.ReactNode;
+    actions: React.ReactNode;
+  }) =>
+    ReactActual.createElement(View, { testID: 'onboarding-step' }, [
+      ReactActual.createElement(View, { key: 'formFields' }, formFields),
+      ReactActual.createElement(View, { key: 'actions' }, actions),
+    ]);
 });
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -72,15 +116,38 @@ jest.mock('@metamask/design-system-react-native', () => {
       children,
       onPress,
       testID,
-    }: React.PropsWithChildren<{ onPress?: () => void; testID?: string }>) =>
+      isDisabled,
+      isLoading,
+    }: React.PropsWithChildren<{
+      onPress?: () => void;
+      testID?: string;
+      isDisabled?: boolean;
+      isLoading?: boolean;
+    }>) =>
       ReactActual.createElement(
         TouchableOpacity,
-        { onPress, testID },
+        {
+          onPress,
+          testID,
+          disabled: isDisabled,
+          accessibilityState: { disabled: isDisabled, busy: isLoading },
+        },
         children,
       ),
+    AvatarAccount: () => null,
+    AvatarToken: () => null,
+    BadgeWrapper: ({ children }: React.PropsWithChildren<object>) => children,
+    BadgeNetwork: () => null,
+    AvatarAccountVariant: {
+      Jazzicon: 'Jazzicon',
+      Blockies: 'Blockies',
+      Maskicon: 'Maskicon',
+    },
     ButtonVariant: { Primary: 'Primary' },
     ButtonSize: { Lg: 'Lg' },
     TextVariant: { BodyMd: 'BodyMd' },
+    AvatarBaseSize: { Sm: 'Sm' },
+    BadgeWrapperPosition: { BottomRight: 'BottomRight' },
   };
 });
 
@@ -136,48 +203,95 @@ describe('ImmersveFundingApproval', () => {
     setNextAction(null);
   });
 
-  it('polls on mount and renders the spinner before a nextAction resolves', () => {
+  it('polls once on mount and shows the loading spinner before a nextAction resolves', () => {
+    setNextAction(null, null, true);
     const { getByTestId } = render(<ImmersveFundingApproval />);
     expect(mockRefresh).toHaveBeenCalled();
     expect(getByTestId('immersve-funding-approval-spinner')).toBeTruthy();
   });
 
-  it('renders the confirm button when nextAction is funding', () => {
-    setNextAction({ type: 'funding', write: WRITE });
-    const { getByTestId, queryByTestId } = render(<ImmersveFundingApproval />);
+  it('shows a full-screen error with retry when the first poll fails', () => {
+    setNextAction(null, 'Something went wrong');
+    const { getByTestId } = render(<ImmersveFundingApproval />);
 
-    expect(
-      getByTestId('immersve-funding-approval-confirm-button'),
-    ).toBeTruthy();
-    expect(queryByTestId('immersve-funding-approval-spinner')).toBeNull();
+    fireEvent.press(getByTestId('immersve-funding-approval-retry-button'));
+    expect(mockRefresh).toHaveBeenCalledTimes(2); // mount + retry
   });
 
-  it('approves funding and refreshes prerequisites on confirm', async () => {
+  it('renders the settings card and an enabled confirm button once funding is known', () => {
+    setNextAction({ type: 'funding', write: WRITE });
+    const { getByTestId } = render(<ImmersveFundingApproval />);
+
+    expect(getByTestId('immersve-funding-approval-account-row')).toBeTruthy();
+    expect(getByTestId('immersve-funding-approval-token-row')).toBeTruthy();
+    const button = getByTestId('immersve-funding-approval-confirm-button');
+    expect(button.props.accessibilityState.disabled).toBeFalsy();
+  });
+
+  it('does not poll in the background while sitting idle on funding (no flicker)', () => {
+    jest.useFakeTimers();
+    setNextAction({ type: 'funding', write: WRITE });
+    render(<ImmersveFundingApproval />);
+    expect(mockRefresh).toHaveBeenCalledTimes(1); // mount only
+
+    act(() => {
+      jest.advanceTimersByTime(20000);
+    });
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+
+  it('keeps the settings card mounted and disables the button while approving (no full-screen swap)', async () => {
     setNextAction({ type: 'funding', write: WRITE });
     const { getByTestId } = render(<ImmersveFundingApproval />);
 
     fireEvent.press(getByTestId('immersve-funding-approval-confirm-button'));
 
-    await waitFor(() => {
-      expect(mockExecuteFunding).toHaveBeenCalledWith(WRITE);
+    expect(mockExecuteFunding).toHaveBeenCalledWith(WRITE);
+    // Settling flips synchronously on press — the card stays mounted, only the
+    // button's own state changes.
+    expect(getByTestId('immersve-funding-approval-account-row')).toBeTruthy();
+    expect(
+      getByTestId('immersve-funding-approval-confirm-button').props
+        .accessibilityState.disabled,
+    ).toBe(true);
+
+    await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(2)); // mount + post-approve
+  });
+
+  it('locally polls for settlement after approving, and stops once active', async () => {
+    jest.useFakeTimers();
+    setNextAction({ type: 'funding', write: WRITE });
+    const { getByTestId, rerender } = render(<ImmersveFundingApproval />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId('immersve-funding-approval-confirm-button'));
+      await Promise.resolve();
+      await Promise.resolve();
     });
     expect(mockRefresh).toHaveBeenCalledTimes(2); // mount + post-approve
-  });
 
-  it('shows the spinner (not the confirm button) while submitting', () => {
-    setNextAction({ type: 'funding', write: WRITE });
-    setFundingState(true);
-    const { getByTestId, queryByTestId } = render(<ImmersveFundingApproval />);
+    await act(async () => {
+      jest.advanceTimersByTime(5000);
+      await Promise.resolve();
+    });
+    expect(mockRefresh).toHaveBeenCalledTimes(3); // still 'funding' — settling poll fired
 
-    expect(getByTestId('immersve-funding-approval-spinner')).toBeTruthy();
-    expect(
-      queryByTestId('immersve-funding-approval-confirm-button'),
-    ).toBeNull();
-  });
-
-  it('creates the card once when nextAction becomes active, then resets to Card Home', async () => {
     setNextAction({ type: 'active' });
-    const { rerender } = render(<ImmersveFundingApproval />);
+    rerender(<ImmersveFundingApproval />);
+
+    await act(async () => {
+      jest.advanceTimersByTime(20000);
+      await Promise.resolve();
+    });
+    // Settled to active — the local poll must have stopped.
+    expect(mockRefresh).toHaveBeenCalledTimes(3);
+    jest.useRealTimers();
+  });
+
+  it('creates the card once nextAction becomes active, then resets to Card Home', async () => {
+    setNextAction({ type: 'active' });
+    render(<ImmersveFundingApproval />);
 
     await waitFor(() => {
       expect(mockCreateCard).toHaveBeenCalledWith('fs-1');
@@ -186,33 +300,43 @@ describe('ImmersveFundingApproval', () => {
       index: 0,
       routes: [{ name: Routes.CARD.HOME }],
     });
+  });
 
-    // Re-render with the same active action must not re-create the card.
+  it('does not re-create the card on re-render while still active', async () => {
+    setNextAction({ type: 'active' });
+    const { rerender } = render(<ImmersveFundingApproval />);
+
+    await waitFor(() => {
+      expect(mockCreateCard).toHaveBeenCalledTimes(1);
+    });
+
     rerender(<ImmersveFundingApproval />);
     expect(mockCreateCard).toHaveBeenCalledTimes(1);
   });
 
-  it('shows an error and a retry button when createCard fails', async () => {
-    mockCreateCard.mockRejectedValue(new Error('boom'));
-    setNextAction({ type: 'active' });
-    setFundingState(false, 'Something went wrong');
-    const { getByTestId } = render(<ImmersveFundingApproval />);
-
-    await waitFor(() => {
-      expect(getByTestId('immersve-funding-approval-error')).toBeTruthy();
-    });
-
-    fireEvent.press(getByTestId('immersve-funding-approval-retry-button'));
-    expect(mockCreateCard).toHaveBeenCalledWith('fs-1');
-  });
-
-  it('shows an error and re-enables the confirm retry when executeFunding fails', () => {
+  it('shows an inline error and re-enables the button to retry when executeFunding fails', () => {
     setNextAction({ type: 'funding', write: WRITE });
     setFundingState(false, 'Approval failed');
     const { getByTestId } = render(<ImmersveFundingApproval />);
 
-    fireEvent.press(getByTestId('immersve-funding-approval-retry-button'));
+    expect(getByTestId('immersve-funding-approval-error').props.children).toBe(
+      'Approval failed',
+    );
+    const retryButton = getByTestId('immersve-funding-approval-retry-button');
+    expect(retryButton.props.accessibilityState.disabled).toBeFalsy();
+
+    fireEvent.press(retryButton);
     expect(mockExecuteFunding).toHaveBeenCalledWith(WRITE);
+  });
+
+  it('shows an inline error and retries createCard when it fails', () => {
+    setNextAction({ type: 'active' });
+    setFundingState(false, 'Card creation failed');
+    const { getByTestId } = render(<ImmersveFundingApproval />);
+
+    const retryButton = getByTestId('immersve-funding-approval-retry-button');
+    fireEvent.press(retryButton);
+    expect(mockCreateCard).toHaveBeenCalledWith('fs-1');
   });
 
   it('delegates unexpected next actions to the shared router', () => {

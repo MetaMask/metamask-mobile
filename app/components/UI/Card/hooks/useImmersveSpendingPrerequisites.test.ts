@@ -88,31 +88,26 @@ describe('useImmersveSpendingPrerequisites', () => {
     expect(result.current.error).toBeTruthy();
   });
 
-  it('polls while pending, keeps polling while funding, and stops once active', async () => {
+  it('polls while pending and stops once actionable', async () => {
     jest.useFakeTimers();
-    const buildFundingPrerequisites = () => ({
-      prerequisites: [
-        {
-          stage: 'funding' as const,
-          status: 'action-required' as const,
-          actionType: 'smart_contract_write' as const,
-          params: {
-            abi: [],
-            contractAddress: '0xT',
-            method: 'approve',
-            params: { _spender: '0xS', _value: '1' },
-          },
-        },
-      ],
-    });
     mockCard.getSpendingPrerequisites
       .mockResolvedValueOnce({
         prerequisites: [{ stage: 'aml', status: 'pending' }],
       })
-      .mockResolvedValueOnce(buildFundingPrerequisites())
-      .mockResolvedValueOnce(buildFundingPrerequisites())
       .mockResolvedValueOnce({
-        prerequisites: [{ stage: 'aml', status: 'ok' }],
+        prerequisites: [
+          {
+            stage: 'funding',
+            status: 'action-required',
+            actionType: 'smart_contract_write',
+            params: {
+              abi: [],
+              contractAddress: '0xT',
+              method: 'approve',
+              params: { _spender: '0xS', _value: '1' },
+            },
+          },
+        ],
       });
 
     const { result } = renderHook(() =>
@@ -127,35 +122,21 @@ describe('useImmersveSpendingPrerequisites', () => {
     });
     expect(result.current.nextAction?.type).toBe('pending');
 
-    // Still pending → poll continues.
     await act(async () => {
       jest.advanceTimersByTime(1000);
       await Promise.resolve();
     });
+
     expect(mockCard.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
     expect(result.current.nextAction?.type).toBe('funding');
 
-    // Now 'funding' — the tx hasn't been submitted/observed yet, poll continues.
-    await act(async () => {
-      jest.advanceTimersByTime(1000);
-      await Promise.resolve();
-    });
-    expect(mockCard.getSpendingPrerequisites).toHaveBeenCalledTimes(3);
-    expect(result.current.nextAction?.type).toBe('funding');
-
-    // Settles to active — polling stops.
-    await act(async () => {
-      jest.advanceTimersByTime(1000);
-      await Promise.resolve();
-    });
-    expect(mockCard.getSpendingPrerequisites).toHaveBeenCalledTimes(4);
-    expect(result.current.nextAction?.type).toBe('active');
-
+    // No longer 'pending' → poll stops (funding requires explicit user action,
+    // not background polling).
     await act(async () => {
       jest.advanceTimersByTime(5000);
       await Promise.resolve();
     });
-    expect(mockCard.getSpendingPrerequisites).toHaveBeenCalledTimes(4);
+    expect(mockCard.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
     jest.useRealTimers();
   });
 });
