@@ -27,11 +27,6 @@ export const DelegationControllerInit: MessengerClientInitFunction<
     getDelegationEnvironment,
   });
 
-  controllerMessenger.registerActionHandler(
-    'DelegationController:signDelegation',
-    controller.signDelegation.bind(controller),
-  );
-
   return {
     controller,
   };
