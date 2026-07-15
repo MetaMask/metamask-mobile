@@ -154,6 +154,7 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
         title={strings('predict.home.live_now_title')}
         isInteractive
         onPress={handleSeeAll}
+        twClassName="p-0 mb-2"
       />
 
       <Box twClassName="-mx-4">
