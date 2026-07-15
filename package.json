@@ -148,6 +148,7 @@
     "run-system-tests:ios-login-sim": "yarn playwright test --project system-ios-login-sim --config tests/playwright.system-emulator.config.ts",
     "run-system-tests:ios-onboarding-sim": "yarn playwright test --project system-ios-onboarding-sim --config tests/playwright.system-emulator.config.ts",
     "appium-smoke:android": "yarn playwright test --config tests/playwright.smoke-appium.config.ts --project android-smoke",
+    "appium-smoke:mmconnect:android": "yarn playwright test --config tests/playwright.smoke-appium.config.ts --project android-smoke --grep SmokeMMConnect",
     "appium-smoke:ios": "yarn playwright test --config tests/playwright.smoke-appium.config.ts --project ios-smoke",
     "capture-visual-baselines:android": "CAPTURE_BASELINES=true AI_VISUAL_TESTING_ENABLED=true yarn playwright test --project system-android-login-emu --config tests/playwright.system-emulator.config.ts",
     "capture-visual-baselines:ios": "CAPTURE_BASELINES=true AI_VISUAL_TESTING_ENABLED=true yarn playwright test --project system-ios-login-sim --config tests/playwright.system-emulator.config.ts",

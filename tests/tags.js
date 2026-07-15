@@ -77,6 +77,11 @@ const smokeTags = {
     description:
       'Tests the MetaMask Snaps extensibility platform. Covers snap lifecycle: installation from npm, enabling/disabling installed snaps, and removal with keyring warnings for snaps managing accounts. Tests snap Ethereum provider access: eth_chainId, eth_accounts, personal_sign, eth_signTypedData_v4, and wallet_switchEthereumChain. Validates snap dialog systems for alerts and confirmations with approve/cancel flows. Tests snap capabilities: persistent state management (snap_manageState for set/get/clear), network access for external API calls, WebAssembly (WASM) execution, interactive UI rendering with JSX components, cronjob scheduling for background tasks, entropy generation for randomness, file handling, and BIP-32/BIP-44 key derivation for account management. Also covers preinstalled snaps, snap UI links, lifecycle events, user preference access, image handling in snap UIs, and background event listeners. Snaps enable non-EVM chain support like Solana account derivation.',
   },
+  smokeMMConnect: {
+    tag: 'SmokeMMConnect:',
+    description:
+      'Tests MetaMask Connect flows via the system browser (Chrome on Android, Safari on iOS) and local Browser Playground dApp. Covers Multichain API connect/disconnect, session scopes (eip155:1), and deeplink handoff back to MetaMask for connection approval. Specs live in tests/smoke-appium/mm-connect/ and run via Appium smoke CI. Uses withFixtures + the standard e2e fixture wallet (not baked-SRP performance builds). When changes touch MMConnect connection modals, multichain sessions, native browser deeplinks, or Browser Playground integration, select this tag. Related to SmokeMultiChainAPI and SmokeNetworkExpansion for CAIP-25 / multi-chain provider behavior.',
+  },
 };
 
 const flaskTags = {};
@@ -144,6 +149,7 @@ const {
   SmokeSeedlessOnboarding,
   SmokeBrowser,
   SmokeSnaps,
+  SmokeMMConnect,
 } = createSmokeDescribeFunctions(smokeTags);
 
 const {
@@ -177,6 +183,7 @@ export {
   SmokePredictions,
   SmokeSeedlessOnboarding,
   SmokeBrowser,
+  SmokeMMConnect,
   RegressionAccounts,
   RegressionConfirmations,
   RegressionIdentity,

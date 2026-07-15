@@ -48,6 +48,11 @@ on:
         required: false
         type: string
         default: 'current'
+      android-tag:
+        description: 'Android system image tag (default = AOSP; google_apis includes Chrome for browser dApp tests)'
+        required: false
+        type: string
+        default: 'default'
 
 permissions:
   contents: read
@@ -87,7 +92,7 @@ jobs:
           setup-simulator: 'true'
           android-avd-name: appium_smoke_avd
           android-api-level: '34'
-          android-tag: default
+          android-tag: ${{ inputs.android-tag }}
           android-abi: x86_64
           android-device: pixel_5
           configure-keystores: 'false'
