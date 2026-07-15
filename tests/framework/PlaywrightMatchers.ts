@@ -266,13 +266,26 @@ export default class PlaywrightMatchers {
     if (!drv) throw new Error('Driver is not available');
     const elements = await drv.$$(xpath);
     const length = await elements.length;
-    if (length === 0) throw new Error(`No elements found for XPath: ${xpath}`);
+    // Return a lazy `$` ref when absent so visibility waits can poll (e.g.
+    // Network fee after a quote loads). Throwing here made
+    // expectElementToBeVisible fail immediately despite a 60s timeout.
+    if (length === 0) {
+      return wrapElement(
+        (await drv.$(xpath)) as unknown as ChainablePromiseElement,
+      );
+    }
     const element =
       index !== undefined
         ? elements[index]
         : lastElement
           ? elements[length - 1]
           : elements[0];
+
+    if (!element) {
+      throw new Error(
+        `No element at index ${index} for XPath: ${xpath} (found ${length} match(es)).`,
+      );
+    }
 
     return wrapElement(element);
   }

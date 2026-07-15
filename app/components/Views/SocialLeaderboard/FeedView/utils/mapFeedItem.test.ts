@@ -13,8 +13,16 @@ describe('mapFeedItem', () => {
     expect(result).toMatchObject({
       type: 'spot',
       id: 'pos-spot-1-1700000000',
+      traderId: 'profile-1',
       username: 'dutchiono',
       traderAddress: '0x1111111111111111111111111111111111111111',
+      tokenAvatar: {
+        positionId: 'pos-spot-1',
+        chain: 'ethereum',
+        tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+        tokenImageUrl: null,
+        tokenSymbol: 'PEPE',
+      },
       action: 'bought',
       tokenSymbol: 'PEPE',
       tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
@@ -44,6 +52,7 @@ describe('mapFeedItem', () => {
     expect(result).toMatchObject({
       type: 'perps',
       action: 'closed',
+      traderId: 'profile-2',
       marketSymbol: 'ETH',
       tradeSymbol: 'ETH',
       direction: 'long',
@@ -188,6 +197,87 @@ describe('mapFeedItem', () => {
     expect(result?.pnlLabel).toBe('');
     expect(result?.hasValueData).toBe(false);
     expect(result?.hasPnlData).toBe(false);
+  });
+
+  it('leaves value and PnL labels empty when open-position fields are missing', () => {
+    const result = mapFeedItem(
+      mockSpotFeedItem({
+        currentValueUSD: null,
+        pnlPercent: null,
+        pnlValueUsd: null,
+      }),
+    );
+
+    expect(result?.valueLabel).toBe('');
+    expect(result?.pnlLabel).toBe('');
+    expect(result?.hasValueData).toBe(false);
+    expect(result?.hasPnlData).toBe(false);
+  });
+
+  it('hides value and PnL for an open perp feed row without mark-to-market fields', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        currentValueUSD: undefined,
+        pnlValueUsd: undefined,
+        pnlPercent: undefined,
+        realizedPnl: 0,
+        marginUsd: 44_646,
+        positionAmount: 275,
+        perpPositionType: 'long',
+        perpLeverage: 8,
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            tokenAmount: 26.785,
+            usdCost: 4351.49,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'perp',
+            perpPositionType: 'long',
+            perpLeverage: 8,
+          },
+        ],
+        timestamp: 1_700_000_000,
+      }),
+    );
+
+    expect(result?.action).toBe('opened');
+    expect(result?.valueLabel).toBe('');
+    expect(result?.pnlLabel).toBe('');
+    expect(result?.hasValueData).toBe(false);
+    expect(result?.hasPnlData).toBe(false);
+  });
+
+  it('shows realized PnL for a closed perp without mark-to-market fields', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        currentValueUSD: 0,
+        pnlValueUsd: undefined,
+        pnlPercent: undefined,
+        realizedPnl: 4_659,
+        marginUsd: 0,
+        positionAmount: 0,
+        trades: [
+          {
+            direction: 'sell',
+            intent: 'exit',
+            tokenAmount: -250,
+            usdCost: -40_429,
+            timestamp: 1_700_000_500,
+            transactionHash: '0xhash',
+            classification: 'perp',
+            perpPositionType: 'long',
+            perpLeverage: 8,
+          },
+        ],
+      }),
+    );
+
+    expect(result?.action).toBe('closed');
+    expect(result?.hasValueData).toBe(true);
+    expect(result?.hasPnlData).toBe(true);
+    expect(result?.valueLabel).toContain('4,659');
   });
 
   it('marks negative PnL as not positive', () => {
