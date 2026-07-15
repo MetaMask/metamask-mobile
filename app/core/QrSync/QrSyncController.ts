@@ -30,6 +30,7 @@ import {
   QrSyncPhases,
   QrSyncProvisioningStatuses,
   QrSyncSecretTypes,
+  QrSyncSyncFlows,
   RELAY_URL,
 } from './constants';
 import { routeIncomingQrSyncMessage } from './services/qr-sync-message-router';
@@ -53,6 +54,12 @@ const metadata: StateMetadata<QrSyncControllerState> = {
     includeInDebugSnapshot: true,
     includeInStateLogs: true,
     usedInUi: true,
+  },
+  syncFlow: {
+    persist: false,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: false,
   },
   otp: {
     persist: false,
@@ -89,6 +96,7 @@ const metadata: StateMetadata<QrSyncControllerState> = {
 export const defaultQrSyncControllerState: QrSyncControllerState = {
   phase: QrSyncPhases.IDLE,
   connectionStatus: 'disconnected',
+  syncFlow: null,
   pendingSecretImports: null,
   provisioningMetadata: null,
   provisioningStatus: null,
@@ -160,6 +168,12 @@ export class QrSyncController extends BaseController<
     // Destroy any existing session before starting a new one.
     await this.destroySession();
     this.clearControllerState();
+    // Capture sync flow once from local onboarding status at session start.
+    this.update((state) => {
+      state.syncFlow = this.getIsOnboardingCompleted()
+        ? QrSyncSyncFlows.EXISTING_USER
+        : QrSyncSyncFlows.NEW_USER;
+    });
     this.transitionTo(QrSyncPhases.INITIALIZING);
 
     try {
@@ -397,61 +411,37 @@ export class QrSyncController extends BaseController<
 
   private readonly handleSessionServiceEvent = (event: QrSyncServiceEvent) => {
     switch (event.type) {
-      case QrSyncActionTypes.OTP_DISPLAY_GRANT: {
-        const from = this.state.phase;
-        if (from !== QrSyncPhases.DISPLAYING_OTP) {
-          addQrSyncPhaseBreadcrumb({
-            from,
-            to: QrSyncPhases.DISPLAYING_OTP,
-          });
-        }
-        this.update((state) => {
-          state.phase = QrSyncPhases.DISPLAYING_OTP;
-          state.otp = event.data;
-          state.error = null;
+      case QrSyncActionTypes.OTP_DISPLAY_GRANT:
+        this.transitionTo(QrSyncPhases.DISPLAYING_OTP, {
+          patch: (state) => {
+            state.otp = event.data;
+            state.error = null;
+          },
         });
         break;
-      }
-      case QrSyncActionTypes.SYNC_READY: {
-        const from = this.state.phase;
-        if (from !== QrSyncPhases.REVIEWING_IMPORT) {
-          addQrSyncPhaseBreadcrumb({
-            from,
-            to: QrSyncPhases.REVIEWING_IMPORT,
-          });
-        }
-        this.update((state) => {
-          state.phase = QrSyncPhases.REVIEWING_IMPORT;
-          state.error = null;
+      case QrSyncActionTypes.SYNC_READY:
+        this.transitionTo(QrSyncPhases.REVIEWING_IMPORT, {
+          patch: (state) => {
+            state.error = null;
+          },
         });
         break;
-      }
-      case QrSyncActionTypes.SYNC_COMPLETED: {
-        const from = this.state.phase;
-        if (from !== QrSyncPhases.COMPLETED) {
-          addQrSyncPhaseBreadcrumb({
-            from,
-            to: QrSyncPhases.COMPLETED,
-          });
-        }
-        this.update((state) => {
-          state.phase = QrSyncPhases.COMPLETED;
-          state.otp = null;
-          state.error = null;
+      case QrSyncActionTypes.SYNC_COMPLETED:
+        this.transitionTo(QrSyncPhases.COMPLETED, {
+          patch: (state) => {
+            state.otp = null;
+            state.error = null;
+          },
         });
         this.destroySession().catch(() => undefined);
         break;
-      }
-      case QrSyncActionTypes.SYNC_CANCEL: {
+      case QrSyncActionTypes.SYNC_CANCEL:
         this.clearControllerState();
         this.destroySession().catch(() => undefined);
         break;
-      }
-      case QrSyncActionTypes.SYNC_ERROR: {
+      case QrSyncActionTypes.SYNC_ERROR:
         this.terminateWithError(event.data);
         break;
-      }
-
       default:
       // no-op
     }
@@ -467,17 +457,11 @@ export class QrSyncController extends BaseController<
       },
     });
 
-    const from = this.state.phase;
-    this.update((state) => {
-      state.otp = null;
-      state.phase = QrSyncPhases.AWAITING_SYNC_READY;
+    this.transitionTo(QrSyncPhases.AWAITING_SYNC_READY, {
+      patch: (state) => {
+        state.otp = null;
+      },
     });
-    if (from !== QrSyncPhases.AWAITING_SYNC_READY) {
-      addQrSyncPhaseBreadcrumb({
-        from,
-        to: QrSyncPhases.AWAITING_SYNC_READY,
-      });
-    }
   }
 
   private async sendSyncCompleted(): Promise<void> {
@@ -486,18 +470,12 @@ export class QrSyncController extends BaseController<
       version: QrSyncMessageVersion.V1,
     });
 
-    const from = this.state.phase;
-    this.update((state) => {
-      state.phase = QrSyncPhases.COMPLETED;
-      state.otp = null;
-      state.error = null;
+    this.transitionTo(QrSyncPhases.COMPLETED, {
+      patch: (state) => {
+        state.otp = null;
+        state.error = null;
+      },
     });
-    if (from !== QrSyncPhases.COMPLETED) {
-      addQrSyncPhaseBreadcrumb({
-        from,
-        to: QrSyncPhases.COMPLETED,
-      });
-    }
     await this.destroySession();
   }
 
@@ -562,13 +540,24 @@ export class QrSyncController extends BaseController<
     await this.client.sendResponse(message);
   }
 
-  private transitionTo(phase: QrSyncPhase, errorCode?: QrSyncErrorCode): void {
-    const from = this.state.phase;
-    if (from !== phase) {
-      addQrSyncPhaseBreadcrumb({ from, to: phase, errorCode });
+  private transitionTo(
+    phase: QrSyncPhase,
+    options?: {
+      errorCode?: QrSyncErrorCode;
+      patch?: (state: QrSyncControllerState) => void;
+    },
+  ): void {
+    const phaseFrom = this.state.phase;
+    if (phaseFrom !== phase) {
+      addQrSyncPhaseBreadcrumb({
+        phaseFrom,
+        phaseTo: phase,
+        errorCode: options?.errorCode,
+      });
     }
     this.update((state) => {
       state.phase = phase;
+      options?.patch?.(state);
     });
   }
 
@@ -606,24 +595,20 @@ export class QrSyncController extends BaseController<
     await this.destroySession();
 
     if (wireType === QrSyncActionTypes.SYNC_ERROR && error) {
-      const from = this.state.phase;
-      if (from !== QrSyncPhases.FAILED) {
-        addQrSyncPhaseBreadcrumb({
-          from,
-          to: QrSyncPhases.FAILED,
-          errorCode: error.code,
-        });
-      }
+      const phaseFrom = this.state.phase;
       reportQrSyncFailure(new Error(error.message), {
         surface: QrSyncSurfaces.SESSION,
         operation: QrSyncOperations.TERMINATE_WITH_ERROR,
         errorCode: error.code,
-        phase: from,
+        phase: phaseFrom,
         source: QrSyncTelemetrySources.CONTROLLER,
+        ...(this.state.syncFlow ? { syncFlow: this.state.syncFlow } : {}),
       });
-      this.update((state) => {
-        state.phase = QrSyncPhases.FAILED;
-        state.error = error;
+      this.transitionTo(QrSyncPhases.FAILED, {
+        errorCode: error.code,
+        patch: (state) => {
+          state.error = error;
+        },
       });
       return;
     }

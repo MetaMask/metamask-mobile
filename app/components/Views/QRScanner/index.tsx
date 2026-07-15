@@ -73,6 +73,7 @@ import {
   QrSyncTelemetrySources,
   reportQrSyncFailure,
 } from '../../../core/QrSync/qrSyncTelemetry';
+import { QrSyncErrorCodes } from '../../../core/QrSync/types';
 
 const sleep = (ms: number) =>
   new Promise<void>((resolve) => {
@@ -270,7 +271,7 @@ const QRScanner = ({
               {
                 surface: QrSyncSurfaces.SCANNER,
                 operation: QrSyncOperations.CLASSIFY_SCAN_CONTENT,
-                errorCode: 'INVALID_PAYLOAD',
+                errorCode: QrSyncErrorCodes.INVALID_PAYLOAD,
                 source: QrSyncTelemetrySources.QR_SCANNER_ADD_DEVICE,
               },
             );

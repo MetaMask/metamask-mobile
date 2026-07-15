@@ -85,8 +85,8 @@ describe('qrSyncTelemetry', () => {
   describe('addQrSyncPhaseBreadcrumb', () => {
     it('emits a phase breadcrumb without secrets', () => {
       addQrSyncPhaseBreadcrumb({
-        from: 'initializing',
-        to: 'displaying-otp',
+        phaseFrom: 'initializing',
+        phaseTo: 'displaying-otp',
       });
 
       expect(addBreadcrumb).toHaveBeenCalledWith({
@@ -94,16 +94,16 @@ describe('qrSyncTelemetry', () => {
         level: 'info',
         message: 'qr_sync.phase initializing->displaying-otp',
         data: {
-          from: 'initializing',
-          to: 'displaying-otp',
+          phaseFrom: 'initializing',
+          phaseTo: 'displaying-otp',
         },
       });
     });
 
     it('marks failed transitions as error level with errorCode', () => {
       addQrSyncPhaseBreadcrumb({
-        from: 'displaying-otp',
-        to: 'failed',
+        phaseFrom: 'displaying-otp',
+        phaseTo: 'failed',
         errorCode: 'CHANNEL_DISCONNECTED',
       });
 
@@ -113,6 +113,8 @@ describe('qrSyncTelemetry', () => {
           message:
             'qr_sync.phase displaying-otp->failed code=CHANNEL_DISCONNECTED',
           data: expect.objectContaining({
+            phaseFrom: 'displaying-otp',
+            phaseTo: 'failed',
             errorCode: 'CHANNEL_DISCONNECTED',
           }),
         }),

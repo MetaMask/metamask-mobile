@@ -8,6 +8,7 @@
 import { addBreadcrumb } from '@sentry/react-native';
 
 import Logger, { type LoggerErrorOptions } from '../../util/Logger';
+import { QrSyncSyncFlows, type QrSyncSyncFlow } from './constants';
 import type { QrSyncErrorCode, QrSyncPhase } from './types';
 
 /** Sentry tag value for QR sync errors. Query: `feature:qr-sync`. */
@@ -62,14 +63,7 @@ export const QrSyncTelemetrySources = {
 export type QrSyncTelemetrySource =
   (typeof QrSyncTelemetrySources)[keyof typeof QrSyncTelemetrySources];
 
-/** Distinguishes new-user vs existing-user QR sync receive paths. */
-export const QrSyncSyncFlows = {
-  NEW_USER: 'new_user',
-  EXISTING_USER: 'existing_user',
-} as const;
-
-export type QrSyncSyncFlow =
-  (typeof QrSyncSyncFlows)[keyof typeof QrSyncSyncFlows];
+export { QrSyncSyncFlows, type QrSyncSyncFlow };
 
 const SENSITIVE_KEY_PATTERN =
   /^(otp|mnemonic|seed|seedPhrase|privateKey|pendingSecretImports|value|p|payload|scannedQr|qrPayload|sessionRequest)$/i;
@@ -84,16 +78,16 @@ const MNEMONIC_BLOB_PATTERN = /\b(?:[a-z]+(?:\s+[a-z]+){11,23})\b/gi;
 const REDACTED = '[REDACTED]';
 
 export interface QrSyncPhaseBreadcrumbArgs {
-  from: QrSyncPhase;
-  to: QrSyncPhase;
-  errorCode?: QrSyncErrorCode | string;
+  phaseFrom: QrSyncPhase;
+  phaseTo: QrSyncPhase;
+  errorCode?: QrSyncErrorCode;
 }
 
 export interface ReportQrSyncFailureOptions {
   surface: QrSyncSurface;
   operation: QrSyncOperation;
-  errorCode?: QrSyncErrorCode | string;
-  phase?: QrSyncPhase | string;
+  errorCode?: QrSyncErrorCode;
+  phase?: QrSyncPhase;
   source?: QrSyncTelemetrySource | string;
   syncFlow?: QrSyncSyncFlow;
   /** Extra display-only fields — scrubbed before send. */
@@ -146,25 +140,28 @@ function scrubSensitiveString(raw: string): string {
 }
 
 /**
- * Phase-transition breadcrumb without secrets (from/to/errorCode only).
+ * Phase-transition breadcrumb without secrets (phaseFrom/phaseTo/errorCode only).
+ *
+ * Uses `phaseFrom`/`phaseTo` rather than `from`/`to` because Sentry's
+ * `rewriteBreadcrumb` treats those keys as URLs and drops non-URL values.
  */
 export function addQrSyncPhaseBreadcrumb({
-  from,
-  to,
+  phaseFrom,
+  phaseTo,
   errorCode,
 }: QrSyncPhaseBreadcrumbArgs): void {
-  const parts = [`qr_sync.phase ${from}->${to}`];
+  const parts = [`qr_sync.phase ${phaseFrom}->${phaseTo}`];
   if (errorCode !== undefined) {
     parts.push(`code=${errorCode}`);
   }
 
   addBreadcrumb({
     category: 'qr_sync',
-    level: to === 'failed' ? 'error' : 'info',
+    level: phaseTo === 'failed' ? 'error' : 'info',
     message: parts.join(' '),
     data: {
-      from,
-      to,
+      phaseFrom,
+      phaseTo,
       ...(errorCode !== undefined && { errorCode }),
     },
   });

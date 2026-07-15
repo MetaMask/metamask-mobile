@@ -12,6 +12,7 @@ import {
   QrSyncPhases,
   QrSyncProvisioningStatuses,
   QrSyncSecretTypes,
+  QrSyncSyncFlows,
 } from './constants';
 import {
   QR_SYNC_CONTROLLER_NAME,
@@ -239,6 +240,7 @@ describe('QrSyncController', () => {
       expect(walletClient.client.sendResponse).toHaveBeenCalledTimes(1);
       expect(controller.state.phase).toBe(QrSyncPhases.AWAITING_SYNC_READY);
       expect(controller.state.connectionStatus).toBe('connected');
+      expect(controller.state.syncFlow).toBe(QrSyncSyncFlows.EXISTING_USER);
     });
 
     it('throws when the scan payload cannot be parsed', async () => {
