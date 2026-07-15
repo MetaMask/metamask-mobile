@@ -2,7 +2,7 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-  ORDER_SLIPPAGE_CONFIG
+  ORDER_SLIPPAGE_CONFIG,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import React from 'react';
@@ -1998,7 +1998,6 @@ describe('PerpsClosePositionView', () => {
       // HyperLiquid's marginUsed already includes PnL
       // receivedAmount = marginUsed - fees = 1450 - 45 = 1405
       // realizedPnl = unrealizedPnl = 150 (from defaultPerpsPositionMock)
-<<<<<<< HEAD
       expect(handleClosePosition).toHaveBeenCalledWith(
         expect.objectContaining({
           position: defaultPerpsPositionMock,
@@ -2022,167 +2021,11 @@ describe('PerpsClosePositionView', () => {
           slippage: {
             usdAmount: undefined, // undefined for full close to bypass $10 minimum validation
             priceAtCalculation: 3000, // effectivePrice: currentPrice for market orders
-            maxSlippageBps: 300, // maxSlippageBps: 3% slippage tolerance (300 basis points) - conservative default
+            maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps,
           },
         }),
       );
     });
-
-    it('validates limit order requires price before confirmation', async () => {
-      // Test the early return in handleConfirm when limit has no price
-      const handleClosePosition = jest.fn();
-      usePerpsClosePositionMock.mockReturnValue({
-        handleClosePosition,
-        isClosing: false,
-      });
-
-      // Create a test component that simulates limit order without price
-      const TestComponent = () => {
-        const [orderType] = React.useState<'market' | 'limit'>('limit');
-        const [limitPrice] = React.useState(''); // No price set
-
-        return (
-          <TouchableOpacity
-            testID="test-confirm-no-price"
-            onPress={async () => {
-              // This simulates the handleConfirm logic that returns early
-              if (orderType === 'limit' && !limitPrice) {
-                return; // Early return - should not call handleClosePosition
-              }
-              await handleClosePosition();
-            }}
-          >
-            <Text>Confirm</Text>
-          </TouchableOpacity>
-        );
-      };
-
-      const { getByTestId } = render(<TestComponent />);
-
-      // Act - Try to confirm without limit price
-      fireEvent.press(getByTestId('test-confirm-no-price'));
-
-      // Assert - Should NOT call handleClosePosition due to early return
-      await waitFor(() => {
-        expect(handleClosePosition).not.toHaveBeenCalled();
-      });
-    });
-
-    it('handles limit order confirmation with price validation', async () => {
-      // Arrange
-      const handleClosePosition = jest.fn().mockResolvedValue(undefined);
-      usePerpsClosePositionMock.mockReturnValue({
-        handleClosePosition,
-        isClosing: false,
-      });
-
-      // Mock a component state with limit order and price
-      const TestComponent = () => {
-        const [orderType] = React.useState<'market' | 'limit'>('limit');
-        const [limitPrice] = React.useState('50000');
-
-        return (
-          <View>
-            <TouchableOpacity
-              testID="test-confirm"
-              onPress={async () => {
-                // Simulate the handleConfirm logic for limit orders
-                if (orderType === 'limit' && !limitPrice) {
-                  return; // Should not proceed without price
-                }
-                await handleClosePosition({
-                  position: defaultPerpsPositionMock,
-                  size: '',
-                  orderType,
-                  limitPrice: orderType === 'limit' ? limitPrice : undefined,
-                  trackingData: {
-                    totalFee: 45,
-                    marketPrice: 3000,
-                    receivedAmount: 1405,
-                    realizedPnl: 150,
-                    metamaskFeeRate: 0,
-                    feeDiscountPercentage: undefined,
-                    metamaskFee: 0,
-                    estimatedPoints: undefined,
-                    inputMethod: 'default',
-                  },
-                  marketPrice: '3000.00',
-                  slippage: {
-                    usdAmount: '4500',
-                    priceAtCalculation: 3000,
-                    maxSlippageBps: 100,
-                  },
-                });
-              }}
-            >
-              <Text>Confirm</Text>
-            </TouchableOpacity>
-          </View>
-        );
-      };
-
-      const { getByTestId } = render(<TestComponent />);
-
-      // Act - Press confirm for limit order
-      fireEvent.press(getByTestId('test-confirm'));
-
-      // Assert - Should call with limit price and specific calculated values
-      await waitFor(() => {
-        expect(handleClosePosition).toHaveBeenCalledWith(
-          expect.objectContaining({
-            position: defaultPerpsPositionMock,
-            size: '',
-            orderType: 'limit',
-            limitPrice: '50000',
-            trackingData: expect.objectContaining({
-              totalFee: 45,
-              marketPrice: 3000,
-              receivedAmount: 1405,
-              realizedPnl: 150,
-              metamaskFeeRate: 0,
-              metamaskFee: 0,
-              feeDiscountPercentage: undefined,
-              estimatedPoints: undefined,
-              inputMethod: 'default',
-            }),
-            marketPrice: '3000.00',
-            slippage: {
-              usdAmount: '4500',
-              priceAtCalculation: 3000,
-              maxSlippageBps: 100,
-            },
-          }),
-        );
-      });
-    });
-=======
-      expect(handleClosePosition).toHaveBeenCalledWith({
-        position: defaultPerpsPositionMock,
-        size: '',
-        orderType: 'market',
-        limitPrice: undefined,
-        trackingData: {
-          totalFee: 45,
-          marketPrice: 3000,
-          receivedAmount: 1405,
-          realizedPnl: 150,
-          metamaskFeeRate: 0,
-          metamaskFee: 0,
-          feeDiscountPercentage: undefined,
-          estimatedPoints: undefined,
-          inputMethod: 'default',
-        },
-        marketPrice: '3000.00',
-        // Slippage parameters added in USD-as-source-of-truth refactor
-        // For full closes (100%), usdAmount is undefined to bypass $10 minimum validation
-        slippage: {
-          usdAmount: undefined, // undefined for full close to bypass $10 minimum validation
-          priceAtCalculation: 3000, // effectivePrice: currentPrice for market orders
-          maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps,
-        },
-      });
-    });
->>>>>>> main
   });
 
   describe('Keypad Interaction - Real Component', () => {
@@ -3214,7 +3057,6 @@ describe('PerpsClosePositionView', () => {
     });
   });
 
-<<<<<<< HEAD
   describe('abandon order tracking', () => {
     const abandonInteraction = [
       MetaMetricsEvents.PERPS_UI_INTERACTION,
@@ -3290,7 +3132,88 @@ describe('PerpsClosePositionView', () => {
       const fire = setupAbandonNav([{ key: 'close' }]);
       const { getByTestId } = renderWithProvider(<PerpsClosePositionView />);
 
-=======
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      );
+      act(() => fire('beforeRemove'));
+
+      expect(defaultPerpsEventTrackingMock.track).not.toHaveBeenCalledWith(
+        ...abandonInteraction,
+      );
+    });
+  });
+
+  describe('position_close entry action (button_clicked)', () => {
+    const expectScreenViewed = (expected: Record<string, unknown>) =>
+      expect(defaultPerpsEventTrackingMock.track).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.POSITION_CLOSE,
+          ...expected,
+        }),
+      );
+
+    it('reports button_clicked=reduce_exposure and source=position_screen when opened via the reduce-exposure entry', () => {
+      useRouteMock.mockReturnValue({
+        params: {
+          position: defaultPerpsPositionMock,
+          source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+          buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.REDUCE_EXPOSURE,
+          buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
+        },
+      });
+
+      renderWithProvider(<PerpsClosePositionView />);
+
+      expectScreenViewed({
+        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.REDUCE_EXPOSURE,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
+      });
+    });
+
+    it('reports button_clicked=close and source=order_book when opened via the order-book close entry', () => {
+      useRouteMock.mockReturnValue({
+        params: {
+          position: defaultPerpsPositionMock,
+          source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK,
+          buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
+          buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK,
+        },
+      });
+
+      renderWithProvider(<PerpsClosePositionView />);
+
+      expectScreenViewed({
+        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK,
+      });
+    });
+
+    it('defaults button_clicked=close and source=perp_asset_screen when no entry action is provided', () => {
+      useRouteMock.mockReturnValue({
+        params: { position: defaultPerpsPositionMock },
+      });
+
+      renderWithProvider(<PerpsClosePositionView />);
+
+      expectScreenViewed({
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
+      });
+    });
+  });
+
   describe('Order type selector (feature flag)', () => {
     const selectPerpsClosePositionLimitOrderEnabledFlagMock = jest.mocked(
       jest.requireMock('../../selectors/featureFlags')
@@ -3421,88 +3344,11 @@ describe('PerpsClosePositionView', () => {
       ).toBeNull();
 
       // Act - confirm the close
->>>>>>> main
       fireEvent.press(
         getByTestId(
           PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
         ),
       );
-<<<<<<< HEAD
-      act(() => fire('beforeRemove'));
-
-      expect(defaultPerpsEventTrackingMock.track).not.toHaveBeenCalledWith(
-        ...abandonInteraction,
-      );
-    });
-  });
-
-  describe('position_close entry action (button_clicked)', () => {
-    const expectScreenViewed = (expected: Record<string, unknown>) =>
-      expect(defaultPerpsEventTrackingMock.track).toHaveBeenCalledWith(
-        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-        expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-            PERPS_EVENT_VALUE.SCREEN_TYPE.POSITION_CLOSE,
-          ...expected,
-        }),
-      );
-
-    it('reports button_clicked=reduce_exposure and source=position_screen when opened via the reduce-exposure entry', () => {
-      useRouteMock.mockReturnValue({
-        params: {
-          position: defaultPerpsPositionMock,
-          source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
-          buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.REDUCE_EXPOSURE,
-          buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
-        },
-      });
-
-      renderWithProvider(<PerpsClosePositionView />);
-
-      expectScreenViewed({
-        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
-        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-          PERPS_EVENT_VALUE.BUTTON_CLICKED.REDUCE_EXPOSURE,
-        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-          PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
-      });
-    });
-
-    it('reports button_clicked=close and source=order_book when opened via the order-book close entry', () => {
-      useRouteMock.mockReturnValue({
-        params: {
-          position: defaultPerpsPositionMock,
-          source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK,
-          buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
-          buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK,
-        },
-      });
-
-      renderWithProvider(<PerpsClosePositionView />);
-
-      expectScreenViewed({
-        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK,
-        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-          PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
-        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-          PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK,
-      });
-    });
-
-    it('defaults button_clicked=close and source=perp_asset_screen when no entry action is provided', () => {
-      useRouteMock.mockReturnValue({
-        params: { position: defaultPerpsPositionMock },
-      });
-
-      renderWithProvider(<PerpsClosePositionView />);
-
-      expectScreenViewed({
-        [PERPS_EVENT_PROPERTY.SOURCE]:
-          PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-          PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
-      });
-=======
 
       // Assert - a market close is submitted, never a limit order behind the flag
       await waitFor(() => {
@@ -3551,7 +3397,6 @@ describe('PerpsClosePositionView', () => {
       expect(
         queryByTestId(PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON),
       ).toBeNull();
->>>>>>> main
     });
   });
 });
