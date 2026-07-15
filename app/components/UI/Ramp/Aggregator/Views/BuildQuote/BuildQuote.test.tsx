@@ -335,6 +335,7 @@ describe('BuildQuote View', () => {
     mockPop.mockClear();
     mockTrackEvent.mockClear();
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   beforeEach(() => {
@@ -875,9 +876,7 @@ describe('BuildQuote View', () => {
       const denomSymbol =
         mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
 
-      fireEvent.press(
-        getByRoleButton(`${denomSymbol}0`),
-      );
+      fireEvent.press(getByRoleButton(`${denomSymbol}0`));
       expect(
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
       ).toBeOnTheScreen();
@@ -898,9 +897,7 @@ describe('BuildQuote View', () => {
       const denomSymbol =
         mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
 
-      fireEvent.press(
-        getByRoleButton(`${denomSymbol}0`),
-      );
+      fireEvent.press(getByRoleButton(`${denomSymbol}0`));
       expect(
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
       ).toBeOnTheScreen();
@@ -927,9 +924,7 @@ describe('BuildQuote View', () => {
       const denomSymbol =
         mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
 
-      fireEvent.press(
-        getByRoleButton(`${denomSymbol}0`),
-      );
+      fireEvent.press(getByRoleButton(`${denomSymbol}0`));
       expect(
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
       ).toBeOnTheScreen();
@@ -951,9 +946,7 @@ describe('BuildQuote View', () => {
       const denomSymbol =
         mockUseFiatCurrenciesValues.currentFiatCurrency?.denomSymbol;
 
-      fireEvent.press(
-        getByRoleButton(`${denomSymbol}0`),
-      );
+      fireEvent.press(getByRoleButton(`${denomSymbol}0`));
       expect(
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
       ).toBeOnTheScreen();
@@ -1056,9 +1049,7 @@ describe('BuildQuote View', () => {
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
       ).toBeOnTheScreen();
 
-      fireEvent.press(
-        getByRoleButton(mockFiatCurrenciesData[0].symbol),
-      );
+      fireEvent.press(getByRoleButton(mockFiatCurrenciesData[0].symbol));
 
       expect(
         screen.queryByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
