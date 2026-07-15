@@ -68,20 +68,30 @@ function findTriggeringTrade(
 }
 
 /**
- * Resolves the action verb for a feed row. Perp fills read as "opened"/"closed",
- * spot as "bought"/"sold" (mirrors `TradeRow`). When the position has no trade
- * to key off, falls back to the position's open/closed state.
+ * Feed rows are keyed off a triggering trade when one exists. Exit fills must
+ * use the closed presentation path (realized PnL) even when
+ * {@link isClosedPosition} misclassifies a perp that still carries stale
+ * non-zero margin in the Clicker payload.
  */
-function resolveAction(
+function isFeedItemClosed(
+  coreItem: CoreFeedItem,
   trade: Trade | undefined,
-  isPerp: boolean,
-  isClosed: boolean,
-): FeedAction {
-  const isExit = trade ? trade.intent === 'exit' : isClosed;
-  if (isPerp) {
-    return isExit ? 'closed' : 'opened';
+): boolean {
+  if (trade?.intent === 'exit') {
+    return true;
   }
-  return isExit ? 'sold' : 'bought';
+  return isClosedPosition(coreItem);
+}
+
+/**
+ * Resolves the action verb for a feed row. Perp fills read as "opened"/"closed",
+ * spot as "bought"/"sold" (mirrors `TradeRow`).
+ */
+function resolveAction(isPerp: boolean, isClosed: boolean): FeedAction {
+  if (isPerp) {
+    return isClosed ? 'closed' : 'opened';
+  }
+  return isClosed ? 'sold' : 'bought';
 }
 
 /**
@@ -286,9 +296,9 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
 
   const timestampMs = toMs(timestamp);
   const isPerp = isPerpPosition(coreItem);
-  const isClosed = isClosedPosition(coreItem);
   const trade = findTriggeringTrade(trades ?? [], timestampMs);
-  const action = resolveAction(trade, isPerp, isClosed);
+  const isClosed = isFeedItemClosed(coreItem, trade);
+  const action = resolveAction(isPerp, isClosed);
   const subHeader = buildSubHeader(trade);
   const presentation = buildFeedItemPresentation(coreItem, isClosed);
 

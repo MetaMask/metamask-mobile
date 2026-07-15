@@ -280,6 +280,40 @@ describe('mapFeedItem', () => {
     expect(result?.valueLabel).toContain('4,659');
   });
 
+  it('shows realized PnL for a closed perp exit when marginUsd is still non-zero', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        tokenSymbol: 'BTC',
+        currentValueUSD: undefined,
+        pnlValueUsd: undefined,
+        pnlPercent: undefined,
+        realizedPnl: 12_500,
+        marginUsd: 151_400,
+        positionAmount: 2.5,
+        perpPositionType: 'short',
+        perpLeverage: 9,
+        trades: [
+          {
+            direction: 'sell',
+            intent: 'exit',
+            tokenAmount: -2.5,
+            usdCost: -151_400,
+            timestamp: 1_700_000_500,
+            transactionHash: '0xhash',
+            classification: 'perp',
+            perpPositionType: 'short',
+            perpLeverage: 9,
+          },
+        ],
+      }),
+    );
+
+    expect(result?.action).toBe('closed');
+    expect(result?.hasValueData).toBe(true);
+    expect(result?.hasPnlData).toBe(true);
+    expect(result?.valueLabel).toContain('12,500');
+  });
+
   it('marks negative PnL as not positive', () => {
     const result = mapFeedItem(
       mockPerpFeedItem({ pnlValueUsd: -500, realizedPnl: -500 }),
