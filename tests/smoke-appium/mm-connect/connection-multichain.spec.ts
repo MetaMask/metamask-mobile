@@ -6,11 +6,7 @@ import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelp
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
 import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
 import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers.js';
-import {
-  DappServer,
-  DappVariants,
-  TestDapps,
-} from '../../framework/index.js';
+import { DappServer, DappVariants, TestDapps } from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
   setupAdbReverse,
