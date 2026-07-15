@@ -1,9 +1,16 @@
 import React from 'react';
 import { Platform, Share } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
-import type { TokenSecurityData } from '@metamask/assets-controllers';
+import type {
+  MarketDataDetails,
+  TokenSecurityData,
+} from '@metamask/assets-controllers';
+import type { Hex } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
-import ShareTokenBottomSheet from './ShareTokenBottomSheet';
+import ShareTokenBottomSheet, {
+  type ShareTokenBottomSheetProps,
+} from './ShareTokenBottomSheet';
+import type { ShareTokenCardProps } from './ShareTokenCard';
 import type { TokenI } from '../../Tokens/types';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import {
@@ -39,8 +46,8 @@ const mockBottomSheetHeader = jest.fn(
   },
 );
 
-const mockShareTokenCard = jest.fn(
-  ({
+const mockShareTokenCard = jest.fn((props: ShareTokenCardProps) => {
+  const {
     formattedPrice,
     priceChangePercent,
     marketCap,
@@ -49,35 +56,29 @@ const mockShareTokenCard = jest.fn(
     volume24h,
     networkBadgeSource,
     networkName,
-  }: {
-    formattedPrice: string;
-    priceChangePercent: number;
-    marketCap: string | null;
-    liquidity: string | null;
-    holdersCount: string | null;
-    volume24h: string | null;
-    networkBadgeSource?: { uri: string };
-    networkName?: string;
-  }) => {
-    const { View, Text } = jest.requireActual('react-native');
-    return (
-      <View testID="share-token-card-mock">
-        <Text testID="share-token-card-price">{formattedPrice}</Text>
-        <Text testID="share-token-card-change">{priceChangePercent}</Text>
-        <Text testID="share-token-card-market-cap">{marketCap ?? 'null'}</Text>
-        <Text testID="share-token-card-liquidity">{liquidity ?? 'null'}</Text>
-        <Text testID="share-token-card-holders">{holdersCount ?? 'null'}</Text>
-        <Text testID="share-token-card-volume">{volume24h ?? 'null'}</Text>
-        <Text testID="share-token-card-network-name">
-          {networkName ?? 'null'}
-        </Text>
-        <Text testID="share-token-card-network-badge">
-          {networkBadgeSource?.uri ?? 'null'}
-        </Text>
-      </View>
-    );
-  },
-);
+  } = props;
+  const { View, Text } = jest.requireActual('react-native');
+  return (
+    <View testID="share-token-card-mock">
+      <Text testID="share-token-card-price">{formattedPrice}</Text>
+      <Text testID="share-token-card-change">{priceChangePercent}</Text>
+      <Text testID="share-token-card-market-cap">{marketCap ?? 'null'}</Text>
+      <Text testID="share-token-card-liquidity">{liquidity ?? 'null'}</Text>
+      <Text testID="share-token-card-holders">{holdersCount ?? 'null'}</Text>
+      <Text testID="share-token-card-volume">{volume24h ?? 'null'}</Text>
+      <Text testID="share-token-card-network-name">
+        {networkName ?? 'null'}
+      </Text>
+      <Text testID="share-token-card-network-badge">
+        {typeof networkBadgeSource === 'object' &&
+        networkBadgeSource !== null &&
+        'uri' in networkBadgeSource
+          ? networkBadgeSource.uri
+          : 'null'}
+      </Text>
+    </View>
+  );
+});
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -198,11 +199,23 @@ jest.mock('../../../../util/address', () => ({
 
 jest.mock('./ShareTokenCard', () => ({
   __esModule: true,
-  default: (props: unknown) => mockShareTokenCard(props),
+  default: (props: ShareTokenCardProps) => mockShareTokenCard(props),
 }));
 
+const mockSelectTokenMarketData = selectTokenMarketData as jest.MockedFunction<
+  typeof selectTokenMarketData
+>;
+const mockSelectTokenDisplayData =
+  selectTokenDisplayData as jest.MockedFunction<typeof selectTokenDisplayData>;
+
+type TokenDisplayDataResult = ReturnType<typeof selectTokenDisplayData>;
+
+const createMarketDataEntry = (
+  overrides: Partial<MarketDataDetails> & Pick<MarketDataDetails, 'price'>,
+): MarketDataDetails => overrides as MarketDataDetails;
+
 const CHECKSUMMED_ADDRESS = '0x6b175474e89094c44da98b954eedeac495271d0f';
-const CHAIN_ID_HEX = '0x1';
+const CHAIN_ID_HEX = '0x1' as Hex;
 
 const mockToken: TokenI = {
   address: CHECKSUMMED_ADDRESS,
@@ -252,7 +265,7 @@ const mockSecurityData: TokenSecurityData = {
   created: '2023-01-01T00:00:00Z',
 };
 
-const defaultProps = {
+const defaultProps: ShareTokenBottomSheetProps = {
   shareUrl:
     'https://link.metamask.io/asset?assetId=eip155%3A1%2Ferc20%3A0x6b175474e89094c44da98b954eedeac495271d0f',
   token: mockToken,
@@ -265,15 +278,15 @@ const defaultProps = {
   onClose: jest.fn(),
 };
 
-const renderSheet = (overrides: Partial<typeof defaultProps> = {}) =>
+const renderSheet = (overrides: Partial<ShareTokenBottomSheetProps> = {}) =>
   render(<ShareTokenBottomSheet {...defaultProps} {...overrides} />);
 
 describe('ShareTokenBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (selectTokenMarketData as jest.Mock).mockReturnValue({});
+    mockSelectTokenMarketData.mockReturnValue({});
     (isAssetFromSearch as jest.Mock).mockReturnValue(false);
-    (selectTokenDisplayData as jest.Mock).mockReturnValue({ found: false });
+    mockSelectTokenDisplayData.mockReturnValue(undefined);
     (getTokenExchangeRate as jest.Mock).mockResolvedValue(undefined);
     (isNonEvmChainId as jest.Mock).mockReturnValue(false);
     (safeToChecksumAddress as jest.Mock).mockImplementation(
@@ -415,14 +428,14 @@ describe('ShareTokenBottomSheet', () => {
     });
 
     it('uses tokenMarketEntry pricePercentChange1d when token lacks API percent', () => {
-      (selectTokenMarketData as jest.Mock).mockReturnValue({
+      mockSelectTokenMarketData.mockReturnValue({
         [CHAIN_ID_HEX]: {
-          [CHECKSUMMED_ADDRESS]: {
+          [CHECKSUMMED_ADDRESS]: createMarketDataEntry({
             price: 1,
             pricePercentChange1d: 7.5,
-            marketCap: '1000000',
-            totalVolume: '500000',
-          },
+            marketCap: 1_000_000,
+            totalVolume: 500_000,
+          }),
         },
       });
 
@@ -566,13 +579,13 @@ describe('ShareTokenBottomSheet', () => {
 
   describe('market data sources', () => {
     it('passes marketCap from redux token market data when available', () => {
-      (selectTokenMarketData as jest.Mock).mockReturnValue({
+      mockSelectTokenMarketData.mockReturnValue({
         [CHAIN_ID_HEX]: {
-          [CHECKSUMMED_ADDRESS]: {
+          [CHECKSUMMED_ADDRESS]: createMarketDataEntry({
             price: 1,
-            marketCap: '5000000',
-            totalVolume: '1000000',
-          },
+            marketCap: 5_000_000,
+            totalVolume: 1_000_000,
+          }),
         },
       });
       (formatMarketDetails as jest.Mock).mockReturnValue({
@@ -589,15 +602,15 @@ describe('ShareTokenBottomSheet', () => {
 
     it('uses search market data when token is from search discovery', () => {
       (isAssetFromSearch as jest.Mock).mockReturnValue(true);
-      (selectTokenDisplayData as jest.Mock).mockReturnValue({
+      mockSelectTokenDisplayData.mockReturnValue({
         found: true,
-        price: {
+        price: createMarketDataEntry({
           price: 2,
           pricePercentChange1d: 1.1,
-          marketCap: '9000000',
-          totalVolume: '800000',
-        },
-      });
+          marketCap: 9_000_000,
+          totalVolume: 800_000,
+        }),
+      } as TokenDisplayDataResult);
       (formatMarketDetails as jest.Mock).mockReturnValue({
         marketCap: '$9.00M',
         totalVolume: '$800.00K',
@@ -617,12 +630,14 @@ describe('ShareTokenBottomSheet', () => {
     });
 
     it('fetches exchange rate when redux and search market data are absent', async () => {
-      (getTokenExchangeRate as jest.Mock).mockResolvedValue({
-        price: 1,
-        pricePercentChange1d: 2.2,
-        marketCap: '3000000',
-        totalVolume: '400000',
-      });
+      (getTokenExchangeRate as jest.Mock).mockResolvedValue(
+        createMarketDataEntry({
+          price: 1,
+          pricePercentChange1d: 2.2,
+          marketCap: 3_000_000,
+          totalVolume: 400_000,
+        }),
+      );
       (formatMarketDetails as jest.Mock).mockReturnValue({
         marketCap: '$3.00M',
         totalVolume: '$400.00K',
@@ -652,9 +667,9 @@ describe('ShareTokenBottomSheet', () => {
     });
 
     it('does not fetch exchange rate when redux market entry already has price', () => {
-      (selectTokenMarketData as jest.Mock).mockReturnValue({
+      mockSelectTokenMarketData.mockReturnValue({
         [CHAIN_ID_HEX]: {
-          [CHECKSUMMED_ADDRESS]: { price: 1.5 },
+          [CHECKSUMMED_ADDRESS]: createMarketDataEntry({ price: 1.5 }),
         },
       });
 
