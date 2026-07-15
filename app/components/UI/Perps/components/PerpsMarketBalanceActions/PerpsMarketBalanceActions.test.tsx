@@ -128,6 +128,25 @@ const mockUsePerpsDepositProgress = jest.requireMock(
   '../../hooks/usePerpsDepositProgress',
 ).usePerpsDepositProgress as jest.Mock;
 
+jest.mock('../PerpsProgressBar', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    PerpsProgressBar: jest.fn(() => <View testID="perps-progress-bar-mock" />),
+  };
+});
+
+const MockPerpsProgressBar = jest.requireMock('../PerpsProgressBar')
+  .PerpsProgressBar as jest.Mock;
+
+jest.mock('../../../../../selectors/perps', () => ({
+  ...jest.requireActual('../../../../../selectors/perps'),
+  selectWithdrawalRequestsBySelectedAccount: jest.fn(() => []),
+}));
+
+const mockSelectWithdrawalRequestsBySelectedAccount = jest.requireMock(
+  '../../../../../selectors/perps',
+).selectWithdrawalRequestsBySelectedAccount as jest.Mock;
+
 // Mock design system
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -388,6 +407,13 @@ describe('PerpsMarketBalanceActions', () => {
       isDepositInProgress: false,
     });
 
+    mockSelectWithdrawalRequestsBySelectedAccount.mockReturnValue([]);
+
+    MockPerpsProgressBar.mockImplementation(() => {
+      const { View } = jest.requireActual('react-native');
+      return <View testID="perps-progress-bar-mock" />;
+    });
+
     mockDepositWithConfirmation.mockResolvedValue({});
   });
 
@@ -530,6 +556,36 @@ describe('PerpsMarketBalanceActions', () => {
       ).toBeNull();
     });
 
+    it('still renders children when account is null and no transaction is in progress', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: null,
+        isInitialLoading: true,
+        isLoading: true,
+        error: null,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions hideBalanceSection>
+          <View testID="title-hub-slot" />
+        </PerpsMarketBalanceActions>,
+        { state: createMockState() },
+        false,
+      );
+
+      expect(getByTestId('title-hub-slot')).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(
+          `${PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}_skeleton`,
+        ),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeNull();
+    });
+
     it('shows deposit-in-progress UI while loading when balance is hidden', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: null,
@@ -571,6 +627,58 @@ describe('PerpsMarketBalanceActions', () => {
       expect(
         getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
       ).toBeOnTheScreen();
+    });
+
+    it('shows deposit dollar amount when transaction amount is available', () => {
+      mockUsePerpsDepositProgress.mockReturnValue({
+        isDepositInProgress: true,
+      });
+      MockPerpsProgressBar.mockImplementation(
+        ({
+          onTransactionAmountChange,
+        }: {
+          onTransactionAmountChange?: (amount: string | null) => void;
+        }) => {
+          const React = jest.requireActual('react');
+          const { View } = jest.requireActual('react-native');
+          React.useEffect(() => {
+            onTransactionAmountChange?.('$100.00');
+          }, [onTransactionAmountChange]);
+          return <View testID="perps-progress-bar-mock" />;
+        },
+      );
+
+      const { getByText } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false,
+      );
+
+      expect(getByText('perps.deposit_in_progress')).toBeOnTheScreen();
+      expect(getByText('$100')).toBeOnTheScreen();
+    });
+
+    it('shows withdrawal dollar amount when a withdrawal is in progress', () => {
+      mockSelectWithdrawalRequestsBySelectedAccount.mockReturnValue([
+        {
+          id: 'withdrawal-1',
+          amount: '50.00',
+          asset: 'USDC',
+          timestamp: 1700000000000,
+          status: 'pending',
+          success: false,
+          accountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+        },
+      ]);
+
+      const { getByText } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false,
+      );
+
+      expect(getByText('perps.withdraw_in_progress')).toBeOnTheScreen();
+      expect(getByText('$50')).toBeOnTheScreen();
     });
 
     it('shows empty-balance add funds UI after loading when balance is hidden', () => {

@@ -141,18 +141,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     [isDepositInProgress, hasActiveWithdrawals],
   );
 
-  const shouldShowDollarAmount = useMemo(
-    () =>
-      (isOnlyDepositInProgress && transactionAmountWei) ||
-      (isOnlyWithdrawalInProgress && withdrawalAmount),
-    [
-      isOnlyDepositInProgress,
-      isOnlyWithdrawalInProgress,
-      transactionAmountWei,
-      withdrawalAmount,
-    ],
-  );
-
   // Use the reusable hooks for balance animation
   const {
     startPulseAnimation: startBalancePulse,
@@ -202,8 +190,14 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     return <PerpsMarketBalanceActionsSkeleton />;
   }
 
-  // Allow transaction progress UI before account data arrives
-  if (!perpsAccount && !isAnyTransactionInProgress) {
+  // Allow transaction progress UI before account data arrives.
+  // When balance lives in TitleHub (hideBalanceSection), still render
+  // children (title + interruption banner) even if account is null.
+  if (
+    !perpsAccount &&
+    !isAnyTransactionInProgress &&
+    !(hideBalanceSection && children)
+  ) {
     return null;
   }
 
@@ -233,7 +227,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 keyLabel={statusText}
                 twClassName="mt-3 h-6"
                 value={
-                  shouldShowDollarAmount && transactionAmountDisplay ? (
+                  transactionAmountDisplay ? (
                     <SensitiveText
                       variant={TextVariant.BodySMMedium}
                       color={TextColor.Default}
