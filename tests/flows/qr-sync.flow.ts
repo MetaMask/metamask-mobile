@@ -1,4 +1,7 @@
-import { E2EDeeplinkSchemes } from '../framework/Constants';
+import {
+  E2EDeeplinkSchemes,
+  resolveE2EWaitTimeoutMs,
+} from '../framework/Constants';
 import { openE2EUrl } from '../framework/DeepLink';
 import Assertions from '../framework/Assertions';
 import OnboardingView from '../page-objects/Onboarding/OnboardingView';
@@ -14,11 +17,16 @@ import { FrameworkDetector } from '../framework/FrameworkDetector';
 import type CommandQueueServer from '../framework/fixtures/CommandQueueServer';
 import { E2ECommandTypes } from '../framework/types';
 import { sleep } from '../framework/Utilities';
+import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
+import OnboardingSuccessView from '../page-objects/Onboarding/OnboardingSuccessView';
 import {
   closeOnboardingModals,
+  dismissExperienceEnhancerModal,
   dismissOnboardingInterestQuestionnaire,
+  dismissPushNotificationExistingUserSheet,
   loginToApp,
   loginToAppPlaywright,
+  waitForWalletHomePlaywright,
 } from './wallet.flow';
 import {
   IDENTITY_TEAM_PASSWORD,
@@ -144,10 +152,29 @@ export const completeNewUserQrSyncSrp = async ({
 
   if (optInToMetrics) {
     await dismissOnboardingInterestQuestionnaire();
-    await Assertions.expectElementToBeVisible(WalletView.container, {
-      description: 'Wallet home should be visible after QR sync onboarding',
-      timeout: 20_000,
-    });
+
+    // Mirror seedless Appium onboarding: optional success/marketing sheets, then
+    // iOS-safe wallet readiness (wallet-screen can exist with displayed=false).
+    try {
+      await ExperienceEnhancerBottomSheet.tapIAgree();
+    } catch {
+      // Optional post-metrics sheet
+    }
+    try {
+      await Assertions.expectElementToBeVisible(
+        OnboardingSuccessView.container,
+        {
+          description: 'Onboarding success may appear after QR sync import',
+          timeout: 5_000,
+        },
+      );
+      await OnboardingSuccessView.tapDone();
+    } catch {
+      // Some builds go straight to wallet home
+    }
+    await dismissPushNotificationExistingUserSheet();
+    await dismissExperienceEnhancerModal();
+    await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(60_000));
   }
   await closeOnboardingModals(false);
 };
@@ -192,9 +219,8 @@ export const completeExistingUserQrSyncSrp = async ({
     commandQueueServer,
   });
 
-  await Assertions.expectElementToBeVisible(WalletView.container, {
-    description:
-      'Wallet home should be visible after existing-user QR sync import',
-    timeout: 45_000,
-  });
+  // Import navigates home; same iOS displayed=false pitfall as login/onboarding.
+  await dismissPushNotificationExistingUserSheet();
+  await dismissExperienceEnhancerModal();
+  await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(60_000));
 };

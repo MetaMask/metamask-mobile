@@ -287,7 +287,6 @@ class ImportWalletView {
           false,
         );
         await PlaywrightGestures.waitAndTap(linkByText, {
-          description: 'Import from MetaMask extension link (by text)',
           timeout: 15_000,
         });
         return;

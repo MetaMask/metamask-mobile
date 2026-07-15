@@ -10,6 +10,7 @@ import {
 } from '../../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import AddDeviceToWallet from './index';
+import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
 import { completeExistingUserQrSyncImport } from '../../../core/QrSync/completeExistingUserQrSyncImport';
 
 jest.mock('../../../core/QrSync/completeExistingUserQrSyncImport', () => ({
@@ -104,6 +105,15 @@ describe('AddDeviceToWallet', () => {
 
       expect(
         getByText(strings('app_settings.add_device.add_device_to_wallet')),
+      ).toBeOnTheScreen();
+    });
+
+    it('exposes screen and primary action testIDs', () => {
+      const { getByTestId } = renderComponent();
+
+      expect(getByTestId(AddDeviceToWalletTestIds.SCREEN)).toBeOnTheScreen();
+      expect(
+        getByTestId(AddDeviceToWalletTestIds.SCAN_QR_CODE_BUTTON),
       ).toBeOnTheScreen();
     });
 

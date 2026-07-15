@@ -1,5 +1,9 @@
+const mockHasTestOverrides = jest.fn(() => true);
+
 jest.mock('../../util/test/utils', () => ({
-  hasTestOverrides: true,
+  get hasTestOverrides() {
+    return mockHasTestOverrides();
+  },
 }));
 
 import type { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
@@ -25,14 +29,23 @@ const buildMessenger = (): QrSyncControllerMessenger =>
     namespace: QR_SYNC_CONTROLLER_NAME,
   });
 
+const buildController = (
+  getIsOnboardingCompleted: () => boolean = () => false,
+) =>
+  new QrSyncController({
+    messenger: buildMessenger(),
+    keyManager: {} as IKeyManager,
+    relayUrl: TEST_RELAY_URL,
+    getIsOnboardingCompleted,
+  });
+
 describe('QrSyncController.applyTestSyncReadyPayload', () => {
+  beforeEach(() => {
+    mockHasTestOverrides.mockReturnValue(true);
+  });
+
   it('sets awaiting_password state for a primary mnemonic', () => {
-    const controller = new QrSyncController({
-      messenger: buildMessenger(),
-      keyManager: {} as IKeyManager,
-      relayUrl: TEST_RELAY_URL,
-      getIsOnboardingCompleted: () => false,
-    });
+    const controller = buildController(() => false);
 
     controller.applyTestSyncReadyPayload({
       mnemonic: TEST_MNEMONIC,
@@ -59,13 +72,43 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
     });
   });
 
-  it('rejects onboarding payloads without a primary mnemonic', () => {
-    const controller = new QrSyncController({
-      messenger: buildMessenger(),
-      keyManager: {} as IKeyManager,
-      relayUrl: TEST_RELAY_URL,
-      getIsOnboardingCompleted: () => false,
+  it('uses default wallet and account names when omitted', () => {
+    const controller = buildController(() => true);
+
+    controller.applyTestSyncReadyPayload({
+      mnemonic: `  ${TEST_MNEMONIC}  `,
     });
+
+    expect(controller.state.pendingSecretImports?.[0]).toMatchObject({
+      value: TEST_MNEMONIC,
+      isPrimary: true,
+    });
+    expect(controller.state.provisioningMetadata?.entries[0]).toMatchObject({
+      name: 'Extension Wallet',
+      groups: [{ groupIndex: 0, name: 'Account 1' }],
+    });
+  });
+
+  it('accepts non-primary mnemonic when onboarding is already completed', () => {
+    const controller = buildController(() => true);
+
+    controller.applyTestSyncReadyPayload({
+      mnemonic: TEST_MNEMONIC,
+      isPrimary: false,
+      walletName: 'Secondary',
+      accountName: 'Extra',
+    });
+
+    expect(controller.state.pendingSecretImports?.[0]?.isPrimary).toBe(false);
+    expect(controller.state.provisioningMetadata?.entries[0]).toMatchObject({
+      isPrimary: false,
+      name: 'Secondary',
+      groups: [{ groupIndex: 0, name: 'Extra' }],
+    });
+  });
+
+  it('rejects onboarding payloads without a primary mnemonic', () => {
+    const controller = buildController(() => false);
 
     expect(() =>
       controller.applyTestSyncReadyPayload({
@@ -73,5 +116,26 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
         isPrimary: false,
       }),
     ).toThrow(/primary mnemonic/);
+  });
+
+  it('rejects empty mnemonic payloads', () => {
+    const controller = buildController(() => true);
+
+    expect(() =>
+      controller.applyTestSyncReadyPayload({
+        mnemonic: '   ',
+      }),
+    ).toThrow(/non-empty mnemonic/);
+  });
+
+  it('rejects when HAS_TEST_OVERRIDES is disabled', () => {
+    mockHasTestOverrides.mockReturnValue(false);
+    const controller = buildController(() => true);
+
+    expect(() =>
+      controller.applyTestSyncReadyPayload({
+        mnemonic: TEST_MNEMONIC,
+      }),
+    ).toThrow(/HAS_TEST_OVERRIDES/);
   });
 });

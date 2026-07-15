@@ -39,9 +39,10 @@ export async function openE2EUrl(url: string): Promise<void> {
     // Warm Android sessions often need a brief settle for RN Linking / onNewIntent.
     if (PlatformDetector.isAndroid()) {
       const drv = getDriver();
-      const pkg =
-        (drv?.capabilities?.['appium:appPackage'] as string | undefined) ||
-        (drv?.capabilities?.appPackage as string | undefined);
+      const capabilities = (drv?.capabilities ?? {}) as Record<string, unknown>;
+      const pkgCandidate =
+        capabilities['appium:appPackage'] ?? capabilities.appPackage;
+      const pkg = typeof pkgCandidate === 'string' ? pkgCandidate : undefined;
       if (pkg) {
         await drv.activateApp(pkg);
       }

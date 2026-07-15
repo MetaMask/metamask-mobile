@@ -16,6 +16,8 @@ import {
   completeNewUserQrSyncSrp,
 } from '../../flows/qr-sync.flow.js';
 import { assertAccountCount } from '../../flows/accounts.flow.js';
+import { waitForWalletHomePlaywright } from '../../flows/wallet.flow.js';
+import { resolveE2EWaitTimeoutMs } from '../../framework/Constants.js';
 import type { TestSuiteParams } from '../../framework/index.js';
 
 const DEFAULT_ACCOUNT_NAME = 'Account 1';
@@ -49,9 +51,7 @@ appiumTest.describe(
 
             await completeNewUserQrSyncSrp({ commandQueueServer });
 
-            await Assertions.expectElementToBeVisible(WalletView.container, {
-              description: 'Wallet home visible after new-user QR sync',
-            });
+            await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
 
             await WalletView.tapIdenticon();
             await Assertions.expectElementToBeVisible(
