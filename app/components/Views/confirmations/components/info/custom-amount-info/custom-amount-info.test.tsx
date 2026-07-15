@@ -644,7 +644,7 @@ describe('CustomAmountInfo', () => {
 
     it('replaces the keypad with preparation feedback before the amount update resolves', () => {
       arrangePendingPreparation();
-      const { getByTestId, getByText, queryByTestId } = render({
+      const { getByTestId, getByText, queryByTestId, queryByText } = render({
         supportAccountSelection: true,
         transactionType: TransactionType.moneyAccountDeposit,
       });
@@ -657,7 +657,12 @@ describe('CustomAmountInfo', () => {
       expect(
         getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
       ).toBeDisabled();
-      expect(getByText(strings('confirm.preparing_order'))).toBeOnTheScreen();
+      expect(
+        getByText(strings('confirm.deposit_edit_amount_done')),
+      ).toBeOnTheScreen();
+      expect(
+        queryByText(strings('confirm.preparing_order')),
+      ).not.toBeOnTheScreen();
       expect(getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
       expect(getByTestId('bridge-time-row-skeleton')).toBeOnTheScreen();
       expect(getByTestId('total-row-skeleton')).toBeOnTheScreen();
@@ -683,7 +688,7 @@ describe('CustomAmountInfo', () => {
       expect(getByTestId('custom-amount-input').props.onPress).toBeUndefined();
     });
 
-    it('keeps preparation feedback throughout quote loading', async () => {
+    it('keeps the loading review throughout quote loading', async () => {
       const { deferred } = arrangePendingPreparation();
       const view = render({
         transactionType: TransactionType.moneyAccountDeposit,
@@ -713,8 +718,11 @@ describe('CustomAmountInfo', () => {
         view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
       ).toBeDisabled();
       expect(
-        view.getByText(strings('confirm.preparing_order')),
+        view.getByText(strings('confirm.deposit_edit_amount_done')),
       ).toBeOnTheScreen();
+      expect(
+        view.queryByText(strings('confirm.preparing_order')),
+      ).not.toBeOnTheScreen();
       expect(
         view.getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props
           .pointerEvents,

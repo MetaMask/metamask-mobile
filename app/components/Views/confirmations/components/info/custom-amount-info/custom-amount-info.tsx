@@ -470,7 +470,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 isPrefillPending ||
                 isAwaitingPrefillResult
               }
-              showPreparingOrder={showMoneyAccountLoadingReview}
+              isLoadingReview={showMoneyAccountLoadingReview}
               onContinue={trackContinue}
             />
           )}
@@ -589,12 +589,12 @@ function PaymentDetailsSkeleton() {
 function ConfirmButton({
   alertTitle,
   disableConfirm,
-  showPreparingOrder,
+  isLoadingReview,
   onContinue,
 }: Readonly<{
   alertTitle: string | undefined;
   disableConfirm?: boolean;
-  showPreparingOrder?: boolean;
+  isLoadingReview?: boolean;
   onContinue?: () => void;
 }>) {
   const { styles } = useStyles(styleSheet, {});
@@ -607,7 +607,7 @@ function ConfirmButton({
     hasBlockingAlerts ||
     isLoading ||
     Boolean(disableConfirm) ||
-    showPreparingOrder ||
+    isLoadingReview ||
     isHeadlessBuyInProgress;
   const buttonLabel = useButtonLabel();
 
@@ -630,12 +630,12 @@ function ConfirmButton({
       variant={ButtonVariant.Primary}
       isFullWidth
       isDisabled={disabled}
-      isLoading={showPreparingOrder || isHeadlessBuyInProgress}
+      isLoading={isHeadlessBuyInProgress}
       loadingText={strings('confirm.preparing_order')}
       onPress={handleConfirm}
       testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
     >
-      {alertTitle ?? buttonLabel}
+      {isLoadingReview ? buttonLabel : (alertTitle ?? buttonLabel)}
     </Button>
   );
 }
