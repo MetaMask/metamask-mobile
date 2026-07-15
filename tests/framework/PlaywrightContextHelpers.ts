@@ -38,7 +38,8 @@ export default class PlaywrightContextHelpers {
     try {
       await withTimeout(
         getDriver().switchContext({
-          url: new RegExp(dappUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+          // Match host aliases used by emulator networking + adb reverse.
+          url: this.buildDappUrlPattern(dappUrl),
           androidWebviewConnectTimeout: this.WEBVIEW_TIMEOUT_MS,
         }),
         this.WEBVIEW_SWITCH_TIMEOUT_MS,
@@ -56,6 +57,28 @@ export default class PlaywrightContextHelpers {
     }
 
     await this.switchToWebViewWithRetry(dappUrl);
+  }
+
+  /**
+   * Build a URL matcher that accepts 10.0.2.2 / localhost / 127.0.0.1 aliases.
+   */
+  private static buildDappUrlPattern(dappUrl: string): RegExp {
+    try {
+      const parsed = new URL(dappUrl);
+      const port = parsed.port ? `:${parsed.port}` : '';
+      const path =
+        parsed.pathname === '/'
+          ? '/?'
+          : parsed.pathname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      if (['10.0.2.2', 'localhost', '127.0.0.1'].includes(parsed.hostname)) {
+        return new RegExp(
+          `https?://(?:10\\.0\\.2\\.2|localhost|127\\.0\\.0\\.1)${port}${path}`,
+        );
+      }
+    } catch {
+      // Fall through to exact escape
+    }
+    return new RegExp(dappUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   }
 
   private static async switchToWebViewWithRetry(
@@ -107,22 +130,46 @@ export default class PlaywrightContextHelpers {
     const targetsLocalhost = Boolean(dappUrl?.includes('localhost'));
 
     if (dappUrl) {
-      const urlMatch = webviews.find((ctx) => {
-        if (!ctx.url?.includes(dappUrl)) {
-          return false;
-        }
-        return targetsLocalhost || !/localhost/i.test(ctx.url ?? '');
-      });
+      const urlMatch = webviews.find((ctx) =>
+        this.contextMatchesDappUrl(ctx, dappUrl),
+      );
       if (urlMatch) return urlMatch;
     }
 
     const filtered = webviews.filter((ctx) => {
+      const isLocalhostAlias =
+        Boolean(dappUrl) &&
+        Boolean(ctx.url) &&
+        this.urlsReferToSameDapp(ctx.url as string, dappUrl as string);
       const shouldAvoid =
         /devtools/i.test(ctx.id) ||
-        (ctx.url && /chrome|devtools/i.test(ctx.url)) ||
-        (!targetsLocalhost && ctx.url && /localhost/i.test(ctx.url));
+        (ctx.url && /chrome:\/\/|devtools/i.test(ctx.url)) ||
+        (!targetsLocalhost &&
+          !isLocalhostAlias &&
+          ctx.url &&
+          /localhost/i.test(ctx.url));
       return !shouldAvoid;
     });
+
+    // When Chrome is foregrounded (MMConnect native browser), prefer
+    // WEBVIEW_chrome over the MetaMask in-app webview if URL metadata is stale.
+    if (await PlatformDetector.isAndroid()) {
+      try {
+        const currentPackage = (await getDriver().execute(
+          'mobile: getCurrentPackage',
+        )) as string;
+        if (/chrome/i.test(currentPackage ?? '')) {
+          const chromeWebview = filtered.find((ctx) =>
+            this.isChromeWebview(ctx),
+          );
+          if (chromeWebview) {
+            return chromeWebview;
+          }
+        }
+      } catch {
+        // Ignore package probe failures and fall through.
+      }
+    }
 
     const packageId = (await PlatformDetector.isAndroid())
       ? APP_PACKAGE_IDS.ANDROID
@@ -132,6 +179,70 @@ export default class PlaywrightContextHelpers {
       filtered.find((ctx) => ctx.id.includes(packageId)) ??
       filtered[filtered.length - 1]
     );
+  }
+
+  private static isChromeWebview(ctx: DetailedContext): boolean {
+    const androidCtx = ctx as AndroidDetailedContext;
+    return (
+      /chrome/i.test(ctx.id) ||
+      androidCtx.packageName === 'com.android.chrome' ||
+      /chrome/i.test(androidCtx.packageName ?? '')
+    );
+  }
+
+  private static contextMatchesDappUrl(
+    ctx: DetailedContext,
+    dappUrl: string,
+  ): boolean {
+    if (ctx.url && this.urlsReferToSameDapp(ctx.url, dappUrl)) {
+      return true;
+    }
+    const title = ctx.title ?? '';
+    // Playground title is stable when Chrome URL metadata is empty on CI.
+    if (/multichain api test dapp/i.test(title) && /:8090\b/.test(dappUrl)) {
+      return true;
+    }
+    return false;
+  }
+
+  private static urlsReferToSameDapp(
+    candidateUrl: string,
+    dappUrl: string,
+  ): boolean {
+    if (candidateUrl.includes(dappUrl)) {
+      return true;
+    }
+    try {
+      const target = new URL(dappUrl);
+      const candidate = new URL(candidateUrl);
+      const hostAliases = new Set([
+        '10.0.2.2',
+        'localhost',
+        '127.0.0.1',
+        target.hostname,
+        candidate.hostname,
+      ]);
+      const sameHostFamily =
+        hostAliases.has(target.hostname) && hostAliases.has(candidate.hostname);
+      const samePort =
+        (candidate.port || defaultPort(candidate.protocol)) ===
+        (target.port || defaultPort(target.protocol));
+      const samePath =
+        candidate.pathname.replace(/\/$/, '') ===
+        target.pathname.replace(/\/$/, '');
+      return sameHostFamily && samePort && samePath;
+    } catch {
+      const port = dappUrl.match(/:(\d+)/)?.[1];
+      return Boolean(
+        port &&
+          candidateUrl.includes(`:${port}`) &&
+          !/chrome:\/\//i.test(candidateUrl),
+      );
+    }
+
+    function defaultPort(protocol: string): string {
+      return protocol === 'https:' ? '443' : '80';
+    }
   }
 
   private static async warmWebViewContext(): Promise<void> {
@@ -161,7 +272,9 @@ export default class PlaywrightContextHelpers {
     }
 
     const webviews = await this.getDetailedWebviews();
-    const match = webviews.find((ctx) => ctx.url?.includes(dappUrl));
+    const match = webviews.find((ctx) =>
+      this.contextMatchesDappUrl(ctx, dappUrl),
+    );
     const pageId = (match as AndroidContextWithPage | undefined)?.webviewPageId;
 
     if (!pageId) {

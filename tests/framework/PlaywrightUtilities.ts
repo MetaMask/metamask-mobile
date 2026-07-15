@@ -469,18 +469,25 @@ class PlaywrightUtilities {
 
   /**
    * Open a URL in Chrome via VIEW intent (bypasses omnibox UI flakiness on CI).
+   * Uses `-p` (package) — a bare trailing package name is treated as a component
+   * and fails on google_apis emulator Chrome.
    */
   static openUrlInChrome(url: string): void {
     const escapedUrl = url.replace(/"/g, '\\"');
-    try {
-      execSync(
-        `adb shell am start -a android.intent.action.VIEW -d "${escapedUrl}" ${CHROME_PACKAGE}`,
-        { stdio: 'pipe' },
-      );
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`Failed to open URL in Chrome via intent: ${message}`);
+    const attempts = [
+      `adb shell am start -a android.intent.action.VIEW -d "${escapedUrl}" -p ${CHROME_PACKAGE}`,
+      `adb shell am start -a android.intent.action.VIEW -d "${escapedUrl}" -n ${CHROME_PACKAGE}/com.google.android.apps.chrome.Main`,
+    ];
+    let lastMessage = '';
+    for (const command of attempts) {
+      try {
+        execSync(command, { stdio: 'pipe' });
+        return;
+      } catch (error) {
+        lastMessage = error instanceof Error ? error.message : String(error);
+      }
     }
+    throw new Error(`Failed to open URL in Chrome via intent: ${lastMessage}`);
   }
 
   /**

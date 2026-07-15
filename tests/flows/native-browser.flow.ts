@@ -16,6 +16,9 @@ const CHROME_DISMISS_TIMEOUT_MS = 5000;
 /** Delay after dismissals so Chrome UI can settle before we interact with the URL bar. Kept short to avoid app auto-lock. */
 const CHROME_UI_SETTLE_MS = 800;
 
+/** Extra settle after VIEW-intent navigation so Chrome can finish loading the dapp. */
+const CHROME_VIEW_INTENT_SETTLE_MS = 3000;
+
 /**
  * Dismisses common Chrome first-run / privacy / default-browser dialogs if present.
  * @returns void
@@ -182,7 +185,7 @@ export const navigateToDappAndroid = async (url: string) => {
   // Prefer VIEW intent — omnibox IDs/text are unreliable on fresh google_apis Chrome.
   try {
     PlaywrightUtilities.openUrlInChrome(url);
-    await new Promise((r) => setTimeout(r, CHROME_UI_SETTLE_MS));
+    await new Promise((r) => setTimeout(r, CHROME_VIEW_INTENT_SETTLE_MS));
     return;
   } catch {
     // Fall back to omnibox UI navigation
