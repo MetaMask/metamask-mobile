@@ -10,18 +10,14 @@ import {
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { isTestNet } from '../../../../../util/networks';
-import Logger from '../../../../../util/Logger';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
-import I18n from '../../../../../../locales/i18n';
-import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { AssetType, TokenStandard } from '../../types/token';
 import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
 import type { RootState } from '../../../../../reducers';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
-import { useTransactionPayCurrency } from '../pay/useTransactionPayCurrency';
+import { useAssetFiatFormatter } from '../pay/useAssetFiatFormatter';
 import { isNetworkTestnet } from './useNetworkFilter';
 
 export interface EnrichTokenRequest {
@@ -75,10 +71,8 @@ export function useAccountTokens({
     [accountOverride, accountAssets, globalAssets],
   );
 
-  const preferredCurrency = useSelector(selectCurrentCurrency);
-  const payCurrency = useTransactionPayCurrency();
-  const fiatCurrency = payCurrency ?? preferredCurrency;
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
+  const { format: formatFiat } = useAssetFiatFormatter();
 
   const assetIds = useMemo(
     () =>
@@ -130,24 +124,9 @@ export function useAccountTokens({
       isNetworkTestnet(chainId as string);
 
     const processedAssets = assetsWithBalance.map((asset) => {
-      const fiatAmount = new BigNumber(asset.fiat?.balance || 0);
-      const hasDecimals = !fiatAmount.isInteger();
-
-      let balanceInSelectedCurrency: string | undefined;
-      if (isFiatHidden(asset.chainId)) {
-        balanceInSelectedCurrency = undefined;
-      } else {
-        try {
-          balanceInSelectedCurrency = getIntlNumberFormatter(I18n.locale, {
-            style: 'currency',
-            currency: fiatCurrency,
-            minimumFractionDigits: hasDecimals ? 2 : 0,
-          }).format(fiatAmount.toFixed() as unknown as number);
-        } catch (error) {
-          Logger.error(error as Error);
-          balanceInSelectedCurrency = `${fiatAmount.toFixed()} ${fiatCurrency}`;
-        }
-      }
+      const balanceInSelectedCurrency = isFiatHidden(asset.chainId)
+        ? undefined
+        : formatFiat(asset.fiat?.balance, asset.chainId);
 
       return {
         ...asset,
@@ -158,16 +137,7 @@ export function useAccountTokens({
     });
 
     if (enrichTokenRequests.length > 0) {
-      let zeroFiat: string;
-      try {
-        zeroFiat = getIntlNumberFormatter(I18n.locale, {
-          style: 'currency',
-          currency: fiatCurrency,
-          minimumFractionDigits: 0,
-        }).format(0);
-      } catch {
-        zeroFiat = `0 ${fiatCurrency}`;
-      }
+      const zeroFiat = formatFiat(0, undefined) ?? '';
 
       const existingKeys = new Set(
         processedAssets.map(
@@ -215,11 +185,11 @@ export function useAccountTokens({
   }, [
     assets,
     includeNoBalance,
-    fiatCurrency,
     showFiatOnTestnets,
     tokenFilter,
     enrichTokenRequests,
     assetIds,
     tokensByAssetId,
+    formatFiat,
   ]) as unknown as AssetType[];
 }
