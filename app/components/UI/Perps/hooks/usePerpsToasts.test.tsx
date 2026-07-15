@@ -856,6 +856,33 @@ describe('usePerpsToasts', () => {
         ]);
       });
 
+      it('returns limit close full position submitted configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.closePosition.limitClose.full.fullPositionCloseSubmitted(
+            'long',
+            '1.0',
+            'ETH',
+          );
+
+        // Terminal toast (no follow-up), so it uses the success/green-tick
+        // style rather than an in-progress spinner that never resolves.
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.CheckBold,
+          hapticsType: NotificationMoment.Success,
+        });
+        expect(config.startAccessory).toBeUndefined();
+        expect(config.labelOptions).toContainEqual({
+          label: 'Placed order to close position',
+          isBold: true,
+        });
+        expect(config.labelOptions).toContainEqual({
+          label: 'long 1 ETH',
+          isBold: false,
+        });
+      });
+
       it('returns limit close partial position submitted configuration', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =

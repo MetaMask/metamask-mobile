@@ -876,7 +876,11 @@ const usePerpsToasts = (): {
                 amount: string,
                 assetSymbol: string,
               ) => ({
-                ...perpsBaseToastOptions.inProgress,
+                // Limit closes rest until filled and get no follow-up toast, so
+                // this is terminal. Use success (green tick) — matching the
+                // partial close and the open limit "Order placed" toast —
+                // instead of an in-progress spinner that never resolves.
+                ...perpsBaseToastOptions.success,
                 labelOptions: getPerpsToastLabels(
                   strings('perps.close_position.position_close_order_placed'),
                   strings('perps.close_position.closing_position_subtitle', {
