@@ -2,6 +2,11 @@ import {
   getInternalOrderCode,
   type RampsOrder,
 } from '@metamask/ramps-controller';
+import ReduxService from '../../../redux';
+import {
+  clearTerminalOrderAnalyticsEntries,
+  markTerminalOrderAnalyticsEmittedEntry,
+} from '../../../redux/slices/terminalOrderAnalytics';
 
 /**
  * Terminal-order analytics dedup registry (TRAM-3691).
@@ -29,9 +34,10 @@ import {
  * so `getInternalOrderCode` yields an identical key for the same order. Keying
  * off the raw `providerOrderId` would NOT be stable across those two paths.
  *
- * In-memory, same-session only (mirrors `headlessOrderContextRegistry`). A
- * process relaunch clears it; that is acceptable here because a terminal order
- * added after relaunch is a first observation in that session and SHOULD emit.
+ * The key is persisted in the `terminalOrderAnalytics` redux slice so app
+ * relaunches and repeated callback returns do not turn the same order settlement
+ * into multiple Mixpanel events. The local Set is retained as an immediate
+ * same-tick guard in case Redux persistence is temporarily unavailable.
  */
 const emittedTerminalOrders = new Set<string>();
 
@@ -41,7 +47,9 @@ const emittedTerminalOrders = new Set<string>();
  * @param order - The order whose terminal event was just emitted.
  */
 export function markTerminalOrderAnalyticsEmitted(order: RampsOrder): void {
-  emittedTerminalOrders.add(getInternalOrderCode(order));
+  const orderCode = getInternalOrderCode(order);
+  emittedTerminalOrders.add(orderCode);
+  ReduxService.store.dispatch(markTerminalOrderAnalyticsEmittedEntry(orderCode));
 }
 
 /**
@@ -52,7 +60,11 @@ export function markTerminalOrderAnalyticsEmitted(order: RampsOrder): void {
  * @returns True when a terminal event was already emitted for the order.
  */
 export function hasEmittedTerminalOrderAnalytics(order: RampsOrder): boolean {
-  return emittedTerminalOrders.has(getInternalOrderCode(order));
+  const orderCode = getInternalOrderCode(order);
+  return (
+    emittedTerminalOrders.has(orderCode) ||
+    Boolean(ReduxService.store.getState().terminalOrderAnalytics[orderCode])
+  );
 }
 
 /**
@@ -61,4 +73,5 @@ export function hasEmittedTerminalOrderAnalytics(order: RampsOrder): boolean {
  */
 export function __resetTerminalOrderAnalyticsRegistryForTests(): void {
   emittedTerminalOrders.clear();
+  ReduxService.store.dispatch(clearTerminalOrderAnalyticsEntries());
 }

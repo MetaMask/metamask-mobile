@@ -929,6 +929,17 @@ describe('handleOrderStatusChangedForMetrics', () => {
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
+    it('does NOT re-emit when a previous terminal emit is rehydrated after app relaunch', () => {
+      ReduxService.store = configureStore({
+        terminalOrderAnalytics: { 'order-1': Date.now() },
+      });
+      const order = createMockOrder({ status: Status.Completed });
+
+      emitTerminalOrderAnalyticsFromCallback(order);
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
     it('tags a headless terminal failure as HEADLESS when a context entry exists', () => {
       const order = createMockOrder({
         status: Status.Failed,
