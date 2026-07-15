@@ -3,9 +3,9 @@
 # Runway RC Builds
 #
 # Triggered from Runway to build the release-candidate iOS + Android binaries in one run.
-# Bumps the build version once, then dispatches build.yml with platform: both so iOS and Android
-# build in parallel against the same bumped commit. Uploads the iOS IPA to TestFlight and posts
-# a Slack notification with the resulting build numbers.
+# Generates the build number once, then dispatches build.yml with platform: both so iOS and Android
+# apply the same number locally at build time (no version-bump commit). Uploads the iOS IPA to
+# TestFlight and posts a Slack notification with the resulting build numbers.
 #
 # This workflow only produces fresh native binaries — OTA updates are handled by the separate
 # runway-ota-rc.yml workflow.
@@ -24,7 +24,7 @@ on:
         type: string
 
 permissions:
-  contents: write # required by commit-build-version.yml
+  contents: read
   pull-requests: read
   actions: write
   id-token: write # required by build.yml
@@ -34,24 +34,15 @@ jobs:
     name: Generate build version
     uses: ./.github/workflows/generate-build-version.yml
 
-  commit-build-version:
-    name: Commit build version
-    needs: generate-build-version
-    uses: ./.github/workflows/commit-build-version.yml
-    permissions:
-      id-token: write
-    with:
-      base-branch: ${{ inputs.source_branch || github.ref_name }}
-      build_number: ${{ needs.generate-build-version.outputs.build-version }}
-
   build:
     name: Build iOS + Android (main-rc)
-    needs: commit-build-version
+    needs: generate-build-version
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-rc
       platform: both
-      source_branch: ${{ needs.commit-build-version.outputs.commit-hash }}
+      source_branch: ${{ inputs.source_branch || github.ref_name }}
+      build_number: ${{ needs.generate-build-version.outputs.build-version }}
       upload_to_sentry: true
     secrets: inherit
 
