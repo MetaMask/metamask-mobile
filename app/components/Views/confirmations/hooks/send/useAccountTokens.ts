@@ -1,3 +1,4 @@
+import type { Asset } from '@metamask/assets-controllers';
 import { useSelector } from 'react-redux';
 import { useCallback, useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
@@ -31,30 +32,6 @@ export interface EnrichTokenRequest {
 }
 
 const EMPTY_REQUESTS: EnrichTokenRequest[] = [];
-
-function useAccountGroupAssets(accountAddress?: string | null) {
-  const internalAccountsById = useSelector(selectInternalAccountsById);
-  const accountToGroupMap = useSelector(selectAccountToGroupMap);
-
-  const accountGroupId = useMemo(() => {
-    if (!accountAddress) return undefined;
-    const internalAccountId = Object.keys(internalAccountsById).find(
-      (id) =>
-        internalAccountsById[id].address.toLowerCase() ===
-        accountAddress.toLowerCase(),
-    );
-    if (!internalAccountId) return undefined;
-    return accountToGroupMap[internalAccountId]?.id;
-  }, [accountAddress, internalAccountsById, accountToGroupMap]);
-
-  const selectOverrideAssets = useCallback(
-    (state: RootState) => selectAssetsByAccountGroupId(state, accountGroupId),
-    [accountGroupId],
-  );
-
-  const overrideAssets = useSelector(selectOverrideAssets);
-  return accountGroupId ? overrideAssets : undefined;
-}
 
 export function useAccountTokens({
   includeNoBalance = false,
@@ -111,18 +88,11 @@ export function useAccountTokens({
     });
   }, [assets, includeNoBalance, tokenFilter]);
 
-  // useTokenFiatRates crashes on non-hex addresses (Solana etc.), so we
-  // build requests for EVM assets only. Non-EVM assets are handled below in
-  // the render memo by falling back to `asset.fiat.balance`.
   const fiatRateRequests = useMemo<TokenFiatRateRequest[]>(
     () =>
       assetsWithBalance
-        .filter((asset) => asset.chainId && !isNonEvmChainId(asset.chainId))
-        .map((asset) => ({
-          address: asset.address as Hex,
-          chainId: asset.chainId as Hex,
-          currency: fiatCurrency.toLowerCase(),
-        })),
+        .filter(isEvmRateEligible)
+        .map((asset) => buildFiatRateRequest(asset, fiatCurrency)),
     [assetsWithBalance, fiatCurrency],
   );
 
@@ -146,38 +116,30 @@ export function useAccountTokens({
       Boolean(chainId) &&
       isNetworkTestnet(chainId as string);
 
-    // EVM assets use the useTokenFiatRates-derived rate (picks up stablecoin
-    // bypass, and lets us convert to USD in pay flow). Non-EVM assets fall
-    // back to the assets-controller's preferred-currency `fiat.balance`,
-    // which is the pre-existing behavior for Solana/Bitcoin/etc.
-    // EVM assets and rates are in lockstep — both arrays derived from the
-    // same predicate over the same list, so a single index walk pairs them.
+    const sortableFiatByAsset = new WeakMap<AssetType, BigNumber>();
     let evmIndex = 0;
     const processedAssets = assetsWithBalance.map((asset) => {
-      const isEvm = asset.chainId && !isNonEvmChainId(asset.chainId);
-      const rate = isEvm ? fiatRates[evmIndex++] : undefined;
-
-      let fiatAmount: BigNumber.Value | undefined;
-      if (isFiatHidden(asset.chainId)) {
-        fiatAmount = undefined;
-      } else if (isEvm) {
-        fiatAmount =
-          rate !== undefined && asset.balance
-            ? new BigNumber(asset.balance).multipliedBy(rate)
-            : undefined;
-      } else {
-        fiatAmount = asset.fiat?.balance;
-      }
+      const rate = isEvmRateEligible(asset) ? fiatRates[evmIndex++] : undefined;
+      const fiatAmount = deriveAssetFiat(
+        asset,
+        rate,
+        isFiatHidden(asset.chainId),
+      );
 
       const balanceInSelectedCurrency =
         fiatAmount !== undefined ? formatFiat(fiatAmount) : undefined;
 
-      return {
+      const processed = {
         ...asset,
         networkBadgeSource: getNetworkBadgeSource(asset.chainId as Hex),
         balanceInSelectedCurrency,
         standard: TokenStandard.ERC20 as const,
       } as AssetType;
+
+      if (fiatAmount !== undefined) {
+        sortableFiatByAsset.set(processed, fiatAmount);
+      }
+      return processed;
     });
 
     if (enrichTokenRequests.length > 0) {
@@ -218,10 +180,16 @@ export function useAccountTokens({
       }
     }
 
-    const sortableFiatBalance = (asset: AssetType) =>
-      isFiatHidden(asset.chainId)
-        ? new BigNumber(0)
-        : new BigNumber(asset.fiat?.balance || 0);
+    // Sort by the same fiat we display. Falls back to the assets-controller
+    // preferred-currency balance for tokens that have no derived fiat (e.g.
+    // enrichment placeholders added below with `zeroFiat`), so unknown
+    // tokens sink to the bottom.
+    const sortableFiatBalance = (asset: AssetType) => {
+      if (isFiatHidden(asset.chainId)) return new BigNumber(0);
+      const derived = sortableFiatByAsset.get(asset);
+      if (derived !== undefined) return derived;
+      return new BigNumber(asset.fiat?.balance || 0);
+    };
 
     return processedAssets.sort(
       (a, b) => sortableFiatBalance(b).comparedTo(sortableFiatBalance(a)) || 0,
@@ -235,4 +203,84 @@ export function useAccountTokens({
     formatFiat,
     fiatRates,
   ]) as unknown as AssetType[];
+}
+
+function useAccountGroupAssets(accountAddress?: string | null) {
+  const internalAccountsById = useSelector(selectInternalAccountsById);
+  const accountToGroupMap = useSelector(selectAccountToGroupMap);
+
+  const accountGroupId = useMemo(() => {
+    if (!accountAddress) return undefined;
+    const internalAccountId = Object.keys(internalAccountsById).find(
+      (id) =>
+        internalAccountsById[id].address.toLowerCase() ===
+        accountAddress.toLowerCase(),
+    );
+    if (!internalAccountId) return undefined;
+    return accountToGroupMap[internalAccountId]?.id;
+  }, [accountAddress, internalAccountsById, accountToGroupMap]);
+
+  const selectOverrideAssets = useCallback(
+    (state: RootState) => selectAssetsByAccountGroupId(state, accountGroupId),
+    [accountGroupId],
+  );
+
+  const overrideAssets = useSelector(selectOverrideAssets);
+  return accountGroupId ? overrideAssets : undefined;
+}
+
+/**
+ * Whether the asset is EVM-scoped with a hex address, i.e. eligible for
+ * `useTokenFiatRates` (which crashes on non-hex addresses like Solana).
+ * Non-EVM assets fall back to `asset.fiat.balance` in the render loop.
+ *
+ * This predicate is the single source of truth for the paired walks over
+ * `assetsWithBalance` — request build and rate consumption — so they cannot
+ * drift out of lockstep.
+ */
+function isEvmRateEligible(asset: Asset): boolean {
+  return (
+    Boolean(asset.chainId) &&
+    !isNonEvmChainId(asset.chainId) &&
+    'address' in asset &&
+    Boolean(asset.address)
+  );
+}
+
+function buildFiatRateRequest(
+  asset: Asset,
+  currency: string,
+): TokenFiatRateRequest {
+  return {
+    address: (asset as { address: Hex }).address,
+    chainId: asset.chainId as Hex,
+    currency: currency.toLowerCase(),
+  };
+}
+
+/**
+ * Fiat amount to display for a single asset, or `undefined` to hide.
+ *
+ * - Testnet-hidden → undefined.
+ * - EVM with rate → `balance * rate` (picks up stablecoin bypass).
+ * - EVM zero balance without rate → `0` (currency-invariant, avoids
+ * hiding `$0` rows when market data hasn't loaded).
+ * - EVM non-zero without rate → undefined (can't safely render).
+ * - Non-EVM → the assets-controller's preferred-currency `fiat.balance`.
+ */
+function deriveAssetFiat(
+  asset: Asset,
+  rate: number | undefined,
+  isFiatHidden: boolean,
+): BigNumber | undefined {
+  if (isFiatHidden) return undefined;
+
+  if (isEvmRateEligible(asset)) {
+    const balance = asset.balance ? new BigNumber(asset.balance) : undefined;
+    if (rate !== undefined && balance) return balance.multipliedBy(rate);
+    if (balance?.isZero()) return new BigNumber(0);
+    return undefined;
+  }
+
+  return asset.fiat?.balance ? new BigNumber(asset.fiat.balance) : undefined;
 }

@@ -1056,4 +1056,128 @@ describe('useAccountTokens', () => {
       expect(mockFormatFiat).not.toHaveBeenCalled();
     });
   });
+
+  describe('sort key follows displayed fiat', () => {
+    it('sorts by derived fiat (balance * rate), not asset.fiat.balance', () => {
+      const stablecoinLikeAssets = {
+        '0x1': [
+          {
+            chainId: '0x1',
+            address: '0xstable',
+            accountType: 'eip155:1/erc20:0xstable',
+            balance: '1000',
+            fiat: { balance: '998' },
+            rawBalance: '0x1234',
+            symbol: 'USDC',
+          },
+          {
+            chainId: '0x1',
+            address: '0xvolatile',
+            accountType: 'eip155:1/erc20:0xvolatile',
+            balance: '10',
+            fiat: { balance: '999' },
+            rawBalance: '0x5678',
+            symbol: 'VOL',
+          },
+        ],
+      };
+
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        stablecoinLikeAssets as any,
+      );
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return stablecoinLikeAssets;
+        }
+        return undefined;
+      });
+      // USDC rate = 1 (stablecoin bypass shape), VOL rate = 99.9.
+      // Derived fiat: USDC=1000*1=1000, VOL=10*99.9=999.
+      // asset.fiat.balance would sort VOL(999) above USDC(998).
+      // Correct sort by derived fiat puts USDC(1000) first.
+      useTokenFiatRatesMock.mockReturnValue([1, 99.9]);
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      expect(result.current[0].symbol).toBe('USDC');
+      expect(result.current[1].symbol).toBe('VOL');
+    });
+  });
+
+  describe('zero balance with missing rate', () => {
+    it('renders $0 for an EVM zero-balance token even when useTokenFiatRates returns undefined', () => {
+      const zeroBalanceAssets = {
+        '0x1': [
+          {
+            chainId: '0x1',
+            address: '0xtoken1',
+            accountType: 'eip155:1/erc20:0xtoken1',
+            balance: '0',
+            fiat: { balance: '0' },
+            rawBalance: '0x0',
+            symbol: 'TOKEN1',
+          },
+        ],
+      };
+
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        zeroBalanceAssets as any,
+      );
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return zeroBalanceAssets;
+        }
+        return undefined;
+      });
+      useTokenFiatRatesMock.mockReturnValue([undefined]);
+      mockFormatFiat.mockImplementation((v) =>
+        v === undefined ? undefined : `formatted:${String(v)}`,
+      );
+
+      const { result } = renderHook(() =>
+        useAccountTokens({ includeNoBalance: true }),
+      );
+
+      const token = result.current.find((a) => a.symbol === 'TOKEN1');
+      expect(token?.balanceInSelectedCurrency).toBe('formatted:0');
+    });
+
+    it('still hides fiat for a non-zero EVM balance when rate is missing', () => {
+      const nonZeroAssets = {
+        '0x1': [
+          {
+            chainId: '0x1',
+            address: '0xtoken1',
+            accountType: 'eip155:1/erc20:0xtoken1',
+            balance: '10',
+            fiat: { balance: '10' },
+            rawBalance: '0x1234',
+            symbol: 'TOKEN1',
+          },
+        ],
+      };
+
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        nonZeroAssets as any,
+      );
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return nonZeroAssets;
+        }
+        return undefined;
+      });
+      useTokenFiatRatesMock.mockReturnValue([undefined]);
+      mockFormatFiat.mockImplementation((v) =>
+        v === undefined ? undefined : `formatted:${String(v)}`,
+      );
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      const token = result.current.find((a) => a.symbol === 'TOKEN1');
+      expect(token?.balanceInSelectedCurrency).toBeUndefined();
+    });
+  });
 });
