@@ -44,6 +44,8 @@ import {
 } from '../../../util/number/bigint';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import { useAccountNames } from '../../hooks/DisplayName/useAccountNames';
+import { NameType } from '../Name/Name.types';
 import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
 import {
   ACTIVITY_FALLBACK_TITLE_RESOLVERS,
@@ -466,6 +468,7 @@ function isNamelessNftToken(token: TokenAmount | undefined): boolean {
 function resolveCoreContent(
   item: ActivityListItem,
   bridgeHistoryItem?: BridgeHistoryItem,
+  counterpartyName?: string,
 ): Omit<
   ActivityListItemRowContent,
   'avatarTokens' | 'primaryAmount' | 'secondaryAmount'
@@ -483,6 +486,10 @@ function resolveCoreContent(
       const cancelledLabel =
         item.type === 'receive' ? 'Receive cancelled' : 'Send cancelled';
       const subtitlePrefix = item.type === 'receive' ? 'From' : 'To';
+      const counterpartyLabel =
+        counterpartyName ||
+        shortAddress(address) ||
+        strings('transactions.unavailable');
 
       return {
         title: statusTitle(item, {
@@ -491,7 +498,16 @@ function resolveCoreContent(
           failed: failedLabel,
           cancelled: cancelledLabel,
         }),
-        subtitle: `${subtitlePrefix}: ${shortAddress(address) ?? strings('transactions.unavailable')}`,
+        subtitle: `${subtitlePrefix}: ${counterpartyLabel}`,
+        ...(counterpartyName && address
+          ? {
+              subtitleAccount: {
+                prefix: subtitlePrefix,
+                address,
+                name: counterpartyName,
+              },
+            }
+          : {}),
         primaryToken: token,
       };
     }
@@ -1154,7 +1170,28 @@ export function useActivityListItemRowContent(
   }
   const lendingTokenData = useTokensData(lendingAssetIds);
 
-  const content = resolveCoreContent(item, bridgeHistoryItem);
+  // The send/receive subtitle names the counterparty. Resolve it against the
+  // user's own accounts so transfers between their accounts read as
+  // "To: <account name>" instead of a hex address.
+  const counterpartyAddress =
+    item.type === 'send' || item.type === 'receive'
+      ? item.type === 'receive'
+        ? item.data.from
+        : item.data.to
+      : undefined;
+  const counterpartyName = useAccountNames(
+    counterpartyAddress
+      ? [
+          {
+            value: counterpartyAddress,
+            variation: networkChainId ?? '',
+            type: NameType.EthereumAddress,
+          },
+        ]
+      : [],
+  )[0];
+
+  const content = resolveCoreContent(item, bridgeHistoryItem, counterpartyName);
 
   let basePrimaryToken: TokenAmount | undefined;
   if (isSpendingCap) {
