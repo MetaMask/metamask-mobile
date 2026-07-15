@@ -142,6 +142,7 @@ import {
   PredictPreviewSheetProvider,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
+import { PredictNextPocScreen } from '../../UI/PredictNext';
 import {
   MarketInsightsView,
   selectMarketInsightsEnabled,
@@ -1333,6 +1334,11 @@ const MainNavigator = () => {
           />
         </>
       )}
+      <Stack.Screen
+        name={Routes.PREDICT_NEXT_POC}
+        component={PredictNextPocScreen}
+        options={{ headerShown: true, title: 'Kalshi POC', ...slideFromRightAnimation }}
+      />
       {(isMarketInsightsEnabled || isMarketInsightsPerpsEnabled) && (
         <Stack.Screen
           name={Routes.MARKET_INSIGHTS.VIEW}

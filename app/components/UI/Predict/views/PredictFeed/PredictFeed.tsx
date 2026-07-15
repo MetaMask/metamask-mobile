@@ -11,6 +11,9 @@ import {
   RefreshControl,
   Platform,
   LayoutChangeEvent,
+  TouchableOpacity,
+  Text as RNText,
+  StyleSheet,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -748,8 +751,33 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
       <Box pointerEvents="box-none" twClassName="absolute inset-0 z-50">
         <PredictWithdrawUnavailableSheet ref={withdrawUnavailableSheetRef} />
       </Box>
+      <TouchableOpacity
+        style={pocLauncherStyles.btn}
+        onPress={() => navigation.navigate(Routes.PREDICT_NEXT_POC)}
+      >
+        <RNText style={pocLauncherStyles.label}>Kalshi POC</RNText>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
+
+const pocLauncherStyles = StyleSheet.create({
+  btn: {
+    position: 'absolute',
+    right: 12,
+    bottom: 24,
+    backgroundColor: '#3b82f6',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    zIndex: 100,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
+  },
+  label: { color: '#fff', fontWeight: '600' },
+});
 
 export default PredictFeed;

@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PredictNext Architecture Report</title>
+<style>
+  :root {
+    --mm-orange: #f6851b;
+    --mm-dark: #1a1a2e;
+    --mm-blue: #037dd6;
+    --mm-light-blue: #d6eaf8;
+    --mm-green: #28a745;
+    --mm-light-green: #d4edda;
+    --mm-red: #dc3545;
+    --mm-light-red: #f8d7da;
+    --mm-purple: #6f42c1;
+    --mm-light-purple: #e8ddff;
+    --mm-yellow: #ffc107;
+    --mm-gray-50: #f9fafb;
+    --mm-gray-100: #f3f4f6;
+    --mm-gray-200: #e5e7eb;
+    --mm-gray-300: #d1d5db;
+    --mm-gray-400: #9ca3af;
+    --mm-gray-600: #4b5563;
+    --mm-gray-700: #374151;
+    --mm-gray-800: #1f2937;
+    --mm-gray-900: #111827;
+    --radius: 10px;
+    --shadow: 0 4px 16px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--mm-gray-50);
+    color: var(--mm-gray-800);
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: white;
+    padding: 56px 40px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 280px; height: 280px;
+    border-radius: 50%;
+    background: rgba(246,133,27,0.12);
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: 20%;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(3,125,214,0.12);
+  }
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(246,133,27,0.18);
+    border: 1px solid rgba(246,133,27,0.4);
+    border-radius: 100px;
+    padding: 4px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #f6a44d;
+    margin-bottom: 20px;
+  }
+  .header-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #f6851b; }
+  header h1 { font-size: 40px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.5px; }
+  header h1 span { color: var(--mm-orange); }
+  header p { font-size: 17px; color: rgba(255,255,255,0.7); max-width: 600px; }
+  .header-meta {
+    display: flex;
+    gap: 32px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+  .meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .meta-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.45); font-weight: 600; }
+  .meta-value { font-size: 16px; font-weight: 700; color: white; }
+
+  /* ── NAV ── */
+  nav {
+    background: white;
+    border-bottom: 1px solid var(--mm-gray-200);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    gap: 4px;
+    padding: 0 20px;
+    overflow-x: auto;
+  }
+  nav a {
+    display: inline-block;
+    padding: 14px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--mm-gray-600);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  nav a:hover { color: var(--mm-blue); border-bottom-color: var(--mm-blue); }
+
+  /* ── LAYOUT ── */
+  main { max-width: 1100px; margin: 0 auto; padding: 48px 20px; }
+
+  section { margin-bottom: 72px; }
+  section h2 {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--mm-gray-900);
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+  }
+  .section-lead {
+    font-size: 16px;
+    color: var(--mm-gray-600);
+    margin-bottom: 36px;
+    max-width: 720px;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .card-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--mm-gray-800);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-title .icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  /* ── STATS ROW ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+  .stat-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid transparent;
+  }
+  .stat-card.red { border-left-color: var(--mm-red); }
+  .stat-card.blue { border-left-color: var(--mm-blue); }
+  .stat-card.green { border-left-color: var(--mm-green); }
+  .stat-card.orange { border-left-color: var(--mm-orange); }
+  .stat-card.purple { border-left-color: var(--mm-purple); }
+  .stat-num { font-size: 32px; font-weight: 800; color: var(--mm-gray-900); }
+  .stat-label { font-size: 13px; color: var(--mm-gray-400); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .stat-sub { font-size: 12px; color: var(--mm-gray-400); margin-top: 2px; }
+
+  /* ── PROBLEM CARDS ── */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .problem-item {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border-top: 3px solid var(--mm-red);
+  }
+  .problem-item h4 { font-size: 15px; font-weight: 700; color: var(--mm-gray-800); margin-bottom: 8px; }
+  .problem-item p { font-size: 13px; color: var(--mm-gray-600); }
+  .problem-item .highlight { color: var(--mm-red); font-weight: 700; }
+
+  /* ── SVG DIAGRAMS ── */
+  .diagram-wrap {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 32px;
+    margin: 24px 0;
+    overflow-x: auto;
+  }
+  .diagram-title {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--mm-gray-400);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .diagram-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--mm-gray-200);
+  }
+
+  svg text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+  /* ── LAYER DIAGRAM ── */
+  .layers-container { display: flex; flex-direction: column; gap: 12px; }
+  .layer-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 16px;
+    align-items: center;
+  }
+  .layer-num {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--mm-gray-400);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .layer-box {
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .layer-box .layer-icon { font-size: 22px; flex-shrink: 0; }
+  .layer-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .layer-box p { font-size: 13px; opacity: 0.85; }
+  .layer-box .layer-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .layer-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.25);
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .layer-box.l4 { background: linear-gradient(135deg, #0f3460, #16213e); color: white; }
+  .layer-box.l3 { background: linear-gradient(135deg, #1565c0, #1976d2); color: white; }
+  .layer-box.l2 { background: linear-gradient(135deg, #6a1b9a, #7b1fa2); color: white; }
+  .layer-box.l1 { background: linear-gradient(135deg, #2e7d32, #388e3c); color: white; }
+  .layer-arrow { text-align: center; font-size: 22px; color: var(--mm-gray-400); padding: 4px 0; }
+
+  /* ── SERVICE CARDS ── */
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .service-card {
+    border-radius: var(--radius);
+    border: 1px solid var(--mm-gray-200);
+    background: white;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .service-header {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .service-header h4 { font-size: 15px; font-weight: 700; }
+  .service-header .badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-left: auto;
+  }
+  .service-body { padding: 14px 18px; }
+  .service-body p { font-size: 13px; color: var(--mm-gray-600); margin-bottom: 10px; }
+  .service-body ul { padding-left: 18px; }
+  .service-body ul li { font-size: 12px; color: var(--mm-gray-500); margin-bottom: 3px; }
+
+  .svc-stateful .service-header { background: #f3e5ff; }
+  .svc-stateful .service-header h4 { color: #6a1b9a; }
+  .svc-stateful .badge { background: #e1bee7; color: #6a1b9a; }
+  .svc-read .service-header { background: #e3f2fd; }
+  .svc-read .service-header h4 { color: #1565c0; }
+  .svc-read .badge { background: #bbdefb; color: #1565c0; }
+  .svc-runtime .service-header { background: #e8f5e9; }
+  .svc-runtime .service-header h4 { color: #2e7d32; }
+  .svc-runtime .badge { background: #c8e6c9; color: #2e7d32; }
+  .svc-root .service-header { background: #fff8e1; }
+  .svc-root .service-header h4 { color: #e65100; }
+  .svc-root .badge { background: #ffecb3; color: #e65100; }
+  .svc-helper .service-header { background: #fce4ec; }
+  .svc-helper .service-header h4 { color: #880e4f; }
+  .svc-helper .badge { background: #f8bbd0; color: #880e4f; }
+
+  /* ── COMPARISON TABLE ── */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background: white;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .compare-table thead th {
+    padding: 14px 20px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .compare-table thead th:nth-child(1) { background: var(--mm-gray-100); color: var(--mm-gray-500); width: 20%; }
+  .compare-table thead th:nth-child(2) { background: #fdecea; color: #c62828; width: 40%; }
+  .compare-table thead th:nth-child(3) { background: #e8f5e9; color: #1b5e20; width: 40%; }
+  .compare-table tbody td { padding: 12px 20px; border-top: 1px solid var(--mm-gray-100); vertical-align: top; }
+  .compare-table tbody td:nth-child(1) { font-weight: 700; color: var(--mm-gray-700); background: var(--mm-gray-50); }
+  .compare-table tbody td:nth-child(2) { color: #c62828; background: #fff5f5; }
+  .compare-table tbody td:nth-child(3) { color: #1b5e20; background: #f0fff4; }
+  .compare-table tbody tr:hover td { filter: brightness(0.98); }
+
+  /* ── PHASE TIMELINE ── */
+  .phases-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .phase-item {
+    display: grid;
+    grid-template-columns: 64px 4px 1fr;
+    gap: 0 16px;
+    padding-bottom: 32px;
+    position: relative;
+  }
+  .phase-num {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    justify-self: center;
+    align-self: flex-start;
+    margin-top: 0;
+  }
+  .phase-line {
+    width: 3px;
+    background: var(--mm-gray-200);
+    margin: 52px auto 0;
+    border-radius: 2px;
+  }
+  .phase-item:last-child .phase-line { display: none; }
+  .phase-content {
+    padding: 0 0 0 4px;
+  }
+  .phase-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .phase-name { font-size: 19px; font-weight: 800; color: var(--mm-gray-900); }
+  .phase-prs {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 100px;
+    background: var(--mm-gray-100);
+    color: var(--mm-gray-600);
+    letter-spacing: 0.05em;
+    align-self: center;
+    white-space: nowrap;
+  }
+  .phase-desc { font-size: 14px; color: var(--mm-gray-600); margin-bottom: 14px; max-width: 700px; }
+  .phase-deliverables {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .deliverable {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 6px;
+    background: white;
+    border: 1px solid var(--mm-gray-200);
+    color: var(--mm-gray-700);
+  }
+  .phase-risk {
+    font-size: 13px;
+    color: var(--mm-gray-500);
+    padding: 10px 14px;
+    background: var(--mm-gray-50);
+    border-radius: 6px;
+    border-left: 3px solid var(--mm-gray-300);
+  }
+
+  .ph1 { background: linear-gradient(135deg, #0d47a1, #1565c0); }
+  .ph2 { background: linear-gradient(135deg, #1b5e20, #2e7d32); }
+  .ph3 { background: linear-gradient(135deg, #006064, #00838f); }
+  .ph4 { background: linear-gradient(135deg, #4a148c, #6a1b9a); }
+  .ph5 { background: linear-gradient(135deg, #bf360c, #e64a19); }
+  .ph6 { background: linear-gradient(135deg, #e65100, #f57c00); }
+  .ph7 { background: linear-gradient(135deg, #311b92, #4527a0); }
+
+  /* ── PRINCIPLES ── */
+  .principles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  .principle-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border-top: 3px solid var(--mm-blue);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .principle-card.orange { border-top-color: var(--mm-orange); }
+  .principle-card.green { border-top-color: var(--mm-green); }
+  .principle-card.purple { border-top-color: var(--mm-purple); }
+  .principle-icon { font-size: 24px; }
+  .principle-title { font-size: 15px; font-weight: 700; color: var(--mm-gray-800); }
+  .principle-desc { font-size: 13px; color: var(--mm-gray-600); }
+
+  /* ── DATA FLOW ── */
+  .flow-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .flow-header {
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .flow-header .flow-icon { font-size: 16px; }
+  .flow-body { padding: 20px; }
+  .flow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+  }
+  .flow-step:not(:last-child) {
+    border-bottom: 1px solid var(--mm-gray-100);
+  }
+  .flow-step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--mm-blue);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .flow-step-content h5 { font-size: 13px; font-weight: 700; color: var(--mm-gray-800); margin-bottom: 2px; }
+  .flow-step-content p { font-size: 12px; color: var(--mm-gray-500); }
+
+  /* ── MIGRATION STRATEGY ── */
+  .strategy-box {
+    background: linear-gradient(135deg, #e3f2fd, #f3e5ff);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    border: 1px solid #e1bee7;
+  }
+  .strategy-box h3 { font-size: 17px; font-weight: 700; color: var(--mm-gray-800); margin-bottom: 10px; }
+  .strategy-box p { font-size: 14px; color: var(--mm-gray-700); }
+
+  /* ── PARALLEL STREAMS ── */
+  .streams-diagram {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--mm-gray-900);
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    padding: 32px 20px;
+    font-size: 13px;
+    margin-top: 48px;
+  }
+  footer strong { color: rgba(255,255,255,0.8); }
+
+  /* ── NAMING TABLE ── */
+  .naming-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background: white;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+  }
+  .naming-table thead th {
+    padding: 12px 20px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: var(--mm-gray-800);
+    color: rgba(255,255,255,0.8);
+  }
+  .naming-table tbody td {
+    padding: 10px 20px;
+    border-top: 1px solid var(--mm-gray-100);
+  }
+  .naming-table tbody td:nth-child(1) { color: var(--mm-red); font-weight: 600; font-family: monospace; }
+  .naming-table tbody td:nth-child(2) { color: var(--mm-green); font-weight: 600; font-family: monospace; }
+  .naming-table tbody td:nth-child(3) { color: var(--mm-gray-500); font-size: 13px; }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .tag-danger { background: #fde8e8; color: #c62828; }
+  .tag-success { background: #e8f5e9; color: #1b5e20; }
+  .tag-info { background: #e3f2fd; color: #1565c0; }
+  .tag-warning { background: #fff8e1; color: #e65100; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="header-badge"><span class="dot"></span>Architecture Report</div>
+    <h1>Predict<span>Next</span> Rewrite</h1>
+    <p>A comprehensive overview of the current architecture, target architecture, and migration plan for the MetaMask Mobile Predict feature.</p>
+    <div class="header-meta">
+      <div class="meta-item">
+        <span class="meta-label">Migration Phases</span>
+        <span class="meta-value">7 Phases</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Estimated PRs</span>
+        <span class="meta-value">23–34</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Test Reduction</span>
+        <span class="meta-value">~85–90%</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">UI Disruption</span>
+        <span class="meta-value">Zero (Phases 1–5)</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════ NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#current">Current Architecture</a>
+    <a href="#target">Target Architecture</a>
+    <a href="#principles">Design Principles</a>
+    <a href="#services">Service Layer</a>
+    <a href="#data-flow">Data Flows</a>
+    <a href="#migration">Migration Plan</a>
+    <a href="#naming">Naming Guide</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ═══════════════════════════════════════════════════════════ 1. CURRENT -->
+<section id="current">
+  <h2>1 · Current Architecture</h2>
+  <p class="section-lead">
+    The Predict feature shipped quickly to validate the product. That speed came at a cost: a God controller, a monolithic provider, duplicated hooks, and a bloated test suite that breaks on every refactor.
+  </p>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card red">
+      <div class="stat-num">2,600+</div>
+      <div class="stat-label">PredictController lines</div>
+      <div class="stat-sub">60+ public methods</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-num">2,000+</div>
+      <div class="stat-label">PolymarketProvider lines</div>
+      <div class="stat-sub">Mixes API, caching & transforms</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-num">37</div>
+      <div class="stat-label">Hooks</div>
+      <div class="stat-sub">Many thin controller wrappers</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-num">45</div>
+      <div class="stat-label">Component directories</div>
+      <div class="stat-sub">7 market cards, 6 bet buttons…</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-num">87K</div>
+      <div class="stat-label">Lines of test code</div>
+      <div class="stat-sub">2.38:1 ratio — 78% duplicate mocks</div>
+    </div>
+  </div>
+
+  <!-- Pain Points -->
+  <div class="problem-grid">
+    <div class="problem-item">
+      <h4>🧟 God Controller</h4>
+      <p><span class="highlight">60+ public methods</span>, 2,600 lines. Owns state, data fetching, trading, transactions, and analytics all in one class. The controller test alone is <span class="highlight">9,400 lines</span>.</p>
+    </div>
+    <div class="problem-item">
+      <h4>🔀 Monolithic Provider</h4>
+      <p>PolymarketProvider mixes <span class="highlight">API calls, transaction building, caching, data transformation, and auth</span> in a single 2,000-line file. Impossible to test in isolation.</p>
+    </div>
+    <div class="problem-item">
+      <h4>📋 Duplicated Hooks</h4>
+      <p>37 hooks where many are thin wrappers around a single controller call. The buy flow alone requires importing <span class="highlight">7 separate hooks</span> that all talk about the same thing.</p>
+    </div>
+    <div class="problem-item">
+      <h4>🧩 Component Explosion</h4>
+      <p>45 component directories with <span class="highlight">7 near-identical market card variants</span>, 6 bet button variants, and 6 skeleton variants — each a separate directory.</p>
+    </div>
+    <div class="problem-item">
+      <h4>📛 Wrong Domain Language</h4>
+      <p>What Polymarket calls an "event" is a "market" in old code. What they call a "market" is an "outcome." This creates confusion with every new developer and every future venue.</p>
+    </div>
+    <div class="problem-item">
+      <h4>🧪 Bloated Tests</h4>
+      <p>87,000 lines of test code (2.38:1 ratio). <span class="highlight">78% of test files</span> duplicate the same mock setup. Tests are brittle and break on every refactor.</p>
+    </div>
+  </div>
+
+  <!-- Current Architecture Diagram -->
+  <div class="diagram-wrap">
+    <div class="diagram-title">Current Architecture — God Controller Pattern</div>
+    <svg viewBox="0 0 900 520" width="100%" style="max-height: 520px;">
+      <defs>
+        <marker id="arrow-red" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#dc3545"/>
+        </marker>
+        <marker id="arrow-gray" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#9ca3af"/>
+        </marker>
+        <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#037dd6"/>
+        </marker>
+      </defs>
+
+      <!-- UI Layer -->
+      <rect x="20" y="20" width="860" height="70" rx="8" fill="#f8d7da" stroke="#dc3545" stroke-width="1.5"/>
+      <text x="450" y="42" text-anchor="middle" font-size="11" font-weight="700" fill="#c62828" letter-spacing="1">UI LAYER — 45 Component Directories · 37 Hooks</text>
+      <rect x="40" y="52" width="120" height="28" rx="5" fill="#dc3545" opacity="0.15"/>
+      <text x="100" y="70" text-anchor="middle" font-size="11" fill="#c62828" font-weight="600">PredictHome</text>
+      <rect x="175" y="52" width="120" height="28" rx="5" fill="#dc3545" opacity="0.15"/>
+      <text x="235" y="70" text-anchor="middle" font-size="11" fill="#c62828" font-weight="600">MarketDetails</text>
+      <rect x="310" y="52" width="120" height="28" rx="5" fill="#dc3545" opacity="0.15"/>
+      <text x="370" y="70" text-anchor="middle" font-size="11" fill="#c62828" font-weight="600">BuyPreview</text>
+      <rect x="445" y="52" width="120" height="28" rx="5" fill="#dc3545" opacity="0.15"/>
+      <text x="505" y="70" text-anchor="middle" font-size="11" fill="#c62828" font-weight="600">SellPreview</text>
+      <rect x="580" y="52" width="120" height="28" rx="5" fill="#dc3545" opacity="0.15"/>
+      <text x="640" y="70" text-anchor="middle" font-size="11" fill="#c62828" font-weight="600">Portfolio</text>
+      <rect x="715" y="52" width="150" height="28" rx="5" fill="#dc3545" opacity="0.15"/>
+      <text x="790" y="70" text-anchor="middle" font-size="11" fill="#c62828" font-weight="600">… 40 more</text>
+
+      <!-- Arrows down to controller -->
+      <line x1="450" y1="90" x2="450" y2="130" stroke="#dc3545" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-red)"/>
+      <text x="470" y="115" font-size="10" fill="#9ca3af">37 hooks</text>
+
+      <!-- God Controller -->
+      <rect x="160" y="130" width="580" height="110" rx="10" fill="#c62828" stroke="#a50000" stroke-width="2"/>
+      <text x="450" y="158" text-anchor="middle" font-size="14" font-weight="800" fill="white">PredictController</text>
+      <text x="450" y="176" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.75)">2,600+ lines · 60+ public methods · Owns ALL state</text>
+      <rect x="178" y="186" width="120" height="22" rx="4" fill="rgba(255,255,255,0.15)"/>
+      <text x="238" y="201" text-anchor="middle" font-size="10" fill="white">Data Fetching</text>
+      <rect x="308" y="186" width="100" height="22" rx="4" fill="rgba(255,255,255,0.15)"/>
+      <text x="358" y="201" text-anchor="middle" font-size="10" fill="white">Trading</text>
+      <rect x="418" y="186" width="100" height="22" rx="4" fill="rgba(255,255,255,0.15)"/>
+      <text x="468" y="201" text-anchor="middle" font-size="10" fill="white">Transactions</text>
+      <rect x="528" y="186" width="80" height="22" rx="4" fill="rgba(255,255,255,0.15)"/>
+      <text x="568" y="201" text-anchor="middle" font-size="10" fill="white">Analytics</text>
+      <rect x="618" y="186" width="102" height="22" rx="4" fill="rgba(255,255,255,0.15)"/>
+      <text x="669" y="201" text-anchor="middle" font-size="10" fill="white">Live Data</text>
+      <text x="450" y="232" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.6)">Controller test: 9,400 lines</text>
+
+      <!-- Arrows down to provider -->
+      <line x1="340" y1="240" x2="290" y2="295" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+      <line x1="450" y1="240" x2="450" y2="295" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+      <line x1="560" y1="240" x2="610" y2="295" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+      <!-- PolymarketProvider -->
+      <rect x="100" y="295" width="290" height="80" rx="8" fill="#fff3cd" stroke="#ffc107" stroke-width="1.5"/>
+      <text x="245" y="320" text-anchor="middle" font-size="13" font-weight="700" fill="#856404">PolymarketProvider</text>
+      <text x="245" y="338" text-anchor="middle" font-size="10" fill="#856404">2,000+ lines</text>
+      <text x="245" y="355" text-anchor="middle" font-size="10" fill="#856404">API calls · caching · auth · transforms</text>
+
+      <!-- Redux Store -->
+      <rect x="510" y="295" width="180" height="80" rx="8" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/>
+      <text x="600" y="320" text-anchor="middle" font-size="13" font-weight="700" fill="#1565c0">Redux Store</text>
+      <text x="600" y="338" text-anchor="middle" font-size="10" fill="#1565c0">Monolithic slice</text>
+      <text x="600" y="355" text-anchor="middle" font-size="10" fill="#1565c0">All state mixed together</text>
+
+      <!-- External APIs -->
+      <rect x="60" y="420" width="130" height="70" rx="8" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1.5"/>
+      <text x="125" y="445" text-anchor="middle" font-size="11" font-weight="700" fill="#495057">Gamma API</text>
+      <text x="125" y="463" text-anchor="middle" font-size="10" fill="#6c757d">Events</text>
+      <text x="125" y="479" text-anchor="middle" font-size="10" fill="#6c757d">Markets</text>
+
+      <rect x="210" y="420" width="130" height="70" rx="8" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1.5"/>
+      <text x="275" y="445" text-anchor="middle" font-size="11" font-weight="700" fill="#495057">CLOB API</text>
+      <text x="275" y="463" text-anchor="middle" font-size="10" fill="#6c757d">Orders</text>
+      <text x="275" y="479" text-anchor="middle" font-size="10" fill="#6c757d">Price History</text>
+
+      <rect x="360" y="420" width="130" height="70" rx="8" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1.5"/>
+      <text x="425" y="445" text-anchor="middle" font-size="11" font-weight="700" fill="#495057">Data/Account</text>
+      <text x="425" y="463" text-anchor="middle" font-size="10" fill="#6c757d">Positions</text>
+      <text x="425" y="479" text-anchor="middle" font-size="10" fill="#6c757d">Balances</text>
+
+      <rect x="510" y="420" width="130" height="70" rx="8" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1.5"/>
+      <text x="575" y="445" text-anchor="middle" font-size="11" font-weight="700" fill="#495057">WebSocket</text>
+      <text x="575" y="463" text-anchor="middle" font-size="10" fill="#6c757d">Live Prices</text>
+      <text x="575" y="479" text-anchor="middle" font-size="10" fill="#6c757d">Game Updates</text>
+
+      <!-- Arrows from provider to APIs -->
+      <line x1="200" y1="375" x2="125" y2="420" stroke="#dee2e6" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+      <line x1="245" y1="375" x2="275" y2="420" stroke="#dee2e6" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+      <line x1="290" y1="375" x2="425" y2="420" stroke="#dee2e6" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+      <line x1="600" y1="375" x2="575" y2="420" stroke="#dee2e6" stroke-width="1.5" marker-end="url(#arrow-gray)"/>
+
+      <!-- Problem labels -->
+      <rect x="710" y="295" width="170" height="195" rx="8" fill="#fff" stroke="#dc3545" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="795" y="318" text-anchor="middle" font-size="11" font-weight="700" fill="#dc3545">⚠ Problems</text>
+      <text x="720" y="340" font-size="10" fill="#6c757d">• Venue logic leaks upward</text>
+      <text x="720" y="358" font-size="10" fill="#6c757d">• UI duplicates orchestration</text>
+      <text x="720" y="376" font-size="10" fill="#6c757d">• Wrong domain terminology</text>
+      <text x="720" y="394" font-size="10" fill="#6c757d">• Custom GameCache / TeamsCache</text>
+      <text x="720" y="412" font-size="10" fill="#6c757d">• No retry / circuit breaker</text>
+      <text x="720" y="430" font-size="10" fill="#6c757d">• 87K test lines to maintain</text>
+      <text x="720" y="448" font-size="10" fill="#6c757d">• Can't add Kalshi easily</text>
+      <text x="720" y="466" font-size="10" fill="#6c757d">• Circular dependencies</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ 2. TARGET -->
+<section id="target">
+  <h2>2 · Target Architecture</h2>
+  <p class="section-lead">
+    PredictNext is a four-layer system designed around deep modules with slim interfaces. Complexity is pushed downward into services. The controller becomes a stateless composition root. Venue-specific logic is completely hidden behind a single canonical contract.
+  </p>
+
+  <!-- 4-Layer Diagram -->
+  <div class="diagram-wrap">
+    <div class="diagram-title">4-Layer Architecture</div>
+    <div class="layers-container">
+      <div class="layer-row">
+        <div class="layer-num">Layer 4<br>Top</div>
+        <div class="layer-box l4">
+          <div class="layer-icon">🖥</div>
+          <div>
+            <h3>Product UI — Views · Widgets · Primitives</h3>
+            <p>Route-level views compose widgets and hooks. Widgets assemble primitives. Primitives are pure presentation components.</p>
+            <div class="layer-tags">
+              <span class="layer-tag">PredictHome</span>
+              <span class="layer-tag">EventDetails</span>
+              <span class="layer-tag">OrderScreen</span>
+              <span class="layer-tag">EventCard</span>
+              <span class="layer-tag">OutcomeButton</span>
+              <span class="layer-tag">EventFeed</span>
+              <span class="layer-tag">OrderForm</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="layer-arrow">↕ React hooks bridge UI to services</div>
+      <div class="layer-row">
+        <div class="layer-num">Layer 3</div>
+        <div class="layer-box l3">
+          <div class="layer-icon">🎣</div>
+          <div>
+            <h3>Hooks — Granular query hooks + deep imperative hooks</h3>
+            <p>Each data hook triggers exactly one query. Imperative hooks own async workflows. No orchestration logic lives in hooks.</p>
+            <div class="layer-tags">
+              <span class="layer-tag">useEventList</span>
+              <span class="layer-tag">usePositions</span>
+              <span class="layer-tag">useTrading</span>
+              <span class="layer-tag">useLiveData</span>
+              <span class="layer-tag">usePredictGuard</span>
+              <span class="layer-tag">useTransactions</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="layer-arrow">↕ Messenger calls + Redux selectors</div>
+      <div class="layer-row">
+        <div class="layer-num">Layer 2<br>Core</div>
+        <div class="layer-box l2">
+          <div class="layer-icon">⚙️</div>
+          <div>
+            <h3>Services + Composition Root — Deep modules, slim interfaces</h3>
+            <p>Six services in three canonical shapes own retries, caching, state machines, transaction orchestration, and realtime coordination. <strong>PredictController</strong> is a stateless composition root with only initialize/destroy.</p>
+            <div class="layer-tags">
+              <span class="layer-tag">PredictSessionService</span>
+              <span class="layer-tag">MarketDataService</span>
+              <span class="layer-tag">PortfolioService</span>
+              <span class="layer-tag">TradingService</span>
+              <span class="layer-tag">TransactionService</span>
+              <span class="layer-tag">LiveDataService</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="layer-arrow">↕ VenueAdapter contract / PredictClient (session-bound view)</div>
+      <div class="layer-row">
+        <div class="layer-num">Layer 1<br>Bottom</div>
+        <div class="layer-box l1">
+          <div class="layer-icon">🔌</div>
+          <div>
+            <h3>Venue Adapters — Stateless protocol translators</h3>
+            <p>One canonical VenueAdapter contract. Each venue (Polymarket, future Kalshi) implements it as a stateless translator. Products never see venue DTOs or transport details.</p>
+            <div class="layer-tags">
+              <span class="layer-tag">PolymarketAdapter</span>
+              <span class="layer-tag">KalshiAdapter (future)</span>
+              <span class="layer-tag">MetaMaskPredictApiAdapter</span>
+              <span class="layer-tag">PredictSessionService</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Module boundary -->
+  <div class="diagram-wrap">
+    <div class="diagram-title">Module Boundary — Public API vs. Internal Modules</div>
+    <svg viewBox="0 0 860 300" width="100%" style="max-height: 300px;">
+      <!-- Public side -->
+      <rect x="20" y="20" width="380" height="260" rx="10" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+      <text x="210" y="46" text-anchor="middle" font-size="13" font-weight="700" fill="#1b5e20">PUBLIC — index.ts</text>
+      <rect x="40" y="56" width="160" height="28" rx="6" fill="#c8e6c9"/>
+      <text x="120" y="74" text-anchor="middle" font-size="11" fill="#2e7d32" font-weight="600">Views (PredictHome, etc.)</text>
+      <rect x="215" y="56" width="160" height="28" rx="6" fill="#c8e6c9"/>
+      <text x="295" y="74" text-anchor="middle" font-size="11" fill="#2e7d32" font-weight="600">Selected Primitives</text>
+      <rect x="40" y="95" width="160" height="28" rx="6" fill="#c8e6c9"/>
+      <text x="120" y="113" text-anchor="middle" font-size="11" fill="#2e7d32" font-weight="600">Hooks (domain folders)</text>
+      <rect x="215" y="95" width="160" height="28" rx="6" fill="#c8e6c9"/>
+      <text x="295" y="113" text-anchor="middle" font-size="11" fill="#2e7d32" font-weight="600">Types &amp; Errors</text>
+      <rect x="40" y="134" width="160" height="28" rx="6" fill="#c8e6c9"/>
+      <text x="120" y="152" text-anchor="middle" font-size="11" fill="#2e7d32" font-weight="600">Selectors</text>
+      <rect x="215" y="134" width="160" height="28" rx="6" fill="#c8e6c9"/>
+      <text x="295" y="152" text-anchor="middle" font-size="11" fill="#2e7d32" font-weight="600">EventDisplayModel</text>
+      <text x="210" y="210" text-anchor="middle" font-size="20">✅</text>
+      <text x="210" y="235" text-anchor="middle" font-size="11" fill="#1b5e20">Stable, versioned, safe to import</text>
+
+      <!-- Divider -->
+      <line x1="430" y1="30" x2="430" y2="280" stroke="#dee2e6" stroke-width="2" stroke-dasharray="6,4"/>
+      <text x="430" y="160" text-anchor="middle" font-size="30" fill="#dee2e6" transform="rotate(90,430,160)">· · ·</text>
+
+      <!-- Internal side -->
+      <rect x="450" y="20" width="390" height="260" rx="10" fill="#fce4ec" stroke="#c62828" stroke-width="2"/>
+      <text x="645" y="46" text-anchor="middle" font-size="13" font-weight="700" fill="#880e4f">INTERNAL — not exported</text>
+      <rect x="468" y="56" width="160" height="28" rx="6" fill="#f8bbd0"/>
+      <text x="548" y="74" text-anchor="middle" font-size="11" fill="#880e4f" font-weight="600">Services</text>
+      <rect x="643" y="56" width="160" height="28" rx="6" fill="#f8bbd0"/>
+      <text x="723" y="74" text-anchor="middle" font-size="11" fill="#880e4f" font-weight="600">Adapters</text>
+      <rect x="468" y="95" width="160" height="28" rx="6" fill="#f8bbd0"/>
+      <text x="548" y="113" text-anchor="middle" font-size="11" fill="#880e4f" font-weight="600">Widgets</text>
+      <rect x="643" y="95" width="160" height="28" rx="6" fill="#f8bbd0"/>
+      <text x="723" y="113" text-anchor="middle" font-size="11" fill="#880e4f" font-weight="600">Query Descriptors</text>
+      <rect x="468" y="134" width="160" height="28" rx="6" fill="#f8bbd0"/>
+      <text x="548" y="152" text-anchor="middle" font-size="11" fill="#880e4f" font-weight="600">Utils / Constants</text>
+      <rect x="643" y="134" width="160" height="28" rx="6" fill="#f8bbd0"/>
+      <text x="723" y="152" text-anchor="middle" font-size="11" fill="#880e4f" font-weight="600">Venue DTOs</text>
+      <text x="645" y="210" text-anchor="middle" font-size="20">🔒</text>
+      <text x="645" y="235" text-anchor="middle" font-size="11" fill="#880e4f">Hidden behind slim public API</text>
+    </svg>
+  </div>
+
+  <!-- VenueAdapter -->
+  <div class="diagram-wrap">
+    <div class="diagram-title">VenueAdapter — One Contract, N Implementations</div>
+    <svg viewBox="0 0 860 360" width="100%" style="max-height: 360px;">
+      <defs>
+        <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#2e7d32"/>
+        </marker>
+        <marker id="arrow-purple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#6a1b9a"/>
+        </marker>
+      </defs>
+
+      <!-- Product Services -->
+      <rect x="20" y="20" width="820" height="60" rx="8" fill="#e8eaf6" stroke="#3949ab" stroke-width="1.5"/>
+      <text x="430" y="44" text-anchor="middle" font-size="12" font-weight="700" fill="#283593">Product Services (hold PredictClient — session-bound view of active VenueAdapter)</text>
+      <text x="430" y="62" text-anchor="middle" font-size="10" fill="#5c6bc0">MarketDataService · PortfolioService · TradingService · TransactionService · LiveDataService</text>
+
+      <!-- PredictSessionService -->
+      <rect x="280" y="115" width="300" height="60" rx="8" fill="#f3e5ff" stroke="#6a1b9a" stroke-width="2"/>
+      <text x="430" y="140" text-anchor="middle" font-size="13" font-weight="700" fill="#4a148c">PredictSessionService</text>
+      <text x="430" y="158" text-anchor="middle" font-size="10" fill="#6a1b9a">Owns session lifecycle · produces PredictClient proxy</text>
+
+      <!-- Arrow from services to session -->
+      <line x1="430" y1="80" x2="430" y2="115" stroke="#3949ab" stroke-width="1.5" marker-end="url(#arrow-purple)"/>
+      <text x="450" y="103" font-size="10" fill="#9ca3af">getClient(owner)</text>
+
+      <!-- VenueAdapter interface -->
+      <rect x="180" y="210" width="500" height="50" rx="8" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+      <text x="430" y="232" text-anchor="middle" font-size="13" font-weight="700" fill="#1b5e20">VenueAdapter — canonical contract</text>
+      <text x="430" y="250" text-anchor="middle" font-size="10" fill="#2e7d32">fetchEvents · getOrderPreview · submitOrder · createDepositPlan · createSubscription · …</text>
+
+      <!-- Arrow from session to adapter -->
+      <line x1="430" y1="175" x2="430" y2="210" stroke="#6a1b9a" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+      <text x="450" y="197" font-size="10" fill="#9ca3af">delegates to active adapter</text>
+
+      <!-- Implementations -->
+      <rect x="40" y="295" width="200" height="50" rx="8" fill="#f1f8e9" stroke="#558b2f" stroke-width="1.5"/>
+      <text x="140" y="318" text-anchor="middle" font-size="12" font-weight="700" fill="#33691e">PolymarketAdapter</text>
+      <text x="140" y="335" text-anchor="middle" font-size="10" fill="#558b2f">stateless · Phase 2</text>
+
+      <rect x="265" y="295" width="200" height="50" rx="8" fill="#f1f8e9" stroke="#558b2f" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="365" y="318" text-anchor="middle" font-size="12" font-weight="700" fill="#33691e">KalshiAdapter</text>
+      <text x="365" y="335" text-anchor="middle" font-size="10" fill="#558b2f">future venue · same contract</text>
+
+      <rect x="490" y="295" width="210" height="50" rx="8" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="595" y="318" text-anchor="middle" font-size="12" font-weight="700" fill="#1b5e20">MetaMaskPredictApiAdapter</text>
+      <text x="595" y="335" text-anchor="middle" font-size="10" fill="#2e7d32">remote-backed alternative</text>
+
+      <!-- Arrows from interface to implementations -->
+      <line x1="310" y1="260" x2="140" y2="295" stroke="#2e7d32" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+      <line x1="430" y1="260" x2="365" y2="295" stroke="#2e7d32" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+      <line x1="550" y1="260" x2="595" y2="295" stroke="#2e7d32" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+
+      <!-- Labels -->
+      <text x="730" y="255" text-anchor="middle" font-size="10" fill="#9ca3af" font-style="italic">implements</text>
+      <text x="730" y="268" text-anchor="middle" font-size="10" fill="#9ca3af" font-style="italic">VenueAdapter</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ 3. PRINCIPLES -->
+<section id="principles">
+  <h2>3 · Design Principles</h2>
+  <p class="section-lead">
+    PredictNext is built on four core principles drawn from John Ousterhout's <em>A Philosophy of Software Design</em>.
+  </p>
+  <div class="principles-grid">
+    <div class="principle-card">
+      <div class="principle-icon">📦</div>
+      <div class="principle-title">Deep Modules, Slim Interfaces</div>
+      <div class="principle-desc">Modules hide large amounts of complexity behind small, stable public APIs. Services expose 3–5 actions maximum. The controller has only 2 methods: initialize and destroy.</div>
+    </div>
+    <div class="principle-card orange">
+      <div class="principle-icon">⬇️</div>
+      <div class="principle-title">Pull Complexity Downward</div>
+      <div class="principle-desc">Retries, circuit breakers, state machines, transaction sequencing, reconnection, and cache invalidation all live in services. Higher layers express intent, not protocol steps.</div>
+    </div>
+    <div class="principle-card green">
+      <div class="principle-icon">🚫</div>
+      <div class="principle-title">Define Errors Out of Existence</div>
+      <div class="principle-desc">Make errors impossible for callers to experience: HTTP failures are retried internally, deposit-before-order sequencing is hidden, venue failures normalize to one error model.</div>
+    </div>
+    <div class="principle-card purple">
+      <div class="principle-icon">🏗</div>
+      <div class="principle-title">Different Layer, Different Abstraction</div>
+      <div class="principle-desc">Venue adapters speak venue protocol. Services speak product capabilities. Hooks speak React. Components speak presentation. Layers never borrow another layer's language.</div>
+    </div>
+  </div>
+
+  <!-- Before/After comparison -->
+  <div style="margin-top: 32px;">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Concern</th>
+          <th>❌ Current (Predict)</th>
+          <th>✅ Target (PredictNext)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Controller</td>
+          <td>2,600 lines · 60+ methods · owns everything</td>
+          <td>~100 lines · 2 methods · composition root only</td>
+        </tr>
+        <tr>
+          <td>Venue isolation</td>
+          <td>Polymarket logic leaks into hooks and UI</td>
+          <td>VenueAdapter contract hides all venue details</td>
+        </tr>
+        <tr>
+          <td>Caching</td>
+          <td>Custom GameCache, TeamsCache, ad-hoc strategies</td>
+          <td>BaseDataService + TanStack Query descriptors</td>
+        </tr>
+        <tr>
+          <td>Order flow</td>
+          <td>7 hooks, split logic, no state machine</td>
+          <td>TradingService discriminated-union state machine</td>
+        </tr>
+        <tr>
+          <td>Domain language</td>
+          <td>Market = event, Outcome = market (wrong!)</td>
+          <td>Event → Market → Outcome (industry standard)</td>
+        </tr>
+        <tr>
+          <td>Test strategy</td>
+          <td>87K lines, 78% duplicate mocks, brittle</td>
+          <td>Component view tests + service integration tests</td>
+        </tr>
+        <tr>
+          <td>Adding Kalshi</td>
+          <td>Requires widespread changes across layers</td>
+          <td>Implement VenueAdapter + register in registry</td>
+        </tr>
+        <tr>
+          <td>UI components</td>
+          <td>45 directories, 7 market card variants</td>
+          <td>7 compound primitives, 5 widgets, 4 views</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ 4. SERVICES -->
+<section id="services">
+  <h2>4 · Service Layer</h2>
+  <p class="section-lead">
+    PredictNext uses six deep services in three canonical shapes, plus a stateless composition root and two injected helpers.
+  </p>
+
+  <!-- Service shape legend -->
+  <div class="card">
+    <div class="card-title">Service Shapes</div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 12px;">
+      <div style="background:#f3e5ff; border-radius:8px; padding:14px;">
+        <div style="font-size:12px; font-weight:700; color:#6a1b9a; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;">Stateful Service</div>
+        <div style="font-size:13px; color:#4a148c;">Extends BaseController. Owns a Redux slice. Observable via selectors.</div>
+        <div style="margin-top:8px; font-size:12px; color:#7b1fa2;">PredictSessionService · TradingService</div>
+      </div>
+      <div style="background:#e3f2fd; border-radius:8px; padding:14px;">
+        <div style="font-size:12px; font-weight:700; color:#1565c0; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;">Read Service</div>
+        <div style="font-size:13px; color:#0d47a1;">Extends BaseDataService. Owns a TanStack query cache. No Redux slice.</div>
+        <div style="margin-top:8px; font-size:12px; color:#1976d2;">MarketDataService · PortfolioService</div>
+      </div>
+      <div style="background:#e8f5e9; border-radius:8px; padding:14px;">
+        <div style="font-size:12px; font-weight:700; color:#2e7d32; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;">Runtime Service</div>
+        <div style="font-size:13px; color:#1b5e20;">Plain class. Transient lifecycle state in private fields. No Redux, no cache.</div>
+        <div style="margin-top:8px; font-size:12px; color:#388e3c;">TransactionService · LiveDataService</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Services -->
+  <div class="services-grid">
+    <div class="service-card svc-root">
+      <div class="service-header">
+        <span style="font-size:20px">🏗</span>
+        <h4>PredictController</h4>
+        <span class="badge">Composition Root</span>
+      </div>
+      <div class="service-body">
+        <p>Stateless composition root. Instantiates and wires the six services in dependency order. Transactional fail-closed bootstrap.</p>
+        <ul>
+          <li><strong>Public API:</strong> initialize() · destroy() — nothing else</li>
+          <li>Constructs predictAnalytics helper and injects into services</li>
+          <li>Constructs FundingExecutor primitive and shares it</li>
+          <li>Not on any read or write hot path</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="service-card svc-stateful">
+      <div class="service-header">
+        <span style="font-size:20px">🔐</span>
+        <h4>PredictSessionService</h4>
+        <span class="badge">Stateful · BaseController</span>
+      </div>
+      <div class="service-body">
+        <p>Owns venue session lifecycle. Returns session-bound PredictClient views. Manages AccountReadinessPolicy internally.</p>
+        <ul>
+          <li>getClient(ownerAddress, venueId?)</li>
+          <li>invalidate(ownerAddress)</li>
+          <li>fetchAccountReadiness(ownerAddress)</li>
+          <li>Redux slice: readinessByOwner · eligibility</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="service-card svc-read">
+      <div class="service-header">
+        <span style="font-size:20px">📊</span>
+        <h4>MarketDataService</h4>
+        <span class="badge">Read · BaseDataService</span>
+      </div>
+      <div class="service-body">
+        <p>Read model for event and market discovery. TanStack Query cache with descriptor-driven stale times and retry policies.</p>
+        <ul>
+          <li>getEvents · getEvent · searchEvents · getCarouselEvents</li>
+          <li>getPriceHistory · getPrices · getCryptoPriceHistory</li>
+          <li>Exposes MarketDataReadModelWriter for cache patches</li>
+          <li>Stale times: prices 1m · events 5m · resolved 1h</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="service-card svc-read">
+      <div class="service-header">
+        <span style="font-size:20px">💼</span>
+        <h4>PortfolioService</h4>
+        <span class="badge">Read · BaseDataService</span>
+      </div>
+      <div class="service-body">
+        <p>Read model for account-specific data. Manages optimistic cache patches for order lifecycle events.</p>
+        <ul>
+          <li>getPositions · getBalance · getActivity · getUnrealizedPnL</li>
+          <li>Exposes PortfolioReadModelWriter for write/live services</li>
+          <li>onOrderSubmitted / onOrderConfirmed / onOrderFailed</li>
+          <li>Cache stale: positions 1m · activity 5m · balance 1m</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="service-card svc-stateful">
+      <div class="service-header">
+        <span style="font-size:20px">📈</span>
+        <h4>TradingService</h4>
+        <span class="badge">Stateful · BaseController</span>
+      </div>
+      <div class="service-body">
+        <p>Owns the complete active-order workflow as a discriminated union state machine. The deepest module in the system.</p>
+        <ul>
+          <li>previewOrder · placeOrder · cancelOrder · reset</li>
+          <li>States: IDLE → PREVIEWING → DEPOSITING → PLACING → SUCCESS | ERROR</li>
+          <li>Calls FundingExecutor directly for order funding</li>
+          <li>Calls PortfolioReadModelWriter for cache coordination</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="service-card svc-runtime">
+      <div class="service-header">
+        <span style="font-size:20px">💳</span>
+        <h4>TransactionService</h4>
+        <span class="badge">Runtime · Plain Class</span>
+      </div>
+      <div class="service-body">
+        <p>Public user-intent layer for deposit, withdraw, and claim. Wraps FundingExecutor with user analytics and error normalization.</p>
+        <ul>
+          <li>deposit(params) · withdraw(params) · claim(params)</li>
+          <li>Wraps FundingExecutor.executePlan with user-intent semantics</li>
+          <li>User-facing analytics, retry policy, error normalization</li>
+          <li>Does NOT handle order funding (TradingService does that)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="service-card svc-runtime">
+      <div class="service-header">
+        <span style="font-size:20px">📡</span>
+        <h4>LiveDataService</h4>
+        <span class="badge">Runtime · Plain Class</span>
+      </div>
+      <div class="service-body">
+        <p>Owns WebSocket lifecycle, reconnection, multiplexing, and channel fan-out. Pushes updates to read services via writer interfaces.</p>
+        <ul>
+          <li>subscribe(channel, params) · unsubscribe</li>
+          <li>Calls MarketDataReadModelWriter.applyPriceUpdates</li>
+          <li>Calls PortfolioReadModelWriter.applyPortfolioUpdate</li>
+          <li>Replaces GameCache + TeamsCache with write-through cache</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="service-card svc-helper">
+      <div class="service-header">
+        <span style="font-size:20px">📦</span>
+        <h4>FundingExecutor + predictAnalytics</h4>
+        <span class="badge">Injected Helpers</span>
+      </div>
+      <div class="service-body">
+        <p>Constructor-injected primitives. Not registered as Engine.context entries. Not accessible from hooks or views.</p>
+        <ul>
+          <li>FundingExecutor: executePlan · cancel · destroy</li>
+          <li>predictAnalytics: track(event, properties)</li>
+          <li>FundingExecutor shared by TransactionService + TradingService</li>
+          <li>analytics injected into every service that emits events</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Composition Diagram -->
+  <div class="diagram-wrap" style="margin-top:28px;">
+    <div class="diagram-title">Service Composition and Data Flow</div>
+    <svg viewBox="0 0 860 440" width="100%" style="max-height:440px;">
+      <defs>
+        <marker id="arr-p" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="#6a1b9a"/>
+        </marker>
+        <marker id="arr-b" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="#1565c0"/>
+        </marker>
+        <marker id="arr-g" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="#2e7d32"/>
+        </marker>
+        <marker id="arr-o" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="#e65100"/>
+        </marker>
+      </defs>
+
+      <!-- Hooks layer -->
+      <rect x="20" y="16" width="820" height="52" rx="7" fill="#e8eaf6" stroke="#3949ab" stroke-width="1.5"/>
+      <text x="430" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="#283593">React Hooks (Read Path: useQuery via messenger · Write Path: messenger.call)</text>
+      <text x="430" y="58" text-anchor="middle" font-size="10" fill="#5c6bc0">useEventList · usePositions · useTrading · useLiveData · useTransactions · usePredictGuard</text>
+
+      <!-- Arrows -->
+      <line x1="200" y1="68" x2="200" y2="110" stroke="#1565c0" stroke-width="1.5" marker-end="url(#arr-b)"/>
+      <text x="140" y="92" font-size="9" fill="#9ca3af">useQuery</text>
+      <line x1="430" y1="68" x2="430" y2="110" stroke="#6a1b9a" stroke-width="1.5" marker-end="url(#arr-p)"/>
+      <text x="436" y="92" font-size="9" fill="#9ca3af">messenger.call</text>
+      <line x1="660" y1="68" x2="660" y2="110" stroke="#6a1b9a" stroke-width="1.5" marker-end="url(#arr-p)"/>
+      <text x="666" y="92" font-size="9" fill="#9ca3af">messenger.call</text>
+
+      <!-- Services row 1 -->
+      <rect x="20" y="110" width="230" height="70" rx="7" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/>
+      <text x="135" y="134" text-anchor="middle" font-size="12" font-weight="700" fill="#1565c0">MarketDataService</text>
+      <text x="135" y="150" text-anchor="middle" font-size="10" fill="#1976d2">BaseDataService · TanStack Query</text>
+      <text x="135" y="168" text-anchor="middle" font-size="10" fill="#1976d2">8 actions · MarketDataReadModelWriter</text>
+
+      <rect x="270" y="110" width="230" height="70" rx="7" fill="#f3e5ff" stroke="#6a1b9a" stroke-width="1.5"/>
+      <text x="385" y="134" text-anchor="middle" font-size="12" font-weight="700" fill="#6a1b9a">TradingService</text>
+      <text x="385" y="150" text-anchor="middle" font-size="10" fill="#7b1fa2">BaseController · State Machine</text>
+      <text x="385" y="168" text-anchor="middle" font-size="10" fill="#7b1fa2">5 actions · Redux slice</text>
+
+      <rect x="520" y="110" width="230" height="70" rx="7" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1.5"/>
+      <text x="635" y="134" text-anchor="middle" font-size="12" font-weight="700" fill="#2e7d32">LiveDataService</text>
+      <text x="635" y="150" text-anchor="middle" font-size="10" fill="#388e3c">Runtime · WebSocket lifecycle</text>
+      <text x="635" y="168" text-anchor="middle" font-size="10" fill="#388e3c">2 actions · reader injection</text>
+
+      <!-- PredictSessionService row -->
+      <rect x="270" y="210" width="320" height="60" rx="7" fill="#f3e5ff" stroke="#6a1b9a" stroke-width="2"/>
+      <text x="430" y="235" text-anchor="middle" font-size="12" font-weight="700" fill="#4a148c">PredictSessionService</text>
+      <text x="430" y="252" text-anchor="middle" font-size="10" fill="#6a1b9a">BaseController · getClient(owner) → PredictClient proxy</text>
+
+      <!-- Arrows to session service -->
+      <line x1="135" y1="180" x2="300" y2="210" stroke="#1565c0" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arr-b)"/>
+      <line x1="385" y1="180" x2="385" y2="210" stroke="#6a1b9a" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arr-p)"/>
+      <line x1="635" y1="180" x2="560" y2="210" stroke="#2e7d32" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arr-g)"/>
+
+      <!-- VenueAdapter -->
+      <rect x="200" y="305" width="460" height="50" rx="7" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+      <text x="430" y="328" text-anchor="middle" font-size="12" font-weight="700" fill="#1b5e20">VenueAdapter (PolymarketAdapter / KalshiAdapter)</text>
+      <text x="430" y="346" text-anchor="middle" font-size="10" fill="#2e7d32">Stateless protocol translator · session is a method parameter, never a field</text>
+
+      <line x1="430" y1="270" x2="430" y2="305" stroke="#4a148c" stroke-width="1.5" marker-end="url(#arr-g)"/>
+
+      <!-- External APIs -->
+      <rect x="80" y="385" width="130" height="45" rx="6" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1"/>
+      <text x="145" y="407" text-anchor="middle" font-size="11" font-weight="700" fill="#495057">Gamma API</text>
+      <text x="145" y="422" text-anchor="middle" font-size="9" fill="#6c757d">Events</text>
+      <rect x="230" y="385" width="130" height="45" rx="6" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1"/>
+      <text x="295" y="407" text-anchor="middle" font-size="11" font-weight="700" fill="#495057">CLOB API</text>
+      <text x="295" y="422" text-anchor="middle" font-size="9" fill="#6c757d">Orders · Prices</text>
+      <rect x="380" y="385" width="130" height="45" rx="6" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1"/>
+      <text x="445" y="407" text-anchor="middle" font-size="11" font-weight="700" fill="#495057">Data/Account</text>
+      <text x="445" y="422" text-anchor="middle" font-size="9" fill="#6c757d">Positions · Balances</text>
+      <rect x="530" y="385" width="130" height="45" rx="6" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1"/>
+      <text x="595" y="407" text-anchor="middle" font-size="11" font-weight="700" fill="#495057">WebSocket</text>
+      <text x="595" y="422" text-anchor="middle" font-size="9" fill="#6c757d">Live updates</text>
+
+      <line x1="350" y1="355" x2="145" y2="385" stroke="#dee2e6" stroke-width="1" marker-end="url(#arr-g)"/>
+      <line x1="390" y1="355" x2="295" y2="385" stroke="#dee2e6" stroke-width="1" marker-end="url(#arr-g)"/>
+      <line x1="440" y1="355" x2="445" y2="385" stroke="#dee2e6" stroke-width="1" marker-end="url(#arr-g)"/>
+      <line x1="510" y1="355" x2="595" y2="385" stroke="#dee2e6" stroke-width="1" marker-end="url(#arr-g)"/>
+
+      <!-- ReadModelWriter annotations -->
+      <rect x="756" y="130" width="92" height="50" rx="6" fill="#fff8e1" stroke="#ffa000" stroke-width="1"/>
+      <text x="802" y="151" text-anchor="middle" font-size="9" font-weight="700" fill="#e65100">Cache Writer</text>
+      <text x="802" y="165" text-anchor="middle" font-size="9" fill="#f57c00">LiveData →</text>
+      <text x="802" y="178" text-anchor="middle" font-size="9" fill="#f57c00">read services</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ 5. DATA FLOW -->
+<section id="data-flow">
+  <h2>5 · Data Flow Diagrams</h2>
+  <p class="section-lead">
+    How data moves through the system for the three canonical flows: reading market data, placing an order, and receiving real-time updates.
+  </p>
+
+  <!-- Read Flow -->
+  <div class="flow-card">
+    <div class="flow-header" style="background:#e3f2fd;">
+      <span class="flow-icon">📖</span>
+      Reading Data — Event List (PredictHome → Events on screen)
+    </div>
+    <div class="flow-body">
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="flow-step-num">1</div>
+          <div class="flow-step-content">
+            <h5>PredictHome renders → <code>useEventList(params)</code></h5>
+            <p>Hook calls useInfiniteQuery with the descriptor key from marketDataQueries.getEvents(params). One hook = one query, no wasted calls.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num">2</div>
+          <div class="flow-step-content">
+            <h5>Query routes to <code>MarketDataService</code> via messenger bridge</h5>
+            <p>@metamask/react-data-query routes the query key to the registered service action. TanStack Query deduplicates concurrent requests automatically.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num">3</div>
+          <div class="flow-step-content">
+            <h5><code>MarketDataService.getEvents()</code> → fetchQuery with descriptor</h5>
+            <p>Service consumes the marketDataQueries descriptor for stale time, account scoping, and cache key. Retry and circuit-breaker policies from BaseDataService apply automatically.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num">4</div>
+          <div class="flow-step-content">
+            <h5><code>PredictSessionService.getClient(owner)</code> → <code>PredictClient</code></h5>
+            <p>Session service validates or refreshes the session and returns a bound proxy of the active VenueAdapter. Services never pass session objects to each other.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num">5</div>
+          <div class="flow-step-content">
+            <h5><code>client.fetchEvents(params)</code> → <code>PolymarketAdapter.fetchEvents(params, session)</code> → Gamma API</h5>
+            <p>Adapter calls the venue API, transforms Gamma DTOs into canonical PredictEvent[], and returns. The UI never sees Gamma DTOs, CLOB terminology, or Polymarket types.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num">6</div>
+          <div class="flow-step-content">
+            <h5>Canonical <code>PredictEvent[]</code> populates the query cache → <code>EventFeed</code> widget re-renders</h5>
+            <p>EventFeed widget calls createEventDisplayModel() and passes the result into EventCard. EventCard is a pure presentation component with no venue knowledge.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Write Flow -->
+  <div class="flow-card">
+    <div class="flow-header" style="background:#f3e5ff;">
+      <span class="flow-icon">✍️</span>
+      Writing Data — Place Order (user taps Buy → order confirmed)
+    </div>
+    <div class="flow-body">
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="flow-step-num" style="background:#6a1b9a;">1</div>
+          <div class="flow-step-content">
+            <h5><code>OrderScreen</code> → <code>useTrading().placeOrder(params)</code></h5>
+            <p>The view expresses intent. The hook handles no orchestration — it delegates immediately to the service layer.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num" style="background:#6a1b9a;">2</div>
+          <div class="flow-step-content">
+            <h5><code>messenger.call('PredictTradingService:placeOrder', params)</code></h5>
+            <p>Hook addresses TradingService directly. PredictController is not on this path — it has no placeOrder method.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num" style="background:#6a1b9a;">3</div>
+          <div class="flow-step-content">
+            <h5><code>TradingService</code> advances state machine via <code>this.update()</code></h5>
+            <p>State transitions: IDLE → PREVIEWING → DEPOSITING (if needed) → PLACING_ORDER → SUCCESS. Each transition is an immutable state update on the Redux slice — subscribers re-render reactively.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num" style="background:#6a1b9a;">4</div>
+          <div class="flow-step-content">
+            <h5>Funding check → <code>FundingExecutor.executePlan()</code> (if balance insufficient)</h5>
+            <p>TradingService calls FundingExecutor directly for order funding. This does NOT fire user-deposit analytics or apply user-deposit retry policy — those are user-intent semantics.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num" style="background:#6a1b9a;">5</div>
+          <div class="flow-step-content">
+            <h5><code>client.submitOrder(preview)</code> → <code>PolymarketAdapter</code> → CLOB API</h5>
+            <p>Adapter handles CLOB order signing, L2 headers, serialization, and submission using session material from PredictSessionService. Returns canonical OrderReceipt.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num" style="background:#6a1b9a;">6</div>
+          <div class="flow-step-content">
+            <h5><code>portfolioWriter.onOrderConfirmed(id, receipt)</code> → cache update → UI re-renders</h5>
+            <p>TradingService calls the narrow PortfolioReadModelWriter directly. PortfolioService patches the positions cache. The view updates automatically from the query cache — no additional state synchronization needed.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Data Flow -->
+  <div class="flow-card">
+    <div class="flow-header" style="background:#e8f5e9;">
+      <span class="flow-icon">📡</span>
+      Real-Time Data — Live Prices and Game Updates
+    </div>
+    <div class="flow-body">
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="flow-step-num" style="background:#2e7d32;">1</div>
+          <div class="flow-step-content">
+            <h5><code>useLiveData</code> → <code>messenger.call('PredictLiveDataService:subscribe')</code></h5>
+            <p>Hook subscribes to a typed channel (marketPrices, gameUpdates, orderbook, cryptoPrices). The channel type is a discriminated union — impossible to request an invalid channel.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num" style="background:#2e7d32;">2</div>
+          <div class="flow-step-content">
+            <h5><code>LiveDataService</code> → <code>client.createSubscription(request, session)</code> → venue WebSocket</h5>
+            <p>Service manages connection lifecycle, reconnection, and channel multiplexing internally. Multiple consumers subscribe to the same channel without creating duplicate connections.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num" style="background:#2e7d32;">3</div>
+          <div class="flow-step-content">
+            <h5>Venue pushes update → <code>PolymarketAdapter</code> normalizes → canonical payload</h5>
+            <p>Adapter translates Polymarket WebSocket message format into canonical PriceUpdate or GameUpdate types. LiveDataService receives canonical types, never venue-specific socket frames.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num" style="background:#2e7d32;">4</div>
+          <div class="flow-step-content">
+            <h5><code>marketDataWriter.applyPriceUpdates(updates)</code> → query cache patched</h5>
+            <p>LiveDataService calls named methods on the injected MarketDataReadModelWriter. Cache is patched in-place when the update has stable identifiers. Invalidation/refetch when merge safety is uncertain.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num" style="background:#2e7d32;">5</div>
+          <div class="flow-step-content">
+            <h5>Query cache update → all subscribed components re-render</h5>
+            <p>TanStack Query propagates the cache update to every component using that query key. UI never combines stale query results with separate overlay state — GameCache and TeamsCache are fully eliminated.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ 6. MIGRATION -->
+<section id="migration">
+  <h2>6 · Migration Plan</h2>
+  <p class="section-lead">
+    Inside-out migration: replace internals while keeping the external interface unchanged, then replace the interface once internals are proven in production. Zero UI disruption during Phases 1–5.
+  </p>
+
+  <!-- Strategy -->
+  <div class="strategy-box">
+    <h3>🎯 Core Strategy — Inside-Out, Bottom-Up</h3>
+    <p>The migration follows a strict dependency order: venue adapter contract first → adapter implementation and session service → read services → write services → controller composition root → UI vertical slices → cleanup. Old code delegates to new code at each step. New code never imports old code. The translation layer in <code>PredictNext/compat/</code> is the only bridge between old types and canonical types, and it is deleted in Phase 7.</p>
+  </div>
+
+  <!-- Parallel streams diagram -->
+  <div class="streams-diagram">
+    <div class="diagram-title">Parallel Work Streams</div>
+    <svg viewBox="0 0 860 320" width="100%" style="max-height:320px;">
+      <defs>
+        <marker id="arr-stream" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L7,3 z" fill="#4b5563"/>
+        </marker>
+      </defs>
+
+      <!-- Phase 1 -->
+      <rect x="300" y="10" width="260" height="44" rx="8" fill="#0d47a1"/>
+      <text x="430" y="29" text-anchor="middle" font-size="13" font-weight="700" fill="white">Phase 1 — Foundation</text>
+      <text x="430" y="46" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">Types · Contracts · Error Model · Compat Layer</text>
+
+      <!-- Split -->
+      <line x1="430" y1="54" x2="430" y2="75" stroke="#9ca3af" stroke-width="2"/>
+      <line x1="230" y1="75" x2="630" y2="75" stroke="#9ca3af" stroke-width="2"/>
+      <line x1="230" y1="75" x2="230" y2="90" stroke="#9ca3af" stroke-width="2"/>
+      <line x1="630" y1="75" x2="630" y2="90" stroke="#9ca3af" stroke-width="2"/>
+
+      <!-- Phase 2 -->
+      <rect x="100" y="90" width="260" height="44" rx="8" fill="#1b5e20"/>
+      <text x="230" y="109" text-anchor="middle" font-size="13" font-weight="700" fill="white">Phase 2 — Adapter</text>
+      <text x="230" y="126" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">PolymarketAdapter · PredictSessionService</text>
+
+      <rect x="500" y="90" width="260" height="44" rx="8" fill="#1b5e20"/>
+      <text x="630" y="109" text-anchor="middle" font-size="13" font-weight="700" fill="white">Phase 2 — Adapter</text>
+      <text x="630" y="126" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">PolymarketAdapter · PredictSessionService</text>
+
+      <!-- Phase 3 & 4 in parallel -->
+      <line x1="230" y1="134" x2="230" y2="152" stroke="#9ca3af" stroke-width="2"/>
+      <line x1="630" y1="134" x2="630" y2="152" stroke="#9ca3af" stroke-width="2"/>
+
+      <rect x="100" y="152" width="260" height="44" rx="8" fill="#006064"/>
+      <text x="230" y="171" text-anchor="middle" font-size="13" font-weight="700" fill="white">Phase 3 — Read Services</text>
+      <text x="230" y="188" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">MarketData · Portfolio · Query Descriptors</text>
+
+      <rect x="500" y="152" width="260" height="44" rx="8" fill="#4a148c"/>
+      <text x="630" y="171" text-anchor="middle" font-size="13" font-weight="700" fill="white">Phase 4 — Write Services</text>
+      <text x="630" y="188" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">Trading · Transactions · LiveData · Analytics</text>
+
+      <!-- Parallel label -->
+      <rect x="374" y="163" width="112" height="22" rx="6" fill="#fff8e1" stroke="#ffa000" stroke-width="1"/>
+      <text x="430" y="178" text-anchor="middle" font-size="10" font-weight="700" fill="#e65100">Can run in parallel</text>
+
+      <!-- Merge -->
+      <line x1="230" y1="196" x2="230" y2="218" stroke="#9ca3af" stroke-width="2"/>
+      <line x1="630" y1="196" x2="630" y2="218" stroke="#9ca3af" stroke-width="2"/>
+      <line x1="230" y1="218" x2="630" y2="218" stroke="#9ca3af" stroke-width="2"/>
+      <line x1="430" y1="218" x2="430" y2="234" stroke="#9ca3af" stroke-width="2"/>
+
+      <!-- Phase 5 -->
+      <rect x="300" y="234" width="260" height="44" rx="8" fill="#bf360c"/>
+      <text x="430" y="253" text-anchor="middle" font-size="13" font-weight="700" fill="white">Phase 5 — Composition Root</text>
+      <text x="430" y="270" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.75)">New PredictController · Old becomes shim</text>
+
+      <!-- Phase 6 & 7 -->
+      <line x1="430" y1="278" x2="430" y2="292" stroke="#9ca3af" stroke-width="2"/>
+      <rect x="300" y="292" width="260" height="24" rx="6" fill="#e65100"/>
+      <text x="430" y="308" text-anchor="middle" font-size="11" font-weight="700" fill="white">Phase 6 — UI Migration (8–12 PRs per screen) → Phase 7 — Cleanup</text>
+
+      <!-- Stream labels -->
+      <text x="60" y="178" text-anchor="middle" font-size="11" font-weight="700" fill="#006064" transform="rotate(-90,60,178)">Stream A (Read)</text>
+      <text x="800" y="178" text-anchor="middle" font-size="11" font-weight="700" fill="#4a148c" transform="rotate(90,800,178)">Stream B (Write)</text>
+    </svg>
+  </div>
+
+  <!-- Phase list -->
+  <div class="phases-grid">
+
+    <!-- Phase 1 -->
+    <div class="phase-item">
+      <div class="phase-num ph1">1</div>
+      <div class="phase-line"></div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <div class="phase-name">Foundation</div>
+          <div class="phase-prs">2–3 PRs</div>
+          <span class="tag tag-success">No dependencies</span>
+        </div>
+        <p class="phase-desc">Establish the canonical data model (Event / Market / Outcome), VenueAdapter contract with derived PredictClient type, PredictSessionService contract, error model (PredictError + PredictErrorCode), query descriptors, and the bidirectional compat translation layer. This phase produces no runtime behavior — it is pure contracts.</p>
+        <div class="phase-deliverables">
+          <span class="deliverable">PredictNext/types/index.ts</span>
+          <span class="deliverable">adapters/types.ts (VenueAdapter + PredictClient)</span>
+          <span class="deliverable">errors/PredictError.ts</span>
+          <span class="deliverable">compat/mappers.ts</span>
+          <span class="deliverable">query-descriptors/</span>
+          <span class="deliverable">CONTEXT.md glossary</span>
+        </div>
+        <div class="phase-risk">⚠ Freeze the contract before Phase 2 starts. Naming decisions made here cascade through the entire migration.</div>
+      </div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="phase-item">
+      <div class="phase-num ph2">2</div>
+      <div class="phase-line"></div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <div class="phase-name">Polymarket Adapter + Legacy Delegation</div>
+          <div class="phase-prs">4–5 PRs</div>
+          <span class="tag tag-info">Depends on Phase 1</span>
+        </div>
+        <p class="phase-desc">Build stateless PolymarketAdapter (implements VenueAdapter) and PredictSessionService (produces session-bound PredictClient views). Then incrementally redirect legacy PolymarketProvider methods to delegate to the new adapter — one method at a time. Old UI is completely untouched.</p>
+        <div class="phase-deliverables">
+          <span class="deliverable">PolymarketAdapter.ts (stateless)</span>
+          <span class="deliverable">PredictSessionService.ts</span>
+          <span class="deliverable">venue-api/ (Gamma · CLOB · Data/Account)</span>
+          <span class="deliverable">mappers/ (DTO → canonical)</span>
+          <span class="deliverable">Legacy delegation (method by method)</span>
+        </div>
+        <div class="phase-risk">⚠ Each method delegates independently — any regression is isolated to that one method. Verify Kalshi contract compatibility before marking phase stable.</div>
+      </div>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="phase-item">
+      <div class="phase-num ph3">3</div>
+      <div class="phase-line"></div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <div class="phase-name">Read Services</div>
+          <div class="phase-prs">3–4 PRs</div>
+          <span class="tag tag-info">Depends on Phase 2</span>
+          <span class="tag tag-warning">Can run ∥ with Phase 4</span>
+        </div>
+        <p class="phase-desc">Build MarketDataService and PortfolioService using BaseDataService. Implement query descriptor consumption, read-model writer interfaces (MarketDataReadModelWriter, PortfolioReadModelWriter), and old controller read-method delegation. Replace GameCache, TeamsCache, and custom fetch coordination.</p>
+        <div class="phase-deliverables">
+          <span class="deliverable">MarketDataService.ts (BaseDataService)</span>
+          <span class="deliverable">PortfolioService.ts (BaseDataService)</span>
+          <span class="deliverable">MarketDataReadModelWriter interface</span>
+          <span class="deliverable">PortfolioReadModelWriter interface</span>
+          <span class="deliverable">Old controller read delegation</span>
+        </div>
+        <div class="phase-risk">⚠ Old hooks must continue receiving data in the same legacy format. Write-model writers may use test doubles until Phase 4 concrete services land.</div>
+      </div>
+    </div>
+
+    <!-- Phase 4 -->
+    <div class="phase-item">
+      <div class="phase-num ph4">4</div>
+      <div class="phase-line"></div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <div class="phase-name">Write Services</div>
+          <div class="phase-prs">4–5 PRs</div>
+          <span class="tag tag-info">Depends on Phase 2</span>
+          <span class="tag tag-warning">Can run ∥ with Phase 3</span>
+        </div>
+        <p class="phase-desc">Build TradingService (Stateful, owns order state machine), TransactionService + FundingExecutor (Runtime, public user-intent deposit/withdraw/claim), LiveDataService (Runtime, WebSocket lifecycle), and the predictAnalytics helper module. Old controller write methods delegate to these services.</p>
+        <div class="phase-deliverables">
+          <span class="deliverable">TradingService.ts (BaseController)</span>
+          <span class="deliverable">FundingExecutor.ts (runtime primitive)</span>
+          <span class="deliverable">TransactionService.ts (Runtime)</span>
+          <span class="deliverable">LiveDataService.ts (Runtime)</span>
+          <span class="deliverable">predictAnalytics.ts (injected helper)</span>
+          <span class="deliverable">Old controller write delegation</span>
+        </div>
+        <div class="phase-risk">⚠ FundingExecutor is shared between TransactionService and TradingService. Order funding must NOT fire user-deposit analytics — these are semantically different flows.</div>
+      </div>
+    </div>
+
+    <!-- Phase 5 -->
+    <div class="phase-item">
+      <div class="phase-num ph5">5</div>
+      <div class="phase-line"></div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <div class="phase-name">PredictController Composition Root</div>
+          <div class="phase-prs">1–2 PRs</div>
+          <span class="tag tag-info">Depends on Phases 3 + 4</span>
+        </div>
+        <p class="phase-desc">Build the new PredictController as a stateless composition root (initialize/destroy only). Wire all six services plus FundingExecutor and predictAnalytics. Make the old controller a pure translation shim that forwards calls to new services via messenger. Hooks now address services directly.</p>
+        <div class="phase-deliverables">
+          <span class="deliverable">PredictNext/controller/PredictController.ts</span>
+          <span class="deliverable">Engine init functions per service</span>
+          <span class="deliverable">Old controller → pure shim</span>
+          <span class="deliverable">Fail-closed bootstrap tests</span>
+        </div>
+        <div class="phase-risk">⚠ initialize() must be transactional and fail-closed. Any construction failure must tear every partially-initialized service back down — no partial state left behind.</div>
+      </div>
+    </div>
+
+    <!-- Phase 6 -->
+    <div class="phase-item">
+      <div class="phase-num ph6">6</div>
+      <div class="phase-line"></div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <div class="phase-name">UI Migration — Vertical Slices</div>
+          <div class="phase-prs">8–12 PRs</div>
+          <span class="tag tag-info">Depends on Phase 5</span>
+        </div>
+        <p class="phase-desc">Replace the old Predict UI one screen at a time. Each vertical slice includes new granular hooks, new primitive components (7 compounds replace 45 directories), new widgets, and a new view. No screen ever mixes old and new hooks. Data stack is already proven in production.</p>
+        <div class="phase-deliverables">
+          <span class="deliverable">Event Feed Slice (PredictHome)</span>
+          <span class="deliverable">Event Details Slice</span>
+          <span class="deliverable">Portfolio Slice</span>
+          <span class="deliverable">Order Flow Slice</span>
+          <span class="deliverable">Modals + Guards</span>
+          <span class="deliverable">External consumer switches</span>
+        </div>
+        <div class="phase-risk">⚠ Each screen switch is independently revertable. No screen mixes old and new hooks. Component view tests are mandatory for every migrated view.</div>
+      </div>
+    </div>
+
+    <!-- Phase 7 -->
+    <div class="phase-item">
+      <div class="phase-num ph7">7</div>
+      <div class="phase-line"></div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <div class="phase-name">Cleanup</div>
+          <div class="phase-prs">1–2 PRs</div>
+          <span class="tag tag-info">Depends on Phase 6</span>
+        </div>
+        <p class="phase-desc">Delete the legacy Predict/ directory, delete compat/ translation layer, rename PredictNext/ → Predict/, and update all remaining import paths. The migration is complete when "PredictNext" appears nowhere in production code or import paths.</p>
+        <div class="phase-deliverables">
+          <span class="deliverable">Delete app/components/UI/Predict/</span>
+          <span class="deliverable">Delete PredictNext/compat/</span>
+          <span class="deliverable">git mv PredictNext → Predict</span>
+          <span class="deliverable">Update ~15 external import sites</span>
+          <span class="deliverable">Update CODEOWNERS + docs</span>
+        </div>
+        <div class="phase-risk">⚠ Do not start until all E2E tests pass and no runtime imports from old Predict/ remain. Run a global grep for 'from.*UI/Predict/' before merging.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Risk mitigation -->
+  <div class="card" style="margin-top: 8px;">
+    <div class="card-title">
+      <div class="icon" style="background:#fde8e8;">🛡</div>
+      Risk Mitigation Strategy
+    </div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: 16px; margin-top: 8px;">
+      <div style="padding: 14px; background: var(--mm-gray-50); border-radius: 8px;">
+        <div style="font-weight:700; font-size:14px; color:var(--mm-gray-800); margin-bottom:6px;">Zero UI disruption (Phases 1–5)</div>
+        <div style="font-size:13px; color:var(--mm-gray-600);">No view, hook, or component in old code is touched during the data migration. Old hooks subscribe to the same messenger events and receive the same state shapes.</div>
+      </div>
+      <div style="padding: 14px; background: var(--mm-gray-50); border-radius: 8px;">
+        <div style="font-weight:700; font-size:14px; color:var(--mm-gray-800); margin-bottom:6px;">Incremental delegation</div>
+        <div style="font-size:13px; color:var(--mm-gray-600);">Each controller or provider method delegates to new services one at a time. If one method causes a regression, only that method reverts. Partial delegation is always a stable intermediate state.</div>
+      </div>
+      <div style="padding: 14px; background: var(--mm-gray-50); border-radius: 8px;">
+        <div style="font-weight:700; font-size:14px; color:var(--mm-gray-800); margin-bottom:6px;">One-way dependency</div>
+        <div style="font-size:13px; color:var(--mm-gray-600);">Old Predict/ code may import PredictNext/ (delegation). PredictNext/ must never import old Predict/ except through the temporary compat/ bridge — which is deleted in Phase 7.</div>
+      </div>
+      <div style="padding: 14px; background: var(--mm-gray-50); border-radius: 8px;">
+        <div style="font-weight:700; font-size:14px; color:var(--mm-gray-800); margin-bottom:6px;">Rollback at any phase</div>
+        <div style="font-size:13px; color:var(--mm-gray-600);">Phases 1–5: stop delegating and revert PredictNext PRs. Phase 6: revert route switch for the affected screen. Phase 7: don't start until all screens are stable.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ 7. NAMING -->
+<section id="naming">
+  <h2>7 · Domain Naming Guide</h2>
+  <p class="section-lead">
+    One of the most impactful changes in PredictNext is correcting the domain model to match industry terminology. The compat layer handles this automatically during migration.
+  </p>
+
+  <table class="naming-table">
+    <thead>
+      <tr>
+        <th>Old Term (Predict/)</th>
+        <th>Canonical Term (PredictNext/)</th>
+        <th>Why the change</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>PredictMarket</td>
+        <td>PredictEvent</td>
+        <td>What Polymarket and Kalshi both call an "event" — a top-level grouping of related markets</td>
+      </tr>
+      <tr>
+        <td>PredictOutcome</td>
+        <td>PredictMarket</td>
+        <td>The binary question within an event. Both venues call this a "market"</td>
+      </tr>
+      <tr>
+        <td>PredictOutcomeToken</td>
+        <td>PredictOutcome</td>
+        <td>The tradeable yes/no side. This is what both venues call an "outcome"</td>
+      </tr>
+      <tr>
+        <td>PredictOutcomeGroup</td>
+        <td>PredictMarketGroup</td>
+        <td>A grouping of related markets within an event</td>
+      </tr>
+      <tr>
+        <td>OrderResult</td>
+        <td>OrderReceipt</td>
+        <td>More precise — describes the confirmed result of a submitted order</td>
+      </tr>
+      <tr>
+        <td>getMarkets</td>
+        <td>fetchEvents</td>
+        <td>Verb updated to venue capability style; noun corrected to canonical</td>
+      </tr>
+      <tr>
+        <td>getMarketDetails</td>
+        <td>fetchEvent</td>
+        <td>Corrects legacy marketId-means-eventId confusion</td>
+      </tr>
+      <tr>
+        <td>getCryptoTargetPrice</td>
+        <td>fetchCryptoReferencePrice</td>
+        <td>Reference Price is the accurate term for the external crypto price anchor</td>
+      </tr>
+      <tr>
+        <td>providerId</td>
+        <td>venueId</td>
+        <td>The feature is for prediction market venues, not generic providers</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Layer abstraction table -->
+  <div class="card">
+    <div class="card-title">
+      <div class="icon" style="background:#e3f2fd;">📐</div>
+      Layer Abstraction Rules
+    </div>
+    <table class="compare-table" style="box-shadow:none; margin:0;">
+      <thead>
+        <tr>
+          <th style="width:20%">Layer</th>
+          <th style="width:40%">Primary Abstraction</th>
+          <th style="width:40%">Must NOT Expose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Venue Adapters</td>
+          <td style="background:white; color:var(--mm-gray-700);">Stateless venue translation (one contract)</td>
+          <td style="background:white; color:var(--mm-gray-700);">UI concepts, caching, orchestration, session state</td>
+        </tr>
+        <tr>
+          <td>Services</td>
+          <td style="background:white; color:var(--mm-gray-700);">Product capabilities and workflows</td>
+          <td style="background:white; color:var(--mm-gray-700);">Venue DTOs, raw transport, sessions, signers</td>
+        </tr>
+        <tr>
+          <td>Hooks</td>
+          <td style="background:white; color:var(--mm-gray-700);">React integration seam</td>
+          <td style="background:white; color:var(--mm-gray-700);">Business workflows duplicated from services</td>
+        </tr>
+        <tr>
+          <td>Components</td>
+          <td style="background:white; color:var(--mm-gray-700);">Presentation and user interaction</td>
+          <td style="background:white; color:var(--mm-gray-700);">Venue protocols, transaction plumbing, state machines</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>Generated from <strong>PredictNext/docs/</strong> — architecture.md · services.md · adapters.md · hooks.md · components.md · migration/README.md · phase-1 through phase-7 · state-management.md · error-handling.md · testing.md</p>
+  <p style="margin-top: 8px;">MetaMask Mobile · PredictNext Rewrite · Confidential</p>
+</footer>
+
+</body>
+</html>

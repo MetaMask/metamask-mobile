@@ -86,92 +86,92 @@ done
 # Download function
 download_latest_app() {
   echo -e "${BLUE}📥 Downloading latest app from Runway...${NC}"
-  
+
   # Create directory if it doesn't exist
   mkdir -p "$RUNWAY_DIR"
-  
+
   echo -e "${BLUE}Fetching builds from Runway API...${NC}"
   BUILDS_JSON=$(curl -s --connect-timeout 10 --max-time 30 "$RUNWAY_API_URL")
-  
+
   if [ -z "$BUILDS_JSON" ]; then
     echo -e "${RED}❌ Failed to fetch builds from API${NC}"
     exit 1
   fi
-  
+
   # Save JSON for debugging
   echo "$BUILDS_JSON" > "$RUNWAY_DIR/runway-builds-debug.json"
   echo -e "${YELLOW}Saved builds data to $RUNWAY_DIR/runway-builds-debug.json${NC}"
-  
+
   echo -e "${BLUE}Looking for latest successful build with artifacts...${NC}"
-  
+
   # Check if jq is installed
   if ! command -v jq &> /dev/null; then
     echo -e "${RED}❌ jq is required but not installed${NC}"
     echo -e "${YELLOW}Install with: brew install jq${NC}"
     exit 1
   fi
-  
+
   # Use jq to find the first successful build with a zip artifact
   # Returns: build_id|artifact_filename|build_identifier
   BUILD_INFO=$(echo "$BUILDS_JSON" | jq -r '
-    .data[] | 
-    select(.ciBuild.buildStatus == "success") | 
+    .data[] |
+    select(.ciBuild.buildStatus == "success") |
     select(.additionalArtifacts | length > 0) |
     select(.additionalArtifacts | map(.fileName) | any(endswith(".zip"))) |
     . as $build |
     ($build.additionalArtifacts | map(select(.fileName | endswith(".zip"))) | first | .fileName) as $zipFile |
     "\($build.id)|\($zipFile)|\($build.ciBuild.buildIdentifier)"
   ' | head -1 || true)
-  
+
   if [[ -z "$BUILD_INFO" ]]; then
     echo -e "${RED}❌ No successful builds with zip artifacts found${NC}"
     echo -e "${YELLOW}Check $RUNWAY_DIR/runway-builds-debug.json for details${NC}"
     exit 1
   fi
-  
+
   BUILD_ID=$(echo "$BUILD_INFO" | cut -d'|' -f1)
   ARTIFACT_NAME=$(echo "$BUILD_INFO" | cut -d'|' -f2)
   BUILD_IDENTIFIER=$(echo "$BUILD_INFO" | cut -d'|' -f3)
-  
+
   # Validate ARTIFACT_NAME to prevent path traversal attacks
   if [[ -z "$ARTIFACT_NAME" || "$ARTIFACT_NAME" == *".."* || "$ARTIFACT_NAME" == *"/"* || ! "$ARTIFACT_NAME" =~ \.zip$ ]]; then
     echo -e "${RED}❌ Invalid artifact name: $ARTIFACT_NAME${NC}"
     exit 1
   fi
-  
+
   # Validate BUILD_ID (should only contain alphanumeric, -, _, =)
   if [[ -z "$BUILD_ID" || ! "$BUILD_ID" =~ ^[a-zA-Z0-9_=-]+$ ]]; then
     echo -e "${RED}❌ Invalid build ID${NC}"
     exit 1
   fi
-  
+
   echo -e "${GREEN}✓ Found Build #$BUILD_IDENTIFIER${NC}"
   echo -e "${GREEN}  Artifact: $ARTIFACT_NAME${NC}"
-  
+
   # Construct download URL (returns 302 redirect to S3)
   DOWNLOAD_URL="https://app.runway.team/api/build/$BUILD_ID/download?artifactFileName=$ARTIFACT_NAME"
-  
+
   # Download the zip
   ZIP_PATH="$RUNWAY_DIR/$ARTIFACT_NAME"
-  
+
   echo -e "${BLUE}Downloading $ARTIFACT_NAME...${NC}"
   HTTP_CODE=$(curl -L --connect-timeout 10 --max-time 600 -w "%{http_code}" -o "$ZIP_PATH" "$DOWNLOAD_URL")
-  
+
   if [ "$HTTP_CODE" -ne 200 ]; then
     echo -e "${RED}❌ Download failed with HTTP code: $HTTP_CODE${NC}"
     safe_rm "$ZIP_PATH"
     exit 1
   fi
-  
+
   echo -e "${GREEN}✓ Downloaded: $ARTIFACT_NAME${NC}"
-  
+
   # Extract the .app bundle
   # The zip contains the contents of the .app, so we create the .app directory first
   # Always name the app "MetaMask.app" regardless of the artifact filename
   APP_NAME="MetaMask.app"
-  
+
   EXTRACTED_APP_PATH="$RUNWAY_DIR/$APP_NAME"
-  
+
   # Remove old .app bundles (keep only the new one)
   echo -e "${BLUE}Removing old app bundles...${NC}"
   while IFS= read -r old_app; do
@@ -180,13 +180,13 @@ download_latest_app() {
       safe_rm_dir "$old_app"
     fi
   done < <(find "$RUNWAY_DIR" -name "*.app" -type d -maxdepth 1 2>/dev/null)
-  
+
   # Remove existing app with same name (will be overwritten)
   if [[ -d "$EXTRACTED_APP_PATH" ]]; then
     echo -e "${YELLOW}  Overwriting: $APP_NAME${NC}"
     safe_rm_dir "$EXTRACTED_APP_PATH"
   fi
-  
+
   echo -e "${BLUE}Extracting to $APP_NAME...${NC}"
   mkdir -p "$EXTRACTED_APP_PATH"
   ditto -x -k "$ZIP_PATH" "$EXTRACTED_APP_PATH"
@@ -204,7 +204,7 @@ download_latest_app() {
   fi
 
   echo -e "${GREEN}✓ Successfully downloaded and extracted app!${NC}"
-  
+
   # Cleanup zip file (debug json cleaned by trap on success)
   echo -e "${BLUE}Cleaning up...${NC}"
   safe_rm "$ZIP_PATH"
@@ -266,6 +266,6 @@ fi
 
 # Install the app
 echo -e "${GREEN}Installing app on simulator...${NC}"
-xcrun simctl install booted "$APP_PATH"
+xcrun simctl install mm-red "$APP_PATH"
 
 echo -e "${GREEN}✓ Successfully installed app on simulator!${NC}"
