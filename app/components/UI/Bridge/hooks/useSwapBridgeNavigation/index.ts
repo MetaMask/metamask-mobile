@@ -135,6 +135,7 @@ export const useSwapBridgeNavigation = ({
   transactionActiveAbTests,
   skipLocationUpdate = false,
   swapButtonEventLocationOverride,
+  skipActionButtonClickTracking = false,
 }: {
   location: SwapBridgeNavigationLocation;
   sourcePage: string;
@@ -161,6 +162,11 @@ export const useSwapBridgeNavigation = ({
   swapButtonEventLocationOverride?:
     | ActionLocation
     | SwapBridgeNavigationLocation;
+  /**
+   * When true, skip consolidated ACTION_BUTTON_CLICKED from this hook so the
+   * caller can emit it with the correct location / position (e.g. homepage grid).
+   */
+  skipActionButtonClickTracking?: boolean;
 }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -370,20 +376,26 @@ export const useSwapBridgeNavigation = ({
       }
 
       // Track Swap button click with new consolidated event
-      const isFromNavbar = location === SwapBridgeNavigationLocation.MainView;
-      const actionButtonProps = {
-        action_name: ActionButtonType.SWAP,
-        // Omit action_position for navbar to avoid confusion with main action buttons
-        ...(isFromNavbar
-          ? {}
-          : { action_position: ActionPosition.SECOND_POSITION }),
-        button_label: buttonLabel ?? strings('asset_overview.swap'),
-        location: isFromNavbar
-          ? ActionLocation.NAVBAR
-          : ActionLocation.ASSET_DETAILS,
-      };
+      if (!skipActionButtonClickTracking) {
+        const isFromNavbar = location === SwapBridgeNavigationLocation.MainView;
+        const actionButtonProps = {
+          action_name: ActionButtonType.SWAP,
+          // Omit action_position for navbar to avoid confusion with main action buttons
+          ...(isFromNavbar
+            ? {}
+            : { action_position: ActionPosition.SECOND_POSITION }),
+          button_label: buttonLabel ?? strings('asset_overview.swap'),
+          location: isFromNavbar
+            ? ActionLocation.NAVBAR
+            : ActionLocation.ASSET_DETAILS,
+        };
 
-      trackActionButtonClick(trackEvent, createEventBuilder, actionButtonProps);
+        trackActionButtonClick(
+          trackEvent,
+          createEventBuilder,
+          actionButtonProps,
+        );
+      }
 
       const swapEventProperties = {
         location:
@@ -421,6 +433,7 @@ export const useSwapBridgeNavigation = ({
       getIsBridgeEnabledSource,
       skipLocationUpdate,
       swapButtonEventLocationOverride,
+      skipActionButtonClickTracking,
       transactionActiveAbTests,
       isBasicFunctionalityEnabled,
       prefetchPopularTokens,

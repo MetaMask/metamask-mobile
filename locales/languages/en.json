@@ -10339,6 +10339,16 @@
     }
   },
   "homepage": {
+    "action_buttons": {
+      "buy": "Buy",
+      "sell": "Sell",
+      "swap": "Swap",
+      "send": "Send",
+      "perps": "Perps",
+      "predict": "Predict",
+      "batch_swap": "Batch Swap",
+      "traders": "Traders"
+    },
     "sections": {
       "money": "Money",
       "money_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Money section on the homepage.",
