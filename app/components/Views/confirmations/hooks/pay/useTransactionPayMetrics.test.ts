@@ -1456,7 +1456,7 @@ describe('useTransactionPayMetrics', () => {
 
       await act(async () => noop());
 
-      const errors = lastProps()?.mm_pay_quote_errors as Array<Record<string, unknown>>;
+      const errors = lastProps()?.mm_pay_quote_errors as Record<string, unknown>[];
       expect(errors?.[0]).toMatchObject({
         percentage_amount: 50,
         percentage_max: false,
@@ -1487,7 +1487,7 @@ describe('useTransactionPayMetrics', () => {
 
       await act(async () => noop());
 
-      const errors = lastProps()?.mm_pay_quote_errors as Array<Record<string, unknown>>;
+      const errors = lastProps()?.mm_pay_quote_errors as Record<string, unknown>[];
       expect(errors?.[0]).toMatchObject({
         percentage_amount: 100,
         percentage_max: true,
@@ -1526,7 +1526,7 @@ describe('useTransactionPayMetrics', () => {
       rerender({});
       await act(async () => noop());
 
-      const errors = lastProps()?.mm_pay_quote_errors as Array<unknown>;
+      const errors = lastProps()?.mm_pay_quote_errors as unknown[];
       expect(errors).toHaveLength(2);
     });
 
@@ -1559,7 +1559,7 @@ describe('useTransactionPayMetrics', () => {
       rerender({});
       await act(async () => noop());
 
-      const errors = lastProps()?.mm_pay_quote_errors as Array<unknown>;
+      const errors = lastProps()?.mm_pay_quote_errors as unknown[];
       expect(errors).toHaveLength(1);
     });
 
@@ -1584,7 +1584,7 @@ describe('useTransactionPayMetrics', () => {
       rerender({});
       await act(async () => noop());
 
-      const errors = lastProps()?.mm_pay_quote_errors as Array<Record<string, unknown>>;
+      const errors = lastProps()?.mm_pay_quote_errors as Record<string, unknown>[];
       expect(errors).toHaveLength(1);
       expect(errors?.[0]).toMatchObject({
         pay_token: {
@@ -1594,6 +1594,5 @@ describe('useTransactionPayMetrics', () => {
         },
       });
     });
-
   });
 });
