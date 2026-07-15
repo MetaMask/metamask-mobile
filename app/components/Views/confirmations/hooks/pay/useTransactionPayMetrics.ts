@@ -15,7 +15,6 @@ import { BridgeToken } from '../../../../UI/Bridge/types';
 import { hasTransactionType } from '../../utils/transaction';
 import {
   useIsTransactionPayQuoteLoading,
-  useTransactionPayIsMaxAmount,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
 } from './useTransactionPayData';
@@ -48,7 +47,6 @@ export function useTransactionPayMetrics() {
   const wasQuoteLoadingRef = useRef(false);
   const quotes = useTransactionPayQuotes();
   const isQuoteLoading = useIsTransactionPayQuoteLoading();
-  const isMaxAmount = useTransactionPayIsMaxAmount();
   const { availableTokens: tokens, hasTokens } =
     useTransactionPayAvailableTokens();
 
@@ -116,7 +114,6 @@ export function useTransactionPayMetrics() {
     const inputType = storedMetrics?.properties?.mm_pay_amount_input_type as
       | string
       | undefined;
-    const percentageMatch = inputType?.match(/^(\d+)%$/);
     quoteErrorsRef.current = [
       ...quoteErrorsRef.current,
       {
@@ -126,8 +123,7 @@ export function useTransactionPayMetrics() {
           address: payToken?.address ?? null,
         },
         amount: sendingValue,
-        percentage_amount: percentageMatch ? Number(percentageMatch[1]) : null,
-        percentage_max: percentageMatch ? isMaxAmount : null,
+        amount_input_type: inputType ?? null,
         error_message: 'unknown',
       },
     ];

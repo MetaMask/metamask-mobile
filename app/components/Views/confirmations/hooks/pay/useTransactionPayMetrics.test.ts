@@ -23,7 +23,6 @@ import {
 import { Json } from '@metamask/utils';
 import {
   useIsTransactionPayQuoteLoading,
-  useTransactionPayIsMaxAmount,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPayFiatPayment,
@@ -129,9 +128,6 @@ describe('useTransactionPayMetrics', () => {
   const useIsTransactionPayQuoteLoadingMock = jest.mocked(
     useIsTransactionPayQuoteLoading,
   );
-  const useTransactionPayIsMaxAmountMock = jest.mocked(
-    useTransactionPayIsMaxAmount,
-  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -171,7 +167,6 @@ describe('useTransactionPayMetrics', () => {
     useFiatPaymentHighlightedActionsMock.mockReturnValue([]);
     useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue(undefined);
     useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
-    useTransactionPayIsMaxAmountMock.mockReturnValue(false);
   });
 
   it('includes available crypto method even before a pay token is selected', async () => {
@@ -1402,8 +1397,7 @@ describe('useTransactionPayMetrics', () => {
             address: PAY_TOKEN_MOCK.address,
           },
           amount: Number(TOKEN_AMOUNT_MOCK),
-          percentage_amount: null,
-          percentage_max: null,
+          amount_input_type: null,
           error_message: 'unknown',
         },
       ]);
@@ -1432,7 +1426,7 @@ describe('useTransactionPayMetrics', () => {
       expect(lastProps()).not.toHaveProperty('mm_pay_quote_errors');
     });
 
-    it('captures percentage_amount from stored input type', async () => {
+    it('records amount_input_type from stored metric', async () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
@@ -1441,7 +1435,6 @@ describe('useTransactionPayMetrics', () => {
       mockSelectConfirmationMetricsById.mockReturnValue({
         properties: { mm_pay_amount_input_type: '50%' },
       });
-      useTransactionPayIsMaxAmountMock.mockReturnValue(false);
 
       useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
       useTransactionPayQuotesMock.mockReturnValue([]);
@@ -1458,21 +1451,17 @@ describe('useTransactionPayMetrics', () => {
 
       const errors = lastProps()?.mm_pay_quote_errors as Record<string, unknown>[];
       expect(errors?.[0]).toMatchObject({
-        percentage_amount: 50,
-        percentage_max: false,
+        amount_input_type: '50%',
       });
     });
 
-    it('captures percentage_max: true when max is set', async () => {
+    it('records amount_input_type as null when no amount input has been made', async () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
         setPayToken: noop,
       } as ReturnType<typeof useTransactionPayToken>);
 
-      mockSelectConfirmationMetricsById.mockReturnValue({
-        properties: { mm_pay_amount_input_type: '100%' },
-      });
-      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+      mockSelectConfirmationMetricsById.mockReturnValue({});
 
       useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
       useTransactionPayQuotesMock.mockReturnValue([]);
@@ -1489,8 +1478,7 @@ describe('useTransactionPayMetrics', () => {
 
       const errors = lastProps()?.mm_pay_quote_errors as Record<string, unknown>[];
       expect(errors?.[0]).toMatchObject({
-        percentage_amount: 100,
-        percentage_max: true,
+        amount_input_type: null,
       });
     });
 
