@@ -1,11 +1,7 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { execSync } from 'child_process';
 import LoginView from '../../page-objects/wallet/LoginView';
-import {
-  PlaywrightAssertions,
-  sleep,
-  createLogger,
-} from '../../framework';
+import { PlaywrightAssertions, sleep, createLogger } from '../../framework';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 

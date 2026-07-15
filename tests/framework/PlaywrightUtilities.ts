@@ -456,6 +456,65 @@ class PlaywrightUtilities {
   }
 
   /**
+   * Force-stop Chrome so the next launch reads `/data/local/tmp/chrome-command-line`.
+   */
+  static forceStopChrome(): void {
+    try {
+      execSync(`adb shell am force-stop ${CHROME_PACKAGE}`, { stdio: 'pipe' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn(`Could not force-stop Chrome: ${message}`);
+    }
+  }
+
+  /**
+   * Open a URL in Chrome via VIEW intent (bypasses omnibox UI flakiness on CI).
+   */
+  static openUrlInChrome(url: string): void {
+    const escapedUrl = url.replace(/"/g, '\\"');
+    try {
+      execSync(
+        `adb shell am start -a android.intent.action.VIEW -d "${escapedUrl}" ${CHROME_PACKAGE}`,
+        { stdio: 'pipe' },
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to open URL in Chrome via intent: ${message}`);
+    }
+  }
+
+  /**
+   * Grant notification permission so Chrome does not block the NTP with the
+   * "Chrome notifications make things easier" dialog on google_apis emulators.
+   */
+  static grantChromeNotificationPermission(): void {
+    try {
+      execSync(
+        `adb shell pm grant ${CHROME_PACKAGE} android.permission.POST_NOTIFICATIONS`,
+        { stdio: 'pipe' },
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn(
+        `Could not grant Chrome POST_NOTIFICATIONS (dialog may show): ${message}`,
+      );
+    }
+  }
+
+  /**
+   * Collapse the status bar so heads-up notifications (e.g. Play services)
+   * do not cover Chrome's omnibox on CI emulators.
+   */
+  static collapseStatusBar(): void {
+    try {
+      execSync('adb shell cmd statusbar collapse', { stdio: 'pipe' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn(`Could not collapse status bar: ${message}`);
+    }
+  }
+
+  /**
    * Resolves {@link LaunchArgs} defaults for Playwright + Appium (same logical defaults as
    * `FixtureHelper` Detox Android: fallback ports + URL blacklist + account-activity WS fallback).
    * Callers may override or extend via `launchArgs` (e.g. real ports when `withFixtures` is active).

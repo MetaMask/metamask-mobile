@@ -17,11 +17,20 @@ const CHROME_DISMISS_TIMEOUT_MS = 5000;
 const CHROME_UI_SETTLE_MS = 800;
 
 /**
- * Dismisses the "Enhanced ad privacy" dialog if present.
+ * Dismisses common Chrome first-run / privacy / default-browser dialogs if present.
  * @returns void
  */
 const dismissChromeAdPrivacyIfPresent = async () => {
-  const dismissTexts = ['Got it', 'No thanks', 'Skip', 'Continue'];
+  const dismissTexts = [
+    'Got it',
+    'No thanks',
+    'Skip',
+    'Continue',
+    'Accept & continue',
+    'Accept and continue',
+    'Use without an account',
+    'More',
+  ];
   for (const text of dismissTexts) {
     try {
       const element = await PlaywrightMatchers.getElementByText(text);
@@ -35,6 +44,7 @@ const dismissChromeAdPrivacyIfPresent = async () => {
 
 /**
  * Dismisses the "Chrome notifications make things easier" modal if present.
+ * Prefer text — resource IDs differ across Chrome versions on emulators.
  * @returns void
  */
 const dismissChromeNotificationsIfPresent = async () => {
@@ -87,6 +97,43 @@ const safelyOnboardChromeBrowser = async () => {
 };
 
 /**
+ * Wait until Chrome NTP/omnibox is interactable, dismissing leftover dialogs.
+ * google_apis emulator Chrome often uses placeholder text instead of stable IDs.
+ */
+const waitForChromeNavigationReady = async () => {
+  const deadline = Date.now() + 20_000;
+  while (Date.now() < deadline) {
+    PlaywrightUtilities.collapseStatusBar();
+    try {
+      await withTimeout(
+        dismissChromeNotificationsIfPresent(),
+        2_000,
+        'dismissChromeNotificationsReady',
+      );
+    } catch {
+      // Modal not present
+    }
+
+    for (const probe of [
+      () => asPlaywrightElement(ChromeBrowserView.chromeHomePageSearchBox),
+      () => asPlaywrightElement(ChromeBrowserView.chromeUrlBar),
+      () =>
+        PlaywrightMatchers.getElementByText('Search or type web address', true),
+    ]) {
+      try {
+        const element = await probe();
+        if (await element.isDisplayed()) {
+          return;
+        }
+      } catch {
+        // Try next probe
+      }
+    }
+    await new Promise((r) => setTimeout(r, 500));
+  }
+};
+
+/**
  * Launches the mobile browser
  * @returns A promise that resolves when the launch is complete
  */
@@ -98,13 +145,17 @@ export const launchMobileBrowser = async ({
     return;
   }
 
-  PlaywrightUtilities.setupChromeDisableFre();
+  // Clear before disable-fre so the next cold start picks up chrome-command-line.
   PlaywrightUtilities.clearChromeData();
+  PlaywrightUtilities.setupChromeDisableFre();
+  PlaywrightUtilities.grantChromeNotificationPermission();
+  PlaywrightUtilities.forceStopChrome();
 
   await PlaywrightGestures.activateApp(undefined, CHROME_PACKAGE);
   if (safelyOnboardChrome) {
     await safelyOnboardChromeBrowser();
   }
+  await waitForChromeNavigationReady();
   await new Promise((r) => setTimeout(r, CHROME_UI_SETTLE_MS));
 };
 
@@ -126,17 +177,55 @@ export const switchToMobileBrowser = async () => {
  * @returns A promise that resolves when the navigation is complete
  */
 export const navigateToDappAndroid = async (url: string) => {
+  PlaywrightUtilities.collapseStatusBar();
+
+  // Prefer VIEW intent — omnibox IDs/text are unreliable on fresh google_apis Chrome.
+  try {
+    PlaywrightUtilities.openUrlInChrome(url);
+    await new Promise((r) => setTimeout(r, CHROME_UI_SETTLE_MS));
+    return;
+  } catch {
+    // Fall back to omnibox UI navigation
+  }
+
   try {
     await ChromeBrowserView.tapSearchBox();
   } catch {
-    // NTP search box not present — tap URL bar directly
+    try {
+      // Newer Chrome on google_apis images may not expose search_box_text.
+      await PlaywrightGestures.waitAndTap(
+        await PlaywrightMatchers.getElementByText(
+          'Search or type web address',
+          true,
+        ),
+      );
+    } catch {
+      // NTP search box not present — tap URL bar directly
+    }
   }
-  await ChromeBrowserView.tapUrlBar();
-  await PlaywrightGestures.typeText(
-    await asPlaywrightElement(ChromeBrowserView.chromeUrlBar),
-    url,
-  );
-  await ChromeBrowserView.tapSelectDappUrl();
+  try {
+    await ChromeBrowserView.tapUrlBar();
+  } catch {
+    // Omnibox may already be focused after tapping the search placeholder.
+  }
+
+  try {
+    await PlaywrightGestures.typeText(
+      await asPlaywrightElement(ChromeBrowserView.chromeUrlBar),
+      url,
+    );
+  } catch {
+    const editText = await PlaywrightMatchers.getElementByXPath(
+      '//android.widget.EditText',
+    );
+    await PlaywrightGestures.typeText(editText, url);
+  }
+  try {
+    await ChromeBrowserView.tapSelectDappUrl();
+  } catch {
+    // Suggestion row resource IDs vary; Enter submits the omnibox URL.
+    await PlaywrightGestures.submitAndroidUrlBar();
+  }
 };
 
 /**
