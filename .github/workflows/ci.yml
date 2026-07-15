@@ -323,7 +323,24 @@ jobs:
           key: tsbuildinfo-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             tsbuildinfo-${{ runner.os }}-
+      - name: DEBUG copy restored tsbuildinfo
+        if: ${{ matrix.scripts == 'lint:tsc' }}
+        run: |
+          ls -la tsconfig.tsbuildinfo || echo "NO RESTORED FILE"
+          cp tsconfig.tsbuildinfo /tmp/tsbuildinfo-restored.json || true
       - run: yarn ${{ matrix['scripts'] }}
+      - name: DEBUG copy fresh tsbuildinfo
+        if: ${{ matrix.scripts == 'lint:tsc' }}
+        run: |
+          ls -la tsconfig.tsbuildinfo || echo "NO FRESH FILE"
+          cp tsconfig.tsbuildinfo /tmp/tsbuildinfo-fresh.json || true
+      - name: DEBUG upload tsbuildinfo artifacts
+        if: ${{ matrix.scripts == 'lint:tsc' && always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsbuildinfo-debug
+          path: /tmp/tsbuildinfo-*.json
+          if-no-files-found: warn
       - name: Require clean working directory
         shell: bash
         run: |
