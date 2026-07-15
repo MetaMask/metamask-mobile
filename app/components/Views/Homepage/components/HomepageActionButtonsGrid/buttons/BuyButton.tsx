@@ -1,6 +1,8 @@
 import React, { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { selectCanSignTransactions } from '../../../../../../selectors/accountsController';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import {
@@ -18,6 +20,7 @@ const BuyButton = ({
 }: HomepageActionButtonSlotProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { goToBuy } = useRampNavigation();
+  const canSignTransactions = useSelector(selectCanSignTransactions);
   const label = strings('homepage.action_buttons.buy');
 
   const handlePress = useCallback(() => {
@@ -34,6 +37,7 @@ const BuyButton = ({
     <HomepageActionButton
       allowTwoLineLabel={allowTwoLineLabel}
       iconName={IconName.Add}
+      isDisabled={!canSignTransactions}
       label={label}
       onPress={handlePress}
       testID={HomepageActionButtonsGridTestIds.BUY_BUTTON}

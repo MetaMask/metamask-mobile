@@ -80,40 +80,99 @@ jest.mock('react-redux', () => ({
 
 import HomepageActionButtonsGrid from './HomepageActionButtonsGrid';
 
-const mockSelectorState = () => {
+interface SelectorOverrides {
+  canSignTransactions?: boolean;
+  isSwapsEnabled?: boolean;
+  isBatchSellEnabled?: boolean;
+  isSocialLeaderboardEnabled?: boolean;
+  isPerpsEnabled?: boolean;
+  isPredictEnabled?: boolean;
+  isFirstTimePerpsUser?: boolean;
+}
+
+const mockSelectorState = (overrides: SelectorOverrides = {}) => {
+  const {
+    canSignTransactions = true,
+    isSwapsEnabled = true,
+    isBatchSellEnabled = true,
+    isSocialLeaderboardEnabled = true,
+    isPerpsEnabled = true,
+    isPredictEnabled = true,
+    isFirstTimePerpsUser = false,
+  } = overrides;
+
   mockUseSelector.mockImplementation((selector: unknown) => {
     if (selector === selectCanSignTransactions) {
-      return true;
+      return canSignTransactions;
     }
     if (selector === selectIsSwapsEnabled) {
-      return true;
+      return isSwapsEnabled;
     }
     if (selector === selectBatchSellEnabled) {
-      return true;
+      return isBatchSellEnabled;
     }
     if (selector === selectSocialLeaderboardEnabled) {
-      return true;
+      return isSocialLeaderboardEnabled;
     }
     if (selector === selectPerpsEnabledFlag) {
-      return true;
+      return isPerpsEnabled;
     }
     if (selector === selectIsFirstTimePerpsUser) {
-      return false;
+      return isFirstTimePerpsUser;
     }
     if (selector === selectPredictEnabledFlag) {
-      return true;
+      return isPredictEnabled;
     }
-    // selectIsSwapsEnabled is often called as (state) => select...(state)
+    // Swap / Batch Swap wrap selectIsSwapsEnabled in an arrow selector.
     if (typeof selector === 'function') {
-      try {
-        return selector({});
-      } catch {
-        return true;
-      }
+      return isSwapsEnabled;
     }
     return true;
   });
 };
+
+const ROW1_TOP_BUTTON_CASES = [
+  {
+    testId: HomepageActionButtonsGridTestIds.BUY_BUTTON,
+    actionName: ActionButtonType.BUY,
+    actionPosition: ActionPosition.FIRST_POSITION,
+  },
+  {
+    testId: HomepageActionButtonsGridTestIds.SELL_BUTTON,
+    actionName: ActionButtonType.SELL,
+    actionPosition: ActionPosition.SECOND_POSITION,
+  },
+  {
+    testId: HomepageActionButtonsGridTestIds.SWAP_BUTTON,
+    actionName: ActionButtonType.SWAP,
+    actionPosition: ActionPosition.THIRD_POSITION,
+  },
+  {
+    testId: HomepageActionButtonsGridTestIds.SEND_BUTTON,
+    actionName: ActionButtonType.SEND,
+    actionPosition: ActionPosition.FOURTH_POSITION,
+  },
+  {
+    testId: HomepageActionButtonsGridTestIds.PERPS_BUTTON,
+    actionName: ActionButtonType.PERPS,
+    actionPosition: ActionPosition.FIFTH_POSITION,
+  },
+  {
+    testId: HomepageActionButtonsGridTestIds.PREDICT_BUTTON,
+    actionName: ActionButtonType.PREDICT,
+    actionPosition: ActionPosition.SIXTH_POSITION,
+  },
+  {
+    testId: HomepageActionButtonsGridTestIds.BATCH_SWAP_BUTTON,
+    actionName: ActionButtonType.BATCH_SWAP,
+    actionPosition: ActionPosition.SEVENTH_POSITION,
+  },
+  {
+    testId: HomepageActionButtonsGridTestIds.TRADERS_BUTTON,
+    actionName: ActionButtonType.TRADERS,
+    actionPosition: ActionPosition.EIGHTH_POSITION,
+  },
+] as const;
 
 describe('HomepageActionButtonsGrid', () => {
   beforeEach(() => {
@@ -129,50 +188,31 @@ describe('HomepageActionButtonsGrid', () => {
     expect(
       getByTestId(HomepageActionButtonsGridTestIds.CONTAINER),
     ).toBeOnTheScreen();
-    expect(
-      getByTestId(HomepageActionButtonsGridTestIds.BUY_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(HomepageActionButtonsGridTestIds.SELL_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(HomepageActionButtonsGridTestIds.SWAP_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(HomepageActionButtonsGridTestIds.SEND_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(HomepageActionButtonsGridTestIds.PERPS_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(HomepageActionButtonsGridTestIds.PREDICT_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(HomepageActionButtonsGridTestIds.BATCH_SWAP_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(HomepageActionButtonsGridTestIds.TRADERS_BUTTON),
-    ).toBeOnTheScreen();
+    ROW1_TOP_BUTTON_CASES.forEach(({ testId }) => {
+      expect(getByTestId(testId)).toBeOnTheScreen();
+    });
   });
 
-  it('tracks sell tap with second position for row1Top', () => {
-    const { getByTestId } = render(
-      <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
-    );
+  it.each(ROW1_TOP_BUTTON_CASES)(
+    'tracks $actionName tap with position $actionPosition for row1Top',
+    ({ testId, actionName, actionPosition }) => {
+      const { getByTestId } = render(
+        <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
+      );
 
-    fireEvent.press(getByTestId(HomepageActionButtonsGridTestIds.SELL_BUTTON));
+      fireEvent.press(getByTestId(testId));
 
-    expect(mockTrackActionButtonClick).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.anything(),
-      expect.objectContaining({
-        action_name: ActionButtonType.SELL,
-        action_position: ActionPosition.SECOND_POSITION,
-        location: ActionLocation.HOME,
-      }),
-    );
-    expect(mockGoToSell).toHaveBeenCalledTimes(1);
-  });
+      expect(mockTrackActionButtonClick).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.objectContaining({
+          action_name: actionName,
+          action_position: actionPosition,
+          location: ActionLocation.HOME,
+        }),
+      );
+    },
+  );
 
   it('tracks sell tap with sixth position for row2Top', () => {
     const { getByTestId } = render(
@@ -200,13 +240,108 @@ describe('HomepageActionButtonsGrid', () => {
     fireEvent.press(getByTestId(HomepageActionButtonsGridTestIds.SEND_BUTTON));
 
     expect(mockOnSend).toHaveBeenCalledTimes(1);
-    expect(mockTrackActionButtonClick).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.anything(),
-      expect.objectContaining({
-        action_name: ActionButtonType.SEND,
-        action_position: ActionPosition.FOURTH_POSITION,
-      }),
-    );
+  });
+
+  describe('grey-out when product flags are off', () => {
+    it('disables buy and sell when account cannot sign', () => {
+      mockSelectorState({ canSignTransactions: false });
+
+      const { getByTestId } = render(
+        <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
+      );
+
+      expect(
+        getByTestId(HomepageActionButtonsGridTestIds.BUY_BUTTON).props
+          .accessibilityState,
+      ).toMatchObject({ disabled: true });
+      expect(
+        getByTestId(HomepageActionButtonsGridTestIds.SELL_BUTTON).props
+          .accessibilityState,
+      ).toMatchObject({ disabled: true });
+      expect(
+        getByTestId(HomepageActionButtonsGridTestIds.SEND_BUTTON).props
+          .accessibilityState,
+      ).toMatchObject({ disabled: true });
+    });
+
+    it('disables swap when swaps are disabled', () => {
+      mockSelectorState({ isSwapsEnabled: false });
+
+      const { getByTestId } = render(
+        <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
+      );
+
+      expect(
+        getByTestId(HomepageActionButtonsGridTestIds.SWAP_BUTTON).props
+          .accessibilityState,
+      ).toMatchObject({ disabled: true });
+    });
+
+    it('disables perps when perps flag is off', () => {
+      mockSelectorState({ isPerpsEnabled: false });
+
+      const { getByTestId } = render(
+        <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
+      );
+
+      expect(
+        getByTestId(HomepageActionButtonsGridTestIds.PERPS_BUTTON).props
+          .accessibilityState,
+      ).toMatchObject({ disabled: true });
+    });
+
+    it('disables predict when predict flag is off', () => {
+      mockSelectorState({ isPredictEnabled: false });
+
+      const { getByTestId } = render(
+        <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
+      );
+
+      expect(
+        getByTestId(HomepageActionButtonsGridTestIds.PREDICT_BUTTON).props
+          .accessibilityState,
+      ).toMatchObject({ disabled: true });
+    });
+
+    it('disables batch swap when batch sell flag is off', () => {
+      mockSelectorState({ isBatchSellEnabled: false });
+
+      const { getByTestId } = render(
+        <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
+      );
+
+      expect(
+        getByTestId(HomepageActionButtonsGridTestIds.BATCH_SWAP_BUTTON).props
+          .accessibilityState,
+      ).toMatchObject({ disabled: true });
+    });
+
+    it('disables traders when social leaderboard flag is off', () => {
+      mockSelectorState({ isSocialLeaderboardEnabled: false });
+
+      const { getByTestId } = render(
+        <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
+      );
+
+      expect(
+        getByTestId(HomepageActionButtonsGridTestIds.TRADERS_BUTTON).props
+          .accessibilityState,
+      ).toMatchObject({ disabled: true });
+    });
+
+    it('does not track or navigate when a disabled button is pressed', () => {
+      mockSelectorState({ isPerpsEnabled: false });
+
+      const { getByTestId } = render(
+        <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
+      );
+
+      fireEvent.press(
+        getByTestId(HomepageActionButtonsGridTestIds.PERPS_BUTTON),
+      );
+
+      expect(mockTrackActionButtonClick).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
   });
 });
