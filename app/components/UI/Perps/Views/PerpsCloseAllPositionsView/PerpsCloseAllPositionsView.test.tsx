@@ -169,7 +169,7 @@ describe('PerpsCloseAllPositionsView', () => {
       takeProfitCount: 0,
       stopLossCount: 0,
       marketPrice: '50200',
-      timestamp: Date.now(),
+      timestamp: 1700000000000, // fixed epoch ms – 2023-11-14T22:13:20.000Z
     },
   ];
 
@@ -238,7 +238,7 @@ describe('PerpsCloseAllPositionsView', () => {
     const { getByText } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(getByText('perps.close_all_modal.title')).toBeTruthy();
+    expect(getByText('perps.close_all_modal.title')).toBeOnTheScreen();
   });
 
   it('renders empty state when no positions', () => {
@@ -252,7 +252,7 @@ describe('PerpsCloseAllPositionsView', () => {
     const { getByText } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(getByText('perps.position.no_positions')).toBeTruthy();
+    expect(getByText('perps.position.no_positions')).toBeOnTheScreen();
   });
 
   it('renders close all positions view with positions', () => {
@@ -260,8 +260,8 @@ describe('PerpsCloseAllPositionsView', () => {
     const { getByText } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(getByText('perps.close_all_modal.title')).toBeTruthy();
-    expect(getByText('perps.close_all_modal.description')).toBeTruthy();
+    expect(getByText('perps.close_all_modal.title')).toBeOnTheScreen();
+    expect(getByText('perps.close_all_modal.description')).toBeOnTheScreen();
   });
 
   it('renders loading state when closing', () => {
@@ -284,8 +284,8 @@ describe('PerpsCloseAllPositionsView', () => {
     const { getByText } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(getByText('perps.close_all_modal.keep_positions')).toBeTruthy();
-    expect(getByText('perps.close_all_modal.close_all')).toBeTruthy();
+    expect(getByText('perps.close_all_modal.keep_positions')).toBeOnTheScreen();
+    expect(getByText('perps.close_all_modal.close_all')).toBeOnTheScreen();
   });
 
   it('shows closing label on close button when in progress', () => {
@@ -314,7 +314,7 @@ describe('PerpsCloseAllPositionsView', () => {
     const { getByText } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(getByText('perps.position.no_positions')).toBeTruthy();
+    expect(getByText('perps.position.no_positions')).toBeOnTheScreen();
   });
 
   it('renders PerpsCloseSummary when not closing', () => {
@@ -322,7 +322,7 @@ describe('PerpsCloseAllPositionsView', () => {
     const { getByText } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(getByText('perps.close_all_modal.description')).toBeTruthy();
+    expect(getByText('perps.close_all_modal.description')).toBeOnTheScreen();
   });
 
   it('calls usePerpsRewardAccountOptedIn with totalEstimatedPoints', () => {
@@ -371,7 +371,7 @@ describe('PerpsCloseAllPositionsView', () => {
     const { getByText } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(getByText('perps.close_all_modal.description')).toBeTruthy();
+    expect(getByText('perps.close_all_modal.description')).toBeOnTheScreen();
     expect(mockUsePerpsRewardAccountOptedIn).toHaveBeenCalled();
   });
 
@@ -386,7 +386,7 @@ describe('PerpsCloseAllPositionsView', () => {
     const { getByText } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(getByText('perps.close_all_modal.description')).toBeTruthy();
+    expect(getByText('perps.close_all_modal.description')).toBeOnTheScreen();
     expect(mockUsePerpsRewardAccountOptedIn).toHaveBeenCalled();
   });
 });
