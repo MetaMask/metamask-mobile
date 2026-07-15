@@ -16,6 +16,7 @@ import {
   completeNewUserQrSyncSrp,
 } from '../../flows/qr-sync.flow.js';
 import { assertAccountCount } from '../../flows/accounts.flow.js';
+import type { TestSuiteParams } from '../../framework/index.js';
 
 const DEFAULT_ACCOUNT_NAME = 'Account 1';
 
@@ -39,9 +40,14 @@ appiumTest.describe(
             restartDevice: true,
             currentDeviceDetails,
             testSpecificMock: enableAddDeviceSyncFlag,
+            useCommandQueueServer: true,
           },
-          async () => {
-            await completeNewUserQrSyncSrp();
+          async ({ commandQueueServer }: TestSuiteParams) => {
+            if (!commandQueueServer) {
+              throw new Error('Command queue server not found');
+            }
+
+            await completeNewUserQrSyncSrp({ commandQueueServer });
 
             await Assertions.expectElementToBeVisible(WalletView.container, {
               description: 'Wallet home visible after new-user QR sync',
@@ -70,9 +76,14 @@ appiumTest.describe(
             restartDevice: true,
             currentDeviceDetails,
             testSpecificMock: enableAddDeviceSyncFlag,
+            useCommandQueueServer: true,
           },
-          async () => {
-            await completeExistingUserQrSyncSrp();
+          async ({ commandQueueServer }: TestSuiteParams) => {
+            if (!commandQueueServer) {
+              throw new Error('Command queue server not found');
+            }
+
+            await completeExistingUserQrSyncSrp({ commandQueueServer });
 
             await WalletView.tapIdenticon();
             await Assertions.expectElementToBeVisible(

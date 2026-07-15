@@ -11,6 +11,9 @@ import AddWalletView from '../page-objects/Onboarding/AddWalletView';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import WalletView from '../page-objects/wallet/WalletView';
 import { FrameworkDetector } from '../framework/FrameworkDetector';
+import type CommandQueueServer from '../framework/fixtures/CommandQueueServer';
+import { E2ECommandTypes } from '../framework/types';
+import { sleep } from '../framework/Utilities';
 import {
   closeOnboardingModals,
   dismissOnboardingInterestQuestionnaire,
@@ -35,10 +38,12 @@ export interface ApplyQrSyncSrpOptions {
   isPrimary?: boolean;
   walletName?: string;
   accountName?: string;
+  /** Prefer command queue on Appium — deep links are unreliable for warm RN sessions. */
+  commandQueueServer?: CommandQueueServer;
 }
 
 /**
- * Injects an SRP sync-ready payload via the E2E QR sync deep link.
+ * Injects an SRP sync-ready payload via command queue (preferred) or E2E deep link.
  * Requires HAS_TEST_OVERRIDES and the Add Device screen mounted so
  * useQrSyncImportNavigation can continue the flow.
  */
@@ -47,7 +52,23 @@ export const applyQrSyncSrpReadyPayload = async ({
   isPrimary = true,
   walletName = QR_SYNC_EXTENSION_WALLET_NAME,
   accountName = QR_SYNC_EXTENSION_ACCOUNT_NAME,
+  commandQueueServer,
 }: ApplyQrSyncSrpOptions): Promise<void> => {
+  if (commandQueueServer) {
+    commandQueueServer.addToQueue({
+      type: E2ECommandTypes.applyQrSyncSyncReady,
+      args: {
+        mnemonic,
+        isPrimary,
+        walletName,
+        accountName,
+      },
+    });
+    // App polls /queue.json every ~2s; give one poll window headroom.
+    await sleep(2_500);
+    return;
+  }
+
   // Prefer encodeURIComponent over URLSearchParams (`+` for spaces) so Android
   // Intent / Appium mobile:deepLink deliver a stable query string.
   const query = [
@@ -67,10 +88,12 @@ export const completeNewUserQrSyncSrp = async ({
   mnemonic = IDENTITY_TEAM_SEED_PHRASE,
   password = IDENTITY_TEAM_PASSWORD,
   optInToMetrics = true,
+  commandQueueServer,
 }: {
   mnemonic?: string;
   password?: string;
   optInToMetrics?: boolean;
+  commandQueueServer?: CommandQueueServer;
 } = {}): Promise<void> => {
   await Assertions.expectElementToBeVisible(
     OnboardingView.existingWalletButton,
@@ -95,12 +118,17 @@ export const completeNewUserQrSyncSrp = async ({
     isPrimary: true,
     walletName: QR_SYNC_EXTENSION_WALLET_NAME,
     accountName: QR_SYNC_EXTENSION_ACCOUNT_NAME,
+    commandQueueServer,
   });
 
-  await Assertions.expectElementToBeVisible(CreatePasswordView.container, {
-    description: 'Create password screen should open after QR sync inject',
-    timeout: 20_000,
-  });
+  // Import-from-seed step 1 reuses ChoosePassword field IDs, not create-password-screen.
+  await Assertions.expectElementToBeVisible(
+    CreatePasswordView.newPasswordInput,
+    {
+      description: 'Create password fields should open after QR sync inject',
+      timeout: 30_000,
+    },
+  );
   await CreatePasswordView.enterPassword(password);
   await CreatePasswordView.reEnterPassword(password);
   await CreatePasswordView.tapIUnderstandCheckBox();
@@ -133,8 +161,10 @@ export const completeNewUserQrSyncSrp = async ({
  */
 export const completeExistingUserQrSyncSrp = async ({
   mnemonic = IDENTITY_TEAM_SEED_PHRASE_2,
+  commandQueueServer,
 }: {
   mnemonic?: string;
+  commandQueueServer?: CommandQueueServer;
 } = {}): Promise<void> => {
   if (FrameworkDetector.isAppium()) {
     await loginToAppPlaywright({ scenarioType: 'e2e' });
@@ -159,11 +189,12 @@ export const completeExistingUserQrSyncSrp = async ({
     isPrimary: true,
     walletName: QR_SYNC_EXTENSION_WALLET_NAME,
     accountName: QR_SYNC_EXTENSION_ACCOUNT_NAME,
+    commandQueueServer,
   });
 
   await Assertions.expectElementToBeVisible(WalletView.container, {
     description:
       'Wallet home should be visible after existing-user QR sync import',
-    timeout: 30_000,
+    timeout: 45_000,
   });
 };
