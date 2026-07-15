@@ -1104,7 +1104,7 @@ describe('ManagePriceAlertsView', () => {
       );
     });
 
-    it('tracks period and direction when toggling a percent alert', async () => {
+    it('tracks alert_period and alert_direction when toggling a percent alert', async () => {
       const percentAlert = makePercentAlert({
         threshold: 12.5,
         period: '1h',
@@ -1134,9 +1134,9 @@ describe('ManagePriceAlertsView', () => {
         interaction_type: 'updated',
         asset_id: 'eip155:1/slip44:60',
         token_symbol: 'ETH',
-        alert_type: 'percent_change',
-        period: '1h',
-        direction: 'down',
+        alert_type: 'percent',
+        alert_period: '1h',
+        alert_direction: 'down',
         alert_value: 12.5,
         alert_recurring: true,
         alert_active: false,

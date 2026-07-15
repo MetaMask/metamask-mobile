@@ -69,13 +69,13 @@ const styles = StyleSheet.create({
   switchDisabled: { opacity: 0.5 },
 });
 
-/** Analytics `alert_type` + `period`/`direction` properties for a given alert. */
+/** Analytics `alert_type` + `alert_period`/`alert_direction` for a given alert. */
 const analyticsPropsForAlert = (alert: Alert) =>
   alert.type === 'percent_change'
     ? {
         alert_type: PriceAlertAnalytics.TYPE.PERCENT,
-        period: alert.period,
-        direction: alert.direction,
+        alert_period: alert.period,
+        alert_direction: alert.direction,
       }
     : { alert_type: PriceAlertAnalytics.TYPE.THRESHOLD };
 

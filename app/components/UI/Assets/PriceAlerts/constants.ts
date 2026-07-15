@@ -69,7 +69,7 @@ export const PRICE_ALERT_QUICK_PERCENTAGES = [-10, -5, 5, 10] as const;
 export const PriceAlertAnalytics = {
   TYPE: {
     THRESHOLD: 'threshold',
-    PERCENT: 'percent_change',
+    PERCENT: 'percent',
   },
   INTERACTION_TYPE: {
     CREATED: 'created',
