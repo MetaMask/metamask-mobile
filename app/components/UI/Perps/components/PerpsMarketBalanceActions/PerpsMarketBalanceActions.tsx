@@ -220,19 +220,18 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
         twClassName={isBalanceEmpty ? 'mb-4 rounded-xl' : undefined}
       >
-        <Box twClassName="px-4">
-          <PerpsProgressBar
-            progressAmount={INITIAL_AMOUNT_UI_PROGRESS}
-            height={4}
-            onTransactionAmountChange={setTransactionAmountWei}
-          />
-        </Box>
+        <PerpsProgressBar
+          progressAmount={INITIAL_AMOUNT_UI_PROGRESS}
+          height={4}
+          onTransactionAmountChange={setTransactionAmountWei}
+        />
         {isAnyTransactionInProgress && (
           <>
             <Box twClassName="px-4">
               <KeyValueRow
                 variant={KeyValueRowVariant.Summary}
                 keyLabel={statusText}
+                twClassName="mt-3 h-6"
                 value={
                   shouldShowDollarAmount && transactionAmountDisplay ? (
                     <SensitiveText
@@ -247,7 +246,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 }
               />
             </Box>
-            <SectionDivider />
+            <SectionDivider marginVertical={3} />
           </>
         )}
         {children}
