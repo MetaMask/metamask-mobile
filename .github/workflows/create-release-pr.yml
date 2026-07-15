@@ -109,6 +109,7 @@ jobs:
       # - contents: write       → push the release / version-bump / changelog branches
       # - pull_requests: write  → open the release PRs
       # - members: read         → auto-changelog --autoCategorize resolves PR author teams (read:org)
+      # - workflows: write      → avoids a GitHub push-protection timeout on the changelog push
       # OIDC works on every trigger, so no workflow_dispatch vs workflow_call token split is needed.
       - name: Get token
         id: get-token
@@ -119,6 +120,7 @@ jobs:
             contents: write
             pull_requests: write
             members: read
+            workflows: write
 
       - name: Create Release PR (semver / native version bump)
         if: needs.resolve-bases.outputs.is_ota != 'true'
