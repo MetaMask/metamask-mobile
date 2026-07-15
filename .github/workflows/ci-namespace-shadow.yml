@@ -8,9 +8,13 @@ name: CI (Namespace shadow)
 # token-exchange, and dispatch steps use continue-on-error so this job's own
 # check always concludes success even when the dispatch cannot run.
 #
-# Shadow runs are iOS-only: ci.yml skips Android and Linux-only jobs when
-# runner_provider is namespace (see the BITRISE/NAMESPACE-SHADOW markers there),
-# mirroring the Bitrise shadow benchmark scope.
+# A shadow run is composed of two independently-flagged pipelines inside ci.yml
+# (see the BITRISE/NAMESPACE-SHADOW markers there); Android jobs never run:
+#   - iOS pipeline (build + E2E smoke): runs when NAMESPACE_SHADOW_AUTO_DISPATCH=true
+#   - Linux pipeline (lint/unit/scripts/etc. on namespace-profile-metamask-ci-linux):
+#     runs when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
+# With both flags false, a manual dispatch yields a near-empty ci.yml run (only
+# provider-agnostic scaffolding like get_requirements / fingerprint / timings).
 #
 # Authentication: Token Exchange Service (same pattern as triage-forwarder.yml —
 # OIDC → POST /api/exchange/token). Prerequisites:
@@ -18,8 +22,9 @@ name: CI (Namespace shadow)
 #   - Rego policy mm-metamask-mobile-namespace-shadow-ci-token-exchange in
 #     token-exchange-service (matches the OIDC `workflow_ref` claim).
 #
-# Auto-dispatch gate: set repo Actions variable NAMESPACE_SHADOW_AUTO_DISPATCH=true
-# to dispatch on PR/push. Default (unset/false) = manual workflow_dispatch only.
+# Auto-dispatch gate: PR/push dispatch happens when NAMESPACE_SHADOW_AUTO_DISPATCH=true
+# or NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true (repo Actions variables). Default
+# (both unset/false) = manual workflow_dispatch only.
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
@@ -44,10 +49,11 @@ jobs:
     name: "[shadow] Dispatch"
     runs-on: ubuntu-latest
     # Fork PRs use head.repo != github.repository — skip (no shadow, no token exchange).
-    # PR/push auto-dispatch requires NAMESPACE_SHADOW_AUTO_DISPATCH=true; workflow_dispatch always runs.
+    # PR/push auto-dispatch requires NAMESPACE_SHADOW_AUTO_DISPATCH=true (iOS pipeline)
+    # or NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true (Linux pipeline); workflow_dispatch always runs.
     if: >-
       ${{
-        (github.event_name == 'workflow_dispatch' || vars.NAMESPACE_SHADOW_AUTO_DISPATCH == 'true') &&
+        (github.event_name == 'workflow_dispatch' || vars.NAMESPACE_SHADOW_AUTO_DISPATCH == 'true' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') &&
         (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
       }}
     steps:
