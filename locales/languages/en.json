@@ -4231,7 +4231,13 @@
       "waiting_for_extension_description": "Finish choosing accounts on your computer to continue.",
       "extension_cancelled_title": "Import cancelled",
       "extension_cancelled_description": "The account import was cancelled/failed. Try again.",
-      "extension_cancelled_button": "Try again"
+      "extension_cancelled_button": "Try again",
+      "already_synced_title": "Account already synced",
+      "already_synced_description": "This account has already been synced to this device.",
+      "already_synced_button": "Close",
+      "import_failed_title": "Couldn't add account",
+      "import_failed_description": "Something went wrong while adding the account from your extension. Try again.",
+      "import_failed_button": "Close"
     }
   },
   "aes_crypto_test_form": {
