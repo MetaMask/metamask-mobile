@@ -68,17 +68,19 @@ function findTriggeringTrade(
 }
 
 /**
- * Feed rows are keyed off a triggering trade when one exists. Exit fills must
- * use the closed presentation path (realized PnL) even when
- * {@link isClosedPosition} misclassifies a perp that still carries stale
- * non-zero margin in the Clicker payload.
+ * Feed rows are keyed off a triggering trade when one exists, and the trade's
+ * intent is authoritative in both directions: an `exit` fill reads as closed
+ * (even when {@link isClosedPosition} misclassifies a perp that still carries
+ * stale non-zero margin in the Clicker payload), and an `enter` fill reads as
+ * open (even when the position snapshot looks closed). We only fall back to the
+ * {@link isClosedPosition} snapshot heuristic when there is no triggering trade.
  */
 function isFeedItemClosed(
   coreItem: CoreFeedItem,
   trade: Trade | undefined,
 ): boolean {
-  if (trade?.intent === 'exit') {
-    return true;
+  if (trade) {
+    return trade.intent === 'exit';
   }
   return isClosedPosition(coreItem);
 }

@@ -170,6 +170,55 @@ describe('mapFeedItem', () => {
     expect(result?.action).toBe('sold');
   });
 
+  it('keeps a perp enter fill as "opened" even when the snapshot looks closed', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        // A closed-looking snapshot (Clicker reports currentValueUSD === 0) must
+        // not override the triggering trade's `enter` intent.
+        currentValueUSD: 0,
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            tokenAmount: 5,
+            usdCost: 50600,
+            timestamp: 1_700_000_500,
+            transactionHash: '0xhash',
+            classification: 'perp',
+            perpPositionType: 'long',
+            perpLeverage: 8,
+          },
+        ],
+      }),
+    );
+
+    expect(result?.action).toBe('opened');
+  });
+
+  it('keeps a spot enter fill as "bought" even when the snapshot looks closed', () => {
+    const result = mapFeedItem(
+      mockSpotFeedItem({
+        // Closed-looking spot snapshot (fully sold out) must still defer to the
+        // triggering trade's `enter` intent.
+        positionAmount: 0,
+        soldUsd: 100_000,
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            tokenAmount: 1000,
+            usdCost: 120000,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'spot',
+          },
+        ],
+      }),
+    );
+
+    expect(result?.action).toBe('bought');
+  });
+
   it('returns null for a spot trade on an unsupported chain', () => {
     const result = mapFeedItem(mockSpotFeedItem({ chain: 'fantom' }));
 
