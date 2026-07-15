@@ -298,6 +298,7 @@ describe('FeedView', () => {
         traderId: 'trader-1',
         traderAddress: '0x1111111111111111111111111111111111111111',
         source: 'trader_feed',
+        originalEntryPoint: 'trader_feed',
       },
     );
     expect(mockTrack).not.toHaveBeenCalled();
@@ -315,6 +316,7 @@ describe('FeedView', () => {
         traderId: 'trader-2',
         traderAddress: '0x2222222222222222222222222222222222222222',
         source: 'trader_feed',
+        originalEntryPoint: 'trader_feed',
       },
     );
     expect(mockTrack).not.toHaveBeenCalled();

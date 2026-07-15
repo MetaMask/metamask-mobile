@@ -258,6 +258,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         traderId: item.traderId,
         traderAddress: item.traderAddress,
         source: 'trader_feed',
+        originalEntryPoint: 'trader_feed',
       });
     },
     [navigation],
