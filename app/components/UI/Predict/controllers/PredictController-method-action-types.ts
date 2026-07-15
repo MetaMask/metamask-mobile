@@ -283,6 +283,19 @@ export type PredictControllerSubscribeToCryptoPricesAction = {
 };
 
 /**
+ * Subscribes to WebSocket connection-status changes for live data feeds.
+ * The callback fires immediately with the current status and thereafter only
+ * on real transitions, replacing per-subscriber polling.
+ *
+ * @param callback - Function invoked with the current {@link ConnectionStatus}.
+ * @returns Unsubscribe function to clean up the subscription.
+ */
+export type PredictControllerSubscribeToConnectionStatusAction = {
+  type: `PredictController:subscribeToConnectionStatus`;
+  handler: PredictController['subscribeToConnectionStatus'];
+};
+
+/**
  * Gets the current WebSocket connection status for live data feeds.
  *
  * @returns Connection status for sports, market, and RTDS data WebSocket channels
@@ -290,17 +303,6 @@ export type PredictControllerSubscribeToCryptoPricesAction = {
 export type PredictControllerGetConnectionStatusAction = {
   type: `PredictController:getConnectionStatus`;
   handler: PredictController['getConnectionStatus'];
-};
-
-/**
- * Subscribes to WebSocket connection-status changes for live data feeds.
- *
- * @param callback - Function invoked with the current connection status.
- * @returns Unsubscribe function to clean up the subscription.
- */
-export type PredictControllerSubscribeToConnectionStatusAction = {
-  type: `PredictController:subscribeToConnectionStatus`;
-  handler: PredictController['subscribeToConnectionStatus'];
 };
 
 export type PredictControllerClearOrderErrorAction = {
@@ -438,8 +440,8 @@ export type PredictControllerMethodActions =
   | PredictControllerSubscribeToMarketPricesAction
   | PredictControllerSubscribeToOrderbookAction
   | PredictControllerSubscribeToCryptoPricesAction
-  | PredictControllerGetConnectionStatusAction
   | PredictControllerSubscribeToConnectionStatusAction
+  | PredictControllerGetConnectionStatusAction
   | PredictControllerClearOrderErrorAction
   | PredictControllerOnPlaceOrderSuccessAction
   | PredictControllerClearActiveOrderTransactionIdAction
