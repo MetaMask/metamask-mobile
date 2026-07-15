@@ -279,7 +279,7 @@ describe('selectMoneyDepositCtaTokens', () => {
 
   it('uses remote configured wildcard token list', () => {
     const state = createState({
-      earnMoneyTokenListCtaTokens: { '*': ['USDC'] },
+      earnMoneyDepositCtaTokens: { '*': ['USDC'] },
     });
 
     const result = selectMoneyDepositCtaTokens(state as never);
