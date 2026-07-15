@@ -192,7 +192,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     );
     const isKeyboardVisibleRef = useRef(isKeyboardVisible);
     isKeyboardVisibleRef.current = isKeyboardVisible;
-    const [isPreparingQuote, setIsPreparingQuote] = useState(false);
+    const [isAmountUpdating, setIsAmountUpdating] = useState(false);
     // React batches rapid presses before the state update rerenders, so keep a
     // synchronous guard separate from the render state.
     const isAmountUpdateInProgressRef = useRef(false);
@@ -228,7 +228,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isTransactionResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
-    const showLoadingReview = isPreparingQuote || isQuotesLoading;
+    const showLoadingReview = isAmountUpdating || isQuotesLoading;
     const showMoneyAccountLoadingReview =
       isMoneyAccountDeposit && showLoadingReview;
     const isResultReady =
@@ -269,7 +269,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
       if (isMoneyAccountDeposit) {
         isAmountUpdateInProgressRef.current = true;
-        setIsPreparingQuote(true);
+        setIsAmountUpdating(true);
         setIsKeyboardVisible(false);
       }
       try {
@@ -307,7 +307,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       } finally {
         if (isMoneyAccountDeposit) {
           isAmountUpdateInProgressRef.current = false;
-          setIsPreparingQuote(false);
+          setIsAmountUpdating(false);
         }
       }
       EngineService.flushState();
