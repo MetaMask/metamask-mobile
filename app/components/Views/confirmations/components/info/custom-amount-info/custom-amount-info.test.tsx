@@ -41,6 +41,7 @@ import { Platform } from 'react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
+import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
@@ -208,37 +209,59 @@ const mockToastRef = {
   current: { showToast: mockShowToast, closeToast: jest.fn() },
 };
 
+interface DeferredPromise {
+  promise: Promise<void>;
+  reject: (reason?: unknown) => void;
+  resolve: () => void;
+}
+
+function createDeferredPromise(): DeferredPromise {
+  let reject: DeferredPromise['reject'] = noop;
+  let resolve: DeferredPromise['resolve'] = noop;
+  const promise = new Promise<void>((resolvePromise, rejectPromise) => {
+    reject = rejectPromise;
+    resolve = resolvePromise;
+  });
+
+  return { promise, reject, resolve };
+}
+
+function createCustomAmountInfo(
+  props: CustomAmountInfoProps & { transactionType?: TransactionType } = {},
+) {
+  return (
+    <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
+      <CustomAmountInfo {...props} />
+    </ToastContext.Provider>
+  );
+}
+
 function render(
   props: CustomAmountInfoProps & { transactionType?: TransactionType } = {},
 ) {
-  return renderWithProvider(
-    <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
-      <CustomAmountInfo {...props} />
-    </ToastContext.Provider>,
-    {
-      state: merge(
-        {},
-        simpleSendTransactionControllerMock,
-        transactionApprovalControllerMock,
-        otherControllersMock,
-        {
-          engine: {
-            backgroundState: {
-              TransactionController: {
-                transactions: [
-                  {
-                    type:
-                      props.transactionType ||
-                      TransactionType.contractInteraction,
-                  },
-                ],
-              },
+  return renderWithProvider(createCustomAmountInfo(props), {
+    state: merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      otherControllersMock,
+      {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  type:
+                    props.transactionType ||
+                    TransactionType.contractInteraction,
+                },
+              ],
             },
           },
         },
-      ),
-    },
-  );
+      },
+    ),
+  });
 }
 
 describe('CustomAmountInfo', () => {
@@ -615,6 +638,160 @@ describe('CustomAmountInfo', () => {
     expect(
       queryByText(new RegExp(strings('confirm.label.pay_with'))),
     ).toBeOnTheScreen();
+  });
+
+  describe('Money Account quote preparation', () => {
+    function arrangePendingPreparation() {
+      const deferred = createDeferredPromise();
+      const updateTokenAmount = jest.fn(() => deferred.promise);
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'money-account-deposit-transaction',
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+      useTransactionCustomAmountMock.mockReturnValue({
+        ...useTransactionCustomAmountMock(),
+        updateTokenAmount,
+      });
+
+      return { deferred, updateTokenAmount };
+    }
+
+    it('replaces the keypad with preparation feedback before the amount update resolves', () => {
+      arrangePendingPreparation();
+      const { getByTestId, getByText, queryByTestId } = render({
+        supportAccountSelection: true,
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      fireEvent.press(getByTestId('deposit-keyboard-done-button'));
+
+      expect(queryByTestId('deposit-keyboard')).not.toBeOnTheScreen();
+      expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
+      expect(getByTestId('pay-with')).toBeOnTheScreen();
+      expect(
+        getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).toBeDisabled();
+      expect(getByText(strings('confirm.preparing_order'))).toBeOnTheScreen();
+      expect(getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+      expect(getByTestId('bridge-time-row-skeleton')).toBeOnTheScreen();
+      expect(getByTestId('total-row-skeleton')).toBeOnTheScreen();
+    });
+
+    it('blocks review rows, amount editing, and duplicate submission during preparation', () => {
+      const { updateTokenAmount } = arrangePendingPreparation();
+      const { getByTestId } = render({
+        supportAccountSelection: true,
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+      const doneButton = getByTestId('deposit-keyboard-done-button');
+
+      act(() => {
+        fireEvent.press(doneButton);
+        fireEvent.press(doneButton);
+      });
+
+      expect(updateTokenAmount).toHaveBeenCalledTimes(1);
+      expect(
+        getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props.pointerEvents,
+      ).toBe('none');
+      expect(getByTestId('custom-amount-input').props.onPress).toBeUndefined();
+    });
+
+    it('keeps preparation feedback between amount preparation and quote loading', async () => {
+      const { deferred } = arrangePendingPreparation();
+      const view = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+      fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
+
+      await act(async () => {
+        deferred.resolve();
+        await deferred.promise;
+      });
+
+      expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+      expect(view.queryByTestId('bridge-fee-row')).not.toBeOnTheScreen();
+      expect(
+        view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).toBeDisabled();
+
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
+
+      expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+      expect(
+        view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).toBeDisabled();
+    });
+
+    it('shows the populated post-keypad state after quote loading settles', async () => {
+      const { deferred } = arrangePendingPreparation();
+      const view = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+      fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
+      await act(async () => {
+        deferred.resolve();
+        await deferred.promise;
+      });
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
+
+      useIsTransactionPayLoadingMock.mockReturnValue(false);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
+
+      expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
+      expect(
+        view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).not.toBeDisabled();
+      expect(view.queryByTestId('deposit-keyboard')).not.toBeOnTheScreen();
+    });
+
+    it('restores amount entry and the existing toast after preparation fails', async () => {
+      const { deferred } = arrangePendingPreparation();
+      const view = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+      fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
+
+      await act(async () => {
+        deferred.reject(new Error('update failed'));
+        await Promise.resolve();
+      });
+
+      expect(view.getByTestId('deposit-keyboard')).toBeOnTheScreen();
+      expect(view.getByTestId('custom-amount-input').props.onPress).toEqual(
+        expect.any(Function),
+      );
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('retains the existing pending amount UI for non-Money transactions', () => {
+      const deferred = createDeferredPromise();
+      useTransactionCustomAmountMock.mockReturnValue({
+        ...useTransactionCustomAmountMock(),
+        updateTokenAmount: jest.fn(() => deferred.promise),
+      });
+      const { getByTestId, queryByTestId } = render();
+
+      fireEvent.press(getByTestId('deposit-keyboard-done-button'));
+
+      expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+      expect(queryByTestId('bridge-fee-row-skeleton')).not.toBeOnTheScreen();
+    });
   });
 
   it('calls onAmountSubmit when Done button is pressed', async () => {
@@ -1305,15 +1482,29 @@ describe('CustomAmountInfo', () => {
         onReject: jest.fn(),
       });
 
-      const { getByText } = render({
+      const view = render({
         transactionType: TransactionType.moneyAccountDeposit,
       });
 
       await act(async () => {
-        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+        fireEvent.press(view.getByText(strings('confirm.edit_amount_done')));
       });
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
+      useIsTransactionPayLoadingMock.mockReturnValue(false);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
       await act(async () => {
-        fireEvent.press(getByText(strings('confirm.deposit_edit_amount_done')));
+        fireEvent.press(
+          view.getByText(strings('confirm.deposit_edit_amount_done')),
+        );
       });
 
       // Mount-time screen-viewed + three reactive + two imperative CTA events,
