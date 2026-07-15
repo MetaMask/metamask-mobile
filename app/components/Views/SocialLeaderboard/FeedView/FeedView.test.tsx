@@ -8,6 +8,7 @@ import {
   FeedViewSelectorsIDs,
   getFeedAudienceOptionTestId,
   getFeedTradeButtonTestId,
+  getFeedTradeCardTestId,
   getFeedTraderTestId,
   getFeedTypeOptionTestId,
 } from './FeedView.testIds';
@@ -314,6 +315,42 @@ describe('FeedView', () => {
         source: 'trader_feed',
       }),
     );
+  });
+
+  it('navigates to TraderPositionView when a spot position card is pressed', () => {
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedTradeCardTestId('feed-1')));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.POSITION,
+      {
+        positionId: 'pos-feed-1',
+        traderId: 'trader-1',
+        traderAddress: '0x1111111111111111111111111111111111111111',
+        source: 'trader_feed',
+        originalEntryPoint: 'trader_feed',
+      },
+    );
+    expect(mockTrack).not.toHaveBeenCalled();
+  });
+
+  it('navigates to TraderPositionView when a perps position card is pressed', () => {
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedTradeCardTestId('feed-2')));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.POSITION,
+      {
+        positionId: 'pos-feed-2',
+        traderId: 'trader-2',
+        traderAddress: '0x2222222222222222222222222222222222222222',
+        source: 'trader_feed',
+        originalEntryPoint: 'trader_feed',
+      },
+    );
+    expect(mockTrack).not.toHaveBeenCalled();
   });
 
   it('tracks chained type filter changes with the correct previous value', () => {
