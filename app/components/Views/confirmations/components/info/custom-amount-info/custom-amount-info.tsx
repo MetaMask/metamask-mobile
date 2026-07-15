@@ -474,26 +474,24 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {footerText}
             </Text>
           )}
-          {isKeyboardVisible &&
-            !showLoadingReview &&
-            (hasPaymentOption || hasAccountNoFunds) && (
-              <DepositKeyboard
-                hidePercentageButtons={
-                  Boolean(selectedFiatPaymentMethodId) ||
-                  shouldHideAccountSelector
-                }
-                alertMessage={alertTitle}
-                value={amountFiat}
-                onChange={updatePendingAmount}
-                onDonePress={handleDone}
-                onPercentagePress={handlePercentagePress}
-                hasInput={hasInput}
-                hasMax={
-                  (hasMax || isMoneyDepositNoFee) &&
-                  (isWithdraw || !isNativePayToken)
-                }
-              />
-            )}
+          {isKeyboardVisible && (hasPaymentOption || hasAccountNoFunds) && (
+            <DepositKeyboard
+              hidePercentageButtons={
+                Boolean(selectedFiatPaymentMethodId) ||
+                shouldHideAccountSelector
+              }
+              alertMessage={alertTitle}
+              value={amountFiat}
+              onChange={updatePendingAmount}
+              onDonePress={handleDone}
+              onPercentagePress={handlePercentagePress}
+              hasInput={hasInput}
+              hasMax={
+                (hasMax || isMoneyDepositNoFee) &&
+                (isWithdraw || !isNativePayToken)
+              }
+            />
+          )}
           {(!hasPaymentOption || hasAccountNoFunds) &&
             !hideBuyForNoFunds &&
             !isDepositPrefillEnabled && <BuySection />}
