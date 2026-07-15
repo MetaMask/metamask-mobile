@@ -81,15 +81,24 @@ describe('useImmersveOnboardingRouter', () => {
     );
   });
 
-  it('routes funding to SpendingLimit onboarding flow', () => {
-    getRoute()({
-      type: 'funding',
-      write: { abi: [], contractAddress: '0x', method: 'approve', params: {} },
-    });
+  it('routes funding to FUNDING_APPROVAL with countryKey', () => {
+    getRoute()(
+      {
+        type: 'funding',
+        write: {
+          abi: [],
+          contractAddress: '0x',
+          method: 'approve',
+          params: {},
+        },
+      },
+      { countryKey: 'GB' },
+    );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SPENDING_LIMIT, {
-      flow: 'onboarding',
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
+      { countryKey: 'GB' },
+    );
   });
 
   it('resets to KYC_FAILED when rejected', () => {

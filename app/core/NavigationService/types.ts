@@ -960,6 +960,7 @@ export type RootStackParamList = {
   CardOnboardingKYCProcessing:
     | { countryKey?: string; kycUrl?: string }
     | undefined;
+  CardOnboardingFundingApproval: { countryKey?: string } | undefined;
   CardModals: NestedNavigationParams | undefined;
   CardAddFundsModal: undefined;
   CardAssetSelectionModal: undefined;

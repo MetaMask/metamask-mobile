@@ -11,6 +11,7 @@ import ConfirmPhoneNumber from '../components/Onboarding/ConfirmPhoneNumber';
 import VerifyIdentity from '../components/Onboarding/VerifyIdentity';
 import VerifyingVeriffKYC from '../components/Onboarding/VerifyingVeriffKYC';
 import ImmersveKYCProcessing from '../components/Onboarding/ImmersveKYCProcessing';
+import ImmersveFundingApproval from '../components/Onboarding/ImmersveFundingApproval';
 import KYCFailed from '../components/Onboarding/KYCFailed';
 import KYCPending from '../components/Onboarding/KYCPending';
 import PersonalDetails from '../components/Onboarding/PersonalDetails';
@@ -262,6 +263,10 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.KYC_PROCESSING}
         component={ImmersveKYCProcessing}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.FUNDING_APPROVAL}
+        component={ImmersveFundingApproval}
       />
     </Stack.Navigator>
   );

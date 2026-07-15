@@ -50,10 +50,8 @@ export const useImmersveOnboardingRouter = () => {
           });
           break;
         case 'funding':
-          // ponytail: navigation only — the Immersve ERC-20 approve wiring
-          // inside SpendingLimit is branch 6b.
-          navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
-            flow: 'onboarding',
+          navigation.navigate(Routes.CARD.ONBOARDING.FUNDING_APPROVAL, {
+            countryKey,
           });
           break;
         case 'rejected':

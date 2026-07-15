@@ -65,7 +65,15 @@ export const useImmersveSpendingPrerequisites = ({
   }, [fundingSourceId, kycRegion, kycRedirectUrl]);
 
   useEffect(() => {
-    if (state.nextAction?.type !== 'pending') {
+    // 'funding' also polls: after the approve tx confirms, Immersve may take a
+    // moment to observe the on-chain allowance, so this keeps refreshing until
+    // the prerequisite flips to 'active' (ponytail: exact settlement timing is
+    // an open question — reuses this hook's existing 5s cadence rather than a
+    // bespoke backoff).
+    if (
+      state.nextAction?.type !== 'pending' &&
+      state.nextAction?.type !== 'funding'
+    ) {
       return undefined;
     }
     const id = setInterval(() => {

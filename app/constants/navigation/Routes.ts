@@ -551,6 +551,7 @@ const Routes = {
       KYC_FAILED: 'CardOnboardingKYCFailed',
       KYC_PENDING: 'CardOnboardingKYCPending',
       KYC_PROCESSING: 'CardOnboardingKYCProcessing',
+      FUNDING_APPROVAL: 'CardOnboardingFundingApproval',
     },
     MODALS: {
       ID: 'CardModals',

@@ -8798,6 +8798,13 @@
         "load_error": "Something went wrong loading identity verification. Please try again.",
         "try_again": "Try again"
       },
+      "immersve_funding_approval": {
+        "title": "Set up card funding",
+        "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
+        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "confirm_button": "Approve funding",
+        "retry_button": "Try again"
+      },
       "verifying_registration": {
         "title": "Verifying your identity",
         "description": "Crypto Life is attempting to verify you. This will take at most 30 seconds.",
