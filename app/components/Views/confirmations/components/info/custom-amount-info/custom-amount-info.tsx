@@ -396,24 +396,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}
-              {!hasAccountNoFunds &&
-                (showLoadingReview ? (
-                  <PaymentDetailsSkeleton />
-                ) : showPaymentDetails && !isAwaitingPrefillResult ? (
-                  <>
-                    <BridgeFeeRow />
-                    <BridgeTimeRow />
-                    {canSelectWithdrawToken ? (
-                      <ReceiveRow inputAmountUsd={amountFiat} />
-                    ) : (
-                      <TotalRow />
-                    )}
-                  </>
-                ) : (
-                  (isAddMusdIntent || isAwaitingPrefillResult) && (
-                    <PaymentDetailsSkeleton />
-                  )
-                ))}
+              {!hasAccountNoFunds && (
+                <Quote
+                  amountFiat={amountFiat}
+                  canSelectWithdrawToken={canSelectWithdrawToken}
+                  isAddMusdIntent={isAddMusdIntent}
+                  isAwaitingPrefillResult={isAwaitingPrefillResult}
+                  isLoading={showLoadingReview}
+                  showPaymentDetails={showPaymentDetails}
+                />
+              )}
               <PercentageRow />
             </Box>
           )}
@@ -560,6 +552,46 @@ function BuySection() {
       </Button>
     </Box>
   );
+}
+
+function Quote({
+  amountFiat,
+  canSelectWithdrawToken,
+  isAddMusdIntent,
+  isAwaitingPrefillResult,
+  isLoading,
+  showPaymentDetails,
+}: Readonly<{
+  amountFiat: string;
+  canSelectWithdrawToken: boolean;
+  isAddMusdIntent: boolean;
+  isAwaitingPrefillResult: boolean;
+  isLoading: boolean;
+  showPaymentDetails: boolean;
+}>) {
+  if (isLoading) {
+    return <PaymentDetailsSkeleton />;
+  }
+
+  if (showPaymentDetails && !isAwaitingPrefillResult) {
+    return (
+      <>
+        <BridgeFeeRow />
+        <BridgeTimeRow />
+        {canSelectWithdrawToken ? (
+          <ReceiveRow inputAmountUsd={amountFiat} />
+        ) : (
+          <TotalRow />
+        )}
+      </>
+    );
+  }
+
+  if (isAddMusdIntent || isAwaitingPrefillResult) {
+    return <PaymentDetailsSkeleton />;
+  }
+
+  return null;
 }
 
 function PaymentDetailsSkeleton() {
