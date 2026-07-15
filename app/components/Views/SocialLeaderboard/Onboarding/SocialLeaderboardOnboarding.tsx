@@ -600,6 +600,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     const toFollow = topTraders.filter((trader) => !trader.isFollowing);
     tradersFollowedCountRef.current = toFollow.length;
     setStep(2);
+    swallowNextCompletionRef.current = true;
     await Promise.all(
       toFollow.map((trader) =>
         toggleFollow(trader.id, {
