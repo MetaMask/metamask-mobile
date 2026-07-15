@@ -45,6 +45,30 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
+// Mock MMDS BottomSheetDialog so children render synchronously in tests.
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const MockReact = jest.requireActual('react');
+
+  return {
+    ...actual,
+    BottomSheetDialog: MockReact.forwardRef(
+      (
+        {
+          children,
+          onClose,
+        }: { children: React.ReactNode; onClose?: () => void },
+        dialogRef: React.Ref<{ onCloseDialog: () => void }>,
+      ) => {
+        MockReact.useImperativeHandle(dialogRef, () => ({
+          onCloseDialog: () => onClose?.(),
+        }));
+        return children;
+      },
+    ),
+  };
+});
+
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
 
@@ -999,7 +1023,6 @@ describe('BuildQuote View', () => {
     });
 
     it('updates the amount input up to the max considering gas for native asset', () => {
-      render(BuildQuote);
       const initialAmount = '0';
       const quickAmount = 'MAX';
       mockUseRampSDKValues = {
@@ -1026,6 +1049,7 @@ describe('BuildQuote View', () => {
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
         ) as BN4,
       };
+      render(BuildQuote);
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
       fireEvent.press(getByRoleButton(quickAmount));
@@ -1033,7 +1057,6 @@ describe('BuildQuote View', () => {
     });
 
     it('updates the amount input up to the percentage considering gas', () => {
-      render(BuildQuote);
       const initialAmount = '0';
       mockUseRampSDKValues = {
         ...mockUseRampSDKInitialValues,
@@ -1059,6 +1082,7 @@ describe('BuildQuote View', () => {
           mockUseRampSDKValues.selectedAsset?.decimals || 18,
         ) as BN4,
       };
+      render(BuildQuote);
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
       fireEvent.press(getByRoleButton('75%'));
