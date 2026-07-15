@@ -51,6 +51,7 @@ import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePa
 import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
+import { mockTheme } from '../../../../../../util/theme';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/ui/useMMPayNavigation');
@@ -701,6 +702,22 @@ describe('CustomAmountInfo', () => {
         getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props.pointerEvents,
       ).toBe('none');
       expect(getByTestId('custom-amount-input').props.onPress).toBeUndefined();
+    });
+
+    it('keeps the amount visually enabled during preparation', () => {
+      arrangePendingPreparation();
+      const { getByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      fireEvent.press(getByTestId('deposit-keyboard-done-button'));
+
+      expect(getByTestId('custom-amount-input')).toHaveStyle({
+        color: mockTheme.colors.text.default,
+      });
+      expect(getByTestId('custom-amount-symbol')).toHaveStyle({
+        color: mockTheme.colors.text.default,
+      });
     });
 
     it('keeps the loading review throughout quote loading', async () => {

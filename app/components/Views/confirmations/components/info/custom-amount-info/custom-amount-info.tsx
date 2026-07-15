@@ -407,8 +407,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               !hasAccountNoFunds &&
               (isPrefillPending || isDepositPrefillLoading)
             }
-            onPress={handleAmountPress}
-            disabled={!hasPaymentOption || showMoneyAccountLoadingReview}
+            onPress={
+              showMoneyAccountLoadingReview ? undefined : handleAmountPress
+            }
+            disabled={!hasPaymentOption}
             showCursor={isKeyboardVisible && !showMoneyAccountLoadingReview}
           />
           {!hidePayTokenAmount &&
