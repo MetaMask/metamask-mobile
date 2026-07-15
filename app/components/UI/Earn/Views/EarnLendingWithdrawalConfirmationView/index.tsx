@@ -20,7 +20,7 @@ import Badge, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Routes from '../../../../../constants/navigation/Routes';
+import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 import {
   IMetaMetricsEvent,
   MetaMetricsEvents,
@@ -316,7 +316,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
           });
           // There is variance in when navigation can be called across chains
           setTimeout(() => {
-            navigation.navigate(Routes.TRANSACTIONS_VIEW);
+            navigateToActivityAfterConfirmation(navigation);
           }, 0);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,

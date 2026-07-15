@@ -1,17 +1,36 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import SocialTradersTabsView from './SocialTradersTabsView';
 import { SocialTradersTabsViewSelectorsIDs } from './SocialTradersTabsView.testIds';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
+const mockTrack = jest.fn();
+
+jest.mock('../analytics', () => {
+  const actual = jest.requireActual('../analytics');
+  return {
+    ...actual,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  };
+});
 
 jest.mock('react-native-pager-view', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   const MockPagerView = ReactActual.forwardRef(
-    (props: { children?: React.ReactNode }, _ref: React.Ref<unknown>) => (
-      <View>{props.children}</View>
+    (
+      props: {
+        children?: React.ReactNode;
+        onPageSelected?: (e: { nativeEvent: { position: number } }) => void;
+        testID?: string;
+      },
+      _ref: React.Ref<unknown>,
+    ) => (
+      <View testID={props.testID} onPageSelected={props.onPageSelected}>
+        {props.children}
+      </View>
     ),
   );
   MockPagerView.displayName = 'MockPagerView';
@@ -124,5 +143,66 @@ describe('SocialTradersTabsView', () => {
     expect(
       screen.getByTestId('mock-feed').props.accessibilityState?.selected,
     ).toBe(true);
+  });
+
+  it('tracks tab changes with tap interaction when a different tab is pressed', () => {
+    renderWithProvider(<SocialTradersTabsView />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialTradersTabsViewSelectorsIDs.TABS}-tab-1`),
+    );
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TAB_CHANGED,
+      {
+        tab: 'tab_feed',
+        interaction_type: 'tap',
+      },
+    );
+  });
+
+  it('tracks tab changes with swipe interaction when the pager reports a page change', () => {
+    renderWithProvider(<SocialTradersTabsView />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialTradersTabsViewSelectorsIDs.TABS}-tab-1`),
+    );
+    mockTrack.mockClear();
+
+    const pager = screen.getByTestId(SocialTradersTabsViewSelectorsIDs.PAGER);
+    act(() => {
+      pager.props.onPageSelected({ nativeEvent: { position: 0 } });
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TAB_CHANGED,
+      {
+        tab: 'tab_leaderboard',
+        interaction_type: 'swipe',
+      },
+    );
+  });
+
+  it('does not mislabel a swipe as tap after tapping the already-active tab', () => {
+    renderWithProvider(<SocialTradersTabsView />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialTradersTabsViewSelectorsIDs.TABS}-tab-0`),
+    );
+    expect(mockTrack).not.toHaveBeenCalled();
+    mockTrack.mockClear();
+
+    const pager = screen.getByTestId(SocialTradersTabsViewSelectorsIDs.PAGER);
+    act(() => {
+      pager.props.onPageSelected({ nativeEvent: { position: 1 } });
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TAB_CHANGED,
+      {
+        tab: 'tab_feed',
+        interaction_type: 'swipe',
+      },
+    );
   });
 });

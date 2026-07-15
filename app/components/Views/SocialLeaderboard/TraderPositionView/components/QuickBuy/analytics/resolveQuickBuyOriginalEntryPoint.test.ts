@@ -24,6 +24,12 @@ describe('resolveQuickBuyOriginalEntryPointFromProfile', () => {
       'trader_profile',
     );
   });
+
+  it('maps trader_feed to trader_feed', () => {
+    expect(resolveQuickBuyOriginalEntryPointFromProfile('trader_feed')).toBe(
+      'trader_feed',
+    );
+  });
 });
 
 describe('resolveQuickBuyOriginalEntryPointFromPositionSource', () => {

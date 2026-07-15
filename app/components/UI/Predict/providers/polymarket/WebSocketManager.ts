@@ -800,7 +800,7 @@ export class WebSocketManager {
 
   private ensureMarketConnection(tokenIds: string[]): void {
     if (this.marketWs?.readyState === WebSocket.OPEN) {
-      this.sendMarketSubscribe(tokenIds);
+      this.sendMarketSubscriptionUpdate(tokenIds);
       return;
     }
     if (this.marketWs?.readyState === WebSocket.CONNECTING) {
@@ -975,7 +975,7 @@ export class WebSocketManager {
     this.scheduleOrderbookEmit(data.asset_id);
   }
 
-  private sendMarketSubscribe(tokenIds: string[]): void {
+  private sendInitialMarketSubscription(tokenIds: string[]): void {
     if (this.marketWs?.readyState !== WebSocket.OPEN) {
       return;
     }
@@ -983,6 +983,19 @@ export class WebSocketManager {
     this.marketWs.send(
       JSON.stringify({
         type: 'market',
+        assets_ids: tokenIds,
+      }),
+    );
+  }
+
+  private sendMarketSubscriptionUpdate(tokenIds: string[]): void {
+    if (this.marketWs?.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    this.marketWs.send(
+      JSON.stringify({
+        operation: 'subscribe',
         assets_ids: tokenIds,
       }),
     );
@@ -1022,7 +1035,7 @@ export class WebSocketManager {
     });
 
     if (allTokenIds.size > 0) {
-      this.sendMarketSubscribe(Array.from(allTokenIds));
+      this.sendInitialMarketSubscription(Array.from(allTokenIds));
     }
   }
 
