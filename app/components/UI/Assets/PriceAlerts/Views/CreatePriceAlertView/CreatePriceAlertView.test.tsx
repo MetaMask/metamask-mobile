@@ -8,10 +8,15 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 const mockGoBack = jest.fn();
 const mockPop = jest.fn();
 const mockSubmit = jest.fn();
+const mockSubmitPercent = jest.fn();
 const mockShowToast = jest.fn();
 const mockCloseToast = jest.fn();
 const mockUseSubmitPriceAlert = jest.fn((_editingAlert?: unknown) => ({
   submit: mockSubmit,
+  isSubmitting: false,
+}));
+const mockUseSubmitPercentAlert = jest.fn((_editingAlert?: unknown) => ({
+  submit: mockSubmitPercent,
   isSubmitting: false,
 }));
 const mockSetQueryData = jest.fn();
@@ -39,6 +44,8 @@ jest.mock('../../api', () => ({
   priceAlertsQueryKey: (assetId: string) => ['priceAlerts', assetId],
   useSubmitPriceAlert: (editingAlert?: unknown) =>
     mockUseSubmitPriceAlert(editingAlert),
+  useSubmitPercentAlert: (editingAlert?: unknown) =>
+    mockUseSubmitPercentAlert(editingAlert),
 }));
 
 import { ToastContext } from '../../../../../../component-library/components/Toast';
@@ -71,8 +78,13 @@ describe('CreatePriceAlertView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSubmit.mockResolvedValue(undefined);
+    mockSubmitPercent.mockResolvedValue(undefined);
     mockUseSubmitPriceAlert.mockImplementation(() => ({
       submit: mockSubmit,
+      isSubmitting: false,
+    }));
+    mockUseSubmitPercentAlert.mockImplementation(() => ({
+      submit: mockSubmitPercent,
       isSubmitting: false,
     }));
   });
@@ -520,6 +532,7 @@ describe('CreatePriceAlertView — edit mode', () => {
     id: 'alert-42',
     userId: 'user-1',
     asset: 'eip155:1/slip44:60',
+    type: 'absolute_price' as const,
     threshold: 1500,
     recurring: true,
     active: true,
@@ -706,6 +719,7 @@ describe('CreatePriceAlertView — analytics', () => {
     id: 'alert-42',
     userId: 'user-1',
     asset: 'eip155:1/slip44:60',
+    type: 'absolute_price' as const,
     threshold: 1500,
     recurring: true,
     active: true,
@@ -860,5 +874,225 @@ describe('CreatePriceAlertView — analytics', () => {
       prev_alert_recurring: true,
       prev_alert_active: true,
     });
+  });
+});
+
+describe('CreatePriceAlertView — percent-change alerts', () => {
+  const baseRoute = {
+    symbol: 'ETH',
+    ticker: 'ETH',
+    currentPrice: 1201.98,
+    currentCurrency: 'USD',
+    assetId: 'eip155:1/slip44:60',
+    initialType: 'percent_change' as const,
+  };
+
+  const editingPercentAlert = {
+    id: 'percent-alert-1',
+    userId: 'user-1',
+    asset: 'eip155:1/slip44:60',
+    type: 'percent_change' as const,
+    threshold: 10.5,
+    period: '1h' as const,
+    direction: 'down' as const,
+    recurring: true,
+    active: true,
+    createdAt: '2025-01-01T00:00:00.000Z',
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSubmitPercent.mockResolvedValue(undefined);
+    mockUseSubmitPercentAlert.mockImplementation(() => ({
+      submit: mockSubmitPercent,
+      isSubmitting: false,
+    }));
+    setRoute(baseRoute);
+  });
+
+  it('renders percent controls when percent change is preselected', () => {
+    const screen = renderWithToast();
+
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.PERCENT_INPUT),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.DIRECTION_TOGGLE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('submits the selected percent threshold, period, direction, and recurrence', async () => {
+    const screen = renderWithToast();
+
+    fireEvent.press(
+      screen.getByTestId(CreatePriceAlertTestIds.DIRECTION_TOGGLE),
+    );
+    fireEvent.press(
+      screen.getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_1H),
+    );
+    fireEvent.press(screen.getByTestId('keypad-key-1'));
+    fireEvent.press(screen.getByTestId('keypad-key-0'));
+    fireEvent(
+      screen.getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE),
+      'valueChange',
+      false,
+    );
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+      );
+    });
+
+    expect(mockSubmitPercent).toHaveBeenCalledWith({
+      asset: 'eip155:1/slip44:60',
+      threshold: 10,
+      period: '1h',
+      direction: 'down',
+      recurring: false,
+    });
+  });
+
+  it('disables saving when the percent tuple matches another alert', () => {
+    setRoute({
+      ...baseRoute,
+      existingPercentAlerts: [
+        {
+          ...editingPercentAlert,
+          threshold: 10,
+          period: '24h',
+          direction: 'up',
+        },
+      ],
+    });
+    const screen = renderWithToast();
+
+    fireEvent.press(screen.getByTestId('keypad-key-1'));
+    fireEvent.press(screen.getByTestId('keypad-key-0'));
+
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeDisabled();
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toHaveTextContent('An alert with this configuration already exists.');
+  });
+
+  it('prepopulates percent edit values and locks immutable controls', () => {
+    setRoute({
+      ...baseRoute,
+      editingAlert: editingPercentAlert,
+      existingPercentAlerts: [editingPercentAlert],
+    });
+    const screen = renderWithToast();
+
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.PERCENT_INPUT),
+    ).toHaveTextContent('10.5%');
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE),
+    ).toBeDisabled();
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_1H),
+    ).toBeDisabled();
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.DIRECTION_TOGGLE),
+    ).toBeDisabled();
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('updates a percent alert after recurrence changes', async () => {
+    setRoute({
+      ...baseRoute,
+      editingAlert: editingPercentAlert,
+      existingPercentAlerts: [editingPercentAlert],
+    });
+    const screen = renderWithToast();
+
+    fireEvent(
+      screen.getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE),
+      'valueChange',
+      false,
+    );
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+      );
+    });
+
+    expect(mockUseSubmitPercentAlert).toHaveBeenCalledWith(editingPercentAlert);
+    expect(mockSubmitPercent).toHaveBeenCalledWith({
+      asset: 'eip155:1/slip44:60',
+      threshold: 10.5,
+      period: '1h',
+      direction: 'down',
+      recurring: false,
+    });
+    expect(mockSetQueryData).toHaveBeenCalledWith(
+      ['priceAlerts', 'eip155:1/slip44:60'],
+      expect.any(Function),
+    );
+  });
+
+  it('tracks percent-specific properties after creation', async () => {
+    const mockAnalytics = jest.mocked(useAnalytics)();
+    const screen = renderWithToast();
+
+    fireEvent.press(screen.getByTestId('keypad-key-5'));
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+      );
+    });
+    const interactionCallIndex = jest
+      .mocked(mockAnalytics.createEventBuilder)
+      .mock.calls.findIndex(
+        ([event]) =>
+          event === MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
+      );
+    const interactionBuilder = jest.mocked(mockAnalytics.createEventBuilder)
+      .mock.results[interactionCallIndex].value;
+
+    expect(interactionBuilder.addProperties).toHaveBeenCalledWith({
+      interaction_type: 'created',
+      asset_id: 'eip155:1/slip44:60',
+      token_symbol: 'ETH',
+      alert_type: 'percent_change',
+      period: '24h',
+      direction: 'up',
+      alert_value: 5,
+      alert_recurring: true,
+      alert_active: true,
+    });
+  });
+
+  it('shows an error toast when percent submission rejects', async () => {
+    mockSubmitPercent.mockRejectedValueOnce(new Error('HTTP 500'));
+    const screen = renderWithToast();
+
+    fireEvent.press(screen.getByTestId('keypad-key-5'));
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+      );
+    });
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: expect.arrayContaining([
+          expect.objectContaining({
+            label: 'Failed to save price alert. Please try again.',
+          }),
+        ]),
+      }),
+    );
   });
 });

@@ -3,7 +3,12 @@ import { render, act, fireEvent, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
 import ManagePriceAlertsView from './ManagePriceAlertsView';
-import { ManagePriceAlertsTestIds, type PriceAlert } from '../../constants';
+import {
+  ManagePriceAlertsTestIds,
+  type Alert,
+  type PercentChangeAlert,
+  type PriceAlert,
+} from '../../constants';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../../../component-library/components/Toast';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -71,8 +76,9 @@ const mockDeleteAlert = jest.fn();
 const mockUpdateAlert = jest.fn();
 jest.mock('../../api', () => ({
   fetchAlerts: (...args: unknown[]) => mockFetchAlerts(...args),
-  deleteAlert: (...args: unknown[]) => mockDeleteAlert(...args),
-  updateAlert: (...args: unknown[]) => mockUpdateAlert(...args),
+  deleteAlertByType: (...args: unknown[]) => mockDeleteAlert(...args),
+  updateAlertByType: (...args: unknown[]) => mockUpdateAlert(...args),
+  normalizeAlerts: (alerts: unknown[]) => alerts,
   priceAlertsQueryKey: (assetId: string) => ['priceAlerts', assetId],
 }));
 
@@ -80,6 +86,7 @@ const makeAlert = (overrides: Partial<PriceAlert> = {}): PriceAlert => ({
   id: 'alert-1',
   userId: 'user-1',
   asset: 'eip155:1/slip44:60',
+  type: 'absolute_price',
   threshold: 3000,
   recurring: true,
   active: true,
@@ -87,7 +94,23 @@ const makeAlert = (overrides: Partial<PriceAlert> = {}): PriceAlert => ({
   ...overrides,
 });
 
-const makeFetchResponse = (alerts: PriceAlert[], ok = true) => ({
+const makePercentAlert = (
+  overrides: Partial<PercentChangeAlert> = {},
+): PercentChangeAlert => ({
+  id: 'percent-alert-1',
+  userId: 'user-1',
+  asset: 'eip155:1/slip44:60',
+  type: 'percent_change',
+  threshold: 10,
+  period: '24h',
+  direction: 'up',
+  recurring: true,
+  active: true,
+  createdAt: '2025-01-01T00:00:00.000Z',
+  ...overrides,
+});
+
+const makeFetchResponse = (alerts: Alert[], ok = true) => ({
   ok,
   status: ok ? 200 : 500,
   json: jest.fn().mockResolvedValue(alerts),
@@ -479,7 +502,7 @@ describe('ManagePriceAlertsView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('calls deleteAlert with the correct id', async () => {
+    it('passes the selected alert to the typed delete function', async () => {
       const screen = renderView();
       await waitForLoaded(screen);
 
@@ -490,7 +513,12 @@ describe('ManagePriceAlertsView', () => {
       );
 
       await waitFor(() => {
-        expect(mockDeleteAlert).toHaveBeenCalledWith('alert-1');
+        expect(mockDeleteAlert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: 'alert-1',
+            type: 'absolute_price',
+          }),
+        );
       });
     });
 
@@ -621,7 +649,7 @@ describe('ManagePriceAlertsView', () => {
       );
     });
 
-    it('calls updateAlert with the toggled active value', async () => {
+    it('passes the selected alert and active value to the typed update function', async () => {
       const screen = renderView();
       await waitForLoaded(screen);
 
@@ -634,9 +662,13 @@ describe('ManagePriceAlertsView', () => {
       );
 
       await waitFor(() => {
-        expect(mockUpdateAlert).toHaveBeenCalledWith('alert-1', {
-          active: false,
-        });
+        expect(mockUpdateAlert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: 'alert-1',
+            type: 'absolute_price',
+          }),
+          { active: false },
+        );
       });
     });
 
@@ -719,6 +751,76 @@ describe('ManagePriceAlertsView', () => {
             `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
           ),
         ).toHaveProp('value', true);
+      });
+    });
+  });
+
+  describe('percent-change alerts', () => {
+    const percentAlert = makePercentAlert();
+
+    beforeEach(() => {
+      mockFetchAlerts.mockResolvedValue(
+        makeFetchResponse([makeAlert(), percentAlert]),
+      );
+    });
+
+    it('renders percent direction, threshold, period, and recurrence', async () => {
+      const screen = renderView();
+
+      await waitForLoaded(screen);
+
+      expect(screen.getByText('Moves up 10%')).toBeOnTheScreen();
+      expect(screen.getByText('24h • Recurring')).toBeOnTheScreen();
+    });
+
+    it('passes absolute thresholds and percent alerts separately when adding an alert', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(ManagePriceAlertsTestIds.ADD_ALERT_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CREATE_PRICE_ALERT,
+        expect.objectContaining({
+          existingThresholds: [3000],
+          existingPercentAlerts: [percentAlert],
+        }),
+      );
+    });
+
+    it('passes a percent alert to the typed delete function', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-${percentAlert.id}`,
+        ),
+      );
+
+      await waitFor(() => {
+        expect(mockDeleteAlert).toHaveBeenCalledWith(percentAlert);
+      });
+    });
+
+    it('passes a percent alert to the typed update function', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-${percentAlert.id}`,
+        ),
+        'valueChange',
+        false,
+      );
+
+      await waitFor(() => {
+        expect(mockUpdateAlert).toHaveBeenCalledWith(percentAlert, {
+          active: false,
+        });
       });
     });
   });
@@ -998,6 +1100,48 @@ describe('ManagePriceAlertsView', () => {
       expect(mockAnalytics.createEventBuilder).not.toHaveBeenCalledWith(
         MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
       );
+    });
+
+    it('tracks period and direction when toggling a percent alert', async () => {
+      const percentAlert = makePercentAlert({
+        threshold: 12.5,
+        period: '1h',
+        direction: 'down',
+      });
+      mockFetchAlerts.mockResolvedValue(makeFetchResponse([percentAlert]));
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-${percentAlert.id}`,
+        ),
+        'valueChange',
+        false,
+      );
+      await waitFor(() => {
+        expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
+        );
+      });
+
+      expect(
+        builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+          .addProperties,
+      ).toHaveBeenCalledWith({
+        interaction_type: 'updated',
+        asset_id: 'eip155:1/slip44:60',
+        token_symbol: 'ETH',
+        alert_type: 'percent_change',
+        period: '1h',
+        direction: 'down',
+        alert_value: 12.5,
+        alert_recurring: true,
+        alert_active: false,
+        prev_alert_value: 12.5,
+        prev_alert_recurring: true,
+        prev_alert_active: true,
+      });
     });
   });
 });

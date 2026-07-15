@@ -108,7 +108,7 @@ describe('AlertTypeToggle', () => {
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
 
-  it('disables both tabs and ignores presses when isDisabled (edit mode)', () => {
+  it('marks both tabs disabled when isDisabled', () => {
     const { getByTestId } = render(
       <AlertTypeToggle
         value="absolute_price"
@@ -118,11 +118,23 @@ describe('AlertTypeToggle', () => {
     );
 
     expect(
-      getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_TARGET).props.disabled,
+      getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_TARGET).props
+        .accessibilityState?.disabled,
     ).toBe(true);
     expect(
-      getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE).props.disabled,
+      getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE).props
+        .accessibilityState?.disabled,
     ).toBe(true);
+  });
+
+  it('ignores presses when isDisabled', () => {
+    const { getByTestId } = render(
+      <AlertTypeToggle
+        value="absolute_price"
+        onChange={mockOnChange}
+        isDisabled
+      />,
+    );
 
     fireEvent.press(getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE));
 
