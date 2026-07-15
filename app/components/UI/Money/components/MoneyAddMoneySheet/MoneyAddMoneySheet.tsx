@@ -29,13 +29,17 @@ import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
+import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import Logger from '../../../../../util/Logger';
 import {
   useMoneyAccountDeposit,
   type InitiateDepositOptions,
 } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
-import { useRegionHasNativeFiatProvider } from '../../hooks/useRegionHasNativeFiatProvider';
+import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
+import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDepositAssetId';
 import { selectTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import MoneySheetOptionsList, {
@@ -67,10 +71,14 @@ const MoneyAddMoneySheet: React.FC = () => {
     tokenBalanceByChain,
   } = useMusdBalance();
   const { initiateDeposit } = useMoneyAccountDeposit();
+  const { goToBuy } = useRampNavigation();
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
   const transactions = useSelector(selectTransactions);
-  const regionHasNativeFiatProvider = useRegionHasNativeFiatProvider();
+  // Derive the deposit asset (CAIP-19) from the same vault config the deposit
+  // flow uses, so the entry gate checks the exact asset the deposit targets.
+  const depositAssetId = useMoneyAccountDepositAssetId();
+  const regionHasFiatProvider = useRegionHasFiatProvider(depositAssetId);
   const isFiatDepositEnabled = useMemo(
     () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
     [enabledTransactionTypes],
@@ -160,7 +168,34 @@ const MoneyAddMoneySheet: React.FC = () => {
     startDeposit({ autoSelectFiatPayment: true, intent: 'card' });
   }, [startDeposit, trackSurfaceClicked]);
 
+  const parsedMusdFiat = Number(fiatBalanceAggregated);
+  const hasParsedFiatBalance =
+    Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
+  const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
+
   const handleMoveMusd = useCallback(() => {
+    // With no mUSD anywhere there is nothing to move, so the row routes to
+    // Ramps to buy mUSD instead.
+    if (!hasMusdBalance) {
+      trackSurfaceClicked({
+        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_MUSD,
+        redirect_target: SCREEN_NAMES.RAMPS_BUY,
+      });
+
+      sheetRef.current?.onCloseBottomSheet(() => {
+        goToBuy({
+          assetId:
+            MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
+        }).catch((error) => {
+          Logger.error(
+            error as Error,
+            '[MoneyAddMoneySheet] Failed to open the Ramps buy flow for mUSD',
+          );
+        });
+      });
+      return;
+    }
+
     let sourceChainId: Hex = MUSD_CONVERSION_DEFAULT_CHAIN_ID;
     let bestBalance = new BigNumber(0);
     for (const [chainId, balance] of Object.entries(
@@ -185,12 +220,13 @@ const MoneyAddMoneySheet: React.FC = () => {
         chainId: sourceChainId,
       },
     });
-  }, [startDeposit, tokenBalanceByChain, trackSurfaceClicked]);
-
-  const parsedMusdFiat = Number(fiatBalanceAggregated);
-  const hasParsedFiatBalance =
-    Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
-  const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
+  }, [
+    goToBuy,
+    hasMusdBalance,
+    startDeposit,
+    tokenBalanceByChain,
+    trackSurfaceClicked,
+  ]);
 
   const moveMusdAmount = useMemo(
     () => moneyFormatUsd(new BigNumber(tokenBalanceAggregated)),
@@ -209,7 +245,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       disabled: !hasAnyCryptoBalance,
     },
-    ...(isFiatDepositEnabled && regionHasNativeFiatProvider
+    ...(isFiatDepositEnabled && regionHasFiatProvider
       ? [
           {
             label: strings(
@@ -232,7 +268,6 @@ const MoneyAddMoneySheet: React.FC = () => {
       icon: IconName.Add,
       onPress: handleMoveMusd,
       testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
-      disabled: !hasMusdBalance,
     },
     {
       label: strings('money.add_money_sheet.bank_account'),

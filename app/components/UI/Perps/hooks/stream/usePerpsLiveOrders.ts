@@ -101,7 +101,13 @@ export function usePerpsLiveOrders(
       return orders;
     }
     return orders.filter((order) => {
-      if (hideTpSl && isTPSLOrder(order.detailedOrderType)) {
+      // A TP/SL order is either a recognized TP/SL order type or a trigger
+      // order. Checking both keeps this in sync with the market-details filter
+      // so reduce-only trigger TP/SL orders never leak past hideTpSl.
+      if (
+        hideTpSl &&
+        (order.isTrigger === true || isTPSLOrder(order.detailedOrderType))
+      ) {
         return false;
       }
 

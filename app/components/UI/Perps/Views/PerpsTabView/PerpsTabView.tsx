@@ -75,7 +75,8 @@ const PerpsTabView = () => {
 
   const { orders } = usePerpsLiveOrders({
     hideTpSl: true, // Filter out TP/SL orders
-    hideReduceOnly: true, // Filter out all reduce-only orders
+    // Reduce-only orders (e.g. limit closes) are shown so they appear in the
+    // orders section, matching the portfolio "Perpetuals" section.
     throttleMs: 1000, // Update orders every second
   });
 
