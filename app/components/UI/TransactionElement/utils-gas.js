@@ -1,6 +1,10 @@
 import { isEIP1559Transaction } from '@metamask/transaction-controller';
 import { sumHexWEIs } from '../../../util/conversions';
-import { hexToBN, isBN, BNToHex, renderToGwei } from '../../../util/number';
+import {
+  hexToBigInt,
+  bigIntToHex,
+  renderToGwei,
+} from '../../../util/number/bigint';
 import { calculateEIP1559GasFeeHexes } from '../../../util/transactions';
 
 export function calculateTotalGas(transaction) {
@@ -20,20 +24,20 @@ export function calculateTotalGas(transaction) {
       suggestedMaxPriorityFeePerGasHex: maxPriorityFeePerGas,
       suggestedMaxFeePerGasHex: maxFeePerGas,
     });
-    return hexToBN(eip1559GasHex.gasFeeMinHex);
+    return hexToBigInt(eip1559GasHex.gasFeeMinHex ?? '0x0');
   }
-  const gasBN = hexToBN(gas);
-  const gasPriceBN = hexToBN(gasPrice);
-  const gasUsedBN = gasUsed ? hexToBN(gasUsed) : null;
-  let totalGas = hexToBN('0x0');
-  if (gasUsedBN && isBN(gasUsedBN) && isBN(gasPriceBN)) {
-    totalGas = gasUsedBN.mul(gasPriceBN);
-  }
-  if (isBN(gasBN) && isBN(gasPriceBN)) {
-    totalGas = gasBN.mul(gasPriceBN);
-  }
+  const gasValue = gas ? hexToBigInt(gas) : 0n;
+  const gasPrice_ = gasPrice ? hexToBigInt(gasPrice) : 0n;
+  const gasUsedValue = gasUsed ? hexToBigInt(gasUsed) : null;
+  let totalGas = gas
+    ? gasValue * gasPrice_
+    : gasUsedValue !== null
+      ? gasUsedValue * gasPrice_
+      : 0n;
   if (multiLayerL1FeeTotal) {
-    totalGas = hexToBN(sumHexWEIs([BNToHex(totalGas), multiLayerL1FeeTotal]));
+    totalGas = hexToBigInt(
+      sumHexWEIs([bigIntToHex(totalGas), multiLayerL1FeeTotal]),
+    );
   }
   return totalGas;
 }
@@ -55,8 +59,10 @@ export function renderGwei(transaction) {
     });
 
     return renderToGwei(
-      eip1559GasHex.estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex,
+      hexToBigInt(
+        eip1559GasHex.estimatedBaseFee_PLUS_suggestedMaxPriorityFeePerGasHex,
+      ),
     );
   }
-  return renderToGwei(gasPrice);
+  return renderToGwei(gasPrice ? hexToBigInt(gasPrice) : 0n);
 }

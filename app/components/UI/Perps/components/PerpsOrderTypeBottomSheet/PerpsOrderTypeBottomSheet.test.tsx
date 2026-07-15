@@ -10,62 +10,11 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   return { useTailwind: () => tw };
 });
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const MockReact = jest.requireActual('react');
-  const { View, Pressable, Text: RNText } = jest.requireActual('react-native');
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-
-  const BottomSheet = MockReact.forwardRef(
-    (
-      {
-        children,
-        testID,
-        onClose,
-        goBack,
-      }: {
-        children: React.ReactNode;
-        testID?: string;
-        onClose?: () => void;
-        goBack?: () => void;
-      },
-      ref: React.Ref<{
-        onOpenBottomSheet: () => void;
-        onCloseBottomSheet: (callback?: () => void) => void;
-      }>,
-    ) => {
-      MockReact.useImperativeHandle(ref, () => ({
-        onOpenBottomSheet: jest.fn(),
-        onCloseBottomSheet: (callback?: () => void) => {
-          goBack?.();
-          onClose?.();
-          callback?.();
-        },
-      }));
-
-      return <View testID={testID}>{children}</View>;
-    },
-  );
-  BottomSheet.displayName = 'BottomSheet';
-
-  const BottomSheetHeader = ({
-    children,
-    onClose,
-  }: {
-    children: React.ReactNode;
-    onClose?: () => void;
-  }) => (
-    <View testID="bottom-sheet-header">
-      {typeof children === 'string' ? <RNText>{children}</RNText> : children}
-      <Pressable testID="close-button" onPress={onClose} />
-    </View>
-  );
-
-  return {
-    ...actual,
-    BottomSheet,
-    BottomSheetHeader,
-  };
-});
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({
+    track: jest.fn(),
+  }),
+}));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -98,6 +47,9 @@ describe('PerpsOrderTypeBottomSheet', () => {
     it('renders when visible', () => {
       render(<PerpsOrderTypeBottomSheet {...defaultProps} />);
 
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
       expect(screen.getByText('Order Type')).toBeOnTheScreen();
       expect(screen.getByText('Market Order')).toBeOnTheScreen();
       expect(screen.getByText('Limit Order')).toBeOnTheScreen();
@@ -214,7 +166,9 @@ describe('PerpsOrderTypeBottomSheet', () => {
 
       rerender(<PerpsOrderTypeBottomSheet {...defaultProps} isVisible />);
 
-      expect(screen.getByText('Order Type')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
     });
 
     it('calls onClose once when header close button is pressed', () => {
@@ -222,7 +176,9 @@ describe('PerpsOrderTypeBottomSheet', () => {
 
       render(<PerpsOrderTypeBottomSheet {...defaultProps} onClose={onClose} />);
 
-      fireEvent.press(screen.getByTestId('close-button'));
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CLOSE_BUTTON),
+      );
 
       expect(onClose).toHaveBeenCalledTimes(1);
     });
@@ -242,7 +198,9 @@ describe('PerpsOrderTypeBottomSheet', () => {
         />,
       );
 
-      fireEvent.press(screen.getByTestId('close-button'));
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CLOSE_BUTTON),
+      );
 
       expect(sheetRef.current?.onCloseBottomSheet).toBeDefined();
       expect(onClose).toHaveBeenCalledTimes(1);
@@ -353,7 +311,9 @@ describe('PerpsOrderTypeBottomSheet', () => {
 
       rerender(<PerpsOrderTypeBottomSheet {...defaultProps} isVisible />);
 
-      expect(screen.getByText('Order Type')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
     });
   });
 });
