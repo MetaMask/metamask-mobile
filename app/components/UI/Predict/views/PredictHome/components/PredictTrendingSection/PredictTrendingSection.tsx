@@ -90,7 +90,7 @@ const PredictTrendingSection: React.FC<PredictTrendingSectionProps> = ({
           </Text>
         </Box>
       ) : (
-        <Box twClassName="gap-3">
+        <Box twClassName="gap-1">
           {markets.map((market) => (
             <PredictMarket
               key={market.id}
