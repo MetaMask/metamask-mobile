@@ -1,11 +1,13 @@
 'use strict';
 
+import type { Notification } from '@notifee/react-native';
 import parseDeeplink from './utils/parseDeeplink';
 import branch from 'react-native-branch';
 import { Linking } from 'react-native';
 import Logger from '../../util/Logger';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import FCMService from '../../util/notifications/services/FCMService';
+import NotificationsService from '../../util/notifications/services/NotificationService';
 import AppConstants from '../AppConstants';
 import { BranchParams } from './types/deepLinkAnalytics.types';
 import {
@@ -41,6 +43,31 @@ export function rewriteBranchUri(
   } catch (error) {
     Logger.error(error as Error, `Error rewriting Branch URI: ${uri}`);
     return uri;
+  }
+}
+
+function getForegroundPushDeeplink(
+  notification: Notification | undefined,
+): string | undefined {
+  const dataStr = notification?.data?.dataStr;
+  if (typeof dataStr !== 'string') {
+    return undefined;
+  }
+
+  try {
+    const data: unknown = JSON.parse(dataStr);
+    if (
+      typeof data !== 'object' ||
+      data === null ||
+      !('deeplink' in data) ||
+      typeof data.deeplink !== 'string'
+    ) {
+      return undefined;
+    }
+
+    return data.deeplink;
+  } catch {
+    return undefined;
   }
 }
 
@@ -162,6 +189,21 @@ export class DeeplinkManager {
           source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
         });
       }
+    });
+
+    NotificationsService.onForegroundEvent(async (event) => {
+      await NotificationsService.handleNotificationEvent({
+        ...event,
+        callback: (notification) => {
+          const deeplink = getForegroundPushDeeplink(notification);
+          if (deeplink) {
+            handleDeeplink({
+              uri: deeplink,
+              source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+            });
+          }
+        },
+      });
     });
 
     getBrazeInitialDeeplink().then((deeplink) => {

@@ -1,6 +1,8 @@
+import { Event as NotifeeEvent, EventType } from '@notifee/react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { waitFor } from '@testing-library/react-native';
 import FCMService from '../../util/notifications/services/FCMService';
+import NotificationsService from '../../util/notifications/services/NotificationService';
 import NavigationService from '../NavigationService';
 import SharedDeeplinkManager, {
   DeeplinkManager,
@@ -250,6 +252,81 @@ describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
       ).toHaveBeenCalledWith(expect.any(Function));
       expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('DeeplinkManager.start() - Foreground Push Notification Integration', () => {
+  const arrangeMocks = () => {
+    const mockOnClickPushNotificationWhenAppClosed = jest.mocked(
+      FCMService.onClickPushNotificationWhenAppClosed,
+    );
+    const mockOnClickPushNotificationWhenAppSuspended = jest.mocked(
+      FCMService.onClickPushNotificationWhenAppSuspended,
+    );
+    const mockHandleDeeplink = jest.mocked(handleDeeplink);
+    const mockGetBrazeInitialDeeplink = jest.mocked(getBrazeInitialDeeplink);
+    const mockSubscribeToBrazePushDeeplinks = jest.mocked(
+      subscribeToBrazePushDeeplinks,
+    );
+    const mockOnForegroundEvent = jest
+      .spyOn(NotificationsService, 'onForegroundEvent')
+      .mockReturnValue(jest.fn());
+
+    mockOnClickPushNotificationWhenAppClosed.mockResolvedValue(null);
+    mockOnClickPushNotificationWhenAppSuspended.mockImplementation(() => null);
+    mockGetBrazeInitialDeeplink.mockResolvedValue(null);
+    mockSubscribeToBrazePushDeeplinks.mockReturnValue(null);
+
+    return {
+      mockOnForegroundEvent,
+      mockHandleDeeplink,
+    };
+  };
+
+  const createForegroundPressEvent = (dataStr: string): NotifeeEvent =>
+    ({
+      type: EventType.PRESS,
+      detail: {
+        notification: {
+          data: { dataStr },
+        },
+      },
+    }) as NotifeeEvent;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('routes a deeplink from a foreground notification press', async () => {
+    const deeplink = 'https://link.metamask.io/perps-asset?symbol=ETH';
+    const mocks = arrangeMocks();
+
+    DeeplinkManager.start();
+
+    const foregroundEventHandler = mocks.mockOnForegroundEvent.mock.calls[0][0];
+    await foregroundEventHandler(
+      createForegroundPressEvent(JSON.stringify({ deeplink })),
+    );
+
+    expect(mocks.mockHandleDeeplink).toHaveBeenCalledWith({
+      uri: deeplink,
+      source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+    });
+  });
+
+  it('ignores a foreground notification press with malformed data', async () => {
+    const mocks = arrangeMocks();
+
+    DeeplinkManager.start();
+
+    const foregroundEventHandler = mocks.mockOnForegroundEvent.mock.calls[0][0];
+    await foregroundEventHandler(createForegroundPressEvent('not-json'));
+
+    expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
   });
 });
 
