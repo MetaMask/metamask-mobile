@@ -116,7 +116,7 @@
     "test:e2e:feature-flag:coverage": "ts-node tests/feature-flags/feature-flag-coverage-report.ts",
     "test:e2e:ai-test-plan": "node -r esbuild-register tests/tools/e2e-ai-analyzer --mode generate-test-plan --auto-ff",
     "run-playwright:android-bs": "yarn playwright test --project browserstack-android --config tests/playwright.config.ts",
-    "run-playwright:android-onboarding-bs": "yarn playwright test --project android-onboarding --config tests/playwright.config.ts",
+    "run-playwright:android-onboarding-bs": "yarn playwright test --project android-onboarding --project android-onboarding-seedless --config tests/playwright.config.ts",
     "run-playwright:ios-onboarding-bs": "yarn playwright test --project ios-onboarding --project ios-onboarding-seedless --config tests/playwright.config.ts",
     "run-playwright:android-seedless-bs": "yarn playwright test --project android-onboarding-seedless --config tests/playwright.config.ts",
     "run-playwright:ios-seedless-bs": "yarn playwright test --project ios-onboarding-seedless --config tests/playwright.config.ts",

@@ -28,13 +28,13 @@ export default defineConfig({
   projects: [
     {
       name: 'testmu-android',
-      testMatch: '**/performance/login/**/cross-chain-swap-flow.spec.ts',
+      testMatch: '**/performance/login/**/*.spec.ts',
       use: {
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.TESTMU,
           name: process.env.TESTMU_DEVICE || 'Google Pixel 8 Pro',
-          osVersion: process.env.TESTMU_OS_VERSION || '14.0',
+          osVersion: process.env.TESTMU_OS_VERSION || '14',
         },
         app: {
           packageName: 'io.metamask',
@@ -61,14 +61,14 @@ export default defineConfig({
     },
     {
       name: 'testmu-android-onboarding',
-      testMatch: '**/performance/onboarding/**/import-wallet.spec.ts',
+      testMatch: '**/performance/onboarding/**/*.spec.ts',
       testIgnore: '**/performance/onboarding/seedless-*.spec.ts',
       use: {
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.TESTMU,
           name: process.env.TESTMU_DEVICE || 'Samsung Galaxy S25 Ultra',
-          osVersion: process.env.TESTMU_OS_VERSION || '15.0',
+          osVersion: process.env.TESTMU_OS_VERSION || '15',
         },
         app: {
           packageName: 'io.metamask',
