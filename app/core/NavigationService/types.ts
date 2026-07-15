@@ -20,10 +20,18 @@ import type { BrowserParams } from '../../components/Views/Browser/Browser.types
 import type { ActivityDetailsParams } from '../../components/Views/ActivityDetails/ActivityDetails.types';
 import type {
   AssetStackParamList,
+  BrowserTabHomeParamList,
+  HomeTabsParamList,
+  ImportPrivateKeyStackParamList,
+  MainFlowParamList,
   SettingsStackParamList,
+  SetPasswordFlowParamList,
+  TrendingViewStackParamList,
   WalletTabHomeParamList,
   WalletTabStackParamList,
+  WebviewStackParamList,
 } from '../../components/Nav/Main/types/navigation';
+import type { Collectible } from '../../components/UI/CollectibleMedia/CollectibleMedia.types';
 
 // Bridge params
 import type { BatchSellTokenSelectRouteParams } from '../../components/UI/Bridge/Views/BatchSellTokenSelect/types';
@@ -91,7 +99,6 @@ import type { CreditBalanceTooltipParams } from '../../components/UI/Card/compon
 import type { MoneyUnlinkCardSheetRouteParams } from '../../components/UI/Card/components/MoneyUnlinkCardSheet/MoneyUnlinkCardSheet';
 import type { MoneyDeeplinkModalParams } from '../../components/UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 import type { TradingSignalsSetupParams } from '../../components/Views/SocialLeaderboard/components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet';
-import type { ExploreFeedRouteParams } from '../../components/Views/TrendingView/TrendingView';
 import type { ExploreSearchRouteParams } from '../../components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.types';
 
 // QR Scanner params
@@ -251,7 +258,6 @@ import type { EarnMusdConversionEducationViewRouteParams } from '../../component
 
 // Modal params
 import type {
-  RootModalFlowParams,
   ModalConfirmationParams,
   ModalMandatoryParams,
   OptionsSheetParams,
@@ -269,11 +275,6 @@ import type {
 import { BenefitFullViewRouteParams } from '../../components/UI/Rewards/Views/BenefitFullView.types.ts';
 import type { RewardsNavigationParamList } from '../../components/UI/Rewards/types/navigation';
 
-// Webview params
-import type {
-  WebviewParams,
-  SimpleWebviewParams,
-} from '../../components/Views/Webview/Webview.types';
 import type { WhatsHappeningSourceValue } from '../../components/UI/WhatsHappening/constants';
 
 /**
@@ -356,6 +357,79 @@ type TraderPositionViewParams =
     };
 
 /**
+ * Screens registered inside App's `RootModalFlow` stack.
+ * Param shapes match the flat RootStack leaf entries for those routes.
+ */
+// ParamListBase requires `type`; `interface` cannot satisfy it.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type RootModalFlowParamList = {
+  WalletActions: undefined;
+  TradeWalletActions: undefined;
+  FundActionMenu: undefined;
+  MoreTokenActionsMenu: MoreTokenActionsMenuParams;
+  MAPicker: MAPickerSheetParams | undefined;
+  SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
+  DeleteWalletModal: undefined;
+  ModalConfirmation: ModalConfirmationParams | undefined;
+  ModalMandatory: ModalMandatoryParams | undefined;
+  OnboardingSheet: OnboardingSheetParams | undefined;
+  SeedphraseModal: SeedphraseModalParams | undefined;
+  SkipAccountSecurityModal: undefined;
+  SuccessErrorSheet: SuccessErrorSheetParams | undefined;
+  EligibilityFailedModal: undefined;
+  UnsupportedRegionModal: undefined;
+  RampsServiceDisruptionModal: undefined;
+  AccountSelector: AccountSelectorParams | undefined;
+  AddWallet: undefined;
+  AddressSelector: AddressSelectorParams | undefined;
+  SDKLoading: SDKLoadingParams | undefined;
+  SDKFeedback: SDKFeedbackParams | undefined;
+  SDKConnectV2Otp: SDKConnectV2OtpModalParams;
+  SDKManageConnections: undefined;
+  ExperienceEnhancer: undefined;
+  DataCollection: undefined;
+  SDKDisconnect: SDKDisconnectParams | undefined;
+  AccountConnect: AccountConnectParams | undefined;
+  AccountPermissions: AccountPermissionsParams | undefined;
+  RevokeAllAccountPermissions: RevokeAllAccountPermissionsParams | undefined;
+  ConnectionDetails: ConnectionDetailsParams | undefined;
+  PermittedNetworksInfoSheet: undefined;
+  NetworkSelector: NetworkSelectorParams | undefined;
+  TokenSort: undefined;
+  NetworkManager: undefined;
+  BasicFunctionality: undefined;
+  ConfirmTurnOnBackupAndSync: undefined;
+  AmbiguousAddress: AmbiguousAddressParams | undefined;
+  TurnOffRememberMeModal: undefined;
+  AssetHideConfirmation: { onConfirm: () => void } | undefined;
+  NftOptions: { collectible: Collectible } | undefined;
+  UpdateNeededModal: undefined;
+  OTAUpdatesModal: undefined;
+  SelectSRP: SelectSRPParams | undefined;
+  AddDeviceVerificationCode: undefined;
+  SRPRevealQuiz: SRPRevealQuizParams | undefined;
+  AccountActions: AccountActionsParams;
+  SettingsAdvancedFiatOnTestnetsFriction: undefined;
+  ShowIpfs: ShowIpfsGatewaySheetParams | undefined;
+  ShowNftDisplayMedia: ShowNftDisplayMediaParams | undefined;
+  NFTAutoDetectionModal: undefined;
+  MultiRPcMigrationModal: undefined;
+  ShowTokenId: ShowTokenIdSheetParams | undefined;
+  OriginSpamModal: OriginSpamModalParams | undefined;
+  ChangeInSimulationModal: undefined;
+  tooltipModal: TooltipModalRouteParams | undefined;
+  DeepLinkModal: DeepLinkModalParams | undefined;
+  MultichainAccountsIntroModal: undefined;
+  MultichainAccountsLearnMoreBottomSheet: undefined;
+  Pna25BottomSheet: undefined;
+  ReturnToDappToast: ReturnToDappNotificationParams | undefined;
+  MultichainTransactionDetails: MultichainTransactionDetailsParams | undefined;
+  TransactionDetailsSheet: TransactionDetailsSheetParams | undefined;
+  ImportWalletTipSheet: undefined;
+  SimpleWebview: WebviewStackParamList['SimpleWebview'];
+};
+
+/**
  * Flattened param list for React Navigation compatibility.
  * Maps actual route name strings to their parameter types.
  * This provides TypeScript autocomplete and error checking for navigation.
@@ -370,9 +444,9 @@ type TraderPositionViewParams =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RootStackParamList = {
   // Top-level routes
-  Main: NestedNavigationParams | undefined;
+  Main: NavigatorScreenParams<MainFlowParamList> | undefined;
   WalletView: undefined;
-  BrowserTabHome: BrowserParams | NestedNavigationParams | undefined;
+  BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
   BrowserView: BrowserParams | undefined;
   SettingsView: NavigatorScreenParams<SettingsStackParamList> | undefined;
   DeprecatedNetworkDetails: undefined;
@@ -490,8 +564,8 @@ export type RootStackParamList = {
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
-  TrendingView: NestedNavigationParams | undefined;
-  TrendingFeed: ExploreFeedRouteParams | undefined;
+  TrendingView: NavigatorScreenParams<TrendingViewStackParamList> | undefined;
+  TrendingFeed: TrendingViewStackParamList['TrendingFeed'];
   WhatsHappeningDetailView:
     | { initialIndex?: number; source: WhatsHappeningSourceValue }
     | undefined;
@@ -533,7 +607,7 @@ export type RootStackParamList = {
 
   // Modal routes
   DeleteWalletModal: undefined;
-  RootModalFlow: RootModalFlowParams | NestedNavigationParams | undefined;
+  RootModalFlow: NavigatorScreenParams<RootModalFlowParamList> | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
   TurnOffRememberMeModal: undefined;
@@ -568,7 +642,7 @@ export type RootStackParamList = {
   AssetsSettings: undefined;
   SecuritySettings: undefined;
   HomeNav: undefined;
-  Home: NestedNavigationParams | undefined;
+  Home: NavigatorScreenParams<HomeTabsParamList> | undefined;
   Onboarding: undefined;
   Login: undefined;
   OnboardingNav: undefined;
@@ -592,7 +666,9 @@ export type RootStackParamList = {
   WalletCreationError: WalletCreationErrorParams | undefined;
   AddDeviceToWallet: undefined;
   AddDeviceVerificationCode: undefined;
-  ImportPrivateKeyView: NestedNavigationParams | undefined;
+  ImportPrivateKeyView:
+    | NavigatorScreenParams<ImportPrivateKeyStackParamList>
+    | undefined;
 
   // Send flow routes
   SendTo: SendFlowParams | undefined;
@@ -682,8 +758,8 @@ export type RootStackParamList = {
   AssetView: AssetViewParams | undefined;
 
   // Webview routes
-  Webview: WebviewParams | NestedNavigationParams | undefined;
-  SimpleWebview: SimpleWebviewParams | undefined;
+  Webview: NavigatorScreenParams<WebviewStackParamList> | undefined;
+  SimpleWebview: WebviewStackParamList['SimpleWebview'];
 
   // Wallet routes
   WalletTabHome: NavigatorScreenParams<WalletTabHomeParamList> | undefined;
@@ -921,7 +997,7 @@ export type RootStackParamList = {
 
   // Misc routes
   FoxLoader: FoxLoaderParams | undefined;
-  SetPasswordFlow: NestedNavigationParams | undefined;
+  SetPasswordFlow: NavigatorScreenParams<SetPasswordFlowParamList> | undefined;
   EditAccountName: EditAccountNameParams | undefined;
 
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
