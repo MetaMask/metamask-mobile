@@ -147,7 +147,7 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
   }
 
   return (
-    <Box testID={testID} twClassName="my-2">
+    <Box testID={testID}>
       {/* "See all" navigates to the generic PredictFeedView (feedId 'live'). */}
       <SectionHeader
         testID={PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER}

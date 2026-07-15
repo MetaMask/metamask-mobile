@@ -166,34 +166,38 @@ const PredictHome: React.FC = () => {
             </Text>
           </Box>
 
-          <PredictPortfolioModule
-            onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
-          />
-          <Box
-            testID={PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION}
-            onLayout={registerSection(PredictEventValues.SECTION_ID.LIVE_NOW)}
-          >
-            <PredictLiveNowSection />
-          </Box>
-          <Box
-            testID={PredictHomeSelectorsIDs.CATEGORIES_IMPRESSION}
-            onLayout={registerSection(PredictEventValues.SECTION_ID.CATEGORIES)}
-          >
-            <PredictCategoriesSection />
-          </Box>
-          <Box
-            testID={PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION}
-            onLayout={registerSection(
-              PredictEventValues.SECTION_ID.POPULAR_TODAY,
-            )}
-          >
-            <PredictPopularTodaySection />
-          </Box>
-          <Box
-            testID={PredictHomeSelectorsIDs.TRENDING_IMPRESSION}
-            onLayout={registerSection(PredictEventValues.SECTION_ID.TRENDING)}
-          >
-            <PredictTrendingSection />
+          <Box twClassName="gap-6">
+            <PredictPortfolioModule
+              onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
+            />
+            <Box
+              testID={PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION}
+              onLayout={registerSection(PredictEventValues.SECTION_ID.LIVE_NOW)}
+            >
+              <PredictLiveNowSection />
+            </Box>
+            <Box
+              testID={PredictHomeSelectorsIDs.CATEGORIES_IMPRESSION}
+              onLayout={registerSection(
+                PredictEventValues.SECTION_ID.CATEGORIES,
+              )}
+            >
+              <PredictCategoriesSection />
+            </Box>
+            <Box
+              testID={PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION}
+              onLayout={registerSection(
+                PredictEventValues.SECTION_ID.POPULAR_TODAY,
+              )}
+            >
+              <PredictPopularTodaySection />
+            </Box>
+            <Box
+              testID={PredictHomeSelectorsIDs.TRENDING_IMPRESSION}
+              onLayout={registerSection(PredictEventValues.SECTION_ID.TRENDING)}
+            >
+              <PredictTrendingSection />
+            </Box>
           </Box>
         </Animated.ScrollView>
 

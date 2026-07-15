@@ -183,7 +183,7 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
   }
 
   return (
-    <Box testID={testID} twClassName="my-2">
+    <Box testID={testID}>
       <SectionHeader
         testID={PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.HEADER}
         title={strings('predict.feed.popular_today')}
