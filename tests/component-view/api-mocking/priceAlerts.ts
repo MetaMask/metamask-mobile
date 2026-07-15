@@ -11,16 +11,17 @@
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock, { type Scope } from 'nock';
 import { clearAllNockMocks, disableNetConnect } from './nockHelpers';
-import type { PriceAlert } from '../../../app/components/UI/Assets/PriceAlerts/constants';
+import type { AbsolutePriceAlert } from '../../../app/components/UI/Assets/PriceAlerts/constants';
 
 const PRICE_ALERTS_ORIGIN = 'https://price-alerts.dev-api.cx.metamask.io';
 const ALERTS_PATH = '/v1/alerts';
 
-export const mockPriceAlertsData: PriceAlert[] = [
+export const mockPriceAlertsData: AbsolutePriceAlert[] = [
   {
     id: 'alert-1',
     userId: 'user-1',
     asset: 'eip155:1/slip44:60',
+    type: 'absolute_price',
     threshold: 3000,
     recurring: true,
     active: true,
@@ -30,6 +31,7 @@ export const mockPriceAlertsData: PriceAlert[] = [
     id: 'alert-2',
     userId: 'user-1',
     asset: 'eip155:1/slip44:60',
+    type: 'absolute_price',
     threshold: 1500,
     recurring: false,
     active: false,
@@ -38,10 +40,11 @@ export const mockPriceAlertsData: PriceAlert[] = [
 ];
 
 /** Fixture for the alert returned by POST /v1/alerts in tests. */
-export const mockCreatedAlert: PriceAlert = {
+export const mockCreatedAlert: AbsolutePriceAlert = {
   id: 'alert-new',
   userId: 'user-1',
   asset: 'eip155:1/slip44:60',
+  type: 'absolute_price',
   threshold: 1300,
   recurring: true,
   active: true,
@@ -58,7 +61,7 @@ export const mockCreatedAlert: PriceAlert = {
  * @param alerts - The alerts to return from GET /v1/alerts. Defaults to mockPriceAlertsData.
  */
 export function setupPriceAlertsApiMock(
-  alerts: PriceAlert[] = mockPriceAlertsData,
+  alerts: AbsolutePriceAlert[] = mockPriceAlertsData,
 ): void {
   clearAllNockMocks();
   disableNetConnect();

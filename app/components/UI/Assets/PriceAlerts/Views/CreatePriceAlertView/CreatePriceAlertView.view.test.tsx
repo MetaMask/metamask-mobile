@@ -8,7 +8,10 @@ import {
 } from '../../../../../../../tests/component-view/api-mocking/priceAlerts';
 import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { CreatePriceAlertTestIds, type PriceAlert } from '../../constants';
+import {
+  type AbsolutePriceAlert,
+  CreatePriceAlertTestIds,
+} from '../../constants';
 
 beforeEach(() => {
   setupPriceAlertsApiMock();
@@ -18,10 +21,11 @@ afterEach(() => {
   clearPriceAlertsApiMocks();
 });
 
-const editingAlert: PriceAlert = {
+const editingAlert: AbsolutePriceAlert = {
   id: 'alert-1',
   userId: 'user-1',
   asset: 'eip155:1/slip44:60',
+  type: 'absolute_price',
   threshold: 3000,
   recurring: true,
   active: true,
