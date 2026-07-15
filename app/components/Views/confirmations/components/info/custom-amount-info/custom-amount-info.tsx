@@ -43,8 +43,10 @@ import {
 } from '../../transactions/custom-amount';
 import {
   useIsTransactionPayLoading,
+  useIsTransactionPayQuoteLoading,
   useTransactionPayFiatPayment,
   useTransactionPayQuotes,
+  useTransactionPayQuotesLastUpdated,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
@@ -192,6 +194,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     );
     const [isPreparingQuote, setIsPreparingQuote] = useState(false);
     const isPreparingQuoteRef = useRef(false);
+    const quotesLastUpdatedBeforePreparationRef = useRef<number | undefined>(
+      undefined,
+    );
     const wasKeyboardEverVisible = useRef(isKeyboardVisible);
     if (isKeyboardVisible) {
       wasKeyboardEverVisible.current = true;
@@ -223,6 +228,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const isTransactionResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
+    const quotesLastUpdated = useTransactionPayQuotesLastUpdated();
+    const isQuoteLoading = useIsTransactionPayQuoteLoading();
     const isQuotesLoading = useIsTransactionPayLoading();
     const showLoadingReview = isPreparingQuote || isQuotesLoading;
     const showMoneyAccountLoadingReview =
@@ -262,6 +269,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
       if (isMoneyAccountDeposit) {
         isPreparingQuoteRef.current = true;
+        quotesLastUpdatedBeforePreparationRef.current = quotesLastUpdated;
         setIsPreparingQuote(true);
         setIsKeyboardVisible(false);
       }
@@ -301,6 +309,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       amountFiat,
       isMoneyAccountDeposit,
       onAmountSubmit,
+      quotesLastUpdated,
       selectedFiatPaymentMethodId,
       toastRef,
       trackAmountCommitted,
@@ -309,12 +318,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     ]);
 
     useEffect(() => {
-      // Keep the local loading review mounted until controller loading takes over.
-      if (isPreparingQuote && isQuotesLoading) {
+      const hasCompletedQuoteRequest =
+        quotesLastUpdated !== undefined &&
+        quotesLastUpdated !== quotesLastUpdatedBeforePreparationRef.current;
+
+      if (isPreparingQuote && (isQuoteLoading || hasCompletedQuoteRequest)) {
         isPreparingQuoteRef.current = false;
         setIsPreparingQuote(false);
       }
-    }, [isPreparingQuote, isQuotesLoading]);
+    }, [isPreparingQuote, isQuoteLoading, quotesLastUpdated]);
 
     const wasPrefillPending = useRef(isPrefillPending);
     useEffect(() => {

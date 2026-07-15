@@ -28,6 +28,12 @@ export const selectTransactionPayQuotesByTransactionId = createSelector(
   (transactionData) => transactionData?.quotes,
 );
 
+export const selectTransactionPayQuotesLastUpdatedByTransactionId =
+  createSelector(
+    selectTransactionDataByTransactionId,
+    (transactionData) => transactionData?.quotesLastUpdated,
+  );
+
 export const selectTransactionPayTokensByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
   (transactionData) => transactionData?.tokens ?? [],
