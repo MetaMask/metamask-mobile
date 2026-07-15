@@ -23,6 +23,12 @@ import Routes from '../../../../constants/navigation/Routes';
 import { playSelection } from '../../../../util/haptics';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
+import {
+  SocialLeaderboardEventProperties,
+  SocialLeaderboardEventValues,
+  useSocialLeaderboardAnalytics,
+} from '../analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import FeedView from '../FeedView';
 import TopTradersView from '../TopTradersView';
 import SocialTradersTabBar, {
@@ -33,6 +39,11 @@ import { SocialTradersTabsViewSelectorsIDs } from './SocialTradersTabsView.testI
 const LEADERBOARD_INDEX = 0;
 const FEED_INDEX = 1;
 
+const getTabAnalyticsValue = (index: number) =>
+  index === FEED_INDEX
+    ? SocialLeaderboardEventValues.TAB.FEED
+    : SocialLeaderboardEventValues.TAB.LEADERBOARD;
+
 /**
  * Container that adds the Leaderboard | Feed tabs on top of the Follow Trading
  * surface. Rendered in place of `TopTradersView` when the `aiSocialFeedEnabled`
@@ -42,7 +53,9 @@ const FEED_INDEX = 1;
 const SocialTradersTabsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const { track } = useSocialLeaderboardAnalytics();
   const pagerRef = useRef<PagerView>(null);
+  const programmaticTabChangeRef = useRef(false);
   const [activeIndex, setActiveIndex] = useState(LEADERBOARD_INDEX);
 
   const {
@@ -64,17 +77,36 @@ const SocialTradersTabsView: React.FC = () => {
     [],
   );
 
-  const changeTab = useCallback((index: number) => {
-    setActiveIndex((current) => {
-      if (current !== index) {
+  const changeTab = useCallback(
+    (index: number) => {
+      setActiveIndex((current) => {
+        if (current === index) {
+          return current;
+        }
+
+        const tabChangeMethod = programmaticTabChangeRef.current
+          ? SocialLeaderboardEventValues.TAB_CHANGE_METHOD.TAP
+          : SocialLeaderboardEventValues.TAB_CHANGE_METHOD.SWIPE;
+        programmaticTabChangeRef.current = false;
+
+        track(MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION, {
+          [SocialLeaderboardEventProperties.INTERACTION_TYPE]:
+            SocialLeaderboardEventValues.FOLLOW_TRADING_INTERACTION_TYPE
+              .TAB_CHANGED,
+          [SocialLeaderboardEventProperties.TAB]: getTabAnalyticsValue(index),
+          [SocialLeaderboardEventProperties.TAB_CHANGE_METHOD]: tabChangeMethod,
+        });
+
         playSelection().catch(() => undefined);
-      }
-      return index;
-    });
-  }, []);
+        return index;
+      });
+    },
+    [track],
+  );
 
   const handleTabPress = useCallback(
     (index: number) => {
+      programmaticTabChangeRef.current = true;
       pagerRef.current?.setPage(index);
       changeTab(index);
     },
