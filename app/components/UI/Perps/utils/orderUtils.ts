@@ -3,6 +3,7 @@ import {
   isTPSLOrder,
   type OrderParams,
   type Order,
+  type OrderDirection,
   type PerpsDebugLogger,
 } from '@metamask/perps-controller';
 import BigNumber from 'bignumber.js';
@@ -36,6 +37,43 @@ export const getValidTriggerPrice = (order: Order): number | null => {
 export const getValidOrderPrice = (order: Order): number | null => {
   const parsed = parseFloat(order.price ?? '');
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
+/**
+ * Whether an order price is outside HyperLiquid's allowed band relative to a
+ * reference (oracle/mark) price. HyperLiquid rejects orders whose price is more
+ * than `maxDeviation` away from the reference price ("oracleRejected").
+ *
+ * The check is ratio-based: the smaller of the order price and the reference
+ * price must be at least `(1 - maxDeviation)` of the larger one. Equivalently,
+ * the reference price can't be lower than `(1 - maxDeviation)` of the order
+ * price (blocks fat-fingered highs), and the order price can't be lower than
+ * `(1 - maxDeviation)` of the reference price (blocks fat-fingered lows).
+ *
+ * Returns false when either price is missing/invalid so callers don't block on
+ * incomplete data.
+ *
+ * @param price - The order (limit) price
+ * @param referencePrice - The reference price to compare against (oracle/mark)
+ * @param maxDeviation - Max allowed deviation as a decimal (e.g. 0.95 = 95%)
+ * @returns True when the order price is outside the allowed band
+ */
+export const isPriceOutsideDeviationBand = (
+  price: number,
+  referencePrice: number,
+  maxDeviation: number,
+): boolean => {
+  if (
+    !referencePrice ||
+    referencePrice <= 0 ||
+    !Number.isFinite(price) ||
+    price <= 0
+  ) {
+    return false;
+  }
+  const minPrice = Math.min(price, referencePrice);
+  const maxPrice = Math.max(price, referencePrice);
+  return minPrice < (1 - maxDeviation) * maxPrice;
 };
 
 type OrderPriceLabelKey =
@@ -284,14 +322,25 @@ export const isOrderAssociatedWithFullPosition = (
 /**
  * Determines whether an order should be shown in Market Details > Orders.
  *
- * - All non-reduce-only orders are shown.
- * - Reduce-only orders are shown only when they are NOT full-position TP/SL.
+ * All non-reduce-only orders are shown. Plain reduce-only orders (e.g. a limit
+ * close on a long position) are also shown, matching the home "Perpetuals"
+ * section. Only full-position TP/SL orders are hidden here, since they are
+ * surfaced in the position card's Auto-close section instead.
  */
 export const shouldDisplayOrderInMarketDetailsOrders = (
   order: Order,
   position?: Position,
 ): boolean => {
   if (!order.reduceOnly) {
+    return true;
+  }
+
+  // Only TP/SL trigger orders are relocated to the Auto-close section. A plain
+  // limit-close order is a regular open order and must stay in the list even
+  // when it closes the full position.
+  const isTpSlOrder =
+    order.isTrigger === true || isTPSLOrder(order.detailedOrderType);
+  if (!isTpSlOrder) {
     return true;
   }
 
@@ -476,6 +525,26 @@ export const willFlipPosition = (
 };
 
 /**
+ * Returns the position direction ('long' | 'short') an order corresponds to.
+ *
+ * For closing orders (reduce-only or trigger) the order side is the inverse of
+ * the position it acts on: a sell closes a long, a buy closes a short. For
+ * opening orders the side maps directly (buy = long, sell = short).
+ *
+ * @param order - The order object
+ * @returns The position direction the order corresponds to
+ */
+export const getOrderPositionDirection = (order: Order): OrderDirection => {
+  const isClosing = Boolean(order.reduceOnly || order.isTrigger);
+
+  if (isClosing) {
+    return order.side === 'sell' ? 'long' : 'short';
+  }
+
+  return order.side === 'buy' ? 'long' : 'short';
+};
+
+/**
  * Format an order label following the pattern: [Type] [Close?] [Direction]
  *
  * Examples:
@@ -490,20 +559,13 @@ export const willFlipPosition = (
  * @returns Formatted order label string
  */
 export const formatOrderLabel = (order: Order): string => {
-  const { side, detailedOrderType, orderType, reduceOnly, isTrigger } = order;
+  const { detailedOrderType, orderType, reduceOnly, isTrigger } = order;
 
   // Determine if this is a closing order
   const isClosing = Boolean(reduceOnly || isTrigger);
 
-  // Determine direction based on whether it's closing or not
-  let direction: string;
-  if (isClosing) {
-    // For closing orders: sell closes long, buy closes short
-    direction = side === 'sell' ? 'long' : 'short';
-  } else {
-    // For opening orders: buy is long, sell is short
-    direction = side === 'buy' ? 'long' : 'short';
-  }
+  // Single source of truth for side -> position direction mapping
+  const direction = getOrderPositionDirection(order);
 
   // Get the order type string
   // Use detailedOrderType if available (e.g., "Stop Market", "Take Profit Limit")
@@ -527,18 +589,17 @@ export const formatOrderLabel = (order: Order): string => {
  * @returns Direction string ("long" or "short" for opening, "Close Long" or "Close Short" for closing)
  */
 export const getOrderLabelDirection = (order: Order): string => {
-  const { side, reduceOnly, isTrigger } = order;
-
   // Determine if this is a closing order
-  const isClosing = Boolean(reduceOnly || isTrigger);
+  const isClosing = Boolean(order.reduceOnly || order.isTrigger);
+
+  // Single source of truth for side -> position direction mapping
+  const direction = getOrderPositionDirection(order);
 
   if (isClosing) {
-    // For closing orders: sell closes long, buy closes short
-    return side === 'sell' ? 'Close Long' : 'Close Short';
+    return direction === 'long' ? 'Close Long' : 'Close Short';
   }
 
-  // For opening orders: buy is long, sell is short
-  return side === 'buy' ? 'long' : 'short';
+  return direction;
 };
 
 /**

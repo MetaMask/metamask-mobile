@@ -1,8 +1,14 @@
 import React from 'react';
+import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import { render } from '@testing-library/react-native';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import LivePriceHeader from './LivePriceHeader';
 import { PriceUpdate, usePerpsLivePrices } from '../../hooks/stream';
-import Text from '../../../../../component-library/components/Texts/Text';
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(),
@@ -163,7 +169,7 @@ describe('LivePriceHeader', () => {
       const textElements = UNSAFE_getAllByType(Text);
       const changeText = textElements.find((el) => el.props.children === '--%');
       expect(changeText).toBeDefined();
-      expect(changeText?.props.color).toBe('Default');
+      expect(changeText?.props.color).toBe(TextColor.TextDefault);
     });
 
     it('uses neutral color for loading state when no live data exists', () => {
@@ -176,7 +182,7 @@ describe('LivePriceHeader', () => {
       const textElements = UNSAFE_getAllByType(Text);
       const changeText = textElements.find((el) => el.props.children === '--%');
       expect(changeText).toBeDefined();
-      expect(changeText?.props.color).toBe('Default');
+      expect(changeText?.props.color).toBe(TextColor.TextDefault);
     });
 
     it('uses success color for positive percentage change', () => {
@@ -199,7 +205,7 @@ describe('LivePriceHeader', () => {
         (el) => el.props.children === '+5.50%',
       );
       expect(changeText).toBeDefined();
-      expect(changeText?.props.color).toBe('Success');
+      expect(changeText?.props.color).toBe(TextColor.SuccessDefault);
     });
 
     it('uses error color for negative percentage change', () => {
@@ -222,7 +228,7 @@ describe('LivePriceHeader', () => {
         (el) => el.props.children === '-3.20%',
       );
       expect(changeText).toBeDefined();
-      expect(changeText?.props.color).toBe('Error');
+      expect(changeText?.props.color).toBe(TextColor.ErrorDefault);
     });
 
     it('uses success color for zero percentage change', () => {
@@ -245,7 +251,112 @@ describe('LivePriceHeader', () => {
         (el) => el.props.children === '+0.00%',
       );
       expect(changeText).toBeDefined();
-      expect(changeText?.props.color).toBe('Success');
+      expect(changeText?.props.color).toBe(TextColor.SuccessDefault);
+    });
+  });
+
+  describe('size variant', () => {
+    beforeEach(() => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        ETH: {
+          symbol: 'ETH',
+          price: '3000',
+          percentChange24h: '5.5',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+    });
+
+    it('renders the compact (default) variant', () => {
+      const { UNSAFE_getAllByType } = render(
+        <LivePriceHeader symbol="ETH" currentPrice={3000} />,
+      );
+
+      const textElements = UNSAFE_getAllByType(Text);
+      const priceText = textElements.find(
+        (el) => el.props.children === '$3,000',
+      );
+      const changeText = textElements.find(
+        (el) => el.props.children === '+5.50%',
+      );
+
+      expect(priceText?.props.variant).toBe(TextVariant.BodySm);
+      expect(priceText?.props.color).toBe(TextColor.TextAlternative);
+      expect(changeText?.props.variant).toBe(TextVariant.BodySm);
+    });
+
+    it('renders a prominent price for the large variant', () => {
+      const { UNSAFE_getAllByType } = render(
+        <LivePriceHeader symbol="ETH" currentPrice={3000} size="large" />,
+      );
+
+      const textElements = UNSAFE_getAllByType(Text);
+      const priceText = textElements.find(
+        (el) => el.props.children === '$3,000',
+      );
+      const changeText = textElements.find(
+        (el) =>
+          typeof el.props.children === 'string' &&
+          el.props.children.includes('(+5.50%)'),
+      );
+
+      expect(priceText?.props.variant).toBe(TextVariant.DisplayLg);
+      expect(priceText?.props.color).toBe(TextColor.TextDefault);
+      expect(changeText?.props.variant).toBe(TextVariant.BodySm);
+      expect(changeText?.props.fontWeight).toBe(FontWeight.Medium);
+      expect(changeText?.props.color).toBe(TextColor.SuccessDefault);
+    });
+
+    it('shows the absolute change and percentage for the large variant', () => {
+      const { UNSAFE_getAllByType } = render(
+        <LivePriceHeader symbol="ETH" currentPrice={3000} size="large" />,
+      );
+
+      const changeText = UNSAFE_getAllByType(Text).find(
+        (el) =>
+          typeof el.props.children === 'string' &&
+          el.props.children.includes('(+5.50%)'),
+      );
+
+      // 3000 - 3000 / 1.055 ≈ 156.4
+      expect(changeText?.props.children).toBe('+$156.4 (+5.50%)');
+    });
+
+    it('shows only the percentage for the compact (default) variant', () => {
+      const { UNSAFE_getAllByType } = render(
+        <LivePriceHeader symbol="ETH" currentPrice={3000} />,
+      );
+
+      const changeText = UNSAFE_getAllByType(Text).find(
+        (el) => el.props.children === '+5.50%',
+      );
+
+      expect(changeText).toBeDefined();
+    });
+
+    it('stacks the change below the price for the large variant', () => {
+      const tree = render(
+        <LivePriceHeader symbol="ETH" currentPrice={3000} size="large" />,
+      ).toJSON();
+      const containerStyle = StyleSheet.flatten(
+        (tree as { props: { style?: StyleProp<ViewStyle> } } | null)?.props
+          .style,
+      );
+
+      expect(containerStyle.flexDirection).toBe('column');
+    });
+
+    it('keeps the change inline with the price for the default variant', () => {
+      const tree = render(
+        <LivePriceHeader symbol="ETH" currentPrice={3000} />,
+      ).toJSON();
+      const containerStyle = StyleSheet.flatten(
+        (tree as { props: { style?: StyleProp<ViewStyle> } } | null)?.props
+          .style,
+      );
+
+      expect(containerStyle.flexDirection).toBe('row');
     });
   });
 

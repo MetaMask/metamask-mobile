@@ -412,6 +412,8 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   LOADING: 'perps-market-details-loading',
   ERROR: 'perps-market-details-error',
   HEADER: 'perps-market-header',
+  MARKET_SUMMARY: 'perps-market-details-market-summary',
+  FULLSCREEN_CHART_BUTTON: 'perps-market-details-fullscreen-chart-button',
   STATISTICS_HIGH_24H: 'perps-statistics-high-24h',
   STATISTICS_LOW_24H: 'perps-statistics-low-24h',
   STATISTICS_VOLUME_24H: 'perps-statistics-volume-24h',
@@ -456,7 +458,8 @@ export const PerpsMarketHeaderSelectorsIDs = {
   PRICE_CHANGE: 'perps-market-header-price-change',
   MORE_BUTTON: 'perps-market-header-more-button',
   FAVORITE_BUTTON: 'perps-market-header-favorite-button',
-  CATEGORY_SEARCH_BUTTON: 'perps-market-header-category-search-button',
+  MARKET_LIST_BUTTON: 'perps-market-header-market-list-button',
+  SUBTITLE: 'perps-market-header-subtitle',
 };
 
 // ========================================
@@ -694,6 +697,7 @@ export const PerpsClosePositionViewSelectorsIDs = {
   DISPLAY_TOGGLE_BUTTON: 'display-toggle-button',
   CLOSE_POSITION_CONFIRM_BUTTON: 'close-position-confirm-button',
   CLOSE_POSITION_CANCEL_BUTTON: 'close-position-cancel-button',
+  LIMIT_PRICE_ROW: 'close-position-limit-price-row',
   FEES_TOOLTIP_BUTTON: 'close-position-fees-tooltip-button',
   POINTS_TOOLTIP_BUTTON: 'close-position-points-tooltip-button',
   YOU_RECEIVE_TOOLTIP_BUTTON: 'close-position-you-receive-tooltip-button',
