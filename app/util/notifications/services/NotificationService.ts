@@ -8,6 +8,7 @@ import notifee, {
 } from '@notifee/react-native';
 import { Linking, Alert as NativeAlert, Platform } from 'react-native';
 import { strings } from '../../../../locales/i18n';
+import { logPushEvent } from '../pushDebugLog';
 import { store } from '../../../store';
 import Logger from '../../../util/Logger';
 import {
@@ -277,8 +278,19 @@ class NotificationsService {
       const channel = notificationChannels.find((c) => c.id === channelId);
       if (channel) {
         await notifee.createChannel(channel);
+        logPushEvent('NOTIFEE_CHANNEL_CREATED', `Channel ensured: "${channelId}"`);
+      } else {
+        logPushEvent(
+          'NOTIFEE_CHANNEL_NOT_FOUND',
+          `No channel config found for: "${channelId}"`,
+        );
       }
       const notifId = id ?? `notif-${Date.now()}`;
+      logPushEvent(
+        'NOTIFEE_DISPLAY_CALLED',
+        `displayNotification called: "${title}"`,
+        { channelId, id },
+      );
       await notifee.displayNotification({
         id: notifId,
         title,
@@ -308,7 +320,13 @@ class NotificationsService {
           },
         },
       });
+      logPushEvent('NOTIFEE_DISPLAY_DONE', `displayNotification completed: "${title}"`);
     } catch (error) {
+      logPushEvent(
+        'NOTIFEE_DISPLAY_ERROR',
+        `displayNotification threw: "${title}"`,
+        { error: String(error) },
+      );
       Logger.log('Error displaying notification ', error);
     }
   };
