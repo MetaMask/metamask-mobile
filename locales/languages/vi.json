@@ -218,6 +218,49 @@
     "try_again": "Thử lại",
     "failed": "Đã xảy ra sự cố"
   },
+  "scam_questionnaire": {
+    "header_title": "Security check",
+    "continue": "Tiếp tục",
+    "select_an_answer": "Select an answer",
+    "q1": {
+      "title": "Did someone you only know online tell you to send this?",
+      "subtitle": "This includes dating apps, social media, and group chats—even if you've spoken on video.",
+      "yes": "Yes, someone I met online told me to send this",
+      "no": "No, I know this person in real life"
+    },
+    "q2": {
+      "title": "What's this payment for?",
+      "subtitle": "Choose the option that best describes this payment.",
+      "investment_title": "Investment",
+      "investment_subtitle": "Buying crypto, tokens, or a financial opportunity",
+      "helping_title": "Helping someone I care about",
+      "helping_subtitle": "Sending money to a partner, family member, or friend in need",
+      "government_title": "Paying the police or a government agency",
+      "government_subtitle": "Fines, taxes, or official fees requested in crypto",
+      "job_title": "A job opportunity or work-related",
+      "job_subtitle": "Onboarding fees, equipment, or task payments",
+      "goods_title": "Buying goods or services",
+      "goods_subtitle": "Paying a merchant for something I'm receiving",
+      "self_transfer_title": "Moving funds between my own wallets",
+      "self_transfer_subtitle": "Self-transfer or moving to cold storage"
+    },
+    "q3": {
+      "title": "Is someone guiding you through this transaction?",
+      "subtitle": "This could be over a phone call, video chat, or sharing your screen.",
+      "yes": "Yes, someone is walking me through the steps right now",
+      "no": "No, I am doing this entirely on my own"
+    },
+    "warning": {
+      "title": "You might be getting scammed right now",
+      "reason_known_scam": "Based on your answers and this recipient's history, this transaction might be a scam.",
+      "reason_irreversible_emphasis": "Crypto transactions are irreversible.",
+      "reason_irreversible_detail": "Once you send, your funds can't be recovered.",
+      "stop_payment": "Stop this payment",
+      "contact_support": "Liên hệ bộ phận hỗ trợ",
+      "proceed_anyway": "Ignore risks and continue anyway",
+      "proceed_anyway_countdown": "Continue anyway in {{seconds}}s"
+    }
+  },
   "date": {
     "months": {
       "0": "Tháng 1",
@@ -1059,7 +1102,75 @@
         "all": "Tất cả",
         "tokens": "Token",
         "perps": "Vĩnh cửu"
+      },
+      "notifications_banner": {
+        "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
+        "open_settings": "Mở cài đặt"
       }
+    },
+    "feed": {
+      "title": "Nhà giao dịch hàng đầu",
+      "tabs": {
+        "leaderboard": "Bảng xếp hạng",
+        "feed": "Feed"
+      },
+      "following": "Đang theo dõi",
+      "all": "Tất cả",
+      "trade": "Giao dịch",
+      "action": {
+        "bought": "đã mua",
+        "sold": "đã bán",
+        "opened": "đã mở",
+        "closed": "đã đóng"
+      },
+      "type_filter": {
+        "all": "Tất cả các loại",
+        "tokens": "Token",
+        "perps": "Vĩnh cửu"
+      },
+      "empty_following": {
+        "title": "Chưa có hoạt động",
+        "description": "Follow traders to see their trades show up here."
+      },
+      "empty_all": {
+        "title": "Chưa có hoạt động",
+        "description": "Trader activity will show up here as trades come in."
+      },
+      "empty_type": {
+        "tokens": {
+          "title": "No token activity"
+        },
+        "perps": {
+          "title": "No perps activity"
+        },
+        "description": "No matching trades in the activity so far."
+      },
+      "load_more": "Tải thêm",
+      "error": {
+        "title": "Couldn't load the feed",
+        "retry": "Thử lại"
+      },
+      "no_data": "Không có dữ liệu"
+    },
+    "onboarding": {
+      "slide_trade": {
+        "title": "Trade like a pro",
+        "description": "Track in real time when they swap or trade perps, tokens, and real-world assets."
+      },
+      "slide_follow": {
+        "title": "Follow the best",
+        "description": "Tap to follow the top three traders who are up big this week."
+      },
+      "slide_notify": {
+        "title": "Đừng bỏ lỡ bất kỳ biến động nào",
+        "description_followed": "When a trader you follow makes a move, you'll get a notification. One tap to do the same.",
+        "description_default": "When you're ready, follow a trader to get notified the moment they make a move."
+      },
+      "next": "Tiếp theo",
+      "follow_top_three": "Follow the top three",
+      "maybe_later": "Để sau",
+      "got_it": "Tôi đã hiểu",
+      "allow_notifications": "Cho phép thông báo"
     },
     "notification_preferences": {
       "title": "Nhà giao dịch hàng đầu",
@@ -1666,6 +1777,8 @@
       "loss_percent_placeholder": "Thua lỗ",
       "profit_roe_placeholder": "% Lợi nhuận",
       "loss_roe_placeholder": "% Thua lỗ",
+      "toggle_take_profit_sign": "Toggle take profit return sign",
+      "toggle_stop_loss_sign": "Toggle stop loss return sign",
       "usd_label": "$",
       "take_profit_invalid_price": "Giá chốt lời phải {{direction}} giá {{priceType}}",
       "stop_loss_invalid_price": "Giá cắt lỗ phải {{direction}} giá {{priceType}}",
@@ -2084,7 +2197,8 @@
       "products": "Sản phẩm",
       "top_movers": "Biến động mạnh nhất",
       "gainers": "Tăng giá",
-      "losers": "Giảm giá"
+      "losers": "Giảm giá",
+      "recently_added": "Đã thêm gần đây"
     },
     "learn_more": {
       "title": "Tìm hiểu về Hợp đồng vĩnh cửu",
@@ -2178,8 +2292,17 @@
       "filter_badge_label": "Danh sách theo dõi",
       "suggested": "Đề xuất"
     },
+    "recently_viewed": "Recently viewed",
+    "recently_searched": "Recently searched",
+    "market_count": "{{count}} thị trường",
+    "market_count_plural": "{{count}} thị trường",
     "no_tokens_found": "Không tìm thấy token",
     "no_tokens_found_description": "Chúng tôi không tìm thấy token nào với tên \"{{searchQuery}}\". Hãy thử từ khóa tìm kiếm khác.",
+    "no_markets_found": "Không tìm thấy thị trường nào",
+    "no_markets_found_description": "Không có thị trường nào khớp với bộ lọc hiện tại. Hãy thử một danh mục khác.",
+    "no_markets_search_description": "Không có thị trường nào khớp với \"{{searchQuery}}\" trong danh mục này. Hãy thử một từ khóa tìm kiếm khác hoặc xóa bộ lọc.",
+    "clear_search": "Xóa tìm kiếm",
+    "clear_filter": "Xóa bộ lọc",
     "testnet": "Mạng thử nghiệm",
     "mainnet": "Mạng chính thức",
     "developer_options": {
@@ -2494,6 +2617,7 @@
     },
     "outcome_groups": {
       "game_lines": "Các kèo trận đấu",
+      "halves": "Hiệp đấu",
       "first_half": "Hiệp 1",
       "first_set": "Sét 1",
       "team_totals": "Tổng điểm đội",
@@ -2522,6 +2646,7 @@
       "first_half_moneyline": "Kèo thắng hiệp 1",
       "first_half_spreads": "Kèo chấp hiệp 1",
       "first_half_totals": "Tổng điểm hiệp 1",
+      "second_half_totals": "Tổng bàn thắng Hiệp 2",
       "points": "Điểm",
       "assists": "Kiến tạo",
       "rebounds": "Bắt bóng bật bảng",
@@ -2529,6 +2654,7 @@
       "basketball_odd_even": "Tỷ số chẵn/lẻ",
       "basketball_team_to_score_first": "Đội ghi điểm đầu tiên",
       "goalscorers": "Cầu thủ ghi bàn",
+      "soccer_player_goals": "Bàn thắng",
       "exact_score": "Tỷ số chính xác",
       "halftime_result": "Kết quả hiệp một",
       "corners": "Phạt góc",
@@ -2540,6 +2666,11 @@
       "soccer_anytime_goalscorer": "Cầu thủ ghi bàn",
       "soccer_exact_score": "Tỷ số chính xác",
       "soccer_halftime_result": "Kết quả hiệp một",
+      "soccer_first_half_team_totals": "Tổng bàn thắng của đội trong Hiệp 1",
+      "both_teams_to_score_first_half": "Cả hai đội đều ghi bàn trong Hiệp 1",
+      "soccer_second_half_result": "Kết quả Hiệp 2",
+      "soccer_second_half_team_totals": "Tổng bàn thắng của đội trong Hiệp 2",
+      "both_teams_to_score_second_half": "Cả hai đội đều ghi bàn trong Hiệp 2",
       "soccer_team_to_advance": "Đội đi tiếp",
       "soccer_first_to_score": "Đội ghi bàn trước",
       "soccer_extra_time": "Có hiệp phụ không?",
@@ -2615,6 +2746,11 @@
     "markets_won": "Thị trường đã thắng",
     "won_markets_text": "Đã thắng {{count}} thị trường{{s}}",
     "available_balance": "Số dư khả dụng",
+    "balance_error": {
+      "title": "Couldn't load your balance",
+      "description": "Your funds are safe. Check your connection and try again.",
+      "retry": "Thử lại"
+    },
     "portfolio": {
       "available_amount": "Có sẵn {{amount}}",
       "value_accessibility": "Giá trị danh mục đầu tư, {{value}}",
@@ -2715,8 +2851,8 @@
           "description": "{{amount}} đã được nạp vào số dư của bạn"
         },
         "redeemed": {
-          "title": "Position redeemed",
-          "description": "Your position has been redeemed"
+          "title": "Vị thế đã được quy đổi",
+          "description": "Vị thế của bạn đã được quy đổi"
         },
         "error": {
           "title": "Đã xảy ra sự cố",
@@ -3245,20 +3381,20 @@
     "pna25_blog_post_link": "bài đăng blog",
     "pna25_confirm_button": "Chấp nhận và đóng",
     "pna25_open_settings_button": "Mở Cài đặt",
-    "settings": "You can also",
-    "settings_link": "manage other default settings."
+    "settings": "Bạn cũng có thể",
+    "settings_link": "quản lý các cài đặt mặc định khác."
   },
   "onboarding_interest_questionnaire": {
-    "title": "How will you use MetaMask?",
+    "title": "Bạn sẽ sử dụng MetaMask vào việc gì?",
     "description": "Chọn tất cả các mục phù hợp.",
     "option_swap_tokens": "Hoán đổi token",
     "option_trade_perpetuals": "Giao dịch hợp đồng vĩnh cửu",
     "option_prediction_markets": "Thị trường dự đoán",
-    "option_send_receive_crypto": "Send and receive crypto",
-    "option_earn_and_spend": "Earn and spend",
-    "option_use_other_crypto_apps": "Use other crypto apps",
+    "option_send_receive_crypto": "Gửi và nhận tiền mã hóa",
+    "option_earn_and_spend": "Kiếm tiền và chi tiêu",
+    "option_use_other_crypto_apps": "Sử dụng các ứng dụng tiền mã hóa khác",
     "option_other": "Khác",
-    "other_placeholder": "How else will you use MetaMask?",
+    "other_placeholder": "Bạn còn định sử dụng MetaMask vào việc gì nữa?",
     "done": "Hoàn tất",
     "skip": "Bỏ qua",
     "next": "Tiếp theo"
@@ -3993,8 +4129,8 @@
         "title": "Thẻ",
         "reset_onboarding_description": "Đặt lại trạng thái thiết lập Thẻ để bắt đầu lại quy trình thiết lập từ đầu.",
         "reset_onboarding_button": "Đặt lại trạng thái thiết lập",
-        "unlink_money_account_description": "Thu hồi quyền cấp hạn mức chi tiêu USDC cho phép Thẻ sử dụng tiền từ Tài khoản Tài chính của bạn. Thao tác này sẽ gửi một giao dịch phê duyệt (0) và đánh dấu Tài khoản Tài chính là chưa được ủy quyền trên hệ thống phụ trợ của Thẻ.",
-        "unlink_money_account_button": "Hủy liên kết Tài khoản Tài chính khỏi Thẻ",
+        "unlink_money_account_description": "Thu hồi quyền cấp hạn mức chi tiêu USDC cho phép Thẻ sử dụng tiền từ Money Account của bạn. Thao tác này sẽ gửi một giao dịch phê duyệt (0) và đánh dấu Money Account là chưa được ủy quyền trên hệ thống phụ trợ của Thẻ.",
+        "unlink_money_account_button": "Hủy liên kết Money Account khỏi Thẻ",
         "unlink_money_account_disabled_hint": "Không có liên kết đang hoạt động để xóa."
       },
       "identity": {
@@ -4006,6 +4142,12 @@
         "title": "Thông báo",
         "description": "Đặt lại cờ nhắc trước thông báo đẩy để hiển thị lại cửa sổ nhắc trong lần khởi chạy đủ điều kiện tiếp theo.",
         "reset_prompt": "Đặt lại nhắc trước thông báo đẩy"
+      },
+      "social_leaderboard": {
+        "title": "Social Leaderboard",
+        "description": "Reset the Social Leaderboard onboarding so it shows again the next time the feature is opened.",
+        "onboarding_seen": "Onboarding seen: {{seen}}",
+        "reset_onboarding": "Reset onboarding"
       },
       "haptics": {
         "title": "Phản hồi rung",
@@ -4068,6 +4210,20 @@
         "four": "Nhập mã bảo mật trên tiện ích mở rộng"
       },
       "scan_qr_code_button": "Quét mã QR",
+      "scanner": {
+        "searching_label": "Quét mã trên thiết bị khác của bạn",
+        "detected_label": "Đã phát hiện mã",
+        "invalid_qr_title": "Không nhận diện được mã QR",
+        "invalid_qr_description": "Quét mã QR từ quy trình Nhập vào thiết bị di động trong MetaMask Extension.",
+        "expired_qr_title": "Mã QR đã hết hạn",
+        "expired_qr_description": "Tạo mã QR mới trên tiện ích mở rộng rồi quét lại trong vòng 60 giây.",
+        "connection_failed_title": "Kết nối thất bại",
+        "connection_failed_description": "Không thể kết nối với tiện ích mở rộng. Hãy thử quét lại.",
+        "try_again": "Thử lại",
+        "permission_title": "Bật quyền truy cập camera",
+        "permission_description": "Để quét mã QR, bạn cần cấp quyền truy cập camera cho MetaMask từ trình đơn cài đặt của thiết bị.",
+        "open_settings": "Mở Cài đặt"
+      },
       "enter_code_on_extension": "Nhập mã trên tiện ích mở rộng",
       "enter_code_on_extension_desc": "Để bảo mật, hãy nhập mã xác minh bên dưới trên tiện ích mở rộng MetaMask.",
       "done": "Hoàn tất",
@@ -4903,8 +5059,8 @@
     "tx_details_free": "Miễn phí",
     "tx_details_not_available": "Không có sẵn",
     "smart_contract_interaction": "Tương tác hợp đồng thông minh",
-    "money_account_deposit": "Nạp tiền vào Tài khoản Tài chính",
-    "money_account_withdraw": "Chuyển tiền từ Tài khoản Tài chính",
+    "money_account_deposit": "Gửi tiền vào Money Account",
+    "money_account_withdraw": "Chuyển tiền từ Money Account",
     "swaps_transaction": "Giao dịch hoán đổi",
     "bridge_transaction": "Cầu nối",
     "approve": "Phê duyệt",
@@ -5200,7 +5356,14 @@
     "enable_device_passcode_android": "Mở khóa bằng mã PIN của thiết bị?"
   },
   "authentication": {
-    "auth_prompt_desc": "Vui lòng xác thực để sử dụng MetaMask"
+    "auth_prompt_desc": "Vui lòng xác thực để sử dụng MetaMask",
+    "labels": {
+      "remember_me": "Remember Me",
+      "face_id": "Face ID",
+      "touch_id": "Touch ID",
+      "device_authentication": "Device Authentication",
+      "device_passcode": "Device Passcode"
+    }
   },
   "accountApproval": {
     "title": "YÊU CẦU KẾT NỐI",
@@ -6660,7 +6823,12 @@
   },
   "download_files": {
     "error": "Không thể tải tập tin đính kèm xuống.",
-    "unknownError": "Đã xảy ra lỗi không xác định"
+    "unknownError": "Đã xảy ra lỗi không xác định",
+    "downloaded_title": "Tải xuống hoàn tất",
+    "downloaded_message": "{{filename}} đã được lưu vào thư mục Tải xuống của bạn.",
+    "confirm_message": "Bạn có muốn tải xuống \n{{filename}} không?",
+    "confirm_action": "Tải xuống",
+    "cancel_action": "Hủy"
   },
   "remember_me": {
     "enable_remember_me": "Bật Ghi nhớ",
@@ -7159,13 +7327,13 @@
     "balance_unavailable_value": "$—",
     "balance_unavailable_banner_description": "Chúng tôi tạm thời không thể hiển thị số dư của bạn. Tiền của bạn vẫn an toàn — vui lòng thử lại sau.",
     "balance_retry": "Thử lại",
-    "balance_no_account": "Không tìm thấy tài khoản Tài chính",
+    "balance_no_account": "Không tìm thấy Money Account",
     "onboarding": {
       "step_1": {
         "title": "Sinh lời lên đến {{apy}}% APY",
-        "title_no_apy": "Nạp tiền vào tài khoản Tài chính của bạn",
-        "description": "Nạp tiền vào tài khoản Tài chính và theo dõi số dư tăng trưởng với lãi suất APY lên đến {{apy}}% (có thể thay đổi).",
-        "description_no_apy": "Nạp tiền vào tài khoản Tài chính và theo dõi số dư tăng trưởng.",
+        "title_no_apy": "Nạp tiền vào Money Account của bạn",
+        "description": "Nạp tiền vào Money Account và theo dõi số dư tăng trưởng với lãi suất APY lên đến {{apy}}% (có thể thay đổi).",
+        "description_no_apy": "Nạp tiền vào Money Account và theo dõi số dư tăng trưởng.",
         "cta": "Nạp tiền"
       },
       "step_2": {
@@ -7185,19 +7353,19 @@
     },
     "first_time_deposit": {
       "title": "Hoàn tất khoản tiền gửi đầu tiên",
-      "content": "Tiền đã nằm trong Tài khoản Tài chính —\n và đang tự sinh lời.",
+      "content": "Tiền đã nằm trong Money Account —\n và đang tự sinh lời.",
       "button_text": "Hoàn tất"
     },
     "rive_onboarding": {
-      "step1_title": "Tài khoản Tài chính đã ra mắt",
+      "step1_title": "Money Account đã ra mắt",
       "step1_body": "Sinh lời lên đến {{percentage}}% APY trên số dư của bạn, áp dụng cho toàn bộ ví của bạn.",
       "step1_footer_text": "APY có thể thay đổi và không được đảm bảo.",
       "step2_title": "Tự động sinh lời",
       "step2_body": "Chuyển đồng ổn định mà không mất phí chuyển đổi. Tài sản bắt đầu sinh lời ngay lập tức.",
-      "step2_footer_text": "Tài khoản Tài chính sử dụng hạ tầng Veda.",
+      "step2_footer_text": "Money Account sử dụng hạ tầng Veda.",
       "step3_title": "Chi tiêu ở bất kỳ đâu",
-      "step3_body_card_eligible": "Nhận hoàn tiền lên đến {{percentage}}% cho các giao dịch mua sắm khi liên kết Tài khoản Tài chính với MetaMask Card.",
-      "step3_body_card_ineligible": "Sắp ra mắt! Nhận hoàn tiền lên đến {{percentage}}% cho các giao dịch mua sắm khi liên kết Tài khoản Tài chính với MetaMask Card.",
+      "step3_body_card_eligible": "Nhận hoàn tiền lên đến {{percentage}}% cho các giao dịch mua sắm khi liên kết Money Account với MetaMask Card.",
+      "step3_body_card_ineligible": "Sắp ra mắt! Nhận hoàn tiền lên đến {{percentage}}% cho các giao dịch mua sắm khi liên kết Money Account với MetaMask Card.",
       "step3_footer_text": "Bao gồm dịch vụ giám sát của Steakhouse Financial.",
       "step4_title": "Giao dịch và sinh lời trong cùng một nơi",
       "step4_body": "Sử dụng số dư tài khoản Tài chính của bạn để giao dịch trên MetaMask trong khi vẫn tiếp tục nhận lợi nhuận.",
@@ -7233,7 +7401,8 @@
     "potential_earnings": {
       "title": "Kiếm lợi nhuận từ tiền mã hóa của bạn",
       "description": "Xem tiền của bạn có thể tăng trưởng theo thời gian như thế nào bằng cách chuyển đổi tiền mã hóa sang mUSD.",
-      "description_with_amounts_prefix": "Chuyển đổi {{total}} tài sản của bạn và bạn có thể nhận được lên đến",
+      "description_with_amounts_prefix": "Chuyển đổi",
+      "description_with_amounts_middle": "tài sản của bạn và bạn có thể nhận được lên đến",
       "description_with_amounts_suffix": "trong một năm.",
       "add": "Thêm",
       "convert_cta": "Chuyển đổi tiền mã hóa của bạn",
@@ -7269,11 +7438,11 @@
       "link_card_sheet_description_suffix": " (có thể thay đổi).",
       "link_card_sheet_description_no_apy": "Liên kết thẻ để bạn có thể chi tiêu số dư tài khoản Tài chính và được hoàn tiền bằng mUSD cho các giao dịch mua sắm.",
       "link_card_sheet_cta": "Liên kết thẻ",
-      "unlink_card_sheet_title_no_funding_source": "Hủy liên kết tài khoản Tài chính?",
+      "unlink_card_sheet_title_no_funding_source": "Hủy liên kết Money Account?",
       "unlink_card_sheet_title_with_funding_source": "Bạn có chắc chắn không?",
-      "unlink_card_sheet_description_no_funding_source": "Bạn sẽ ngừng sinh lời từ các giao dịch mua sắm. Các khoản chi tiêu bằng thẻ trong tương lai sẽ bị từ chối cho đến khi bạn thiết lập nguồn cấp tiền mới. Bạn có thể kết nối lại tài khoản Tài chính bất cứ lúc nào.",
-      "unlink_card_sheet_description_with_funding_source": "Bạn sẽ ngừng sinh lời từ các giao dịch mua sắm. Các khoản chi tiêu bằng thẻ trong tương lai sẽ được cấp tiền từ {{fundingSource}}. Bạn có thể kết nối lại tài khoản Tài chính bất cứ lúc nào.",
-      "unlink_card_sheet_another_money_account": "tài khoản Tài chính khác",
+      "unlink_card_sheet_description_no_funding_source": "Bạn sẽ ngừng sinh lời từ các giao dịch mua sắm. Các khoản chi tiêu bằng thẻ trong tương lai sẽ bị từ chối cho đến khi bạn thiết lập nguồn cấp tiền mới. Bạn có thể kết nối lại Money Account bất cứ lúc nào.",
+      "unlink_card_sheet_description_with_funding_source": "Bạn sẽ ngừng sinh lời từ các giao dịch mua sắm. Các khoản chi tiêu bằng thẻ trong tương lai sẽ được cấp tiền từ {{fundingSource}}. Bạn có thể kết nối lại Money Account bất cứ lúc nào.",
+      "unlink_card_sheet_another_money_account": "Money Account khác",
       "unlink_card_sheet_keep_linked": "Giữ liên kết",
       "unlink_card_sheet_unlink_account": "Hủy liên kết tài khoản",
       "manage_card": "Quản lý",
@@ -7281,7 +7450,7 @@
       "verification_pending": "Xác minh danh tính của bạn đang được xem xét. Quá trình này thường mất chưa đến 12 giờ."
     },
     "what_you_get": {
-      "title": "Quyền lợi của tài khoản Tài chính",
+      "title": "Quyền lợi của Money Account",
       "benefit_auto_earn": "Tự động sinh lời lên đến",
       "benefit_auto_earn_variable": "(có thể thay đổi)",
       "benefit_dollar_backed": "Giữ tiền của bạn an toàn dưới dạng mUSD, một đồng ổn định được bảo chứng 1:1 theo USD",
@@ -7300,7 +7469,6 @@
       "convert_crypto": "Chuyển đổi tiền mã hóa",
       "deposit_funds": "Thẻ ghi nợ hoặc Apple Pay",
       "bank_account": "Tài khoản ngân hàng",
-      "move_musd": "{{amount}} mUSD",
       "add_musd": "Nạp mUSD",
       "receive_external": "Địa chỉ bên ngoài",
       "coming_soon": "Sắp ra mắt"
@@ -7308,7 +7476,7 @@
     "more_sheet": {
       "title": "Thêm",
       "how_it_works": "Cách hoạt động",
-      "what_you_get": "Quyền lợi của tài khoản Tài chính",
+      "what_you_get": "Quyền lợi của Money Account",
       "contact_support": "Liên hệ bộ phận hỗ trợ"
     },
     "transfer_sheet": {
@@ -7330,8 +7498,8 @@
       "deposit_success_title_convert": "Chuyển đổi hoàn tất",
       "deposit_success_title_add_musd": "Đã nạp tiền",
       "deposit_success_title_card": "Nạp tiền hoàn tất",
-      "deposit_success_body": "Đã nạp {{amount}} vào tài khoản Tài chính.",
-      "deposit_success_body_no_amount": "Đã nạp tiền vào tài khoản Tài chính.",
+      "deposit_success_body": "Đã nạp {{amount}} vào Money Account.",
+      "deposit_success_body_no_amount": "Đã nạp tiền vào Money Account.",
       "withdraw_in_progress_title": "Đang chuyển tiền",
       "withdraw_success_title": "Chuyển tiền hoàn tất",
       "withdraw_success_body": "Đã nạp {{amount}} vào {{destination}}.",
@@ -7355,10 +7523,10 @@
     },
     "apy_tooltip": {
       "title": "Lợi suất phần trăm hằng năm (APY)",
-      "paragraph_1": "Tài khoản Tài chính của bạn tự động nhận lên đến {{percentage}}%.",
+      "paragraph_1": "Money Account của bạn tự động sinh lời lên đến {{percentage}}%.",
       "paragraph_2": "Lãi suất hiển thị là Tỷ suất lợi nhuận hằng năm (APY) ước tính dựa trên điều kiện thị trường hiện tại. APY có thể thay đổi và không được đảm bảo. Tiền được đưa vào một kho DeFi do Veda quản lý, với sự giám sát rủi ro từ Steakhouse Financial, nhằm tạo lợi nhuận trên các thị trường cho vay đã được thiết lập.",
       "paragraph_3": "Khi bạn liên kết MetaMask Card, các giao dịch mua sẽ được khấu trừ từ số dư này.",
-      "paragraph_4": "Tài khoản Tài chính được hỗ trợ bởi Monad.",
+      "paragraph_4": "Money Account được hỗ trợ bởi Monad.",
       "deposit_body": "Tỷ suất hiển thị là Lợi suất phần trăm hằng năm (APY) ước tính dựa trên điều kiện thị trường hiện tại. APY có thể thay đổi và không được đảm bảo."
     },
     "earnings_tooltip": {
@@ -7374,8 +7542,8 @@
       "title": "Hoạt động",
       "view_all": "Xem tất cả",
       "empty": "Chưa có hoạt động",
-      "load_error": "Couldn't load your activity",
-      "load_error_more": "Couldn't load more activity",
+      "load_error": "Không thể tải hoạt động của bạn",
+      "load_error_more": "Không thể tải thêm hoạt động",
       "retry": "Thử lại",
       "pending": "Chờ xử lý",
       "filter_all": "Tất cả",
@@ -7440,48 +7608,48 @@
     "how_it_works_page": {
       "header_title": "Tài chính",
       "section_title": "Cách hoạt động",
-      "description_1": "Nạp mUSD vào tài khoản Tài chính của bạn và tự động sinh lời lên đến {{percentage}}% APY (có thể thay đổi). Tiền sẽ được đưa vào một kho DeFi do Veda quản lý và được giám sát rủi ro bởi Steakhouse Financial. Mức lợi suất được tạo ra từ các nền tảng DeFi bên thứ ba triển khai vốn vào các giao thức chuỗi khối. Không cần ký gửi, không cần nhận, không bị khóa tài sản.",
+      "description_1": "Nạp mUSD vào Money Account của bạn và tự động sinh lời lên đến {{percentage}}% APY (có thể thay đổi). Tiền sẽ được đưa vào một kho DeFi do Veda quản lý và được giám sát rủi ro bởi Steakhouse Financial. Mức lợi suất được tạo ra từ các nền tảng DeFi bên thứ ba triển khai vốn vào các giao thức chuỗi khối. Không cần ký gửi, không cần nhận, không bị khóa tài sản.",
       "description_2": "Số dư Tài chính của bạn là số dư để chi tiêu. Liên kết Thẻ MetaMask để chi tiêu tại hơn 150 triệu cửa hàng trên toàn cầu. Tiền của bạn vẫn sinh lời cho đến thời điểm bạn sử dụng.",
-      "description_3": "Tài khoản Tài chính được hỗ trợ bởi Monad.",
+      "description_3": "Money Account được hỗ trợ bởi Monad.",
       "faq_title": "Câu hỏi thường gặp",
-      "faq_q1": "Tài khoản MetaMask Tài chính là gì?",
+      "faq_q1": "MetaMask Money Account là gì?",
       "faq_a1": "Đây là tài khoản có thể mang lại lãi suất APY lên đến {{percentage}}% (có thể thay đổi). Bạn nạp tiền vào tài khoản, số tiền của bạn sẽ được giữ dưới dạng mUSD và có thể nhận lãi suất APY lên đến {{percentage}}%. mUSD là đồng ổn định được bảo chứng bằng đô-la của MetaMask. Bạn có thể sử dụng hoặc rút tiền bất cứ lúc nào mà không bị phạt. Bạn cũng có thể chi tiêu số tiền này bằng MetaMask Card tại hơn 150 triệu điểm chấp nhận Mastercard trên toàn thế giới.",
-      "faq_q2": "Tài khoản MetaMask Tài chính có an toàn không?",
-      "faq_a2": "Có, nhưng giống như mọi sản phẩm DeFi khác, tài khoản này vẫn có rủi ro. Đây là ví tự lưu ký, nghĩa là bạn toàn quyền kiểm soát tài khoản của mình thông qua Khóa riêng tư.\n\nCác rủi ro bao gồm lỗi hợp đồng thông minh, khai thác lỗ hổng giao thức, thiếu thanh khoản, sự cố từ bên thứ ba và các hạn chế về pháp lý hoặc quy định. Tài khoản Tài chính không được FDIC hoặc bất kỳ cơ quan chính phủ nào bảo hiểm. Bạn có thể chịu rủi ro mất tiền.",
-      "faq_q3": "Ai kiểm soát tài khoản MetaMask Tài chính?",
+      "faq_q2": "MetaMask Money Account có an toàn không?",
+      "faq_a2": "Có, nhưng giống như mọi sản phẩm DeFi khác, tài khoản này vẫn có rủi ro. Đây là ví tự lưu ký, nghĩa là bạn toàn quyền kiểm soát tài khoản của mình thông qua Khóa riêng tư.\n\nCác rủi ro bao gồm lỗi hợp đồng thông minh, khai thác lỗ hổng giao thức, thiếu thanh khoản, sự cố từ bên thứ ba và các hạn chế về pháp lý hoặc quy định. Money Account không được FDIC hoặc bất kỳ cơ quan chính phủ nào bảo hiểm. Bạn có thể chịu rủi ro mất tiền.",
+      "faq_q3": "Ai kiểm soát MetaMask Money Account?",
       "faq_a3": "Chính bạn! MetaMask là ví tự lưu ký, nghĩa là chỉ có Khóa riêng tư của chủ tài khoản mới có quyền kiểm soát tài khoản. MetaMask không thể truy cập, đóng băng hoặc di chuyển tiền của bạn. Đây là điểm khác biệt giữa chúng tôi với tài khoản ngân hàng truyền thống và các nền tảng tiền mã hóa lưu ký — không có bên thứ ba nào nắm giữ tiền của bạn.",
-      "faq_q4": "Các khoản phí của tài khoản MetaMask Tài chính là gì?",
-      "faq_a4": "Không có phí khi mở tài khoản Tài chính và không có phí khi nạp đồng ổn định. Bạn sẽ phải trả phí khi nạp các token không phải là đồng ổn định. Ngoài ra còn có các khoản phí liên quan đến giao dịch bằng MetaMask Card, rút tiền tại ATM và chi phí chuyển đổi ngược sang đồng tiền nội tệ. ",
+      "faq_q4": "Các khoản phí của MetaMask Money Account là gì?",
+      "faq_a4": "Không có phí khi mở Money Account và không có phí khi nạp đồng ổn định. Bạn sẽ phải trả phí khi nạp các token không phải là đồng ổn định. Ngoài ra còn có các khoản phí liên quan đến giao dịch bằng MetaMask Card, rút tiền tại ATM và chi phí chuyển đổi ngược sang đồng tiền nội tệ. ",
       "faq_a4_link": "Xem chi tiết đầy đủ về các khoản phí của Thẻ tại đây.",
-      "faq_q5": "Tôi có thể sinh lời bao nhiêu với tài khoản MetaMask Tài chính?",
-      "faq_a5": "Lãi suất APY lên đến {{percentage}}%. Lãi suất này có thể thay đổi và biến động theo điều kiện thị trường. Lãi suất hiện tại luôn được hiển thị trong tài khoản Tài chính.",
+      "faq_q5": "Tôi có thể sinh lời bao nhiêu với MetaMask Money Account?",
+      "faq_a5": "Lãi suất APY lên đến {{percentage}}%. Lãi suất này có thể thay đổi và biến động theo điều kiện thị trường. Lãi suất hiện tại luôn được hiển thị trong Money Account.",
       "faq_q6": "Lợi suất đến từ đâu?",
       "faq_a6": "Khi bạn nạp tiền, số tiền của bạn sẽ được phân bổ vào các giao thức DeFi uy tín như Aave và Morpho, nơi tạo lợi nhuận từ các hoạt động kinh tế thực. Sau đó, các khoản lợi nhuận này sẽ được chuyển đến bạn dưới dạng APY.\n\nMột nhà cung cấp dịch vụ bên thứ ba là Steakhouse Financial sẽ giám sát việc phân bổ tiền trong các giao thức. Veda, một nhà cung cấp hạ tầng bên thứ ba, sẽ triển khai và duy trì các hợp đồng thông minh của kho lưu giữ tiền của bạn.\n\nKhoản lợi nhuận này không phải là lãi suất do MetaMask hoặc đơn vị phát hành mUSD chi trả. Đây là lợi nhuận trên chuỗi được tạo ra từ các vị thế trong các giao thức DeFi của bên thứ ba.",
-      "faq_q7": "Tôi có thể nạp những token nào vào tài khoản Tài chính?",
-      "faq_a7": "Bạn có thể nạp các đồng ổn định và aToken sau đây vào tài khoản Tài chính mà không mất phí chuyển đổi:\n\n{{tokenBullets}}\n\nTất cả các token EVM khác đều có thể được nạp vào tài khoản Tài chính, nhưng có thể áp dụng các khoản phí tiêu chuẩn. Bạn cũng có thể nạp tiền vào tài khoản Tài chính bằng thẻ ghi nợ, thẻ tín dụng, tài khoản ngân hàng, PayPal, Apple Pay hoặc Google Pay.\n\nLưu ý: Mỗi token có giới hạn nạp ban đầu tối đa là $100.000 để đảm bảo tính thanh khoản.",
-      "faq_q8": "Tôi có thể rút tiền khỏi tài khoản MetaMask Tài chính bất cứ lúc nào không?",
+      "faq_q7": "Tôi có thể nạp những token nào vào Money Account?",
+      "faq_a7": "Bạn có thể nạp các đồng ổn định và aToken sau đây vào Money Account mà không mất phí chuyển đổi:\n\n{{tokenBullets}}\n\nTất cả các token EVM khác đều có thể được nạp vào Money Account, nhưng có thể áp dụng các khoản phí tiêu chuẩn. Bạn cũng có thể nạp tiền vào Money Account bằng thẻ ghi nợ, thẻ tín dụng, tài khoản ngân hàng, PayPal, Apple Pay hoặc Google Pay.\n\nLưu ý: Mỗi token có giới hạn nạp ban đầu tối đa là $100.000 để đảm bảo tính thanh khoản.",
+      "faq_q8": "Tôi có thể rút tiền khỏi MetaMask Money Account bất cứ lúc nào không?",
       "faq_a8": "Có. Bạn có thể giao dịch, gửi, chi tiêu hoặc rút toàn bộ số dư của mình bất cứ lúc nào mà không cần thông báo trước, không bị phạt và không mất phí rút tiền từ MetaMask. Trong trường hợp thanh khoản bị hạn chế, quá trình rút tiền có thể bị chậm tạm thời.",
-      "faq_q9": "Tôi có cần hoàn tất xác minh danh tính để sử dụng tài khoản MetaMask Tài chính không?",
-      "faq_a9": "Không. Việc mở tài khoản Tài chính không yêu cầu xác minh danh tính. Tuy nhiên, một số tính năng, bao gồm Card và Ramps, yêu cầu phải xác minh. Việc kiểm tra được thực hiện bởi các nhà cung cấp dịch vụ bên thứ ba vận hành các dịch vụ được quản lý theo quy định, không phải bởi MetaMask. Nếu cần, bạn sẽ được hướng dẫn thực hiện quy trình này ngay trong ứng dụng khi đăng ký.",
-      "faq_q10": "Tài khoản MetaMask Tài chính hiện có ở những quốc gia nào?",
+      "faq_q9": "Tôi có cần hoàn tất xác minh danh tính để sử dụng MetaMask Money Account không?",
+      "faq_a9": "Không. Việc mở Money Account không yêu cầu xác minh danh tính. Tuy nhiên, một số tính năng, bao gồm Thẻ và Chuyển đổi xuôi/ngược, yêu cầu phải xác minh. Việc kiểm tra được thực hiện bởi các nhà cung cấp dịch vụ bên thứ ba vận hành các dịch vụ được quản lý theo quy định, không phải bởi MetaMask. Nếu cần, bạn sẽ được hướng dẫn thực hiện quy trình này ngay trong ứng dụng khi đăng ký.",
+      "faq_q10": "MetaMask Money Account hiện có ở những quốc gia nào?",
       "faq_a10": "Hầu hết các quốc gia! Hiện tại, tài khoản Tài chính chưa khả dụng tại Vương quốc Anh và các quốc gia nằm trong danh sách trừng phạt của Hoa Kỳ.",
       "disclosures_title": "Rủi ro và Công bố",
-      "disclosures_body": "Tài khoản Tài chính không phải là tài khoản ngân hàng, tài khoản tiết kiệm hoặc sản phẩm tiền gửi được bảo hiểm. Lãi suất APY có thể thay đổi và không được đảm bảo. Tài khoản Tài chính có các rủi ro liên quan đến hợp đồng thông minh, giao thức, thanh khoản và các rủi ro khác, vì vậy bạn có thể mất một phần hoặc toàn bộ số tiền của mình. Việc sử dụng còn tùy thuộc vào các hạn chế theo khu vực. Có áp dụng các điều khoản và điều kiện."
+      "disclosures_body": "Money Account không phải là tài khoản ngân hàng, tài khoản tiết kiệm hoặc sản phẩm tiền gửi được bảo hiểm. Lãi suất APY có thể thay đổi và không được đảm bảo. Money Account có các rủi ro liên quan đến hợp đồng thông minh, giao thức, thanh khoản và các rủi ro khác, vì vậy bạn có thể mất một phần hoặc toàn bộ số tiền của mình. Việc sử dụng còn tùy thuộc vào các hạn chế theo khu vực. Có áp dụng các điều khoản và điều kiện."
     },
     "geo_block": {
-      "title": "Tài khoản Tài chính không khả dụng",
-      "description": "Tài khoản Tài chính không khả dụng ở vị trí của bạn do hạn chế hoặc lệnh trừng phạt tại địa phương.",
+      "title": "Money Account không khả dụng",
+      "description": "Money Account không khả dụng ở vị trí của bạn do hạn chế hoặc lệnh trừng phạt tại địa phương.",
       "button": "Tôi đã hiểu"
     },
     "deeplink_modal": {
       "button": "Tôi đã hiểu",
       "money_account_disabled": {
-        "title": "Tài khoản Tài chính tạm thời không khả dụng",
-        "description": "Chúng tôi đang khắc phục sự cố. Tài khoản Tài chính sẽ sớm hoạt động trở lại — vui lòng quay lại sau."
+        "title": "Money Account tạm thời không khả dụng",
+        "description": "Chúng tôi đang khắc phục sự cố. Money Account sẽ sớm hoạt động trở lại — vui lòng quay lại sau."
       },
       "excluded_from_gradual_rollout": {
-        "title": "Tài khoản Tài chính sắp ra mắt",
-        "description": "Chúng tôi đang triển khai Tài khoản Tài chính theo từng giai đoạn để đảm bảo mọi thứ hoạt động ổn định. Vui lòng quay lại sau."
+        "title": "Money Account sắp ra mắt",
+        "description": "Chúng tôi đang triển khai Money Account theo từng giai đoạn để đảm bảo mọi thứ hoạt động ổn định. Vui lòng quay lại sau."
       }
     }
   },
@@ -7755,7 +7923,7 @@
       "other_assets": "Tài sản khác",
       "other_assets_description": "Chọn từ các token của bạn",
       "other_assets_receive_description": "Chọn token bạn muốn nhận",
-      "money_account": "Tài khoản Tài chính"
+      "money_account": "Money Account"
     },
     "staking_footer": {
       "part1": "Bằng cách tiếp tục, bạn đồng ý với ",
@@ -8862,7 +9030,7 @@
         "manage_spending_limit": "Quản lý hạn mức",
         "manage_spending_limit_description_restricted": "Giới hạn chi tiêu đang bật",
         "manage_spending_limit_description_full": "Quyền truy cập đầy đủ đang bật",
-        "unlink_money_account": "Hủy liên kết tài khoản Tài chính",
+        "unlink_money_account": "Hủy liên kết Money Account",
         "unlink_money_account_description": "Thay đổi nguồn cấp tiền cho Thẻ của bạn",
         "travel_title": "MetaMask Travel",
         "travel_description": "Đặt phòng khách sạn với mức giảm giá lên đến 70%",
@@ -8910,9 +9078,9 @@
       "on_linea": "trên Linea",
       "account_label": "Tài khoản",
       "token_label": "Token",
-      "money_account_label": "Tài khoản Tài chính",
+      "money_account_label": "Money Account",
       "money_account_token_symbol": "mUSD",
-      "use_money_account_cta": "Sử dụng tài khoản Tài chính",
+      "use_money_account_cta": "Sử dụng Money Account",
       "spend_and_earn_title": "Chi tiêu và sinh lời",
       "spend_and_earn_description_prefix": "Liên kết số dư của bạn với thẻ và được hoàn tiền bằng mUSD cho các giao dịch mua sắm. Đồng thời sinh lời lên đến ",
       "spend_and_earn_description_apy": "APY {{apy}}%",
@@ -8938,9 +9106,9 @@
         "confirm_button_label": "Thiết lập nguồn tiền"
       },
       "money_account_required": {
-        "title": "Thiết lập Tài khoản Tài chính",
-        "description": "Bạn cần liên kết Tài khoản Tài chính trước khi đổi mUSD trở lại.",
-        "confirm_button_label": "Thiết lập Tài khoản Tài chính"
+        "title": "Thiết lập Money Account",
+        "description": "Bạn cần liên kết Money Account trước khi đổi mUSD trở lại.",
+        "confirm_button_label": "Thiết lập Money Account"
       }
     },
     "credit_screen": {
@@ -8950,7 +9118,7 @@
       "expected_to_receive": "Dự kiến nhận được",
       "to": "Đến",
       "withdraw": "Chuyển tiền",
-      "withdraw_to_money_account": "Chuyển vào tài khoản Tài chính",
+      "withdraw_to_money_account": "Chuyển vào Money Account",
       "withdraw_unavailable": "Hiện không thể quy đổi",
       "withdrawal_success": "Quy đổi thành công",
       "withdrawal_failed": "Quy đổi thất bại. Vui lòng thử lại.",
@@ -8961,27 +9129,27 @@
         "confirm_button_label": "Thiết lập nguồn tiền"
       },
       "money_account_required": {
-        "title": "Thiết lập Tài khoản Tài chính",
-        "description": "Bạn cần liên kết một tài khoản Tài chính trước khi quy đổi số dư tín dụng của mình.",
-        "confirm_button_label": "Thiết lập Tài khoản Tài chính"
+        "title": "Thiết lập Money Account",
+        "description": "Bạn cần liên kết Money Account trước khi quy đổi số dư tín dụng của mình.",
+        "confirm_button_label": "Thiết lập Money Account"
       },
       "refund_info": {
         "title": "Số dư hoàn tiền",
-        "description": "Số dư này bao gồm mọi khoản hoàn tiền mà bạn đã nhận. Đây là số dư sẽ được ưu tiên sử dụng cho các giao dịch thanh toán bằng thẻ của bạn. Bạn có thể chuyển số dư này vào tài khoản Tài chính bất cứ lúc nào.",
+        "description": "Số dư này bao gồm mọi khoản hoàn tiền mà bạn đã nhận. Đây là số dư sẽ được ưu tiên sử dụng cho các giao dịch thanh toán bằng thẻ của bạn. Bạn có thể chuyển số dư này vào Money Account bất cứ lúc nào.",
         "description_no_money_account": "Số dư này bao gồm mọi khoản hoàn tiền mà bạn đã nhận. Đây là số dư sẽ được ưu tiên sử dụng cho các giao dịch thanh toán bằng thẻ của bạn. Bạn có thể quy đổi số dư này về ví của mình bất cứ lúc nào."
       }
     },
     "credit_balance_tooltip": {
       "title": "Số dư khả dụng",
-      "description": "Số dư của bạn bao gồm số dư trong tài khoản Tài chính và mọi khoản hoàn tiền mà bạn đã nhận.",
+      "description": "Số dư của bạn bao gồm số dư trong Money Account và mọi khoản hoàn tiền mà bạn đã nhận.",
       "description_no_money_account": "Số dư của bạn bao gồm số dư trong ví và mọi khoản hoàn tiền mà bạn đã nhận.",
-      "money_account": "Tài khoản Tài chính",
+      "money_account": "Money Account",
       "wallet": "Ví",
       "refund_balance": "Số dư hoàn tiền"
     },
     "credit_banner": {
       "title": "Số dư hoàn tiền: {{amount}}",
-      "description": "Chi tiêu hoặc chuyển số dư này vào tài khoản Tài chính để tiếp tục sinh lời trên số dư của bạn.",
+      "description": "Chi tiêu hoặc chuyển số dư này vào Money Account để tiếp tục sinh lời trên số dư của bạn.",
       "description_no_money_account": "Chi tiêu hoặc quy đổi số dư này về ví của bạn.",
       "confirm_button_label": "Chuyển tiền"
     },
@@ -9723,7 +9891,7 @@
     "earn_rewards": {
       "title": "Nhận phần thưởng",
       "musd_title": "Thưởng lên đến {{percentage}}% trên mUSD",
-      "musd_subtitle": "Tài khoản Tài chính đã ra mắt",
+      "musd_subtitle": "Money Account đã ra mắt",
       "card_title": "Hoàn tiền lên đến 3% cho chi tiêu",
       "card_subtitle": "Nhận MetaMask Card của bạn ngay",
       "card_subtitle_cardholder": "Truy cập các quyền lợi MetaMask Card của bạn"
@@ -9795,8 +9963,8 @@
       "predict_claim": "Đã nhận tiền thắng",
       "predict_deposit": "Tài khoản Dự đoán đã được nạp tiền",
       "predict_withdraw": "Rút tiền",
-      "money_account_deposit": "Nạp tiền vào Tài khoản Tài chính",
-      "money_account_withdraw": "Chuyển tiền từ Tài khoản Tài chính",
+      "money_account_deposit": "Gửi tiền vào Money Account",
+      "money_account_withdraw": "Chuyển tiền từ Money Account",
       "default": "Chi tiết giao dịch"
     },
     "label": {
@@ -9819,7 +9987,7 @@
       "you_sent": "Bạn đã gửi",
       "you_received": "Bạn đã nhận được",
       "token_received": "Đã nhận token",
-      "money_account": "Tài khoản Tài chính",
+      "money_account": "Money Account",
       "perps_account": "Tài khoản Hợp đồng vĩnh cửu 1",
       "predictions_account": "Tài khoản Dự đoán 1",
       "steps_completed": "Các bước (đã hoàn thành {{count}} bước)",
@@ -9936,7 +10104,7 @@
   "trending": {
     "title": "Khám phá",
     "crypto_movers": "Tiền mã hóa biến động mạnh",
-    "hot_tokens": "Hot tokens",
+    "hot_tokens": "Token nổi bật",
     "perps_movers": "Hợp đồng vĩnh cửu biến động mạnh",
     "perps_movers_pill_gainers": "Tăng giá",
     "perps_movers_pill_losers": "Giảm giá",
@@ -10162,6 +10330,7 @@
       "trending_tokens": "Xu hướng",
       "trending_perpetuals": "Hợp đồng vĩnh cửu đang thịnh hành",
       "trending_predictions": "Dự đoán đang thịnh hành",
+      "watchlist": "Danh sách theo dõi",
       "import_nfts": "Nhập NFT",
       "import_nfts_description": "Dễ dàng thêm các bộ sưu tập của bạn",
       "view_more": "Xem thêm",
@@ -10186,7 +10355,7 @@
   "whats_happening": {
     "title": "Tình hình hiện nay",
     "ai": "AI",
-    "outdated": "Outdated",
+    "outdated": "Đã cũ",
     "impact": {
       "bullish": "Xu hướng tăng",
       "bearish": "Xu hướng giảm",
@@ -10203,5 +10372,11 @@
   },
   "stepper_card": {
     "more_information": "Thông tin khác"
+  },
+  "token_watchlist": {
+    "added_to_watchlist": "Added to Watchlist",
+    "removed_from_watchlist": "Removed from Watchlist",
+    "home_empty_title": "Danh sách theo dõi",
+    "home_empty_subtitle": "You have no watchlist items yet"
   }
 }

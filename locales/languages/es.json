@@ -218,6 +218,49 @@
     "try_again": "Inténtalo de nuevo",
     "failed": "Algo salió mal"
   },
+  "scam_questionnaire": {
+    "header_title": "Security check",
+    "continue": "Continuar",
+    "select_an_answer": "Select an answer",
+    "q1": {
+      "title": "Did someone you only know online tell you to send this?",
+      "subtitle": "This includes dating apps, social media, and group chats—even if you've spoken on video.",
+      "yes": "Yes, someone I met online told me to send this",
+      "no": "No, I know this person in real life"
+    },
+    "q2": {
+      "title": "What's this payment for?",
+      "subtitle": "Choose the option that best describes this payment.",
+      "investment_title": "Investment",
+      "investment_subtitle": "Buying crypto, tokens, or a financial opportunity",
+      "helping_title": "Helping someone I care about",
+      "helping_subtitle": "Sending money to a partner, family member, or friend in need",
+      "government_title": "Paying the police or a government agency",
+      "government_subtitle": "Fines, taxes, or official fees requested in crypto",
+      "job_title": "A job opportunity or work-related",
+      "job_subtitle": "Onboarding fees, equipment, or task payments",
+      "goods_title": "Buying goods or services",
+      "goods_subtitle": "Paying a merchant for something I'm receiving",
+      "self_transfer_title": "Moving funds between my own wallets",
+      "self_transfer_subtitle": "Self-transfer or moving to cold storage"
+    },
+    "q3": {
+      "title": "Is someone guiding you through this transaction?",
+      "subtitle": "This could be over a phone call, video chat, or sharing your screen.",
+      "yes": "Yes, someone is walking me through the steps right now",
+      "no": "No, I am doing this entirely on my own"
+    },
+    "warning": {
+      "title": "You might be getting scammed right now",
+      "reason_known_scam": "Based on your answers and this recipient's history, this transaction might be a scam.",
+      "reason_irreversible_emphasis": "Crypto transactions are irreversible.",
+      "reason_irreversible_detail": "Once you send, your funds can't be recovered.",
+      "stop_payment": "Stop this payment",
+      "contact_support": "Contactar a soporte",
+      "proceed_anyway": "Ignore risks and continue anyway",
+      "proceed_anyway_countdown": "Continue anyway in {{seconds}}s"
+    }
+  },
   "date": {
     "months": {
       "0": "Ene",
@@ -1059,7 +1102,75 @@
         "all": "Todas",
         "tokens": "Tokens",
         "perps": "Perps"
+      },
+      "notifications_banner": {
+        "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
+        "open_settings": "Abrir configuración"
       }
+    },
+    "feed": {
+      "title": "Traders principales",
+      "tabs": {
+        "leaderboard": "Clasificación",
+        "feed": "Feed"
+      },
+      "following": "Siguiendo",
+      "all": "Todas",
+      "trade": "Operar",
+      "action": {
+        "bought": "compró",
+        "sold": "vendido",
+        "opened": "abrió",
+        "closed": "cerrado"
+      },
+      "type_filter": {
+        "all": "Todos los tipos",
+        "tokens": "Tokens",
+        "perps": "Perps"
+      },
+      "empty_following": {
+        "title": "Aún no hay actividad",
+        "description": "Follow traders to see their trades show up here."
+      },
+      "empty_all": {
+        "title": "Aún no hay actividad",
+        "description": "Trader activity will show up here as trades come in."
+      },
+      "empty_type": {
+        "tokens": {
+          "title": "No token activity"
+        },
+        "perps": {
+          "title": "No perps activity"
+        },
+        "description": "No matching trades in the activity so far."
+      },
+      "load_more": "Cargar más",
+      "error": {
+        "title": "Couldn't load the feed",
+        "retry": "Inténtalo de nuevo"
+      },
+      "no_data": "Sin datos"
+    },
+    "onboarding": {
+      "slide_trade": {
+        "title": "Trade like a pro",
+        "description": "Track in real time when they swap or trade perps, tokens, and real-world assets."
+      },
+      "slide_follow": {
+        "title": "Follow the best",
+        "description": "Tap to follow the top three traders who are up big this week."
+      },
+      "slide_notify": {
+        "title": "No te pierdas ningún movimiento",
+        "description_followed": "When a trader you follow makes a move, you'll get a notification. One tap to do the same.",
+        "description_default": "When you're ready, follow a trader to get notified the moment they make a move."
+      },
+      "next": "Siguiente",
+      "follow_top_three": "Follow the top three",
+      "maybe_later": "Quizás más tarde",
+      "got_it": "Entendido",
+      "allow_notifications": "Permitir notificaciones"
     },
     "notification_preferences": {
       "title": "Traders principales",
@@ -1666,6 +1777,8 @@
       "loss_percent_placeholder": "Pérdida",
       "profit_roe_placeholder": "% Ganancia",
       "loss_roe_placeholder": "% Pérdida",
+      "toggle_take_profit_sign": "Toggle take profit return sign",
+      "toggle_stop_loss_sign": "Toggle stop loss return sign",
       "usd_label": "$",
       "take_profit_invalid_price": "La toma de ganancias debe estar por {{direction}} del precio {{priceType}}",
       "stop_loss_invalid_price": "El límite de pérdidas debe estar por {{direction}} del precio {{priceType}}",
@@ -2084,7 +2197,8 @@
       "products": "Productos",
       "top_movers": "Mayores variaciones",
       "gainers": "Ganadores",
-      "losers": "Perdedores"
+      "losers": "Perdedores",
+      "recently_added": "Agregados recientemente"
     },
     "learn_more": {
       "title": "Más información sobre contratos perpetuos",
@@ -2178,8 +2292,17 @@
       "filter_badge_label": "Lista de seguimiento",
       "suggested": "Sugeridos"
     },
+    "recently_viewed": "Recently viewed",
+    "recently_searched": "Recently searched",
+    "market_count": "{{count}} mercado",
+    "market_count_plural": "{{count}} mercados",
     "no_tokens_found": "No se encontraron tokens",
     "no_tokens_found_description": "No encontramos ningún token con el nombre \"{{searchQuery}}\". Prueba con otra búsqueda.",
+    "no_markets_found": "No se encontraron mercados",
+    "no_markets_found_description": "No hay mercados que coincidan con el filtro actual. Prueba con otra categoría.",
+    "no_markets_search_description": "No hay mercados que coincidan con \"{{searchQuery}}\" en esta categoría. Prueba con otra búsqueda o borra el filtro.",
+    "clear_search": "Borrar búsqueda",
+    "clear_filter": "Borrar filtro",
     "testnet": "Red de pruebas",
     "mainnet": "Red principal",
     "developer_options": {
@@ -2494,6 +2617,7 @@
     },
     "outcome_groups": {
       "game_lines": "Líneas de juego",
+      "halves": "Tiempos",
       "first_half": "1.er tiempo",
       "first_set": "1.er set",
       "team_totals": "Totales del equipo",
@@ -2522,6 +2646,7 @@
       "first_half_moneyline": "Línea de dinero 1T",
       "first_half_spreads": "Diferenciales 1T",
       "first_half_totals": "Totales 1T",
+      "second_half_totals": "Totales 2T",
       "points": "Puntos",
       "assists": "Asistencias",
       "rebounds": "Rebotes",
@@ -2529,6 +2654,7 @@
       "basketball_odd_even": "Marcador impar/par",
       "basketball_team_to_score_first": "Equipo que marcará primero",
       "goalscorers": "Goleadores",
+      "soccer_player_goals": "Goles",
       "exact_score": "Resultado exacto",
       "halftime_result": "Resultado al descanso",
       "corners": "Tiros de esquina",
@@ -2540,6 +2666,11 @@
       "soccer_anytime_goalscorer": "Goleadores",
       "soccer_exact_score": "Resultado exacto",
       "soccer_halftime_result": "Resultado al descanso",
+      "soccer_first_half_team_totals": "Totales del equipo en el 1.er tiempo",
+      "both_teams_to_score_first_half": "Ambos equipos anotarán en el 1.er tiempo",
+      "soccer_second_half_result": "Resultado del 2.º tiempo",
+      "soccer_second_half_team_totals": "Totales del equipo en el 2.º tiempo",
+      "both_teams_to_score_second_half": "Ambos equipos anotarán en el 2.º tiempo",
       "soccer_team_to_advance": "Equipo que avanzará",
       "soccer_first_to_score": "Primer equipo en anotar",
       "soccer_extra_time": "¿Tiempo extra?",
@@ -2615,6 +2746,11 @@
     "markets_won": "Mercados que ganaron",
     "won_markets_text": "Ganaron {{count}} mercado{{s}}",
     "available_balance": "Saldo disponible",
+    "balance_error": {
+      "title": "Couldn't load your balance",
+      "description": "Your funds are safe. Check your connection and try again.",
+      "retry": "Reintentar"
+    },
     "portfolio": {
       "available_amount": "{{amount}} disponible(s)",
       "value_accessibility": "Valor del portafolio, {{value}}",
@@ -2715,8 +2851,8 @@
           "description": "{{amount}} añadido a tu saldo"
         },
         "redeemed": {
-          "title": "Position redeemed",
-          "description": "Your position has been redeemed"
+          "title": "Posición canjeada",
+          "description": "Tu posición se canjeó correctamente"
         },
         "error": {
           "title": "Algo salió mal",
@@ -3245,20 +3381,20 @@
     "pna25_blog_post_link": "entrada de blog",
     "pna25_confirm_button": "Aceptar y cerrar",
     "pna25_open_settings_button": "Abrir Configuración",
-    "settings": "You can also",
-    "settings_link": "manage other default settings."
+    "settings": "También puedes",
+    "settings_link": "gestionar otra configuración por defecto."
   },
   "onboarding_interest_questionnaire": {
-    "title": "How will you use MetaMask?",
+    "title": "¿Cómo usarás MetaMask?",
     "description": "Selecciona todas las opciones que correspondan.",
     "option_swap_tokens": "Canjear tokens",
     "option_trade_perpetuals": "Opera con futuros perpetuos",
     "option_prediction_markets": "Mercados de predicción",
-    "option_send_receive_crypto": "Send and receive crypto",
-    "option_earn_and_spend": "Earn and spend",
-    "option_use_other_crypto_apps": "Use other crypto apps",
+    "option_send_receive_crypto": "Enviar y recibir criptomonedas",
+    "option_earn_and_spend": "Ganar y gastar",
+    "option_use_other_crypto_apps": "Usar otras aplicaciones de criptomonedas",
     "option_other": "Otro",
-    "other_placeholder": "How else will you use MetaMask?",
+    "other_placeholder": "¿De qué otra forma usarás MetaMask?",
     "done": "Hecho",
     "skip": "Omitir",
     "next": "Siguiente"
@@ -3993,8 +4129,8 @@
         "title": "Tarjeta",
         "reset_onboarding_description": "Restablecer el estado de incorporación de la tarjeta para iniciar el proceso de incorporación desde el principio.",
         "reset_onboarding_button": "Restablecer estado de incorporación",
-        "unlink_money_account_description": "Revocar el límite de gasto de USDC que autoriza a la Tarjeta a gastar desde tu cuenta Finanzas. Esto envía una transacción approve(0) y marca la cuenta Finanzas como no delegada en el backend de la Tarjeta.",
-        "unlink_money_account_button": "Desvincular la cuenta Finanzas de la tarjeta",
+        "unlink_money_account_description": "Revocar el límite de gasto de USDC que autoriza a la tarjeta a gastar desde tu Money Account. Esto envía una transacción approve(0) y marca la Money Account como no delegada en el backend de la tarjeta.",
+        "unlink_money_account_button": "Desvincular Money Account de la tarjeta",
         "unlink_money_account_disabled_hint": "No hay ninguna vinculación activa para eliminar."
       },
       "identity": {
@@ -4006,6 +4142,12 @@
         "title": "Notificaciones",
         "description": "Restablece el indicador de aviso previo de notificaciones push para volver a activar la ventana emergente en el próximo inicio válido.",
         "reset_prompt": "Restablecer aviso previo de notificaciones push"
+      },
+      "social_leaderboard": {
+        "title": "Social Leaderboard",
+        "description": "Reset the Social Leaderboard onboarding so it shows again the next time the feature is opened.",
+        "onboarding_seen": "Onboarding seen: {{seen}}",
+        "reset_onboarding": "Reset onboarding"
       },
       "haptics": {
         "title": "Háptica",
@@ -4068,6 +4210,20 @@
         "four": "Ingresa el código de seguridad en tu extensión"
       },
       "scan_qr_code_button": "Escanear código QR",
+      "scanner": {
+        "searching_label": "Escanea el código con tu otro dispositivo",
+        "detected_label": "Código detectado",
+        "invalid_qr_title": "Código QR no reconocido",
+        "invalid_qr_description": "Escanea el código QR desde el flujo Importar al dispositivo móvil de la extensión MetaMask.",
+        "expired_qr_title": "Código QR expirado",
+        "expired_qr_description": "Genera un nuevo código QR en tu extensión y escanéalo de nuevo en un plazo de 60 segundos.",
+        "connection_failed_title": "La conexión falló",
+        "connection_failed_description": "No pudimos conectarnos a tu extensión. Intenta escanear el código de nuevo.",
+        "try_again": "Inténtalo de nuevo",
+        "permission_title": "Activar el acceso a la cámara",
+        "permission_description": "Para escanear un código QR, deberá otorgar acceso a la cámara a MetaMask desde el menú de configuración de su dispositivo.",
+        "open_settings": "Abrir Configuración"
+      },
       "enter_code_on_extension": "Ingresa el código en la extensión",
       "enter_code_on_extension_desc": "Por seguridad, ingresa el código de verificación que aparece a continuación en tu extensión MetaMask.",
       "done": "Hecho",
@@ -4132,7 +4288,7 @@
   "app_information": {
     "title": "Información",
     "links": "Vínculos",
-    "privacy_policy": "de privacidad de Transak",
+    "privacy_policy": "Política de privacidad",
     "terms_of_use": "Términos de uso",
     "attributions": "Atribuciones",
     "support_center": "Visita nuestro centro de soporte",
@@ -4903,8 +5059,8 @@
     "tx_details_free": "Gratis",
     "tx_details_not_available": "No disponible",
     "smart_contract_interaction": "Interacción con el contrato inteligente",
-    "money_account_deposit": "Depositar en cuenta Finanzas",
-    "money_account_withdraw": "Transferir desde cuenta Finanzas",
+    "money_account_deposit": "Depositar en Money Account",
+    "money_account_withdraw": "Transferir desde Money Account",
     "swaps_transaction": "Transacción de intercambios",
     "bridge_transaction": "Puentear",
     "approve": "Aprobar",
@@ -5200,7 +5356,14 @@
     "enable_device_passcode_android": "Desbloquear con el PIN del dispositivo?"
   },
   "authentication": {
-    "auth_prompt_desc": "Autentíquese para usar MetaMask"
+    "auth_prompt_desc": "Autentíquese para usar MetaMask",
+    "labels": {
+      "remember_me": "Remember Me",
+      "face_id": "Face ID",
+      "touch_id": "Touch ID",
+      "device_authentication": "Device Authentication",
+      "device_passcode": "Device Passcode"
+    }
   },
   "accountApproval": {
     "title": "SOLICITUD DE CONEXIÓN",
@@ -6660,7 +6823,12 @@
   },
   "download_files": {
     "error": "No se pudo descargar el archivo adjunto.",
-    "unknownError": "Ocurrió un error desconocido"
+    "unknownError": "Ocurrió un error desconocido",
+    "downloaded_title": "Descarga completa",
+    "downloaded_message": "{{filename}} se guardó en tu carpeta Descargas.",
+    "confirm_message": "¿Quieres descargar\n{{filename}}?",
+    "confirm_action": "Descargar",
+    "cancel_action": "Cancelar"
   },
   "remember_me": {
     "enable_remember_me": "Activar Recordarme",
@@ -7159,13 +7327,13 @@
     "balance_unavailable_value": "$—",
     "balance_unavailable_banner_description": "No podemos mostrar tu saldo temporalmente. Tus fondos están a salvo; vuelve a intentarlo en breve.",
     "balance_retry": "Reintentar",
-    "balance_no_account": "No se encontró la cuenta Finanzas",
+    "balance_no_account": "Money Account no encontrada",
     "onboarding": {
       "step_1": {
         "title": "Gana hasta un {{apy}} % de APY",
-        "title_no_apy": "Deposita fondos en tu cuenta Finanzas",
-        "description": "Deposita fondos en tu cuenta Finanzas y observa cómo tu saldo crece con hasta un {{apy}} % de APY (variable).",
-        "description_no_apy": "Deposita fondos en tu cuenta Finanzas y observa cómo tu saldo crece.",
+        "title_no_apy": "Deposita fondos en tu Money Account",
+        "description": "Deposita fondos en tu Money Account y observa cómo tu saldo crece con hasta un {{apy}} % de APY (variable).",
+        "description_no_apy": "Deposita fondos en tu Money Account y observa cómo tu saldo crece.",
         "cta": "Agregar fondos"
       },
       "step_2": {
@@ -7185,19 +7353,19 @@
     },
     "first_time_deposit": {
       "title": "Primer depósito, realizado",
-      "content": "Está en tu cuenta Finanzas,\n y ya está generando ganancias.",
+      "content": "Está en tu Money Account,\n y ya está generando ganancias.",
       "button_text": "Hecho"
     },
     "rive_onboarding": {
-      "step1_title": "Ya llegaron las cuentas Finanzas",
+      "step1_title": "Ya llegaron las Money Accounts",
       "step1_body": "Gana hasta un {{percentage}} % de APY sobre tu saldo, disponible en toda tu billetera.",
       "step1_footer_text": "El APY es variable y no está garantizado.",
       "step2_title": "Gana automáticamente",
       "step2_body": "Transfiere monedas estables sin comisiones de cambio. Los fondos comienzan a generar ganancias de inmediato.",
-      "step2_footer_text": "La cuenta Finanzas usa la infraestructura de Veda.",
+      "step2_footer_text": "Money Account usa la infraestructura de Veda.",
       "step3_title": "Gasta en cualquier lugar",
-      "step3_body_card_eligible": "Obtén hasta un {{percentage}} % de cashback en tus compras vinculando tu cuenta Finanzas a una tarjeta MetaMask.",
-      "step3_body_card_ineligible": "¡Próximamente! Obtén hasta un {{percentage}} % de cashback en tus compras vinculando tu cuenta Finanzas a una tarjeta MetaMask.",
+      "step3_body_card_eligible": "Obtén hasta un {{percentage}} % de cashback en tus compras vinculando tu Money Account a una tarjeta MetaMask.",
+      "step3_body_card_ineligible": "¡Próximamente! Obtén hasta un {{percentage}} % de cashback en tus compras vinculando tu Money Account a una tarjeta MetaMask.",
       "step3_footer_text": "Incluye monitoreo de Steakhouse Financial.",
       "step4_title": "Opera y gana en un solo lugar",
       "step4_body": "Usa tu saldo de Finanzas para operar en MetaMask mientras sigues obteniendo rendimiento.",
@@ -7233,7 +7401,8 @@
     "potential_earnings": {
       "title": "Gana con tus criptomonedas",
       "description": "Descubre cómo tu dinero puede crecer con el tiempo al convertir tus criptomonedas a mUSD.",
-      "description_with_amounts_prefix": "Convierte tu {{total}} en activos y podrías ganar hasta",
+      "description_with_amounts_prefix": "Convierte tu",
+      "description_with_amounts_middle": "en activos y podrías ganar hasta",
       "description_with_amounts_suffix": "en un año.",
       "add": "Agregar",
       "convert_cta": "Convierte tus criptomonedas",
@@ -7269,11 +7438,11 @@
       "link_card_sheet_description_suffix": " (variable).",
       "link_card_sheet_description_no_apy": "Vincula tu tarjeta para poder gastar el saldo de tu cuenta Money y recibir mUSD de cashback en tus compras.",
       "link_card_sheet_cta": "Vincular tarjeta",
-      "unlink_card_sheet_title_no_funding_source": "¿Desvincular la cuenta Finanzas?",
+      "unlink_card_sheet_title_no_funding_source": "¿Desvincular Money Account?",
       "unlink_card_sheet_title_with_funding_source": "¿Estás seguro?",
-      "unlink_card_sheet_description_no_funding_source": "Dejarás de ganar con tus compras. Las compras futuras con la tarjeta se rechazarán hasta que configures una nueva fuente de fondos. Puedes volver a conectar tu cuenta Finanzas en cualquier momento.",
-      "unlink_card_sheet_description_with_funding_source": "Dejarás de ganar con tus compras. Las compras futuras con la tarjeta se financiarán con {{fundingSource}}. Puedes volver a conectar tu cuenta Finanzas en cualquier momento.",
-      "unlink_card_sheet_another_money_account": "otra cuenta Finanzas",
+      "unlink_card_sheet_description_no_funding_source": "Dejarás de ganar con tus compras. Las compras futuras con la tarjeta se rechazarán hasta que configures una nueva fuente de fondos. Puedes volver a conectar tu Money Account en cualquier momento.",
+      "unlink_card_sheet_description_with_funding_source": "Dejarás de ganar con tus compras. Las compras futuras con la tarjeta se financiarán con {{fundingSource}}. Puedes volver a conectar tu Money Account en cualquier momento.",
+      "unlink_card_sheet_another_money_account": "otra Money Account",
       "unlink_card_sheet_keep_linked": "Mantener vinculada",
       "unlink_card_sheet_unlink_account": "Desvincular cuenta",
       "manage_card": "Gestionar",
@@ -7281,7 +7450,7 @@
       "verification_pending": "Estamos revisando tu verificación de identidad. Esto suele tardar menos de 12 horas."
     },
     "what_you_get": {
-      "title": "Beneficios de la cuenta Finanzas",
+      "title": "Beneficios de Money Account",
       "benefit_auto_earn": "Gana automáticamente hasta",
       "benefit_auto_earn_variable": "(variable)",
       "benefit_dollar_backed": "Mantén tu dinero seguro en mUSD, una moneda estable respaldada por el dólar en una proporción de 1:1",
@@ -7300,7 +7469,6 @@
       "convert_crypto": "Convertir criptomonedas",
       "deposit_funds": "Tarjeta de débito o Apple Pay",
       "bank_account": "Cuenta bancaria",
-      "move_musd": "{{amount}} mUSD",
       "add_musd": "Agregar mUSD",
       "receive_external": "Dirección externa",
       "coming_soon": "Próximamente"
@@ -7308,7 +7476,7 @@
     "more_sheet": {
       "title": "Más",
       "how_it_works": "Cómo funciona",
-      "what_you_get": "Beneficios de la cuenta Finanzas",
+      "what_you_get": "Beneficios de Money Account",
       "contact_support": "Contactar a soporte"
     },
     "transfer_sheet": {
@@ -7330,8 +7498,8 @@
       "deposit_success_title_convert": "Conversión completa",
       "deposit_success_title_add_musd": "Fondos agregados",
       "deposit_success_title_card": "Depósito completo",
-      "deposit_success_body": "{{amount}} agregado(s) a la cuenta Finanzas.",
-      "deposit_success_body_no_amount": "Agregado a la cuenta Finanzas.",
+      "deposit_success_body": "{{amount}} agregado(s) a Money Account.",
+      "deposit_success_body_no_amount": "Agregado a Money Account.",
       "withdraw_in_progress_title": "Transferencia en curso",
       "withdraw_success_title": "Transferencia completa",
       "withdraw_success_body": "{{amount}} agregado(s) a {{destination}}.",
@@ -7355,10 +7523,10 @@
     },
     "apy_tooltip": {
       "title": "Rendimiento porcentual anual (APY)",
-      "paragraph_1": "Tu cuenta Finanzas gana hasta un {{percentage}} % automáticamente.",
+      "paragraph_1": "Tu Money Account gana hasta {{percentage}} % automáticamente.",
       "paragraph_2": "La tasa mostrada es un rendimiento porcentual anual (APY) estimado basado en las condiciones actuales del mercado. El APY es variable y no está garantizado. Los fondos se depositan en una bóveda DeFi, administrada por Veda con supervisión de riesgos a cargo de Steakhouse Financial, que genera rendimientos en mercados de préstamos establecidos.",
       "paragraph_3": "Cuando vincules tu tarjeta MetaMask, las compras se descontarán de este saldo.",
-      "paragraph_4": "La cuenta Finanzas cuenta con la tecnología de Monad.",
+      "paragraph_4": "Money Account cuenta con la tecnología de Monad.",
       "deposit_body": "La tasa mostrada es un rendimiento porcentual anual (APY) estimado basado en las condiciones actuales del mercado. El APY es variable y no está garantizado."
     },
     "earnings_tooltip": {
@@ -7374,8 +7542,8 @@
       "title": "Actividad",
       "view_all": "Ver todo",
       "empty": "Aún no hay actividad",
-      "load_error": "Couldn't load your activity",
-      "load_error_more": "Couldn't load more activity",
+      "load_error": "No se pudo cargar tu actividad",
+      "load_error_more": "No se pudo cargar más actividad",
       "retry": "Reintentar",
       "pending": "Pendiente",
       "filter_all": "Todas",
@@ -7440,48 +7608,48 @@
     "how_it_works_page": {
       "header_title": "Money",
       "section_title": "Cómo funciona",
-      "description_1": "Agrega mUSD a tu cuenta Finanzas y gana hasta un {{percentage}} % de APY (variable) automáticamente. Los fondos se depositan en una bóveda DeFi, administrada por Veda con monitoreo de riesgos por parte de Steakhouse Financial. La tasa la generan plataformas DeFi de terceros que invierten fondos en protocolos de cadena de bloques. Sin staking, sin reclamaciones, sin bloqueos.",
+      "description_1": "Agrega mUSD a tu Money Account y gana hasta {{percentage}} % de APY (variable) automáticamente. Los fondos se depositan en una bóveda DeFi, administrada por Veda con monitoreo de riesgos por parte de Steakhouse Financial. La tasa la generan plataformas DeFi de terceros que invierten fondos en protocolos de cadena de bloques. Sin staking, sin reclamaciones, sin bloqueos.",
       "description_2": "Tu saldo Money es tu saldo para gastar. Vincula tu tarjeta MetaMask para comprar en más de 150 millones de comercios en todo el mundo. Tu dinero sigue generando intereses hasta el momento en que lo uses.",
-      "description_3": "La cuenta Finanzas cuenta con la tecnología de Monad.",
+      "description_3": "Money Account cuenta con la tecnología de Monad.",
       "faq_title": "Preguntas frecuentes",
-      "faq_q1": "¿Qué es una cuenta MetaMask Money?",
+      "faq_q1": "¿Qué es una MetaMask Money Account?",
       "faq_a1": "Una cuenta que genera hasta un {{percentage}} % de APY variable. Depositas fondos, que se mantienen en la cuenta como mUSD, y generan hasta un {{percentage}} % de APY. mUSD es la moneda estable respaldada por dólares de MetaMask. Puedes usar o retirar tus fondos en cualquier momento sin penalizaciones. También puedes gastar tus fondos con la tarjeta MetaMask en más de 150 millones de comercios que aceptan Mastercard en todo el mundo.",
-      "faq_q2": "¿La cuenta MetaMask Money es segura?",
-      "faq_a2": "Sí, pero, como todos los productos DeFi, conlleva riesgos. Es una billetera de autocustodia, lo que significa que tienes el control total de tu cuenta mediante tus claves privadas.\n\nEntre los riesgos se incluyen fallas en los contratos inteligentes, vulnerabilidades de los protocolos, escasez de liquidez, fallas de terceros y restricciones legales o regulatorias. La cuenta Finanzas no está asegurada por la FDIC ni por ningún organismo gubernamental. Existe el riesgo de perder fondos.",
-      "faq_q3": "¿Quién controla mi cuenta MetaMask Money?",
+      "faq_q2": "¿MetaMask Money Account es segura?",
+      "faq_a2": "Sí, pero, como todos los productos DeFi, conlleva riesgos. Es una billetera de autocustodia, lo que significa que tienes el control total de tu cuenta mediante tus claves privadas.\n\nEntre los riesgos se incluyen fallas en los contratos inteligentes, vulnerabilidades de los protocolos, escasez de liquidez, fallas de terceros y restricciones legales o regulatorias. La Money Account no está asegurada por la FDIC ni por ningún organismo gubernamental. Existe el riesgo de perder fondos.",
+      "faq_q3": "¿Quién controla mi MetaMask Money Account?",
       "faq_a3": "¡Tú! MetaMask es una billetera de autocustodia, lo que significa que solo las claves privadas del titular de la cuenta pueden controlarla. MetaMask no puede acceder a tus fondos, congelarlos ni transferirlos. Esto es lo que nos diferencia de las cuentas bancarias tradicionales y de las plataformas de criptomonedas con custodia: no hay ningún tercero que tenga el control de tus fondos.",
-      "faq_q4": "¿Cuáles son las tarifas de la cuenta MetaMask Money?",
-      "faq_a4": "No hay ninguna tarifa por abrir una cuenta Finanzas ni por depositar monedas estables. Se aplican tarifas al depositar tokens que no sean monedas estables. También hay tarifas asociadas con las transacciones de la tarjeta MetaMask, los retiros en cajeros automáticos y los costos por convertir fondos a moneda local. ",
+      "faq_q4": "¿Cuáles son las tarifas de MetaMask Money Account?",
+      "faq_a4": "No hay ninguna tarifa por abrir una Money Account ni por depositar monedas estables. Se aplican tarifas al depositar tokens que no sean monedas estables. También hay tarifas asociadas con las transacciones de la tarjeta MetaMask, los retiros en cajeros automáticos y los costos por convertir fondos a moneda local. ",
       "faq_a4_link": "Consulta aquí el desglose completo de las tarifas de la tarjeta.",
-      "faq_q5": "¿Cuánto puedo ganar con una cuenta MetaMask Money?",
-      "faq_a5": "Hasta un {{percentage}} % de APY. La tasa es variable y fluctúa según las condiciones del mercado. La tasa actual siempre está visible dentro de la cuenta Finanzas.",
+      "faq_q5": "¿Cuánto puedo ganar con una MetaMask Money Account?",
+      "faq_a5": "Hasta un {{percentage}} % de APY. La tasa es variable y fluctúa según las condiciones del mercado. La tasa actual siempre está visible dentro de la Money Account.",
       "faq_q6": "¿De dónde proviene el rendimiento?",
       "faq_a6": "Cuando depositas fondos, estos se colocan en protocolos DeFi consolidados, como Aave y Morpho, donde generan rendimientos a partir de actividad económica real. Esos rendimientos se transfieren a ti en forma de APY.\n\nUn proveedor de servicios externo llamado Steakhouse Financial supervisa cómo se asignan los fondos en los protocolos. Veda, un proveedor externo de infraestructura, implementa y mantiene los contratos inteligentes de la bóveda donde se resguardan tus fondos.\n\nLas ganancias no son intereses pagados por MetaMask ni por el emisor de mUSD. Son los rendimientos on-chain generados por posiciones en protocolos DeFi de terceros.",
-      "faq_q7": "¿Qué tokens puedo depositar en la cuenta Finanzas?",
-      "faq_a7": "Puedes depositar las siguientes monedas estables y aTokens en tu cuenta Finanzas sin tarifas de conversión:\n\n{{tokenBullets}}\n\nTodos los demás tokens compatibles con EVM pueden depositarse en la cuenta Finanzas, aunque podrían aplicarse tarifas estándar. También puedes depositar fondos en tu cuenta Finanzas mediante tarjeta de débito, tarjeta de crédito, cuenta bancaria, PayPal, Apple Pay o Google Pay.\n\nNota: existe un límite inicial de depósito de $100.000 por token para garantizar la liquidez.",
-      "faq_q8": "¿Puedo retirar fondos de la cuenta MetaMask Money en cualquier momento?",
+      "faq_q7": "¿Qué tokens puedo depositar en la Money Account?",
+      "faq_a7": "Puedes depositar las siguientes monedas estables y aTokens en tu Money Account sin tarifas de conversión:\n\n{{tokenBullets}}\n\nTodos los demás tokens compatibles con EVM pueden depositarse en la Money Account, aunque podrían aplicarse tarifas estándar. También puedes depositar fondos en tu Money Account mediante tarjeta de débito, tarjeta de crédito, cuenta bancaria, PayPal, Apple Pay o Google Pay.\n\nNota: existe un límite inicial de depósito de $100.000 por token para garantizar la liquidez.",
+      "faq_q8": "¿Puedo retirar fondos de la MetaMask Money Account en cualquier momento?",
       "faq_a8": "Sí. Puedes operar, enviar, gastar o retirar el saldo completo en cualquier momento, sin períodos de espera, sin penalizaciones y sin tarifas de retiro por parte de MetaMask. Si la liquidez es limitada, podrían producirse retrasos temporales.",
-      "faq_q9": "¿Necesito completar una verificación de identidad para usar la cuenta MetaMask Money?",
-      "faq_a9": "No. Abrir una cuenta Finanzas no requiere verificación de identidad. Sin embargo, algunas funciones, como la tarjeta y Ramps, sí la requieren. Las verificaciones las realizan proveedores externos que operan servicios regulados, no MetaMask. Si es necesario, la aplicación te guiará durante el proceso de registro.",
-      "faq_q10": "¿En qué países está disponible la cuenta MetaMask Money?",
+      "faq_q9": "¿Necesito completar una verificación de identidad para usar MetaMask Money Account?",
+      "faq_a9": "No. Abrir una Money Account no requiere verificación de identidad. Sin embargo, algunas funciones, como la tarjeta y Ramps, sí la requieren. Las verificaciones las realizan proveedores externos que operan servicios regulados, no MetaMask. Si es necesario, la aplicación te guiará durante el proceso de registro.",
+      "faq_q10": "¿En qué países está disponible MetaMask Money Account?",
       "faq_a10": "¡En la mayoría! Actualmente no está disponible en el Reino Unido ni en los países incluidos en la lista de sanciones de EE. UU.",
       "disclosures_title": "Riesgos y divulgaciones",
-      "disclosures_body": "La cuenta Finanzas no es una cuenta bancaria, una cuenta de ahorros ni un producto de depósito asegurado. El APY es variable y no está garantizado. La cuenta Finanzas implica riesgos relacionados con contratos inteligentes, protocolos, liquidez y otros factores, por lo que podrías perder parte o la totalidad de tus fondos. Sujeto a restricciones regionales. Se aplican los términos y condiciones."
+      "disclosures_body": "La Money Account no es una cuenta bancaria, una cuenta de ahorros ni un producto de depósito asegurado. El APY es variable y no está garantizado. La Money Account implica riesgos relacionados con contratos inteligentes, protocolos, liquidez y otros factores, por lo que podrías perder parte o la totalidad de tus fondos. Sujeto a restricciones regionales. Se aplican los términos y condiciones."
     },
     "geo_block": {
-      "title": "Cuenta Finanzas no disponible",
-      "description": "La cuenta Finanzas no está disponible en tu ubicación debido a restricciones o sanciones locales.",
+      "title": "Money Account no disponible",
+      "description": "La Money Account no está disponible en tu ubicación debido a restricciones o sanciones locales.",
       "button": "Entendido"
     },
     "deeplink_modal": {
       "button": "Entendido",
       "money_account_disabled": {
-        "title": "La cuenta Finanzas no está disponible temporalmente",
-        "description": "Estamos trabajando en ello. La cuenta Finanzas volverá a estar disponible en breve. Vuelve a consultar pronto."
+        "title": "La Money Account no está disponible temporalmente",
+        "description": "Estamos trabajando en ello. La Money Account volverá a estar disponible en breve. Vuelve a consultar pronto."
       },
       "excluded_from_gradual_rollout": {
-        "title": "La cuenta Finanzas está por llegar",
-        "description": "Estamos implementando la cuenta Finanzas de forma gradual para garantizar que todo funcione correctamente. Vuelve a consultar pronto."
+        "title": "La Money Account está por llegar",
+        "description": "Estamos implementando la Money Account de forma gradual para garantizar que todo funcione correctamente. Vuelve a consultar pronto."
       }
     }
   },
@@ -7755,7 +7923,7 @@
       "other_assets": "Otros activos",
       "other_assets_description": "Selecciona entre tus tokens",
       "other_assets_receive_description": "Selecciona el token que deseas recibir",
-      "money_account": "Cuenta Finanzas"
+      "money_account": "Money Account"
     },
     "staking_footer": {
       "part1": "Al continuar, acepta nuestros ",
@@ -8862,7 +9030,7 @@
         "manage_spending_limit": "Administrar límite",
         "manage_spending_limit_description_restricted": "Hay un gasto limitado",
         "manage_spending_limit_description_full": "El acceso completo está activado",
-        "unlink_money_account": "Desvincular cuenta Finanzas",
+        "unlink_money_account": "Desvincular Money Account",
         "unlink_money_account_description": "Cambiar la fuente de fondos de tu tarjeta",
         "travel_title": "MetaMask Travel",
         "travel_description": "Reserva hoteles con hasta un 70 % de descuento",
@@ -8910,9 +9078,9 @@
       "on_linea": "en Linea",
       "account_label": "Cuenta",
       "token_label": "Token",
-      "money_account_label": "Cuenta Finanzas",
+      "money_account_label": "Money Account",
       "money_account_token_symbol": "mUSD",
-      "use_money_account_cta": "Usar cuenta Finanzas",
+      "use_money_account_cta": "Usar Money Account",
       "spend_and_earn_title": "Gasta y gana",
       "spend_and_earn_description_prefix": "Vincula tu saldo a tu tarjeta y recibe mUSD de cashback en tus compras. Además, gana hasta ",
       "spend_and_earn_description_apy": "{{apy}} % de APY",
@@ -8938,9 +9106,9 @@
         "confirm_button_label": "Configurar financiación"
       },
       "money_account_required": {
-        "title": "Configurar cuenta Finanzas",
-        "description": "Necesitas una cuenta Finanzas vinculada antes de canjear cashback en mUSD.",
-        "confirm_button_label": "Configurar cuenta Finanzas"
+        "title": "Configurar Money Account",
+        "description": "Necesitas una Money Account vinculada antes de canjear cashback en mUSD.",
+        "confirm_button_label": "Configurar Money Account"
       }
     },
     "credit_screen": {
@@ -8950,7 +9118,7 @@
       "expected_to_receive": "Se espera recibir",
       "to": "Para",
       "withdraw": "Transferir fondos",
-      "withdraw_to_money_account": "Transferir a la cuenta Finanzas",
+      "withdraw_to_money_account": "Transferir a Money Account",
       "withdraw_unavailable": "Canje no disponible",
       "withdrawal_success": "Canje finalizado correctamente",
       "withdrawal_failed": "Canje fallido. Inténtalo de nuevo.",
@@ -8961,27 +9129,27 @@
         "confirm_button_label": "Configurar financiación"
       },
       "money_account_required": {
-        "title": "Configurar cuenta Finanzas",
-        "description": "Necesitas una cuenta Finanzas vinculada antes de canjear tu crédito.",
-        "confirm_button_label": "Configurar cuenta Finanzas"
+        "title": "Configurar Money Account",
+        "description": "Necesitas una Money Account vinculada antes de canjear tu crédito.",
+        "confirm_button_label": "Configurar Money Account"
       },
       "refund_info": {
         "title": "Saldo de reembolsos",
-        "description": "Este saldo incluye todos los reembolsos que has recibido. Es el primer saldo del que se descontarán las compras realizadas con tu tarjeta. Puedes transferirlo a tu cuenta Finanzas en cualquier momento.",
+        "description": "Este saldo incluye todos los reembolsos que has recibido. Es el primer saldo del que se descontarán las compras realizadas con tu tarjeta. Puedes transferirlo a tu Money Account en cualquier momento.",
         "description_no_money_account": "Este saldo incluye todos los reembolsos que has recibido. Es el primer saldo del que se descontarán las compras realizadas con tu tarjeta. Puedes canjearlo a tu billetera en cualquier momento."
       }
     },
     "credit_balance_tooltip": {
       "title": "Saldo disponible",
-      "description": "Tu saldo está compuesto por el saldo de tu cuenta Finanzas y todos los reembolsos que has recibido.",
+      "description": "Tu saldo está compuesto por el saldo de tu Money Account y todos los reembolsos que has recibido.",
       "description_no_money_account": "Tu saldo está compuesto por el saldo de tu billetera y todos los reembolsos que has recibido.",
-      "money_account": "Cuenta Finanzas",
+      "money_account": "Money Account",
       "wallet": "billetera",
       "refund_balance": "Saldo de reembolsos"
     },
     "credit_banner": {
       "title": "Saldo de reembolsos: {{amount}}",
-      "description": "Gástalo o transfiérelo a tu cuenta Finanzas para seguir ganando sobre tu saldo.",
+      "description": "Gástalo o transfiérelo a tu Money Account para seguir ganando sobre tu saldo.",
       "description_no_money_account": "Gástalo o canjéalo a tu billetera.",
       "confirm_button_label": "Transferir fondos"
     },
@@ -9723,7 +9891,7 @@
     "earn_rewards": {
       "title": "Gana recompensas",
       "musd_title": "Bono de hasta el {{percentage}} % en mUSD",
-      "musd_subtitle": "Ya llegaron las cuentas Finanzas",
+      "musd_subtitle": "Ya llegaron las Money Accounts",
       "card_title": "Hasta un 3 % de cashback en tus gastos",
       "card_subtitle": "Obtén tu tarjeta MetaMask ahora",
       "card_subtitle_cardholder": "Accede a los beneficios de tu tarjeta MetaMask"
@@ -9795,8 +9963,8 @@
       "predict_claim": "Ganancias reclamadas",
       "predict_deposit": "Cuenta de Predict financiada",
       "predict_withdraw": "Retiro",
-      "money_account_deposit": "Depositar en cuenta Finanzas",
-      "money_account_withdraw": "Transferir desde cuenta Finanzas",
+      "money_account_deposit": "Depositar en Money Account",
+      "money_account_withdraw": "Transferir desde Money Account",
       "default": "Detalles de la transacción"
     },
     "label": {
@@ -9819,7 +9987,7 @@
       "you_sent": "Enviaste",
       "you_received": "Recibiste",
       "token_received": "Token recibido",
-      "money_account": "Cuenta Finanzas",
+      "money_account": "Money Account",
       "perps_account": "Cuenta de Perps 1",
       "predictions_account": "Cuenta de Predicciones 1",
       "steps_completed": "Pasos ({{count}} completados)",
@@ -9936,7 +10104,7 @@
   "trending": {
     "title": "Explorar",
     "crypto_movers": "Criptomonedas con mayor variación",
-    "hot_tokens": "Hot tokens",
+    "hot_tokens": "Tokens populares",
     "perps_movers": "Contratos perpetuos con mayor variación",
     "perps_movers_pill_gainers": "Ganadores",
     "perps_movers_pill_losers": "Perdedores",
@@ -10162,6 +10330,7 @@
       "trending_tokens": "Tendencias",
       "trending_perpetuals": "Perpetuos en tendencia",
       "trending_predictions": "Predicciones en tendencia",
+      "watchlist": "Lista de seguimiento",
       "import_nfts": "Importar NFT",
       "import_nfts_description": "Agrega fácilmente tus coleccionables",
       "view_more": "Ver más",
@@ -10186,7 +10355,7 @@
   "whats_happening": {
     "title": "Qué está pasando",
     "ai": "IA",
-    "outdated": "Outdated",
+    "outdated": "Desactualizado",
     "impact": {
       "bullish": "Al alza",
       "bearish": "A la baja",
@@ -10203,5 +10372,11 @@
   },
   "stepper_card": {
     "more_information": "Más información"
+  },
+  "token_watchlist": {
+    "added_to_watchlist": "Added to Watchlist",
+    "removed_from_watchlist": "Removed from Watchlist",
+    "home_empty_title": "Lista de seguimiento",
+    "home_empty_subtitle": "You have no watchlist items yet"
   }
 }

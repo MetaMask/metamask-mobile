@@ -218,6 +218,49 @@
     "try_again": "Réessayez",
     "failed": "Quelque chose a mal tourné"
   },
+  "scam_questionnaire": {
+    "header_title": "Security check",
+    "continue": "Continuer",
+    "select_an_answer": "Select an answer",
+    "q1": {
+      "title": "Did someone you only know online tell you to send this?",
+      "subtitle": "This includes dating apps, social media, and group chats—even if you've spoken on video.",
+      "yes": "Yes, someone I met online told me to send this",
+      "no": "No, I know this person in real life"
+    },
+    "q2": {
+      "title": "What's this payment for?",
+      "subtitle": "Choose the option that best describes this payment.",
+      "investment_title": "Investment",
+      "investment_subtitle": "Buying crypto, tokens, or a financial opportunity",
+      "helping_title": "Helping someone I care about",
+      "helping_subtitle": "Sending money to a partner, family member, or friend in need",
+      "government_title": "Paying the police or a government agency",
+      "government_subtitle": "Fines, taxes, or official fees requested in crypto",
+      "job_title": "A job opportunity or work-related",
+      "job_subtitle": "Onboarding fees, equipment, or task payments",
+      "goods_title": "Buying goods or services",
+      "goods_subtitle": "Paying a merchant for something I'm receiving",
+      "self_transfer_title": "Moving funds between my own wallets",
+      "self_transfer_subtitle": "Self-transfer or moving to cold storage"
+    },
+    "q3": {
+      "title": "Is someone guiding you through this transaction?",
+      "subtitle": "This could be over a phone call, video chat, or sharing your screen.",
+      "yes": "Yes, someone is walking me through the steps right now",
+      "no": "No, I am doing this entirely on my own"
+    },
+    "warning": {
+      "title": "You might be getting scammed right now",
+      "reason_known_scam": "Based on your answers and this recipient's history, this transaction might be a scam.",
+      "reason_irreversible_emphasis": "Crypto transactions are irreversible.",
+      "reason_irreversible_detail": "Once you send, your funds can't be recovered.",
+      "stop_payment": "Stop this payment",
+      "contact_support": "Contacter le service d’assistance",
+      "proceed_anyway": "Ignore risks and continue anyway",
+      "proceed_anyway_countdown": "Continue anyway in {{seconds}}s"
+    }
+  },
   "date": {
     "months": {
       "0": "Janv.",
@@ -1059,7 +1102,75 @@
         "all": "Tous",
         "tokens": "Jetons",
         "perps": "Perps"
+      },
+      "notifications_banner": {
+        "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
+        "open_settings": "Ouvrir « Settings » (Paramètres)"
       }
+    },
+    "feed": {
+      "title": "Meilleurs traders",
+      "tabs": {
+        "leaderboard": "Classement",
+        "feed": "Feed"
+      },
+      "following": "Vous suivez",
+      "all": "Tous",
+      "trade": "Trader",
+      "action": {
+        "bought": "acheté",
+        "sold": "vendu",
+        "opened": "ouvert",
+        "closed": "fermé"
+      },
+      "type_filter": {
+        "all": "Tous les types",
+        "tokens": "Jetons",
+        "perps": "Perps"
+      },
+      "empty_following": {
+        "title": "Aucune activité pour l’instant",
+        "description": "Follow traders to see their trades show up here."
+      },
+      "empty_all": {
+        "title": "Aucune activité pour l’instant",
+        "description": "Trader activity will show up here as trades come in."
+      },
+      "empty_type": {
+        "tokens": {
+          "title": "No token activity"
+        },
+        "perps": {
+          "title": "No perps activity"
+        },
+        "description": "No matching trades in the activity so far."
+      },
+      "load_more": "Afficher plus",
+      "error": {
+        "title": "Couldn't load the feed",
+        "retry": "Réessayez"
+      },
+      "no_data": "Aucune donnée"
+    },
+    "onboarding": {
+      "slide_trade": {
+        "title": "Trade like a pro",
+        "description": "Track in real time when they swap or trade perps, tokens, and real-world assets."
+      },
+      "slide_follow": {
+        "title": "Follow the best",
+        "description": "Tap to follow the top three traders who are up big this week."
+      },
+      "slide_notify": {
+        "title": "Ne manquez jamais une opportunité",
+        "description_followed": "When a trader you follow makes a move, you'll get a notification. One tap to do the same.",
+        "description_default": "When you're ready, follow a trader to get notified the moment they make a move."
+      },
+      "next": "Suivant",
+      "follow_top_three": "Follow the top three",
+      "maybe_later": "Peut-être plus tard",
+      "got_it": "J’ai compris",
+      "allow_notifications": "Autoriser les notifications"
     },
     "notification_preferences": {
       "title": "Meilleurs traders",
@@ -1666,6 +1777,8 @@
       "loss_percent_placeholder": "Pertes",
       "profit_roe_placeholder": "% Profits",
       "loss_roe_placeholder": "% Pertes",
+      "toggle_take_profit_sign": "Toggle take profit return sign",
+      "toggle_stop_loss_sign": "Toggle stop loss return sign",
       "usd_label": "$",
       "take_profit_invalid_price": "Le take profit doit être {{direction}} au prix {{priceType}}",
       "stop_loss_invalid_price": "Le stop loss doit être {{direction}} au prix {{priceType}}",
@@ -2084,7 +2197,8 @@
       "products": "Produits",
       "top_movers": "Actifs les plus volatils",
       "gainers": "Actifs en hausse",
-      "losers": "Actifs en baisse"
+      "losers": "Actifs en baisse",
+      "recently_added": "Ajoutés récemment"
     },
     "learn_more": {
       "title": "En savoir plus sur les contrats à terme perpétuels",
@@ -2178,8 +2292,17 @@
       "filter_badge_label": "Liste de surveillance",
       "suggested": "Suggestions"
     },
+    "recently_viewed": "Recently viewed",
+    "recently_searched": "Recently searched",
+    "market_count": "{{count}} marché",
+    "market_count_plural": "{{count}} marchés",
     "no_tokens_found": "Aucun jeton trouvé",
     "no_tokens_found_description": "Nous n’avons trouvé aucun jeton portant le nom « {{searchQuery}} ». Veuillez essayer un autre critère de recherche.",
+    "no_markets_found": "Aucun marché trouvé",
+    "no_markets_found_description": "Aucun marché ne répond à vos critères de filtrage actuels. Essayez une autre catégorie.",
+    "no_markets_search_description": "Aucun marché ne correspond à « {{searchQuery}} » dans cette catégorie. Essayez une autre recherche ou supprimez le filtre.",
+    "clear_search": "Supprimer la recherche",
+    "clear_filter": "Supprimer le filtre",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
@@ -2494,6 +2617,7 @@
     },
     "outcome_groups": {
       "game_lines": "Cotes du match",
+      "halves": "Mi-temps",
       "first_half": "1ʳᵉ mi-temps",
       "first_set": "1er set",
       "team_totals": "Total par équipe",
@@ -2522,6 +2646,7 @@
       "first_half_moneyline": "Vainqueur 1ʳᵉ mi-temps",
       "first_half_spreads": "Écart de points - 1ʳᵉ mi-temps",
       "first_half_totals": "Plus/Moins - 1ʳᵉ mi-temp",
+      "second_half_totals": "Totaux de la 2ᵉ mi-temps",
       "points": "Points",
       "assists": "Passes décisives",
       "rebounds": "Rebonds",
@@ -2529,6 +2654,7 @@
       "basketball_odd_even": "Score pair/impair",
       "basketball_team_to_score_first": "L’équipe qui marquera en premier",
       "goalscorers": "Buteurs",
+      "soccer_player_goals": "Buts",
       "exact_score": "Score exact",
       "halftime_result": "Résultat à la mi-temps",
       "corners": "Corners",
@@ -2540,6 +2666,11 @@
       "soccer_anytime_goalscorer": "Buteurs",
       "soccer_exact_score": "Score exact",
       "soccer_halftime_result": "Résultat à la mi-temps",
+      "soccer_first_half_team_totals": "Totaux par équipe de la 1ʳᵉ mi-temps",
+      "both_teams_to_score_first_half": "Les deux équipes marquent lors de la 1ʳᵉ mi-temps",
+      "soccer_second_half_result": "Résultat de la 2ᵉ mi-temps",
+      "soccer_second_half_team_totals": "Totaux par équipe de la 2ᵉ mi-temps",
+      "both_teams_to_score_second_half": "Les deux équipes marquent lors de la 2ᵉ mi-temps",
       "soccer_team_to_advance": "Équipe qualifiée",
       "soccer_first_to_score": "Première équipe à marquer un but",
       "soccer_extra_time": "Prolongations ?",
@@ -2615,6 +2746,11 @@
     "markets_won": "Marchés gagnés",
     "won_markets_text": "{{count}} marché{{s}} gagné(s)",
     "available_balance": "Solde disponible",
+    "balance_error": {
+      "title": "Couldn't load your balance",
+      "description": "Your funds are safe. Check your connection and try again.",
+      "retry": "Réessayer"
+    },
     "portfolio": {
       "available_amount": "{{amount}} disponible(s)",
       "value_accessibility": "Valeur du portefeuille, {{value}}",
@@ -2715,8 +2851,8 @@
           "description": "{{amount}} ajoutés à votre solde"
         },
         "redeemed": {
-          "title": "Position redeemed",
-          "description": "Your position has been redeemed"
+          "title": "Position encaissée",
+          "description": "Votre position a été encaissée"
         },
         "error": {
           "title": "Quelque chose a mal tourné",
@@ -3245,20 +3381,20 @@
     "pna25_blog_post_link": "article de blog",
     "pna25_confirm_button": "Accepter et fermer",
     "pna25_open_settings_button": "Ouvrir les paramètres",
-    "settings": "You can also",
-    "settings_link": "manage other default settings."
+    "settings": "Vous pouvez également",
+    "settings_link": "gérer d’autres paramètres par défaut."
   },
   "onboarding_interest_questionnaire": {
-    "title": "How will you use MetaMask?",
+    "title": "Que comptez-vous faire avec votre compte MetaMask ?",
     "description": "Sélectionnez toutes les réponses pertinentes.",
     "option_swap_tokens": "Échanger des jetons",
     "option_trade_perpetuals": "Trader des contrats à terme perpétuels",
     "option_prediction_markets": "Marchés prédictifs",
-    "option_send_receive_crypto": "Send and receive crypto",
-    "option_earn_and_spend": "Earn and spend",
-    "option_use_other_crypto_apps": "Use other crypto apps",
+    "option_send_receive_crypto": "Envoyer et recevoir des crypto-monnaies",
+    "option_earn_and_spend": "Générer des revenus et dépenser",
+    "option_use_other_crypto_apps": "Utiliser d’autres applications crypto",
     "option_other": "Autre",
-    "other_placeholder": "How else will you use MetaMask?",
+    "other_placeholder": "Que comptez-vous faire d’autre avec votre compte MetaMask ?",
     "done": "Terminé",
     "skip": "Ignorer",
     "next": "Suivant"
@@ -3993,8 +4129,8 @@
         "title": "Card",
         "reset_onboarding_description": "Réinitialiser l’état d’intégration de « Card » pour recommencer le processus d’intégration depuis le début.",
         "reset_onboarding_button": "Réinitialiser l’état d’intégration",
-        "unlink_money_account_description": "Révoquer la limite de dépenses en USDC qui autorise Card à effectuer des paiements en débitant votre compte Money. Cela soumet une transaction « approve(0) » et marque le compte Money comme non délégué dans le back-end de Card.",
-        "unlink_money_account_button": "Dissocier le compte Money de Card",
+        "unlink_money_account_description": "Révoquer la limite de dépenses en USDC qui autorise Card à effectuer des paiements en débitant votre Money Account. Cela soumet une transaction « approve(0) » et marque le Money Account comme non délégué dans le back-end de Card.",
+        "unlink_money_account_button": "Dissocier le Money Account du compte Card",
         "unlink_money_account_disabled_hint": "Aucun lien actif à supprimer."
       },
       "identity": {
@@ -4006,6 +4142,12 @@
         "title": "Notifications",
         "description": "Réinitialisez l’indicateur d’invite préalable de notification push afin de réactiver la fenêtre contextuelle lors du prochain lancement éligible.",
         "reset_prompt": "Réinitialiser l’invite préalable push"
+      },
+      "social_leaderboard": {
+        "title": "Social Leaderboard",
+        "description": "Reset the Social Leaderboard onboarding so it shows again the next time the feature is opened.",
+        "onboarding_seen": "Onboarding seen: {{seen}}",
+        "reset_onboarding": "Reset onboarding"
       },
       "haptics": {
         "title": "Retour haptique",
@@ -4068,6 +4210,20 @@
         "four": "Saisissez le code de sécurité dans votre extension"
       },
       "scan_qr_code_button": "Scannez le code QR",
+      "scanner": {
+        "searching_label": "Scannez le code sur votre autre appareil",
+        "detected_label": "Code détecté",
+        "invalid_qr_title": "Code QR non reconnu",
+        "invalid_qr_description": "Scannez le code QR à partir du flux « Importer sur mobile » de l’extension MetaMask.",
+        "expired_qr_title": "Ce code QR a expiré",
+        "expired_qr_description": "Générez un nouveau code QR sur votre extension et scannez-le à nouveau dans les 60 secondes.",
+        "connection_failed_title": "La connexion a échoué",
+        "connection_failed_description": "Nous n’avons pas pu nous connecter à votre extension. Essayez de scanner à nouveau.",
+        "try_again": "Réessayez",
+        "permission_title": "Activer l’accès à l’appareil photo",
+        "permission_description": "Pour scanner un code QR, vous devez autoriser MetaMask à accéder à l’appareil photo depuis le menu des paramètres de votre appareil.",
+        "open_settings": "Ouvrir les paramètres"
+      },
       "enter_code_on_extension": "Saisissez le code dans l’extension",
       "enter_code_on_extension_desc": "Pour des raisons de sécurité, saisissez le code de vérification ci-dessous dans votre extension MetaMask.",
       "done": "Terminé",
@@ -4856,19 +5012,19 @@
     "activity_perps_withdrawal": "Retrait du compte PERPS",
     "activity_perps_open_long": "Position longue ouverte",
     "activity_perps_close_long": "Position longue clôturée",
-    "activity_perps_close_long_liquidated": "Position longue clôturée — liquidée",
+    "activity_perps_close_long_liquidated": "Position longue clôturée — liquidation",
     "activity_perps_close_long_stop_loss": "Position longue clôturée — stop loss",
     "activity_perps_open_short": "Position courte ouverte",
     "activity_perps_close_short": "Position courte clôturée",
-    "activity_perps_close_short_liquidated": "Position courte clôturée – liquidée",
-    "activity_perps_close_short_stop_loss": "Position courte clôturée – stop loss",
+    "activity_perps_close_short_liquidated": "Position courte clôturée — liquidation",
+    "activity_perps_close_short_stop_loss": "Position courte clôturée — stop loss",
     "activity_perps_paid_funding_fees": "Frais de financement payés",
     "activity_perps_received_funding_fees": "Frais de financement perçus",
-    "activity_perps_close_short_take_profit": "Position courte clôturée – take profit",
-    "activity_perps_close_long_take_profit": "Position longue clôturée – take profit",
+    "activity_perps_close_short_take_profit": "Position courte clôturée — take profit",
+    "activity_perps_close_long_take_profit": "Position longue clôturée — take profit",
     "activity_market_short": "Position courte au prix du marché",
-    "activity_stop_market_close_short": "Ordre stop au prix du marché - clôture de la position courte",
-    "activity_market_close_short": "Ordre au prix du marché - clôture de la position courte",
+    "activity_stop_market_close_short": "Ordre stop au prix du marché — clôture de la position courte",
+    "activity_market_close_short": "Ordre au prix du marché — clôture de la position courte",
     "activity_limit_short": "Position courte à cours limité",
     "activity_limit_close_short": "Position à cours limité — clôture de la position courte",
     "claim": "Réclamer",
@@ -4903,8 +5059,8 @@
     "tx_details_free": "Gratuit",
     "tx_details_not_available": "Non disponible",
     "smart_contract_interaction": "Interaction de contrats intelligents",
-    "money_account_deposit": "Déposer sur le compte Money",
-    "money_account_withdraw": "Transférer depuis le compte Money",
+    "money_account_deposit": "Déposer sur le Money Account",
+    "money_account_withdraw": "Transférer depuis le Money Account",
     "swaps_transaction": "Transaction de swap",
     "bridge_transaction": "Passerelle",
     "approve": "Approuver",
@@ -5200,7 +5356,14 @@
     "enable_device_passcode_android": "Déverrouiller avec le code PIN de l’appareil ?"
   },
   "authentication": {
-    "auth_prompt_desc": "Veuillez vous authentifier afin d’utiliser MetaMask"
+    "auth_prompt_desc": "Veuillez vous authentifier afin d’utiliser MetaMask",
+    "labels": {
+      "remember_me": "Remember Me",
+      "face_id": "Face ID",
+      "touch_id": "Touch ID",
+      "device_authentication": "Device Authentication",
+      "device_passcode": "Device Passcode"
+    }
   },
   "accountApproval": {
     "title": "DEMANDE DE CONNEXION",
@@ -6660,7 +6823,12 @@
   },
   "download_files": {
     "error": "Échec du téléchargement de la pièce jointe.",
-    "unknownError": "Une erreur inconnue s’est produite"
+    "unknownError": "Une erreur inconnue s’est produite",
+    "downloaded_title": "Téléchargement terminé",
+    "downloaded_message": "{{filename}} a été enregistré dans votre dossier « Téléchargements ».",
+    "confirm_message": "Souhaitez-vous télécharger {{filename}} ?",
+    "confirm_action": "Télécharger",
+    "cancel_action": "Annuler"
   },
   "remember_me": {
     "enable_remember_me": "Activer l'option « Se souvenir de moi »",
@@ -7159,13 +7327,13 @@
     "balance_unavailable_value": "$—",
     "balance_unavailable_banner_description": "Il nous est impossible d’afficher votre solde pour le moment. Vos fonds sont sécurisés ; veuillez réessayer dans quelques instants.",
     "balance_retry": "Réessayer",
-    "balance_no_account": "Compte bancaire introuvable",
+    "balance_no_account": "Money Account introuvable",
     "onboarding": {
       "step_1": {
         "title": "Obtenez jusqu’à {{apy}} % de rendement annuel",
-        "title_no_apy": "Approvisionnez votre compte Money",
-        "description": "Approvisionnez votre compte Money et profitez d’un taux de rendement annuel pouvant atteindre les {{apy}} % (variable).",
-        "description_no_apy": "Approvisionnez votre compte Money et voyez votre solde augmenter.",
+        "title_no_apy": "Approvisionnez votre Money Account",
+        "description": "Approvisionnez votre Money Account et profitez d’un taux de rendement annuel pouvant atteindre les {{apy}} % (variable).",
+        "description_no_apy": "Approvisionnez votre Money Account et voyez votre solde augmenter.",
         "cta": "Ajouter des fonds"
       },
       "step_2": {
@@ -7185,19 +7353,19 @@
     },
     "first_time_deposit": {
       "title": "Premier dépôt, effectué",
-      "content": "C’est sur votre compte Money —\n et ça génère déjà des revenus.",
+      "content": "C’est sur votre Money Account —\n et ça génère déjà des revenus.",
       "button_text": "Terminé"
     },
     "rive_onboarding": {
-      "step1_title": "Les comptes Money sont disponibles",
+      "step1_title": "Les Money Accounts sont disponibles",
       "step1_body": "Gagnez jusqu’à {{percentage}} % de rendement annuel sur votre solde, disponible sur l’ensemble de votre portefeuille.",
       "step1_footer_text": "Le taux de rendement annuel est variable et n’est pas garanti.",
       "step2_title": "Générez des revenus automatiquement",
       "step2_body": "Transférez des stablecoins sans frais de change. Vos fonds commencent à générer des revenus immédiatement.",
-      "step2_footer_text": "Le compte Money utilise l’infrastructure Veda.",
+      "step2_footer_text": "Money Account utilise l’infrastructure Veda.",
       "step3_title": "Dépensez partout",
-      "step3_body_card_eligible": "Bénéficiez d’un cashback allant jusqu’à {{percentage}} % sur vos achats en associant votre compte Money à une carte MetaMask Card.",
-      "step3_body_card_ineligible": "Bientôt disponible ! Bénéficiez d’un cashback allant jusqu’à {{percentage}} % sur vos achats en associant votre compte Money à une carte MetaMask Card.",
+      "step3_body_card_eligible": "Bénéficiez d’un cashback allant jusqu’à {{percentage}} % sur vos achats en associant votre Money Account à une carte MetaMask Card.",
+      "step3_body_card_ineligible": "Bientôt disponible ! Bénéficiez d’un cashback allant jusqu’à {{percentage}} % sur vos achats en associant votre Money Account à une carte MetaMask Card.",
       "step3_footer_text": "Comprend le suivi financier par Steakhouse Financial.",
       "step4_title": "Tradez et générez des revenus sur la même plateforme",
       "step4_body": "Utilisez le solde de votre compte Money pour trader sur MetaMask tout en continuant à générer des revenus.",
@@ -7233,7 +7401,8 @@
     "potential_earnings": {
       "title": "Gagnez de l’argent grâce à vos crypto-monnaies",
       "description": "Découvrez comment votre argent peut fructifier au fil du temps en convertissant vos crypto-monnaies en mUSD.",
-      "description_with_amounts_prefix": "Convertissez vos {{total}} en actifs et vous pourriez gagner jusqu’à",
+      "description_with_amounts_prefix": "Convertissez vos",
+      "description_with_amounts_middle": "en actifs et vous pourriez gagner jusqu’à",
       "description_with_amounts_suffix": "en un an.",
       "add": "Ajouter",
       "convert_cta": "Convertissez vos crypto-monnaies",
@@ -7269,11 +7438,11 @@
       "link_card_sheet_description_suffix": " (variable).",
       "link_card_sheet_description_no_apy": "Associez votre carte pour dépenser votre solde Money et gagner des mUSD sur vos achats.",
       "link_card_sheet_cta": "Associer une carte",
-      "unlink_card_sheet_title_no_funding_source": "Souhaitez-vous dissocier votre compte Money ?",
+      "unlink_card_sheet_title_no_funding_source": "Souhaitez-vous dissocier votre Money Account ?",
       "unlink_card_sheet_title_with_funding_source": "En êtes-vous sûr(e) ?",
-      "unlink_card_sheet_description_no_funding_source": "Vous ne bénéficierez plus de cashback sur vos achats. Les futures dépenses par carte seront refusées jusqu’à ce que vous définissiez une nouvelle source de financement. Vous pouvez reconnecter votre compte Money à tout moment.",
-      "unlink_card_sheet_description_with_funding_source": "Vous ne bénéficierez plus de cashback sur vos achats. Les futures dépenses par carte seront financées par {{fundingSource}}. Vous pouvez reconnecter votre compte Money à tout moment.",
-      "unlink_card_sheet_another_money_account": "un autre compte Money",
+      "unlink_card_sheet_description_no_funding_source": "Vous ne bénéficierez plus de cashback sur vos achats. Les futures dépenses par carte seront refusées jusqu’à ce que vous définissiez une nouvelle source de financement. Vous pouvez reconnecter votre Money Account à tout moment.",
+      "unlink_card_sheet_description_with_funding_source": "Vous ne bénéficierez plus de cashback sur vos achats. Les futures dépenses par carte seront financées par {{fundingSource}}. Vous pouvez reconnecter votre Money Account à tout moment.",
+      "unlink_card_sheet_another_money_account": "un autre Money Account",
       "unlink_card_sheet_keep_linked": "Ne pas dissocier",
       "unlink_card_sheet_unlink_account": "Dissocier le compte",
       "manage_card": "Gérer",
@@ -7281,7 +7450,7 @@
       "verification_pending": "Votre vérification d’identité est en cours d’examen. Cela prend généralement moins de 12 heures."
     },
     "what_you_get": {
-      "title": "Avantages du compte Money",
+      "title": "Avantages du Money Account",
       "benefit_auto_earn": "Gagnez automatiquement jusqu'à",
       "benefit_auto_earn_variable": "(variable)",
       "benefit_dollar_backed": "Sécurisez vos fonds en achetant des mUSD, un stablecoin adossé au dollar à un ratio de 1:1",
@@ -7300,7 +7469,6 @@
       "convert_crypto": "Convertir des crypto-monnaies",
       "deposit_funds": "Carte bancaire ou Apple Pay",
       "bank_account": "Compte bancaire",
-      "move_musd": "{{amount}} mUSD",
       "add_musd": "Ajouter des mUSD",
       "receive_external": "Adresse externe",
       "coming_soon": "Bientôt disponible"
@@ -7308,7 +7476,7 @@
     "more_sheet": {
       "title": "Plus",
       "how_it_works": "Comment ça marche ",
-      "what_you_get": "Avantages du compte Money",
+      "what_you_get": "Avantages du Money Account",
       "contact_support": "Contacter le service d’assistance"
     },
     "transfer_sheet": {
@@ -7330,8 +7498,8 @@
       "deposit_success_title_convert": "Conversion terminée",
       "deposit_success_title_add_musd": "Fonds ajoutés",
       "deposit_success_title_card": "Dépôt effectué ",
-      "deposit_success_body": "{{amount}} a été ajouté à votre compte Money.",
-      "deposit_success_body_no_amount": "Ajouté à votre compte Money.",
+      "deposit_success_body": "{{amount}} a été ajouté à votre Money Account.",
+      "deposit_success_body_no_amount": "Ajouté à votre Money Account.",
       "withdraw_in_progress_title": "Transfert en cours",
       "withdraw_success_title": "Transfert terminé",
       "withdraw_success_body": "{{amount}} ajoutés à {{destination}}.",
@@ -7355,10 +7523,10 @@
     },
     "apy_tooltip": {
       "title": "Taux de rendement annuel (APY)",
-      "paragraph_1": "Votre compte « Money » génère automatiquement un rendement allant jusqu’à {{percentage}} %.",
+      "paragraph_1": "Votre Money Account génère automatiquement un rendement allant jusqu’à {{percentage}} %.",
       "paragraph_2": "Le taux affiché est un taux de rendement annuel estimé en fonction des conditions actuelles du marché. Ce taux est variable et n’est pas garanti. Les fonds sont placés dans un coffre-fort DeFi, géré par Veda sous la supervision de Steakhouse Financial, qui génère des rendements sur des marchés de prêt bien établis.",
       "paragraph_3": "Lorsque vous associez votre carte MetaMask Card, les achats seront déduits de ce solde.",
-      "paragraph_4": "Le compte Money est propulsé par Monad.",
+      "paragraph_4": "Le Money Account est propulsé par Monad.",
       "deposit_body": "Le taux indiqué est un taux de rendement annuel estimé en fonction des conditions actuelles du marché. Ce taux est variable et n’est pas garanti."
     },
     "earnings_tooltip": {
@@ -7374,8 +7542,8 @@
       "title": "Activité",
       "view_all": "Tout afficher",
       "empty": "Aucune activité pour l’instant",
-      "load_error": "Couldn't load your activity",
-      "load_error_more": "Couldn't load more activity",
+      "load_error": "Impossible de charger votre activité",
+      "load_error_more": "Impossible de charger davantage d’activités",
       "retry": "Réessayer",
       "pending": "En attente",
       "filter_all": "Tous",
@@ -7440,48 +7608,48 @@
     "how_it_works_page": {
       "header_title": "Money",
       "section_title": "Comment ça marche ",
-      "description_1": "Ajoutez des mUSD sur votre compte Money et bénéficiez automatiquement d’un taux de rendement annuel pouvant atteindre {{percentage}} % (variable). Les fonds sont placés dans un coffre-fort DeFi, géré par Veda et surveillé par Steakhouse Financial. Le taux est généré par des plateformes DeFi tierces qui investissent les fonds dans des protocoles de la chaîne de blocs. Pas de staking, ni de demande de retrait, ni de période de blocage.",
+      "description_1": "Ajoutez des mUSD sur votre Money Account et bénéficiez automatiquement d’un taux de rendement annuel pouvant atteindre {{percentage}} % (variable). Les fonds sont placés dans un coffre-fort DeFi, géré par Veda et surveillé par Steakhouse Financial. Le taux est généré par des plateformes DeFi tierces qui investissent les fonds dans des protocoles de la chaîne de blocs. Pas de staking, ni de demande de retrait, ni de période de blocage.",
       "description_2": "Le solde de votre compte Money correspond à votre solde disponible. Associez votre carte MetaMask Card pour effectuer des achats auprès de plus de 150 millions de commerçants dans le monde entier. Votre argent continue de générer des revenus jusqu’à ce que vous le dépensiez.",
-      "description_3": "Le compte Money est propulsé par Monad.",
+      "description_3": "Le Money Account est propulsé par Monad.",
       "faq_title": "FAQ",
-      "faq_q1": "Qu’est-ce qu’un compte MetaMask Money ?",
+      "faq_q1": "Qu’est-ce qu’un MetaMask Money Account ?",
       "faq_a1": "Un compte offrant un taux de rendement annuel variable pouvant atteindre les {{percentage}} %. Vous y déposez des fonds, qui sont conservés sous forme de mUSD, et bénéficiez d’un taux de rendement annuel pouvant atteindre les {{percentage}} %. Le mUSD est le stablecoin de MetaMask adossé au dollar. Vous pouvez utiliser ou retirer vos fonds à tout moment sans pénalité. Vous pouvez dépenser vos fonds en utilisant la carte MetaMask chez plus de 150 millions de commerçants qui acceptent les paiements par carte Mastercard dans le monde entier.",
-      "faq_q2": "Le compte MetaMask Money est-il sécurisé ?",
-      "faq_a2": "Oui, mais comme tous les produits basés sur la DeFi, il comporte des risques. Il s’agit d’un portefeuille de détention en propre, ce qui signifie que vous avez le contrôle total de votre compte grâce à vos clés privées.\n\nLes risques comprennent les défaillances des contrats intelligents, les failles de protocole, les insuffisances de liquidité, les défaillances de tiers, ainsi que les restrictions légales ou réglementaires. Le compte Money n’est pas assuré par la FDIC ni par aucune autre agence gouvernementale. Il existe un risque de perte de fonds.",
-      "faq_q3": "Qui gère mon compte MetaMask Money ?",
+      "faq_q2": "Le compte MetaMask Money Account est-il sécurisé ?",
+      "faq_a2": "Oui, mais comme tous les produits basés sur la DeFi, il comporte des risques. Il s’agit d’un portefeuille de détention en propre, ce qui signifie que vous avez le contrôle total de votre compte grâce à vos clés privées.\n\nLes risques comprennent les défaillances des contrats intelligents, les failles de protocole, les insuffisances de liquidité, les défaillances de tiers, ainsi que les restrictions légales ou réglementaires. Le Money Account n’est pas assuré par la FDIC ni par aucune autre agence gouvernementale. Il existe un risque de perte de fonds.",
+      "faq_q3": "Qui gère mon MetaMask Money Account ?",
       "faq_a3": "Vous ! MetaMask est un portefeuille de détention en propre, ce qui signifie que seules les clés privées du titulaire du compte permettent de le contrôler. MetaMask ne peut ni accéder à vos fonds, ni les bloquer, ni les transférer. C’est ce qui nous distingue des comptes bancaires traditionnels et des plateformes de crypto-monnaies avec gestion de fonds : aucun tiers ne détient vos fonds.",
-      "faq_q4": "Quels sont les frais liés au compte MetaMask Money ?",
-      "faq_a4": "L’ouverture d’un compte Money est gratuite, tout comme le dépôt de stablecoins. Des frais vous seront facturés lors du dépôt de jetons non-stablecoins. Des frais s’appliquent également aux transactions effectuées avec la MetaMask Card, aux retraits aux distributeurs automatiques et aux opérations de conversion en monnaie locale. ",
+      "faq_q4": "Quels sont les frais liés au MetaMask Money Account ?",
+      "faq_a4": "L’ouverture d’un Money Account est gratuite, tout comme le dépôt de stablecoins. Des frais vous seront facturés lors du dépôt de jetons non-stablecoins. Des frais s’appliquent également aux transactions effectuées avec la MetaMask Card, aux retraits aux distributeurs automatiques et aux opérations de conversion en monnaie locale. ",
       "faq_a4_link": "Découvrez ici tous les frais liés au compte MetaMask Card.",
-      "faq_q5": "Combien puis-je gagner avec un compte MetaMask Money ?",
-      "faq_a5": "Jusqu’à {{percentage}} % de rendement annuel. Ce taux est variable et évolue en fonction des conditions du marché. Le taux actuel est affiché sur votre compte Money.",
+      "faq_q5": "Combien puis-je gagner avec un MetaMask Money Account ?",
+      "faq_a5": "Jusqu’à {{percentage}} % de rendement annuel. Ce taux est variable et évolue en fonction des conditions du marché. Le taux actuel est affiché sur votre Money Account.",
       "faq_q6": "D’où provient le rendement ?",
       "faq_a6": "Lorsque vous déposez des fonds, ceux-ci sont placés dans des protocoles DeFi reconnus, tels qu’Aave et Morpho, où ils génèrent des rendements issus d’une activité économique réelle. Ces rendements vous sont ensuite versés sous forme de taux de rendement annuel.\n\nUn prestataire de services tiers, Steakhouse Financial, supervise la manière dont les fonds sont alloués au sein des protocoles. Veda, un fournisseur d’infrastructure tiers, déploie et gère les contrats intelligents du coffre-fort qui détiennent vos fonds.\n\nLes gains ne constituent pas des intérêts versés par MetaMask ou par l’émetteur de mUSD. Il s’agit des rendements générés par la chaîne de blocs grâce à des placements dans des protocoles DeFi tiers.",
-      "faq_q7": "Quels jetons puis-je déposer sur mon compte Money ?",
-      "faq_a7": "Vous pouvez déposer les stablecoins et aTokens suivants sur votre compte Money sans frais de conversion :\n\n{{tokenBullets}}\n\nTous les autres jetons EVM peuvent également être déposés sur le compte Money, mais des frais d’échange standard peuvent s’appliquer. Vous pouvez également approvisionner votre compte Money à l’aide d’une carte de débit, d’une carte de crédit ou d’un compte bancaire, PayPal, Apple Pay ou Google Pay.\n\nRemarque : un dépôt initial maximal de 100 000 $ par jeton est appliqué afin de garantir un niveau adéquat de liquidités.",
-      "faq_q8": "Puis-je effectuer un retrait depuis mon compte MetaMask Money à tout moment ?",
+      "faq_q7": "Quels jetons puis-je déposer sur mon Money Account ?",
+      "faq_a7": "Vous pouvez déposer les stablecoins et aTokens suivants sur votre Money Account sans frais de conversion :\n\n{{tokenBullets}}\n\nTous les autres jetons EVM peuvent également être déposés sur le Money Account, mais des frais d’échange standard peuvent s’appliquer. Vous pouvez également approvisionner votre Money Account à l’aide d’une carte de débit, d’une carte de crédit ou d’un compte bancaire, PayPal, Apple Pay ou Google Pay.\n\nRemarque : un dépôt initial maximal de 100 000 $ par jeton est appliqué afin de garantir un niveau adéquat de liquidités.",
+      "faq_q8": "Puis-je effectuer un retrait depuis mon MetaMask Money Account à tout moment ?",
       "faq_a8": "Oui. Vous pouvez échanger, envoyer, dépenser ou retirer l’intégralité de votre solde à tout moment, sans délai de préavis, sans pénalité et sans frais de retrait de la part de MetaMask. En cas de manque de liquidité, des retards temporaires peuvent survenir.",
-      "faq_q9": "Dois-je effectuer une vérification d’identité pour utiliser le compte MetaMask Money ?",
-      "faq_a9": "Non, l’ouverture d’un compte Money ne nécessite pas de vérification d’identité. Cependant, certaines fonctionnalités, notamment Card et Ramps, nécessitent une vérification d’identité. Les vérifications sont effectuées par des prestataires tiers qui exploitent des services réglementés, et non par MetaMask. Si nécessaire, vous serez guidé tout au long du processus au sein de l’application lors de votre inscription.",
-      "faq_q10": "Dans quels pays le compte MetaMask Money est-il disponible ?",
+      "faq_q9": "Dois-je effectuer une vérification d’identité pour utiliser le MetaMask Money Account ?",
+      "faq_a9": "Non, l’ouverture d’un Money Account ne nécessite pas de vérification d’identité. Cependant, certaines fonctionnalités, notamment Card et Ramps, nécessitent une vérification d’identité. Les vérifications sont effectuées par des prestataires tiers qui exploitent des services réglementés, et non par MetaMask. Si nécessaire, vous serez guidé tout au long du processus au sein de l’application lors de votre inscription.",
+      "faq_q10": "Dans quels pays le MetaMask Money Account est-il disponible ?",
       "faq_a10": "Dans la plupart des pays ! Les comptes MetaMask Money ne sont pas disponibles au Royaume-Uni ni dans les pays figurant sur la liste des sanctions américaines.",
       "disclosures_title": "Informations sur les risques",
-      "disclosures_body": "Le compte Money n’est ni un compte bancaire, ni un compte d’épargne, ni un produit de dépôt assuré. Le taux de rendement annuel est variable et n’est pas garanti. Le compte Money comporte des risques liés aux contrats intelligents, au protocole, à la liquidité et à d’autres facteurs, et vous pouvez perdre une partie ou la totalité de vos fonds. Sous réserve de restrictions régionales. Des conditions s’appliquent."
+      "disclosures_body": "Le Money Account n’est ni un compte bancaire, ni un compte d’épargne, ni un produit de dépôt assuré. Le taux de rendement annuel est variable et n’est pas garanti. Le Money Account comporte des risques liés aux contrats intelligents, au protocole, à la liquidité et à d’autres facteurs, et vous pouvez perdre une partie ou la totalité de vos fonds. Sous réserve de restrictions régionales. Des conditions s’appliquent."
     },
     "geo_block": {
-      "title": "Compte Money non disponible",
-      "description": "Le compte Money n’est pas disponible dans votre région en raison de restrictions ou de sanctions locales.",
+      "title": "Money Account non disponible",
+      "description": "Money Account n’est pas disponible dans votre région en raison de restrictions ou de sanctions locales.",
       "button": "J’ai compris"
     },
     "deeplink_modal": {
       "button": "J’ai compris",
       "money_account_disabled": {
-        "title": "Le compte Money est temporairement indisponible",
-        "description": "Nous travaillons à résoudre ce problème. Le compte Money sera de nouveau disponible sous peu — revenez bientôt."
+        "title": "Le Money Account est temporairement indisponible",
+        "description": "Nous travaillons à résoudre ce problème. Le Money Account sera de nouveau disponible sous peu — revenez bientôt."
       },
       "excluded_from_gradual_rollout": {
-        "title": "Le compte Money sera bientôt disponible",
-        "description": "Nous déployons progressivement le compte Money afin d’assurer que tout fonctionne correctement. Revenez bientôt."
+        "title": "Le Money Account sera bientôt disponible",
+        "description": "Nous déployons progressivement le Money Account afin d’assurer que tout fonctionne correctement. Revenez bientôt."
       }
     }
   },
@@ -7755,7 +7923,7 @@
       "other_assets": "Autres actifs",
       "other_assets_description": "Sélectionnez parmi vos jetons",
       "other_assets_receive_description": "Sélectionnez le jeton que vous souhaitez recevoir",
-      "money_account": "Compte Money"
+      "money_account": "Money Account"
     },
     "staking_footer": {
       "part1": "En continuant, vous acceptez nos ",
@@ -8862,7 +9030,7 @@
         "manage_spending_limit": "Gérer la limite",
         "manage_spending_limit_description_restricted": "La limite de dépenses est activée",
         "manage_spending_limit_description_full": "L’accès complet est activé",
-        "unlink_money_account": "Dissocier le compte Money",
+        "unlink_money_account": "Dissocier le Money Account",
         "unlink_money_account_description": "Modifier la source d’approvisionnement de votre compte Card",
         "travel_title": "MetaMask Travel",
         "travel_description": "Réservez des hôtels avec jusqu’à 70 % de réduction",
@@ -8910,9 +9078,9 @@
       "on_linea": "sur Linea",
       "account_label": "Compte",
       "token_label": "Jeton",
-      "money_account_label": "Compte Money",
+      "money_account_label": "Money Account",
       "money_account_token_symbol": "mUSD",
-      "use_money_account_cta": "Utiliser le compte Money",
+      "use_money_account_cta": "Utiliser le Money Account",
       "spend_and_earn_title": "Dépensez\net générez des revenus",
       "spend_and_earn_description_prefix": "Associez votre solde à votre carte et gagnez des mUSD sur vos achats. De plus, gagnez jusqu’à ",
       "spend_and_earn_description_apy": "APY {{apy}} %",
@@ -8938,9 +9106,9 @@
         "confirm_button_label": "Configurer le financement"
       },
       "money_account_required": {
-        "title": "Créer un compte Money",
-        "description": "Vous devez disposer d’un compte Money associé avant de pouvoir réclamer votre cashback en mUSD.",
-        "confirm_button_label": "Créer un compte Money"
+        "title": "Créer un Money Account",
+        "description": "Vous devez disposer d’un Money Account associé avant de pouvoir réclamer votre cashback en mUSD.",
+        "confirm_button_label": "Créer un Money Account"
       }
     },
     "credit_screen": {
@@ -8950,7 +9118,7 @@
       "expected_to_receive": "Montant estimé à recevoir",
       "to": "À",
       "withdraw": "Transférer des fonds",
-      "withdraw_to_money_account": "Transférer vers le compte Money",
+      "withdraw_to_money_account": "Transférer vers le Money Account",
       "withdraw_unavailable": "Encaissement impossible",
       "withdrawal_success": "Encaissement effectué avec succès",
       "withdrawal_failed": "Échec de l’encaissement. Veuillez réessayer.",
@@ -8961,27 +9129,27 @@
         "confirm_button_label": "Configurer le financement"
       },
       "money_account_required": {
-        "title": "Créer un compte Money",
-        "description": "Vous devez disposer d’un compte Money associé avant de pouvoir encaisser votre crédit.",
-        "confirm_button_label": "Créer un compte Money"
+        "title": "Créer un Money Account",
+        "description": "Vous devez disposer d’un Money Account associé avant de pouvoir encaisser votre crédit.",
+        "confirm_button_label": "Créer un Money Account"
       },
       "refund_info": {
         "title": "Solde des remboursements",
-        "description": "Ce solde inclut tous les remboursements que vous avez reçus. C'est le premier solde sur lequel vos achats par carte seront prélevés. Il peut être transféré vers votre compte Money à tout moment.",
+        "description": "Ce solde inclut tous les remboursements que vous avez reçus. C'est le premier solde sur lequel vos achats par carte seront prélevés. Il peut être transféré vers votre Money Account à tout moment.",
         "description_no_money_account": "Ce solde inclut tous les remboursements que vous avez reçus. C'est le premier solde sur lequel vos achats par carte seront prélevés. Il peut être transféré vers votre portefeuille à tout moment."
       }
     },
     "credit_balance_tooltip": {
       "title": "Solde disponible",
-      "description": "Votre solde est composé du solde de votre compte Money et des remboursements que vous avez reçus.",
+      "description": "Votre solde est composé du solde de votre Money Account et des remboursements que vous avez reçus.",
       "description_no_money_account": "Votre solde est composé du solde de votre portefeuille et des remboursements que vous avez reçus.",
-      "money_account": "Compte Money",
+      "money_account": "Money Account",
       "wallet": "Portefeuille",
       "refund_balance": "Solde des remboursements"
     },
     "credit_banner": {
       "title": "Solde des remboursements : {{amount}}",
-      "description": "Dépensez-le ou transférez-le vers votre compte Money pour continuer à générer un rendement sur votre solde.",
+      "description": "Dépensez-le ou transférez-le vers votre Money Account pour continuer à générer un rendement sur votre solde.",
       "description_no_money_account": "Dépensez-le ou transférez-le vers votre portefeuille.",
       "confirm_button_label": "Transférer des fonds"
     },
@@ -9723,7 +9891,7 @@
     "earn_rewards": {
       "title": "Gagner des récompenses",
       "musd_title": "Jusqu'à {{percentage}} % de bonus sur les mUSD",
-      "musd_subtitle": "Les comptes Money sont disponibles",
+      "musd_subtitle": "Les Money Accounts sont disponibles",
       "card_title": "Jusqu’à 3 % de remise sur vos dépenses",
       "card_subtitle": "Obtenez votre carte MetaMask Card dès maintenant",
       "card_subtitle_cardholder": "Accédez aux avantages de votre carte MetaMask Card"
@@ -9795,8 +9963,8 @@
       "predict_claim": "Gains réclamés",
       "predict_deposit": "Compte « Predict » financé",
       "predict_withdraw": "Retrait",
-      "money_account_deposit": "Déposer sur le compte Money",
-      "money_account_withdraw": "Transférer depuis le compte Money",
+      "money_account_deposit": "Déposer sur le Money Account",
+      "money_account_withdraw": "Transférer depuis le Money Account",
       "default": "Détails de la transaction"
     },
     "label": {
@@ -9819,7 +9987,7 @@
       "you_sent": "Vous avez envoyé",
       "you_received": "Vous avez reçu",
       "token_received": "Jeton reçu",
-      "money_account": "Compte Money",
+      "money_account": "Money Account",
       "perps_account": "Compte Perps 1",
       "predictions_account": "Compte « Prédictions » 1",
       "steps_completed": "Étapes ({{count}} terminées)",
@@ -9936,7 +10104,7 @@
   "trending": {
     "title": "Explorer",
     "crypto_movers": "Les acteurs du marché des cryptomonnaies",
-    "hot_tokens": "Hot tokens",
+    "hot_tokens": "Jetons tendance",
     "perps_movers": "Les acteurs du marché des contrats à terme perpétuels",
     "perps_movers_pill_gainers": "Actifs en hausse",
     "perps_movers_pill_losers": "Actifs en baisse",
@@ -10162,6 +10330,7 @@
       "trending_tokens": "Tendance",
       "trending_perpetuals": "Contrats à terme perpétuels populaires",
       "trending_predictions": "Prédictions populaires",
+      "watchlist": "Liste de surveillance",
       "import_nfts": "Importer des NFT",
       "import_nfts_description": "Ajoutez facilement vos objets de collection",
       "view_more": "Afficher plus",
@@ -10186,7 +10355,7 @@
   "whats_happening": {
     "title": "Actualités",
     "ai": "IA",
-    "outdated": "Outdated",
+    "outdated": "Obsolète",
     "impact": {
       "bullish": "Haussier",
       "bearish": "Baissier",
@@ -10203,5 +10372,11 @@
   },
   "stepper_card": {
     "more_information": "Plus d’informations"
+  },
+  "token_watchlist": {
+    "added_to_watchlist": "Added to Watchlist",
+    "removed_from_watchlist": "Removed from Watchlist",
+    "home_empty_title": "Liste de surveillance",
+    "home_empty_subtitle": "You have no watchlist items yet"
   }
 }
