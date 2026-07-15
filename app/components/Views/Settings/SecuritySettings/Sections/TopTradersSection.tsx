@@ -47,15 +47,14 @@ const TopTradersSection = () => {
         return;
       }
       setIsUpdating(true);
-      // Optimistic: the reducer value is the displayed state.
-      dispatch(setShowAccountOnLeaderboard(enabled));
       try {
         await (Engine.controllerMessenger.call as CallableFunction)(
           enabled
             ? 'SocialController:optInToLeaderboard'
             : 'SocialController:optOutOfLeaderboard',
         );
-        // Track only after the backend confirms
+        // Update state only after the backend confirms.
+        dispatch(setShowAccountOnLeaderboard(enabled));
         trackEvent(
           createEventBuilder(
             MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_VISIBILITY_TOGGLED,
@@ -68,8 +67,6 @@ const TopTradersSection = () => {
           error as Error,
           'TopTradersSection: failed to update leaderboard visibility',
         );
-        // Revert on failure so the toggle reflects the unchanged backend state.
-        dispatch(setShowAccountOnLeaderboard(!enabled));
       } finally {
         setIsUpdating(false);
       }

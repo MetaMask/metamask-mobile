@@ -93,7 +93,7 @@ describe('TopTradersSection', () => {
     ).toBeNull();
   });
 
-  it('opts out (and flips the toggle off) when turned off', async () => {
+  it('opts out and reflects the toggle off after the backend confirms', async () => {
     renderWith(true);
     const toggle = screen.getByTestId(
       SecurityPrivacyViewSelectorsIDs.SHOW_ACCOUNT_ON_LEADERBOARD_TOGGLE,
@@ -101,12 +101,13 @@ describe('TopTradersSection', () => {
 
     fireEvent(toggle, 'valueChange', false);
 
-    expect(toggle.props.value).toBe(false);
     await waitFor(() =>
       expect(mockMessengerCall).toHaveBeenCalledWith(
         'SocialController:optOutOfLeaderboard',
       ),
     );
+    // Persisted only after the backend confirms, not optimistically.
+    await waitFor(() => expect(toggle.props.value).toBe(false));
   });
 
   it('opts in when turned on', async () => {
@@ -162,7 +163,7 @@ describe('TopTradersSection', () => {
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 
-  it('reverts and logs when the request fails', async () => {
+  it('logs and leaves the toggle unchanged when the request fails', async () => {
     mockMessengerCall.mockRejectedValueOnce(new Error('network down'));
     renderWith(true);
     const toggle = screen.getByTestId(
@@ -172,6 +173,7 @@ describe('TopTradersSection', () => {
     fireEvent(toggle, 'valueChange', false);
 
     await waitFor(() => expect(mockLoggerError).toHaveBeenCalled());
+    // Never persisted optimistically, so nothing to revert — stays as it was.
     expect(toggle.props.value).toBe(true);
   });
 
