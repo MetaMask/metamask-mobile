@@ -24,6 +24,12 @@ describe('resolveQuickBuyOriginalEntryPointFromProfile', () => {
       'trader_profile',
     );
   });
+
+  it('maps trader_feed to trader_feed', () => {
+    expect(resolveQuickBuyOriginalEntryPointFromProfile('trader_feed')).toBe(
+      'trader_feed',
+    );
+  });
 });
 
 describe('resolveQuickBuyOriginalEntryPointFromPositionSource', () => {
@@ -43,6 +49,9 @@ describe('resolveQuickBuyOriginalEntryPointFromPositionSource', () => {
     expect(
       resolveQuickBuyOriginalEntryPointFromPositionSource('profile_position'),
     ).toBe('trader_profile');
+    expect(
+      resolveQuickBuyOriginalEntryPointFromPositionSource('trader_feed'),
+    ).toBe('trader_feed');
   });
 
   it('returns undefined for unknown sources', () => {

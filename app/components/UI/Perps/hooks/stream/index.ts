@@ -36,7 +36,6 @@ export type {
   OrderBookData,
   OrderBookLevel,
 } from './usePerpsLiveOrderBook';
-
 // Re-export types from controllers
 export {
   type PriceUpdate,
