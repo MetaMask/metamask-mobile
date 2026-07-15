@@ -264,12 +264,14 @@ export default class ChromeCdpHelpers {
         }
       }
 
-      const contexts: (Context | AndroidContextWithInfo)[] =
-        await getDriver().getContexts({ returnDetailedContexts: true });
+      const contexts = (await getDriver().getContexts({
+        returnDetailedContexts: true,
+      })) as (Context | AndroidContextWithInfo)[];
       for (const ctx of contexts) {
         if (typeof ctx === 'string') continue;
-        const wsUrl = ctx.info?.webSocketDebuggerUrl;
-        if (!wsUrl || !/chrome/i.test(ctx.id)) continue;
+        const detailed = ctx as AndroidContextWithInfo;
+        const wsUrl = detailed.info?.webSocketDebuggerUrl;
+        if (!wsUrl || !/chrome/i.test(detailed.id)) continue;
         const http = this.httpEndpointFromWebSocketUrl(wsUrl);
         if (http) {
           await this.waitForCdpEndpoint(http);
