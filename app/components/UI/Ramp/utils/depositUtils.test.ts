@@ -16,14 +16,6 @@ import { mockTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { MOCK_ETH_TOKEN } from '../testUtils/constants';
 
-let mockIsPureBlackEnabled = false;
-
-jest.mock('../../../../util/theme/themeUtils', () => ({
-  get isPureBlackEnabled() {
-    return mockIsPureBlackEnabled;
-  },
-}));
-
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn(),
 }));
@@ -227,10 +219,6 @@ describe('generateThemeParameters', () => {
     themeAppearance: AppThemeKey.dark,
   };
 
-  beforeEach(() => {
-    mockIsPureBlackEnabled = false;
-  });
-
   it('should generate correct theme parameters for light mode', () => {
     const themeAppearance = AppThemeKey.light;
     const colors = mockTheme.colors;
@@ -284,66 +272,6 @@ describe('generateThemeParameters', () => {
       primaryButtonFillColor: colors.icon.default,
       primaryButtonTextColor: colors.icon.inverse,
       surfaceFillColor: colors.background.muted,
-    });
-  });
-
-  it('adds elevated widget background for pure black dark mode', () => {
-    mockIsPureBlackEnabled = true;
-    const colors = mockDarkTheme.colors;
-    const result = generateThemeParameters(AppThemeKey.dark, colors);
-
-    expect(result).toEqual({
-      themeColor: colors.primary.default,
-      colorMode: 'DARK',
-      backgroundColors: [
-        colors.background.alternative,
-        colors.background.alternative,
-        colors.background.muted,
-      ].join(','),
-      textColors: [
-        colors.text.default,
-        colors.text.default,
-        colors.text.alternative,
-      ].join(','),
-      borderColors: [
-        colors.border.default,
-        colors.border.muted,
-        colors.border.muted,
-      ].join(','),
-      primaryButtonFillColor: colors.icon.default,
-      primaryButtonTextColor: colors.icon.inverse,
-      surfaceFillColor: colors.background.muted,
-      widgetBackgroundFillColor: colors.background.alternative,
-    });
-  });
-
-  it('keeps default widget background for pure black light mode', () => {
-    mockIsPureBlackEnabled = true;
-    const colors = mockTheme.colors;
-    const result = generateThemeParameters(AppThemeKey.light, colors);
-
-    expect(result).toEqual({
-      themeColor: colors.primary.default,
-      colorMode: 'LIGHT',
-      backgroundColors: [
-        colors.background.default,
-        colors.background.default,
-        colors.background.muted,
-      ].join(','),
-      textColors: [
-        colors.text.default,
-        colors.text.default,
-        colors.text.alternative,
-      ].join(','),
-      borderColors: [
-        colors.border.default,
-        colors.border.muted,
-        colors.border.muted,
-      ].join(','),
-      primaryButtonFillColor: colors.icon.default,
-      primaryButtonTextColor: colors.icon.inverse,
-      surfaceFillColor: colors.background.muted,
-      widgetBackgroundFillColor: colors.background.default,
     });
   });
 });
