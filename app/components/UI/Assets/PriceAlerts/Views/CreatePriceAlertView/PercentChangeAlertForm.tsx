@@ -1,10 +1,8 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import {
   Box,
   BoxAlignItems,
-  Button,
-  ButtonVariant,
   FontWeight,
   Icon,
   IconColor,
@@ -16,12 +14,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
-import KeypadComponent, {
-  type KeypadChangeData,
-} from '../../../../../Base/Keypad';
+import { type KeypadChangeData } from '../../../../../Base/Keypad';
 import AlertAmountInput from '../../components/AlertAmountInput';
+import AlertFormShell from '../../components/AlertFormShell';
 import AlertPeriodToggle from '../../components/AlertPeriodToggle';
-import RecurringToggle from '../../components/RecurringToggle';
 import {
   type AlertDirection,
   type AlertPeriod,
@@ -188,11 +184,20 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
   );
 
   return (
-    <Box twClassName="flex-1">
-      <Box
-        alignItems={BoxAlignItems.Center}
-        twClassName="flex-1 justify-center px-4 pb-4"
-      >
+    <AlertFormShell
+      isRecurring={isRecurring}
+      onRecurringChange={setIsRecurring}
+      keypadValue={percentAmount}
+      onKeypadChange={handleKeypadChange}
+      keypadDecimals={PERCENT_KEYPAD_DECIMALS}
+      saveButtonLabel={saveButtonLabel}
+      onSave={handleSave}
+      isSubmitting={isSubmitting}
+      isSaveDisabled={
+        !hasValidPercent || isDuplicatePercentTuple || isUnchanged
+      }
+    >
+      <Box alignItems={BoxAlignItems.Center}>
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
@@ -222,37 +227,7 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
           />
         </Box>
       </Box>
-
-      <View style={tw.style('px-4 pb-2')}>
-        <RecurringToggle value={isRecurring} onValueChange={setIsRecurring} />
-
-        {/* "price_alert" is intentionally not in the Keypad CURRENCIES map —
-            unknown codes fall through to the decimals-aware branch in useCurrency,
-            which is the only path that actually enforces the decimals cap. */}
-        <KeypadComponent
-          value={percentAmount}
-          onChange={handleKeypadChange}
-          currency="price_alert"
-          decimals={PERCENT_KEYPAD_DECIMALS}
-        />
-
-        <Button
-          variant={ButtonVariant.Primary}
-          onPress={handleSave}
-          isLoading={isSubmitting}
-          isDisabled={
-            isSubmitting ||
-            !hasValidPercent ||
-            isDuplicatePercentTuple ||
-            isUnchanged
-          }
-          testID={CreatePriceAlertTestIds.SET_ALERT_BUTTON}
-          twClassName="mt-3 w-full"
-        >
-          {saveButtonLabel}
-        </Button>
-      </View>
-    </Box>
+    </AlertFormShell>
   );
 };
 

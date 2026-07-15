@@ -113,28 +113,33 @@ export const deleteAlertByType = (alert: Alert): Promise<Response> =>
     ? deletePercentAlert(alert.id)
     : deleteAlert(alert.id);
 
-export const useSubmitPriceAlert = (editingAlert?: AbsolutePriceAlert) => {
-  const { mutateAsync, isPending } = useMutation<void, Error, SaveAlertParams>({
-    mutationFn: async ({ asset, threshold, recurring }) => {
-      const response = editingAlert
-        ? await updateAlert(editingAlert.id, { threshold, recurring })
-        : await createAlert({ asset, threshold, recurring });
-      if (!response.ok) {
-        const body = await response.text().catch(() => '(no body)');
-        throw new Error(`HTTP ${response.status}: ${body}`);
-      }
-    },
+/** Throws when `response.ok` is false, including status and body text. */
+export const assertOkResponse = async (response: Response): Promise<void> => {
+  if (response.ok) return;
+  const body = await response.text().catch(() => '(no body)');
+  throw new Error(`HTTP ${response.status}: ${body}`);
+};
+
+const useSubmitAlert = <TParams>(
+  mutationFn: (params: TParams) => Promise<void>,
+) => {
+  const { mutateAsync, isPending } = useMutation<void, Error, TParams>({
+    mutationFn,
   });
   return { submit: mutateAsync, isSubmitting: isPending };
 };
 
-export const useSubmitPercentAlert = (editingAlert?: PercentChangeAlert) => {
-  const { mutateAsync, isPending } = useMutation<
-    void,
-    Error,
-    SavePercentAlertParams
-  >({
-    mutationFn: async ({ asset, threshold, period, direction, recurring }) => {
+export const useSubmitPriceAlert = (editingAlert?: AbsolutePriceAlert) =>
+  useSubmitAlert<SaveAlertParams>(async ({ asset, threshold, recurring }) => {
+    const response = editingAlert
+      ? await updateAlert(editingAlert.id, { threshold, recurring })
+      : await createAlert({ asset, threshold, recurring });
+    await assertOkResponse(response);
+  });
+
+export const useSubmitPercentAlert = (editingAlert?: PercentChangeAlert) =>
+  useSubmitAlert<SavePercentAlertParams>(
+    async ({ asset, threshold, period, direction, recurring }) => {
       const response = editingAlert
         ? await updatePercentAlert(editingAlert.id, { threshold, recurring })
         : await createPercentAlert({
@@ -144,11 +149,6 @@ export const useSubmitPercentAlert = (editingAlert?: PercentChangeAlert) => {
             direction,
             recurring,
           });
-      if (!response.ok) {
-        const body = await response.text().catch(() => '(no body)');
-        throw new Error(`HTTP ${response.status}: ${body}`);
-      }
+      await assertOkResponse(response);
     },
-  });
-  return { submit: mutateAsync, isSubmitting: isPending };
-};
+  );

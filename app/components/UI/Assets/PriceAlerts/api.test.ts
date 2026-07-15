@@ -15,6 +15,7 @@ import {
   normalizeAlerts,
   fetchSupportedChains,
   priceAlertsQueryKey,
+  assertOkResponse,
   useSubmitPriceAlert,
   useSubmitPercentAlert,
 } from './api';
@@ -249,6 +250,32 @@ describe('priceAlertsQueryKey', () => {
     const a = priceAlertsQueryKey('eip155:1/slip44:60');
     const b = priceAlertsQueryKey('eip155:1/erc20:0xABC');
     expect(a).not.toEqual(b);
+  });
+});
+
+describe('assertOkResponse', () => {
+  it('resolves for an ok response', async () => {
+    await expect(
+      assertOkResponse(makeOkResponse({ id: 'alert-1' })),
+    ).resolves.toBeUndefined();
+  });
+
+  it('throws with the HTTP status and body text on a non-ok response', async () => {
+    await expect(
+      assertOkResponse(makeErrorResponse(409, 'Conflict')),
+    ).rejects.toThrow('HTTP 409: Conflict');
+  });
+
+  it('falls back to "(no body)" when the error response body is unreadable', async () => {
+    const response = {
+      ok: false,
+      status: 500,
+      text: jest.fn().mockRejectedValue(new Error('stream error')),
+    } as unknown as Response;
+
+    await expect(assertOkResponse(response)).rejects.toThrow(
+      'HTTP 500: (no body)',
+    );
   });
 });
 

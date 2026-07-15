@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -11,14 +10,11 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
-import KeypadComponent, {
-  type KeypadChangeData,
-} from '../../../../../Base/Keypad';
+import { type KeypadChangeData } from '../../../../../Base/Keypad';
 import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
 import AlertAmountInput from '../../components/AlertAmountInput';
-import RecurringToggle from '../../components/RecurringToggle';
+import AlertFormShell from '../../components/AlertFormShell';
 import {
   type AbsolutePriceAlert,
   CreatePriceAlertTestIds,
@@ -49,7 +45,6 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
   editingAlert,
   existingThresholds,
 }) => {
-  const tw = useTailwind();
   const isEditing = Boolean(editingAlert);
   const [targetAmount, setTargetAmount] = useState(
     editingAlert ? toKeypadString(editingAlert.threshold) : KEYPAD_EMPTY,
@@ -158,12 +153,38 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
           : 'price_alerts.set_price_alert',
       );
 
+  const quickPercentagePills = (
+    <Box flexDirection={BoxFlexDirection.Row} twClassName="mb-3 gap-2">
+      {PRICE_ALERT_QUICK_PERCENTAGES.map((percentage) => (
+        <Button
+          key={percentage}
+          variant={ButtonVariant.Secondary}
+          onPress={() => handleQuickPercentagePress(percentage)}
+          testID={`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-${percentage}`}
+          twClassName="flex-1"
+        >
+          {strings('price_alerts.quick_percentage', {
+            percentage: percentage > 0 ? `+${percentage}` : percentage,
+          })}
+        </Button>
+      ))}
+    </Box>
+  );
+
   return (
-    <Box twClassName="flex-1">
-      <Box
-        alignItems={BoxAlignItems.Center}
-        twClassName="flex-1 justify-center px-4 pb-4"
-      >
+    <AlertFormShell
+      isRecurring={isRecurring}
+      onRecurringChange={setIsRecurring}
+      keypadValue={targetAmount}
+      onKeypadChange={handleKeypadChange}
+      keypadDecimals={getKeypadDecimalPlaces(currentPrice)}
+      saveButtonLabel={saveButtonLabel}
+      onSave={handleSave}
+      isSubmitting={isSubmitting}
+      isSaveDisabled={!hasValidTarget || isDuplicateThreshold || isUnchanged}
+      footerAccessory={quickPercentagePills}
+    >
+      <Box alignItems={BoxAlignItems.Center}>
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
@@ -210,52 +231,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
           )}
         </Text>
       </Box>
-
-      <View style={tw.style('px-4 pb-2')}>
-        <RecurringToggle value={isRecurring} onValueChange={setIsRecurring} />
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="mb-3 gap-2">
-          {PRICE_ALERT_QUICK_PERCENTAGES.map((percentage) => (
-            <Button
-              key={percentage}
-              variant={ButtonVariant.Secondary}
-              onPress={() => handleQuickPercentagePress(percentage)}
-              testID={`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-${percentage}`}
-              twClassName="flex-1"
-            >
-              {strings('price_alerts.quick_percentage', {
-                percentage: percentage > 0 ? `+${percentage}` : percentage,
-              })}
-            </Button>
-          ))}
-        </Box>
-
-        {/* "price_alert" is intentionally not in the Keypad CURRENCIES map —
-            unknown codes fall through to the decimals-aware branch in useCurrency,
-            which is the only path that actually enforces the decimals cap. */}
-        <KeypadComponent
-          value={targetAmount}
-          onChange={handleKeypadChange}
-          currency="price_alert"
-          decimals={getKeypadDecimalPlaces(currentPrice)}
-        />
-
-        <Button
-          variant={ButtonVariant.Primary}
-          onPress={handleSave}
-          isLoading={isSubmitting}
-          isDisabled={
-            isSubmitting ||
-            !hasValidTarget ||
-            isDuplicateThreshold ||
-            isUnchanged
-          }
-          testID={CreatePriceAlertTestIds.SET_ALERT_BUTTON}
-          twClassName="mt-3 w-full"
-        >
-          {saveButtonLabel}
-        </Button>
-      </View>
-    </Box>
+    </AlertFormShell>
   );
 };
 
