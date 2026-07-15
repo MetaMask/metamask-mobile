@@ -1,5 +1,6 @@
 ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
@@ -10,7 +11,6 @@ import {
   IconName,
   IconSize,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import Button, {
@@ -21,7 +21,9 @@ import Button, {
 import { strings } from '../../../../locales/i18n';
 import type { TokenI } from '../Tokens/types';
 import { useAssetActivation } from '../TokenDetails/hooks/useAssetActivation';
-import { AssetActivationErrorToast } from './AssetActivationErrorToast';
+import type { CaipAssetType } from '@metamask/utils';
+import Routes from '../../../constants/navigation/Routes';
+import NotificationManager from '../../../core/NotificationManager';
 
 export const AssetActivateCardTestIds = {
   CONTAINER: 'asset-activate-card',
@@ -37,10 +39,30 @@ export const AssetActivateCard = ({
   token,
   chainName,
 }: AssetActivateCardProps) => {
-  const { activateAsset, isActivating, errorMessage, dismissErrorMessage } =
-    useAssetActivation({
-      asset: token,
-    });
+  const navigation = useNavigation();
+  const assetId = token.address as CaipAssetType | undefined;
+  const { activateAsset, isActivating } = useAssetActivation({
+    assetId,
+    assetSymbol: token.symbol,
+  });
+
+  const handleActivate = useCallback(async () => {
+    const { success, errorMessage } = await activateAsset();
+
+    if (errorMessage) {
+      NotificationManager.showSimpleNotification({
+        status: 'error',
+        duration: 5000,
+        title: strings('transactions.activity_trustline_activation_failed'),
+        description: errorMessage,
+      });
+      return;
+    }
+
+    if (success) {
+      navigation.navigate(Routes.TRANSACTIONS_VIEW);
+    }
+  }, [activateAsset, navigation]);
 
   return (
     <Box testID={AssetActivateCardTestIds.CONTAINER} twClassName="px-4 mt-3">
@@ -66,16 +88,12 @@ export const AssetActivateCard = ({
             size={ButtonSize.Sm}
             width={ButtonWidthTypes.Auto}
             label={strings('asset_activation.activate')}
-            onPress={activateAsset}
+            onPress={handleActivate}
             disabled={isActivating}
             testID={AssetActivateCardTestIds.BUTTON}
           />
         </Box>
       </Box>
-      <AssetActivationErrorToast
-        message={errorMessage}
-        onClose={dismissErrorMessage}
-      />
     </Box>
   );
 };

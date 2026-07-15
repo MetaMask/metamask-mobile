@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+///: BEGIN:ONLY_INCLUDE_IF(stellar)
+import React from 'react';
 import {
   Box,
   BoxFlexDirection,
@@ -7,8 +8,9 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import type { CaipAssetType } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
-import { computeSpendableBalance } from '../../../util/multichain/spendable-balance';
+import { useSpendableBalance } from '../TokenDetails/hooks/useSpendableBalance';
 
 export const SpendableBalanceSectionTestIds = {
   CONTAINER: 'spendable-balance-section',
@@ -19,26 +21,43 @@ export const SpendableBalanceSectionTestIds = {
 } as const;
 
 export interface SpendableBalanceSectionProps {
+  accountId?: string;
+  assetId: CaipAssetType;
   totalBalance: string;
   symbol: string;
-  baseReserve: string;
   fiatValue: string | undefined;
 }
 
+/**
+ * Spendable balance section: breakdown for a native asset (total, spendable, reserved, fiat value).
+ *
+ * @param params - Spendable balance section parameters
+ * @param params.accountId - Optional account id override.
+ * @param params.assetId - CAIP asset id for the native asset.
+ * @param params.totalBalance - The total balance
+ * @param params.symbol - The symbol of the asset
+ * @param params.fiatValue - The fiat value
+ */
 export const SpendableBalanceSection = ({
+  accountId,
+  assetId,
   totalBalance,
   symbol,
-  baseReserve,
   fiatValue,
 }: SpendableBalanceSectionProps) => {
-  const { totalDisplay, spendableDisplay, reservedDisplay } = useMemo(() => {
-    const spendable = computeSpendableBalance(totalBalance, baseReserve);
-    return {
-      totalDisplay: `${totalBalance} ${symbol}`,
-      spendableDisplay: `${spendable} ${symbol}`,
-      reservedDisplay: `${baseReserve} ${symbol}`,
-    };
-  }, [baseReserve, symbol, totalBalance]);
+  const { baseReserve, spendableBalance } = useSpendableBalance({
+    accountId,
+    assetId,
+    totalBalance,
+  });
+
+  if (baseReserve === undefined || spendableBalance === undefined) {
+    return null;
+  }
+
+  const totalDisplay = `${totalBalance} ${symbol}`;
+  const spendableDisplay = `${spendableBalance} ${symbol}`;
+  const reservedDisplay = `${baseReserve} ${symbol}`;
 
   return (
     <Box
@@ -63,7 +82,7 @@ export const SpendableBalanceSection = ({
             fontWeight={FontWeight.Medium}
             testID={SpendableBalanceSectionTestIds.TOTAL}
           >
-            {totalBalance}
+            {totalDisplay}
           </Text>
         </Box>
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
@@ -119,3 +138,4 @@ export const SpendableBalanceSection = ({
     </Box>
   );
 };
+///: END:ONLY_INCLUDE_IF

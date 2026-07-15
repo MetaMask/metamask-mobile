@@ -34,7 +34,10 @@ import {
 import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
 import { selectPerpsEligibility } from '../../Perps/selectors/perpsController';
 import { useComplianceGate } from '../../Compliance';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccountAddress,
+  selectSelectedInternalAccountId,
+} from '../../../../selectors/accountsController';
 import PerpsBottomSheetTooltip from '../../Perps/components/PerpsBottomSheetTooltip';
 import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
@@ -88,6 +91,8 @@ import { isTronNativeToken } from '../utils/isTronNativeToken';
 ///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import { AssetActivateCard } from '../../AssetActivation/AssetActivateCard';
 import { SpendableBalanceSection } from '../../SpendableBalance/SpendableBalanceSection';
+import { useAssetActivation } from '../hooks/useAssetActivation';
+import { isSupportBaseReserve } from '../../../../util/multichain/spendable-balance';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
@@ -100,8 +105,6 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import { computeBaseReserve } from '../../../../util/multichain/spendable-balance';
-import { isAssetRequireActivate } from '../../../../util/multichain/trustline';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -262,14 +265,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   });
   const tronNativeToken = isTronNativeToken(token) ? token : null;
   ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-  const isAssetInactive = isAssetRequireActivate({
+  const { requiresActivate: isAssetInactive } = useAssetActivation({
     assetId: token.address,
-    assetMetadata: token.accountAssetInfo,
+    assetSymbol: token.symbol,
   });
-  const baseReserve = computeBaseReserve({
-    assetId: token.address,
-    assetMetadata: token.accountAssetInfo,
-  });
+  const showSpendableBalance = isSupportBaseReserve(token.address);
   ///: END:ONLY_INCLUDE_IF
 
   const {
@@ -290,6 +290,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   // Compliance gate
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const accountId = useSelector(selectSelectedInternalAccountId);
   const { gate } = useComplianceGate(selectedAddress ?? '');
 
   const closeEligibilityModal = useCallback(() => {
@@ -680,14 +681,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           }
           {
             ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-            baseReserve !== undefined ? (
+            balance != null && showSpendableBalance && (
               <SpendableBalanceSection
-                totalBalance={String(secondaryBalance)}
+                accountId={accountId}
+                assetId={token.address}
+                totalBalance={String(balance)}
                 symbol={token.symbol}
-                baseReserve={baseReserve}
                 fiatValue={mainBalance}
               />
-            ) : null
+            )
             ///: END:ONLY_INCLUDE_IF
           }
           {balance != null && (

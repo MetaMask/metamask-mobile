@@ -34,6 +34,10 @@ import { getMultichainAssetsControllerMessenger } from './multichain-assets-cont
 import { getMultichainBalancesControllerMessenger } from './multichain-balances-controller-messenger/multichain-balances-controller-messenger';
 import { getMultichainTransactionsControllerMessenger } from './multichain-transactions-controller-messenger/multichain-transactions-controller-messenger';
 import { getSnapAccountServiceMessenger } from './snap-account-service-messenger/snap-account-service-messenger';
+import {
+  getStellarAssetsControllerInitMessenger,
+  getStellarAssetsControllerMessenger,
+} from './stellar-assets-controller-messenger/stellar-assets-controller-messenger';
 ///: END:ONLY_INCLUDE_IF
 import {
   getTransactionControllerInitMessenger,
@@ -312,6 +316,10 @@ export const MESSENGER_FACTORIES = {
   MultichainRoutingService: {
     getMessenger: getMultichainRoutingServiceMessenger,
     getInitMessenger: getMultichainRoutingServiceInitMessenger,
+  },
+  StellarAssetsController: {
+    getMessenger: getStellarAssetsControllerMessenger,
+    getInitMessenger: getStellarAssetsControllerInitMessenger,
   },
   MoneyAccountController: {
     getMessenger: getMoneyAccountControllerMessenger,

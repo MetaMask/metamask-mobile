@@ -17,7 +17,12 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Logger from '../../../../util/Logger';
-import { Hex, isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import {
+  Hex,
+  isCaipAssetType,
+  parseCaipAssetType,
+  type CaipAssetType,
+} from '@metamask/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { TokenI } from '../../Tokens/types';
 import { RootState } from '../../../../reducers';
@@ -30,7 +35,6 @@ import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { removeNonEvmToken } from '../../Tokens/util/removeNonEvmToken';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-import { AssetActivationErrorToast } from '../../AssetActivation/AssetActivationErrorToast';
 import { useAssetActivation } from '../hooks/useAssetActivation';
 ///: END:ONLY_INCLUDE_IF
 
@@ -89,15 +93,12 @@ const MoreTokenActionsMenu = () => {
   const { handleHideToken } = useAssetVisibility(asset);
 
   ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-  const {
-    deactivateAsset,
-    canDeactivate,
-    isDeactivating,
-    errorMessage,
-    dismissErrorMessage,
-  } = useAssetActivation({
-    asset,
-  });
+  const { deactivateAsset, canDeactivate, isDeactivating } = useAssetActivation(
+    {
+      assetId: asset.address as CaipAssetType,
+      assetSymbol: asset.symbol,
+    },
+  );
   ///: END:ONLY_INCLUDE_IF
 
   const closeBottomSheetAndNavigate = useCallback(
@@ -237,10 +238,24 @@ const MoreTokenActionsMenu = () => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(stellar)
   const handleDeactivateTrustline = useCallback(() => {
-    closeBottomSheetAndNavigate(() => {
-      void deactivateAsset();
+    closeBottomSheetAndNavigate(async () => {
+      const { success, errorMessage } = await deactivateAsset();
+
+      if (errorMessage) {
+        NotificationManager.showSimpleNotification({
+          status: 'error',
+          duration: 5000,
+          title: strings('transactions.activity_trustline_deactivation_failed'),
+          description: errorMessage,
+        });
+        return;
+      }
+
+      if (success) {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      }
     });
-  }, [closeBottomSheetAndNavigate, deactivateAsset]);
+  }, [closeBottomSheetAndNavigate, deactivateAsset, navigation]);
   ///: END:ONLY_INCLUDE_IF
 
   const tokenIsInAccount = !!useSelector((state: RootState) =>
@@ -357,15 +372,6 @@ const MoreTokenActionsMenu = () => {
               />
             ),
         )}
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-          <AssetActivationErrorToast
-            message={errorMessage}
-            onClose={dismissErrorMessage}
-            testID="asset-deactivation-error-toast"
-          />
-          ///: END:ONLY_INCLUDE_IF
-        }
       </Box>
     </BottomSheet>
   );

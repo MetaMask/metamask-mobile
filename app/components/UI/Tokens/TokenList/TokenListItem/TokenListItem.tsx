@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { CaipAssetType, Hex } from '@metamask/utils';
+import { CaipAssetType, Hex, isCaipAssetType } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -94,7 +94,9 @@ import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys
 import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
 ///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import { AssetInactiveBadge } from '../../../AssetActivation/AssetInactiveBadge';
+import { getStellarTrustlineAssetInfoForAccount } from '../../../../../selectors/stellar/stellar-assets';
 import { isAssetRequireActivate } from '../../../../../util/multichain/trustline';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 ///: END:ONLY_INCLUDE_IF
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
@@ -189,9 +191,30 @@ export const TokenListItem = React.memo(
     );
 
     ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-    const isAssetInactive = isAssetRequireActivate({
-      assetId: asset?.address,
-      assetMetadata: asset?.accountAssetInfo,
+    const selectAccountByScope = useSelector(
+      selectSelectedInternalAccountByScope,
+    );
+    const isAssetInactive = useSelector((state: RootState) => {
+      if (
+        !asset?.address ||
+        !asset?.chainId ||
+        !isCaipAssetType(asset.address)
+      ) {
+        return false;
+      }
+      const account = selectAccountByScope(asset.chainId);
+      if (!account?.id) {
+        return false;
+      }
+      const assetMetadata = getStellarTrustlineAssetInfoForAccount(
+        state,
+        account.id,
+        asset.address,
+      );
+      return isAssetRequireActivate({
+        assetId: asset.address,
+        assetMetadata,
+      });
     });
     ///: END:ONLY_INCLUDE_IF
 

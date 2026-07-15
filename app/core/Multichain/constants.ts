@@ -86,9 +86,10 @@ export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
     transaction: 'https://shasta.tronscan.org/#/transaction/{txId}',
   },
   [XlmScope.Pubnet]: {
-    url: 'https://stellar.expert',
+    url: 'https://stellar.expert/',
     address: 'https://stellar.expert/explorer/public/account/{address}',
     transaction: 'https://stellar.expert/explorer/public/tx/{txId}',
+    token: 'https://stellar.expert/explorer/public/asset/{address}',
   },
 } as const;
 
