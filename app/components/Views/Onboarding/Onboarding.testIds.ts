@@ -5,6 +5,8 @@ export const OnboardingSelectorIDs = {
   NEW_WALLET_BUTTON: 'wallet-setup-screen-create-new-wallet-button-id',
   EXISTING_WALLET_BUTTON:
     'wallet-setup-screen-have-an-existing-wallet-button-id',
+  CREATE_PASSKEY_BUTTON: 'wallet-setup-screen-create-passkey-button-id',
+  VERIFY_PASSKEY_BUTTON: 'wallet-setup-screen-verify-passkey-button-id',
   /*
   EXISTING_WALLET_BUTTON:
     'wallet-setup-screen-import-from-seed-button-id',

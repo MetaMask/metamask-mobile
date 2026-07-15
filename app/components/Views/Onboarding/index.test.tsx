@@ -34,6 +34,10 @@ jest.mock('../../../actions/user', () => {
 // Mock animation components - using existing mocks
 jest.mock('../../UI/FoxAnimation/FoxAnimation');
 jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
+jest.mock('./PasskeyDevButtons', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
 jest.mock('react-native-elevated-view', () => ({
   __esModule: true,
