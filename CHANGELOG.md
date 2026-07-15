@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.2.1]
+
+### Fixed
+
+- Fixed live prediction market prices not updating for dynamically subscribed markets. (#33289)
+
+
 ## [8.2.0]
 
 ### Added
