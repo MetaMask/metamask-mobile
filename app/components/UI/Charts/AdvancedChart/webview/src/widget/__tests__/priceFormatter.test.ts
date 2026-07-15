@@ -4,7 +4,9 @@
 import {
   advancedChartPriceFormatterFactory,
   formatCrosshairPrice,
+  formatPriceWithConfiguredDecimals,
   formatSubscriptNotation,
+  getConfiguredPriceDecimals,
 } from '../priceFormatter';
 import type { ChartConfig } from '../../core/types';
 
@@ -28,6 +30,10 @@ describe('formatSubscriptNotation', () => {
 });
 
 describe('formatCrosshairPrice', () => {
+  afterEach(() => {
+    delete (window as unknown as { CONFIG?: ChartConfig }).CONFIG;
+  });
+
   it('handles nullish + NaN', () => {
     expect(formatCrosshairPrice(null)).toBe('');
     expect(formatCrosshairPrice(undefined)).toBe('');
@@ -51,6 +57,61 @@ describe('formatCrosshairPrice', () => {
 
   it('uses 4 fraction digits for values < 1', () => {
     expect(formatCrosshairPrice(0.12345)).toBe('0.1235');
+  });
+
+  it('uses configured market decimals while preserving five significant figures', () => {
+    (window as unknown as { CONFIG: Partial<ChartConfig> }).CONFIG = {
+      priceDecimals: 4,
+    };
+
+    expect(formatCrosshairPrice(2.1946)).toBe('2.1946');
+    expect(formatCrosshairPrice(1234.5678)).toBe('1,234.6');
+  });
+
+  it('keeps tiny-price subscript notation ahead of configured decimals', () => {
+    (window as unknown as { CONFIG: Partial<ChartConfig> }).CONFIG = {
+      priceDecimals: 4,
+    };
+
+    expect(formatCrosshairPrice(0.00001234)).toBe('0.0₄1234');
+  });
+});
+
+describe('getConfiguredPriceDecimals', () => {
+  afterEach(() => {
+    delete (window as unknown as { CONFIG?: ChartConfig }).CONFIG;
+  });
+
+  it('returns null when priceDecimals is missing or invalid', () => {
+    expect(getConfiguredPriceDecimals()).toBeNull();
+
+    (window as unknown as { CONFIG: Partial<ChartConfig> }).CONFIG = {
+      priceDecimals: Number.NaN,
+    };
+    expect(getConfiguredPriceDecimals()).toBeNull();
+  });
+
+  it('normalizes configured decimals to a non-negative integer', () => {
+    (window as unknown as { CONFIG: Partial<ChartConfig> }).CONFIG = {
+      priceDecimals: 4.9,
+    };
+    expect(getConfiguredPriceDecimals()).toBe(4);
+
+    (window as unknown as { CONFIG: Partial<ChartConfig> }).CONFIG = {
+      priceDecimals: -2,
+    };
+    expect(getConfiguredPriceDecimals()).toBe(0);
+  });
+});
+
+describe('formatPriceWithConfiguredDecimals', () => {
+  it('caps decimals by five significant figures for prices at or above 1', () => {
+    expect(formatPriceWithConfiguredDecimals(1234.5678, 4)).toBe('1,234.6');
+    expect(formatPriceWithConfiguredDecimals(2.1946, 4)).toBe('2.1946');
+  });
+
+  it('uses the configured decimal cap for prices below 1', () => {
+    expect(formatPriceWithConfiguredDecimals(0.123456, 4)).toBe('0.1235');
   });
 });
 
@@ -90,5 +151,14 @@ describe('advancedChartPriceFormatterFactory', () => {
     expect(formatter).not.toBeNull();
     expect(formatter?.format(0.00001234)).toBe('0.0₄1234');
     expect(formatter?.format(1234.56)).toBe('1,234.56');
+  });
+
+  it('returns a formatter when priceDecimals is configured', () => {
+    (window as unknown as { CONFIG: Partial<ChartConfig> }).CONFIG = {
+      priceDecimals: 4,
+    };
+    const formatter = advancedChartPriceFormatterFactory({}, 0);
+    expect(formatter).not.toBeNull();
+    expect(formatter?.format(2.1946)).toBe('2.1946');
   });
 });

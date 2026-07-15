@@ -209,7 +209,6 @@ describe('user state selectors', () => {
     });
 
     it('returns default when interval is invalid', () => {
-      // @ts-expect-error - Testing invalid persisted value
       mockState.user.tokenOverviewChartInterval = 'invalid';
 
       const { result } = renderHook(() =>

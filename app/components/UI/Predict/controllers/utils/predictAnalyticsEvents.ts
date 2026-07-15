@@ -19,7 +19,11 @@ export type PredictAnalyticsEventKey =
   | 'marketDetailsOpened'
   | 'bannerAction'
   | 'categoryClicked'
-  | 'searchInteracted';
+  | 'searchInteracted'
+  | 'homeViewed'
+  | 'homeSectionInteraction'
+  | 'feedTabChanged'
+  | 'feedFilterChanged';
 
 const mapPortfolioProperties = ({
   actionType,
@@ -93,6 +97,10 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
     mapProperties: ({
       sessionId,
       feedTab,
+      feedId,
+      tabId,
+      filterId,
+      trackingMode,
       numPagesViewed,
       sessionTime,
       isSessionEnd,
@@ -101,17 +109,40 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       predictComponent,
       ...args
     }) => ({
-      [PredictEventProperties.SESSION_ID]: sessionId,
-      [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
+      // Session fields are only present for the session-managed legacy feed
+      // (PredictFeedSessionManager). The generic PredictFeedView fires this
+      // event as a lightweight one-shot with feed/tab/filter ids instead, so
+      // every session field is spread conditionally to stay back-compatible.
+      ...(sessionId !== undefined
+        ? { [PredictEventProperties.SESSION_ID]: sessionId }
+        : {}),
+      ...(feedTab !== undefined
+        ? { [PredictEventProperties.PREDICT_FEED_TAB]: feedTab }
+        : {}),
+      ...(feedId ? { [PredictEventProperties.FEED_ID]: feedId } : {}),
+      ...(tabId ? { [PredictEventProperties.TAB_ID]: tabId } : {}),
+      ...(filterId ? { [PredictEventProperties.FILTER_ID]: filterId } : {}),
+      ...(trackingMode
+        ? { [PredictEventProperties.TRACKING_MODE]: trackingMode }
+        : {}),
       ...(predictScreen
         ? { [PredictEventProperties.PREDICT_SCREEN]: predictScreen }
         : {}),
       ...(predictComponent
         ? { [PredictEventProperties.PREDICT_COMPONENT]: predictComponent }
         : {}),
-      [PredictEventProperties.NUM_FEED_PAGES_VIEWED_IN_SESSION]: numPagesViewed,
-      [PredictEventProperties.SESSION_TIME_IN_FEED]: sessionTime,
-      [PredictEventProperties.IS_SESSION_END]: isSessionEnd,
+      ...(numPagesViewed !== undefined
+        ? {
+            [PredictEventProperties.NUM_FEED_PAGES_VIEWED_IN_SESSION]:
+              numPagesViewed,
+          }
+        : {}),
+      ...(sessionTime !== undefined
+        ? { [PredictEventProperties.SESSION_TIME_IN_FEED]: sessionTime }
+        : {}),
+      ...(isSessionEnd !== undefined
+        ? { [PredictEventProperties.IS_SESSION_END]: isSessionEnd }
+        : {}),
       ...(entryPoint
         ? { [PredictEventProperties.ENTRY_POINT]: entryPoint }
         : {}),
@@ -131,6 +162,73 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
     logLabel: '📊 [Analytics] PREDICT_CATEGORY_CLICKED',
     mapProperties: ({ categoryName, entryPoint }) => ({
       [PredictEventProperties.CATEGORY_NAME]: categoryName,
+      ...(entryPoint
+        ? { [PredictEventProperties.ENTRY_POINT]: entryPoint }
+        : {}),
+    }),
+  },
+  homeViewed: {
+    event: MetaMetricsEvents.PREDICT_HOME_VIEWED,
+    logLabel: '📊 [Analytics] PREDICT_HOME_VIEWED',
+    mapProperties: ({ entryPoint }) => ({
+      ...(entryPoint
+        ? { [PredictEventProperties.ENTRY_POINT]: entryPoint }
+        : {}),
+    }),
+  },
+  homeSectionInteraction: {
+    event: MetaMetricsEvents.PREDICT_HOME_SECTION_INTERACTION,
+    logLabel: '📊 [Analytics] PREDICT_HOME_SECTION_INTERACTION',
+    mapProperties: ({
+      sectionId,
+      actionType,
+      filterId,
+      isDynamicFilter,
+      categoryName,
+      entryPoint,
+    }) => ({
+      [PredictEventProperties.SECTION_ID]: sectionId,
+      [PredictEventProperties.ACTION_TYPE]: actionType,
+      ...(filterId ? { [PredictEventProperties.FILTER_ID]: filterId } : {}),
+      ...(isDynamicFilter !== undefined
+        ? { [PredictEventProperties.IS_DYNAMIC_FILTER]: isDynamicFilter }
+        : {}),
+      ...(categoryName
+        ? { [PredictEventProperties.CATEGORY_NAME]: categoryName }
+        : {}),
+      ...(entryPoint
+        ? { [PredictEventProperties.ENTRY_POINT]: entryPoint }
+        : {}),
+    }),
+  },
+  feedTabChanged: {
+    event: MetaMetricsEvents.PREDICT_FEED_TAB_CHANGED,
+    logLabel: '📊 [Analytics] PREDICT_FEED_TAB_CHANGED',
+    mapProperties: ({ feedId, tabId, filterId, entryPoint }) => ({
+      [PredictEventProperties.FEED_ID]: feedId,
+      [PredictEventProperties.TAB_ID]: tabId,
+      ...(filterId ? { [PredictEventProperties.FILTER_ID]: filterId } : {}),
+      ...(entryPoint
+        ? { [PredictEventProperties.ENTRY_POINT]: entryPoint }
+        : {}),
+    }),
+  },
+  feedFilterChanged: {
+    event: MetaMetricsEvents.PREDICT_FEED_FILTER_CHANGED,
+    logLabel: '📊 [Analytics] PREDICT_FEED_FILTER_CHANGED',
+    mapProperties: ({
+      feedId,
+      tabId,
+      filterId,
+      isDynamicFilter,
+      entryPoint,
+    }) => ({
+      [PredictEventProperties.FEED_ID]: feedId,
+      ...(tabId ? { [PredictEventProperties.TAB_ID]: tabId } : {}),
+      [PredictEventProperties.FILTER_ID]: filterId,
+      ...(isDynamicFilter !== undefined
+        ? { [PredictEventProperties.IS_DYNAMIC_FILTER]: isDynamicFilter }
+        : {}),
       ...(entryPoint
         ? { [PredictEventProperties.ENTRY_POINT]: entryPoint }
         : {}),

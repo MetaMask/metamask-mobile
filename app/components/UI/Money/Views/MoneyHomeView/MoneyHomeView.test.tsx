@@ -4,6 +4,8 @@ import { Linking } from 'react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import BigNumber from 'bignumber.js';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import Engine from '../../../../../core/Engine';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import MoneyHomeView from './MoneyHomeView';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import { MoneyHeaderTestIds } from '../../components/MoneyHeader/MoneyHeader.testIds';
@@ -174,6 +176,17 @@ jest.mock('../../../../../core/NavigationService', () => ({
   },
 }));
 
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PreferencesController: {
+        setPrivacyMode: jest.fn(),
+      },
+    },
+  },
+}));
+
 jest.mock('../../utils/moneyFormatFiat', () => ({
   ...jest.requireActual('../../utils/moneyFormatFiat'),
   moneyFormatFiat: jest.fn(() => '$0.12'),
@@ -196,6 +209,11 @@ jest.mock('../../selectors/eligibility', () => ({
 jest.mock('../../selectors/featureFlags', () => ({
   ...jest.requireActual('../../selectors/featureFlags'),
   selectMoneyEnableMoneyAccountFlag: jest.fn(() => true),
+}));
+
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  selectPrivacyMode: jest.fn(() => false),
 }));
 
 jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
@@ -406,6 +424,10 @@ describe('MoneyHomeView', () => {
     jest.clearAllMocks();
     global.alert = jest.fn();
 
+    // clearAllMocks() resets call history but not a previously-set
+    // mockReturnValue, so explicitly restore the default (visible) state.
+    jest.mocked(selectPrivacyMode).mockReturnValue(false);
+
     mockUseMoneyAccountApiActivity.mockReturnValue(apiActivityResult());
 
     mockInitiateDeposit.mockResolvedValue(undefined);
@@ -609,6 +631,82 @@ describe('MoneyHomeView', () => {
       expect(
         getByTestId(MoneyBalanceSummaryTestIds.CONTAINER),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('privacy mode', () => {
+    const mockSelectPrivacyMode = jest.mocked(selectPrivacyMode);
+    const mockSetPrivacyMode = Engine.context.PreferencesController
+      .setPrivacyMode as jest.MockedFunction<
+      typeof Engine.context.PreferencesController.setPrivacyMode
+    >;
+
+    beforeEach(() => {
+      mockSelectPrivacyMode.mockReturnValue(false);
+      mockSetPrivacyMode.mockClear();
+    });
+
+    it('calls setPrivacyMode(true) when the balance is pressed and privacy mode was off', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_PRESSABLE),
+      );
+
+      expect(mockSetPrivacyMode).toHaveBeenCalledWith(true);
+    });
+
+    it('calls setPrivacyMode(false) when the balance is pressed and privacy mode was on', () => {
+      mockSelectPrivacyMode.mockReturnValue(true);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_PRESSABLE),
+      );
+
+      expect(mockSetPrivacyMode).toHaveBeenCalledWith(false);
+    });
+
+    it('masks the balance when privacy mode is on', () => {
+      mockSelectPrivacyMode.mockReturnValue(true);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
+        '•'.repeat(12),
+      );
+    });
+
+    it('shows the real balance when privacy mode is off', () => {
+      mockSelectPrivacyMode.mockReturnValue(false);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE),
+      ).not.toHaveTextContent('•'.repeat(12));
+    });
+
+    it('masks the earnings values when privacy mode is on', () => {
+      mockSelectPrivacyMode.mockReturnValue(true);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyEarningsTestIds.MONTHLY_VALUE)).toHaveTextContent(
+        '•'.repeat(9),
+      );
+      expect(getByTestId(MoneyEarningsTestIds.YEARLY_VALUE)).toHaveTextContent(
+        '•'.repeat(9),
+      );
+    });
+
+    it('shows the real earnings values when privacy mode is off', () => {
+      mockSelectPrivacyMode.mockReturnValue(false);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyEarningsTestIds.MONTHLY_VALUE),
+      ).not.toHaveTextContent('•'.repeat(9));
+      expect(
+        getByTestId(MoneyEarningsTestIds.YEARLY_VALUE),
+      ).not.toHaveTextContent('•'.repeat(9));
     });
   });
 
@@ -1376,7 +1474,7 @@ describe('MoneyHomeView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.HOW_IT_WORKS);
     });
 
-    it('opens the mUSD price URL when the condensed mUSD card is pressed', () => {
+    it('opens the mUSD price URL in the in-app browser when the condensed mUSD card is pressed', () => {
       const mockOpenURL = jest
         .spyOn(Linking, 'openURL')
         .mockResolvedValue(undefined);
@@ -1385,7 +1483,15 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyCondensedInfoCardsTestIds.MUSD_CARD));
 
-      expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MUSD_PRICE);
+      expect(mockOpenURL).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: AppConstants.URLS.MUSD_PRICE,
+          timestamp: expect.any(Number),
+          fromMoney: true,
+        },
+      });
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
         component_name: COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_MUSD,
         redirect_target: MONEY_URLS.MUSD_PRICE,
@@ -1684,6 +1790,21 @@ describe('MoneyHomeView', () => {
       expect(within(row).queryByText(/€99\.00/)).not.toBeOnTheScreen();
     });
 
+    it('masks the mUSD token row balance when privacy mode is on', () => {
+      mockMoneyFormatUsd.mockReturnValue('$1.00');
+      mockUseMusdBalance.mockReturnValue({
+        tokenBalanceAggregated: '1',
+        fiatBalanceAggregatedFormatted: '€99.00',
+      } as ReturnType<typeof useMusdBalance>);
+      jest.mocked(selectPrivacyMode).mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyMusdTokenRowTestIds.SUBTITLE)).toHaveTextContent(
+        '•'.repeat(6),
+      );
+    });
+
     it('opens the Add money sheet from the empty-state footer', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1745,7 +1866,7 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('opens the mUSD price URL when the mUSD token row is pressed', () => {
+    it('opens the mUSD price URL in the in-app browser when the mUSD token row is pressed', () => {
       const NavigationService = jest.requireMock(
         '../../../../../core/NavigationService',
       ).default;
@@ -1757,7 +1878,15 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.CONTAINER));
 
-      expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MUSD_PRICE);
+      expect(mockOpenURL).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: AppConstants.URLS.MUSD_PRICE,
+          timestamp: expect.any(Number),
+          fromMoney: true,
+        },
+      });
       expect(NavigationService.navigation.navigate).not.toHaveBeenCalled();
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
         component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
@@ -2562,8 +2691,6 @@ describe('MoneyHomeView', () => {
     } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>;
 
     // EUR/ETH = 900, USD/ETH = 1000 -> fiat->USD factor is 1000/900 = 10/9.
-    // 90 EUR raw fiat converts to exactly 100 USD, proving the conversion (not
-    // a pass-through of balanceFiat) drives the rendered value.
     const eurCurrencyRatesState = {
       engine: {
         backgroundState: {
@@ -2587,7 +2714,7 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it('converts the primary token raw fiat number from the preferred currency to USD', () => {
+    it('converts a non-Money primary token raw fiat number to USD', () => {
       mockSelectIsCardholder.mockReturnValue(true);
       mockUseMoneyAccountCardLinkage.mockReturnValue(linkedCardLinkage);
       mockUseCardHomeData.mockReturnValue({
@@ -2595,6 +2722,29 @@ describe('MoneyHomeView', () => {
         primaryToken: {
           balanceFiat: '€90.00',
           rawFiatNumber: 90,
+          isMoneyAccountEntry: false,
+        } as unknown as ReturnType<
+          typeof useMoneyAccountCardLinkage
+        >['primaryMoneyAccount'],
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
+        state: eurCurrencyRatesState,
+      });
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+      ).toHaveTextContent('$100.00');
+    });
+
+    it('renders the Money Account USD raw fiat number without reconverting it', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(linkedCardLinkage);
+      mockUseCardHomeData.mockReturnValue({
+        ...baseCardHomeData,
+        primaryToken: {
+          balanceFiat: '$100.00',
+          rawFiatNumber: 100,
           isMoneyAccountEntry: true,
         } as unknown as ReturnType<
           typeof useMoneyAccountCardLinkage
@@ -2625,9 +2775,28 @@ describe('MoneyHomeView', () => {
       ).toHaveTextContent('$0.00');
     });
 
-    it('falls back to formatted zero when the fiat→USD rate is unavailable', () => {
-      // rawFiatNumber is present, but currency rates haven't loaded — must not
-      // render an unconverted (wrong-currency) balance.
+    it('renders the Money Account USD balance when currency rates are unavailable', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(linkedCardLinkage);
+      mockUseCardHomeData.mockReturnValue({
+        ...baseCardHomeData,
+        primaryToken: {
+          balanceFiat: '$90.00',
+          rawFiatNumber: 90,
+          isMoneyAccountEntry: true,
+        } as unknown as ReturnType<
+          typeof useMoneyAccountCardLinkage
+        >['primaryMoneyAccount'],
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+      ).toHaveTextContent('$90.00');
+    });
+
+    it('masks the Card manage balance when privacy mode is on', () => {
       mockSelectIsCardholder.mockReturnValue(true);
       mockUseMoneyAccountCardLinkage.mockReturnValue(linkedCardLinkage);
       mockUseCardHomeData.mockReturnValue({
@@ -2640,12 +2809,15 @@ describe('MoneyHomeView', () => {
           typeof useMoneyAccountCardLinkage
         >['primaryMoneyAccount'],
       });
+      jest.mocked(selectPrivacyMode).mockReturnValue(true);
 
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
+        state: eurCurrencyRatesState,
+      });
 
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
-      ).toHaveTextContent('$0.00');
+      ).toHaveTextContent('•'.repeat(9));
     });
   });
 

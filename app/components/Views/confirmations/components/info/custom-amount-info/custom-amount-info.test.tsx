@@ -329,8 +329,11 @@ describe('CustomAmountInfo', () => {
       amountHumanDebounced: '0',
       amountFiatDebounced: '0',
       hasInput: true,
+      isDepositPrefillEnabled: false,
+      isDepositPrefilled: false,
       isInputChanged: false,
       isPrefillPending: false,
+      isDepositPrefillLoading: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
       updateTokenAmount: jest.fn(),
@@ -619,8 +622,11 @@ describe('CustomAmountInfo', () => {
       amountHumanDebounced: '0',
       amountFiatDebounced: '0',
       hasInput: true,
+      isDepositPrefillEnabled: false,
+      isDepositPrefilled: false,
       isInputChanged: false,
       isPrefillPending: false,
+      isDepositPrefillLoading: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
       updateTokenAmount: updateTokenAmountMock,
@@ -666,8 +672,11 @@ describe('CustomAmountInfo', () => {
       amountHumanDebounced: '0',
       amountFiatDebounced: '0',
       hasInput: true,
+      isDepositPrefillEnabled: false,
+      isDepositPrefilled: false,
       isInputChanged: false,
       isPrefillPending: false,
+      isDepositPrefillLoading: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
       updateTokenAmount: updateTokenAmountMock,
@@ -784,8 +793,11 @@ describe('CustomAmountInfo', () => {
         amountHumanDebounced: '0',
         amountFiatDebounced: '0',
         hasInput: false,
+        isDepositPrefillEnabled: false,
+        isDepositPrefilled: false,
         isInputChanged: false,
         isPrefillPending: false,
+        isDepositPrefillLoading: false,
         updatePendingAmount: noop,
         updatePendingAmountPercentage: noop,
         updateTokenAmount: jest.fn(),
@@ -1103,6 +1115,21 @@ describe('CustomAmountInfo', () => {
     });
   });
 
+  describe('PayWithRow visibility for moneyAccountDeposit', () => {
+    it('renders PayWithRow while keyboard is visible for non-addMusd moneyAccountDeposit', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { getByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(getByTestId('pay-with')).toBeOnTheScreen();
+    });
+  });
+
   describe('no-funds account with accountOverride', () => {
     function setupNoFundsWithOverride() {
       useTransactionMetadataRequestMock.mockReturnValue({
@@ -1254,5 +1281,29 @@ describe('AdvancedCustomAmountInfoSkeleton', () => {
     expect(getByTestId('account-selector-skeleton')).toBeTruthy();
     expect(getByTestId('custom-amount-skeleton')).toBeTruthy();
     expect(getByTestId('pay-with-row-skeleton')).toBeTruthy();
+  });
+
+  it('renders skeleton without account and pay-with rows when autoSelectFiatPayment param is set', () => {
+    jest.mocked(useRoute).mockReturnValue({
+      key: 'mock-route',
+      name: 'MockScreen',
+      params: { autoSelectFiatPayment: true },
+    } as never);
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <AdvancedCustomAmountInfoSkeleton />,
+      {
+        state: merge(
+          {},
+          simpleSendTransactionControllerMock,
+          transactionApprovalControllerMock,
+          otherControllersMock,
+        ),
+      },
+    );
+
+    expect(getByTestId('custom-amount-skeleton')).toBeTruthy();
+    expect(queryByTestId('account-selector-skeleton')).toBeNull();
+    expect(queryByTestId('pay-with-row-skeleton')).toBeNull();
   });
 });
