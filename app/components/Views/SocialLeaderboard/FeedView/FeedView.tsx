@@ -48,8 +48,7 @@ import FeedAudienceToggle from './components/FeedAudienceToggle';
 import FeedItemRow from './components/FeedItemRow';
 import FeedItemRowSkeleton from './components/FeedItemRowSkeleton';
 import FeedTypeEmptyState from './components/FeedTypeEmptyState';
-import FeedTypeSelector from './components/FeedTypeSelector';
-import FeedTypeSheet from './components/FeedTypeSheet';
+import { TypeFilterSelector, TypeFilterSheet } from '../components/TypeFilter';
 import FollowingEmptyState from './components/FollowingEmptyState';
 import { useTraderFeed } from './hooks/useTraderFeed';
 import type {
@@ -431,7 +430,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         twClassName="px-4 py-3"
         gap={3}
       >
-        <FeedTypeSelector
+        <TypeFilterSelector
           value={typeFilter}
           onPress={() => setIsTypeSheetOpen(true)}
         />
@@ -440,7 +439,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
 
       {content}
 
-      <FeedTypeSheet
+      <TypeFilterSheet
         isOpen={isTypeSheetOpen}
         value={typeFilter}
         onChange={handleTypeFilterChange}
