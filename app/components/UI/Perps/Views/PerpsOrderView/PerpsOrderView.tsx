@@ -1596,7 +1596,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         ? formatPerpsFiat(orderForm.limitPrice, {
                             ranges: PRICE_RANGES_UNIVERSAL,
                           })
-                        : 'Set price'
+                        : strings('perps.order.set_price')
                     }
                   />
                 </TouchableOpacity>

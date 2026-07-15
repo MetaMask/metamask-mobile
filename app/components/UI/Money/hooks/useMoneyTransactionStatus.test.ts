@@ -20,6 +20,7 @@ import {
 } from './useMoneyAccount';
 import { shouldShowMoneyFirstTimeDepositAnimation } from '../utils/firstTimeDeposit';
 import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
+import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
@@ -683,7 +684,7 @@ describe('useMoneyTransactionStatus', () => {
       });
     });
 
-    it('confirmed → success toast with decoded fiat amount', () => {
+    it('confirmed → success toast with decoded dollar amount', () => {
       const { confirmedHandler } = renderAndGetHandlers();
 
       confirmedHandler(
@@ -699,8 +700,7 @@ describe('useMoneyTransactionStatus', () => {
 
       expect(depositSuccessFn).toHaveBeenCalledTimes(1);
       const params = depositSuccessFn.mock.calls[0][0];
-      expect(params.amountFiat).toContain('mUSD');
-      expect(params.amountFiat).toContain('12.34');
+      expect(params.amountFiat).toBe('$12.34');
     });
 
     it('failed → deposit failed toast', () => {
@@ -1508,37 +1508,82 @@ describe('useMoneyTransactionStatus', () => {
   });
 
   describe('formatMusdAmountForToast', () => {
-    it('falls back to mUSD format when no fiat rate is available', () => {
-      expect(formatMusdAmountForToast(BigInt(1_000_000))).toBe('1.00 mUSD');
-      expect(formatMusdAmountForToast(BigInt(123_456))).toBe('0.12 mUSD');
+    it('formats the decoded mUSD amount as US dollars', () => {
+      expect(formatMusdAmountForToast(BigInt(1_000_000))).toBe('$1.00');
+      expect(formatMusdAmountForToast(BigInt(123_456))).toBe('$0.12');
+      expect(formatMusdAmountForToast(BigInt(5_000_000))).toBe('$5.00');
+    });
+  });
+
+  describe('USD formatting regardless of preferred currency', () => {
+    beforeEach(() => {
+      jest.mocked(selectCurrentCurrency).mockReturnValue('EUR');
     });
 
-    it('formats as fiat when token market data, currency rates and network config resolve', () => {
-      const tokenRatesMock = jest.requireMock(
-        '../../../../selectors/tokenRatesController',
-      );
-      const currencyRatesMock = jest.requireMock(
-        '../../../../selectors/currencyRateController',
-      );
-      const networkConfigMock = jest.requireMock(
-        '../../../../selectors/networkController',
-      );
-      tokenRatesMock.selectTokenMarketData.mockReturnValueOnce({
-        '0x1': {
-          '0xacA92E438df0B2401fF60dA7E4337B687a2435DA': { price: 1 },
-        },
-      });
-      currencyRatesMock.selectCurrencyRates.mockReturnValueOnce({
-        ETH: { conversionRate: 2 },
-      });
-      networkConfigMock.selectNetworkConfigurations.mockReturnValueOnce({
-        '0x1': { nativeCurrency: 'ETH' },
-      });
-      currencyRatesMock.selectCurrentCurrency.mockReturnValueOnce('usd');
+    afterEach(() => {
+      jest.mocked(selectCurrentCurrency).mockReturnValue('usd');
+    });
 
-      const formatted = formatMusdAmountForToast(BigInt(5_000_000));
-      expect(formatted).not.toContain('mUSD');
-      expect(formatted).toMatch(/10/);
+    it('confirmed deposit → success amount is dollar-formatted when the preferred currency is EUR', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeDepositData(BigInt(12_340_000)),
+          },
+        }),
+      );
+
+      expect(depositSuccessFn).toHaveBeenCalledTimes(1);
+      const amountFiat = depositSuccessFn.mock.calls[0][0].amountFiat;
+      expect(amountFiat).toMatch(/^\$/);
+      expect(amountFiat).not.toContain('€');
+    });
+
+    it('confirmed withdraw → success amount is dollar-formatted when the preferred currency is EUR', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeWithdrawData(BigInt(50_000_000)),
+          },
+        }),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      const amountFiat = withdrawSuccessFn.mock.calls[0][0].amountFiat;
+      expect(amountFiat).toMatch(/^\$/);
+      expect(amountFiat).not.toContain('€');
+    });
+
+    it('confirmed perps send → success amount is dollar-formatted when the preferred currency is EUR', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          id: 'eur-send-tx',
+          type: TransactionType.perpsDeposit,
+          status: TransactionStatus.confirmed,
+          metamaskPay: {
+            tokenAddress: MUSD_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
+            targetFiat: '100',
+          },
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(sendSuccessFn).toHaveBeenCalledTimes(1);
+      const amountFiat = sendSuccessFn.mock.calls[0][0].amountFiat;
+      expect(amountFiat).toMatch(/^\$/);
+      expect(amountFiat).not.toContain('€');
     });
   });
 
