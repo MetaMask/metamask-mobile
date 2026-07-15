@@ -9,10 +9,13 @@ name: CI (Namespace shadow)
 # check always concludes success even when the dispatch cannot run.
 #
 # A shadow run is composed of two independently-flagged pipelines inside ci.yml
-# (see the BITRISE/NAMESPACE-SHADOW markers there); Android jobs never run:
-#   - iOS pipeline (build + E2E smoke): runs when NAMESPACE_SHADOW_AUTO_DISPATCH=true
-#   - Linux pipeline (lint/unit/scripts/etc. on namespace-profile-metamask-ci-linux):
+# (see the BITRISE/NAMESPACE-SHADOW markers there):
+#   - iOS pipeline (build + E2E smoke on macOS runners): runs when
+#     NAMESPACE_SHADOW_AUTO_DISPATCH=true
+#   - Linux pipeline (lint/unit/scripts/etc. on namespace-profile-metamask-ci-linux,
+#     plus Android build + E2E smoke on namespace-profile-metamask-android-build):
 #     runs when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
+# Appium Android stays skipped on shadow runs (pinned to Cirrus until Namespace parity).
 # With both flags false, a manual dispatch yields a near-empty ci.yml run (only
 # provider-agnostic scaffolding like get_requirements / fingerprint / timings).
 #

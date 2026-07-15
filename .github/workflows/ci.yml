@@ -1251,11 +1251,11 @@ jobs:
 
   build-android-apks:
     name: 'Build Android APKs'
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux-runner job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
     if: >-
       ${{
         inputs.runner_provider != 'bitrise' &&
-        inputs.runner_provider != 'namespace' &&
+        (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') &&
         !cancelled() &&
         needs.get_requirements.outputs.android_e2e_needed == 'true' &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
@@ -1329,11 +1329,11 @@ jobs:
 
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux-runner job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
     if: >-
       ${{
         inputs.runner_provider != 'bitrise' &&
-        inputs.runner_provider != 'namespace' &&
+        (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') &&
         !cancelled() &&
         needs.build-android-apks.result == 'success' &&
         (needs.prepare-e2e-timings.result == 'success' || needs.prepare-e2e-timings.result == 'failure' || needs.prepare-e2e-timings.result == 'skipped')
@@ -1412,7 +1412,9 @@ jobs:
 
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
-    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    # BITRISE/NAMESPACE-SHADOW: always skipped on shadow runs. Appium Android is pinned to
+    # runner_provider=current (Cirrus) below until Namespace parity is ready, and it cannot
+    # download namespace-built APKs (they live in Namespace's artifact store, not GitHub's).
     if: >-
       ${{
         inputs.runner_provider != 'bitrise' &&
