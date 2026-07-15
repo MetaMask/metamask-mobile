@@ -464,6 +464,10 @@ export function CustomAmountInfoSkeleton() {
 
 export function AdvancedCustomAmountInfoSkeleton() {
   const { styles } = useStyles(styleSheet, {});
+  const params = useParams<ConfirmationParams>();
+  // Fiat flows never render the account selector or pay-with rows while the
+  // keyboard is up, so their skeletons would cause a layout shift on load.
+  const hideAccountRows = Boolean(params?.autoSelectFiatPayment);
 
   return (
     <View
@@ -475,8 +479,12 @@ export function AdvancedCustomAmountInfoSkeleton() {
         <PayTokenAmountSkeleton />
       </View>
       <View>
-        <AccountSelectorSkeleton />
-        <PayWithRowSkeleton />
+        {!hideAccountRows && (
+          <>
+            <AccountSelectorSkeleton />
+            <PayWithRowSkeleton />
+          </>
+        )}
         <DepositKeyboardSkeleton />
       </View>
     </View>
