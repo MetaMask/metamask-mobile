@@ -636,8 +636,13 @@ export const PerpsOrderViewSelectorsIDs = {
 // ========================================
 
 export const PerpsSlippageConfigSelectorsIDs = {
+  BOTTOM_SHEET: 'perps-slippage-config-bottom-sheet',
   SET: 'perps-slippage-config-set',
   EDIT_CHIP: 'perps-slippage-config-edit-chip',
+} as const;
+
+export const PerpsCandlePeriodBottomSheetSelectorsIDs = {
+  CLOSE_BUTTON: 'perps-candle-period-bottom-sheet-close',
 } as const;
 
 export const getPerpsSlippageConfigSelector = {
@@ -702,6 +707,8 @@ export const PerpsClosePositionViewSelectorsIDs = {
 // ========================================
 
 export const PerpsOrderTypeBottomSheetSelectorsIDs = {
+  CONTAINER: 'perps-order-type-bottom-sheet',
+  CLOSE_BUTTON: 'perps-order-type-bottom-sheet-close',
   MARKET_OPTION: 'perps-order-type-market',
   LIMIT_OPTION: 'perps-order-type-limit',
 } as const;
