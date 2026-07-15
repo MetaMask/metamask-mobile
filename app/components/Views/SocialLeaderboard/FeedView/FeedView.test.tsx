@@ -2,14 +2,16 @@ import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import FeedView from './FeedView';
 import {
   FeedViewSelectorsIDs,
+  getFeedAudienceOptionTestId,
   getFeedTradeButtonTestId,
   getFeedTraderTestId,
   getFeedTypeOptionTestId,
 } from './FeedView.testIds';
-import type { FeedItem, FeedSection } from './types';
+import type { FeedItem, FeedSection, FeedTypeFilter } from './types';
 import type { UseTraderFeedResult } from './hooks/useTraderFeed';
 
 const mockNavigate = jest.fn();
@@ -119,6 +121,15 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 let mockQuickBuyAnalyticsContext: { source?: string } | undefined;
 
+const mockTrack = jest.fn();
+jest.mock('../analytics', () => {
+  const actual = jest.requireActual('../analytics');
+  return {
+    ...actual,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  };
+});
+
 jest.mock('../TraderPositionView/components/QuickBuy', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -138,11 +149,23 @@ jest.mock('../TraderPositionView/components/QuickBuy', () => {
   };
 });
 
+let handleTypeFilterChange: ((value: FeedTypeFilter) => void) | undefined;
+
+jest.mock('./components/FeedTypeSheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const Actual = jest.requireActual('./components/FeedTypeSheet').default;
+  return (props: React.ComponentProps<typeof Actual>) => {
+    handleTypeFilterChange = props.onChange;
+    return ReactActual.createElement(Actual, props);
+  };
+});
+
 describe('FeedView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFeedResult = buildResult();
     mockQuickBuyAnalyticsContext = undefined;
+    handleTypeFilterChange = undefined;
   });
 
   it('renders the type selector, audience toggle, and feed list when items exist', () => {
@@ -202,6 +225,20 @@ describe('FeedView', () => {
     expect(screen.getByTestId('mock-quick-buy-open')).toBeOnTheScreen();
     expect(mockQuickBuyAnalyticsContext).toEqual({ source: 'trader_feed' });
     expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_ITEM_TRADE_CLICKED,
+      expect.objectContaining({
+        source: 'trader_feed',
+        trader_address: spotItem.traderAddress,
+        trader_username: spotItem.username,
+        trade_type: 'spot',
+        feed_action: 'bought',
+        asset_name: 'PEPE',
+        feed_audience: 'following',
+        feed_type_filter: 'all',
+        caip19: expect.stringContaining('eip155:1/erc20:'),
+      }),
+    );
   });
 
   it('navigates to the Perps market detail page when a perps Trade is pressed', () => {
@@ -216,6 +253,50 @@ describe('FeedView', () => {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: expect.objectContaining({ source: 'trader_feed' }),
       }),
+    );
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_ITEM_TRADE_CLICKED,
+      expect.objectContaining({
+        source: 'trader_feed',
+        trader_address: perpItem.traderAddress,
+        trader_username: perpItem.username,
+        trade_type: 'perps',
+        feed_action: 'closed',
+        asset_name: 'ETH',
+        perps_market: 'ETH',
+        feed_audience: 'following',
+        feed_type_filter: 'all',
+      }),
+    );
+  });
+
+  it('tracks audience filter changes via Trader Feed Interaction', () => {
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedAudienceOptionTestId('all')));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION,
+      {
+        interaction_type: 'audience_filter_changed',
+        feed_audience: 'all',
+      },
+    );
+  });
+
+  it('tracks type filter changes via Trader Feed Interaction', () => {
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
+    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('tokens')));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION,
+      {
+        interaction_type: 'type_filter_changed',
+        feed_type_filter: 'tokens',
+        previous_feed_type_filter: 'all',
+      },
     );
   });
 
@@ -232,6 +313,26 @@ describe('FeedView', () => {
         traderAddress: '0x1111111111111111111111111111111111111111',
         source: 'trader_feed',
       }),
+    );
+  });
+
+  it('tracks chained type filter changes with the correct previous value', () => {
+    renderWithProvider(<FeedView />);
+
+    act(() => {
+      handleTypeFilterChange?.('tokens');
+      handleTypeFilterChange?.('perps');
+    });
+
+    expect(mockTrack).toHaveBeenCalledTimes(2);
+    expect(mockTrack).toHaveBeenNthCalledWith(
+      2,
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION,
+      {
+        interaction_type: 'type_filter_changed',
+        feed_type_filter: 'perps',
+        previous_feed_type_filter: 'tokens',
+      },
     );
   });
 
