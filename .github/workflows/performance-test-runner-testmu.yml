@@ -144,18 +144,11 @@ jobs:
 
       - name: Start TestMu AI Tunnel
         if: inputs.build_type == 'mm-connect'
-        uses: LambdaTest/LambdaTest-tunnel-action@v2
-        with:
-          user: ${{ inputs.lt_username }}
-          accessKey: ${{ inputs.lt_access_key }}
-          tunnelName: ${{ steps.tm-tunnel.outputs.name }}
-          verbose: true
-
-      - name: Wait for TestMu AI Tunnel
-        if: inputs.build_type == 'mm-connect'
-        run: |
-          echo "Waiting for TestMu AI Tunnel to be ready..."
-          sleep 15
+        env:
+          LT_USERNAME: ${{ inputs.lt_username }}
+          LT_ACCESS_KEY: ${{ inputs.lt_access_key }}
+          TUNNEL_NAME: ${{ steps.tm-tunnel.outputs.name }}
+        run: bash ./tests/scripts/start-testmu-tunnel.sh
 
       - name: Set Test Environment
         run: |
@@ -243,6 +236,10 @@ jobs:
           else
             $BASE_CMD
           fi
+
+      - name: Stop TestMu AI Tunnel
+        if: always() && inputs.build_type == 'mm-connect'
+        run: bash ./tests/scripts/stop-testmu-tunnel.sh
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
