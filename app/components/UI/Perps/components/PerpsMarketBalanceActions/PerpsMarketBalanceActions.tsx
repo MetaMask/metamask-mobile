@@ -11,7 +11,6 @@ import {
   KeyValueRow,
   KeyValueRowVariant,
   SectionDivider,
-  TextColor as DesignSystemTextColor,
 } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
@@ -219,7 +218,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     <>
       <Box
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
-        twClassName={isBalanceEmpty ? 'mb-4 rounded-xl' : 'mb-4'}
+        twClassName={isBalanceEmpty ? 'mb-4 rounded-xl' : undefined}
       >
         <Box twClassName="px-4">
           <PerpsProgressBar
@@ -234,7 +233,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
               <KeyValueRow
                 variant={KeyValueRowVariant.Summary}
                 keyLabel={statusText}
-                keyTextProps={{ color: DesignSystemTextColor.TextDefault }}
                 value={
                   shouldShowDollarAmount && transactionAmountDisplay ? (
                     <SensitiveText
@@ -249,7 +247,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 }
               />
             </Box>
-            <SectionDivider marginVertical={0} />
+            <SectionDivider />
           </>
         )}
         {children}
@@ -260,7 +258,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
           ) : hideBalanceSection ? (
             showActionButtons && (
               <Box
-                twClassName="gap-3 px-4 pt-1 pb-3"
+                twClassName="gap-3 px-4 pt-1"
                 flexDirection={BoxFlexDirection.Row}
               >
                 <Box twClassName="flex-1">
