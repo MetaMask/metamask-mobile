@@ -698,7 +698,7 @@ describe('CustomAmountInfo', () => {
       expect(getByTestId('custom-amount-input').props.onPress).toBeUndefined();
     });
 
-    it('keeps preparation feedback between amount preparation and quote loading', async () => {
+    it('keeps preparation feedback throughout quote loading', async () => {
       const { deferred } = arrangePendingPreparation();
       const view = render({
         transactionType: TransactionType.moneyAccountDeposit,
@@ -727,6 +727,16 @@ describe('CustomAmountInfo', () => {
       expect(
         view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
       ).toBeDisabled();
+      expect(
+        view.getByText(strings('confirm.preparing_order')),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props
+          .pointerEvents,
+      ).toBe('none');
+      expect(
+        view.getByTestId('custom-amount-input').props.onPress,
+      ).toBeUndefined();
     });
 
     it('shows the populated post-keypad state after quote loading settles', async () => {
