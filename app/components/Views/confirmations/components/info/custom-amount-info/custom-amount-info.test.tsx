@@ -785,6 +785,46 @@ describe('CustomAmountInfo', () => {
       ).not.toBeDisabled();
     });
 
+    it('ignores a stale quote update while the amount is still being committed', async () => {
+      useTransactionPayQuotesLastUpdatedMock.mockReturnValue(1);
+      const { deferred } = arrangePendingPreparation();
+      const view = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+      fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
+
+      useTransactionPayQuotesLastUpdatedMock.mockReturnValue(2);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
+
+      expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+      expect(
+        view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).toBeDisabled();
+
+      await act(async () => {
+        deferred.resolve();
+        await deferred.promise;
+      });
+
+      expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+
+      useTransactionPayQuotesLastUpdatedMock.mockReturnValue(3);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
+
+      expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
+      expect(
+        view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).not.toBeDisabled();
+    });
+
     it('shows the populated post-keypad state after quote loading settles', async () => {
       const { deferred } = arrangePendingPreparation();
       const view = render({
