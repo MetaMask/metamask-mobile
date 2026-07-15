@@ -133,7 +133,10 @@ export function setupPercentPriceAlertsPostMock(
   expectedBody: SavePercentAlertParams,
 ): Scope {
   return nock(PRICE_ALERTS_ORIGIN)
-    .post(PERCENT_ALERTS_PATH, expectedBody)
+    .post(
+      PERCENT_ALERTS_PATH,
+      expectedBody as unknown as nock.RequestBodyMatcher,
+    )
     .reply(201, mockCreatedPercentAlert);
 }
 
@@ -146,7 +149,10 @@ export function setupPercentPriceAlertsPatchMock(
   expectedBody: UpdatePercentAlertParams,
 ): Scope {
   return nock(PRICE_ALERTS_ORIGIN)
-    .patch(`${PERCENT_ALERTS_PATH}/${alertId}`, expectedBody)
+    .patch(
+      `${PERCENT_ALERTS_PATH}/${alertId}`,
+      expectedBody as unknown as nock.RequestBodyMatcher,
+    )
     .reply(200);
 }
 
