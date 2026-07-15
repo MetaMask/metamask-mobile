@@ -47,6 +47,7 @@ import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
 import {
   ACTIVITY_FALLBACK_TITLE_RESOLVERS,
+  resolvePerpsOrderStatusLabel,
   TOKEN_ACTION_LABELS,
 } from './titleLabels';
 
@@ -76,25 +77,6 @@ function isPerpsTradeKind(type: ActivityKind): boolean {
 
 function isPerpsMarketAvatarKind(type: ActivityKind): boolean {
   return isPerpsTradeKind(type) || isPerpsFundingKind(type);
-}
-
-/**
- * Perps order rows show lifecycle status in the amount slot instead of a
- * notional: the notional duplicates the size subtitle and misleads for
- * canceled/rejected orders. Realized PnL lives on the trade fill. Mirrors the
- * extension's Orders view.
- */
-function resolvePerpsOrderStatusLabel(status: Status): string {
-  switch (status) {
-    case 'cancelled':
-      return strings('transactions.activity_order_status_canceled');
-    case 'failed':
-      return strings('transactions.activity_order_status_rejected');
-    case 'pending':
-      return strings('transactions.activity_order_status_open');
-    default:
-      return strings('transactions.activity_order_status_filled');
-  }
 }
 
 function isPredictTradeKind(type: ActivityKind): boolean {

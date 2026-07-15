@@ -44,6 +44,7 @@ import {
 } from '../components/ActivityDetailsPerps.utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { usePerpsOrderFees } from '../../../UI/Perps/hooks';
+import { resolvePerpsOrderStatusLabel } from '../../../UI/ActivityListItemRow/titleLabels';
 
 function useTradeAgain(asset: string | undefined) {
   const navigation = useNavigation();
@@ -77,20 +78,6 @@ function useOpenPerpsHome() {
   }, [navigation]);
 }
 
-
-function resolveOrderStatusLabel(status: PerpsActivityListItem['status']) {
-  switch (status) {
-    case 'cancelled':
-      return strings('transactions.activity_order_status_canceled');
-    case 'failed':
-      return strings('transactions.activity_order_status_rejected');
-    case 'pending':
-      return strings('transactions.activity_order_status_open');
-    default:
-      return strings('transactions.activity_order_status_filled');
-  }
-}
-
 function StatusAndDateRows({
   item,
   statusLabel,
@@ -102,7 +89,9 @@ function StatusAndDateRows({
     <>
       <ActivityDetailRow
         label={strings('activity_details.status')}
-        value={<ActivityDetailsStatus status={item.status} label={statusLabel} />}
+        value={
+          <ActivityDetailsStatus status={item.status} label={statusLabel} />
+        }
         testID={ActivityDetailsSelectorsIDs.STATUS_ROW}
       />
       <ActivityDetailRow
@@ -215,7 +204,7 @@ function OrderDetails({
         <ActivityDetailSection>
           <StatusAndDateRows
             item={item}
-            statusLabel={resolveOrderStatusLabel(item.status)}
+            statusLabel={resolvePerpsOrderStatusLabel(item.status)}
           />
           <ActivityDetailRow
             label={strings('perps.transactions.order.size')}

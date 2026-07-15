@@ -762,7 +762,11 @@ describe('ActivityList', () => {
   // the generic copy is dropped to stop it double-rendering across filters.
   const makePerpsLocalTx = (
     txType: TransactionType,
-    nestedTxTypes?: TransactionType[],
+    options: {
+      nestedTxTypes?: TransactionType[];
+      originalType?: TransactionType;
+      initialTransactionType?: TransactionType;
+    } = {},
   ) => ({
     type: 'contractInteraction' as const,
     chainId: 'eip155:1',
@@ -778,13 +782,29 @@ describe('ActivityList', () => {
           hash: '0xperpsdep',
           id: 'perps-dep-id',
           type: txType,
-          ...(nestedTxTypes
+          ...(options.originalType
+            ? { originalType: options.originalType }
+            : {}),
+          ...(options.nestedTxTypes
             ? {
-                nestedTransactions: nestedTxTypes.map((type) => ({ type })),
+                nestedTransactions: options.nestedTxTypes.map((type) => ({
+                  type,
+                })),
               }
             : {}),
           txParams: { from: '0xevm', nonce: '0x1' },
         },
+        ...(options.initialTransactionType
+          ? {
+              initialTransaction: {
+                chainId: '0x1',
+                hash: '0xperpsdep-initial',
+                id: 'perps-dep-id-initial',
+                type: options.initialTransactionType,
+                txParams: { from: '0xevm', nonce: '0x1' },
+              },
+            }
+          : {}),
       },
     },
   });
@@ -818,7 +838,9 @@ describe('ActivityList', () => {
   it('suppresses the generic EVM copy of a batch-wrapped perps withdraw when perps is enabled', () => {
     selectorValues.perpsEnabled = true;
     (useLocalActivityItems as jest.Mock).mockReturnValue([
-      makePerpsLocalTx(TransactionType.batch, [TransactionType.perpsWithdraw]),
+      makePerpsLocalTx(TransactionType.batch, {
+        nestedTxTypes: [TransactionType.perpsWithdraw],
+      }),
     ]);
     (useTransactionsQuery as jest.Mock).mockReturnValue({
       data: { pages: [{ data: [] }] },
@@ -833,6 +855,37 @@ describe('ActivityList', () => {
 
     expect(screen.queryByTestId('row-0xperpsdep')).toBeNull();
   });
+
+  // After a speed-up/cancel the group's primaryTransaction is the replacement
+  // meta ('retry'/'cancel'); the perps type survives only on originalType and
+  // on the group's initialTransaction.
+  it.each([
+    ['sped-up (retry)', TransactionType.retry],
+    ['cancelled', TransactionType.cancel],
+  ])(
+    'suppresses the generic EVM copy of a %s perps deposit when perps is enabled',
+    (_label, replacementType) => {
+      selectorValues.perpsEnabled = true;
+      (useLocalActivityItems as jest.Mock).mockReturnValue([
+        makePerpsLocalTx(replacementType, {
+          originalType: TransactionType.perpsDeposit,
+          initialTransactionType: TransactionType.perpsDeposit,
+        }),
+      ]);
+      (useTransactionsQuery as jest.Mock).mockReturnValue({
+        data: { pages: [{ data: [] }] },
+        fetchNextPage: mockFetchNextPage,
+        hasNextPage: false,
+        isFetchingNextPage: false,
+        isInitialLoading: false,
+        refetch: mockRefetch,
+      });
+
+      render(<ActivityList header={<></>} />);
+
+      expect(screen.queryByTestId('row-0xperpsdep')).toBeNull();
+    },
+  );
 
   it('keeps the generic EVM copy of a perps deposit when perps is disabled', () => {
     selectorValues.perpsEnabled = false;

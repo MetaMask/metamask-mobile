@@ -528,6 +528,7 @@ describe('mapPerpsTransaction', () => {
         'Market close long',
         { orderType: 'market', side: 'sell', reduceOnly: true },
         'marketCloseLong',
+      ],
       [
         'Stop market close short',
         {
@@ -545,6 +546,16 @@ describe('mapPerpsTransaction', () => {
           side: 'sell',
           isTrigger: true,
           detailedOrderType: 'Stop Market',
+        },
+        'stopMarketCloseLong',
+      ],
+      [
+        'Stop loss close long (MYX)',
+        {
+          orderType: 'market',
+          side: 'sell',
+          isTrigger: true,
+          detailedOrderType: 'Stop Loss',
         },
         'stopMarketCloseLong',
       ],

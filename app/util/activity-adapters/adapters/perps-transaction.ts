@@ -8,7 +8,6 @@
  * pass Arbitrum); open `order` entries are dropped (executed history only).
  * See TMCU-860 for pending product confirmation of the display defaults.
  */
-import { DETAILED_ORDER_TYPES } from '@metamask/perps-controller';
 import type { CaipChainId } from '@metamask/utils';
 import {
   FillType,
@@ -161,13 +160,11 @@ function mapOrderKind(
   // order title (formatOrderLabel), so title and kind can't disagree.
   const isClosing = isClosingOrder(order);
   const direction = resolveOrderDirection(side, isClosing);
-  const isStopMarket = detailedOrderType === DETAILED_ORDER_TYPES.STOP_MARKET;
   const isLimit = type === 'limit';
 
-  // Only Stop Market orders get the dedicated stop kind. The other trigger
-  // variants (Stop Limit, Take Profit Limit/Market) have no dedicated kinds
-  // and keep their structural limit/market close kinds below, so a limit
-  // order is never displayed as a market order.
+  const isStopMarket =
+    Boolean(detailedOrderType?.toLowerCase().includes('stop')) && !isLimit;
+
   if (isStopMarket) {
     return direction === 'long'
       ? 'stopMarketCloseLong'

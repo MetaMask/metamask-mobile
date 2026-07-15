@@ -104,6 +104,7 @@ import {
   isSpendingCapWithAmount,
   type ActivityKind,
   type GroupedActivityListItem,
+  type TransactionGroup,
 } from '../../../util/activity-adapters';
 import {
   isBridgeHistoryForEvmTransaction,
@@ -162,6 +163,20 @@ const generateGroupedKey = (
 ): string => getGroupedActivityListItemKey(item, index);
 
 const noop = () => undefined;
+
+const PERPS_WALLET_TX_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
+];
+
+const isPerpsWalletTransactionGroup = (group: TransactionGroup): boolean =>
+  [group.primaryTransaction, group.initialTransaction].some(
+    (meta) =>
+      hasTransactionType(meta, PERPS_WALLET_TX_TYPES) ||
+      (meta?.originalType !== undefined &&
+        PERPS_WALLET_TX_TYPES.includes(meta.originalType)),
+  );
 
 const getBlockExplorerTrackingText = (url: string, fallbackName?: string) => {
   const blockExplorerName = getBlockExplorerName(url) ?? fallbackName;
@@ -410,14 +425,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         if (raw?.type !== 'localTransaction') return true;
         const tx = raw.data.primaryTransaction;
 
-        if (
-          isPerpsEnabled &&
-          hasTransactionType(tx, [
-            TransactionType.perpsDeposit,
-            TransactionType.perpsDepositAndOrder,
-            TransactionType.perpsWithdraw,
-          ])
-        ) {
+        if (isPerpsEnabled && isPerpsWalletTransactionGroup(raw.data)) {
           return false;
         }
 
