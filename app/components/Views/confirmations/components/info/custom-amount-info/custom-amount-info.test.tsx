@@ -843,7 +843,7 @@ describe('CustomAmountInfo', () => {
       expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
 
-    it('shows amount-update loading state for non-Money transactions', async () => {
+    it('immediately closes keyboard and disables amount editing for non-Money transactions', async () => {
       const deferred = createDeferredPromise();
       useTransactionCustomAmountMock.mockReturnValue({
         ...useTransactionCustomAmountMock(),
@@ -854,6 +854,7 @@ describe('CustomAmountInfo', () => {
       fireEvent.press(getByTestId('deposit-keyboard-done-button'));
 
       expect(queryByTestId('deposit-keyboard')).not.toBeOnTheScreen();
+      expect(getByTestId('custom-amount-input').props.onPress).toBeUndefined();
       expect(getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
 
       await act(async () => {
