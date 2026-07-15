@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import { render } from '@testing-library/react-native';
 import {
   Text,
@@ -295,13 +296,67 @@ describe('LivePriceHeader', () => {
         (el) => el.props.children === '$3,000',
       );
       const changeText = textElements.find(
+        (el) =>
+          typeof el.props.children === 'string' &&
+          el.props.children.includes('(+5.50%)'),
+      );
+
+      expect(priceText?.props.variant).toBe(TextVariant.DisplayLg);
+      expect(priceText?.props.color).toBe(TextColor.TextDefault);
+      expect(changeText?.props.variant).toBe(TextVariant.BodySm);
+      expect(changeText?.props.fontWeight).toBe(FontWeight.Medium);
+      expect(changeText?.props.color).toBe(TextColor.SuccessDefault);
+    });
+
+    it('shows the absolute change and percentage for the large variant', () => {
+      const { UNSAFE_getAllByType } = render(
+        <LivePriceHeader symbol="ETH" currentPrice={3000} size="large" />,
+      );
+
+      const changeText = UNSAFE_getAllByType(Text).find(
+        (el) =>
+          typeof el.props.children === 'string' &&
+          el.props.children.includes('(+5.50%)'),
+      );
+
+      // 3000 - 3000 / 1.055 ≈ 156.4
+      expect(changeText?.props.children).toBe('+$156.4 (+5.50%)');
+    });
+
+    it('shows only the percentage for the compact (default) variant', () => {
+      const { UNSAFE_getAllByType } = render(
+        <LivePriceHeader symbol="ETH" currentPrice={3000} />,
+      );
+
+      const changeText = UNSAFE_getAllByType(Text).find(
         (el) => el.props.children === '+5.50%',
       );
 
-      expect(priceText?.props.variant).toBe(TextVariant.HeadingLg);
-      expect(priceText?.props.color).toBe(TextColor.TextDefault);
-      expect(changeText?.props.variant).toBe(TextVariant.BodyMd);
-      expect(changeText?.props.fontWeight).toBe(FontWeight.Medium);
+      expect(changeText).toBeDefined();
+    });
+
+    it('stacks the change below the price for the large variant', () => {
+      const tree = render(
+        <LivePriceHeader symbol="ETH" currentPrice={3000} size="large" />,
+      ).toJSON();
+      const containerStyle = StyleSheet.flatten(
+        (tree as { props: { style?: StyleProp<ViewStyle> } } | null)?.props
+          .style,
+      );
+
+      expect(containerStyle.flexDirection).toBe('column');
+    });
+
+    it('keeps the change inline with the price for the default variant', () => {
+      const tree = render(
+        <LivePriceHeader symbol="ETH" currentPrice={3000} />,
+      ).toJSON();
+      const containerStyle = StyleSheet.flatten(
+        (tree as { props: { style?: StyleProp<ViewStyle> } } | null)?.props
+          .style,
+      );
+
+      expect(containerStyle.flexDirection).toBe('row');
     });
   });
 
