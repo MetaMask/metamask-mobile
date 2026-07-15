@@ -5,7 +5,6 @@ import {
 } from '@metamask/assets-controllers';
 import { selectAssetsAccountApiBalancesEnabled } from '../../../selectors/featureFlagController/assetsAccountApiBalances';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
-
 /**
  * Initialize the accountTracker controller.
  *
