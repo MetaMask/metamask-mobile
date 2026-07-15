@@ -13,7 +13,14 @@ import {
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
 import type { OrderPreview } from '../types';
-import { Side, type PredictActivity, type PredictPosition } from '../../types';
+import {
+  PredictMarketStatus,
+  Recurrence,
+  Side,
+  type PredictActivity,
+  type PredictMarket,
+  type PredictPosition,
+} from '../../types';
 import type { PredictFeatureFlags } from '../../types/flags';
 import {
   ACCOUNT_STATE_CACHE_TTL_MS,
@@ -392,6 +399,41 @@ function createProvider(featureFlags?: Partial<PredictFeatureFlags>) {
   });
 }
 
+function createVisibleMarket(
+  id: string,
+  overrides: Partial<PredictMarket> = {},
+): PredictMarket {
+  return {
+    id,
+    providerId: POLYMARKET_PROVIDER_ID,
+    slug: id,
+    title: id,
+    description: id,
+    image: '',
+    status: PredictMarketStatus.OPEN,
+    recurrence: Recurrence.NONE,
+    category: 'trending',
+    tags: [],
+    outcomes: [
+      {
+        id: `${id}-outcome`,
+        providerId: POLYMARKET_PROVIDER_ID,
+        marketId: id,
+        title: id,
+        description: id,
+        image: '',
+        status: PredictMarketStatus.OPEN,
+        tokens: [{ id: `${id}-token`, title: id, price: 0.5 }],
+        volume: 1,
+        groupItemTitle: id,
+      },
+    ],
+    liquidity: 1,
+    volume: 1,
+    ...overrides,
+  };
+}
+
 describe('PolymarketProvider', () => {
   const originalBuilderCode = process.env.MM_PREDICT_BUILDER_CODE;
 
@@ -585,6 +627,10 @@ describe('PolymarketProvider', () => {
         { id: '1', label: 'NBA', slug: 'nba' },
         { id: '2', label: 'Politics', slug: 'politics' },
       ]);
+      jest.spyOn(provider, 'listMarkets').mockResolvedValue({
+        markets: [createVisibleMarket('market-1')],
+        nextCursor: null,
+      });
 
       await expect(
         provider.listFilterOptions({ source: 'hot-tags' }),
@@ -607,6 +653,68 @@ describe('PolymarketProvider', () => {
         },
       ]);
       expect(mockFetchRelatedTagsFromPolymarketApi).toHaveBeenCalledWith('all');
+    });
+
+    it('drops filter options whose applied params render zero markets', async () => {
+      const provider = createProvider();
+      mockFetchRelatedTagsFromPolymarketApi.mockResolvedValue([
+        { id: '1', label: 'NBA', slug: 'nba' },
+        { id: '2', label: 'Other', slug: 'other' },
+      ]);
+      const listMarketsSpy = jest
+        .spyOn(provider, 'listMarkets')
+        .mockImplementation(async ({ tagSlugs }) => ({
+          markets: tagSlugs?.includes('other')
+            ? [
+                createVisibleMarket('child-market', {
+                  parentMarketId: 'parent-market',
+                }),
+                createVisibleMarket('market-without-visible-outcomes', {
+                  outcomes: [],
+                }),
+              ]
+            : [createVisibleMarket('market-1')],
+          nextCursor: null,
+        }));
+
+      const result = await provider.listFilterOptions({
+        source: 'related-tags',
+        baseParams: { live: true, status: 'open' },
+      });
+
+      expect(result.map((option) => option.id)).toEqual(['nba']);
+      expect(listMarketsSpy).toHaveBeenCalledWith({
+        order: 'volume24hr',
+        status: 'open',
+        live: true,
+        tagSlugs: ['other'],
+      });
+    });
+
+    it('validates filter options with their configured market page size', async () => {
+      const provider = createProvider();
+      mockFetchRelatedTagsFromPolymarketApi.mockResolvedValue([
+        { id: '1', label: 'NBA', slug: 'nba' },
+      ]);
+      const listMarketsSpy = jest
+        .spyOn(provider, 'listMarkets')
+        .mockImplementation(async ({ limit }) => ({
+          markets: limit === 12 ? [createVisibleMarket('market-1')] : [],
+          nextCursor: null,
+        }));
+
+      const result = await provider.listFilterOptions({
+        source: 'related-tags',
+        baseParams: { status: 'open', limit: 12 },
+      });
+
+      expect(result.map((option) => option.id)).toEqual(['nba']);
+      expect(listMarketsSpy).toHaveBeenCalledWith({
+        order: 'volume24hr',
+        status: 'open',
+        tagSlugs: ['nba'],
+        limit: 12,
+      });
     });
 
     it('uses a feed-specific base tag slug when provided', async () => {

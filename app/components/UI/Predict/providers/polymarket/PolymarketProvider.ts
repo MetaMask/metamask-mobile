@@ -27,6 +27,8 @@ import {
   type PredictTradeStatusValue,
 } from '../../constants/eventNames';
 import { filterSupportedLeagues } from '../../constants/sports';
+import { filterStandaloneMarkets } from '../../utils/feed';
+import { getVisiblePredictMarkets } from '../../utils/marketStaleness';
 import { getPrimarySportsCardOutcomes } from '../../utils/sports';
 import { resolveWorldCupFeedEvents } from './sportsUtils';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
@@ -1065,11 +1067,25 @@ export class PolymarketProvider implements PredictProvider {
     try {
       const tags = await fetchRelatedTagsFromPolymarketApi(slug);
 
-      return normalizeRelatedTagsToFilterOptions(tags, {
+      const filterOptions = normalizeRelatedTagsToFilterOptions(tags, {
         source: params.source,
         baseParams: params.baseParams,
         limit: params.limit,
       });
+
+      // `omit_empty` only excludes globally empty tags. Validate each option
+      // against the same params and visibility rules as the redesigned feed.
+      const marketAvailability = await Promise.all(
+        filterOptions.map(async (option) => {
+          const { markets } = await this.listMarkets(option.params);
+          return (
+            getVisiblePredictMarkets(filterStandaloneMarkets(markets)).length >
+            0
+          );
+        }),
+      );
+
+      return filterOptions.filter((_, index) => marketAvailability[index]);
     } catch (error) {
       // Dynamic filters are best-effort and non-blocking: on any failure return
       // an empty list so the UI can keep static filters and hide dynamic ones.
