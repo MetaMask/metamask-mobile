@@ -349,6 +349,27 @@ describe('PerpsOrderHeader', () => {
       expect(getByText('$4,000')).toBeTruthy();
       expect(queryByText('$3,123.4')).toBeNull();
     });
+
+    it('ignores a focused-price update whose symbol does not match asset and falls back to the price prop', () => {
+      // Simulates the race window between an asset-prop change and the hook's
+      // useEffect clearing stale state: the channel's internal cache still
+      // holds an ETH PriceUpdate while the component has already been
+      // re-rendered with asset="BTC". The header must NOT display the stale
+      // ETH price or 24 h change — it must fall back to the price prop and
+      // show the "--%"  percent-change placeholder.
+      mockUsePerpsLiveFocusedPrice.mockReturnValue(
+        buildPriceUpdate({ symbol: 'ETH', price: '3123.45', percentChange24h: '5.0' }),
+      );
+
+      const { getByText, queryByText } = renderWithProvider(
+        <PerpsOrderHeader {...defaultProps} asset="BTC" price={4000} />,
+        { state: initialState },
+      );
+
+      expect(getByText('$4,000')).toBeTruthy();
+      expect(getByText('--%')).toBeTruthy();
+      expect(queryByText('$3,123.4')).toBeNull();
+    });
   });
 
   describe('Percent change bundled with price in the same hook', () => {

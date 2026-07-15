@@ -60,16 +60,27 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   const focusedPriceUpdate = usePerpsLiveFocusedPrice({ symbol: asset });
 
   const displayPrice = useMemo(() => {
-    const parsed = Number.parseFloat(focusedPriceUpdate?.price ?? '');
+    // Guard against stale PriceUpdate from a prior symbol: the focused-price
+    // channel clears state in a useEffect (async w.r.t. render), so on the
+    // first render after an asset change the cached update may still carry
+    // the old symbol. Fall back to the parent `price` prop in that case.
+    if (focusedPriceUpdate?.symbol !== asset) {
+      return price;
+    }
+    const parsed = Number.parseFloat(focusedPriceUpdate.price ?? '');
     return Number.isFinite(parsed) && parsed > 0 ? parsed : price;
-  }, [focusedPriceUpdate?.price, price]);
+  }, [focusedPriceUpdate, asset, price]);
 
   const percentChange24h = useMemo(() => {
+    // Same symbol guard: do not show another market's 24 h change.
+    if (focusedPriceUpdate?.symbol !== asset) {
+      return null;
+    }
     const parsed = Number.parseFloat(
-      focusedPriceUpdate?.percentChange24h ?? '',
+      focusedPriceUpdate.percentChange24h ?? '',
     );
     return Number.isFinite(parsed) ? parsed : null;
-  }, [focusedPriceUpdate]);
+  }, [focusedPriceUpdate, asset]);
 
   const handleBack = useCallback(() => {
     if (onBack) {
