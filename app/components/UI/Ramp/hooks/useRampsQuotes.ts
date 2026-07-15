@@ -17,6 +17,12 @@ export interface GetQuotesOptions {
   redirectUrl?: string;
   forceRefresh?: boolean;
   ttl?: number;
+  /**
+   * Consumer surface key for the `moneyHeadlessAllProviders` flag payload's
+   * `surfaces` map. Only consulted by the controller on the widened
+   * all-providers path.
+   */
+  surface?: string;
 }
 
 export interface UseRampsQuotesResult {

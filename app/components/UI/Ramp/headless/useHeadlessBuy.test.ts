@@ -291,6 +291,42 @@ describe('useHeadlessBuy', () => {
       );
     });
 
+    it.each([
+      ['money_account', 'money'],
+      ['perps', 'perps'],
+      ['prediction', 'predictions'],
+    ] as const)(
+      'maps rampSurface %s to the allowlist surface %s',
+      async (rampSurface, expectedSurface) => {
+        const { result } = renderHook(() => useHeadlessBuy());
+        await act(async () => {
+          await result.current.getQuotes({
+            assetId: 'eip155:1/erc20:0xabc',
+            amount: 10,
+            walletAddress: '0xOVERRIDE',
+            rampSurface,
+          });
+        });
+        expect(mockGetQuotesRaw).toHaveBeenCalledWith(
+          expect.objectContaining({ surface: expectedSurface }),
+        );
+      },
+    );
+
+    it('forwards no surface when rampSurface is omitted', async () => {
+      const { result } = renderHook(() => useHeadlessBuy());
+      await act(async () => {
+        await result.current.getQuotes({
+          assetId: 'eip155:1/erc20:0xabc',
+          amount: 10,
+          walletAddress: '0xOVERRIDE',
+        });
+      });
+      expect(mockGetQuotesRaw).toHaveBeenCalledWith(
+        expect.objectContaining({ surface: undefined }),
+      );
+    });
+
     it('throws when no wallet can be resolved and none was provided', async () => {
       mockResolveAccount.mockReturnValue(undefined);
       const { result } = renderHook(() => useHeadlessBuy());

@@ -1,6 +1,10 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { CaipChainId } from '@metamask/utils';
+import {
+  HEADLESS_ALLOWLIST_SURFACES,
+  type HeadlessAllowlistSurface,
+} from '@metamask/ramps-controller';
 
 import ReduxService from '../../../../core/redux';
 import Routes from '../../../../constants/navigation/Routes';
@@ -8,6 +12,7 @@ import { selectSelectedInternalAccountByScope } from '../../../../selectors/mult
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
 import { getRampCallbackBaseUrl } from '../utils/getRampCallbackBaseUrl';
 import useRampsController from '../hooks/useRampsController';
+import { RAMP_SURFACE, type RampSurface } from '../types/depositAnalytics';
 
 import {
   closeSession,
@@ -33,6 +38,21 @@ export function getChainIdFromAssetId(assetId: string): CaipChainId | null {
   }
   return assetId.slice(0, slashIndex) as CaipChainId;
 }
+
+/**
+ * Maps the analytics `ramp_surface` vocabulary onto the canonical surface keys
+ * of the `moneyHeadlessAllProviders` flag payload's `surfaces` map, so a
+ * per-surface provider allowlist in LaunchDarkly applies to quote requests
+ * from that surface.
+ */
+const ALLOWLIST_SURFACE_BY_RAMP_SURFACE: Record<
+  RampSurface,
+  HeadlessAllowlistSurface
+> = {
+  [RAMP_SURFACE.MONEY_ACCOUNT]: HEADLESS_ALLOWLIST_SURFACES.MONEY,
+  [RAMP_SURFACE.PERPS]: HEADLESS_ALLOWLIST_SURFACES.PERPS,
+  [RAMP_SURFACE.PREDICTION]: HEADLESS_ALLOWLIST_SURFACES.PREDICTIONS,
+};
 
 /**
  * Imperative wallet-address lookup so `getQuotes` can run outside of React.
@@ -110,6 +130,9 @@ export function useHeadlessBuy(): HeadlessBuyResult {
         providers: params.providerIds,
         redirectUrl: params.redirectUrl ?? getRampCallbackBaseUrl(),
         forceRefresh: params.forceRefresh,
+        surface: params.rampSurface
+          ? ALLOWLIST_SURFACE_BY_RAMP_SURFACE[params.rampSurface]
+          : undefined,
       });
     },
     [getQuotesRaw],
