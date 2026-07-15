@@ -166,6 +166,7 @@ describe('FeedView', () => {
     jest.clearAllMocks();
     mockFeedResult = buildResult();
     mockQuickBuyAnalyticsContext = undefined;
+    handleTypeFilterChange = undefined;
   });
 
   it('renders the type selector, audience toggle, and feed list when items exist', () => {
@@ -270,6 +271,36 @@ describe('FeedView', () => {
     );
   });
 
+  it('tracks audience filter changes via Trader Feed Interaction', () => {
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedAudienceOptionTestId('all')));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION,
+      {
+        interaction_type: 'audience_filter_changed',
+        feed_audience: 'all',
+      },
+    );
+  });
+
+  it('tracks type filter changes via Trader Feed Interaction', () => {
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
+    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('tokens')));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION,
+      {
+        interaction_type: 'type_filter_changed',
+        feed_type_filter: 'tokens',
+        previous_feed_type_filter: 'all',
+      },
+    );
+  });
+
   it('navigates to the trader profile when the trader identity is pressed', () => {
     renderWithProvider(<FeedView />);
 
@@ -322,34 +353,6 @@ describe('FeedView', () => {
     expect(mockTrack).not.toHaveBeenCalled();
   });
 
-  it('tracks audience filter changes', () => {
-    renderWithProvider(<FeedView />);
-
-    fireEvent.press(screen.getByTestId(getFeedAudienceOptionTestId('all')));
-
-    expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_TRADER_FEED_AUDIENCE_FILTER_CHANGED,
-      {
-        feed_audience: 'all',
-      },
-    );
-  });
-
-  it('tracks type filter changes', () => {
-    renderWithProvider(<FeedView />);
-
-    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
-    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('tokens')));
-
-    expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_TRADER_FEED_TYPE_FILTER_CHANGED,
-      {
-        feed_type_filter: 'tokens',
-        previous_feed_type_filter: 'all',
-      },
-    );
-  });
-
   it('tracks chained type filter changes with the correct previous value', () => {
     renderWithProvider(<FeedView />);
 
@@ -361,8 +364,9 @@ describe('FeedView', () => {
     expect(mockTrack).toHaveBeenCalledTimes(2);
     expect(mockTrack).toHaveBeenNthCalledWith(
       2,
-      MetaMetricsEvents.SOCIAL_TRADER_FEED_TYPE_FILTER_CHANGED,
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION,
       {
+        interaction_type: 'type_filter_changed',
         feed_type_filter: 'perps',
         previous_feed_type_filter: 'tokens',
       },

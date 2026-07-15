@@ -153,7 +153,10 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         return;
       }
 
-      track(MetaMetricsEvents.SOCIAL_TRADER_FEED_AUDIENCE_FILTER_CHANGED, {
+      track(MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION, {
+        [SocialLeaderboardEventProperties.INTERACTION_TYPE]:
+          SocialLeaderboardEventValues.TRADER_FEED_INTERACTION_TYPE
+            .AUDIENCE_FILTER_CHANGED,
         [SocialLeaderboardEventProperties.FEED_AUDIENCE]: next,
       });
       audienceRef.current = next;
@@ -169,7 +172,10 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         return;
       }
 
-      track(MetaMetricsEvents.SOCIAL_TRADER_FEED_TYPE_FILTER_CHANGED, {
+      track(MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION, {
+        [SocialLeaderboardEventProperties.INTERACTION_TYPE]:
+          SocialLeaderboardEventValues.TRADER_FEED_INTERACTION_TYPE
+            .TYPE_FILTER_CHANGED,
         [SocialLeaderboardEventProperties.FEED_TYPE_FILTER]: next,
         [SocialLeaderboardEventProperties.PREVIOUS_FEED_TYPE_FILTER]: previous,
       });
