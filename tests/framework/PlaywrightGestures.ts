@@ -535,6 +535,35 @@ export default class PlaywrightGestures {
   }
 
   /**
+   * Dismiss the soft keyboard after typing in Bridge token search.
+   * tapOutside alone is flaky on iOS TextFieldSearch — rows can stay
+   * `displayed:false` under the keyboard. Follow with a tap on the
+   * network-pills strip (below the search field) to force blur.
+   */
+  static async dismissKeyboardAfterTokenSearch(): Promise<void> {
+    await PlaywrightGestures.hideKeyboard();
+    if (PlatformDetector.isAndroid()) {
+      return;
+    }
+    const drv = getDriver();
+    if (!drv) return;
+    try {
+      const { width, height } = getWindowSize();
+      await drv
+        .action('pointer', {
+          parameters: { pointerType: 'touch' },
+        })
+        .move({ x: Math.floor(width / 2), y: Math.floor(height * 0.28) })
+        .down()
+        .pause(50)
+        .up()
+        .perform();
+    } catch {
+      // Keyboard already dismissed / window size unavailable
+    }
+  }
+
+  /**
    * Submit the focused Android URL field via KEYCODE_ENTER (66).
    * Matches the ↵ key on the URL keyboard (no "Go" label on most IMEs).
    */

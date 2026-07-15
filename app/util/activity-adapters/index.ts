@@ -7,9 +7,11 @@ export type {
   ActivityFee,
   ActivityListItem,
   ActivityKind,
+  PerpsOrderKind,
   Status,
   TokenAmount,
 } from './types';
+export { PERPS_ORDER_KINDS, isPerpsOrderKind } from './types';
 export { mapApiEvmTransactions } from './adapters/api-evm-transactions';
 export {
   isNftTransferType,
@@ -36,11 +38,13 @@ export {
 } from './fiat';
 export {
   activityMatchesAssetId,
+  enrichTokenFromApi,
   formatActivityListDateHeader,
   getActivityFromTo,
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  isFailedOrCancelledTransfer,
   isSpendingCapWithAmount,
   shouldShowPlusSign,
   type GroupedActivityListItem,
