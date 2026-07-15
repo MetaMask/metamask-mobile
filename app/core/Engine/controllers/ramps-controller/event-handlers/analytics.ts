@@ -62,6 +62,8 @@ export function buildRampsTransactionConfirmedParams(
   return {
     ramp_type: options.rampType,
     ...(options.rampSurface ? { ramp_surface: options.rampSurface } : {}),
+    // TRAM-3696: join key back to the provider order. Never emit empty string.
+    ...(order.providerOrderId && { provider_order_id: order.providerOrderId }),
     amount_source: Number(order.fiatAmount),
     amount_destination: cryptoAmount,
     exchange_rate: Number(order.exchangeRate ?? computedExchangeRate),

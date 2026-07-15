@@ -975,11 +975,27 @@ describe('emitOrderConfirmedAnalyticsFromCallback', () => {
     expect(mockTrackEvent.mock.calls[0][0].properties).toEqual(
       expect.objectContaining({
         ramp_type: 'UNIFIED_BUY_2',
+        provider_order_id: 'order-1',
         amount_source: 100,
         amount_destination: 0.5,
         country: 'US',
         chain_id: 'eip155:1',
       }),
+    );
+  });
+
+  it('omits provider_order_id when the order has no providerOrderId', () => {
+    const order = createMockOrder({
+      status: Status.Pending,
+      providerOrderId: '',
+    });
+
+    emitOrderConfirmedAnalyticsFromCallback(order, {
+      rampType: 'UNIFIED_BUY_2',
+    });
+
+    expect(mockTrackEvent.mock.calls[0][0].properties).not.toHaveProperty(
+      'provider_order_id',
     );
   });
 
