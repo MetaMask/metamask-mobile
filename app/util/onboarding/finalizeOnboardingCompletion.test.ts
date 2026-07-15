@@ -147,7 +147,14 @@ describe('finalizeOnboardingCompletion', () => {
 
     expect(loggerSpy).toHaveBeenCalledWith(
       expect.any(Error),
-      'TestContext: provisionFromMetadata failed',
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          feature: 'qr-sync',
+          surface: 'import',
+          operation: 'provision_from_metadata',
+          source: 'TestContext',
+        }),
+      }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
 
