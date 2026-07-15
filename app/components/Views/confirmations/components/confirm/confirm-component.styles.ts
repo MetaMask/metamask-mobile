@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
+import { getElevatedSurfaceColor } from '../../../../../util/theme/themeUtils';
 
 const styleSheet = (params: {
   theme: Theme;
@@ -11,9 +12,6 @@ const styleSheet = (params: {
   const { theme, vars } = params;
 
   return StyleSheet.create({
-    bottomSheetDialogSheet: {
-      backgroundColor: theme.colors.background.default,
-    },
     confirmContainer: {
       display: 'flex',
       maxHeight: '100%',
@@ -21,7 +19,8 @@ const styleSheet = (params: {
     flatContainer: {
       flex: 1,
       zIndex: 9999,
-      backgroundColor: theme.colors.background.default,
+      // TODO(Pure Black): Remove once MMDS ships pure-black-aware surface tokens.
+      backgroundColor: getElevatedSurfaceColor(theme),
       justifyContent: 'space-between',
     },
     scrollView: {
@@ -31,7 +30,8 @@ const styleSheet = (params: {
       flexGrow: vars.isFullScreenConfirmation ? 1 : undefined,
     },
     spinnerContainer: {
-      backgroundColor: theme.colors.background.default,
+      // TODO(Pure Black): Remove once MMDS ships pure-black-aware surface tokens.
+      backgroundColor: getElevatedSurfaceColor(theme),
       width: '100%',
       height: '100%',
       justifyContent: 'center',
