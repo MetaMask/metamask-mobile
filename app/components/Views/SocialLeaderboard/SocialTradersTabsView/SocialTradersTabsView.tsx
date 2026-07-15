@@ -79,18 +79,21 @@ const SocialTradersTabsView: React.FC = () => {
 
   const changeTab = useCallback(
     (index: number) => {
-      const interactionType = programmaticTabChangeRef.current
-        ? SocialLeaderboardEventValues.INTERACTION_TYPE.TAP
-        : SocialLeaderboardEventValues.INTERACTION_TYPE.SWIPE;
+      const tabChangeMethod = programmaticTabChangeRef.current
+        ? SocialLeaderboardEventValues.TAB_CHANGE_METHOD.TAP
+        : SocialLeaderboardEventValues.TAB_CHANGE_METHOD.SWIPE;
       programmaticTabChangeRef.current = false;
 
       if (activeIndex === index) {
         return;
       }
 
-      track(MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TAB_CHANGED, {
+      track(MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION, {
+        [SocialLeaderboardEventProperties.INTERACTION_TYPE]:
+          SocialLeaderboardEventValues.FOLLOW_TRADING_INTERACTION_TYPE
+            .TAB_CHANGED,
         [SocialLeaderboardEventProperties.TAB]: getTabAnalyticsValue(index),
-        [SocialLeaderboardEventProperties.INTERACTION_TYPE]: interactionType,
+        [SocialLeaderboardEventProperties.TAB_CHANGE_METHOD]: tabChangeMethod,
       });
 
       playSelection().catch(() => undefined);
