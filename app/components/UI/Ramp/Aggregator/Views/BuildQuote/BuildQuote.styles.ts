@@ -1,8 +1,8 @@
 import { Theme } from '../../../../../../util/theme/models';
 import { StyleSheet } from 'react-native';
 
-const styleSheet = (_params: { theme: Theme }) => {
-  return StyleSheet.create({
+const styleSheet = (_params: { theme: Theme }) =>
+  StyleSheet.create({
     viewContainer: {
       flex: 1,
     },
@@ -25,6 +25,5 @@ const styleSheet = (_params: { theme: Theme }) => {
       marginHorizontal: 0,
     },
   });
-};
 
 export default styleSheet;
