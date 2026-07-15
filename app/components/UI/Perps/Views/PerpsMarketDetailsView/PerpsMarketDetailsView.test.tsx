@@ -2143,7 +2143,7 @@ describe('PerpsMarketDetailsView', () => {
       await act(async () => {
         fireEvent.press(
           getByTestId(
-            `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
+            PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
           ),
         );
       });
