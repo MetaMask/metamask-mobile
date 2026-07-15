@@ -43,10 +43,8 @@ import {
 } from '../../transactions/custom-amount';
 import {
   useIsTransactionPayLoading,
-  useIsTransactionPayQuoteLoading,
   useTransactionPayFiatPayment,
   useTransactionPayQuotes,
-  useTransactionPayQuotesLastUpdated,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
@@ -195,12 +193,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isKeyboardVisibleRef = useRef(isKeyboardVisible);
     isKeyboardVisibleRef.current = isKeyboardVisible;
     const [isPreparingQuote, setIsPreparingQuote] = useState(false);
-    const [isAmountUpdateComplete, setIsAmountUpdateComplete] = useState(false);
     const isPreparingQuoteRef = useRef(false);
-    const quotesLastUpdatedBeforePreparationRef = useRef<number | undefined>(
-      undefined,
-    );
-    const quotesLastUpdatedRef = useRef<number | undefined>(undefined);
     const wasKeyboardEverVisible = useRef(isKeyboardVisible);
     if (isKeyboardVisible) {
       wasKeyboardEverVisible.current = true;
@@ -232,9 +225,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const isTransactionResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
-    const quotesLastUpdated = useTransactionPayQuotesLastUpdated();
-    quotesLastUpdatedRef.current = quotesLastUpdated;
-    const isQuoteLoading = useIsTransactionPayQuoteLoading();
     const isQuotesLoading = useIsTransactionPayLoading();
     const showLoadingReview = isPreparingQuote || isQuotesLoading;
     const showMoneyAccountLoadingReview =
@@ -277,8 +267,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
       if (isMoneyAccountDeposit) {
         isPreparingQuoteRef.current = true;
-        quotesLastUpdatedBeforePreparationRef.current = quotesLastUpdated;
-        setIsAmountUpdateComplete(false);
         setIsPreparingQuote(true);
         setIsKeyboardVisible(false);
       }
@@ -310,18 +298,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           ),
         );
         if (isMoneyAccountDeposit) {
-          isPreparingQuoteRef.current = false;
-          setIsAmountUpdateComplete(false);
-          setIsPreparingQuote(false);
           setIsKeyboardVisible(true);
         }
         // Keep keyboard visible so the user can retry; do not advance the flow.
         return;
-      }
-      if (isMoneyAccountDeposit) {
-        quotesLastUpdatedBeforePreparationRef.current =
-          quotesLastUpdatedRef.current;
-        setIsAmountUpdateComplete(true);
+      } finally {
+        if (isMoneyAccountDeposit) {
+          isPreparingQuoteRef.current = false;
+          setIsPreparingQuote(false);
+        }
       }
       EngineService.flushState();
       hasAutoSubmittedPrefill.current = true;
@@ -336,32 +321,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       amountFiat,
       isMoneyAccountDeposit,
       onAmountSubmit,
-      quotesLastUpdated,
       selectedFiatPaymentMethodId,
       toastRef,
       trackAmountCommitted,
       transactionId,
       updateTokenAmount,
-    ]);
-
-    useEffect(() => {
-      const hasCompletedQuoteRequest =
-        quotesLastUpdated !== undefined &&
-        quotesLastUpdated !== quotesLastUpdatedBeforePreparationRef.current;
-
-      if (
-        isPreparingQuote &&
-        isAmountUpdateComplete &&
-        (isQuoteLoading || hasCompletedQuoteRequest)
-      ) {
-        isPreparingQuoteRef.current = false;
-        setIsPreparingQuote(false);
-      }
-    }, [
-      isAmountUpdateComplete,
-      isPreparingQuote,
-      isQuoteLoading,
-      quotesLastUpdated,
     ]);
 
     const wasPrefillPending = useRef(isPrefillPending);
