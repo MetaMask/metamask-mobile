@@ -944,7 +944,7 @@ describe('CustomAmountInfo', () => {
       updateTokenAmount: updateTokenAmountMock,
     });
 
-    const { getByText, queryByText } = render({
+    const { getByText, queryByText, getByTestId } = render({
       onAmountSubmit: mockOnAmountSubmit,
     });
 
@@ -960,8 +960,11 @@ describe('CustomAmountInfo', () => {
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({ labelOptions: expect.any(Array) }),
     );
-    // Keyboard stays open: Done button still present
+    // Keyboard stays open: Done button and amount editing remain available.
     expect(queryByText(strings('confirm.edit_amount_done'))).toBeOnTheScreen();
+    expect(getByTestId('custom-amount-input').props.onPress).toEqual(
+      expect.any(Function),
+    );
   });
 
   it('renders PayAccountSelector when supportAccountSelection is true', () => {
