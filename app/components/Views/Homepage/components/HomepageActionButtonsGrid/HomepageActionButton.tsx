@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable } from 'react-native';
+import { Animated, Pressable } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -14,6 +14,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useAnimatedPressable } from '../../../../../component-library/hooks';
 
 export interface HomepageActionButtonProps {
   iconName: IconName;
@@ -28,6 +29,7 @@ export interface HomepageActionButtonProps {
 /**
  * Presentation-only circular action button (icon pill + label).
  * Navigation and analytics live in each `buttons/*Button.tsx` caller.
+ * Press feedback: slight scale-down + muted → muted-pressed pill background.
  */
 const HomepageActionButton = ({
   iconName,
@@ -39,45 +41,61 @@ const HomepageActionButton = ({
 }: HomepageActionButtonProps) => {
   const tw = useTailwind();
   const labelNumberOfLines = allowTwoLineLabel ? 2 : 1;
+  const { scaleAnim, handlePressIn, handlePressOut } = useAnimatedPressable();
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled: isDisabled }}
-      disabled={isDisabled}
-      onPress={isDisabled ? undefined : onPress}
-      style={tw.style(
-        'min-w-0 flex-1 items-center',
-        isDisabled ? 'opacity-50' : 'opacity-100',
-      )}
-      testID={testID}
+    <Animated.View
+      style={[
+        tw.style('min-w-0 flex-1'),
+        { transform: [{ scale: scaleAnim }] },
+      ]}
     >
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="h-14 w-14 rounded-full border border-muted bg-muted"
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ disabled: isDisabled }}
+        disabled={isDisabled}
+        onPress={isDisabled ? undefined : onPress}
+        onPressIn={isDisabled ? undefined : handlePressIn}
+        onPressOut={isDisabled ? undefined : handlePressOut}
+        style={tw.style(
+          'w-full items-center',
+          isDisabled ? 'opacity-50' : 'opacity-100',
+        )}
+        testID={testID}
       >
-        <Icon
-          color={IconColor.IconAlternative}
-          name={iconName}
-          size={IconSize.Lg}
-        />
-      </Box>
-      <Text
-        color={TextColor.TextDefault}
-        ellipsizeMode="tail"
-        fontWeight={FontWeight.Medium}
-        numberOfLines={labelNumberOfLines}
-        twClassName={
-          allowTwoLineLabel
-            ? 'mt-2 min-h-[40px] w-full text-center'
-            : 'mt-2 w-full text-center'
-        }
-        variant={TextVariant.BodySm}
-      >
-        {label}
-      </Text>
-    </Pressable>
+        {({ pressed }) => (
+          <>
+            <Box
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName={`h-14 w-14 rounded-full border border-muted ${
+                pressed && !isDisabled ? 'bg-muted-pressed' : 'bg-muted'
+              }`}
+            >
+              <Icon
+                color={IconColor.IconAlternative}
+                name={iconName}
+                size={IconSize.Lg}
+              />
+            </Box>
+            <Text
+              color={TextColor.TextDefault}
+              ellipsizeMode="tail"
+              fontWeight={FontWeight.Medium}
+              numberOfLines={labelNumberOfLines}
+              twClassName={
+                allowTwoLineLabel
+                  ? 'mt-2 min-h-[40px] w-full text-center'
+                  : 'mt-2 w-full text-center'
+              }
+              variant={TextVariant.BodySm}
+            >
+              {label}
+            </Text>
+          </>
+        )}
+      </Pressable>
+    </Animated.View>
   );
 };
 
