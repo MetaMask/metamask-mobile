@@ -72,6 +72,7 @@ import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
+import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStarButton';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -212,7 +213,6 @@ const TokenDetails: React.FC<{
   }, [token.address, token.chainId]);
 
   const isPriceAlertsFeatureEnabled = useSelector(selectPriceAlertsEnabled);
-
   const handleShare = useCallback(() => {
     if (!caip19AssetId) {
       return;
@@ -440,6 +440,8 @@ const TokenDetails: React.FC<{
     </>
   );
 
+  const isNativeToken = Boolean(token.isETH || token.isNative);
+
   const renderLoader = () => (
     <View style={styles.loader}>
       <ActivityIndicator style={styles.loader} size="small" />
@@ -452,6 +454,14 @@ const TokenDetails: React.FC<{
         securityData={securityData}
         onBackPress={() => navigation.goBack()}
         onSharePress={handleShare}
+        starButton={
+          <WatchlistStarButton
+            assetId={caip19AssetId}
+            assetType={isNativeToken ? 'native' : 'erc20'}
+            hasBalance={hasBalanceValue}
+            source="token_details"
+          />
+        }
         onPriceAlertPress={
           isPriceAlertsFeatureEnabled &&
           isPriceAlertsChainSupported &&

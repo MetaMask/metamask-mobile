@@ -165,6 +165,11 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  selectPrivacyMode: jest.fn(() => false),
+}));
+
 // Wrapper that unmounts the sheet when `goBack` runs — modelling the modal
 // being popped on close, which is what tears the hook down in production.
 const SheetHarness = () => {

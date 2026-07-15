@@ -27,6 +27,7 @@ import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
 import { usePerpsConnection } from './usePerpsConnection';
 import { getSuggestedWatchlistMarkets } from '../utils/marketUtils';
+import { isWithinLast30Days } from '../utils/time';
 
 interface UsePerpsHomeDataParams {
   positionsLimit?: number;
@@ -47,6 +48,8 @@ interface UsePerpsHomeDataReturn {
   commoditiesMarkets: PerpsMarketData[]; // Commodity markets
   stocksAndCommoditiesMarkets: PerpsMarketData[]; // Combined stocks & commodities markets
   forexMarkets: PerpsMarketData[]; // Forex markets
+  /** Markets listed within the last 30 days, sorted newest first. Empty when no markets qualify. */
+  recentlyAddedMarkets: PerpsMarketData[];
   /**
    * True when the raw (unfiltered) market list is non-empty. Reflects the
    * full set that PerpsTopMoversSection ranks, including HIP-3 and any market
@@ -90,7 +93,8 @@ export const usePerpsHomeData = ({
     usePerpsLiveOrders({
       throttleMs: 1000,
       hideTpSl: true, // Hide Take Profit and Stop Loss orders from home screen
-      hideReduceOnly: true, // Hide all reduce-only orders from home screen
+      // Reduce-only orders (e.g. limit closes) are shown so they appear in the
+      // "Your orders" section, matching the portfolio "Perpetuals" section.
     });
 
   // Fetch fills via WebSocket for recent activity (instant updates, already cached)
@@ -250,6 +254,18 @@ export const usePerpsHomeData = ({
     [allMarkets, sortBy, direction, trendingLimit],
   );
 
+  // Markets listed within the last 30 days, sorted newest first (largest listedAt first).
+  // Markets without a listedAt timestamp are excluded entirely.
+  const recentlyAddedMarkets = useMemo(
+    () =>
+      allMarkets
+        .filter(
+          (m) => m.listedAt !== undefined && isWithinLast30Days(m.listedAt),
+        )
+        .sort((a, b) => (b.listedAt as number) - (a.listedAt as number)),
+    [allMarkets],
+  );
+
   // Refresh markets data (WebSocket data auto-updates, only markets need manual refresh)
   const refresh = useCallback(async () => {
     await refreshMarkets();
@@ -396,6 +412,7 @@ export const usePerpsHomeData = ({
     commoditiesMarkets: searchedCommoditiesMarkets,
     stocksAndCommoditiesMarkets: searchedStocksAndCommoditiesMarkets,
     forexMarkets: searchedForexMarkets,
+    recentlyAddedMarkets,
     hasMarkets: allMarkets.length > 0,
     recentActivity: limitedActivity,
     sortBy,

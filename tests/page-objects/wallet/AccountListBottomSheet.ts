@@ -166,11 +166,19 @@ class AccountListBottomSheet {
         'getAccountElementsByAccountNameV2 is Appium-only. On Detox, assert each cell with `getAccountElementByAccountNameV2(name)` indexed via .atIndex(N).',
       );
     }
-    // CONTAINER testID is empty; fetch actual row content from the next sibling
+    if (PlatformDetector.isAndroid()) {
+      const escapedAccountName = accountName.replace(/'/g, "\\'");
+      // Anchor on the name text, then step up to the tappable row — immune to
+      // the RN view flattening that detaches the row from its CONTAINER.
+      return Matchers.getAllElementsByXPath(
+        `//*[@resource-id='${AccountCellIds.ADDRESS}' and @text='${escapedAccountName}']/ancestor::*[@resource-id='${AccountCellIds.SELECT}'][1]`,
+      );
+    }
+
+    // iOS collapses the row's children, so match the row itself: name is the
+    // testID, label aggregates to the account name.
     return Matchers.getAllElementsByXPath(
-      PlatformDetector.isAndroid()
-        ? `//*[@resource-id='${AccountCellIds.CONTAINER}']/following-sibling::*[1][@content-desc='${accountName}']`
-        : `//*[@name='${AccountCellIds.CONTAINER}']/following-sibling::*[1][@name='${accountName}' or @label='${accountName}']`,
+      `//*[@name='${AccountCellIds.SELECT}' and @label='${accountName}']`,
     );
   }
 
@@ -386,6 +394,9 @@ class AccountListBottomSheet {
           scrollParams: { direction: 'down' },
         });
         await PlaywrightGestures.waitAndTap(link);
+        await this.waitForAccountSyncToComplete(90_000, {
+          addAccountButtonIndex: index,
+        });
       },
     });
   }
@@ -441,14 +452,48 @@ class AccountListBottomSheet {
         });
       },
       appium: async () => {
-        const escapedAccountName = accountName.replace(/'/g, "\\'");
-        const accountEl = PlatformDetector.isAndroid()
-          ? await PlaywrightMatchers.getElementByXPath(
-              exactMatch
-                ? `//*[@name='${escapedAccountName}' or @label='${escapedAccountName}' or @text='${escapedAccountName}' or @content-desc='${escapedAccountName}']/ancestor::*[@clickable='true'][1]`
-                : `//*[contains(@name,'${escapedAccountName}') or contains(@label,'${escapedAccountName}') or contains(@text,'${escapedAccountName}') or contains(@content-desc,'${escapedAccountName}')]/ancestor::*[@clickable='true'][1]`,
-            )
-          : await PlaywrightMatchers.getElementByText(accountName, exactMatch);
+        if (PlatformDetector.isAndroid()) {
+          await Utilities.executeWithRetry(
+            async () => {
+              const cells =
+                await this.getAccountElementsByAccountNameV2(accountName);
+              if (cells.length === 0) {
+                throw new Error(`No account row found for "${accountName}"`);
+              }
+
+              const cell = cells[cells.length - 1];
+              for (const direction of ['up', 'down'] as const) {
+                try {
+                  await PlaywrightGestures.scrollIntoView(cell, {
+                    scrollParams: { direction },
+                    maxScrolls: 10,
+                  });
+                  if (await cell.isVisible()) {
+                    await PlaywrightGestures.waitAndTap(cell);
+                    return;
+                  }
+                } catch {
+                  // try the other scroll direction
+                }
+              }
+
+              throw new Error(
+                `Account "${accountName}" is not visible or tappable in the account list`,
+              );
+            },
+            {
+              description: `Tap account with name: ${accountName}`,
+              timeout: 20_000,
+              interval: 500,
+            },
+          );
+          return;
+        }
+
+        const accountEl = await PlaywrightMatchers.getElementByText(
+          accountName,
+          exactMatch,
+        );
         await PlaywrightGestures.scrollIntoView(accountEl);
         await PlaywrightGestures.waitAndTap(accountEl);
       },
@@ -570,7 +615,7 @@ class AccountListBottomSheet {
         }
 
         const cell = cells[0];
-        for (const direction of ['down', 'up'] as const) {
+        for (const direction of ['up', 'down'] as const) {
           try {
             await PlaywrightGestures.scrollIntoView(cell, {
               scrollParams: { direction },

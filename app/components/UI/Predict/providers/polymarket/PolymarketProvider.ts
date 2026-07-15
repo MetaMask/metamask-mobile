@@ -9,8 +9,10 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex, numberToHex } from '@metamask/utils';
 import { getAddress, Interface, parseUnits } from 'ethers/lib/utils';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
@@ -18,7 +20,15 @@ import {
   isSmartContractAddress,
 } from '../../../../../util/transactions';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
+import {
+  PredictEventProperties,
+  PredictEventValues,
+  PredictTradeStatus,
+  type PredictTradeStatusValue,
+} from '../../constants/eventNames';
 import { filterSupportedLeagues } from '../../constants/sports';
+import { getPrimarySportsCardOutcomes } from '../../utils/sports';
+import { resolveWorldCupFeedEvents } from './sportsUtils';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
@@ -279,6 +289,20 @@ const isTransientPriceHistoryError = (error: Error): boolean =>
     error.message,
   );
 
+/**
+ * TTL for cached account states. Deployed wallets are stable, so a longer TTL
+ * is safe; a "not deployed" result is expected to change (e.g. right after a
+ * first deposit) and must expire quickly so a transient RPC failure or race
+ * can't pin a stale state indefinitely.
+ */
+export const ACCOUNT_STATE_CACHE_TTL_MS = 5 * 60 * 1000;
+export const ACCOUNT_STATE_NOT_DEPLOYED_CACHE_TTL_MS = 30 * 1000;
+
+interface CachedAccountState {
+  accountState: AccountState;
+  expiresAt: number;
+}
+
 export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
   readonly name = 'Polymarket';
@@ -286,7 +310,7 @@ export class PolymarketProvider implements PredictProvider {
   readonly #getFeatureFlags: () => PredictFeatureFlags;
 
   #apiKeysByProtocolAddress: Map<string, ApiKeyCreds> = new Map();
-  #accountStateByAddress: Map<string, AccountState> = new Map();
+  #accountStateByAddress: Map<string, CachedAccountState> = new Map();
   #safeAddressesWithZeroLegacyUsdceBalance = new Set<string>();
   #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
   #buyOrderInProgressByAddress: Map<string, boolean> = new Map();
@@ -310,18 +334,32 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   #getCachedAccountState(ownerAddress: string): AccountState | undefined {
-    return this.#accountStateByAddress.get(
-      this.#getAccountStateCacheKey(ownerAddress),
-    );
+    const cacheKey = this.#getAccountStateCacheKey(ownerAddress);
+    const cached = this.#accountStateByAddress.get(cacheKey);
+
+    if (!cached) {
+      return undefined;
+    }
+
+    if (cached.expiresAt <= Date.now()) {
+      this.#accountStateByAddress.delete(cacheKey);
+      return undefined;
+    }
+
+    return cached.accountState;
   }
 
   #setCachedAccountState(
     ownerAddress: string,
     accountState: AccountState,
   ): void {
+    const ttl = accountState.isDeployed
+      ? ACCOUNT_STATE_CACHE_TTL_MS
+      : ACCOUNT_STATE_NOT_DEPLOYED_CACHE_TTL_MS;
+
     this.#accountStateByAddress.set(
       this.#getAccountStateCacheKey(ownerAddress),
-      accountState,
+      { accountState, expiresAt: Date.now() + ttl },
     );
   }
 
@@ -967,9 +1005,12 @@ export class PolymarketProvider implements PredictProvider {
     try {
       const { events, category, nextCursor } =
         await fetchEventsFromPolymarketApi(params);
+      const resolvedEvents = await resolveWorldCupFeedEvents(events, {
+        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
+      });
 
       const markets = await this.#parseEventsToMarkets({
-        events,
+        events: resolvedEvents,
         category,
       });
 
@@ -1177,13 +1218,15 @@ export class PolymarketProvider implements PredictProvider {
           // winning side" bet. When Polymarket returns an event with
           // multiple markets (e.g. an e-sports match with Match Winner +
           // O/U 2.5 Games), collapse to just the moneyline outcome so
-          // users see the primary bet instead of a random pair of
-          // secondary markets. Events without a moneyline outcome are
-          // passed through unchanged.
-          const moneyline = market.outcomes.find(
-            (o) => o.sportsMarketType?.toLowerCase() === 'moneyline',
+          // users see the primary bet instead of a random pair of secondary
+          // markets. World Cup games prefer team-to-advance when available.
+          const primaryOutcomes = getPrimarySportsCardOutcomes(
+            market.outcomes,
+            market.game?.league,
           );
-          return moneyline ? { ...market, outcomes: [moneyline] } : market;
+          return primaryOutcomes === market.outcomes
+            ? market
+            : { ...market, outcomes: primaryOutcomes };
         });
 
       return liveSportsEnabled
@@ -2538,6 +2581,34 @@ export class PolymarketProvider implements PredictProvider {
     });
   }
 
+  private trackDepositWalletCreationMetric({
+    status,
+    failureReason,
+  }: {
+    status: PredictTradeStatusValue;
+    failureReason?: string;
+  }): void {
+    const properties = {
+      [PredictEventProperties.STATUS]: status,
+      [PredictEventProperties.TRANSACTION_TYPE]:
+        PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WALLET_CREATION,
+      [PredictEventProperties.ENTRY_POINT]:
+        PredictEventValues.ENTRY_POINT.BACKGROUND,
+      ...(status === PredictTradeStatus.FAILED &&
+        failureReason && {
+          [PredictEventProperties.FAILURE_REASON]: failureReason,
+        }),
+    };
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_TRADE_TRANSACTION,
+      )
+        .addProperties(properties)
+        .build(),
+    );
+  }
+
   public async prepareDeposit(
     params: PrepareDepositParams,
   ): Promise<PrepareDepositResponse> {
@@ -2926,16 +2997,36 @@ export class PolymarketProvider implements PredictProvider {
     );
 
     if (!depositWalletIsDeployed) {
-      const createResponse = await requestDepositWalletCreate({
-        ownerAddress,
-      });
-      const transactionID =
-        getDepositWalletRelayerTransactionId(createResponse);
+      // The wallet-creation metric only covers the relayer create request.
+      // Once the relayer accepts the request the wallet may be created
+      // remotely even if local waiting/polling fails afterwards, and a retry
+      // would skip this branch entirely, so reporting a post-acceptance
+      // failure would misclassify creations that actually succeeded.
+      let transactionID: string | undefined;
+      try {
+        const createResponse = await requestDepositWalletCreate({
+          ownerAddress,
+        });
+        transactionID = getDepositWalletRelayerTransactionId(createResponse);
 
-      if (!transactionID) {
-        throw new Error(
-          'Polymarket deposit wallet creation response missing transactionID',
-        );
+        if (!transactionID) {
+          throw new Error(
+            'Polymarket deposit wallet creation response missing transactionID',
+          );
+        }
+
+        this.trackDepositWalletCreationMetric({
+          status: PredictTradeStatus.SUCCEEDED,
+        });
+      } catch (error) {
+        this.trackDepositWalletCreationMetric({
+          status: PredictTradeStatus.FAILED,
+          failureReason:
+            error instanceof Error
+              ? error.message
+              : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
+        });
+        throw error;
       }
 
       DevLogger.log('PolymarketProvider: Waiting for deposit wallet create', {

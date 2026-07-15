@@ -131,6 +131,14 @@ export const LIMIT_PRICE_CONFIG = {
   // Direction-specific preset configurations (Mid/Bid/Ask buttons handled separately)
   LongPresets: [-1, -2], // Buy below market for long orders
   ShortPresets: [1, 2], // Sell above market for short orders
+
+  // Maximum allowed deviation of the order price from the reference (mark)
+  // price, as a decimal (0.95 = 95%). HyperLiquid rejects orders whose price is
+  // more than 95% away from the reference price ("oracleRejected"). The check is
+  // ratio-based: the smaller of the order price and the reference price must be
+  // at least (1 - 0.95) = 5% of the larger one. We block submission up front
+  // instead of letting the order fail at the exchange.
+  MaxDeviationFromMarket: 0.95,
 } as const;
 
 export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';

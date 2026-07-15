@@ -132,6 +132,28 @@ describe('useActivityDetailsItem', () => {
     expect(result.current).toBe(local);
   });
 
+  it('keeps the local spending-cap copy when only it carries the cap amount', () => {
+    const local = makeItem({
+      type: 'approveSpendingCap',
+      hash: '0xcap',
+      data: { token: { direction: 'out', amount: '100000' } },
+    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    const api = makeItem({ type: 'approveSpendingCap', hash: '0xcap' });
+    setSources({ local: [local], confirmed: [api] });
+
+    const { result } = renderHook(() => useActivityDetailsItem('0xcap'));
+    expect(result.current).toBe(local);
+  });
+
+  it('prefers the API spending-cap copy when the local copy also lacks an amount', () => {
+    const local = makeItem({ type: 'approveSpendingCap', hash: '0xnocap' });
+    const api = makeItem({ type: 'approveSpendingCap', hash: '0xnocap' });
+    setSources({ local: [local], confirmed: [api] });
+
+    const { result } = renderHook(() => useActivityDetailsItem('0xnocap'));
+    expect(result.current).toBe(api);
+  });
+
   it('keeps the local item when it is already categorized and types differ', () => {
     const local = makeItem({ type: 'send', hash: '0xfff' });
     const api = makeItem({ type: 'contractInteraction', hash: '0xfff' });

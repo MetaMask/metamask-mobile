@@ -50,9 +50,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Logger from '../../../../../util/Logger';
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
-const MoneyOnboardingAnimationNoTextV2 = require('../../../../../animations/money_account_onboarding_flow_final_no_text_button_text_configurable_v2.riv');
+import onboardingFlowV24Animation from '../../../../../animations/onboarding_flow_v24.riv';
 
 /**
  * State machine constants must match the Rive file authored for this animation.
@@ -432,7 +430,7 @@ const MoneyOnboardingView = () => {
     <View style={styles.root}>
       <Rive
         ref={ref}
-        source={MoneyOnboardingAnimationNoTextV2}
+        source={onboardingFlowV24Animation}
         artboardName={RIVE_ARTBOARD_NAME}
         stateMachineName={RIVE_STATE_MACHINE_NAME}
         dataBinding={AutoBind(true)}

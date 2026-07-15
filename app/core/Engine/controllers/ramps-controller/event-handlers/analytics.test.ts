@@ -17,6 +17,8 @@ import {
   emitTerminalOrderAnalyticsFromCallback,
   handleOrderStatusChangedForMetrics,
 } from './analytics';
+import ReduxService from '../../../../redux';
+import configureStore from '../../../../../util/test/configureStore';
 
 const mockTrackEvent = jest.fn();
 
@@ -85,6 +87,9 @@ describe('handleOrderStatusChangedForMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(analytics.trackEvent).mockImplementation(mockTrackEvent);
+    // The headless context registry is now backed by the `headlessOrderContexts`
+    // redux slice (TRAM-3691 Part B); a fresh store per test isolates contexts.
+    ReduxService.store = configureStore({});
     // MANDATORY: clear the module-level registry so a headless context seeded
     // by one test cannot leak into the BUY/SELL/missing-fields tests and flip
     // their expected events (they assume no entry).
@@ -108,6 +113,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
       expect(trackedEvent.name).toBe('Ramps Transaction Completed');
       expect(trackedEvent.properties).toEqual({
         ramp_type: 'UNIFIED_BUY_2',
+        provider_order_id: 'order-1',
         amount_source: 100,
         amount_destination: 0.5,
         exchange_rate: 200,
@@ -138,6 +144,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
           name: 'Ramps Transaction Failed',
           properties: expect.objectContaining({
             ramp_type: 'UNIFIED_BUY_2',
+            provider_order_id: 'order-1',
             chain_id: 'eip155:1',
             provider_onramp: 'Transak',
             error_message: 'card_declined',
@@ -202,6 +209,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
           name: 'Ramps Transaction Completed',
           properties: expect.objectContaining({
             ramp_type: 'UNIFIED_BUY_2',
+            provider_order_id: 'order-1',
             chain_id: 'eip155:1',
             country: 'US',
             provider_onramp: 'Transak',
@@ -358,6 +366,7 @@ describe('handleOrderStatusChangedForMetrics', () => {
         ramp_surface: 'money_account',
         region: 'us-ca',
         country: 'us-ca',
+        provider_order_id: 'order-1',
         error_message: 'Payment was declined by the bank',
         provider_onramp: 'Transak',
         amount_source: 100,
@@ -447,6 +456,42 @@ describe('handleOrderStatusChangedForMetrics', () => {
       expect(trackedEvent.name).toBe('Ramps Transaction Failed');
       expect(trackedEvent.properties.ramp_type).toBe('UNIFIED_BUY_2');
       expect(trackedEvent.properties.ramp_type).not.toBe('HEADLESS');
+    });
+
+    it('emits HEADLESS on a Failed order whose context came from persisted state (app relaunch, TRAM-3691 Part B)', () => {
+      // Part B: the context lives in the persisted `headlessOrderContexts`
+      // slice, so it survives an app relaunch. Seed the store as redux-persist
+      // would rehydrate it - NOT via an in-session setHeadlessOrderContext call -
+      // then fail the order. The handler must read the rehydrated context and
+      // emit HEADLESS, no longer the mis-tagged UNIFIED_BUY_2 that the empty
+      // in-memory registry produced post-relaunch.
+      ReduxService.store = configureStore({
+        headlessOrderContexts: {
+          'order-1': {
+            rampSurface: 'prediction',
+            region: 'de',
+            createdAt: Date.now(),
+          },
+        },
+      });
+      const order = createHeadlessOrder({
+        status: Status.Failed,
+        providerOrderId: 'order-1',
+      });
+
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent.mock.calls[0][0].properties).toEqual(
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          ramp_surface: 'prediction',
+          region: 'de',
+        }),
+      );
     });
 
     it('is idempotent: a second identical Failed event finds no entry and does not re-emit the tagged event', () => {
@@ -778,7 +823,10 @@ describe('handleOrderStatusChangedForMetrics', () => {
         'Ramps Transaction Completed',
       );
       expect(mockTrackEvent.mock.calls[0][0].properties).toEqual(
-        expect.objectContaining({ ramp_type: 'UNIFIED_BUY_2' }),
+        expect.objectContaining({
+          ramp_type: 'UNIFIED_BUY_2',
+          provider_order_id: 'order-1',
+        }),
       );
     });
 
@@ -792,7 +840,10 @@ describe('handleOrderStatusChangedForMetrics', () => {
         'Ramps Transaction Failed',
       );
       expect(mockTrackEvent.mock.calls[0][0].properties).toEqual(
-        expect.objectContaining({ ramp_type: 'UNIFIED_BUY_2' }),
+        expect.objectContaining({
+          ramp_type: 'UNIFIED_BUY_2',
+          provider_order_id: 'order-1',
+        }),
       );
     });
 

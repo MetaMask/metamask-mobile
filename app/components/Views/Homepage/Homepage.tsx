@@ -16,6 +16,7 @@ import PredictionsSection from './Sections/Predictions';
 import TopTradersSection from './Sections/TopTraders';
 import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
+import WatchlistSection from './Sections/Watchlist';
 import MoreSection from './Sections/More';
 import { SectionRefreshHandle } from './types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -24,6 +25,7 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
+import { selectTokenWatchlistEnabled } from '../../UI/Assets/selectors/featureFlags';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../UI/Earn/hooks/useMusdConversionEligibility';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
@@ -64,6 +66,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const topTradersSectionRef = useRef<SectionRefreshHandle>(null);
     const defiSectionRef = useRef<SectionRefreshHandle>(null);
     const nftsSectionRef = useRef<SectionRefreshHandle>(null);
+    const watchlistSectionRef = useRef<SectionRefreshHandle>(null);
     const trendingTokensRef = useRef<SectionRefreshHandle>(null);
     const trendingPerpsRef = useRef<SectionRefreshHandle>(null);
     const trendingPredictionsRef = useRef<SectionRefreshHandle>(null);
@@ -72,6 +75,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
     const isDeFiEnabled = useSelector(selectDeFiPositionsSectionEnabled);
     const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
+    const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
     const isMusdConversionEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
     );
@@ -100,15 +104,16 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       useNetworkEnablement();
     const { detectNfts, abortDetection } = useNftDetection();
     const popularNetworksKey = popularNetworks.join(',');
-    const areAllPopularNetworksEnabled = useMemo(
-      () =>
-        popularNetworks.every((chainId) =>
+    const areAllPopularNetworksEnabled = useMemo(() => {
+      if (popularNetworksKey === '') {
+        return true;
+      }
+      return popularNetworksKey
+        .split(',')
+        .every((chainId) =>
           isNetworkEnabled(chainId as Parameters<typeof isNetworkEnabled>[0]),
-        ),
-      // popularNetworksKey stabilizes by content; popularNetworks is a new array ref every render from the hook
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [isNetworkEnabled, popularNetworksKey],
-    );
+        );
+    }, [isNetworkEnabled, popularNetworksKey]);
 
     // useFocusEffect (not useEffect) so we run every time the user focuses this screen
     // (e.g. switches to Wallet tab or returns from a section). With useEffect we would
@@ -145,6 +150,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         const sections: { name: HomeSectionName; enabled: boolean }[] = [
           { name: HomeSectionNames.CASH, enabled: isCashSectionEnabled },
           { name: HomeSectionNames.TOKENS, enabled: true },
+          { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
           { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
           { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
           {
@@ -175,6 +181,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       return [
         { name: HomeSectionNames.CASH, enabled: isCashSectionEnabled },
         { name: HomeSectionNames.TOKENS, enabled: true },
+        { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
         { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
         { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
         {
@@ -192,6 +199,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       isDeFiEnabled,
       hasNfts,
       isTopTradersEnabled,
+      isWatchlistEnabled,
     ]);
 
     const totalSectionsLoaded = enabledSections.length;
@@ -208,6 +216,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       await Promise.allSettled([
         cashSectionRef.current?.refresh(),
         tokensSectionRef.current?.refresh(),
+        watchlistSectionRef.current?.refresh(),
         perpsSectionRef.current?.refresh(),
         predictionsSectionRef.current?.refresh(),
         topTradersSectionRef.current?.refresh(),
@@ -315,6 +324,13 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               totalSectionsLoaded={totalSectionsLoaded}
               mode={sectionMode}
             />
+            {isWatchlistEnabled && (
+              <WatchlistSection
+                ref={watchlistSectionRef}
+                sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
+                totalSectionsLoaded={totalSectionsLoaded}
+              />
+            )}
             {isPerpsEnabled &&
               (() => {
                 const perpsContent = (
@@ -362,6 +378,13 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             totalSectionsLoaded={totalSectionsLoaded}
             mode={sectionMode}
           />
+          {isWatchlistEnabled && (
+            <WatchlistSection
+              ref={watchlistSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+          )}
           {isPerpsEnabled &&
             (perpsProvidersHoisted ? (
               <HomepagePerpsHomeSlot
