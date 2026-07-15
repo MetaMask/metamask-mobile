@@ -11,96 +11,103 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: () => ({
-    styles: {
-      optionsList: {},
-      optionRow: {},
-      optionRowSelected: {},
-      optionContent: {},
-      optionNameRow: {},
-      optionName: {},
-      testnetTag: {},
-      testnetDot: {},
-      checkIcon: {},
-    },
-  }),
-}));
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text, Pressable } = jest.requireActual('react-native');
 
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text: RNText } = jest.requireActual('react-native');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const MockText = ({ children, ...props }: any) => (
-    <RNText {...props}>{children}</RNText>
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      {
+        children,
+        testID,
+        goBack,
+      }: {
+        children?: React.ReactNode;
+        testID?: string;
+        goBack?: () => void;
+      },
+      ref: React.Ref<{
+        onCloseBottomSheet: (callback?: () => void) => void;
+        onOpenBottomSheet: (callback?: () => void) => void;
+      }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: (callback?: () => void) => {
+          callback?.();
+          goBack?.();
+        },
+        onOpenBottomSheet: (callback?: () => void) => {
+          callback?.();
+        },
+      }));
+
+      return <View testID={testID}>{children}</View>;
+    },
   );
-  MockText.displayName = 'Text';
+  MockBottomSheet.displayName = 'BottomSheet';
+
   return {
-    __esModule: true,
-    default: MockText,
-    TextVariant: {
-      HeadingMD: 'HeadingMD',
-      BodyMDMedium: 'BodyMDMedium',
-      BodyXS: 'BodyXS',
-      BodySM: 'BodySM',
+    BottomSheet: MockBottomSheet,
+    BottomSheetHeader: ({
+      children,
+      onClose,
+    }: {
+      children?: React.ReactNode;
+      onClose?: () => void;
+    }) => (
+      <View>
+        <Text>{children}</Text>
+        <Pressable testID="header-close" onPress={onClose} />
+      </View>
+    ),
+    ListItemSelect: ({
+      title,
+      description,
+      titleEndAccessory,
+      onPress,
+      testID,
+      isSelected,
+      accessibilityRole,
+      accessibilityState,
+    }: {
+      title?: string;
+      description?: string;
+      titleEndAccessory?: React.ReactNode;
+      onPress?: () => void;
+      testID?: string;
+      isSelected?: boolean;
+      accessibilityRole?: string;
+      accessibilityState?: { selected?: boolean };
+    }) => (
+      <Pressable
+        testID={testID}
+        onPress={onPress}
+        accessibilityRole={accessibilityRole}
+        accessibilityState={accessibilityState}
+      >
+        <Text>{title}</Text>
+        {titleEndAccessory}
+        <Text>{description}</Text>
+        {isSelected ? <View testID={`${testID}-selected`} /> : null}
+      </Pressable>
+    ),
+    Tag: ({
+      children,
+      severity,
+    }: {
+      children?: React.ReactNode;
+      severity?: string;
+    }) => <Text testID={`tag-${severity}`}>{children}</Text>,
+    TagSeverity: {
+      Warning: 'Warning',
+      Neutral: 'Neutral',
     },
-    TextColor: { Alternative: 'Alternative', Warning: 'Warning' },
   };
 });
-
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
-  const { View } = jest.requireActual('react-native');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    default: (props: any) => <View testID="icon" {...props} />,
-    IconName: { Check: 'Check' },
-    IconSize: { Md: 'Md' },
-    IconColor: { Primary: 'Primary' },
-  };
-});
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    const mockReact = jest.requireActual('react') as any;
-    const MockBottomSheet = mockReact.forwardRef(
-      ({ children, onClose, testID }: any, _ref: any) => (
-        <View testID={testID} onTouchEnd={onClose}>
-          {children}
-        </View>
-      ),
-    );
-    MockBottomSheet.displayName = 'BottomSheet';
-    return { __esModule: true, default: MockBottomSheet };
-  },
-);
-/* eslint-enable @typescript-eslint/no-explicit-any */
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return {
-      __esModule: true,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: ({ children, onClose }: any) => (
-        <View>
-          {children}
-          <View testID="header-close" onTouchEnd={onClose} />
-        </View>
-      ),
-    };
-  },
-);
 
 const mockUsePerpsProvider = usePerpsProvider as jest.Mock;
 
 const defaultProps = {
-  isVisible: true,
   onClose: jest.fn(),
   onOptionSelect: jest.fn(),
   testID: 'provider-sheet',
@@ -114,20 +121,20 @@ beforeEach(() => {
 });
 
 describe('PerpsProviderSelectorSheet', () => {
-  it('returns null when not visible', () => {
-    const { toJSON } = render(
-      <PerpsProviderSelectorSheet {...defaultProps} isVisible={false} />,
-    );
-
-    expect(toJSON()).toBeNull();
-  });
-
-  it('renders when visible', () => {
+  it('renders the sheet', () => {
     const { getByTestId } = render(
       <PerpsProviderSelectorSheet {...defaultProps} />,
     );
 
-    expect(getByTestId('provider-sheet')).toBeTruthy();
+    expect(getByTestId('provider-sheet')).toBeOnTheScreen();
+  });
+
+  it('renders the title string in the header', () => {
+    const { getByText } = render(
+      <PerpsProviderSelectorSheet {...defaultProps} />,
+    );
+
+    expect(getByText('perps.provider_selector.title')).toBeOnTheScreen();
   });
 
   it('renders only options matching availableProviders', () => {
@@ -178,7 +185,7 @@ describe('PerpsProviderSelectorSheet', () => {
     );
   });
 
-  it('shows check icon for selected option', () => {
+  it('marks the selected option as selected', () => {
     const { getByTestId } = render(
       <PerpsProviderSelectorSheet
         {...defaultProps}
@@ -187,16 +194,29 @@ describe('PerpsProviderSelectorSheet', () => {
     );
 
     expect(
-      getByTestId('provider-sheet-check-hyperliquid-mainnet'),
-    ).toBeTruthy();
+      getByTestId('provider-sheet-option-hyperliquid-mainnet-selected'),
+    ).toBeOnTheScreen();
   });
 
-  it('shows testnet tag for testnet options', () => {
-    const { getAllByText } = render(
+  it('renders Mainnet and Testnet tags', () => {
+    const { getAllByText, getAllByTestId } = render(
       <PerpsProviderSelectorSheet {...defaultProps} />,
     );
 
-    // Testnet network label is rendered for testnet options
     expect(getAllByText('Testnet').length).toBeGreaterThan(0);
+    expect(getAllByText('Mainnet').length).toBeGreaterThan(0);
+    expect(getAllByTestId('tag-Warning').length).toBeGreaterThan(0);
+    expect(getAllByTestId('tag-Neutral').length).toBeGreaterThan(0);
+  });
+
+  it('closes the sheet when header close is pressed', () => {
+    const onClose = jest.fn();
+    const { getByTestId } = render(
+      <PerpsProviderSelectorSheet {...defaultProps} onClose={onClose} />,
+    );
+
+    fireEvent.press(getByTestId('header-close'));
+
+    expect(onClose).toHaveBeenCalled();
   });
 });
