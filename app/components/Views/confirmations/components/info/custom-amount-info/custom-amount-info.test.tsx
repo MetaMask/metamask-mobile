@@ -858,7 +858,7 @@ describe('CustomAmountInfo', () => {
       expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
 
-    it('retains the existing pending amount UI for non-Money transactions', () => {
+    it('shows amount-update loading state for non-Money transactions', async () => {
       const deferred = createDeferredPromise();
       useTransactionCustomAmountMock.mockReturnValue({
         ...useTransactionCustomAmountMock(),
@@ -868,8 +868,13 @@ describe('CustomAmountInfo', () => {
 
       fireEvent.press(getByTestId('deposit-keyboard-done-button'));
 
-      expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
-      expect(queryByTestId('bridge-fee-row-skeleton')).not.toBeOnTheScreen();
+      expect(queryByTestId('deposit-keyboard')).not.toBeOnTheScreen();
+      expect(getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+
+      await act(async () => {
+        deferred.resolve();
+        await deferred.promise;
+      });
     });
   });
 
