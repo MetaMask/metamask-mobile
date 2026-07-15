@@ -16,6 +16,7 @@ import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCa
 import { Hex } from '@metamask/utils';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useAssetFiatFormatter } from '../pay/useAssetFiatFormatter';
+import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
@@ -42,6 +43,15 @@ jest.mock('../pay/useAssetFiatFormatter', () => ({
   useAssetFiatFormatter: jest.fn(),
 }));
 const useAssetFiatFormatterMock = jest.mocked(useAssetFiatFormatter);
+
+jest.mock('../tokens/useTokenFiatRates', () => ({
+  useTokenFiatRates: jest.fn(),
+}));
+const useTokenFiatRatesMock = jest.mocked(useTokenFiatRates);
+
+jest.mock('../../../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: jest.fn((chainId: string) => !chainId?.startsWith('0x')),
+}));
 
 jest.mock('../../../../../selectors/accountsController', () => ({
   selectInternalAccountsById: jest.fn(),
@@ -86,14 +96,18 @@ const mockAssets = {
   '0x1': [
     {
       chainId: '0x1',
+      address: '0xtoken1',
       accountType: 'eip155:1/erc20:0xtoken1',
+      balance: '100.50',
       fiat: { balance: '100.50' },
       rawBalance: '0x1234',
       symbol: 'TOKEN1',
     },
     {
       chainId: '0x1',
+      address: '0xtoken2',
       accountType: 'eip155:1/erc20:0xtoken2',
+      balance: '0',
       fiat: { balance: '0' },
       rawBalance: '0x0',
       symbol: 'TOKEN2',
@@ -102,7 +116,9 @@ const mockAssets = {
   'solana:mainnet': [
     {
       chainId: 'solana:mainnet',
+      address: 'SolTokenPubkey1',
       accountType: 'solana:mainnet/spl:0xsoltoken1',
+      balance: '50.25',
       fiat: { balance: '50.25' },
       rawBalance: '0x5678',
       symbol: 'SOLTOKEN1',
@@ -141,6 +157,10 @@ describe('useAccountTokens', () => {
       format: mockFormatFiat,
       fiatCurrency: 'USD',
     });
+
+    useTokenFiatRatesMock.mockImplementation((requests) =>
+      requests.map(() => 1),
+    );
 
     mockGetNetworkBadgeSource.mockReturnValue('network-badge-source');
     mockIsTestNet.mockReturnValue(false);
@@ -192,27 +212,35 @@ describe('useAccountTokens', () => {
       });
     });
 
-    it('formats balance in selected currency', () => {
+    it('formats balance in selected currency for EVM assets', () => {
       const { result } = renderHook(() => useAccountTokens());
 
-      result.current.forEach((asset) => {
+      const evmRows = result.current.filter((a) =>
+        (a.chainId as string).startsWith('0x'),
+      );
+      expect(evmRows.length).toBeGreaterThan(0);
+      evmRows.forEach((asset) => {
         expect(asset.balanceInSelectedCurrency).toBe('$100.50');
       });
     });
 
-    it('passes each asset balance to the fiat formatter', () => {
+    it('passes each asset balance * fiat rate to the formatter', () => {
       const balanceAssets = {
         '0x1': [
           {
             chainId: '0x1',
+            address: '0xtoken1',
             accountType: 'eip155:1/erc20:0xtoken1',
+            balance: '100',
             fiat: { balance: '100' },
             rawBalance: '0x1234',
             symbol: 'TOKEN1',
           },
           {
             chainId: '0x1',
+            address: '0xtoken2',
             accountType: 'eip155:1/erc20:0xtoken2',
+            balance: '50',
             fiat: { balance: '100.50' },
             rawBalance: '0x5678',
             symbol: 'TOKEN2',
@@ -230,11 +258,15 @@ describe('useAccountTokens', () => {
         }
         return undefined;
       });
+      useTokenFiatRatesMock.mockReturnValue([2, 3]);
 
       renderHook(() => useAccountTokens());
 
-      expect(mockFormatFiat).toHaveBeenCalledWith('100', '0x1');
-      expect(mockFormatFiat).toHaveBeenCalledWith('100.50', '0x1');
+      const calls = mockFormatFiat.mock.calls.map((args) =>
+        args[0]?.toString(),
+      );
+      expect(calls).toContain('200');
+      expect(calls).toContain('150');
     });
   });
 
@@ -293,7 +325,9 @@ describe('useAccountTokens', () => {
       '0x1': [
         {
           chainId: '0x1',
+          address: '0xtoken1',
           accountType: 'eip155:1/erc20:0xtoken1',
+          balance: '10',
           fiat: { balance: '10' },
           rawBalance: '0x1234',
           symbol: 'MAINNET_TOKEN',
@@ -302,7 +336,9 @@ describe('useAccountTokens', () => {
       '0xaa36a7': [
         {
           chainId: '0xaa36a7',
+          address: '0xnative',
           accountType: 'eip155:11155111/slip44:60',
+          balance: '1000',
           fiat: { balance: '1000' },
           rawBalance: '0x5678',
           symbol: 'SepoliaETH',
@@ -942,14 +978,41 @@ describe('useAccountTokens', () => {
   });
 
   describe('fiat formatter delegation', () => {
-    it('sets balanceInSelectedCurrency to the formatter output', () => {
+    it('sets balanceInSelectedCurrency to the formatter output for EVM assets', () => {
       mockFormatFiat.mockReturnValue('$110.00');
 
       const { result } = renderHook(() => useAccountTokens());
 
-      result.current.forEach((asset) => {
+      const evmRows = result.current.filter((a) =>
+        (a.chainId as string).startsWith('0x'),
+      );
+      expect(evmRows.length).toBeGreaterThan(0);
+      evmRows.forEach((asset) => {
         expect(asset.balanceInSelectedCurrency).toBe('$110.00');
       });
+    });
+
+    it('formats non-EVM assets using their preferred-currency fiat balance', () => {
+      mockFormatFiat.mockImplementation((v) =>
+        v === undefined ? undefined : `formatted:${String(v)}`,
+      );
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      const nonEvm = result.current.find((a) => a.chainId === 'solana:mainnet');
+      expect(nonEvm?.balanceInSelectedCurrency).toBe('formatted:50.25');
+    });
+
+    it('does not use useTokenFiatRates output for non-EVM assets', () => {
+      useTokenFiatRatesMock.mockReturnValue([999]);
+      mockFormatFiat.mockImplementation((v) =>
+        v === undefined ? undefined : `formatted:${String(v)}`,
+      );
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      const nonEvm = result.current.find((a) => a.chainId === 'solana:mainnet');
+      expect(nonEvm?.balanceInSelectedCurrency).toBe('formatted:50.25');
     });
 
     it('propagates undefined from the formatter as a hidden fiat value', () => {
@@ -967,7 +1030,9 @@ describe('useAccountTokens', () => {
         '0x5': [
           {
             chainId: '0x5',
+            address: '0xtoken1',
             accountType: 'eip155:5/erc20:0xtoken1',
+            balance: '100.50',
             fiat: { balance: '100.50' },
             rawBalance: '0x1234',
             symbol: 'TOKEN1',
