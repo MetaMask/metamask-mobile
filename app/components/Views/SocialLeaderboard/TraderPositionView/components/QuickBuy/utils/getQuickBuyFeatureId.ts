@@ -9,6 +9,7 @@ export function getQuickBuyFeatureId(source?: QuickBuySheetSource): FeatureId {
     case 'security_trust':
       return FeatureId.QUICK_BUY_TOKEN_DETAILS;
     case 'leaderboard':
+    case 'trader_feed':
     case 'profile_position':
     case 'notification':
       return FeatureId.QUICK_BUY_FOLLOW_TRADING;

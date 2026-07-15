@@ -114,6 +114,12 @@ jest.mock('../hooks/useTokenBalance', () => ({
   useTokenBalance: () => mockUseTokenBalance(),
 }));
 
+jest.mock('../../Assets/watchlist/components/WatchlistStarButton', () => {
+  const MockedStarButton = () => null;
+  MockedStarButton.displayName = 'WatchlistStarButton';
+  return { __esModule: true, default: MockedStarButton };
+});
+
 const mockUseTokenBuyability = jest.fn();
 jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
   __esModule: true,
@@ -329,6 +335,14 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+}));
+
+const mockShowToast = jest.fn();
+jest.mock('../../../../core/ToastService/ToastService', () => ({
+  __esModule: true,
+  default: {
+    showToast: (...args: unknown[]) => mockShowToast(...args),
+  },
 }));
 
 const mockIsTokenTradingOpen = jest.fn().mockReturnValue(true);
@@ -1502,6 +1516,18 @@ describe('TokenDetails', () => {
       });
 
       expect(getTokenDetailsClosedCallCount()).toBe(2);
+    });
+  });
+
+  describe('watchlist star button', () => {
+    it('passes starButton ReactNode to header', () => {
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          starButton: expect.anything(),
+        }),
+      );
     });
   });
 });

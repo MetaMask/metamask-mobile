@@ -352,32 +352,31 @@ jest.mock(
   },
 );
 
-// Mock BottomSheetDialog so that onCloseDialog synchronously calls onClose,
+// Mock MMDS BottomSheetDialog so that onCloseDialog synchronously calls onClose,
 // allowing keypad close() to work in tests (the real component uses reanimated
 // withTiming which never completes in JSDOM).
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog/BottomSheetDialog',
-  () => {
-    const MockReact = jest.requireActual('react');
-    return {
-      __esModule: true,
-      default: MockReact.forwardRef(
-        (
-          {
-            children,
-            onClose,
-          }: { children: React.ReactNode; onClose?: () => void },
-          dialogRef: React.Ref<{ onCloseDialog: () => void }>,
-        ) => {
-          MockReact.useImperativeHandle(dialogRef, () => ({
-            onCloseDialog: () => onClose?.(),
-          }));
-          return children;
-        },
-      ),
-    };
-  },
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const MockReact = jest.requireActual('react');
+
+  return {
+    ...actual,
+    BottomSheetDialog: MockReact.forwardRef(
+      (
+        {
+          children,
+          onClose,
+        }: { children: React.ReactNode; onClose?: () => void },
+        dialogRef: React.Ref<{ onCloseDialog: () => void }>,
+      ) => {
+        MockReact.useImperativeHandle(dialogRef, () => ({
+          onCloseDialog: () => onClose?.(),
+        }));
+        return children;
+      },
+    ),
+  };
+});
 
 // Mock gas included support hooks
 const mockUseIsGasIncludedSTXSendBundleSupported = jest.fn();

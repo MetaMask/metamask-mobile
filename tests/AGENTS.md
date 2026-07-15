@@ -9,10 +9,15 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 - **tests/** — `tests/framework/`, `tests/api-mocking/`, `tests/docs/`, `tests/regression/`, `tests/smoke/`, etc. Framework, fixtures, mocking, regression/smoke specs.
 - **wdio/** — `wdio/helpers/`, `wdio/screen-objects/`, `wdio/utils/`. Legacy WebdriverIO/Appium — **deprecated**. Use Detox + tests/smoke or Playwright for performance.
 - **component view tests** — `app/**/*.view.test.tsx`. Jest component view tests.
+- **integration tests** — `app/**/*.integration.test.ts?(x)`. Jest controller-app integration tests that use `tests/integration/` harnesses and `jest.config.integration.js`.
 
 ### Component-View Tests (Mandatory)
 
 - [tests/component-view/AGENTS.md](component-view/AGENTS.md) — Agent index for component view tests: framework, canonical skill, run commands, enforcement.
+
+### Integration Tests (Optional — PoC)
+
+- [tests/integration/AGENTS.md](integration/AGENTS.md) — Agent index for integration tests: harnesses, layer boundaries, canonical skill, run commands, enforcement.
 
 ### E2E Tests (Detox smoke/regression + Appium smoke)
 
@@ -31,6 +36,7 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 - [tests/docs/analytics-e2e.md](docs/analytics-e2e.md) — MetaMetrics E2E: `analyticsExpectations` on `withFixtures`, presets, `runAnalyticsExpectations`.
 - [tests/docs/CONTROLLER_MOCKING.md](docs/CONTROLLER_MOCKING.md) — Controller mocking.
 - [tests/docs/MODULE_MOCKING.md](docs/MODULE_MOCKING.md) — Module mocking.
+- [tests/integration/AGENTS.md](integration/AGENTS.md) — Integration test harnesses and rules.
 - [tests/framework/index.ts](framework/index.ts) — Assertions, Gestures, Matchers, Utilities, PlaywrightAdapter.
 - [tests/framework/fixtures/FixtureHelper.ts](framework/fixtures/FixtureHelper.ts), [FixtureBuilder.ts](framework/fixtures/FixtureBuilder.ts) — Fixtures.
 - [AGENTS.md](../AGENTS.md) — Root index; commands, architecture.
@@ -43,4 +49,5 @@ Unit tests under `tests/` (e.g. framework tests): [docs/testing/unit-testing.md]
 - **tests/** — Use `withFixtures` + `FixtureBuilder`; Page Object methods only; no `TestHelpers.delay()`; selectors in `tests/selectors/` or page folder; import from `tests/framework/index.ts`. Detox commands: [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md). Appium smoke: [docs/testing/appium-smoke-testing.md](../docs/testing/appium-smoke-testing.md).
 - **tests/** — Framework/mocking: read tests/docs/README and MOCKING; keep exports in `tests/framework/index.ts`. Regression/smoke: same as e2e (withFixtures, Page Objects, no delay). Yarn only.
 - **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime`); use `waitFor` or real delays. See [docs/testing/component-view-tests.md](../docs/testing/component-view-tests.md).
+- **integration tests** — Use `tests/integration/harnesses/<domain>.ts`; no test-local `jest.mock(...)`; run with `yarn jest -c jest.config.integration.js`. See [tests/integration/AGENTS.md](integration/AGENTS.md).
 - **wdio/** — Do not extend. New work: Detox + tests/smoke|regression or Appwright (`tests/`). If maintaining: legacy section in [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md).

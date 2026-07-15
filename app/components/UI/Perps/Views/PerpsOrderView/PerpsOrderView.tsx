@@ -79,8 +79,6 @@ import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
 import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
   getPerpsDisplaySymbol,
@@ -90,8 +88,13 @@ import {
   type OrderParams,
   type OrderType,
   type Position,
+  type TPSLTrackingData,
   ORDER_SLIPPAGE_CONFIG,
 } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller/constants';
 import { bpsToPercent } from '../../constants/slippageConfig';
 import {
   PerpsOrderProvider,
@@ -113,6 +116,7 @@ import {
 } from '../../hooks';
 import {
   usePerpsLiveAccount,
+  usePerpsLiveFocusedPrice,
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../hooks/stream';
@@ -120,6 +124,7 @@ import { usePerpsConnection } from '../../hooks/usePerpsConnection';
 import { usePerpsEstimatedSlippage } from '../../hooks/usePerpsEstimatedSlippage';
 import { usePerpsMaxSlippage } from '../../hooks/usePerpsMaxSlippage';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
+import { useABTest } from '../../../../../hooks/useABTest';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
@@ -127,12 +132,14 @@ import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import {
-  selectPerpsButtonColorTestVariant,
+  selectPerpsAdvancedChartEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsTradeWithAnyTokenEnabledFlag,
 } from '../../selectors/featureFlags';
-import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
-import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
+import {
+  BUTTON_COLOR_VARIANTS,
+  PERPS_BUTTON_COLOR_AB_TEST_KEY,
+} from '../../abTestConfig';
 import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -176,15 +183,25 @@ interface OrderRouteParams {
   fromTokenDetails?: boolean;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
   source?: string;
+  /** Analytics: chart library active when the order flow started */
+  chartLibrary?: string;
   defaultSzDecimals?: number;
   defaultMaxLeverage?: number;
 }
+
+const getChartLibrary = (isAdvancedChartEnabled: boolean) =>
+  isAdvancedChartEnabled
+    ? PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED
+    : PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
 
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
   defaultSzDecimals?: number;
   defaultMaxLeverage?: number;
 }
+
+const flipDirection = (direction: 'long' | 'short'): 'long' | 'short' =>
+  direction === 'long' ? 'short' : 'long';
 
 /**
  * PerpsOrderViewContentBase
@@ -210,6 +227,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     (TrendingFeedSessionManager.getInstance().isFromTrending
       ? 'trending'
       : undefined);
+  const isAdvancedChartEnabled = useSelector(
+    selectPerpsAdvancedChartEnabledFlag,
+  );
+  const chartLibrary =
+    route.params?.chartLibrary ?? getChartLibrary(isAdvancedChartEnabled);
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -350,10 +372,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // A/B Testing: Button color test (TAT-1937)
   const {
     variantName: buttonColorVariant,
-    isEnabled: isButtonColorTestEnabled,
-  } = usePerpsABTest({
-    test: BUTTON_COLOR_TEST,
-    featureFlagSelector: selectPerpsButtonColorTestVariant,
+    isActive: isButtonColorTestEnabled,
+  } = useABTest(PERPS_BUTTON_COLOR_AB_TEST_KEY, BUTTON_COLOR_VARIANTS, {
+    experimentName: 'Long/Short Button Color Test',
+    variationNames: { control: 'White/White', colors: 'Green/Red' },
   });
 
   // Markets data for navigation
@@ -378,6 +400,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [isSlippageVisible, setIsSlippageVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
+
+  // The Auto Close sheet renders the RoE sign on a badge and persists only the
+  // trigger price — not the sign. Track the chosen sign here so order-view
+  // validation can accept a signed trigger (a negative take profit or a
+  // gain-side stop loss) instead of rejecting it with the classic
+  // long/short side rules. Defaults match the sheet (+ TP / - SL).
+  const [takeProfitSign, setTakeProfitSign] = useState<'+' | '-'>('+');
+  const [stopLossSign, setStopLossSign] = useState<'+' | '-'>('-');
 
   // Max slippage from persisted controller state via hook so the component
   // never reaches into PerpsController directly (perps anti-pattern rule).
@@ -408,12 +438,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         : PERPS_EVENT_VALUE.DIRECTION.SHORT,
     [PERPS_EVENT_PROPERTY.SOURCE]:
       source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: chartLibrary,
+    [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
     [PERPS_EVENT_PROPERTY.OPEN_POSITION]: currentMarketPosition ? 1 : 0,
     [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
       isServiceInterruptionBannerEnabled,
-    ...(isButtonColorTestEnabled && {
-      [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-    }),
   };
 
   usePerpsEventTracking({
@@ -447,13 +476,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return unsubscribe;
   }, [isDataReady, isInitialized, orderForm.asset, subscribeToPrices]);
 
-  // Get real-time price data using new stream architecture (deferred)
-  // Uses single WebSocket subscription with component-level debouncing
+  // Fast focused price via activeAssetCtx projection (~0.5 s, TAT-3334)
+  const focusedPriceUpdate = usePerpsLiveFocusedPrice({
+    symbol: isDataReady ? orderForm.asset : '',
+    enabled: isDataReady,
+  });
+
+  // allMids baseline as first-render fallback (~2 s)
   const prices = usePerpsLivePrices({
-    symbols: isDataReady ? [orderForm.asset] : [], // Defer subscription
+    symbols: isDataReady ? [orderForm.asset] : [],
     throttleMs: !isDataReady ? 0 : 1000,
   });
-  const currentPrice = prices[orderForm.asset];
+
+  // Prefer fast focused price; fall back to allMids baseline
+  const currentPrice = focusedPriceUpdate ?? prices[orderForm.asset];
 
   // Get top of book data for maker/taker fee determination (deferred)
   const currentTopOfBook = usePerpsTopOfBook({
@@ -911,6 +947,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         _position?: Position,
         takeProfitPrice?: string,
         stopLossPrice?: string,
+        trackingData?: TPSLTrackingData,
       ) => {
         // Order flow: no position; just persist TP/SL in form state
         const tpToSet = takeProfitPrice || undefined;
@@ -918,6 +955,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         setTakeProfitPrice(tpToSet);
         setStopLossPrice(slToSet);
+
+        // Recover the RoE sign from the signed percentage the sheet reports so
+        // validation accepts a signed trigger. A negative TP percentage is a
+        // gain-side flip (-); a positive SL percentage is a gain-side flip (+).
+        // Absent/zero percentage falls back to the natural sign.
+        setTakeProfitSign(
+          (trackingData?.takeProfitPercentage ?? 0) < 0 ? '-' : '+',
+        );
+        setStopLossSign(
+          (trackingData?.stopLossPercentage ?? 0) > 0 ? '+' : '-',
+        );
       },
     });
   }, [
@@ -1088,7 +1136,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             orderForm.direction === 'long'
               ? PERPS_EVENT_VALUE.DIRECTION.LONG
               : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-          [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
         });
       }
 
@@ -1206,6 +1253,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             estimatedPoints: feeResults.estimatedPoints,
             inputMethod: inputMethodRef.current,
             source,
+            chartLibrary,
             tradeAction: currentMarketPosition
               ? 'increase_exposure'
               : 'create_position',
@@ -1303,8 +1351,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       feeResults.feeDiscountPercentage,
       feeResults.estimatedPoints,
       source,
+      chartLibrary,
       isButtonColorTestEnabled,
-      buttonColorVariant,
       isTradeWithAnyTokenEnabled,
       depositAmount,
       activeTransactionMeta,
@@ -1419,12 +1467,26 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const tpslPriceType = isLimitWithPrice ? 'entry' : 'current';
 
+  // The RoE sign decides which side of the reference price the trigger must
+  // sit on, mirroring usePerpsTPSLForm: a + take profit / - stop loss keep the
+  // natural side, while a signed flip (- TP / + SL) accepts the opposite side.
+  // Passing the effective direction lets the existing price-side checks respect
+  // the sign without changing their logic, so a signed trigger isn't rejected.
+  const takeProfitEffectiveDirection =
+    takeProfitSign === '+'
+      ? orderForm.direction
+      : flipDirection(orderForm.direction);
+  const stopLossEffectiveDirection =
+    stopLossSign === '-'
+      ? orderForm.direction
+      : flipDirection(orderForm.direction);
+
   const isTakeProfitPriceInvalid = Boolean(
     orderForm.takeProfitPrice?.trim() &&
       validationReferencePrice > 0 &&
       !isValidTakeProfitPrice(orderForm.takeProfitPrice, {
         currentPrice: validationReferencePrice,
-        direction: orderForm.direction,
+        direction: takeProfitEffectiveDirection,
       }),
   );
 
@@ -1433,7 +1495,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       validationReferencePrice > 0 &&
       !isValidStopLossPrice(orderForm.stopLossPrice, {
         currentPrice: validationReferencePrice,
-        direction: orderForm.direction,
+        direction: stopLossEffectiveDirection,
       }),
   );
 
@@ -1872,27 +1934,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             testID={PerpsOrderViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
           />
 
-          {buttonColorVariant === 'monochrome' ? (
-            <DSButton
-              variant={ButtonVariant.Primary}
-              size={ButtonSizeRNDesignSystem.Lg}
-              isFullWidth
-              onPress={() => handlePlaceOrder()}
-              isDisabled={
-                !orderValidation.isValid ||
-                isPlacingOrder ||
-                doesStopLossRiskLiquidation ||
-                hasInvalidTPSL ||
-                isAtOICap ||
-                shouldBlockBecauseOfFeesLoading ||
-                hasBlockingPayAlerts
-              }
-              isLoading={isPlacingOrder}
-              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-            >
-              {placeOrderLabel}
-            </DSButton>
-          ) : (
+          {buttonColorVariant === 'colors' ? (
             <ButtonSemantic
               severity={
                 orderForm.direction === 'long'
@@ -1916,6 +1958,26 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             >
               {placeOrderLabel}
             </ButtonSemantic>
+          ) : (
+            <DSButton
+              variant={ButtonVariant.Primary}
+              size={ButtonSizeRNDesignSystem.Lg}
+              isFullWidth
+              onPress={() => handlePlaceOrder()}
+              isDisabled={
+                !orderValidation.isValid ||
+                isPlacingOrder ||
+                doesStopLossRiskLiquidation ||
+                hasInvalidTPSL ||
+                isAtOICap ||
+                shouldBlockBecauseOfFeesLoading ||
+                hasBlockingPayAlerts
+              }
+              isLoading={isPlacingOrder}
+              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
+            >
+              {placeOrderLabel}
+            </DSButton>
           )}
         </View>
       )}

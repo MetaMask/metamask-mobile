@@ -455,6 +455,42 @@ describe('ActivityListItemRow — row content', () => {
     expect(getByTestId('avatar-token-USDC')).toBeOnTheScreen();
   });
 
+  it('shows "Send cancelled" and hides the amount for a cancelled send', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'cancelled',
+      to: '0x1234567890',
+      token: { amount: '10', symbol: 'USDC', direction: 'out' },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Send cancelled',
+    );
+    // The amount is suppressed — a cancelled send moved nothing.
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+    expect(queryByTestId('activity-secondary-amount-0xabc')).toBeNull();
+  });
+
+  it('shows "Send failed" and hides the amount for a failed send', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'failed',
+      to: '0x1234567890',
+      token: { amount: '10', symbol: 'USDC', direction: 'out' },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Send failed',
+    );
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+  });
+
   it('renders receive title, sender subtitle, and positive primary amount', () => {
     const item = makeItem({
       type: 'receive',
@@ -1115,6 +1151,64 @@ describe('ActivityListItemRow — row content', () => {
     expect(getByTestId('avatar-token-USDC')).toBeOnTheScreen();
 
     jest.mocked(useTokensData).mockReturnValue({});
+  });
+
+  it('resolves a lending-deposit token symbol/decimals from the tokens API and scales the amount', () => {
+    const assetId =
+      'eip155:42161/erc20:0x0000000000000000000000000000000000000002';
+    jest.mocked(useTokensData).mockReturnValue({
+      [assetId]: {
+        assetId,
+        symbol: 'USDT',
+        decimals: 6,
+        name: 'Tether USD',
+        iconUrl: '',
+      },
+    });
+
+    // The adapter carries only the atomic amount + asset id (the tx targets the
+    // pool, so symbol/decimals aren't in local metadata). Without decimals the
+    // amount would render unscaled (10,000 instead of 0.01).
+    const item = makeItem({
+      type: 'lendingDeposit',
+      status: 'success',
+      chainId: 'eip155:42161',
+      sourceToken: { amount: '10000', direction: 'out', assetId },
+    });
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-0.01 USDT',
+    );
+    expect(getByTestId('avatar-token-USDT')).toBeOnTheScreen();
+
+    jest.mocked(useTokensData).mockReturnValue({});
+  });
+
+  it('renders a lending-deposit amount from adapter-provided decimals without an API lookup', () => {
+    // When the adapter already resolved symbol/decimals, the row scales the
+    // amount without depending on the tokens API (which returns nothing here).
+    const item = makeItem({
+      type: 'lendingDeposit',
+      status: 'success',
+      sourceToken: {
+        amount: '10000',
+        decimals: 6,
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-0.01 USDC',
+    );
   });
 
   it('renders cross-token bridge as swapped with token pair subtitle', () => {
@@ -1814,12 +1908,12 @@ describe('getLocalTransactionStatus — all local transaction status paths', () 
     expect(getLocalTransactionStatus(group)).toBe('failed');
   });
 
-  it('maps cancelled (cancel-type tx) → failed', () => {
+  it('maps a confirmed cancel-type tx → cancelled (not failed)', () => {
     const group = makeGroup({
       status: TransactionStatus.confirmed,
       type: 'cancel',
     });
-    expect(getLocalTransactionStatus(group)).toBe('failed');
+    expect(getLocalTransactionStatus(group)).toBe('cancelled');
   });
 
   it('maps submitted → pending', () => {
