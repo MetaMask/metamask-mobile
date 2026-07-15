@@ -74,6 +74,14 @@ on:
         description: 'TestMu AI access key. Required for TestMu jobs if LT_ACCESS_KEY secret is not configured.'
         required: false
         type: string
+      testmu_app_url_android_onboarding:
+        description: 'TestMu AI Android Onboarding App URL (lt://...). Optional — leave blank to build and upload automatically.'
+        required: false
+        type: string
+      testmu_app_url_android_imported_wallet:
+        description: 'TestMu AI Android Imported Wallet App URL (lt://...). Optional — leave blank to build and upload automatically.'
+        required: false
+        type: string
   workflow_call:
     inputs:
       description:
@@ -461,18 +469,26 @@ jobs:
         ensure-fingerprint,
         check-testmu-credentials,
       ]
-    # Build/upload when not reusing main, or when main reuse lookup found nothing.
-    # Fingerprint job must succeed (same as ci.yml native-build-fingerprint → E2E).
-    # Download-miss → fresh dual Gradle fallback is inside build-android-upload-to-browserstack.
+    # Build/upload when BrowserStack apps are needed (not reusing main / reuse miss),
+    # or when TestMu still needs lt:// URLs even if BrowserStack URLs were provided manually.
     if: >-
       always() &&
       !cancelled() &&
       (needs.resolve-main-browserstack-urls.result == 'skipped' || needs.resolve-main-browserstack-urls.result == 'success') &&
       needs.ensure-fingerprint.result == 'success' &&
-      (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet) &&
       (
-        !inputs.reuse_main_builds ||
-        needs.resolve-main-browserstack-urls.outputs.found != 'true'
+          (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet) &&
+          (
+            !inputs.reuse_main_builds ||
+            needs.resolve-main-browserstack-urls.outputs.found != 'true'
+          )
+        ) ||
+        (
+          inputs.enable_testmu_benchmark != false &&
+          needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
+          !inputs.testmu_app_url_android_onboarding &&
+          !inputs.testmu_app_url_android_imported_wallet
+        )
       )
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
@@ -555,14 +571,14 @@ jobs:
         compute-test-selection,
         check-testmu-credentials,
       ]
-    if: always() && !failure() && !cancelled() && inputs.enable_testmu_benchmark != false && needs.check-testmu-credentials.outputs.testmu_ready == 'true' && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && needs.trigger-android-dual-versions.outputs.without-srp-testmu-url != ''
+    if: always() && !failure() && !cancelled() && inputs.enable_testmu_benchmark != false && needs.check-testmu-credentials.outputs.testmu_ready == 'true' && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.testmu_app_url_android_onboarding != '' || needs.trigger-android-dual-versions.outputs.without-srp-testmu-url != '')
     with:
       platform: android
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
-      testmu_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-testmu-url }}
+      testmu_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-testmu-url || inputs.testmu_app_url_android_onboarding }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-testmu-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       testmu_build_name: ${{ needs.set-build-names.outputs.testmu_android_build_name }}
@@ -697,14 +713,14 @@ jobs:
         compute-test-selection,
         check-testmu-credentials,
       ]
-    if: always() && !cancelled() && inputs.enable_testmu_benchmark != false && needs.check-testmu-credentials.outputs.testmu_ready == 'true' && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && needs.trigger-android-dual-versions.outputs.with-srp-testmu-url != ''
+    if: always() && !cancelled() && inputs.enable_testmu_benchmark != false && needs.check-testmu-credentials.outputs.testmu_ready == 'true' && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.testmu_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-testmu-url != '')
     with:
       platform: android
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
-      testmu_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-testmu-url }}
+      testmu_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-testmu-url || inputs.testmu_app_url_android_imported_wallet }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-testmu-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       testmu_build_name: ${{ needs.set-build-names.outputs.testmu_android_build_name }}
