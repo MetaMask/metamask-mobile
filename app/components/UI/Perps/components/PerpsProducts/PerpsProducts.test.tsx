@@ -177,7 +177,7 @@ describe('PerpsProducts', () => {
     expect(getByText('Crypto')).toBeOnTheScreen();
   });
 
-  it('renders a leading "New" pill when recently listed markets exist', () => {
+  it('renders a trailing "New" pill when recently listed markets exist', () => {
     mockHasNewMarkets = true;
     mockCategories = [{ id: 'crypto', label: 'Crypto' }];
 
@@ -197,7 +197,7 @@ describe('PerpsProducts', () => {
     expect(queryByTestId('perps-products-new')).toBeNull();
   });
 
-  it('renders the "New" pill before category pills and navigates with the "new" filter', () => {
+  it('renders the "New" pill after category pills and navigates with the "new" filter', () => {
     mockHasNewMarkets = true;
     mockCategories = [{ id: 'crypto', label: 'Crypto' }];
 

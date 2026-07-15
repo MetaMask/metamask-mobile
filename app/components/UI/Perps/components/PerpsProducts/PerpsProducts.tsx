@@ -48,7 +48,7 @@ const PRODUCTS_ROW_COUNT = 2;
  * PerpsProducts – grid of category pills for the Perps home screen.
  *
  * Categories are driven by `MARKET_CATEGORIES` from `@metamask/perps-controller`.
- * Pills whose category has zero available markets are hidden. A leading
+ * Pills whose category has zero available markets are hidden. A trailing
  * "New" pill is shown when any market was listed within the last 30 days
  * (see `useHasNewMarkets`).
  * Tapping a pill navigates to the Markets list screen with that category
@@ -67,7 +67,7 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
   const hasNewMarkets = useHasNewMarkets();
 
   const categoriesWithLabels = useMemo(
-    () => (hasNewMarkets ? [NEW_CATEGORY, ...categories] : categories),
+    () => (hasNewMarkets ? [...categories, NEW_CATEGORY] : categories),
     [categories, hasNewMarkets],
   );
 
