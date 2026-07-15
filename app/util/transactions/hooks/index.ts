@@ -274,7 +274,7 @@ function validateRequiredQuote(
   }
 
   if (isPayTokenRequiredType) {
-    if (isValidatedDirectDeposit(data)) {
+    if (isValidatedDirectDeposit(data) || isValidatedFiatDeposit(data)) {
       return;
     }
 
@@ -333,11 +333,28 @@ function isValidatedDirectDeposit(data: TransactionData | undefined): boolean {
 
   const hasRequiredConversion = (data?.sourceAmounts ?? []).some(
     (sourceAmount) =>
-      !tokens.find((token) => token.address === sourceAmount.targetTokenAddress)
-        ?.skipIfBalance,
+      !tokens.find(
+        (token) =>
+          token.address.toLowerCase() ===
+          sourceAmount.targetTokenAddress.toLowerCase(),
+      )?.skipIfBalance,
   );
 
   return !hasRequiredConversion;
+}
+
+/**
+ * A fiat-funded deposit submits without a pay quote because the on-ramp
+ * order itself is the funding source; the flow is validated at confirmation
+ * time by the fiat no-quotes alert (see useNoPayTokenQuotesAlert), and the
+ * auto-fiat-submission hook publishes as soon as the order is created,
+ * before any pay token is ever selected on the controller.
+ *
+ * @param data - Pay state for the transaction.
+ * @returns Whether the fiat-funded submission is safe.
+ */
+function isValidatedFiatDeposit(data: TransactionData | undefined): boolean {
+  return Boolean(data?.fiatPayment?.orderId);
 }
 
 function getSmartTransactionCommonParams(state: RootState, chainId: Hex) {
