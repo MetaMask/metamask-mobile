@@ -1,16 +1,16 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { QuoteList } from './QuoteList';
-import { QuoteRowProps } from './QuoteRow';
+import { QuoteRowProps, QuoteRowViewProps } from './QuoteRow';
 import { useSelector } from 'react-redux';
 import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 
 jest.mock('./QuoteRow', () => ({
-  QuoteRowView: ({ provider, quoteRequestId }: QuoteRowProps) => {
+  QuoteRowView: ({ providerName, quoteRequestId }: QuoteRowViewProps) => {
     const { Text } = jest.requireActual('react-native');
     return (
       <Text testID={`quote-row-${quoteRequestId}`}>
-        {provider.name} - {quoteRequestId}
+        {providerName} - {quoteRequestId}
       </Text>
     );
   },

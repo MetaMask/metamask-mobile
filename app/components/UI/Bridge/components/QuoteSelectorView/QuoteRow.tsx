@@ -38,7 +38,8 @@ export interface QuoteRowProps {
   receiveAmount?: string;
 }
 
-export interface QuoteRowViewProps extends QuoteRowProps {
+export interface QuoteRowViewProps extends Omit<QuoteRowProps, 'provider'> {
+  providerName: string;
   formattedReceiveAmountFiat: string;
   destTokenSymbol?: string;
 }
@@ -46,7 +47,7 @@ export interface QuoteRowViewProps extends QuoteRowProps {
 export const QuoteRowView = React.memo(
   ({
     selected,
-    provider,
+    providerName,
     isLowestCost,
     formattedTotalCost,
     formattedReceiveAmountFiat,
@@ -94,7 +95,7 @@ export const QuoteRowView = React.memo(
                     fontWeight={FontWeight.Medium}
                     variant={TextVariantDS.BodyMd}
                   >
-                    {provider.name}
+                    {providerName}
                   </Text>
                 </View>
               </Skeleton>
@@ -151,7 +152,7 @@ export const QuoteRowView = React.memo(
   },
 );
 
-export const QuoteRow = (props: QuoteRowProps) => {
+export const QuoteRow = ({ provider, ...props }: QuoteRowProps) => {
   const destToken = useSelector(selectDestToken);
   const formattedReceiveAmountFiat = useDisplayCurrencyValue(
     props.receiveAmount,
@@ -161,6 +162,7 @@ export const QuoteRow = (props: QuoteRowProps) => {
   return (
     <QuoteRowView
       {...props}
+      providerName={provider.name}
       formattedReceiveAmountFiat={formattedReceiveAmountFiat}
       destTokenSymbol={destToken?.symbol}
     />

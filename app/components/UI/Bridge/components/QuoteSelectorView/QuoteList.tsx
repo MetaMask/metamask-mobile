@@ -31,10 +31,11 @@ export const QuoteList = ({ data }: Props) => {
   nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
-  return data.map((quote) => (
+  return data.map(({ provider, ...quote }) => (
     <QuoteRowView
       key={quote.quoteRequestId}
       {...quote}
+      providerName={provider.name}
       formattedReceiveAmountFiat={getDisplayCurrencyValue({
         token: destToken,
         amount: quote.receiveAmount,
