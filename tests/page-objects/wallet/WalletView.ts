@@ -1002,6 +1002,11 @@ class WalletView {
     );
   }
 
+  get getMoneySection(): EncapsulatedElementType {
+    return PlaywrightMatchers.getElementById('homepage-section-title-cash', {
+      exact: false,
+    });
+  }
   /** Tokens section header on the homepage. */
   get tokensSectionHeader(): EncapsulatedElementType {
     return Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION);

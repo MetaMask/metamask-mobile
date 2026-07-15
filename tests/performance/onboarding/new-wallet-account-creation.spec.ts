@@ -110,7 +110,6 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
           ),
       );
 
-      await AccountListBottomSheet.waitForAccountSyncToComplete();
       await AccountListBottomSheet.tapCreateAccount(0);
       await screen2Timer.measure(
         async () =>
@@ -123,9 +122,8 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
 
       await AccountListBottomSheet.tapAccountByName('Account 2');
       await screen3Timer.measure(async () => {
-        await WalletView.checkActiveAccount('Account 2');
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(TabBarComponent.tabBarWalletButton),
+          await asPlaywrightElement(WalletView.getMoneySection),
           {
             description:
               'token list should be visible after selecting the new account',

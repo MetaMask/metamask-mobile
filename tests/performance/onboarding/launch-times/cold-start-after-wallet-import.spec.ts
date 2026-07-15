@@ -13,7 +13,7 @@ import {
 } from '../../../flows/wallet.flow';
 import TimerHelper from '../../../framework/TimerHelper';
 
-import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
+import WalletView from '../../../page-objects/wallet/WalletView.js';
 
 test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
   test(
@@ -43,7 +43,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
       );
       await timer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(TabBarComponent.tabBarWalletButton),
+          await asPlaywrightElement(WalletView.getMoneySection),
         );
       });
 

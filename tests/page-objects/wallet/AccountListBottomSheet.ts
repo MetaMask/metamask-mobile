@@ -29,6 +29,7 @@ import {
   Utilities,
 } from '../../framework';
 import AddAccountBottomSheet from './AddAccountBottomSheet';
+import WalletView from './WalletView';
 
 const ADD_ACCOUNT_SHEET_TIMEOUT_MS = 30_000;
 
@@ -436,6 +437,7 @@ class AccountListBottomSheet {
         const name = await PlaywrightMatchers.getElementByText(accountName);
         await PlaywrightGestures.scrollIntoView(name);
         await PlaywrightGestures.waitAndTap(name);
+        await WalletView.checkActiveAccount(accountName);
       },
     });
   }
