@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  ActivityIndicator,
-  AppState,
-  Platform,
-  Share,
-  type AppStateStatus,
-} from 'react-native';
+import { ActivityIndicator, AppState, type AppStateStatus } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -165,6 +159,21 @@ jest.mock('../components/TokenDetailsInlineHeader', () => ({
   TokenDetailsInlineHeader: (props: Record<string, unknown>) =>
     mockTokenDetailsInlineHeader(props),
 }));
+
+const mockShareTokenBottomSheet = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../components/ShareTokenBottomSheet', () => {
+  const ReactLib = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: Record<string, unknown>) => {
+      mockShareTokenBottomSheet(props);
+      return ReactLib.createElement(View, { testID: 'share-token-sheet' });
+    },
+  };
+});
 
 let mockLastUseAmbientColorProp: boolean | undefined;
 let mockLatestPriceDirectionChange: ((isPositive: boolean) => void) | undefined;
@@ -1101,16 +1110,6 @@ describe('TokenDetails', () => {
   });
 
   describe('share button', () => {
-    beforeEach(() => {
-      jest
-        .spyOn(Share, 'share')
-        .mockResolvedValue({ action: Share.dismissedAction });
-    });
-
-    afterEach(() => {
-      jest.restoreAllMocks();
-    });
-
     const invokeSharePress = async () => {
       const lastCall = mockTokenDetailsInlineHeader.mock.calls.at(-1);
       const { onSharePress } = (lastCall?.[0] ?? {}) as {
@@ -1129,28 +1128,20 @@ describe('TokenDetails', () => {
       );
     });
 
-    it('calls Share.share with an encoded CAIP-19 URL when onSharePress is invoked', async () => {
+    it('opens ShareTokenBottomSheet with the share URL when onSharePress is invoked', async () => {
       render(<TokenDetails />);
+      expect(mockShareTokenBottomSheet).not.toHaveBeenCalled();
+
       await invokeSharePress();
 
-      expect(Share.share).toHaveBeenCalledWith(
+      expect(mockShareTokenBottomSheet).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: expect.stringMatching(
+          shareUrl: expect.stringMatching(
             /^https:\/\/link\.metamask\.io\/asset\?assetId=eip155/,
           ),
+          onClose: expect.any(Function),
         }),
       );
-    });
-
-    it('does not include unencoded colons or slashes in the query param', async () => {
-      render(<TokenDetails />);
-      await invokeSharePress();
-
-      const [{ url }] = (Share.share as jest.Mock).mock.calls[0];
-      const assetId = new URL(url as string).searchParams.get('assetId') ?? '';
-      const queryString = (url as string).split('?')[1] ?? '';
-      expect(decodeURIComponent(encodeURIComponent(assetId))).toBe(assetId);
-      expect(queryString).not.toContain(':');
     });
 
     it('fires TOKEN_DETAILS_SHARED with chain_id, token_symbol and token_address', async () => {
@@ -1170,27 +1161,7 @@ describe('TokenDetails', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('on Android passes message with URL and no separate url field', async () => {
-      Object.defineProperty(Platform, 'OS', {
-        value: 'android',
-        configurable: true,
-      });
-      try {
-        render(<TokenDetails />);
-        await invokeSharePress();
-
-        const [args] = (Share.share as jest.Mock).mock.calls[0];
-        expect(args.message).toMatch(/link\.metamask\.io/);
-        expect(args.url).toBeUndefined();
-      } finally {
-        Object.defineProperty(Platform, 'OS', {
-          value: 'ios',
-          configurable: true,
-        });
-      }
-    });
-
-    it('does not share when caip19AssetId cannot be resolved', async () => {
+    it('does not open the share sheet when caip19AssetId cannot be resolved', async () => {
       mockRouteParams.mockReturnValue({
         ...defaultRouteParams,
         chainId: undefined,
@@ -1199,10 +1170,10 @@ describe('TokenDetails', () => {
       render(<TokenDetails />);
       await invokeSharePress();
 
-      expect(Share.share).not.toHaveBeenCalled();
+      expect(mockShareTokenBottomSheet).not.toHaveBeenCalled();
     });
 
-    it('resolves caip19AssetId directly when address is already CAIP-19 format', async () => {
+    it('passes an encoded CAIP-19 URL when address is already CAIP-19 format', async () => {
       const caipAddress =
         'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f';
       mockRouteParams.mockReturnValue({
@@ -1213,11 +1184,27 @@ describe('TokenDetails', () => {
       render(<TokenDetails />);
       await invokeSharePress();
 
-      expect(Share.share).toHaveBeenCalledWith(
+      expect(mockShareTokenBottomSheet).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: expect.stringContaining(encodeURIComponent(caipAddress)),
+          shareUrl: expect.stringContaining(encodeURIComponent(caipAddress)),
         }),
       );
+    });
+
+    it('closes ShareTokenBottomSheet when onClose is invoked', async () => {
+      const { getByTestId, queryByTestId } = render(<TokenDetails />);
+      await invokeSharePress();
+
+      expect(getByTestId('share-token-sheet')).toBeTruthy();
+
+      const { onClose } = (mockShareTokenBottomSheet.mock.calls.at(-1)?.[0] ??
+        {}) as { onClose: () => void };
+
+      act(() => {
+        onClose();
+      });
+
+      expect(queryByTestId('share-token-sheet')).toBeNull();
     });
   });
 

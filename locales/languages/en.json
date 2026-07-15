@@ -4410,6 +4410,19 @@
     "once_label": "Once",
     "no_alerts": "No price alerts set for this asset."
   },
+  "share_token": {
+    "title": "Share token info",
+    "share": "Share token info",
+    "market_cap": "Market cap",
+    "price": "Price",
+    "liquidity": "Liquidity",
+    "holders": "Holders",
+    "volume_24h": "24h volume",
+    "change_24h": "24h change",
+    "buy_on_metamask": "Buy on MetaMask",
+    "buy_on": "Buy on",
+    "metamask": "MetaMask"
+  },
   "asset_overview": {
     "market_closed": "Market closed",
     "send_button": "Send",

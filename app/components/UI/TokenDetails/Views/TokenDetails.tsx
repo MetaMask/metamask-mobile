@@ -17,14 +17,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  ActivityIndicator,
-  AppState,
-  Platform,
-  Share,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
@@ -56,6 +49,7 @@ import {
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
+import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import {
   TokenDetailsSource,
@@ -181,6 +175,7 @@ const TokenDetails: React.FC<{
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
+  const [isShareSheetVisible, setIsShareSheetVisible] = useState(false);
   const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
     token,
     source: 'asset_details',
@@ -213,12 +208,18 @@ const TokenDetails: React.FC<{
   }, [token.address, token.chainId]);
 
   const isPriceAlertsFeatureEnabled = useSelector(selectPriceAlertsEnabled);
+  const shareUrl = useMemo(
+    () =>
+      caip19AssetId
+        ? `https://link.metamask.io/asset?assetId=${encodeURIComponent(caip19AssetId)}`
+        : null,
+    [caip19AssetId],
+  );
+
   const handleShare = useCallback(() => {
-    if (!caip19AssetId) {
+    if (!shareUrl) {
       return;
     }
-
-    const url = `https://link.metamask.io/asset?assetId=${encodeURIComponent(caip19AssetId)}`;
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_SHARED)
@@ -230,11 +231,9 @@ const TokenDetails: React.FC<{
         .build(),
     );
 
-    // Share only the deep link. iOS renders `url` as a rich link preview;
-    // Android needs the link in `message`.
-    Share.share(Platform.OS === 'ios' ? { url } : { message: url });
+    setIsShareSheetVisible(true);
   }, [
-    caip19AssetId,
+    shareUrl,
     createEventBuilder,
     token.address,
     token.chainId,
@@ -530,6 +529,19 @@ const TokenDetails: React.FC<{
       {isInsightsDisclaimerVisible && (
         <MarketInsightsDisclaimerBottomSheet
           onClose={() => setIsInsightsDisclaimerVisible(false)}
+        />
+      )}
+      {isShareSheetVisible && shareUrl && (
+        <ShareTokenBottomSheet
+          shareUrl={shareUrl}
+          token={token}
+          currentPrice={currentPrice}
+          priceDiff={priceDiff}
+          comparePrice={comparePrice}
+          currentCurrency={currentCurrency}
+          securityData={securityData}
+          networkName={networkName}
+          onClose={() => setIsShareSheetVisible(false)}
         />
       )}
       {quickBuySheet}
