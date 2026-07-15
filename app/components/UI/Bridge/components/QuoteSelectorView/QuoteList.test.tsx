@@ -5,16 +5,33 @@ import { QuoteRowProps, QuoteRowViewProps } from './QuoteRow';
 import { useSelector } from 'react-redux';
 import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 
-jest.mock('./QuoteRow', () => ({
-  QuoteRowView: ({ providerName, quoteRequestId }: QuoteRowViewProps) => {
+const mockQuoteRowRenderCounts = new Map<string, number>();
+
+jest.mock('./QuoteRow', () => {
+  const ReactActual = jest.requireActual('react');
+
+  function MockQuoteRowView({
+    providerName,
+    quoteRequestId,
+  }: QuoteRowViewProps) {
     const { Text } = jest.requireActual('react-native');
+
+    mockQuoteRowRenderCounts.set(
+      quoteRequestId,
+      (mockQuoteRowRenderCounts.get(quoteRequestId) ?? 0) + 1,
+    );
+
     return (
       <Text testID={`quote-row-${quoteRequestId}`}>
         {providerName} - {quoteRequestId}
       </Text>
     );
-  },
-}));
+  }
+
+  return {
+    QuoteRowView: ReactActual.memo(MockQuoteRowView),
+  };
+});
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -50,6 +67,7 @@ describe('QuoteList', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockQuoteRowRenderCounts.clear();
   });
 
   describe('rendering', () => {
@@ -123,6 +141,50 @@ describe('QuoteList', () => {
 
       const renderedRows = getAllByText(/Lifi - quote-/);
       expect(renderedRows).toHaveLength(5);
+    });
+  });
+
+  describe('memoization', () => {
+    it('does not re-render unchanged rows when one quote changes', () => {
+      // Arrange
+      const quotes = [
+        createMockQuote({
+          provider: { name: 'Lifi' },
+          quoteRequestId: 'quote-1',
+        }),
+        createMockQuote({
+          provider: { name: 'Socket' },
+          quoteRequestId: 'quote-2',
+        }),
+        createMockQuote({
+          provider: { name: 'Hop' },
+          quoteRequestId: 'quote-3',
+        }),
+      ];
+      const { rerender } = render(<QuoteList data={quotes} />);
+      const updatedQuotes = [
+        createMockQuote({
+          provider: { name: 'Lifi' },
+          quoteRequestId: 'quote-1',
+        }),
+        createMockQuote({
+          provider: { name: 'Socket' },
+          quoteRequestId: 'quote-2',
+          formattedTotalCost: '$101.00',
+        }),
+        createMockQuote({
+          provider: { name: 'Hop' },
+          quoteRequestId: 'quote-3',
+        }),
+      ];
+
+      // Act
+      rerender(<QuoteList data={updatedQuotes} />);
+
+      // Assert
+      expect(mockQuoteRowRenderCounts.get('quote-1')).toBe(1);
+      expect(mockQuoteRowRenderCounts.get('quote-2')).toBe(2);
+      expect(mockQuoteRowRenderCounts.get('quote-3')).toBe(1);
     });
   });
 
