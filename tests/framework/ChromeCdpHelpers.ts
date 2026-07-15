@@ -1,0 +1,401 @@
+// eslint-disable-next-line import-x/no-nodejs-modules
+import { execFileSync } from 'child_process';
+import { WebSocket as WsClient } from 'ws';
+import type { Context } from '@wdio/protocols';
+import type { AndroidDetailedContext } from 'webdriverio/build/types';
+import { getDriver } from './PlaywrightUtilities';
+import { createPlaywrightLogger } from './playwrightLogger.ts';
+
+const logger = createPlaywrightLogger('ChromeCdpHelpers');
+
+/** Host port for `adb forward` to Chrome's `@chrome_devtools_remote` socket. */
+const CDP_FORWARD_PORT = 9222;
+const CDP_READY_TIMEOUT_MS = 20_000;
+const DAPP_PAGE_TIMEOUT_MS = 30_000;
+const POLL_MS = 500;
+
+interface ChromeContextInfo {
+  webSocketDebuggerUrl?: string;
+}
+
+interface AndroidContextWithInfo extends AndroidDetailedContext {
+  info?: ChromeContextInfo;
+}
+
+interface CdpTarget {
+  id?: string;
+  type?: string;
+  url?: string;
+  title?: string;
+  webSocketDebuggerUrl?: string;
+}
+
+interface RawAppiumContext {
+  webviewName?: string;
+  webview?: string;
+  info?: ChromeContextInfo;
+}
+
+class CdpSession {
+  private readonly ws: WsClient;
+  private nextId = 1;
+  private readonly pending = new Map<
+    number,
+    { resolve: (value: unknown) => void; reject: (error: Error) => void }
+  >();
+
+  private constructor(ws: WsClient) {
+    this.ws = ws;
+    this.ws.on('message', (data) => {
+      try {
+        const msg = JSON.parse(String(data)) as {
+          id?: number;
+          result?: { result?: { value?: unknown } };
+          error?: { message?: string };
+        };
+        if (msg.id == null) return;
+        const waiter = this.pending.get(msg.id);
+        if (!waiter) return;
+        this.pending.delete(msg.id);
+        if (msg.error) {
+          waiter.reject(new Error(msg.error.message ?? 'CDP error'));
+        } else {
+          waiter.resolve(msg.result?.result?.value);
+        }
+      } catch {
+        // Ignore malformed CDP frames
+      }
+    });
+  }
+
+  static connect(wsUrl: string): Promise<CdpSession> {
+    return new Promise((resolve, reject) => {
+      const ws = new WsClient(wsUrl);
+      const session = new CdpSession(ws);
+      ws.once('open', () => resolve(session));
+      ws.once('error', (err) => reject(err));
+    });
+  }
+
+  async evaluate<T>(expression: string): Promise<T> {
+    const id = this.nextId++;
+    const result = await new Promise<unknown>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`CDP Runtime.evaluate timed out for id=${id}`));
+      }, 15_000);
+      this.pending.set(id, {
+        resolve: (value) => {
+          clearTimeout(timer);
+          resolve(value);
+        },
+        reject: (error) => {
+          clearTimeout(timer);
+          reject(error);
+        },
+      });
+      this.ws.send(
+        JSON.stringify({
+          id,
+          method: 'Runtime.evaluate',
+          params: {
+            expression,
+            returnByValue: true,
+            awaitPromise: true,
+          },
+        }),
+      );
+    });
+    return result as T;
+  }
+
+  close(): void {
+    for (const [, waiter] of this.pending) {
+      waiter.reject(new Error('CDP session closed'));
+    }
+    this.pending.clear();
+    this.ws.close();
+  }
+}
+
+/**
+ * Drive Android Chrome dapp pages via CDP, bypassing Appium Chromedriver.
+ *
+ * Emulator Chrome 113 + Appium `switchContext('WEBVIEW_chrome')` hangs during
+ * Chromedriver session creation even when `getContexts` already exposes a
+ * working `webSocketDebuggerUrl`. CDP uses that debugger channel directly.
+ */
+export default class ChromeCdpHelpers {
+  /**
+   * Forward host → device Chrome DevTools abstract socket.
+   */
+  static ensureAdbForward(port = CDP_FORWARD_PORT): void {
+    try {
+      execFileSync('adb', ['forward', '--remove', `tcp:${port}`], {
+        stdio: 'pipe',
+      });
+    } catch {
+      // No existing forward is fine.
+    }
+    execFileSync(
+      'adb',
+      ['forward', `tcp:${port}`, 'localabstract:chrome_devtools_remote'],
+      { stdio: 'pipe' },
+    );
+    logger.debug(`ADB forwarded tcp:${port} → chrome_devtools_remote`);
+  }
+
+  /**
+   * Wait until `[data-testid]` is visible in the Chrome tab for `dappUrl`.
+   */
+  static async waitForTestId(
+    dappUrl: string,
+    testId: string,
+    timeoutMs = 15_000,
+  ): Promise<void> {
+    await this.withCdpSession(dappUrl, async (session) => {
+      const deadline = Date.now() + timeoutMs;
+      while (Date.now() < deadline) {
+        const visible = await session.evaluate<boolean>(
+          `(() => {
+            const el = document.querySelector('[data-testid=${JSON.stringify(testId)}]');
+            if (!el) return false;
+            const style = window.getComputedStyle(el);
+            return style.visibility !== 'hidden' && style.display !== 'none';
+          })()`,
+        );
+        if (visible) {
+          return;
+        }
+        await new Promise((r) => setTimeout(r, POLL_MS));
+      }
+      throw new Error(
+        `CDP: [data-testid="${testId}"] not visible within ${timeoutMs}ms on ${dappUrl}`,
+      );
+    });
+  }
+
+  /**
+   * Click `[data-testid]` in the Chrome tab for `dappUrl`.
+   */
+  static async clickTestId(dappUrl: string, testId: string): Promise<void> {
+    await this.withCdpSession(dappUrl, async (session) => {
+      const clicked = await session.evaluate<boolean>(
+        `(() => {
+          const el = document.querySelector('[data-testid=${JSON.stringify(testId)}]');
+          if (!el) return false;
+          el.scrollIntoView({ block: 'center', inline: 'center' });
+          el.click();
+          return true;
+        })()`,
+      );
+      if (!clicked) {
+        throw new Error(
+          `CDP: could not click [data-testid="${testId}"] on ${dappUrl}`,
+        );
+      }
+    });
+  }
+
+  /**
+   * Wait for visibility then click.
+   */
+  static async waitAndClickTestId(
+    dappUrl: string,
+    testId: string,
+    timeoutMs = 15_000,
+  ): Promise<void> {
+    await this.waitForTestId(dappUrl, testId, timeoutMs);
+    await this.clickTestId(dappUrl, testId);
+  }
+
+  private static async withCdpSession<T>(
+    dappUrl: string,
+    actionFn: (session: CdpSession) => Promise<T>,
+  ): Promise<T> {
+    const endpoint = await this.resolveCdpHttpEndpoint();
+    const target = await this.waitForCdpTarget(endpoint, dappUrl);
+    if (!target.webSocketDebuggerUrl) {
+      throw new Error(
+        `Chrome CDP target for ${dappUrl} has no webSocketDebuggerUrl`,
+      );
+    }
+    logger.debug(
+      `CDP attached to ${target.url ?? target.title ?? target.id} via ${endpoint}`,
+    );
+    const session = await CdpSession.connect(target.webSocketDebuggerUrl);
+    try {
+      return await actionFn(session);
+    } finally {
+      session.close();
+    }
+  }
+
+  private static async resolveCdpHttpEndpoint(): Promise<string> {
+    const fromContexts = await this.tryEndpointFromAppiumContexts();
+    if (fromContexts) {
+      return fromContexts;
+    }
+
+    this.ensureAdbForward();
+    const endpoint = `http://127.0.0.1:${CDP_FORWARD_PORT}`;
+    await this.waitForCdpEndpoint(endpoint);
+    return endpoint;
+  }
+
+  private static async tryEndpointFromAppiumContexts(): Promise<
+    string | undefined
+  > {
+    try {
+      // Raw mobile:getContexts includes Chrome `info.webSocketDebuggerUrl`
+      // (WDIO getContexts may omit the nested info object).
+      const rawContexts = (await getDriver().execute(
+        'mobile: getContexts',
+      )) as RawAppiumContext[];
+      for (const ctx of rawContexts) {
+        const name = ctx.webviewName ?? ctx.webview ?? '';
+        const wsUrl = ctx.info?.webSocketDebuggerUrl;
+        if (!wsUrl || !/chrome/i.test(name)) continue;
+        const http = this.httpEndpointFromWebSocketUrl(wsUrl);
+        if (http) {
+          await this.waitForCdpEndpoint(http);
+          logger.debug(`Using Appium-forwarded Chrome CDP at ${http}`);
+          return http;
+        }
+      }
+
+      const contexts: (Context | AndroidContextWithInfo)[] =
+        await getDriver().getContexts({ returnDetailedContexts: true });
+      for (const ctx of contexts) {
+        if (typeof ctx === 'string') continue;
+        const wsUrl = ctx.info?.webSocketDebuggerUrl;
+        if (!wsUrl || !/chrome/i.test(ctx.id)) continue;
+        const http = this.httpEndpointFromWebSocketUrl(wsUrl);
+        if (http) {
+          await this.waitForCdpEndpoint(http);
+          return http;
+        }
+      }
+    } catch (error) {
+      logger.debug(
+        'Could not resolve CDP endpoint from Appium contexts:',
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+    return undefined;
+  }
+
+  private static httpEndpointFromWebSocketUrl(
+    wsUrl: string,
+  ): string | undefined {
+    try {
+      const parsed = new URL(wsUrl);
+      const protocol = parsed.protocol === 'wss:' ? 'https:' : 'http:';
+      return `${protocol}//${parsed.host}`;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private static async waitForCdpEndpoint(endpoint: string): Promise<void> {
+    const deadline = Date.now() + CDP_READY_TIMEOUT_MS;
+    let lastError = '';
+    while (Date.now() < deadline) {
+      try {
+        const response = await fetch(`${endpoint}/json/version`);
+        if (response.ok) {
+          return;
+        }
+        lastError = `HTTP ${response.status}`;
+      } catch (error) {
+        lastError = error instanceof Error ? error.message : String(error);
+      }
+      await new Promise((r) => setTimeout(r, POLL_MS));
+    }
+    throw new Error(
+      `Chrome CDP endpoint ${endpoint} not ready within ${CDP_READY_TIMEOUT_MS}ms: ${lastError}`,
+    );
+  }
+
+  private static async waitForCdpTarget(
+    endpoint: string,
+    dappUrl: string,
+  ): Promise<CdpTarget> {
+    const deadline = Date.now() + DAPP_PAGE_TIMEOUT_MS;
+    while (Date.now() < deadline) {
+      try {
+        const response = await fetch(`${endpoint}/json/list`);
+        if (response.ok) {
+          const targets = (await response.json()) as CdpTarget[];
+          const match = targets.find(
+            (t) =>
+              (t.type === 'page' || !t.type) &&
+              this.targetMatchesDapp(t, dappUrl),
+          );
+          if (match?.webSocketDebuggerUrl) {
+            return match;
+          }
+        }
+      } catch {
+        // Keep polling
+      }
+      await new Promise((r) => setTimeout(r, POLL_MS));
+    }
+    throw new Error(
+      `No Chrome CDP target matched ${dappUrl} within ${DAPP_PAGE_TIMEOUT_MS}ms`,
+    );
+  }
+
+  private static targetMatchesDapp(
+    target: CdpTarget,
+    dappUrl: string,
+  ): boolean {
+    if (target.url && this.urlsReferToSameDapp(target.url, dappUrl)) {
+      return true;
+    }
+    return (
+      Boolean(target.title) &&
+      /multichain api test dapp/i.test(target.title ?? '') &&
+      /:8090\b/.test(dappUrl)
+    );
+  }
+
+  private static urlsReferToSameDapp(
+    candidateUrl: string,
+    dappUrl: string,
+  ): boolean {
+    if (!candidateUrl || candidateUrl === 'about:blank') {
+      return false;
+    }
+    if (candidateUrl.includes(dappUrl)) {
+      return true;
+    }
+    try {
+      const target = new URL(dappUrl);
+      const candidate = new URL(candidateUrl);
+      const hostAliases = new Set([
+        '10.0.2.2',
+        'localhost',
+        '127.0.0.1',
+        target.hostname,
+        candidate.hostname,
+      ]);
+      const sameHostFamily =
+        hostAliases.has(target.hostname) && hostAliases.has(candidate.hostname);
+      const samePort =
+        (candidate.port || defaultPort(candidate.protocol)) ===
+        (target.port || defaultPort(target.protocol));
+      const samePath =
+        candidate.pathname.replace(/\/$/, '') ===
+        target.pathname.replace(/\/$/, '');
+      return sameHostFamily && samePort && samePath;
+    } catch {
+      const port = dappUrl.match(/:(\d+)/)?.[1];
+      return Boolean(port && candidateUrl.includes(`:${port}`));
+    }
+
+    function defaultPort(protocol: string): string {
+      return protocol === 'https:' ? '443' : '80';
+    }
+  }
+}

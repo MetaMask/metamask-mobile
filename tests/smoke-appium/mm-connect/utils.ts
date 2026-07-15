@@ -59,14 +59,15 @@ export async function waitForDappServerReady(
 
 /**
  * Get the dapp URL for mobile browser access.
- * Android emulator browser needs 10.0.2.2 to reach the host machine.
+ * Uses localhost on both platforms. On Android, pair with {@link setupAdbReverse}
+ * so the emulator reaches the host dapp server (preferred over 10.0.2.2 for
+ * stable URL / CDP matching).
  */
 export function getDappUrlForBrowser(
-  platform: string,
+  _platform: string,
   port = DEFAULT_DAPP_PORT,
 ): string {
-  const host = platform === 'android' ? '10.0.2.2' : 'localhost';
-  return `http://${host}:${port}`;
+  return `http://localhost:${port}`;
 }
 
 /**

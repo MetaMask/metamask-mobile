@@ -2,16 +2,14 @@ import { test as appiumTest } from '../../framework/fixtures/playwright/index.js
 import { SmokeMMConnect } from '../../tags.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
-import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp.js';
 import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers.js';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
 import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
+import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers.js';
 import {
   DappServer,
   DappVariants,
-  PlaywrightGestures,
   TestDapps,
-  asPlaywrightElement,
   sleep,
 } from '../../framework/index.js';
 import {
@@ -27,6 +25,7 @@ import {
   switchToMobileBrowser,
 } from '../../flows/native-browser.flow.js';
 import { multichainBrowserFixture } from './mm-connect-fixtures.js';
+import { MMConnectDappTestIds } from '../../selectors/MMConnect/MMConnectDapp.testIds.js';
 
 const DAPP_PORT = 8090;
 
@@ -35,6 +34,9 @@ const playgroundServer = new DappServer({
   rootDirectory: TestDapps[DappVariants.BROWSER_PLAYGROUND].dappPath,
   dappVariant: DappVariants.BROWSER_PLAYGROUND,
 });
+
+const scopeCardTestId = (scope: string): string =>
+  `${MMConnectDappTestIds.SCOPE_CARD}-${scope.toLowerCase().replace(/:/g, '-')}`;
 
 appiumTest.describe(SmokeMMConnect('Multichain browser connect'), () => {
   appiumTest.beforeAll(async () => {
@@ -67,10 +69,12 @@ appiumTest.describe(SmokeMMConnect('Multichain browser connect'), () => {
             await navigateToDapp(DAPP_URL);
           });
 
-          await PlaywrightContextHelpers.withWebAction(async () => {
-            await BrowserPlaygroundDapp.waitForConnectButtonVisible(15000);
-            await BrowserPlaygroundDapp.tapConnect();
-          }, DAPP_URL);
+          // Emulator Chrome 113: Appium WEBVIEW_chrome switch hangs in Chromedriver
+          // session creation. Drive the dapp via CDP instead.
+          await ChromeCdpHelpers.waitAndClickTestId(
+            DAPP_URL,
+            MMConnectDappTestIds.CONNECT_BUTTON,
+          );
 
           await PlaywrightContextHelpers.withNativeAction(async () => {
             await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
@@ -81,19 +85,18 @@ appiumTest.describe(SmokeMMConnect('Multichain browser connect'), () => {
           await switchToMobileBrowser();
           await sleep(500);
 
-          await PlaywrightContextHelpers.withWebAction(async () => {
-            await BrowserPlaygroundDapp.assertMultichainConnected(true);
-            await PlaywrightGestures.scrollIntoView(
-              await asPlaywrightElement(
-                BrowserPlaygroundDapp.getScopeCard('eip155:1'),
-              ),
-            );
-            await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
-          }, DAPP_URL);
-
-          await PlaywrightContextHelpers.withWebAction(async () => {
-            await BrowserPlaygroundDapp.tapDisconnect();
-          }, DAPP_URL);
+          await ChromeCdpHelpers.waitForTestId(
+            DAPP_URL,
+            MMConnectDappTestIds.SCOPES_SECTION,
+          );
+          await ChromeCdpHelpers.waitForTestId(
+            DAPP_URL,
+            scopeCardTestId('eip155:1'),
+          );
+          await ChromeCdpHelpers.waitAndClickTestId(
+            DAPP_URL,
+            MMConnectDappTestIds.DISCONNECT_BUTTON,
+          );
         },
       );
     },
