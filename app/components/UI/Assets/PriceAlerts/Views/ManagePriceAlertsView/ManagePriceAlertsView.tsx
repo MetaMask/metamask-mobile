@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useContext, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ActivityIndicator,
@@ -64,6 +58,7 @@ import {
   formatPercentAlertSubtitle,
   formatPercentAlertTitle,
 } from '../../utils';
+import useInFlightIds from '../../hooks/useInFlightIds';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
@@ -100,14 +95,18 @@ const ManagePriceAlertsView: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const hasResolvedInitialFetch = useRef(false);
-  const [deletingIds, setDeletingIds] = useState<ReadonlySet<string>>(
-    new Set(),
-  );
-  const [togglingIds, setTogglingIds] = useState<ReadonlySet<string>>(
-    new Set(),
-  );
-  const inFlightDeletes = useRef(new Set<string>());
-  const inFlightToggles = useRef(new Set<string>());
+  const {
+    has: isDeleteInFlight,
+    add: startDelete,
+    remove: finishDelete,
+    ids: deletingIds,
+  } = useInFlightIds();
+  const {
+    has: isToggleInFlight,
+    add: startToggle,
+    remove: finishToggle,
+    ids: togglingIds,
+  } = useInFlightIds();
 
   const {
     data: alerts = [],
@@ -199,9 +198,8 @@ const ManagePriceAlertsView: React.FC = () => {
 
   const handleDeleteAlert = useCallback(
     async (id: string) => {
-      if (inFlightDeletes.current.has(id)) return;
-      inFlightDeletes.current.add(id);
-      setDeletingIds((prev) => new Set(prev).add(id));
+      if (isDeleteInFlight(id)) return;
+      startDelete(id);
 
       const queryKey = priceAlertsQueryKey(assetId);
       const previous = queryClient.getQueryData<Alert[]>(queryKey) ?? [];
@@ -254,12 +252,7 @@ const ManagePriceAlertsView: React.FC = () => {
           queryClient.setQueryData(queryKey, previous);
         }
       } finally {
-        inFlightDeletes.current.delete(id);
-        setDeletingIds((prev) => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
+        finishDelete(id);
       }
     },
     [
@@ -271,14 +264,16 @@ const ManagePriceAlertsView: React.FC = () => {
       displayTicker,
       trackEvent,
       createEventBuilder,
+      isDeleteInFlight,
+      startDelete,
+      finishDelete,
     ],
   );
 
   const handleToggleAlert = useCallback(
     async (id: string, newValue: boolean) => {
-      if (inFlightToggles.current.has(id)) return;
-      inFlightToggles.current.add(id);
-      setTogglingIds((prev) => new Set(prev).add(id));
+      if (isToggleInFlight(id)) return;
+      startToggle(id);
 
       const queryKey = priceAlertsQueryKey(assetId);
       const previous = queryClient.getQueryData<Alert[]>(queryKey) ?? [];
@@ -324,12 +319,7 @@ const ManagePriceAlertsView: React.FC = () => {
           previous.map((a) => (a.id === id ? { ...a, active: !newValue } : a)),
         );
       } finally {
-        inFlightToggles.current.delete(id);
-        setTogglingIds((prev) => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
+        finishToggle(id);
       }
     },
     [
@@ -340,6 +330,9 @@ const ManagePriceAlertsView: React.FC = () => {
       displayTicker,
       trackEvent,
       createEventBuilder,
+      isToggleInFlight,
+      startToggle,
+      finishToggle,
     ],
   );
 
