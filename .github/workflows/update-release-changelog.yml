@@ -54,6 +54,16 @@ jobs:
       pull-requests: write
       id-token: write
     steps:
+      # Mint a short-lived token via the token-exchange service (OIDC). It needs:
+      # - contents: write       → push the changelog branch
+      # - pull_requests: write  → open/update the changelog PR
+      # - workflows: write      → this step only ever pushes CHANGELOG.md, so no real workflow
+      #                           file diff is expected here. We only need this permission due
+      #                           to a GitHub API timeout bug: GitHub's push-protection check
+      #                           still has to determine on every push whether workflow files
+      #                           changed, and that check has been timing out and rejecting the
+      #                           push outright (same bug class as actions/checkout#2287).
+      #                           Holding the scope up front avoids the check entirely.
       - name: Get token
         id: get-token
         uses: MetaMask/github-tools/.github/actions/get-token@v1

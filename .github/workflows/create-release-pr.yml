@@ -109,7 +109,11 @@ jobs:
       # - contents: write       → push the release / version-bump / changelog branches
       # - pull_requests: write  → open the release PRs
       # - members: read         → auto-changelog --autoCategorize resolves PR author teams (read:org)
-      # - workflows: write      → avoids a GitHub push-protection timeout on the changelog push
+      # - workflows: write      → this job cuts the release branch/PR itself from main, which can
+      #                           genuinely carry .github/workflows/* differences relative to the
+      #                           previous release branch (workflow files evolve on main between
+      #                           release cuts). This is a real need, not just a timeout workaround
+      #                           (contrast with update-release-changelog.yml).
       # OIDC works on every trigger, so no workflow_dispatch vs workflow_call token split is needed.
       - name: Get token
         id: get-token
