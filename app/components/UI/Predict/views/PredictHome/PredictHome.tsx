@@ -129,7 +129,7 @@ const PredictHome: React.FC = () => {
 
   return (
     <SafeAreaView
-      edges={{ bottom: 'additive' }}
+      edges={{ bottom: 'off' }}
       style={tw.style('flex-1 bg-default')}
     >
       <Box
