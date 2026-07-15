@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Animated, Platform, Dimensions } from 'react-native';
+import { View, Animated, Platform, Dimensions, Appearance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Rive, {
   Fit,
@@ -159,7 +159,13 @@ const FoxLoaderAnimation = ({
   return (
     <SafeAreaView
       testID={FoxLoaderSelectorsIDs.CONTAINER}
-      style={styles.container}
+      style={[
+        styles.container,
+        // Fallback to pure black during very-early mount before tokens/theme
+        // are available. Once the design-system theme is active, this override
+        // is harmless (tokens are also pure black in dark mode).
+        Appearance.getColorScheme() === 'dark' ? { backgroundColor: '#000000' } : undefined,
+      ]}
     >
       <View
         testID={FoxLoaderSelectorsIDs.ANIMATION_WRAPPER}
