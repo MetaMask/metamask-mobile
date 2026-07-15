@@ -173,7 +173,6 @@ export type PredictSellPreviewProps =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictModalsNavigationParamList = {
   PredictUnavailable: undefined;
-  PredictGTMModal: undefined;
   PredictAddFundsSheet: PredictAddFundsModalParams | undefined;
   PredictActivityDetail: PredictActivityDetailParams;
   RedesignedConfirmations: undefined;

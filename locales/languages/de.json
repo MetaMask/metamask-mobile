@@ -2565,12 +2565,6 @@
     "toasts": {
       "copied_to_clipboard": "In die Zwischenablage kopiert"
     },
-    "gtm_content": {
-      "title": "PROGNOSTIZIEREN UND GEWINNEN",
-      "title_description": "Handeln Sie auf das Ergebnis von realen Ereignissen, wie Sport oder Wahlen.",
-      "get_started": "Erste Schritte",
-      "not_now": "Nicht jetzt"
-    },
     "market_details": {
       "title": "Marktdetails",
       "market_ended_on": "Markt endete am {{outcome}}",

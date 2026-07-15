@@ -2565,12 +2565,6 @@
     "toasts": {
       "copied_to_clipboard": "クリップボードにコピーしました"
     },
-    "gtm_content": {
-      "title": "予測して当てよう",
-      "title_description": "スポーツや選挙など、現実の出来事の結果を取引できます。",
-      "get_started": "開始",
-      "not_now": "後で"
-    },
     "market_details": {
       "title": "マーケットの詳細",
       "market_ended_on": "マーケットは{{outcome}}で終了しました",

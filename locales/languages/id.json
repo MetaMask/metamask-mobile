@@ -2565,12 +2565,6 @@
     "toasts": {
       "copied_to_clipboard": "Disalin ke papan klip"
     },
-    "gtm_content": {
-      "title": "PREDIKSI DAN MENANG",
-      "title_description": "Berdagang berdasarkan hasil peristiwa dunia nyata, seperti olahraga atau pemilu.",
-      "get_started": "Mulai",
-      "not_now": "Tidak sekarang"
-    },
     "market_details": {
       "title": "Detail pasar",
       "market_ended_on": "Pasar berakhir pada {{outcome}}",

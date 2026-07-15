@@ -50,10 +50,8 @@ import PlaywrightUtilities, {
 } from '../framework/PlaywrightUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
-import PredictModalView from '../page-objects/Predict/PredictModalView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
-import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
 import {
   isLoginScreenDisplayed,
@@ -203,7 +201,6 @@ const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
   process.env.SEEDLESS_ONBOARDING_ENABLED === undefined;
-const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || 'rc';
 
 /**
  * Gets the localhost URL for Ganache/Anvil network connection.
@@ -845,101 +842,6 @@ export const selectAccountByDevice = async (
   await AccountListBottomSheet.tapAccountByNameV2(accountName, !isAccount3);
 };
 
-const PREDICT_GTM_MODAL_FALLBACK_WAIT_MS = 10_000;
-
-/**
- * Resolves whether the Predict GTM onboarding modal should be handled.
- * Uses feature flags when available; otherwise polls the modal for up to 10s.
- */
-export const resolvePredictGtmOnboardingModalEnabled = async (
-  productionFeatureFlags: Record<string, unknown> | null,
-): Promise<boolean> => {
-  if (productionFeatureFlags != null) {
-    return (
-      (
-        productionFeatureFlags.predictGtmOnboardingModalEnabled as {
-          enabled?: boolean;
-        }
-      )?.enabled === true
-    );
-  }
-
-  try {
-    await (await asPlaywrightElement(PredictModalView.notNowButton))
-      .unwrap()
-      .waitForDisplayed({ timeout: PREDICT_GTM_MODAL_FALLBACK_WAIT_MS });
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-/**
- * Dismisses the predictions modal.
- * @async
- * @function dismisspredictionsModalPlaywright
- * @returns {Promise<void>} Resolves when the predictions modal is dismissed.
- */
-const tryDismissPredictionsModalPlaywright = async (
-  timeout = 3000,
-): Promise<boolean> => {
-  try {
-    const btn = await asPlaywrightElement(PredictModalView.notNowButton);
-    await PlaywrightGestures.waitAndTap(btn, {
-      timeout,
-      checkForDisplayed: true,
-      checkForEnabled: true,
-    });
-    await btn.unwrap().waitForDisplayed({ reverse: true, timeout: 3000 });
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-export const dismisspredictionsModalPlaywright = async (
-  maxRetries = 2,
-): Promise<void> => {
-  const dismissed = await tryDismissPredictionsModalPlaywright();
-  if (!dismissed) {
-    logger.error(`Predict modal not dismissed after ${maxRetries} attempts`);
-  }
-};
-
-const startPredictionsModalWatcher = (intervalMs = 1000): (() => void) => {
-  let stopped = false;
-  let inFlight = false;
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-
-  const tick = async () => {
-    if (stopped || inFlight) {
-      if (!stopped) {
-        timeoutId = setTimeout(tick, intervalMs);
-      }
-      return;
-    }
-
-    inFlight = true;
-    try {
-      await tryDismissPredictionsModalPlaywright(1000);
-    } finally {
-      inFlight = false;
-      if (!stopped) {
-        timeoutId = setTimeout(tick, intervalMs);
-      }
-    }
-  };
-
-  timeoutId = setTimeout(tick, 0);
-
-  return () => {
-    stopped = true;
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-  };
-};
-
 /**
  * Completes the onboarding flow for importing a SRP.
  * @param srp - The SRP to import.
@@ -979,27 +881,9 @@ export const onboardingFlowImportSRPPlaywright = async (
   );
   await MetaMetricsOptInView.tapIAgreeButton();
   await dismissOnboardingInterestQuestionnaire();
-  const productionFeatureFlags = await fetchProductionFeatureFlags(
-    'main',
-    testEnvironment,
-  );
-
   await dismissPushNotificationExistingUserSheet();
 
-  const predictGtmOnboardingModalEnabled =
-    await resolvePredictGtmOnboardingModalEnabled(productionFeatureFlags);
-  console.log(
-    'predictGtmOnboardingModalEnabled',
-    predictGtmOnboardingModalEnabled,
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(WalletView.container),
   );
-
-  const stopPredictionsModalWatcher = startPredictionsModalWatcher();
-  try {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      await asPlaywrightElement(WalletView.container),
-    );
-    await tryDismissPredictionsModalPlaywright();
-  } finally {
-    stopPredictionsModalWatcher();
-  }
 };

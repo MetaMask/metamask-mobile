@@ -76,7 +76,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_onboarding.description':
         'Change your spending token and network by signing in with your Crypto Life email and password.',
       'card.card_onboarding.apply_now_button': 'Sign in',
-      'predict.gtm_content.not_now': 'Not now',
     };
     return map[key] || key;
   },

@@ -2565,12 +2565,6 @@
     "toasts": {
       "copied_to_clipboard": "Panoya kopyalandı"
     },
-    "gtm_content": {
-      "title": "TAHMİN ET VE KAZAN",
-      "title_description": "Spor ve seçim gibi gerçek dünya olaylarının sonucu üzerine işlem yap.",
-      "get_started": "Başlarken",
-      "not_now": "Şimdi değil"
-    },
     "market_details": {
       "title": "Piyasa bilgileri",
       "market_ended_on": "Piyasa {{outcome}} ile sona erdi",

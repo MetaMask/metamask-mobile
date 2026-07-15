@@ -24,10 +24,6 @@ const googleNewUserWithFeatureFlagsMock = async (
   await setupGoogleNewUserOAuthMock(mockServer);
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureMultichainAccountsAccountDetailsV2(true),
-    predictGtmOnboardingModalEnabled: {
-      enabled: false,
-      minimumVersion: '7.60.0',
-    },
   });
 };
 

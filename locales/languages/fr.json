@@ -2565,12 +2565,6 @@
     "toasts": {
       "copied_to_clipboard": "Copié dans le presse-papiers"
     },
-    "gtm_content": {
-      "title": "PRÉDIRE ET GAGNER",
-      "title_description": "Pariez sur les résultats d’événements réels, tels que des compétitions sportives ou des élections.",
-      "get_started": "Commencer",
-      "not_now": "Pas maintenant"
-    },
     "market_details": {
       "title": "Détails du marché",
       "market_ended_on": "Le marché a clôturé à {{outcome}}",

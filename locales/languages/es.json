@@ -2565,12 +2565,6 @@
     "toasts": {
       "copied_to_clipboard": "Copiado al portapapeles"
     },
-    "gtm_content": {
-      "title": "PREDICE Y GANA",
-      "title_description": "Opera con los resultados de eventos del mundo real, como deportes o elecciones.",
-      "get_started": "Comenzar",
-      "not_now": "Ahora no"
-    },
     "market_details": {
       "title": "Detalles del mercado",
       "market_ended_on": "El mercado cerró en {{outcome}}",

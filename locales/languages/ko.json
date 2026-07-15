@@ -2565,12 +2565,6 @@
     "toasts": {
       "copied_to_clipboard": "클립보드에 복사되었습니다"
     },
-    "gtm_content": {
-      "title": "예측하고 수익을 창출하세요",
-      "title_description": "스포츠나 선거 같은 실제 이벤트 결과를 예측하고 트레이드하세요.",
-      "get_started": "지금 시작하세요",
-      "not_now": "나중에"
-    },
     "market_details": {
       "title": "시장 상세 정보",
       "market_ended_on": "시장이 {{outcome}}(으)로 종료되었습니다",

@@ -2565,12 +2565,6 @@
     "toasts": {
       "copied_to_clipboard": "Nakopya sa clipboard"
     },
-    "gtm_content": {
-      "title": "MANGHULA AT MANALO",
-      "title_description": "Mag-trade sa mga resulta ng mga totoong pangyayari sa mundo, gaya ng sa sports o mga eleksyon.",
-      "get_started": "Magsimula",
-      "not_now": "Hindi sa ngayon"
-    },
     "market_details": {
       "title": "Mga detalye ng market",
       "market_ended_on": "Nagtapos ang market noong {{outcome}}",

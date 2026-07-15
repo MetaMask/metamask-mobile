@@ -2565,12 +2565,6 @@
     "toasts": {
       "copied_to_clipboard": "Đã sao chép vào bộ nhớ đệm"
     },
-    "gtm_content": {
-      "title": "DỰ ĐOÁN VÀ GIÀNH CHIẾN THẮNG",
-      "title_description": "Giao dịch dựa trên kết quả của các sự kiện thực tế, chẳng hạn như thể thao hoặc bầu cử.",
-      "get_started": "Bắt đầu",
-      "not_now": "Không phải bây giờ"
-    },
     "market_details": {
       "title": "Chi tiết thị trường",
       "market_ended_on": "Thị trường kết thúc với kết quả {{outcome}}",

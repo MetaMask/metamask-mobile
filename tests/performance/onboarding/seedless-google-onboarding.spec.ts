@@ -8,7 +8,6 @@ import {
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import {
   dismissOnboardingInterestQuestionnaire,
-  dismisspredictionsModalPlaywright,
   dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow';
 import {
@@ -21,7 +20,6 @@ import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
-import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
 
@@ -68,12 +66,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         currentDeviceDetails.platform,
       );
       const timer5 = new TimerHelper(
-        'Google: Tap "Done" → feature sheet visible',
-        { ios: 2500, android: 5000 },
-        currentDeviceDetails.platform,
-      );
-      const timer6 = new TimerHelper(
-        'Google: Dismiss feature sheet → wallet main screen visible',
+        'Google: Tap "Done" → wallet main screen visible',
         { ios: 30000, android: 5000 },
         currentDeviceDetails.platform,
       );
@@ -145,20 +138,9 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         });
 
         await dismissOnboardingInterestQuestionnaire();
-        await OnboardingSuccessView.tapDone();
-        await dismissPushNotificationExistingUserSheet();
         await timer5.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(PredictModalView.notNowButton),
-            {
-              timeout: 10000,
-              description: 'Predict modal should be visible',
-            },
-          );
-        });
-
-        await dismisspredictionsModalPlaywright();
-        await timer6.measure(async () => {
+          await OnboardingSuccessView.tapDone();
+          await dismissPushNotificationExistingUserSheet();
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(WalletView.accountIcon), // Workaround until iOS nested component gets fixed
             {
@@ -167,7 +149,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           );
         });
 
-        const timers = [timer1, timer2, timer4, timer5, timer6];
+        const timers = [timer1, timer2, timer4, timer5];
         if (currentDeviceDetails.platform === 'ios') {
           timers.splice(2, 0, timer3);
         }

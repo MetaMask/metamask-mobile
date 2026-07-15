@@ -2565,12 +2565,6 @@
     "toasts": {
       "copied_to_clipboard": "已复制到剪贴板"
     },
-    "gtm_content": {
-      "title": "预测赢大奖",
-      "title_description": "对真实事件结果进行下注，例如体育比赛或选举。",
-      "get_started": "开始",
-      "not_now": "暂时不"
-    },
     "market_details": {
       "title": "市场详情",
       "market_ended_on": "市场收盘为 {{outcome}}",

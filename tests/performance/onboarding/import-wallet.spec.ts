@@ -13,17 +13,11 @@ import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import ImportWalletView from '../../page-objects/Onboarding/ImportWalletView';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
 import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView';
-import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import {
   dismissOnboardingInterestQuestionnaire,
-  dismisspredictionsModalPlaywright,
   dismissPushNotificationExistingUserSheet,
-  resolvePredictGtmOnboardingModalEnabled,
 } from '../../flows/wallet.flow';
-import { fetchProductionFeatureFlags } from '../feature-flag-helper';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
-
-const testEnvironment = 'test'; // hard coding this for now. We need a new FF env in LD for e2e. An admin needs to create it..
 
 /* Scenario 4: Imported wallet with +50 accounts */
 test.describe(PerformanceOnboarding, () => {
@@ -51,11 +45,6 @@ test.describe(PerformanceOnboarding, () => {
         { ios: 2000, android: 1800 },
         currentDeviceDetails.platform,
       );
-      const timer6 = new TimerHelper(
-        'Time since the user clicks on "Done" button until feature sheet is visible',
-        { ios: 3000, android: 3000 },
-        currentDeviceDetails.platform,
-      );
       const timer7 = new TimerHelper(
         'Time since the user clicks on "Done" button until ETH and BTC are visible',
         // +50 accounts on BrowserStack can take longer than local emulator.
@@ -63,11 +52,6 @@ test.describe(PerformanceOnboarding, () => {
         currentDeviceDetails.platform,
       );
       const walletTokenLoadTimeoutMs = 60_000;
-
-      const productionFeatureFlags = await fetchProductionFeatureFlags(
-        'main',
-        testEnvironment,
-      );
 
       await OnboardingView.tapHaveAnExistingWallet();
       await timer1.measure(async () => {
@@ -120,18 +104,6 @@ test.describe(PerformanceOnboarding, () => {
       await MetaMetricsOptInView.tapIAgreeButton();
       await dismissOnboardingInterestQuestionnaire();
       await dismissPushNotificationExistingUserSheet();
-      const predictGtmOnboardingModalEnabled =
-        await resolvePredictGtmOnboardingModalEnabled(productionFeatureFlags);
-
-      if (predictGtmOnboardingModalEnabled) {
-        await timer6.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            await asPlaywrightElement(PredictModalView.notNowButton),
-          );
-        });
-      }
-
-      await dismisspredictionsModalPlaywright();
       await timer7.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(TabBarComponent.tabBarWalletButton),
@@ -140,12 +112,6 @@ test.describe(PerformanceOnboarding, () => {
       });
 
       performanceTracker.addTimers(timer1, timer2, timer3, timer4, timer7);
-      if (
-        predictGtmOnboardingModalEnabled &&
-        predictGtmOnboardingModalEnabled === true
-      ) {
-        performanceTracker.addTimer(timer6);
-      }
     },
   );
 });

@@ -115,11 +115,6 @@ jest.mock('../views/PredictUnavailableModal', () => {
   return () => <View testID="predict-unavailable-modal" />;
 });
 
-jest.mock('../components/PredictGTMModal', () => {
-  const { View } = jest.requireActual('react-native');
-  return () => <View testID="predict-gtm-modal" />;
-});
-
 jest.mock('../views/PredictAddFundsModal/PredictAddFundsModal', () => {
   const { View } = jest.requireActual('react-native');
   return () => <View testID="predict-add-funds-modal" />;
@@ -369,16 +364,6 @@ describe('PredictModalStack', () => {
     renderWithNavigation(<PredictModalStack />);
 
     expect(screen.getByTestId('predict-unavailable-modal')).toBeOnTheScreen();
-  });
-
-  it('navigates to GTM_MODAL', async () => {
-    renderWithNavigation(<PredictModalStack />);
-
-    await act(async () => {
-      navigationRef.current?.navigate(Routes.PREDICT.MODALS.GTM_MODAL);
-    });
-
-    expect(screen.getByTestId('predict-gtm-modal')).toBeOnTheScreen();
   });
 
   it('navigates to ADD_FUNDS_SHEET', async () => {

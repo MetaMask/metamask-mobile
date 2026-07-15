@@ -50,10 +50,7 @@ import {
 import StorageWrapper from '../../../store/storage-wrapper';
 import { HOMEPAGE_APP_SESSION_ID } from '../../../util/analytics/homepageSessionId';
 import { baseStyles } from '../../../styles/common';
-import {
-  PERPS_GTM_MODAL_SHOWN,
-  PREDICT_GTM_MODAL_SHOWN,
-} from '../../../constants/storage';
+import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import AddressCopy from '../../UI/AddressCopy';
@@ -182,10 +179,6 @@ import {
   selectPerpsGtmOnboardingModalEnabledFlag,
 } from '../../UI/Perps';
 import { PerpsAlwaysOnProvider } from '../../UI/Perps/providers/PerpsAlwaysOnProvider';
-import {
-  selectPredictEnabledFlag,
-  selectPredictGtmOnboardingModalEnabledFlag,
-} from '../../UI/Predict/selectors/featureFlags';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { InitSendLocation } from '../confirmations/constants/send';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -384,11 +377,6 @@ const Wallet = ({
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isPerpsGTMModalEnabled = useSelector(
     selectPerpsGtmOnboardingModalEnabledFlag,
-  );
-
-  const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
-  const isPredictGTMModalEnabled = useSelector(
-    selectPredictGtmOnboardingModalEnabledFlag,
   );
 
   const { toastRef } = useContext(ToastContext);
@@ -624,26 +612,6 @@ const Wallet = ({
       checkAndNavigateToPerpsGTM();
     }
   }, [isPerpsFlagEnabled, isPerpsGTMModalEnabled, checkAndNavigateToPerpsGTM]);
-
-  const checkAndNavigateToPredictGTM = useCallback(async () => {
-    const hasSeenModal = await StorageWrapper.getItem(PREDICT_GTM_MODAL_SHOWN);
-
-    if (hasSeenModal !== 'true') {
-      navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.GTM_MODAL,
-      });
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    if (isPredictFlagEnabled && isPredictGTMModalEnabled) {
-      checkAndNavigateToPredictGTM();
-    }
-  }, [
-    isPredictFlagEnabled,
-    isPredictGTMModalEnabled,
-    checkAndNavigateToPredictGTM,
-  ]);
 
   const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
 

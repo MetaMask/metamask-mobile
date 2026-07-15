@@ -2565,12 +2565,6 @@
     "toasts": {
       "copied_to_clipboard": "Copiado para a área de transferência"
     },
-    "gtm_content": {
-      "title": "PREVEJA E GANHE",
-      "title_description": "Negocie com base nos resultados de eventos do mundo real, como esportes ou eleições.",
-      "get_started": "Comece já",
-      "not_now": "Agora não"
-    },
     "market_details": {
       "title": "Detalhes do mercado",
       "market_ended_on": "Mercado encerrado em {{outcome}}",

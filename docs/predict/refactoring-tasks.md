@@ -333,7 +333,6 @@ All files using `StyleSheet.create()` need migration to Tailwind + design system
 | 15  | PredictPositionEmpty    | `components/PredictPositionEmpty/PredictPositionEmpty.styles.ts`       | ⬜     |
 | 16  | PredictPositionResolved | `components/PredictPositionResolved/PredictPositionResolved.styles.ts` | ⬜     |
 | 17  | PredictOffline          | `components/PredictOffline/PredictOffline.styles.ts`                   | ⬜     |
-| 18  | PredictGTMModal         | `components/PredictGTMModal/PredictGTMModal.styles.ts`                 | ⬜     |
 | 19  | PredictMarketRowItem    | `components/PredictMarketRowItem/PredictMarketRowItem.styles.ts`       | ⬜     |
 | 20  | PredictMarketMultiple   | `components/PredictMarketMultiple/PredictMarketMultiple.styles.ts`     | ⬜     |
 | 21  | PredictSellPreview      | `views/PredictSellPreview/PredictSellPreview.styles.ts`                | ⬜     |
@@ -611,7 +610,6 @@ Total:  ████░░░░░░░░░░░░░░░░  11% (3/28 
 | 15  | Migrate PredictPositionEmpty      | P1       | ⬜     | 3    |
 | 16  | Migrate PredictPositionResolved   | P1       | ⬜     | 3    |
 | 17  | Migrate PredictOffline            | P1       | ⬜     | 3    |
-| 18  | Migrate PredictGTMModal           | P1       | ⬜     | 3    |
 | 19  | Migrate PredictMarketRowItem      | P1       | ⬜     | 3    |
 | 20  | Migrate PredictMarketMultiple     | P1       | ⬜     | 3    |
 | 21  | Migrate PredictSellPreview        | P1       | ⬜     | 3    |

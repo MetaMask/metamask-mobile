@@ -2565,12 +2565,6 @@
     "toasts": {
       "copied_to_clipboard": "क्लिपबोर्ड पर कॉपी किया गया"
     },
-    "gtm_content": {
-      "title": "प्रेडिक्ट करें और जीतें",
-      "title_description": "रियल-वर्ल्ड इवेंट्स, जैसे खेल या चुनाव, के आउटकम पर ट्रेड करें।",
-      "get_started": "शुरू करें",
-      "not_now": "अभी नहीं"
-    },
     "market_details": {
       "title": "मार्केट का ब्यौरा",
       "market_ended_on": "मार्केट {{outcome}} पर बंद हुआ",

@@ -2575,12 +2575,6 @@
     "toasts": {
       "copied_to_clipboard": "Copied to clipboard"
     },
-    "gtm_content": {
-      "title": "PREDICT AND WIN",
-      "title_description": "Trade on the outcome of real-world events, like sports or elections.",
-      "get_started": "Get started",
-      "not_now": "Not now"
-    },
     "market_details": {
       "title": "Market details",
       "market_ended_on": "Market ended on {{outcome}}",

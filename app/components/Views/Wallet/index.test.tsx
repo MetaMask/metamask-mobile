@@ -62,16 +62,6 @@ jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
   ),
 }));
 
-// Mock the Predict feature flag selector - will be controlled per test
-let mockPredictEnabled = true;
-let mockPredictGTMModalEnabled = false;
-jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
-  selectPredictEnabledFlag: jest.fn(() => mockPredictEnabled),
-  selectPredictGtmOnboardingModalEnabledFlag: jest.fn(
-    () => mockPredictGTMModalEnabled,
-  ),
-}));
-
 jest.mock('../../../selectors/featureFlagController/homepage', () => ({
   selectHomepageRedesignV1Enabled: jest.fn(() => false),
 }));
@@ -1163,16 +1153,12 @@ describe('Wallet', () => {
       // Reset flags to default state
       mockPerpsEnabled = true;
       mockPerpsGTMModalEnabled = false;
-      mockPredictEnabled = true;
-      mockPredictGTMModalEnabled = false;
     });
 
     afterEach(() => {
       // Reset mocks and flags
       mockPerpsEnabled = true;
       mockPerpsGTMModalEnabled = false;
-      mockPredictEnabled = true;
-      mockPredictGTMModalEnabled = false;
       jest.clearAllMocks();
     });
 
