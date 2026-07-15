@@ -708,6 +708,7 @@ describe('TraderProfileView', () => {
       expect.objectContaining({
         trader_address: '0xabc',
         asset_name: 'BTC',
+        chain: 'hyperliquid',
         perps_market: 'BTC',
         is_open: true,
       }),
