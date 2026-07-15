@@ -19,10 +19,6 @@ jest.mock('./useIsConfirmationFromLedgerAccount', () => ({
   useIsConfirmationFromLedgerAccount: jest.fn().mockReturnValue(false),
 }));
 
-const capturedLedgerConfirmOptions: {
-  ensureDeviceReadyOptions?: { requireBlindSigning?: boolean };
-} = {};
-
 jest.mock(
   '../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount',
   () => ({
@@ -94,11 +90,6 @@ describe('useConfirmAction', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    Object.keys(capturedLedgerConfirmOptions).forEach((key) => {
-      delete capturedLedgerConfirmOptions[
-        key as keyof typeof capturedLedgerConfirmOptions
-      ];
-    });
 
     useNavigationMock.mockReturnValue({
       goBack: jest.fn(),
@@ -260,38 +251,28 @@ describe('useConfirmAction', () => {
     useIsConfirmationFromLedgerAccount.mockReturnValue(false);
   });
 
-  it('passes requireBlindSigning true for non-simpleSend transactions', async () => {
-    const { useIsConfirmationFromLedgerAccount } = jest.requireMock(
-      './useIsConfirmationFromLedgerAccount',
-    );
-    useIsConfirmationFromLedgerAccount.mockReturnValue(true);
-
+  it('passes requireBlindSigning true for non-simpleSend transactions', () => {
     renderHookWithProvider(() => useConfirmActions(), {
       state: stakingDepositConfirmationState,
     });
 
-    expect(capturedLedgerConfirmOptions.ensureDeviceReadyOptions).toEqual({
-      requireBlindSigning: true,
-    });
-
-    useIsConfirmationFromLedgerAccount.mockReturnValue(false);
+    expect(mockUseLedgerConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ensureDeviceReadyOptions: { requireBlindSigning: true },
+      }),
+    );
   });
 
-  it('passes requireBlindSigning false for signature requests without transaction metadata', async () => {
-    const { useIsConfirmationFromLedgerAccount } = jest.requireMock(
-      './useIsConfirmationFromLedgerAccount',
-    );
-    useIsConfirmationFromLedgerAccount.mockReturnValue(true);
-
+  it('passes requireBlindSigning false for signature requests without transaction metadata', () => {
     renderHookWithProvider(() => useConfirmActions(), {
       state: personalSignatureConfirmationState,
     });
 
-    expect(capturedLedgerConfirmOptions.ensureDeviceReadyOptions).toEqual({
-      requireBlindSigning: false,
-    });
-
-    useIsConfirmationFromLedgerAccount.mockReturnValue(false);
+    expect(mockUseLedgerConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ensureDeviceReadyOptions: { requireBlindSigning: false },
+      }),
+    );
   });
 
   it('does not call signature related methods when onConfirm is called if confirmation is not of type signature', async () => {
