@@ -27,6 +27,7 @@ import { useHwBatchSignTracker } from './useHwBatchSignTracker';
 import { useHwConnectionMonitoring } from './useHwConnectionMonitoring';
 import { useHardwareWalletSubmit } from './useHardwareWalletSubmit';
 import { type FlowStrategy, CancelTargetType } from './flowStrategy';
+import type { EnsureDeviceReadyOptions } from '../../../../core/HardwareWallet/types';
 
 /**
  * Safety-net timeout: if the state machine is stuck in a non-terminal status
@@ -66,7 +67,10 @@ function shouldSkipSafetyNetScheduling(
 interface UseHwSwapLifecycleInputs {
   strategy: FlowStrategy;
   /** Imperative device-readiness gate from `useHardwareWallet()`. Forwarded to submit. */
-  ensureDeviceReady?: (deviceId?: string | null) => Promise<boolean>;
+  ensureDeviceReady?: (
+    deviceId?: string | null,
+    options?: EnsureDeviceReadyOptions,
+  ) => Promise<boolean>;
   /** Sets the pending operation address so the provider can derive the wallet type for device connection. Forwarded to submit. */
   setPendingOperationAddress?: (address: string | null) => void;
   /** True when the active wallet is a QR hardware wallet. Disables BLE connection monitoring (QR has no persistent transport). */

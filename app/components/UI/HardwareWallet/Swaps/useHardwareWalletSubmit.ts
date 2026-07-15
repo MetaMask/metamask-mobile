@@ -9,6 +9,7 @@ import type { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { getDeviceIdForAddress } from '../../../../core/HardwareWallet/helpers';
+import type { EnsureDeviceReadyOptions } from '../../../../core/HardwareWallet/types';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
 import useSubmitBridgeTx from '../../../../util/bridge/hooks/useSubmitBridgeTx';
@@ -19,6 +20,11 @@ import {
 } from './HardwareWalletsSwaps.state';
 import type { SubmissionParams } from './HardwareWalletsSwaps';
 import { getTransactionById } from './hw-batch-sign/utils';
+
+/** Bridge swaps are always contract interactions — blind signing is required. */
+const BRIDGE_ENSURE_DEVICE_READY_OPTIONS: EnsureDeviceReadyOptions = {
+  requireBlindSigning: true,
+};
 
 /** Returns the deferred send approval when it still matches the route id. */
 function getMatchingDeferredApproval<T extends { id: string }>(
@@ -108,7 +114,10 @@ interface UseHardwareWalletSubmitOptions {
   preparedTxMeta?: TransactionMeta;
   approvalRequestId?: string;
   submissionParams?: SubmissionParams;
-  ensureDeviceReady?: (deviceId?: string | null) => Promise<boolean>;
+  ensureDeviceReady?: (
+    deviceId?: string | null,
+    options?: EnsureDeviceReadyOptions,
+  ) => Promise<boolean>;
   setPendingOperationAddress?: (address: string | null) => void;
 }
 
@@ -253,7 +262,12 @@ export function useHardwareWalletSubmit({
     setPendingOperationAddress,
   ]);
 
-  // ── Bridge flow (UNCHANGED) ─────────────────────────────────────────
+  // ── Bridge flow ─────────────────────────────────────────────────────
+  // Gate with requireBlindSigning on every submit (initial mount + Try
+  // Again / reconnect). useBridgeConfirm already checks before navigating
+  // here, but retry resubmits through this path without going back through
+  // that gate — so we must re-check before submitBridgeTx or signing can
+  // start in-flight and only fail after the device rejects.
   const submitBridgeFlow = useCallback(async () => {
     const cachedParams = cachedSubmissionParams.current;
     if (!cachedParams || !walletAddress) {
@@ -265,8 +279,35 @@ export function useHardwareWalletSubmit({
       return;
     }
 
-    await runSubmit(() => submitBridgeTxRef.current(cachedParams));
-  }, [dispatch, walletAddress, runSubmit]);
+    await runSubmit(async () => {
+      setPendingOperationAddress?.(walletAddress);
+      try {
+        const deviceId = await getDeviceIdForAddress(walletAddress);
+        const isReady = await ensureDeviceReady?.(
+          deviceId,
+          BRIDGE_ENSURE_DEVICE_READY_OPTIONS,
+        );
+        if (!isReady) {
+          dispatch(
+            updateHardwareWalletsSwaps({
+              type: HardwareWalletsSwapsEventType.TransactionFailed,
+            }),
+          );
+          return;
+        }
+
+        await submitBridgeTxRef.current(cachedParams);
+      } finally {
+        setPendingOperationAddress?.(null);
+      }
+    });
+  }, [
+    dispatch,
+    walletAddress,
+    runSubmit,
+    ensureDeviceReady,
+    setPendingOperationAddress,
+  ]);
 
   const submit = useCallback(async () => {
     if (isSendFlow) {
