@@ -307,22 +307,6 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
-      - name: Restore ESLint cache
-        if: ${{ matrix.scripts == 'lint' }}
-        uses: actions/cache@v4
-        with:
-          path: .eslintcache
-          key: eslintcache-${{ runner.os }}-${{ github.run_id }}
-          restore-keys: |
-            eslintcache-${{ runner.os }}-
-      - name: Restore TypeScript incremental build cache
-        if: ${{ matrix.scripts == 'lint:tsc' }}
-        uses: actions/cache@v4
-        with:
-          path: tsconfig.tsbuildinfo
-          key: tsbuildinfo-${{ runner.os }}-${{ github.run_id }}
-          restore-keys: |
-            tsbuildinfo-${{ runner.os }}-
       - run: yarn ${{ matrix['scripts'] }}
       - name: Require clean working directory
         shell: bash
@@ -1354,13 +1338,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs:
-      [
-        get_requirements,
-        build-android-apks,
-        smart-e2e-selection,
-        prepare-e2e-timings,
-      ]
+    needs: [get_requirements, build-android-apks, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
     with:
       changed_files: ${{ needs.get_requirements.outputs.changed_files }}
@@ -1414,13 +1392,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    needs:
-      [
-        get_requirements,
-        ios-tests-ready,
-        smart-e2e-selection,
-        prepare-e2e-timings,
-      ]
+    needs: [get_requirements, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
     with:
       changed_files: ${{ needs.get_requirements.outputs.changed_files }}

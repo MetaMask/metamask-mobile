@@ -10,7 +10,8 @@ import {
   BannerAlert,
   BannerAlertSeverity,
   Box,
-  FontWeight,
+  BoxAlignItems,
+  BoxFlexDirection,
   HeaderStandardAnimated,
   IconName,
   Text,
@@ -19,12 +20,7 @@ import {
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  useWindowDimensions,
-} from 'react-native';
+import { RefreshControl, useWindowDimensions } from 'react-native';
 import Animated, {
   runOnJS,
   useAnimatedReaction,
@@ -52,11 +48,7 @@ import {
 import Logger from '../../../../util/Logger';
 import NotificationService from '../../../../util/notifications/services/NotificationService';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
-import {
-  ImpactMoment,
-  playImpact,
-  playSelection,
-} from '../../../../util/haptics';
+import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
@@ -80,8 +72,13 @@ import {
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
+import {
+  TypeFilterSelector,
+  TypeFilterSheet,
+  type SocialTypeFilter,
+} from '../components/TypeFilter';
 
-type TabFilter = 'all' | 'tokens' | 'perps';
+type TabFilter = SocialTypeFilter;
 
 // How long the post-onboarding "turn on notifications" nudge stays up before it
 // auto-dismisses (ms). Long enough to notice and act on after landing here, but
@@ -94,11 +91,6 @@ interface IdleCallbackGlobals {
     options?: { timeout?: number },
   ) => number;
   cancelIdleCallback?: (handle: number) => void;
-}
-
-interface TabFilterItem {
-  key: TabFilter;
-  label: string;
 }
 
 const LEADERBOARD_LIMIT = 50;
@@ -121,135 +113,9 @@ const scheduleIdleTask = (task: () => void) => {
   };
 };
 
-const getTabFilters = (isPerpsEnabled: boolean): TabFilterItem[] => {
-  const allFilter = {
-    key: 'all' as const,
-    label: strings('social_leaderboard.top_traders_view.chain_filter.all'),
-  };
-
-  if (!isPerpsEnabled) {
-    return [allFilter];
-  }
-
-  return [
-    allFilter,
-    {
-      key: 'tokens',
-      label: strings('social_leaderboard.top_traders_view.chain_filter.tokens'),
-    },
-    {
-      key: 'perps',
-      label: strings('social_leaderboard.top_traders_view.chain_filter.perps'),
-    },
-  ];
-};
-
-interface TabPillProps {
-  filterKey: TabFilter;
-  label: string;
-  isSelected: boolean;
-  onPress: () => void;
-  suppressTestID?: boolean;
-}
-
-const TabPill: React.FC<TabPillProps> = ({
-  filterKey,
-  label,
-  isSelected,
-  onPress,
-  suppressTestID = false,
-}) => {
-  const { colors } = useTheme();
-  const tw = useTailwind();
-
-  return (
-    <Pressable
-      onPress={onPress}
-      testID={suppressTestID ? undefined : `tab-filter-${filterKey}`}
-      accessibilityRole="button"
-      accessibilityState={{ selected: isSelected }}
-      style={[
-        tw.style(
-          'mr-2 min-h-10 items-center justify-center rounded-xl px-3 py-2',
-        ),
-        {
-          backgroundColor: isSelected
-            ? colors.icon.default
-            : colors.background.muted,
-        },
-      ]}
-    >
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={isSelected ? TextColor.PrimaryInverse : TextColor.TextDefault}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-};
-
-interface FilterTabsProps {
-  filters: TabFilterItem[];
-  selectedTab: TabFilter;
-  onTabPress: (filter: TabFilter) => void;
-  suppressTestIDs?: boolean;
-}
-
-const FilterTabs: React.FC<FilterTabsProps> = ({
-  filters,
-  selectedTab,
-  onTabPress,
-  suppressTestIDs = false,
-}) => {
-  const tw = useTailwind();
-  const [optimisticSelectedTab, setOptimisticSelectedTab] =
-    useState<TabFilter>(selectedTab);
-
-  useEffect(() => {
-    setOptimisticSelectedTab(selectedTab);
-  }, [selectedTab]);
-
-  const handleTabPress = useCallback(
-    (next: TabFilter) => {
-      if (optimisticSelectedTab === next) return;
-      playSelection().catch(() => undefined);
-      setOptimisticSelectedTab(next);
-      onTabPress(next);
-    },
-    [onTabPress, optimisticSelectedTab],
-  );
-
-  return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      // `flexGrow: 0` + `flexShrink: 0` pin the ScrollView's height to
-      // its content so neither the FlatList nor the loading ScrollView
-      // below can stretch or compress it.
-      style={tw.style('flex-grow-0 flex-shrink-0')}
-      contentContainerStyle={tw.style(
-        'mb-3 flex-row items-center px-4 pt-3 pb-3',
-      )}
-    >
-      {filters.map(({ key, label }) => (
-        <TabPill
-          key={key}
-          filterKey={key}
-          label={label}
-          isSelected={optimisticSelectedTab === key}
-          onPress={() => handleTabPress(key)}
-          suppressTestID={suppressTestIDs}
-        />
-      ))}
-    </ScrollView>
-  );
-};
-
 export interface TopTradersViewProps {
   /**
-   * When true, renders only the leaderboard body (filter pills + list) without
+   * When true, renders only the leaderboard body (filter row + list) without
    * its own SafeAreaView, animated header, large title, or pinned filter bar,
    * so it can be embedded as a page inside the Leaderboard | Feed tabs.
    */
@@ -294,6 +160,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     perps: false,
   });
   const [, startTabTransition] = useTransition();
+  const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   // One-shot nudge shown when onboarding reports the user tapped "Allow
   // notifications" but the OS denied it. Seeded from the route param so it only
@@ -314,10 +181,6 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   }, [windowHeight]);
 
   const allChains = isPerpsEnabled ? ALL_CHAINS : SPOT_CHAINS;
-  const tabFilters = useMemo(
-    () => getTabFilters(isPerpsEnabled),
-    [isPerpsEnabled],
-  );
 
   const allResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
@@ -411,6 +274,9 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     },
     [isPerpsEnabled, startTabTransition, track],
   );
+
+  const openTypeSheet = useCallback(() => setIsTypeSheetOpen(true), []);
+  const closeTypeSheet = useCallback(() => setIsTypeSheetOpen(false), []);
 
   const handleFollowPress = useCallback(
     async (traderId: string) => {
@@ -628,19 +494,27 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
           </Box>
         )}
 
-        <FilterTabs
-          filters={tabFilters}
-          selectedTab={activeTab}
-          onTabPress={handleTabPress}
-        />
+        {isPerpsEnabled && (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="px-4 pt-3 pb-3"
+          >
+            <TypeFilterSelector
+              value={activeTab}
+              onPress={openTypeSheet}
+              testID={TopTradersViewSelectorsIDs.TYPE_SELECTOR}
+            />
+          </Box>
+        )}
       </>
     ),
     [
       activeTab,
       embeddedInTabs,
-      handleTabPress,
+      isPerpsEnabled,
+      openTypeSheet,
       setTitleSectionHeight,
-      tabFilters,
       title,
     ],
   );
@@ -695,7 +569,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
         />
       )}
 
-      {!embeddedInTabs && (
+      {!embeddedInTabs && isPerpsEnabled && (
         <Animated.View
           pointerEvents={isFilterBarPinned ? 'auto' : 'none'}
           accessibilityElementsHidden={!isFilterBarPinned}
@@ -710,14 +584,26 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
           ]}
           testID={TopTradersViewSelectorsIDs.PINNED_FILTER_BAR}
         >
-          <FilterTabs
-            filters={tabFilters}
-            selectedTab={activeTab}
-            onTabPress={handleTabPress}
-            suppressTestIDs
-          />
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="px-4 pt-3 pb-3"
+          >
+            <TypeFilterSelector
+              value={activeTab}
+              onPress={openTypeSheet}
+              testID={TopTradersViewSelectorsIDs.PINNED_TYPE_SELECTOR}
+            />
+          </Box>
         </Animated.View>
       )}
+
+      <TypeFilterSheet
+        isOpen={isTypeSheetOpen}
+        value={activeTab}
+        onChange={handleTabPress}
+        onClose={closeTypeSheet}
+      />
     </Box>
   );
 
