@@ -227,7 +227,10 @@ export const PREDICT_FEED_REGISTRY: Record<PredictFeedId, PredictFeedConfig> = {
             createAllFilter({
               status: 'open',
               order: 'volume24hr',
-              limit: 5,
+              // Fetch 10 (not the ~5 shown) so the home Trending section still
+              // fills its display cap after standalone/staleness filtering, and
+              // so the "See all" feed loads 10 per infinite-scroll page.
+              limit: 10,
             }),
           ],
           dynamic: {
@@ -236,7 +239,7 @@ export const PREDICT_FEED_REGISTRY: Record<PredictFeedId, PredictFeedConfig> = {
             baseParams: {
               status: 'open',
               order: 'volume24hr',
-              limit: 5,
+              limit: 10,
             },
           },
         },

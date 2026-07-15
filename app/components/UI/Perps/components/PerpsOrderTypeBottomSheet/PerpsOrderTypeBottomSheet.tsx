@@ -92,10 +92,16 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
   return (
     <BottomSheet
       ref={sheetRef}
+      testID={PerpsOrderTypeBottomSheetSelectorsIDs.CONTAINER}
       goBack={!externalSheetRef ? onClose : undefined}
       onClose={externalSheetRef ? onClose : undefined}
     >
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeader
+        onClose={handleClose}
+        closeButtonProps={{
+          testID: PerpsOrderTypeBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        }}
+      >
         {strings('perps.order.type.title')}
       </BottomSheetHeader>
       {orderTypes.map(({ type, title, description, testID }) => (
