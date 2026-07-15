@@ -1069,6 +1069,13 @@ const PerpsHomeView = ({
             setTitleSectionHeight(event.nativeEvent.layout.height)
           }
         >
+          {isServiceInterruptionBannerEnabled && (
+            <Box twClassName="px-4 mb-4">
+              <PerpsServiceInterruptionBanner
+                testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+              />
+            </Box>
+          )}
           <TitleHub
             testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
             title={hideHeader ? undefined : perpsScreenTitle}
@@ -1122,11 +1129,6 @@ const PerpsHomeView = ({
         </Box>
 
         <Box paddingBottom={3}>
-          {/* Service Interruption Banner */}
-          <PerpsServiceInterruptionBanner
-            testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
-          />
-
           {/* Balance Actions Component */}
           <PerpsMarketBalanceActions
             showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
