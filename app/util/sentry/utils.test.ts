@@ -254,6 +254,8 @@ describe('excludeEvents', () => {
       transaction: 'Onboarding - Overall Journey',
       contexts: {
         trace: {
+          span_id: 'abc123',
+          trace_id: 'def456',
           data: {
             'trace.timed_out': true,
           },
@@ -270,6 +272,8 @@ describe('excludeEvents', () => {
       transaction: 'Onboarding - Overall Journey',
       contexts: {
         trace: {
+          span_id: 'abc123',
+          trace_id: 'def456',
           data: {
             'some.other.attr': 'value',
           },
