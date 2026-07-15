@@ -132,6 +132,16 @@ module.exports = function (baseConfig) {
               'node:buffer': '@craftzdog/react-native-buffer',
             },
             resolveRequest: (context, moduleName, platform) => {
+              // libsodium.js references `node:fs` inside a Node-only runtime
+              // branch (gated on `process.versions.node`) that never executes
+              // in React Native. Metro still resolves the require statically,
+              // and `node:fs` is not shimmed, so stub it to an empty module.
+              if (
+                moduleName === 'node:fs' &&
+                context.originModulePath?.includes('libsodium')
+              ) {
+                return { type: 'empty' };
+              }
               // MYXProvider is intentionally excluded from @metamask/perps-controller's
               // published dist (extension-only). The dynamic import() uses webpackIgnore
               // but babel's dynamicImportToRequire rewrites it to require(), causing Metro

@@ -583,6 +583,7 @@ const Routes = {
     CONFIRM: 'AgenticCliDashboardConfirmation',
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
+  LIBSODIUM_POC: 'LibsodiumPoc',
   CREATE_PRICE_ALERT: 'CreatePriceAlert',
   MANAGE_PRICE_ALERTS: 'ManagePriceAlerts',
   SECURITY_TRUST: 'SecurityTrust',
