@@ -13,7 +13,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import type { PerpsMarketData } from '@metamask/perps-controller';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -95,6 +95,10 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
   // yet, so the feed opens on the Following scope (the only one the API serves).
   const [audience, setAudience] = useState<FeedAudience>('following');
   const [typeFilter, setTypeFilter] = useState<FeedTypeFilter>('all');
+  const audienceRef = useRef(audience);
+  const typeFilterRef = useRef(typeFilter);
+  audienceRef.current = audience;
+  typeFilterRef.current = typeFilter;
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
 
   const [quickBuyTarget, setQuickBuyTarget] = useState<QuickBuyTarget | null>(
@@ -145,39 +149,38 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
 
   const handleAudienceChange = useCallback(
     (next: FeedAudience) => {
-      setAudience((current) => {
-        if (current === next) {
-          return current;
-        }
+      if (audienceRef.current === next) {
+        return;
+      }
 
-        track(MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION, {
-          [SocialLeaderboardEventProperties.INTERACTION_TYPE]:
-            SocialLeaderboardEventValues.TRADER_FEED_INTERACTION_TYPE
-              .AUDIENCE_FILTER_CHANGED,
-          [SocialLeaderboardEventProperties.FEED_AUDIENCE]: next,
-        });
-        return next;
+      track(MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION, {
+        [SocialLeaderboardEventProperties.INTERACTION_TYPE]:
+          SocialLeaderboardEventValues.TRADER_FEED_INTERACTION_TYPE
+            .AUDIENCE_FILTER_CHANGED,
+        [SocialLeaderboardEventProperties.FEED_AUDIENCE]: next,
       });
+      audienceRef.current = next;
+      setAudience(next);
     },
     [track],
   );
 
   const handleTypeFilterChange = useCallback(
     (next: FeedTypeFilter) => {
-      setTypeFilter((current) => {
-        if (current === next) {
-          return current;
-        }
+      const previous = typeFilterRef.current;
+      if (previous === next) {
+        return;
+      }
 
-        track(MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION, {
-          [SocialLeaderboardEventProperties.INTERACTION_TYPE]:
-            SocialLeaderboardEventValues.TRADER_FEED_INTERACTION_TYPE
-              .TYPE_FILTER_CHANGED,
-          [SocialLeaderboardEventProperties.FEED_TYPE_FILTER]: next,
-          [SocialLeaderboardEventProperties.PREVIOUS_FEED_TYPE_FILTER]: current,
-        });
-        return next;
+      track(MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION, {
+        [SocialLeaderboardEventProperties.INTERACTION_TYPE]:
+          SocialLeaderboardEventValues.TRADER_FEED_INTERACTION_TYPE
+            .TYPE_FILTER_CHANGED,
+        [SocialLeaderboardEventProperties.FEED_TYPE_FILTER]: next,
+        [SocialLeaderboardEventProperties.PREVIOUS_FEED_TYPE_FILTER]: previous,
       });
+      typeFilterRef.current = next;
+      setTypeFilter(next);
     },
     [track],
   );

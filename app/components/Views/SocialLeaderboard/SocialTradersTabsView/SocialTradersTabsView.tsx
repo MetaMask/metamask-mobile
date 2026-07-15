@@ -79,29 +79,27 @@ const SocialTradersTabsView: React.FC = () => {
 
   const changeTab = useCallback(
     (index: number) => {
-      setActiveIndex((current) => {
-        if (current === index) {
-          return current;
-        }
+      const tabChangeMethod = programmaticTabChangeRef.current
+        ? SocialLeaderboardEventValues.TAB_CHANGE_METHOD.TAP
+        : SocialLeaderboardEventValues.TAB_CHANGE_METHOD.SWIPE;
+      programmaticTabChangeRef.current = false;
 
-        const tabChangeMethod = programmaticTabChangeRef.current
-          ? SocialLeaderboardEventValues.TAB_CHANGE_METHOD.TAP
-          : SocialLeaderboardEventValues.TAB_CHANGE_METHOD.SWIPE;
-        programmaticTabChangeRef.current = false;
+      if (activeIndex === index) {
+        return;
+      }
 
-        track(MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION, {
-          [SocialLeaderboardEventProperties.INTERACTION_TYPE]:
-            SocialLeaderboardEventValues.FOLLOW_TRADING_INTERACTION_TYPE
-              .TAB_CHANGED,
-          [SocialLeaderboardEventProperties.TAB]: getTabAnalyticsValue(index),
-          [SocialLeaderboardEventProperties.TAB_CHANGE_METHOD]: tabChangeMethod,
-        });
-
-        playSelection().catch(() => undefined);
-        return index;
+      track(MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION, {
+        [SocialLeaderboardEventProperties.INTERACTION_TYPE]:
+          SocialLeaderboardEventValues.FOLLOW_TRADING_INTERACTION_TYPE
+            .TAB_CHANGED,
+        [SocialLeaderboardEventProperties.TAB]: getTabAnalyticsValue(index),
+        [SocialLeaderboardEventProperties.TAB_CHANGE_METHOD]: tabChangeMethod,
       });
+
+      playSelection().catch(() => undefined);
+      setActiveIndex(index);
     },
-    [track],
+    [activeIndex, track],
   );
 
   const handleTabPress = useCallback(
