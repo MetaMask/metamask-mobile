@@ -15,6 +15,9 @@ export const SocialLeaderboardEventProperties = {
   PERPS_MARKET: 'perps_market',
   CHAIN_FILTER: 'chain_filter',
   CTA_TYPE: 'cta_type',
+  FEED_ACTION: 'feed_action',
+  FEED_AUDIENCE: 'feed_audience',
+  FEED_TYPE_FILTER: 'feed_type_filter',
   IS_FOLLOWING: 'is_following',
   IS_OPEN: 'is_open',
   NOTIFICATION_SUBTYPE: 'notification_subtype',
@@ -22,13 +25,16 @@ export const SocialLeaderboardEventProperties = {
   NUX_STEP: 'nux_step',
   NOTIFICATION_TEMPLATE_VARIANT: 'notification_template_variant',
   PREVIOUS_CHAIN_FILTER: 'previous_chain_filter',
+  PREVIOUS_FEED_TYPE_FILTER: 'previous_feed_type_filter',
   SCREEN: 'screen',
   SOURCE: 'source',
   TAB: 'tab',
+  TAB_CHANGE_METHOD: 'tab_change_method',
   TRADER_ADDRESS: 'trader_address',
   TRADER_HAS_PROFILE_PICTURE_SET: 'trader_has_profile_picture_set',
   TRADER_RANK: 'trader_rank',
   TRADER_USERNAME: 'trader_username',
+  TRADE_TYPE: 'trade_type',
   TRADERS_FOLLOWED_COUNT: 'traders_followed_count',
   TRADERS_PRE_SELECTED_COUNT: 'traders_pre_selected_count',
 } as const;
@@ -38,6 +44,28 @@ export const SocialLeaderboardEventValues = {
   ACTION: {
     FOLLOW: 'follow',
     UNFOLLOW: 'unfollow',
+  },
+  FEED_ACTION: {
+    BOUGHT: 'bought',
+    SOLD: 'sold',
+    OPENED: 'opened',
+    CLOSED: 'closed',
+  },
+  FEED_AUDIENCE: {
+    ALL: 'all',
+    FOLLOWING: 'following',
+  },
+  FEED_TYPE_FILTER: {
+    ALL: 'all',
+    TOKENS: 'tokens',
+    PERPS: 'perps',
+  },
+  FOLLOW_TRADING_INTERACTION_TYPE: {
+    TAB_CHANGED: 'tab_changed',
+  },
+  TRADER_FEED_INTERACTION_TYPE: {
+    AUDIENCE_FILTER_CHANGED: 'audience_filter_changed',
+    TYPE_FILTER_CHANGED: 'type_filter_changed',
   },
   INTERACTION_TYPE: {
     ALLOW_NOTIFICATIONS: 'allow_notifications',
@@ -54,8 +82,18 @@ export const SocialLeaderboardEventValues = {
     STEP_3: 'step_3',
   },
   TAB: {
-    OPEN: 'open',
     CLOSED: 'closed',
+    FEED: 'tab_feed',
+    LEADERBOARD: 'tab_leaderboard',
+    OPEN: 'open',
+  },
+  TAB_CHANGE_METHOD: {
+    SWIPE: 'swipe',
+    TAP: 'tap',
+  },
+  TRADE_TYPE: {
+    PERPS: 'perps',
+    SPOT: 'spot',
   },
   CTA_TYPE: {
     BUY: 'buy',
@@ -77,6 +115,7 @@ export type SocialLeaderboardSource =
   | 'home_carousel'
   | 'leaderboard'
   | 'trader_profile'
+  | 'trader_feed'
   | 'profile_position'
   | 'asset_details'
   | 'market_insights'
@@ -100,7 +139,7 @@ export type LeaderboardScreenViewedSource = Extract<
 
 export type TraderProfileScreenViewedSource = Extract<
   SocialLeaderboardSource,
-  'leaderboard' | 'home_carousel' | 'notification' | 'deep_link'
+  'leaderboard' | 'home_carousel' | 'notification' | 'deep_link' | 'trader_feed'
 >;
 
 export type TraderFollowInteractionSource = Extract<

@@ -313,6 +313,7 @@
     "whitelistPaths": {}
   },
   "PreferencesController": {
+    "advancedGasFee": {},
     "featureFlags": {},
     "ipfsGateway": "https://dweb.link/ipfs/",
     "useTokenDetection": true,
