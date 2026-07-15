@@ -50,6 +50,26 @@ export const POSTMESSAGE_BRIDGE = `
     forward(message, targetOrigin);
     return originalPostMessage(message, targetOrigin, transfer);
   };
+
+  // Diagnostic: report every 'message' event the frame's window actually
+  // receives, so we can confirm injected replies (e.g. the handshake ack)
+  // are delivered and inspect how source/origin look to the frame.
+  window.addEventListener('message', function(event) {
+    try {
+      var received = {
+        __moonpayReceived: true,
+        origin: event.origin,
+        hasSource: !!event.source,
+        sourceIsParent: event.source === window.parent,
+        sourceIsWindow: event.source === window,
+        dataType: typeof event.data,
+        data: typeof event.data === 'string'
+          ? event.data
+          : JSON.stringify(event.data),
+      };
+      window.ReactNativeWebView.postMessage(JSON.stringify(received));
+    } catch (e) {}
+  });
 })();
 true;
 `;
@@ -125,6 +145,7 @@ const useMoonpayFrame = ({
 
       let envelope: {
         __moonpayBridge?: boolean;
+        __moonpayReceived?: boolean;
         origin?: string;
         targetOrigin?: string | null;
         message?: string;
@@ -134,6 +155,12 @@ const useMoonpayFrame = ({
         envelope = JSON.parse(raw);
       } catch (err) {
         onError?.(`Non-JSON message from frame: ${raw.slice(0, 80)}`);
+        return;
+      }
+
+      // Diagnostic frames the WebView bridge received (already surfaced via
+      // onRawMessage above) — do not route as real frame messages.
+      if (envelope.__moonpayReceived) {
         return;
       }
 

@@ -105,7 +105,10 @@ const truncate = (s: string, head = 12, tail = 6): string =>
 export interface UseMoonpayIdentityFlowOptions {
   // Launches the SumSub verification flow. Called automatically once the
   // MoonPay flow reaches the `done` phase with `kycRequired === true`.
-  launchSumSubSDK: (moonPayAccessToken: string | null) => Promise<void> | void;
+  launchSumSubSDK: (
+    moonPayAccessToken: string | null,
+    moonPayCustomerId: string | null,
+  ) => Promise<void> | void;
 }
 
 const useMoonpayIdentityFlow = ({
@@ -172,6 +175,8 @@ const useMoonpayIdentityFlow = ({
 
   // ---- Auth frame clientToken ----
   const [authClientToken, setAuthClientToken] = useState<string | null>(null);
+  // ---- Auth frame customer ID ----
+  const [authCustomerId, setAuthCustomerId] = useState<string | null>(null);
 
   // ---- Stable X25519 keypair for Check/Auth frames ----
   const keypairRef = useRef<X25519KeyPair | null>(null);
@@ -269,6 +274,7 @@ const useMoonpayIdentityFlow = ({
       const channelId = payload.meta?.channelId;
       const status = payload.payload?.status;
       const credsEnvelope = payload.payload?.credentials;
+      setAuthCustomerId(payload.payload?.customer?.id);
 
       pushCheckDebug(
         `complete event — ${channelId ?? '(no channel)'}`,
@@ -401,8 +407,8 @@ const useMoonpayIdentityFlow = ({
   // kyc-required result. Passes the MoonPay access token to the SumSub flow.
   const launchSumSub = useCallback(() => {
     pushDebug('Step 5 launching SumSub', null, 'info');
-    launchSumSubSDK(accessToken);
-  }, [accessToken, launchSumSubSDK, pushDebug]);
+    launchSumSubSDK(accessToken, authCustomerId);
+  }, [accessToken, authCustomerId, launchSumSubSDK, pushDebug]);
 
   // ---------- Frame URLs ----------
   const checkFrameUrl = useMemo(() => {
@@ -412,7 +418,6 @@ const useMoonpayIdentityFlow = ({
     url.searchParams.set('publicKey', keypair.publicKeyHex);
     url.searchParams.set('channelId', CHANNEL_CHECK);
     url.searchParams.set('skipKyc', 'true');
-    console.log('==========> url', url.toString());
     return url.toString();
   }, [sessionToken, keypair.publicKeyHex]);
 
@@ -430,6 +435,14 @@ const useMoonpayIdentityFlow = ({
     url.searchParams.set('channelId', CHANNEL_AUTH);
     return url.toString();
   }, [authClientToken, keypair.publicKeyHex]);
+
+  // ---------- Raw frame traffic (diagnostic) ----------
+  const handleRawFrameMessage = useCallback(
+    (raw: string) => {
+      pushDebug('raw frame message', { raw: raw.slice(0, 800) });
+    },
+    [pushDebug],
+  );
 
   // ---------- Error handlers for frames ----------
   const handleCheckFrameError = useCallback(
@@ -465,11 +478,13 @@ const useMoonpayIdentityFlow = ({
     setShowCheckFrame,
     kycResult,
     checkFrameUrl,
+    authCustomerId,
     authFrameUrl,
     acceptTermsAndCreateSession,
     runKycCheck,
     launchSumSub,
     handleFrameMessage,
+    handleRawFrameMessage,
     handleCheckFrameError,
     handleAuthFrameError,
   };

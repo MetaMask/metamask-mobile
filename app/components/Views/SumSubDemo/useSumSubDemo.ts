@@ -3,6 +3,7 @@ import { NativeModules, Platform } from 'react-native';
 import SNSMobileSDK from '@sumsub/react-native-mobilesdk-module';
 import Engine from '../../../core/Engine';
 
+// eslint-disable-next-line import-x/no-restricted-paths
 import { UKYC_API_BASE_URL } from '../MoonpayDemo/api';
 
 async function getBearerToken(): Promise<string> {
@@ -25,6 +26,7 @@ interface CreateSessionResponse {
 async function createSession(
   jwtToken: string,
   moonPayAccessToken: string,
+  moonPayUserId: string,
 ): Promise<CreateSessionResponse> {
   const bearerToken = await getBearerToken();
   const response = await fetch(`${UKYC_API_BASE_URL}/sessions`, {
@@ -38,7 +40,8 @@ async function createSession(
       vendorUserId: 'mockedId',
       jwtToken,
       vendorMetadata: {
-        moonPayAccessToken
+        moonPayAccessToken,
+        moonPayUserId,
       },
     }),
   });
@@ -93,7 +96,7 @@ const useSumSubDemo = () => {
   const [status, setStatus] = useState<string | null>(null);
 
   const launchSumSubSDK = useCallback(
-    async (moonPayAccessToken: string | null) => {
+    async (moonPayAccessToken: string | null, moonPayUserId: string | null) => {
       setIsLoading(true);
       setSdkResult(null);
       setStatus(null);
@@ -110,8 +113,11 @@ const useSumSubDemo = () => {
         if (!moonPayAccessToken) {
           throw new Error('MoonPay access token not provided');
         }
+        if (!moonPayUserId) {
+          throw new Error('Auth customer ID not provided');
+        }
         const { sessionId, idosSessionId, wrappedUserKey } =
-          await createSession(mockJwtToken, moonPayAccessToken);
+          await createSession(mockJwtToken, moonPayAccessToken, moonPayUserId);
 
         setStatus('Fetching access token...');
         const { applicantAccessToken } = await fetchAccessToken(
