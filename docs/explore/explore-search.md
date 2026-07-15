@@ -4,7 +4,7 @@
 >
 > **Scope**: the omni-search on the Explore (Trending) tab, the token-search stack that powers it, the other surfaces that reuse (or duplicate) that stack — Swaps/Bridge, Manage/Import Tokens, the in-app Browser — and the long-term plan to centralise them.
 >
-> **Maintenance**: last verified against `main`, July 2026. This document is the source of truth for Explore search: update it in the same PR as any architecture change (new feeds, API migrations, centralisation steps from [§8](#8-long-term-vision-centralising-search)). File paths and symbols are the stable references; exact line numbers drift.
+> **Maintenance**: last verified against `main`, July 2026. This document is the source of truth for Explore search: update it in the same PR as any architecture change (new feeds, API migrations, centralisation steps from [§8](#8-long-term-vision)). File paths and symbols are the stable references; exact line numbers drift.
 
 ---
 
@@ -17,7 +17,7 @@
 5. [Pitfalls and invariants](#5-pitfalls-and-invariants)
 6. [Task recipes](#6-task-recipes)
 7. [Testing](#7-testing)
-8. [Long-term vision: centralising search](#8-long-term-vision-centralising-search)
+8. [Long-term vision](#8-long-term-vision)
 9. [Glossary](#9-glossary)
 
 ---
@@ -32,7 +32,7 @@ The mental model in nine statements. Everything else in this document elaborates
 - Token search is **stateless**: hooks call `searchTokens` / `getTrendingTokens` / `fetchRwas` from `@metamask/assets-controllers` directly against `https://token.api.cx.metamask.io`. There is **no search controller** and no Redux state for search results.
 - `TokenSearchDiscoveryDataController` (registered in the Engine) is **not** part of listing search results. It hydrates full token metadata + price **after** a user taps a search result ([§2.6](#26-what-happens-when-a-result-is-tapped)).
 - The old core package `@metamask/token-search-discovery-controller` (`TokenSearchDiscoveryController`, Portfolio `/tokens-search/*` endpoints) is **deprecated and removed from core**. Do not reintroduce it or copy patterns from it.
-- Swaps/Bridge token selection uses a **different** search stack (`POST {bridge-api}/getTokens/search`, JWT-authenticated, minimum query length 3) — the biggest fracture to close ([§8](#8-long-term-vision-centralising-search)).
+- Swaps/Bridge token selection uses a **different** search stack (`POST {bridge-api}/getTokens/search`, JWT-authenticated, minimum query length 3) — the biggest fracture to close ([§8](#8-long-term-vision)).
 - Manage/Import Tokens (`AddAsset`) reuses the **same** token-search stack as Explore (`useTrendingSearch`), scoped to a single chain, with `enableDebounce: true` and `includeStocks: true`.
 - Anything that calls `useExploreSearch` (directly or transitively) must render inside `PerpsSectionProvider`.
 
@@ -242,7 +242,7 @@ There is no `app/components/UI/Swaps` tree anymore; swap/bridge token picking is
 - Server search: `app/components/UI/Bridge/hooks/useSearchTokens.ts` — `POST {BRIDGE_API_BASE_URL}/getTokens/search` with a JWT from `AuthenticationController.getBearerToken()`, lodash `debounce` at 300 ms, **minimum query length 3**, cursor pagination via `after`.
 - Local fallback/legacy: `app/components/UI/Bridge/hooks/useTokenSearch/index.ts` — Fuse.js over already-loaded `BridgeToken[]`.
 
-**This is a different API, different result type (`PopularToken` vs `TrendingAsset`), different auth model, and different debounce/min-length policy than Explore.** It exists because swaps need swappability guarantees the token API historically did not provide. This is the primary fracture to resolve ([§8](#8-long-term-vision-centralising-search)).
+**This is a different API, different result type (`PopularToken` vs `TrendingAsset`), different auth model, and different debounce/min-length policy than Explore.** It exists because swaps need swappability guarantees the token API historically did not provide. This is the primary fracture to resolve ([§8](#8-long-term-vision)).
 
 ### 4.3 Manage / Import tokens
 
@@ -266,7 +266,7 @@ This surface is the proof that reuse works: it shares the search pipeline with E
 
 ### 4.5 Adjacent search implementations (not on the shared stack)
 
-These are the other token/asset searches in the app. They are relevant to the centralisation story ([§8](#8-long-term-vision-centralising-search)) even though they are not "Explore search":
+These are the other token/asset searches in the app. They are relevant to the centralisation story ([§8](#8-long-term-vision)) even though they are not "Explore search":
 
 | Surface | Path | Strategy |
 | --- | --- | --- |
@@ -304,7 +304,7 @@ If you add a new consumer, decide where the debounce lives and disable the other
 - `requestIdRef` counter — only the latest request may write state (queries can resolve out of order).
 - `isLoadingMoreRef` — FlashList `onEndReached` fires multiple times; the ref (not state) prevents duplicate page fetches.
 
-If you touch these hooks, keep both guards. Longer term this is exactly the duplication a shared search service should absorb ([§8](#8-long-term-vision-centralising-search)).
+If you touch these hooks, keep both guards. Longer term this is exactly the hand-rolled complexity the TanStack Query migration in [§8](#8-long-term-vision) removes.
 
 ### 5.4 Search-result ordering subtleties
 
@@ -369,46 +369,13 @@ Step-by-step starting points for the most common changes.
 
 ---
 
-## 8. Long-term vision: centralising search
+## 8. Long-term vision
 
-### 8.1 The problem
+Search is fractured across teams today ([§4](#4-where-search-lives-across-the-app)): several surfaces solve the same "type a string, get a ranked list" problem with their own UI, async plumbing and API calls. The direction of travel is centralisation, in three strands:
 
-Token search/list functionality is currently fractured across teams. The same product concept — "type a string, get a ranked list of tokens" — has at least four implementations with different APIs, result types, debounce policies and quality filters:
-
-| Surface | Owner (typical) | API | Result type | Min length | Debounce |
-| --- | --- | --- | --- | --- | --- |
-| Explore search | Assets/Explore | token API `/tokens/search` + `/v3/tokens/trending` | `TrendingAsset` | 1 | 200 ms (omni layer) |
-| Import/Manage tokens | Assets | same as Explore (shared hooks) | `TrendingAsset` → `ImportAsset` | 1 | 200 ms (hook layer) |
-| Swaps/Bridge selector | Swaps | bridge API `/getTokens/search` (JWT) | `PopularToken` | 3 | 300 ms (lodash) |
-| Send asset picker | Confirmations | none (local wallet state) | `AssetType` | 1 | none |
-| Ramp token selection | Ramp | none (local Fuse) | deposit token type | 1 | none |
-
-Consequences: inconsistent results for the same query on different screens (a token can be findable in Explore but not in Swaps), duplicated stale-request/pagination/debounce logic, per-surface bug fixes that don't propagate, and three different "is this token risky/swappable" policies.
-
-### 8.2 Target state
-
-One shared token-search layer with per-surface policy knobs, not per-surface pipelines:
-
-1. **One backend contract.** Converge on the token API (`token.api.cx.metamask.io`) as the single search backend. The missing piece for swaps is server-side swappability filtering — coordinate with the token API team to expose it (e.g. a `swappable=true` filter or per-route capability flags) so the Bridge `/getTokens/search` call can be retired, or wrapped behind the same client.
-2. **One client entry point.** A single `useTokenSearch`-style hook (or a headless service module) owning: debounce, min-length policy, request-id/stale guards, cursor pagination, error surface, and result normalisation. Surfaces pass declarative options (`chainIds`, `limit`, `includeStocks`, `swappableOnly`, `hideRiskyTokens`, `sort`). The existing `useTrendingSearch`/`useSearchRequest` pair is the natural seed for this; the Bridge hooks are the first migration target.
-3. **One result type.** Standardise on `TrendingAsset` (CAIP `assetId`-keyed) as the wire-to-UI shape and delete per-surface conversions (`convertTrendingAssetsToImporAssets`, `PopularToken` mapping) or reduce them to display-only adapters.
-4. **Shared UI primitives.** Token row + skeleton + sectioned results are already close to shared (`TrendingTokenRowItem`, `SearchFeedRow`); finish the job so Swaps/Send/Ramp render the same rows with surface-specific accessories (balance, quick buy, selection checkbox).
-5. **Consider promoting the client layer to core.** If extension needs the same convergence (it has its own `shared/lib/token-search/token-search-api.ts`), the normalised search client belongs in `@metamask/assets-controllers` (or a small dedicated package) rather than mobile — same playbook as `@metamask/perps-controller` (see ADR-042 in core).
-6. **Ownership.** Nominate one team as the owner of the shared search layer (currently the Explore/Assets side de-facto owns it) and route API-policy changes (thresholds, quality filters, new networks) through them, with a CODEOWNERS entry for the shared hooks.
-
-### 8.3 Suggested sequencing
-
-1. Extract the token pipeline (`useSearchRequest`/`useTrendingRequest`/`useTrendingSearch` + network lists + quality filters) out of `UI/Trending` into a neutral module (e.g. `app/components/UI/TokenSearch/` or `app/core/token-search/`) with no Explore-specific imports; Explore and AddAsset keep working via re-exports.
-2. Add swappability support to the shared pipeline (server-side filter when available; interim: client-side intersect with bridge-supported assets).
-3. Migrate `BridgeTokenSelector` off `useSearchTokens`/bridge API; delete the bespoke JWT search path.
-4. Optionally migrate Send/Ramp local searches to the shared hook in "local corpus" mode (same ranking/UX, no network calls), so all pickers feel identical.
-5. Evaluate moving the module to core for extension parity.
-
-### 8.4 What to avoid
-
-- Building "one more" search hook next to the existing ones — extend the shared pipeline instead.
-- Re-introducing a stateful search controller: the stateless-hooks-over-API model has proven simpler; the only justified state is post-tap hydration (`TokenSearchDiscoveryDataController`) and possibly a recent-searches store.
-- Coupling the shared layer to Explore UI concerns (pills, analytics event names, A/B config) — those stay in the Explore feature.
+1. **Centralise UI.** Teams already reuse the search hooks (e.g. Swaps, Manage Tokens), but each builds custom UI on top. Converging on shared search UI primitives (rows, skeletons, sectioned results) across swaps, token management, Explore, etc. reduces the bug surface area — a fix lands once instead of per surface.
+2. **Move hook async state to TanStack Query.** The atomic hooks (`useSearchRequest`, `useTrendingRequest`, `useRwaTokens`) hand-roll async state with `useEffect`/`useState` plus manual stale-request and pagination guards ([§5.3](#53-stale-responses-and-pagination-guards)). Adopting TanStack Query patterns (as the predictions feed already does) removes that complexity — caching, request de-duplication and pagination come built in.
+3. **Spike an API gateway/proxy.** Each omni-search section makes its own API call ([§2.5](#25-backend-apis)). Worth a spike: aggregate them behind one API call so the fan-out, merging and ranking happen server-side, reducing computation on the client.
 
 ---
 
