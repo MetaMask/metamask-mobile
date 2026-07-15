@@ -10,7 +10,6 @@ import {
 } from '../../../actions/notification';
 import Engine from '../../Engine';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
-
 jest.mock('../../../store', () => ({
   store: {
     dispatch: jest.fn(),
@@ -81,12 +80,26 @@ describe('HostApplicationAdapter', () => {
       expect(showSimpleNotification).toHaveBeenCalledTimes(1);
       expect(showSimpleNotification).toHaveBeenCalledWith({
         id: 'session-123',
-        autodismiss: 8000,
+        autodismiss: 10000,
         title: 'sdk_connect_v2.show_loading.title',
         description: 'sdk_connect_v2.show_loading.description',
         status: 'pending',
       });
       expect(store.dispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('uses a custom autodismiss timeout when provided', () => {
+      adapter.showConnectionLoading(
+        createMockConnectionInfo('session-123', 'Test DApp'),
+        { autodismissMs: 15000 },
+      );
+
+      expect(showSimpleNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'session-123',
+          autodismiss: 15000,
+        }),
+      );
     });
   });
 
@@ -130,6 +143,74 @@ describe('HostApplicationAdapter', () => {
         autodismiss: 5000,
         title: 'sdk_connect_v2.show_error.title',
         description: 'sdk_connect_v2.show_error.description',
+        status: 'error',
+      });
+      expect(store.dispatch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('showInternalError', () => {
+    it('dispatches an error notification with internal error message', () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+
+      adapter.showInternalError();
+
+      expect(showSimpleNotification).toHaveBeenCalledTimes(1);
+      expect(showSimpleNotification).toHaveBeenCalledWith({
+        id: '1234567890',
+        autodismiss: 5000,
+        title: 'sdk_connect_v2.show_internal_error.title',
+        description: 'sdk_connect_v2.show_internal_error.description',
+        status: 'error',
+      });
+      expect(store.dispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('dispatches an internal error notification with connection info', () => {
+      adapter.showInternalError(
+        createMockConnectionInfo('session-123', 'Test DApp'),
+      );
+
+      expect(showSimpleNotification).toHaveBeenCalledTimes(1);
+      expect(showSimpleNotification).toHaveBeenCalledWith({
+        id: 'session-123',
+        autodismiss: 5000,
+        title: 'sdk_connect_v2.show_internal_error.title',
+        description: 'sdk_connect_v2.show_internal_error.description',
+        status: 'error',
+      });
+      expect(store.dispatch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('showMethodError', () => {
+    it('dispatches an error notification with method error message', () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+
+      adapter.showMethodError();
+
+      expect(showSimpleNotification).toHaveBeenCalledTimes(1);
+      expect(showSimpleNotification).toHaveBeenCalledWith({
+        id: '1234567890',
+        autodismiss: 5000,
+        title: 'sdk_connect_v2.show_method_error.title',
+        description: 'sdk_connect_v2.show_method_error.description',
+        status: 'error',
+      });
+      expect(store.dispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('dispatches a method error notification with connection info', () => {
+      adapter.showMethodError(
+        createMockConnectionInfo('session-123', 'Test DApp'),
+      );
+
+      expect(showSimpleNotification).toHaveBeenCalledTimes(1);
+      expect(showSimpleNotification).toHaveBeenCalledWith({
+        id: 'session-123',
+        autodismiss: 5000,
+        title: 'sdk_connect_v2.show_method_error.title',
+        description: 'sdk_connect_v2.show_method_error.description',
         status: 'error',
       });
       expect(store.dispatch).toHaveBeenCalledTimes(1);
@@ -209,6 +290,7 @@ describe('HostApplicationAdapter', () => {
             dappId: mockConnectionInfo.metadata.dapp.name,
             apiVersion: mockConnectionInfo.metadata.sdk.version,
             platform: mockConnectionInfo.metadata.sdk.platform,
+            anonId: undefined,
           },
           isV2: true,
         },
@@ -256,6 +338,7 @@ describe('HostApplicationAdapter', () => {
             dappId: mockConnectionInfo1.metadata.dapp.name,
             apiVersion: mockConnectionInfo1.metadata.sdk.version,
             platform: mockConnectionInfo1.metadata.sdk.platform,
+            anonId: undefined,
           },
           isV2: true,
         },
@@ -270,12 +353,50 @@ describe('HostApplicationAdapter', () => {
             dappId: mockConnectionInfo2.metadata.dapp.name,
             apiVersion: mockConnectionInfo2.metadata.sdk.version,
             platform: mockConnectionInfo2.metadata.sdk.platform,
+            anonId: undefined,
           },
           isV2: true,
         },
       } as unknown as SDKSessions;
 
       expect(store.dispatch).toHaveBeenCalledTimes(1);
+      expect(setSdkV2Connections).toHaveBeenCalledWith(expectedSessions);
+    });
+
+    it('includes anonId in originatorInfo when analytics.remote_session_id is present', () => {
+      const connInfoWithAnon: ConnectionInfo = {
+        ...createMockConnectionInfo('conn-anon', 'AnonTest'),
+        metadata: {
+          ...createMockConnectionInfo('conn-anon', 'AnonTest').metadata,
+          analytics: {
+            remote_session_id: 'aabbccdd-1122-3344-5566-778899aabbcc',
+          },
+        },
+      };
+      const connections = [
+        { id: connInfoWithAnon.id, info: connInfoWithAnon },
+      ] as unknown as Connection[];
+
+      adapter.syncConnectionList(connections);
+
+      const expectedSessions = {
+        [connInfoWithAnon.id]: {
+          id: connInfoWithAnon.id,
+          otherPublicKey: '',
+          origin: connInfoWithAnon.metadata.dapp.url,
+          originatorInfo: {
+            title: connInfoWithAnon.metadata.dapp.name,
+            url: connInfoWithAnon.metadata.dapp.url,
+            icon: connInfoWithAnon.metadata.dapp.icon,
+            dappId: connInfoWithAnon.metadata.dapp.name,
+            apiVersion: connInfoWithAnon.metadata.sdk.version,
+            platform: connInfoWithAnon.metadata.sdk.platform,
+            anonId: 'aabbccdd-1122-3344-5566-778899aabbcc',
+          },
+          isV2: true,
+        },
+      } as unknown as SDKSessions;
+
       expect(setSdkV2Connections).toHaveBeenCalledWith(expectedSessions);
     });
   });

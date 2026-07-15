@@ -1,6 +1,6 @@
 'use strict';
 
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 import { EventEmitter } from 'events';
 const hub = new EventEmitter();
 

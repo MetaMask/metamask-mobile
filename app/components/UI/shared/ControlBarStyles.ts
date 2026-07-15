@@ -16,7 +16,7 @@ const createControlBarStyles = (params: { theme: Theme }) => {
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginVertical: 8,
+      alignItems: 'center',
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',
@@ -28,30 +28,6 @@ const createControlBarStyles = (params: { theme: Theme }) => {
       flexDirection: 'row',
       gap: 12,
       alignItems: 'center',
-    },
-    controlButton: {
-      backgroundColor: colors.background.default,
-      borderColor: colors.border.muted,
-      borderWidth: 1,
-      borderRadius: 8,
-      maxWidth: '80%',
-      paddingHorizontal: 12,
-    },
-    controlButtonDisabled: {
-      backgroundColor: colors.background.default,
-      borderColor: colors.border.muted,
-      marginRight: 4,
-      borderWidth: 1,
-      borderRadius: 8,
-      maxWidth: '80%',
-      paddingHorizontal: 12,
-      opacity: 0.5,
-    },
-    controlButtonText: {
-      color: colors.text.default,
-    },
-    controlIconButton: {
-      backgroundColor: colors.background.default,
     },
     networkManagerWrapper: {
       display: 'flex',

@@ -1,6 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
-/* eslint-disable import/prefer-default-export */
-import SnapElement from './SnapElement';
-
-export { SnapElement };
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
+/* eslint-disable import-x/prefer-default-export */
+export { default as SnapElement } from './SnapElement';
 ///: END:ONLY_INCLUDE_IF

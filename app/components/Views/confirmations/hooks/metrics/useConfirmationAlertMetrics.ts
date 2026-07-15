@@ -106,30 +106,48 @@ function getAlertNames(alerts: Alert[]): string[] {
 }
 
 const ALERTS_NAME_METRICS: AlertNameMetrics = {
+  [AlertKeys.AddressPoisoning]: 'address_poisoning',
   [AlertKeys.AddressTrustSignalMalicious]: 'address_trust_signal_malicious',
   [AlertKeys.AddressTrustSignalWarning]: 'address_trust_signal_warning',
   [AlertKeys.BatchedUnusedApprovals]: 'batched_unused_approvals',
   [AlertKeys.Blockaid]: 'blockaid',
   [AlertKeys.BurnAddress]: 'burn_address',
   [AlertKeys.DomainMismatch]: 'domain_mismatch',
+  [AlertKeys.FirstTimeInteraction]: 'first_time_interaction',
+  [AlertKeys.HeadlessBuyError]: 'headless_buy_error',
   [AlertKeys.GasEstimateFailed]: 'gas_estimate_failed',
   [AlertKeys.GasSponsorshipReserveBalance]: 'gas_sponsorship_reserve_balance',
   [AlertKeys.InsufficientBalance]: 'insufficient_balance',
   [AlertKeys.InsufficientPayTokenBalance]: 'insufficient_funds',
   [AlertKeys.InsufficientPayTokenFees]: 'insufficient_funds_for_fees',
   [AlertKeys.InsufficientPayTokenNative]: 'insufficient_funds_for_gas',
+  [AlertKeys.InsufficientMoneyAccountBalance]: 'insufficient_funds',
+  [AlertKeys.InsufficientPerpsBalance]: 'insufficient_funds',
   [AlertKeys.InsufficientPredictBalance]: 'insufficient_funds',
+  [AlertKeys.AccountNoFunds]: 'account_no_funds',
   [AlertKeys.NoPayTokenQuotes]: 'no_payment_route_available',
   [AlertKeys.OriginTrustSignalMalicious]: 'origin_trust_signal_malicious',
   [AlertKeys.OriginTrustSignalWarning]: 'origin_trust_signal_warning',
   [AlertKeys.PendingTransaction]: 'pending_transaction',
   [AlertKeys.PerpsDepositMinimum]: 'minimum_deposit',
-  [AlertKeys.PerpsHardwareAccount]: 'perps_hardware_account',
+  [AlertKeys.MMPayHardwareAccount]: 'mmpay_hardware_account',
   [AlertKeys.SignedOrSubmitted]: 'signed_or_submitted',
+  [AlertKeys.TokenContractAddress]: 'token_contract_address',
   [AlertKeys.TokenTrustSignalMalicious]: 'token_trust_signal_malicious',
   [AlertKeys.TokenTrustSignalWarning]: 'token_trust_signal_warning',
+  [AlertKeys.FiatBuyAmountLimit]: 'fiat_buy_amount_limit',
+  [AlertKeys.DepositLimit]: 'deposit_limit',
 };
 
 function getAlertName(alertKey: string): string {
-  return ALERTS_NAME_METRICS[alertKey as AlertKeys] ?? alertKey;
+  const exactMatch = ALERTS_NAME_METRICS[alertKey as AlertKeys];
+  if (exactMatch) return exactMatch;
+
+  const baseKey = Object.keys(ALERTS_NAME_METRICS)
+    .filter((k) => alertKey.startsWith(k))
+    .sort((a, b) => b.length - a.length)[0];
+
+  if (baseKey) return ALERTS_NAME_METRICS[baseKey as AlertKeys];
+
+  return alertKey;
 }

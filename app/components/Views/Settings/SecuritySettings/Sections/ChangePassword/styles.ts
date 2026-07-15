@@ -1,10 +1,10 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 import { StyleSheet } from 'react-native';
 
 export const createStyles = () =>
   StyleSheet.create({
     setting: {
-      marginTop: 32,
+      marginTop: 24,
     },
     desc: {
       marginTop: 8,

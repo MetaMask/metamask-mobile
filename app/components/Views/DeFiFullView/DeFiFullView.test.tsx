@@ -1,0 +1,81 @@
+import { fireEvent } from '@testing-library/react-native';
+import { renderScreen } from '../../../util/test/renderWithProvider';
+import DeFiFullView from './DeFiFullView';
+import { useNavigation } from '@react-navigation/native';
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => {
+    const tw = () => ({});
+    tw.style = () => ({});
+    return tw;
+  },
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    PreferencesController: {
+      setTokenSortConfig: jest.fn(),
+    },
+  },
+}));
+
+jest.mock('../../UI/DeFiPositions/DeFiPositionsList', () => {
+  const React = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+
+  return function MockDeFiPositionsList() {
+    return React.createElement(
+      View,
+      { testID: 'defi-positions-list' },
+      React.createElement(Text, null, 'DeFi Positions List'),
+    );
+  };
+});
+
+const mockUseNavigation = useNavigation as jest.MockedFunction<
+  typeof useNavigation
+>;
+
+describe('DeFiFullView', () => {
+  const mockGoBack = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    mockUseNavigation.mockReturnValue({
+      goBack: mockGoBack,
+    } as unknown as ReturnType<typeof useNavigation>);
+  });
+
+  it('renders header with title and back button', () => {
+    const { getByTestId, getByText } = renderScreen(DeFiFullView, {
+      name: 'DeFiFullView',
+    });
+
+    expect(getByTestId('back-button')).toBeOnTheScreen();
+    expect(getByText('DeFi')).toBeOnTheScreen();
+  });
+
+  it('renders DeFi positions list', () => {
+    const { getByTestId } = renderScreen(DeFiFullView, {
+      name: 'DeFiFullView',
+    });
+
+    expect(getByTestId('defi-positions-list')).toBeOnTheScreen();
+  });
+
+  it('calls goBack when back button is pressed', () => {
+    const { getByTestId } = renderScreen(DeFiFullView, {
+      name: 'DeFiFullView',
+    });
+
+    fireEvent.press(getByTestId('back-button'));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+});

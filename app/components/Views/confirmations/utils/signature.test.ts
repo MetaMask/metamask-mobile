@@ -1,4 +1,7 @@
 import {
+  isPermitDaiRevoke,
+  isPermitDaiUnlimited,
+  isPermitRevoke,
   parseAndNormalizeSignTypedData,
   isRecognizedPermit,
   isTypedSignV3V4Request,
@@ -15,6 +18,7 @@ import {
   SignatureRequest,
   SignatureRequestType,
 } from '@metamask/signature-controller';
+import { TOKEN_ADDRESS } from '../constants/tokens';
 import {
   mockTypedSignV3Message,
   personalSignSignatureRequest,
@@ -173,6 +177,99 @@ describe('Signature Utils', () => {
         // String values are not matched by the large value regex, so JSON.parse result is used
         expect(result.message.value).toBe('123');
       });
+    });
+  });
+
+  describe('DAI permit coercion helpers', () => {
+    it('mirrors bool truthiness coercion for DAI permit unlimited checks', () => {
+      expect(isPermitDaiUnlimited(TOKEN_ADDRESS.DAI, true)).toBe(true);
+      expect(isPermitDaiUnlimited(TOKEN_ADDRESS.DAI, 'false')).toBe(true);
+      expect(isPermitDaiUnlimited(TOKEN_ADDRESS.DAI, 0)).toBe(false);
+    });
+
+    it('does not classify DAI permit as revoke when allowed is the string "false"', () => {
+      expect(isPermitDaiRevoke(TOKEN_ADDRESS.DAI, 'false')).toBe(false);
+    });
+
+    it('classifies DAI permit as revoke for zero-like numeric values', () => {
+      expect(isPermitDaiRevoke(TOKEN_ADDRESS.DAI, undefined, '0x0')).toBe(true);
+      expect(isPermitDaiRevoke(TOKEN_ADDRESS.DAI, undefined, '0')).toBe(true);
+    });
+
+    it('classifies DAI permit as revoke when allowed is an empty string', () => {
+      expect(isPermitDaiRevoke(TOKEN_ADDRESS.DAI, '')).toBe(true);
+    });
+  });
+
+  describe('isPermitRevoke', () => {
+    const PERMIT2_CONTRACT = '0x000000000022d473030f116ddee9f6b43ac78ba3';
+    const permitBatchTypes = {
+      PermitBatch: [
+        { name: 'details', type: 'PermitDetails[]' },
+        { name: 'spender', type: 'address' },
+        { name: 'sigDeadline', type: 'uint256' },
+      ],
+    };
+    const eip2612PermitTypes = {
+      Permit: [
+        { name: 'owner', type: 'address' },
+        { name: 'spender', type: 'address' },
+        { name: 'value', type: 'uint256' },
+        { name: 'nonce', type: 'uint256' },
+        { name: 'deadline', type: 'uint256' },
+      ],
+    };
+
+    it('does not classify a Permit2 PermitBatch as revoke when an undeclared "value" sibling is "0"', () => {
+      expect(
+        isPermitRevoke(
+          PERMIT2_CONTRACT,
+          undefined,
+          '0',
+          permitBatchTypes,
+          'PermitBatch',
+        ),
+      ).toBe(false);
+    });
+
+    it('classifies an EIP-2612 Permit with a declared zero value as revoke', () => {
+      expect(
+        isPermitRevoke(
+          '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+          undefined,
+          '0',
+          eip2612PermitTypes,
+          'Permit',
+        ),
+      ).toBe(true);
+    });
+
+    it('does not classify a declared non-zero value as revoke', () => {
+      expect(
+        isPermitRevoke(
+          '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+          undefined,
+          '3000',
+          eip2612PermitTypes,
+          'Permit',
+        ),
+      ).toBe(false);
+    });
+
+    it('still classifies DAI revoke via the allowed flag regardless of value schema', () => {
+      expect(
+        isPermitRevoke(
+          TOKEN_ADDRESS.DAI,
+          false,
+          undefined,
+          undefined,
+          'Permit',
+        ),
+      ).toBe(true);
+    });
+
+    it('ignores the value branch when types or primaryType are missing', () => {
+      expect(isPermitRevoke(PERMIT2_CONTRACT, undefined, '0')).toBe(false);
     });
   });
 

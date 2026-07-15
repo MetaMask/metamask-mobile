@@ -15,10 +15,12 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { strings } from '../../../../locales/i18n';
 // Internal dependencies
@@ -27,7 +29,7 @@ import Logger from '../../../util/Logger';
 import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
 import { AccountActionsBottomSheetSelectorsIDs } from './AccountActionsBottomSheet.testIds';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import {
   isHardwareAccount,
   isHDOrFirstPartySnapAccount,
@@ -39,10 +41,11 @@ import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import ExtendedKeyringTypes, {
   HardwareDeviceTypes,
 } from '../../../constants/keyringTypes';
-import { forgetLedger } from '../../../core/Ledger/Ledger';
+import { forgetLedger, getDeviceId } from '../../../core/Ledger/Ledger';
 import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useEIP7702Networks } from '../confirmations/hooks/7702/useEIP7702Networks';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
@@ -51,7 +54,6 @@ import {
   forgetQrDevice,
   withQrKeyring,
 } from '../../../core/QrKeyring/QrKeyring';
-import useLedgerDeviceForAccount from '../../hooks/Ledger/useLedgerDeviceForAccount';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -65,7 +67,7 @@ const AccountActions = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { networkSupporting7702Present } = useEIP7702Networks(
     selectedAccount.address,
   );
@@ -86,8 +88,6 @@ const AccountActions = () => {
 
   const selectedAddress = selectedAccount?.address;
   const keyring = selectedAccount?.metadata.keyring;
-
-  const { ledgerDevice } = useLedgerDeviceForAccount(selectedAccount);
 
   const blockExplorer:
     | {
@@ -113,6 +113,11 @@ const AccountActions = () => {
   const viewOnBlockExplorer = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       if (blockExplorer) {
+        trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+          location: 'account_actions',
+          text: `${strings('drawer.view_in')} ${blockExplorer.blockExplorerName}`,
+          url: blockExplorer.url,
+        });
         goToBrowserUrl(blockExplorer.url, blockExplorer.title);
       }
       trackEvent(
@@ -171,9 +176,9 @@ const AccountActions = () => {
 
   const goToExportSRP = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+      navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
         keyringId,
+        popToTopOnDone: true,
       });
     });
   };
@@ -306,7 +311,7 @@ const AccountActions = () => {
     if (requestForgetDevice) {
       switch (keyringType) {
         case ExtendedKeyringTypes.ledger: {
-          const ledgerDeviceId = ledgerDevice?.id;
+          const ledgerDeviceId = await getDeviceId();
           await forgetLedger();
           trackEvent(
             createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
@@ -341,7 +346,6 @@ const AccountActions = () => {
   }, [
     controllers.KeyringController,
     keyring?.type,
-    ledgerDevice?.id,
     trackEvent,
     createEventBuilder,
   ]);

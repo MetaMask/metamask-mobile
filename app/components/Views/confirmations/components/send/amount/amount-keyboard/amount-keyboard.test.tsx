@@ -1,7 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
-
 import { mockTheme } from '../../../../../../../util/theme';
 import renderWithProvider, {
   ProviderValues,
@@ -18,8 +17,9 @@ import { useRouteParams } from '../../../../hooks/send/useRouteParams';
 import { useSendType } from '../../../../hooks/send/useSendType';
 import { useParams } from '../../../../../../../util/navigation/navUtils';
 import { useSendActions } from '../../../../hooks/send/useSendActions';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as AmountValidation from '../../../../hooks/send/useAmountValidation';
+import { useUnreliableNetworkAlert } from '../../../../hooks/send/alerts/useUnreliableNetworkAlert';
 import { getBackgroundColor } from './amount-keyboard.styles';
 import { AmountKeyboard } from './amount-keyboard';
 
@@ -63,6 +63,10 @@ jest.mock('../../../../hooks/send/useSendActions', () => ({
   useSendActions: jest.fn(),
 }));
 
+jest.mock('../../../../hooks/send/alerts/useUnreliableNetworkAlert', () => ({
+  useUnreliableNetworkAlert: jest.fn(),
+}));
+
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -99,6 +103,7 @@ const mockUsePercentageAmount = usePercentageAmount as jest.MockedFunction<
 
 const mockUseParams = jest.mocked(useParams);
 const mockUseSendActions = jest.mocked(useSendActions);
+const mockUseUnreliableNetworkAlert = jest.mocked(useUnreliableNetworkAlert);
 
 const renderComponent = (
   mockState?: ProviderValues['state'],
@@ -141,6 +146,10 @@ describe('Amount', () => {
     mockUseSendActions.mockReturnValue({
       handleSubmitPress: mockHandleSubmitPress,
     } as unknown as ReturnType<typeof useSendActions>);
+    mockUseUnreliableNetworkAlert.mockReturnValue({
+      alert: null,
+      navigateToEditNetwork: jest.fn(),
+    });
   });
 
   it('renders correctly', () => {
@@ -160,9 +169,7 @@ describe('Amount', () => {
     } as unknown as ReturnType<typeof useSendContext>);
 
     const { getByRole } = renderComponent(undefined, '');
-    expect(
-      getByRole('button', { name: 'Next' }).props.style.backgroundColor,
-    ).toEqual('#b7bbc8');
+    expect(getByRole('button', { name: 'Next' })).toBeDisabled();
   });
 
   it('call updateValue with MaxMode true when Max button is pressed', () => {
@@ -195,6 +202,26 @@ describe('Amount', () => {
     expect(mockValidateNonEvmAmountAsync).toHaveBeenCalled();
   });
 
+  it('disables the Continue button when the network is unreliable', () => {
+    mockUseSendContext.mockReturnValue({
+      asset: MOCK_EVM_ASSET,
+      updateAsset: jest.fn(),
+    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseUnreliableNetworkAlert.mockReturnValue({
+      alert: {
+        key: 'unreliableNetwork',
+        title: 'Unavailable network connection',
+        message: 'The connection with Ethereum is unreliable.',
+        acknowledgeButtonLabel: 'Update',
+      },
+      navigateToEditNetwork: jest.fn(),
+    });
+
+    const { getByRole } = renderComponent();
+
+    expect(getByRole('button', { name: 'Continue' })).toBeDisabled();
+  });
+
   it('calls updateTo and handleSubmitPress when predefinedRecipient is provided', () => {
     const mockUpdateTo = jest.fn();
     const predefinedRecipientAddress =
@@ -225,9 +252,17 @@ describe('Amount', () => {
 
 describe('getBackgroundColor', () => {
   it('return correct color depending on amount value and error', () => {
-    expect(getBackgroundColor(mockTheme, false, false)).toEqual('#121314');
-    expect(getBackgroundColor(mockTheme, true, false)).toEqual('#ca3542');
-    expect(getBackgroundColor(mockTheme, false, true)).toEqual('#b7bbc8');
-    expect(getBackgroundColor(mockTheme, true, true)).toEqual('#ca3542');
+    expect(getBackgroundColor(mockTheme, false, false)).toEqual(
+      mockTheme.colors.text.default,
+    );
+    expect(getBackgroundColor(mockTheme, true, false)).toEqual(
+      mockTheme.colors.error.default,
+    );
+    expect(getBackgroundColor(mockTheme, false, true)).toEqual(
+      mockTheme.colors.text.muted,
+    );
+    expect(getBackgroundColor(mockTheme, true, true)).toEqual(
+      mockTheme.colors.error.default,
+    );
   });
 });

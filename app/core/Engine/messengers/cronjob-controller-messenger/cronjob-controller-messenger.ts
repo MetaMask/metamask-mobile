@@ -1,7 +1,7 @@
 import { RootExtendedMessenger, RootMessenger } from '../../types';
 import {
   CronjobControllerMessenger,
-  GetAllSnaps,
+  SnapControllerGetAllSnapsAction as SnapControllerGetAllSnapsActionType,
 } from '@metamask/snaps-controllers';
 import {
   SnapControllerHandleRequestAction,
@@ -29,7 +29,8 @@ export function getCronjobControllerMessenger(
 ): CronjobControllerMessenger {
   const messenger = new Messenger<
     'CronjobController',
-    MessengerActions<CronjobControllerMessenger> | GetAllSnaps,
+    | MessengerActions<CronjobControllerMessenger>
+    | SnapControllerGetAllSnapsActionType,
     MessengerEvents<CronjobControllerMessenger>,
     RootMessenger
   >({

@@ -6,14 +6,14 @@ import { useSelector } from 'react-redux';
 import { TronResourceType } from '../../../../core/Multichain/constants';
 import Logger from '../../../../util/Logger';
 import { isTronChainId } from '../../../../core/Multichain/utils';
-import { selectTronResourcesBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
+import { selectTronSpecialAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import { selectTrxStakingEnabled } from '../../../../selectors/featureFlagController/trxStakingEnabled';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { TokenI } from '../../Tokens/types';
 import { EarnTokenDetails } from '../types/lending.types';
 import {
   buildTronEarnTokenIfEligible,
-  getStakedTrxTotalFromResources,
+  getStakedTrxTotalFromSpecialAssets,
 } from '../utils/tron';
 import {
   computeStakeFee,
@@ -70,7 +70,9 @@ const useTronUnstake = ({
     TrxScope.Mainnet,
   );
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
-  const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
+  const tronSpecialAssets = useSelector(
+    selectTronSpecialAssetsBySelectedAccountGroup,
+  );
 
   // Derive whether token is on Tron chain
   const isTronAsset = useMemo(
@@ -81,10 +83,10 @@ const useTronUnstake = ({
   // Tron unstaking is enabled when both flag is on and token is on Tron chain
   const isTronEnabled = Boolean(isTrxStakingEnabled && isTronAsset);
 
-  // Compute staked TRX total from resources
   const stakedTrxTotal = useMemo(
-    () => (isTronEnabled ? getStakedTrxTotalFromResources(tronResources) : 0),
-    [isTronEnabled, tronResources],
+    () =>
+      isTronEnabled ? getStakedTrxTotalFromSpecialAssets(tronSpecialAssets) : 0,
+    [isTronEnabled, tronSpecialAssets],
   );
 
   // Determine the staked balance to use for withdrawal

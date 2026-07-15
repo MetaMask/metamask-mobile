@@ -2,6 +2,7 @@ import {
   formatChainIdToCaip,
   formatChainIdToHex,
   isNonEvmChainId,
+  isNativeAddress,
 } from '@metamask/bridge-controller';
 import {
   Hex,
@@ -18,10 +19,93 @@ import {
   CodefiTokenPricesServiceV2,
   ContractMarketData,
   fetchTokenContractExchangeRates,
+  type MarketDataDetails,
 } from '@metamask/assets-controllers';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { toAssetId } from '../hooks/useAssetMetadata/utils';
 import { formatCurrency } from './currencyUtils';
+
+/**
+ * Converts a fiat value from the user's current currency to USD.
+ * Uses the ratio of usdConversionRate / conversionRate for the chain's native
+ * currency, since both rates share the same native token denominator
+ * (e.g. USD/ETH ÷ EUR/ETH = USD/EUR).
+ *
+ * @param fiatValue - The value in the user's current fiat currency
+ * @param conversionRate - Native token to user's fiat currency rate (e.g. 1 ETH = 2300 EUR)
+ * @param usdConversionRate - Native token to USD rate (e.g. 1 ETH = 2500 USD)
+ * @returns The value in USD, or 0 if rates are unavailable
+ */
+export const convertFiatToUsd = (
+  fiatValue: number,
+  conversionRate: number | null | undefined,
+  usdConversionRate: number | null | undefined,
+): number | undefined => {
+  if (!conversionRate || !usdConversionRate) {
+    return undefined;
+  }
+  return fiatValue * (usdConversionRate / conversionRate);
+};
+
+/**
+ * Calculates the USD value of a token amount by converting from the user's
+ * fiat currency to USD.
+ *
+ * Looks up the native currency for the given chain to find conversionRate and
+ * usdConversionRate. For non-EVM chains (where the native currency won't exist
+ * in evmMultiChainCurrencyRates), falls back to any available EVM entry since
+ * the ratio usdConversionRate/conversionRate is a pure fiat-to-USD rate,
+ * independent of which native token it's derived from.
+ *
+ * @param tokenFiatValue - The token's value in the user's current fiat currency
+ * @param chainId - The chain ID of the source token
+ * @param networkConfigurationsByChainId - Network configurations keyed by chain ID (includes both EVM and non-EVM chains)
+ * @param evmMultiChainCurrencyRates - Currency rates keyed by native currency ticker
+ * @returns The value in USD, or undefined if rates are unavailable
+ */
+export const calcUsdAmountFromFiat = ({
+  tokenFiatValue,
+  chainId,
+  networkConfigurationsByChainId,
+  evmMultiChainCurrencyRates,
+}: {
+  tokenFiatValue: number;
+  chainId: string | undefined;
+  networkConfigurationsByChainId: Record<string, { nativeCurrency: string }>;
+  evmMultiChainCurrencyRates:
+    | Record<
+        string,
+        { conversionRate: number | null; usdConversionRate?: number | null }
+      >
+    | undefined;
+}): number | undefined => {
+  // For EVM chains this is a ticker (e.g. "ETH", "POL"), for non-EVM chains
+  // it's a full CAIP asset type (e.g. "solana:5eykt.../slip44:501")
+  const nativeCurrency = chainId
+    ? networkConfigurationsByChainId[chainId]?.nativeCurrency
+    : undefined;
+
+  // Try the chain's native currency first, then fall back to any entry with
+  // both rates. The fallback covers non-EVM chains whose nativeCurrency
+  // (a CAIP asset ID) won't exist in the EVM-only currency rates map.
+  const evmChainCurrencyEntry = nativeCurrency
+    ? evmMultiChainCurrencyRates?.[nativeCurrency]
+    : undefined;
+  const fallbackEvmCurrencyEntry = Object.values(
+    evmMultiChainCurrencyRates ?? {},
+  ).find((entry) => entry?.conversionRate && entry?.usdConversionRate);
+  const currencyEntry =
+    evmChainCurrencyEntry?.conversionRate &&
+    evmChainCurrencyEntry?.usdConversionRate
+      ? evmChainCurrencyEntry
+      : fallbackEvmCurrencyEntry;
+
+  return convertFiatToUsd(
+    tokenFiatValue,
+    currencyEntry?.conversionRate,
+    currencyEntry?.usdConversionRate,
+  );
+};
 
 export interface CalcTokenFiatValueParams {
   token: BridgeToken | undefined;
@@ -36,8 +120,57 @@ export interface CalcTokenFiatValueParams {
   nonEvmMultichainAssetRates: ReturnType<typeof selectMultichainAssetsRates>;
 }
 
+export type CalcTokenFiatRateParams = Omit<CalcTokenFiatValueParams, 'amount'>;
+
+/**
+ * Gets the rate of one token in the user's current fiat currency.
+ * @returns The numeric fiat rate, or undefined when price data is unavailable.
+ */
+export const calcTokenFiatRate = ({
+  token,
+  evmMultiChainMarketData,
+  networkConfigurationsByChainId,
+  evmMultiChainCurrencyRates,
+  nonEvmMultichainAssetRates,
+}: CalcTokenFiatRateParams): number | undefined => {
+  if (!token) {
+    return undefined;
+  }
+
+  if (isNonEvmChainId(token.chainId)) {
+    const assetId = token.address as CaipAssetType;
+    const rate = nonEvmMultichainAssetRates?.[assetId]?.rate;
+    if (rate) {
+      return Number(rate);
+    }
+
+    return token.currencyExchangeRate;
+  }
+
+  const evmChainId = token.chainId as Hex;
+  const evmMultiChainExchangeRates = evmMultiChainMarketData?.[evmChainId];
+  const evmTokenMarketData = evmMultiChainExchangeRates?.[token.address as Hex];
+
+  const nativeCurrency =
+    networkConfigurationsByChainId[evmChainId]?.nativeCurrency;
+  const multiChainConversionRate =
+    evmMultiChainCurrencyRates?.[nativeCurrency]?.conversionRate;
+
+  if (multiChainConversionRate && isNativeAddress(token.address)) {
+    return multiChainConversionRate;
+  }
+
+  if (multiChainConversionRate && evmTokenMarketData?.price) {
+    return multiChainConversionRate * evmTokenMarketData.price;
+  }
+
+  return token.currencyExchangeRate;
+};
+
 /**
  * Calculates the fiat value of a token amount in the user's current currency
+ * Keep this amount-based legacy path separate from calcTokenFiatRate so existing
+ * display, balance, and analytics consumers preserve their rounding/fallback behavior.
  * @returns The numeric fiat value (not formatted)
  */
 export const calcTokenFiatValue = ({
@@ -74,6 +207,10 @@ export const calcTokenFiatValue = ({
     networkConfigurationsByChainId[evmChainId]?.nativeCurrency;
   const multiChainConversionRate =
     evmMultiChainCurrencyRates?.[nativeCurrency]?.conversionRate;
+
+  if (multiChainConversionRate && isNativeAddress(token.address)) {
+    return Number(balanceToFiatNumber(amount, multiChainConversionRate, 1));
+  }
 
   if (multiChainConversionRate && evmTokenMarketData?.price) {
     return Number(
@@ -128,20 +265,24 @@ export const getDisplayCurrencyValue = ({
 };
 
 /**
- * Fetches the exchange rates for the tokens against the current currency
+ * Fetches the exchange rates for the tokens against the current currency.
  * @param chainId - The chainId of the tokens
  * @param currency - The currency to fetch the exchange rates in
+ * @param options - Optional settings
+ * @param options.includeMarketData - When true, returns full MarketDataDetails
+ * per token instead of just the price number.
  * @param tokenAddresses - The addresses of the tokens to fetch the exchange rates for
- * @returns Exchange rate for the tokens against the current currency
+ * @returns Exchange rates (or full market data) for the tokens
  */
 export const fetchTokenExchangeRates = async (
   chainId: Hex | CaipChainId,
   currency: string,
+  options?: { includeMarketData?: boolean },
   ...tokenAddresses: string[]
 ) => {
-  try {
-    let exchangeRates: Record<string, number | undefined> = {};
+  const withMarketData = options?.includeMarketData === true;
 
+  try {
     // Non-EVM
     if (isNonEvmChainId(chainId) && isCaipChainId(chainId)) {
       const queryParams = new URLSearchParams({
@@ -154,17 +295,20 @@ export const fetchTokenExchangeRates = async (
       const url = `https://price.api.cx.metamask.io/v3/spot-prices?${queryParams}`;
       const tokenV3PriceResponse = (await handleFetch(url)) as Record<
         string,
-        { price: number }
+        MarketDataDetails
       >;
 
-      exchangeRates = Object.entries(tokenV3PriceResponse).reduce(
+      if (withMarketData) {
+        return tokenV3PriceResponse;
+      }
+
+      return Object.entries(tokenV3PriceResponse).reduce(
         (acc, [k, curr]) => {
           acc[k] = curr.price;
           return acc;
         },
         {} as Record<string, number>,
       );
-      return exchangeRates;
     }
 
     // EVM chains
@@ -175,12 +319,23 @@ export const fetchTokenExchangeRates = async (
       return {};
     }
 
-    exchangeRates = await fetchTokenContractExchangeRates({
+    if (withMarketData) {
+      const marketData = await fetchTokenContractExchangeRates({
+        tokenPricesService: new CodefiTokenPricesServiceV2(),
+        nativeCurrency: currency,
+        tokenAddresses: checksumAddresses as Hex[],
+        chainId: formatChainIdToHex(chainId),
+        includeMarketData: true,
+      });
+      return marketData;
+    }
+
+    const exchangeRates = (await fetchTokenContractExchangeRates({
       tokenPricesService: new CodefiTokenPricesServiceV2(),
       nativeCurrency: currency,
       tokenAddresses: checksumAddresses as Hex[],
       chainId: formatChainIdToHex(chainId),
-    });
+    })) as Record<string, number | undefined>;
 
     return Object.keys(exchangeRates).reduce(
       (acc: Record<string, number | undefined>, address) => {
@@ -194,29 +349,35 @@ export const fetchTokenExchangeRates = async (
   }
 };
 
-// This fetches the exchange rate for a token in a given currency. This is only called when the exchange
-// rate is not available in the TokenRatesController, which happens when the selected token has not been
-// imported into the wallet
+/**
+ * Fetches the exchange rate for a single token. Only called when the rate is
+ * not available in the TokenRatesController (i.e. token is not imported).
+ * When includeMarketData is true, returns full MarketDataDetails instead of
+ * just the price number.
+ */
 export const getTokenExchangeRate = async (request: {
   chainId: Hex | CaipChainId;
   tokenAddress: string;
   currency: string;
+  includeMarketData?: boolean;
 }) => {
-  const { chainId, tokenAddress, currency } = request;
-  const exchangeRates = await fetchTokenExchangeRates(
+  const { chainId, tokenAddress, currency, includeMarketData } = request;
+
+  const result = (await fetchTokenExchangeRates(
     chainId,
     currency,
+    { includeMarketData },
     tokenAddress,
-  );
+  )) as Record<string, number | MarketDataDetails | undefined>;
+
   const assetId = toAssetId(tokenAddress, formatChainIdToCaip(chainId));
   if (isNonEvmChainId(chainId) && assetId) {
-    return exchangeRates?.[assetId];
+    return result?.[assetId];
   }
-  // The exchange rate can be checksummed or not, so we need to check both
-  const exchangeRate =
-    exchangeRates?.[toChecksumHexAddress(tokenAddress)] ??
-    exchangeRates?.[tokenAddress.toLowerCase()];
-  return exchangeRate;
+  return (
+    result?.[toChecksumHexAddress(tokenAddress)] ??
+    result?.[tokenAddress.toLowerCase()]
+  );
 };
 
 /**

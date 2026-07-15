@@ -7,8 +7,13 @@ import {
   type RampsToken,
   type TokensResponse,
   type ResourceState,
+  type TransakState,
+  type RampsOrder,
 } from '@metamask/ramps-controller';
 import { RootState } from '../../reducers';
+import { areAddressesEqual } from '../../util/address';
+import { createDeepEqualSelector } from '../util';
+import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../multichainAccounts/accountTreeController';
 
 /**
  * Selects the RampsController state from Redux.
@@ -85,4 +90,65 @@ export const selectPaymentMethods = createSelector(
   ): ResourceState<PaymentMethod[], PaymentMethod | null> =>
     rampsControllerState?.paymentMethods ??
     createDefaultResourceState<PaymentMethod[], PaymentMethod | null>([], null),
+);
+
+/**
+ * Selects all V2 orders from RampsController state (unfiltered).
+ * For UI scoped to the selected account group, use
+ * `selectRampsOrdersForSelectedAccountGroup` instead.
+ */
+export const selectRampsOrders = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState): RampsOrder[] => rampsControllerState?.orders ?? [],
+);
+
+/**
+ * V2 on-ramp orders whose `walletAddress` belongs to the selected account group.
+ * Matches legacy `getOrders` scoping for fiat orders.
+ */
+export const selectRampsOrdersForSelectedAccountGroup = createDeepEqualSelector(
+  [selectRampsOrders, selectSelectedAccountGroupWithInternalAccountsAddresses],
+  (orders, addresses): RampsOrder[] => {
+    if (addresses.length === 0) {
+      return [];
+    }
+    return orders.filter((order) => {
+      const walletAddress = order.walletAddress;
+      if (!walletAddress) {
+        return false;
+      }
+      return addresses.some(
+        (addr) => addr != null && areAddressesEqual(walletAddress, addr),
+      );
+    });
+  },
+  {
+    devModeChecks: {
+      identityFunctionCheck: 'never',
+    },
+  },
+);
+
+/**
+ * Selects whether the current provider was auto-selected by the system
+ * (soft selection) rather than chosen by the user or derived from order history.
+ */
+export const selectProviderAutoSelected = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState): boolean =>
+    rampsControllerState?.providerAutoSelected ?? false,
+);
+
+/**
+ * Selects the transak native provider state (isAuthenticated, userDetails, buyQuote, kycRequirement).
+ */
+export const selectTransak = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState): TransakState =>
+    rampsControllerState?.nativeProviders?.transak ?? {
+      isAuthenticated: false,
+      userDetails: createDefaultResourceState(null),
+      buyQuote: createDefaultResourceState(null),
+      kycRequirement: createDefaultResourceState(null),
+    },
 );

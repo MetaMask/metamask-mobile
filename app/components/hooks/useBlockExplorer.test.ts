@@ -1,3 +1,4 @@
+import { RpcEndpointType } from '@metamask/network-controller';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../constants/navigation/Routes';
 import { backgroundState } from '../../util/test/initial-root-state';
@@ -156,6 +157,54 @@ describe('useBlockExplorer', () => {
     });
   });
 
+  describe('getBlockExplorerTokenUrl', () => {
+    it('returns dedicated token page URL for Solana tokens', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerTokenUrl } = result.current;
+      const mintAddress = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+      const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
+      const url = getBlockExplorerTokenUrl(mintAddress, solanaChainId);
+      expect(url).toBe(
+        'https://solscan.io/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      );
+    });
+
+    it('returns dedicated token page URL for Solana devnet tokens', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerTokenUrl } = result.current;
+      const mintAddress = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+      const solanaDevnetChainId = 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1';
+
+      const url = getBlockExplorerTokenUrl(mintAddress, solanaDevnetChainId);
+      expect(url).toBe(
+        'https://solscan.io/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v?cluster=devnet',
+      );
+    });
+
+    it('falls back to address URL for Bitcoin (no dedicated token page)', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerTokenUrl } = result.current;
+      const address = '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa';
+      const bitcoinChainId = 'bip122:000000000019d6689c085ae165831e93';
+
+      const url = getBlockExplorerTokenUrl(address, bitcoinChainId);
+      expect(url).toBe(
+        'https://mempool.space/address/1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
+      );
+    });
+
+    it('falls back to standard address URL for EVM chains', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerTokenUrl } = result.current;
+      const address = '0x1234567890abcdef';
+      const polygonChainId = '0x89';
+
+      const url = getBlockExplorerTokenUrl(address, polygonChainId);
+      expect(url).toBe('https://polygonscan.com/address/0x1234567890abcdef');
+    });
+  });
+
   describe('RPC networks with custom block explorers', () => {
     it('uses custom RPC block explorer when available', () => {
       // This test verifies the RPC fallback path is covered
@@ -245,6 +294,15 @@ describe('useBlockExplorer', () => {
       const hexChainId = '0x89'; // Already in hex format
 
       const url = getBlockExplorerUrl(address, hexChainId);
+      expect(url).toBe('https://polygonscan.com/address/0x1234567890abcdef');
+    });
+
+    it('resolves Polygon from decimal eip155 CAIP (same as getHexEvmChainId)', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerUrl } = result.current;
+      const address = '0x1234567890abcdef';
+
+      const url = getBlockExplorerUrl(address, 'eip155:137');
       expect(url).toBe('https://polygonscan.com/address/0x1234567890abcdef');
     });
   });
@@ -398,6 +456,70 @@ describe('useBlockExplorer', () => {
 
         expect(url).toBe('https://polygonscan.com');
       });
+    });
+  });
+
+  describe('NetworkController block explorer for token chain', () => {
+    const stateWithEthereumSelectedAndGnosisConfigured = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          NetworkController: mockNetworkState(
+            {
+              chainId: '0x1',
+              id: 'mainnet',
+              type: RpcEndpointType.Infura,
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+              blockExplorerUrl: 'https://etherscan.io',
+            },
+            {
+              chainId: '0x64',
+              id: 'gnosis',
+              nickname: 'Gnosis Chain',
+              ticker: 'xDAI',
+              blockExplorerUrl: 'https://gnosisscan.io',
+            },
+          ),
+        },
+      },
+    };
+
+    beforeEach(() => {
+      const reactRedux =
+        jest.requireMock<typeof import('react-redux')>('react-redux');
+      jest
+        .spyOn(reactRedux, 'useSelector')
+        .mockImplementation((fn) =>
+          fn(stateWithEthereumSelectedAndGnosisConfigured),
+        );
+    });
+
+    afterEach(() => {
+      const reactRedux =
+        jest.requireMock<typeof import('react-redux')>('react-redux');
+      jest.mocked(reactRedux.useSelector).mockRestore();
+    });
+
+    it('resolves Gnosis block explorer from network configurations when Ethereum is selected', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const tokenChainId = '0x64';
+      const address = '0x0000000000000000000000000000000000000001';
+
+      expect(result.current.getBlockExplorerBaseUrl(tokenChainId)).toBe(
+        'https://gnosisscan.io',
+      );
+      expect(result.current.getBlockExplorerUrl(address, tokenChainId)).toBe(
+        `https://gnosisscan.io/address/${address}`,
+      );
+    });
+
+    it('resolves block explorer name from configured explorer URL for that chain', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const name = result.current.getBlockExplorerName('0x64');
+      expect(name).toMatch(/gnosis/i);
     });
   });
 });

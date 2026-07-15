@@ -1,11 +1,5 @@
 import { toggleBasicFunctionality, setBasicFunctionality } from './index';
 
-// Mock the remote feature flag module
-const mockIsMultichainAccountsState2Enabled = jest.fn();
-jest.mock('../../multichain-accounts/remote-feature-flag', () => ({
-  isMultichainAccountsState2Enabled: mockIsMultichainAccountsState2Enabled,
-}));
-
 // Mock Engine
 const mockSetBasicFunctionality = jest.fn().mockResolvedValue(undefined);
 jest.mock('../../core/Engine', () => ({
@@ -26,44 +20,29 @@ describe('toggleBasicFunctionality action', () => {
     jest.clearAllMocks();
   });
 
-  it('does not call MultichainAccountService when State 2 is disabled', async () => {
-    // Mock State 2 as disabled
-    mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
-
-    const action = toggleBasicFunctionality(true);
-    await action(mockDispatch);
-
-    // Verify Redux state is still updated
-    expect(mockDispatch).toHaveBeenCalledWith(setBasicFunctionality(true));
-
-    // Verify MultichainAccountService was NOT called
-    expect(mockSetBasicFunctionality).not.toHaveBeenCalled();
-
-    // Verify feature flag was checked
-    expect(mockIsMultichainAccountsState2Enabled).toHaveBeenCalled();
-  });
-
-  it('calls MultichainAccountService when State 2 is enabled', async () => {
-    // Mock State 2 as enabled
-    mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
-
+  it('dispatches Redux state update and calls MultichainAccountService', async () => {
     const action = toggleBasicFunctionality(true);
     await action(mockDispatch);
 
     // Verify Redux state is updated
     expect(mockDispatch).toHaveBeenCalledWith(setBasicFunctionality(true));
 
-    // Verify MultichainAccountService WAS called
+    // Verify MultichainAccountService was called
     expect(mockSetBasicFunctionality).toHaveBeenCalledWith(true);
-
-    // Verify feature flag was checked
-    expect(mockIsMultichainAccountsState2Enabled).toHaveBeenCalled();
   });
 
-  it('handles MultichainAccountService errors gracefully when State 2 is enabled', async () => {
-    // Mock State 2 as enabled
-    mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
+  it('dispatches Redux state update with false value', async () => {
+    const action = toggleBasicFunctionality(false);
+    await action(mockDispatch);
 
+    // Verify Redux state is updated
+    expect(mockDispatch).toHaveBeenCalledWith(setBasicFunctionality(false));
+
+    // Verify MultichainAccountService was called with false
+    expect(mockSetBasicFunctionality).toHaveBeenCalledWith(false);
+  });
+
+  it('handles MultichainAccountService errors gracefully', async () => {
     // Mock MultichainAccountService to throw an error
     const mockError = new Error('Service error');
     mockSetBasicFunctionality.mockRejectedValue(mockError);
@@ -79,6 +58,9 @@ describe('toggleBasicFunctionality action', () => {
 
     // Verify MultichainAccountService was called
     expect(mockSetBasicFunctionality).toHaveBeenCalledWith(false);
+
+    // Wait for the promise rejection to be caught
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     // Verify error was logged
     expect(consoleSpy).toHaveBeenCalledWith(

@@ -2,11 +2,11 @@
  * E2E tests for wallet_sessionChanged API
  * Tests that sessionChanged event is fired when networks are added to the session
  */
-import { SmokeMultiChainAPI } from '../../../e2e/tags';
+import { SmokeMultiChainAPI } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import MultichainTestDApp from '../../../e2e/pages/Browser/MultichainTestDApp';
-import MultichainUtilities from '../../../e2e/utils/MultichainUtilities';
+import MultichainTestDApp from '../../page-objects/Browser/MultichainTestDApp';
+import MultichainUtilities from '../../helpers/multichain/MultichainUtilities';
 import Assertions from '../../framework/Assertions';
 import { DappVariants } from '../../framework/Constants';
 
@@ -23,20 +23,16 @@ describe(SmokeMultiChainAPI('wallet_sessionChanged'), () => {
             dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder().withPopularNetworks().build(),
+        fixture: new FixtureBuilder()
+          .withPopularNetworks()
+          .withPermissionControllerConnectedToTestDapp()
+          .build(),
         restartDevice: true,
       },
       async () => {
         await MultichainTestDApp.setupAndNavigateToTestDapp('?autoMode=true');
 
-        // Create initial session with Ethereum and Polygon
-        const initialNetworks = [
-          MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET,
-          MultichainUtilities.CHAIN_IDS.POLYGON,
-        ];
-        await MultichainTestDApp.createSessionWithNetworks(initialNetworks);
-
-        // Add Base network to the session
+        // Modify the fixture-seeded session to include Base, triggering sessionChanged
         const modifiedNetworks = [
           MultichainUtilities.CHAIN_IDS.ETHEREUM_MAINNET,
           MultichainUtilities.CHAIN_IDS.BASE,

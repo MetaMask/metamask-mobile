@@ -1,7 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
-import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
-import type { PriceUpdate } from '../controllers/types';
+import {
+  CandlePeriod,
+  TimeDuration,
+  calculate24hHighLow,
+  type PriceUpdate,
+} from '@metamask/perps-controller';
 import {
   formatFundingRate,
   formatLargeNumber,
@@ -9,7 +13,6 @@ import {
   LARGE_NUMBER_RANGES_DETAILED,
   PRICE_RANGES_UNIVERSAL,
 } from '../utils/formatUtils';
-import { calculate24hHighLow } from '../utils/marketUtils';
 import { usePerpsLiveCandles } from './stream/usePerpsLiveCandles';
 
 interface MarketStats {
@@ -40,6 +43,11 @@ export const usePerpsMarketStats = (
 ): UsePerpsMarketStatsReturn => {
   const [marketData, setMarketData] = useState<MarketDataUpdate>({});
   const [initialPrice, setInitialPrice] = useState<number | undefined>();
+  // Track whether the initial price has been captured without making it a
+  // reactive dependency of the subscription effect. Using state here would
+  // cause the effect to re-run (unsubscribe/resubscribe) on the first tick,
+  // missing ticks during the re-subscription window.
+  const hasInitialPriceRef = useRef(false);
 
   // Get candlestick data for 24h high/low calculation via WebSocket streaming
   const { candleData } = usePerpsLiveCandles({
@@ -79,7 +87,8 @@ export const usePerpsMarketStats = (
         });
 
         // Store initial price only once for high/low calculation fallback
-        if (!initialPrice && update.price) {
+        if (!hasInitialPriceRef.current && update.price) {
+          hasInitialPriceRef.current = true;
           setInitialPrice(Number.parseFloat(update.price));
         }
       }
@@ -105,7 +114,7 @@ export const usePerpsMarketStats = (
         unsubscribe();
       }
     };
-  }, [symbol, initialPrice]);
+  }, [symbol]);
 
   // Calculate all statistics
   const stats = useMemo<MarketStats>(() => {

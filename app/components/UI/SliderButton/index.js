@@ -18,10 +18,10 @@ import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import { useTheme } from '../../../util/theme';
 
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 const SliderBgImg = require('./assets/slider_button_gradient.png');
 const SliderShineImg = require('./assets/slider_button_shine.png');
-/* eslint-enable import/no-commonjs */
+/* eslint-enable import-x/no-commonjs */
 
 const DIAMETER = 60;
 const MARGIN = DIAMETER * 0.16;
@@ -96,11 +96,19 @@ const createStyles = (colors, shadows) =>
     },
   });
 
+/**
+ * @param {object} props
+ * @param {string} props.incompleteText
+ * @param {string} props.completeText
+ * @param {() => void} [props.onComplete]
+ * @param {boolean} [props.disabled]
+ * @param {(isPressed: boolean) => void} [props.onSwipeChange]
+ */
 function SliderButton({
   incompleteText,
   completeText,
   onComplete,
-  disabled,
+  disabled = false,
   onSwipeChange,
 }) {
   const [componentWidth, setComponentWidth] = useState(0);

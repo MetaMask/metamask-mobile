@@ -6,10 +6,11 @@ import {
   selectBalanceTotal,
   selectReferralCount,
   selectReferredByCode,
+  selectIsVipReferee,
+  selectReferredByVipCode,
   selectCurrentTier,
   selectNextTier,
   selectNextTierPointsNeeded,
-  selectBalanceRefereePortion,
   selectBalanceUpdatedAt,
   selectSeasonStatusLoading,
   selectSeasonStatusError,
@@ -19,6 +20,7 @@ import {
   selectSeasonEndDate,
   selectSeasonTiers,
   selectSeasonActivityTypes,
+  selectSeasonWaysToEarn,
   selectOnboardingActiveStep,
   selectOnboardingReferralCode,
   selectGeoLocation,
@@ -38,7 +40,6 @@ import {
   selectUnlockedRewardError,
   selectSeasonRewardById,
   selectPointsEvents,
-  selectSeasonShouldInstallNewVersion,
   selectBulkLinkState,
   selectBulkLinkIsRunning,
   selectBulkLinkTotalAccounts,
@@ -46,15 +47,62 @@ import {
   selectBulkLinkFailedAccounts,
   selectBulkLinkWasInterrupted,
   selectBulkLinkAccountProgress,
-  selectSnapshotsLoading,
-  selectSnapshotsError,
+  selectBenefits,
+  selectVipDashboard,
+  selectVipDashboardError,
+  selectVipDashboardLoading,
+  selectHasAcceptedVipInvite,
+  selectCampaigns,
+  selectCampaignsLoading,
+  selectCampaignsError,
+  selectCampaignParticipantStatuses,
+  selectCampaignParticipantStatus,
+  selectCampaignParticipantOptedIn,
+  selectCampaignParticipantCount,
+  selectIsRewardsVersionBlocked,
+  selectVersionGuardMinimumMobileVersion,
+  selectVersionGuardLoading,
+  selectVersionGuardError,
+  selectOndoCampaignLeaderboardByCampaignId,
+  selectOndoCampaignLeaderboardLoadingByCampaignId,
+  selectOndoCampaignLeaderboardErrorByCampaignId,
+  selectOndoCampaignLeaderboardSelectedTierByCampaignId,
+  selectOndoCampaignLeaderboardTiersByCampaignId,
+  selectOndoCampaignLeaderboardComputedAtByCampaignId,
+  selectOndoCampaignLeaderboardTierNamesByCampaignId,
+  selectOndoCampaignLeaderboardEntriesByTier,
+  selectOndoCampaignLeaderboardTotalParticipantsByTier,
+  selectOndoCampaignLeaderboardPositions,
+  selectOndoCampaignLeaderboardPositionById,
+  selectOndoCampaignPortfolio,
+  selectOndoCampaignPortfolioById,
+  selectOndoCampaignActivityById,
+  selectPredictThePitchLeaderboardByCampaignId,
+  selectPredictThePitchLeaderboardLoadingByCampaignId,
+  selectPredictThePitchLeaderboardErrorByCampaignId,
+  selectPredictThePitchLeaderboardPositionById,
+  selectPredictThePitchPositionsById,
+  selectPredictThePitchPrizePoolByCampaignId,
+  selectPredictThePitchPrizePoolLoadingByCampaignId,
+  selectPredictThePitchPrizePoolErrorByCampaignId,
+  selectDismissedCampaignOutcomeToasts,
+  selectSubscribedCampaignReminders,
+  selectIsCampaignOutcomeToastDismissed,
 } from './selectors';
+// eslint-disable-next-line import-x/no-namespace
+import * as remoteFeatureFlagModule from '../../util/remoteFeatureFlag';
 import { OnboardingStep } from './types';
 import {
   RewardDto,
   SeasonTierDto,
   SeasonActivityTypeDto,
+  CampaignDto,
+  CampaignType,
+  SeasonWayToEarnDto,
   PointsEventDto,
+  OndoGmActivityEntryDto,
+  SubscriptionBenefitDto,
+  VipDashboardState,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { RootState } from '..';
 import { RewardsState, AccountOptInBannerInfoStatus } from '.';
@@ -62,6 +110,10 @@ import { RewardsState, AccountOptInBannerInfoStatus } from '.';
 // Mock react-redux
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+}));
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('7.71.0'),
 }));
 
 const mockedUseSelector = useSelector as jest.MockedFunction<
@@ -95,12 +147,12 @@ describe('Rewards selectors', () => {
       expect(result.current).toBe('overview');
     });
 
-    it('returns snapshots tab when set', () => {
-      const mockState = { rewards: { activeTab: 'snapshots' as const } };
+    it('returns campaigns tab when set', () => {
+      const mockState = { rewards: { activeTab: 'campaigns' as const } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
       const { result } = renderHook(() => useSelector(selectActiveTab));
-      expect(result.current).toBe('snapshots');
+      expect(result.current).toBe('campaigns');
     });
 
     it('returns activity tab when set', () => {
@@ -200,6 +252,30 @@ describe('Rewards selectors', () => {
     });
   });
 
+  describe('selectIsVipReferee', () => {
+    it('returns true when the referee is a VIP', () => {
+      const state = createMockRootState({ isVipReferee: true });
+      expect(selectIsVipReferee(state)).toBe(true);
+    });
+
+    it('returns false when the referee is not a VIP', () => {
+      const state = createMockRootState({ isVipReferee: false });
+      expect(selectIsVipReferee(state)).toBe(false);
+    });
+  });
+
+  describe('selectReferredByVipCode', () => {
+    it('returns the VIP referral code when referred by one', () => {
+      const state = createMockRootState({ referredByVipCode: 'VIPCODE' });
+      expect(selectReferredByVipCode(state)).toBe('VIPCODE');
+    });
+
+    it('returns null when not referred by a VIP code', () => {
+      const state = createMockRootState({ referredByVipCode: null });
+      expect(selectReferredByVipCode(state)).toBeNull();
+    });
+  });
+
   describe('selectCurrentTier', () => {
     it('returns null when current tier is not set', () => {
       const mockState = { rewards: { currentTier: null } };
@@ -285,38 +361,6 @@ describe('Rewards selectors', () => {
 
       const { result } = renderHook(() =>
         useSelector(selectNextTierPointsNeeded),
-      );
-      expect(result.current).toBe(0);
-    });
-  });
-
-  describe('selectBalanceRefereePortion', () => {
-    it('returns null when referee portion is null', () => {
-      const mockState = { rewards: { balanceRefereePortion: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectBalanceRefereePortion),
-      );
-      expect(result.current).toBeNull();
-    });
-
-    it('returns referee portion when set', () => {
-      const mockState = { rewards: { balanceRefereePortion: 750.5 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectBalanceRefereePortion),
-      );
-      expect(result.current).toBe(750.5);
-    });
-
-    it('returns zero referee portion when set to zero', () => {
-      const mockState = { rewards: { balanceRefereePortion: 0 } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectBalanceRefereePortion),
       );
       expect(result.current).toBe(0);
     });
@@ -516,6 +560,16 @@ describe('Rewards selectors', () => {
       expect(result.current).toEqual([]);
     });
 
+    it('returns empty array when season tiers are undefined', () => {
+      const mockState = {
+        rewards: { seasonTiers: undefined },
+      } as unknown as RootState;
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonTiers));
+      expect(result.current).toEqual([]);
+    });
+
     it('returns season tiers when set', () => {
       const mockTiers: SeasonTierDto[] = [
         {
@@ -571,18 +625,30 @@ describe('Rewards selectors', () => {
       expect(result.current).toEqual([]);
     });
 
+    it('returns empty array when season activity types are undefined', () => {
+      const mockState = {
+        rewards: { seasonActivityTypes: undefined },
+      } as unknown as RootState;
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectSeasonActivityTypes),
+      );
+      expect(result.current).toEqual([]);
+    });
+
     it('returns season activity types when set', () => {
       const mockActivityTypes: SeasonActivityTypeDto[] = [
         {
+          id: 'swap',
           type: 'SWAP',
           title: 'Swap',
-          description: 'Swap tokens',
           icon: 'SwapVertical',
         },
         {
+          id: 'card',
           type: 'CARD',
           title: 'Card spend',
-          description: 'Spend with card',
           icon: 'Card',
         },
       ];
@@ -593,6 +659,61 @@ describe('Rewards selectors', () => {
         useSelector(selectSeasonActivityTypes),
       );
       expect(result.current).toEqual(mockActivityTypes);
+    });
+  });
+
+  describe('selectSeasonWaysToEarn', () => {
+    it('returns empty array when season ways to earn are not set', () => {
+      const mockState = { rewards: { seasonWaysToEarn: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonWaysToEarn));
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns empty array when season ways to earn are undefined', () => {
+      const mockState = {
+        rewards: { seasonWaysToEarn: undefined },
+      } as unknown as RootState;
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonWaysToEarn));
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns season ways to earn when set', () => {
+      const mockWaysToEarn: SeasonWayToEarnDto[] = [
+        {
+          id: 'way-swap',
+          type: 'SWAP',
+          title: 'Swap',
+          icon: 'SwapHorizontal',
+          shortDescription: '80 points per $100',
+          bottomSheetTitle: 'Swap tokens',
+          pointsEarningRule: '80 points per $100 swapped',
+          description: 'Swap tokens on supported networks.',
+          buttonLabel: 'Start a swap',
+          buttonAction: { deeplink: 'metamask://swap' },
+        },
+        {
+          id: 'way-referral',
+          type: 'REFERRAL',
+          title: 'Refer friends',
+          icon: 'People',
+          shortDescription: '10 points per 50 from friends',
+          bottomSheetTitle: 'Refer friends',
+          pointsEarningRule: '10 points per 50 pts earned',
+          description: 'Invite your friends.',
+          buttonLabel: 'Share link',
+          buttonAction: { route: { root: 'ReferralView', screen: '' } },
+        },
+      ];
+      const mockState = { rewards: { seasonWaysToEarn: mockWaysToEarn } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonWaysToEarn));
+      expect(result.current).toEqual(mockWaysToEarn);
+      expect(result.current).toHaveLength(2);
     });
   });
 
@@ -952,6 +1073,18 @@ describe('Rewards selectors', () => {
       );
       expect(result.current).toEqual([]);
       expect(result.current).toHaveLength(0);
+    });
+
+    it('returns empty array when account banner config is undefined', () => {
+      const mockState = {
+        rewards: { hideCurrentAccountNotOptedInBanner: undefined },
+      } as unknown as RootState;
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectHideCurrentAccountNotOptedInBannerArray),
+      );
+      expect(result.current).toEqual([]);
     });
 
     it('returns single account configuration when set', () => {
@@ -1598,13 +1731,11 @@ describe('Rewards selectors', () => {
       it('handles zero values correctly', () => {
         const state = createMockRootState({
           balanceTotal: 0,
-          balanceRefereePortion: 0,
           refereeCount: 0,
           nextTierPointsNeeded: 0,
         });
 
         expect(selectBalanceTotal(state)).toBe(0);
-        expect(selectBalanceRefereePortion(state)).toBe(0);
         expect(selectReferralCount(state)).toBe(0);
         expect(selectNextTierPointsNeeded(state)).toBe(0);
       });
@@ -1612,13 +1743,11 @@ describe('Rewards selectors', () => {
       it('handles negative values correctly', () => {
         const state = createMockRootState({
           balanceTotal: -100,
-          balanceRefereePortion: -50,
           refereeCount: -1,
           nextTierPointsNeeded: -10,
         });
 
         expect(selectBalanceTotal(state)).toBe(-100);
-        expect(selectBalanceRefereePortion(state)).toBe(-50);
         expect(selectReferralCount(state)).toBe(-1);
         expect(selectNextTierPointsNeeded(state)).toBe(-10);
       });
@@ -1626,13 +1755,11 @@ describe('Rewards selectors', () => {
       it('handles very large numbers correctly', () => {
         const state = createMockRootState({
           balanceTotal: Number.MAX_SAFE_INTEGER,
-          balanceRefereePortion: 999999999,
           refereeCount: 1000000,
           nextTierPointsNeeded: Number.MAX_SAFE_INTEGER,
         });
 
         expect(selectBalanceTotal(state)).toBe(Number.MAX_SAFE_INTEGER);
-        expect(selectBalanceRefereePortion(state)).toBe(999999999);
         expect(selectReferralCount(state)).toBe(1000000);
         expect(selectNextTierPointsNeeded(state)).toBe(Number.MAX_SAFE_INTEGER);
       });
@@ -1640,11 +1767,9 @@ describe('Rewards selectors', () => {
       it('handles floating point numbers correctly', () => {
         const state = createMockRootState({
           balanceTotal: 123.456789,
-          balanceRefereePortion: 67.89,
         });
 
         expect(selectBalanceTotal(state)).toBe(123.456789);
-        expect(selectBalanceRefereePortion(state)).toBe(67.89);
       });
     });
 
@@ -1843,7 +1968,6 @@ describe('Rewards selectors', () => {
         },
         nextTierPointsNeeded: 1000,
         balanceTotal: 2750.5,
-        balanceRefereePortion: 1250.25,
         balanceUpdatedAt: new Date('2024-03-15T14:30:00Z'),
         onboardingActiveStep: OnboardingStep.STEP_3,
         candidateSubscriptionId: 'sub-candidate-12345',
@@ -1888,7 +2012,6 @@ describe('Rewards selectors', () => {
         expect(selectNextTier(comprehensiveState)?.name).toBe('Gold');
         expect(selectNextTierPointsNeeded(comprehensiveState)).toBe(1000);
         expect(selectBalanceTotal(comprehensiveState)).toBe(2750.5);
-        expect(selectBalanceRefereePortion(comprehensiveState)).toBe(1250.25);
         expect(selectBalanceUpdatedAt(comprehensiveState)).toEqual(
           new Date('2024-03-15T14:30:00Z'),
         );
@@ -2431,46 +2554,6 @@ describe('Rewards selectors', () => {
 
       expect(result1).toBe(result2); // Same reference
       expect(result1).toEqual(result2); // Same value
-    });
-  });
-
-  describe('selectSeasonShouldInstallNewVersion', () => {
-    it('returns null when season should install new version is not set', () => {
-      const mockState = { rewards: { seasonShouldInstallNewVersion: null } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectSeasonShouldInstallNewVersion),
-      );
-      expect(result.current).toBeNull();
-    });
-
-    it('returns version string when set', () => {
-      const mockState = {
-        rewards: { seasonShouldInstallNewVersion: '1.2.3' },
-      };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() =>
-        useSelector(selectSeasonShouldInstallNewVersion),
-      );
-      expect(result.current).toBe('1.2.3');
-    });
-
-    describe('Direct selector calls', () => {
-      it('returns null when season should install new version is null', () => {
-        const state = createMockRootState({
-          seasonShouldInstallNewVersion: null,
-        });
-        expect(selectSeasonShouldInstallNewVersion(state)).toBeNull();
-      });
-
-      it('returns version string when set', () => {
-        const state = createMockRootState({
-          seasonShouldInstallNewVersion: '2.0.0',
-        });
-        expect(selectSeasonShouldInstallNewVersion(state)).toBe('2.0.0');
-      });
     });
   });
 
@@ -3068,63 +3151,1336 @@ describe('Rewards selectors', () => {
     });
   });
 
-  describe('selectSnapshotsLoading', () => {
-    it('returns false when snapshots are not loading', () => {
-      const mockState = { rewards: { snapshotsLoading: false } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+  const mockCampaign: CampaignDto = {
+    id: 'campaign-1',
+    type: 'ONDO_HOLDING' as CampaignType,
+    name: 'ONDO Holding Campaign',
+    startDate: '2025-01-01T00:00:00.000Z',
+    endDate: '2027-01-01T00:00:00.000Z',
+    termsAndConditions: null,
+    excludedRegions: [],
+    details: null,
+    featured: false,
+    showUpcomingDate: false,
+  };
 
-      const { result } = renderHook(() => useSelector(selectSnapshotsLoading));
-      expect(result.current).toBe(false);
+  describe('selectBenefits', () => {
+    const mockBenefit: SubscriptionBenefitDto = {
+      id: 101,
+      longTitle: 'Premium Access',
+      shortDescription: 'Get premium perks',
+      longDescription: 'Unlock premium partner benefits.',
+      thumbnail: 'https://example.com/benefits/premium.png',
+      validFrom: '2026-01-01T00:00:00.000Z',
+      validTo: '2026-12-31T00:00:00.000Z',
+      actionDate: '2026-06-01T00:00:00.000Z',
+      url: 'https://example.com/claim',
+      chain: 'ethereum',
+      type: {
+        id: 1,
+        name: 'Partner',
+      },
+    };
+
+    it('returns empty array when benefits are undefined', () => {
+      const state = createMockRootState({
+        benefits: undefined as unknown as SubscriptionBenefitDto[],
+      });
+      expect(selectBenefits(state)).toEqual([]);
     });
 
-    it('returns true when snapshots are loading', () => {
-      const mockState = { rewards: { snapshotsLoading: true } };
+    it('returns benefits when they exist', () => {
+      const state = createMockRootState({ benefits: [mockBenefit] });
+      expect(selectBenefits(state)).toEqual([mockBenefit]);
+    });
+  });
+
+  describe('VIP dashboard selectors', () => {
+    const mockVipDashboard: VipDashboardState = {
+      program: { id: 'mock-vip-program', name: 'Acme Rewards Beta' },
+      period: {
+        start: '2099-06-01T00:00:00.000Z',
+        end: '2099-06-30T23:59:59.999Z',
+      },
+      computedAt: '2099-06-30T14:52:00.000Z',
+      currentTier: {
+        id: 'mock-tier-alpha-3',
+        name: 'Mock Tier Alpha 3',
+        tier: 3,
+      },
+      nextTier: { id: 'mock-tier-alpha-4', name: 'Mock Tier Alpha 4', tier: 4 },
+      progress: {
+        percent: 42,
+        remainingPointsToNextTier: 123456,
+        status: 'on_track',
+      },
+      fees: {
+        revenueShareBps: 99,
+        swapsBps: 11,
+        perpsBps: 7,
+        nextTierRevenueShareBps: 88,
+        nextTierSwapsBps: 9,
+        nextTierPerpsBps: 6,
+      },
+      volume: {
+        swapsUsd: 1234567,
+        perpsUsd: 9876543,
+        points: 5555555,
+        pointsFromReferrals: 111111,
+        referrals: 3,
+        referralsCap: 7,
+      },
+      pointsAllocation: {
+        earned: 5555555,
+        threshold: 7777777,
+        percent: 71.4,
+      },
+      tiers: [
+        {
+          id: 'mock-tier-alpha-3',
+          name: 'Mock Tier Alpha 3',
+          tier: 3,
+          pointsRequirement: 321000,
+          revenueShareBps: 99,
+          swapsBps: 11,
+          perpsBps: 7,
+          referralCarryoverBps: 4242,
+          status: 'current',
+        },
+      ],
+      localizedText: {
+        periodTitle: 'Jun 1 - Jun 30',
+        memberIdTitle: 'Member ID',
+        swapsFeeTitle: 'Swaps fee',
+        perpsFeeTitle: 'Perps fee',
+        nextTierSwapsFeeDelta: '↓ 9 bps next tier',
+        nextTierPerpsFeeDelta: '↓ 6 bps next tier',
+        revenueShareTitle: 'Revenue share',
+        referralPointsTitle: 'Referral points',
+        nextTierRevenueShareDelta: '↑ 1% next tier',
+        nextTierReferralPointsDelta: '↑ 42% next tier',
+        topTierDescription: 'Top tier reached',
+        statsTitle: 'Volume',
+        pointsTitle: 'Points',
+        swapsVolumeTitle: 'Swaps Volume',
+        pointsFromReferralsTitle: 'Points from Referrals',
+        perpsVolumeTitle: 'Perps Volume',
+        vipReferralsTitle: 'VIP Referrals',
+        totalPointsTitle: 'Points',
+        equityLockedTitle: 'Earn VIP allocations',
+        equityLockedDescription: 'Body copy',
+        equityUnlockedTitle: 'VIP allocation unlocked',
+        equityUnlockedDescription: 'Unlocked body copy',
+      },
+      lastFetched: 123,
+    };
+
+    it('returns null when subscription id is missing', () => {
+      const state = createMockRootState({
+        vipDashboard: { 'sub-1': mockVipDashboard },
+      });
+
+      expect(selectVipDashboard(null)(state)).toBeNull();
+    });
+
+    it('returns null when dashboard is missing for subscription', () => {
+      const state = createMockRootState({
+        vipDashboard: {},
+      });
+
+      expect(selectVipDashboard('sub-1')(state)).toBeNull();
+    });
+
+    it('returns dashboard for subscription', () => {
+      const state = createMockRootState({
+        vipDashboard: { 'sub-1': mockVipDashboard },
+      });
+
+      expect(selectVipDashboard('sub-1')(state)).toEqual(mockVipDashboard);
+    });
+
+    it('returns loading state', () => {
+      const state = createMockRootState({
+        vipDashboardLoading: true,
+      });
+
+      expect(selectVipDashboardLoading(state)).toBe(true);
+    });
+
+    it('returns error state', () => {
+      const state = createMockRootState({
+        vipDashboardError: true,
+      });
+
+      expect(selectVipDashboardError(state)).toBe(true);
+    });
+
+    it('returns false when VIP invite acceptance has no subscription id', () => {
+      const state = createMockRootState({
+        vipSplashAccepted: { 'sub-1': true },
+      });
+
+      expect(selectHasAcceptedVipInvite(null)(state)).toBe(false);
+    });
+
+    it('returns false when VIP invite has not been accepted for subscription', () => {
+      const state = createMockRootState({
+        vipSplashAccepted: { 'sub-2': true },
+      });
+
+      expect(selectHasAcceptedVipInvite('sub-1')(state)).toBe(false);
+    });
+
+    it('returns true when VIP invite has been accepted for subscription', () => {
+      const state = createMockRootState({
+        vipSplashAccepted: { 'sub-1': true },
+      });
+
+      expect(selectHasAcceptedVipInvite('sub-1')(state)).toBe(true);
+    });
+  });
+
+  describe('selectCampaigns', () => {
+    it('returns empty array when campaigns is empty', () => {
+      const mockState = { rewards: { campaigns: [] } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
-      const { result } = renderHook(() => useSelector(selectSnapshotsLoading));
-      expect(result.current).toBe(true);
+      const { result } = renderHook(() => useSelector(selectCampaigns));
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns empty array when campaigns is undefined', () => {
+      const mockState = {
+        rewards: { campaigns: undefined },
+      } as unknown as RootState;
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaigns));
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns campaigns array when campaigns exist', () => {
+      const mockState = { rewards: { campaigns: [mockCampaign] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaigns));
+      expect(result.current).toEqual([mockCampaign]);
     });
 
     describe('Direct selector calls', () => {
-      it('returns false when snapshotsLoading is false', () => {
-        const state = createMockRootState({ snapshotsLoading: false });
-        expect(selectSnapshotsLoading(state)).toBe(false);
+      it('returns empty array when campaigns is empty', () => {
+        const state = createMockRootState({ campaigns: [] });
+        expect(selectCampaigns(state)).toEqual([]);
       });
 
-      it('returns true when snapshotsLoading is true', () => {
-        const state = createMockRootState({ snapshotsLoading: true });
-        expect(selectSnapshotsLoading(state)).toBe(true);
+      it('returns empty array when campaigns is undefined', () => {
+        const state = createMockRootState({
+          campaigns: undefined as unknown as CampaignDto[],
+        });
+        expect(selectCampaigns(state)).toEqual([]);
+      });
+
+      it('returns campaigns when they exist', () => {
+        const state = createMockRootState({ campaigns: [mockCampaign] });
+        expect(selectCampaigns(state)).toEqual([mockCampaign]);
       });
     });
   });
 
-  describe('selectSnapshotsError', () => {
-    it('returns false when there is no snapshots error', () => {
-      const mockState = { rewards: { snapshotsError: false } };
+  describe('selectCampaignsLoading', () => {
+    it('returns false when campaigns are not loading', () => {
+      const mockState = { rewards: { campaignsLoading: false } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
-      const { result } = renderHook(() => useSelector(selectSnapshotsError));
+      const { result } = renderHook(() => useSelector(selectCampaignsLoading));
       expect(result.current).toBe(false);
     });
 
-    it('returns true when there is a snapshots error', () => {
-      const mockState = { rewards: { snapshotsError: true } };
+    it('returns true when campaigns are loading', () => {
+      const mockState = { rewards: { campaignsLoading: true } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
-      const { result } = renderHook(() => useSelector(selectSnapshotsError));
+      const { result } = renderHook(() => useSelector(selectCampaignsLoading));
       expect(result.current).toBe(true);
     });
 
     describe('Direct selector calls', () => {
-      it('returns false when snapshotsError is false', () => {
-        const state = createMockRootState({ snapshotsError: false });
-        expect(selectSnapshotsError(state)).toBe(false);
+      it('returns false when campaignsLoading is false', () => {
+        const state = createMockRootState({ campaignsLoading: false });
+        expect(selectCampaignsLoading(state)).toBe(false);
       });
 
-      it('returns true when snapshotsError is true', () => {
-        const state = createMockRootState({ snapshotsError: true });
-        expect(selectSnapshotsError(state)).toBe(true);
+      it('returns true when campaignsLoading is true', () => {
+        const state = createMockRootState({ campaignsLoading: true });
+        expect(selectCampaignsLoading(state)).toBe(true);
       });
+    });
+  });
+
+  describe('selectCampaignsError', () => {
+    it('returns false when there is no campaigns error', () => {
+      const mockState = { rewards: { campaignsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaignsError));
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when there is a campaigns error', () => {
+      const mockState = { rewards: { campaignsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaignsError));
+      expect(result.current).toBe(true);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns false when campaignsError is false', () => {
+        const state = createMockRootState({ campaignsError: false });
+        expect(selectCampaignsError(state)).toBe(false);
+      });
+
+      it('returns true when campaignsError is true', () => {
+        const state = createMockRootState({ campaignsError: true });
+        expect(selectCampaignsError(state)).toBe(true);
+      });
+    });
+  });
+
+  describe('selectCampaignParticipantStatuses', () => {
+    it('returns empty object when no statuses exist', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(selectCampaignParticipantStatuses(state)).toEqual({});
+    });
+
+    it('returns all participant statuses', () => {
+      const statuses = {
+        'campaign-1': { optedIn: true, participantCount: 42 },
+        'campaign-2': { optedIn: false, participantCount: 0 },
+      };
+      const state = createMockRootState({
+        campaignParticipantStatuses: statuses,
+      });
+      expect(selectCampaignParticipantStatuses(state)).toEqual(statuses);
+    });
+  });
+
+  describe('selectCampaignParticipantStatus', () => {
+    it('returns null when subscriptionId is undefined', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(
+        selectCampaignParticipantStatus(undefined, 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(
+        selectCampaignParticipantStatus('sub-1', undefined)(state),
+      ).toBeNull();
+    });
+
+    it('returns null when composite key has no status', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(
+        selectCampaignParticipantStatus('sub-1', 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns status for the correct subscriptionId:campaignId', () => {
+      const status = { optedIn: true, participantCount: 42 };
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': status,
+        },
+      });
+      expect(
+        selectCampaignParticipantStatus('sub-1', 'campaign-1')(state),
+      ).toEqual(status);
+    });
+
+    it('does not return status for a different subscriptionId', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(
+        selectCampaignParticipantStatus('sub-2', 'campaign-1')(state),
+      ).toBeNull();
+    });
+  });
+
+  describe('selectCampaignParticipantOptedIn', () => {
+    it('returns true when participant status is opted in', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(
+        selectCampaignParticipantOptedIn('sub-1', 'campaign-1')(state),
+      ).toBe(true);
+    });
+
+    it('returns false when participant status is not opted in', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: false, participantCount: 0 },
+        },
+      });
+      expect(
+        selectCampaignParticipantOptedIn('sub-1', 'campaign-1')(state),
+      ).toBe(false);
+    });
+
+    it('returns false when status is missing', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(
+        selectCampaignParticipantOptedIn('sub-1', 'campaign-1')(state),
+      ).toBe(false);
+    });
+  });
+
+  describe('selectCampaignParticipantCount', () => {
+    it('returns null when subscriptionId is undefined', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(
+        selectCampaignParticipantCount(undefined, 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(
+        selectCampaignParticipantCount('sub-1', undefined)(state),
+      ).toBeNull();
+    });
+
+    it('returns null when composite key has no status', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(
+        selectCampaignParticipantCount('sub-1', 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns participantCount for the correct subscriptionId:campaignId', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(selectCampaignParticipantCount('sub-1', 'campaign-1')(state)).toBe(
+        42,
+      );
+    });
+
+    it('returns 0 when participantCount is zero', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'sub-1:campaign-1': { optedIn: false, participantCount: 0 },
+        },
+      });
+      expect(selectCampaignParticipantCount('sub-1', 'campaign-1')(state)).toBe(
+        0,
+      );
+    });
+  });
+
+  describe('version guard selectors', () => {
+    it('selectVersionGuardMinimumMobileVersion returns minimum version', () => {
+      const state = createMockRootState({
+        versionGuardMinimumMobileVersion: '7.30.0',
+      });
+      expect(selectVersionGuardMinimumMobileVersion(state)).toBe('7.30.0');
+    });
+
+    it('selectVersionGuardMinimumMobileVersion returns null when not set', () => {
+      const state = createMockRootState({
+        versionGuardMinimumMobileVersion: null,
+      });
+      expect(selectVersionGuardMinimumMobileVersion(state)).toBeNull();
+    });
+
+    it('selectVersionGuardMinimumMobileVersion falls back to null when missing from older state', () => {
+      const state = createMockRootState({});
+      expect(selectVersionGuardMinimumMobileVersion(state)).toBeNull();
+    });
+
+    it('selectVersionGuardLoading returns loading state', () => {
+      const state = createMockRootState({ versionGuardLoading: true });
+      expect(selectVersionGuardLoading(state)).toBe(true);
+    });
+
+    it('selectVersionGuardLoading falls back to false when missing from older state', () => {
+      const state = createMockRootState({});
+      expect(selectVersionGuardLoading(state)).toBe(false);
+    });
+
+    it('selectVersionGuardError returns error state', () => {
+      const state = createMockRootState({ versionGuardError: true });
+      expect(selectVersionGuardError(state)).toBe(true);
+    });
+
+    it('selectVersionGuardError falls back to false when missing from older state', () => {
+      const state = createMockRootState({});
+      expect(selectVersionGuardError(state)).toBe(false);
+    });
+
+    describe('selectIsRewardsVersionBlocked', () => {
+      let mockHasMinimumRequiredVersion: jest.SpyInstance;
+
+      beforeEach(() => {
+        mockHasMinimumRequiredVersion = jest.spyOn(
+          remoteFeatureFlagModule,
+          'hasMinimumRequiredVersion',
+        );
+      });
+
+      afterEach(() => {
+        mockHasMinimumRequiredVersion?.mockRestore();
+      });
+
+      it('returns false when minimumMobileVersion is null', () => {
+        const state = createMockRootState({
+          versionGuardMinimumMobileVersion: null,
+        });
+        expect(selectIsRewardsVersionBlocked(state)).toBe(false);
+      });
+
+      it('returns false when current version meets minimum', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        const state = createMockRootState({
+          versionGuardMinimumMobileVersion: '7.50.0',
+        });
+        expect(selectIsRewardsVersionBlocked(state)).toBe(false);
+      });
+
+      it('returns true when current version is below minimum', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(false);
+        const state = createMockRootState({
+          versionGuardMinimumMobileVersion: '99.0.0',
+        });
+        expect(selectIsRewardsVersionBlocked(state)).toBe(true);
+      });
+    });
+  });
+
+  const mockLeaderboard = {
+    campaignId: 'campaign-1',
+    computedAt: '2024-03-20T12:00:00.000Z',
+    tiers: {
+      STARTER: {
+        entries: [
+          {
+            rank: 1,
+            referralCode: 'ABC123',
+            rateOfReturn: 0.15,
+            qualifiedDays: 10,
+            qualified: true,
+          },
+          {
+            rank: 2,
+            referralCode: 'DEF456',
+            rateOfReturn: 0.1,
+            qualifiedDays: 10,
+            qualified: true,
+          },
+        ],
+        totalParticipants: 50,
+      },
+      MID: {
+        entries: [
+          {
+            rank: 1,
+            referralCode: 'GHI789',
+            rateOfReturn: 0.2,
+            qualifiedDays: 10,
+            qualified: true,
+          },
+        ],
+        totalParticipants: 30,
+      },
+    },
+  };
+
+  const mockPosition = {
+    projectedTier: 'STARTER',
+    rank: 5,
+    totalInTier: 50,
+    rateOfReturn: 0.12,
+    currentUsdValue: 1000,
+    totalUsdDeposited: 900,
+    netDeposit: 800,
+    qualifiedDays: 10,
+    qualified: true,
+    neighbors: [],
+    computedAt: '2024-03-20T12:00:00.000Z',
+  };
+
+  const mockPortfolio = {
+    positions: [] as {
+      tokenSymbol: string;
+      tokenName: string;
+      tokenAsset: string;
+      units: string;
+      bookPrice: string;
+      bookValue: string;
+      currentPrice: string;
+      currentValue: string;
+      unrealizedPnl: string;
+      unrealizedPnlPercent: string;
+    }[],
+    summary: {
+      totalCurrentValue: '1000',
+      totalBookValue: '900',
+      totalUsdDeposited: '900',
+      netDeposit: '800',
+      totalCashedOut: '0',
+      portfolioPnl: '100',
+      portfolioPnlPercent: '0.1',
+    },
+    computedAt: '2024-03-20T12:00:00.000Z',
+  };
+
+  const MOCK_CAMPAIGN_ID = 'campaign-1';
+  const PREDICT_CAMPAIGN_ID = 'predict-c-1';
+
+  describe('selectOndoCampaignLeaderboardByCampaignId', () => {
+    it('returns null when leaderboard is not set', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {},
+      });
+      expect(
+        selectOndoCampaignLeaderboardByCampaignId(MOCK_CAMPAIGN_ID)(state),
+      ).toBeNull();
+    });
+
+    it('returns leaderboard when set', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {
+          [MOCK_CAMPAIGN_ID]: {
+            data: mockLeaderboard,
+            loading: false,
+            error: false,
+            selectedTier: 'STARTER',
+          },
+        },
+      });
+      expect(
+        selectOndoCampaignLeaderboardByCampaignId(MOCK_CAMPAIGN_ID)(state),
+      ).toEqual(mockLeaderboard);
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardLoadingByCampaignId', () => {
+    it('returns false when not loading', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {},
+      });
+      expect(
+        selectOndoCampaignLeaderboardLoadingByCampaignId(MOCK_CAMPAIGN_ID)(
+          state,
+        ),
+      ).toBe(false);
+    });
+
+    it('returns true when loading', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {
+          [MOCK_CAMPAIGN_ID]: {
+            data: null,
+            loading: true,
+            error: false,
+            selectedTier: null,
+          },
+        },
+      });
+      expect(
+        selectOndoCampaignLeaderboardLoadingByCampaignId(MOCK_CAMPAIGN_ID)(
+          state,
+        ),
+      ).toBe(true);
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardErrorByCampaignId', () => {
+    it('returns false when no error', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {},
+      });
+      expect(
+        selectOndoCampaignLeaderboardErrorByCampaignId(MOCK_CAMPAIGN_ID)(state),
+      ).toBe(false);
+    });
+
+    it('returns true when has error', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {
+          [MOCK_CAMPAIGN_ID]: {
+            data: null,
+            loading: false,
+            error: true,
+            selectedTier: null,
+          },
+        },
+      });
+      expect(
+        selectOndoCampaignLeaderboardErrorByCampaignId(MOCK_CAMPAIGN_ID)(state),
+      ).toBe(true);
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardSelectedTierByCampaignId', () => {
+    it('returns null when no tier selected', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {},
+      });
+      expect(
+        selectOndoCampaignLeaderboardSelectedTierByCampaignId(MOCK_CAMPAIGN_ID)(
+          state,
+        ),
+      ).toBeNull();
+    });
+
+    it('returns selected tier', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {
+          [MOCK_CAMPAIGN_ID]: {
+            data: null,
+            loading: false,
+            error: false,
+            selectedTier: 'STARTER',
+          },
+        },
+      });
+      expect(
+        selectOndoCampaignLeaderboardSelectedTierByCampaignId(MOCK_CAMPAIGN_ID)(
+          state,
+        ),
+      ).toBe('STARTER');
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardTiersByCampaignId', () => {
+    it('returns empty object when no leaderboard', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {},
+      });
+      expect(
+        selectOndoCampaignLeaderboardTiersByCampaignId(MOCK_CAMPAIGN_ID)(state),
+      ).toEqual({});
+    });
+
+    it('returns tiers from leaderboard', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {
+          [MOCK_CAMPAIGN_ID]: {
+            data: mockLeaderboard,
+            loading: false,
+            error: false,
+            selectedTier: 'STARTER',
+          },
+        },
+      });
+      expect(
+        selectOndoCampaignLeaderboardTiersByCampaignId(MOCK_CAMPAIGN_ID)(state),
+      ).toEqual(mockLeaderboard.tiers);
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardComputedAtByCampaignId', () => {
+    it('returns null when no leaderboard', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {},
+      });
+      expect(
+        selectOndoCampaignLeaderboardComputedAtByCampaignId(MOCK_CAMPAIGN_ID)(
+          state,
+        ),
+      ).toBeNull();
+    });
+
+    it('returns computedAt from leaderboard', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {
+          [MOCK_CAMPAIGN_ID]: {
+            data: mockLeaderboard,
+            loading: false,
+            error: false,
+            selectedTier: 'STARTER',
+          },
+        },
+      });
+      expect(
+        selectOndoCampaignLeaderboardComputedAtByCampaignId(MOCK_CAMPAIGN_ID)(
+          state,
+        ),
+      ).toBe('2024-03-20T12:00:00.000Z');
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardTierNamesByCampaignId', () => {
+    it('returns empty array when no leaderboard', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {},
+      });
+      expect(
+        selectOndoCampaignLeaderboardTierNamesByCampaignId(MOCK_CAMPAIGN_ID)(
+          state,
+        ),
+      ).toEqual([]);
+    });
+
+    it('returns tier names from leaderboard', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {
+          [MOCK_CAMPAIGN_ID]: {
+            data: mockLeaderboard,
+            loading: false,
+            error: false,
+            selectedTier: 'STARTER',
+          },
+        },
+      });
+      expect(
+        selectOndoCampaignLeaderboardTierNamesByCampaignId(MOCK_CAMPAIGN_ID)(
+          state,
+        ),
+      ).toEqual(['STARTER', 'MID']);
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardEntriesByTier', () => {
+    it('returns empty array when tier name is null', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {
+          [MOCK_CAMPAIGN_ID]: {
+            data: mockLeaderboard,
+            loading: false,
+            error: false,
+            selectedTier: 'STARTER',
+          },
+        },
+      });
+      expect(
+        selectOndoCampaignLeaderboardEntriesByTier(
+          MOCK_CAMPAIGN_ID,
+          null,
+        )(state),
+      ).toEqual([]);
+    });
+
+    it('returns empty array when tier does not exist', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {
+          [MOCK_CAMPAIGN_ID]: {
+            data: mockLeaderboard,
+            loading: false,
+            error: false,
+            selectedTier: 'STARTER',
+          },
+        },
+      });
+      expect(
+        selectOndoCampaignLeaderboardEntriesByTier(
+          MOCK_CAMPAIGN_ID,
+          'UPPER',
+        )(state),
+      ).toEqual([]);
+    });
+
+    it('returns entries for specified tier', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {
+          [MOCK_CAMPAIGN_ID]: {
+            data: mockLeaderboard,
+            loading: false,
+            error: false,
+            selectedTier: 'STARTER',
+          },
+        },
+      });
+      expect(
+        selectOndoCampaignLeaderboardEntriesByTier(
+          MOCK_CAMPAIGN_ID,
+          'STARTER',
+        )(state),
+      ).toEqual(mockLeaderboard.tiers.STARTER.entries);
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardTotalParticipantsByTier', () => {
+    it('returns 0 when tier name is null', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {
+          [MOCK_CAMPAIGN_ID]: {
+            data: mockLeaderboard,
+            loading: false,
+            error: false,
+            selectedTier: 'STARTER',
+          },
+        },
+      });
+      expect(
+        selectOndoCampaignLeaderboardTotalParticipantsByTier(
+          MOCK_CAMPAIGN_ID,
+          null,
+        )(state),
+      ).toBe(0);
+    });
+
+    it('returns 0 when tier does not exist', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {
+          [MOCK_CAMPAIGN_ID]: {
+            data: mockLeaderboard,
+            loading: false,
+            error: false,
+            selectedTier: 'STARTER',
+          },
+        },
+      });
+      expect(
+        selectOndoCampaignLeaderboardTotalParticipantsByTier(
+          MOCK_CAMPAIGN_ID,
+          'UPPER',
+        )(state),
+      ).toBe(0);
+    });
+
+    it('returns total participants for specified tier', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboards: {
+          [MOCK_CAMPAIGN_ID]: {
+            data: mockLeaderboard,
+            loading: false,
+            error: false,
+            selectedTier: 'STARTER',
+          },
+        },
+      });
+      expect(
+        selectOndoCampaignLeaderboardTotalParticipantsByTier(
+          MOCK_CAMPAIGN_ID,
+          'STARTER',
+        )(state),
+      ).toBe(50);
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardPositions', () => {
+    it('returns empty object when no positions', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboardPositions: {},
+      });
+      expect(selectOndoCampaignLeaderboardPositions(state)).toEqual({});
+    });
+
+    it('returns positions when set', () => {
+      const positions = { 'sub-1:campaign-1': mockPosition };
+      const state = createMockRootState({
+        ondoCampaignLeaderboardPositions: positions,
+      });
+      expect(selectOndoCampaignLeaderboardPositions(state)).toEqual(positions);
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardPositionById', () => {
+    it('returns null when subscriptionId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboardPositions: { 'sub-1:campaign-1': mockPosition },
+      });
+      expect(
+        selectOndoCampaignLeaderboardPositionById(
+          undefined,
+          'campaign-1',
+        )(state),
+      ).toBeNull();
+    });
+
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboardPositions: { 'sub-1:campaign-1': mockPosition },
+      });
+      expect(
+        selectOndoCampaignLeaderboardPositionById('sub-1', undefined)(state),
+      ).toBeNull();
+    });
+
+    it('returns null when position does not exist', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboardPositions: {},
+      });
+      expect(
+        selectOndoCampaignLeaderboardPositionById('sub-1', 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns position for specified subscription and campaign', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboardPositions: { 'sub-1:campaign-1': mockPosition },
+      });
+      expect(
+        selectOndoCampaignLeaderboardPositionById('sub-1', 'campaign-1')(state),
+      ).toEqual(mockPosition);
+    });
+  });
+
+  describe('selectOndoCampaignPortfolio', () => {
+    it('returns empty object when no portfolios', () => {
+      const state = createMockRootState({
+        ondoCampaignPortfolio: {},
+      });
+      expect(selectOndoCampaignPortfolio(state)).toEqual({});
+    });
+
+    it('returns portfolios when set', () => {
+      const portfolios = { 'sub-1:campaign-1': mockPortfolio };
+      const state = createMockRootState({
+        ondoCampaignPortfolio: portfolios,
+      });
+      expect(selectOndoCampaignPortfolio(state)).toEqual(portfolios);
+    });
+  });
+
+  describe('selectOndoCampaignPortfolioById', () => {
+    it('returns null when subscriptionId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignPortfolio: { 'sub-1:campaign-1': mockPortfolio },
+      });
+      expect(
+        selectOndoCampaignPortfolioById(undefined, 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignPortfolio: { 'sub-1:campaign-1': mockPortfolio },
+      });
+      expect(
+        selectOndoCampaignPortfolioById('sub-1', undefined)(state),
+      ).toBeNull();
+    });
+
+    it('returns null when portfolio does not exist', () => {
+      const state = createMockRootState({
+        ondoCampaignPortfolio: {},
+      });
+      expect(
+        selectOndoCampaignPortfolioById('sub-1', 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns portfolio for specified subscription and campaign', () => {
+      const state = createMockRootState({
+        ondoCampaignPortfolio: { 'sub-1:campaign-1': mockPortfolio },
+      });
+      expect(
+        selectOndoCampaignPortfolioById('sub-1', 'campaign-1')(state),
+      ).toEqual(mockPortfolio);
+    });
+  });
+
+  describe('selectOndoCampaignActivityById', () => {
+    it('returns null when subscriptionId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignActivity: { 'sub-1:campaign-1': [] },
+      });
+      expect(
+        selectOndoCampaignActivityById(undefined, 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignActivity: { 'sub-1:campaign-1': [] },
+      });
+      expect(
+        selectOndoCampaignActivityById('sub-1', undefined)(state),
+      ).toBeNull();
+    });
+
+    it('returns null when activity does not exist', () => {
+      const state = createMockRootState({
+        ondoCampaignActivity: {},
+      });
+      expect(
+        selectOndoCampaignActivityById('sub-1', 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns activity entries for specified subscription and campaign', () => {
+      const mockEntries: OndoGmActivityEntryDto[] = [
+        {
+          type: 'DEPOSIT',
+          srcToken: {
+            tokenAsset: 'eip155:59144/erc20:0xabc',
+            tokenSymbol: 'USDC',
+            tokenName: 'USD Coin',
+          },
+          destToken: null,
+          destAddress: null,
+          usdAmount: '5000.000000',
+          timestamp: '2026-03-28T14:30:00.000Z',
+        },
+      ];
+      const state = createMockRootState({
+        ondoCampaignActivity: { 'sub-1:campaign-1': mockEntries },
+      });
+      expect(
+        selectOndoCampaignActivityById('sub-1', 'campaign-1')(state),
+      ).toEqual(mockEntries);
+    });
+  });
+
+  describe('Predict The Pitch selectors', () => {
+    const mockLeaderboard = {
+      campaignId: 'predict-c-1',
+      computedAt: '2026-06-30T12:00:00.000Z',
+      entries: [],
+      totalParticipants: 10,
+    };
+    const mockPosition = {
+      rank: 1,
+      totalParticipants: 10,
+      roi: 0.25,
+      pnl: 50,
+      volume: 200,
+      eligible: true,
+      neighbors: [],
+      computedAt: '2026-06-30T12:00:00.000Z',
+      marketsTraded: 3,
+      minimumMarketsTraded: 3,
+    };
+    const mockPositions = {
+      openPositions: [],
+      resolvedPositions: [],
+      computedAt: null,
+    };
+    const mockPrizePool = {
+      totalVolumeUsd: 1000,
+      unlockedPoolUsd: 500,
+      thresholdsUsd: [0, 1000],
+      poolScheduleUsd: [250, 500],
+      breakdown: [],
+      computedAt: null,
+    };
+
+    it('selects leaderboard and status flags', () => {
+      const state = createMockRootState({
+        predictThePitchLeaderboards: {
+          [PREDICT_CAMPAIGN_ID]: {
+            data: mockLeaderboard,
+            loading: true,
+            error: true,
+          },
+        },
+      });
+
+      expect(
+        selectPredictThePitchLeaderboardByCampaignId(PREDICT_CAMPAIGN_ID)(
+          state,
+        ),
+      ).toEqual(mockLeaderboard);
+      expect(
+        selectPredictThePitchLeaderboardLoadingByCampaignId(
+          PREDICT_CAMPAIGN_ID,
+        )(state),
+      ).toBe(true);
+      expect(
+        selectPredictThePitchLeaderboardErrorByCampaignId(PREDICT_CAMPAIGN_ID)(
+          state,
+        ),
+      ).toBe(true);
+    });
+
+    it('selects leaderboard position and positions by composite ID', () => {
+      const state = createMockRootState({
+        predictThePitchLeaderboardPositions: {
+          'sub-1:predict-c-1': mockPosition,
+        },
+        predictThePitchPositions: {
+          'sub-1:predict-c-1': mockPositions,
+        },
+      });
+
+      expect(
+        selectPredictThePitchLeaderboardPositionById(
+          'sub-1',
+          'predict-c-1',
+        )(state),
+      ).toEqual(mockPosition);
+      expect(
+        selectPredictThePitchLeaderboardPositionById('sub-1', undefined)(state),
+      ).toBeNull();
+      expect(
+        selectPredictThePitchPositionsById('sub-1', 'predict-c-1')(state),
+      ).toEqual(mockPositions);
+      expect(
+        selectPredictThePitchPositionsById(undefined, 'predict-c-1')(state),
+      ).toBeNull();
+    });
+
+    it('selects prize pool and status flags', () => {
+      const state = createMockRootState({
+        predictThePitchPrizePools: {
+          [PREDICT_CAMPAIGN_ID]: {
+            data: mockPrizePool,
+            loading: true,
+            error: true,
+          },
+        },
+      });
+
+      expect(
+        selectPredictThePitchPrizePoolByCampaignId(PREDICT_CAMPAIGN_ID)(state),
+      ).toEqual(mockPrizePool);
+      expect(
+        selectPredictThePitchPrizePoolLoadingByCampaignId(PREDICT_CAMPAIGN_ID)(
+          state,
+        ),
+      ).toBe(true);
+      expect(
+        selectPredictThePitchPrizePoolErrorByCampaignId(PREDICT_CAMPAIGN_ID)(
+          state,
+        ),
+      ).toBe(true);
+    });
+  });
+
+  describe('selectDismissedCampaignOutcomeToasts', () => {
+    it('returns empty object when no toasts have been dismissed', () => {
+      const state = createMockRootState({ dismissedCampaignOutcomeToasts: {} });
+      expect(selectDismissedCampaignOutcomeToasts(state)).toEqual({});
+    });
+
+    it('returns empty object when dismissed toasts are undefined', () => {
+      const state = createMockRootState({
+        dismissedCampaignOutcomeToasts: undefined as unknown as Record<
+          string,
+          boolean
+        >,
+      });
+      expect(selectDismissedCampaignOutcomeToasts(state)).toEqual({});
+    });
+
+    it('returns the dismissed toasts map', () => {
+      const dismissed = {
+        'campaign-1:sub-1:winner': true,
+        'campaign-2:sub-1:non_winner': true,
+      };
+      const state = createMockRootState({
+        dismissedCampaignOutcomeToasts: dismissed,
+      });
+      expect(selectDismissedCampaignOutcomeToasts(state)).toEqual(dismissed);
+    });
+
+    it('returns true for a dismissed toast key', () => {
+      const state = createMockRootState({
+        dismissedCampaignOutcomeToasts: {
+          'campaign-1:sub-1:winner': true,
+        },
+      });
+      const result = selectDismissedCampaignOutcomeToasts(state);
+      expect(result['campaign-1:sub-1:winner']).toBe(true);
+    });
+
+    it('returns undefined for a key that has not been dismissed', () => {
+      const state = createMockRootState({
+        dismissedCampaignOutcomeToasts: {},
+      });
+      const result = selectDismissedCampaignOutcomeToasts(state);
+      expect(result['campaign-1:sub-1:winner']).toBeUndefined();
+    });
+  });
+
+  describe('selectIsCampaignOutcomeToastDismissed', () => {
+    it('returns true when the outcome toast key is dismissed', () => {
+      const state = createMockRootState({
+        dismissedCampaignOutcomeToasts: {
+          'camp-2:sub-1:winner': true,
+        },
+      });
+      expect(
+        selectIsCampaignOutcomeToastDismissed(
+          'sub-1',
+          'camp-2',
+          'winner',
+        )(state),
+      ).toBe(true);
+    });
+
+    it('returns false when the outcome toast key is not dismissed', () => {
+      const state = createMockRootState({ dismissedCampaignOutcomeToasts: {} });
+      expect(
+        selectIsCampaignOutcomeToastDismissed(
+          'sub-1',
+          'camp-2',
+          'winner',
+        )(state),
+      ).toBe(false);
+    });
+
+    it('returns true when subscription or campaign id is missing', () => {
+      const state = createMockRootState({ dismissedCampaignOutcomeToasts: {} });
+      expect(
+        selectIsCampaignOutcomeToastDismissed(
+          undefined,
+          'camp-2',
+          'winner',
+        )(state),
+      ).toBe(true);
+    });
+  });
+
+  describe('selectSubscribedCampaignReminders', () => {
+    it('returns empty object when no reminders have been subscribed', () => {
+      const state = createMockRootState({ subscribedCampaignReminders: {} });
+      expect(selectSubscribedCampaignReminders(state)).toEqual({});
+    });
+
+    it('returns empty object when subscribed reminders are undefined', () => {
+      const state = createMockRootState({
+        subscribedCampaignReminders: undefined as unknown as Record<
+          string,
+          boolean
+        >,
+      });
+      expect(selectSubscribedCampaignReminders(state)).toEqual({});
+    });
+
+    it('returns the subscribed reminders map', () => {
+      const subscribed = {
+        'sub-1:camp-1': true,
+        'sub-1:camp-2': true,
+      };
+      const state = createMockRootState({
+        subscribedCampaignReminders: subscribed,
+      });
+      expect(selectSubscribedCampaignReminders(state)).toEqual(subscribed);
     });
   });
 });

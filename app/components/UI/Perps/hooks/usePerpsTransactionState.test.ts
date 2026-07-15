@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { usePerpsTransactionState } from './usePerpsTransactionState';
-import { TransactionRecord } from '../types/transactionTypes';
+import { type TransactionRecord } from '@metamask/perps-controller';
 
 // Mock the strings function
 jest.mock('../../../../../locales/i18n', () => ({

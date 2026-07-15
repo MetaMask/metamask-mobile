@@ -1,12 +1,14 @@
+import React from 'react';
 import { waitFor, fireEvent } from '@testing-library/react-native';
 import { Image, TouchableOpacity } from 'react-native';
-import {
+import renderWithProvider, {
   DeepPartial,
   renderScreen,
 } from '../../../../util/test/renderWithProvider';
 import AppInformation from './';
 import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
 import { RootState } from '../../../../reducers';
+import { strings } from '../../../../../locales/i18n';
 
 // Mock device info
 const mockGetApplicationName = jest.fn();
@@ -19,10 +21,10 @@ jest.mock('react-native-device-info', () => ({
   getBuildNumber: () => mockGetBuildNumber(),
 }));
 
-// Mock isQa utility
-const mockIsQa = jest.fn();
-jest.mock('../../../../util/test/utils', () => ({
-  isQa: () => mockIsQa(),
+// Mock isProduction utility
+const mockIsProduction = jest.fn();
+jest.mock('../../../../util/environment', () => ({
+  isProduction: () => mockIsProduction(),
 }));
 
 // Mock getFeatureFlagAppEnvironment and getFeatureFlagAppDistribution
@@ -36,15 +38,9 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../constants/ota', () => {
-  const actual = jest.requireActual('../../../../constants/ota');
-
-  return {
-    ...actual,
-    // Make getFullVersion a pass-through so tests don't depend on OTA_VERSION
-    getFullVersion: (appVersion: string) => appVersion,
-  };
-});
+jest.mock('../../../../constants/ota', () => ({
+  OTA_VERSION: 'v0',
+}));
 
 const MOCK_STATE = {
   engine: {
@@ -74,18 +70,21 @@ describe('AppInformation', () => {
     mockGetApplicationName.mockResolvedValue('MetaMask');
     mockGetVersion.mockResolvedValue('7.0.0');
     mockGetBuildNumber.mockResolvedValue('1000');
-    mockIsQa.mockReturnValue(false);
+    mockIsProduction.mockReturnValue(true);
     mockGetFeatureFlagAppEnvironment.mockReturnValue('Development');
     mockGetFeatureFlagAppDistribution.mockReturnValue('main');
   });
 
-  it('renders correctly with snapshot', () => {
-    const { toJSON } = renderScreen(
+  it('renders correctly with snapshot', async () => {
+    const { getByText } = renderScreen(
       AppInformation,
-      { name: 'AppInformation' },
+      { name: 'AppInformation', options: { headerShown: false } },
       { state: MOCK_STATE },
     );
-    expect(toJSON()).toMatchSnapshot();
+    await waitFor(() => {
+      expect(getByText('MetaMask v7.0.0 (1000)')).toBeOnTheScreen();
+    });
+    expect(getByText(strings('app_settings.info_title'))).toBeOnTheScreen();
   });
 
   it('renders the container with correct testID', () => {
@@ -96,6 +95,36 @@ describe('AppInformation', () => {
     );
 
     expect(getByTestId(AboutMetaMaskSelectorsIDs.CONTAINER)).toBeTruthy();
+  });
+
+  describe('Header', () => {
+    it('renders header with correct title', () => {
+      const { getByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      expect(getByText(strings('app_settings.info_title'))).toBeOnTheScreen();
+    });
+
+    it('calls navigation.goBack when back button is pressed', () => {
+      const mockGoBack = jest.fn();
+      const mockNavigation = {
+        goBack: mockGoBack,
+        navigate: jest.fn(),
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AppInformation navigation={mockNavigation} />,
+        { state: MOCK_STATE },
+        false,
+      );
+
+      fireEvent.press(getByTestId(AboutMetaMaskSelectorsIDs.BACK_BUTTON));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('displays app information after mount', async () => {
@@ -218,9 +247,11 @@ describe('AppInformation', () => {
 
       // When the component renders
       // Then it should not display the environment information initially
-      expect(queryByText(/Environment:/)).toBeNull();
-      expect(queryByText(/Remote Feature Flag Env:/)).toBeNull();
-      expect(queryByText(/Remote Feature Flag Distribution:/)).toBeNull();
+      expect(queryByText(/Environment:/)).not.toBeOnTheScreen();
+      expect(queryByText(/Remote Feature Flag Env:/)).not.toBeOnTheScreen();
+      expect(
+        queryByText(/Remote Feature Flag Distribution:/),
+      ).not.toBeOnTheScreen();
     });
 
     it('displays environment information after long-pressing fox icon', async () => {
@@ -271,9 +302,11 @@ describe('AppInformation', () => {
 
       // When initially rendered
       // Then environment info should be hidden
-      expect(queryByText(/Environment:/)).toBeNull();
-      expect(queryByText(/Remote Feature Flag Env:/)).toBeNull();
-      expect(queryByText(/Remote Feature Flag Distribution:/)).toBeNull();
+      expect(queryByText(/Environment:/)).not.toBeOnTheScreen();
+      expect(queryByText(/Remote Feature Flag Env:/)).not.toBeOnTheScreen();
+      expect(
+        queryByText(/Remote Feature Flag Distribution:/),
+      ).not.toBeOnTheScreen();
 
       // When the user long-presses the fox icon
       const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
@@ -295,10 +328,9 @@ describe('AppInformation', () => {
       });
     });
 
-    it('displays branch information when isQa is true', async () => {
-      // Given isQa returns true
-      process.env.GIT_BRANCH = 'feature/test-branch';
-      mockIsQa.mockReturnValue(true);
+    it('displays build type and branch information for non-production builds', async () => {
+      // Given isProduction returns false (non-production build)
+      mockIsProduction.mockReturnValue(false);
 
       const { getByText } = renderScreen(
         AppInformation,
@@ -307,9 +339,29 @@ describe('AppInformation', () => {
       );
 
       // When the component renders
-      // Then it should display the branch information (this is always visible for QA)
+      // Then it should display the build type and branch information
+      // Note: env vars are inlined at build time, so we check the format pattern
       await waitFor(() => {
-        expect(getByText(/Branch:/)).toBeTruthy();
+        expect(getByText(/\| Branch:/)).toBeOnTheScreen();
+      });
+    });
+
+    it('does not display branch information for production builds', async () => {
+      // Given isProduction returns true (production build)
+      process.env.GIT_BRANCH = 'main';
+      process.env.METAMASK_ENVIRONMENT = 'production';
+      mockIsProduction.mockReturnValue(true);
+
+      const { queryByText } = renderScreen(
+        AppInformation,
+        { name: 'AppInformation' },
+        { state: MOCK_STATE },
+      );
+
+      // When the component renders
+      // Then it should NOT display the branch information
+      await waitFor(() => {
+        expect(queryByText(/Branch:/)).not.toBeOnTheScreen();
       });
     });
   });
@@ -353,7 +405,7 @@ describe('AppInformation', () => {
       );
 
       // Given environment info is initially hidden
-      expect(queryByText(/Environment:/)).toBeNull();
+      expect(queryByText(/Environment:/)).not.toBeOnTheScreen();
 
       // When the fox icon is long-pressed
       const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
@@ -387,7 +439,7 @@ describe('AppInformation', () => {
       );
 
       // Given environment info is initially hidden
-      expect(queryByText(/Environment:/)).toBeNull();
+      expect(queryByText(/Environment:/)).not.toBeOnTheScreen();
 
       // When the fox icon is long-pressed
       const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
@@ -456,11 +508,11 @@ describe('AppInformation', () => {
         { state: MOCK_STATE },
       );
 
-      expect(queryByText(/Update ID:/)).toBeNull();
-      expect(queryByText(/OTA Update Channel:/)).toBeNull();
-      expect(queryByText(/OTA Update runtime version:/)).toBeNull();
-      expect(queryByText(/Check Automatically:/)).toBeNull();
-      expect(queryByText(/OTA Update status:/)).toBeNull();
+      expect(queryByText(/Update ID:/)).not.toBeOnTheScreen();
+      expect(queryByText(/OTA Update Channel:/)).not.toBeOnTheScreen();
+      expect(queryByText(/OTA Update runtime version:/)).not.toBeOnTheScreen();
+      expect(queryByText(/Check Automatically:/)).not.toBeOnTheScreen();
+      expect(queryByText(/OTA Update status:/)).not.toBeOnTheScreen();
     });
 
     it('displays OTA updates information after long-pressing fox icon when OTA updates are enabled', async () => {

@@ -1,15 +1,24 @@
 import React from 'react';
 import { query } from '@metamask/controller-utils';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import TransactionDetails from './';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { mockNetworkState } from '../../../../util/test/network';
 import type { NetworkState } from '@metamask/network-controller';
+import { isHardwareAccount } from '../../../../util/address';
+import { TransactionType } from '@metamask/transaction-controller';
+import { analytics } from '../../../../util/analytics/analytics';
+import { getExternalLinkHostname } from '../../../../util/analytics/externalLinkTracking';
+jest.mock('../../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 const mockEthQuery = {
   getBalance: jest.fn(),
 };
@@ -71,14 +80,33 @@ jest.mock('../../../../util/networks/global-network', () => ({
   getGlobalEthQuery: jest.fn(() => mockEthQuery),
 }));
 
+jest.mock('../../../../util/address', () => ({
+  ...jest.requireActual('../../../../util/address'),
+  isHardwareAccount: jest.fn(),
+}));
+
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
   query: jest.fn(),
 }));
 
+const mockNavigate = jest.fn();
+const mockPush = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      push: mockPush,
+    }),
+  };
+});
+
 const navigationMock = {
-  navigate: jest.fn(),
-  push: jest.fn(),
+  navigate: mockNavigate,
+  push: mockPush,
 };
 
 const renderComponent = ({
@@ -128,7 +156,6 @@ const renderComponent = ({
               ...(hash ? { hash } : {}),
             }}
             navigation={navigationMock}
-            chainId={networkId}
           />
         )}
       </Stack.Screen>
@@ -138,23 +165,26 @@ const renderComponent = ({
 
 describe('TransactionDetails', () => {
   it('should render correctly', () => {
-    const { toJSON, getByText } = renderComponent({ state: initialState });
-    expect(toJSON()).toMatchSnapshot();
-    const nonceText = getByText('Nonce');
-    expect(nonceText).toBeDefined();
-    const totalAmountText = getByText('Total amount');
-    expect(totalAmountText).toBeDefined();
-    const dateText = getByText('Date');
-    expect(dateText).toBeDefined();
+    renderComponent({ state: initialState, txParams: { nonce: '0x1a' } });
+    expect(screen.getByText('Nonce')).toBeOnTheScreen();
+    expect(screen.getByText('Total amount')).toBeOnTheScreen();
+    expect(screen.getByText('Date')).toBeOnTheScreen();
   });
 
-  it('should render correctly for multi-layer fee network', () => {
+  it('should render correctly without nonce', () => {
+    renderComponent({ state: initialState, txParams: { nonce: undefined } });
+    expect(screen.queryByText('Nonce')).not.toBeOnTheScreen();
+    expect(screen.getByText('Total amount')).toBeOnTheScreen();
+    expect(screen.getByText('Date')).toBeOnTheScreen();
+  });
+
+  it('should render correctly for multi-layer fee network', async () => {
     jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
       timestamp: 1234,
       l1Fee: '0x1',
     });
 
-    const { toJSON } = renderComponent({
+    renderComponent({
       state: {
         ...initialState,
         engine: {
@@ -178,14 +208,21 @@ describe('TransactionDetails', () => {
         multiLayerL1FeeTotal: '0x1',
       },
     });
-    expect(toJSON()).toMatchSnapshot();
+    // Multi-layer fee networks (Optimism) show a block explorer link — this is
+    // absent in the base mainnet test and confirms the multi-layer path rendered.
+    await waitFor(() => {
+      expect(screen.getByText(/View on/i)).toBeOnTheScreen();
+    });
+    // The total amount row is always present once transactionDetails resolves.
+    expect(screen.getByText('Total amount')).toBeOnTheScreen();
   });
-  it('should render correctly for multi-layer fee network with no l1 fee', () => {
+
+  it('should render correctly for multi-layer fee network with no l1 fee', async () => {
     jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
       timestamp: 1234,
       l1Fee: '0x0',
     });
-    const { toJSON } = renderComponent({
+    renderComponent({
       state: {
         ...initialState,
         engine: {
@@ -206,10 +243,16 @@ describe('TransactionDetails', () => {
       },
       hash: '0x3',
       txParams: {
-        multiLayerL1FeeTotal: '0x1',
+        multiLayerL1FeeTotal: '0x0',
       },
     });
-    expect(toJSON()).toMatchSnapshot();
+    // Even with a zero L1 fee the multi-layer path still resolves and renders
+    // the Optimism block explorer link, confirming the async update completed.
+    await waitFor(() => {
+      expect(screen.getByText(/View on/i)).toBeOnTheScreen();
+    });
+    // With zero L1 fee the total amount row is still present (fee contribution is 0).
+    expect(screen.getByText('Total amount')).toBeOnTheScreen();
   });
 
   const arrangeBlockExplorerTest = () => {
@@ -273,6 +316,15 @@ describe('TransactionDetails', () => {
 
     fireEvent.press(getByText(props.buttonText));
 
+    expect(analytics.trackEvent).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        name: 'External Link Clicked',
+        properties: expect.objectContaining({
+          location: 'transaction_details',
+          url_domain: getExternalLinkHostname(props.expectedUrl),
+        }),
+      }),
+    );
     expect(navigationMock.push).toHaveBeenCalledWith('Webview', {
       params: expect.objectContaining({ url: props.expectedUrl }),
       screen: 'SimpleWebview',
@@ -348,7 +400,58 @@ describe('TransactionDetails', () => {
     });
   });
 
-  it('should render speed up and cancel buttons', async () => {
+  it('should display explorer link for arbitrum (popular network not in networkConfigurations)', () => {
+    arrangeActAssertBlockExplorerTest({
+      overrideMocks: (mocks) => {
+        mocks.mockState.engine.backgroundState.NetworkController =
+          mockNetworkState({
+            chainId: '0x1',
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+          });
+        mocks.mockProps.networkId = '0xa4b1';
+      },
+      buttonText: 'View on Arbiscan',
+      expectedUrl: 'https://arbiscan.io/tx/0x3',
+    });
+  });
+
+  it('should display explorer link for polygon (popular network not in networkConfigurations)', () => {
+    arrangeActAssertBlockExplorerTest({
+      overrideMocks: (mocks) => {
+        mocks.mockState.engine.backgroundState.NetworkController =
+          mockNetworkState({
+            chainId: '0x1',
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+          });
+        mocks.mockProps.networkId = '0x89';
+      },
+      buttonText: 'View on Polygonscan',
+      expectedUrl: 'https://polygonscan.com/tx/0x3',
+    });
+  });
+
+  it('should display explorer link for bnb chain (popular network not in networkConfigurations)', () => {
+    arrangeActAssertBlockExplorerTest({
+      overrideMocks: (mocks) => {
+        mocks.mockState.engine.backgroundState.NetworkController =
+          mockNetworkState({
+            chainId: '0x1',
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+          });
+        mocks.mockProps.networkId = '0x38';
+      },
+      buttonText: 'View on Bscscan',
+      expectedUrl: 'https://bscscan.com/tx/0x3',
+    });
+  });
+
+  it('renders speed up and cancel buttons', async () => {
     const { getByText } = renderComponent({
       state: {
         ...initialState,
@@ -369,14 +472,40 @@ describe('TransactionDetails', () => {
       status: 'submitted',
     });
 
-    await waitFor(() => {
-      const speedUpButton = getByText('Speed up');
-      expect(speedUpButton).toBeDefined();
-      const cancelButton = getByText('Cancel');
-      expect(cancelButton).toBeDefined();
-      fireEvent.press(speedUpButton);
-      fireEvent.press(cancelButton);
+    expect(getByText('Speed up')).toBeOnTheScreen();
+    expect(getByText('Cancel')).toBeOnTheScreen();
+  });
+
+  it('does not render speed up and cancel buttons when selectedGasFeeToken is set', async () => {
+    const { queryByText, getByText } = renderComponent({
+      state: {
+        ...initialState,
+        engine: {
+          ...initialState.engine,
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            PreferencesController: {
+              smartTransactionsOptInStatus: false,
+            },
+          },
+        },
+      },
+      hash: '0x3',
+      txParams: {
+        multiLayerL1FeeTotal: '0x1',
+      },
+      status: 'submitted',
+      transactionObj: {
+        selectedGasFeeToken: '0x12345678901234567890123456789012345678',
+      },
     });
+
+    await waitFor(() => {
+      expect(getByText('Status')).toBeTruthy();
+    });
+
+    expect(queryByText('Speed up')).not.toBeOnTheScreen();
+    expect(queryByText('Cancel')).not.toBeOnTheScreen();
   });
 
   it('should render `Batched transactions` tag if there are nested transactions', async () => {
@@ -386,5 +515,51 @@ describe('TransactionDetails', () => {
     });
 
     expect(getByText('Batched transactions')).toBeTruthy();
+  });
+
+  it('passes isGasFeeSponsored to TransactionSummary when true', () => {
+    renderComponent({
+      state: initialState,
+      transactionObj: { isGasFeeSponsored: true },
+    });
+
+    expect(screen.getByTestId('paid-by-metamask')).toBeOnTheScreen();
+    expect(screen.getByText('Paid by MetaMask')).toBeOnTheScreen();
+  });
+
+  it('does not show "Paid by MetaMask" when isGasFeeSponsored is false', () => {
+    renderComponent({
+      state: initialState,
+    });
+
+    expect(screen.queryByText('Paid by MetaMask')).not.toBeOnTheScreen();
+  });
+
+  it('does not show "Paid by MetaMask" for hardware wallet even when isGasFeeSponsored is true', () => {
+    jest.mocked(isHardwareAccount).mockReturnValue(true);
+
+    renderComponent({
+      state: initialState,
+      transactionObj: {
+        isGasFeeSponsored: true,
+        txParams: { from: '0xHardwareAddress' },
+      },
+    });
+
+    expect(screen.queryByTestId('paid-by-metamask')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Paid by MetaMask')).not.toBeOnTheScreen();
+  });
+
+  it('does not show "Paid by MetaMask" for revoke delegation even when isGasFeeSponsored is true', () => {
+    renderComponent({
+      state: initialState,
+      transactionObj: {
+        isGasFeeSponsored: true,
+        type: TransactionType.revokeDelegation,
+      },
+    });
+
+    expect(screen.queryByTestId('paid-by-metamask')).not.toBeOnTheScreen();
+    expect(screen.queryByText('Paid by MetaMask')).not.toBeOnTheScreen();
   });
 });

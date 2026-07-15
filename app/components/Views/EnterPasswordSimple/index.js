@@ -6,15 +6,18 @@ import {
   Text,
   View,
   TextInput,
-  SafeAreaView,
   StyleSheet,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {
+  HeaderStandard,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import StyledButton from '../../UI/StyledButton';
 
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { passwordRequirementsMet } from '../../../util/password';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -69,28 +72,13 @@ export default class EnterPasswordSimple extends PureComponent {
 
   mounted = true;
 
-  updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('enter_password.title'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  };
-
-  componentDidMount = () => {
-    this.updateNavBar();
-  };
-
-  componentDidUpdate = () => {
-    this.updateNavBar();
+  handleBack = () => {
+    this.props.navigation.goBack();
   };
 
   componentWillUnmount = () => {
+    // Used by Settings/SecuritySettings/Sections/DeviceSecurityToggle.tsx to clear optimistic toggle value
+    this.props.route?.params?.onCancel?.();
     this.mounted = false;
   };
 
@@ -102,7 +90,7 @@ export default class EnterPasswordSimple extends PureComponent {
         strings('choose_password.password_length_error'),
       );
     } else {
-      this.props.route.params.onPasswordSet(this.state.password);
+      await this.props.route.params.onPasswordSet(this.state.password);
       this.props.navigation.pop();
       return;
     }
@@ -118,7 +106,17 @@ export default class EnterPasswordSimple extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView style={styles.mainWrapper}>
+      <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
+        <HeaderStandard
+          title={strings('enter_password.title')}
+          titleProps={{ color: TextColor.PrimaryDefault }}
+          onBack={this.handleBack}
+          includesTopInset
+          testID="enter-password-simple-header"
+          backButtonProps={{
+            testID: 'enter-password-simple-back-button',
+          }}
+        />
         <View style={styles.wrapper}>
           <KeyboardAwareScrollView
             style={styles.wrapper}

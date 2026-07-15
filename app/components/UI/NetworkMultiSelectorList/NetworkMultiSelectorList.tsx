@@ -9,7 +9,8 @@ import React, {
 } from 'react';
 import { useSelector } from 'react-redux';
 import { ImageSourcePropType, View } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { TextVariant as LegacyTextVariant } from '../../../component-library/components/Texts/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import {
@@ -19,6 +20,7 @@ import {
 } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { debounce } from 'lodash';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // External dependencies.
 import { useStyles } from '../../../component-library/hooks/index.ts';
@@ -27,10 +29,6 @@ import { IconName } from '../../../component-library/components/Icons/Icon/index
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell/index.ts';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text/index.ts';
 import { isTestNet } from '../../../util/networks/index.js';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -60,7 +58,13 @@ import { selectEvmChainId } from '../../../selectors/networkController';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored/index.ts';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import { isHardwareAccount } from '../../../util/address';
 import { strings } from '../../../../locales/i18n';
+import TagColored, {
+  TagColor,
+} from '../../../component-library/components-temp/TagColored';
+import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 const SELECTION_DEBOUNCE_DELAY = 150;
 
@@ -104,8 +108,16 @@ const NetworkMultiSelectList = ({
   const isGasFeesSponsoredNetworkEnabled = useSelector(
     getGasFeesSponsoredNetworkEnabled,
   );
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const isHardwareWallet = Boolean(
+    selectedAddress && isHardwareAccount(selectedAddress),
+  );
 
   const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
+  const surfaceClass = useElevatedSurface();
 
   const processedNetworks = useMemo(
     (): ProcessedNetwork[] =>
@@ -267,7 +279,8 @@ const NetworkMultiSelectList = ({
       const isDisabled = isLoading || isSelectionDisabled;
       const showButtonIcon = Boolean(networkTypeOrRpcUrl);
 
-      const isGasSponsored = isGasFeesSponsoredNetworkEnabled(chainId);
+      const isGasSponsored =
+        !isHardwareWallet && isGasFeesSponsoredNetworkEnabled(chainId);
 
       return (
         <View>
@@ -276,14 +289,29 @@ const NetworkMultiSelectList = ({
             isSelected={isSelected}
             title={
               isGasSponsored ? (
-                <Box twClassName="flex-col">
-                  <Text variant={TextVariant.BodyMD}>{name}</Text>
+                <Box twClassName="flex-row gap-2 items-center">
                   <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodyMd}
+                    numberOfLines={1}
+                    style={styles.networkNameText}
+                  >
+                    {name}
+                  </Text>
+                  <TagColored
+                    color={TagColor.Success}
+                    style={styles.noNetworkFeeContainer}
+                    labelProps={{
+                      variant: LegacyTextVariant.BodySM,
+                      style: {
+                        textTransform: 'none',
+                        textAlign: 'center',
+                        bottom: 1,
+                        fontWeight: 'normal',
+                      },
+                    }}
                   >
                     {strings('networks.no_network_fee')}
-                  </Text>
+                  </TagColored>
                 </Box>
               ) : (
                 name
@@ -303,13 +331,19 @@ const NetworkMultiSelectList = ({
             disabled={isDisabled}
             showButtonIcon={showButtonIcon}
             buttonProps={createButtonProps(network)}
-            style={styles.centeredNetworkCell}
+            style={tw.style(`${surfaceClass} items-center`)}
             testID={NETWORK_MULTI_SELECTOR_TEST_IDS.NETWORK_LIST_ITEM(
               caipChainId,
               isSelected,
             )}
           >
-            {renderRightAccessory?.(caipChainId, name)}
+            {showButtonIcon ? (
+              renderRightAccessory?.(caipChainId, name)
+            ) : (
+              <Box paddingRight={8}>
+                {renderRightAccessory?.(caipChainId, name)}
+              </Box>
+            )}
           </Cell>
         </View>
       );
@@ -325,7 +359,11 @@ const NetworkMultiSelectList = ({
       isSelectAllNetworksSection,
       openRpcModal,
       isGasFeesSponsoredNetworkEnabled,
-      styles.centeredNetworkCell,
+      isHardwareWallet,
+      styles.noNetworkFeeContainer,
+      surfaceClass,
+      tw,
+      styles.networkNameText,
     ],
   );
 
@@ -333,11 +371,17 @@ const NetworkMultiSelectList = ({
     if (!networks.length || !isAutoScrollEnabled) return;
     if (networksLengthRef.current !== networks.length) {
       const selectedNetwork = networks.find(({ isSelected }) => isSelected);
-      networkListRef?.current?.scrollToOffset({
-        offset: selectedNetwork?.yOffset ?? 0,
-        animated: false,
-      });
+      const offset = selectedNetwork?.yOffset ?? 0;
       networksLengthRef.current = networks.length;
+      // Defer scroll so FlashList has time to lay out items and avoid "index out of bounds"
+      requestAnimationFrame(() => {
+        if (networkListRef?.current?.scrollToOffset) {
+          networkListRef.current.scrollToOffset({
+            offset,
+            animated: false,
+          });
+        }
+      });
     }
   }, [networks, isAutoScrollEnabled]);
 

@@ -40,12 +40,15 @@ const mockCreateEventBuilder = jest.fn().mockReturnValue({
   }),
 });
 
-jest.mock('../../../../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
+jest.mock(
+  '../../../../../../components/hooks/useAnalytics/useAnalytics',
+  () => ({
+    useAnalytics: () => ({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    }),
   }),
-}));
+);
 
 describe('ProtectYourWallet', () => {
   beforeEach(() => {
@@ -86,7 +89,9 @@ describe('ProtectYourWallet', () => {
     expect(
       getByText(strings('reveal_credential.seed_phrase_title')),
     ).toBeDefined();
-    expect(queryByText(strings('app_settings.learn_more'))).toBeNull();
+    expect(
+      queryByText(strings('app_settings.learn_more')),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows hint button when hint text is available', () => {
@@ -200,9 +205,9 @@ describe('ProtectYourWallet', () => {
         getByText(strings('reveal_credential.seed_phrase_title')),
       );
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
+        Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
         {
-          screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+          shouldUpdateNav: true,
         },
       );
     });

@@ -66,6 +66,31 @@ describe('HeroToken', () => {
     });
   });
 
+  it('renders horizontal layout with Sending label for transfer', async () => {
+    const state: DeepPartial<RootState> = merge({}, transferConfirmationState, {
+      engine: {
+        backgroundState: {
+          TransactionController: {
+            transactions: [
+              { txParams: { value: `0x${decGWEIToHexWEI(55555555)}` } },
+            ],
+          },
+        },
+      },
+    });
+    const { getByText, queryByTestId } = renderWithProvider(
+      <HeroToken layout="horizontal" />,
+      { state },
+    );
+
+    await waitFor(async () => {
+      expect(getByText('Sending')).toBeDefined();
+      expect(queryByTestId('avatar-with-badge-avatar-token-ETH')).toBeTruthy();
+      expect(getByText('0.0556 ETH')).toBeDefined();
+      expect(getByText('$199.79')).toBeDefined();
+    });
+  });
+
   it('displays avatar, rounded amount, amount, and fiat values for staking deposit', async () => {
     const state: DeepPartial<RootState> = merge(
       {},

@@ -7,11 +7,26 @@ const createStyles = (colors: Colors) =>
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+    },
+    content: {
+      flex: 1,
       padding: 16,
       paddingBottom: 48,
     },
     heading: {
-      marginTop: 16,
+      marginTop: 24,
+    },
+    titleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    title: {
+      flex: 1,
+    },
+    toggleWrap: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginLeft: 16,
     },
     desc: {
       marginTop: 8,

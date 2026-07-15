@@ -1,0 +1,335 @@
+import { renderHook, act } from '@testing-library/react-native';
+import {
+  TransactionStatus,
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
+import React from 'react';
+import { usePerpsOrderDepositTracking } from './usePerpsOrderDepositTracking';
+import { ToastContext } from '../../../../component-library/components/Toast';
+
+const mockShowToast = jest.fn();
+const mockCloseToast = jest.fn();
+const mockSubscribe = jest.fn();
+const mockTrack = jest.fn();
+
+const toastContextValue = {
+  toastRef: { current: { showToast: jest.fn(), closeToast: mockCloseToast } },
+};
+
+const wrapper = ({ children }: { children: React.ReactNode }) =>
+  React.createElement(
+    ToastContext.Provider,
+    { value: toastContextValue },
+    children,
+  );
+
+jest.mock('./usePerpsToasts', () => ({
+  __esModule: true,
+  default: () => ({
+    showToast: mockShowToast,
+    PerpsToastOptions: {
+      accountManagement: {
+        deposit: {
+          inProgress: jest.fn((_percent: number, transactionId: string) => ({
+            inProgress: true,
+            transactionId,
+          })),
+          takingLonger: {
+            closeButtonOptions: { onPress: undefined },
+          },
+          tradeCanceled: { tradeCanceled: true },
+          error: { error: true },
+        },
+      },
+    },
+  }),
+}));
+
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    controllerMessenger: {
+      subscribe: (...args: unknown[]) => mockSubscribe(...args),
+    },
+  },
+}));
+
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => key),
+}));
+
+jest.mock('@metamask/perps-controller', () => ({
+  PERPS_CONSTANTS: {
+    DepositTakingLongerToastDelayMs: 100,
+  },
+  PERPS_EVENT_PROPERTY: {
+    SCREEN_TYPE: 'screen_type',
+    INTERACTION_TYPE: 'interaction_type',
+  },
+  PERPS_EVENT_VALUE: {
+    SCREEN_TYPE: {
+      CANCEL_TRADE_WITH_TOKEN_TOAST: 'cancel_trade_with_token_toast',
+    },
+    INTERACTION_TYPE: {
+      CANCEL_TRADE_WITH_TOKEN: 'cancel_trade_with_token',
+    },
+  },
+}));
+
+jest.mock('./usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({
+    track: mockTrack,
+  }),
+}));
+
+describe('usePerpsOrderDepositTracking', () => {
+  const transactionId = 'tx-123';
+  const perpsDepositMeta: TransactionMeta = {
+    id: transactionId,
+    type: TransactionType.perpsDepositAndOrder,
+    status: TransactionStatus.submitted,
+  } as TransactionMeta;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('returns handleDepositConfirm function', () => {
+    const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
+      wrapper,
+    });
+
+    expect(typeof result.current.handleDepositConfirm).toBe('function');
+  });
+
+  it('does nothing when transaction type is not perpsDepositAndOrder', () => {
+    const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
+      wrapper,
+    });
+    const otherMeta = {
+      id: 'other-id',
+      type: TransactionType.simpleSend,
+      status: TransactionStatus.submitted,
+    } as TransactionMeta;
+    const callback = jest.fn();
+
+    act(() => {
+      result.current.handleDepositConfirm(otherMeta, callback);
+    });
+
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(mockSubscribe).not.toHaveBeenCalled();
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('shows persistent progress toast with close button and subscribes to controller when type is perpsDepositAndOrder', () => {
+    const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
+      wrapper,
+    });
+
+    act(() => {
+      result.current.handleDepositConfirm(perpsDepositMeta, jest.fn());
+    });
+
+    expect(mockShowToast).toHaveBeenCalled();
+    const progressToastArg = mockShowToast.mock.calls[0][0];
+    expect(progressToastArg).toMatchObject({
+      hasNoTimeout: true,
+      closeButtonOptions: expect.objectContaining({
+        onPress: expect.any(Function),
+      }),
+    });
+
+    progressToastArg.closeButtonOptions.onPress();
+    expect(mockCloseToast).toHaveBeenCalled();
+
+    expect(mockSubscribe).toHaveBeenCalledWith(
+      'TransactionController:transactionFailed',
+      expect.any(Function),
+    );
+    expect(mockSubscribe).toHaveBeenCalledWith(
+      'TransactionController:transactionStatusUpdated',
+      expect.any(Function),
+    );
+  });
+
+  it('invokes callback when transaction status becomes confirmed', () => {
+    const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
+      wrapper,
+    });
+    const handlers: {
+      statusUpdated?: (payload: { transactionMeta: TransactionMeta }) => void;
+    } = {};
+
+    mockSubscribe.mockImplementation(
+      (
+        _event: string,
+        handler: (payload: { transactionMeta: TransactionMeta }) => void,
+      ) => {
+        if (_event === 'TransactionController:transactionStatusUpdated') {
+          handlers.statusUpdated = handler;
+        }
+      },
+    );
+
+    const callback = jest.fn();
+    act(() => {
+      result.current.handleDepositConfirm(perpsDepositMeta, callback);
+    });
+
+    const statusUpdatedHandler = handlers.statusUpdated;
+    expect(statusUpdatedHandler).toBeDefined();
+    act(() => {
+      (
+        statusUpdatedHandler as (payload: {
+          transactionMeta: TransactionMeta;
+        }) => void
+      )({
+        transactionMeta: {
+          ...perpsDepositMeta,
+          id: transactionId,
+          status: TransactionStatus.confirmed,
+        } as TransactionMeta,
+      });
+    });
+
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not invoke callback when transaction confirms after cancel trade requested', () => {
+    const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
+      wrapper,
+    });
+    const handlers: {
+      statusUpdated?: (payload: { transactionMeta: TransactionMeta }) => void;
+    } = {};
+
+    mockSubscribe.mockImplementation(
+      (
+        _event: string,
+        handler: (payload: { transactionMeta: TransactionMeta }) => void,
+      ) => {
+        if (_event === 'TransactionController:transactionStatusUpdated') {
+          handlers.statusUpdated = handler;
+        }
+      },
+    );
+
+    const callback = jest.fn();
+    act(() => {
+      result.current.handleDepositConfirm(perpsDepositMeta, callback);
+    });
+
+    const callCountBeforeAdvance = mockShowToast.mock.calls.length;
+    jest.advanceTimersByTime(100);
+
+    const takingLongerCall = mockShowToast.mock.calls[callCountBeforeAdvance];
+    const closeButtonOptions = takingLongerCall?.[0] as {
+      closeButtonOptions?: { onPress: () => void };
+    };
+    act(() => {
+      closeButtonOptions?.closeButtonOptions?.onPress?.();
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.objectContaining({ category: 'Perp UI Interaction' }),
+      expect.objectContaining({
+        interaction_type: 'cancel_trade_with_token',
+      }),
+    );
+
+    const statusUpdatedHandler = handlers.statusUpdated;
+    expect(statusUpdatedHandler).toBeDefined();
+    act(() => {
+      (
+        statusUpdatedHandler as (payload: {
+          transactionMeta: TransactionMeta;
+        }) => void
+      )({
+        transactionMeta: {
+          ...perpsDepositMeta,
+          id: transactionId,
+          status: TransactionStatus.confirmed,
+        } as TransactionMeta,
+      });
+    });
+
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('shows error toast when transaction fails with matching id', () => {
+    const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
+      wrapper,
+    });
+    const handlers: {
+      failed?: (payload: { transactionMeta: TransactionMeta }) => void;
+    } = {};
+
+    mockSubscribe.mockImplementation(
+      (
+        _event: string,
+        handler: (payload: { transactionMeta: TransactionMeta }) => void,
+      ) => {
+        if (_event === 'TransactionController:transactionFailed') {
+          handlers.failed = handler;
+        }
+      },
+    );
+
+    act(() => {
+      result.current.handleDepositConfirm(perpsDepositMeta, jest.fn());
+    });
+
+    mockShowToast.mockClear();
+
+    expect(handlers.failed).toBeDefined();
+    act(() => {
+      (
+        handlers.failed as (payload: {
+          transactionMeta: TransactionMeta;
+        }) => void
+      )({
+        transactionMeta: {
+          id: transactionId,
+          type: TransactionType.perpsDepositAndOrder,
+        } as TransactionMeta,
+      });
+    });
+
+    expect(mockShowToast).toHaveBeenCalledWith({ error: true });
+  });
+
+  it('shows taking longer toast after delay', () => {
+    const { result } = renderHook(() => usePerpsOrderDepositTracking(), {
+      wrapper,
+    });
+
+    act(() => {
+      result.current.handleDepositConfirm(perpsDepositMeta, jest.fn());
+    });
+
+    mockShowToast.mockClear();
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.objectContaining({ category: 'Perp Screen Viewed' }),
+      expect.objectContaining({
+        screen_type: 'cancel_trade_with_token_toast',
+      }),
+    );
+
+    expect(mockShowToast).toHaveBeenCalled();
+    expect(mockShowToast.mock.calls[0][0]).toMatchObject({
+      closeButtonOptions: expect.any(Object),
+    });
+  });
+});

@@ -1,16 +1,27 @@
 # Same as run-performance-e2e-release but for experimental builds (main branch, build-exp).
-# Triggers Bitrise build_android_main_exp / build_ios_main_exp and runs performance E2E.
+# Triggers experimental Android/iOS builds and runs performance E2E.
 name: Performance E2E Tests for Experimental Builds
 on:
   schedule:
-    - cron: '0 */3 * * 1-6'  # Every 3 hours, Mon–Fri (aligned with main performance workflow)
+    - cron: '0 */3 * * 1-6' # Every 3 hours, Mon–Fri (aligned with main performance workflow)
   workflow_dispatch:
+    inputs:
+      sentry_target:
+        description: 'Sentry target for performance events (test or real)'
+        required: false
+        type: choice
+        options:
+          - test
+          - real
+        default: test
   push:
     branches:
       - main
 
+# Must be at least as permissive as the called reusable workflow (run-performance-e2e.yml),
+# which transitively requires contents: write via build-{android,ios}-upload-to-browserstack.yml.
 permissions:
-  contents: read
+  contents: write
   id-token: write
   actions: write
 
@@ -28,7 +39,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Check experimental trigger conditions
         id: check
@@ -53,4 +64,5 @@ jobs:
     with:
       branch_name: main
       build_variant: exp
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
     secrets: inherit

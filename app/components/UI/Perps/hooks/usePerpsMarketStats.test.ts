@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { CandlePeriod } from '../constants/chartConfig';
+import { CandlePeriod } from '@metamask/perps-controller';
 import { usePerpsMarketStats } from './usePerpsMarketStats';
 
 // Mock Engine
@@ -172,6 +172,30 @@ describe('usePerpsMarketStats', () => {
 
     expect(result.current.volume24h).toBe('$12.35T'); // Decimals in formatVolume for detailed view
     expect(result.current.openInterest).toBe('$99.00T'); // Decimals in formatLargeNumber for detailed view
+  });
+
+  it('subscribes to prices only once when the first price tick arrives', () => {
+    // Arrange: subscribe synchronously delivers a first price tick on subscribe
+    const mockUnsubscribe = jest.fn();
+    mockSubscribeToPrices.mockImplementation(({ callback }) => {
+      callback([mockPriceData.BTC]);
+      return mockUnsubscribe;
+    });
+    mockedUsePerpsLiveCandles.mockReturnValue({
+      candleData: mockCandleData,
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: true,
+      error: null,
+      fetchMoreHistory: jest.fn(),
+    });
+
+    // Act: Render the hook so the subscription effect runs and the first tick arrives
+    renderHook(() => usePerpsMarketStats('BTC'));
+
+    // Assert: capturing the initial price must not re-trigger the subscription effect
+    expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+    expect(mockUnsubscribe).not.toHaveBeenCalled();
   });
 
   it('formats negative funding rates with proper sign and decimals', () => {

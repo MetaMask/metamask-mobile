@@ -40,33 +40,101 @@ interface ValueType {
 /**
  * Support backwards compatibility DAI while it's still being deprecated. See EIP-2612 for more info.
  */
+const coerceAllowedToBoolean = (
+  allowed?: number | string | boolean | null,
+): boolean | undefined => {
+  if (allowed === undefined) {
+    return undefined;
+  }
+
+  return Boolean(allowed);
+};
+
+const coerceNumberishToBigInt = (
+  value?: number | string | BigNumber | null,
+): bigint | undefined => {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  try {
+    if (value instanceof BigNumber) {
+      return BigInt(value.toFixed());
+    }
+    return BigInt(value);
+  } catch {
+    return undefined;
+  }
+};
+
 export const isPermitDaiUnlimited = (
   tokenAddress: string,
-  allowed?: number | string | boolean,
+  allowed?: number | string | boolean | null,
 ) => {
   if (!tokenAddress) return false;
 
+  const parsedAllowed = coerceAllowedToBoolean(allowed);
+
   return (
     tokenAddress.toLowerCase() === TOKEN_ADDRESS.DAI.toLowerCase() &&
-    Number(allowed) > 0
+    parsedAllowed === true
   );
 };
 
 export const isPermitDaiRevoke = (
   tokenAddress: string,
-  allowed?: number | string | boolean,
-  value?: number | string | BigNumber,
+  allowed?: number | string | boolean | null,
+  value?: number | string | BigNumber | null,
 ) => {
   if (!tokenAddress) return false;
 
+  const parsedAllowed = coerceAllowedToBoolean(allowed);
+  const parsedValue = coerceNumberishToBigInt(value);
+
   return (
     tokenAddress.toLowerCase() === TOKEN_ADDRESS.DAI.toLowerCase() &&
-    (allowed === 0 ||
-      allowed === false ||
-      allowed === 'false' ||
-      value === '0' ||
-      (value instanceof BigNumber && value.eq(0)))
+    (parsedAllowed === false || parsedValue === BigInt(0))
   );
+};
+
+/**
+ * Returns true when `fieldName` is declared in `primaryType`'s EIP-712 type
+ * schema. Only declared fields are included in the signed digest.
+ */
+const isSignedTypedDataField = (
+  types: Record<string, BaseType[]> | undefined,
+  primaryType: string | undefined,
+  fieldName: string,
+) =>
+  Boolean(
+    primaryType &&
+      types?.[primaryType]?.some((field: BaseType) => field.name === fieldName),
+  );
+
+/**
+ * Determines whether a recognized Permit signature is a revoke request, used to
+ * switch the confirmation UI to "Remove permission" / "Revoke" labels.
+ *
+ * The zero-`value` branch is only honored when `value` is a declared field of
+ * the message's primary type. Permit2 batch/single types have no top-level
+ * `value` field; a malicious dapp can inject a `value: "0"` sibling that
+ * survives JSON parsing but is stripped from the signed EIP-712 digest.
+ * Trusting it would spoof a protective "Remove permission" screen while the
+ * user actually grants a max-allowance, so undeclared siblings are ignored.
+ */
+export const isPermitRevoke = (
+  verifyingContract: string,
+  allowed?: number | string | boolean | null,
+  value?: number | string | BigNumber | null,
+  types?: Record<string, BaseType[]>,
+  primaryType?: string,
+) => {
+  const isDaiRevoke = isPermitDaiRevoke(verifyingContract, allowed, value);
+  const isZeroValueRevoke =
+    isSignedTypedDataField(types, primaryType, 'value') &&
+    coerceNumberishToBigInt(value) === BigInt(0);
+
+  return isDaiRevoke || isZeroValueRevoke;
 };
 
 /**

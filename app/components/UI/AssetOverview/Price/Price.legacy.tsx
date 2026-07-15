@@ -1,0 +1,232 @@
+import {
+  TimePeriod,
+  TokenPrice,
+} from '../../../../components/hooks/useTokenHistoricalPrices';
+import React, { useLayoutEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { strings } from '../../../../../locales/i18n';
+import { useStyles } from '../../../../component-library/hooks';
+import { toDateFormat } from '../../../../util/date';
+import { Box } from '@metamask/design-system-react-native';
+import { TokenPriceTitleHub } from './TokenPriceTitleHub';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
+
+import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
+import PriceChart from '../PriceChart/PriceChart';
+import { distributeDataPoints } from '../PriceChart/utils';
+import styleSheet from './Price.styles';
+import ChartNavigationButton from '../ChartNavigationButton';
+import { useSelector } from 'react-redux';
+import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
+import { TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT } from './tokenOverviewChart.constants';
+
+export interface PriceLegacyProps {
+  prices: TokenPrice[];
+  priceDiff: number;
+  currentPrice: number;
+  currentCurrency: string;
+  comparePrice: number;
+  isLoading: boolean;
+  timePeriod: TimePeriod;
+  chartNavigationButtons?: TimePeriod[];
+  onTimePeriodChange?: (period: TimePeriod) => void;
+  onPriceDirectionChange?: (isPositive: boolean) => void;
+  useAmbientColor?: boolean;
+  hasInsufficientCoverage?: boolean;
+}
+
+const PriceLegacy = ({
+  prices,
+  priceDiff,
+  currentPrice,
+  currentCurrency,
+  comparePrice,
+  isLoading,
+  timePeriod,
+  chartNavigationButtons = [],
+  onTimePeriodChange,
+  onPriceDirectionChange,
+  useAmbientColor = false,
+  hasInsufficientCoverage = false,
+}: PriceLegacyProps) => {
+  const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
+  const isTechnicalIndicatorsEnabled = useSelector(
+    selectTokenDetailsTechnicalIndicatorsEnabled,
+  );
+
+  const distributedPriceData = useMemo(() => {
+    if (prices.length > 0) {
+      return distributeDataPoints(prices);
+    }
+    return [];
+  }, [prices]);
+
+  const handleChartInteraction = (index: number) => {
+    setActiveChartIndex(index);
+  };
+
+  const timePeriodTextDict: Record<TimePeriod, string> = {
+    '1d': strings('asset_overview.chart_time_period.1d'),
+    '7d': strings('asset_overview.chart_time_period.7d'),
+    '1w': strings('asset_overview.chart_time_period.1w'),
+    '1m': strings('asset_overview.chart_time_period.1m'),
+    '3m': strings('asset_overview.chart_time_period.3m'),
+    '1y': strings('asset_overview.chart_time_period.1y'),
+    '3y': strings('asset_overview.chart_time_period.3y'),
+    all: strings('asset_overview.chart_time_period.all'),
+  };
+
+  const price: number =
+    activeChartIndex >= 0 &&
+    distributedPriceData[activeChartIndex]?.[1] !== undefined
+      ? distributedPriceData[activeChartIndex][1]
+      : currentPrice;
+
+  const date: string | undefined =
+    activeChartIndex >= 0 &&
+    distributedPriceData[activeChartIndex]?.[0] !== undefined
+      ? toDateFormat(Number(distributedPriceData[activeChartIndex][0]))
+      : timePeriodTextDict[timePeriod];
+
+  const diff: number | undefined =
+    activeChartIndex >= 0 &&
+    distributedPriceData[activeChartIndex]?.[1] !== undefined
+      ? distributedPriceData[activeChartIndex][1] - comparePrice
+      : priceDiff;
+
+  const displayDiff = diff ?? priceDiff;
+  const diffSign = displayDiff > 0 ? '+' : displayDiff < 0 ? '-' : '';
+
+  useLayoutEffect(() => {
+    if (!isLoading) {
+      onPriceDirectionChange?.(priceDiff >= 0);
+    }
+  }, [priceDiff, isLoading, onPriceDirectionChange]);
+
+  const { styles, theme } = useStyles(styleSheet);
+  const { themeAppearance } = useTheme();
+  const isLightMode = themeAppearance === AppThemeKey.light;
+
+  const ambientSuccessGreen = isLightMode
+    ? LIGHT_MODE_SUCCESS_GREEN
+    : theme.colors.success.default;
+
+  // Initial ambient color for chart/buttons - based on non-hover price diff
+  const initialAmbientColor = useMemo(() => {
+    if (!useAmbientColor) return undefined;
+    return priceDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, priceDiff, ambientSuccessGreen]);
+
+  // Dynamic ambient color for price diff text only - changes during chart hover
+  const ambientColor = useMemo(() => {
+    if (!useAmbientColor) return undefined;
+    return displayDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, displayDiff, ambientSuccessGreen]);
+
+  const getPriceDiffStyle = () => {
+    if (ambientColor) {
+      return { color: ambientColor };
+    }
+    if (isLightMode && displayDiff > 0) {
+      return { color: LIGHT_MODE_SUCCESS_GREEN };
+    }
+    return undefined;
+  };
+
+  return (
+    <>
+      <TokenPriceTitleHub
+        price={price}
+        displayDiff={displayDiff}
+        comparePrice={comparePrice}
+        periodLabel={date}
+        currentCurrency={currentCurrency}
+        isLoading={isLoading}
+        ambientColor={ambientColor}
+        getPriceDiffStyle={getPriceDiffStyle}
+      />
+      {/* Skeleton bar when feature flag ON and loading */}
+      {isTechnicalIndicatorsEnabled && isLoading && (
+        <View style={styles.intervalBarContainer}>
+          <Box twClassName="w-full px-4">
+            <SkeletonPlaceholder
+              backgroundColor={theme.colors.background.section}
+              highlightColor={theme.colors.background.subsection}
+            >
+              <SkeletonPlaceholder.Item
+                width="100%"
+                height={29}
+                borderRadius={6}
+              />
+            </SkeletonPlaceholder>
+          </Box>
+        </View>
+      )}
+      {/* Technical indicators flag ON: time range above chart (matches advanced chart) */}
+      {isTechnicalIndicatorsEnabled &&
+        !isLoading &&
+        chartNavigationButtons.length > 0 &&
+        onTimePeriodChange && (
+          <View style={styles.intervalBarContainer}>
+            <Box twClassName="w-full px-4">
+              <View style={styles.chartNavigationWrapper}>
+                {chartNavigationButtons.map((label) => (
+                  <ChartNavigationButton
+                    key={label}
+                    label={strings(
+                      `asset_overview.chart_time_period_navigation.${label}`,
+                    )}
+                    onPress={() => onTimePeriodChange(label)}
+                    selected={timePeriod === label}
+                    selectedColor={initialAmbientColor}
+                  />
+                ))}
+              </View>
+            </Box>
+          </View>
+        )}
+      <Box
+        twClassName={
+          isTechnicalIndicatorsEnabled
+            ? 'w-full overflow-hidden mb-4'
+            : 'mt-3 w-full overflow-hidden'
+        }
+      >
+        <PriceChart
+          prices={distributedPriceData}
+          priceDiff={priceDiff}
+          isLoading={isLoading}
+          onChartIndexChange={handleChartInteraction}
+          chartColorOverride={initialAmbientColor}
+          hasInsufficientCoverage={hasInsufficientCoverage}
+        />
+      </Box>
+      {/* Technical indicators flag OFF: time range below chart (legacy position) */}
+      {!isTechnicalIndicatorsEnabled &&
+        chartNavigationButtons.length > 0 &&
+        onTimePeriodChange && (
+          <View style={styles.timeRangeContainer}>
+            <Box twClassName="w-full px-4">
+              <View style={styles.chartNavigationWrapper}>
+                {chartNavigationButtons.map((label) => (
+                  <ChartNavigationButton
+                    key={label}
+                    label={strings(
+                      `asset_overview.chart_time_period_navigation.${label}`,
+                    )}
+                    onPress={() => onTimePeriodChange(label)}
+                    selected={timePeriod === label}
+                    selectedColor={initialAmbientColor}
+                  />
+                ))}
+              </View>
+            </Box>
+          </View>
+        )}
+    </>
+  );
+};
+
+export default PriceLegacy;

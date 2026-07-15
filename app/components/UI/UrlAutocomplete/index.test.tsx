@@ -91,17 +91,35 @@ const mockPredictionsData = {
 };
 
 const mockUseExploreSearchReturn = {
-  data: {
-    sites: [{ name: 'Uniswap', url: 'https://uniswap.org' }],
-    tokens: [mockTokenData],
-    perps: [mockPerpsData],
-    predictions: [mockPredictionsData],
-  },
-  isLoading: { sites: false, tokens: false, perps: false, predictions: false },
-  sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
+  sections: [
+    {
+      feedId: 'tokens' as const,
+      title: '',
+      items: [mockTokenData],
+      isLoading: false,
+    },
+    {
+      feedId: 'perps' as const,
+      title: '',
+      items: [mockPerpsData],
+      isLoading: false,
+    },
+    {
+      feedId: 'predictions' as const,
+      title: '',
+      items: [mockPredictionsData],
+      isLoading: false,
+    },
+    {
+      feedId: 'sites' as const,
+      title: '',
+      items: [{ name: 'Uniswap', url: 'https://uniswap.org' }],
+      isLoading: false,
+    },
+  ],
 };
 
-jest.mock('../../Views/TrendingView/hooks/useExploreSearch', () => ({
+jest.mock('../../Views/TrendingView/search/useExploreSearch', () => ({
   useExploreSearch: jest.fn(() => mockUseExploreSearchReturn),
 }));
 jest.mock('../Perps/providers/PerpsConnectionProvider', () => ({
@@ -125,14 +143,14 @@ jest.mock('../Bridge/hooks/useSwapBridgeNavigation', () => ({
 
 import React from 'react';
 import UrlAutocomplete, { UrlAutocompleteRef } from './';
-import { deleteFavoriteTestId } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/UrlAutocomplete.testIds';
+import { deleteFavoriteTestId } from './UrlAutocomplete.testIds';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
 import { removeBookmark } from '../../../actions/bookmarks';
 import { noop } from 'lodash';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { RootState } from '../../../reducers';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
@@ -189,7 +207,7 @@ const defaultState: DeepPartial<RootState> = {
 
 type RenderWithProviderParams = Parameters<typeof renderWithProvider>;
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 const render = (...args: RenderWithProviderParams) => {
   const Component = () => args[0];
   return renderWithProvider(
@@ -560,6 +578,27 @@ describe('UrlAutocomplete', () => {
       expect(
         await screen.findByText('Predictions', { includeHiddenElements: true }),
       ).toBeOnTheScreen();
+    });
+
+    it('displays search footer as a default/web search option', async () => {
+      // Arrange
+      const ref = React.createRef<UrlAutocompleteRef>();
+      render(<UrlAutocomplete ref={ref} onSelect={noop} onDismiss={noop} />, {
+        state: defaultState,
+      });
+
+      // Act
+      act(() => {
+        ref.current?.search('MetaMask Test Dapp');
+        jest.runAllTimers();
+      });
+
+      // Assert
+      expect(
+        await screen.findByTestId('trending-search-footer-search-link', {
+          includeHiddenElements: true,
+        }),
+      ).toHaveTextContent('Search for "MetaMask Test Dapp" on Brave');
     });
 
     it('transforms and displays token search results', async () => {

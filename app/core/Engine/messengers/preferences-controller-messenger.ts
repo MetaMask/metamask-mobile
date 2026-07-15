@@ -7,20 +7,18 @@ import { PreferencesControllerMessenger } from '@metamask/preferences-controller
 import { RootMessenger } from '../types';
 
 export function getPreferencesControllerMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'PreferencesController',
+  rootMessenger: RootMessenger<
     MessengerActions<PreferencesControllerMessenger>,
-    MessengerEvents<PreferencesControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<PreferencesControllerMessenger>
+  >,
+): PreferencesControllerMessenger {
+  const messenger: PreferencesControllerMessenger = new Messenger({
     namespace: 'PreferencesController',
     parent: rootMessenger,
   });
   rootMessenger.delegate({
     actions: [],
-    events: ['KeyringController:stateChange'],
+    events: [],
     messenger,
   });
   return messenger;

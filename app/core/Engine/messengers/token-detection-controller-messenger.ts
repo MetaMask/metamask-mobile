@@ -18,14 +18,12 @@ import { AnalyticsControllerActions } from '@metamask/analytics-controller';
  * @returns The TokenDetectionControllerMessenger.
  */
 export function getTokenDetectionControllerMessenger(
-  rootMessenger: RootMessenger,
-): TokenDetectionControllerMessenger {
-  const messenger = new Messenger<
-    'TokenDetectionController',
+  rootMessenger: RootMessenger<
     MessengerActions<TokenDetectionControllerMessenger>,
-    MessengerEvents<TokenDetectionControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<TokenDetectionControllerMessenger>
+  >,
+): TokenDetectionControllerMessenger {
+  const messenger: TokenDetectionControllerMessenger = new Messenger({
     namespace: 'TokenDetectionController',
     parent: rootMessenger,
   });
@@ -39,7 +37,6 @@ export function getTokenDetectionControllerMessenger(
       'NetworkController:getState',
       'TokensController:getState',
       'TokensController:addDetectedTokens',
-      'TokenListController:getState',
       'PreferencesController:getState',
       'TokensController:addTokens',
       'NetworkController:findNetworkClientIdByChainId',
@@ -49,7 +46,6 @@ export function getTokenDetectionControllerMessenger(
       'KeyringController:lock',
       'KeyringController:unlock',
       'NetworkController:networkDidChange',
-      'TokenListController:stateChange',
       'PreferencesController:stateChange',
       'TransactionController:transactionConfirmed',
     ],
@@ -64,8 +60,10 @@ type AllowedInitializationActions =
 
 type AllowedInitializationEvents = never;
 
-export type TokenDetectionControllerInitMessenger = ReturnType<
-  typeof getTokenDetectionControllerInitMessenger
+export type TokenDetectionControllerInitMessenger = Messenger<
+  'TokenDetectionControllerInit',
+  AllowedInitializationActions,
+  AllowedInitializationEvents
 >;
 
 /**
@@ -77,14 +75,12 @@ export type TokenDetectionControllerInitMessenger = ReturnType<
  * @returns The TokenDetectionControllerInitMessenger.
  */
 export function getTokenDetectionControllerInitMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'TokenDetectionControllerInit',
-    AllowedInitializationActions,
-    AllowedInitializationEvents,
-    RootMessenger
-  >({
+  rootMessenger: RootMessenger<
+    MessengerActions<TokenDetectionControllerInitMessenger>,
+    MessengerEvents<TokenDetectionControllerInitMessenger>
+  >,
+): TokenDetectionControllerInitMessenger {
+  const messenger: TokenDetectionControllerInitMessenger = new Messenger({
     namespace: 'TokenDetectionControllerInit',
     parent: rootMessenger,
   });

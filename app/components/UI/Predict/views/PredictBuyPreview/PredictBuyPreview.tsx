@@ -13,7 +13,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  NavigationProp,
   RouteProp,
   StackActions,
   useNavigation,
@@ -33,6 +32,8 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
+import { useSelector } from 'react-redux';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -43,89 +44,170 @@ import Engine from '../../../../../core/Engine';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { Side } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
 import {
+  PredictBuyPreviewProps,
+  PredictNavigationParamList,
+} from '../../types/navigation';
+import {
+  PredictDismissalMethod,
   PredictTradeStatus,
-  PredictEventValues,
 } from '../../constants/eventNames';
+import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatCents, formatPrice } from '../../utils/format';
+import { getDisplayBuyPrice } from '../../utils/prices';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
-import PredictFeeSummary from '../../components/PredictFeeSummary';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
+import PredictFeeSummary from '../PredictBuyWithAnyToken/components/PredictFeeSummary/PredictFeeSummary';
+import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
-import { usePredictDeposit } from '../../hooks/usePredictDeposit';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import { usePredictRewards } from '../../hooks/usePredictRewards';
+
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
+import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
+import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
+import { MINIMUM_BET } from '../../constants/transactions';
+import {
+  getPredictBuyAllInCost,
+  getPredictExchangeFee,
+  roundUpToCents,
+} from '../../utils/orders';
 
-export const MINIMUM_BET = 1; // $1 minimum bet
+/**
+ * Module-level flag shared by three consumers to distinguish an explicit
+ * back-button dismiss from a swipe / hardware-back dismiss:
+ *
+ * - `PredictPreviewSheetContext.onBuyDismiss` — sheet-mode swipe tracking
+ * - `PredictBuyPreview` `beforeRemove` listener — screen-mode swipe tracking (only when `trackSwipeDismiss` is set in route params)
+ * - `usePredictBuyActions` — AnyToken screen-mode swipe tracking
+ *
+ * **Reset contract:** the ref is reset to `false` on each `PredictBuyPreview`
+ * mount (so a previous session's value never bleeds in) and again by each
+ * consumer after reading it, so the next dismissal starts clean.
+ */
+export const predictBuyPreviewDismissedViaBackRef = { current: false };
 
-const PredictBuyPreview = () => {
+/**
+ * Tracks the mount timestamp and whether the user has entered an amount so
+ * PredictPreviewSheetContext can compute time_on_screen_ms and had_entered_amount
+ * for swipe/hardware-back dismissals without needing internal component state.
+ */
+export const predictBuyPreviewSessionRef = {
+  mountTimestamp: 0,
+  hadEnteredAmount: false,
+};
+
+/**
+ * Set to true when the user confirms an order (handleConfirm). Used by
+ * PredictPreviewSheetContext.onBuyDismiss and the beforeRemove listener to
+ * suppress the Betslip Dismissed event when the sheet/screen closes after a
+ * successful or in-progress order rather than a user-initiated dismissal.
+ * Reset to false on each mount.
+ */
+export const predictBuyPreviewOrderInitiatedRef = { current: false };
+
+const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
-  const { goBack, dispatch } =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const mountTimestampRef = useRef(Date.now());
+
+  // Keep the module-level session ref in sync for swipe/hardware-back dismiss tracking
+  useEffect(() => {
+    predictBuyPreviewSessionRef.mountTimestamp = mountTimestampRef.current;
+    predictBuyPreviewSessionRef.hadEnteredAmount = false;
+    predictBuyPreviewOrderInitiatedRef.current = false;
+    predictBuyPreviewDismissedViaBackRef.current = false;
+    return () => {
+      predictBuyPreviewSessionRef.hadEnteredAmount = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const { goBack, dispatch, addListener } = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
-  const { market, outcome, outcomeToken, entryPoint } = route.params;
+  const isSheetMode = props.mode === 'sheet';
+  const {
+    market,
+    outcome,
+    outcomeToken,
+    entryPoint,
+    predictFeedTab,
+    predictScreen,
+    transactionActiveAbTests,
+    trackSwipeDismiss,
+  } = isSheetMode ? props : route.params;
+  const onClose = isSheetMode ? props.onClose : undefined;
+  const ActiveScrollView = isSheetMode ? GHScrollView : ScrollView;
 
   const analyticsProperties = useMemo(
-    () => ({
-      marketId: market?.id,
-      marketTitle: market?.title,
-      marketCategory: market?.category,
-      marketTags: market?.tags,
-      entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-      transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
-      liquidity: market?.liquidity,
-      volume: market?.volume,
-      sharePrice: outcomeToken?.price,
-      marketType:
-        market?.outcomes?.length === 1
-          ? PredictEventValues.MARKET_TYPE.BINARY
-          : PredictEventValues.MARKET_TYPE.MULTI_OUTCOME,
-      outcome: outcomeToken?.title?.toLowerCase(),
-      marketSlug: market?.slug,
-      gameId: market?.game?.id,
-      gameStartTime: market?.game?.startTime,
-      gameLeague: market?.game?.league,
-      gameStatus: market?.game?.status,
-      gamePeriod: market?.game?.period,
-      gameClock: market?.game?.elapsed,
-    }),
-    [market, outcomeToken, entryPoint],
+    () =>
+      parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        entryPoint,
+        predictFeedTab,
+        predictScreen,
+      ),
+    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen],
   );
+
+  // Track swipe/hardware-back dismissals in screen mode, but only when
+  // trackSwipeDismiss is set — scopes the change to the disableBottomSheet
+  // (HomepageDiscoveryTabs) flow and preserves prior behavior for the
+  // pre-existing flagless screen-mode path.
+  // The back-button handler sets predictBuyPreviewDismissedViaBackRef before
+  // calling goBack() so we can distinguish it from a swipe here.
+  // Sheet-mode dismissals are handled by PredictPreviewSheetContext.onBuyDismiss.
+  useEffect(() => {
+    if (isSheetMode || !trackSwipeDismiss) return;
+    return addListener('beforeRemove', () => {
+      if (!predictBuyPreviewOrderInitiatedRef.current) {
+        const dismissalMethod = predictBuyPreviewDismissedViaBackRef.current
+          ? PredictDismissalMethod.BACK_BUTTON
+          : PredictDismissalMethod.SWIPE;
+        Engine.context.PredictController.trackBetslipDismissed({
+          analyticsProperties,
+          dismissalMethod,
+          hadEnteredAmount: predictBuyPreviewSessionRef.hadEnteredAmount,
+          timeOnScreenMs: Date.now() - mountTimestampRef.current,
+          activeAbTests: transactionActiveAbTests,
+        });
+      }
+    });
+  }, [
+    addListener,
+    isSheetMode,
+    trackSwipeDismiss,
+    analyticsProperties,
+    transactionActiveAbTests,
+  ]);
 
   const {
     placeOrder,
     isLoading,
     error: placeOrderError,
     result,
-  } = usePredictPlaceOrder();
+    isOrderNotFilled,
+    resetOrderNotFilled,
+  } = usePredictPlaceOrder({ transactionActiveAbTests });
 
-  const { balance, isLoading: isBalanceLoading } = usePredictBalance({
-    providerId: outcome.providerId,
-    loadOnMount: true,
-    refreshOnFocus: true,
-  });
+  const { data: balance = 0, isLoading: isBalanceLoading } =
+    usePredictBalance();
 
-  const { deposit } = usePredictDeposit({
-    providerId: outcome.providerId,
-  });
+  const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
 
   const [currentValue, setCurrentValue] = useState(0);
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
-  const [isInputFocused, setIsInputFocused] = useState(true);
+  const [isKeypadOpen, setIsKeypadOpen] = useState(true);
   const [isUserInputChange, setIsUserInputChange] = useState(false);
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
   const previousValueRef = useRef(0);
@@ -135,13 +217,25 @@ const PredictBuyPreview = () => {
     error: previewError,
     isCalculating,
   } = usePredictOrderPreview({
-    providerId: outcome.providerId,
     marketId: market.id,
     outcomeId: outcome.id,
     outcomeTokenId: outcomeToken.id,
     side: Side.BUY,
     size: currentValue,
     autoRefreshTimeout: 1000,
+  });
+
+  const {
+    retrySheetRef,
+    retrySheetVariant,
+    isRetrying,
+    handleRetryWithBestPrice,
+  } = usePredictOrderRetry({
+    preview,
+    placeOrder,
+    analyticsProperties,
+    isOrderNotFilled,
+    resetOrderNotFilled,
   });
 
   // Track screen load performance (balance + initial preview)
@@ -157,6 +251,10 @@ const PredictBuyPreview = () => {
 
   // Track when user changes input to show skeleton only during user input changes
   useEffect(() => {
+    if (currentValue > 0) {
+      predictBuyPreviewSessionRef.hadEnteredAmount = true;
+    }
+
     if (!isCalculating) {
       setIsUserInputChange(false);
       if (currentValue === 0) {
@@ -176,8 +274,6 @@ const PredictBuyPreview = () => {
     previousValueRef.current = currentValue;
   }, [currentValue, isCalculating]);
 
-  const errorMessage = previewError ?? placeOrderError;
-
   // Track Predict Trade Transaction with initiated status when screen mounts
   useEffect(() => {
     const controller = Engine.context.PredictController;
@@ -185,8 +281,8 @@ const PredictBuyPreview = () => {
     controller.trackPredictOrderEvent({
       status: PredictTradeStatus.INITIATED,
       analyticsProperties,
-      providerId: outcome.providerId,
-      sharePrice: outcomeToken?.price,
+      sharePrice: getDisplayBuyPrice(outcomeToken),
+      activeAbTests: transactionActiveAbTests,
     });
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -196,32 +292,38 @@ const PredictBuyPreview = () => {
   const isRateLimited = preview?.rateLimited ?? false;
 
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
-  const providerFee = preview?.fees?.providerFee ?? 0;
-  const total = currentValue + providerFee + metamaskFee;
+  const exchangeFee = getPredictExchangeFee(preview?.fees);
+  const previewAllInCost = getPredictBuyAllInCost(preview);
+  const total =
+    currentValue > 0 && preview
+      ? previewAllInCost
+      : roundUpToCents(currentValue);
 
   const isBelowMinimum = currentValue > 0 && currentValue < MINIMUM_BET;
+  const isInsufficientBalance =
+    currentValue > 0 &&
+    !isBelowMinimum &&
+    !isBalanceLoading &&
+    !!preview &&
+    previewAllInCost > balance;
+  const insufficientBalanceError = isInsufficientBalance
+    ? strings('predict.order.no_funds_enough')
+    : undefined;
+
+  const errorMessage = isOrderNotFilled
+    ? undefined
+    : (previewError ?? placeOrderError ?? insufficientBalanceError);
+
   const canPlaceBet =
     currentValue >= MINIMUM_BET &&
     preview &&
     !isLoading &&
     !isBalanceLoading &&
+    !isInsufficientBalance &&
     !isRateLimited;
 
-  const {
-    enabled: isRewardsEnabled,
-    isLoading: isRewardsLoading,
-    accountOptedIn: isAccountOptedIntoRewards,
-    rewardsAccountScope,
-    estimatedPoints: estimatedRewardsPoints,
-    hasError: isRewardsError,
-  } = usePredictRewards(
-    isLoading || previewError ? undefined : (preview?.fees?.totalFee ?? 0),
-  );
-
-  // Show rewards row if we have a valid amount
-  // && either active account address is opted in or not opted in but opt-in is supported
-  const shouldShowRewardsRow =
-    isRewardsEnabled && currentValue > 0 && isAccountOptedIntoRewards != null;
+  const rewardsFeeAmountUsd =
+    isLoading || previewError ? undefined : (preview?.fees?.totalFee ?? 0);
 
   const title = market.title;
   const outcomeGroupTitle = outcome.groupItemTitle
@@ -230,28 +332,33 @@ const PredictBuyPreview = () => {
 
   const separator = '·';
   const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
-    preview?.sharePrice ?? outcomeToken?.price ?? 0,
+    preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0,
   )}`;
 
   useEffect(() => {
     if (result?.success) {
-      dispatch(StackActions.pop());
+      predictBuyPreviewOrderInitiatedRef.current = true;
+      if (isSheetMode) {
+        onClose?.();
+      } else {
+        dispatch(StackActions.pop());
+      }
     }
-  }, [dispatch, result]);
+  }, [dispatch, result, isSheetMode, onClose]);
 
   const onPlaceBet = useCallback(async () => {
-    if (!preview || isBelowMinimum) return;
+    if (!preview || isBelowMinimum || isInsufficientBalance) return;
 
+    predictBuyPreviewOrderInitiatedRef.current = true;
     await placeOrder({
-      providerId: outcome.providerId,
       analyticsProperties,
       preview,
     });
   }, [
     preview,
     isBelowMinimum,
+    isInsufficientBalance,
     placeOrder,
-    outcome.providerId,
     analyticsProperties,
   ]);
 
@@ -275,7 +382,44 @@ const PredictBuyPreview = () => {
       alignItems={BoxAlignItems.Center}
       twClassName="w-full gap-4 p-4"
     >
-      <TouchableOpacity testID="back-button" onPress={() => goBack()}>
+      <TouchableOpacity
+        testID="back-button"
+        onPress={() => {
+          predictBuyPreviewDismissedViaBackRef.current = true;
+          if (isSheetMode) {
+            // Sheet-mode: fire directly — no beforeRemove listener in sheet mode.
+            // Sheet swipe / hardware-back is handled by onBuyDismiss in
+            // PredictPreviewSheetContext (which has its own gate there).
+            if (!predictBuyPreviewOrderInitiatedRef.current) {
+              Engine.context.PredictController.trackBetslipDismissed({
+                analyticsProperties,
+                dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
+                hadEnteredAmount: predictBuyPreviewSessionRef.hadEnteredAmount,
+                timeOnScreenMs: Date.now() - mountTimestampRef.current,
+                activeAbTests: transactionActiveAbTests,
+              });
+            }
+            onClose?.();
+          } else if (trackSwipeDismiss) {
+            // Screen mode (disableBottomSheet flow): beforeRemove owns all
+            // tracking — setting the ref above lets it classify back vs. swipe.
+            // Firing here too would double-count the event.
+            goBack();
+          } else {
+            // Flagless screen mode: no beforeRemove listener, so track directly.
+            if (!predictBuyPreviewOrderInitiatedRef.current) {
+              Engine.context.PredictController.trackBetslipDismissed({
+                analyticsProperties,
+                dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
+                hadEnteredAmount: predictBuyPreviewSessionRef.hadEnteredAmount,
+                timeOnScreenMs: Date.now() - mountTimestampRef.current,
+                activeAbTests: transactionActiveAbTests,
+              });
+            }
+            goBack();
+          }
+        }}
+      >
         <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
       </TouchableOpacity>
       <Image
@@ -338,7 +482,7 @@ const PredictBuyPreview = () => {
   );
 
   const renderAmount = () => (
-    <ScrollView
+    <ActiveScrollView
       style={tw.style('flex-col')}
       contentContainerStyle={tw.style('flex-grow justify-center')}
       showsVerticalScrollIndicator={false}
@@ -353,8 +497,8 @@ const PredictBuyPreview = () => {
           <PredictAmountDisplay
             amount={currentValueUSDString}
             onPress={() => keypadRef.current?.handleAmountPress()}
-            isActive={isInputFocused}
-            hasError={false}
+            isActive={isKeypadOpen}
+            hasError={isInsufficientBalance}
           />
         </Box>
         {/* Available balance */}
@@ -400,33 +544,8 @@ const PredictBuyPreview = () => {
           )}
         </Box>
       </Box>
-    </ScrollView>
+    </ActiveScrollView>
   );
-
-  const renderErrorMessage = () => {
-    if (isBalanceLoading) return null;
-
-    if (isBelowMinimum) {
-      return (
-        <Box twClassName="px-12 pb-4">
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            style={tw.style('text-center')}
-          >
-            {strings('predict.order.prediction_minimum_bet', {
-              amount: formatPrice(MINIMUM_BET, {
-                minimumDecimals: 2,
-                maximumDecimals: 2,
-              }),
-            })}
-          </Text>
-        </Box>
-      );
-    }
-
-    return null;
-  };
 
   const renderActionButton = () => {
     if (isLoading) {
@@ -458,7 +577,7 @@ const PredictBuyPreview = () => {
       <ButtonHero
         testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
         onPress={onPlaceBet}
-        disabled={!canPlaceBet}
+        isDisabled={!canPlaceBet}
         isLoading={isLoading}
         size={ButtonSizeHero.Lg}
         style={tw.style('w-full')}
@@ -468,23 +587,56 @@ const PredictBuyPreview = () => {
           style={tw.style('text-white font-medium')}
         >
           {outcomeToken?.title} ·{' '}
-          {formatCents(preview?.sharePrice ?? outcomeToken?.price ?? 0)}
+          {formatCents(
+            preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0,
+          )}
         </Text>
       </ButtonHero>
     );
   };
 
+  const renderMinimumBetWarning = () => {
+    if (isBalanceLoading || !isBelowMinimum) {
+      return null;
+    }
+
+    return (
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.ErrorDefault}
+        style={tw.style('text-center pb-2')}
+      >
+        {strings('predict.order.prediction_minimum_bet', {
+          amount: formatPrice(MINIMUM_BET, {
+            minimumDecimals: 2,
+            maximumDecimals: 2,
+          }),
+        })}
+      </Text>
+    );
+  };
+
   const renderBottomContent = () => {
-    if (isInputFocused) {
+    if (isKeypadOpen) {
       return null;
     }
 
     return (
       <Box
         flexDirection={BoxFlexDirection.Column}
-        twClassName="border-t border-muted p-4 pb-0 gap-4"
+        twClassName="border-t border-muted"
       >
-        <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
+        <PredictFeeSummary
+          disabled={false}
+          total={total}
+          rewardsFeeAmountUsd={rewardsFeeAmountUsd}
+          rewardsLoadingOverride={isCalculating && isUserInputChange}
+          handleFeesInfoPress={handleFeesInfoPress}
+        />
+        <Box
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="gap-2 px-4 pb-0"
+        >
           {errorMessage && (
             <Text
               variant={TextVariant.BodySm}
@@ -495,7 +647,7 @@ const PredictBuyPreview = () => {
             </Text>
           )}
           <Box twClassName="w-full h-12">{renderActionButton()}</Box>
-          <Box twClassName="text-center items-center flex-row gap-1 justify-center">
+          <Box twClassName="text-center items-center flex-row gap-1 justify-center flex-wrap">
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextAlternative}
@@ -517,46 +669,53 @@ const PredictBuyPreview = () => {
     );
   };
 
+  const Wrapper = isSheetMode ? Box : SafeAreaView;
+  const wrapperProps = isSheetMode
+    ? { twClassName: 'bg-background-default' }
+    : { style: tw.style('flex-1 bg-background-default') };
+
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
-      {renderHeader()}
+    <Wrapper {...wrapperProps}>
+      {!isSheetMode && renderHeader()}
       {renderAmount()}
-      <PredictFeeSummary
-        disabled={isInputFocused}
-        total={total}
-        metamaskFee={metamaskFee}
-        providerFee={providerFee}
-        shouldShowRewardsRow={shouldShowRewardsRow}
-        rewardsAccountScope={rewardsAccountScope}
-        accountOptedIn={isAccountOptedIntoRewards}
-        estimatedPoints={estimatedRewardsPoints}
-        isLoadingRewards={
-          (isCalculating && isUserInputChange) || isRewardsLoading
-        }
-        hasRewardsError={isRewardsError}
-        onFeesInfoPress={handleFeesInfoPress}
-      />
-      {renderErrorMessage()}
+      {renderMinimumBetWarning()}
       <PredictKeypad
         ref={keypadRef}
-        isInputFocused={isInputFocused}
+        isKeypadOpen={isKeypadOpen}
         currentValue={currentValue}
         currentValueUSDString={currentValueUSDString}
         setCurrentValue={setCurrentValue}
         setCurrentValueUSDString={setCurrentValueUSDString}
-        setIsInputFocused={setIsInputFocused}
-        onAddFunds={deposit}
+        setIsKeypadOpen={setIsKeypadOpen}
       />
       {renderBottomContent()}
       {isFeeBreakdownVisible && (
         <PredictFeeBreakdownSheet
           ref={feeBreakdownSheetRef}
-          providerFee={providerFee}
+          providerFee={exchangeFee}
           metamaskFee={metamaskFee}
+          sharePrice={
+            preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
+          }
+          contractCount={preview?.minAmountReceived ?? 0}
+          betAmount={currentValue}
+          total={total}
           onClose={handleFeeBreakdownClose}
+          fakOrdersEnabled={fakOrdersEnabled}
         />
       )}
-    </SafeAreaView>
+      <PredictOrderRetrySheet
+        ref={retrySheetRef}
+        variant={retrySheetVariant}
+        sharePrice={
+          preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
+        }
+        side={Side.BUY}
+        onRetry={handleRetryWithBestPrice}
+        onDismiss={resetOrderNotFilled}
+        isRetrying={isRetrying}
+      />
+    </Wrapper>
   );
 };
 

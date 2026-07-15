@@ -15,6 +15,7 @@ import { merge } from 'lodash';
 import Engine from '../../core/Engine';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import { KeyringObject, KeyringTypes } from '@metamask/keyring-controller';
+import { analytics } from '../analytics/analytics';
 
 jest.mock('react-native-fs', () => ({
   DocumentDirectoryPath: '/mock/path',
@@ -54,8 +55,8 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
-// Mock analytics module
-jest.mock('../../util/analytics/analytics', () => ({
+// Mock analytics module (path must match what MetaMetrics imports: ../../util/analytics/analytics from core/Analytics)
+jest.mock('../analytics/analytics', () => ({
   analytics: {
     isEnabled: jest.fn(() => false),
     trackEvent: jest.fn(),
@@ -66,21 +67,6 @@ jest.mock('../../util/analytics/analytics', () => ({
     trackView: jest.fn(),
     isOptedIn: jest.fn().mockResolvedValue(false),
   },
-}));
-
-// Mock MetaMetrics for any remaining methods
-const mockIsEnabled = jest.fn(() => true);
-jest.mock('../../core/Analytics/MetaMetrics', () => ({
-  getInstance: () => ({
-    isEnabled: mockIsEnabled,
-    getMetaMetricsId: jest.fn(() => Promise.resolve('test-metametrics-id')),
-    createDataDeletionTask: jest.fn(),
-    checkDataDeleteStatus: jest.fn(),
-    getDeleteRegulationCreationDate: jest.fn(),
-    getDeleteRegulationId: jest.fn(),
-    isDataRecorded: jest.fn(),
-    updateDataRecordingFlag: jest.fn(),
-  }),
 }));
 
 jest.mock(
@@ -112,6 +98,7 @@ describe('logs :: generateStateLogs', () => {
     Engine.context.SeedlessOnboardingController.state = {
       socialBackupsMetadata: [],
       isSeedlessOnboardingUserAuthenticated: false,
+      migrationVersion: 0,
     } as typeof Engine.context.SeedlessOnboardingController.state;
   });
 
@@ -131,7 +118,14 @@ describe('logs :: generateStateLogs', () => {
     };
     const logs = generateStateLogs(mockStateInput);
 
-    expect(JSON.parse(logs)).toMatchSnapshot();
+    const parsedLogs = JSON.parse(logs);
+    expect(parsedLogs.appVersion).toBe('1');
+    expect(parsedLogs.buildNumber).toBe('123');
+    expect(parsedLogs.metaMetricsId).toBe(
+      '6D796265-7374-4953-6D65-74616D61736B',
+    );
+    expect(parsedLogs.engine).toBeDefined();
+    expect(parsedLogs.loggedIn).toBe(true);
   });
 
   it('excludes deleted controller states from logs', () => {
@@ -408,6 +402,7 @@ describe('logs :: generateStateLogs', () => {
       Engine.context.SeedlessOnboardingController.state = {
         socialBackupsMetadata: [],
         isSeedlessOnboardingUserAuthenticated: false,
+        migrationVersion: 0,
       } as typeof Engine.context.SeedlessOnboardingController.state;
     });
 
@@ -527,7 +522,14 @@ describe('logs :: generateStateLogs', () => {
       expect(refreshToken).toBe(true);
       expect(revokeToken).toBe(true);
 
-      expect(JSON.parse(logs)).toMatchSnapshot();
+      const parsedLogs = JSON.parse(logs);
+      expect(parsedLogs.appVersion).toBe('1');
+      expect(parsedLogs.buildNumber).toBe('123');
+      expect(parsedLogs.engine).toBeDefined();
+      expect(
+        parsedLogs.engine.backgroundState.SeedlessOnboardingController.vault,
+      ).toBe(true);
+      expect(parsedLogs.loggedIn).toBe(true);
     });
 
     it('includes authConnection fields in sanitized state', () => {
@@ -539,6 +541,7 @@ describe('logs :: generateStateLogs', () => {
         userId: 'user-123',
         socialBackupsMetadata: [],
         isSeedlessOnboardingUserAuthenticated: false,
+        migrationVersion: 0,
       } as typeof Engine.context.SeedlessOnboardingController.state;
 
       const mockStateInput = {
@@ -690,6 +693,7 @@ describe('logs :: generateStateLogs', () => {
         ],
         socialBackupsMetadata: [],
         isSeedlessOnboardingUserAuthenticated: false,
+        migrationVersion: 0,
       } as typeof Engine.context.SeedlessOnboardingController.state;
 
       const mockStateInput = {
@@ -720,6 +724,7 @@ describe('logs :: generateStateLogs', () => {
         socialBackupsMetadata: [],
         nodeAuthTokens: [],
         isSeedlessOnboardingUserAuthenticated: false,
+        migrationVersion: 0,
       } as typeof Engine.context.SeedlessOnboardingController.state;
 
       const mockStateInput = {
@@ -781,14 +786,18 @@ describe('logs :: downloadStateLogs', () => {
       subject: 'TestApp State logs -  v1.0.0 (100)',
       title: 'TestApp State logs -  v1.0.0 (100)',
       url: '/mock/path/state-logs-v1.0.0-(100).json',
+      filename: 'state-logs-v1.0.0-(100).json',
+      type: 'application/json',
+      failOnCancel: false,
     });
   });
 
-  it('generates and shares logs on Android', async () => {
+  it('generates and shares logs as a file on Android', async () => {
     (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
     (getVersion as jest.Mock).mockResolvedValue('1.0.0');
     (getBuildNumber as jest.Mock).mockResolvedValue('100');
     (Device.isIos as jest.Mock).mockReturnValue(false);
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
 
     const mockStateInput = merge({}, initialRootState, {
       engine: {
@@ -803,11 +812,20 @@ describe('logs :: downloadStateLogs', () => {
 
     await downloadStateLogs(mockStateInput);
 
-    expect(RNFS.writeFile).not.toHaveBeenCalled();
+    // The logs are written to disk and the real file is shared, so that the
+    // Android share sheet offers a save/download option (issue #24359).
+    expect(RNFS.writeFile).toHaveBeenCalledWith(
+      '/mock/path/state-logs-v1.0.0-(100).json',
+      expect.any(String),
+      'utf8',
+    );
     expect(Share.open).toHaveBeenCalledWith({
       subject: 'TestApp State logs -  v1.0.0 (100)',
       title: 'TestApp State logs -  v1.0.0 (100)',
-      url: expect.stringContaining('data:text/plain;base64,'),
+      url: '/mock/path/state-logs-v1.0.0-(100).json',
+      filename: 'state-logs-v1.0.0-(100).json',
+      type: 'application/json',
+      failOnCancel: false,
     });
   });
 
@@ -901,19 +919,17 @@ describe('logs :: downloadStateLogs', () => {
 
     await downloadStateLogs(mockStateInput, false);
 
-    expect(Share.open).toHaveBeenCalledWith({
-      subject: 'TestApp State logs -  v1.0.0 (100)',
-      title: 'TestApp State logs -  v1.0.0 (100)',
-      url: expect.stringContaining('data:text/plain;base64,'),
-    });
+    const [, writtenContent] = (RNFS.writeFile as jest.Mock).mock.calls[0];
+    const jsonData = JSON.parse(writtenContent);
+    expect(jsonData.loggedIn).toBe(false);
   });
 
-  it('excludes metametrics id when not opted in', async () => {
+  it('includes analytics id in logs when analytics is enabled', async () => {
     (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
     (getVersion as jest.Mock).mockResolvedValue('1.0.0');
     (getBuildNumber as jest.Mock).mockResolvedValue('100');
     (Device.isIos as jest.Mock).mockReturnValue(false);
-    mockIsEnabled.mockReturnValue(false);
+    (analytics.isEnabled as jest.Mock).mockReturnValue(true);
 
     const mockStateInput = merge({}, initialRootState, {
       engine: {
@@ -928,20 +944,37 @@ describe('logs :: downloadStateLogs', () => {
 
     await downloadStateLogs(mockStateInput);
 
-    expect(Share.open).toHaveBeenCalledWith({
-      subject: 'TestApp State logs -  v1.0.0 (100)',
-      title: 'TestApp State logs -  v1.0.0 (100)',
-      url: expect.stringContaining('data:text/plain;base64,'),
+    expect(analytics.getAnalyticsId).toHaveBeenCalled();
+
+    const [, writtenContent] = (RNFS.writeFile as jest.Mock).mock.calls[0];
+    const jsonData = JSON.parse(writtenContent);
+    expect(jsonData.metaMetricsId).toBe('test-analytics-id');
+  });
+
+  it('excludes metametrics id when not opted in', async () => {
+    (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
+    (getVersion as jest.Mock).mockResolvedValue('1.0.0');
+    (getBuildNumber as jest.Mock).mockResolvedValue('100');
+    (Device.isIos as jest.Mock).mockReturnValue(false);
+    (analytics.isEnabled as jest.Mock).mockReturnValue(false);
+
+    const mockStateInput = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
     });
 
-    // Access the arguments passed to Share.open
-    const shareOpenCalls = (Share.open as jest.Mock).mock.calls;
-    expect(shareOpenCalls.length).toBeGreaterThan(0);
-    const [shareOpenArgs] = shareOpenCalls[0];
-    const { url } = shareOpenArgs;
-    const base64Data = url.replace('data:text/plain;base64,', '');
-    const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
-    const jsonData = JSON.parse(decodedData);
+    await downloadStateLogs(mockStateInput);
+
+    const writeFileCalls = (RNFS.writeFile as jest.Mock).mock.calls;
+    expect(writeFileCalls.length).toBeGreaterThan(0);
+    const [, writtenContent] = writeFileCalls[0];
+    const jsonData = JSON.parse(writtenContent);
     expect(jsonData).not.toHaveProperty('metaMetricsId');
   });
 
@@ -967,13 +1000,10 @@ describe('logs :: downloadStateLogs', () => {
     await downloadStateLogs(mockStateInput);
 
     // Then the logs should include the remote feature flag environment
-    const shareOpenCalls = (Share.open as jest.Mock).mock.calls;
-    expect(shareOpenCalls.length).toBeGreaterThan(0);
-    const [shareOpenArgs] = shareOpenCalls[0];
-    const { url } = shareOpenArgs;
-    const base64Data = url.replace('data:text/plain;base64,', '');
-    const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
-    const jsonData = JSON.parse(decodedData);
+    const writeFileCalls = (RNFS.writeFile as jest.Mock).mock.calls;
+    expect(writeFileCalls.length).toBeGreaterThan(0);
+    const [, writtenContent] = writeFileCalls[0];
+    const jsonData = JSON.parse(writtenContent);
     expect(jsonData.remoteFeatureFlagEnvironment).toBe('Development');
   });
 
@@ -999,13 +1029,10 @@ describe('logs :: downloadStateLogs', () => {
     await downloadStateLogs(mockStateInput);
 
     // Then the logs should include the remote feature flag distribution
-    const shareOpenCalls = (Share.open as jest.Mock).mock.calls;
-    expect(shareOpenCalls.length).toBeGreaterThan(0);
-    const [shareOpenArgs] = shareOpenCalls[0];
-    const { url } = shareOpenArgs;
-    const base64Data = url.replace('data:text/plain;base64,', '');
-    const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
-    const jsonData = JSON.parse(decodedData);
+    const writeFileCalls = (RNFS.writeFile as jest.Mock).mock.calls;
+    expect(writeFileCalls.length).toBeGreaterThan(0);
+    const [, writtenContent] = writeFileCalls[0];
+    const jsonData = JSON.parse(writtenContent);
     expect(jsonData.remoteFeatureFlagDistribution).toBe('Main');
   });
 
@@ -1028,13 +1055,10 @@ describe('logs :: downloadStateLogs', () => {
 
     await downloadStateLogs(mockStateInput);
 
-    const shareOpenCalls = (Share.open as jest.Mock).mock.calls;
-    expect(shareOpenCalls.length).toBeGreaterThan(0);
-    const [shareOpenArgs] = shareOpenCalls[0];
-    const { url } = shareOpenArgs;
-    const base64Data = url.replace('data:text/plain;base64,', '');
-    const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
-    const jsonData = JSON.parse(decodedData);
+    const writeFileCalls = (RNFS.writeFile as jest.Mock).mock.calls;
+    expect(writeFileCalls.length).toBeGreaterThan(0);
+    const [, writtenContent] = writeFileCalls[0];
+    const jsonData = JSON.parse(writtenContent);
     expect(jsonData.otaVersion).toBeDefined();
     expect(jsonData.runtimeVersion).toBeDefined();
   });

@@ -1,11 +1,11 @@
-import { RegressionAccounts } from '../../../../e2e/tags';
-import TestHelpers from '../../../../e2e/helpers';
+import { RegressionAccounts } from '../../../tags';
+import TestHelpers from '../../../helpers';
 import Assertions from '../../../framework/Assertions';
 import type { IndexableNativeElement } from 'detox/detox';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
-import { loginToApp } from '../../../../e2e/viewHelper';
-import AesCryptoTestForm from '../../../../e2e/pages/Settings/AesCryptoTestForm';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import SettingsView from '../../../page-objects/Settings/SettingsView';
+import { loginToApp } from '../../../flows/wallet.flow';
+import AesCryptoTestForm from '../../../page-objects/Settings/AesCryptoTestForm';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 

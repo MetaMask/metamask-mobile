@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import fs from 'fs';
 import path from 'path';

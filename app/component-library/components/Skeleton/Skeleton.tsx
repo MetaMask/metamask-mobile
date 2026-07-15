@@ -10,8 +10,14 @@ import { useStyles } from '../../../component-library/hooks';
 // Internal dependencies.
 import styleSheet from './Skeleton.styles';
 import { SkeletonProps } from './Skeleton.types';
-import { isE2E } from '../../../util/test/utils';
+import { hasTestOverrides } from '../../../util/test/utils';
 
+/**
+ * @deprecated Please update your code to use `Skeleton` from `app/component-library/components-temp/Skeleton`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Skeleton/README.md}
+ * @since @metamask/design-system-react-native@0.7.0
+ */
 const Skeleton: React.FC<SkeletonProps> = ({
   height,
   width,
@@ -52,7 +58,11 @@ const Skeleton: React.FC<SkeletonProps> = ({
 
   useEffect(() => {
     // Only start animation if no children are present or if children should be hidden
-    if (!isE2E && !process.env.JEST_WORKER_ID && (!children || hideChildren)) {
+    if (
+      !hasTestOverrides &&
+      !process.env.JEST_WORKER_ID &&
+      (!children || hideChildren)
+    ) {
       startAnimation();
     }
 

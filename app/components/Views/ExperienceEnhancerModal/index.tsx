@@ -6,9 +6,6 @@ import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import createStyles from './styles';
 import BottomSheetFooter, {
   ButtonsAlignment,
@@ -19,18 +16,17 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import {
-  MetaMetricsEvents,
-  useMetrics,
-} from '../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
 import { ExperienceEnhancerBottomSheetSelectorsIDs } from './ExperienceEnhancerModal.testIds';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const ExperienceEnhancerModal = () => {
   const dispatch = useDispatch();
   const styles = createStyles();
-  const { trackEvent, addTraitsToUser, createEventBuilder } = useMetrics();
+  const { trackEvent, identify, createEventBuilder } = useAnalytics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const cancelButtonProps: ButtonProps = {
@@ -41,8 +37,8 @@ const ExperienceEnhancerModal = () => {
       dispatch(setDataCollectionForMarketing(false));
       bottomSheetRef.current?.onCloseBottomSheet();
 
-      addTraitsToUser({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.OFF,
+      identify({
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
       });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
@@ -65,8 +61,8 @@ const ExperienceEnhancerModal = () => {
       dispatch(setDataCollectionForMarketing(true));
       bottomSheetRef.current?.onCloseBottomSheet();
 
-      addTraitsToUser({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
+      identify({
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
       });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
@@ -87,7 +83,7 @@ const ExperienceEnhancerModal = () => {
       testID={ExperienceEnhancerBottomSheetSelectorsIDs.BOTTOM_SHEET}
     >
       <Text
-        variant={TextVariant.HeadingMD}
+        variant={TextVariant.HeadingMd}
         style={styles.title}
         testID={ExperienceEnhancerBottomSheetSelectorsIDs.TITLE}
       >
@@ -97,7 +93,7 @@ const ExperienceEnhancerModal = () => {
         style={styles.content}
         testID={ExperienceEnhancerBottomSheetSelectorsIDs.CONTENT}
       >
-        <Text variant={TextVariant.BodyMD}>
+        <Text variant={TextVariant.BodyMd}>
           {strings('experience_enhancer_modal.paragraph1a')}
           <Button
             variant={ButtonVariants.Link}
@@ -109,7 +105,7 @@ const ExperienceEnhancerModal = () => {
         </Text>
 
         <Text
-          variant={TextVariant.BodyMD}
+          variant={TextVariant.BodyMd}
           testID={ExperienceEnhancerBottomSheetSelectorsIDs.PARAGRAPH_2}
         >
           {strings('experience_enhancer_modal.paragraph2')}
@@ -138,7 +134,7 @@ const ExperienceEnhancerModal = () => {
           </Text>
         </View>
         <Text
-          variant={TextVariant.BodyMD}
+          variant={TextVariant.BodyMd}
           testID={ExperienceEnhancerBottomSheetSelectorsIDs.FOOTER}
         >
           {strings('experience_enhancer_modal.footer')}

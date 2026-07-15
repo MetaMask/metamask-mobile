@@ -1,13 +1,17 @@
 import React from 'react';
 import { Pressable } from 'react-native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import Icon, {
+import {
+  Box,
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import { TIME_DURATIONS, TimeDuration } from '../../constants/chartConfig';
+import { type TimeDuration } from '@metamask/perps-controller';
+import { TIME_DURATIONS } from '../../constants/chartConfig';
 import { getPerpsTimeDurationSelector } from '../../Perps.testIds';
 import { timeDurationSelectorStyleSheet } from './PerpsTimeDurationSelector.styles';
 
@@ -84,7 +88,7 @@ const PerpsTimeDurationSelector: React.FC<PerpsTimeDurationSelectorProps> = ({
         <Icon
           name={IconName.Setting}
           size={IconSize.Md}
-          color={IconColor.Muted}
+          color={IconColor.IconMuted}
         />
       </Pressable>
     </Box>

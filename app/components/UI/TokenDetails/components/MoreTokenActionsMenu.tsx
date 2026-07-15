@@ -7,26 +7,28 @@ import BottomSheet, {
 import { IconName, Box } from '@metamask/design-system-react-native';
 import ActionListItem from '../../../../component-library/components-temp/ActionListItem';
 import { strings } from '../../../../../locales/i18n';
-import { useMetrics } from '../../../hooks/useMetrics';
-import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
-import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
-import { useRampsButtonClickData } from '../../Ramp/hooks/useRampsButtonClickData';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
-import { selectTokenList } from '../../../../selectors/tokenListController';
-import { selectChainId } from '../../../../selectors/networkController';
 import { getDecimalChainId } from '../../../../util/networks';
-import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { trace, TraceName } from '../../../../util/trace';
-import { RampType } from '../../../../reducers/fiatOrders/types';
+import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Logger from '../../../../util/Logger';
-import { Hex } from '@metamask/utils';
+import { Hex, isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { TokenI } from '../../Tokens/types';
+import { RootState } from '../../../../reducers';
+import { selectAsset } from '../../../../selectors/assets/assets-list';
+import { isMusdToken } from '../../../UI/Earn/constants/musd';
+import { selectIsAssetsUnifyStateEnabled } from '../../../../selectors/featureFlagController/assetsUnifyState';
+import useAssetVisibility from './useAssetVisibility';
+import { TokenDetailsAction } from '../constants/constants';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+import { removeNonEvmToken } from '../../Tokens/util/removeNonEvmToken';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
 export interface MoreTokenActionsMenuParams {
   hasPerpsMarket: boolean;
@@ -34,8 +36,9 @@ export interface MoreTokenActionsMenuParams {
   isBuyable: boolean;
   isNativeCurrency: boolean;
   asset: TokenI;
-  onBuy?: () => void;
+  onBuy: () => void;
   onReceive?: () => void;
+  onActionTapped?: (action: TokenDetailsAction) => void;
 }
 
 type MoreTokenActionsMenuRouteProp = RouteProp<
@@ -65,18 +68,21 @@ const MoreTokenActionsMenu = () => {
     isBuyable,
     isNativeCurrency,
     asset,
-    onBuy: customOnBuy,
+    onBuy,
     onReceive,
+    onActionTapped,
   } = route.params;
 
-  const { trackEvent, createEventBuilder } = useMetrics();
-  const { goToBuy, goToAggregator } = useRampNavigation();
-  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
-  const rampsButtonClickData = useRampsButtonClickData();
-  const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
-  const tokenList = useSelector(selectTokenList);
-  const chainId = useSelector(selectChainId);
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const explorer = useBlockExplorer(asset.chainId);
+
+  const isAssetsUnifyStateEnabled = useSelector(
+    selectIsAssetsUnifyStateEnabled,
+  );
+  const selectInternalAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
+  const { handleHideToken } = useAssetVisibility(asset);
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -101,99 +107,9 @@ const MoreTokenActionsMenu = () => {
     [closeBottomSheetAndNavigate, navigation],
   );
 
-  const getChainIdForAsset = useCallback(() => {
-    if (asset.chainId) {
-      if (typeof asset.chainId === 'string' && asset.chainId.startsWith('0x')) {
-        const parsed = parseInt(asset.chainId, 16);
-        return isNaN(parsed) ? getDecimalChainId(chainId) : parsed;
-      }
-      const parsed = parseInt(asset.chainId, 10);
-      return isNaN(parsed) ? getDecimalChainId(chainId) : parsed;
-    }
-    return getDecimalChainId(chainId);
-  }, [asset.chainId, chainId]);
-
-  // Fund action handlers (same as FundActionMenu)
-  const handleBuyUnified = useCallback(() => {
-    closeBottomSheetAndNavigate(() => {
-      if (customOnBuy) {
-        customOnBuy();
-      } else {
-        goToBuy({ assetId: asset.address });
-      }
-    });
-
-    if (!customOnBuy) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
-          .addProperties({
-            text: 'Buy',
-            location: 'MoreTokenActionsMenu',
-            chain_id_destination: getChainIdForAsset(),
-            ramp_type: 'UNIFIED_BUY',
-            region: rampGeodetectedRegion,
-            ramp_routing: rampsButtonClickData.ramp_routing,
-            is_authenticated: rampsButtonClickData.is_authenticated,
-            preferred_provider: rampsButtonClickData.preferred_provider,
-            order_count: rampsButtonClickData.order_count,
-          })
-          .build(),
-      );
-    }
-  }, [
-    closeBottomSheetAndNavigate,
-    customOnBuy,
-    goToBuy,
-    asset.address,
-    trackEvent,
-    createEventBuilder,
-    getChainIdForAsset,
-    rampGeodetectedRegion,
-    rampsButtonClickData,
-  ]);
-
   const handleBuy = useCallback(() => {
-    closeBottomSheetAndNavigate(() => {
-      if (customOnBuy) {
-        customOnBuy();
-      } else {
-        goToAggregator({ assetId: asset.address });
-      }
-    });
-
-    if (!customOnBuy) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
-          .addProperties({
-            text: 'Buy',
-            location: 'MoreTokenActionsMenu',
-            chain_id_destination: getChainIdForAsset(),
-            ramp_type: 'BUY',
-            region: rampGeodetectedRegion,
-            ramp_routing: rampsButtonClickData.ramp_routing,
-            is_authenticated: rampsButtonClickData.is_authenticated,
-            preferred_provider: rampsButtonClickData.preferred_provider,
-            order_count: rampsButtonClickData.order_count,
-          })
-          .build(),
-      );
-
-      trace({
-        name: TraceName.LoadRampExperience,
-        tags: { rampType: RampType.BUY },
-      });
-    }
-  }, [
-    closeBottomSheetAndNavigate,
-    customOnBuy,
-    goToAggregator,
-    asset.address,
-    trackEvent,
-    createEventBuilder,
-    getChainIdForAsset,
-    rampGeodetectedRegion,
-    rampsButtonClickData,
-  ]);
+    closeBottomSheetAndNavigate(onBuy);
+  }, [closeBottomSheetAndNavigate, onBuy]);
 
   const handleReceive = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
@@ -202,38 +118,65 @@ const MoreTokenActionsMenu = () => {
   }, [closeBottomSheetAndNavigate, onReceive]);
 
   const handleViewOnBlockExplorer = useCallback(() => {
-    const url = isNativeCurrency
-      ? explorer.getBlockExplorerBaseUrl(asset.chainId)
-      : explorer.getBlockExplorerUrl(asset.address, asset.chainId);
+    let url: string | null;
+    if (isNativeCurrency) {
+      url = explorer.getBlockExplorerBaseUrl(asset.chainId);
+    } else {
+      const tokenAddress = isCaipAssetType(asset.address)
+        ? parseCaipAssetType(asset.address).assetReference
+        : asset.address;
+      url = explorer.getBlockExplorerTokenUrl(tokenAddress, asset.chainId);
+    }
 
     if (url) {
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+        location: 'token_details_menu',
+        text: strings('asset_details.options.view_on_block'),
+        url,
+      });
+      onActionTapped?.(TokenDetailsAction.ViewOnExplorer);
       goToBrowserUrl(url, explorer.getBlockExplorerName(asset.chainId));
     }
   }, [
+    createEventBuilder,
     isNativeCurrency,
     explorer,
     asset.chainId,
     asset.address,
     goToBrowserUrl,
+    onActionTapped,
+    trackEvent,
   ]);
 
   const handleRemoveToken = useCallback(() => {
+    onActionTapped?.(TokenDetailsAction.RemoveToken);
     closeBottomSheetAndNavigate(() => {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: 'AssetHideConfirmation',
         params: {
-          onConfirm: () => {
+          onConfirm: async () => {
             navigation.navigate('WalletView');
             try {
-              const { TokensController, NetworkController } = Engine.context;
-              const networkClientId =
-                NetworkController.findNetworkClientIdByChainId(
-                  asset.chainId as Hex,
-                );
-              TokensController.ignoreTokens([asset.address], networkClientId);
+              if (asset.chainId && isNonEvmChainId(asset.chainId)) {
+                await removeNonEvmToken({
+                  tokenAddress: asset.address,
+                  tokenChainId: asset.chainId,
+                  selectInternalAccountByScope,
+                });
+              } else {
+                const { TokensController, NetworkController } = Engine.context;
+                const networkClientId =
+                  NetworkController.findNetworkClientIdByChainId(
+                    asset.chainId as Hex,
+                  );
+                TokensController.ignoreTokens([asset.address], networkClientId);
+              }
 
-              const tokenSymbol =
-                tokenList[asset.address?.toLowerCase()]?.symbol || null;
+              if (isAssetsUnifyStateEnabled) {
+                handleHideToken();
+              }
+
+              const tokenSymbol = asset.symbol || null;
 
               NotificationManager.showSimpleNotification({
                 status: 'simple_notification',
@@ -251,7 +194,7 @@ const MoreTokenActionsMenu = () => {
                     token_standard: 'ERC20',
                     asset_type: 'token',
                     tokens: [`${tokenSymbol} - ${asset.address}`],
-                    chain_id: getDecimalChainId(chainId),
+                    chain_id: getDecimalChainId(asset.chainId),
                   })
                   .build(),
               );
@@ -267,11 +210,22 @@ const MoreTokenActionsMenu = () => {
     navigation,
     asset.chainId,
     asset.address,
-    tokenList,
+    asset.symbol,
+    isAssetsUnifyStateEnabled,
+    handleHideToken,
+    selectInternalAccountByScope,
     trackEvent,
     createEventBuilder,
-    chainId,
+    onActionTapped,
   ]);
+
+  const tokenIsInAccount = !!useSelector((state: RootState) =>
+    selectAsset(state, {
+      address: asset.address,
+      chainId: asset.chainId as string,
+      isStaked: asset.isStaked || false,
+    }),
+  );
 
   const actionConfigs: ActionConfig[] = useMemo(() => {
     const actions: ActionConfig[] = [];
@@ -297,7 +251,7 @@ const MoreTokenActionsMenu = () => {
         iconName: IconName.AttachMoney,
         testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
         isVisible: true,
-        onPress: rampUnifiedV1Enabled ? handleBuyUnified : handleBuy,
+        onPress: handleBuy,
       });
     }
 
@@ -313,8 +267,8 @@ const MoreTokenActionsMenu = () => {
       });
     }
 
-    // Remove token (only for non-native tokens)
-    if (!isNativeCurrency) {
+    // Remove token
+    if (!isNativeCurrency && tokenIsInAccount && !isMusdToken(asset.address)) {
       actions.push({
         type: 'remove-token',
         label: strings('asset_details.options.remove_token'),
@@ -327,6 +281,7 @@ const MoreTokenActionsMenu = () => {
 
     return actions;
   }, [
+    asset.address,
     hasPerpsMarket,
     hasBalance,
     isBuyable,
@@ -334,10 +289,9 @@ const MoreTokenActionsMenu = () => {
     asset.chainId,
     asset.symbol,
     explorer,
-    rampUnifiedV1Enabled,
+    tokenIsInAccount,
     onReceive,
     handleReceive,
-    handleBuyUnified,
     handleBuy,
     handleViewOnBlockExplorer,
     handleRemoveToken,

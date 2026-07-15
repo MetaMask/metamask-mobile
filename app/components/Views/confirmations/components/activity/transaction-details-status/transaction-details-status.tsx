@@ -4,14 +4,6 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import React from 'react';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
-import Tooltip from '../../UI/Tooltip';
-import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
-import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { StatusTypes } from '@metamask/bridge-controller';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import Text, {
@@ -20,40 +12,29 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../../UI/Box/Box';
 import { strings } from '../../../../../../../locales/i18n';
-import { ButtonIconSizes } from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import { useStyles } from '../../../../../../component-library/hooks';
-import styleSheet from './transaction-details-status.styles';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useSelector } from 'react-redux';
 import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { ARBITRUM_USDC } from '../../../constants/perps';
+import { StatusIcon } from '../../status-icon';
+import { getErrorMessage, getSeverity } from '../../../utils/transaction';
 
 export function TransactionDetailsStatus({
   gap,
-  isBridgeReceive,
   testId,
   text,
   transactionMeta,
 }: {
   gap?: number;
-  isBridgeReceive?: boolean;
   testId?: string;
   text?: string;
   transactionMeta: TransactionMeta;
 }) {
-  const { status: statusRaw } = transactionMeta;
+  const { status } = transactionMeta;
   const hasSuccessfulPerpsBridge = useHasSuccessfulPerpsBridge();
   const { fiat } = useTokenAmount({ transactionMeta });
-
-  const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
-    evmTxMeta: transactionMeta,
-  });
-
-  const status =
-    bridgeTxHistoryItem && isBridgeReceive
-      ? getBridgeStatus(bridgeTxHistoryItem)
-      : statusRaw;
+  const errorMessage = getErrorMessage(transactionMeta);
 
   const statusText = text ?? getStatusText(status);
 
@@ -76,7 +57,7 @@ export function TransactionDetailsStatus({
         gap={gap ?? 6}
         alignItems={AlignItems.center}
       >
-        <StatusIcon status={status} transactionMeta={transactionMeta} />
+        <StatusIcon severity={getSeverity(status)} tooltip={errorMessage} />
         <Text
           color={textColour}
           variant={TextVariant.BodyMDMedium}
@@ -88,65 +69,6 @@ export function TransactionDetailsStatus({
       {solutionText && <Text variant={TextVariant.BodyMD}>{solutionText}</Text>}
     </Box>
   );
-}
-
-function StatusIcon({
-  status,
-  transactionMeta,
-}: {
-  status: TransactionStatus;
-  transactionMeta: TransactionMeta;
-}) {
-  const { styles } = useStyles(styleSheet, {});
-  const iconName = getStatusIcon(status);
-  const iconColour = getIconColour(status);
-  const errorMessage = getErrorMessage(transactionMeta);
-
-  if (status === TransactionStatus.failed && errorMessage) {
-    return (
-      <Tooltip
-        iconColor={iconColour}
-        iconName={iconName}
-        iconSize={ButtonIconSizes.Md}
-        iconStyle={styles.tooltipIcon}
-        tooltipTestId="status-tooltip"
-        content={errorMessage}
-      />
-    );
-  }
-
-  return (
-    <Icon
-      testID={`status-icon-${status}`}
-      name={iconName}
-      color={iconColour}
-      size={IconSize.Md}
-    />
-  );
-}
-
-function getStatusIcon(status: TransactionStatus): IconName {
-  switch (status) {
-    case TransactionStatus.confirmed:
-      return IconName.Confirmation;
-    case TransactionStatus.failed:
-    case TransactionStatus.dropped:
-      return IconName.CircleX;
-    default:
-      return IconName.FullCircle;
-  }
-}
-
-function getIconColour(status: TransactionStatus): IconColor {
-  switch (status) {
-    case TransactionStatus.confirmed:
-      return IconColor.Success;
-    case TransactionStatus.failed:
-    case TransactionStatus.dropped:
-      return IconColor.Error;
-    default:
-      return IconColor.Warning;
-  }
 }
 
 function getStatusText(status: TransactionStatus): string {
@@ -171,47 +93,6 @@ function getTextColour(status: TransactionStatus): TextColor {
     default:
       return TextColor.Warning;
   }
-}
-
-function getErrorMessage(transactionMeta: TransactionMeta): string | undefined {
-  const { error } = transactionMeta;
-
-  if (!error) return undefined;
-
-  if (error.stack) {
-    try {
-      const start = error.stack.indexOf('{');
-      const end = error.stack.lastIndexOf('}');
-      const stackObject = JSON.parse(error.stack.substring(start, end + 1));
-      const stackMessage = stackObject?.data?.message;
-
-      if (stackMessage) {
-        return stackMessage;
-      }
-    } catch {
-      // Intentionally empty
-    }
-  }
-
-  return error.message;
-}
-
-function getBridgeStatus(
-  bridgeTxHistoryItem: BridgeHistoryItem,
-): TransactionStatus {
-  if (bridgeTxHistoryItem.status.status === StatusTypes.COMPLETE) {
-    return TransactionStatus.confirmed;
-  }
-
-  if (
-    [StatusTypes.PENDING, StatusTypes.UNKNOWN].includes(
-      bridgeTxHistoryItem.status.status,
-    )
-  ) {
-    return TransactionStatus.submitted;
-  }
-
-  return TransactionStatus.failed;
 }
 
 function useHasSuccessfulPerpsBridge() {

@@ -4,7 +4,7 @@ import SiteSkeleton from './SiteSkeleton';
 
 // Mock Skeleton component
 jest.mock(
-  '../../../../../component-library/components/Skeleton/Skeleton',
+  '../../../../../component-library/components-temp/Skeleton/Skeleton',
   () => {
     const ReactNative = jest.requireActual('react-native');
     const SkeletonMock = ({

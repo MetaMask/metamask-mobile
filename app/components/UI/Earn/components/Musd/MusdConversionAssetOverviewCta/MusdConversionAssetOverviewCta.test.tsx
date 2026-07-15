@@ -10,11 +10,13 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
 
 jest.mock('../../../hooks/useMusdConversion');
+jest.mock('../../../selectors/featureFlags');
 jest.mock('../../../../../../util/Logger');
-jest.mock('../../../../../hooks/useMetrics');
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics');
 jest.mock('../../../../../Views/confirmations/hooks/useNetworkName');
 
-import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { strings } from '../../../../../../../locales/i18n';
@@ -42,6 +44,8 @@ describe('MusdConversionAssetOverviewCta', () => {
   const mockBuild = jest.fn();
 
   const mockInitiateConversion = jest.fn();
+  const mockInitiateMaxConversion = jest.fn();
+  const mockClearError = jest.fn();
   const mockLoggerError = jest.mocked(Logger.error);
 
   beforeEach(() => {
@@ -55,17 +59,19 @@ describe('MusdConversionAssetOverviewCta', () => {
       addProperties: mockAddProperties,
     }));
 
-    (useMetrics as jest.MockedFunction<typeof useMetrics>).mockReturnValue({
+    (useAnalytics as jest.MockedFunction<typeof useAnalytics>).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
-    } as unknown as ReturnType<typeof useMetrics>);
+    } as unknown as ReturnType<typeof useAnalytics>);
 
     (
       useNetworkName as jest.MockedFunction<typeof useNetworkName>
     ).mockReturnValue('Ethereum Mainnet');
 
     jest.mocked(useMusdConversion).mockReturnValue({
-      initiateConversion: mockInitiateConversion,
+      initiateMaxConversion: mockInitiateMaxConversion,
+      initiateCustomConversion: mockInitiateConversion,
+      clearError: mockClearError,
       error: null,
       hasSeenConversionEducationScreen: true,
     });
@@ -118,7 +124,7 @@ describe('MusdConversionAssetOverviewCta', () => {
       ).toBeOnTheScreen();
       expect(
         getByText(
-          `Convert your stablecoins to mUSD and receive up to a ${MUSD_CONVERSION_APY}% bonus.`,
+          `Convert your stablecoins to mUSD and get a ${MUSD_CONVERSION_APY}% annualized bonus.`,
         ),
       ).toBeOnTheScreen();
     });
@@ -182,13 +188,15 @@ describe('MusdConversionAssetOverviewCta', () => {
   describe('press handler - conversion path', () => {
     beforeEach(() => {
       jest.mocked(useMusdConversion).mockReturnValue({
-        initiateConversion: mockInitiateConversion,
+        initiateMaxConversion: mockInitiateMaxConversion,
+        initiateCustomConversion: mockInitiateConversion,
+        clearError: mockClearError,
         error: null,
         hasSeenConversionEducationScreen: true,
       });
     });
 
-    it('calls initiateConversion when user has seen education screen', async () => {
+    it('calls initiateCustomConversion when user has seen education screen', async () => {
       const mockToken = createMockToken();
 
       const { getByTestId } = renderWithProvider(
@@ -207,7 +215,7 @@ describe('MusdConversionAssetOverviewCta', () => {
       });
     });
 
-    it('passes correct config to initiateConversion', async () => {
+    it('passes correct config to initiateCustomConversion', async () => {
       const mockToken = createMockToken({
         address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         chainId: '0x1',
@@ -239,7 +247,9 @@ describe('MusdConversionAssetOverviewCta', () => {
   describe('error handling', () => {
     beforeEach(() => {
       jest.mocked(useMusdConversion).mockReturnValue({
-        initiateConversion: mockInitiateConversion,
+        initiateMaxConversion: mockInitiateMaxConversion,
+        initiateCustomConversion: mockInitiateConversion,
+        clearError: mockClearError,
         error: null,
         hasSeenConversionEducationScreen: true,
       });
@@ -266,6 +276,7 @@ describe('MusdConversionAssetOverviewCta', () => {
         );
       });
 
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockInitiateConversion).not.toHaveBeenCalled();
     });
 
@@ -333,7 +344,7 @@ describe('MusdConversionAssetOverviewCta', () => {
       });
     });
 
-    it('logs error when initiateConversion fails with Error instance', async () => {
+    it('logs error when initiateCustomConversion fails with Error instance', async () => {
       const testError = new Error('Conversion failed');
       mockInitiateConversion.mockRejectedValue(testError);
 
@@ -356,6 +367,35 @@ describe('MusdConversionAssetOverviewCta', () => {
           '[mUSD Conversion] Failed to initiate conversion from asset overview CTA',
         );
       });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs error when asset address is undefined', async () => {
+      const mockToken = {
+        ...createMockToken(),
+        address: undefined,
+      } as unknown as TokenI;
+
+      const { getByTestId } = renderWithProvider(
+        <MusdConversionAssetOverviewCta asset={mockToken} />,
+        { state: initialRootState },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          expect.any(Error),
+          '[mUSD Conversion] Failed to initiate conversion from asset overview CTA',
+        );
+      });
+
+      expect(mockInitiateConversion).not.toHaveBeenCalled();
     });
   });
 
@@ -365,7 +405,9 @@ describe('MusdConversionAssetOverviewCta', () => {
     it('tracks mUSD conversion CTA clicked event when user has not seen education screen', async () => {
       // Arrange
       jest.mocked(useMusdConversion).mockReturnValue({
-        initiateConversion: mockInitiateConversion,
+        initiateMaxConversion: mockInitiateMaxConversion,
+        initiateCustomConversion: mockInitiateConversion,
+        clearError: mockClearError,
         error: null,
         hasSeenConversionEducationScreen: false,
       });
@@ -385,7 +427,9 @@ describe('MusdConversionAssetOverviewCta', () => {
       });
 
       // Assert
-      const expectedCtaText = `${strings('earn.musd_conversion.earn_rewards_when')} ${strings('earn.musd_conversion.you_convert_to')} mUSD`;
+      const expectedCtaText = strings('earn.musd_conversion.bonus_title', {
+        percentage: MUSD_CONVERSION_APY,
+      });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -410,7 +454,9 @@ describe('MusdConversionAssetOverviewCta', () => {
     it('tracks mUSD conversion CTA clicked event when user has seen education screen', async () => {
       // Arrange
       jest.mocked(useMusdConversion).mockReturnValue({
-        initiateConversion: mockInitiateConversion,
+        initiateMaxConversion: mockInitiateMaxConversion,
+        initiateCustomConversion: mockInitiateConversion,
+        clearError: mockClearError,
         error: null,
         hasSeenConversionEducationScreen: true,
       });
@@ -430,7 +476,9 @@ describe('MusdConversionAssetOverviewCta', () => {
       });
 
       // Assert
-      const expectedCtaText = `${strings('earn.musd_conversion.earn_rewards_when')} ${strings('earn.musd_conversion.you_convert_to')} mUSD`;
+      const expectedCtaText = strings('earn.musd_conversion.bonus_title', {
+        percentage: MUSD_CONVERSION_APY,
+      });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(

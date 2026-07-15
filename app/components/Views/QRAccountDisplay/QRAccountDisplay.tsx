@@ -129,7 +129,7 @@ const QRAccountDisplay = (props: QRAccountDisplayProps) => {
   };
 
   return (
-    <Box twClassName="bg-default items-center">
+    <Box twClassName="items-center">
       {renderLabel()}
       {renderDescription()}
       <Box twClassName="mt-8 items-center">

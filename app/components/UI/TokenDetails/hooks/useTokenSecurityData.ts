@@ -1,0 +1,85 @@
+import { useEffect, useState, useRef, useCallback } from 'react';
+import type { CaipAssetType } from '@metamask/utils';
+import {
+  fetchTokenAssets,
+  TokenSecurityData,
+} from '@metamask/assets-controllers';
+
+interface UseTokenSecurityDataOpts {
+  /** CAIP-19 asset ID. When null, no fetch is attempted. */
+  assetId: CaipAssetType | null;
+  /** Pre-fetched security data from trending/search — returned immediately if provided. */
+  prefetchedData?: TokenSecurityData;
+}
+
+interface UseTokenSecurityDataResult {
+  securityData: TokenSecurityData | null;
+  isLoading: boolean;
+  error: Error | null;
+}
+
+const isValidTokenSecurityData = (data: unknown): data is TokenSecurityData =>
+  data != null &&
+  typeof data === 'object' &&
+  typeof (data as TokenSecurityData).resultType === 'string' &&
+  Array.isArray((data as TokenSecurityData).features);
+
+export const useTokenSecurityData = ({
+  assetId,
+  prefetchedData: rawPrefetchedData,
+}: UseTokenSecurityDataOpts): UseTokenSecurityDataResult => {
+  const prefetchedData = isValidTokenSecurityData(rawPrefetchedData)
+    ? rawPrefetchedData
+    : undefined;
+
+  const [securityData, setSecurityData] = useState<TokenSecurityData | null>(
+    prefetchedData ?? null,
+  );
+  const [isLoading, setIsLoading] = useState(!prefetchedData && !!assetId);
+  const [error, setError] = useState<Error | null>(null);
+  const isMountedRef = useRef(true);
+
+  const fetchData = useCallback(async () => {
+    if (!assetId) return;
+    try {
+      const assets = await fetchTokenAssets([assetId], {
+        includeTokenSecurityData: true,
+      });
+      if (!isMountedRef.current) return;
+      const asset = assets?.[0];
+      setSecurityData(asset?.securityData ?? null);
+      setError(null);
+    } catch (err) {
+      if (!isMountedRef.current) return;
+      setError(err as Error);
+    } finally {
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
+    }
+  }, [assetId]);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    if (prefetchedData) {
+      setSecurityData(prefetchedData);
+      setIsLoading(false);
+      return;
+    }
+
+    if (!assetId) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    fetchData();
+
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [assetId, prefetchedData, fetchData]);
+
+  return { securityData, isLoading, error };
+};

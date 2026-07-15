@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { TouchableOpacity, Linking } from 'react-native';
+import { View, TouchableOpacity, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import Text, {
   TextColor,
@@ -14,12 +14,13 @@ import { selectSelectedInternalAccountByScope } from '../../../../../selectors/m
 import { EVM_SCOPE } from '../../../Earn/constants/networks';
 import { PERPS_SUPPORT_ARTICLES_URLS } from '../../constants/perpsConfig';
 import { usePerpsEventTracking } from '../../hooks';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+} from '@metamask/perps-controller';
 import { FillType, PerpsTransaction } from '../../types/transactionHistory';
+import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 
 interface PerpsFillTagProps {
   transaction: PerpsTransaction;
@@ -61,6 +62,7 @@ const PerpsFillTag: React.FC<PerpsFillTagProps> = ({
         severity: TagSeverity.Info,
         textColor: TextColor.Default,
         includesBorder: false,
+        testID: PerpsTransactionSelectorsIDs.FILL_TAG_ADL,
       },
       [FillType.Liquidation]: {
         // Only show if liquidated user is current user
@@ -73,18 +75,21 @@ const PerpsFillTag: React.FC<PerpsFillTagProps> = ({
         severity: TagSeverity.Danger,
         textColor: TextColor.Error,
         includesBorder: false,
+        testID: PerpsTransactionSelectorsIDs.FILL_TAG_LIQUIDATED,
       },
       [FillType.TakeProfit]: {
         label: strings('perps.transactions.order.take_profit'),
         severity: TagSeverity.Default,
         textColor: TextColor.Alternative,
         includesBorder: true,
+        testID: PerpsTransactionSelectorsIDs.FILL_TAG_TAKE_PROFIT,
       },
       [FillType.StopLoss]: {
         label: strings('perps.transactions.order.stop_loss'),
         severity: TagSeverity.Default,
         textColor: TextColor.Alternative,
         includesBorder: true,
+        testID: PerpsTransactionSelectorsIDs.FILL_TAG_STOP_LOSS,
       },
     };
 
@@ -95,15 +100,17 @@ const PerpsFillTag: React.FC<PerpsFillTagProps> = ({
     }
 
     const tagContent = (
-      <TagBase
-        shape={TagShape.Pill}
-        severity={tagConfig.severity}
-        includesBorder={tagConfig.includesBorder}
-      >
-        <Text variant={TextVariant.BodyXSMedium} color={tagConfig.textColor}>
-          {tagConfig.label}
-        </Text>
-      </TagBase>
+      <View testID={tagConfig.testID}>
+        <TagBase
+          shape={TagShape.Pill}
+          severity={tagConfig.severity}
+          includesBorder={tagConfig.includesBorder}
+        >
+          <Text variant={TextVariant.BodyXSMedium} color={tagConfig.textColor}>
+            {tagConfig.label}
+          </Text>
+        </TagBase>
+      </View>
     );
 
     // Only wrap in TouchableOpacity for ADL fill type which has an action.

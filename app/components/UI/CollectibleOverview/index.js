@@ -10,9 +10,9 @@ import {
   View,
   Easing,
   Animated,
-  SafeAreaView,
   TouchableWithoutFeedback,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import RemoteImage from '../../Base/RemoteImage';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
@@ -42,6 +42,9 @@ import {
 } from 'react-native-gesture-handler';
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { selectChainId } from '../../../selectors/networkController';
 import {
   selectDisplayNftMedia,
@@ -253,10 +256,25 @@ const CollectibleOverview = ({
       key: strings('collectible.collectible_asset_contract'),
       value: renderShortAddress(collectible?.address),
       onPress: () => {
-        if (isMainNet(chainId))
-          openLink(
-            etherscanLink.createTokenTrackerLink(collectible?.address, chainId),
+        if (isMainNet(chainId)) {
+          const url = etherscanLink.createTokenTrackerLink(
+            collectible?.address,
+            chainId,
           );
+          if (!url) {
+            return;
+          }
+          trackBlockExplorerLinkClicked(
+            analytics.trackEvent,
+            AnalyticsEventBuilder.createEventBuilder,
+            {
+              location: 'collectible_overview',
+              text: strings('collectible.collectible_asset_contract'),
+              url,
+            },
+          );
+          openLink(url);
+        }
       },
       type: FieldType.Text,
     }),

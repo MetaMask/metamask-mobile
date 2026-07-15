@@ -11,7 +11,7 @@ import {
   buildRiskAssessmentSection,
 } from '../shared/base-system-prompt';
 import { LLM_CONFIG } from '../../config';
-import { SkillMetadata } from '../../types';
+import { SkillMetadata, AnalysisContext } from '../../types';
 
 /**
  * Builds the system prompt, i.e. the initial system message
@@ -37,21 +37,31 @@ ${availableSkills
 
   const guidanceSection = `GUIDANCE:
 Use your judgment - selecting all tags is acceptable (recommended as conservative approach for risky changes), as well as selecting none of them if the changes are unrisky.
-Changes to wdio/ or appwright/ directories (separate test frameworks) do not require Detox tags - select none unless app code is also changed.
+E2E smoke tags (from tests/tags.js) select which smoke suites run in CI. Select tags based on impacted user flows and app areas. Regression tests (tests/regression/) are NOT in scope for Smart E2E selection — only smoke and performance tags are selected here.
+Changes to smoke spec files (tests/smoke/, tests/smoke-appium/) or shared test infra they import (page-objects, flows, selectors, locators) — inspect changed specs for their imported tags.
+Changes to wdio/ or tests/performance directories do not require smoke tags from tests/tags.js - select none unless app code is also changed.
+Changes to tests/selectors/, tests/flows/, tests/locators/, or tests/page-objects/ — use find_related_files to identify which smoke spec files import the changed file and select the appropriate tags.
 Critical files (marked in file list) typically warrant wide testing. Use tools to investigate the impact of the changes.
 For E2E test infrastructure related changes, consider running the necessary tests or all of them in case the changes are wide-ranging.
 Balance thoroughness with efficiency, and be conservative in your risk assessment. When in doubt, err on the side of running more test tags to ensure adequate coverage.
 Do not exceed the maximum number of analysis iterations which is ${LLM_CONFIG.maxIterations}, i.e. try to decide before the maximum number of iterations is reached.
-FlaskBuildTests is for MetaMask Snaps functionality. Select this tag when changes affect tests/smoke/snaps/ directory, snap-related app code (snap permissions, snap state, snap UI, browser), or Flask build configuration.`;
+SmokeSnaps is for MetaMask Snaps functionality. Select this tag when changes affect tests/smoke/snaps/ directory, snap-related app code (snap permissions, snap state, snap UI, browser), or Flask build configuration.`;
+
+  const cosmeticChangesSection = `COSMETIC CHANGES — IGNORE FOR TEST SELECTION:
+The following types of changes have zero functional impact and must NOT trigger any additional test selection on their own. When you inspect a diff with get_git_diff and find that a file's changes are entirely cosmetic, treat that file as if it were not changed at all:
+- Adding or removing console.log / console.error / console.warn / console.debug / console.info calls
+- Adding or removing debugger statements
+- Whitespace-only changes (indentation, blank lines, trailing spaces)
+- Comment-only changes (adding, removing, or modifying code comments)
+- Import reordering with no net change in imported symbols
+If a PR only contains cosmetic changes across all files, select zero E2E tags and zero performance tags.`;
 
   const performanceGuidanceSection = `PERFORMANCE TEST GUIDANCE:
-Performance tests measure app responsiveness and render times. Select performance tests when changes could impact:
-- UI rendering performance (component changes, list rendering, animations)
-- Data loading and state management (Redux, controllers, API calls)
-- Account/network list components (AccountSelector, NetworkSelector, related hooks)
-- Critical user flows (login, balance loading, swap flows, send flows)
-- App startup and initialization (Engine, background services, navigation)
-- Changes to the appwright/ directory (performance test infrastructure)`;
+Performance tests measure app responsiveness and render times. Decide performance_tests the same way you decide E2E tags: use the available performance tag list, inspect the changed files and diffs, reason about impacted user flows, and select only the relevant performance tags.
+Do not rely on a hardcoded file-to-tag mapping. If a changed app file could impact one of the performance scenarios described in AVAILABLE PERFORMANCE TEST TAGS, select that tag and explain why.
+If any tests/performance/*.spec.ts files changed, inspect the spec content with read_file/get_git_diff and select performance tags only when the changed spec actually declares or exercises those performance tags. System-only specs under tests/performance must not trigger performance_tests.
+If the ONLY changes are to tests/framework/ helper files, fixtures, page objects, or other non-spec test utilities with no app code changes, select performance tags only if the diff plausibly affects measured performance behavior.
+Apply the COSMETIC CHANGES rule before selecting performance tags.`;
 
   const prompt = [
     role,
@@ -63,6 +73,7 @@ Performance tests measure app responsiveness and render times. Select performanc
     buildCriticalPatternsSection(),
     buildRiskAssessmentSection(),
     guidanceSection,
+    cosmeticChangesSection,
     performanceGuidanceSection,
   ]
     .filter((section) => section) // Remove empty sections
@@ -73,10 +84,15 @@ Performance tests measure app responsiveness and render times. Select performanc
 
 /**
  * Builds the task prompt, i.e. the initial user message
+ *
+ * @param allFiles - All changed files
+ * @param criticalFiles - Critical files that need attention
+ * @param context - Analysis context for PR-aware performance guidance
  */
 export function buildTaskPrompt(
   allFiles: string[],
   criticalFiles: string[],
+  context: AnalysisContext,
 ): string {
   // Build E2E tag coverage list
   const tagCoverageList = SELECT_TAGS_CONFIG.map(
@@ -107,16 +123,22 @@ export function buildTaskPrompt(
 1. Select E2E test tags to run so the changes can be verified safely with minimal risk
 2. Determine if performance tests should run based on potential performance impact`;
   const tagsSection = `AVAILABLE E2E TEST TAGS (these are the ONLY valid E2E tags - do NOT search for tags.ts or any tags file, they are already provided here):\n${tagCoverageList}`;
-  const performanceTagsSection = `AVAILABLE PERFORMANCE TEST TAGS (select when changes could impact app performance):\n${performanceTagList}`;
+  const performanceTagsSection = `AVAILABLE PERFORMANCE TEST TAGS (derived from tags.performance.js; these are the ONLY valid performance tags - select when changes could impact app performance):\n${performanceTagList}`;
   const filesSection = `CHANGED FILES (${
     allFiles.length
   } total):\n${fileList.join('\n')}`;
+  const performanceScopeSection = `PERFORMANCE ANALYSIS SCOPE:
+For performance_tests only, base your decision on the complete PR file set above${
+    context.prNumber ? ` (PR #${context.prNumber})` : ''
+  }, not only the most recent commit or synchronize event. This matters after rebases: if an older commit in the PR changes a performance-sensitive flow, select the relevant performance tags even when the latest commit only changes unrelated files.
+Use get_git_diff when a file's actual PR diff is needed, but do not narrow performance_tests to the last commit.`;
   const closing = `Investigate efficiently (consider using several tool calls in the same iteration), then call finalize_tag_selection when ready. Before finalizing: verify you have included all dependent tags as specified in each tag's description above. Include performance_tests in your final selection with selected_tags (empty array if no performance tests needed) and reasoning.`;
   const prompt = [
     instruction,
     tagsSection,
     performanceTagsSection,
     filesSection,
+    performanceScopeSection,
     closing,
   ].join('\n\n');
 

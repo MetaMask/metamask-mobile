@@ -1,24 +1,25 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { INotification } from '@metamask/notification-services-controller/notification-services';
 
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
 import styles from './styles';
 import Notifications from '../../UI/Notification/List';
 import { sortNotifications } from '../../../util/notifications';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import { useTheme } from '../../../util/theme';
 
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
+  IconName,
+} from '@metamask/design-system-react-native';
 
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import Empty from '../../UI/Notification/Empty';
+import DisabledNotifications from './DisabledNotifications';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -31,9 +32,6 @@ import {
 } from '../../../util/notifications/hooks/useNotifications';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { NotificationMenuViewSelectorsIDs } from './NotificationMenuView.testIds';
 
@@ -41,7 +39,7 @@ export function useMarkAsReadCallback(props: {
   notifications: INotification[];
 }) {
   const { notifications } = props;
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { markNotificationAsRead, loading } = useMarkNotificationAsRead();
 
   const handleMarkAllAsRead = useCallback(() => {
@@ -87,6 +85,7 @@ const NotificationsView = ({
 }: {
   navigation: NavigationProp<ParamListBase>;
 }) => {
+  const { colors } = useTheme();
   const { isLoading } = useListNotifications();
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
@@ -104,68 +103,68 @@ const NotificationsView = ({
     [allNotifications],
   );
 
+  const handleClose = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
+    navigation.navigate(Routes.WALLET.HOME);
+  }, [navigation]);
+
+  const handleOpenSettings = useCallback(() => {
+    navigation.navigate(Routes.SETTINGS.NOTIFICATIONS);
+  }, [navigation]);
+
   return (
-    <View
-      style={styles.wrapper}
-      testID={NotificationsViewSelectorsIDs.NOTIFICATIONS_CONTAINER}
+    <SafeAreaView
+      edges={['top']}
+      style={[styles.wrapper, { backgroundColor: colors.background.default }]}
     >
-      {isNotificationEnabled ? (
-        <>
-          <Notifications
-            navigation={navigation}
-            allNotifications={allNotifications}
-            loading={isLoading}
-          />
-          {!isLoading && unreadCount > 0 && (
-            <Button
-              variant={ButtonVariants.Primary}
-              label={strings('notifications.mark_all_as_read')}
-              onPress={handleMarkAllAsRead}
-              size={ButtonSize.Lg}
-              style={styles.stickyButton}
-              disabled={loading}
+      <HeaderCompactStandard
+        title={strings('app_settings.notifications_title')}
+        titleProps={{ testID: NotificationMenuViewSelectorsIDs.TITLE }}
+        onBack={handleClose}
+        backButtonProps={{
+          testID: NotificationMenuViewSelectorsIDs.CLOSE_BUTTON,
+        }}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Setting,
+            onPress: handleOpenSettings,
+            testID: NotificationMenuViewSelectorsIDs.COG_WHEEL,
+          },
+        ]}
+      />
+      <View
+        style={styles.wrapper}
+        testID={NotificationsViewSelectorsIDs.NOTIFICATIONS_CONTAINER}
+      >
+        {isNotificationEnabled ? (
+          <>
+            <Notifications
+              navigation={navigation}
+              allNotifications={allNotifications}
+              loading={isLoading}
             />
-          )}
-        </>
-      ) : (
-        <Empty
-          testID={NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER}
-        />
-      )}
-    </View>
+            {!isLoading && unreadCount > 0 && (
+              <Button
+                variant={ButtonVariant.Primary}
+                onPress={handleMarkAllAsRead}
+                size={ButtonSize.Lg}
+                style={styles.stickyButton}
+                isDisabled={loading}
+              >
+                {strings('notifications.mark_all_as_read')}
+              </Button>
+            )}
+          </>
+        ) : (
+          <DisabledNotifications onEnableNotifications={handleOpenSettings} />
+        )}
+      </View>
+    </SafeAreaView>
   );
 };
 
 export default NotificationsView;
-
-NotificationsView.navigationOptions = ({
-  navigation,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-}) => ({
-  headerRight: () => (
-    <ButtonIcon
-      size={ButtonIconSizes.Md}
-      iconName={IconName.Setting}
-      onPress={() => navigation.navigate(Routes.SETTINGS.NOTIFICATIONS)}
-      style={styles.icon}
-    />
-  ),
-  headerLeft: () => (
-    <ButtonIcon
-      size={ButtonIconSizes.Md}
-      iconName={IconName.Close}
-      onPress={() => navigation.navigate(Routes.WALLET.HOME)}
-      style={styles.icon}
-    />
-  ),
-  headerTitle: () => (
-    <Text
-      variant={TextVariant.HeadingMD}
-      style={styles.title}
-      testID={NotificationMenuViewSelectorsIDs.TITLE}
-    >
-      {strings('app_settings.notifications_title')}
-    </Text>
-  ),
-});

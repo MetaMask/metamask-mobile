@@ -1,9 +1,12 @@
 import React from 'react';
+import { act } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import DeFiPositionsList from './DeFiPositionsList';
 import { RootState } from '../../../reducers';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
@@ -25,6 +28,25 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+}));
+
+const mockDeFiExecutePoll = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    NetworkEnablementController: {
+      listPopularEvmNetworks: jest.fn(() => ['0x1']),
+      listPopularMultichainNetworks: jest.fn(() => []),
+      listPopularNetworks: jest.fn(() => []),
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
+      enableNetworkInNamespace: jest.fn(),
+      enableAllPopularNetworks: jest.fn(),
+    },
+    DeFiPositionsController: {
+      _executePoll: (...args: unknown[]) => mockDeFiExecutePoll(...args),
+    },
+  },
 }));
 
 const MOCK_ADDRESS_1 = '0x0000000000000000000000000000000000000001';
@@ -555,30 +577,139 @@ describe('DeFiPositionsList', () => {
     });
   });
 
-  describe('Homepage Redesign V1 Feature', () => {
-    it('removes scrolling container in favour of global scroll container when isHomepageRedesignV1Enabled is true', async () => {
+  describe('Position Screen Viewed Analytics', () => {
+    let mockTrackEvent: jest.Mock;
+    let mockAddProperties: jest.Mock;
+
+    beforeEach(() => {
+      mockTrackEvent = jest.fn();
+      mockAddProperties = jest.fn().mockReturnThis();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: jest.fn().mockReturnValue({
+            addProperties: mockAddProperties,
+            addSensitiveProperties: jest.fn().mockReturnThis(),
+            removeProperties: jest.fn().mockReturnThis(),
+            removeSensitiveProperties: jest.fn().mockReturnThis(),
+            build: jest.fn(),
+          }),
+        }),
+      );
+    });
+
+    it('tracks Position Screen Viewed when isFullView is true and positions are loaded', async () => {
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" isFullView />,
+        { state: mockInitialState },
+      );
+
+      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_LIST);
+
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          item_count: 1,
+          location: 'homepage',
+          is_empty: false,
+          screen_type: 'defi',
+        }),
+      );
+    });
+
+    it('tracks Position Screen Viewed with is_empty true when no positions are present', async () => {
+      const defiPositionsModule = jest.requireMock(
+        '../../../selectors/defiPositionsController',
+      );
+      defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue({});
+      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
+        {},
+      );
+
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" isFullView />,
+        { state: mockInitialState },
+      );
+
+      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER);
+
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          item_count: 0,
+          is_empty: true,
+          screen_type: 'defi',
+        }),
+      );
+    });
+
+    it('does not track Position Screen Viewed when isFullView is false', async () => {
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" isFullView={false} />,
+        { state: mockInitialState },
+      );
+
+      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_LIST);
+
+      expect(mockAddProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({ screen_type: 'defi', location: 'homepage' }),
+      );
+    });
+
+    it('does not track Position Screen Viewed when positions are still loading', async () => {
+      const defiPositionsModule = jest.requireMock(
+        '../../../selectors/defiPositionsController',
+      );
+      defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue(
+        undefined,
+      );
+      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
+        undefined,
+      );
+
+      const { findByText } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" isFullView />,
+        { state: mockInitialState },
+      );
+
+      await findByText('Loading DeFi positions...');
+
+      expect(mockAddProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({ screen_type: 'defi', location: 'homepage' }),
+      );
+    });
+  });
+
+  describe('Pull to refresh (full view)', () => {
+    beforeEach(() => {
+      mockDeFiExecutePoll.mockClear();
+    });
+
+    it('calls DeFiPositionsController._executePoll when refresh control fires', async () => {
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" isFullView />,
+        { state: mockInitialState },
+      );
+
+      const scrollView = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+      );
+      const { refreshControl } = scrollView.props;
+      expect(refreshControl).toBeTruthy();
+
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
+
+      expect(mockDeFiExecutePoll).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Homepage scroll container behaviour', () => {
+    it('removes scrolling container when rendering on homepage (not full view)', async () => {
       const { findByTestId, queryByTestId } = renderWithProvider(
         <DeFiPositionsList tabLabel="DeFi" />,
-        {
-          state: {
-            ...mockInitialState,
-            engine: {
-              ...mockInitialState.engine,
-              backgroundState: {
-                ...mockInitialState.engine.backgroundState,
-                RemoteFeatureFlagController: {
-                  remoteFeatureFlags: {
-                    homepageRedesignV1: {
-                      enabled: true,
-                      minimumVersion: '1.0.0',
-                    },
-                  },
-                  cacheTimestamp: 0,
-                },
-              },
-            },
-          },
-        },
+        { state: mockInitialState },
       );
 
       const container = await findByTestId(
@@ -597,7 +728,7 @@ describe('DeFiPositionsList', () => {
       expect(scrollView).toBeNull();
     });
 
-    it('renders empty state without scroll container when isHomepageRedesignV1Enabled is true', async () => {
+    it('renders empty state without scroll container on homepage', async () => {
       const defiPositionsModule = jest.requireMock(
         '../../../selectors/defiPositionsController',
       );
@@ -608,26 +739,7 @@ describe('DeFiPositionsList', () => {
 
       const { findByTestId } = renderWithProvider(
         <DeFiPositionsList tabLabel="DeFi" />,
-        {
-          state: {
-            ...mockInitialState,
-            engine: {
-              ...mockInitialState.engine,
-              backgroundState: {
-                ...mockInitialState.engine.backgroundState,
-                RemoteFeatureFlagController: {
-                  remoteFeatureFlags: {
-                    homepageRedesignV1: {
-                      enabled: true,
-                      minimumVersion: '1.0.0',
-                    },
-                  },
-                  cacheTimestamp: 0,
-                },
-              },
-            },
-          },
-        },
+        { state: mockInitialState },
       );
 
       const container = await findByTestId(
@@ -636,7 +748,7 @@ describe('DeFiPositionsList', () => {
       expect(container).toBeOnTheScreen();
     });
 
-    it('renders multiple positions without scroll container when isHomepageRedesignV1Enabled is true', async () => {
+    it('renders multiple positions without scroll container on homepage', async () => {
       // Override mock to return both enabled chains
       const allPositions =
         mockInitialState.engine.backgroundState.DeFiPositionsController
@@ -666,15 +778,6 @@ describe('DeFiPositionsList', () => {
                     [MOCK_CHAIN_ID_2]: true,
                   },
                 },
-                RemoteFeatureFlagController: {
-                  remoteFeatureFlags: {
-                    homepageRedesignV1: {
-                      enabled: true,
-                      minimumVersion: '1.0.0',
-                    },
-                  },
-                  cacheTimestamp: 0,
-                },
               },
             },
           },
@@ -693,25 +796,6 @@ describe('DeFiPositionsList', () => {
         WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
       );
       expect(scrollView).toBeNull();
-    });
-
-    it('renders scroll container when isHomepageRedesignV1Enabled is false', async () => {
-      const { findByTestId } = renderWithProvider(
-        <DeFiPositionsList tabLabel="DeFi" />,
-        {
-          state: mockInitialState,
-        },
-      );
-
-      const listContainer = await findByTestId(
-        WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
-      );
-      expect(listContainer).toBeOnTheScreen();
-
-      const scrollView = await findByTestId(
-        WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
-      );
-      expect(scrollView).toBeOnTheScreen();
     });
   });
 });

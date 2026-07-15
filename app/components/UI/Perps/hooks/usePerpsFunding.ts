@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
-import type { Funding, GetFundingParams } from '../controllers/types';
+import {
+  type Funding,
+  type GetFundingParams,
+} from '@metamask/perps-controller';
 
 export interface UsePerpsFundingResult {
   /**
@@ -80,7 +83,12 @@ export const usePerpsFunding = (
         DevLogger.log('Perps: Fetching funding data from controller...');
 
         const controller = Engine.context.PerpsController;
-        const fundingData = await controller.getFunding(params);
+        // Explicit refresh (pull-to-refresh, polling tick) bypasses the
+        // MarketDataService request-coalesce cache so a fresh provider call
+        // runs instead of returning a still-hot cached payload.
+        const fundingData = await controller.getFunding(params, {
+          forceRefresh: isRefresh,
+        });
 
         setFunding(fundingData || []);
 

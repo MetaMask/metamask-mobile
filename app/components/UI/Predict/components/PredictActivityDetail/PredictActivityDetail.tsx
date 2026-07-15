@@ -1,16 +1,16 @@
-import {
-  NavigationProp,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useMemo, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { PredictNavigationParamList } from '../../types/navigation';
@@ -27,20 +27,20 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import UsdcIcon from './usdc.svg';
 import { PredictActivityDetailsSelectorsIDs } from '../../Predict.testIds';
 interface PredictActivityDetailProps {}
 
 const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictActivityDetail'>>();
   const { activity } = route.params || {};
   const tw = useTailwind();
+  const privacyMode = useSelector(selectPrivacyMode);
 
   // Determine activity type for analytics
   const activityType = useMemo(() => {
@@ -79,6 +79,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
     label: string;
     value: string;
     color?: TextColor;
+    isMonetary?: boolean;
   }
 
   const activityDetails = useMemo(() => {
@@ -149,12 +150,28 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       'amount' in entry && typeof entry.amount === 'number'
         ? entry.amount
         : activity.amountUsd;
+    const hasPrice =
+      'price' in entry &&
+      typeof entry.price === 'number' &&
+      Number.isFinite(entry.price);
+    const entrySize =
+      'size' in entry &&
+      typeof entry.size === 'number' &&
+      Number.isFinite(entry.size) &&
+      entry.size > 0
+        ? entry.size
+        : undefined;
+    const priceForTrade =
+      hasPrice && entry.price !== 0 ? entry.price : undefined;
+    const tradeAmount =
+      priceForTrade !== undefined && entrySize !== undefined
+        ? entrySize * priceForTrade
+        : entryAmount;
 
-    const predictedAmount = formatCurrencyValue(entryAmount, {
+    const predictedAmount = formatCurrencyValue(tradeAmount, {
       showSign: isSell,
     });
 
-    const hasPrice = 'price' in entry && typeof entry.price === 'number';
     const pricePerShare = hasPrice
       ? formatPrice(entry.price, {
           minimumDecimals: entry.price >= 1 ? 2 : 4,
@@ -163,9 +180,27 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       : undefined;
 
     const sharesCount =
-      hasPrice && entry.price !== 0 ? entryAmount / entry.price : undefined;
+      entrySize ??
+      (priceForTrade !== undefined ? entryAmount / priceForTrade : undefined);
     const formattedShares =
       sharesCount !== undefined ? formatPositionSize(sharesCount) : undefined;
+    const bundledFee =
+      priceForTrade !== undefined && entrySize !== undefined
+        ? isSell
+          ? tradeAmount - entryAmount
+          : entryAmount - tradeAmount
+        : undefined;
+    if (bundledFee !== undefined && bundledFee < 0) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[PredictActivityDetail] negative bundledFee, suppressing row:',
+        bundledFee,
+      );
+    }
+    const formattedBundledFee =
+      bundledFee !== undefined && bundledFee > 0
+        ? formatCurrencyValue(bundledFee)
+        : undefined;
 
     const priceImpact =
       activity.priceImpactPercentage !== undefined
@@ -184,6 +219,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
           label: strings('predict.transactions.total_net_pnl'),
           value: totalNetPnlValue,
           color: TextColor.Success,
+          isMonetary: true,
         });
       }
 
@@ -200,6 +236,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
           label: marketLabel,
           value: marketNetPnlValue,
           color: TextColor.Success,
+          isMonetary: true,
         });
       }
     } else {
@@ -207,6 +244,15 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
         transactionRows.push({
           label: strings('predict.transactions.predicted_amount'),
           value: predictedAmount,
+          isMonetary: true,
+        });
+      }
+
+      if (formattedBundledFee) {
+        transactionRows.push({
+          label: strings('predict.fee_summary.fees'),
+          value: formattedBundledFee,
+          isMonetary: true,
         });
       }
 
@@ -216,6 +262,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
             ? strings('predict.transactions.shares_sold')
             : strings('predict.transactions.shares_bought'),
           value: `${formattedShares}`,
+          isMonetary: true,
         });
       }
 
@@ -223,6 +270,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
         transactionRows.push({
           label: strings('predict.transactions.price_per_share'),
           value: pricePerShare,
+          isMonetary: true,
         });
       }
 
@@ -230,6 +278,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
         transactionRows.push({
           label: strings('predict.transactions.price_impact'),
           value: priceImpact,
+          isMonetary: true,
         });
       }
     }
@@ -245,6 +294,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
         label: strings('predict.transactions.net_pnl'),
         value: netPnlValue,
         color: isNegative ? TextColor.Error : TextColor.Success,
+        isMonetary: true,
       });
     }
 
@@ -263,23 +313,39 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
     value: string,
     valueColor?: TextColor,
     key?: React.Key,
+    isMonetary?: boolean,
   ) => (
     <Box
       key={key ?? label}
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="py-3"
+      twClassName="py-3 gap-2"
     >
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-        {label}
-      </Text>
       <Text
         variant={TextVariant.BodyMD}
-        color={valueColor || TextColor.Default}
+        color={TextColor.Alternative}
+        style={tw.style('flex-1')}
       >
-        {value}
+        {label}
       </Text>
+      {isMonetary ? (
+        <SensitiveText
+          variant={TextVariant.BodyMD}
+          color={valueColor || TextColor.Default}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Medium}
+        >
+          {value}
+        </SensitiveText>
+      ) : (
+        <Text
+          variant={TextVariant.BodyMD}
+          color={valueColor || TextColor.Default}
+        >
+          {value}
+        </Text>
+      )}
     </Box>
   );
 
@@ -298,13 +364,15 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
             accessibilityLabel="USDC"
           />
         </Box>
-        <Text
+        <SensitiveText
           variant={TextVariant.HeadingLG}
           color={TextColor.Default}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Medium}
           testID={PredictActivityDetailsSelectorsIDs.AMOUNT_DISPLAY}
         >
           {activityDetails.amountDisplay}
-        </Text>
+        </SensitiveText>
       </Box>
     );
   };
@@ -318,16 +386,22 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       <Box twClassName="mb-6">
         {activityDetails.marketRows.map((row, index) => (
           <React.Fragment key={`${row.label}-${index}`}>
-            {renderDetailRow(row.label, row.value, row.color)}
+            {renderDetailRow(
+              row.label,
+              row.value,
+              row.color,
+              undefined,
+              row.isMonetary,
+            )}
             {index < activityDetails.marketRows.length - 1 ? (
               <Box twClassName="w-full h-px" />
             ) : null}
           </React.Fragment>
         ))}
         {activity?.type === PredictActivityType.BUY ||
-          activity?.type === PredictActivityType.SELL}{' '}
-        (
-        <Box twClassName="w-full border-t border-muted mt-3" />)
+        activity?.type === PredictActivityType.SELL ? (
+          <Box twClassName="w-full border-t border-muted mt-3" />
+        ) : null}
       </Box>
     );
   };
@@ -341,7 +415,13 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       <Box twClassName="mb-6">
         {activityDetails.transactionRows.map((row, index) => {
           const key = `${row.label}-${index}`;
-          const rowNode = renderDetailRow(row.label, row.value, row.color, key);
+          const rowNode = renderDetailRow(
+            row.label,
+            row.value,
+            row.color,
+            key,
+            row.isMonetary,
+          );
           return <React.Fragment key={key}>{rowNode}</React.Fragment>;
         })}
       </Box>
@@ -361,6 +441,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
             row.value,
             row.color,
             `${row.label}-${index}`,
+            row.isMonetary,
           ),
         )}
       </Box>
@@ -374,7 +455,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       testID={PredictActivityDetailsSelectorsIDs.CONTAINER}
     >
       <Box twClassName="flex-1">
-        <HeaderCompactStandard
+        <HeaderStandard
           title={
             activityDetails?.headerTitle ??
             strings('predict.transactions.activity_details')

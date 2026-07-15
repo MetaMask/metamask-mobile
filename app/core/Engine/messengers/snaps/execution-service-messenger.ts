@@ -6,8 +6,6 @@ import {
 import { ExecutionServiceMessenger } from '@metamask/snaps-controllers';
 import { RootMessenger } from '../../types';
 
-export { type ExecutionServiceMessenger };
-
 /**
  * Get a messenger for the execution service. This is scoped to the
  * actions and events that the execution service is allowed to handle.
@@ -16,16 +14,15 @@ export { type ExecutionServiceMessenger };
  * @returns The ExecutionServiceMessenger.
  */
 export function getExecutionServiceMessenger(
-  rootMessenger: RootMessenger,
-): ExecutionServiceMessenger {
-  const messenger = new Messenger<
-    'ExecutionService',
+  rootMessenger: RootMessenger<
     MessengerActions<ExecutionServiceMessenger>,
-    MessengerEvents<ExecutionServiceMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<ExecutionServiceMessenger>
+  >,
+): ExecutionServiceMessenger {
+  const messenger: ExecutionServiceMessenger = new Messenger({
     namespace: 'ExecutionService',
     parent: rootMessenger,
   });
+
   return messenger;
 }

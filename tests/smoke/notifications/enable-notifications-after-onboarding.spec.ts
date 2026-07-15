@@ -1,21 +1,23 @@
-import NotificationDetailsView from '../../../e2e/pages/Notifications/NotificationDetailsView';
-import NotificationMenuView from '../../../e2e/pages/Notifications/NotificationMenuView';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import { SmokeNetworkAbstractions } from '../../../e2e/tags';
+import NotificationDetailsView from '../../page-objects/Notifications/NotificationDetailsView';
+import NotificationMenuView from '../../page-objects/Notifications/NotificationMenuView';
+import { SmokeNetworkAbstractions } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 import {
   getMockFeatureAnnouncementItemId,
   getMockWalletNotificationItemIds,
 } from './utils/mocks';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import AccountMenu from '../../page-objects/AccountMenu/AccountMenu';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
   });
 
+  // TODO: Update the test so if does a full e2e (define what should do). Keep this test to have something tested on e2e.
   it('should enable notifications and view feature announcements and wallet notifications', async () => {
     // Notification mocks are now enabled by default inside the fixture helper
     // since they're turned on by default
@@ -29,22 +31,28 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
       },
       async () => {
         await loginToApp();
-        // Bell Icon
-        await WalletView.tapBellIcon();
+        // Notifications accessed via AccountsMenu (bell icon moved to hamburger menu)
+        await TabBarComponent.tapAccountsMenu();
+        await AccountMenu.tapNotifications();
+
+        const featureAnnouncementItemId = getMockFeatureAnnouncementItemId();
 
         await Assertions.expectElementToBeVisible(NotificationMenuView.title);
+        await NotificationMenuView.scrollToNotificationItem(
+          featureAnnouncementItemId,
+        );
         await Assertions.expectElementToBeVisible(
           NotificationMenuView.selectNotificationItem(
-            getMockFeatureAnnouncementItemId(),
+            featureAnnouncementItemId,
           ),
           {
             description: 'Feature Announcement Item',
           },
         );
 
-        // Feature Annonucement Details
+        // Feature Announcement Details
         await NotificationMenuView.tapOnNotificationItem(
-          getMockFeatureAnnouncementItemId(),
+          featureAnnouncementItemId,
         );
         await Assertions.expectElementToBeVisible(
           NotificationDetailsView.title,

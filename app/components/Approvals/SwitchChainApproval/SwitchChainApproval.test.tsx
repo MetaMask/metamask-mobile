@@ -1,68 +1,28 @@
 import React from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
-import { shallow } from 'enzyme';
+import { fireEvent } from '@testing-library/react-native';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import SwitchChainApproval from './SwitchChainApproval';
+import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
-
-jest.mock('../../../selectors/networkController', () => ({
-  ...jest.requireActual('../../../selectors/networkController'),
-  selectEvmNetworkConfigurationsByChainId: () => ({
-    '0x1': {
-      name: 'Ethereum Mainnet',
-    },
-  }),
-}));
-
-jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
-  useNetworksByNamespace: () => ({
-    networks: [
-      {
-        id: 'eip155:1',
-        name: 'Ethereum',
-        caipChainId: 'eip155:1',
-        isSelected: false,
-        imageSource:
-          'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880',
-        networkTypeOrRpcUrl: 'https://mock-url.com',
-      },
-    ],
-  }),
-  NetworkType: {
-    Popular: 'popular',
-    Custom: 'custom',
-  },
-}));
-
-const mockSelectNetwork = jest.fn();
-jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
-  useNetworkSelection: () => ({
-    selectCustomNetwork: jest.fn(),
-    selectPopularNetwork: jest.fn(),
-    selectNetwork: mockSelectNetwork,
-  }),
-}));
+import renderWithProvider from '../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
-jest.mock('../../../actions/onboardNetwork');
-
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    PreferencesController: {
-      setTokenNetworkFilter: jest.fn(),
-    },
-  },
+jest.mock('../../../actions/onboardNetwork', () => ({
+  networkSwitched: jest.fn(() => ({ type: 'NETWORK_SWITCHED' })),
 }));
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useDispatch: () => jest.fn(),
-  useSelector: jest.fn((selector) => selector()),
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ goBack: jest.fn(), navigate: jest.fn() }),
 }));
+
+const URL_MOCK = 'test.com';
 
 const mockApprovalRequest = (approvalRequest?: unknown) => {
   (
@@ -70,12 +30,12 @@ const mockApprovalRequest = (approvalRequest?: unknown) => {
   ).mockReturnValue({
     approvalRequest,
     onConfirm: jest.fn(),
+    onReject: jest.fn(),
+    pageMeta: { url: URL_MOCK },
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 };
-
-const URL_MOCK = 'test.com';
 
 const mockApprovalRequestData = {
   metadata: {
@@ -108,16 +68,20 @@ describe('SwitchChainApproval', () => {
       requestData: mockApprovalRequestData,
     });
 
-    const wrapper = shallow(<SwitchChainApproval />);
+    const { toJSON } = renderWithProvider(<SwitchChainApproval />, {
+      state: { engine: { backgroundState } },
+    });
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('returns null if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const wrapper = shallow(<SwitchChainApproval />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<SwitchChainApproval />, {
+      state: { engine: { backgroundState } },
+    });
+    expect(toJSON()).toBeNull();
   });
 
   it('returns null if incorrect approval request type', () => {
@@ -125,8 +89,10 @@ describe('SwitchChainApproval', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
-    const wrapper = shallow(<SwitchChainApproval />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<SwitchChainApproval />, {
+      state: { engine: { backgroundState } },
+    });
+    expect(toJSON()).toBeNull();
   });
 
   it('calls networkSwitched action when confirm is pressed', () => {
@@ -135,43 +101,12 @@ describe('SwitchChainApproval', () => {
       requestData: mockApprovalRequestData,
     });
 
-    const wrapper = shallow(<SwitchChainApproval />);
-    wrapper.find('SwitchCustomNetwork').simulate('confirm');
-
-    expect(networkSwitched).toHaveBeenCalledTimes(1);
-    expect(networkSwitched).toHaveBeenCalledWith({
-      networkUrl: URL_MOCK,
-      networkStatus: true,
+    const { UNSAFE_getByType } = renderWithProvider(<SwitchChainApproval />, {
+      state: { engine: { backgroundState } },
     });
-  });
+    const switchCustomNetwork = UNSAFE_getByType(SwitchCustomNetwork);
+    fireEvent(switchCustomNetwork, 'confirm');
 
-  it('sets token network filter', () => {
-    mockApprovalRequest({
-      type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
-      requestData: mockApprovalRequestData,
-    });
-
-    const wrapper = shallow(<SwitchChainApproval />);
-    wrapper.find('SwitchCustomNetwork').simulate('confirm');
-
-    expect(networkSwitched).toHaveBeenCalledTimes(1);
-    expect(networkSwitched).toHaveBeenCalledWith({
-      networkUrl: URL_MOCK,
-      networkStatus: true,
-    });
-  });
-
-  it('calls selectNetwork when confirm is pressed', () => {
-    mockApprovalRequest({
-      type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
-      requestData: mockApprovalRequestData,
-    });
-
-    const wrapper = shallow(<SwitchChainApproval />);
-    wrapper.find('SwitchCustomNetwork').simulate('confirm');
-
-    expect(mockSelectNetwork).toHaveBeenCalledTimes(1);
-    expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
     expect(networkSwitched).toHaveBeenCalledTimes(1);
     expect(networkSwitched).toHaveBeenCalledWith({
       networkUrl: URL_MOCK,

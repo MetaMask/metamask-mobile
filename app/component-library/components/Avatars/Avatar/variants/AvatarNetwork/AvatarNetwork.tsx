@@ -1,12 +1,9 @@
 /* eslint-disable react/prop-types */
 
-/**
- * @deprecated Please update your code to use `AvatarNetwork` from `@metamask/design-system-react-native`
- */
-
 // Third party dependencies.
 import React, { useCallback, useEffect, useState } from 'react';
 import { Image, ImageSourcePropType } from 'react-native';
+import { SvgUri } from 'react-native-svg';
 
 // External dependencies.
 import AvatarBase from '../../foundation/AvatarBase';
@@ -22,6 +19,12 @@ import {
   AVATARNETWORK_IMAGE_TESTID,
 } from './AvatarNetwork.constants';
 
+/**
+ * @deprecated Please update your code to use `AvatarNetwork` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarNetwork/README.md}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#avatarnetwork-component Migration docs}
+ */
 const AvatarNetwork = ({
   size = DEFAULT_AVATARNETWORK_SIZE,
   style,
@@ -43,6 +46,18 @@ const AvatarNetwork = ({
     <AvatarBase size={size} style={styles.base} {...props}>
       {showFallback ? (
         <Text style={styles.label}>{chainNameFirstLetter}</Text>
+      ) : imageSource &&
+        typeof imageSource === 'object' &&
+        'uri' in imageSource &&
+        (imageSource.uri?.endsWith('.svg') ||
+          imageSource.uri?.startsWith('data:image/svg+xml')) ? (
+        <SvgUri
+          uri={imageSource.uri}
+          width={size}
+          height={size}
+          onError={onError}
+          testID={AVATARNETWORK_IMAGE_TESTID}
+        />
       ) : (
         <Image
           source={imageSource as ImageSourcePropType}

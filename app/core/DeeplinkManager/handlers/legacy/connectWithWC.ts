@@ -27,7 +27,7 @@ export function connectWithWC({
       }),
     )
     .catch((err) => {
-      console.warn(`DeepLinkManager failed to connect`, err);
+      console.warn(`connectWithWC failed`, err);
     });
 }
 

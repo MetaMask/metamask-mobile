@@ -1,5 +1,4 @@
 import React from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import renderWithProvider, {
   DeepPartial,
@@ -27,26 +26,9 @@ const mockInitialState: DeepPartial<RootState> = {
       TokenBalancesController: {
         tokenBalances: {},
       },
-      PreferencesController: {
-        selectedAddress: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
-        identities: {
-          '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': {
-            address: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
-            name: 'Account 1',
-          },
-          '0x519d2CE57898513F676a5C3b66496c3C394c9CC7': {
-            address: '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
-            name: 'Account 2',
-          },
-        },
-      },
     },
   },
 };
-
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(),
-}));
 
 jest.mock('../../../../util/theme', () => ({
   useTheme: jest.fn(),
@@ -85,7 +67,6 @@ jest.mock(
 
 describe('SDKSessionAccountListItem', () => {
   const mockDisconnect = jest.fn();
-  const mockUseSafeAreaInsets = useSafeAreaInsets as jest.Mock;
 
   const defaultProps = {
     connection: {
@@ -103,13 +84,6 @@ describe('SDKSessionAccountListItem', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    mockUseSafeAreaInsets.mockReturnValue({
-      top: 10,
-      bottom: 10,
-      left: 0,
-      right: 0,
-    });
   });
 
   it('should renders correctly', () => {

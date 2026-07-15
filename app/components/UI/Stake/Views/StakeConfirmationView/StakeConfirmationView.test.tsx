@@ -1,16 +1,22 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
-import StakeConfirmationView from './StakeConfirmationView';
+import StakeConfirmationView, {
+  STAKE_CONFIRMATION_VIEW_BACK_BUTTON_TEST_ID,
+} from './StakeConfirmationView';
 import { Image, ImageSize } from 'react-native';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
+import { StakeConfirmationViewRouteParams } from './StakeConfirmationView.types';
 import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/stakeMockData';
 import { RootState } from '../../../../../reducers';
+import { strings } from '../../../../../../locales/i18n';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
@@ -49,7 +55,6 @@ const mockInitialState: DeepPartial<RootState> = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTreeController: {
         accountTree: {
-          selectedAccountGroup: 'keyring:test-wallet/ethereum',
           wallets: {
             'keyring:test-wallet': {
               groups: {
@@ -60,6 +65,7 @@ const mockInitialState: DeepPartial<RootState> = {
             },
           },
         },
+        selectedAccountGroup: 'keyring:test-wallet/ethereum',
       },
     },
   },
@@ -73,16 +79,51 @@ jest.mock('react-redux', () => ({
     .mockImplementation((callback) => callback(mockInitialState)),
 }));
 
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: () => ({
-      navigate: jest.fn(),
-      setOptions: jest.fn(),
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+      goBack: mockGoBack,
+    }),
+    useRoute: () => ({
+      key: '1',
+      name: 'params',
+      params: {
+        amountWei: '10000000000000000',
+        amountFiat: '26.21',
+        annualRewardRate: '2.6%',
+        annualRewardsETH: '0.00026 ETH',
+        annualRewardsFiat: '$0.68',
+        chainId: '1',
+      } as StakeConfirmationViewRouteParams,
     }),
   };
 });
+
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({
+  name: 'STAKE_CONFIRMATION_BACK_CLICKED',
+});
+const mockEventBuilder = {
+  addProperties: mockAddProperties,
+  build: mockBuild,
+};
+const mockCreateEventBuilder = jest.fn().mockReturnValue(mockEventBuilder);
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock('../../hooks/usePoolStakedDeposit', () => ({
   __esModule: true,
@@ -103,40 +144,50 @@ jest.mock('../../hooks/usePooledStakes', () => ({
   }),
 }));
 
-expect.addSnapshotSerializer({
-  test: (val) =>
-    val &&
-    typeof val === 'object' &&
-    (val.props?.source?.uri === '' ||
-      val.props?.onLayout ||
-      val.props?.onError ||
-      val.props?.onLoadEnd),
-  print: () => 'IGNORED_RANDOM_ELEMENT',
-});
-
 describe('StakeConfirmationView', () => {
-  it('render matches snapshot', () => {
-    const props: StakeConfirmationViewProps = {
-      route: {
-        key: '1',
-        params: {
-          amountWei: '10000000000000000',
-          amountFiat: '26.21',
-          annualRewardRate: '2.6%',
-          annualRewardsETH: '0.00026 ETH',
-          annualRewardsFiat: '$0.68',
-          chainId: '1',
-        },
-        name: 'params',
-      },
-    };
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-    const { toJSON } = renderWithProvider(
+  const renderView = () =>
+    renderWithProvider(
       <Provider store={store}>
-        <StakeConfirmationView {...props} />
+        <StakeConfirmationView />
       </Provider>,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+  it('renders stake confirmation view', () => {
+    const { getByText } = renderView();
+
+    expect(getByText(strings('stake.staking_from'))).toBeOnTheScreen();
+  });
+
+  it('renders header with the stake title', () => {
+    const { getByText } = renderView();
+
+    expect(getByText(strings('stake.stake'))).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack on back press', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(STAKE_CONFIRMATION_VIEW_BACK_BUTTON_TEST_ID));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks STAKE_CONFIRMATION_BACK_CLICKED on back press', () => {
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(STAKE_CONFIRMATION_VIEW_BACK_BUTTON_TEST_ID));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.STAKE_CONFIRMATION_BACK_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      selected_provider: EVENT_PROVIDERS.CONSENSYS,
+      location: EVENT_LOCATIONS.STAKE_CONFIRMATION_VIEW,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 });

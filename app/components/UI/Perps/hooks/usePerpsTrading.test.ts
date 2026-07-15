@@ -1,24 +1,41 @@
 import { CaipAssetId } from '@metamask/utils';
 import { renderHook } from '@testing-library/react-native';
 import type { Hex } from 'viem';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import type {
-  AccountState,
-  CancelOrderParams,
-  CancelOrderResult,
-  ClosePositionParams,
-  GetAccountStateParams,
-  MarketInfo,
-  OrderParams,
-  OrderResult,
-  Position,
-  SubscribeOrderFillsParams,
-  SubscribePositionsParams,
-  SubscribePricesParams,
-  WithdrawParams,
-  WithdrawResult,
-} from '../controllers/types';
+import {
+  type AccountState,
+  type CancelOrderParams,
+  type CancelOrderResult,
+  type ClosePositionParams,
+  type GetAccountStateParams,
+  type MarketInfo,
+  type OrderParams,
+  type OrderResult,
+  type Position,
+  type SubscribeOrderFillsParams,
+  type SubscribePositionsParams,
+  type SubscribePricesParams,
+  type WithdrawParams,
+  type WithdrawResult,
+} from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
+import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
+
+const mockEnsureArbitrumNetworkExists = jest.fn().mockResolvedValue(undefined);
+jest.mock('./usePerpsNetworkManagement', () => ({
+  usePerpsNetworkManagement: () => ({
+    ensureArbitrumNetworkExists: mockEnsureArbitrumNetworkExists,
+    enableArbitrumNetwork: jest.fn(),
+    getArbitrumChainId: jest.fn(),
+    currentNetwork: 'mainnet',
+  }),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
@@ -58,6 +75,10 @@ jest.mock('../../../../../locales/i18n', () => ({
 describe('usePerpsTrading', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectPerpsTerminalBackendEnabledFlag) return true;
+      return undefined;
+    });
   });
 
   describe('placeOrder', () => {
@@ -194,9 +215,9 @@ describe('usePerpsTrading', () => {
 
       const response = await result.current.getMarkets();
 
-      expect(Engine.context.PerpsController.getMarkets).toHaveBeenCalledWith(
-        undefined,
-      );
+      expect(Engine.context.PerpsController.getMarkets).toHaveBeenCalledWith({
+        useTerminalApi: true,
+      });
       expect(response).toEqual(mockMarkets);
     });
 
@@ -219,9 +240,10 @@ describe('usePerpsTrading', () => {
       const params = { symbols: ['BTC'] };
       const response = await result.current.getMarkets(params);
 
-      expect(Engine.context.PerpsController.getMarkets).toHaveBeenCalledWith(
-        params,
-      );
+      expect(Engine.context.PerpsController.getMarkets).toHaveBeenCalledWith({
+        useTerminalApi: true,
+        ...params,
+      });
       expect(response).toEqual(mockMarkets);
     });
   });
@@ -270,7 +292,8 @@ describe('usePerpsTrading', () => {
   describe('getAccountState', () => {
     it('should call PerpsController.getAccountState and return account state', async () => {
       const mockAccountState: AccountState = {
-        availableBalance: '10000',
+        spendableBalance: '10000',
+        withdrawableBalance: '10000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '16.67',
@@ -294,7 +317,8 @@ describe('usePerpsTrading', () => {
 
     it('should call getAccountState without parameters', async () => {
       const mockAccountState: AccountState = {
-        availableBalance: '10000',
+        spendableBalance: '10000',
+        withdrawableBalance: '10000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '16.67',

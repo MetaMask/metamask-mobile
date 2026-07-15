@@ -9,7 +9,7 @@ import { strings } from '../../../../locales/i18n';
 import { clearHistory } from '../../../actions/browser';
 
 // Mock dependencies
-jest.mock('../useMetrics');
+jest.mock('../useAnalytics/useAnalytics');
 jest.mock('../../../util/identity/hooks/useAuthentication');
 jest.mock('../../../core/Authentication/Authentication', () => ({
   Authentication: {
@@ -31,11 +31,12 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Mock imports
-import { useMetrics } from '../useMetrics';
+import { useAnalytics } from '../useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import { Authentication } from '../../../core/Authentication/Authentication';
 
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+const mockUseAnalytics = jest.mocked(useAnalytics);
 const mockUseSignOut = useSignOut as jest.MockedFunction<typeof useSignOut>;
 const mockClearHistory = clearHistory as jest.MockedFunction<
   typeof clearHistory
@@ -47,19 +48,7 @@ const mockDeleteWallet = Authentication.deleteWallet as jest.MockedFunction<
 describe('usePromptSeedlessRelogin', () => {
   const mockStore = configureMockStore([thunk]);
   const mockSignOut = jest.fn();
-  const mockMetrics = {
-    isEnabled: jest.fn().mockReturnValue(true),
-    trackEvent: jest.fn(),
-    enable: jest.fn(),
-    addTraitsToUser: jest.fn(),
-    createDataDeletionTask: jest.fn(),
-    checkDataDeleteStatus: jest.fn(),
-    getDeleteRegulationCreationDate: jest.fn(),
-    getDeleteRegulationId: jest.fn(),
-    isDataRecorded: jest.fn(),
-    getMetaMetricsId: jest.fn(),
-    createEventBuilder: jest.fn(),
-  };
+  const mockMetrics = createMockUseAnalyticsHook();
 
   const initialState = {
     security: {
@@ -82,7 +71,7 @@ describe('usePromptSeedlessRelogin', () => {
     store.clearActions();
 
     // Setup mocks
-    mockUseMetrics.mockReturnValue(mockMetrics);
+    mockUseAnalytics.mockReturnValue(mockMetrics);
     mockUseSignOut.mockReturnValue({ signOut: mockSignOut });
     mockDeleteWallet.mockResolvedValue(undefined);
     mockClearHistory.mockReturnValue({

@@ -1,9 +1,6 @@
 name: 'Smart E2E Selection'
 description: 'Run AI-powered E2E test selection based on code changes'
 inputs:
-  event-name:
-    description: 'GitHub event name (pull_request, workflow_dispatch, schedule, etc.)'
-    required: true
   claude-api-key:
     description: 'Anthropic Claude API key for AI analysis (primary provider)'
     required: false
@@ -30,10 +27,9 @@ inputs:
     required: false
     default: 'false'
   base-ref:
-    description: 'Base branch ref (must be main for analysis to run)'
+    description: 'PR base branch ref passed to the AI analysis script for diff comparison. When release/* or stable, AI selection is skipped and the full E2E suite is selected.'
     required: false
     default: ''
-
 outputs:
   ai_e2e_test_tags:
     description: 'E2E test tags to run (JSON array format)'
@@ -42,37 +38,69 @@ outputs:
     description: 'AI confidence score (0-100)'
     value: ${{ steps.final-outputs.outputs.ai_confidence }}
   ai_performance_test_tags:
-    description: 'Performance test tags to run (JSON array format, empty [] means no performance tests)'
+    description: "Performance test tags to run. Empty string '' = run all (conservative fallback). Literal '[]' = skip (AI found no relevant changes). '[\"@Tag\",...]' = run specific tags."
     value: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}
+  ai_performance_test_reasoning:
+    description: 'Reasoning for the performance test selection'
+    value: ${{ steps.final-outputs.outputs.ai_performance_test_reasoning }}
 
 runs:
   using: 'composite'
   steps:
+    - name: Check skip-smart-e2e-selection label
+      id: check-skip-label
+      if: inputs.pr-number != ''
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        echo "SKIP=false" >> "$GITHUB_OUTPUT"
+        if gh pr view ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --json labels --jq '.labels[].name' | grep -qx "skip-smart-e2e-selection"; then
+          echo "SKIP=true" >> "$GITHUB_OUTPUT"
+          echo "⏭️ SKIP=true due to 'skip-smart-e2e-selection' label on PR"
+        fi
+
+    - name: Check release or stable target branch (full E2E, no AI selection)
+      id: check-release-target
+      shell: bash
+      run: |
+        echo "SKIP=false" >> "$GITHUB_OUTPUT"
+        BASE='${{ inputs.base-ref }}'
+        if [[ -n "$BASE" && ( "$BASE" == release/* || "$BASE" == "stable" ) ]]; then
+          echo "SKIP=true" >> "$GITHUB_OUTPUT"
+          echo "⏭️ Base branch is release/* or stable — skipping AI E2E selection; full E2E suite will run"
+        fi
+
     - name: Checkout for PR analysis
-      uses: actions/checkout@v4
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.SKIP != 'true'
+      uses: actions/checkout@v6
       with:
-        fetch-depth: 1 # Shallow clone - only need PR commit
+        fetch-depth: 1 # Shallow clone for speed; unshallowed below for diff comparison
 
     - name: Disable sparse checkout and restore all files
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.SKIP != 'true'
       shell: bash
       run: |
         git sparse-checkout disable
         git checkout HEAD -- .
 
-    - name: Fetch main branch for comparison
+    - name: Fetch base branch for comparison
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.SKIP != 'true'
       shell: bash
       run: |
         # Unshallow the repository first (if it's shallow)
         git fetch --unshallow 2>/dev/null || true
-        # Fetch main branch for diff comparison
-        git fetch origin main 2>/dev/null || true
+        # Fetch the base branch for diff comparison (main or release/*)
+        git fetch origin "${{ inputs.base-ref || 'main' }}" 2>/dev/null || true
 
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.SKIP != 'true'
+      uses: actions/setup-node@v6
       with:
         node-version-file: '.nvmrc'
 
     - name: Install minimal dependencies for AI analysis
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.SKIP != 'true'
       shell: bash
       run: |
         echo "📦 Installing only required packages for AI analysis..."
@@ -84,6 +112,7 @@ runs:
         echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
 
     - name: Copy AI dependencies to workspace
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.SKIP != 'true'
       shell: bash
       run: |
         echo "📋 Copying AI dependencies to workspace..."
@@ -93,19 +122,6 @@ runs:
         cp -r /tmp/ai-deps/node_modules/* node_modules/
         echo "✅ AI dependencies available in workspace"
 
-    - name: Check skip-smart-e2e-selection label
-      id: check-skip-label
-      if: inputs.event-name == 'pull_request' && inputs.pr-number != ''
-      shell: bash
-      env:
-        GH_TOKEN: ${{ inputs.github-token }}
-      run: |
-        echo "SKIP=false" >> "$GITHUB_OUTPUT"
-        if gh pr view ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --json labels --jq '.labels[].name' | grep -qx "skip-smart-e2e-selection"; then
-          echo "SKIP=true" >> "$GITHUB_OUTPUT"
-          echo "⏭️ SKIP=true due to 'skip-smart-e2e-selection' label on PR"
-        fi
-
     - name: Run E2E AI analysis
       id: ai-analysis
       shell: bash
@@ -113,7 +129,6 @@ runs:
         E2E_CLAUDE_API_KEY: ${{ inputs.claude-api-key }}
         E2E_OPENAI_API_KEY: ${{ inputs.openai-api-key }}
         E2E_GEMINI_API_KEY: ${{ inputs.google-api-key }}
-        EVENT_NAME: ${{ inputs.event-name }}
         PR_NUMBER: ${{ inputs.pr-number }}
         GH_TOKEN: ${{ inputs.github-token }}
         GITHUB_REPOSITORY: ${{ inputs.repository }}
@@ -122,27 +137,27 @@ runs:
       run: |
         echo "ai_e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
         echo "ai_confidence=0" >> "$GITHUB_OUTPUT"
-        echo "ai_performance_test_tags=[]" >> "$GITHUB_OUTPUT"
-        SHOULD_SKIP=false
-        SKIP_REASON=""
+        # Empty string = run all performance tests (conservative fallback).
+        # '[]' is reserved for "AI ran successfully and found no relevant changes".
+        echo "ai_performance_test_tags=" >> "$GITHUB_OUTPUT"
 
-        if [[ "$EVENT_NAME" != "pull_request" ]]; then
-          SHOULD_SKIP=true
-          SKIP_REASON="only runs on PRs"
-        elif [[ "$BASE_REF" != "main" ]]; then
-          SHOULD_SKIP=true
-          SKIP_REASON="base branch is not main (base: $BASE_REF)"
-        elif [[ -n "${{ steps.check-skip-label.outputs.SKIP }}" ]] && [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
-          SHOULD_SKIP=true
-          SKIP_REASON="skip-smart-e2e-selection label found"
-        fi
-
-        # Export skip status and reason for the comment step
-        echo "SKIPPED=$SHOULD_SKIP" >> "$GITHUB_OUTPUT"
-        echo "SKIP_REASON=$SKIP_REASON" >> "$GITHUB_OUTPUT"
-
-        if [[ "$SHOULD_SKIP" == "true" ]]; then
-          echo "⏭️ Skipping AI analysis - $SKIP_REASON"
+        if [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
+          echo "⏭️ Skipping AI analysis - skip-smart-e2e-selection label found"
+          echo "SKIPPED=true" >> "$GITHUB_OUTPUT"
+          echo "SKIP_REASON=skip-smart-e2e-selection label found" >> "$GITHUB_OUTPUT"
+          echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
+          # Skip label → run all E2E (ALL) but do NOT launch the PR performance workflow.
+          # Performance tests are expensive and the skip label only opts out of AI selection,
+          # not into a full performance run. Use '[]' so run-performance-tests-pr is skipped.
+          echo "ai_performance_test_tags=[]" >> "$GITHUB_OUTPUT"
+        elif [[ "${{ steps.check-release-target.outputs.SKIP }}" == "true" ]]; then
+          echo "⏭️ Skipping AI analysis - PR targets a release or stable branch"
+          echo "SKIPPED=true" >> "$GITHUB_OUTPUT"
+          echo "SKIP_REASON=PR targets a release or stable branch (release/* or stable)" >> "$GITHUB_OUTPUT"
+          echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
+          # Release/stable target → the scheduled performance workflow covers these branches.
+          # No need to also trigger the PR performance job.
+          echo "ai_performance_test_tags=[]" >> "$GITHUB_OUTPUT"
         else
           echo "✅ Running AI analysis for PR #$PR_NUMBER"
           # The script will generate the GH output variables - don't fail if script errors
@@ -153,31 +168,39 @@ runs:
       id: final-outputs
       if: always()
       shell: bash
+      env:
+        AI_E2E_TAGS: ${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}
+        AI_CONFIDENCE: ${{ steps.ai-analysis.outputs.ai_confidence }}
+        AI_PERF_TAGS: ${{ steps.ai-analysis.outputs.ai_performance_test_tags }}
+        AI_PERF_REASONING: ${{ steps.ai-analysis.outputs.ai_performance_test_reasoning }}
       run: |
-        TAGS='${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}'
-        if [[ -n "$TAGS" ]]; then
-          printf 'ai_e2e_test_tags=%s\n' "$TAGS" >> "$GITHUB_OUTPUT"
+        if [[ -n "$AI_E2E_TAGS" ]]; then
+          printf 'ai_e2e_test_tags=%s\n' "$AI_E2E_TAGS" >> "$GITHUB_OUTPUT"
         else
           echo 'ai_e2e_test_tags=["ALL"]' >> "$GITHUB_OUTPUT"
         fi
-        echo "ai_confidence=${{ steps.ai-analysis.outputs.ai_confidence }}" >> "$GITHUB_OUTPUT"
-        # Performance test tags (empty array means no performance tests)
-        PERF_TAGS='${{ steps.ai-analysis.outputs.ai_performance_test_tags }}'
-        if [[ -n "$PERF_TAGS" ]]; then
-          printf 'ai_performance_test_tags=%s\n' "$PERF_TAGS" >> "$GITHUB_OUTPUT"
-        else
-          echo 'ai_performance_test_tags=[]' >> "$GITHUB_OUTPUT"
-        fi
+        printf 'ai_confidence=%s\n' "$AI_CONFIDENCE" >> "$GITHUB_OUTPUT"
+        # Performance test tags: empty string = run all (fallback); '[]' = skip (AI found no changes)
+        printf 'ai_performance_test_tags=%s\n' "$AI_PERF_TAGS" >> "$GITHUB_OUTPUT"
+        # Performance test reasoning (multi-line — must use heredoc format)
+        {
+          echo 'ai_performance_test_reasoning<<GHEOF'
+          echo "$AI_PERF_REASONING"
+          echo 'GHEOF'
+        } >> "$GITHUB_OUTPUT"
 
     - name: Display AI Analysis Outputs
       if: always()
       shell: bash
+      env:
+        PERF_REASONING: ${{ steps.final-outputs.outputs.ai_performance_test_reasoning }}
       run: |
         echo "📊 Final GitHub Action Outputs:"
         echo "================================"
         echo "ai_e2e_test_tags: ${{ steps.final-outputs.outputs.ai_e2e_test_tags }}"
         echo "ai_confidence: ${{ steps.final-outputs.outputs.ai_confidence }}"
         echo "ai_performance_test_tags: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}"
+        echo "ai_performance_test_reasoning: $PERF_REASONING"
         echo "================================"
 
     - name: Delete previous comments
@@ -216,7 +239,6 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.github-token }}
       run: |
-        # Comment configuration (single source of truth)
         COMMENT_FILE="pr_comment.md"
         TITLE="## 🔍 Smart E2E Test Selection"
         FOOTER="[View GitHub Actions results](https://github.com/${{ inputs.repository }}/actions/runs/${{ github.run_id }})"
@@ -225,21 +247,14 @@ runs:
 
         if [[ "${{ steps.ai-analysis.outputs.SKIPPED }}" == "true" ]]; then
           SKIP_REASON="${{ steps.ai-analysis.outputs.SKIP_REASON }}"
-          COMMENT_BODY="⏭️ **Smart E2E selection skipped** - ${SKIP_REASON}
-
-          All E2E tests pre-selected."
+          COMMENT_BODY="⏭️ **Smart E2E selection skipped** - ${SKIP_REASON}"$'\n\n'"All E2E tests pre-selected."
         elif [ -f "$COMMENT_FILE" ]; then
           COMMENT_BODY=$(cat "$COMMENT_FILE")
         else
           COMMENT_BODY="⚠️ AI analysis was inconclusive. Selecting all E2E tests as a fallback, if applicable based on changed files."
         fi
 
-        # Build and post comment
-        FULL_COMMENT="${TITLE}
-        ${COMMENT_BODY}
-
-        ${FOOTER}
-        ${MARKER}"
+        FULL_COMMENT="${TITLE}"$'\n'"${COMMENT_BODY}"$'\n\n'"${FOOTER}"$'\n'"${MARKER}"
 
         gh pr comment ${{ inputs.pr-number }} --repo ${{ inputs.repository }} --body "$FULL_COMMENT"
         echo "✅ Successfully created comment"

@@ -1,15 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { TextInput, ViewStyle, KeyboardTypeOptions } from 'react-native';
-import TextField, {
-  TextFieldSize,
-} from '../../../component-library/components/Form/TextField';
+import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
-import Label from '../../../component-library/components/Form/Label';
+import { Label, FontWeight } from '@metamask/design-system-react-native';
 import { Box } from '../../UI/Box/Box';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
 
 export interface SnapUIInputProps {
   name: string;
@@ -79,10 +76,9 @@ export const SnapUIInput = ({
 
   return (
     <Box style={style}>
-      {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
+      {label && <Label fontWeight={FontWeight.Medium}>{label}</Label>}
       <TextField
         {...props}
-        size={TextFieldSize.Lg}
         isDisabled={disabled}
         ref={inputRef}
         onFocus={handleFocus}

@@ -1,13 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PerpsTPSLView from './PerpsTPSLView';
-import type { Position } from '../../controllers/types';
-import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
+import { PERPS_EVENT_VALUE, type Position } from '@metamask/perps-controller';
 
-// Mock dependencies
-jest.mock('react-native-reanimated', () =>
-  jest.requireActual('react-native-reanimated/mock'),
-);
+// react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
 
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: 'View',
@@ -26,29 +22,13 @@ jest.mock('react-native-gesture-handler', () => ({
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-jest.mock('react-native-safe-area-context', () => {
-  const { View } = jest.requireActual('react-native');
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    SafeAreaView: jest
-      .fn()
-      .mockImplementation(({ children, ...props }) => (
-        <View {...props}>{children}</View>
-      )),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
-
 const mockUseTheme = jest.fn();
 jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
 }));
+const { mockTheme: baseMockTheme } = jest.requireActual(
+  '../../../../../util/theme',
+);
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(() => ({})),
@@ -131,17 +111,34 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
-describe('PerpsTPSLView', () => {
-  const mockTheme = {
-    colors: {
-      background: { alternative: '#f0f0f0' },
-      text: { default: '#000', muted: '#666', alternative: '#888' },
-      border: { muted: '#e1e1e1' },
-      primary: { default: '#0376c9' },
-      error: { default: '#d73847' },
-    },
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    Button: ({
+      label,
+      onPress,
+      isDisabled,
+      isLoading,
+      children,
+      ...props
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }: any) => (
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={isDisabled}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        {...props}
+      >
+        {!isLoading && <Text>{label ?? children}</Text>}
+      </TouchableOpacity>
+    ),
   };
+});
 
+describe('PerpsTPSLView', () => {
   const defaultMockReturn = {
     formState: {
       takeProfitPrice: '',
@@ -201,7 +198,7 @@ describe('PerpsTPSLView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTheme.mockReturnValue(mockTheme);
+    mockUseTheme.mockReturnValue(baseMockTheme);
     mockUsePerpsTPSLForm.mockReturnValue(defaultMockReturn);
     mockRouteParams = { ...defaultRouteParams };
   });
@@ -244,7 +241,7 @@ describe('PerpsTPSLView', () => {
       ],
     ])(
       'calls %s handler when user types',
-      (_description, getInput, handlerName) => {
+      async (_description, getInput, handlerName) => {
         const mockHandler = jest.fn();
         renderView({
           handlers: {
@@ -253,13 +250,15 @@ describe('PerpsTPSLView', () => {
           },
         });
 
-        fireEvent.changeText(getInput(), '123.45');
+        await act(async () => {
+          fireEvent.changeText(getInput(), '123.45');
+        });
 
         expect(mockHandler).toHaveBeenCalledWith('123.45');
       },
     );
 
-    it('calls take profit clear handler when Clear button pressed', () => {
+    it('calls take profit clear handler when Clear button pressed', async () => {
       const mockHandler = jest.fn();
       renderView({
         formState: {
@@ -273,12 +272,14 @@ describe('PerpsTPSLView', () => {
       });
 
       const clearButtons = screen.getAllByText('perps.tpsl.clear');
-      fireEvent.press(clearButtons[0]);
+      await act(async () => {
+        fireEvent.press(clearButtons[0]);
+      });
 
       expect(mockHandler).toHaveBeenCalled();
     });
 
-    it('dismisses keyboard before clearing take profit when input is focused', () => {
+    it('dismisses keyboard before clearing take profit when input is focused', async () => {
       const mockHandler = jest.fn();
       renderView({
         formState: {
@@ -297,12 +298,14 @@ describe('PerpsTPSLView', () => {
 
       // Now press clear
       const clearButtons = screen.getAllByText('perps.tpsl.clear');
-      fireEvent.press(clearButtons[0]);
+      await act(async () => {
+        fireEvent.press(clearButtons[0]);
+      });
 
       expect(mockHandler).toHaveBeenCalled();
     });
 
-    it('dismisses keyboard before clearing stop loss when input is focused', () => {
+    it('dismisses keyboard before clearing stop loss when input is focused', async () => {
       const mockHandler = jest.fn();
       renderView({
         formState: {
@@ -321,7 +324,9 @@ describe('PerpsTPSLView', () => {
 
       // Now press clear
       const clearButtons = screen.getAllByText('perps.tpsl.clear');
-      fireEvent.press(clearButtons[0]);
+      await act(async () => {
+        fireEvent.press(clearButtons[0]);
+      });
 
       expect(mockHandler).toHaveBeenCalled();
     });
@@ -361,7 +366,7 @@ describe('PerpsTPSLView', () => {
       ],
     ])(
       'prevents %s input exceeding 9 digits',
-      (_description, getInput, handlerName) => {
+      async (_description, getInput, handlerName) => {
         const mockHandler = jest.fn();
         renderView({
           handlers: {
@@ -370,7 +375,9 @@ describe('PerpsTPSLView', () => {
           },
         });
 
-        fireEvent.changeText(getInput(), '1234567890');
+        await act(async () => {
+          fireEvent.changeText(getInput(), '1234567890');
+        });
 
         expect(mockHandler).not.toHaveBeenCalled();
       },
@@ -421,6 +428,67 @@ describe('PerpsTPSLView', () => {
         expect(mockBlurHandler).toHaveBeenCalled();
       },
     );
+
+    it.each([
+      [
+        'take profit',
+        () => getTakeProfitPriceInput(),
+        () => getTakeProfitPercentageInput(),
+        'handleTakeProfitPriceBlur',
+        'handleTakeProfitPercentageFocus',
+      ],
+      [
+        'stop loss',
+        () => getStopLossPriceInput(),
+        () => getStopLossPercentageInput(),
+        'handleStopLossPriceBlur',
+        'handleStopLossPercentageFocus',
+      ],
+    ])(
+      // Regression: when the user moves focus from the price field to the %
+      // field, the price blur must be delivered regardless of the order in
+      // which focus/blur events arrive, so that hook focus state stays accurate.
+      'delivers %s price blur when focus moves from price to percentage field',
+      (_description, getPriceInput, getPctInput, priceBlurHandler) => {
+        const mockPriceBlur = jest.fn();
+        renderView({
+          handlers: {
+            ...defaultMockReturn.handlers,
+            [priceBlurHandler]: mockPriceBlur,
+          },
+        });
+
+        fireEvent(getPriceInput(), 'focus');
+        fireEvent(getPctInput(), 'focus');
+        fireEvent(getPriceInput(), 'blur');
+
+        expect(mockPriceBlur).toHaveBeenCalled();
+      },
+    );
+
+    it.each([
+      ['take profit price', () => getTakeProfitPriceInput()],
+      ['take profit percentage', () => getTakeProfitPercentageInput()],
+      ['stop loss price', () => getStopLossPriceInput()],
+      ['stop loss percentage', () => getStopLossPercentageInput()],
+    ])(
+      'renders %s input with showSoftInputOnFocus={false}',
+      (_description, getInput) => {
+        renderView();
+        expect(getInput().props.showSoftInputOnFocus).toBe(false);
+      },
+    );
+
+    it('does not call Keyboard.dismiss when an input is focused', () => {
+      const { Keyboard } = jest.requireActual('react-native');
+      const dismissSpy = jest.spyOn(Keyboard, 'dismiss');
+      renderView();
+
+      fireEvent(getTakeProfitPriceInput(), 'focus');
+
+      expect(dismissSpy).not.toHaveBeenCalled();
+      dismissSpy.mockRestore();
+    });
   });
 
   // ==================== Display Hook Data ====================
@@ -472,11 +540,13 @@ describe('PerpsTPSLView', () => {
   // ==================== Navigation and Actions ====================
 
   describe('Navigation and Actions', () => {
-    it('navigates back when back button pressed', () => {
+    it('navigates back when back button pressed', async () => {
       renderView();
 
       const backButton = screen.getByTestId('back-button');
-      fireEvent.press(backButton);
+      await act(async () => {
+        fireEvent.press(backButton);
+      });
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
@@ -490,6 +560,10 @@ describe('PerpsTPSLView', () => {
           takeProfitPrice: '$3,150.00',
           stopLossPrice: '$2,850.00',
         },
+        validation: {
+          ...defaultMockReturn.validation,
+          hasChanges: true,
+        },
       });
 
       const setButton = screen.getByText('perps.tpsl.set');
@@ -497,36 +571,51 @@ describe('PerpsTPSLView', () => {
         fireEvent.press(setButton);
       });
 
-      expect(mockOnConfirm).toHaveBeenCalledWith('3150.00', '2850.00', {
-        direction: 'long',
-        source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
-        positionSize: 0,
-        takeProfitPercentage: undefined,
-        stopLossPercentage: undefined,
-        isEditingExistingPosition: false,
-        entryPrice: 3000,
-      });
+      expect(mockOnConfirm).toHaveBeenCalledWith(
+        undefined,
+        '3150.00',
+        '2850.00',
+        {
+          direction: 'long',
+          source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
+          positionSize: 0,
+          takeProfitPercentage: undefined,
+          stopLossPercentage: undefined,
+          isEditingExistingPosition: false,
+          entryPrice: 3000,
+        },
+      );
     });
 
     it('calls onConfirm with undefined when values are empty', async () => {
       const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
       mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
-      renderView();
+      renderView({
+        validation: {
+          ...defaultMockReturn.validation,
+          hasChanges: true,
+        },
+      });
 
       const setButton = screen.getByText('perps.tpsl.set');
       await act(async () => {
         fireEvent.press(setButton);
       });
 
-      expect(mockOnConfirm).toHaveBeenCalledWith(undefined, undefined, {
-        direction: 'long',
-        source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
-        positionSize: 0,
-        takeProfitPercentage: undefined,
-        stopLossPercentage: undefined,
-        isEditingExistingPosition: false,
-        entryPrice: 3000,
-      });
+      expect(mockOnConfirm).toHaveBeenCalledWith(
+        undefined,
+        undefined,
+        undefined,
+        {
+          direction: 'long',
+          source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
+          positionSize: 0,
+          takeProfitPercentage: undefined,
+          stopLossPercentage: undefined,
+          isEditingExistingPosition: false,
+          entryPrice: 3000,
+        },
+      );
     });
 
     it('dismisses keypad before confirming when input is focused', async () => {
@@ -546,10 +635,14 @@ describe('PerpsTPSLView', () => {
       fireEvent(getTakeProfitPriceInput(), 'focus');
 
       const doneButton = screen.getByText('perps.tpsl.done');
-      fireEvent.press(doneButton);
+      await act(async () => {
+        fireEvent.press(doneButton);
+      });
 
       const setButton = screen.getByText('perps.tpsl.set');
-      fireEvent.press(setButton);
+      await act(async () => {
+        fireEvent.press(setButton);
+      });
 
       expect(mockOnConfirm).toHaveBeenCalled();
     });

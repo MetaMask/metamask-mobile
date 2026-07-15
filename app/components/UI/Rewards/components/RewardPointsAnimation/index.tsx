@@ -2,15 +2,12 @@ import React, { useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import Rive, { Alignment, Fit } from 'rive-react-native';
 import Animated from 'react-native-reanimated';
-import {
-  IconSize,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useTheme } from '../../../../../util/theme';
 import Icon, {
   IconName,
+  IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import {
   useRewardsAnimation,
@@ -18,7 +15,7 @@ import {
 } from '../../hooks/useRewardsAnimation';
 import styleSheet from './index.styles';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const RewardsIconAnimation = require('../../../../../animations/rewards_icon_animations.riv');
 
 /**

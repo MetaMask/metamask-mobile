@@ -1,18 +1,20 @@
-import { FlaskBuildTests } from '../../../e2e/tags';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import { SmokeSnaps } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
+import TestSnaps from '../../page-objects/Browser/TestSnaps';
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('WASM Snap Tests'), () => {
+describe(SmokeSnaps('WASM Snap Tests'), () => {
   it('can connect to the WASM Snap', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -29,6 +31,7 @@ describe(FlaskBuildTests('WASM Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.fillMessage('wasmInput', '23');

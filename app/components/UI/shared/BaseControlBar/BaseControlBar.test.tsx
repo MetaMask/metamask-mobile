@@ -7,8 +7,11 @@ import BaseControlBar, { BaseControlBarProps } from './BaseControlBar';
 import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
-import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
+import {
+  AvatarNetwork,
+  ButtonIcon,
+  SelectButton,
+} from '@metamask/design-system-react-native';
 
 // Mock dependencies
 jest.mock('../../../../util/networks', () => ({
@@ -51,32 +54,15 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 // Mock selectors
-const mockSelectIsAllNetworks = jest.fn();
-const mockSelectIsPopularNetwork = jest.fn();
-const mockSelectIsEvmNetworkSelected = jest.fn();
 const mockSelectNetworkName = jest.fn();
-const mockSelectMultichainAccountsState2Enabled = jest.fn();
-
-jest.mock('../../../../selectors/networkController', () => ({
-  selectIsAllNetworks: () => mockSelectIsAllNetworks(),
-  selectIsPopularNetwork: () => mockSelectIsPopularNetwork(),
-}));
-
-jest.mock('../../../../selectors/multichainNetworkController', () => ({
-  selectIsEvmNetworkSelected: () => mockSelectIsEvmNetworkSelected(),
-}));
 
 jest.mock('../../../../selectors/networkInfos', () => ({
   selectNetworkName: () => mockSelectNetworkName(),
 }));
 
-jest.mock(
-  '../../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () =>
-      mockSelectMultichainAccountsState2Enabled(),
-  }),
-);
+jest.mock('../../../../selectors/networkController', () => ({
+  selectEvmChainId: () => '0x1',
+}));
 
 // Mock typed functions
 const mockUseCurrentNetworkInfo = useCurrentNetworkInfo as jest.MockedFunction<
@@ -123,9 +109,12 @@ jest.mock('@metamask/keyring-api', () => ({
   isEvmAccountType: jest.fn(() => true),
 }));
 
-jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
-  selectSelectedInternalAccountByScope: jest.fn(() => jest.fn(() => null)),
-}));
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => {
+  const stableNullAccountSelector = () => null;
+  return {
+    selectSelectedInternalAccountByScope: () => stableNullAccountSelector,
+  };
+});
 
 jest.mock('../../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: jest.fn(),
@@ -165,6 +154,8 @@ describe('BaseControlBar', () => {
     }),
     isDisabled: false,
     hasEnabledNetworks: true,
+    isNetworkEnabledForDefi: true,
+    hasMultipleNamespacesEnabled: false,
   };
 
   const defaultNetworksByNamespace = {
@@ -217,18 +208,15 @@ describe('BaseControlBar', () => {
     useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue({
       areAllNetworksSelected: false,
       totalEnabledNetworksCount: 2,
+      networkCount: 10,
+      selectedCount: 9,
     });
     useStylesModule.useStyles.mockReturnValue({ styles: defaultStyles });
     useNetworkEnablementModule.useNetworkEnablement.mockReturnValue({
       enableAllPopularNetworks: jest.fn(),
     });
 
-    // Setup selector mocks
-    mockSelectIsAllNetworks.mockReturnValue(false);
-    mockSelectIsPopularNetwork.mockReturnValue(false);
-    mockSelectIsEvmNetworkSelected.mockReturnValue(true);
     mockSelectNetworkName.mockReturnValue('Ethereum Mainnet');
-    mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
   });
 
   const renderComponent = (
@@ -244,17 +232,17 @@ describe('BaseControlBar', () => {
   };
 
   describe('Basic rendering', () => {
-    it('should render with network filter button', () => {
+    it('renders with network filter button', () => {
       const { getByTestId } = renderComponent();
       expect(getByTestId('test-network-filter')).toBeTruthy();
     });
 
-    it('should render with sort button', () => {
+    it('renders with sort button', () => {
       const sortButtons = renderComponent().UNSAFE_getAllByType(ButtonIcon);
       expect(sortButtons.length).toBeGreaterThan(0);
     });
 
-    it('should render additional buttons when provided', () => {
+    it('renders additional buttons when provided', () => {
       const additionalButton = (
         <Text testID="additional-button">Add Token</Text>
       );
@@ -271,7 +259,7 @@ describe('BaseControlBar', () => {
       expect(getByText('wallet.popular_networks')).toBeTruthy();
     });
 
-    it('should show current network name when only one network is enabled', () => {
+    it('shows current network name when only one network is enabled', () => {
       const singleNetworkInfo = {
         ...defaultNetworkInfo,
         enabledNetworks: [{ chainId: '1', enabled: true }],
@@ -288,7 +276,7 @@ describe('BaseControlBar', () => {
       expect(getByText('Ethereum Mainnet')).toBeTruthy();
     });
 
-    it('should show fallback text when no network info is available', () => {
+    it('shows fallback text when no network info is available', () => {
       const noNetworkInfo = {
         ...defaultNetworkInfo,
         enabledNetworks: [{ chainId: '1', enabled: true }], // Single network
@@ -306,7 +294,7 @@ describe('BaseControlBar', () => {
       expect(getByText('wallet.current_network')).toBeTruthy();
     });
 
-    it('should show network avatar when not all networks selected', () => {
+    it('does not show network avatar beside "Popular Networks" when multiple networks enabled', () => {
       useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
         {
           areAllNetworksSelected: false,
@@ -314,14 +302,23 @@ describe('BaseControlBar', () => {
         },
       );
 
-      renderComponent();
-      // Avatar should be rendered (tested via component structure)
-      expect(
-        useNetworksByNamespaceModule.useNetworksByCustomNamespace,
-      ).toHaveBeenCalled();
+      const { UNSAFE_queryAllByType } = renderComponent();
+      expect(UNSAFE_queryAllByType(AvatarNetwork)).toHaveLength(0);
     });
 
-    it('should not show network avatar when all networks selected', () => {
+    it('shows network avatar when one network enabled and not all popular selected', () => {
+      useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
+        {
+          areAllNetworksSelected: false,
+          totalEnabledNetworksCount: 1,
+        },
+      );
+
+      const { UNSAFE_getAllByType } = renderComponent();
+      expect(UNSAFE_getAllByType(AvatarNetwork).length).toBeGreaterThan(0);
+    });
+
+    it('does not show network avatar when all networks selected', () => {
       useNetworksByNamespaceModule.useNetworksByCustomNamespace.mockReturnValue(
         {
           areAllNetworksSelected: true,
@@ -337,19 +334,7 @@ describe('BaseControlBar', () => {
   });
 
   describe('Button interactions', () => {
-    it('navigates to NetworkManager when filter button pressed without custom handler', () => {
-      const { getByTestId } = renderComponent();
-      const filterButton = getByTestId('test-network-filter');
-
-      fireEvent.press(filterButton);
-
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'NetworkManager',
-        {},
-      );
-    });
-
-    it('should call custom filter handler when provided', () => {
+    it('calls custom filter handler when provided', () => {
       const customFilterHandler = jest.fn();
       const { getByTestId } = renderComponent({
         onFilterPress: customFilterHandler,
@@ -362,7 +347,7 @@ describe('BaseControlBar', () => {
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('should call default sort handler when no custom handler provided', () => {
+    it('calls default sort handler when no custom handler provided', () => {
       const { UNSAFE_getAllByType } = renderComponent();
       const buttonIcons = UNSAFE_getAllByType(ButtonIcon);
       const sortButton = buttonIcons[0]; // First ButtonIcon should be sort button
@@ -375,7 +360,7 @@ describe('BaseControlBar', () => {
       );
     });
 
-    it('should call custom sort handler when provided', () => {
+    it('calls custom sort handler when provided', () => {
       const customSortHandler = jest.fn();
       const { UNSAFE_getAllByType } = renderComponent({
         onSortPress: customSortHandler,
@@ -390,8 +375,8 @@ describe('BaseControlBar', () => {
     });
   });
 
-  describe('EVM selection logic', () => {
-    it('navigates to NetworkManager by default', () => {
+  describe('Filter button behavior', () => {
+    it('navigates to NetworkManager when filter button is pressed', () => {
       const { getByTestId } = renderComponent();
       const filterButton = getByTestId('test-network-filter');
 
@@ -403,170 +388,35 @@ describe('BaseControlBar', () => {
       );
     });
 
-    it('should navigate to TokenFilter when useEvmSelectionLogic is true and EVM is selected', () => {
-      mockSelectIsEvmNetworkSelected.mockReturnValue(true);
+    it('renders SelectButton for network filter', () => {
+      const { UNSAFE_getAllByType } = renderComponent();
+      const selectButtons = UNSAFE_getAllByType(SelectButton);
 
-      const { getByTestId } = renderComponent({
-        useEvmSelectionLogic: true,
-      });
-      const filterButton = getByTestId('test-network-filter');
-
-      fireEvent.press(filterButton);
-
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'NetworkManager',
-        {},
-      );
-    });
-
-    it('should not navigate when useEvmSelectionLogic is true and EVM is not selected', () => {
-      mockSelectIsEvmNetworkSelected.mockReturnValue(false);
-
-      const { getByTestId } = renderComponent({
-        useEvmSelectionLogic: true,
-      });
-      const filterButton = getByTestId('test-network-filter');
-
-      fireEvent.press(filterButton);
-
-      expect(mockNavigation.navigate).not.toHaveBeenCalled();
-    });
-
-    it('should always navigate when useEvmSelectionLogic is false', () => {
-      mockSelectIsEvmNetworkSelected.mockReturnValue(false);
-
-      const { getByTestId } = renderComponent({
-        useEvmSelectionLogic: false,
-      });
-      const filterButton = getByTestId('test-network-filter');
-
-      fireEvent.press(filterButton);
-
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        'NetworkManager',
-        {},
-      );
-    });
-
-    it('should show arrow icon when EVM is selected and useEvmSelectionLogic is true', () => {
-      mockSelectIsEvmNetworkSelected.mockReturnValue(true);
-
-      const { UNSAFE_getAllByType } = renderComponent({
-        useEvmSelectionLogic: true,
-      });
-      const buttonBases = UNSAFE_getAllByType(ButtonBase);
-
-      expect(buttonBases[0].props.endIconName).toBe('ArrowDown');
-    });
-
-    it('should not show arrow icon when EVM is not selected and useEvmSelectionLogic is true', () => {
-      mockSelectIsEvmNetworkSelected.mockReturnValue(false);
-
-      const { UNSAFE_getAllByType } = renderComponent({
-        useEvmSelectionLogic: true,
-      });
-      const buttonBases = UNSAFE_getAllByType(ButtonBase);
-
-      expect(buttonBases[0].props.endIconName).toBeUndefined();
-    });
-
-    it('should always show arrow icon when useEvmSelectionLogic is false', () => {
-      mockSelectIsEvmNetworkSelected.mockReturnValue(false);
-
-      const { UNSAFE_getAllByType } = renderComponent({
-        useEvmSelectionLogic: false,
-      });
-      const buttonBases = UNSAFE_getAllByType(ButtonBase);
-
-      expect(buttonBases[0].props.endIconName).toBe('ArrowDown');
+      expect(selectButtons).toHaveLength(1);
+      expect(selectButtons[0].props.variant).toBe('primary');
     });
   });
 
   describe('Disabled states', () => {
-    it('should use custom isDisabled when provided', () => {
-      const { getByTestId } = renderComponent({
-        isDisabled: true,
-      });
-      const filterButton = getByTestId('test-network-filter');
-
-      expect(filterButton.props.disabled).toBe(true);
-    });
-
-    it('should fall back to hook isDisabled when custom not provided', () => {
-      const disabledNetworkInfo = {
-        ...defaultNetworkInfo,
-        isDisabled: true,
-      };
-      mockUseCurrentNetworkInfo.mockReturnValue(disabledNetworkInfo);
-
+    it('renders filter button as enabled when no custom isDisabled param is provided', () => {
       const { getByTestId } = renderComponent();
       const filterButton = getByTestId('test-network-filter');
 
-      expect(filterButton.props.disabled).toBe(true);
+      expect(filterButton).toBeEnabled();
     });
 
-    it('should apply disabled styles when disabled', () => {
+    it('respects custom isDisabled param when provided', () => {
       const { getByTestId } = renderComponent({
         isDisabled: true,
       });
       const filterButton = getByTestId('test-network-filter');
 
-      expect(filterButton.props.style).toBeDefined();
-      expect(filterButton.props.style.opacity).toBe(0.5);
-    });
-
-    it('should apply normal styles when not disabled', () => {
-      const { getByTestId } = renderComponent({
-        isDisabled: false,
-      });
-      const filterButton = getByTestId('test-network-filter');
-
-      expect(filterButton.props.style).toBeDefined();
-      expect(filterButton.props.style.opacity).toBeUndefined();
-    });
-
-    it('should enable button when multichain accounts state 2 is enabled', () => {
-      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
-      const disabledNetworkInfo = {
-        ...defaultNetworkInfo,
-        isDisabled: true,
-      };
-      mockUseCurrentNetworkInfo.mockReturnValue(disabledNetworkInfo);
-
-      const { getByTestId } = renderComponent();
-      const filterButton = getByTestId('test-network-filter');
-
-      expect(filterButton.props.disabled).toBe(false);
-    });
-
-    it('should respect custom isDisabled over multichain accounts state', () => {
-      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
-
-      const { getByTestId } = renderComponent({
-        isDisabled: true,
-      });
-      const filterButton = getByTestId('test-network-filter');
-
-      expect(filterButton.props.disabled).toBe(true);
-    });
-
-    it('should use hook isDisabled when multichain accounts state 2 is disabled', () => {
-      mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
-      const disabledNetworkInfo = {
-        ...defaultNetworkInfo,
-        isDisabled: true,
-      };
-      mockUseCurrentNetworkInfo.mockReturnValue(disabledNetworkInfo);
-
-      const { getByTestId } = renderComponent();
-      const filterButton = getByTestId('test-network-filter');
-
-      expect(filterButton.props.disabled).toBe(true);
+      expect(filterButton).toBeDisabled();
     });
   });
 
   describe('Custom wrapper layouts', () => {
-    it('should render with outer wrapper by default', () => {
+    it('renders with outer wrapper by default', () => {
       const { getByTestId } = renderComponent();
       const filterButton = getByTestId('test-network-filter');
 
@@ -574,7 +424,7 @@ describe('BaseControlBar', () => {
       expect(filterButton).toBeTruthy();
     });
 
-    it('should render without outer wrapper when customWrapper is "none"', () => {
+    it('renders without outer wrapper when customWrapper is "none"', () => {
       const { getByTestId } = renderComponent({
         customWrapper: 'none',
       });
@@ -583,7 +433,7 @@ describe('BaseControlBar', () => {
       expect(filterButton).toBeTruthy();
     });
 
-    it('should render with outer wrapper when customWrapper is "outer"', () => {
+    it('renders with outer wrapper when customWrapper is "outer"', () => {
       const { getByTestId } = renderComponent({
         customWrapper: 'outer',
       });
@@ -594,16 +444,13 @@ describe('BaseControlBar', () => {
   });
 
   describe('Edge cases and error handling', () => {
-    it('should handle missing selector values gracefully', () => {
+    it('handles missing selector values gracefully', () => {
       mockSelectNetworkName.mockReturnValue(undefined);
-      mockSelectIsAllNetworks.mockReturnValue(undefined);
-      mockSelectIsPopularNetwork.mockReturnValue(undefined);
-      mockSelectIsEvmNetworkSelected.mockReturnValue(undefined);
 
       expect(() => renderComponent()).not.toThrow();
     });
 
-    it('should handle network image source generation', () => {
+    it('handles network image source generation', () => {
       const networkInfo = {
         ...defaultNetworkInfo,
         enabledNetworks: [{ chainId: '0x1', enabled: true }],
@@ -615,7 +462,7 @@ describe('BaseControlBar', () => {
   });
 
   describe('Integration with strings', () => {
-    it('should call strings function for localized text', () => {
+    it('calls strings function for localized text', () => {
       const multiNetworkInfo = {
         ...defaultNetworkInfo,
         enabledNetworks: [

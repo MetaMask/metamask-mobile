@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
-import GenericButton from '../GenericButton'; // eslint-disable-line import/no-unresolved
+import GenericButton from '../GenericButton'; // eslint-disable-line import-x/no-unresolved
 import { useTheme } from '../../../util/theme';
 import { ViewPropTypes } from 'deprecated-react-native-prop-types';
 
@@ -22,7 +22,7 @@ const createStyles = (colors) =>
 /**
  * @deprecated The `<Button>` component has been deprecated in favor of `<Button>` from `@metamask/design-system-react-native`.
  *
- * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/Button | Button component}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Button/README.md | Button component}
  *
  * Please replace this component with the equivalent component from `@metamask/design-system-react-native`.
  *

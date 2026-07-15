@@ -118,6 +118,35 @@ import migration114 from './114';
 import migration115 from './115';
 import migration116 from './116';
 import migration117 from './117';
+import migration118 from './118';
+import migration119 from './119';
+import migration120 from './120';
+import migration121 from './121';
+import migration122 from './122';
+import migration123 from './123';
+import migration124 from './124';
+import migration125 from './125';
+import migration126 from './126';
+import migration127 from './127';
+import migration128 from './128';
+import migration129 from './129';
+import migration130 from './130';
+import migration131 from './131';
+import migration132 from './132';
+import migration133 from './133';
+import migration134 from './134';
+import migration135 from './135';
+import migration136 from './136';
+import migration137 from './137';
+import migration138 from './138';
+import migration139 from './139';
+import migration140 from './140';
+import migration141 from './141';
+import migration142 from './142';
+import migration143 from './143';
+import migration144 from './144';
+import migration145 from './145';
+import migration146 from './146';
 
 // Add migrations above this line
 import { ControllerStorage } from '../persistConfig';
@@ -255,6 +284,35 @@ export const migrationList: MigrationsList = {
   115: migration115,
   116: migration116,
   117: migration117,
+  118: migration118,
+  119: migration119,
+  120: migration120,
+  121: migration121,
+  122: migration122,
+  123: migration123,
+  124: migration124,
+  125: migration125,
+  126: migration126,
+  127: migration127,
+  128: migration128,
+  129: migration129,
+  130: migration130,
+  131: migration131,
+  132: migration132,
+  133: migration133,
+  134: migration134,
+  135: migration135,
+  136: migration136,
+  137: migration137,
+  138: migration138,
+  139: migration139,
+  140: migration140,
+  141: migration141,
+  142: migration142,
+  143: migration143,
+  144: migration144,
+  145: migration145,
+  146: migration146,
 };
 
 // Enable both synchronous and asynchronous migrations

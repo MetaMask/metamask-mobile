@@ -4,7 +4,7 @@ import { usePerpsPositions } from './usePerpsPositions';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsConnection } from './usePerpsConnection';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import type { Position } from '../controllers/types';
+import { type Position } from '@metamask/perps-controller';
 
 jest.mock('./usePerpsTrading');
 jest.mock('./usePerpsConnection');
@@ -14,7 +14,7 @@ jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import-x/no-commonjs
 const { useFocusEffect } = require('@react-navigation/native') as {
   useFocusEffect: jest.Mock;
 };

@@ -4,16 +4,12 @@ import { render, act, fireEvent } from '@testing-library/react-native';
 import PerpsLoadingSkeleton from './PerpsLoadingSkeleton';
 
 // Mock the theme hook
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        muted: '#6B7280',
-        alternative: '#6B7280',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 // Mock the tailwind hook
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -39,17 +35,6 @@ jest.mock('../../hooks/usePerpsConnection', () => ({
   usePerpsConnection: () => ({
     reconnectWithNewContext: mockReconnect,
   }),
-}));
-
-// Mock react-redux
-const mockUseSelector = jest.fn();
-jest.mock('react-redux', () => ({
-  useSelector: (selector: unknown) => mockUseSelector(selector),
-}));
-
-// Mock the homepage redesign selector
-jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
-  selectHomepageRedesignV1Enabled: jest.fn(),
 }));
 
 // Mock the design system components
@@ -129,13 +114,11 @@ describe('PerpsLoadingSkeleton', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     mockReconnect.mockClear();
-    mockUseSelector.mockReturnValue(false);
   });
 
   afterEach(() => {
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
-    mockUseSelector.mockClear();
   });
 
   it('displays loading spinner initially', () => {

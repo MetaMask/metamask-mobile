@@ -1,4 +1,4 @@
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-namespace */
 import * as Sentry from '@sentry/react-native';
 import { dedupeIntegration, extraErrorDataIntegration } from '@sentry/browser';
 import { Breadcrumb, Event as SentryEvent } from '@sentry/core';
@@ -10,7 +10,7 @@ import {
 } from 'expo-updates';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import { regex } from '../regex';
-import { isE2E, isQa } from '../test/utils';
+import { hasTestOverrides, isE2EOrExpEnvironment } from '../test/utils';
 import { store } from '../../store';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
@@ -154,39 +154,11 @@ export const sentryStateMask = {
       SnapInterface: {
         [AllProperties]: false,
       },
-      SnapsRegistry: {
+      SnapRegistryController: {
         [AllProperties]: false,
       },
       SubjectMetadataController: {
         [AllProperties]: false,
-      },
-      SwapsController: {
-        swapsState: {
-          customGasPrice: true,
-          customMaxFeePerGas: true,
-          customMaxGas: true,
-          customMaxPriorityFeePerGas: true,
-          errorKey: true,
-          fetchParams: true,
-          quotesLastFetched: true,
-          quotesPollingLimitEnabled: true,
-          routeState: true,
-          saveFetchedQuotes: true,
-          selectedAggId: true,
-          swapsFeatureFlags: true,
-          swapsFeatureIsLive: true,
-          swapsQuotePrefetchingRefreshTime: true,
-          swapsQuoteRefreshTime: true,
-          swapsStxBatchStatusRefreshTime: true,
-          swapsStxGetTransactionsRefreshTime: true,
-          swapsStxMaxFeeMultiplier: true,
-          swapsUserFeeLevel: true,
-        },
-      },
-      TokenListController: {
-        tokensChainsCache: {
-          [AllProperties]: false,
-        },
       },
       TokenRatesController: {
         [AllProperties]: false,
@@ -634,7 +606,7 @@ export async function setupSentry(
   const dsn = process.env.MM_SENTRY_DSN;
 
   // Disable Sentry for E2E tests or when DSN is not provided
-  if (isE2E || !dsn) {
+  if (hasTestOverrides || !dsn) {
     return;
   }
 
@@ -655,9 +627,9 @@ export async function setupSentry(
       dsn,
       debug: isDev && process.env.SENTRY_DEBUG_DEV !== 'false',
       environment,
-      integrations,
+      integrations: integrations as Sentry.ReactNativeOptions['integrations'],
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
-      tracesSampleRate: isDev || isQa ? 1.0 : 0.03,
+      tracesSampleRate: isDev || isE2EOrExpEnvironment ? 1.0 : 0.03,
       profilesSampleRate: 1.0,
       beforeSend: (report) => {
         const rewritten = rewriteReport(report as SentryEvent);

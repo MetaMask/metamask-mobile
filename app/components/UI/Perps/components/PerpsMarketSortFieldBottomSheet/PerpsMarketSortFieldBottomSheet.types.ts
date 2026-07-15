@@ -1,5 +1,8 @@
-import type { SortField, SortDirection } from '../../utils/sortMarkets';
-import type { SortOptionId } from '../../constants/perpsConfig';
+import {
+  type SortField,
+  type SortDirection,
+  type SortOptionId,
+} from '@metamask/perps-controller';
 
 /**
  * Props for PerpsMarketSortFieldBottomSheet component

@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-native';
 import {
   ConfirmationContextProvider,
   useConfirmationContext,
@@ -14,10 +14,20 @@ describe('ConfirmationContext', () => {
     const { result } = renderHook(() => useConfirmationContext(), { wrapper });
 
     expect(result.current).toStrictEqual({
+      mmPayRequestInProgressNavHandler: expect.objectContaining({
+        current: false,
+      }),
+      headlessBuyError: undefined,
       isFooterVisible: undefined,
+      isConfirmationSubmitting: false,
+      isConfirmationSubmittingRef: { current: false },
+      isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
+      setHeadlessBuyError: expect.any(Function),
       setIsFooterVisible: expect.any(Function),
+      setIsConfirmationSubmitting: expect.any(Function),
+      setIsHeadlessBuyInProgress: expect.any(Function),
       setIsTransactionDataUpdating: expect.any(Function),
       setIsTransactionValueUpdating: expect.any(Function),
     });
@@ -42,9 +52,27 @@ describe('ConfirmationContext', () => {
   it('updates isFooterVisible state when calling setIsFooterVisible', () => {
     const { result } = renderHook(() => useConfirmationContext(), { wrapper });
 
-    result.current.setIsFooterVisible(false);
+    act(() => {
+      result.current.setIsFooterVisible(false);
+    });
 
     expect(result.current.isFooterVisible).toBe(false);
+  });
+
+  it('updates isHeadlessBuyInProgress state when calling setIsHeadlessBuyInProgress', () => {
+    const { result } = renderHook(() => useConfirmationContext(), { wrapper });
+
+    act(() => {
+      result.current.setIsHeadlessBuyInProgress(true);
+    });
+
+    expect(result.current.isHeadlessBuyInProgress).toBe(true);
+
+    act(() => {
+      result.current.setIsHeadlessBuyInProgress(false);
+    });
+
+    expect(result.current.isHeadlessBuyInProgress).toBe(false);
   });
 
   it('updates isTransactionDataUpdating state when calling setIsTransactionDataUpdating', () => {
@@ -61,5 +89,25 @@ describe('ConfirmationContext', () => {
     });
 
     expect(result.current.isTransactionDataUpdating).toBe(false);
+  });
+
+  it('updates isConfirmationSubmitting state when calling setIsConfirmationSubmitting', () => {
+    const { result } = renderHook(() => useConfirmationContext(), { wrapper });
+
+    act(() => {
+      result.current.setIsConfirmationSubmitting(true);
+      expect(result.current.isConfirmationSubmittingRef.current).toBe(true);
+    });
+
+    expect(result.current.isConfirmationSubmitting).toBe(true);
+    expect(result.current.isConfirmationSubmittingRef.current).toBe(true);
+
+    act(() => {
+      result.current.setIsConfirmationSubmitting(false);
+      expect(result.current.isConfirmationSubmittingRef.current).toBe(false);
+    });
+
+    expect(result.current.isConfirmationSubmitting).toBe(false);
+    expect(result.current.isConfirmationSubmittingRef.current).toBe(false);
   });
 });

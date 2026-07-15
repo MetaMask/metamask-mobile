@@ -3,9 +3,10 @@ import {
   RouteProp,
   StackActions,
 } from '@react-navigation/native';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { Alert } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
@@ -16,6 +17,7 @@ import {
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictSellPreview from './PredictSellPreview';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 /**
  * Mock Strategy:
  * - Only mock external dependencies (Engine, Alert, navigation, hooks with API calls)
@@ -89,12 +91,43 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
       result: mockPlaceOrderResult,
       error: mockPlaceOrderError,
       reset: mockReset,
+      isOrderNotFilled: false,
+      resetOrderNotFilled: jest.fn(),
     };
   },
 }));
 
-// Mock usePredictOrderPreview hook - external API dependency
-let mockPreview: {
+jest.mock('../../hooks/usePredictOrderRetry', () => ({
+  usePredictOrderRetry: () => ({
+    retrySheetRef: { current: null },
+    retrySheetVariant: 'busy' as const,
+    isRetrying: false,
+    handleRetryWithBestPrice: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/usePredictRewards', () => ({
+  usePredictRewards: jest.fn(() => ({
+    shouldShowRewardsRow: false,
+    accountOptedIn: false,
+    rewardsAccountScope: null,
+    estimatedPoints: null,
+    isLoading: false,
+    hasError: false,
+  })),
+}));
+
+interface MockFees {
+  metamaskFee: number;
+  providerFee: number;
+  totalFee: number;
+  totalFeePercentage: number;
+  collector: string;
+  executors: string[];
+  permit2Enabled: boolean;
+}
+
+interface MockPreview {
   marketId: string;
   outcomeId: string;
   outcomeTokenId: string;
@@ -107,7 +140,21 @@ let mockPreview: {
   tickSize: number;
   minOrderSize: number;
   negRisk: boolean;
-} | null = {
+  fees?: MockFees;
+}
+
+const mockFees: MockFees = {
+  metamaskFee: 1.8,
+  providerFee: 0.6,
+  totalFee: 2.4,
+  totalFeePercentage: 4,
+  collector: '0xCollector',
+  executors: [],
+  permit2Enabled: false,
+};
+
+// Mock usePredictOrderPreview hook - external API dependency
+let mockPreview: MockPreview | null = {
   marketId: 'market-1',
   outcomeId: 'outcome-456',
   outcomeTokenId: 'outcome-token-789',
@@ -120,6 +167,7 @@ let mockPreview: {
   tickSize: 0.01,
   minOrderSize: 1,
   negRisk: false,
+  fees: mockFees,
 };
 let mockPreviewError: string | null = null;
 let mockIsCalculating = false;
@@ -134,7 +182,7 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
 
 const mockPosition: PredictPosition = {
   id: 'position-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: 'market-1',
   outcomeId: 'outcome-456',
   outcome: 'Yes',
@@ -158,7 +206,7 @@ const mockPosition: PredictPosition = {
 
 const mockOutcome: PredictOutcome = {
   id: 'outcome-123',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: 'market-123',
   title: 'Bitcoin Price Outcome',
   description: 'Outcome description',
@@ -177,7 +225,7 @@ const mockOutcome: PredictOutcome = {
 
 const mockMarket = {
   id: 'market-123',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   slug: 'bitcoin-price',
   title: 'Will Bitcoin reach $150,000?',
   description: 'Market description',
@@ -213,8 +261,9 @@ const mockNavigation: NavigationProp<PredictNavigationParamList> = {
   removeListener: jest.fn(),
   canGoBack: jest.fn(),
   isFocused: jest.fn(),
-  dangerouslyGetParent: jest.fn(),
-  dangerouslyGetState: jest.fn(),
+  getParent: jest.fn(),
+  getState: jest.fn(),
+  getId: jest.fn(),
 };
 
 const initialState = {
@@ -249,6 +298,7 @@ describe('PredictSellPreview', () => {
       tickSize: 0.01,
       minOrderSize: 1,
       negRisk: false,
+      fees: mockFees,
     };
     mockPreviewError = null;
     mockIsCalculating = false;
@@ -294,12 +344,14 @@ describe('PredictSellPreview', () => {
       expect(screen.getByText('$60')).toBeOnTheScreen();
     });
 
-    it('shows P&L percentage calculated from position data', () => {
+    it('shows P&L percentage calculated from net proceeds after fees', () => {
       renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
-      expect(screen.getByText('+$10 (20%)')).toBeOnTheScreen();
+      // net = minAmountReceived(60) - metamaskFee(1.8) - exchangeFee(0.6) = $57.60
+      // cashPnl = 57.60 - initialValue(50) = 7.60, percentPnl = 15.2%
+      expect(screen.getByText('+$7.60 (15.2%)')).toBeOnTheScreen();
     });
 
     it('shows negative P&L when minAmountReceived is less than initial value', () => {
@@ -360,7 +412,7 @@ describe('PredictSellPreview', () => {
   });
 
   describe('user interactions', () => {
-    it('invokes placeOrder with correct parameters when cash out button pressed', async () => {
+    it('invokes placeOrder with correct parameters when cash out button pressed', () => {
       mockPlaceOrderResult = {
         success: true,
         response: { transactionHash: '0xabc123' },
@@ -373,10 +425,9 @@ describe('PredictSellPreview', () => {
       );
       const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
 
-      await fireEvent.press(cashOutButton);
+      fireEvent.press(cashOutButton);
 
       expect(mockPlaceOrder).toHaveBeenCalledWith({
-        providerId: 'polymarket',
         analyticsProperties: expect.objectContaining({
           marketId: 'market-123',
           marketTitle: 'Will Bitcoin reach $150,000?',
@@ -488,7 +539,7 @@ describe('PredictSellPreview', () => {
   });
 
   describe('navigation after successful order', () => {
-    it('dispatches navigation pop action when placeOrder succeeds', async () => {
+    it('dispatches navigation pop action when placeOrder succeeds', () => {
       mockPlaceOrderResult = {
         success: true,
         response: { transactionHash: '0xabc123' },
@@ -501,7 +552,7 @@ describe('PredictSellPreview', () => {
       );
       const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
 
-      await fireEvent.press(cashOutButton);
+      fireEvent.press(cashOutButton);
 
       expect(mockPlaceOrder).toHaveBeenCalled();
       rerender(<PredictSellPreview />);
@@ -517,6 +568,180 @@ describe('PredictSellPreview', () => {
       expect(mockUseRoute).toHaveBeenCalled();
       expect(
         screen.getByText('Will Bitcoin reach $150,000?'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('sheet mode', () => {
+    const sheetContentProps = {
+      mode: 'sheet' as const,
+      market: mockMarket,
+      position: mockPosition,
+      outcome: mockOutcome,
+      onClose: jest.fn(),
+    };
+
+    beforeEach(() => {
+      sheetContentProps.onClose = jest.fn();
+    });
+
+    it('hides BottomSheetHeader in sheet mode', () => {
+      renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
+        state: initialState,
+      });
+
+      const cashOutTexts = screen.getAllByText('Cash out');
+      expect(cashOutTexts.length).toBe(1);
+    });
+
+    it('renders value section with HeadingLg variant in sheet mode', () => {
+      renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
+        state: initialState,
+      });
+
+      expect(screen.getByText('$60')).toBeOnTheScreen();
+      // net proceeds = 60 - 1.8 - 0.6 = $57.60; cashPnl = 57.60 - 50 = $7.60 (15.2%)
+      expect(screen.getByText('+$7.60 (15.2%)')).toBeOnTheScreen();
+    });
+
+    it('hides position icon row in sheet mode', () => {
+      renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
+        state: initialState,
+      });
+
+      expect(
+        screen.queryByText('Will Bitcoin reach $150,000?'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('calls onClose on successful result in sheet mode', () => {
+      mockPlaceOrderResult = {
+        success: true,
+        response: { transactionHash: '0xabc123' },
+      };
+
+      renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
+        state: initialState,
+      });
+
+      expect(sheetContentProps.onClose).toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith(StackActions.pop());
+    });
+
+    it('shows skeleton in sheet mode when preview is loading', () => {
+      mockPreview = null;
+      mockIsCalculating = true;
+      mockPreviewError = null;
+
+      renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
+        state: initialState,
+      });
+
+      expect(screen.queryByText('$60')).toBeNull();
+    });
+
+    it('reads params from contentProps instead of route in sheet mode', () => {
+      renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
+        state: initialState,
+      });
+
+      expect(screen.getByText('$60')).toBeOnTheScreen();
+    });
+  });
+
+  describe('fee disclosure', () => {
+    it('renders Total row when preview has fees', () => {
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      expect(
+        screen.getByText(strings('predict.fee_summary.total')),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders net proceeds as Total amount after deducting fees', () => {
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      // minAmountReceived(60) - metamaskFee(1.8) - providerFee(0.6) = $57.60
+      expect(screen.getByText('$57.60')).toBeOnTheScreen();
+    });
+
+    it('hides Total row when preview is unavailable', () => {
+      mockPreview = null;
+      mockIsCalculating = true;
+      mockPreviewError = null;
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      expect(
+        screen.queryByText(strings('predict.fee_summary.total')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('closes Price details sheet when preview refreshes to null', async () => {
+      const { rerender } = renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      const totalRow = screen.getByText(strings('predict.fee_summary.total'));
+
+      await act(async () => {
+        fireEvent.press(totalRow);
+      });
+
+      expect(
+        screen.getByText(strings('predict.fee_summary.price_details')),
+      ).toBeOnTheScreen();
+
+      mockPreview = null;
+      mockIsCalculating = true;
+
+      await act(async () => {
+        rerender(<PredictSellPreview />);
+      });
+
+      expect(
+        screen.queryByText(strings('predict.fee_summary.price_details')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens Price details sheet when Total row is pressed', async () => {
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      const totalRow = screen.getByText(strings('predict.fee_summary.total'));
+
+      await act(async () => {
+        fireEvent.press(totalRow);
+      });
+
+      expect(
+        screen.getByText(strings('predict.fee_summary.price_details')),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows MetaMask fee and exchange fee in Price details sheet', async () => {
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      const totalRow = screen.getByText(strings('predict.fee_summary.total'));
+
+      await act(async () => {
+        fireEvent.press(totalRow);
+      });
+
+      expect(
+        screen.getByText(strings('predict.fee_summary.metamask_fee')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('predict.fee_summary.exchange_fee')),
       ).toBeOnTheScreen();
     });
   });

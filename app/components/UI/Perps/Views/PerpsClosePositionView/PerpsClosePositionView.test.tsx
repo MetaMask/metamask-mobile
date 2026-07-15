@@ -60,7 +60,7 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useMetrics');
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 // Only mock components that would cause issues in tests
 // Following best practice: "Use mocks only when necessary"
@@ -82,6 +82,16 @@ jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
   __esModule: true,
   default: 'PerpsBottomSheetTooltip',
 }));
+
+jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+  const MockReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
+  };
+});
 
 const STATE_MOCK = createPerpsStateMock();
 
@@ -342,11 +352,12 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      // Assert - Button should have loading prop set
+      // Assert - Button should be disabled and show closing text when loading
       const confirmButton = getByTestId(
         PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
       );
-      expect(confirmButton.props.loading).toBe(true);
+      expect(confirmButton).toBeDisabled();
+      expect(confirmButton.props.accessibilityState.busy).toBe(true);
     });
   });
 
@@ -432,8 +443,7 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Assert
-      // Fee should be displayed with a minus sign
-      expect(getByText(/-.*10\.5/)).toBeDefined();
+      expect(getByText(/10\.5/)).toBeDefined();
     });
 
     it('updates fees when close percentage changes', async () => {

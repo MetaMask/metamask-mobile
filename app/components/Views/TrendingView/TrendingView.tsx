@@ -1,12 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { TouchableOpacity } from 'react-native';
 import {
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-  ActivityIndicator,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+  RouteProp,
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -17,115 +16,153 @@ import {
   Icon,
   IconSize,
 } from '@metamask/design-system-react-native';
+import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
+import TabsList from '../../../component-library/components-temp/Tabs/TabsList/TabsList';
+import {
+  TabsListRef,
+  TabViewProps,
+} from '../../../component-library/components-temp/Tabs/TabsList/TabsList.types';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
-import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
-import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
-import QuickActions from './components/QuickActions/QuickActions';
-import SectionHeader from './components/SectionHeader/SectionHeader';
-import { useHomeSections, SectionId } from './sections.config';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
-import Section, { RefreshConfig } from './components/Sections/Section';
+import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
+import { useExploreRefresh } from './hooks/useExploreRefresh';
+import NowTab from './tabs/NowTab';
+import MacroTab from './tabs/MacroTab';
+import RwasTab from './tabs/RwasTab';
+import CryptoTab from './tabs/CryptoTab';
+import SportsTab from './tabs/SportsTab';
+import DappsTab from './tabs/DappsTab';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
+import {
+  trackExploreInteracted,
+  type ExploreTabName,
+} from './search/analytics';
+import { EXPLORE_TAB_INDEX } from '../../../constants/navigation/exploreTabIndices';
 
-/**
- * Custom hook to track boolean state for each section
- * Returns the Set of sections with that state and callbacks to update them
- */
-const useSectionStateTracker = (
-  sections: { id: SectionId }[],
-): {
-  sectionsWithState: Set<SectionId>;
-  callbacks: Record<SectionId, (isActive: boolean) => void>;
-} => {
-  const [activeSections, setActiveSections] = useState<Set<SectionId>>(
-    new Set(),
+const TAB_NAMES: ExploreTabName[] = [
+  'Now',
+  'Macro',
+  'RWAs',
+  'Crypto',
+  'Sports',
+  'Sites',
+];
+
+export { EXPLORE_TAB_INDEX } from '../../../constants/navigation/exploreTabIndices';
+
+export interface ExploreFeedRouteParams {
+  initialTab?: number | null;
+  /** Entry surface for `tab_switched` analytics (e.g. `deeplink`). */
+  source?: string;
+}
+
+const useExploreTabNavigationEffect = (opts: {
+  tabsListRef: React.RefObject<TabsListRef | null>;
+  tabNames: ExploreTabName[];
+  pendingExploreEntrySourceRef: React.MutableRefObject<string | undefined>;
+  previousTabRef: React.MutableRefObject<ExploreTabName>;
+}) => {
+  const {
+    tabsListRef,
+    tabNames,
+    pendingExploreEntrySourceRef,
+    previousTabRef,
+  } = opts;
+  const route =
+    useRoute<RouteProp<{ params: ExploreFeedRouteParams }, 'params'>>();
+  const { setParams } = useNavigation();
+  const initialTabIndex = Object.values(EXPLORE_TAB_INDEX).find(
+    (tab) => tab === route.params?.initialTab,
   );
+  const entrySource = route.params?.source;
 
-  const callbacks = useMemo(() => {
-    const result = {} as Record<SectionId, (isActive: boolean) => void>;
+  useFocusEffect(
+    useCallback(() => {
+      if (initialTabIndex === undefined) {
+        return;
+      }
 
-    sections.forEach((section) => {
-      result[section.id] = (isActive: boolean) => {
-        setActiveSections((currentSections) => {
-          const updatedSections = new Set(currentSections);
+      const destinationTab = tabNames[initialTabIndex];
+      if (entrySource) {
+        pendingExploreEntrySourceRef.current = entrySource;
+      }
 
-          if (isActive) {
-            updatedSections.add(section.id);
-          } else {
-            updatedSections.delete(section.id);
-          }
+      const currentIndex = tabsListRef.current?.getCurrentIndex();
+      tabsListRef.current?.goToTabIndex(initialTabIndex);
 
-          return updatedSections;
+      // goToTabIndex only invokes onChangeTab when the tab actually changes.
+      if (entrySource && destinationTab && currentIndex === initialTabIndex) {
+        pendingExploreEntrySourceRef.current = undefined;
+        trackExploreInteracted({
+          interaction_type: 'tab_switched',
+          tab_name: destinationTab,
+          previous_tab: previousTabRef.current,
+          source: entrySource,
         });
-      };
-    });
+      } else if (
+        entrySource &&
+        pendingExploreEntrySourceRef.current === entrySource
+      ) {
+        // Tab switch did not run (e.g. tabs not mounted) — discard stale source.
+        pendingExploreEntrySourceRef.current = undefined;
+      }
 
-    return result;
-  }, [sections]);
-
-  return { sectionsWithState: activeSections, callbacks };
+      setParams?.({ initialTab: null, source: undefined });
+    }, [
+      entrySource,
+      initialTabIndex,
+      pendingExploreEntrySourceRef,
+      previousTabRef,
+      setParams,
+      tabNames,
+      tabsListRef,
+    ]),
+  );
 };
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
-  const { colors } = useTheme();
-  const [refreshing, setRefreshing] = useState(false);
-  const [refreshConfig, setRefreshConfig] = useState<RefreshConfig>({
-    trigger: 0,
-    silentRefresh: true,
-  });
-
-  const homeSections = useHomeSections();
-
-  // Track which sections have empty data and which are loading
-  const { sectionsWithState: emptySections, callbacks: emptyStateCallbacks } =
-    useSectionStateTracker(homeSections);
-
-  const {
-    sectionsWithState: loadingSections,
-    callbacks: loadingStateCallbacks,
-  } = useSectionStateTracker(homeSections);
-
+  const tabProps = useExploreRefresh();
+  const tabsListRef = useRef<TabsListRef>(null);
   const sessionManager = TrendingFeedSessionManager.getInstance();
+  const previousTabRef = useRef<ExploreTabName>('Now');
+  const pendingExploreEntrySourceRef = useRef<string | undefined>(undefined);
 
-  // REMOVED FOR NOW (https://consensys.slack.com/archives/C07NF2K42LE/p1766152712027759?thread_ts=1766135783.241539&cid=C07NF2K42LE)
-  // Trigger refresh only when navigating to an already-mounted screen
-  // useEffect(() => {
-  //   const params = route.params as { refresh?: boolean } | undefined;
+  const handleTabChange = useCallback(({ i }: { i: number }) => {
+    const destinationTab = TAB_NAMES[i];
+    if (!destinationTab) return;
+    const source = pendingExploreEntrySourceRef.current;
+    pendingExploreEntrySourceRef.current = undefined;
+    trackExploreInteracted({
+      interaction_type: 'tab_switched',
+      tab_name: destinationTab,
+      previous_tab: previousTabRef.current,
+      ...(source ? { source } : {}),
+    });
+    previousTabRef.current = destinationTab;
+  }, []);
 
-  //   // Skip refresh on first mount
-  //   if (isFirstMount.current) {
-  //     isFirstMount.current = false;
-  //     return;
-  //   }
-
-  //   if (params?.refresh === true) {
-  //     // Silent refresh - don't show skeletons
-  //     setRefreshConfig((prev) => ({
-  //       trigger: prev.trigger + 1,
-  //       silentRefresh: false,
-  //     }));
-  //   }
-  // }, [route.params]);
+  // Handle tab navigation from route params
+  useExploreTabNavigationEffect({
+    tabsListRef,
+    tabNames: TAB_NAMES,
+    pendingExploreEntrySourceRef,
+    previousTabRef,
+  });
 
   // Initialize session and enable AppState listener on mount
   useEffect(() => {
-    // Enable AppState listener to detect app backgrounding
     sessionManager.enableAppStateListener();
-
-    // Start session
     sessionManager.startSession('trending_feed');
 
     return () => {
-      // End session and disable listener on unmount
       sessionManager.endSession();
       sessionManager.disableAppStateListener();
     };
@@ -142,7 +179,6 @@ export const ExploreFeed: React.FC = () => {
 
   const handleBrowserPress = useCallback(() => {
     if (browserTabsCount > 0) {
-      // If tabs exist, show the tabs view directly
       navigation.navigate(Routes.BROWSER.HOME, {
         screen: Routes.BROWSER.VIEW,
         params: {
@@ -152,7 +188,6 @@ export const ExploreFeed: React.FC = () => {
         },
       });
     } else {
-      // If no tabs exist, open a new tab with portfolio URL
       navigation.navigate(Routes.BROWSER.HOME, {
         screen: Routes.BROWSER.VIEW,
         params: {
@@ -168,111 +203,99 @@ export const ExploreFeed: React.FC = () => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
   }, [navigation]);
 
-  // Clean up timeout when component unmounts or refreshing changes
-  useEffect(() => {
-    if (refreshing) {
-      const timeoutId = setTimeout(() => {
-        setRefreshing(false);
-      }, 1000);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [refreshing]);
-
-  const handleRefresh = useCallback(() => {
-    setRefreshing(true);
-    // Pull-to-refresh - show skeletons
-    setRefreshConfig((prev) => ({
-      trigger: prev.trigger + 1,
-      silentRefresh: true,
-    }));
-  }, []);
-
-  // Show loading indicator when any section is loading during silent refresh
-  const isAnySectionLoading = loadingSections.size > 0;
-
   return (
     <Box
-      style={{ marginTop: insets.top }}
-      twClassName="flex-1 bg-default gap-4"
+      style={tw.style('flex-1 bg-default')}
+      testID={TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA}
     >
-      <Box twClassName="px-4 flex-row items-center justify-between">
-        <Text variant={TextVariant.HeadingLg} twClassName="text-default">
-          {strings('trending.title')}
-        </Text>
-        {!refreshConfig.silentRefresh && isAnySectionLoading && (
-          <ActivityIndicator size="small" color={colors.icon.default} />
-        )}
-      </Box>
+      <HeaderRoot
+        includesTopInset
+        title={strings('trending.title')}
+        testID={TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT}
+      />
 
-      <Box twClassName="flex-row items-center gap-2 px-4">
-        <Box twClassName="flex-1">
-          <ExploreSearchBar type="button" onPress={handleSearchPress} />
+      <Box twClassName="gap-4 flex-1">
+        <Box twClassName="mt-2 mb-2 flex-row items-center gap-2 px-4">
+          <Box twClassName="flex-1">
+            <ExploreSearchBar type="button" onPress={handleSearchPress} />
+          </Box>
+
+          <TouchableOpacity
+            onPress={handleBrowserPress}
+            testID="trending-view-browser-button"
+          >
+            {browserTabsCount > 0 ? (
+              <Box twClassName="rounded-lg items-center justify-center h-8 w-8 border border-muted bg-section">
+                <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
+              </Box>
+            ) : (
+              <Icon name={IconName.Explore} size={IconSize.Xl} />
+            )}
+          </TouchableOpacity>
         </Box>
 
-        <TouchableOpacity
-          onPress={handleBrowserPress}
-          testID="trending-view-browser-button"
-        >
-          {browserTabsCount > 0 ? (
-            <Box twClassName="rounded-md items-center justify-center h-8 w-8 border-2 border-text-default">
-              <Text variant={TextVariant.BodyLg}>{browserTabsCount}</Text>
+        {!isBasicFunctionalityEnabled ? (
+          <BasicFunctionalityEmptyState />
+        ) : (
+          <TabsList
+            ref={tabsListRef}
+            testID="explore-tabs"
+            tabsListContentTwClassName="px-0 mt-0"
+            onChangeTab={handleTabChange}
+          >
+            <Box
+              key="now"
+              twClassName="flex-1"
+              {...({ tabLabel: strings('trending.tabs.now') } as TabViewProps)}
+            >
+              <NowTab {...tabProps} />
             </Box>
-          ) : (
-            <Icon name={IconName.Explore} size={IconSize.Xl} />
-          )}
-        </TouchableOpacity>
+            <Box
+              key="macro"
+              twClassName="flex-1"
+              {...({
+                tabLabel: strings('trending.tabs.macro'),
+              } as TabViewProps)}
+            >
+              <MacroTab {...tabProps} />
+            </Box>
+            <Box
+              key="rwas"
+              twClassName="flex-1"
+              {...({ tabLabel: strings('trending.tabs.rwas') } as TabViewProps)}
+            >
+              <RwasTab {...tabProps} />
+            </Box>
+            <Box
+              key="crypto"
+              twClassName="flex-1"
+              {...({
+                tabLabel: strings('trending.tabs.crypto'),
+              } as TabViewProps)}
+            >
+              <CryptoTab {...tabProps} />
+            </Box>
+            <Box
+              key="sports"
+              twClassName="flex-1"
+              {...({
+                tabLabel: strings('trending.tabs.sports'),
+              } as TabViewProps)}
+            >
+              <SportsTab {...tabProps} />
+            </Box>
+            <Box
+              key="dapps"
+              twClassName="flex-1"
+              {...({
+                tabLabel: strings('trending.tabs.dapps'),
+              } as TabViewProps)}
+            >
+              <DappsTab {...tabProps} />
+            </Box>
+          </TabsList>
+        )}
       </Box>
-
-      {isBasicFunctionalityEnabled ? (
-        <ScrollView
-          testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
-          style={tw.style('flex-1 px-4')}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={colors.icon.default}
-              colors={[colors.primary.default]}
-            />
-          }
-        >
-          <QuickActions emptySections={emptySections} />
-
-          {homeSections.map((section) => {
-            // Hide section visually but keep mounted so it can report when data arrives
-            const isHidden = emptySections.has(section.id);
-
-            const sectionComponent = (
-              <Section
-                sectionId={section.id}
-                refreshConfig={refreshConfig}
-                toggleSectionEmptyState={emptyStateCallbacks[section.id]}
-                toggleSectionLoadingState={loadingStateCallbacks[section.id]}
-              />
-            );
-
-            return (
-              <Box
-                key={section.id}
-                twClassName={isHidden ? 'hidden' : undefined}
-              >
-                <SectionHeader sectionId={section.id} />
-                {section.SectionWrapper ? (
-                  <section.SectionWrapper>
-                    {sectionComponent}
-                  </section.SectionWrapper>
-                ) : (
-                  sectionComponent
-                )}
-              </Box>
-            );
-          })}
-        </ScrollView>
-      ) : (
-        <BasicFunctionalityEmptyState />
-      )}
     </Box>
   );
 };

@@ -15,23 +15,33 @@ import Banner, {
 } from '../../../../../../component-library/components/Banners/Banner';
 import { useSendContext } from '../../../context/send-context/send-context';
 import { RecipientInputMethod } from '../../../context/send-context/send-metrics-context';
+import { useSendAlerts } from '../../../hooks/send/alerts/useSendAlerts';
 import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useAccounts } from '../../../hooks/send/useAccounts';
 import { useContacts } from '../../../hooks/send/useContacts';
 import { useRecipientPageReset } from '../../../hooks/send/useRecipientPageReset';
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendActions } from '../../../hooks/send/useSendActions';
+import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
+import { useAddressPoisoningDetection } from '../../../hooks/send/useAddressPoisoningDetection';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
 import { RecipientInput } from '../../recipient-input';
 import { RecipientList } from '../../recipient-list/recipient-list';
 import { RecipientType } from '../../UI/recipient';
+import { AddressPoisoningAlertContent } from '../address-poisoning-alert-content/address-poisoning-alert-content';
+import { SendAlertModal } from '../send-alert-modal';
 import { styleSheet } from './recipient.styles';
 
 export const Recipient = () => {
   const [isRecipientSelectedFromList, setIsRecipientSelectedFromList] =
     useState(false);
   const [pastedRecipient, setPastedRecipient] = useState<string>();
+  const [autoFilledInputMethod, setAutoFilledInputMethod] = useState<
+    typeof RecipientInputMethod.Pasted | typeof RecipientInputMethod.QrScan
+  >(RecipientInputMethod.Pasted);
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
   const { to, updateTo, asset, chainId } = useSendContext();
+  const { header: renderRecipientHeader } = useSendNavbar().Recipient;
   const { handleSubmitPress } = useSendActions();
   const accounts = useAccounts();
   const contacts = useContacts();
@@ -45,7 +55,20 @@ export const Recipient = () => {
     resolvedAddress,
   } = useToAddressValidation();
 
-  const isReviewButtonDisabled = Boolean(toAddressError);
+  const recipientCandidateAddress =
+    !toAddressError && !loading ? resolvedAddress || to : undefined;
+  const { bestMatch: poisoningMatch } = useAddressPoisoningDetection(
+    recipientCandidateAddress,
+  );
+
+  const {
+    alerts,
+    hasUnacknowledgedAlerts,
+    acknowledgeAlerts,
+    isAlertCheckPending,
+  } = useSendAlerts();
+
+  const hasBlockingError = Boolean(toAddressError);
   // This hook needs to be called to update ERC721 NFTs in send flow
   // because that flow is triggered directly from the asset details page and user is redirected to the recipient page
   useRouteParams();
@@ -59,33 +82,66 @@ export const Recipient = () => {
     }, [setIsSubmittingTransaction, setIsRecipientSelectedFromList]),
   );
 
-  const handleReview = useCallback(
+  const proceedWithSubmit = useCallback(
     async (isPasted?: boolean) => {
-      if (toAddressError || isSubmittingTransaction) {
+      if (isSubmittingTransaction) {
         return;
       }
       // Precheck: only set `isSubmittingTransaction` guard if submission can proceed
       if (!asset || !chainId) {
         return;
       }
+      const recipientAddress = resolvedAddress || to;
+      if (!recipientAddress) {
+        return;
+      }
       setIsSubmittingTransaction(true);
       setPastedRecipient(undefined);
       captureRecipientSelected(
-        isPasted ? RecipientInputMethod.Pasted : RecipientInputMethod.Manual,
+        isPasted ? autoFilledInputMethod : RecipientInputMethod.Manual,
       );
       await handleSubmitPress(resolvedAddress || to);
       setIsSubmittingTransaction(false);
     },
     [
       to,
-      toAddressError,
       handleSubmitPress,
       captureRecipientSelected,
+      autoFilledInputMethod,
       resolvedAddress,
       setPastedRecipient,
       isSubmittingTransaction,
       asset,
       chainId,
+    ],
+  );
+
+  const handleAlertModalClose = useCallback(() => {
+    setIsAlertModalOpen(false);
+  }, []);
+
+  const handleAlertModalAcknowledge = useCallback(async () => {
+    setIsAlertModalOpen(false);
+    acknowledgeAlerts();
+    await proceedWithSubmit(false);
+  }, [acknowledgeAlerts, proceedWithSubmit]);
+
+  const handleReview = useCallback(
+    async (isPasted?: boolean) => {
+      if (hasBlockingError || isSubmittingTransaction) {
+        return;
+      }
+      if (hasUnacknowledgedAlerts) {
+        setIsAlertModalOpen(true);
+        return;
+      }
+      await proceedWithSubmit(isPasted);
+    },
+    [
+      hasBlockingError,
+      hasUnacknowledgedAlerts,
+      isSubmittingTransaction,
+      proceedWithSubmit,
     ],
   );
 
@@ -95,7 +151,10 @@ export const Recipient = () => {
       pastedRecipient === toAddressValidated &&
       !toAddressError &&
       !toAddressWarning &&
-      !loading
+      !poisoningMatch &&
+      !loading &&
+      !isAlertCheckPending &&
+      !hasUnacknowledgedAlerts
     ) {
       handleReview(true);
     }
@@ -105,7 +164,10 @@ export const Recipient = () => {
     toAddressError,
     toAddressValidated,
     toAddressWarning,
+    poisoningMatch,
     loading,
+    isAlertCheckPending,
+    hasUnacknowledgedAlerts,
   ]);
 
   const onRecipientSelected = useCallback(
@@ -153,6 +215,7 @@ export const Recipient = () => {
 
   return (
     <SafeAreaView edges={['left', 'right', 'bottom']} style={styles.container}>
+      {renderRecipientHeader()}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
@@ -163,6 +226,7 @@ export const Recipient = () => {
             isRecipientSelectedFromList={isRecipientSelectedFromList}
             resetStateOnInput={resetStateOnInput}
             setPastedRecipient={setPastedRecipient}
+            setAutoFilledInputMethod={setAutoFilledInputMethod}
           />
           <ScrollView>
             <RecipientList
@@ -186,6 +250,24 @@ export const Recipient = () => {
           </ScrollView>
           {(to || '').length > 0 && !isRecipientSelectedFromList && (
             <Box twClassName="px-4 py-4">
+              {poisoningMatch && recipientCandidateAddress && (
+                <Banner
+                  testID="address-poisoning-warning-banner"
+                  variant={BannerVariant.Alert}
+                  severity={BannerAlertSeverity.Error}
+                  style={styles.banner}
+                  title={strings('alert_system.address_poisoning.title')}
+                  description={strings(
+                    'alert_system.address_poisoning.message',
+                  )}
+                >
+                  <AddressPoisoningAlertContent
+                    address={recipientCandidateAddress}
+                    knownAddress={poisoningMatch.knownAddress}
+                    diffIndices={poisoningMatch.diffIndices}
+                  />
+                </Banner>
+              )}
               {toAddressWarning && (
                 <Banner
                   testID="to-address-warning-banner"
@@ -207,18 +289,25 @@ export const Recipient = () => {
                 size={ButtonBaseSize.Lg}
                 onPress={handleSubmitPressLocal}
                 twClassName="w-full"
-                isDanger={!loading && Boolean(toAddressError)}
+                isDanger={!loading && hasBlockingError}
                 disabled={
-                  Boolean(toAddressError) || isSubmittingTransaction || loading
+                  hasBlockingError ||
+                  isSubmittingTransaction ||
+                  loading ||
+                  isAlertCheckPending
                 }
                 isLoading={isSubmittingTransaction || loading}
               >
-                {isReviewButtonDisabled
-                  ? toAddressError
-                  : strings('send.review')}
+                {hasBlockingError ? toAddressError : strings('send.review')}
               </Button>
             </Box>
           )}
+          <SendAlertModal
+            isOpen={isAlertModalOpen}
+            alerts={alerts}
+            onAcknowledge={handleAlertModalAcknowledge}
+            onClose={handleAlertModalClose}
+          />
         </Box>
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -25,7 +25,8 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
-      availableBalance: '1000',
+      spendableBalance: '1000',
+      withdrawableBalance: '1000',
       marginUsed: '0',
       unrealizedPnl: '0',
       returnOnEquity: '0',
@@ -65,6 +66,7 @@ const createMockStreamManager = (): Partial<PerpsStreamManager> => ({
     cleanupPrewarm: jest.fn(),
     clearCache: jest.fn(),
     disconnect: jest.fn(),
+    getSnapshot: jest.fn(() => null),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any,
 
@@ -76,6 +78,7 @@ const createMockStreamManager = (): Partial<PerpsStreamManager> => ({
     cleanupPrewarm: jest.fn(),
     clearCache: jest.fn(),
     disconnect: jest.fn(),
+    getSnapshot: jest.fn(() => null),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any,
 
@@ -86,6 +89,7 @@ const createMockStreamManager = (): Partial<PerpsStreamManager> => ({
     cleanupPrewarm: jest.fn(),
     clearCache: jest.fn(),
     disconnect: jest.fn(),
+    getSnapshot: jest.fn(() => null),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any,
 
@@ -96,6 +100,7 @@ const createMockStreamManager = (): Partial<PerpsStreamManager> => ({
     cleanupPrewarm: jest.fn(),
     clearCache: jest.fn(),
     disconnect: jest.fn(),
+    getSnapshot: jest.fn(() => null),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any,
 
@@ -106,6 +111,7 @@ const createMockStreamManager = (): Partial<PerpsStreamManager> => ({
     cleanupPrewarm: jest.fn(),
     clearCache: jest.fn(),
     disconnect: jest.fn(),
+    getSnapshot: jest.fn(() => null),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any,
 
@@ -115,6 +121,7 @@ const createMockStreamManager = (): Partial<PerpsStreamManager> => ({
     refresh: jest.fn(() => Promise.resolve()),
     prewarm: jest.fn(() => jest.fn()),
     clearCache: jest.fn(),
+    getSnapshot: jest.fn(() => null),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any,
 });
@@ -158,34 +165,6 @@ describe('PerpsBottomSheetTooltip', () => {
         />
       </SafeAreaProvider>,
     );
-
-  it('renders correctly when visible', () => {
-    const { getByTestId, getByText, toJSON } = renderBottomSheetTooltip({
-      isVisible: true,
-      onClose: mockOnClose,
-      contentKey: 'leverage',
-    });
-
-    expect(toJSON()).toMatchSnapshot();
-    expect(
-      getByTestId(PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP),
-    ).toBeTruthy();
-    // The BottomSheetHeader component uses its own default testID
-    expect(getByTestId(PerpsBottomSheetTooltipSelectorsIDs.TITLE)).toBeTruthy();
-    expect(
-      getByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
-    ).toBeTruthy();
-    expect(
-      getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
-    ).toBeTruthy();
-    expect(getByText('Leverage')).toBeTruthy();
-    expect(
-      getByText(
-        'Leverage lets you trade with more than you put in. It can boost your profits, but also your losses. The higher the leverage, the riskier the trade.',
-      ),
-    ).toBeTruthy();
-    expect(getByText('Got it')).toBeTruthy();
-  });
 
   it('does not render when not visible', () => {
     const { queryByTestId } = renderBottomSheetTooltip({

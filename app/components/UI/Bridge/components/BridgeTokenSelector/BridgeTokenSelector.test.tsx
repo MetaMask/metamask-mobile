@@ -10,19 +10,45 @@ import {
 } from '../../testUtils/fixtures';
 import { BridgeTokenSelector } from './BridgeTokenSelector';
 import { tokenToIncludeAsset } from '../../utils/tokenUtils';
+import {
+  BATCH_SELL_ASSET_PICKER_BANNER_DISMISS_TEST_ID,
+  BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID,
+} from './BatchSellAssetPickerBanner';
+import { BATCH_SELL_ASSET_PICKER_BANNER_LOCATION } from './useBatchSellAssetPickerBanner';
 
-let mockBridgeFeatureFlags = {
+let mockBridgeFeatureFlags: {
+  chainRanking?: { chainId: CaipChainId; name?: string }[];
+  chains?: Record<string, { noFeeAssets?: string[] }>;
+} = {
   chainRanking: [
-    { chainId: MOCK_CHAIN_IDS.ethereum },
-    { chainId: MOCK_CHAIN_IDS.polygon },
+    { chainId: MOCK_CHAIN_IDS.ethereum, name: 'Ethereum' },
+    { chainId: MOCK_CHAIN_IDS.polygon, name: 'Polygon' },
   ],
+  chains: {},
+};
+
+interface MockBridgeState {
+  sourceToken: ReturnType<typeof createMockToken> | null;
+  destToken: ReturnType<typeof createMockToken> | null;
+  tokenSelectorNetworkFilter: CaipChainId | undefined;
+  visiblePillChainIds: CaipChainId[] | undefined;
+}
+
+const defaultMockBridgeState: MockBridgeState = {
+  sourceToken: null,
+  destToken: null,
+  tokenSelectorNetworkFilter: undefined,
+  visiblePillChainIds: undefined,
 };
 
 // Create a Redux store with all the state needed by the component
-const createMockStore = () =>
+const createMockStore = (bridgeStateOverrides: Partial<MockBridgeState> = {}) =>
   configureStore({
     reducer: {
       user: () => ({ appTheme: 'light' }),
+      settings: () => ({
+        basicFunctionalityEnabled: true,
+      }),
       engine: () => ({
         backgroundState: {
           NetworkController: {
@@ -46,27 +72,50 @@ const createMockStore = () =>
           },
         },
       }),
-      bridge: () => ({
-        sourceToken: null,
-        destToken: null,
-      }),
+      bridge: (
+        state: MockBridgeState | undefined,
+        action: { type: string; payload?: CaipChainId | CaipChainId[] },
+      ) => {
+        const resolvedState = state ?? {
+          ...defaultMockBridgeState,
+          ...bridgeStateOverrides,
+        };
+
+        if (action.type === 'bridge/setTokenSelectorNetworkFilter') {
+          return {
+            ...resolvedState,
+            tokenSelectorNetworkFilter: action.payload as
+              | CaipChainId
+              | undefined,
+          };
+        }
+        if (action.type === 'bridge/setVisiblePillChainIds') {
+          return {
+            ...resolvedState,
+            visiblePillChainIds: action.payload as CaipChainId[] | undefined,
+          };
+        }
+        return resolvedState;
+      },
     },
   });
 
-const mockStore = createMockStore();
-
 // Helper function to render with Redux Provider
-const renderWithReduxProvider = (component: React.ReactElement) =>
-  render(<Provider store={mockStore}>{component}</Provider>);
+const renderWithReduxProvider = (
+  component: React.ReactElement,
+  store = createMockStore(),
+) => render(<Provider store={store}>{component}</Provider>);
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
+const mockNavigationDispatch = jest.fn();
 let mockRouteParams: { type: 'source' | 'dest' } = { type: 'source' };
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
+    dispatch: mockNavigationDispatch,
     goBack: jest.fn(),
     setOptions: mockSetOptions,
   }),
@@ -81,25 +130,76 @@ jest.mock('../../../../../selectors/networkController', () => ({
   })),
 }));
 
+jest.mock('../../../../../selectors/featureFlagController/rwa', () => ({
+  selectRWAEnabledFlag: jest.fn(() => false),
+}));
+
+let mockIsBatchSellEnabled = true;
+jest.mock('../../../../../selectors/featureFlagController/batchSell', () => ({
+  selectBatchSellEnabled: jest.fn(() => mockIsBatchSellEnabled),
+}));
+
+let mockSelectedInternalAccountAddress: string | undefined = '0xabc';
+jest.mock('../../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountAddress: jest.fn(
+    () => mockSelectedInternalAccountAddress,
+  ),
+}));
+
+const mockIsHardwareAccount = jest.fn<boolean, [string]>(() => false);
+jest.mock('../../../../../util/address', () => ({
+  isHardwareAccount: (address: string) => mockIsHardwareAccount(address),
+}));
+
+jest.mock('../../../../../hooks', () => ({
+  useABTest: () => ({ variant: undefined }),
+}));
+
 // Use a getter to access mockBridgeFeatureFlags at runtime (after variable is defined)
 // This is needed because jest.mock is hoisted before variable declarations
 jest.mock('../../../../../core/redux/slices/bridge', () => {
-  // Access the variable from the outer scope via module exports hack
-  const getMockBridgeFeatureFlags = () =>
-    // This is evaluated when the selector is called, not when the mock is defined
-    ({
-      chainRanking: [{ chainId: 'eip155:1' }, { chainId: 'eip155:137' }],
-    });
+  const emptyChainRanking: CaipChainId[] = [];
   return {
-    selectBridgeFeatureFlags: jest.fn(() => getMockBridgeFeatureFlags()),
-    selectSourceChainRanking: jest.fn(
-      () => getMockBridgeFeatureFlags().chainRanking,
+    selectBridgeFeatureFlags: jest.fn(
+      (state: {
+        engine: {
+          backgroundState: {
+            BridgeController: { bridgeState: { bridgeFeatureFlags: unknown } };
+          };
+        };
+      }) =>
+        state.engine.backgroundState.BridgeController.bridgeState
+          .bridgeFeatureFlags,
     ),
-    selectDestChainRanking: jest.fn(
-      () => getMockBridgeFeatureFlags().chainRanking,
+    selectAllowedChainRanking: jest.fn(
+      (state: {
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              bridgeState: {
+                bridgeFeatureFlags?: { chainRanking?: CaipChainId[] };
+              };
+            };
+          };
+        };
+      }) =>
+        state.engine.backgroundState.BridgeController.bridgeState
+          .bridgeFeatureFlags?.chainRanking ?? emptyChainRanking,
     ),
     setIsSelectingToken: jest.fn(() => ({
       type: 'bridge/setIsSelectingToken',
+    })),
+    selectTokenSelectorNetworkFilter: jest.fn(
+      (state: { bridge: { tokenSelectorNetworkFilter?: CaipChainId } }) =>
+        state.bridge.tokenSelectorNetworkFilter,
+    ),
+    setTokenSelectorNetworkFilter: jest.fn((chainId) => ({
+      type: 'bridge/setTokenSelectorNetworkFilter',
+      payload: chainId,
+    })),
+    setVisiblePillChainIds: jest.fn((chainIds) => ({
+      type: 'bridge/setVisiblePillChainIds',
+      payload: chainIds,
     })),
   };
 });
@@ -108,8 +208,15 @@ let mockPopularTokensState = {
   popularTokens: [createMockPopularToken({ symbol: 'USDC', name: 'USD Coin' })],
   isLoading: false,
 };
+const mockUsePopularTokens = jest.fn((_: unknown) => mockPopularTokensState);
 jest.mock('../../hooks/usePopularTokens', () => ({
-  usePopularTokens: () => mockPopularTokensState,
+  usePopularTokens: (params: unknown) => mockUsePopularTokens(params),
+}));
+
+const mockUseInitialBridgeTokens = jest.fn((_: unknown) => ({}));
+jest.mock('../../hooks/useInitialBridgeTokens', () => ({
+  useInitialBridgeTokens: (params: unknown) =>
+    mockUseInitialBridgeTokens(params),
 }));
 
 const mockSearchTokens = jest.fn();
@@ -125,16 +232,20 @@ let mockSearchTokensState = {
   debouncedSearch: mockDebouncedSearch,
   resetSearch: mockResetSearch,
 };
+const mockUseSearchTokens = jest.fn((_: unknown) => mockSearchTokensState);
 jest.mock('../../hooks/useSearchTokens', () => ({
-  useSearchTokens: () => mockSearchTokensState,
+  useSearchTokens: (params: unknown) => mockUseSearchTokens(params),
 }));
 
 let mockBalancesByAssetIdState = {
   tokensWithBalance: [] as ReturnType<typeof createMockToken>[],
   balancesByAssetId: {},
 };
+const mockUseBalancesByAssetId = jest.fn(
+  (_: unknown) => mockBalancesByAssetIdState,
+);
 jest.mock('../../hooks/useBalancesByAssetId', () => ({
-  useBalancesByAssetId: () => mockBalancesByAssetIdState,
+  useBalancesByAssetId: (params: unknown) => mockUseBalancesByAssetId(params),
 }));
 
 jest.mock('../../hooks/useTokensWithBalances', () => ({
@@ -162,12 +273,6 @@ jest.mock('../../hooks/useTokenSelection', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
-  () => ({
-    getHeaderCompactStandardNavbarOptions: jest.fn(() => ({})),
-  }),
-);
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
@@ -177,6 +282,9 @@ jest.mock('../../../../../core/Engine', () => ({
       BridgeController: {
         trackUnifiedSwapBridgeEvent: (...args: unknown[]) =>
           mockTrackEvent(...args),
+      },
+      AuthenticationController: {
+        getBearerToken: jest.fn().mockResolvedValue('bearer-token'),
       },
     },
   },
@@ -194,20 +302,28 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
+jest.mock('../../../../../constants/navigation/Routes', () => ({
+  BRIDGE: {
+    BATCH_SELL_TOKEN_SELECT: 'BatchSellTokenSelect',
+    MODALS: {
+      ROOT: 'BridgeModals',
+      NETWORK_LIST_MODAL: 'NetworkListModal',
+    },
+  },
+}));
+
 const mockFormatAddressToAssetId = jest.fn<string | null, [string, string]>(
   () => 'eip155:1/erc20:0x1234',
 );
 const mockIsNonEvmChainId = jest.fn<boolean, [string]>(() => false);
 jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
   formatAddressToAssetId: (address: string, chainId: string) =>
     mockFormatAddressToAssetId(address, chainId),
   formatChainIdToCaip: jest.fn(
     (chainId: string) => `eip155:${parseInt(chainId, 16)}`,
   ),
   isNonEvmChainId: (chainId: string) => mockIsNonEvmChainId(chainId),
-  UnifiedSwapBridgeEventName: {
-    AssetDetailTooltipClicked: 'AssetDetailTooltipClicked',
-  },
 }));
 
 jest.mock('../../../../../core/Multichain/utils', () => ({
@@ -221,17 +337,88 @@ jest.mock('@metamask/design-system-react-native', () => {
     Box: ({ children, style }: { children: React.ReactNode; style?: object }) =>
       createElement(View, { style }, children),
     Text: 'Text',
-    ButtonIcon: ({ onPress }: { onPress?: () => void }) =>
-      createElement(TouchableOpacity, { onPress, testID: 'button-icon-info' }),
-    ButtonIconSize: { Md: 'Md' },
-    IconColor: { IconAlternative: 'IconAlternative' },
-    IconName: { Info: 'Info' },
+    ButtonIcon: ({
+      onPress,
+      iconName,
+      testID,
+    }: {
+      onPress?: () => void;
+      iconName?: string;
+      testID?: string;
+    }) =>
+      createElement(TouchableOpacity, {
+        onPress,
+        // Derive the testID from the iconName so different ButtonIcons
+        // (e.g. Info on each row, ArrowLeft in the inline header) don't
+        // collide on the same selector.
+        testID:
+          testID ??
+          `button-icon-${String(iconName ?? 'unknown').toLowerCase()}`,
+      }),
+    ButtonIconSize: { Md: 'Md', Sm: 'Sm' },
+    IconColor: {
+      IconAlternative: 'IconAlternative',
+      IconDefault: 'IconDefault',
+      PrimaryDefault: 'PrimaryDefault',
+    },
+    IconName: {
+      Info: 'Info',
+      Check: 'Check',
+      ArrowLeft: 'ArrowLeft',
+      Close: 'Close',
+      Merge: 'Merge',
+    },
+    Icon: 'Icon',
+    IconSize: { Md: 'Md', Lg: 'Lg' },
+    HeaderStandard: ({
+      title,
+      onBack,
+    }: {
+      title?: string;
+      onBack?: () => void;
+    }) =>
+      createElement(
+        View,
+        { testID: 'header-standard' },
+        // Render the title text so existing assertions on `getByText(title)` pass.
+        // Render the back button only when onBack is provided to mirror the
+        // real component's behaviour.
+        title
+          ? createElement('Text', { testID: 'header-standard-title' }, title)
+          : null,
+        onBack
+          ? createElement(TouchableOpacity, {
+              onPress: onBack,
+              testID: 'button-icon-arrowleft',
+            })
+          : null,
+      ),
+    TextVariant: {
+      HeadingSm: 'HeadingSm',
+      HeadingMd: 'HeadingMd',
+      HeadingLg: 'HeadingLg',
+      BodyMd: 'BodyMd',
+      BodySm: 'BodySm',
+    },
+    TextColor: {
+      TextDefault: 'text-default',
+      TextAlternative: 'text-alternative',
+      PrimaryInverse: 'text-primary-inverse',
+    },
+    FontWeight: { Medium: '500' },
+    AvatarNetwork: 'AvatarNetwork',
+    AvatarNetworkSize: { Xs: '16', Sm: '24' },
+    AvatarBaseShape: { Circle: 'circle', Square: 'square' },
+    BoxAlignItems: { Center: 'center' },
+    BoxFlexDirection: { Row: 'row' },
   };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 jest.mock('../../../../../constants/bridge', () => ({
   NETWORK_TO_SHORT_NETWORK_NAME_MAP: {
     'eip155:1': 'Ethereum',
@@ -244,14 +431,33 @@ jest.mock('../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'https://network.png' })),
 }));
 
+const mockStorageGetItemSync = jest.fn();
+const mockStorageSetItem = jest.fn();
+jest.mock('../../../../../store/storage-wrapper', () => ({
+  __esModule: true,
+  default: {
+    getItemSync: (...args: unknown[]) => mockStorageGetItemSync(...args),
+    setItem: (...args: unknown[]) => mockStorageSetItem(...args),
+  },
+}));
+
 jest.mock('./NetworkPills', () => ({
   NetworkPills: ({
     onChainSelect,
+    onMorePress,
   }: {
     onChainSelect: (chainId?: CaipChainId) => void;
+    onMorePress: () => void;
   }) => {
     const { createElement } = jest.requireActual('react');
-    const { View, TouchableOpacity } = jest.requireActual('react-native');
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    const reactRedux =
+      jest.requireActual<typeof import('react-redux')>('react-redux');
+    const visiblePillChainIds = reactRedux.useSelector(
+      (state: { bridge: { visiblePillChainIds?: CaipChainId[] } }) =>
+        state.bridge.visiblePillChainIds,
+    );
+
     return createElement(
       View,
       { testID: 'network-pills' },
@@ -259,6 +465,19 @@ jest.mock('./NetworkPills', () => ({
         testID: 'select-eth-network',
         onPress: () => onChainSelect(MOCK_CHAIN_IDS.ethereum),
       }),
+      createElement(TouchableOpacity, {
+        testID: 'select-polygon-network',
+        onPress: () => onChainSelect(MOCK_CHAIN_IDS.polygon),
+      }),
+      createElement(TouchableOpacity, {
+        testID: 'open-network-modal',
+        onPress: onMorePress,
+      }),
+      createElement(
+        Text,
+        { testID: 'visible-pill-chain-ids' },
+        JSON.stringify(visiblePillChainIds ?? []),
+      ),
     );
   },
 }));
@@ -273,20 +492,18 @@ jest.mock(
       onChangeText,
       testID,
       value,
-      showClearButton,
       onPressClearButton,
     }: {
       onChangeText: (text: string) => void;
       testID: string;
       value?: string;
-      showClearButton?: boolean;
       onPressClearButton?: () => void;
     }) =>
       createElement(
         View,
         null,
         createElement(TextInput, { onChangeText, testID, value }),
-        showClearButton &&
+        !!value &&
           createElement(TouchableOpacity, {
             testID: 'bridge-token-search-clear-button',
             onPress: onPressClearButton,
@@ -295,7 +512,7 @@ jest.mock(
   },
 );
 
-jest.mock('../BridgeTokenSelectorBase', () => ({
+jest.mock('../SkeletonItem', () => ({
   SkeletonItem: () => {
     const { createElement } = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
@@ -308,31 +525,49 @@ jest.mock('../TokenSelectorItem', () => ({
     token,
     onPress,
     children,
+    isNoFeeAsset,
+    showStockBadge,
   }: {
-    token: { symbol: string; address: string; chainId: string };
+    token: {
+      symbol: string;
+      address: string;
+      chainId: string;
+      isVerified?: boolean;
+    };
     onPress: (token: {
       symbol: string;
       address: string;
       chainId: string;
     }) => void;
     children?: React.ReactNode;
+    isNoFeeAsset?: boolean;
+    showStockBadge?: boolean;
   }) => {
     const { createElement } = jest.requireActual('react');
     const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
+
     return createElement(
       TouchableOpacity,
       { onPress: () => onPress(token), testID: `token-${token.symbol}` },
       createElement(Text, null, token.symbol),
+      token.isVerified
+        ? createElement(
+            Text,
+            { testID: `verified-${token.symbol}` },
+            'verified',
+          )
+        : null,
+      isNoFeeAsset
+        ? createElement(Text, { testID: `no-fee-${token.symbol}` }, 'No fee')
+        : null,
+      showStockBadge
+        ? createElement(Text, { testID: `stock-${token.symbol}` }, 'Stock')
+        : null,
       createElement(View, null, children),
     );
   },
 }));
 
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaView: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
-}));
 jest.mock('react-native-gesture-handler', () => {
   const { FlatList, ScrollView } = jest.requireActual('react-native');
   return { FlatList, ScrollView };
@@ -340,11 +575,17 @@ jest.mock('react-native-gesture-handler', () => {
 
 const resetMocks = () => {
   mockRouteParams = { type: 'source' };
+  mockIsBatchSellEnabled = true;
+  mockSelectedInternalAccountAddress = '0xabc';
+  mockIsHardwareAccount.mockReturnValue(false);
+  mockStorageGetItemSync.mockReturnValue(null);
+  mockStorageSetItem.mockResolvedValue(undefined);
   mockBridgeFeatureFlags = {
     chainRanking: [
-      { chainId: MOCK_CHAIN_IDS.ethereum },
-      { chainId: MOCK_CHAIN_IDS.polygon },
+      { chainId: MOCK_CHAIN_IDS.ethereum, name: 'Ethereum' },
+      { chainId: MOCK_CHAIN_IDS.polygon, name: 'Polygon' },
     ],
+    chains: {},
   };
   mockPopularTokensState = {
     popularTokens: [
@@ -366,6 +607,10 @@ const resetMocks = () => {
   mockSelectedToken = null;
   mockFormatAddressToAssetId.mockReturnValue('eip155:1/erc20:0x1234');
   mockIsNonEvmChainId.mockReturnValue(false);
+  mockNavigationDispatch.mockReset();
+  mockUsePopularTokens.mockClear();
+  mockUseSearchTokens.mockClear();
+  mockUseBalancesByAssetId.mockClear();
 };
 
 describe('tokenToIncludeAsset', () => {
@@ -440,10 +685,14 @@ describe('tokenToIncludeAsset', () => {
   });
 });
 
-const createSearchToken = (symbol: string) =>
+const createSearchToken = (
+  symbol: string,
+  overrides: Partial<ReturnType<typeof createMockPopularToken>> = {},
+) =>
   createMockPopularToken({
     assetId: `eip155:1/erc20:0x${symbol.toLowerCase()}` as never,
     symbol,
+    ...overrides,
   });
 
 describe('BridgeTokenSelector', () => {
@@ -453,10 +702,15 @@ describe('BridgeTokenSelector', () => {
   });
 
   describe('rendering', () => {
-    it('renders and sets navigation options', () => {
-      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+    it('renders the search input and inline header title', () => {
+      const { getByTestId, getByText } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
       expect(getByTestId('bridge-token-search-input')).toBeTruthy();
-      expect(mockSetOptions).toHaveBeenCalled();
+      // Header is now inlined inside the screen instead of being set via
+      // navigation.setOptions, so assert on the rendered title instead.
+      // strings() is mocked to return the key.
+      expect(getByText('bridge.select_token')).toBeTruthy();
     });
 
     it('renders skeleton items during loading', async () => {
@@ -484,6 +738,7 @@ describe('BridgeTokenSelector', () => {
     });
 
     it('renders noFee tokens for source and dest types', async () => {
+      const store = createMockStore();
       mockPopularTokensState = {
         popularTokens: [
           {
@@ -495,15 +750,86 @@ describe('BridgeTokenSelector', () => {
       };
       const { getByTestId, rerender } = renderWithReduxProvider(
         <BridgeTokenSelector />,
+        store,
       );
-      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      await waitFor(() => expect(getByTestId('no-fee-USDC')).toBeTruthy());
+
       mockRouteParams = { type: 'dest' };
       rerender(
-        <Provider store={mockStore}>
+        <Provider store={store}>
           <BridgeTokenSelector />
         </Provider>,
       );
-      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      await waitFor(() => expect(getByTestId('no-fee-USDC')).toBeTruthy());
+    });
+
+    it('passes verified popular tokens through to selector rows', async () => {
+      mockPopularTokensState = {
+        popularTokens: [
+          createMockPopularToken({
+            symbol: 'ETH',
+            name: 'Ethereum',
+            isVerified: true,
+          }),
+        ],
+        isLoading: false,
+      };
+
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      await waitFor(() => expect(getByTestId('verified-ETH')).toBeTruthy());
+    });
+
+    it('renders Batch Sell banner in source picker when eligible and not dismissed', async () => {
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      await waitFor(() =>
+        expect(
+          getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeTruthy(),
+      );
+    });
+
+    it('omits Batch Sell banner in destination picker', async () => {
+      mockRouteParams = { type: 'dest' };
+
+      const { queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await waitFor(() =>
+        expect(
+          queryByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeNull(),
+      );
+    });
+
+    it('omits Batch Sell banner when persistent dismissal exists', async () => {
+      mockStorageGetItemSync.mockReturnValue('true');
+
+      const { queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await waitFor(() =>
+        expect(
+          queryByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeNull(),
+      );
+    });
+
+    it('omits Batch Sell banner for hardware wallet accounts', async () => {
+      mockIsHardwareAccount.mockReturnValue(true);
+
+      const { queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await waitFor(() =>
+        expect(
+          queryByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeNull(),
+      );
     });
   });
 
@@ -512,6 +838,21 @@ describe('BridgeTokenSelector', () => {
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ETH');
       expect(mockDebouncedSearch).toHaveBeenCalledWith('ETH');
+    });
+
+    it('hides Batch Sell banner while search query is active', async () => {
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await waitFor(() =>
+        expect(
+          getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeTruthy(),
+      );
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ETH');
+
+      expect(queryByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID)).toBeNull();
     });
 
     it('displays search results when query meets minimum length', async () => {
@@ -523,6 +864,19 @@ describe('BridgeTokenSelector', () => {
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
       await waitFor(() => expect(getByTestId('token-WETH')).toBeTruthy());
+    });
+
+    it('passes verified search results through to selector rows', async () => {
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [createSearchToken('WETH', { isVerified: true })],
+        currentSearchQuery: 'WET',
+      };
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
+
+      await waitFor(() => expect(getByTestId('verified-WETH')).toBeTruthy());
     });
 
     it('clears search when clear button is pressed', async () => {
@@ -544,6 +898,46 @@ describe('BridgeTokenSelector', () => {
       await waitFor(() =>
         expect(queryByTestId('bridge-token-search-clear-button')).toBeNull(),
       );
+    });
+  });
+
+  describe('picker defaults', () => {
+    it.each([
+      { pickerType: 'source' as const, selectedToken: null },
+      { pickerType: 'dest' as const, selectedToken: null },
+    ])(
+      'uses all allowed chains by default for $pickerType picker',
+      async ({ pickerType, selectedToken }) => {
+        mockRouteParams = { type: pickerType };
+        mockSelectedToken = selectedToken;
+
+        renderWithReduxProvider(<BridgeTokenSelector />);
+
+        await waitFor(() => {
+          expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
+            MOCK_CHAIN_IDS.ethereum,
+            MOCK_CHAIN_IDS.polygon,
+          ]);
+          expect(mockUseSearchTokens).toHaveBeenCalledWith(
+            expect.objectContaining({
+              chainIds: [MOCK_CHAIN_IDS.ethereum, MOCK_CHAIN_IDS.polygon],
+            }),
+          );
+        });
+      },
+    );
+
+    it('uses selected destination token chain when destination picker opens', async () => {
+      mockRouteParams = { type: 'dest' };
+      mockSelectedToken = createMockToken({ chainId: '0x89' });
+
+      renderWithReduxProvider(<BridgeTokenSelector />);
+
+      await waitFor(() => {
+        expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
+          MOCK_CHAIN_IDS.polygon,
+        ]);
+      });
     });
   });
 
@@ -578,6 +972,76 @@ describe('BridgeTokenSelector', () => {
       mockBridgeFeatureFlags = { chainRanking: undefined as never };
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       expect(getByTestId('bridge-token-search-input')).toBeTruthy();
+    });
+
+    it('scopes token fetch and search to selected chain after network selection', async () => {
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ETH');
+      mockSearchTokens.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('select-polygon-network'));
+      });
+
+      expect(mockDebouncedSearch.cancel).toHaveBeenCalled();
+      expect(mockResetSearch).toHaveBeenCalled();
+
+      await waitFor(() => {
+        expect(mockUseInitialBridgeTokens).toHaveBeenCalledWith([
+          MOCK_CHAIN_IDS.polygon,
+        ]);
+        expect(mockUseSearchTokens).toHaveBeenCalledWith(
+          expect.objectContaining({
+            chainIds: [MOCK_CHAIN_IDS.polygon],
+          }),
+        );
+      });
+      await waitFor(() => {
+        expect(mockSearchTokens).toHaveBeenCalledWith('ETH');
+      });
+    });
+  });
+
+  describe('pill order persistence', () => {
+    it('keeps visible pill order while moving between source and destination pickers', async () => {
+      const store = createMockStore();
+      const persistentOrder = [MOCK_CHAIN_IDS.polygon, MOCK_CHAIN_IDS.ethereum];
+      const { getByTestId, rerender } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+        store,
+      );
+
+      await act(async () => {
+        store.dispatch({
+          type: 'bridge/setVisiblePillChainIds',
+          payload: persistentOrder,
+        });
+      });
+
+      expect(getByTestId('visible-pill-chain-ids').props.children).toBe(
+        JSON.stringify(persistentOrder),
+      );
+
+      mockRouteParams = { type: 'dest' };
+      rerender(
+        <Provider store={store}>
+          <BridgeTokenSelector />
+        </Provider>,
+      );
+      expect(getByTestId('visible-pill-chain-ids').props.children).toBe(
+        JSON.stringify(persistentOrder),
+      );
+
+      mockRouteParams = { type: 'source' };
+      rerender(
+        <Provider store={store}>
+          <BridgeTokenSelector />
+        </Provider>,
+      );
+      expect(getByTestId('visible-pill-chain-ids').props.children).toBe(
+        JSON.stringify(persistentOrder),
+      );
     });
   });
 
@@ -651,21 +1115,77 @@ describe('BridgeTokenSelector', () => {
   });
 
   describe('navigation and tracking', () => {
+    it('dismisses Batch Sell banner without navigating', async () => {
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await waitFor(() =>
+        expect(
+          getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeTruthy(),
+      );
+      fireEvent.press(
+        getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_DISMISS_TEST_ID),
+      );
+
+      expect(mockStorageSetItem).toHaveBeenCalledWith(
+        'batch_sell_asset_picker_banner_dismissed',
+        'true',
+      );
+      expect(mockNavigationDispatch).not.toHaveBeenCalled();
+      expect(queryByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID)).toBeNull();
+    });
+
+    it('opens Batch Sell token selector from Batch Sell banner', async () => {
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      await waitFor(() =>
+        expect(
+          getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeTruthy(),
+      );
+      fireEvent.press(getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID));
+
+      expect(mockStorageSetItem).toHaveBeenCalledWith(
+        'batch_sell_asset_picker_banner_dismissed',
+        'true',
+      );
+      expect(mockNavigationDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'REPLACE',
+          payload: expect.objectContaining({
+            name: 'BatchSellTokenSelect',
+            params: {
+              batchSellLocation: BATCH_SELL_ASSET_PICKER_BANNER_LOCATION,
+              preserveBridgeState: true,
+            },
+          }),
+        }),
+      );
+    });
+
     it('navigates and tracks event on info button press', async () => {
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
       await act(async () => {
         fireEvent.press(getByTestId('button-icon-info'));
       });
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'Asset',
+      expect(mockNavigationDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
-          symbol: 'USDC',
-          name: 'USD Coin',
-          assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
-          chainId: '0x1',
-          decimals: 18,
-          image: 'https://example.com/token.png',
+          type: 'PUSH',
+          payload: expect.objectContaining({
+            name: 'Asset',
+            params: expect.objectContaining({
+              symbol: 'USDC',
+              name: 'USD Coin',
+              assetId:
+                'eip155:1/erc20:0x1234567890123456789012345678901234567890',
+              chainId: '0x1',
+              decimals: 18,
+              image: 'https://example.com/token.png',
+            }),
+          }),
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();

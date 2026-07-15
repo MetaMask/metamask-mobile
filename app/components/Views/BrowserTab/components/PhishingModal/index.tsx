@@ -11,7 +11,7 @@ import Modal from 'react-native-modal';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './styles';
 import { BrowserUrlBarRef } from '../../../../UI/BrowserUrlBar/BrowserUrlBar.types';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 interface PhishingModalProps {
@@ -19,7 +19,7 @@ interface PhishingModalProps {
   showPhishingModal: boolean;
   setShowPhishingModal: (show: boolean) => void;
   setBlockedUrl: (url: string | undefined) => void;
-  urlBarRef: React.RefObject<BrowserUrlBarRef>;
+  urlBarRef: React.RefObject<BrowserUrlBarRef | null>;
   addToWhitelist: (hostname: string) => void;
   activeUrl: string;
   goToUrl: (url: string) => void;
@@ -39,7 +39,7 @@ const PhishingModal = ({
     styles,
     theme: { colors },
   } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   useEffect(() => {
     if (showPhishingModal && blockedUrl) {

@@ -1,16 +1,6 @@
 import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import Engine from '../../../core/Engine';
-import {
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  // eslint-disable-next-line react-native/split-platform-components
-  PermissionsAndroid,
-  Linking,
-  AppState,
-  AppStateStatus,
-} from 'react-native';
+import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AnimatedQRCode from './AnimatedQRCode';
 import AnimatedQRScannerModal from './AnimatedQRScanner';
@@ -25,9 +15,10 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
-import Device from '../../../util/device';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { QrScanRequest, QrScanRequestType } from '@metamask/eth-qr-keyring';
+import { useQrScanErrorForwarding } from '../../../core/HardwareWallet/hooks/useQrScanErrorForwarding';
+import { useHardwareWallet } from '../../../core/HardwareWallet/contexts';
 
 interface IQRSigningDetails {
   pendingScanRequest: QrScanRequest;
@@ -39,7 +30,6 @@ interface IQRSigningDetails {
   tighten?: boolean;
   showHint?: boolean;
   shouldStartAnimated?: boolean;
-  bypassAndroidCameraAccessCheck?: boolean;
   fromAddress: string;
 }
 
@@ -120,60 +110,16 @@ const QRSigningDetails = ({
   tighten = false,
   showHint = true,
   shouldStartAnimated = true,
-  bypassAndroidCameraAccessCheck = true,
   fromAddress,
 }: IQRSigningDetails) => {
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { setQrScanRetryHandler } = useHardwareWallet();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const [scannerVisible, setScannerVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [shouldPause, setShouldPause] = useState(false);
-  const [cameraError, setCameraError] = useState('');
-
-  // ios handled camera perfectly in this situation, we just need to check permission with android.
-  const [hasCameraPermission, setCameraPermission] = useState(
-    Device.isIos() || bypassAndroidCameraAccessCheck,
-  );
-
-  const checkAndroidCamera = useCallback(() => {
-    if (Device.isAndroid() && !hasCameraPermission) {
-      PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA).then(
-        (_hasPermission) => {
-          setCameraPermission(_hasPermission);
-          if (!_hasPermission) {
-            setCameraError(strings('transaction.no_camera_permission_android'));
-          } else {
-            setCameraError('');
-          }
-        },
-      );
-    }
-  }, [hasCameraPermission]);
-
-  const handleAppState = useCallback(
-    (appState: AppStateStatus) => {
-      if (appState === 'active') {
-        checkAndroidCamera();
-      }
-    },
-    [checkAndroidCamera],
-  );
-
-  useEffect(() => {
-    checkAndroidCamera();
-  }, [checkAndroidCamera]);
-
-  useEffect(() => {
-    const appStateListener = AppState.addEventListener(
-      'change',
-      handleAppState,
-    );
-    return () => {
-      appStateListener.remove();
-    };
-  }, [handleAppState]);
 
   const [hasSentOrCanceled, setSentOrCanceled] = useState(false);
 
@@ -193,18 +139,30 @@ const QRSigningDetails = ({
     return unsubscribe;
   }, [pendingScanRequest, hasSentOrCanceled, navigation]);
 
-  const resetError = () => {
+  const resetError = useCallback(() => {
     setErrorMessage('');
-  };
+  }, []);
 
-  const showScanner = () => {
+  const showScanner = useCallback(() => {
     setScannerVisible(true);
     resetError();
-  };
+  }, [resetError]);
 
-  const hideScanner = () => {
+  const hideScanner = useCallback(() => {
     setScannerVisible(false);
-  };
+  }, []);
+  const { onQRHardwareScanError, handleScannerModalHide } =
+    useQrScanErrorForwarding({ hideScanner });
+
+  useEffect(() => {
+    setQrScanRetryHandler?.(() => {
+      showScanner();
+    });
+
+    return () => {
+      setQrScanRetryHandler?.(null);
+    };
+  }, [setQrScanRetryHandler, showScanner]);
 
   const onCancel = useCallback(async () => {
     if (pendingScanRequest) {
@@ -215,7 +173,7 @@ const QRSigningDetails = ({
     setSentOrCanceled(true);
     hideScanner();
     cancelCallback?.();
-  }, [pendingScanRequest, cancelCallback]);
+  }, [pendingScanRequest, hideScanner, cancelCallback]);
 
   const onScanSuccess = useCallback(
     (ur: UR) => {
@@ -251,6 +209,7 @@ const QRSigningDetails = ({
       successCallback,
       trackEvent,
       createEventBuilder,
+      hideScanner,
     ],
   );
   const onScanError = useCallback(
@@ -259,7 +218,7 @@ const QRSigningDetails = ({
       setErrorMessage(_errorMessage);
       failureCallback?.(_errorMessage);
     },
-    [failureCallback],
+    [hideScanner, failureCallback],
   );
 
   const renderAlert = () =>
@@ -269,23 +228,12 @@ const QRSigningDetails = ({
       </Alert>
     );
 
-  const renderCameraAlert = () =>
-    cameraError !== '' && (
-      <Alert
-        type={AlertType.Error}
-        style={styles.alert}
-        onPress={Linking.openSettings}
-      >
-        <Text style={styles.errorText}>{cameraError}</Text>
-      </Alert>
-    );
-
   return (
     <Fragment>
       {pendingScanRequest?.request && (
         <ScrollView contentContainerStyle={styles.wrapper}>
           <ActionView
-            confirmDisabled={!hasCameraPermission}
+            confirmDisabled={false}
             showCancelButton={showCancelButton}
             confirmButtonMode={confirmButtonMode}
             cancelText={strings('transaction.reject')}
@@ -306,7 +254,6 @@ const QRSigningDetails = ({
                 />
               </View>
               {renderAlert()}
-              {renderCameraAlert()}
               <View
                 style={[
                   styles.title,
@@ -330,8 +277,6 @@ const QRSigningDetails = ({
               {showHint ? (
                 <View
                   style={[
-                    // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
-                    // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
                     styles.description,
                     tighten ? styles.descriptionTighten : undefined,
                   ]}
@@ -366,6 +311,8 @@ const QRSigningDetails = ({
         purpose={QrScanRequestType.SIGN}
         onScanSuccess={onScanSuccess}
         onScanError={onScanError}
+        onQRHardwareScanError={onQRHardwareScanError}
+        onModalHideComplete={handleScannerModalHide}
         hideModal={hideScanner}
       />
     </Fragment>

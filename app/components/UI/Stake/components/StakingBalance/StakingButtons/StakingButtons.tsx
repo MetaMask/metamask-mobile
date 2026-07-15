@@ -3,16 +3,14 @@ import React from 'react';
 import { View, ViewProps } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
-import Button, {
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../../component-library/hooks';
 import Routes from '../../../../../../constants/navigation/Routes';
 import Engine from '../../../../../../core/Engine';
 import { RootState } from '../../../../../../reducers';
 import { earnSelectors } from '../../../../../../selectors/earnController';
 import { selectEvmChainId } from '../../../../../../selectors/networkController';
-import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
 import { TokenI } from '../../../../Tokens/types';
 import { EVENT_LOCATIONS } from '../../../constants/events';
@@ -20,6 +18,12 @@ import useStakingChain from '../../../hooks/useStakingChain';
 import styleSheet from './StakingButtons.styles';
 import { trace, TraceName } from '../../../../../../util/trace';
 import useStakingEligibility from '../../../hooks/useStakingEligibility';
+import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  Text,
+} from '@metamask/design-system-react-native';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;
@@ -37,7 +41,7 @@ const StakingButtons = ({
 
   const { styles } = useStyles(styleSheet, {});
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { isEligible } = useStakingEligibility();
 
@@ -105,23 +109,27 @@ const StakingButtons = ({
         <Button
           testID={'unstake-button'}
           style={styles.balanceActionButton}
-          variant={ButtonVariants.Secondary}
-          label={strings('stake.unstake')}
+          variant={ButtonVariant.Secondary}
           onPress={onUnstakePress}
-        />
+          size={ButtonSize.Md}
+        >
+          <Text>{strings('stake.unstake')}</Text>
+        </Button>
       )}
       {isPooledStakingEnabled && isEligible && (
         <Button
           testID={'stake-more-button'}
           style={styles.balanceActionButton}
-          variant={ButtonVariants.Secondary}
-          label={
-            hasStakedPositions
-              ? strings('stake.stake_more')
-              : strings('stake.stake')
-          }
+          variant={ButtonVariant.Secondary}
           onPress={onStakePress}
-        />
+          size={ButtonSize.Md}
+        >
+          <Text>
+            {hasStakedPositions
+              ? strings('stake.stake_more')
+              : strings('stake.stake')}
+          </Text>
+        </Button>
       )}
     </View>
   );

@@ -6,6 +6,7 @@ import {
   renderHook,
 } from '@testing-library/react-native';
 import { Alert } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
@@ -15,7 +16,6 @@ import {
   useFeatureFlagOverride,
 } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import {
   FeatureFlagType,
   isMinimumRequiredVersionSupported,
@@ -40,23 +40,12 @@ jest.mock('../../../hooks/useFeatureFlagStats', () => ({
 }));
 
 // Mock theme
-jest.mock('../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      primary: { default: '#0376C9' },
-      border: { default: '#D6D9DC', muted: '#F2F4F6' },
-      text: { default: '#24272A', muted: '#6A737D', alternative: '#535A61' },
-      background: { default: '#FFFFFF', alternative: '#F8F9FA' },
-      warning: { muted: '#FFF4E6' },
-    },
-    brandColors: { white: '#FFFFFF' },
-  })),
-}));
-
-// Mock Navbar
-jest.mock('../../UI/Navbar', () => ({
-  getNavigationOptionsTitle: jest.fn(() => ({})),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 // Mock Tailwind
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -76,13 +65,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-// Mock useMetrics
-jest.mock('../../hooks/useMetrics/useMetrics', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({
-    addTraitsToUser: jest.fn(),
-  })),
-}));
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 // Mock Engine
 const mockSetFlagOverride = jest.fn();
@@ -161,9 +144,16 @@ const createTestWrapper = (
 
   const Wrapper = ({ children }: { children: ReactNode }) => (
     <Provider store={store}>
-      <ToastContext.Provider value={mockToastContext}>
-        <FeatureFlagOverrideProvider>{children}</FeatureFlagOverrideProvider>
-      </ToastContext.Provider>
+      <SafeAreaProvider
+        initialMetrics={{
+          frame: { x: 0, y: 0, width: 320, height: 640 },
+          insets: { top: 0, left: 0, right: 0, bottom: 0 },
+        }}
+      >
+        <ToastContext.Provider value={mockToastContext}>
+          <FeatureFlagOverrideProvider>{children}</FeatureFlagOverrideProvider>
+        </ToastContext.Provider>
+      </SafeAreaProvider>
     </Provider>
   );
 
@@ -270,7 +260,8 @@ describe('useFeatureFlagOverride Hook', () => {
 });
 
 describe('FeatureFlagOverride', () => {
-  let mockNavigation: ReturnType<typeof useNavigation>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockNavigation: any;
 
   // Helper to render with providers
   const renderWithProviders = (
@@ -290,6 +281,7 @@ describe('FeatureFlagOverride', () => {
 
     mockNavigation = {
       setOptions: jest.fn(),
+      goBack: jest.fn(),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
@@ -331,17 +323,53 @@ describe('FeatureFlagOverride', () => {
       expect(screen.getByText('versionFlag')).toBeTruthy();
     });
 
-    it('sets navigation options on mount', () => {
+    it('renders screen inside SafeAreaView', () => {
       renderWithProviders();
 
-      expect(getNavigationOptionsTitle).toHaveBeenCalledWith(
-        'Feature Flag Override',
-        mockNavigation,
-        false,
-        expect.any(Object),
-        null,
+      expect(
+        screen.getByTestId('feature-flag-override-screen'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders HeaderStandard with title', () => {
+      renderWithProviders();
+
+      expect(
+        screen.getByTestId('feature-flag-override-header'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Feature Flag Override')).toBeOnTheScreen();
+    });
+
+    it('renders header back button', () => {
+      renderWithProviders();
+
+      expect(
+        screen.getByTestId('feature-flag-override-header-back'),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates back when header back button is pressed', () => {
+      renderWithProviders();
+
+      const backButton = screen.getByTestId(
+        'feature-flag-override-header-back',
       );
-      expect(mockNavigation.setOptions).toHaveBeenCalled();
+      fireEvent.press(backButton);
+
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders stats section and list below inline header', () => {
+      renderWithProviders();
+
+      expect(
+        screen.getByTestId('feature-flag-override-header'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Feature Flag Statistics')).toBeOnTheScreen();
+      expect(
+        screen.getByPlaceholderText('Search feature flags...'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('booleanFlag')).toBeOnTheScreen();
     });
   });
 
@@ -481,17 +509,22 @@ describe('FeatureFlagOverride', () => {
       expect(numberInput).toBeTruthy();
     });
 
-    it('renders View/Edit button for array flags', () => {
+    it('renders JSON TextInput for array flags', () => {
       renderWithProviders();
 
-      expect(screen.getByText('View/Edit')).toBeTruthy();
+      expect(
+        screen.getByDisplayValue(JSON.stringify(['item1', 'item2'], null, 2)),
+      ).toBeTruthy();
     });
 
-    it('renders object properties for object flags', () => {
+    it('renders JSON TextInput for object flags', () => {
       renderWithProviders();
 
-      expect(screen.getByText('key: "value"')).toBeTruthy();
-      expect(screen.getByText('nested: {"prop":"data"}')).toBeTruthy();
+      expect(
+        screen.getByDisplayValue(
+          JSON.stringify({ key: 'value', nested: { prop: 'data' } }, null, 2),
+        ),
+      ).toBeTruthy();
     });
 
     it('renders minimum version info for version-gated flags', () => {
@@ -563,6 +596,77 @@ describe('FeatureFlagOverride', () => {
       fireEvent.press(resetButton);
 
       expect(mockRemoveFlagOverride).toHaveBeenCalledWith('testFlag');
+    });
+
+    it('handles valid JSON input for object flags', () => {
+      renderWithProviders({ objFlag: { key: 'value' } }, {});
+
+      const jsonInput = screen.getByDisplayValue(
+        JSON.stringify({ key: 'value' }, null, 2),
+      );
+      fireEvent.changeText(jsonInput, '{"key":"updated"}');
+      fireEvent(jsonInput, 'endEditing');
+
+      expect(mockSetFlagOverride).toHaveBeenCalledWith('objFlag', {
+        key: 'updated',
+      });
+    });
+
+    it('handles valid JSON input for array flags', () => {
+      renderWithProviders({ arrFlag: ['a', 'b'] }, {});
+
+      const jsonInput = screen.getByDisplayValue(
+        JSON.stringify(['a', 'b'], null, 2),
+      );
+      fireEvent.changeText(jsonInput, '["a","b","c"]');
+      fireEvent(jsonInput, 'endEditing');
+
+      expect(mockSetFlagOverride).toHaveBeenCalledWith('arrFlag', [
+        'a',
+        'b',
+        'c',
+      ]);
+    });
+
+    it('shows error for invalid JSON input', () => {
+      renderWithProviders({ objFlag: { key: 'value' } }, {});
+
+      const jsonInput = screen.getByDisplayValue(
+        JSON.stringify({ key: 'value' }, null, 2),
+      );
+      fireEvent.changeText(jsonInput, '{invalid json}');
+      fireEvent(jsonInput, 'endEditing');
+
+      expect(screen.getByText('Invalid JSON')).toBeTruthy();
+      expect(mockSetFlagOverride).not.toHaveBeenCalled();
+    });
+
+    it('clears JSON error when user types new input', () => {
+      renderWithProviders({ objFlag: { key: 'value' } }, {});
+
+      const jsonInput = screen.getByDisplayValue(
+        JSON.stringify({ key: 'value' }, null, 2),
+      );
+      // First trigger an error
+      fireEvent.changeText(jsonInput, '{invalid}');
+      fireEvent(jsonInput, 'endEditing');
+      expect(screen.getByText('Invalid JSON')).toBeTruthy();
+
+      // Then type new input — error should clear
+      fireEvent.changeText(jsonInput, '{"key":"new"}');
+      expect(screen.queryByText('Invalid JSON')).toBeNull();
+    });
+
+    it('handles reset override for object flags', () => {
+      renderWithProviders(
+        { objFlag: { key: 'original' } },
+        { objFlag: { key: 'overridden' } },
+      );
+
+      const resetButton = screen.getByText('Reset');
+      fireEvent.press(resetButton);
+
+      expect(mockRemoveFlagOverride).toHaveBeenCalledWith('objFlag');
     });
   });
 
@@ -646,7 +750,7 @@ describe('FeatureFlagOverride', () => {
       const versionSwitch = switches.find(
         (switchElement) => switchElement.props.value === true,
       );
-      expect(versionSwitch?.props.disabled).toBe(true);
+      expect(versionSwitch).toHaveProp('disabled', true);
     });
 
     it('handles toggle for boolean with minimumVersion flag', () => {
@@ -776,23 +880,12 @@ describe('FeatureFlagOverride', () => {
 
   describe('A/B Test Flag Handling', () => {
     it('renders text display for A/B test flags in store', () => {
-      // Render with an A/B test flag
-      const storeWithAbTest = createMockStore(
+      renderWithProviders(
         { abTestFlag: { name: 'control', value: { variant: 'A' } } },
         {},
       );
 
-      render(
-        <Provider store={storeWithAbTest}>
-          <ToastContext.Provider value={mockToastContext}>
-            <FeatureFlagOverrideProvider>
-              <FeatureFlagOverride />
-            </FeatureFlagOverrideProvider>
-          </ToastContext.Provider>
-        </Provider>,
-      );
-
-      expect(screen.getByText('abTestFlag')).toBeTruthy();
+      expect(screen.getByText('abTestFlag')).toBeOnTheScreen();
     });
   });
 
@@ -806,7 +899,7 @@ describe('FeatureFlagOverride', () => {
       );
 
       const switches = screen.getAllByRole('switch');
-      expect(switches[0].props.disabled).toBe(false);
+      expect(switches[0]).toBeEnabled();
     });
   });
 
@@ -819,15 +912,19 @@ describe('FeatureFlagOverride', () => {
 
       expect(screen.getByText('nestedObj')).toBeTruthy();
       expect(
-        screen.getByText('level1: {"level2":{"deep":"value"}}'),
+        screen.getByDisplayValue(
+          JSON.stringify({ level1: { level2: { deep: 'value' } } }, null, 2),
+        ),
       ).toBeTruthy();
     });
 
-    it('renders array flag with correct label', () => {
+    it('renders array flag with JSON TextInput', () => {
       renderWithProviders({ myArray: [1, 2, 3, 4, 5] }, {});
 
       expect(screen.getByText('myArray')).toBeTruthy();
-      expect(screen.getByText('View/Edit')).toBeTruthy();
+      expect(
+        screen.getByDisplayValue(JSON.stringify([1, 2, 3, 4, 5], null, 2)),
+      ).toBeTruthy();
     });
   });
 

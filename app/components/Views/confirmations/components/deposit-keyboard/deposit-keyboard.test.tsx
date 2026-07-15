@@ -108,4 +108,15 @@ describe('DepositKeyboard', () => {
 
     expect(getByText('90%')).toBeDefined();
   });
+
+  it('hides percentage buttons when hidePercentageButtons is true', () => {
+    const { queryByText } = render({
+      hidePercentageButtons: true,
+    });
+
+    expect(queryByText('10%')).toBeNull();
+    expect(queryByText('25%')).toBeNull();
+    expect(queryByText('50%')).toBeNull();
+    expect(queryByText('90%')).toBeNull();
+  });
 });

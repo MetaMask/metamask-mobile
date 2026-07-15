@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { PerpsFlipPositionConfirmSheetSelectorsIDs } from '../../Perps.testIds';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -8,15 +9,6 @@ import BottomSheetHeader from '../../../../../component-library/components/Botto
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import {
   ButtonSize,
   ButtonVariants,
@@ -32,15 +24,21 @@ import {
 } from '../../hooks';
 import { usePerpsFlipPosition } from '../../hooks/usePerpsFlipPosition';
 import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
-import {
-  formatPerpsFiat,
-  PRICE_RANGES_MINIMAL_VIEW,
-} from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import PerpsFeesDisplay from '../PerpsFeesDisplay';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
+import { useVipTier } from '../../../Rewards/hooks/useVipTier';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
+} from '@metamask/design-system-react-native';
 
 const PerpsFlipPositionConfirmSheet: React.FC<
   PerpsFlipPositionConfirmSheetProps
@@ -67,9 +65,11 @@ const PerpsFlipPositionConfirmSheet: React.FC<
   const price = parseFloat(currentPrice?.price || '0');
   const markPrice = parseFloat(currentPrice?.markPrice || '0');
 
-  // Calculate USD amount for fee estimation
+  // Calculate USD amount for fee estimation.
+  // A flip places one order of 2x position size (1x to close current, 1x to open opposite).
+  // Fee is charged on the full 2x notional, so multiply by 2 for an accurate estimate.
   const usdAmount = useMemo(
-    () => (positionSize * (markPrice || price)).toString(),
+    () => (positionSize * 2 * (markPrice || price)).toString(),
     [positionSize, markPrice, price],
   );
 
@@ -128,9 +128,24 @@ const PerpsFlipPositionConfirmSheet: React.FC<
     },
   });
 
+  const vipTier = useVipTier();
+
   const handleReverse = useCallback(async () => {
-    await handleFlipPosition(position);
-  }, [position, handleFlipPosition]);
+    await handleFlipPosition(position, {
+      totalFee: feeResults.totalFee,
+      marketPrice: markPrice || price,
+      vipTier: vipTier ?? undefined,
+      vipDiscount: feeResults.feeDiscountPercentage,
+    });
+  }, [
+    position,
+    handleFlipPosition,
+    feeResults.totalFee,
+    feeResults.feeDiscountPercentage,
+    markPrice,
+    price,
+    vipTier,
+  ]);
 
   const footerButtons = useMemo(
     () => [
@@ -140,6 +155,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
         variant: ButtonVariants.Secondary,
         size: ButtonSize.Lg,
         disabled: isFlipping,
+        testID: PerpsFlipPositionConfirmSheetSelectorsIDs.CANCEL_BUTTON,
       },
       {
         label: isFlipping
@@ -150,6 +166,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
         size: ButtonSize.Lg,
         disabled: isFlipping || !hasValidAmount,
         danger: true,
+        testID: PerpsFlipPositionConfirmSheetSelectorsIDs.FLIP_BUTTON,
       },
     ],
     [handleCloseInternal, handleReverse, isFlipping, hasValidAmount],
@@ -160,9 +177,10 @@ const PerpsFlipPositionConfirmSheet: React.FC<
       ref={sheetRef}
       shouldNavigateBack={!externalSheetRef}
       onClose={externalSheetRef ? onClose : undefined}
+      testID={PerpsFlipPositionConfirmSheetSelectorsIDs.SHEET}
     >
       <BottomSheetHeader onClose={handleCloseInternal}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingMd}>
           {strings('perps.flip_position.title')}
         </Text>
       </BottomSheetHeader>
@@ -175,8 +193,8 @@ const PerpsFlipPositionConfirmSheet: React.FC<
               color={theme.colors.primary.default}
             />
             <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
               style={styles.loadingText}
             >
               {strings('perps.flip_position.flipping')}
@@ -187,65 +205,88 @@ const PerpsFlipPositionConfirmSheet: React.FC<
             {/* Grouped Details: Direction and Est. Size */}
             <View style={styles.detailsWrapper}>
               {/* Direction Display */}
-              <View style={[styles.detailItem, styles.detailItemFirst]}>
-                <View style={[styles.infoRow, styles.detailItemWrapper]}>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                  >
-                    {strings('perps.flip_position.direction')}
+              <View
+                style={[
+                  styles.detailItem,
+                  styles.detailItemFirst,
+                  styles.infoRow,
+                  styles.detailItemWrapper,
+                ]}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('perps.flip_position.direction')}
+                </Text>
+                <View style={styles.directionContainer}>
+                  <Text variant={TextVariant.BodyMd}>
+                    {currentDirection === 'long'
+                      ? strings('perps.order.long_label')
+                      : strings('perps.order.short_label')}
                   </Text>
-                  <View style={styles.directionContainer}>
-                    <Text variant={TextVariant.BodyMD}>
-                      {currentDirection === 'long'
-                        ? strings('perps.order.long_label')
-                        : strings('perps.order.short_label')}
-                    </Text>
-                    <Icon
-                      name={IconName.Arrow2Right}
-                      size={IconSize.Md}
-                      color={IconColor.Default}
-                    />
-                    <Text variant={TextVariant.BodyMD}>
-                      {oppositeDirection === 'long'
-                        ? strings('perps.order.long_label')
-                        : strings('perps.order.short_label')}
-                    </Text>
-                  </View>
+                  <Icon
+                    name={IconName.ArrowRight}
+                    size={IconSize.Md}
+                    color={IconColor.IconDefault}
+                  />
+                  <Text variant={TextVariant.BodyMd}>
+                    {oppositeDirection === 'long'
+                      ? strings('perps.order.long_label')
+                      : strings('perps.order.short_label')}
+                  </Text>
                 </View>
               </View>
 
               {/* Est. Size */}
-              <View style={[styles.detailItem, styles.detailItemLast]}>
-                <View style={[styles.infoRow, styles.detailItemWrapper]}>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                  >
-                    {strings('perps.flip_position.est_size')}
-                  </Text>
-                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                    {positionSize} {getPerpsDisplaySymbol(position.symbol)}
-                  </Text>
-                </View>
+              <View
+                style={[
+                  styles.detailItem,
+                  styles.detailItemLast,
+                  styles.infoRow,
+                  styles.detailItemWrapper,
+                ]}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('perps.flip_position.est_size')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                  testID={
+                    PerpsFlipPositionConfirmSheetSelectorsIDs.EST_SIZE_VALUE
+                  }
+                >
+                  {positionSize} {getPerpsDisplaySymbol(position.symbol)}
+                </Text>
               </View>
             </View>
 
             {/* Fees */}
             <View style={styles.infoRow}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {strings('perps.order.fees')}
               </Text>
               <PerpsFeesDisplay
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-                formatFeeText={
+                fee={
                   !hasValidAmount || feeResults.isLoadingMetamaskFee
-                    ? '--'
-                    : formatPerpsFiat(feeResults.totalFee, {
-                        ranges: PRICE_RANGES_MINIMAL_VIEW,
-                      })
+                    ? undefined
+                    : feeResults.totalFee
                 }
-                variant={TextVariant.BodyMD}
+                originalFee={
+                  !hasValidAmount || feeResults.isLoadingMetamaskFee
+                    ? undefined
+                    : feeResults.undiscountedTotalFee
+                }
+                testID={PerpsFlipPositionConfirmSheetSelectorsIDs.FEES_VALUE}
+                variant={TextVariant.BodyMd}
               />
             </View>
 
@@ -255,8 +296,8 @@ const PerpsFlipPositionConfirmSheet: React.FC<
               rewardsState.accountOptedIn && (
                 <View style={styles.infoRow}>
                   <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
                   >
                     {strings('perps.estimated_points')}
                   </Text>

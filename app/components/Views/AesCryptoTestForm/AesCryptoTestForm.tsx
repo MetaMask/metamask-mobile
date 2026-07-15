@@ -1,4 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import {
+  HeaderStandard,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -10,7 +15,6 @@ import {
 } from '../../../core/Encryptor';
 import { useTheme } from '../../../util/theme';
 
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 
 import TestForm from './Form';
@@ -20,12 +24,12 @@ import {
   aesCryptoFormResponses,
   aesCryptoFormButtons,
   aesCryptoFormScrollIdentifier,
+  aesCryptoFormSafeArea,
+  aesCryptoFormHeader,
+  aesCryptoFormHeaderBackButton,
   accountAddress,
   responseText,
 } from './AesCrypto.testIds';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useSelector } from 'react-redux';
 
@@ -53,18 +57,6 @@ const AesCryptoTestForm = () => {
     });
     setEncryptor(encryptorInstance);
   }, []);
-
-  useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.aes_crypto_test_form_title'),
-        navigation,
-        false,
-        colors,
-        null,
-      ),
-    );
-  }, [colors, navigation]);
 
   const generateSalt = useCallback(
     // TODO: Replace "any" with type
@@ -146,15 +138,26 @@ const AesCryptoTestForm = () => {
   );
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
+    <SafeAreaView
+      edges={{ bottom: 'additive' }}
+      style={styles.container}
+      testID={aesCryptoFormSafeArea}
+    >
+      <HeaderStandard
+        title={strings('app_settings.aes_crypto_test_form_title')}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+        testID={aesCryptoFormHeader}
+        backButtonProps={{ testID: aesCryptoFormHeaderBackButton }}
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         testID={aesCryptoFormScrollIdentifier}
       >
-        <Text variant={TextVariant.HeadingSM} style={styles.formTitle}>
+        <Text variant={TextVariant.HeadingSm} style={styles.formTitle}>
           Current selected address
         </Text>
-        <Text variant={TextVariant.HeadingSM} testID={accountAddress}>
+        <Text variant={TextVariant.HeadingSm} testID={accountAddress}>
           {selectedFormattedAddress}
         </Text>
         <TestForm

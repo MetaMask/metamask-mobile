@@ -1,6 +1,32 @@
 import React from 'react';
 import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
-import '@shopify/flash-list/jestSetup';
+
+// FlashList v2 mock – see app/util/test/mockFlashList.ts
+jest.mock('@shopify/flash-list', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { flashListMock } = require('../../../../util/test/mockFlashList');
+  return flashListMock();
+});
+
+jest.mock('react-native-gesture-handler', () => {
+  const RN = jest.requireActual('react-native');
+  return {
+    ...jest.requireActual('react-native-gesture-handler'),
+    ScrollView: RN.ScrollView,
+  };
+});
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    ...actual,
+    Maskicon: ({ testID }: { testID?: string }) =>
+      ReactActual.createElement(View, { testID }),
+  };
+});
 import {
   AccountGroupObject,
   AccountWalletObject,
@@ -11,6 +37,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID,
+  MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID,
 } from './MultichainAccountSelectorList.constants';
 import {
   createMockAccountGroup,
@@ -21,6 +48,7 @@ import {
   createMockInternalAccountsWithAddresses,
 } from '../test-utils';
 import { AccountCellIds } from '../AccountCell/AccountCell.testIds';
+import { ACCOUNT_LIST_CELL_CHECKBOX_ICON_TEST_ID } from './AccountListCell/AccountListCell.testIds';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -50,7 +78,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Mock whenEngineReady to prevent Engine access after Jest teardown
-jest.mock('../../../../core/Analytics/whenEngineReady', () => ({
+jest.mock('../../../../util/analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 
@@ -70,6 +98,7 @@ jest.mock('../../../../util/analytics/analytics', () => ({
 
 describe('MultichainAccountSelectorList', () => {
   const mockOnSelectAccount = jest.fn();
+  const SEARCH_WAIT_TIMEOUT_MS = 2000;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -91,18 +120,18 @@ describe('MultichainAccountSelectorList', () => {
       fireEvent.changeText(searchInput, searchTerm);
     });
 
-    // Wait for debounce to complete and filtering to occur
-    // Check both visible and hidden items to ensure filtering has completed
+    // Wait for debounce to complete and filtering to occur. Use a
+    // generous timeout so CI has time for debounce + re-render + list update.
     await waitFor(
       () => {
         expectedVisible.forEach((text) => {
-          expect(queryByText(text)).toBeTruthy();
+          expect(queryByText(text)).toBeOnTheScreen();
         });
         expectedHidden.forEach((text) => {
-          expect(queryByText(text)).toBeFalsy();
+          expect(queryByText(text)).not.toBeOnTheScreen();
         });
       },
-      { timeout: 500 },
+      { timeout: SEARCH_WAIT_TIMEOUT_MS },
     );
   };
 
@@ -111,6 +140,9 @@ describe('MultichainAccountSelectorList', () => {
     wallets: AccountWalletObject[],
     internalAccounts: Record<string, InternalAccount>,
     selectedAccountGroups: AccountGroupObject[],
+    componentProps: Partial<
+      React.ComponentProps<typeof MultichainAccountSelectorList>
+    > = {},
   ) => {
     const mockState = createMockState(wallets, internalAccounts);
 
@@ -118,6 +150,7 @@ describe('MultichainAccountSelectorList', () => {
       <MultichainAccountSelectorList
         onSelectAccount={mockOnSelectAccount}
         selectedAccountGroups={selectedAccountGroups}
+        {...componentProps}
       />,
       { state: mockState },
     );
@@ -291,6 +324,98 @@ describe('MultichainAccountSelectorList', () => {
         `account-list-cell-checkbox-${account1.id}`,
       );
       expect(account1Checkbox).toHaveLength(1);
+    });
+  });
+
+  describe('Wallet header visibility', () => {
+    it('does not render wallet header when there is only one wallet', () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Account 1',
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet1/group2',
+        'Account 2',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
+        account1,
+        account2,
+      ]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+      ]);
+      const { queryByText } = renderComponentWithMockState(
+        [wallet1],
+        internalAccounts,
+        [],
+      );
+
+      expect(queryByText('Account 1')).toBeTruthy();
+      expect(queryByText('Account 2')).toBeTruthy();
+      expect(queryByText('Wallet 1')).toBeFalsy();
+    });
+
+    it('renders wallet headers when there are multiple wallets', () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Account 1',
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet2/group2',
+        'Account 2',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const wallet2 = createMockWallet('wallet2', 'Wallet 2', [account2]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+      ]);
+      const { queryByText } = renderComponentWithMockState(
+        [wallet1, wallet2],
+        internalAccounts,
+        [],
+      );
+
+      expect(queryByText('Account 1')).toBeTruthy();
+      expect(queryByText('Account 2')).toBeTruthy();
+      expect(queryByText('Wallet 1')).toBeTruthy();
+      expect(queryByText('Wallet 2')).toBeTruthy();
+    });
+
+    it('preserves wallet headers when search filters results to a single wallet', async () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Alpha Account',
+        ['account1'],
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet2/group2',
+        'Beta Account',
+        ['account2'],
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const wallet2 = createMockWallet('wallet2', 'Wallet 2', [account2]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+      ]);
+      const { getByTestId, queryByText } = renderComponentWithMockState(
+        [wallet1, wallet2],
+        internalAccounts,
+        [],
+      );
+
+      await performSearch(
+        getByTestId,
+        queryByText,
+        'Alpha',
+        ['Alpha Account', 'Wallet 1'],
+        ['Beta Account', 'Wallet 2'],
+      );
     });
   });
 
@@ -613,33 +738,20 @@ describe('MultichainAccountSelectorList', () => {
         [account1],
       );
 
-      // Search with different cases
-      const searchInput = getByTestId(
-        MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
+      await performSearch(
+        getByTestId,
+        queryByText,
+        'MY ACCOUNT',
+        ['My Account'],
+        ['Test Account'],
       );
 
-      // Test uppercase search
-      await act(async () => {
-        fireEvent.changeText(searchInput, 'MY ACCOUNT');
-      });
-      await waitFor(
-        () => {
-          expect(queryByText('My Account')).toBeTruthy();
-          expect(queryByText('Test Account')).toBeFalsy();
-        },
-        { timeout: 1000 }, // Increased timeout for debounced search
-      );
-
-      // Test mixed case search
-      await act(async () => {
-        fireEvent.changeText(searchInput, 'tEsT aCcOuNt');
-      });
-      await waitFor(
-        () => {
-          expect(queryByText('My Account')).toBeFalsy();
-          expect(queryByText('Test Account')).toBeTruthy();
-        },
-        { timeout: 1000 }, // Increased timeout for debounced search
+      await performSearch(
+        getByTestId,
+        queryByText,
+        'tEsT aCcOuNt',
+        ['Test Account'],
+        ['My Account'],
       );
     });
 
@@ -739,6 +851,101 @@ describe('MultichainAccountSelectorList', () => {
         },
         { timeout: 1000 }, // Increased timeout to account for debounce delay
       );
+    });
+  });
+
+  describe('External address validation', () => {
+    const account1 = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Account 1',
+      ['account1'],
+    );
+    const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+    const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+    interface ExternalValidationCase {
+      testName: string;
+      chainId: string;
+      input: string;
+      shouldShowError: boolean;
+      shouldSelectExternal: boolean;
+    }
+
+    const validationCases: ExternalValidationCase[] = [
+      {
+        testName:
+          'shows error and disables external row for invalid EVM address input',
+        chainId: '0x1',
+        input: 'not-a-valid-evm-address',
+        shouldShowError: true,
+        shouldSelectExternal: false,
+      },
+      {
+        testName: 'allows selecting a valid EVM external address',
+        chainId: '0x1',
+        input: '0x9999999999999999999999999999999999999999',
+        shouldShowError: false,
+        shouldSelectExternal: true,
+      },
+      {
+        testName:
+          'shows error and disables external row for invalid Solana address input',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        input: 'not-a-valid-solana-address',
+        shouldShowError: true,
+        shouldSelectExternal: false,
+      },
+      {
+        testName: 'keeps unknown non-EVM chain input permissive',
+        chainId: 'cosmos:cosmoshub-4',
+        input: 'not-a-cosmos-address',
+        shouldShowError: false,
+        shouldSelectExternal: true,
+      },
+    ];
+
+    it.each(validationCases)('$testName', async (testCase) => {
+      const mockOnSelectExternalAccount = jest.fn();
+      const { getByTestId, queryByTestId, queryByText } =
+        renderComponentWithMockState([wallet1], internalAccounts, [], {
+          showExternalAccountOnEmptySearch: true,
+          onSelectExternalAccount: mockOnSelectExternalAccount,
+          chainId: testCase.chainId,
+        });
+
+      const searchInput = getByTestId(
+        MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(searchInput, testCase.input);
+      });
+
+      await waitFor(() => {
+        if (testCase.shouldShowError) {
+          expect(
+            getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID),
+          ).toBeOnTheScreen();
+        } else {
+          expect(
+            queryByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID),
+          ).not.toBeOnTheScreen();
+        }
+
+        expect(queryByText('Account 1')).not.toBeOnTheScreen();
+        expect(
+          getByTestId('external-account-cell-touchable'),
+        ).toBeOnTheScreen();
+      });
+
+      if (testCase.shouldSelectExternal) {
+        const externalRowButton = getByTestId(
+          'external-account-cell-touchable',
+        );
+        fireEvent.press(externalRowButton);
+        expect(mockOnSelectExternalAccount).toHaveBeenCalledWith(
+          testCase.input,
+        );
+      }
     });
   });
 
@@ -883,7 +1090,8 @@ describe('MultichainAccountSelectorList', () => {
 
       // After scroll, the selected account should be visible
       expect(queryByText(`Account ${selectedIdx + 1}`)).toBeTruthy();
-      expect(queryByText('Account 1')).toBeFalsy();
+      // Note: FlashList mock renders all items (no virtualization),
+      // so we cannot assert that 'Account 1' is off-screen
     });
   });
 
@@ -1171,7 +1379,9 @@ describe('MultichainAccountSelectorList', () => {
       expect(account2Checkboxes.length).toEqual(1); // Only container (unselected account, no icon rendered)
 
       // Check that there are no checked checkbox icons (since none are selected)
-      expect(queryByTestId('checkbox-icon-component')).toBeFalsy();
+      expect(
+        queryByTestId(ACCOUNT_LIST_CELL_CHECKBOX_ICON_TEST_ID),
+      ).toBeFalsy();
     });
 
     it('calls onSelectAccount when checkbox is pressed', () => {

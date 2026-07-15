@@ -1,0 +1,297 @@
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Pressable } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+  BoxBackgroundColor,
+  BoxBorderColor,
+} from '@metamask/design-system-react-native';
+import { PredictMarket } from '../../types';
+import { useCountdown } from './useCountdown';
+import {
+  PULSE_DURATION_MS,
+  PULSE_DOT_SIZE,
+  PULSE_RING_SIZE,
+} from './TimeSlotPicker.constants';
+import { TimeSlotPickerProps } from './TimeSlotPicker.types';
+import {
+  formatTime,
+  findLiveMarket,
+  findNearestMarket,
+} from './TimeSlotPicker.utils';
+
+interface PillStyle {
+  bg: BoxBackgroundColor | undefined;
+  border: BoxBorderColor | undefined;
+  textColor: TextColor;
+  bgClassName: string | undefined;
+}
+
+const PulseDot: React.FC = () => {
+  const tw = useTailwind();
+  const ringScale = useSharedValue(0.5);
+  const ringOpacity = useSharedValue(1);
+
+  useEffect(() => {
+    ringScale.value = withRepeat(
+      withTiming(1, {
+        duration: PULSE_DURATION_MS,
+        easing: Easing.out(Easing.ease),
+      }),
+      -1,
+      false,
+    );
+    ringOpacity.value = withRepeat(
+      withTiming(0, {
+        duration: PULSE_DURATION_MS,
+        easing: Easing.out(Easing.ease),
+      }),
+      -1,
+      false,
+    );
+  }, [ringScale, ringOpacity]);
+
+  const ringBaseStyle = useMemo(
+    () =>
+      tw.style(
+        `absolute w-[${PULSE_RING_SIZE}px] h-[${PULSE_RING_SIZE}px] rounded-full bg-success-default/40`,
+      ),
+    [tw],
+  );
+
+  const ringAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: ringScale.value }],
+    opacity: ringOpacity.value,
+  }));
+
+  return (
+    <Box
+      twClassName={`w-[${PULSE_RING_SIZE}px] h-[${PULSE_RING_SIZE}px] items-center justify-center`}
+    >
+      <Animated.View style={[ringBaseStyle, ringAnimatedStyle]} />
+      <Box
+        twClassName={`w-[${PULSE_DOT_SIZE}px] h-[${PULSE_DOT_SIZE}px] rounded-full bg-success-default`}
+      />
+    </Box>
+  );
+};
+
+interface TimeSlotPillProps {
+  market: PredictMarket;
+  isSelected: boolean;
+  isLive: boolean;
+  onPress: (market: PredictMarket) => void;
+}
+
+const TimeSlotPill: React.FC<TimeSlotPillProps> = ({
+  market,
+  isSelected,
+  isLive,
+  onPress,
+}) => {
+  const tw = useTailwind();
+  const countdown = useCountdown(isLive ? market.endDate : undefined);
+  const timeLabel = market.endDate ? formatTime(market.endDate) : '';
+
+  const pillStyle = useMemo((): PillStyle => {
+    if (isSelected && isLive) {
+      return {
+        bg: BoxBackgroundColor.SuccessMuted,
+        border: BoxBorderColor.SuccessDefault,
+        textColor: TextColor.TextDefault,
+        bgClassName: undefined,
+      };
+    }
+    if (isSelected) {
+      return {
+        bg: undefined,
+        border: undefined,
+        textColor: TextColor.PrimaryInverse,
+        bgClassName: 'bg-icon-default',
+      };
+    }
+    return {
+      bg: BoxBackgroundColor.BackgroundMuted,
+      border: undefined,
+      textColor: TextColor.TextDefault,
+      bgClassName: undefined,
+    };
+  }, [isSelected, isLive]);
+
+  const { bg, border, textColor, bgClassName } = pillStyle;
+
+  const handlePress = useCallback(() => {
+    onPress(market);
+  }, [onPress, market]);
+
+  return (
+    <Pressable
+      testID={`time-slot-pill-${market.id}`}
+      onPress={handlePress}
+      style={({ pressed }) => tw.style(pressed && 'opacity-80')}
+    >
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        backgroundColor={bg}
+        borderColor={border}
+        twClassName={`px-3 py-2 rounded-full gap-2 ${border ? 'border' : ''} ${bgClassName ?? ''}`}
+      >
+        {isLive && <PulseDot />}
+        {isLive && countdown ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1"
+          >
+            <Text
+              testID={`time-slot-live-label-${market.id}`}
+              variant={TextVariant.BodySm}
+              color={textColor}
+              fontWeight={FontWeight.Medium}
+            >
+              Live
+            </Text>
+            <Text
+              testID={`time-slot-countdown-${market.id}`}
+              variant={TextVariant.BodySm}
+              color={TextColor.SuccessDefault}
+              fontWeight={FontWeight.Medium}
+            >
+              {countdown}
+            </Text>
+          </Box>
+        ) : (
+          <Text
+            testID={`time-slot-time-label-${market.id}`}
+            variant={TextVariant.BodySm}
+            color={textColor}
+            fontWeight={isSelected ? FontWeight.Medium : FontWeight.Regular}
+          >
+            {timeLabel}
+          </Text>
+        )}
+      </Box>
+    </Pressable>
+  );
+};
+
+const SCROLL_CONTENT_PADDING_PX = 16;
+const SCROLL_SETTLE_DELAY_MS = 50;
+
+const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
+  markets,
+  selectedMarketId,
+  onMarketSelected,
+}) => {
+  const tw = useTailwind();
+  const scrollRef = useRef<ScrollView>(null);
+  const pillPositions = useRef<Map<string, number>>(new Map());
+
+  const liveMarket = findLiveMarket(markets);
+  const liveMarketId = liveMarket?.id;
+  useCountdown(liveMarket?.endDate);
+
+  const resolvedSelectedId = useMemo(() => {
+    if (selectedMarketId) return selectedMarketId;
+    if (liveMarketId) return liveMarketId;
+    return findNearestMarket(markets)?.id;
+  }, [selectedMarketId, liveMarketId, markets]);
+
+  // Stable key describing the ordered set of rendered markets. When a slot
+  // expires and is filtered out upstream the remaining pills shift left, so we
+  // must re-anchor even if `resolvedSelectedId` is unchanged.
+  const marketsKey = useMemo(
+    () => markets.map((market) => market.id).join('|'),
+    [markets],
+  );
+
+  const anchorToSelected = useCallback(() => {
+    if (!resolvedSelectedId) return;
+    const offset = pillPositions.current.get(resolvedSelectedId);
+    if (offset === undefined) return;
+    scrollRef.current?.scrollTo({
+      x: Math.max(0, offset - SCROLL_CONTENT_PADDING_PX),
+      animated: true,
+    });
+  }, [resolvedSelectedId]);
+
+  // Drop cached positions for markets that no longer render. Stale offsets
+  // (e.g. the expired live pill's x) would otherwise mis-anchor the scroll.
+  useEffect(() => {
+    const presentIds = new Set(markets.map((market) => market.id));
+    for (const id of pillPositions.current.keys()) {
+      if (!presentIds.has(id)) {
+        pillPositions.current.delete(id);
+      }
+    }
+  }, [markets]);
+
+  const handlePillLayout = useCallback(
+    (marketId: string, x: number) => {
+      const previous = pillPositions.current.get(marketId);
+      pillPositions.current.set(marketId, x);
+      // When the selected pill re-lays out at a new position (the left shift
+      // after a slot expires), re-anchor against the fresh offset rather than
+      // the stale one a fixed-delay timer might race against.
+      if (marketId === resolvedSelectedId && previous !== x) {
+        anchorToSelected();
+      }
+    },
+    [resolvedSelectedId, anchorToSelected],
+  );
+
+  useEffect(() => {
+    if (!resolvedSelectedId) return undefined;
+    const timeout = setTimeout(anchorToSelected, SCROLL_SETTLE_DELAY_MS);
+    return () => clearTimeout(timeout);
+    // marketsKey re-anchors after an upstream expiry shifts the remaining pills.
+  }, [resolvedSelectedId, marketsKey, anchorToSelected]);
+
+  if (markets.length === 0) return null;
+
+  return (
+    <Box twClassName="h-11">
+      <ScrollView
+        testID="time-slot-picker"
+        ref={scrollRef}
+        horizontal
+        style={tw.style('h-11 max-h-11')}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('px-4 gap-2')}
+      >
+        {markets.map((market) => (
+          <Box
+            key={market.id}
+            onLayout={(e) =>
+              handlePillLayout(market.id, e.nativeEvent.layout.x)
+            }
+          >
+            <TimeSlotPill
+              market={market}
+              isSelected={market.id === resolvedSelectedId}
+              isLive={market.id === liveMarketId}
+              onPress={onMarketSelected}
+            />
+          </Box>
+        ))}
+      </ScrollView>
+    </Box>
+  );
+};
+
+export default TimeSlotPicker;

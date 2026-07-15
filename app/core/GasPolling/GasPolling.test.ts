@@ -14,14 +14,14 @@ const mockedParseTransactionEIP1559 =
     typeof parseTransactionEIP1559
   >;
 
-const tokenValue = 'fba4a030-e1f5-11ec-a660-87ece4ac6cf7';
+const mockTokenValue = 'fba4a030-e1f5-11ec-a660-87ece4ac6cf7';
 
 jest.mock('../Engine', () => ({
   context: {
     GasFeeController: {
       gasFeeEstimates: {},
       gasEstimateType: '',
-      getGasFeeEstimatesAndStartPolling: jest.fn(() => tokenValue),
+      getGasFeeEstimatesAndStartPolling: jest.fn(() => mockTokenValue),
       stopPolling: jest.fn(),
     },
   },
@@ -102,7 +102,7 @@ describe('GasPolling', () => {
 
   it('should return a token value when called', async () => {
     const pollToken = await startGasPolling(token);
-    expect(pollToken).toEqual(tokenValue);
+    expect(pollToken).toEqual(mockTokenValue);
   });
 
   it('should stop polling when stopGasPolling is called', async () => {

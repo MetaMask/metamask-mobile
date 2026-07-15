@@ -1,9 +1,9 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, useMemo, ReactNode } from 'react';
 import {
   usePerpsOrderForm,
   UsePerpsOrderFormReturn,
 } from '../hooks/usePerpsOrderForm';
-import { OrderType, Position } from '../controllers/types';
+import { OrderType, Position } from '@metamask/perps-controller';
 
 interface PerpsOrderContextType extends UsePerpsOrderFormReturn {
   existingPosition?: Position;
@@ -42,13 +42,19 @@ export const PerpsOrderProvider = ({
     effectiveAvailableBalance,
   });
 
+  // orderFormState is itself memoized by usePerpsOrderForm (stable callbacks +
+  // changing primitives), so depending on it directly keeps the provider value
+  // referentially stable until the form state or existingPosition actually changes.
+  const value = useMemo<PerpsOrderContextType>(
+    () => ({
+      ...orderFormState,
+      existingPosition,
+    }),
+    [orderFormState, existingPosition],
+  );
+
   return (
-    <PerpsOrderContext.Provider
-      value={{
-        ...orderFormState,
-        existingPosition,
-      }}
-    >
+    <PerpsOrderContext.Provider value={value}>
       {children}
     </PerpsOrderContext.Provider>
   );

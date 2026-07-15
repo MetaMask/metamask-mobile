@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 // Third party dependencies.
 import React from 'react';
 
@@ -13,7 +13,7 @@ import { SelectButtonBaseProps } from './SelectButtonBase.types';
 export const SELECTBUTTONBASE_CARETICON_TESTID = 'selectbuttonbase-careticon';
 
 // Sample consts
-export const SAMPLE_SELECTBUTTONBASE_PROPS: SelectButtonBaseProps = {
+export const SAMPLE_SELECTBUTTONBASE_PROPS = {
   ...SAMPLE_SELECTVALUE_PROPS,
   caretIconEl: (
     <Icon
@@ -22,4 +22,4 @@ export const SAMPLE_SELECTBUTTONBASE_PROPS: SelectButtonBaseProps = {
       size={IconSize.Md}
     />
   ),
-};
+} as unknown as Partial<SelectButtonBaseProps>;

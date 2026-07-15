@@ -13,6 +13,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AccountAction from '../../../AccountAction/AccountAction';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -28,6 +29,7 @@ import {
   MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES,
 } from './MultichainAccountActions.testIds';
 import { createAddressListNavigationDetails } from '../../AddressList/AddressList';
+import { AddressListViewedSource } from '../../../../../util/analytics/addressListViewedTracking';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import {
   endTrace,
@@ -109,6 +111,7 @@ const MultichainAccountActions = () => {
         title: `${strings('multichain_accounts.address_list.addresses')} / ${
           accountGroup.metadata.name
         }`,
+        source: AddressListViewedSource.ACCOUNT_ACTIONS,
         onLoad: () => {
           endTrace({ name: TraceName.ShowAccountAddressList });
         },

@@ -1,0 +1,57 @@
+import { test } from '../../framework/fixtures/playwright';
+import TimerHelper from '../../framework/TimerHelper.js';
+import { System, PerformanceSwaps } from '../../tags.performance.js';
+import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import WalletView from '../../page-objects/wallet/WalletView.js';
+import QuoteView from '../../page-objects/swaps/QuoteView.js';
+import { checkSwapActivity } from '../../helpers/swap/swap-unified-ui';
+
+/* Scenario 7: Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3 */
+test.describe(`${System} ${PerformanceSwaps}`, () => {
+  test(
+    'Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
+    { tag: '@swap-bridge-dev-team' },
+    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+      test.skip(
+        currentDeviceDetails.platform === 'ios',
+        'Skipped on iOS — cross-chain swap flow under investigation',
+      );
+
+      await loginToAppPlaywright();
+
+      const timer1 = new TimerHelper(
+        'Time since the user clicks on the "Swap" button until the swap page is loaded',
+        { ios: 1100, android: 2200 },
+        currentDeviceDetails.platform,
+      );
+
+      await WalletView.tapWalletSwapButton();
+
+      await timer1.measure(async () => {
+        await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
+          asPlaywrightElement(QuoteView.amountInput),
+        );
+      });
+
+      await QuoteView.selectNetworkAndTokenTo('Solana', 'SOL');
+      await QuoteView.enterSourceTokenAmount('0.1');
+
+      const timer2 = new TimerHelper(
+        'Time since the user enters the amount until the quote is displayed',
+        { ios: 9000, android: 7000 },
+        currentDeviceDetails.platform,
+      );
+
+      await timer2.measure(() => QuoteView.isQuoteDisplayed());
+
+      performanceTracker.addTimers(timer1, timer2);
+
+      if (process.env.SUBMIT_SWAP === 'true') {
+        await QuoteView.dismissKeypad();
+        await QuoteView.tapConfirmSwap();
+        await checkSwapActivity('ETH', 'SOL');
+      }
+    },
+  );
+});

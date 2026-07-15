@@ -3,12 +3,9 @@ import {
   View,
   TouchableWithoutFeedback,
   Keyboard,
-  SafeAreaView,
   ActivityIndicator,
 } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import { createStyles } from './styles';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
@@ -18,8 +15,6 @@ import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import { doesPasswordMatch } from '../../../util/password';
-import { setAllowLoginWithRememberMe } from '../../../actions/security';
-import { useDispatch } from 'react-redux';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import Logger from '../../../util/Logger';
@@ -29,6 +24,8 @@ import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 
 export const createTurnOffRememberMeModalNavDetails = createNavigationDetails(
@@ -39,7 +36,6 @@ export const createTurnOffRememberMeModalNavDetails = createNavigationDetails(
 const TurnOffRememberMeModal = () => {
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
-  const dispatch = useDispatch();
 
   const modalRef = useRef<ReusableModalRef>(null);
 
@@ -80,32 +76,16 @@ const TurnOffRememberMeModal = () => {
   const turnOffRememberMeAndLockApp = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Get the previous auth type that was stored before enabling remember me
-      const previousAuthType = await StorageWrapper.getItem(
-        PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
-      );
-
-      // Determine which auth method to restore
-      // Use stored previous auth type if available, otherwise fall back to password
-      const authTypeToRestore = previousAuthType
-        ? (previousAuthType as AUTHENTICATION_TYPE)
-        : AUTHENTICATION_TYPE.PASSWORD;
-
       // Use the password entered in the modal to restore auth method
       await Authentication.updateAuthPreference({
-        authType: authTypeToRestore,
+        authType: AUTHENTICATION_TYPE.PASSWORD,
         password: passwordText,
       });
       // Clear the stored previous auth type after successful restoration
       await StorageWrapper.removeItem(PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME);
-      // Only set Redux state after operation completes successfully
-      dispatch(setAllowLoginWithRememberMe(false));
 
       dismissModal();
     } catch (error) {
-      // If update fails, still disable remember me and lock app
-      // The user will need to re-enable their preferred auth method
-      dispatch(setAllowLoginWithRememberMe(false));
       Logger.error(
         error as Error,
         'Failed to restore auth preference when disabling remember me',
@@ -113,10 +93,9 @@ const TurnOffRememberMeModal = () => {
 
       // Dismiss modal even on error
       dismissModal();
-    } finally {
-      setIsLoading(false);
     }
-  }, [dispatch, passwordText]);
+    setIsLoading(false);
+  }, [passwordText]);
 
   const disableRememberMe = useCallback(async () => {
     // Don't dismiss modal here - let turnOffRememberMeAndLockApp handle it
@@ -133,13 +112,14 @@ const TurnOffRememberMeModal = () => {
           onCancelPress={disableRememberMe}
           onRequestClose={triggerClose}
           onConfirmPress={triggerClose}
+          cancelButtonMode="confirm"
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.areYouSure}>
-              <Text variant={TextVariant.HeadingLG} style={styles.textStyle}>
+              <Text variant={TextVariant.HeadingLg} style={styles.textStyle}>
                 {strings('turn_off_remember_me.title')}
               </Text>
-              <Text variant={TextVariant.BodyMD} style={styles.textStyle}>
+              <Text variant={TextVariant.BodyMd} style={styles.textStyle}>
                 {strings('turn_off_remember_me.description')}
               </Text>
               {isLoading ? (

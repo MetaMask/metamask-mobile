@@ -16,7 +16,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { selectChainId } from '../../../selectors/networkController';
 import { trace, TraceName } from '../../../util/trace';
@@ -25,7 +26,6 @@ import { BalanceEmptyStateProps } from './BalanceEmptyState.types';
 import bankTransferImage from '../../../images/bank-transfer.png';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
-import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 
 /**
  * BalanceEmptyState smart component displays an empty state for wallet balance
@@ -37,11 +37,10 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
 }) => {
   const tw = useTailwind();
   const chainId = useSelector(selectChainId);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const { goToBuy } = useRampNavigation();
   const buttonClickData = useRampsButtonClickData();
-  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
 
   const handleAction = () => {
     goToBuy();
@@ -49,12 +48,11 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
-          text: 'Add funds',
+          button_text: 'Add funds',
           location: 'BalanceEmptyState',
           chain_id_destination: getDecimalChainId(chainId),
-          ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',
+          ramp_type: 'UNIFIED_BUY_2',
           region: rampGeodetectedRegion,
-          ramp_routing: buttonClickData.ramp_routing,
           is_authenticated: buttonClickData.is_authenticated,
           preferred_provider: buttonClickData.preferred_provider,
           order_count: buttonClickData.order_count,

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
-import type { AccountState } from '../../controllers/types';
+import { type AccountState } from '@metamask/perps-controller';
+import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
 
 export interface UsePerpsLiveAccountOptions {
   /** Throttle delay in milliseconds (default: 1000ms for balance updates) */
@@ -28,9 +29,21 @@ export function usePerpsLiveAccount(
   options: UsePerpsLiveAccountOptions = {},
 ): UsePerpsLiveAccountReturn {
   const { throttleMs = 1000 } = options;
-  const [account, setAccount] = useState<AccountState | null>(null);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const streamManager = usePerpsStream();
+  const initialChannelAccount = streamManager.account.getSnapshot();
+  const [account, setAccount] = useState<AccountState | null>(() => {
+    const cached =
+      initialChannelAccount ??
+      getPreloadedData<AccountState>('cachedAccountState');
+    return cached;
+  });
+  const [isInitialLoading, setIsInitialLoading] = useState(() => {
+    if (initialChannelAccount !== null && initialChannelAccount !== undefined) {
+      return false;
+    }
+    const hasCached = hasPreloadedData('cachedAccountState');
+    return !hasCached;
+  });
 
   useEffect(() => {
     if (!streamManager) return;

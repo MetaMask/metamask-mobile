@@ -5,8 +5,9 @@ jest.mock('../../../hooks/useMusdConversionFlowData');
 jest.mock('../../../hooks/useMusdConversion');
 jest.mock('../../../hooks/useMusdCtaVisibility');
 jest.mock('../../../../Ramp/hooks/useRampNavigation');
+jest.mock('../../../selectors/featureFlags');
 jest.mock('../../../../../../util/Logger');
-jest.mock('../../../../../hooks/useMetrics');
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics');
 jest.mock('../../../../../Views/confirmations/hooks/useNetworkName');
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -29,7 +30,8 @@ import Logger from '../../../../../../util/Logger';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BADGE_WRAPPER_BADGE_TEST_ID } from '../../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 import { strings } from '../../../../../../../locales/i18n';
-import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { Hex } from '@metamask/utils';
@@ -56,6 +58,8 @@ describe('MusdConversionAssetListCta', () => {
 
   const mockGoToBuy = jest.fn();
   const mockInitiateConversion = jest.fn();
+  const mockInitiateMaxConversion = jest.fn();
+  const mockClearError = jest.fn();
   const mockLoggerError = jest.spyOn(Logger, 'error');
 
   const mockGetPreferredPaymentToken = jest.fn();
@@ -73,10 +77,10 @@ describe('MusdConversionAssetListCta', () => {
       addProperties: mockAddProperties,
     }));
 
-    (useMetrics as jest.MockedFunction<typeof useMetrics>).mockReturnValue({
+    (useAnalytics as jest.MockedFunction<typeof useAnalytics>).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
-    } as unknown as ReturnType<typeof useMetrics>);
+    } as unknown as ReturnType<typeof useAnalytics>);
 
     (
       useNetworkName as jest.MockedFunction<typeof useNetworkName>
@@ -90,13 +94,14 @@ describe('MusdConversionAssetListCta', () => {
       goToBuy: mockGoToBuy,
       goToAggregator: jest.fn(),
       goToSell: jest.fn(),
-      goToDeposit: jest.fn(),
     });
 
     (
       useMusdConversion as jest.MockedFunction<typeof useMusdConversion>
     ).mockReturnValue({
-      initiateConversion: mockInitiateConversion,
+      initiateMaxConversion: mockInitiateMaxConversion,
+      initiateCustomConversion: mockInitiateConversion,
+      clearError: mockClearError,
       error: null,
       hasSeenConversionEducationScreen: true,
     });
@@ -150,7 +155,7 @@ describe('MusdConversionAssetListCta', () => {
   });
 
   describe('rendering', () => {
-    it('renders component with container testID when hook returns shouldShowCta true', () => {
+    it('renders CTA container when visibility conditions are met', () => {
       const { getByTestId } = renderWithProvider(
         <MusdConversionAssetListCta />,
         {
@@ -236,7 +241,7 @@ describe('MusdConversionAssetListCta', () => {
       expect(getByText('Get mUSD')).toBeOnTheScreen();
     });
 
-    it('hides CTA when hook returns shouldShowCta false', () => {
+    it('hides CTA when visibility conditions are not met', () => {
       (
         useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
       ).mockReturnValue({
@@ -330,7 +335,7 @@ describe('MusdConversionAssetListCta', () => {
       });
     });
 
-    it('does not call initiateConversion when wallet is empty', () => {
+    it('does not call initiateCustomConversion when wallet is empty', () => {
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
@@ -342,7 +347,7 @@ describe('MusdConversionAssetListCta', () => {
   });
 
   describe('button press - with tokens', () => {
-    it('calls initiateConversion with correct parameters', async () => {
+    it('calls initiateCustomConversion with correct parameters', async () => {
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
@@ -510,7 +515,7 @@ describe('MusdConversionAssetListCta', () => {
   });
 
   describe('error handling', () => {
-    it('logs error when initiateConversion fails with Error instance', async () => {
+    it('logs error when initiateCustomConversion fails with Error instance', async () => {
       const testError = new Error('Network error');
       mockInitiateConversion.mockRejectedValue(testError);
 
@@ -530,7 +535,7 @@ describe('MusdConversionAssetListCta', () => {
       });
     });
 
-    it('logs error when initiateConversion fails with non-Error value', async () => {
+    it('logs error when initiateCustomConversion fails with non-Error value', async () => {
       const nonErrorValue = 'string error';
       mockInitiateConversion.mockRejectedValue(nonErrorValue);
 
@@ -549,10 +554,31 @@ describe('MusdConversionAssetListCta', () => {
         );
       });
     });
+
+    it('logs error and skips initiateCustomConversion when payment token is missing', async () => {
+      mockGetPreferredPaymentToken.mockReturnValue(null);
+
+      const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Get mUSD'));
+      });
+
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          expect.any(Error),
+          '[mUSD Conversion] Failed to initiate conversion - no payment token',
+        );
+      });
+
+      expect(mockInitiateConversion).not.toHaveBeenCalled();
+    });
   });
 
   describe('visibility behavior', () => {
-    it('renders null when shouldShowCta is false', () => {
+    it('renders null when visibility conditions are not met', () => {
       (
         useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
       ).mockReturnValue({
@@ -577,7 +603,7 @@ describe('MusdConversionAssetListCta', () => {
       ).toBeNull();
     });
 
-    it('renders component when shouldShowCta is true', () => {
+    it('renders component when visibility conditions are met', () => {
       (
         useMusdCtaVisibility as jest.MockedFunction<typeof useMusdCtaVisibility>
       ).mockReturnValue({
@@ -724,7 +750,9 @@ describe('MusdConversionAssetListCta', () => {
       (
         useMusdConversion as jest.MockedFunction<typeof useMusdConversion>
       ).mockReturnValue({
-        initiateConversion: mockInitiateConversion,
+        initiateMaxConversion: mockInitiateMaxConversion,
+        initiateCustomConversion: mockInitiateConversion,
+        clearError: mockClearError,
         error: null,
         hasSeenConversionEducationScreen,
       });
@@ -902,6 +930,46 @@ describe('MusdConversionAssetListCta', () => {
         expectTrackedEventProps({
           location: EVENT_LOCATIONS.HOME_SCREEN,
           redirects_to: EVENT_LOCATIONS.BUY_SCREEN,
+          cta_type: MUSD_CTA_TYPES.PRIMARY,
+          cta_text: ctaText,
+          cta_click_target: 'cta_text_link',
+          network_chain_id: null,
+          network_name: strings('wallet.popular_networks'),
+        });
+      });
+
+      it('tracks cta_text_link with CUSTOM_AMOUNT_SCREEN when earn percentage text is clicked and wallet has tokens', async () => {
+        const { getByText } = arrange({
+          isEmptyWallet: false,
+          selectedChainId: null,
+          hasSeenConversionEducationScreen: true,
+        });
+
+        const ctaText = pressEarnBonusText(getByText);
+
+        expectTrackedEventProps({
+          location: EVENT_LOCATIONS.HOME_SCREEN,
+          redirects_to: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
+          cta_type: MUSD_CTA_TYPES.PRIMARY,
+          cta_text: ctaText,
+          cta_click_target: 'cta_text_link',
+          network_chain_id: null,
+          network_name: strings('wallet.popular_networks'),
+        });
+      });
+
+      it('tracks cta_text_link with CONVERSION_EDUCATION_SCREEN when earn percentage text is clicked and education not seen', () => {
+        const { getByText } = arrange({
+          isEmptyWallet: false,
+          selectedChainId: null,
+          hasSeenConversionEducationScreen: false,
+        });
+
+        const ctaText = pressEarnBonusText(getByText);
+
+        expectTrackedEventProps({
+          location: EVENT_LOCATIONS.HOME_SCREEN,
+          redirects_to: EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
           cta_type: MUSD_CTA_TYPES.PRIMARY,
           cta_text: ctaText,
           cta_click_target: 'cta_text_link',

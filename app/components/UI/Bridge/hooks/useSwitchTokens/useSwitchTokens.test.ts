@@ -5,7 +5,7 @@ import { waitFor } from '@testing-library/react-native';
 import { BridgeToken } from '../../types';
 import { Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as bridgeSlice from '../../../../../core/redux/slices/bridge';
 import Engine from '../../../../../core/Engine';
 

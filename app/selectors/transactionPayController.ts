@@ -48,7 +48,29 @@ export const selectTransactionPayIsMaxAmountByTransactionId = createSelector(
   (transactionData) => transactionData?.isMaxAmount ?? false,
 );
 
+export const selectTransactionPayIsPostQuoteByTransactionId = createSelector(
+  selectTransactionDataByTransactionId,
+  (transactionData) => transactionData?.isPostQuote ?? false,
+);
+
+export const selectTransactionPayFiatPaymentByTransactionId = createSelector(
+  selectTransactionDataByTransactionId,
+  (transactionData) => transactionData?.fiatPayment,
+);
+
 export const selectTransactionPayTransactionData = createSelector(
   selectTransactionPayControllerState,
   (state) => state.transactionData,
+);
+
+export const selectAccountOverrideByTransactionId = createSelector(
+  selectTransactionDataByTransactionId,
+  (transactionData) => transactionData?.accountOverride,
+);
+
+export const selectPaymentOverrideByTransactionId = createSelector(
+  selectTransactionDataByTransactionId,
+  (transactionData) =>
+    (transactionData as Record<string, unknown> | undefined)
+      ?.paymentOverride as string | undefined,
 );

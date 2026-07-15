@@ -1,15 +1,14 @@
 import React from 'react';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import Button, {
+import { useNavigation } from '@react-navigation/native';
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
-import type { PerpsNavigationParamList } from '../../controllers/types';
 
 export const PerpsHIP3DebugButton = () => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
 
   const handleDebugPress = () => {
     navigation.navigate(Routes.PERPS.ROOT, {
@@ -24,11 +23,12 @@ export const PerpsHIP3DebugButton = () => {
 
   return (
     <Button
-      variant={ButtonVariants.Secondary}
+      variant={ButtonVariant.Secondary}
       size={ButtonSize.Md}
-      width={ButtonWidthTypes.Full}
-      label="HIP-3 Debug"
+      isFullWidth
       onPress={handleDebugPress}
-    />
+    >
+      HIP-3 Debug
+    </Button>
   );
 };

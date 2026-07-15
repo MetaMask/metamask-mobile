@@ -7,6 +7,42 @@ import Logger from '../../util/Logger';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import FCMService from '../../util/notifications/services/FCMService';
 import AppConstants from '../AppConstants';
+import { BranchParams } from './types/deepLinkAnalytics.types';
+import {
+  getBrazeInitialDeeplink,
+  subscribeToBrazePushDeeplinks,
+} from '../Braze/BrazeDeeplinks';
+import type { DeeplinkIntent } from './types/DeeplinkIntent';
+
+// `false` means the deeplink was handled but intentionally rejected, for
+// example when the user dismisses the interstitial during startup resolution.
+export type DeeplinkResolveResult = DeeplinkIntent | false | null;
+
+/**
+ * When Branch resolves a short link (e.g. metamask-alternate.app.link/1WkF6GmE40b),
+ * the URI path may be link ID, not an in-app route. If the resolved params indicate
+ * a clicked Branch link with a $deeplink_path, replace the host and path segment
+ * with link.metamask.io/$deeplink_path while preserving the original query string.
+ */
+export function rewriteBranchUri(
+  uri: string | undefined,
+  params: BranchParams | undefined,
+): string | undefined {
+  try {
+    if (!uri || !params?.['+clicked_branch_link']) return uri;
+    const rawPath = params.$deeplink_path;
+    if (typeof rawPath !== 'string') return uri;
+
+    const parsed = new URL(uri);
+    parsed.host = AppConstants.MM_IO_UNIVERSAL_LINK_HOST;
+    // Set the pathname to the sanitized $deeplink_path
+    parsed.pathname = `/${rawPath.replace(/^\//, '')}`;
+    return parsed.toString();
+  } catch (error) {
+    Logger.error(error as Error, `Error rewriting Branch URI: ${uri}`);
+    return uri;
+  }
+}
 
 export class DeeplinkManager {
   // singleton instance
@@ -45,14 +81,38 @@ export class DeeplinkManager {
       origin: string;
       onHandled?: () => void;
     },
-  ) {
-    return await parseDeeplink({
+  ): Promise<boolean> {
+    const result = await parseDeeplink({
       deeplinkManager: this,
       url,
       origin,
       browserCallBack,
       onHandled,
     });
+
+    return typeof result === 'boolean' ? result : Boolean(result);
+  }
+
+  async resolve(
+    url: string,
+    {
+      origin,
+    }: {
+      origin: string;
+    },
+  ): Promise<DeeplinkResolveResult> {
+    const result = await parseDeeplink({
+      deeplinkManager: this,
+      url,
+      origin,
+      mode: 'resolve',
+    });
+
+    if (result === false) {
+      return false;
+    }
+
+    return result && typeof result !== 'boolean' ? result : null;
   }
 
   static start() {
@@ -66,6 +126,17 @@ export class DeeplinkManager {
 
       try {
         const latestParams = await branch.getLatestReferringParams();
+
+        // Cold start: params may contain a resolved Branch link with $deeplink_path.
+        const rewritten = rewriteBranchUri(
+          latestParams?.['~referring_link'] as string | undefined,
+          latestParams as Record<string, unknown> | undefined,
+        );
+        if (rewritten) {
+          handleDeeplink({ uri: rewritten });
+          return;
+        }
+
         const deeplink = latestParams?.['+non_branch_link'] as string;
         if (deeplink) {
           handleDeeplink({ uri: deeplink });
@@ -93,6 +164,22 @@ export class DeeplinkManager {
       }
     });
 
+    getBrazeInitialDeeplink().then((deeplink) => {
+      if (deeplink) {
+        handleDeeplink({
+          uri: deeplink,
+          source: AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+        });
+      }
+    });
+
+    subscribeToBrazePushDeeplinks((deeplink) => {
+      handleDeeplink({
+        uri: deeplink,
+        source: AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+      });
+    });
+
     Linking.getInitialURL().then((url) => {
       if (!url) {
         return;
@@ -117,12 +204,11 @@ export class DeeplinkManager {
         const branchError = new Error(error);
         Logger.error(branchError, 'Error subscribing to branch.');
       }
-      getBranchDeeplink(opts.uri);
-      //TODO: that async call in the subscribe doesn't look good to me
-      branch.getLatestReferringParams().then((val) => {
-        const deeplink = opts.uri || (val['+non_branch_link'] as string);
-        handleDeeplink({ uri: deeplink });
-      });
+      const rewritten = rewriteBranchUri(
+        opts.uri,
+        opts.params as Record<string, unknown> | undefined,
+      );
+      getBranchDeeplink(rewritten ?? opts.uri);
     });
   }
 }
@@ -139,6 +225,12 @@ export default {
       onHandled?: () => void;
     },
   ) => DeeplinkManager.getInstance().parse(url, args),
+  resolve: (
+    url: string,
+    args: {
+      origin: string;
+    },
+  ) => DeeplinkManager.getInstance().resolve(url, args),
   setDeeplink: (url: string) => DeeplinkManager.getInstance().setDeeplink(url),
   getPendingDeeplink: () => DeeplinkManager.getInstance().getPendingDeeplink(),
   expireDeeplink: () => DeeplinkManager.getInstance().expireDeeplink(),

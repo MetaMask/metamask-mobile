@@ -1,138 +1,294 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import React from 'react';
+import { renderHook, waitFor, act } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePredictActivity } from './usePredictActivity';
-import Engine from '../../../../core/Engine';
+import type { PredictActivity } from '../types';
+import { PREDICT_ACTIVITY_PAGE_SIZE } from '../constants/transactions';
 
-// Mock Engine
+const MOCK_ADDRESS = '0x1234567890123456789012345678901234567890';
+
+const mockGetActivity = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
-      getActivity: jest.fn(),
+      getActivity: (...args: unknown[]) => mockGetActivity(...args),
     },
   },
 }));
 
-// Mock navigation focus effect without auto-invocation; provide manual trigger
-jest.mock('@react-navigation/native', () => {
-  let focusCb: (() => void) | null = null;
-  return {
-    useFocusEffect: (cb: () => void) => {
-      focusCb = cb;
+const mockGetEvmAccountFromSelectedAccountGroup = jest.fn<
+  { address: string } | null,
+  []
+>(() => ({
+  address: MOCK_ADDRESS,
+}));
+jest.mock('../utils/accounts', () => ({
+  getEvmAccountFromSelectedAccountGroup: () =>
+    mockGetEvmAccountFromSelectedAccountGroup(),
+}));
+
+const mockEnsurePolygonNetworkExists = jest.fn<Promise<void>, []>();
+jest.mock('./usePredictNetworkManagement', () => ({
+  usePredictNetworkManagement: () => ({
+    ensurePolygonNetworkExists: mockEnsurePolygonNetworkExists,
+  }),
+}));
+
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroupId: jest.fn(() => 'mock-account-group-id'),
+  }),
+);
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (selector: () => unknown) => selector(),
+}));
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, cacheTime: Infinity } },
+  });
+
+  const Wrapper = ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
+
+  return { Wrapper };
+};
+
+const createActivityPage = (
+  length: number,
+  prefix = 'activity',
+): PredictActivity[] =>
+  Array.from({ length }, (_, index) => ({
+    id: `${prefix}-${index}`,
+    providerId: 'stub',
+    entry: {
+      type: 'claimWinnings',
+      timestamp: index,
+      amount: index + 1,
     },
-    __esModule: true,
-    __mock: {
-      invokeFocusEffect: () => {
-        focusCb?.();
-      },
-    },
-  };
-});
+  }));
 
 describe('usePredictActivity', () => {
-  const mockGetActivity = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
-    (Engine.context.PredictController.getActivity as jest.Mock) =
-      mockGetActivity;
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('initializes and auto-loads activity on mount', async () => {
-    const data = [{ id: '1' }];
-    mockGetActivity.mockResolvedValueOnce(data);
-
-    const { result, waitForNextUpdate } = renderHook(() =>
-      usePredictActivity(),
-    );
-
-    expect(result.current.isLoading).toBe(true);
-    expect(result.current.activity).toEqual([]);
-    expect(result.current.error).toBe(null);
-
-    await waitForNextUpdate();
-
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.activity).toEqual(data);
-    expect(result.current.error).toBe(null);
-    expect(mockGetActivity).toHaveBeenCalledWith({
-      providerId: undefined,
+    mockGetActivity.mockResolvedValue([]);
+    mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
+    mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue({
+      address: MOCK_ADDRESS,
     });
   });
 
-  it('respects providerId option when loading', async () => {
-    mockGetActivity.mockResolvedValueOnce([]);
+  it('does not fetch activity when no EVM account is selected', () => {
+    const { Wrapper } = createWrapper();
+    mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue(null);
 
-    const { waitForNextUpdate } = renderHook(() =>
-      usePredictActivity({ providerId: 'polymarket' }),
-    );
-
-    await waitForNextUpdate();
-
-    expect(mockGetActivity).toHaveBeenCalledWith({
-      providerId: 'polymarket',
-    });
-  });
-
-  it('can refresh with isRefresh=true and sets isRefreshing flag', async () => {
-    mockGetActivity.mockResolvedValueOnce([{ id: '1' }]);
-    const { result, waitForNextUpdate } = renderHook(() =>
-      usePredictActivity(),
-    );
-
-    await waitForNextUpdate();
-
-    mockGetActivity.mockResolvedValueOnce([{ id: '2' }]);
-    await act(async () => {
-      await result.current.loadActivity({ isRefresh: true });
+    renderHook(() => usePredictActivity(), {
+      wrapper: Wrapper,
     });
 
-    expect(result.current.isRefreshing).toBe(false);
-    expect(result.current.activity).toEqual([{ id: '2' }]);
-  });
-
-  it('handles errors and sets error message', async () => {
-    mockGetActivity.mockRejectedValueOnce(new Error('Boom'));
-
-    const { result, waitForNextUpdate } = renderHook(() =>
-      usePredictActivity(),
-    );
-
-    await waitForNextUpdate();
-
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.error).toBe('Boom');
-    expect(result.current.activity).toEqual([]);
-  });
-
-  it('supports disabling auto-load via loadOnMount=false', () => {
-    const { result } = renderHook(() =>
-      usePredictActivity({ loadOnMount: false }),
-    );
-
-    expect(result.current.isLoading).toBe(true);
-    expect(result.current.activity).toEqual([]);
     expect(mockGetActivity).not.toHaveBeenCalled();
   });
 
-  it('triggers refresh on focus when refreshOnFocus=true', async () => {
-    mockGetActivity.mockResolvedValueOnce([]);
+  it('fetches activity automatically on mount', async () => {
+    const { Wrapper } = createWrapper();
+    const activity = createActivityPage(1);
+    mockGetActivity.mockResolvedValueOnce(activity);
 
-    const { waitForNextUpdate } = renderHook(() =>
-      usePredictActivity({ refreshOnFocus: true }),
-    );
+    const { result } = renderHook(() => usePredictActivity(), {
+      wrapper: Wrapper,
+    });
 
-    await waitForNextUpdate();
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
 
-    mockGetActivity.mockResolvedValueOnce([]);
-    const { __mock } = jest.requireMock('@react-navigation/native');
+    expect(result.current.data).toEqual(activity);
+    expect(result.current.activity).toEqual(activity);
+    expect(result.current.error).toBeNull();
+    expect(mockGetActivity).toHaveBeenCalledWith({
+      address: MOCK_ADDRESS,
+      limit: PREDICT_ACTIVITY_PAGE_SIZE,
+      offset: 0,
+    });
+  });
+
+  it('uses custom limit for activity pages', async () => {
+    const { Wrapper } = createWrapper();
+    mockGetActivity.mockResolvedValueOnce(createActivityPage(1));
+
+    const { result } = renderHook(() => usePredictActivity({ limit: 10 }), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(mockGetActivity).toHaveBeenCalledWith({
+      address: MOCK_ADDRESS,
+      limit: 10,
+      offset: 0,
+    });
+  });
+
+  it('exposes error when activity fetch fails', async () => {
+    const { Wrapper } = createWrapper();
+    mockGetActivity.mockRejectedValueOnce(new Error('Boom'));
+
+    const { result } = renderHook(() => usePredictActivity(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toBeInstanceOf(Error);
+    });
+
+    expect(result.current.error?.message).toBe('Boom');
+  });
+
+  it('uses refetch for refresh behavior', async () => {
+    const { Wrapper } = createWrapper();
+    mockGetActivity.mockResolvedValueOnce(createActivityPage(1, 'initial'));
+
+    const { result } = renderHook(() => usePredictActivity(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    mockGetActivity.mockResolvedValueOnce(createActivityPage(1, 'refetch'));
     await act(async () => {
-      __mock.invokeFocusEffect();
-      await Promise.resolve();
+      await result.current.refetch();
     });
 
     expect(mockGetActivity).toHaveBeenCalledTimes(2);
+    expect(mockGetActivity).toHaveBeenLastCalledWith({
+      address: MOCK_ADDRESS,
+      limit: PREDICT_ACTIVITY_PAGE_SIZE,
+      offset: 0,
+    });
+    expect(result.current.isRefetching).toBe(false);
+  });
+
+  it('fetches the next page when the previous page reaches the limit', async () => {
+    const { Wrapper } = createWrapper();
+    const firstPage = createActivityPage(PREDICT_ACTIVITY_PAGE_SIZE, 'first');
+    const secondPage = createActivityPage(5, 'second');
+    mockGetActivity
+      .mockResolvedValueOnce(firstPage)
+      .mockResolvedValueOnce(secondPage);
+
+    const { result } = renderHook(() => usePredictActivity(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.hasNextPage).toBe(true);
+    });
+
+    await act(async () => {
+      await result.current.fetchNextPage();
+    });
+
+    expect(mockGetActivity).toHaveBeenLastCalledWith({
+      address: MOCK_ADDRESS,
+      limit: PREDICT_ACTIVITY_PAGE_SIZE,
+      offset: PREDICT_ACTIVITY_PAGE_SIZE,
+    });
+    await waitFor(() => {
+      expect(result.current.data).toEqual([...firstPage, ...secondPage]);
+    });
+  });
+
+  it('keeps the first activity when offset pages return duplicate ids', async () => {
+    const { Wrapper } = createWrapper();
+    const firstPage = createActivityPage(PREDICT_ACTIVITY_PAGE_SIZE, 'first');
+    const duplicateActivity = {
+      ...firstPage[PREDICT_ACTIVITY_PAGE_SIZE - 1],
+      title: 'First page copy',
+    };
+    const uniqueActivity = createActivityPage(1, 'second')[0];
+    mockGetActivity
+      .mockResolvedValueOnce(firstPage)
+      .mockResolvedValueOnce([duplicateActivity, uniqueActivity]);
+
+    const { result } = renderHook(() => usePredictActivity(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.hasNextPage).toBe(true);
+    });
+
+    await act(async () => {
+      await result.current.fetchNextPage();
+    });
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([...firstPage, uniqueActivity]);
+    });
+  });
+
+  it('continues pagination when the previous page is shorter than the limit', async () => {
+    const { Wrapper } = createWrapper();
+    const firstPage = createActivityPage(1, 'first');
+    const secondPage = createActivityPage(1, 'second');
+    mockGetActivity
+      .mockResolvedValueOnce(firstPage)
+      .mockResolvedValueOnce(secondPage);
+
+    const { result } = renderHook(() => usePredictActivity(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.hasNextPage).toBe(true);
+    });
+
+    await act(async () => {
+      await result.current.fetchNextPage();
+    });
+
+    expect(mockGetActivity).toHaveBeenLastCalledWith({
+      address: MOCK_ADDRESS,
+      limit: PREDICT_ACTIVITY_PAGE_SIZE,
+      offset: PREDICT_ACTIVITY_PAGE_SIZE,
+    });
+    await waitFor(() => {
+      expect(result.current.data).toEqual([...firstPage, ...secondPage]);
+    });
+  });
+
+  it('stops pagination when the previous page is empty', async () => {
+    const { Wrapper } = createWrapper();
+    mockGetActivity.mockResolvedValueOnce([]);
+
+    const { result } = renderHook(() => usePredictActivity(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.hasNextPage).toBe(false);
+  });
+
+  it('ensures polygon network before running query', async () => {
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => usePredictActivity(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(mockEnsurePolygonNetworkExists).toHaveBeenCalledTimes(1);
   });
 });

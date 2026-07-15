@@ -1,5 +1,6 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import {
@@ -8,35 +9,29 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { Box } from '../../../../UI/Box/Box';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import styleSheet from './EditMultichainAccountName.styles';
-import { useStyles } from '../../../../hooks/useStyles';
-import { useTheme } from '../../../../../util/theme';
 import {
-  TextInput,
+  Box,
+  BoxFlexDirection,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  HeaderStandard,
+  Text,
+  TextColor,
+  TextField,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
   SafeAreaView,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { EditAccountNameIds } from '../EditAccountName.testIds';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RootState } from '../../../../../reducers';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import HeaderBase from '../../../../../component-library/components/HeaderBase/HeaderBase';
-import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+import { useTheme } from '../../../../../util/theme';
 
 interface RootNavigationParamList extends ParamListBase {
   EditMultichainAccountName: {
@@ -50,11 +45,12 @@ type EditMultichainAccountNameRouteProp = RouteProp<
 >;
 
 export const EditMultichainAccountName = () => {
-  const { styles } = useStyles(styleSheet, {});
-  const { colors, themeAppearance } = useTheme();
+  const tw = useTailwind();
+  const { themeAppearance } = useTheme();
   const route = useRoute<EditMultichainAccountNameRouteProp>();
   const { accountGroup: initialAccountGroup } = route.params;
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const accountGroupFromSelector = useSelector((state: RootState) =>
     initialAccountGroup
@@ -68,6 +64,20 @@ export const EditMultichainAccountName = () => {
 
   const [accountName, setAccountName] = useState(initialName);
   const [error, setError] = useState<string | null>(null);
+
+  const containerStyle = useMemo(
+    () =>
+      tw.style(
+        'flex-1 bg-default',
+        Platform.OS === 'android' && StatusBar.currentHeight
+          ? { paddingTop: StatusBar.currentHeight }
+          : undefined,
+        {
+          paddingBottom: Platform.OS === 'android' ? 10 : insets.bottom,
+        },
+      ),
+    [insets.bottom, tw],
+  );
 
   const handleAccountNameChange = useCallback(() => {
     // Validate that account name is not empty
@@ -97,62 +107,57 @@ export const EditMultichainAccountName = () => {
   }, [accountName, accountGroup, navigation]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <HeaderBase
-        style={styles.header}
-        startAccessory={
-          <ButtonLink
-            labelTextVariant={TextVariant.BodyMDMedium}
-            label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
-            onPress={() => navigation.goBack()}
-          />
-        }
-      >
-        {accountGroup?.metadata?.name || 'Account Group'}
-      </HeaderBase>
+    <SafeAreaView edges={['left', 'right']} style={containerStyle}>
+      <HeaderStandard
+        includesTopInset
+        title={accountGroup?.metadata?.name || 'Account Group'}
+        onBack={() => navigation.goBack()}
+        backButtonProps={{
+          testID: EditAccountNameIds.BACK_BUTTON,
+        }}
+      />
       <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
+        style={tw.style('flex-1  justify-between')}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <Box
-          style={styles.contentContainer}
+          flexDirection={BoxFlexDirection.Column}
+          twClassName="mt-4 gap-4 px-6"
           testID={EditAccountNameIds.EDIT_ACCOUNT_NAME_CONTAINER}
         >
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('multichain_accounts.edit_account_name.account_name')}
           </Text>
-          <TextInput
-            testID={EditAccountNameIds.ACCOUNT_NAME_INPUT}
-            style={styles.input}
+          <TextField
             value={accountName}
             onChangeText={(newName: string) => {
               setAccountName(newName);
-              // Clear error when user starts typing
               if (error) {
                 setError(null);
               }
             }}
             placeholder={initialName}
-            placeholderTextColor={colors.text.muted}
-            spellCheck={false}
-            keyboardAppearance={themeAppearance}
-            autoCapitalize="none"
+            isError={Boolean(error)}
             autoFocus
-            editable
+            inputProps={{
+              testID: EditAccountNameIds.ACCOUNT_NAME_INPUT,
+              spellCheck: false,
+              keyboardAppearance: themeAppearance,
+              autoCapitalize: 'none',
+            }}
           />
-          {error && <Text color={TextColor.Error}>{error}</Text>}
+          {error ? <Text color={TextColor.ErrorDefault}>{error}</Text> : null}
         </Box>
-        <Box style={styles.saveButtonContainer}>
+        <Box twClassName="mt-4 w-full px-6 py-2.5">
           <Button
-            width={ButtonWidthTypes.Full}
-            variant={ButtonVariants.Primary}
-            label={strings(
-              'multichain_accounts.edit_account_name.confirm_button',
-            )}
+            isFullWidth
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={handleAccountNameChange}
             testID={EditAccountNameIds.SAVE_BUTTON}
-          />
+          >
+            {strings('multichain_accounts.edit_account_name.confirm_button')}
+          </Button>
         </Box>
       </KeyboardAvoidingView>
     </SafeAreaView>

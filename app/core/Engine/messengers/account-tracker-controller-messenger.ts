@@ -4,7 +4,6 @@ import {
   MessengerEvents,
 } from '@metamask/messenger';
 import { AccountTrackerControllerMessenger } from '@metamask/assets-controllers';
-import { RootMessenger } from '../types';
 
 /**
  * Get the AccountTrackerControllerMessenger for the AccountTrackerController.
@@ -13,14 +12,13 @@ import { RootMessenger } from '../types';
  * @returns The AccountTrackerControllerMessenger.
  */
 export function getAccountTrackerControllerMessenger(
-  rootMessenger: RootMessenger,
-): AccountTrackerControllerMessenger {
-  const messenger = new Messenger<
-    'AccountTrackerController',
+  rootMessenger: Messenger<
+    'Root',
     MessengerActions<AccountTrackerControllerMessenger>,
-    MessengerEvents<AccountTrackerControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<AccountTrackerControllerMessenger>
+  >,
+): AccountTrackerControllerMessenger {
+  const messenger: AccountTrackerControllerMessenger = new Messenger({
     namespace: 'AccountTrackerController',
     parent: rootMessenger,
   });
@@ -31,6 +29,8 @@ export function getAccountTrackerControllerMessenger(
       'PreferencesController:getState',
       'NetworkController:getState',
       'NetworkController:getNetworkClientById',
+      'NetworkEnablementController:getState',
+      'NetworkEnablementController:listPopularEvmNetworks',
       'KeyringController:getState',
     ],
     events: [

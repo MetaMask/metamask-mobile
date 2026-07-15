@@ -46,7 +46,6 @@ function isObject(value: unknown): value is RuntimeObject {
  * name, regardless of whether it is enumerable or not.
  */
 const hasProperty = <
-  // eslint-disable-next-line @typescript-eslint/ban-types
   ObjectToCheck extends Object,
   Property extends PropertyKey,
 >(

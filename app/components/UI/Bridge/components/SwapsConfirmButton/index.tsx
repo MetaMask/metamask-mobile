@@ -1,0 +1,291 @@
+import React, { useMemo, useEffect, useRef } from 'react';
+import {
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
+import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
+import { useSelector } from 'react-redux';
+import {
+  selectBridgeFeatureFlags,
+  selectIsSolanaSourced,
+  selectIsSubmittingTx,
+  selectSourceAmount,
+  selectSourceToken,
+  selectDestToken,
+} from '../../../../../core/redux/slices/bridge';
+import { isNegativeSecurityType } from '../../utils/tokenSecurityUtils';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import { useLatestBalance } from '../../hooks/useLatestBalance';
+import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import { isHardwareAccount } from '../../../../../util/address';
+import Engine from '../../../../../core/Engine';
+import { calcTokenValue } from '../../../../../util/transactions';
+import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import Routes from '../../../../../constants/navigation/Routes';
+import { PriceImpactModalType } from '../PriceImpactModal/constants';
+import { useNavigation } from '@react-navigation/native';
+import {
+  exceedsPriceImpactErrorThreshold,
+  parsePriceImpact,
+} from '../../utils/getPriceImpactViewData';
+import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
+import type { TokenWarningModalParams } from '../TokenWarningModal';
+import { TokenWarningModalMode } from '../TokenWarningModal/constants';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
+import { useIsNetworkFeeUnavailable } from '../../hooks/useIsNetworkFeeUnavailable';
+
+interface Props {
+  latestSourceBalance: ReturnType<typeof useLatestBalance>;
+  /** Optional testID override (e.g. when rendered inside keypad to avoid duplicate IDs in E2E) */
+  testID?: string;
+  location: MetaMetricsSwapsEventSource;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+}
+
+export const SwapsConfirmButton = ({
+  latestSourceBalance,
+  testID,
+  location,
+  transactionActiveAbTests,
+}: Props) => {
+  const navigation = useNavigation();
+
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const destToken = useSelector(selectDestToken);
+  const updateQuoteParams = useBridgeQuoteRequest();
+  const sourceAmount = useSelector(selectSourceAmount);
+  const sourceToken = useSelector(selectSourceToken);
+  const isSubmittingTx = useSelector(selectIsSubmittingTx);
+  const walletAddress = useSelector(selectSourceWalletAddress);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const isHardwareAddress = selectedAddress
+    ? !!isHardwareAccount(selectedAddress)
+    : false;
+  const isSolanaSourced = useSelector(selectIsSolanaSourced);
+
+  const hasInsufficientBalance = useIsInsufficientBalance({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
+
+  const {
+    activeQuote,
+    isLoading,
+    needsNewQuote,
+    blockaidError,
+    quoteFetchError,
+    isNoQuotesAvailable,
+    isActiveQuoteForCurrentTokenPair,
+  } = useBridgeQuoteDataContext();
+
+  const insufficientNativeReserveError = useInsufficientNativeReserveError({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+    walletAddress,
+    activeQuote,
+  });
+
+  const hasInsufficientNativeReserveError = Boolean(
+    insufficientNativeReserveError,
+  );
+
+  const handleConfirm = useBridgeConfirm({
+    activeQuote,
+    location,
+    transactionActiveAbTests,
+  });
+
+  const isNetworkFeeUnavailable = useIsNetworkFeeUnavailable(activeQuote);
+  const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
+  const hasInsufficientGas = !isNetworkFeeUnavailable && !hasSufficientGas;
+
+  // Check both the display amount and the atomic amount are non-zero.
+  // An amount like 0.000000001 BTC (8 decimals) is non-zero as a number but
+  // resolves to 0 satoshis, meaning no quote will be fetched.
+  const hasNonZeroSourceAmount = useMemo(() => {
+    const nonZeroInputAmount = !!sourceAmount && Number(sourceAmount) !== 0;
+    try {
+      return (
+        nonZeroInputAmount &&
+        (sourceToken?.decimals === undefined ||
+          calcTokenValue(
+            // If user pressed dot as first input character
+            // default the value to zero.
+            sourceAmount === '.' ? '0' : sourceAmount,
+            sourceToken.decimals,
+          ).toFixed(0) !== '0')
+      );
+    } catch {
+      // We reach this state when calcTokenValue is unable to calculate the value.
+      // This should not happen under normal circumstances, but we implement this
+      // guard to defend against unkown conditions.
+      return nonZeroInputAmount;
+    }
+  }, [sourceAmount, sourceToken?.decimals]);
+
+  // Track the sourceAmount that the current quote was settled for.
+  // The ref only updates when loading finishes (quote arrived / error)
+  // so it stays stale during the debounce window after the user edits.
+  const settledAmountRef = useRef(sourceAmount);
+  const wasLoadingRef = useRef(isLoading);
+
+  const hasError = !!blockaidError || !!quoteFetchError || isNoQuotesAvailable;
+
+  useEffect(() => {
+    const loadingJustFinished = wasLoadingRef.current && !isLoading;
+    if (loadingJustFinished || hasError || needsNewQuote) {
+      settledAmountRef.current = sourceAmount;
+    }
+    wasLoadingRef.current = isLoading;
+  }, [isLoading, sourceAmount, hasError, needsNewQuote]);
+
+  const isSourceAmountChanged = sourceAmount !== settledAmountRef.current;
+
+  // True when user has entered a valid amount but the quote fetch hasn't
+  // started yet (e.g. during the debounce window after typing).
+  const isAwaitingQuote =
+    hasNonZeroSourceAmount && !activeQuote && !isLoading && !needsNewQuote;
+
+  // True when the sourceAmount changed from what the current quote was
+  // fetched for (stale quote during debounce window).
+  const isPendingQuoteRefresh = isSourceAmountChanged && hasNonZeroSourceAmount;
+
+  const isSubmitDisabled =
+    !hasNonZeroSourceAmount ||
+    isAwaitingQuote ||
+    (activeQuote && !isActiveQuoteForCurrentTokenPair) ||
+    isPendingQuoteRefresh ||
+    (isLoading && !activeQuote) ||
+    hasInsufficientBalance ||
+    hasInsufficientNativeReserveError ||
+    isNetworkFeeUnavailable ||
+    isSubmittingTx ||
+    (isHardwareAddress && isSolanaSourced) ||
+    hasError ||
+    hasInsufficientGas ||
+    !walletAddress;
+
+  const handleContinue = async () => {
+    const securityData = destToken?.securityData;
+    if (isNegativeSecurityType(securityData?.type)) {
+      const params: TokenWarningModalParams = {
+        warningType: securityData.type,
+        features: securityData.metadata?.features ?? [],
+        mode: TokenWarningModalMode.Execution,
+        location,
+      };
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params,
+      });
+      return;
+    }
+
+    if (hasMissingPriceData(activeQuote)) {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
+        params: {
+          location,
+        },
+      });
+      return;
+    }
+
+    // Default to zero to bypass swap friction.
+    // This callback is always called when active quote exists,
+    // thus this check is not expected to be used, but we introduce
+    // it regardless as a defensive mechanism.
+    const priceImpact = parsePriceImpact(
+      activeQuote?.quote.priceData?.priceImpact,
+    );
+
+    if (
+      exceedsPriceImpactErrorThreshold(
+        priceImpact,
+        bridgeFeatureFlags?.priceImpactThreshold?.error,
+      )
+    ) {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
+        params: {
+          type: PriceImpactModalType.Execution,
+          token: sourceToken,
+          location,
+        },
+      });
+      return;
+    }
+
+    await handleConfirm();
+  };
+
+  const handleGetNewQuote = () => {
+    if (Engine.context.BridgeController?.resetState) {
+      Engine.context.BridgeController.resetState();
+    }
+    updateQuoteParams();
+  };
+
+  const buttonIsInLoadingState =
+    !needsNewQuote &&
+    !hasError &&
+    (isLoading || isSubmittingTx || isAwaitingQuote || isPendingQuoteRefresh) &&
+    isSubmitDisabled;
+
+  const label = useMemo(() => {
+    if (needsNewQuote) {
+      return strings('quote_expired_modal.get_new_quote');
+    }
+
+    if (!activeQuote || isLoading || !sourceAmount || sourceAmount === '0') {
+      return strings('bridge.confirm_swap');
+    }
+
+    if (
+      hasInsufficientBalance ||
+      hasInsufficientNativeReserveError ||
+      isNetworkFeeUnavailable
+    )
+      return strings('bridge.insufficient_funds');
+    if (hasInsufficientGas) return strings('bridge.insufficient_gas');
+    if (isSubmittingTx) return strings('bridge.submitting_transaction');
+
+    return strings('bridge.confirm_swap');
+  }, [
+    activeQuote,
+    isLoading,
+    sourceAmount,
+    hasInsufficientBalance,
+    hasInsufficientNativeReserveError,
+    isNetworkFeeUnavailable,
+    hasInsufficientGas,
+    isSubmittingTx,
+    needsNewQuote,
+  ]);
+
+  return (
+    <Button
+      variant={ButtonVariant.Primary}
+      size={ButtonBaseSize.Lg}
+      isLoading={buttonIsInLoadingState}
+      onPress={needsNewQuote ? handleGetNewQuote : handleContinue}
+      isFullWidth
+      testID={testID ?? BridgeViewSelectorsIDs.CONFIRM_BUTTON}
+      isDisabled={needsNewQuote ? false : isSubmitDisabled}
+    >
+      {label}
+    </Button>
+  );
+};

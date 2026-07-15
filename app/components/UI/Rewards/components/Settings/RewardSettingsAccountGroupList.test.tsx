@@ -6,8 +6,11 @@ import {
   useRewardOptinSummary,
   WalletWithAccountGroupsWithOptInStatus,
 } from '../../hooks/useRewardOptinSummary';
-import { useOptout } from '../../hooks/useOptout';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockUseAnalyticsHook,
+  createMockEventBuilder,
+} from '../../../../../util/test/analyticsMock';
 import { useBulkLinkState } from '../../hooks/useBulkLinkState';
 import { AccountWalletType } from '@metamask/account-api';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
@@ -31,13 +34,7 @@ jest.mock('../../hooks/useRewardOptinSummary', () => ({
   useRewardOptinSummary: jest.fn(),
 }));
 
-jest.mock('../../hooks/useOptout', () => ({
-  useOptout: jest.fn(),
-}));
-
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-}));
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../hooks/useBulkLinkState', () => ({
   useBulkLinkState: jest.fn(),
@@ -57,48 +54,54 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      primary: {
-        default: '#037DD6',
-      },
-      background: {
-        alternative: '#F7F9FA',
-      },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 // Mock FlashList
+const mockFlashListScrollToIndex = jest.fn();
+const mockFlashListScrollToOffset = jest.fn();
+
 jest.mock('@shopify/flash-list', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 
-  return {
-    FlashList: ({
-      data,
-      renderItem,
-      keyExtractor,
-      getItemType,
-      ListHeaderComponent,
-      ListEmptyComponent,
-      ListFooterComponent,
-      ...props
-    }: {
-      data: unknown[];
-      renderItem: (info: {
-        item: unknown;
-        index: number;
-      }) => React.ReactElement;
-      keyExtractor: (item: unknown, index: number) => string;
-      getItemType?: (item: unknown) => string;
-      ListHeaderComponent?: () => React.ReactElement;
-      ListEmptyComponent?: () => React.ReactElement;
-      ListFooterComponent?: () => React.ReactElement;
-      [key: string]: unknown;
-    }) =>
-      ReactActual.createElement(
+  const FlashList = ReactActual.forwardRef(
+    (
+      {
+        data,
+        renderItem,
+        keyExtractor,
+        getItemType,
+        ListHeaderComponent,
+        ListEmptyComponent,
+        ListFooterComponent,
+        ...props
+      }: {
+        data: unknown[];
+        renderItem: (info: {
+          item: unknown;
+          index: number;
+        }) => React.ReactElement;
+        keyExtractor: (item: unknown, index: number) => string;
+        getItemType?: (item: unknown) => string;
+        ListHeaderComponent?: () => React.ReactElement;
+        ListEmptyComponent?: () => React.ReactElement;
+        ListFooterComponent?: () => React.ReactElement;
+        [key: string]: unknown;
+      },
+      ref: unknown,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        scrollToIndex: mockFlashListScrollToIndex,
+        scrollToOffset: mockFlashListScrollToOffset,
+        scrollToEnd: jest.fn(),
+      }));
+
+      return ReactActual.createElement(
         View,
         { testID: 'rewards-settings-flash-list', ...props },
         ListHeaderComponent &&
@@ -116,7 +119,6 @@ jest.mock('@shopify/flash-list', () => {
                 {
                   key,
                   testID: `flash-list-item-${key}`,
-                  // Store item type as accessibility label for testing
                   accessibilityLabel: itemType,
                 },
                 renderItem({
@@ -137,8 +139,11 @@ jest.mock('@shopify/flash-list', () => {
             { testID: 'list-footer' },
             ReactActual.createElement(ListFooterComponent),
           ),
-      ),
-  };
+      );
+    },
+  );
+
+  return { FlashList };
 });
 
 // Mock component library components
@@ -222,6 +227,10 @@ jest.mock('@metamask/design-system-react-native', () => {
     FontWeight: {
       Medium: 'medium',
     },
+    ButtonVariant: {
+      Primary: 'primary',
+      Secondary: 'secondary',
+    },
     ButtonVariants: {
       Primary: 'primary',
       Secondary: 'secondary',
@@ -277,7 +286,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 // Mock Skeleton component
-jest.mock('../../../../../component-library/components/Skeleton', () => {
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 
@@ -359,20 +368,25 @@ jest.mock('./RewardSettingsAccountGroup', () => {
 // Mock ReferredByCodeSection component to avoid navigation context requirement
 jest.mock('./ReferredByCodeSection', () => {
   const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
+  const { View, TouchableOpacity } = jest.requireActual('react-native');
 
-  return () =>
-    ReactActual.createElement(View, {
-      testID: 'referred-by-code-section',
-    });
+  return ({ onInputFocus }: { onInputFocus?: () => void }) =>
+    ReactActual.createElement(
+      View,
+      { testID: 'referred-by-code-section' },
+      onInputFocus &&
+        ReactActual.createElement(TouchableOpacity, {
+          testID: 'referred-by-code-focus-trigger',
+          onPress: onInputFocus,
+        }),
+    );
 });
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseRewardOptinSummary = useRewardOptinSummary as jest.MockedFunction<
   typeof useRewardOptinSummary
 >;
-const mockUseOptout = useOptout as jest.MockedFunction<typeof useOptout>;
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+const mockUseAnalytics = jest.mocked(useAnalytics);
 const mockUseBulkLinkState = useBulkLinkState as jest.MockedFunction<
   typeof useBulkLinkState
 >;
@@ -452,14 +466,8 @@ describe('RewardSettingsAccountGroupList', () => {
     },
   ] as unknown as WalletWithAccountGroupsWithOptInStatus[];
 
-  const mockShowOptoutBottomSheet = jest.fn();
   const mockTrackEvent = jest.fn();
-  const mockCreateEventBuilder = jest.fn(() => ({
-    addProperties: jest.fn().mockReturnThis(),
-    build: jest.fn(() => ({})),
-    addSensitiveProperties: jest.fn().mockReturnThis(),
-    removeProperties: jest.fn().mockReturnThis(),
-  })) as unknown as jest.MockedFunction<(event: unknown) => unknown>;
+  const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
   const mockFetchOptInStatus = jest.fn();
   const mockStartBulkLink = jest.fn();
 
@@ -497,26 +505,13 @@ describe('RewardSettingsAccountGroupList', () => {
       currentAccountGroupPartiallySupported: null,
     });
 
-    // Mock useOptout hook
-    mockUseOptout.mockReturnValue({
-      optout: jest.fn().mockResolvedValue(true),
-      isLoading: false,
-      showOptoutBottomSheet: mockShowOptoutBottomSheet,
-    });
-
-    // Mock useMetrics hook
-    mockUseMetrics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-      addTraitsToUser: jest.fn(),
-      isEnabled: true,
-      enable: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDataDeletionTaskStatus: jest.fn(),
-      getDataDeletionTaskId: jest.fn(),
-      getDataDeletionTaskUrl: jest.fn(),
-    } as never);
+    // Mock useAnalytics hook
+    mockUseAnalytics.mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
     // Mock useBulkLinkState hook
     mockUseBulkLinkState.mockReturnValue({
@@ -586,7 +581,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('rewards-settings-skeleton-2')).toBeOnTheScreen();
     });
 
-    it('renders header and footer in loading state', () => {
+    it('renders header in loading state', () => {
       mockUseRewardOptinSummary.mockReturnValue({
         byWallet: [],
         isLoading: true,
@@ -600,7 +595,6 @@ describe('RewardSettingsAccountGroupList', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('rewards-settings-opt-out')).toBeOnTheScreen();
     });
   });
 
@@ -641,7 +635,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(mockFetchOptInStatus).toHaveBeenCalledTimes(1);
     });
 
-    it('renders header and footer in error state', () => {
+    it('renders header in error state', () => {
       mockUseRewardOptinSummary.mockReturnValue({
         byWallet: [],
         isLoading: false,
@@ -655,7 +649,6 @@ describe('RewardSettingsAccountGroupList', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('rewards-settings-opt-out')).toBeOnTheScreen();
     });
   });
 
@@ -676,17 +669,30 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('account-group-group-3')).toBeOnTheScreen();
     });
 
-    it('renders header and footer components', () => {
+    it('renders header and settings footer list items', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('rewards-settings-opt-out')).toBeOnTheScreen();
+      expect(getByTestId('flash-list-item-referredByCode')).toBeOnTheScreen();
+      expect(
+        getByTestId('flash-list-item-environmentToggle'),
+      ).toBeOnTheScreen();
     });
 
-    it('renders opt-out button', () => {
+    it('scrolls to referral section on input focus', () => {
+      jest.useFakeTimers();
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
-      expect(getByTestId('rewards-opt-out-button')).toBeOnTheScreen();
+      fireEvent.press(getByTestId('referred-by-code-focus-trigger'));
+      jest.runAllTimers();
+
+      expect(mockFlashListScrollToIndex).toHaveBeenCalledWith(
+        expect.objectContaining({
+          viewPosition: 0.2,
+          animated: true,
+        }),
+      );
+      jest.useRealTimers();
     });
   });
 
@@ -945,8 +951,6 @@ describe('RewardSettingsAccountGroupList', () => {
       // Test that all major components have testIDs
       expect(getByTestId('rewards-settings-flash-list')).toBeOnTheScreen();
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('rewards-settings-opt-out')).toBeOnTheScreen();
-      expect(getByTestId('rewards-opt-out-button')).toBeOnTheScreen();
     });
   });
 

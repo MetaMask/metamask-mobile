@@ -1,0 +1,60 @@
+import { test } from '../../framework/fixtures/playwright';
+import TimerHelper from '../../framework/TimerHelper';
+import { System, PerformanceSwaps } from '../../tags.performance.js';
+import { loginToAppPlaywright } from '../../flows/wallet.flow';
+import WalletView from '../../page-objects/wallet/WalletView';
+import QuoteView from '../../page-objects/swaps/QuoteView';
+import { checkSwapActivity } from '../../helpers/swap/swap-unified-ui';
+import { aiVisualTest, createTestConfig } from '../../framework/ai-visual';
+
+/* Scenario 6: Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3 */
+test.describe(`${System} ${PerformanceSwaps}`, () => {
+  test(
+    'Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3',
+    { tag: '@swap-bridge-dev-team' },
+    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+      test.skip(
+        currentDeviceDetails.platform === 'ios',
+        'Skipped on iOS — swap flow under investigation',
+      );
+
+      await loginToAppPlaywright();
+
+      const swapLoadTimer = new TimerHelper(
+        'Time since the user clicks on the "Swap" button until the swap page is loaded',
+        { ios: 2000, android: 2500 },
+        currentDeviceDetails.platform,
+      );
+
+      await WalletView.tapWalletSwapButton();
+      await swapLoadTimer.measure(() => QuoteView.isVisible());
+
+      const swapTimer = new TimerHelper(
+        'Time since the user enters the amount until the quote is displayed',
+        { ios: 9000, android: 7000 },
+        currentDeviceDetails.platform,
+      );
+      await QuoteView.selectNetworkAndTokenTo('Ethereum', 'USDC');
+      await QuoteView.enterSourceTokenAmount('0.01');
+
+      await QuoteView.dismissKeypad();
+      await swapTimer.measure(() => QuoteView.isQuoteDisplayed());
+
+      performanceTracker.addTimers(swapLoadTimer, swapTimer);
+
+      await aiVisualTest(
+        driver,
+        'Swap-Confirmation-ETH-USDC.png',
+        currentDeviceDetails.platform,
+        createTestConfig.swapReview({ stabilityWait: 3000 }),
+        testInfo,
+      );
+
+      if (process.env.SUBMIT_SWAP === 'true') {
+        await QuoteView.dismissKeypad();
+        await QuoteView.tapConfirmSwap();
+        await checkSwapActivity('ETH', 'USDC');
+      }
+    },
+  );
+});

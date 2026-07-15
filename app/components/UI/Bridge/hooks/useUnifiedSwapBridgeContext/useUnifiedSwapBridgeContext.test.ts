@@ -1,4 +1,5 @@
 import '../../_mocks_/initialState';
+import { FeatureId } from '@metamask/bridge-controller';
 import { createBridgeTestState } from '../../testUtils';
 import { useUnifiedSwapBridgeContext } from '.';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
@@ -91,10 +92,86 @@ describe('useUnifiedSwapBridgeContext', () => {
       stx_enabled: true,
       token_symbol_source: 'ETH',
       token_symbol_destination: 'USDC',
+      token_security_type_destination: null,
       security_warnings: [],
       warnings: [],
       usd_amount_source: 0,
+      feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
+  });
+
+  it('collects security_warnings from destination token features', () => {
+    mockSelectShouldUseSmartTransaction.mockReturnValue(false);
+    mockSelectSourceToken.mockReturnValue({ symbol: 'ETH' });
+    mockSelectDestToken.mockReturnValue({
+      symbol: 'SHADY',
+      securityData: {
+        type: 'Warning',
+        metadata: {
+          features: [
+            {
+              featureId: 'HONEYPOT',
+              type: 'Warning',
+              description: 'Honeypot risk detected',
+            },
+            {
+              featureId: 'CONCENTRATED_SUPPLY',
+              type: 'Warning',
+              description: 'Concentrated supply risk',
+            },
+          ],
+        },
+      },
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useUnifiedSwapBridgeContext(),
+      { state: initialRootState },
+    );
+
+    expect(result.current.security_warnings).toEqual([
+      'Honeypot risk detected',
+      'Concentrated supply risk',
+    ]);
+    expect(result.current.token_security_type_destination).toBe('Warning');
+  });
+
+  it('returns empty security_warnings when source token has warnings but destination does not', () => {
+    mockSelectShouldUseSmartTransaction.mockReturnValue(false);
+    mockSelectSourceToken.mockReturnValue({
+      symbol: 'SCAM',
+      securityData: {
+        type: 'Malicious',
+        metadata: {
+          features: [
+            { featureId: 'F1', type: 'Warning', description: 'Source warning' },
+          ],
+        },
+      },
+    });
+    mockSelectDestToken.mockReturnValue({ symbol: 'USDC' });
+
+    const { result } = renderHookWithProvider(
+      () => useUnifiedSwapBridgeContext(),
+      { state: initialRootState },
+    );
+
+    expect(result.current.security_warnings).toEqual([]);
+    expect(result.current.token_security_type_destination).toBeNull();
+  });
+
+  it('returns empty security_warnings when destination token has no securityData', () => {
+    mockSelectShouldUseSmartTransaction.mockReturnValue(false);
+    mockSelectSourceToken.mockReturnValue({ symbol: 'ETH' });
+    mockSelectDestToken.mockReturnValue({ symbol: 'USDC' });
+
+    const { result } = renderHookWithProvider(
+      () => useUnifiedSwapBridgeContext(),
+      { state: initialRootState },
+    );
+
+    expect(result.current.security_warnings).toEqual([]);
+    expect(result.current.token_security_type_destination).toBeNull();
   });
 
   it('returns empty token symbols when tokens are undefined', () => {
@@ -120,9 +197,11 @@ describe('useUnifiedSwapBridgeContext', () => {
       stx_enabled: false,
       token_symbol_source: '',
       token_symbol_destination: '',
+      token_security_type_destination: null,
       security_warnings: [],
       warnings: [],
       usd_amount_source: 0,
+      feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
   });
 
@@ -157,12 +236,11 @@ describe('useUnifiedSwapBridgeContext', () => {
     mockSelectDestToken.mockReturnValue({ symbol: 'USDC' });
     mockSelectSourceAmount.mockReturnValue('1');
     mockSelectCurrencyRates.mockReturnValue({
-      usd: { conversionRate: 1 },
-      ETH: { conversionRate: 1 },
+      ETH: { conversionRate: 2000, usdConversionRate: 2000 },
     });
     mockSelectTokenMarketData.mockReturnValue({
       '0x1': {
-        '0x0000000000000000000000000000000000000000': { price: 2000 },
+        '0x0000000000000000000000000000000000000000': { price: 1 },
       },
     });
     mockSelectNetworkConfigurations.mockReturnValue({
@@ -177,6 +255,8 @@ describe('useUnifiedSwapBridgeContext', () => {
     );
 
     expect(result.current.usd_amount_source).toBeDefined();
+    // 1 ETH, price=1 (native), conversionRate=2000, usdConversionRate=2000
+    // tokenFiatValue = 1 * 2000 * 1 = 2000, usdAmount = 2000 * (2000/2000) = 2000
     expect(result.current.usd_amount_source).toBe(2000);
   });
 

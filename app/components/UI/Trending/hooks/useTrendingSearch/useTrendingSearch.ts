@@ -4,7 +4,11 @@ import { SortTrendingBy, TrendingAsset } from '@metamask/assets-controllers';
 import { useSearchRequest } from '../useSearchRequest/useSearchRequest';
 import { useTrendingRequest } from '../useTrendingRequest/useTrendingRequest';
 import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
-import { PriceChangeOption } from '../../components/TrendingTokensBottomSheet';
+import {
+  PriceChangeOption,
+  SortDirection,
+  TimeOption,
+} from '../../components/TrendingTokensBottomSheet';
 import { isEqual } from 'lodash';
 
 const useStableReference = <T>(value: T) => {
@@ -26,6 +30,7 @@ const useStableReference = <T>(value: T) => {
  * @param sortBy - Sort option for trending tokens
  * @param chainIds - Chain IDs to filter by
  * @param enableDebounce - Whether to debounce (default: true)
+ * @param includeStocks - When true, items with rwaData are included in results (default: false)
  * @returns Trending/search results, loading state, and refetch function
  */
 export const useTrendingSearch = (opts?: {
@@ -33,12 +38,27 @@ export const useTrendingSearch = (opts?: {
   sortBy?: SortTrendingBy;
   chainIds?: CaipChainId[] | null;
   enableDebounce?: boolean;
+  includeMarketData?: boolean;
+  includeStocks?: boolean;
+  filterLowQuality?: boolean;
+  sortTrendingTokensOptions?: {
+    option: PriceChangeOption;
+    direction: SortDirection;
+    timeOption?: TimeOption;
+  };
 }) => {
   const {
     searchQuery,
     sortBy,
     chainIds,
     enableDebounce = true,
+    includeMarketData = true,
+    includeStocks = false,
+    filterLowQuality = false,
+    sortTrendingTokensOptions = {
+      option: PriceChangeOption.PriceChange,
+      direction: SortDirection.Descending,
+    },
   } = useStableReference(opts ?? {});
 
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
@@ -54,26 +74,38 @@ export const useTrendingSearch = (opts?: {
   }, [searchQuery, enableDebounce]);
 
   // There is a chance you will get 0 results
-  const { results: searchResults, isLoading: isSearchLoading } =
-    useSearchRequest({
-      query: debouncedQuery || '',
-      limit: 20,
-      chainIds: chainIds ?? undefined,
-      includeMarketData: true,
-    });
+  const {
+    results: searchResults,
+    isLoading: isSearchLoading,
+    loadMore,
+    isLoadingMore,
+    hasNextPage,
+    totalCount,
+  } = useSearchRequest({
+    query: debouncedQuery || '',
+    limit: 20,
+    chainIds: chainIds ?? undefined,
+    includeMarketData,
+  });
 
   const {
     results: trendingResults,
     isLoading: isTrendingLoading,
     fetch: fetchTrendingTokens,
   } = useTrendingRequest({
-    sortBy,
+    sort: sortBy,
     chainIds: chainIds ?? undefined,
+    filterLowQuality,
   });
 
   const data = useMemo(() => {
     if (!debouncedQuery?.trim()) {
-      return sortTrendingTokens(trendingResults, PriceChangeOption.PriceChange);
+      return sortTrendingTokens(
+        trendingResults,
+        sortTrendingTokensOptions.option,
+        sortTrendingTokensOptions.direction,
+        sortTrendingTokensOptions.timeOption,
+      );
     }
 
     const query = debouncedQuery.toLowerCase().trim();
@@ -87,28 +119,37 @@ export const useTrendingSearch = (opts?: {
       filteredTrendingResults.map((result) => [result.assetId, result]),
     );
 
-    searchResults.forEach((asset) => {
-      if (!resultMap.has(asset.assetId)) {
-        resultMap.set(asset.assetId, {
-          assetId: asset.assetId,
-          symbol: asset.symbol,
-          name: asset.name,
-          decimals: asset.decimals,
-          price: asset.price,
-          aggregatedUsdVolume: asset.aggregatedUsdVolume,
-          marketCap: asset.marketCap,
-          priceChangePct: {
-            h24: asset.pricePercentChange1d,
-          },
-          rwaData: asset.rwaData as unknown as
-            | TrendingAsset['rwaData']
-            | undefined,
-        });
-      }
-    });
+    searchResults
+      .filter((item) => includeStocks || !item.rwaData)
+      .forEach((asset) => {
+        if (!resultMap.has(asset.assetId)) {
+          resultMap.set(asset.assetId, {
+            assetId: asset.assetId,
+            symbol: asset.symbol,
+            name: asset.name,
+            decimals: asset.decimals,
+            price: asset.price,
+            aggregatedUsdVolume: asset.aggregatedUsdVolume,
+            marketCap: asset.marketCap,
+            priceChangePct: {
+              h24: asset.pricePercentChange1d,
+            },
+            rwaData: asset.rwaData as unknown as
+              | TrendingAsset['rwaData']
+              | undefined,
+            securityData: asset.securityData,
+          });
+        }
+      });
 
     return Array.from(resultMap.values());
-  }, [debouncedQuery, trendingResults, searchResults]);
+  }, [
+    debouncedQuery,
+    trendingResults,
+    searchResults,
+    sortTrendingTokensOptions,
+    includeStocks,
+  ]);
 
   // Loading state: show loading while waiting for results
   const prevDebouncedQuery = useRef(debouncedQuery);
@@ -122,5 +163,13 @@ export const useTrendingSearch = (opts?: {
       isSearchLoading
     : isTrendingLoading;
 
-  return { data, isLoading, refetch: fetchTrendingTokens };
+  return {
+    data,
+    isLoading,
+    refetch: fetchTrendingTokens,
+    loadMore,
+    isLoadingMore,
+    hasNextPage,
+    totalCount: debouncedQuery?.trim() ? totalCount : undefined,
+  };
 };

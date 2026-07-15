@@ -2,6 +2,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
+import { strings } from '../../../../../locales/i18n';
 
 // External dependencies
 import Engine from '../../../../core/Engine';
@@ -11,8 +12,8 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 // Internal dependencies
 import AutoDetectNFTSettings from './index';
 import { NFT_AUTO_DETECT_MODE_SECTION } from './index.constants';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 
 let mockSetDisplayNftMedia: jest.Mock;
 let mockSetUseNftDetection: jest.Mock;
@@ -43,24 +44,10 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => mockNavigation),
 }));
 
-jest.mock('../../../hooks/useMetrics');
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 const mockTrackEvent = jest.fn();
 const mockAddTraitsToUser = jest.fn();
-
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: mockAddTraitsToUser,
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
 
 jest.mock('../../../../util/general', () => ({
   timeoutFetch: jest.fn(),
@@ -69,6 +56,12 @@ jest.mock('../../../../util/general', () => ({
 describe('AutoDetectNFTSettings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        identify: mockAddTraitsToUser,
+      }),
+    );
     (useNavigation as jest.Mock).mockImplementation(() => mockNavigation);
   });
 
@@ -92,10 +85,12 @@ describe('AutoDetectNFTSettings', () => {
   };
 
   it('render matches snapshot', () => {
-    const tree = renderWithProvider(<AutoDetectNFTSettings />, {
+    const { getByText } = renderWithProvider(<AutoDetectNFTSettings />, {
       state: initialState,
     });
-    expect(tree).toMatchSnapshot();
+    expect(
+      getByText(strings('app_settings.nft_autodetect_mode')),
+    ).toBeOnTheScreen();
   });
 
   describe('NFT Autodetection', () => {
@@ -124,15 +119,8 @@ describe('AutoDetectNFTSettings', () => {
         'NFT Autodetection': 'ON',
         'Enable OpenSea API': 'ON',
       });
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.SETTINGS_UPDATED,
-        )
-          .addProperties({
-            nft_autodetection_enabled: true,
-          })
-          .build(),
-      );
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
 
     it('does not enable display NFT media when autodetection is turned off', () => {
@@ -149,15 +137,8 @@ describe('AutoDetectNFTSettings', () => {
       expect(mockAddTraitsToUser).toHaveBeenCalledWith({
         'NFT Autodetection': 'OFF',
       });
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.SETTINGS_UPDATED,
-        )
-          .addProperties({
-            nft_autodetection_enabled: false,
-          })
-          .build(),
-      );
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });

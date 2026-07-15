@@ -3,33 +3,32 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
+import { RootMessenger } from '../../types';
 import { MultichainAssetsControllerMessenger } from '@metamask/assets-controllers';
 
 /**
  * Get the MultichainAssetsControllerMessenger for the MultichainAssetsController.
  *
- * @param baseControllerMessenger - The base controller messenger.
+ * @param rootMessenger - The root messenger.
  * @returns The MultichainAssetsControllerMessenger.
  */
 export function getMultichainAssetsControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
-): MultichainAssetsControllerMessenger {
-  const messenger = new Messenger<
-    'MultichainAssetsController',
+  rootMessenger: RootMessenger<
     MessengerActions<MultichainAssetsControllerMessenger>,
-    MessengerEvents<MultichainAssetsControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<MultichainAssetsControllerMessenger>
+  >,
+): MultichainAssetsControllerMessenger {
+  const messenger: MultichainAssetsControllerMessenger = new Messenger({
     namespace: 'MultichainAssetsController',
-    parent: rootExtendedMessenger,
+    parent: rootMessenger,
   });
-  rootExtendedMessenger.delegate({
+  rootMessenger.delegate({
     actions: [
       'PermissionController:getPermissions',
       'SnapController:handleRequest',
-      'SnapController:getAll',
+      'SnapController:getRunnableSnaps',
       'AccountsController:listMultichainAccounts',
+      'PhishingController:bulkScanTokens',
     ],
     events: [
       'AccountsController:accountAdded',

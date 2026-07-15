@@ -1,6 +1,6 @@
 import {
   generateOpt,
-  EVENT_NAME as METRICS_EVENT_NAME,
+  EVENT_NAME as ANALYTICS_EVENT_NAME,
 } from '../../../core/Analytics/MetaMetrics.events';
 
 // Feature-specific event names (match EVENT_NAME style: SCREAMING_SNAKE_CASE keys, Initial Case string values with spaces)
@@ -13,7 +13,7 @@ export enum EVENT_NAME {
 
 // Helper to create events (type-casting to global event name type if needed)
 const createEvent = (name: EVENT_NAME) =>
-  generateOpt(name as unknown as METRICS_EVENT_NAME);
+  generateOpt(name as unknown as ANALYTICS_EVENT_NAME);
 
 // Export your events for use in the feature
 export const SAMPLE_FEATURE_EVENTS = {

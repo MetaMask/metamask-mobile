@@ -6,20 +6,20 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useNavigation } from '@react-navigation/native';
 import styleSheet from './SampleFeatureDevSettingsEntryPoint.styles';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 
 function NavigateToSampleFeature() {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
 
   const onPressNavigate = () => {
@@ -39,15 +39,14 @@ function NavigateToSampleFeature() {
         {strings('app_settings.developer_options.sample_feature_desc')}
       </Text>
       <Button
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        label={strings(
-          'app_settings.developer_options.navigate_to_sample_feature',
-        )}
         onPress={onPressNavigate}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         style={styles.accessory}
-      />
+      >
+        {strings('app_settings.developer_options.navigate_to_sample_feature')}
+      </Button>
     </>
   );
 }

@@ -2,14 +2,14 @@ import React from 'react';
 import { ActivityIndicator } from 'react-native';
 import { render } from '@testing-library/react-native';
 import { SnapUISpinner } from './SnapUISpinner';
-import { lightTheme } from '@metamask/design-tokens';
 
 const mockUseTheme = jest.fn();
 jest.mock('../../../util/theme', () => ({
   useTheme: () => mockUseTheme(),
 }));
 
-const mockColor = lightTheme.colors.primary.default;
+const { mockTheme } = jest.requireActual('../../../util/theme');
+const mockColor = mockTheme.colors.primary.default;
 
 describe('SnapUISpinner', () => {
   beforeEach(() => {

@@ -6,7 +6,7 @@ import {
   usePerpsOrderForm,
   UsePerpsOrderFormReturn,
 } from '../hooks/usePerpsOrderForm';
-import { OrderType } from '../controllers/types';
+import { OrderType } from '@metamask/perps-controller';
 
 // Mock the usePerpsOrderForm hook
 jest.mock('../hooks/usePerpsOrderForm', () => ({
@@ -238,6 +238,42 @@ describe('PerpsOrderContext', () => {
       // Functions should be the same reference since they come from the mocked hook
       expect(result.current.setAmount).toBe(initialSetAmount);
       expect(result.current.setLeverage).toBe(initialSetLeverage);
+    });
+
+    it('memoizes the whole provider value object across re-renders with unchanged form state', () => {
+      // This asserts the Provider value is memoized, not just that individual
+      // callbacks happen to be stable. The inline spread previously produced a
+      // brand-new value object on every render, re-rendering all consumers.
+      const { result, rerender } = renderHookWithProvider(() =>
+        usePerpsOrderContext(),
+      );
+
+      const firstValue = result.current;
+
+      rerender(() => usePerpsOrderContext());
+
+      expect(result.current).toBe(firstValue);
+    });
+
+    it('returns a new provider value object when the underlying form state changes', () => {
+      const { result, rerender } = renderHookWithProvider(() =>
+        usePerpsOrderContext(),
+      );
+
+      const firstValue = result.current;
+
+      mockUsePerpsOrderForm.mockReturnValue({
+        ...mockOrderFormReturn,
+        orderForm: {
+          ...mockOrderFormReturn.orderForm,
+          amount: '200',
+        },
+      });
+
+      rerender(() => usePerpsOrderContext());
+
+      expect(result.current).not.toBe(firstValue);
+      expect(result.current.orderForm.amount).toBe('200');
     });
 
     it('works with different initial configurations', () => {

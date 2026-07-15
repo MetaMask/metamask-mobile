@@ -23,7 +23,7 @@ react {
     //   The list of variants to that are debuggable. For those we're going to
     //   skip the bundling of the JS bundle and the assets. By default is just 'debug'.
     //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
-    debuggableVariants = ["qaDebug", "prodDebug", "flaskDebug"]
+    debuggableVariants = ["prodDebug", "flaskDebug"]
     /* Bundling */
     //   A list containing the node command and its flags. Default is just 'node'.
     // nodeExecutableAndArgs = ["node"]
@@ -53,7 +53,6 @@ react {
     // Added by install-expo-modules
     entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", projectRoot, "android", "absolute"].execute(null, rootDir).text.trim())
     reactNativeDir = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
-    hermesCommand = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/sdks/hermesc/%OS-BIN%/hermesc"
     codegenDir = new File(["node", "--print", "require.resolve('@react-native/codegen/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
     cliFile = new File(["node", "--print", "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })"].execute(null, rootDir).text.trim())
     bundleCommand = "export:embed"
@@ -62,26 +61,60 @@ react {
     autolinkLibrariesWithApp()
 }
 
-// Override default React Native to generate source maps for Hermes
-project.ext.react = [
-  bundleCommand: "ram-bundle",
-  bundleAssetName: "index.bundle",
-  entryFile: "index.js",
-  hermesCommand: "../../node_modules/hermes-engine/%OS-BIN%/hermesc",
-  cliPath: "../../node_modules/react-native/cli.js",
-  composeSourceMapsPath: "../../node_modules/react-native/scripts/compose-source-maps.js",
-]
+// Workaround for upstream React Native bug facebook/react-native#56334 (New Arch, RN 0.78–0.83.x).
+//
+// The intended build ordering for codegen-only libraries (e.g. react-native-keychain,
+// react-native-mmkv, @sentry/react-native) is:
+//   1. Each library runs `generateCodegenArtifactsFromSchema` (via its `preBuild`), which CREATES
+//      its `build/generated/source/codegen/jni/` directory of generated C++ glue.
+//   2. THEN the app's `configureCMake*`/`buildCMake*` reads `Android-autolinking.cmake` and
+//      `add_subdirectory(...)`s into each of those directories to compile + link the glue.
+//
+// `GenerateAutolinkingNewArchitecturesFileTask` emits those `add_subdirectory(...)` entries
+// unconditionally, but `:app:configureCMake*` declares NO dependency on the step-1 tasks, so
+// Gradle is free to run step 2 before step 1. On a clean machine (e.g. CI) those directories don't
+// pre-exist, so the app's CMake configure runs first and fails with:
+//   add_subdirectory given source ".../codegen/jni/" which is not an existing directory
+// (Prefab-publishing libraries have the same gap via their `prefab<Variant>Package` outputs.)
+//
+// Restore the missing ordering edges so every library's step-1 codegen/prefab output is produced
+// before the app's step-2 CMake configure/build runs. This is the proper fix (vs. guarding the
+// generated CMake) because it guarantees the codegen-only TurboModule specs are actually built and
+// linked, instead of being silently skipped.
+afterEvaluate {
+    def cmakeTasks = tasks.matching {
+        it.name.startsWith("configureCMake") || it.name.startsWith("buildCMake")
+    }
+    rootProject.subprojects.each { sub ->
+        if (sub == project) return
+        sub.tasks.matching { it.name == "preBuild" }.all { preBuildTask ->
+            cmakeTasks.configureEach { it.dependsOn(preBuildTask) }
+        }
+        sub.tasks.matching { it.name.startsWith("prefab") && it.name.endsWith("Package") }.all { prefabTask ->
+            cmakeTasks.configureEach { it.dependsOn(prefabTask) }
+        }
+    }
+}
 
 // Sentry environment variables used by Sentry CLI to upload files. Upload is disabled by default
 // TODO - Move to JS side to be shared between platform - Android sets these automatically
 // System.env.SENTRY_DIST
 // System.env.SENTRY_RELEASE
 
-// Configure sentry properties
+// Configure sentry properties.
+// @sentry/react-native 7.x throws if `sentryProperties` points to a file that
+// does not exist (6.x silently skipped it). Local/dev builds frequently run
+// without it — see checkAuthToken in scripts/build.sh, which only generates the
+// file when MM_SENTRY_AUTH_TOKEN is set and otherwise just warns and continues.
+// So only set `sentryProperties` when the file actually exists. Production builds
+// still upload because checkAuthToken guarantees the release file is present.
+def sentryPropertiesPath = System.getenv('SENTRY_PROPERTIES') ?: '../../sentry.properties'
 project.ext.sentryCli = [
     logLevel: "debug",
-    sentryProperties: System.getenv('SENTRY_PROPERTIES') ?: '../../sentry.properties'
 ]
+if (file(sentryPropertiesPath).exists()) {
+    project.ext.sentryCli.sentryProperties = sentryPropertiesPath
+}
 
 // Sentry gradle from React Native (@sentry/react-native) that handles uploads Sentry source maps.
 apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
@@ -144,19 +177,6 @@ def getPassword(String currentUser, String keyChain) {
 def enableProguardInReleaseBuilds = true
 
 /**
- * The preferred build flavor of JavaScriptCore (JSC)
- *
- * For example, to use the international variant, you can use:
- * `def jscFlavor = 'org.webkit:android-jsc-intl:+'`
- *
- * The international variant includes ICU i18n library and necessary data
- * allowing to use e.g. `Date.toLocaleString` and `String.localeCompare` that
- * give correct results when using with locales other than en-US. Note that
- * this variant is about 6MiB larger per architecture than default.
- */
-def jscFlavor = 'org.webkit:android-jsc:+'
-
-/**
  * Private function to get the list of Native Architectures you want to build.
  * This reads the value from reactNativeArchitectures in your gradle.properties
  * file and works together with the --active-arch-only flag of react-native run-android.
@@ -167,17 +187,11 @@ def reactNativeArchitectures() {
 }
 
 
-/**
-* Adding function that will retuen the Bitrise ndkPath if it is a QA or Production Build
-*/
-def ndkPath() {
-    return System.getenv('METAMASK_BUILD_TYPE') == 'qa' || System.getenv('METAMASK_ENVIRONMENT') == 'qa' || System.getenv('METAMASK_ENVIRONMENT') == 'production' ? rootProject.ext.bitriseNdkPath : ""
-}
-
-
 android {
     ndkVersion rootProject.ext.ndkVersion
-
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
@@ -187,16 +201,25 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "7.65.0"
-        versionCode 3607
+        versionName "8.3.0"
+        versionCode 4532
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        missingDimensionStrategy 'detox', 'full'
         manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
         manifestPlaceholders.MM_BRANCH_KEY_LIVE = "$System.env.MM_BRANCH_KEY_LIVE"
+
+        // Braze SDK credentials — names match .android.env / build.sh exports
+        resValue "string", "com_braze_api_key", "${System.env.MM_BRAZE_API_KEY_ANDROID ?: ''}"
+        resValue "string", "com_braze_custom_endpoint", "${System.env.MM_BRAZE_SDK_ENDPOINT ?: ''}"
+
+        // Explicitly specify supported languages for the app, ensuring the app locales are valid when uploading to the Play Store
+        resourceConfigurations += ['en', 'de', 'el', 'es', 'fr', 'hi', 'id', 'ja', 'ko', 'pt', 'ru', 'tl', 'tr', 'vi', 'zh']
     }
 
 	  packagingOptions {
 		  exclude 'META-INF/DEPENDENCIES'
+      exclude 'META-INF/versions/9/OSGI-INF/MANIFEST.MF'
       pickFirst 'lib/x86/libc++_shared.so'
       pickFirst 'lib/x86_64/libc++_shared.so'
       pickFirst 'lib/armeabi-v7a/libc++_shared.so'
@@ -254,10 +277,10 @@ android {
         keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
       }
       mainDev {
-        storeFile file('debug.keystore')
-        storePassword 'android'
-        keyAlias 'androiddebugkey'
-        keyPassword 'android'
+        storeFile file('../keystores/debug.keystore')
+        storePassword System.getenv("ANDROID_SIGNING_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_MAIN_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_MAIN_KEYSTORE_PRIVATE_KEY_PASSWORD")
       }
       flaskProd {
         storeFile file('../keystores/flaskRelease.keystore')
@@ -283,11 +306,11 @@ android {
         keyAlias 'androiddebugkey'
         keyPassword 'android'
       }
-      qaProd {
-        storeFile file('../keystores/internalRelease.keystore')
-        storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
-        keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
-        keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      debug {
+        storeFile file('../keystores/debug.keystore')
+        storePassword 'android'
+        keyAlias 'androiddebugkey'
+        keyPassword 'android'
       }
     }
 
@@ -306,12 +329,6 @@ android {
 
     flavorDimensions "version"
     productFlavors {
-          qa {
-            dimension "version"
-            applicationIdSuffix ".qa"
-            applicationId "io.metamask"
-            signingConfig signingConfigs.qaProd
-          }
           prod {
             dimension "version"
             applicationId "io.metamask"
@@ -356,10 +373,6 @@ android {
 
 	  buildTypes.each {
 		  it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""
-      // Used to point to staging environment API for ramp
-      it.buildConfigField 'String', 'IS_RAMP_UAT', "\"$System.env.RAMP_INTERNAL_BUILD\""
-      // Used to point to dev environment API for ramp
-      it.buildConfigField 'String', 'IS_RAMP_DEV', "\"$System.env.RAMP_DEV_BUILD\""
     }
 
     buildFeatures {
@@ -367,25 +380,64 @@ android {
     }
 }
 
+// Veriff SDK uses BouncyCastle library which conflicts with the BouncyCastle library used by other libraries.
+// This resolves modules by substituting the Veriff SDK's BouncyCastle library with the correct one.
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute module('org.bouncycastle:bcprov-jdk15to18') using module('org.bouncycastle:bcprov-jdk18on:1.78.1')
+        substitute module('org.bouncycastle:bcutil-jdk15to18') using module('org.bouncycastle:bcutil-jdk18on:1.78.1')
+    }
+}
+
+// Veriff SDK sub-libraries declare minSdkVersion 26; we patch their manifests to use our minSdkVersion
+// Fails the build if Veriff is not found.
+def VERIFF_SDK_VERSION = '7.14.1'
+project.afterEvaluate {
+    tasks.matching { it.name ==~ /process.*MainManifest/ }.configureEach { task ->
+        task.doFirst {
+            def transformsDir = new File(gradle.gradleUserHomeDir, "caches/${gradle.gradleVersion}/transforms")
+            def veriffManifests = transformsDir.exists()
+                ? fileTree(dir: transformsDir, includes: ["**/jetified-*-${VERIFF_SDK_VERSION}/AndroidManifest.xml"]).files
+                : []
+            if (veriffManifests.isEmpty()) {
+                throw new GradleException(
+                    "Veriff SDK (${VERIFF_SDK_VERSION}) manifests not found in Gradle transform cache. " +
+                    "Ensure the Veriff dependency is resolved (e.g. run a clean build). " +
+                    "Searched in: ${transformsDir}"
+                )
+            }
+            def targetMinSdk = rootProject.ext.minSdkVersion
+            veriffManifests.each { file ->
+                def content = file.text
+                if (content.contains('android:minSdkVersion="26"')) {
+                    file.text = content.replace('android:minSdkVersion="26"', "android:minSdkVersion=\"${targetMinSdk}\"")
+                }
+            }
+        }
+    }
+}
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
-    implementation(files("../libs/ecies.aar"))
     implementation("com.facebook.react:react-android")
     implementation 'org.apache.commons:commons-compress:1.22'
     androidTestImplementation 'androidx.test:core:1.5.0'
     androidTestImplementation 'androidx.test:core-ktx:1.5.0'
 
-    if (hermesEnabled.toBoolean()) {
-        implementation("com.facebook.react:hermes-android")
-    } else {
-        implementation jscFlavor
+    // Hermes is the default (and only bundled) JS engine in React Native 0.83+.
+    // JSC was removed from core, so we always link Hermes.
+    implementation("com.facebook.react:hermes-android")
+    // Detox's AAR still reflects Espresso UiControllerImpl.eventInjector, but its POM pulls
+    // espresso-* 3.6.x where that field was removed. Exclude Espresso from Detox and pin 3.5.1.
+    androidTestImplementation(project(path: ":detox")) {
+        exclude module: 'protobuf-lite'
+        exclude group: 'androidx.test.espresso', module: 'espresso-core'
+        exclude group: 'androidx.test.espresso', module: 'espresso-web'
+        exclude group: 'androidx.test.espresso', module: 'espresso-contrib'
     }
-    androidTestImplementation('com.wix:detox:+') {
-         exclude module: "protobuf-lite"
-     }
-    androidTestImplementation ('androidx.test.espresso:espresso-contrib:3.4.0')
-
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-web:3.5.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.5.1'
     // Add these dependencies for androidTest
     androidTestImplementation "com.google.guava:guava:31.1-android"
     androidTestImplementation "org.ow2.asm:asm:9.4"

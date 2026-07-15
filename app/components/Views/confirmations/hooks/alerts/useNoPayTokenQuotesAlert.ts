@@ -6,30 +6,92 @@ import { Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import {
   useIsTransactionPayLoading,
+  useTransactionPayFiatPayment,
+  useTransactionPayIsMaxAmount,
+  useTransactionPayIsPostQuote,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPaySourceAmounts,
 } from '../pay/useTransactionPayData';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { QUOTE_REQUIRED_TRANSACTION_TYPES } from '../../constants/confirmations';
+import { hasTransactionType } from '../../utils/transaction';
 
 export function useNoPayTokenQuotesAlert() {
   const { payToken } = useTransactionPayToken();
+  const fiatPayment = useTransactionPayFiatPayment();
   const quotes = useTransactionPayQuotes();
   const isQuotesLoading = useIsTransactionPayLoading();
   const sourceAmounts = useTransactionPaySourceAmounts();
   const requiredTokens = useTransactionPayRequiredTokens();
+  const isPostQuote = useTransactionPayIsPostQuote();
+  const isMaxAmount = useTransactionPayIsMaxAmount();
+  const transactionMeta = useTransactionMetadataRequest();
 
-  const isOptionalOnly = (sourceAmounts ?? []).every(
-    (t) =>
-      requiredTokens?.find((rt) => rt.address === t.targetTokenAddress)
-        ?.skipIfBalance,
+  const fiatAmount = Number(fiatPayment?.amountFiat);
+  const hasValidFiatAmount = Number.isFinite(fiatAmount) && fiatAmount > 0;
+  const hasSelectedFiatPaymentMethod = Boolean(
+    fiatPayment?.selectedPaymentMethodId,
   );
 
-  const showAlert =
+  // For non-post-quote flows, sourceAmount.targetTokenAddress refers to a
+  // required token address, so matching against `requiredTokens` is valid.
+  // For post-quote flows (perps/predict/moneyAccount withdraw, musdConversion),
+  // sourceAmount.targetTokenAddress is the destination token address, so this
+  // lookup is meaningless and can false-match a skipped gas token across
+  // chains (e.g. destination native ETH `0x0…0` vs. Arbitrum native gas
+  // `0x0…0`). See issue #29297.
+  const isOptionalOnly =
+    !isPostQuote &&
+    (sourceAmounts ?? []).every(
+      (t) =>
+        requiredTokens?.find((rt) => rt.address === t.targetTokenAddress)
+          ?.skipIfBalance,
+    );
+
+  const shouldShowNonFiatNoQuotesAlert =
     payToken &&
     !isQuotesLoading &&
     sourceAmounts?.length &&
     !quotes?.length &&
     !isOptionalOnly;
+
+  const shouldShowFiatNoQuotesAlert =
+    hasSelectedFiatPaymentMethod &&
+    hasValidFiatAmount &&
+    !isQuotesLoading &&
+    !fiatPayment?.rampsQuote &&
+    quotes?.length === 0;
+
+  // Post-quote flows (e.g. money account withdraw) where `sourceAmounts` is
+  // non-empty but no quote was returned. The non-fiat branch above may not
+  // fire, so we also emit the alert when the user has entered a positive
+  // input amount but no quote is available.
+  const hasPositiveRequiredAmount = (requiredTokens ?? []).some(
+    (t) =>
+      !t.skipIfBalance &&
+      (isMaxAmount || (Boolean(t.amountRaw) && t.amountRaw !== '0')),
+  );
+
+  const shouldShowPostQuoteNoQuotesAlert =
+    isPostQuote &&
+    Boolean(payToken) &&
+    !isQuotesLoading &&
+    sourceAmounts?.length &&
+    !quotes?.length &&
+    hasPositiveRequiredAmount;
+
+  const shouldShowQuoteRequiredNoQuotesAlert =
+    hasTransactionType(transactionMeta, QUOTE_REQUIRED_TRANSACTION_TYPES) &&
+    !isQuotesLoading &&
+    !quotes?.length &&
+    hasPositiveRequiredAmount;
+
+  const showAlert =
+    shouldShowNonFiatNoQuotesAlert ||
+    shouldShowFiatNoQuotesAlert ||
+    shouldShowPostQuoteNoQuotesAlert ||
+    shouldShowQuoteRequiredNoQuotesAlert;
 
   return useMemo(() => {
     if (!showAlert) {

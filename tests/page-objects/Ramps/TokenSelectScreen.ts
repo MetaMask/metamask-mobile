@@ -1,0 +1,25 @@
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
+import { selectTokenSelectors } from '../../../app/components/UI/Ramp/Aggregator/components/TokenSelectModal/SelectToken.testIds';
+import { EncapsulatedElementType } from '../../framework';
+
+class TokenSelectScreen {
+  get tokenSearchInput(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT,
+    );
+  }
+
+  async tapTokenByName(token: string) {
+    await Gestures.typeText(this.tokenSearchInput, token, {
+      elemDescription: 'Token Search Input',
+      hideKeyboard: true,
+    });
+    const tokenName = Matchers.getElementByText(token, 1);
+    await Gestures.waitAndTap(tokenName, {
+      elemDescription: `Token "${token}" in Token Select Screen`,
+    });
+  }
+}
+
+export default new TokenSelectScreen();

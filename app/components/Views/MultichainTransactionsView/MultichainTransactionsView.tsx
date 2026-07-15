@@ -6,19 +6,22 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { CaipChainId, Transaction } from '@metamask/keyring-api';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { baseStyles } from '../../../styles/common';
 import { getAddressUrl } from '../../../core/Multichain/utils';
+import { getBlockExplorerName } from '../../../util/networks';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { selectNonEvmTransactions } from '../../../selectors/multichain/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import styles from './MultichainTransactionsView.styles';
 import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
-import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import MultichainTransactionsFooter from './MultichainTransactionsFooter';
 import PriceChartContext, {
   PriceChartProvider,
@@ -27,6 +30,19 @@ import MultichainBridgeTransactionListItem from '../../../components/UI/Multicha
 import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
+import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
+import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
+import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
+import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
+import {
+  getGroupedActivityListItemKey,
+  groupActivityListItems,
+  type GroupedActivityListItem,
+} from '../../../util/activity-adapters';
+import ActivityListDateHeader from '../../UI/ActivityListItemRow/ActivityListDateHeader';
+import MultichainAssetDetailsActivityListItem from './MultichainAssetDetailsActivityListItem';
+import { mapMultichainTransactionToActivityItem } from './MultichainAssetDetailsActivityListItem.utils';
+
 interface MultichainTransactionsViewProps {
   /**
    * Override transactions instead of using selector
@@ -39,7 +55,7 @@ interface MultichainTransactionsViewProps {
   /**
    * Override navigation instance
    */
-  navigation?: NavigationProp<Record<string, object | undefined>>;
+  navigation?: AppNavigationProp;
   /**
    * Override selected address
    */
@@ -64,6 +80,10 @@ interface MultichainTransactionsViewProps {
    * Scroll event handler
    */
   onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  /**
+   * Location context for analytics tracking (home or asset_details)
+   */
+  location?: TransactionDetailLocation;
 }
 
 const MultichainTransactionsView = ({
@@ -76,11 +96,13 @@ const MultichainTransactionsView = ({
   emptyMessage,
   showDisclaimer = false,
   onScroll,
+  location,
 }: MultichainTransactionsViewProps) => {
   const { colors } = useTheme();
   const style = styles();
   const defaultNavigation = useNavigation();
   const nav = navigation ?? defaultNavigation;
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { namespace } = parseCaipChainId(chainId as CaipChainId);
   const isBitcoinNetwork = namespace === KnownCaipNamespace.Bip122;
 
@@ -96,21 +118,47 @@ const MultichainTransactionsView = ({
     [transactions, nonEvmTransactions],
   );
 
+  const { maliciousTokenKeys } = useMultichainActivityMaliciousTokenKeys(
+    txList ?? [],
+  );
+
+  const visibleMultichainTransactions = useMemo(
+    () =>
+      filterMultichainTransactionsExcludingMaliciousTokenActivity(
+        txList ?? [],
+        maliciousTokenKeys,
+      ),
+    [txList, maliciousTokenKeys],
+  );
+
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
+  const isActivityRedesignEnabled = useSelector(
+    selectIsActivityRedesignEnabled,
+  );
+  const shouldUseActivityRedesign =
+    isActivityRedesignEnabled &&
+    location === TransactionDetailLocation.AssetDetails;
+  const activityListData = useMemo(
+    () =>
+      shouldUseActivityRedesign
+        ? groupActivityListItems(
+            visibleMultichainTransactions.map((transaction) =>
+              mapMultichainTransactionToActivityItem({
+                transaction,
+                chainId,
+              }),
+            ),
+          )
+        : visibleMultichainTransactions,
+    [chainId, shouldUseActivityRedesign, visibleMultichainTransactions],
+  );
 
   const [refreshing, setRefreshing] = React.useState(false);
 
   const onRefresh = React.useCallback(async () => {
     if (!enableRefresh) return;
-
     setRefreshing(true);
-    try {
-      await updateIncomingTransactions();
-    } catch (error) {
-      console.warn('Error refreshing transactions:', error);
-    } finally {
-      setRefreshing(false);
-    }
+    setRefreshing(false);
   }, [enableRefresh]);
 
   const renderEmptyList = () => (
@@ -126,10 +174,18 @@ const MultichainTransactionsView = ({
   const footer = (
     <MultichainTransactionsFooter
       url={url}
-      hasTransactions={(txList?.length ?? 0) > 0}
+      hasTransactions={(visibleMultichainTransactions?.length ?? 0) > 0}
       showDisclaimer={showDisclaimer}
       showExplorerLink={!isBitcoinNetwork}
       onViewMore={() => {
+        if (!url) {
+          return;
+        }
+        trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+          location: 'multichain_activity_tab',
+          text: `${strings('transactions.view_full_history_on')} ${getBlockExplorerName(url)}`,
+          url,
+        });
         nav.navigate('Webview', {
           screen: 'SimpleWebview',
           params: { url },
@@ -148,21 +204,102 @@ const MultichainTransactionsView = ({
     const srcTxHash = item.id;
     const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
 
-    return bridgeHistoryItem ? (
-      <MultichainBridgeTransactionListItem
-        transaction={item}
-        bridgeHistoryItem={bridgeHistoryItem}
-        navigation={nav}
-        index={index}
-      />
-    ) : (
+    if (bridgeHistoryItem) {
+      return (
+        <MultichainBridgeTransactionListItem
+          transaction={item}
+          bridgeHistoryItem={bridgeHistoryItem}
+          navigation={nav}
+          index={index}
+          location={location}
+        />
+      );
+    }
+
+    if (
+      isActivityRedesignEnabled &&
+      location === TransactionDetailLocation.AssetDetails
+    ) {
+      return (
+        <MultichainAssetDetailsActivityListItem
+          transaction={item}
+          navigation={nav}
+          index={index}
+          chainId={chainId}
+          location={location}
+        />
+      );
+    }
+
+    return (
       <MultichainTransactionListItem
         transaction={item}
         navigation={nav}
         index={index}
         chainId={chainId}
+        location={location}
       />
     );
+  };
+
+  const renderGroupedActivityItem = ({
+    item,
+    index,
+  }: {
+    item: GroupedActivityListItem;
+    index: number;
+  }) => {
+    if (item.type === 'pending-header') {
+      return <ActivityListDateHeader label={strings('transaction.pending')} />;
+    }
+
+    if (item.type === 'date-header') {
+      return <ActivityListDateHeader timestamp={item.date} />;
+    }
+
+    const transaction =
+      item.item.raw?.type === 'keyringTransaction'
+        ? item.item.raw.data
+        : undefined;
+
+    if (!transaction) {
+      return null;
+    }
+
+    return renderTransactionItem({ item: transaction, index });
+  };
+
+  const renderListItem = ({
+    item,
+    index,
+  }: {
+    item: Transaction | GroupedActivityListItem;
+    index: number;
+  }) =>
+    shouldUseActivityRedesign
+      ? renderGroupedActivityItem({
+          item: item as GroupedActivityListItem,
+          index,
+        })
+      : renderTransactionItem({ item: item as Transaction, index });
+
+  const keyExtractor = (
+    item: Transaction | GroupedActivityListItem,
+    index: number,
+  ) => {
+    if ('type' in item && item.type === 'pending-header') {
+      return 'pending-header';
+    }
+
+    if ('type' in item && item.type === 'date-header') {
+      return `date-header-${item.date}`;
+    }
+
+    if ('type' in item && item.type === 'item') {
+      return getGroupedActivityListItemKey(item, index);
+    }
+
+    return item.id;
   };
 
   return (
@@ -171,9 +308,9 @@ const MultichainTransactionsView = ({
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlashList
-              data={txList}
-              renderItem={renderTransactionItem}
-              keyExtractor={(item) => item.id}
+              data={activityListData}
+              renderItem={renderListItem}
+              keyExtractor={keyExtractor}
               ListHeaderComponent={header}
               ListEmptyComponent={renderEmptyList}
               ListFooterComponent={footer}
@@ -191,6 +328,7 @@ const MultichainTransactionsView = ({
               }
               onScroll={onScroll}
               scrollEnabled={!isChartBeingTouched}
+              showsVerticalScrollIndicator={false}
             />
           )}
         </PriceChartContext.Consumer>

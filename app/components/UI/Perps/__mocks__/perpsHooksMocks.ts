@@ -1,5 +1,5 @@
 import type { UsePerpsMarketStatsReturn } from '../hooks/usePerpsMarketStats';
-import type { Position, Order } from '../controllers/types';
+import { type Position, type Order } from '@metamask/perps-controller';
 
 /**
  * Default mock implementations for Perps hooks
@@ -19,6 +19,7 @@ export const defaultPerpsTopOfBookMock = {
 
 export const defaultPerpsOrderFeesMock = {
   totalFee: 45,
+  undiscountedTotalFee: 45,
   protocolFee: 45,
   metamaskFee: 0,
   protocolFeeRate: 0.00045,

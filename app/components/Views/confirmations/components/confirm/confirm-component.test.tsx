@@ -1,17 +1,13 @@
-import { act } from '@testing-library/react-native';
 import React from 'react';
 import { cloneDeep } from 'lodash';
-import { ScrollView } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { BackHandler, ScrollView } from 'react-native';
 import {
   generateContractInteractionState,
-  getAppStateForConfirmation,
   personalSignatureConfirmationState,
   stakingClaimConfirmationState,
   stakingDepositConfirmationState,
   stakingWithdrawalConfirmationState,
   typedSignV1ConfirmationState,
-  upgradeAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { Confirm, ConfirmationLoader } from './confirm-component';
@@ -44,6 +40,7 @@ jest.mock('../../hooks/gas/useGasFeeToken');
 jest.mock('../../hooks/tokens/useTokenWithBalance');
 jest.mock('../../hooks/alerts/useConfirmationAlerts');
 jest.mock('../../hooks/ui/useFullScreenConfirmation');
+jest.mock('../../hooks/pay/useTransactionPayAutoFiatSubmission');
 jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
 }));
@@ -61,14 +58,6 @@ const mockNavigation = {
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => mockNavigation,
-}));
-
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  openURL: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
 }));
 
 jest.mock('react-native-safe-area-context', () => {
@@ -215,14 +204,9 @@ describe('Confirm', () => {
   });
 
   it('renders information for personal sign', () => {
-    const { getAllByRole, getByText } = renderWithProvider(
-      <SafeAreaProvider>
-        <Confirm />
-      </SafeAreaProvider>,
-      {
-        state: personalSignatureConfirmationState,
-      },
-    );
+    const { getAllByRole, getByText } = renderWithProvider(<Confirm />, {
+      state: personalSignatureConfirmationState,
+    });
     expect(getByText('Signature request')).toBeDefined();
     expect(
       getByText('Review request details before you confirm.'),
@@ -236,14 +220,9 @@ describe('Confirm', () => {
 
   it('renders information for typed sign v1', () => {
     const { getAllByRole, getAllByText, getByText, queryByText } =
-      renderWithProvider(
-        <SafeAreaProvider>
-          <Confirm />
-        </SafeAreaProvider>,
-        {
-          state: typedSignV1ConfirmationState,
-        },
-      );
+      renderWithProvider(<Confirm />, {
+        state: typedSignV1ConfirmationState,
+      });
     expect(getByText('Signature request')).toBeDefined();
     expect(getByText('Request from')).toBeDefined();
     expect(getByText('metamask.github.io')).toBeDefined();
@@ -301,20 +280,6 @@ describe('Confirm', () => {
     expect(getByText('Network fee')).toBeDefined();
   });
 
-  it('renders splash page if present', async () => {
-    const { getByText } = renderWithProvider(<Confirm />, {
-      state: getAppStateForConfirmation(upgradeAccountConfirmation, {
-        PreferencesController: { smartAccountOptIn: false },
-      }),
-    });
-
-    await act(async () => {
-      await Promise.resolve();
-    });
-
-    expect(getByText('Use smart account?')).toBeTruthy();
-  });
-
   it('displays loading spinner when no approval request exists', () => {
     const stateWithoutRequest = cloneDeep(typedSignV1ConfirmationState);
     stateWithoutRequest.engine.backgroundState.ApprovalController = {
@@ -329,6 +294,39 @@ describe('Confirm', () => {
     });
 
     expect(getByTestId('confirm-loader-default')).toBeDefined();
+  });
+
+  it('prevents dismissing the loading state before an approval request exists', () => {
+    const removeBackHandler = jest.fn();
+    jest.spyOn(BackHandler, 'addEventListener').mockReturnValue({
+      remove: removeBackHandler,
+    });
+
+    const stateWithoutRequest = cloneDeep(typedSignV1ConfirmationState);
+    stateWithoutRequest.engine.backgroundState.ApprovalController = {
+      pendingApprovals: {},
+      pendingApprovalCount: 0,
+      approvalFlows: [],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    renderWithProvider(<Confirm />, {
+      state: stateWithoutRequest,
+    });
+
+    expect(mockSetOptions).toHaveBeenCalledWith({
+      gestureEnabled: false,
+    });
+
+    expect(BackHandler.addEventListener).toHaveBeenCalledWith(
+      'hardwareBackPress',
+      expect.any(Function),
+    );
+
+    const backHandlerCallback = jest.mocked(BackHandler.addEventListener).mock
+      .calls[0][1];
+
+    expect(backHandlerCallback()).toBe(true);
   });
 
   it('displays alternate loader if specified', () => {
@@ -371,6 +369,26 @@ describe('Confirm', () => {
     expect(getByTestId('confirm-loader-predict-claim')).toBeDefined();
   });
 
+  it('displays AdvancedCustomAmount loader when specified', () => {
+    useParamsMock.mockReturnValue({
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+    });
+
+    const stateWithoutRequest = cloneDeep(typedSignV1ConfirmationState);
+    stateWithoutRequest.engine.backgroundState.ApprovalController = {
+      pendingApprovals: {},
+      pendingApprovalCount: 0,
+      approvalFlows: [],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const { getByTestId } = renderWithProvider(<Confirm />, {
+      state: stateWithoutRequest,
+    });
+
+    expect(getByTestId('confirm-loader-advanced-custom-amount')).toBeDefined();
+  });
+
   it('displays Transfer loader when specified', () => {
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.Transfer,
@@ -391,7 +409,7 @@ describe('Confirm', () => {
     expect(getByTestId('confirm-loader-transfer')).toBeDefined();
   });
 
-  it('renders InfoLoader with SafeAreaView for CustomAmount loader', () => {
+  it('renders InfoLoader for CustomAmount loader', () => {
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.CustomAmount,
     });
@@ -418,7 +436,7 @@ describe('Confirm', () => {
     expect(scrollViews.length).toBeGreaterThan(0);
   });
 
-  it('renders InfoLoader with SafeAreaView for PredictClaim loader', () => {
+  it('renders InfoLoader for PredictClaim loader', () => {
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.PredictClaim,
     });
@@ -445,7 +463,36 @@ describe('Confirm', () => {
     expect(scrollViews.length).toBeGreaterThan(0);
   });
 
-  it('renders InfoLoader with SafeAreaView for Transfer loader', () => {
+  it('renders InfoLoader for AdvancedCustomAmount loader', () => {
+    useParamsMock.mockReturnValue({
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+    });
+
+    const stateWithoutRequest = cloneDeep(typedSignV1ConfirmationState);
+    stateWithoutRequest.engine.backgroundState.ApprovalController = {
+      pendingApprovals: {},
+      pendingApprovalCount: 0,
+      approvalFlows: [],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const { getByTestId, UNSAFE_queryAllByType } = renderWithProvider(
+      <Confirm />,
+      {
+        state: stateWithoutRequest,
+      },
+    );
+
+    const loaderContainer = getByTestId(
+      'confirm-loader-advanced-custom-amount',
+    );
+    const scrollViews = UNSAFE_queryAllByType(ScrollView);
+
+    expect(loaderContainer).toBeDefined();
+    expect(scrollViews.length).toBeGreaterThan(0);
+  });
+
+  it('renders InfoLoader for Transfer loader', () => {
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.Transfer,
     });

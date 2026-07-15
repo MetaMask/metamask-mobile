@@ -2,22 +2,53 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsAdjustMarginActionSheet from './PerpsAdjustMarginActionSheet';
 
-// Mock dependencies
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: () => ({
-    styles: {
-      container: {},
-      actionItem: {},
-      actionContent: {},
-      separator: {},
-    },
-    theme: {
-      colors: {
-        border: { muted: '#CCCCCC' },
-      },
-    },
-  }),
+jest.mock('../../../../../util/theme/themeUtils', () => ({
+  useElevatedSurface: () => 'bg-default',
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const MockReact = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  const BottomSheet = MockReact.forwardRef(
+    (
+      {
+        children,
+        testID,
+      }: {
+        children: React.ReactNode;
+        testID?: string;
+      },
+      ref: React.Ref<{
+        onOpenBottomSheet: () => void;
+        onCloseBottomSheet: (callback?: () => void) => void;
+      }>,
+    ) => {
+      MockReact.useImperativeHandle(ref, () => ({
+        onOpenBottomSheet: jest.fn(),
+        onCloseBottomSheet: (callback?: () => void) => {
+          callback?.();
+        },
+      }));
+
+      return <View testID={testID}>{children}</View>;
+    },
+  );
+  BottomSheet.displayName = 'BottomSheet';
+
+  const BottomSheetHeader = ({ children }: { children: React.ReactNode }) => (
+    <View testID="bottom-sheet-header">
+      {typeof children === 'string' ? <Text>{children}</Text> : children}
+    </View>
+  );
+
+  return {
+    ...actual,
+    BottomSheet,
+    BottomSheetHeader,
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => {
@@ -32,64 +63,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
     };
     return translations[key] || key;
   }),
-}));
-
-// Mock BottomSheet and BottomSheetHeader
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactModule = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ReactModule.forwardRef(
-        (
-          { children, testID }: { children: React.ReactNode; testID?: string },
-          _ref: unknown,
-        ) => ReactModule.createElement(View, { testID }, children),
-      ),
-    };
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const ReactModule = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return function MockBottomSheetHeader({
-      children,
-    }: {
-      children: React.ReactNode;
-    }) {
-      return ReactModule.createElement(
-        View,
-        { testID: 'bottom-sheet-header' },
-        children,
-      );
-    };
-  },
-);
-
-// Mock Icon component
-jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
-  __esModule: true,
-  default: function MockIcon() {
-    return null;
-  },
-  IconName: {
-    Add: 'Add',
-    Minus: 'Minus',
-    Arrow2Right: 'Arrow2Right',
-  },
-  IconSize: {
-    Lg: 'Lg',
-    Md: 'Md',
-  },
-  IconColor: {
-    Primary: 'Primary',
-    Alternative: 'Alternative',
-  },
 }));
 
 describe('PerpsAdjustMarginActionSheet', () => {
@@ -167,7 +140,7 @@ describe('PerpsAdjustMarginActionSheet', () => {
   //   expect(mockOnSelectAction).toHaveBeenCalledWith('reduce_margin');
   // });
 
-  it('calls onClose when action is selected', () => {
+  it('does not call onClose directly when action is selected', () => {
     render(
       <PerpsAdjustMarginActionSheet
         onClose={mockOnClose}
@@ -177,7 +150,7 @@ describe('PerpsAdjustMarginActionSheet', () => {
 
     fireEvent.press(screen.getByText('Add Margin'));
 
-    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockOnClose).not.toHaveBeenCalled();
   });
 
   it('renders with testID when provided', () => {

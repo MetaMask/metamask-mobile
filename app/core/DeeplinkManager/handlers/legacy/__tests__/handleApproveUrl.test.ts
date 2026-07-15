@@ -1,4 +1,4 @@
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-namespace */
 import * as AddressUtilsModule from '../../../../../util/address';
 import * as NetworksUtilsModule from '../../../../../util/networks';
 import * as TransactionsUtilsModule from '../../../../../util/transactions';

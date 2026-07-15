@@ -1,12 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   NativeSyntheticEvent,
-  SafeAreaView,
   TextLayoutEventData,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { getNftDetailsNavbarOptions } from '../../UI/Navbar';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../util/navigation/navUtils';
@@ -15,7 +14,12 @@ import styleSheet from './NftDetails.styles';
 import Routes from '../../../constants/navigation/Routes';
 import { NftDetailsParams } from './NftDetails.types';
 import { ScrollView } from 'react-native-gesture-handler';
-import StyledButton from '../../../components/UI/StyledButton';
+import {
+  Button,
+  ButtonVariant,
+  HeaderStandard,
+  IconName as DSIconName,
+} from '@metamask/design-system-react-native';
 import NftDetailsBox from './NftDetailsBox';
 import NftDetailsInformationRow from './NftDetailsInformationRow';
 import { renderShortAddress } from '../../../util/address';
@@ -42,15 +46,15 @@ import ContentDisplay from '../../../components/UI/AssetOverview/AboutAsset/Cont
 import BigNumber from 'bignumber.js';
 import { getDecimalChainId } from '../../../util/networks';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { renderShortText } from '../../../util/general';
 import { prefixUrlWithProtocol } from '../../../util/browser';
 import { formatTimestampToYYYYMMDD } from '../../../util/date';
 import MAX_TOKEN_ID_LENGTH from './nftDetails.utils';
-import Engine from '../../../core/Engine';
-import { toHex } from '@metamask/controller-utils';
-import { Hex } from '@metamask/utils';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { InitSendLocation } from '../confirmations/constants/send';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
 const NftDetails = () => {
@@ -60,7 +64,7 @@ const NftDetails = () => {
   const dispatch = useDispatch();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectEvmTicker);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const selectedNativeConversionRate = useSelector(selectConversionRate);
   const { navigateToSendPage } = useSendNavigation();
   const hasLastSalePrice = Boolean(
@@ -79,26 +83,14 @@ const NftDetails = () => {
     theme: { colors },
   } = useStyles(styleSheet, {});
 
-  const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getNftDetailsNavbarOptions(
-        navigation,
-        colors,
-        () =>
-          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: 'NftOptions',
-            params: {
-              collectible,
-            },
-          }),
-        undefined,
-      ),
-    );
-  }, [collectible, colors, navigation]);
-
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
+  const openNftOptions = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: 'NftOptions',
+      params: {
+        collectible,
+      },
+    });
+  }, [collectible, navigation]);
 
   useEffect(() => {
     trackEvent(
@@ -165,36 +157,40 @@ const NftDetails = () => {
     }
   };
 
+  const openBlockExplorer = useCallback(
+    (url: string | undefined, text: string) => {
+      if (!url) {
+        return;
+      }
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+        location: 'nft_details',
+        text,
+        url,
+      });
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: { url },
+      });
+    },
+    [createEventBuilder, navigation, trackEvent],
+  );
+
   const getDateCreatedTimestamp = (dateString: string) => {
     const date = new Date(dateString);
     return Math.floor(date.getTime() / 1000);
   };
 
-  const onSend = useCallback(async () => {
-    const chainIdHex = toHex(collectible?.chainId as number) as Hex;
-    if (chainIdHex !== chainId) {
-      const { NetworkController, MultichainNetworkController } = Engine.context;
-      const networkConfiguration =
-        NetworkController.getNetworkConfigurationByChainId(chainIdHex);
-
-      const networkClientId =
-        networkConfiguration?.rpcEndpoints?.[
-          networkConfiguration.defaultRpcEndpointIndex
-        ]?.networkClientId;
-
-      await MultichainNetworkController.setActiveNetwork(
-        networkClientId as string,
-      );
-    }
+  const onSend = useCallback(() => {
     navigateToSendPage({
       location: InitSendLocation.NftDetails,
       asset: collectible,
     });
-  }, [collectible, chainId, navigateToSendPage]);
+  }, [collectible, navigateToSendPage]);
 
   const isTradable = useCallback(
     () =>
-      collectible.standard === 'ERC721' &&
+      (collectible.standard === 'ERC721' ||
+        collectible.standard === 'ERC1155') &&
       collectible.isCurrentlyOwned === true,
     [collectible],
   );
@@ -315,7 +311,17 @@ const NftDetails = () => {
     collectible?.attributes && collectible?.attributes?.length !== 0;
 
   return (
-    <SafeAreaView style={styles.wrapper}>
+    <SafeAreaView style={styles.wrapper} edges={['left', 'right', 'bottom']}>
+      <HeaderStandard
+        includesTopInset
+        onBack={() => navigation.goBack()}
+        endButtonIconProps={[
+          {
+            iconName: DSIconName.MoreVertical,
+            onPress: openNftOptions,
+          },
+        ]}
+      />
       <ScrollView>
         <View style={styles.infoContainer}>
           <TouchableOpacity
@@ -448,12 +454,10 @@ const NftDetails = () => {
                   </TouchableOpacity>
                 }
                 onValuePress={() => {
-                  navigation.navigate('Webview', {
-                    screen: 'SimpleWebview',
-                    params: {
-                      url: blockExplorerTokenLink(),
-                    },
-                  });
+                  openBlockExplorer(
+                    blockExplorerTokenLink(),
+                    strings('nft_details.contract_address'),
+                  );
                 }}
               />
             ) : null}
@@ -478,12 +482,10 @@ const NftDetails = () => {
               }
               onValuePress={() => {
                 if (collectible.collection?.creator) {
-                  navigation.navigate('Webview', {
-                    screen: 'SimpleWebview',
-                    params: {
-                      url: blockExplorerTokenLink(),
-                    },
-                  });
+                  openBlockExplorer(
+                    blockExplorerTokenLink(),
+                    strings('nft_details.contract_address'),
+                  );
                 }
               }}
             />
@@ -546,6 +548,12 @@ const NftDetails = () => {
           ) : null}
 
           <NftDetailsInformationRow
+            title={strings('collectible.collection')}
+            value={collectible.collection?.name}
+            titleStyle={styles.informationRowTitleStyle}
+            valueStyle={styles.informationRowValueStyle}
+          />
+          <NftDetailsInformationRow
             title={strings('nft_details.unique_token_holders')}
             value={collectible.collection?.ownerCount}
             titleStyle={styles.informationRowTitleStyle}
@@ -586,12 +594,10 @@ const NftDetails = () => {
             }
             onValuePress={() => {
               if (collectible.collection?.creator) {
-                navigation.navigate('Webview', {
-                  screen: 'SimpleWebview',
-                  params: {
-                    url: blockExplorerAccountLink(),
-                  },
-                });
+                openBlockExplorer(
+                  blockExplorerAccountLink(),
+                  strings('nft_details.creator'),
+                );
               }
             }}
           />
@@ -665,14 +671,13 @@ const NftDetails = () => {
 
       {isTradable() ? (
         <View style={styles.buttonSendWrapper}>
-          <StyledButton
-            type={'confirm'}
-            containerStyle={styles.buttonSend}
+          <Button
+            variant={ButtonVariant.Primary}
+            twClassName="flex-1"
             onPress={onSend}
-            disabled={false} // TODO check why ERC1155 is still disabled on mobile
           >
             {strings('transaction.send')}
-          </StyledButton>
+          </Button>
         </View>
       ) : null}
     </SafeAreaView>

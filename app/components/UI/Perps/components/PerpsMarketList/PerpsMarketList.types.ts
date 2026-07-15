@@ -1,5 +1,7 @@
-import type { PerpsMarketData } from '../../controllers/types';
-import type { SortField } from '../../utils/sortMarkets';
+import {
+  type PerpsMarketData,
+  type SortField,
+} from '@metamask/perps-controller';
 import type { StyleProp, ViewStyle } from 'react-native';
 
 /**
@@ -47,8 +49,9 @@ export interface PerpsMarketListProps {
    */
   contentContainerStyle?: StyleProp<ViewStyle>;
   /**
-   * Optional key to force FlashList re-mount when filters change.
-   * This fixes rendering issues when data changes rapidly.
+   * Optional filter identifier forwarded to FlashList as `extraData` so rows
+   * re-render when the active filter changes WITHOUT remounting the list (which
+   * would tear down and recreate every row's live-price subscription).
    */
   filterKey?: string;
   /**

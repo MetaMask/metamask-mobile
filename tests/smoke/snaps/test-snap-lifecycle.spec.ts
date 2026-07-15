@@ -1,19 +1,21 @@
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
-import { FlaskBuildTests } from '../../../e2e/tags';
+import TestSnaps from '../../page-objects/Browser/TestSnaps';
+import { SmokeSnaps } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../flows/browser.flow';
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
+describe(SmokeSnaps('Lifecycle hooks Snap Tests'), () => {
   it('runs the onInstall lifecycle hook when the Snap is installed', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -28,7 +30,8 @@ describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
     );
   });
 
-  it('runs the onStart lifecycle hook when the client is started', async () => {
+  // This test is currently skipped because there is no way to set the source code in the StorageService, which is required for the Snap to run and call the onStart lifecycle hook.
+  it.skip('runs the onStart lifecycle hook when the client is started', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -36,6 +39,7 @@ describe(FlaskBuildTests('Lifecycle hooks Snap Tests'), () => {
           .build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         try {

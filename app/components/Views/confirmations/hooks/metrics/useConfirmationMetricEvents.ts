@@ -4,7 +4,7 @@ import {
   IMetaMetricsEvent,
   JsonMap,
 } from '../../../../../core/Analytics/MetaMetrics.types';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import {
   CONFIRMATION_EVENTS,
   TOOLTIP_TYPES,
@@ -18,7 +18,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useSignatureRequest } from '../signatures/useSignatureRequest';
 
 export function useConfirmationMetricEvents() {
-  const { createEventBuilder, trackEvent } = useMetrics();
+  const { createEventBuilder, trackEvent } = useAnalytics();
   const location = useConfirmationLocation();
   const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataRequest();
@@ -126,7 +126,7 @@ function generateEvent({
   properties,
   sensitiveProperties,
 }: {
-  createEventBuilder: ReturnType<typeof useMetrics>['createEventBuilder'];
+  createEventBuilder: ReturnType<typeof useAnalytics>['createEventBuilder'];
   metametricsEvent: IMetaMetricsEvent;
   properties?: JsonMap;
   sensitiveProperties?: JsonMap;

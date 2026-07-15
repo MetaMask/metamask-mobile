@@ -2,27 +2,12 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsCrossMarginWarningBottomSheet from './PerpsCrossMarginWarningBottomSheet';
 
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-  SafeAreaConsumer: ({
-    children,
-  }: {
-    children: (insets: unknown) => React.ReactNode;
-  }) => children({ insets: { top: 0, bottom: 0, left: 0, right: 0 } }),
-  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
-  useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
-}));
-
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: { alternative: '#f0f0f0' },
-      text: { default: '#000000', muted: '#666666' },
-      border: { muted: '#e1e1e1' },
-      primary: { default: '#0066cc', muted: '#cce0ff' },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('./PerpsCrossMarginWarningBottomSheet.styles', () => ({
   createStyles: () => ({

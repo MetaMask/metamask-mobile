@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act } from '@testing-library/react-native';
+import { render, act, fireEvent } from '@testing-library/react-native';
 import TokenIcon from '.';
 
 // Mock component-library Text component
@@ -35,19 +35,12 @@ jest.mock('../RemoteImage', () => ({
 }));
 
 // Mock useTheme hook
-jest.mock('../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: {
-        default: '#FFFFFF',
-        alternative: '#F2F4F6',
-      },
-      text: {
-        default: '#24292E',
-      },
-    },
-  })),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 // Mock image imports with various types
 jest.mock('../../../images/image-icons', () => ({
@@ -277,7 +270,7 @@ describe('TokenIcon', () => {
 
       await act(async () => {
         const errorTrigger = getByTestId('token-icon-error-trigger');
-        errorTrigger.props.onPress();
+        fireEvent.press(errorTrigger);
       });
 
       expect(getByText('D')).toBeOnTheScreen();

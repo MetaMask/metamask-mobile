@@ -46,6 +46,11 @@ export const createStyles = (colors: Theme['colors']) =>
       borderRadius: 8,
       marginBottom: 24,
       marginHorizontal: 12,
+      // Fixed min-height to accommodate two lines of BodySM text (~18px line
+      // height × 2 lines + 24px vertical padding). Prevents layout shift when
+      // the warning text wraps between one and two lines as the percentage
+      // value changes (e.g. "9.0%" → "10.0%").
+      minHeight: 60,
     },
     warningContainerSafe: {
       backgroundColor: LEVERAGE_BACKGROUND_COLORS.SAFE, // Green background
@@ -66,6 +71,8 @@ export const createStyles = (colors: Theme['colors']) =>
     warningTextContainer: {
       flex: 1,
       minWidth: 0,
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     warningText: {
       flex: 1,
@@ -92,6 +99,10 @@ export const createStyles = (colors: Theme['colors']) =>
       borderRadius: 8,
       marginBottom: 32,
       marginHorizontal: 12,
+      // Reserve vertical space whether price data is available or not,
+      // preventing a layout jump when switching between the two states.
+      minHeight: 100,
+      justifyContent: 'center',
     },
     priceRow: {
       flexDirection: 'row',
@@ -186,5 +197,8 @@ export const createStyles = (colors: Theme['colors']) =>
       backgroundColor: colors.border.muted,
       borderRadius: 2,
       top: 2,
+    },
+    footerButtonContainer: {
+      marginBottom: 16,
     },
   });

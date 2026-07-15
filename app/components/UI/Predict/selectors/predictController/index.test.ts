@@ -9,9 +9,13 @@ import {
   selectPredictBalanceByAddress,
   selectPredictAccountMeta,
   selectPredictAccountMetaByAddress,
+  selectPredictWithdrawTransaction,
+  selectPredictActiveBuyOrder,
+  selectPredictSelectedPaymentToken,
 } from './index';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 describe('Predict Controller Selectors', () => {
   describe('selectPredictControllerState', () => {
     it('selects the PredictController state', () => {
@@ -42,9 +46,7 @@ describe('Predict Controller Selectors', () => {
   describe('selectPredictPendingDeposits', () => {
     it('returns deposit transaction when it exists', () => {
       const pendingDeposits = {
-        polymarket: {
-          '0x123': true,
-        },
+        '0x123': true,
       };
 
       const mockState = {
@@ -96,6 +98,130 @@ describe('Predict Controller Selectors', () => {
     });
   });
 
+  describe('selectPredictWithdrawTransaction', () => {
+    it('returns withdraw transaction when it exists', () => {
+      const withdrawTransaction = {
+        amount: 100,
+        chainId: 137,
+        status: 'pending',
+        providerId: 'polymarket',
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              withdrawTransaction,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictWithdrawTransaction(mockState as any);
+
+      expect(result).toEqual(withdrawTransaction);
+    });
+
+    it('returns null when withdraw transaction does not exist', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              withdrawTransaction: null,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictWithdrawTransaction(mockState as any);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('selectPredictActiveBuyOrder', () => {
+    const mockAccountsController = {
+      internalAccounts: {
+        selectedAccount: 'acct-1',
+        accounts: {
+          'acct-1': {
+            address: '0xabc123',
+            type: 'eip155:eoa',
+            id: 'acct-1',
+            metadata: {
+              name: 'Account 1',
+              keyring: { type: 'HD Key Tree' },
+              importTime: 0,
+              lastSelected: 0,
+            },
+            options: {},
+            methods: [],
+            scopes: [],
+          },
+        },
+      },
+    };
+
+    it('returns active buy order for the selected account address', () => {
+      const activeBuyOrder = {
+        state: 'preview',
+        transactionId: 'tx-1',
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              activeBuyOrders: { '0xabc123': activeBuyOrder },
+            },
+            AccountsController: mockAccountsController,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictActiveBuyOrder(mockState as any);
+
+      expect(result).toEqual(activeBuyOrder);
+    });
+
+    it('returns null when no order exists for the selected address', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              activeBuyOrders: {},
+            },
+            AccountsController: mockAccountsController,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictActiveBuyOrder(mockState as any);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when PredictController state is undefined', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: undefined,
+            AccountsController: mockAccountsController,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictActiveBuyOrder(mockState as any);
+
+      expect(result).toBeNull();
+    });
+  });
+
   describe('selectPredictClaimablePositions', () => {
     it('returns claimable positions when they exist', () => {
       const testAddress = '0x123';
@@ -103,7 +229,7 @@ describe('Predict Controller Selectors', () => {
         [testAddress]: [
           {
             id: 'pos-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             outcome: 'Yes',
@@ -182,7 +308,7 @@ describe('Predict Controller Selectors', () => {
         [testAddress]: [
           {
             id: 'pos-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             outcome: 'Yes',
@@ -204,7 +330,7 @@ describe('Predict Controller Selectors', () => {
           },
           {
             id: 'pos-2',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-2',
             outcomeId: 'outcome-2',
             outcome: 'No',
@@ -253,7 +379,7 @@ describe('Predict Controller Selectors', () => {
         [testAddress]: [
           {
             id: 'pos-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             outcome: 'Yes',
@@ -324,7 +450,7 @@ describe('Predict Controller Selectors', () => {
         [testAddress]: [
           {
             id: 'pos-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             outcome: 'Yes',
@@ -346,7 +472,7 @@ describe('Predict Controller Selectors', () => {
           },
           {
             id: 'pos-2',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-2',
             outcomeId: 'outcome-2',
             outcome: 'Yes',
@@ -415,7 +541,7 @@ describe('Predict Controller Selectors', () => {
         [testAddress]: [
           {
             id: 'pos-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             outcome: 'Yes',
@@ -464,7 +590,7 @@ describe('Predict Controller Selectors', () => {
         [testAddress]: [
           {
             id: 'pos-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             outcome: 'Yes',
@@ -486,7 +612,7 @@ describe('Predict Controller Selectors', () => {
           },
           {
             id: 'pos-2',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-2',
             outcomeId: 'outcome-2',
             outcome: 'Yes',
@@ -555,7 +681,7 @@ describe('Predict Controller Selectors', () => {
         [testAddress]: [
           {
             id: 'pos-1',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             outcome: 'Yes',
@@ -600,12 +726,17 @@ describe('Predict Controller Selectors', () => {
   describe('selectPredictBalances', () => {
     it('returns balances when they exist', () => {
       const balances = {
-        polymarket: {
-          '0x123': 1000,
-          '0x456': 2000,
+        '0x123': {
+          balance: 1000,
+          validUntil: Date.now() + 1000,
         },
-        kalshi: {
-          '0xabc': 500,
+        '0x456': {
+          balance: 2000,
+          validUntil: Date.now() + 1000,
+        },
+        '0xabc': {
+          balance: 500,
+          validUntil: Date.now() + 1000,
         },
       };
 
@@ -674,23 +805,19 @@ describe('Predict Controller Selectors', () => {
   });
 
   describe('selectPredictBalanceByAddress', () => {
-    it('returns balance for specified provider and address', () => {
+    it('returns balance for specified address', () => {
       const balances = {
-        polymarket: {
-          '0x123': {
-            balance: 1000,
-            validUntil: Date.now() + 1000,
-          },
-          '0x456': {
-            balance: 2000,
-            validUntil: Date.now() + 1000,
-          },
+        '0x123': {
+          balance: 1000,
+          validUntil: Date.now() + 1000,
         },
-        kalshi: {
-          '0xabc': {
-            balance: 500,
-            validUntil: Date.now() + 1000,
-          },
+        '0x456': {
+          balance: 2000,
+          validUntil: Date.now() + 1000,
+        },
+        '0xabc': {
+          balance: 500,
+          validUntil: Date.now() + 1000,
         },
       };
 
@@ -705,7 +832,6 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictBalanceByAddress({
-        providerId: 'polymarket',
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -714,13 +840,11 @@ describe('Predict Controller Selectors', () => {
       expect(result).toBe(1000);
     });
 
-    it('returns zero when provider does not exist', () => {
+    it('returns balance for existing address', () => {
       const balances = {
-        polymarket: {
-          '0x123': {
-            balance: 1000,
-            validUntil: Date.now() + 1000,
-          },
+        '0x123': {
+          balance: 1000,
+          validUntil: Date.now() + 1000,
         },
       };
 
@@ -735,22 +859,19 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictBalanceByAddress({
-        providerId: 'nonexistent',
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = selector(mockState as any);
 
-      expect(result).toBe(0);
+      expect(result).toBe(1000);
     });
 
-    it('returns zero when address does not exist for provider', () => {
+    it('returns zero when address does not exist', () => {
       const balances = {
-        polymarket: {
-          '0x123': {
-            balance: 1000,
-            validUntil: Date.now() + 1000,
-          },
+        '0x123': {
+          balance: 1000,
+          validUntil: Date.now() + 1000,
         },
       };
 
@@ -765,7 +886,6 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictBalanceByAddress({
-        providerId: 'polymarket',
         address: '0xnonexistent',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -786,7 +906,6 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictBalanceByAddress({
-        providerId: 'polymarket',
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -805,7 +924,6 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictBalanceByAddress({
-        providerId: 'polymarket',
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -814,27 +932,23 @@ describe('Predict Controller Selectors', () => {
       expect(result).toBe(0);
     });
 
-    it('returns correct balance for different provider and address combinations', () => {
+    it('returns correct balance for different addresses', () => {
       const balances = {
-        polymarket: {
-          '0x123': {
-            balance: 1000,
-            validUntil: Date.now() + 1000,
-          },
-          '0x456': {
-            balance: 2000,
-            validUntil: Date.now() + 1000,
-          },
+        '0x123': {
+          balance: 1000,
+          validUntil: Date.now() + 1000,
         },
-        kalshi: {
-          '0xabc': {
-            balance: 500,
-            validUntil: Date.now() + 1000,
-          },
-          '0xdef': {
-            balance: 750,
-            validUntil: Date.now() + 1000,
-          },
+        '0x456': {
+          balance: 2000,
+          validUntil: Date.now() + 1000,
+        },
+        '0xabc': {
+          balance: 500,
+          validUntil: Date.now() + 1000,
+        },
+        '0xdef': {
+          balance: 750,
+          validUntil: Date.now() + 1000,
         },
       };
 
@@ -849,14 +963,12 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector1 = selectPredictBalanceByAddress({
-        providerId: 'polymarket',
         address: '0x456',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result1 = selector1(mockState as any);
 
       const selector2 = selectPredictBalanceByAddress({
-        providerId: 'kalshi',
         address: '0xdef',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -868,11 +980,9 @@ describe('Predict Controller Selectors', () => {
 
     it('returns zero for balance with value of zero', () => {
       const balances = {
-        polymarket: {
-          '0x123': {
-            balance: 0,
-            validUntil: Date.now() + 1000,
-          },
+        '0x123': {
+          balance: 0,
+          validUntil: Date.now() + 1000,
         },
       };
 
@@ -887,7 +997,6 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictBalanceByAddress({
-        providerId: 'polymarket',
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1015,7 +1124,7 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictAccountMetaByAddress({
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1044,7 +1153,7 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictAccountMetaByAddress({
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1102,7 +1211,7 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictAccountMetaByAddress({
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         address: '0xNonExistent',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1121,7 +1230,7 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictAccountMetaByAddress({
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1161,7 +1270,7 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector1 = selectPredictAccountMetaByAddress({
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         address: '0x456',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1198,7 +1307,7 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictAccountMetaByAddress({
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1219,13 +1328,111 @@ describe('Predict Controller Selectors', () => {
       };
 
       const selector = selectPredictAccountMetaByAddress({
-        providerId: 'polymarket',
+        providerId: POLYMARKET_PROVIDER_ID,
         address: '0x123',
       });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = selector(mockState as any);
 
       expect(result).toEqual({});
+    });
+  });
+
+  describe('selectPredictSelectedPaymentToken', () => {
+    it('returns null when selectedPaymentToken is null', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              selectedPaymentToken: null,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictSelectedPaymentToken(mockState as any);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns token object when selectedPaymentToken is set', () => {
+      const selectedPaymentToken = {
+        address: '0x1234567890123456789012345678901234567890',
+        chainId: '0x1',
+        symbol: 'USDC',
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              selectedPaymentToken,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictSelectedPaymentToken(mockState as any);
+
+      expect(result).toEqual(selectedPaymentToken);
+    });
+
+    it('returns null when PredictController state is undefined', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: undefined,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictSelectedPaymentToken(mockState as any);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when selectedPaymentToken property is missing', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {},
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictSelectedPaymentToken(mockState as any);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns token with all properties', () => {
+      const selectedPaymentToken = {
+        address: '0xabcdef1234567890abcdef1234567890abcdef12',
+        chainId: '0x89',
+        symbol: 'DAI',
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              selectedPaymentToken,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictSelectedPaymentToken(mockState as any);
+
+      expect(result).toEqual(selectedPaymentToken);
+      expect(result?.address).toBe(selectedPaymentToken.address);
+      expect(result?.chainId).toBe(selectedPaymentToken.chainId);
+      expect(result?.symbol).toBe(selectedPaymentToken.symbol);
     });
   });
 });

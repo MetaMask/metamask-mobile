@@ -2,11 +2,13 @@ import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTrading } from './usePerpsTrading';
-import type { Position } from '../controllers/types';
-import { captureException } from '@sentry/react-native';
+import {
+  getPerpsDisplaySymbol,
+  type Position,
+  type OrderDirection,
+  type TrackingData,
+} from '@metamask/perps-controller';
 import usePerpsToasts from './usePerpsToasts';
-import { getPerpsDisplaySymbol } from '../utils/marketUtils';
-import type { OrderDirection } from '../types/perps-types';
 
 export interface UsePerpsFlipPositionOptions {
   onSuccess?: () => void;
@@ -27,7 +29,7 @@ export function usePerpsFlipPosition(options?: UsePerpsFlipPositionOptions) {
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const handleFlipPosition = useCallback(
-    async (position: Position) => {
+    async (position: Position, trackingData?: TrackingData) => {
       setIsFlipping(true);
       DevLogger.log('usePerpsFlipPosition: Setting isFlipping to true');
 
@@ -42,6 +44,7 @@ export function usePerpsFlipPosition(options?: UsePerpsFlipPositionOptions) {
         const result = await flipPosition({
           symbol: position.symbol,
           position,
+          trackingData,
         });
 
         if (result.success) {
@@ -76,30 +79,6 @@ export function usePerpsFlipPosition(options?: UsePerpsFlipPositionOptions) {
         }
       } catch (error) {
         DevLogger.log('Error flipping position:', error);
-
-        // Capture exception with position context
-        captureException(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            tags: {
-              component: 'usePerpsFlipPosition',
-              action: 'flip_position',
-              operation: 'position_management',
-            },
-            extra: {
-              positionContext: {
-                symbol: position.symbol,
-                size: position.size,
-                currentDirection,
-                targetDirection: oppositeDirection,
-                positionSize,
-                entryPrice: position.entryPrice,
-                unrealizedPnl: position.unrealizedPnl,
-                leverage: position.leverage,
-              },
-            },
-          },
-        );
 
         const errorMessage =
           error instanceof Error

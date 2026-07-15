@@ -30,7 +30,7 @@ import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
 import NestedTransactionData from '../../../nested-transaction-data/nested-transaction-data';
 import SmartContractWithLogo from '../../../smart-contract-with-logo';
-import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import styleSheet from './advanced-details-row.styles';
 
 const MAX_DATA_LENGTH_FOR_SCROLL = 200;

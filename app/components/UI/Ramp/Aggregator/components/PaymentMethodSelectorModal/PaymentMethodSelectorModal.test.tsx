@@ -81,8 +81,9 @@ describe('PaymentMethodSelectorModal', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = render(PaymentMethodSelectorModal);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = render(PaymentMethodSelectorModal);
+    expect(getByText('Credit Card')).toBeOnTheScreen();
+    expect(getByText('Bank Transfer')).toBeOnTheScreen();
   });
 
   it('renders without disclaimer when selected payment method has none', () => {
@@ -91,8 +92,9 @@ describe('PaymentMethodSelectorModal', () => {
       selectedPaymentMethodId: 'payment-method-2',
     };
 
-    const { toJSON } = render(PaymentMethodSelectorModal);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText, queryByText } = render(PaymentMethodSelectorModal);
+    expect(getByText('Bank Transfer')).toBeOnTheScreen();
+    expect(queryByText('Test disclaimer')).not.toBeOnTheScreen();
   });
 
   it('renders for sell flow', () => {
@@ -106,11 +108,38 @@ describe('PaymentMethodSelectorModal', () => {
       isBuy: false,
     };
 
-    const { toJSON } = render(PaymentMethodSelectorModal);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = render(PaymentMethodSelectorModal);
+    expect(getByText('Bank Transfer')).toBeOnTheScreen();
   });
 
-  it('tracks RAMPS_PAYMENT_METHOD_SELECTED event when payment method is selected', () => {
+  it('tracks OFFRAMP_PAYMENT_METHOD_SELECTED event when payment method is selected in sell flow', () => {
+    mockUseParams.mockReturnValue({
+      ...defaultParams,
+      location: 'Amount to Sell Screen' as const,
+    });
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      rampType: RampType.SELL,
+      isBuy: false,
+    };
+
+    const { getByText } = render(PaymentMethodSelectorModal);
+
+    const paymentMethodElement = getByText('Bank Transfer');
+    fireEvent.press(paymentMethodElement);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      'OFFRAMP_PAYMENT_METHOD_SELECTED',
+      {
+        payment_method_id: 'payment-method-2',
+        available_payment_method_ids: ['payment-method-1', 'payment-method-2'],
+        region: 'US',
+        location: 'Amount to Sell Screen',
+      },
+    );
+  });
+
+  it('tracks ONRAMP_PAYMENT_METHOD_SELECTED event when payment method is selected in buy flow', () => {
     const { getByText } = render(PaymentMethodSelectorModal);
 
     const paymentMethodElement = getByText('Bank Transfer');
@@ -126,7 +155,7 @@ describe('PaymentMethodSelectorModal', () => {
       },
     );
   });
-  it('does not track RAMPS_PAYMENT_METHOD_SELECTED event when the same payment method is selected', () => {
+  it('does not track ONRAMP_PAYMENT_METHOD_SELECTED event when the same payment method is selected', () => {
     const { getByText } = render(PaymentMethodSelectorModal);
 
     const paymentMethodElement = getByText('Credit Card');

@@ -1,5 +1,4 @@
-import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
@@ -8,9 +7,12 @@ import { useTheme } from '../../../../util/theme';
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import Button, {
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  HeaderStandard,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
@@ -21,14 +23,7 @@ import Text, {
 import Routes from '../../../../constants/navigation/Routes';
 import { RootState } from '../../../../reducers';
 import { SDKSelectorsIDs } from '../SDK.testIds';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import SDKSessionItem from './SDKSessionItem';
-
-interface SDKSessionsManagerProps {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: StackNavigationProp<any>;
-}
 
 const createStyles = (
   colors: ThemeColors,
@@ -38,6 +33,9 @@ const createStyles = (
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
+      flex: 1,
+    },
+    content: {
       flex: 1,
       paddingVertical: 12,
       paddingHorizontal: 24,
@@ -65,7 +63,7 @@ const createStyles = (
     disconnectAllContainer: {},
   });
 
-const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
+const SDKSessionsManager = () => {
   const safeAreaInsets = useSafeAreaInsets();
   const route =
     useRoute<RouteProp<{ params: { trigger?: number } }, 'params'>>();
@@ -74,7 +72,6 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
     (state: RootState) => state.sdk,
   );
 
-  // Combine all connection sources into a single list for rendering
   const connectionsList = useMemo(
     () => [
       ...Object.values(connections),
@@ -88,25 +85,17 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
 
-  const { navigate } = useNavigation();
+  const navigation = useNavigation();
+
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const toggleClearMMSDKConnectionModal = useCallback(() => {
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SDK_DISCONNECT,
     });
-  }, [navigate]);
-
-  useEffect(() => {
-    const { navigation } = props;
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.manage_sdk_connections_title'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  }, [props, colors]);
+  }, [navigation]);
 
   const renderSDKSessions = useCallback(
     () => (
@@ -122,13 +111,14 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
         </ScrollView>
         <View style={styles.disconnectAllContainer}>
           <Button
-            variant={ButtonVariants.Secondary}
-            label={strings('sdk.disconnect_all')}
+            variant={ButtonVariant.Secondary}
             style={styles.btnAction}
             onPress={() => {
               toggleClearMMSDKConnectionModal();
             }}
-          />
+          >
+            {strings('sdk.disconnect_all')}
+          </Button>
         </View>
       </>
     ),
@@ -152,7 +142,19 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
       style={styles.wrapper}
       testID={SDKSelectorsIDs.SESSION_MANAGER_CONTAINER}
     >
-      {connectionsList.length > 0 ? renderSDKSessions() : renderEmptyResult()}
+      <HeaderStandard
+        title={strings('app_settings.manage_sdk_connections_title')}
+        titleProps={{ color: TextColor.PrimaryDefault }}
+        onBack={handleBack}
+        includesTopInset
+        testID={SDKSelectorsIDs.SESSION_MANAGER_HEADER}
+        backButtonProps={{
+          testID: SDKSelectorsIDs.SESSION_MANAGER_BACK_BUTTON,
+        }}
+      />
+      <View style={styles.content}>
+        {connectionsList.length > 0 ? renderSDKSessions() : renderEmptyResult()}
+      </View>
     </View>
   );
 };

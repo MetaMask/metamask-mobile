@@ -1,10 +1,7 @@
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import {
-  selectBitcoinRewardsEnabledFlag,
-  selectTronRewardsEnabledFlag,
-  selectSnapshotsRewardsEnabledFlag,
-} from '../../../../selectors/featureFlagController/rewards/rewardsEnabled';
-import type { ControllerInitFunction } from '../../types';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import { selectRewardsFirstPredictOnUsEnabled } from '../../../../selectors/featureFlagController/rewardsFirstPredictOnUs';
+import type { MessengerClientInitFunction } from '../../types';
 import {
   RewardsController,
   RewardsControllerMessenger,
@@ -17,7 +14,7 @@ import {
  * @param request - The request object.
  * @returns The RewardsController.
  */
-export const rewardsControllerInit: ControllerInitFunction<
+export const rewardsControllerInit: MessengerClientInitFunction<
   RewardsController,
   RewardsControllerMessenger
 > = (request) => {
@@ -32,9 +29,15 @@ export const rewardsControllerInit: ControllerInitFunction<
       const isEnabled = selectBasicFunctionalityEnabled(getState());
       return !isEnabled;
     },
-    isBitcoinOptinEnabled: () => selectBitcoinRewardsEnabledFlag(getState()),
-    isTronOptinEnabled: () => selectTronRewardsEnabledFlag(getState()),
-    isSnapshotsEnabled: () => selectSnapshotsRewardsEnabledFlag(getState()),
+    isVipDisabled: () => {
+      const isVipEnabled = selectVipProgramEnabled(getState());
+      return !isVipEnabled;
+    },
+    isFirstPredictOnUsDisabled: () => {
+      const isFirstPredictOnUsEnabled =
+        selectRewardsFirstPredictOnUsEnabled(getState());
+      return !isFirstPredictOnUsEnabled;
+    },
   });
 
   return { controller };
@@ -42,3 +45,67 @@ export const rewardsControllerInit: ControllerInitFunction<
 
 export { RewardsController };
 export type { RewardsControllerMessenger };
+export type { RewardsControllerGetStateAction } from './types';
+export type {
+  RewardsControllerAddPointsEstimateToHistoryAction,
+  RewardsControllerApplyBonusCodeAction,
+  RewardsControllerApplyReferralCodeAction,
+  RewardsControllerCalculateTierStatusAction,
+  RewardsControllerCanChangeRewardsEnvUrlAction,
+  RewardsControllerCheckOptInStatusAgainstCacheAction,
+  RewardsControllerClaimRewardAction,
+  RewardsControllerConvertInternalAccountToCaipAccountIdAction,
+  RewardsControllerConvertToSeasonStatusDtoAction,
+  RewardsControllerEstimatePointsAction,
+  RewardsControllerGetActivePointsBoostsAction,
+  RewardsControllerGetActualSubscriptionIdAction,
+  RewardsControllerGetCampaignParticipantStatusAction,
+  RewardsControllerGetCampaignsAction,
+  RewardsControllerGetCandidateSubscriptionIdAction,
+  RewardsControllerGetClientVersionRequirementsAction,
+  RewardsControllerGetFirstPredictOnUsAction,
+  RewardsControllerGetDefaultRewardsEnvUrlAction,
+  RewardsControllerGetFirstSubscriptionIdAction,
+  RewardsControllerGetGeoRewardsMetadataAction,
+  RewardsControllerGetHasAccountOptedInAction,
+  RewardsControllerGetOffDeviceSubscriptionAccountsAction,
+  RewardsControllerGetOndoCampaignDepositsAction,
+  RewardsControllerGetOndoCampaignLeaderboardAction,
+  RewardsControllerGetOndoCampaignLeaderboardPositionAction,
+  RewardsControllerGetOndoCampaignPortfolioPositionAction,
+  RewardsControllerGetOptInStatusAction,
+  RewardsControllerGetPerpsDiscountForAccountAction,
+  RewardsControllerGetPointsEventsAction,
+  RewardsControllerGetPointsEventsIfChangedAction,
+  RewardsControllerGetPointsEventsLastUpdatedAction,
+  RewardsControllerGetReferralDetailsAction,
+  RewardsControllerGetRewardsEnvUrlAction,
+  RewardsControllerGetSeasonMetadataAction,
+  RewardsControllerGetSeasonOneLineaRewardTokensAction,
+  RewardsControllerGetSeasonStatusAction,
+  RewardsControllerGetUnlockedRewardsAction,
+  RewardsControllerHandleAuthenticationTriggerAction,
+  RewardsControllerHasActiveSeasonAction,
+  RewardsControllerHasPointsEventsChangedAction,
+  RewardsControllerInvalidateReferralDetailsCacheAction,
+  RewardsControllerInvalidateSubscriptionAndAccountsAction,
+  RewardsControllerInvalidateSubscriptionCacheAction,
+  RewardsControllerIsOptInSupportedAction,
+  RewardsControllerIsRewardsFeatureEnabledAction,
+  RewardsControllerIsVipFeatureEnabledAction,
+  RewardsControllerLinkAccountsToSubscriptionCandidateAction,
+  RewardsControllerLinkAccountToSubscriptionCandidateAction,
+  RewardsControllerLogoutAction,
+  RewardsControllerOptInAction,
+  RewardsControllerOptInToCampaignAction,
+  RewardsControllerOptOutAction,
+  RewardsControllerPerformSilentAuthAction,
+  RewardsControllerResetAllAction,
+  RewardsControllerResetStateAction,
+  RewardsControllerSetActiveAccountFromCandidateAction,
+  RewardsControllerSetRewardsEnvUrlAction,
+  RewardsControllerShouldSkipSilentAuthAction,
+  RewardsControllerSignRewardsMessageAction,
+  RewardsControllerValidateBonusCodeAction,
+  RewardsControllerValidateReferralCodeAction,
+} from './RewardsController-method-action-types';

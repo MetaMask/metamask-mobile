@@ -1,10 +1,9 @@
-import React, { useCallback } from 'react';
+import React, { ReactNode, useCallback } from 'react';
 import { Pressable } from 'react-native';
 import {
   Box,
   Text,
   TextVariant,
-  AvatarToken,
   FontWeight,
   TextColor,
 } from '@metamask/design-system-react-native';
@@ -21,15 +20,20 @@ import { BadgeVariant } from '../../../../../../component-library/components/Bad
 import { BadgePosition } from '../../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
 import { AccountTypeLabel } from '../account-type-label';
 import { AssetType } from '../../../types/token';
+import { getAssetTestId } from '../../../../../../../tests/selectors/Wallet/WalletView.selectors';
 import { formatAmount } from '../../../../../../components/UI/SimulationDetails/formatAmount';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../../constants/account-type-labels';
+import AssetLogo from '../../../../../UI/Assets/components/AssetLogo/AssetLogo';
+
+export type TokenTagRenderer = (token: AssetType) => ReactNode;
 
 interface TokenProps {
   asset: AssetType;
   onPress: (asset: AssetType) => void;
+  tagRenderers?: TokenTagRenderer[];
 }
 
-export function Token({ asset, onPress }: TokenProps) {
+export function Token({ asset, tagRenderers, onPress }: TokenProps) {
   const tw = useTailwind();
 
   const handlePress = useCallback(() => {
@@ -41,6 +45,7 @@ export function Token({ asset, onPress }: TokenProps) {
 
   return (
     <Pressable
+      testID={getAssetTestId(asset.symbol as string)}
       disabled={asset.disabled}
       style={({ pressed }) =>
         tw.style(
@@ -51,7 +56,7 @@ export function Token({ asset, onPress }: TokenProps) {
       }
       onPress={handlePress}
     >
-      <Box twClassName="flex-row items-center px-4">
+      <Box twClassName="flex-row items-center px-4 flex-1 min-w-0">
         <Box twClassName="h-12 justify-center">
           <BadgeWrapper
             badgePosition={BadgePosition.BottomRight}
@@ -75,24 +80,25 @@ export function Token({ asset, onPress }: TokenProps) {
                 ticker={asset.symbol as string}
               />
             ) : (
-              <AvatarToken
-                name={asset.symbol || asset.name || 'Token'}
-                src={asset.image ? { uri: asset.image } : undefined}
-                style={tw.style('w-10 h-10')}
-              />
+              <AssetLogo asset={asset} />
             )}
           </BadgeWrapper>
         </Box>
 
-        <Box twClassName="ml-4 h-12 justify-center">
-          <Box twClassName="flex-row items-center">
+        <Box twClassName="ml-4 h-12 justify-center flex-1 min-w-0">
+          <Box twClassName="flex-row items-center gap-2">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               numberOfLines={1}
+              twClassName="shrink"
             >
               {asset.name || asset.symbol || 'Unknown Token'}
             </Text>
+            {tagRenderers?.reduce<ReactNode>(
+              (found, render) => found ?? render(asset),
+              null,
+            )}
             <AccountTypeLabel label={typeLabel} />
           </Box>
           <Text
@@ -106,7 +112,7 @@ export function Token({ asset, onPress }: TokenProps) {
           </Text>
         </Box>
       </Box>
-      <Box twClassName="px-4 h-12 justify-center items-end flex-1">
+      <Box twClassName="px-4 h-12 justify-center items-end shrink-0">
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}

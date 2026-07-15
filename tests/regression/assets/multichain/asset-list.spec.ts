@@ -1,13 +1,13 @@
-import { RegressionAssets } from '../../../../e2e/tags';
-import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import { RegressionAssets } from '../../../tags';
+import WalletView from '../../../page-objects/wallet/WalletView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../../../e2e/viewHelper';
+import { loginToApp } from '../../../flows/wallet.flow';
 import Assertions from '../../../framework/Assertions';
-import TokenOverview from '../../../../e2e/pages/wallet/TokenOverview';
-import NetworkManager from '../../../../e2e/pages/wallet/NetworkManager';
+import TokenOverview from '../../../page-objects/wallet/TokenOverview';
+import NetworkManager from '../../../page-objects/wallet/NetworkManager';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagTronAccounts } from '../../../api-mocking/mock-responses/feature-flags-mocks.ts';
+import { remoteFeatureFlagTronAccounts } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
 const ETHEREUM_NAME = 'Ethereum';
 const AVAX_NAME = 'AVAX';

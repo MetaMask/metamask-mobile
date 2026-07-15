@@ -1,20 +1,22 @@
-import { FlaskBuildTests } from '../../../e2e/tags';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import { SmokeSnaps } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
+import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import sdkPackageJson from '@metamask/snaps-sdk/package.json';
 import packageJson from '../../../package.json';
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Client Status Snap Tests'), () => {
+describe(SmokeSnaps('Client Status Snap Tests'), () => {
   it('connects to the Client Status Snap', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -31,6 +33,7 @@ describe(FlaskBuildTests('Client Status Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.tapButton('sendClientStatusButton');

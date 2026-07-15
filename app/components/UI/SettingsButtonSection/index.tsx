@@ -2,15 +2,15 @@ import React, { ReactNode, useState } from 'react';
 import { View } from 'react-native';
 import ActionModal from '../ActionModal';
 import createStyles from './styles';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
   ButtonSize,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 interface ISettingsButtonSectionProps {
   sectionTitle: string;
@@ -54,24 +54,28 @@ const SettingsButtonSection = ({
   return (
     <>
       <View style={styles.setting}>
-        <Text variant={TextVariant.BodyLGMedium}>{sectionTitle}</Text>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {sectionTitle}
+        </Text>
         <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
           style={styles.desc}
         >
           {descriptionText}
         </Text>
         <View style={styles.accessory}>
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             onPress={onButtonPress}
             isDisabled={buttonDisabled || modalVisible}
             testID={testID}
-            label={sectionButtonText}
-          />
+          >
+            {sectionButtonText}
+          </Button>
         </View>
       </View>
       {needsModal ? (
@@ -84,10 +88,16 @@ const SettingsButtonSection = ({
           onConfirmPress={onModalConfirmPress}
         >
           <View style={styles.modalView}>
-            <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
+            <Text variant={TextVariant.HeadingMd} style={styles.modalTitle}>
               {modalTitleText}
             </Text>
-            <Text style={styles.modalText}>{modalDescriptionText}</Text>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              style={styles.modalText}
+            >
+              {modalDescriptionText}
+            </Text>
           </View>
         </ActionModal>
       ) : null}

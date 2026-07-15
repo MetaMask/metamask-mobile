@@ -1,4 +1,5 @@
 import { type AppThemeKey } from '../../util/theme/models';
+import { type ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 import {
   type LockAppAction,
   type CheckForDeeplinkAction,
@@ -24,6 +25,13 @@ import {
   type SetMultichainAccountsIntroModalSeenAction,
   type SetMusdConversionEducationSeenAction,
   type SetMusdConversionAssetDetailCtaSeenAction,
+  type ClearMusdConversionAssetDetailCtasSeenAction,
+  type SetMoneyOnboardingSeenAction,
+  type SetTokenOverviewChartTypeAction,
+  type SetTokenOverviewChartIntervalAction,
+  type SetTokenIndicatorsAction,
+  type SetOnboardingStepperStepAction,
+  type SetAppInstallEventFiredAction,
   UserActionType,
 } from './types';
 
@@ -211,5 +219,83 @@ export function setMusdConversionAssetDetailCtaSeen(
   return {
     type: UserActionType.SET_MUSD_CONVERSION_ASSET_DETAIL_CTA_SEEN,
     payload: { key },
+  };
+}
+
+/**
+ * Clears persisted mUSD asset-detail CTA dismissals (fresh-install behavior for CTAs).
+ */
+export function clearMusdConversionAssetDetailCtasSeen(): ClearMusdConversionAssetDetailCtasSeenAction {
+  return {
+    type: UserActionType.CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN,
+  };
+}
+
+/**
+ * Action to set Money onboarding as seen
+ */
+export function setMoneyOnboardingSeen(
+  seen: boolean,
+): SetMoneyOnboardingSeenAction {
+  return {
+    type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
+    payload: { seen },
+  };
+}
+
+/**
+ * Action to set token overview chart type preference
+ */
+export function setTokenOverviewChartType(
+  chartType: ChartType,
+): SetTokenOverviewChartTypeAction {
+  return {
+    type: UserActionType.SET_TOKEN_OVERVIEW_CHART_TYPE,
+    payload: { chartType },
+  };
+}
+
+/**
+ * Action to set token overview candle interval preference (technical indicators path).
+ */
+export function setTokenOverviewChartInterval(
+  interval: string,
+): SetTokenOverviewChartIntervalAction {
+  return {
+    type: UserActionType.SET_TOKEN_OVERVIEW_CHART_INTERVAL,
+    payload: { interval },
+  };
+}
+
+/**
+ * Action to set active technical indicators for token charts
+ */
+export function setTokenIndicators(
+  indicators: string[],
+): SetTokenIndicatorsAction {
+  return {
+    type: UserActionType.SET_TOKEN_INDICATORS,
+    payload: { indicators },
+  };
+}
+
+/**
+ * Action to set the current step for a named onboarding stepper.
+ * Keyed by stepperId to support multiple independent steppers without
+ * adding new Redux fields per product.
+ */
+export function setOnboardingStepperStep(
+  stepperId: string,
+  step: number,
+): SetOnboardingStepperStepAction {
+  return {
+    type: UserActionType.SET_ONBOARDING_STEPPER_STEP,
+    payload: { stepperId, step },
+  };
+}
+
+export function setAppInstallEventFired(): SetAppInstallEventFiredAction {
+  return {
+    type: UserActionType.SET_APP_INSTALL_EVENT_FIRED,
   };
 }

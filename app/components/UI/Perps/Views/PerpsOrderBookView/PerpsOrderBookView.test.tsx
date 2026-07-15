@@ -5,11 +5,29 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PerpsOrderBookViewSelectorsIDs } from '../../Perps.testIds';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
+import { mockTheme } from '../../../../../util/theme';
+import type { OrderBookRouteParams } from './PerpsOrderBookView.types';
+import type { PerpsMarketData } from '@metamask/perps-controller';
 
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
+const mockUseRoute = jest.fn<{ params: OrderBookRouteParams }, []>(() => ({
+  params: {
+    symbol: 'BTC',
+  },
+}));
+
+const mockRouteMarketData: PerpsMarketData = {
+  symbol: 'BTC',
+  name: 'Bitcoin',
+  maxLeverage: '50x',
+  price: '$50,000.00',
+  change24h: '$0',
+  change24hPercent: '0%',
+  volume: '$1M',
+};
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -21,11 +39,7 @@ jest.mock('@react-navigation/native', () => {
       canGoBack: mockCanGoBack,
       setOptions: jest.fn(),
     }),
-    useRoute: () => ({
-      params: {
-        symbol: 'BTC',
-      },
-    }),
+    useRoute: () => mockUseRoute(),
   };
 });
 
@@ -48,35 +62,23 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 // Mock useStyles
 jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: jest.fn(() => ({
-    styles: {
-      container: { flex: 1 },
-      header: { flexDirection: 'row', padding: 16 },
-      headerBackButton: { marginRight: 12 },
-      headerTitleContainer: { flex: 1 },
-      headerUnitToggle: { flexDirection: 'row' },
-      headerUnitButton: { padding: 8 },
-      headerUnitButtonActive: { backgroundColor: '#000' },
-      depthBandButton: { padding: 8 },
-      depthBandButtonPressed: { opacity: 0.7 },
-      scrollView: { flex: 1 },
-      scrollContent: { padding: 16 },
-      section: { marginBottom: 16 },
-      depthChartSection: { paddingTop: 16 },
-      tableSection: { flex: 1 },
-      footer: { padding: 16 },
-      actionsContainer: { flexDirection: 'row', gap: 12 },
-      actionButtonWrapper: { flex: 1 },
-      errorContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
-      depthBandSheetContent: { padding: 16 },
-      depthBandOption: { padding: 16 },
-      depthBandOptionSelected: { backgroundColor: '#eee' },
-    },
-  })),
+  useStyles: jest.fn((styleSheet) => {
+    const perpsOrderBookViewStyleSheet = jest.requireActual(
+      './PerpsOrderBookView.styles',
+    ).default;
+
+    if (styleSheet === perpsOrderBookViewStyleSheet) {
+      return {
+        styles: styleSheet({ theme: mockTheme }),
+        theme: mockTheme,
+      };
+    }
+
+    return {
+      styles: {},
+      theme: mockTheme,
+    };
+  }),
 }));
 
 // Mock usePerpsLiveOrderBook
@@ -240,9 +242,11 @@ jest.mock('../../components/PerpsMarketHeader', () => {
     default: ({
       market,
       onBackPress,
+      endAccessory,
     }: {
       market?: { symbol: string };
       onBackPress?: () => void;
+      endAccessory?: React.ReactNode;
     }) => (
       <View testID="perps-market-header">
         <TouchableOpacity
@@ -253,51 +257,57 @@ jest.mock('../../components/PerpsMarketHeader', () => {
         </TouchableOpacity>
         <Text>Order Book</Text>
         {market && <Text>{market.symbol}</Text>}
+        {endAccessory}
       </View>
     ),
   };
 });
 
-// Mock BottomSheet components to avoid SafeAreaProvider requirement
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-    const ReactMock = jest.requireActual('react');
-    return {
-      __esModule: true,
-      default: ReactMock.forwardRef(
-        (
-          props: {
-            children: React.ReactNode;
-            onClose?: () => void;
-          },
-          _ref: unknown,
-        ) => (
-          <View testID="bottom-sheet">
-            {props.children}
-            <TouchableOpacity
-              testID="bottom-sheet-backdrop"
-              onPress={props.onClose}
-            >
-              <Text>Backdrop</Text>
-            </TouchableOpacity>
-          </View>
-        ),
-      ),
-    };
-  },
-);
+// Mock MMDS BottomSheet only — requires SafeAreaProvider/reanimated in Jest.
+const mockBottomSheetRefState = { refAvailable: true };
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    return (props: { children: React.ReactNode; onClose?: () => void }) => (
-      <View testID="bottom-sheet-header">{props.children}</View>
-    );
-  },
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const { View } = jest.requireActual('react-native');
+  const ReactMock = jest.requireActual('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  const MockBottomSheet = ReactMock.forwardRef(
+    (
+      props: {
+        children: React.ReactNode;
+        onClose?: () => void;
+        testID?: string;
+      },
+      ref: React.Ref<{
+        onOpenBottomSheet: (callback?: () => void) => void;
+        onCloseBottomSheet: (callback?: () => void) => void;
+      } | null>,
+    ) => {
+      ReactMock.useImperativeHandle(ref, () => {
+        if (!mockBottomSheetRefState.refAvailable) {
+          return null;
+        }
+
+        return {
+          onOpenBottomSheet: (callback?: () => void) => {
+            callback?.();
+          },
+          onCloseBottomSheet: (callback?: () => void) => {
+            props.onClose?.();
+            callback?.();
+          },
+        };
+      });
+
+      return <View testID={props.testID}>{props.children}</View>;
+    },
+  );
+
+  return {
+    ...actual,
+    BottomSheet: MockBottomSheet,
+  };
+});
 
 // Mock PerpsSelectModifyActionView
 jest.mock('../PerpsSelectModifyActionView', () => {
@@ -339,6 +349,19 @@ jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(() => true),
 }));
 
+const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
+  action(),
+);
+
+jest.mock('../../../Compliance', () => ({
+  useComplianceGate: () => ({
+    gate: mockComplianceGate,
+    isBlocked: false,
+    isComplianceEnabled: false,
+    checkCompliance: jest.fn(),
+  }),
+}));
+
 describe('PerpsOrderBookView', () => {
   const initialState = {
     engine: {
@@ -348,6 +371,27 @@ describe('PerpsOrderBookView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBottomSheetRefState.refAvailable = true;
+    mockUseRoute.mockReturnValue({
+      params: {
+        symbol: 'BTC',
+      },
+    });
+    const { usePerpsMarkets } = jest.requireMock('../../hooks');
+    usePerpsMarkets.mockReturnValue({
+      markets: [
+        {
+          symbol: 'BTC',
+          price: '$50,000.00',
+          leverage: 50,
+        },
+      ],
+      isLoading: false,
+      error: null,
+    });
+    mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
+      action(),
+    );
     mockUsePerpsLiveOrderBook.mockReturnValue({
       orderBook: mockOrderBook,
       isLoading: false,
@@ -533,10 +577,15 @@ describe('PerpsOrderBookView', () => {
         state: initialState,
       });
 
+      const baseToggle = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_BASE,
+      );
       const usdToggle = getByTestId(
         PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_USD,
       );
 
+      fireEvent.press(baseToggle);
+      mockTrack.mockClear();
       fireEvent.press(usdToggle);
 
       expect(mockTrack).toHaveBeenCalled();
@@ -631,6 +680,36 @@ describe('PerpsOrderBookView', () => {
       expect(mockTrack).toHaveBeenCalled();
     });
 
+    it('applies grouping immediately when bottom sheet ref is unavailable', async () => {
+      mockBottomSheetRefState.refAvailable = false;
+
+      const { getByTestId, queryByText } = renderWithProvider(
+        <PerpsOrderBookView />,
+        { state: initialState },
+      );
+
+      fireEvent.press(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(`${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-1`),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        getByTestId(`${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-1`),
+      );
+
+      await waitFor(() => {
+        expect(queryByText('Depth Band')).toBeNull();
+      });
+
+      expect(mockSaveGrouping).toHaveBeenCalledWith(1);
+      expect(mockTrack).toHaveBeenCalled();
+    });
+
     it('uses dynamic nSigFigs based on grouping and price (server-side aggregation)', () => {
       renderWithProvider(<PerpsOrderBookView />, { state: initialState });
 
@@ -666,6 +745,7 @@ describe('PerpsOrderBookView', () => {
       expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'long',
         asset: 'BTC',
+        source: 'order_book_long_button',
       });
       expect(mockTrack).toHaveBeenCalled();
     });
@@ -684,8 +764,33 @@ describe('PerpsOrderBookView', () => {
       expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'short',
         asset: 'BTC',
+        source: 'order_book_short_button',
       });
       expect(mockTrack).toHaveBeenCalled();
+    });
+
+    it('does not navigate when compliance gate blocks long press', () => {
+      mockComplianceGate.mockResolvedValue(undefined);
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      fireEvent.press(getByTestId(PerpsOrderBookViewSelectorsIDs.LONG_BUTTON));
+
+      expect(mockNavigateToOrder).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate when compliance gate blocks short press', () => {
+      mockComplianceGate.mockResolvedValue(undefined);
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      fireEvent.press(getByTestId(PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON));
+
+      expect(mockNavigateToOrder).not.toHaveBeenCalled();
     });
   });
 
@@ -784,6 +889,7 @@ describe('PerpsOrderBookView', () => {
 
       expect(mockNavigateToClosePosition).toHaveBeenCalledWith(
         mockLongPosition,
+        'order_book',
       );
     });
 
@@ -1383,9 +1489,11 @@ describe('PerpsOrderBookView', () => {
         expect(queryByText('Depth Band')).toBeOnTheScreen();
       });
 
-      // Close via backdrop (onClose callback)
-      const backdrop = getByTestId('bottom-sheet-backdrop');
-      fireEvent.press(backdrop);
+      // Close via header close button
+      const closeButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_SHEET_CLOSE,
+      );
+      fireEvent.press(closeButton);
 
       await waitFor(() => {
         expect(queryByText('Depth Band')).toBeNull();
@@ -1433,6 +1541,53 @@ describe('PerpsOrderBookView', () => {
       await waitFor(() => {
         expect(queryByTestId(geoBlockTooltipId)).toBeNull();
       });
+    });
+  });
+
+  describe('header when market list entry is missing', () => {
+    it('renders back and grouping controls from route symbol only', () => {
+      const { usePerpsMarkets } = jest.requireMock('../../hooks');
+      usePerpsMarkets.mockReturnValue({
+        markets: [],
+        isLoading: true,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.BACK_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('uses route marketData for full header while markets list is loading', () => {
+      const { usePerpsMarkets } = jest.requireMock('../../hooks');
+      usePerpsMarkets.mockReturnValue({
+        markets: [],
+        isLoading: true,
+        error: null,
+      });
+
+      mockUseRoute.mockReturnValue({
+        params: {
+          symbol: 'BTC',
+          marketData: mockRouteMarketData,
+        },
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(getByTestId('perps-market-header')).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 

@@ -1,0 +1,141 @@
+name: Nightly Build
+
+# Runs on a schedule (4 AM UTC) like the old nightly-branch-sync.
+#
+# iOS uses build-and-upload-to-testflight.yml; Android calls build.yml directly.
+#
+# rc depends on exp within each platform stream to ensure the external version
+# service produces sequential numbers (N for exp, N+1 for rc).
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  ios-exp:
+    name: Nightly iOS exp
+    uses: ./.github/workflows/build-and-upload-to-testflight.yml
+    with:
+      source_branch: main
+      environment: exp
+      testflight_group: 'MetaMask BETA & Release Candidates'
+      distribute_external: true
+    secrets: inherit
+
+  ios-rc:
+    name: Nightly iOS rc
+    needs: [ios-exp]
+    uses: ./.github/workflows/build-and-upload-to-testflight.yml
+    with:
+      source_branch: main
+      environment: rc
+      testflight_group: 'MetaMask BETA & Release Candidates'
+      distribute_external: true
+    secrets: inherit
+
+  android-exp-generate:
+    uses: ./.github/workflows/generate-build-version.yml
+
+  android-exp:
+    name: Nightly Android exp
+    needs: [android-exp-generate]
+    uses: ./.github/workflows/build.yml
+    with:
+      build_name: main-exp
+      platform: android
+      source_branch: main
+      build_number: ${{ needs.android-exp-generate.outputs.build-version }}
+    secrets: inherit
+
+  android-rc-generate:
+    needs: [android-exp]
+    uses: ./.github/workflows/generate-build-version.yml
+
+  android-rc:
+    name: Nightly Android rc
+    needs: [android-rc-generate]
+    uses: ./.github/workflows/build.yml
+    with:
+      build_name: main-rc
+      platform: android
+      source_branch: main
+      build_number: ${{ needs.android-rc-generate.outputs.build-version }}
+    secrets: inherit
+
+  size-analysis-ios:
+    name: Sentry Size Analysis (iOS)
+    needs: [ios-rc]
+    if: success()
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+      - name: Resolve base SHA
+        id: base
+        run: echo "sha=$(git rev-parse ${{ github.sha }}~1)" >> "$GITHUB_OUTPUT"
+      - name: Install sentry-cli
+        run: curl -sL https://sentry.io/get-cli/ | bash
+      - name: Download iOS xcarchive
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-xcarchive-main-rc
+          path: ./build-artifacts/
+      - name: Unzip xcarchive
+        run: |
+          cd ./build-artifacts
+          unzip -q ./*.xcarchive.zip
+          rm -f ./*.xcarchive.zip
+      - name: Upload to Sentry Size Analysis
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+        run: |
+          sentry-cli build upload ./build-artifacts/*.xcarchive \
+            --org metamask \
+            --project metamask-mobile \
+            --build-configuration Release-iOS \
+            --head-sha "${{ github.sha }}" \
+            --base-sha "${{ steps.base.outputs.sha }}" \
+            --head-ref main \
+            --vcs-provider github \
+            --head-repo-name MetaMask/metamask-mobile
+
+  size-analysis-android:
+    name: Sentry Size Analysis (Android)
+    needs: [android-rc]
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+      - name: Resolve base SHA
+        id: base
+        run: echo "sha=$(git rev-parse ${{ github.sha }}~1)" >> "$GITHUB_OUTPUT"
+      - name: Install sentry-cli
+        run: curl -sL https://sentry.io/get-cli/ | bash
+      - name: Download Android APK
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk-main-rc
+          path: ./build-artifacts/
+      - name: Upload to Sentry Size Analysis
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+        run: |
+          sentry-cli build upload ./build-artifacts/*.apk \
+            --org metamask \
+            --project metamask-mobile \
+            --build-configuration Release-Android \
+            --head-sha "${{ github.sha }}" \
+            --base-sha "${{ steps.base.outputs.sha }}" \
+            --head-ref main \
+            --vcs-provider github \
+            --head-repo-name MetaMask/metamask-mobile

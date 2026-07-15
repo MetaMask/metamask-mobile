@@ -1,10 +1,26 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import type { AccountState } from '../../controllers/types';
+import { type AccountState } from '@metamask/perps-controller';
 import { usePerpsLiveAccount } from './usePerpsLiveAccount';
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
+}));
+
+// Mock Engine for lazy isInitialLoading check
+let mockCachedUserData: {
+  positions: unknown[];
+  orders: unknown[];
+  accountState: AccountState | null;
+} | null = null;
+let mockChannelAccountSnapshot: AccountState | null | undefined;
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      getCachedUserDataForActiveProvider: () => mockCachedUserData,
+    },
+  },
 }));
 
 // Mock PerpsStreamManager
@@ -13,6 +29,7 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
     account: {
       subscribe: mockSubscribe,
+      getSnapshot: () => mockChannelAccountSnapshot,
     },
   })),
 }));
@@ -20,10 +37,12 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
 describe('usePerpsLiveAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCachedUserData = null;
+    mockChannelAccountSnapshot = undefined;
   });
 
   describe('default state', () => {
-    it('should return null account when PerpsController is undefined', () => {
+    it('returns null account when PerpsController is undefined', () => {
       // Mock the subscription to not call the callback (simulating no data)
       mockSubscribe.mockImplementation(() => jest.fn());
 
@@ -37,7 +56,7 @@ describe('usePerpsLiveAccount', () => {
       });
     });
 
-    it('should return null account when accountState is undefined', () => {
+    it('returns null account when accountState is undefined', () => {
       // Mock the subscription to not call the callback (simulating no data)
       mockSubscribe.mockImplementation(() => jest.fn());
 
@@ -53,9 +72,33 @@ describe('usePerpsLiveAccount', () => {
   });
 
   describe('state from PerpsController', () => {
-    it('should return account state from PerpsController', () => {
+    it('returns account state from the channel snapshot before controller cache', () => {
       const mockAccountState: AccountState = {
-        availableBalance: '3000',
+        spendableBalance: '7000',
+        withdrawableBalance: '7000',
+        marginUsed: '500',
+        unrealizedPnl: '25',
+        returnOnEquity: '1.0',
+        totalBalance: '7525',
+      };
+
+      mockChannelAccountSnapshot = mockAccountState;
+      mockSubscribe.mockImplementation(() => jest.fn());
+
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
+      });
+
+      expect(result.current).toEqual({
+        account: mockAccountState,
+        isInitialLoading: false,
+      });
+    });
+
+    it('returns account state from PerpsController', () => {
+      const mockAccountState: AccountState = {
+        spendableBalance: '3000',
+        withdrawableBalance: '3000',
         marginUsed: '1000',
         unrealizedPnl: '50',
         returnOnEquity: '5.0',
@@ -78,9 +121,10 @@ describe('usePerpsLiveAccount', () => {
       });
     });
 
-    it('should handle zero balance account state', () => {
+    it('handles zero balance account state', () => {
       const mockAccountState: AccountState = {
-        availableBalance: '0',
+        spendableBalance: '0',
+        withdrawableBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
@@ -102,15 +146,16 @@ describe('usePerpsLiveAccount', () => {
         account: mockAccountState,
         isInitialLoading: false,
       });
-      expect(result.current?.account?.availableBalance).toBe('0');
+      expect(result.current?.account?.spendableBalance).toBe('0');
       expect(result.current?.account?.totalBalance).toBe('0');
     });
   });
 
   describe('partial state handling', () => {
-    it('should handle partial account state', () => {
+    it('handles partial account state', () => {
       const partialAccountState: AccountState = {
-        availableBalance: '100',
+        spendableBalance: '100',
+        withdrawableBalance: '100',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
@@ -127,11 +172,11 @@ describe('usePerpsLiveAccount', () => {
         state: {},
       });
 
-      expect(result.current?.account?.availableBalance).toBe('100');
+      expect(result.current?.account?.spendableBalance).toBe('100');
       expect(result.current?.account?.totalBalance).toBe('200');
     });
 
-    it('should handle empty PerpsController state', () => {
+    it('handles empty PerpsController state', () => {
       // Mock the subscription to not call the callback (simulating no data)
       mockSubscribe.mockImplementation(() => jest.fn());
 
@@ -147,9 +192,10 @@ describe('usePerpsLiveAccount', () => {
   });
 
   describe('account state scenarios', () => {
-    it('should handle account with positive PnL', () => {
+    it('handles account with positive PnL', () => {
       const positivePnlState: AccountState = {
-        availableBalance: '5000',
+        spendableBalance: '5000',
+        withdrawableBalance: '5000',
         marginUsed: '1000',
         unrealizedPnl: '500',
         returnOnEquity: '50.0',
@@ -170,9 +216,10 @@ describe('usePerpsLiveAccount', () => {
       expect(Number(result.current?.account?.unrealizedPnl)).toBeGreaterThan(0);
     });
 
-    it('should handle account with negative PnL', () => {
+    it('handles account with negative PnL', () => {
       const negativePnlState: AccountState = {
-        availableBalance: '3000',
+        spendableBalance: '3000',
+        withdrawableBalance: '3000',
         marginUsed: '2000',
         unrealizedPnl: '-500',
         returnOnEquity: '-25.0',
@@ -193,9 +240,10 @@ describe('usePerpsLiveAccount', () => {
       expect(Number(result.current?.account?.unrealizedPnl)).toBeLessThan(0);
     });
 
-    it('should handle account with high margin usage', () => {
+    it('handles account with high margin usage', () => {
       const highMarginState: AccountState = {
-        availableBalance: '500',
+        spendableBalance: '500',
+        withdrawableBalance: '500',
         marginUsed: '9500',
         unrealizedPnl: '0',
         returnOnEquity: '0',
@@ -214,12 +262,13 @@ describe('usePerpsLiveAccount', () => {
 
       expect(result.current?.account?.marginUsed).toBe('9500');
       expect(Number(result.current?.account?.marginUsed)).toBe(9500);
-      expect(Number(result.current?.account?.availableBalance)).toBe(500);
+      expect(Number(result.current?.account?.spendableBalance)).toBe(500);
     });
 
-    it('should handle account with no margin used', () => {
+    it('handles account with no margin used', () => {
       const noMarginState: AccountState = {
-        availableBalance: '10000',
+        spendableBalance: '10000',
+        withdrawableBalance: '10000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
@@ -237,16 +286,79 @@ describe('usePerpsLiveAccount', () => {
       });
 
       expect(result.current?.account?.marginUsed).toBe('0');
-      expect(result.current?.account?.availableBalance).toBe(
+      expect(result.current?.account?.spendableBalance).toBe(
         result.current?.account?.totalBalance,
       );
     });
   });
 
+  describe('initial state from cache', () => {
+    it('seeds account from cache when fresh cached data exists', () => {
+      const cachedAccount: AccountState = {
+        spendableBalance: '5000',
+        withdrawableBalance: '5000',
+        marginUsed: '2000',
+        unrealizedPnl: '100',
+        returnOnEquity: '2.0',
+        totalBalance: '7100',
+      };
+
+      mockCachedUserData = {
+        positions: [],
+        orders: [],
+        accountState: cachedAccount,
+      };
+
+      // Mock subscription to NOT call the callback (no WebSocket data yet)
+      mockSubscribe.mockImplementation(() => jest.fn());
+
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
+      });
+
+      // First render should already have cached data
+      expect(result.current).toEqual({
+        account: cachedAccount,
+        isInitialLoading: false,
+      });
+    });
+
+    it('returns null for stale cached account (helper returns null)', () => {
+      mockCachedUserData = null;
+
+      mockSubscribe.mockImplementation(() => jest.fn());
+
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
+      });
+
+      expect(result.current).toEqual({
+        account: null,
+        isInitialLoading: true,
+      });
+    });
+
+    it('has null account when no cache exists', () => {
+      mockCachedUserData = null;
+
+      mockSubscribe.mockImplementation(() => jest.fn());
+
+      const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
+        state: {},
+      });
+
+      expect(result.current).toEqual({
+        account: null,
+        isInitialLoading: true,
+      });
+    });
+  });
+
   describe('memoization', () => {
-    it('should return same reference for same state', () => {
+    it('returns same reference for same state', () => {
       const mockAccountState: AccountState = {
-        availableBalance: '1000',
+        spendableBalance: '1000',
+        withdrawableBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',

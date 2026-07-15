@@ -37,12 +37,15 @@ export interface AlertRowProps extends InfoRowProps {
   isShownWithAlertsOnly?: boolean;
   /** Disable click interaction on the alert */
   disableAlertInteraction?: boolean;
+  /** When true, suppresses the inline alert icon in the row (useful when it's rendered elsewhere). */
+  hideInlineAlert?: boolean;
 }
 
 const AlertRow = ({
   alertField,
   isShownWithAlertsOnly,
   disableAlertInteraction,
+  hideInlineAlert,
   ...props
 }: AlertRowProps) => {
   const { fieldAlerts, showAlertModal, setAlertKey } = useAlerts();
@@ -66,7 +69,9 @@ const AlertRow = ({
 
   const alertRowProps = {
     ...props,
-    variant: getAlertTextColors(alertSelected?.severity),
+    variant: alertSelected
+      ? getAlertTextColors(alertSelected.severity)
+      : props.variant,
     tooltipColor:
       props.tooltipColor ??
       (isSmall ? getAlertIconColors(alertSelected?.severity) : undefined),
@@ -75,7 +80,7 @@ const AlertRow = ({
   };
 
   const inlineAlert =
-    alertSelected && !isSmall ? (
+    alertSelected && !isSmall && !hideInlineAlert ? (
       <InlineAlert
         alertObj={alertSelected}
         disabled={disableAlertInteraction}

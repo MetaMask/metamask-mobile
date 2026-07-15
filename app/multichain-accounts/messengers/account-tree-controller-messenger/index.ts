@@ -1,7 +1,4 @@
-import {
-  AccountTreeControllerMessenger,
-  AccountTreeControllerSelectedAccountGroupChangeEvent,
-} from '@metamask/account-tree-controller';
+import { AccountTreeControllerMessenger } from '@metamask/account-tree-controller';
 import {
   RootExtendedMessenger,
   RootMessenger,
@@ -44,12 +41,13 @@ export function getAccountTreeControllerMessenger(
       'UserStorageController:performBatchSetStorage',
       'AuthenticationController:getSessionProfile',
       'MultichainAccountService:createMultichainAccountGroup',
-      'SnapController:get',
+      'MultichainAccountService:createMultichainAccountGroups',
+      'SnapController:getSnap',
       'KeyringController:getState',
     ],
     events: [
-      'AccountsController:accountAdded',
-      'AccountsController:accountRemoved',
+      'AccountsController:accountsAdded',
+      'AccountsController:accountsRemoved',
       'AccountsController:selectedAccountChange',
       'UserStorageController:stateChange',
       'MultichainAccountService:walletStatusChange',
@@ -58,9 +56,6 @@ export function getAccountTreeControllerMessenger(
   });
   return messenger;
 }
-
-export type AllowedInitializationEvents =
-  AccountTreeControllerSelectedAccountGroupChangeEvent;
 
 type AccountTreeControllerInitMessengerActions = AnalyticsControllerActions;
 
@@ -81,7 +76,7 @@ export function getAccountTreeControllerInitMessenger(
   const messenger = new Messenger<
     'AccountTreeControllerInit',
     AccountTreeControllerInitMessengerActions,
-    AllowedInitializationEvents,
+    never,
     RootMessenger
   >({
     namespace: 'AccountTreeControllerInit',
@@ -89,7 +84,6 @@ export function getAccountTreeControllerInitMessenger(
   });
   rootMessenger.delegate({
     actions: ['AnalyticsController:trackEvent'],
-    events: ['AccountTreeController:selectedAccountGroupChange'],
     messenger,
   });
   return messenger;

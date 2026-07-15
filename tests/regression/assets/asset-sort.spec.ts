@@ -1,15 +1,16 @@
-import { RegressionAssets } from '../../../e2e/tags';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import SortModal from '../../../e2e/pages/wallet/TokenSortBottomSheet';
+import { RegressionAssets } from '../../tags';
+import WalletView from '../../page-objects/wallet/WalletView';
+import SortModal from '../../page-objects/wallet/TokenSortBottomSheet';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 import Assertions from '../../framework/Assertions';
-import ConfirmAddAssetView from '../../../e2e/pages/wallet/ImportTokenFlow/ConfirmAddAsset';
-import ImportTokensView from '../../../e2e/pages/wallet/ImportTokenFlow/ImportTokensView';
+import ConfirmAddAssetView from '../../page-objects/wallet/ImportTokenFlow/ConfirmAddAsset';
+import ImportTokensView from '../../page-objects/wallet/ImportTokenFlow/ImportTokensView';
 import { MockApiEndpoint } from '../../framework';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 const AAVE_MAINNET_DETAILS = {
   address: '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9',
@@ -70,6 +71,7 @@ describe(RegressionAssets('Import Tokens'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {});
           await setupMockRequest(mockServer, {
             requestMethod: 'GET',
             url: TOKEN_RESPONSE.urlEndpoint,
@@ -80,6 +82,7 @@ describe(RegressionAssets('Import Tokens'), () => {
       },
       async () => {
         await loginToApp();
+        await WalletView.tapOnNewTokensSection();
         await WalletView.tapImportTokensButton();
         await ImportTokensView.searchToken('AAVE');
         await ImportTokensView.tapOnToken(); // taps the first token in the returned list
@@ -105,6 +108,7 @@ describe(RegressionAssets('Import Tokens'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {});
           await setupMockRequest(mockServer, {
             requestMethod: 'GET',
             url: TOKEN_RESPONSE.urlEndpoint,
@@ -115,6 +119,7 @@ describe(RegressionAssets('Import Tokens'), () => {
       },
       async () => {
         await loginToApp();
+        await WalletView.tapOnNewTokensSection();
         await WalletView.tapSortBy();
         await SortModal.tapSortAlphabetically();
 
@@ -143,6 +148,7 @@ describe(RegressionAssets('Import Tokens'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {});
           await setupMockRequest(mockServer, {
             requestMethod: 'GET',
             url: TOKEN_RESPONSE.urlEndpoint,
@@ -153,6 +159,7 @@ describe(RegressionAssets('Import Tokens'), () => {
       },
       async () => {
         await loginToApp();
+        await WalletView.tapOnNewTokensSection();
         await WalletView.tapSortBy();
         await SortModal.tapSortFiatAmount();
 

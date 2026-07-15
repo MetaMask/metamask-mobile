@@ -1,11 +1,16 @@
 import { BigNumber } from 'bignumber.js';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { strings } from '../../../../../locales/i18n';
 import {
   Funding,
   Order,
   OrderFill,
   UserHistoryItem,
-} from '../controllers/types';
+  getPerpsDisplaySymbol,
+} from '@metamask/perps-controller';
 import {
   FillType,
   PerpsOrderTransactionStatus,
@@ -13,7 +18,10 @@ import {
   PerpsTransaction,
 } from '../types/transactionHistory';
 import { formatOrderLabel } from './orderUtils';
-import { getPerpsDisplaySymbol } from './marketUtils';
+import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
+import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
+import { calcTokenAmount } from '../../../../util/transactions';
+import { ARBITRUM_USDC } from '../../../Views/confirmations/constants/perps';
 
 /**
  * Determines the close direction category for aggregation purposes.
@@ -183,6 +191,50 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
   return allFills;
 }
 
+/**
+ * Merges REST and WebSocket fill arrays into a single deduplicated, sorted array.
+ *
+ * REST fills are added first; WS fills overwrite duplicates (fresher data).
+ * When a WS fill lacks `detailedOrderType` or `liquidation` that the REST fill has,
+ * the REST metadata is preserved so TP/SL pills remain visible on all screens.
+ *
+ * Dedup key: `orderId-timestamp-size-price`
+ *
+ * @param restFills - Historical fills from the REST API
+ * @param liveFills - Real-time fills from the WebSocket
+ * @returns Merged, deduplicated fills sorted by timestamp descending
+ */
+export function mergeOrderFills(
+  restFills: OrderFill[],
+  liveFills: OrderFill[],
+): OrderFill[] {
+  const fillsMap = new Map<string, OrderFill>();
+
+  for (const fill of restFills) {
+    const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
+    fillsMap.set(key, fill);
+  }
+
+  for (const fill of liveFills) {
+    const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
+    const existing = fillsMap.get(key);
+    if (existing?.detailedOrderType && !fill.detailedOrderType) {
+      fillsMap.set(key, {
+        ...fill,
+        detailedOrderType: existing.detailedOrderType,
+        ...(existing.liquidation &&
+          !fill.liquidation && { liquidation: existing.liquidation }),
+      });
+    } else {
+      fillsMap.set(key, fill);
+    }
+  }
+
+  return Array.from(fillsMap.values()).sort(
+    (a, b) => b.timestamp - a.timestamp,
+  );
+}
+
 export interface WithdrawalRequest {
   id: string;
   timestamp: number;
@@ -256,10 +308,13 @@ export function transformFillsToTransactions(
       action = 'Flipped';
       // Will be set based on calculation below
     } else if (!direction) {
-      console.error('Unknown fill direction', fill);
+      console.warn('Unknown fill direction', fill);
+      return acc;
+    } else if (direction === 'Spot Dust Conversion') {
+      // HL housekeeping — auto-conversion of spot dust to USDC, not a perps trade
       return acc;
     } else {
-      console.error('Unknown action', fill);
+      console.warn('Unhandled fill direction', direction);
       return acc;
     }
 
@@ -506,10 +561,7 @@ export function transformOrdersToTransactions(
 export function transformFundingToTransactions(
   funding: Funding[],
 ): PerpsTransaction[] {
-  // Sort funding by timestamp in descending order (newest first) to match Orders and Trades
-  const sortedFunding = [...funding].sort((a, b) => b.timestamp - a.timestamp);
-
-  return sortedFunding.map((fundingItem) => {
+  return funding.map((fundingItem) => {
     const { symbol, amountUsd, rate, timestamp } = fundingItem;
 
     // Create safe amount strings
@@ -530,7 +582,9 @@ export function transformFundingToTransactions(
         isPositive,
         fee: amountUSDC,
         feeNumber: parseFloat(amountUsd),
-        rate: `${BigNumber(rate).multipliedBy(100).toString()}%`,
+        rate: `${BigNumber(rate ?? '0')
+          .multipliedBy(100)
+          .toString()}%`,
       },
     };
   });
@@ -557,13 +611,24 @@ export function transformUserHistoryToTransactions(
       const displayAmount = `${isDeposit ? '+' : '-'}$${amountBN.toFixed(2)}`;
 
       // For completed transactions, status is always positive (green)
-      const statusText = 'Completed';
+      const statusText = strings(
+        'perps.transactions.activity.status_completed',
+      );
+      const title = isDeposit
+        ? strings('perps.transactions.activity.deposited_amount', {
+            amount,
+            symbol: asset,
+          })
+        : strings('perps.transactions.activity.withdrew_amount', {
+            amount,
+            symbol: asset,
+          });
 
       return {
         id: `${type}-${id}`,
         type: isDeposit ? 'deposit' : 'withdrawal',
         category: isDeposit ? 'deposit' : 'withdrawal',
-        title: `${isDeposit ? 'Deposited' : 'Withdrew'} ${amount} ${asset}`,
+        title,
         subtitle: statusText,
         timestamp,
         asset,
@@ -580,47 +645,162 @@ export function transformUserHistoryToTransactions(
     });
 }
 
+/** Wallet transaction status to perps deposit/withdrawal status */
+const WALLET_STATUS_TO_DEPOSIT_STATUS: Record<
+  string,
+  'completed' | 'failed' | 'pending' | 'bridging'
+> = {
+  confirmed: 'completed',
+  failed: 'failed',
+  rejected: 'failed',
+  dropped: 'failed',
+  signed: 'pending',
+  submitted: 'pending',
+  approved: 'pending',
+  unapproved: 'pending',
+  pending: 'pending',
+};
+
+/**
+ * Transform wallet TransactionMeta (perpsDeposit / perpsDepositAndOrder) to PerpsTransaction format.
+ * Ensures wallet-originated perps deposits appear in the Perps activity Deposits tab.
+ * @param transactions - Array of TransactionMeta with type perpsDeposit or perpsDepositAndOrder
+ * @returns Array of PerpsTransaction objects with type 'deposit'
+ */
+export function transformWalletPerpsDepositsToTransactions(
+  transactions: TransactionMeta[],
+): PerpsTransaction[] {
+  return transactions.map((tx) => {
+    const tokenData = getTokenTransferData(tx);
+    const decoded = tokenData?.data
+      ? parseStandardTokenTransactionData(tokenData.data)
+      : undefined;
+    const amountWei = decoded?.args?._value?.toString?.();
+    const amountBN =
+      amountWei !== undefined
+        ? new BigNumber(
+            calcTokenAmount(amountWei, ARBITRUM_USDC.decimals).toString(),
+          )
+        : new BigNumber(0);
+
+    const displayAmount = `+$${amountBN.toFixed(2)}`;
+    const status = WALLET_STATUS_TO_DEPOSIT_STATUS[tx.status] ?? 'pending';
+    const statusText =
+      status === 'completed'
+        ? strings('perps.transactions.activity.status_completed')
+        : status === 'failed'
+          ? strings('perps.transactions.activity.status_failed')
+          : strings('perps.transactions.activity.status_pending');
+
+    const title =
+      amountBN.isZero() || !amountWei
+        ? strings('perps.transactions.activity.deposit_title')
+        : strings('perps.transactions.activity.deposited_amount', {
+            amount: amountBN.toFixed(2),
+            symbol: ARBITRUM_USDC.symbol,
+          });
+
+    return {
+      id: `wallet-deposit-${tx.id}`,
+      type: 'deposit' as const,
+      category: 'deposit' as const,
+      title,
+      subtitle: statusText,
+      timestamp: tx.time ?? 0,
+      asset: ARBITRUM_USDC.symbol,
+      depositWithdrawal: {
+        amount: displayAmount,
+        amountNumber: amountBN.toNumber(),
+        isPositive: true,
+        asset: ARBITRUM_USDC.symbol,
+        txHash: tx.hash ?? '',
+        status,
+        type: 'deposit' as const,
+      },
+    };
+  });
+}
+
 /**
  * Transform WithdrawalRequest objects to PerpsTransaction format
- * Only shows completed withdrawals (txHash not displayed in UI)
  * @param withdrawalRequests - Array of WithdrawalRequest objects
  * @returns Array of PerpsTransaction objects
  */
 export function transformWithdrawalRequestsToTransactions(
   withdrawalRequests: WithdrawalRequest[],
 ): PerpsTransaction[] {
-  return withdrawalRequests
-    .filter((request) => request.status === 'completed')
-    .map((request) => {
-      const { id, timestamp, amount, asset, txHash, status } = request;
+  return withdrawalRequests.map((request) => {
+    const { id, timestamp, amount, asset, txHash, status } = request;
 
-      // Format amount with negative sign for withdrawals
-      const amountBN = BigNumber(amount);
-      const displayAmount = `-$${amountBN.toFixed(2)}`;
+    const amountBN = BigNumber(amount);
+    const displayAmount = `-$${amountBN.toFixed(2)}`;
 
-      // For completed withdrawals, status is always positive (green)
-      const statusText = 'Completed';
-      const isPositive = true;
+    const statusText =
+      status === 'completed'
+        ? strings('perps.transactions.activity.status_completed')
+        : status === 'failed'
+          ? strings('perps.transactions.activity.status_failed')
+          : strings('perps.transactions.activity.status_pending');
 
-      return {
-        id: `withdrawal-${id}`,
-        type: 'withdrawal' as const,
-        category: 'withdrawal' as const,
-        title: `Withdrew ${amount} ${asset}`,
-        subtitle: statusText,
-        timestamp,
+    const title = amountBN.isZero()
+      ? strings('perps.transactions.activity.withdrawal_title')
+      : strings('perps.transactions.activity.withdrew_amount', {
+          amount,
+          symbol: asset,
+        });
+
+    return {
+      id,
+      type: 'withdrawal' as const,
+      category: 'withdrawal' as const,
+      title,
+      subtitle: statusText,
+      timestamp,
+      asset,
+      depositWithdrawal: {
+        amount: displayAmount,
+        amountNumber: -amountBN.toNumber(),
+        isPositive: false,
         asset,
-        depositWithdrawal: {
-          amount: displayAmount,
-          amountNumber: -amountBN.toNumber(), // Negative for withdrawals
-          isPositive,
-          asset,
-          txHash: txHash || '',
-          status,
-          type: 'withdrawal' as const,
-        },
-      };
-    });
+        txHash: txHash || '',
+        status,
+        type: 'withdrawal' as const,
+      },
+    };
+  });
+}
+
+/**
+ * Convert wallet TransactionMeta (perpsWithdraw) to WithdrawalRequest format
+ * so it can be passed to transformWithdrawalRequestsToTransactions.
+ * @param transactions - Array of TransactionMeta with type perpsWithdraw
+ * @returns Array of WithdrawalRequest objects
+ */
+export function walletPerpsWithdrawalsToRequests(
+  transactions: TransactionMeta[],
+): WithdrawalRequest[] {
+  return transactions.map((tx) => {
+    const tokenData = getTokenTransferData(tx);
+    const decoded = tokenData?.data
+      ? parseStandardTokenTransactionData(tokenData.data)
+      : undefined;
+    const amountWei = decoded?.args?._value?.toString?.();
+    const amountBN =
+      amountWei !== undefined
+        ? new BigNumber(
+            calcTokenAmount(amountWei, ARBITRUM_USDC.decimals).toString(),
+          )
+        : new BigNumber(0);
+
+    return {
+      id: `wallet-withdrawal-${tx.id}`,
+      timestamp: tx.time ?? 0,
+      amount: amountBN.toFixed(2),
+      asset: ARBITRUM_USDC.symbol,
+      txHash: tx.hash,
+      status: WALLET_STATUS_TO_DEPOSIT_STATUS[tx.status] ?? 'pending',
+    };
+  });
 }
 
 /**
@@ -642,14 +822,19 @@ export function transformDepositRequestsToTransactions(
       const displayAmount = `+$${amountBN.toFixed(2)}`;
 
       // For completed deposits, status is always positive (green)
-      const statusText = 'Completed';
+      const statusText = strings(
+        'perps.transactions.activity.status_completed',
+      );
       const isPositive = true;
 
       // Create title based on whether we have the actual amount
       const title =
         amount === '0' || amount === '0.00'
-          ? 'Deposit'
-          : `Deposited ${amount} ${asset}`;
+          ? strings('perps.transactions.activity.deposit_title')
+          : strings('perps.transactions.activity.deposited_amount', {
+              amount,
+              symbol: asset,
+            });
 
       return {
         id: `deposit-${id}`,

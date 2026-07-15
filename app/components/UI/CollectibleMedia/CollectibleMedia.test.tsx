@@ -1,13 +1,14 @@
 import React from 'react';
-import { waitFor } from '@testing-library/react-native';
+import { waitFor, act } from '@testing-library/react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { Image } from 'expo-image';
 
 import CollectibleMedia from './CollectibleMedia';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as AssetControllers from '@metamask/assets-controllers';
 
 const mockInitialState = {
@@ -44,12 +45,12 @@ jest.mock('@react-navigation/native', () => {
 
 describe('CollectibleMedia', () => {
   it('should render correctly', () => {
-    const wrapper = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <CollectibleMedia
         collectible={{
           name: 'NAME',
-          image: 'IMAGE',
-          imagePreview: 'IMAGE',
+          image: 'https://',
+          imagePreview: 'https://',
           tokenId: '123',
           address: '0x123',
           backgroundColor: 'red',
@@ -61,7 +62,7 @@ describe('CollectibleMedia', () => {
       />,
       { state: mockInitialState },
     );
-    expect(wrapper.toJSON()).toMatchSnapshot();
+    expect(getByTestId('nft-image')).toBeOnTheScreen();
   });
 
   it('should render collectible image if the ipfs gateway is enabled and display nft media is enabled', () => {
@@ -85,6 +86,74 @@ describe('CollectibleMedia', () => {
 
     const fallbackCollectible = getByTestId('nft-image');
     expect(fallbackCollectible).toBeDefined();
+  });
+
+  it('should call onLoad when the image loads successfully', async () => {
+    const mockOnLoad = jest.fn();
+
+    renderWithProvider(
+      <CollectibleMedia
+        onLoad={mockOnLoad}
+        collectible={{
+          name: 'NAME',
+          image: 'https://example.com/nft.png',
+          imagePreview: 'https://example.com/nft.png',
+          tokenId: '123',
+          address: '0x123',
+          backgroundColor: 'red',
+          tokenURI: '',
+          description: '123',
+          standard: 'ERC721',
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    // The expo-image mock auto-fires onLoad via setTimeout(0)
+    await waitFor(() => {
+      expect(mockOnLoad).toHaveBeenCalled();
+    });
+  });
+
+  it('should call onLoad when the image fails to load (fallback)', async () => {
+    const mockOnLoad = jest.fn();
+
+    const { UNSAFE_getAllByType } = renderWithProvider(
+      <CollectibleMedia
+        onLoad={mockOnLoad}
+        collectible={{
+          name: 'NAME',
+          image: 'https://example.com/nft.png',
+          imagePreview: 'https://example.com/nft.png',
+          tokenId: '123',
+          address: '0x123',
+          backgroundColor: 'red',
+          tokenURI: '',
+          description: '123',
+          standard: 'ERC721',
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    // Wait for the image to render and let auto-load settle
+    await waitFor(() => {
+      const images = UNSAFE_getAllByType(Image);
+      expect(images.some((img) => img.props.testID === 'nft-image')).toBe(true);
+    });
+
+    mockOnLoad.mockClear();
+
+    // Simulate image error - should call onLoad via the fallback
+    await act(async () => {
+      const images = UNSAFE_getAllByType(Image);
+      const nftImage = images.find((img) => img.props.testID === 'nft-image');
+      nftImage?.props.onError?.({ error: 'Failed to load' });
+    });
+
+    await waitFor(() => {
+      expect(mockOnLoad).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('should handle an nft with multiple images and render the first image', async () => {

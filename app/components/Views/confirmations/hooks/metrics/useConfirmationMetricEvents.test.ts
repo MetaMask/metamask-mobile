@@ -7,7 +7,7 @@ import {
   TOOLTIP_TYPES,
 } from '../../../../../core/Analytics/events/confirmations';
 import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useConfirmationMetricEvents } from './useConfirmationMetricEvents';
 import { useConfirmationLocation } from '../metrics/useConfirmationLocation';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -18,7 +18,7 @@ jest.mock('react-redux', () => ({
   useDispatch: () => jest.fn(),
 }));
 jest.mock('../../../../../core/redux/slices/confirmationMetrics');
-jest.mock('../../../../hooks/useMetrics');
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 jest.mock('../metrics/useConfirmationLocation');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../signatures/useSignatureRequest');
@@ -66,7 +66,7 @@ describe('useConfirmationMetricEvents', () => {
       }),
     });
 
-    (useMetrics as jest.Mock).mockReturnValue({
+    (useAnalytics as jest.Mock).mockReturnValue({
       createEventBuilder: mockCreateEventBuilder,
       trackEvent: mockTrackEvent,
     });

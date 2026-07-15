@@ -1,0 +1,498 @@
+import React, {
+  useCallback,
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+  FC,
+} from 'react';
+import { TextInput, View, TouchableOpacity, Linking } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
+import {
+  Box,
+  BoxAlignItems,
+  Text,
+  TextVariant,
+  TextColor,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../hooks/useStyles';
+import styleSheet from './OtpCode.styles';
+import ScreenLayout from '../../Aggregator/components/ScreenLayout';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../util/navigation/navUtils';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
+import { strings } from '../../../../../../locales/i18n';
+import {
+  CodeField,
+  Cursor,
+  useBlurOnFulfill,
+  useClearByFocusCell,
+} from 'react-native-confirmation-code-field';
+import DepositProgressBar from '../../components/DepositProgressBar';
+import Row from '../../Aggregator/components/Row';
+import { TRANSAK_SUPPORT_URL } from '../../constants';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import Logger from '../../../../../util/Logger';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { trace, TraceName } from '../../../../../util/trace';
+import { useTransakController } from '../../hooks/useTransakController';
+import { useTransakRouting } from '../../hooks/useTransakRouting';
+import { useRampsController } from '../../hooks/useRampsController';
+import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
+import { OtpCodeSelectorsIDs } from './OtpCode.testIds';
+import { hasTestOverrides } from '../../../../../util/test/utils';
+
+export interface V2OtpCodeParams {
+  email: string;
+  stateToken: string;
+  amount?: string;
+  currency?: string;
+  assetId?: string;
+  /**
+   * Set when the OTP loop is part of a headless buy flow. Drives two things:
+   * (1) `useTransakRouting` is configured with `baseRoute = HEADLESS_HOST`
+   * so post-OTP `navigation.reset` calls land back on the Host screen
+   * (which carries the live `headlessSessionId`) instead of dropping
+   * the user onto BuildQuote. (2) On routing failure, we navigate back
+   * to the Host with `nativeFlowError` so the Host can surface the
+   * error to the headless consumer.
+   */
+  headlessSessionId?: string;
+}
+
+export const createV2OtpCodeNavDetails =
+  createNavigationDetails<V2OtpCodeParams>(Routes.RAMP.OTP_CODE);
+
+const CELL_COUNT = 6;
+const COOLDOWN_TIME = 60;
+const MAX_RESET_ATTEMPTS = 3;
+
+const ResendButton: FC<{
+  onPress: VoidFunction;
+  text: string;
+  button: string;
+}> = ({ onPress, text, button }) => {
+  const { styles } = useStyles(styleSheet, {});
+  return (
+    <>
+      <Text style={styles.resendButtonText}>{strings(text)}</Text>
+      <TouchableOpacity onPress={onPress}>
+        <Text style={styles.inlineLink}>{strings(button)}</Text>
+      </TouchableOpacity>
+    </>
+  );
+};
+
+const V2OtpCode = () => {
+  const navigation = useNavigation();
+  const { styles } = useStyles(styleSheet, {});
+  const { email, stateToken, amount, currency, assetId, headlessSessionId } =
+    useParams<V2OtpCodeParams>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  // Headless deposit (TRAM-3623): tag every emit on this screen with
+  // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when a headless session
+  // drives the flow, sourced from the per-screen `headlessSessionId`. Two
+  // variants because some events default to 'UNIFIED_BUY_2' and others (OTP_*)
+  // to 'DEPOSIT' when not headless.
+  const { headlessRampProps, headlessDepositRampProps } =
+    useHeadlessRampProps(headlessSessionId);
+
+  const {
+    setAuthToken,
+    verifyUserOtp,
+    sendUserOtp,
+    getBuyQuote: transakGetBuyQuote,
+  } = useTransakController();
+
+  const { selectedToken, userRegion, selectedPaymentMethod } =
+    useRampsController();
+
+  // For headless buy flows, post-auth resets must land back on the Host
+  // (which carries the live `headlessSessionId`) instead of BuildQuote.
+  const transakRoutingConfig = useMemo(
+    () =>
+      headlessSessionId
+        ? {
+            baseRoute: Routes.RAMP.HEADLESS_HOST,
+            baseRouteParams: { headlessSessionId },
+          }
+        : undefined,
+    [headlessSessionId],
+  );
+  const { routeAfterAuthentication } = useTransakRouting(transakRoutingConfig);
+
+  const [currentStateToken, setCurrentStateToken] = useState(stateToken);
+  const [latestValueSubmitted, setLatestValueSubmitted] = useState<
+    string | null
+  >(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [resendButtonState, setResendButtonState] = useState<
+    'resend' | 'cooldown' | 'contactSupport'
+  >('cooldown');
+  const [cooldownSeconds, setCooldownSeconds] = useState(COOLDOWN_TIME);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [resetAttemptCount, setResetAttemptCount] = useState(0);
+
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+        .addProperties({
+          location: 'OTP Code',
+          ...headlessRampProps,
+        })
+        .build(),
+    );
+  }, [navigation, trackEvent, createEventBuilder, headlessRampProps]);
+
+  const hasTrackedScreenViewRef = useRef(false);
+  useEffect(() => {
+    if (hasTrackedScreenViewRef.current) return;
+    hasTrackedScreenViewRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+        .addProperties({
+          location: 'OTP Code',
+          ...headlessRampProps,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder, headlessRampProps]);
+
+  const [value, setValue] = useState('');
+
+  const inputRef = useBlurOnFulfill({ value, cellCount: CELL_COUNT }) || null;
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [inputRef]);
+
+  useEffect(() => {
+    // Skip the countdown timer in E2E: the recurring setTimeout keeps the JS
+    // thread non-idle and causes Detox synchronization to stall indefinitely.
+    if (hasTestOverrides) return;
+
+    if (resendButtonState === 'cooldown' && cooldownSeconds > 0) {
+      timerRef.current = setTimeout(() => {
+        setCooldownSeconds((prev) => prev - 1);
+      }, 1000);
+    } else if (cooldownSeconds === 0) {
+      setResendButtonState('resend');
+      setCooldownSeconds(COOLDOWN_TIME);
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [resendButtonState, cooldownSeconds]);
+
+  const handleResend = useCallback(async () => {
+    setValue('');
+    setError(null);
+    inputRef.current?.focus();
+    try {
+      if (resetAttemptCount > MAX_RESET_ATTEMPTS) {
+        setResendButtonState('contactSupport');
+        return;
+      }
+      setResetAttemptCount((prev) => prev + 1);
+      setResendButtonState('cooldown');
+      const resendResponse = await sendUserOtp(email);
+
+      if (!resendResponse?.stateToken) {
+        throw new Error('State token is required for OTP verification');
+      }
+
+      setCurrentStateToken(resendResponse.stateToken);
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_OTP_RESENT)
+          .addProperties({
+            ...headlessDepositRampProps,
+            region: userRegion?.regionCode || '',
+          })
+          .build(),
+      );
+    } catch (e) {
+      setError(
+        parseUserFacingError(e, strings('deposit.otp_code.resend_code_error')),
+      );
+      Logger.error(e as Error, 'Error resending OTP code');
+    }
+  }, [
+    inputRef,
+    sendUserOtp,
+    email,
+    resetAttemptCount,
+    userRegion?.regionCode,
+    trackEvent,
+    createEventBuilder,
+    headlessDepositRampProps,
+  ]);
+
+  const handleContactSupport = useCallback(() => {
+    Linking.openURL(TRANSAK_SUPPORT_URL);
+  }, []);
+
+  const handleSubmit = useCallback(async () => {
+    if (!isLoading && value.length === CELL_COUNT) {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        if (!currentStateToken) {
+          throw new Error('State token is required for OTP verification');
+        }
+
+        trace({
+          name: TraceName.DepositInputOtp,
+        });
+
+        const token = await verifyUserOtp(email, value, currentStateToken);
+
+        if (!token) {
+          throw new Error('No response from verifyUserOtp');
+        }
+
+        await setAuthToken(token);
+
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.RAMPS_OTP_CONFIRMED)
+            .addProperties({
+              ...headlessDepositRampProps,
+              region: userRegion?.regionCode || '',
+            })
+            .build(),
+        );
+
+        if (amount && currency && assetId) {
+          try {
+            const quote = await transakGetBuyQuote(
+              currency,
+              assetId,
+              selectedToken?.chainId || '',
+              selectedPaymentMethod?.id || '',
+              amount,
+            );
+            await routeAfterAuthentication(quote);
+          } catch (routeError) {
+            const nativeFlowError = parseUserFacingError(
+              routeError,
+              strings('deposit.otp_code.error'),
+            );
+            if (headlessSessionId) {
+              navigation.navigate(Routes.RAMP.HEADLESS_HOST, {
+                headlessSessionId,
+                nativeFlowError,
+              });
+            } else {
+              navigation.navigate(Routes.RAMP.AMOUNT_INPUT, {
+                nativeFlowError,
+              });
+            }
+          }
+        } else if (headlessSessionId) {
+          // Successful auth with no amount/currency/assetId: route back to the
+          // still-mounted Host. This is a programmatic refocus, not a user
+          // back-out, so flag it to disable the host's focus-dismissal
+          // heuristic — otherwise the regained focus would be misread as
+          // `user_dismissed` and kill the live session.
+          navigation.navigate(Routes.RAMP.HEADLESS_HOST, {
+            headlessSessionId,
+            suppressFocusDismissal: true,
+          });
+        } else {
+          navigation.navigate(Routes.RAMP.AMOUNT_INPUT);
+        }
+      } catch (e) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.RAMPS_OTP_FAILED)
+            .addProperties({
+              ...headlessDepositRampProps,
+              region: userRegion?.regionCode || '',
+              error_message: parseUserFacingError(
+                e,
+                strings('deposit.otp_code.error'),
+              ),
+            })
+            .build(),
+        );
+        setError(parseUserFacingError(e, strings('deposit.otp_code.error')));
+        Logger.error(e as Error, 'Error submitting OTP code or verifying');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  }, [
+    navigation,
+    isLoading,
+    verifyUserOtp,
+    setAuthToken,
+    email,
+    value,
+    currentStateToken,
+    userRegion?.regionCode,
+    trackEvent,
+    createEventBuilder,
+    amount,
+    currency,
+    assetId,
+    transakGetBuyQuote,
+    selectedToken?.chainId,
+    selectedPaymentMethod?.id,
+    routeAfterAuthentication,
+    headlessSessionId,
+    headlessDepositRampProps,
+  ]);
+
+  const handleValueChange = useCallback(
+    (text: string) => {
+      if (isLoading) return;
+      setValue(text);
+      setError(null);
+      setLatestValueSubmitted(null);
+    },
+    [isLoading],
+  );
+
+  const handlePaste = useCallback(async () => {
+    const text = await Clipboard.getString();
+    const numericText = text.replace(/\D/g, '').slice(0, CELL_COUNT);
+    if (numericText.length > 0) {
+      handleValueChange(numericText);
+    }
+  }, [handleValueChange]);
+
+  useEffect(() => {
+    if (value.length === CELL_COUNT && latestValueSubmitted !== value) {
+      setLatestValueSubmitted(value);
+      handleSubmit();
+    }
+  }, [value, handleSubmit, latestValueSubmitted]);
+
+  const [props, getCellOnLayoutHandler] = useClearByFocusCell({
+    value,
+    setValue: handleValueChange,
+  });
+
+  return (
+    <ScreenLayout testID={OtpCodeSelectorsIDs.OTP_CODE_SCREEN}>
+      <ScreenLayout.Body>
+        <HeaderStandard
+          title={strings('deposit.otp_code.navbar_title')}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
+        <ScreenLayout.Content grow>
+          <DepositProgressBar steps={4} currentStep={1} />
+          <Text variant={TextVariant.HeadingLg} style={styles.title}>
+            {strings('deposit.otp_code.title')}
+          </Text>
+          <Text style={styles.description}>
+            {strings('deposit.otp_code.description', { email })}
+          </Text>
+
+          <Box alignItems={BoxAlignItems.End}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.PrimaryDefault}
+              onPress={handlePaste}
+              testID={OtpCodeSelectorsIDs.PASTE_BUTTON}
+            >
+              {strings('deposit.otp_code.paste')}
+            </Text>
+          </Box>
+
+          <CodeField
+            testID={OtpCodeSelectorsIDs.OTP_CODE_INPUT}
+            ref={inputRef as React.RefObject<TextInput>}
+            {...props}
+            value={value}
+            onChangeText={handleValueChange}
+            cellCount={CELL_COUNT}
+            rootStyle={styles.codeFieldRoot}
+            keyboardType="number-pad"
+            textContentType="oneTimeCode"
+            editable={!isLoading}
+            renderCell={({ index, symbol, isFocused }) => (
+              <View
+                onLayout={getCellOnLayoutHandler(index)}
+                key={index}
+                style={[styles.cellRoot, isFocused && styles.focusCell]}
+              >
+                <Text style={styles.cellText}>
+                  {/* Cursor uses setInterval which keeps the JS thread non-idle,
+                      stalling Detox synchronization. Omit it in E2E builds. */}
+                  {symbol ||
+                    (isFocused && !hasTestOverrides ? <Cursor /> : null)}
+                </Text>
+              </View>
+            )}
+          />
+
+          {error && (
+            <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
+              {error}
+            </Text>
+          )}
+
+          <Row style={styles.resendButtonContainer}>
+            {resendButtonState === 'resend' ? (
+              <ResendButton
+                onPress={handleResend}
+                text="deposit.otp_code.resend_code_description"
+                button="deposit.otp_code.resend_code_button"
+              />
+            ) : null}
+            {resendButtonState === 'cooldown' ? (
+              <Text style={styles.resendButtonText}>
+                {strings('deposit.otp_code.resend_cooldown', {
+                  seconds: cooldownSeconds,
+                })}
+              </Text>
+            ) : null}
+            {resendButtonState === 'contactSupport' ? (
+              <ResendButton
+                onPress={handleContactSupport}
+                text="deposit.otp_code.need_help"
+                button="deposit.otp_code.contact_support"
+              />
+            ) : null}
+          </Row>
+        </ScreenLayout.Content>
+      </ScreenLayout.Body>
+
+      <ScreenLayout.Footer>
+        <ScreenLayout.Content style={styles.footerContent}>
+          <Button
+            size={ButtonSize.Lg}
+            onPress={handleSubmit}
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            isLoading={isLoading}
+            isDisabled={isLoading || value.length !== CELL_COUNT}
+            testID={OtpCodeSelectorsIDs.SUBMIT_BUTTON}
+          >
+            {strings('deposit.otp_code.submit_button')}
+          </Button>
+          <PoweredByTransak name="powered-by-transak-logo" />
+        </ScreenLayout.Content>
+      </ScreenLayout.Footer>
+    </ScreenLayout>
+  );
+};
+
+export default V2OtpCode;

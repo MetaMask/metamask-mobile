@@ -32,10 +32,11 @@ export interface InputProps extends Omit<TextInputProps, 'editable'> {
 
 /**
  * Style sheet input parameters.
+ * Placeholder visibility (for lineHeight) is derived in the style sheet from value + placeholder.
  */
 export type InputStyleSheetVars = Pick<
   InputProps,
-  'style' | 'isStateStylesDisabled' | 'isDisabled'
+  'style' | 'isStateStylesDisabled' | 'isDisabled' | 'value' | 'placeholder'
 > & {
   isFocused: boolean;
   textVariant: TextVariant;

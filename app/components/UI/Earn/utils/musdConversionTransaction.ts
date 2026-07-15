@@ -11,7 +11,9 @@ import EngineService from '../../../../core/EngineService';
 import { generateTransferData } from '../../../../util/transactions';
 import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
-import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
+import { MUSD_TOKEN, MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
+import { getTokensControllerAllTokens } from '../../../../selectors/assets/assets-migration';
+import { store } from '../../../../store';
 
 interface PayTokenSelection {
   address: Hex;
@@ -115,6 +117,7 @@ function buildMusdConversionTx(params: {
     networkClientId: string;
     origin: typeof ORIGIN_METAMASK;
     type: TransactionType.musdConversion;
+    isInternal: true;
   };
 } {
   const { chainId, fromAddress, recipientAddress, amountHex, networkClientId } =
@@ -140,8 +143,49 @@ function buildMusdConversionTx(params: {
       networkClientId,
       origin: ORIGIN_METAMASK,
       type: TransactionType.musdConversion,
+      isInternal: true,
     },
   };
+}
+
+/**
+ * Ensures the mUSD token is registered in TokensController for the given chain.
+ *
+ * The Pay controller discovers required tokens by looking up `txParams.to` in
+ * TokensController synchronously when a transaction is added. If mUSD is not
+ * in the registry (e.g. first-time users), the Pay controller cannot identify
+ * it as a required token, which breaks the fee-handling flow.
+ *
+ * This must be called BEFORE `createMusdConversionTransaction` so the token
+ * is present when the Pay controller processes the new transaction.
+ */
+export async function ensureMusdTokenRegistered({
+  chainId,
+  networkClientId,
+}: {
+  chainId: Hex;
+  networkClientId: string;
+}): Promise<void> {
+  const musdTokenAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
+  if (!musdTokenAddress) {
+    return;
+  }
+
+  const allTokens = getTokensControllerAllTokens(store.getState());
+  const accountTokens = Object.values(allTokens[chainId] ?? {}).flat();
+  const hasMusdToken = accountTokens.some(
+    (t) => t.address.toLowerCase() === musdTokenAddress.toLowerCase(),
+  );
+
+  if (!hasMusdToken) {
+    await Engine.context.TokensController.addToken({
+      address: musdTokenAddress,
+      decimals: MUSD_TOKEN.decimals,
+      name: MUSD_TOKEN.name,
+      symbol: MUSD_TOKEN.symbol,
+      networkClientId,
+    });
+  }
 }
 
 /* ============================================================
@@ -239,7 +283,7 @@ export async function replaceMusdConversionTransactionForPayToken(
 
     // This is an automatic rejection (not user-initiated)
     try {
-      ApprovalController.reject(
+      ApprovalController.rejectRequest(
         transactionMeta.id,
         providerErrors.userRejectedRequest({
           message:

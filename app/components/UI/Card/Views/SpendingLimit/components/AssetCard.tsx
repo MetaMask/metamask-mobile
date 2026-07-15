@@ -6,24 +6,26 @@ import {
   TextVariant,
   BoxAlignItems,
   BoxJustifyContent,
+  BoxFlexDirection,
   Icon,
   IconName,
   IconSize,
   IconColor,
+  AvatarToken,
+  AvatarTokenSize,
+  AvatarNetwork,
+  AvatarNetworkSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
-import { NetworkBadgeSource } from '../../../../AssetOverview/Balance/Balance';
 import { buildTokenIconUrl } from '../../../util/buildTokenIconUrl';
 import { LINEA_CAIP_CHAIN_ID } from '../../../util/buildTokenList';
 import { safeFormatChainIdToHex } from '../../../util/safeFormatChainIdToHex';
+import { getNetworkImageSource } from '../../../../../../util/networks';
+import { cardNetworkInfos } from '../../../constants';
+import { CaipChainId } from '@metamask/utils';
 
 export interface AssetCardProps {
   /** Token symbol (e.g., 'mUSD', 'USDC') or 'Other' */
@@ -32,12 +34,14 @@ export interface AssetCardProps {
   tokenAddress?: string;
   /** Optional fallback staging address for icons */
   stagingTokenAddress?: string;
+  /** Chain the token lives on — used for icon URL and network badge */
+  caipChainId?: CaipChainId;
   /** Whether this card is currently selected */
   isSelected: boolean;
   /** Whether this is the "Other" option */
   isOther?: boolean;
-  /** Callback when card is pressed */
-  onPress: () => void;
+  /** Callback when card is pressed. Omit for non-interactive cards. */
+  onPress?: () => void;
   /** Test ID for E2E testing */
   testID?: string;
 }
@@ -50,6 +54,7 @@ const AssetCard: React.FC<AssetCardProps> = ({
   symbol,
   tokenAddress,
   stagingTokenAddress,
+  caipChainId,
   isSelected,
   isOther = false,
   onPress,
@@ -57,13 +62,17 @@ const AssetCard: React.FC<AssetCardProps> = ({
 }) => {
   const tw = useTailwind();
 
+  const resolvedChainId = caipChainId ?? LINEA_CAIP_CHAIN_ID;
+  const resolvedTokenAddress = tokenAddress || stagingTokenAddress;
+
   const iconUrl =
-    !isOther && (tokenAddress || stagingTokenAddress)
-      ? buildTokenIconUrl(
-          LINEA_CAIP_CHAIN_ID,
-          tokenAddress || stagingTokenAddress || '',
-        )
+    !isOther && resolvedTokenAddress
+      ? buildTokenIconUrl(resolvedChainId, resolvedTokenAddress)
       : null;
+
+  const networkImage = getNetworkImageSource({
+    chainId: safeFormatChainIdToHex(resolvedChainId) as `0x${string}`,
+  });
 
   return (
     <TouchableOpacity
@@ -83,30 +92,54 @@ const AssetCard: React.FC<AssetCardProps> = ({
       >
         {!isOther && iconUrl && (
           <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
+            position={BadgeWrapperPosition.BottomRight}
             style={tw.style('self-center')}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={NetworkBadgeSource(
-                  safeFormatChainIdToHex(LINEA_CAIP_CHAIN_ID) as `0x${string}`,
-                )}
-              />
-            }
+            badgeContainerProps={{ testID: 'badge-wrapper-badge' }}
+            badge={networkImage ? <BadgeNetwork src={networkImage} /> : null}
           >
             <AvatarToken
               name={symbol}
-              imageSource={{ uri: iconUrl }}
-              size={AvatarSize.Sm}
+              src={{ uri: iconUrl }}
+              size={AvatarTokenSize.Sm}
+              testID="token-avatar-image"
             />
           </BadgeWrapper>
         )}
         {isOther && (
-          <Icon
-            name={IconName.MoreHorizontal}
-            size={IconSize.Lg}
-            color={isSelected ? IconColor.IconMuted : IconColor.IconDefault}
-          />
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+          >
+            <AvatarNetwork
+              size={AvatarNetworkSize.Sm}
+              name="Base"
+              src={getNetworkImageSource({
+                chainId: cardNetworkInfos.base.caipChainId,
+              })}
+              style={tw.style('rounded-full overflow-hidden')}
+            />
+            <AvatarNetwork
+              size={AvatarNetworkSize.Sm}
+              name="Solana"
+              src={getNetworkImageSource({
+                chainId: cardNetworkInfos.solana.caipChainId,
+              })}
+              style={tw.style('-ml-2 rounded-full overflow-hidden')}
+            />
+            <Box
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              style={tw.style(
+                'w-6 h-6 -ml-2 rounded-full bg-background-default',
+              )}
+            >
+              <Icon
+                name={IconName.MoreHorizontal}
+                size={IconSize.Xs}
+                color={IconColor.PrimaryDefault}
+              />
+            </Box>
+          </Box>
         )}
 
         <Text

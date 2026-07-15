@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
+import Engine from '../../../../../../core/Engine';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -15,31 +16,72 @@ import { Box } from '../../../../../UI/Box/Box';
 import { PredictClaimConfirmationSelectorsIDs } from '../../../../../UI/Predict/Predict.testIds';
 import styleSheet from './predict-claim-footer.styles';
 import { selectPredictWonPositions } from '../../../../../UI/Predict/selectors/predictController';
-import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 import { PredictPosition } from '../../../../../UI/Predict';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
 import ButtonHero from '../../../../../../component-library/components-temp/Buttons/ButtonHero';
 import { ButtonBaseSize } from '@metamask/design-system-react-native';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { useConfirmationContext } from '../../../context/confirmation-context';
 
 export interface PredictClaimFooterProps {
-  onPress: () => void;
+  onPress: () => void | Promise<void>;
+  onError: (error?: Error) => void;
 }
 
-export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
+export function PredictClaimFooter({
+  onPress,
+  onError,
+}: PredictClaimFooterProps) {
+  const transactionMetadata = useTransactionMetadataRequest();
   const { styles } = useStyles(styleSheet, {});
+  const { setIsConfirmationSubmitting } = useConfirmationContext();
 
-  const selectedAddress =
-    useSelector(selectSelectedInternalAccountAddress) ?? '0x0';
+  const address = transactionMetadata?.txParams.from;
+  const transactionId = transactionMetadata?.id;
 
   const wonPositions = useSelector(
     selectPredictWonPositions({
-      address: selectedAddress,
+      address: address ?? '0x',
     }),
   );
 
-  if (!wonPositions?.length) {
+  const hasNoPositions = !address || !wonPositions?.length;
+
+  const hasTrackedNoPositions = useRef(false);
+
+  useEffect(() => {
+    if (hasNoPositions) {
+      // Resolution-lag is the dominant claim failure mode (PRED-963). Route the
+      // failure through the controller so it shares the per-attempt idempotency
+      // guard with the transaction-status terminal event (preventing a
+      // duplicate/contradictory `user_rejected` or `succeeded` for the same
+      // claim). Render-level ref avoids re-firing on re-renders.
+      if (!hasTrackedNoPositions.current) {
+        hasTrackedNoPositions.current = true;
+        Engine.context.PredictController?.trackClaimResolutionLagFailure?.({
+          transactionId,
+          address,
+        });
+      }
+
+      onError(new Error('Tried to claim but no positions were won'));
+    }
+  }, [hasNoPositions, onError, address, transactionId]);
+
+  const handlePress = useCallback(async () => {
+    setIsConfirmationSubmitting(true);
+
+    try {
+      await onPress();
+    } catch (error) {
+      setIsConfirmationSubmitting(false);
+      throw error;
+    }
+  }, [onPress, setIsConfirmationSubmitting]);
+
+  if (hasNoPositions) {
     return null;
   }
 
@@ -52,7 +94,7 @@ export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
       )}
       <ButtonHero
         testID={PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON}
-        onPress={onPress}
+        onPress={handlePress}
         size={ButtonBaseSize.Lg}
         isFullWidth
       >

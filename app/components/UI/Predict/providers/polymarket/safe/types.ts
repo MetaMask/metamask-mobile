@@ -16,10 +16,15 @@ export interface SplitSignature {
   v: string;
 }
 
-export interface SafeFeeAuthorization {
-  type: 'safe-transaction';
+export interface Permit2FeeAuthorization {
+  type: 'safe-permit2';
   authorization: {
-    tx: SafeTransaction; // Safe transaction
-    sig: string; // Signature of the Safe transaction
+    permit: {
+      permitted: { token: string; amount: string };
+      nonce: string;
+      deadline: string;
+    };
+    spender: string;
+    signature: string;
   };
 }

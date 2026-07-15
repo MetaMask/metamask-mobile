@@ -1,8 +1,11 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { debounce } from 'lodash';
 import { CaipChainId } from '@metamask/utils';
-import { PopularToken, IncludeAsset } from './usePopularTokens';
+import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
+import Engine from '../../../../core/Engine';
+import { getBaseSemVerVersion } from '../../../../util/version';
+import type { IncludeAsset, PopularToken } from '../types';
 
 const MIN_SEARCH_LENGTH = 3;
 
@@ -18,11 +21,11 @@ interface SearchTokensResponse {
 
 interface UseSearchTokensParams {
   chainIds: CaipChainId[];
-  includeAssets: string; // Stringified array to prevent unnecessary re-renders
+  includeAssets: IncludeAsset[];
 }
 
 interface UseSearchTokensResult {
-  searchResults: PopularToken[];
+  searchResults: (PopularToken | IncludeAsset)[];
   isSearchLoading: boolean;
   isLoadingMore: boolean;
   searchCursor: string | undefined;
@@ -45,6 +48,7 @@ export const useSearchTokens = ({
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchCursor, setSearchCursor] = useState<string | undefined>();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [bearerToken, setBearerToken] = useState<string | null>(null);
   // Consumers need to distinguish "waiting for debounce" from "search returned 0 results"
   const [currentSearchQuery, setCurrentSearchQuery] = useState<string>('');
   const currentSearchQueryRef = useRef<string>('');
@@ -61,6 +65,16 @@ export const useSearchTokens = ({
   useEffect(() => {
     includeAssetsRef.current = includeAssets;
   }, [includeAssets]);
+
+  useEffect(() => {
+    Engine.context.AuthenticationController.getBearerToken()
+      .then((token) => {
+        setBearerToken(token);
+      })
+      .catch((error) => {
+        console.warn('Failed to get bearer token for /getTokens/search', error);
+      });
+  }, []);
 
   const resetSearch = useCallback(() => {
     setSearchResults([]);
@@ -87,13 +101,10 @@ export const useSearchTokens = ({
         setIsSearchLoading(true);
         currentSearchQueryRef.current = query.trim();
         setCurrentSearchQuery(query.trim());
+        setSearchResults([]);
       }
 
       try {
-        const parsedIncludeAssets: IncludeAsset[] = isPagination
-          ? []
-          : JSON.parse(includeAssetsRef.current);
-
         const requestBody: {
           chainIds: CaipChainId[];
           query: string;
@@ -108,8 +119,8 @@ export const useSearchTokens = ({
           requestBody.after = cursor;
         }
 
-        if (parsedIncludeAssets) {
-          requestBody.includeAssets = parsedIncludeAssets;
+        if (includeAssetsRef.current && !isPagination) {
+          requestBody.includeAssets = includeAssetsRef.current;
         }
 
         const response = await fetch(
@@ -118,15 +129,29 @@ export const useSearchTokens = ({
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              ...getClientHeaders({
+                clientId: BridgeClientId.MOBILE,
+                clientVersion: getBaseSemVerVersion(),
+                jwt: bearerToken ?? '',
+              }),
             },
             body: JSON.stringify(requestBody),
           },
         );
-        const searchData: SearchTokensResponse = await response.json();
+        if (response.ok === false) {
+          throw new Error(
+            `Failed to search tokens with status ${response.status}`,
+          );
+        }
+
+        const searchData: Partial<SearchTokensResponse> = await response.json();
+        const searchResultData: PopularToken[] = Array.isArray(searchData.data)
+          ? searchData.data
+          : [];
 
         // Store the cursor for pagination if there's a next page
         setSearchCursor(
-          searchData.pageInfo.hasNextPage
+          searchData.pageInfo?.hasNextPage
             ? searchData.pageInfo.endCursor
             : undefined,
         );
@@ -136,16 +161,15 @@ export const useSearchTokens = ({
         if (isPagination) {
           setSearchResults((prevResults) => [
             ...prevResults,
-            ...searchData.data,
+            ...searchResultData,
           ]);
         } else {
-          setSearchResults(searchData.data);
+          setSearchResults(searchResultData);
         }
       } catch (error) {
         console.error('Error searching tokens:', error);
         // Reset search state on error only if it's not a pagination request
         if (!isPagination) {
-          setSearchResults([]);
           setSearchCursor(undefined);
         }
       } finally {
@@ -156,7 +180,7 @@ export const useSearchTokens = ({
         }
       }
     },
-    [resetSearch],
+    [resetSearch, bearerToken],
   );
 
   // Create debounced search function
@@ -164,6 +188,7 @@ export const useSearchTokens = ({
   const debouncedSearch = useMemo(
     () =>
       debounce((query: string) => {
+        setSearchResults([]);
         const queryLength = query.trim().length;
         // Only search if query meets minimum length
         if (queryLength >= MIN_SEARCH_LENGTH) {
@@ -186,7 +211,7 @@ export const useSearchTokens = ({
   );
 
   return {
-    searchResults,
+    searchResults: searchResults.length > 0 ? searchResults : includeAssets,
     isSearchLoading,
     isLoadingMore,
     searchCursor,

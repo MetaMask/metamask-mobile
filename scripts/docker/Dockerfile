@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.4
-FROM node:20-bookworm
+FROM node:24-bookworm
 
 RUN apt-get update \
   && apt-get install -y \
@@ -11,7 +11,7 @@ RUN apt-get update \
 
 # Enable corepack to use Yarn v4 as specified in package.json
 RUN corepack enable \
-  && corepack prepare yarn@4.10.3 --activate \
+  && corepack prepare yarn@4.14.1 --activate \
   && yarn --version
 
 ARG UID=1000
@@ -33,7 +33,7 @@ ENV HOME=/home/node
 # distro rbenv and ruby are out of date - install rbenv from git and manage ruby
 # RUBY_BUILD_VERSION=v20240501
 ARG RBENV_COMMIT=3bac268cdb81dd745ce13a1cf6ff4a286336ab3b
-ARG RUBY_BUILD_COMMIT=aab1b8d0e7e814f200320749501ba57e2fae20d0
+ARG RUBY_BUILD_COMMIT=d395d1ae53c9834f239ca42913d42dd2e0beaeb3
 RUN (mkdir /home/node/.rbenv \
     && curl -sL https://github.com/rbenv/rbenv/archive/${RBENV_COMMIT}.tar.gz \
     | tar --strip-components=1 -C /home/node/.rbenv/ -xzf - \
@@ -48,8 +48,7 @@ RUN bash -c 'eval "$(/home/node/.rbenv/bin/rbenv init -)" \
     && gem install bundler -v 2.5.8 \
     && gem install bigdecimal cocoapods \
     && bundle install'
-
-# fix broken ipv6 on nodejs v20
+# workaround: disable Happy Eyeballs (250ms default timeout causes ETIMEDOUT in Docker)
 ENV NODE_OPTIONS="--no-network-family-autoselection --trace-warnings"
 # minimize ruby memory usage
 ENV MALLOC_ARENA_MAX=1

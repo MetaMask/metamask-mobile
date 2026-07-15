@@ -1,6 +1,10 @@
-import { CaipChainId, Hex } from '@metamask/utils';
+import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 
-export interface DefaultSlippageModalParams {
+export interface SwapSlippageModalParams {
   sourceChainId?: CaipChainId | Hex;
   destChainId?: CaipChainId | Hex;
+}
+
+export interface BatchSellSlippageModalParams extends SwapSlippageModalParams {
+  batchSellAssetId: CaipAssetType;
 }

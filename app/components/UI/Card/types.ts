@@ -1,9 +1,10 @@
 import { CaipChainId } from '@metamask/utils';
+import type { TokenI } from '../Tokens/types';
 
 /**
- * Enum for asset delegation status
+ * Funding status for card tokens
  */
-export enum AllowanceState {
+export enum FundingStatus {
   Enabled = 'enabled',
   Limited = 'limited',
   NotEnabled = 'not_enabled',
@@ -36,14 +37,20 @@ export enum CardMessageBoxType {
   CloseSpendingLimit = 'close_spending_limit',
   KYCPending = 'kyc_pending',
   CardProvisioning = 'card_provisioning',
+  AuthPrompt = 'auth_prompt',
+  CashbackFundingRequired = 'cashback_funding_required',
+  CashbackMoneyAccountRequired = 'cashback_money_account_required',
+  CreditFundingRequired = 'credit_funding_required',
+  CreditMoneyAccountRequired = 'credit_money_account_required',
+  CreditAvailable = 'credit_available',
+  CreditAvailableNoMoneyAccount = 'credit_available_no_money_account',
 }
 
 export type CardUserPhase =
   | 'ACCOUNT'
   | 'PHONE_NUMBER'
   | 'PERSONAL_INFORMATION'
-  | 'PHYSICAL_ADDRESS'
-  | 'MAILING_ADDRESS';
+  | 'PHYSICAL_ADDRESS';
 
 export type CardVerificationState =
   | 'VERIFIED'
@@ -71,21 +78,31 @@ export interface CardTokenData {
   location: CardLocation;
 }
 
-export interface AuthenticatedCardTokenAllowanceData {
-  availableBalance?: string;
+export interface AuthenticatedCardFundingTokenData {
   walletAddress?: string;
   priority?: number; // Lower number = higher priority (1 is highest)
   delegationContract?: string | null;
   stagingTokenAddress?: string | null; // Used in staging environment for actual on-chain token address
 }
 
-export type CardTokenAllowance = {
+export type CardFundingToken = {
   caipChainId: CaipChainId;
-  allowanceState: AllowanceState;
-  allowance: string;
-  totalAllowance?: string;
+  fundingStatus: FundingStatus;
+  spendableBalance: string;
+  spendingCap?: string;
+  originalSpendingCap?: string;
+  isMoneyAccountEntry?: boolean;
+  displaySymbol?: string;
 } & CardToken &
-  AuthenticatedCardTokenAllowanceData;
+  AuthenticatedCardFundingTokenData;
+
+export type CardFundingTokenWithBalance = CardFundingToken & {
+  balanceFiat: string | undefined;
+  balanceFormatted: string | undefined;
+  rawFiatNumber: number | undefined;
+  rawTokenBalance: number | undefined;
+  asset?: TokenI;
+};
 
 export interface CardLoginInitiateResponse {
   token: string;
@@ -94,7 +111,19 @@ export interface CardLoginInitiateResponse {
 
 export type CardLocation = 'us' | 'international';
 
-export type CardNetwork = 'linea' | 'solana' | 'base';
+/**
+ * Region representation for country/region selectors (e.g. sign-up, phone, address).
+ * Used by useRegions and RegionSelectorModal.
+ */
+export interface Region {
+  key: string;
+  name: string;
+  emoji?: string;
+  areaCode?: string;
+  canSignUp?: boolean;
+}
+
+export type CardNetwork = 'linea' | 'solana' | 'base' | 'monad';
 
 export interface CardNetworkInfo {
   caipChainId: CaipChainId;
@@ -147,12 +176,12 @@ export enum CardType {
 
 export interface CardDetailsResponse {
   id: string;
-  holderName: string;
-  expiryDate: string;
+  isFreezable: boolean;
+  orderedAt: string;
   panLast4: string;
   status: CardStatus;
   type: CardType;
-  orderedAt: string;
+  holderName: string;
 }
 
 export interface CardWalletExternalResponse {
@@ -443,6 +472,17 @@ export interface DelegationSettingsResponse {
   };
 }
 
+export interface DelegationPostApprovalParams {
+  address: string;
+  network: CardNetwork;
+  currency: string;
+  amount: string;
+  txHash: string;
+  sigHash: string;
+  sigMessage: string;
+  token: string;
+}
+
 /**
  * Request body for generating card details token
  * Used to customize the visual appearance of the card details image
@@ -460,6 +500,25 @@ export interface CardDetailsTokenRequest {
  * Response from generating card details token
  */
 export interface CardDetailsTokenResponse {
+  token: string;
+  imageUrl: string;
+}
+
+/**
+ * Request body for generating card PIN token
+ * Used to customize the visual appearance of the PIN image
+ */
+export interface CardPinTokenRequest {
+  customCss?: {
+    backgroundColor?: string;
+    textColor?: string;
+  };
+}
+
+/**
+ * Response from generating card PIN token
+ */
+export interface CardPinTokenResponse {
   token: string;
   imageUrl: string;
 }
@@ -529,4 +588,27 @@ export interface GetOrderStatusResponse {
   paidAt?: string;
   status: OrderStatus;
   metadata?: OrderStatusMetadata;
+}
+
+export interface CashbackWalletResponse {
+  id: string;
+  balance: string;
+  currency: string;
+  isWithdrawable: boolean;
+  type: string;
+}
+
+export interface CashbackWithdrawRequest {
+  amount: string;
+}
+
+export interface CashbackWithdrawResponse {
+  txHash: string;
+}
+
+export interface CashbackWithdrawEstimationResponse {
+  wei: string;
+  eth: string;
+  price: string;
+  network: string;
 }

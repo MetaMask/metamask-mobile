@@ -4,6 +4,7 @@ import Input from '../../../../../component-library/components/Form/TextField/fo
 import {
   ButtonIcon,
   ButtonIconSize,
+  ButtonIconVariant,
   IconColor,
   IconName,
   Text,
@@ -25,6 +26,8 @@ export const InputStepper = ({
   maxAmount,
   postValue,
   placeholder = '0',
+  selection,
+  onSelectionChange,
 }: InputStepperProps) => {
   const fontSize = calculateInputFontSize(value.length);
   const { styles } = useStyles(inputStepperStyles, { fontSize });
@@ -42,7 +45,7 @@ export const InputStepper = ({
         <ButtonIcon
           size={ButtonIconSize.Lg}
           iconName={IconName.Minus}
-          isFloating
+          variant={ButtonIconVariant.Floating}
           style={tw.style(minusPressed ? 'bg-muted-pressed' : 'bg-muted')}
           iconProps={{ color: IconColor.IconDefault }}
           onPressIn={() => setMinusPressed(true)}
@@ -61,6 +64,10 @@ export const InputStepper = ({
               value={displayedAmount}
               style={styles.input}
               testID="input-stepper-input"
+              // Slippage controls selection so keypad edits can target the
+              // displayed caret position instead of always appending.
+              selection={selection}
+              onSelectionChange={onSelectionChange}
             />
           </View>
           {postValue && (
@@ -72,7 +79,7 @@ export const InputStepper = ({
         <ButtonIcon
           size={ButtonIconSize.Lg}
           iconName={IconName.Add}
-          isFloating
+          variant={ButtonIconVariant.Floating}
           style={tw.style(plusPressed ? 'bg-muted-pressed' : 'bg-muted')}
           iconProps={{ color: IconColor.IconDefault }}
           onPressIn={() => setPlusPressed(true)}

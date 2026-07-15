@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Platform, TouchableOpacity, View } from 'react-native';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PerpsAmountDisplaySelectorsIDs } from '../../Perps.testIds';
 import Text, {
   TextColor,
@@ -13,9 +13,11 @@ import {
   formatPositionSize,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import {
+  PERPS_CONSTANTS,
+  getPerpsDisplaySymbol,
+} from '@metamask/perps-controller';
 import createStyles from './PerpsAmountDisplay.styles';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 
 interface PerpsAmountDisplayProps {
   amount: string;
@@ -101,9 +103,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       <View style={styles.amountRow}>
         {/* Text only takes 1 arg */}
         {isLoading ? (
-          <SkeletonPlaceholder>
-            <SkeletonPlaceholder.Item width={80} height={20} borderRadius={4} />
-          </SkeletonPlaceholder>
+          <Skeleton width={80} height={20} />
         ) : (
           <Text
             testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
@@ -155,7 +155,11 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+      <TouchableOpacity
+        testID={PerpsAmountDisplaySelectorsIDs.TOUCHABLE}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
         {content}
       </TouchableOpacity>
     );

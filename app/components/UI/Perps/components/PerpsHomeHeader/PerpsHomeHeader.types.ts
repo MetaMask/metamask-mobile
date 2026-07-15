@@ -1,47 +1,23 @@
 /**
- * Props for PerpsHomeHeader component
+ * Perps home header chrome.
+ *
+ * - **`segment: 'nav'`** (default): top bar — `HeaderStandard` or expanded search.
+ * - **`segment: 'title'`**: scroll title row (Perps title + provider / testnet badges).
  */
 export interface PerpsHomeHeaderProps {
+  segment?: 'nav' | 'title';
+
   /**
-   * Header title text
+   * Custom title when `segment` is `'title'`.
    * @default strings('perps.title')
    */
-  title?: string;
+  screenTitle?: string;
 
-  /**
-   * Whether search bar is currently visible
-   * @default false
-   */
   isSearchVisible?: boolean;
-
-  /**
-   * Search query value (required when isSearchVisible is true)
-   */
   searchQuery?: string;
-
-  /**
-   * Callback when search query changes
-   */
   onSearchQueryChange?: (query: string) => void;
-
-  /**
-   * Callback when search clear button is pressed
-   */
   onSearchClear?: () => void;
-
-  /**
-   * Callback when back button is pressed
-   * If not provided, uses default navigation.goBack()
-   */
   onBack?: () => void;
-
-  /**
-   * Callback when search toggle button is pressed
-   */
   onSearchToggle?: () => void;
-
-  /**
-   * Test ID for the header container
-   */
   testID?: string;
 }

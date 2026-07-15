@@ -2,12 +2,34 @@ import React from 'react';
 import TransactionElement from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { fireEvent, waitFor } from '@testing-library/react-native';
-import { TransactionType } from '@metamask/transaction-controller';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  TransactionType,
+  WalletDevice,
+} from '@metamask/transaction-controller';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+} from '../../../core/Analytics/events/transactions';
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn(() => ({ name: 'test-event' }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 const mockNavigate = jest.fn();
 
@@ -77,10 +99,15 @@ const store = mockStore(initialState);
 describe('TransactionElement', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
   });
 
-  it('renders correctly', () => {
-    const component = renderWithProvider(
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('renders correctly', async () => {
+    renderWithProvider(
       <Provider store={store}>
         <TransactionElement
           tx={{
@@ -99,7 +126,9 @@ describe('TransactionElement', () => {
         />
       </Provider>,
     );
-    expect(component).toMatchSnapshot();
+    await waitFor(() => {
+      expect(screen.getByText('Test Action')).toBeOnTheScreen();
+    });
   });
 
   describe('MUSD conversion navigation', () => {
@@ -139,10 +168,318 @@ describe('TransactionElement', () => {
       // Press the transaction element
       fireEvent.press(getByText('Test Action'));
 
-      // Verify navigation to unified TransactionDetails screen
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
         transactionId: musdConversionTx.id,
       });
+    });
+  });
+
+  describe('Money account navigation', () => {
+    it('navigates to TransactionDetails when transaction type is moneyAccountDeposit', async () => {
+      const moneyAccountTx = {
+        id: 'money-account-tx-456',
+        type: TransactionType.moneyAccountDeposit,
+        chainId: '0x1',
+        status: 'confirmed',
+        time: Date.now(),
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x1',
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={moneyAccountTx}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Test Action')).toBeTruthy();
+      });
+
+      fireEvent.press(getByText('Test Action'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
+        transactionId: moneyAccountTx.id,
+      });
+    });
+  });
+
+  describe('renderTxTime - "from this device" label', () => {
+    it('renders "from this device" label with nonce when nonce exists', async () => {
+      const txWithNonce = {
+        id: 'tx-with-nonce-123',
+        chainId: '0x1',
+        status: 'confirmed',
+        time: Date.now(),
+        deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x3', // nonce exists
+        },
+      };
+
+      renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={txWithNonce}
+            selectedInternalAccount={{ address: '0x123' }}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText(/from this device/i)).toBeOnTheScreen();
+      });
+    });
+
+    it('renders "from this device" label without nonce for EIP-7702 transactions', async () => {
+      const eip7702Tx = {
+        id: 'eip7702-tx-123',
+        chainId: '0x1',
+        status: 'confirmed',
+        time: Date.now(),
+        deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          // nonce is intentionally undefined for EIP-7702 transactions
+        },
+      };
+
+      renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={eip7702Tx}
+            selectedInternalAccount={{ address: '0x123' }}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      // The component should render "from this device" without "#NaN"
+      await waitFor(() => {
+        expect(screen.getByText(/from this device/i)).toBeOnTheScreen();
+        expect(screen.queryByText(/#NaN/)).not.toBeOnTheScreen();
+      });
+    });
+
+    it('renders date only when deviceConfirmedOn is not MM_MOBILE', async () => {
+      const txWithoutDevice = {
+        id: 'tx-without-device-123',
+        chainId: '0x1',
+        status: 'confirmed',
+        time: Date.now(),
+        // deviceConfirmedOn is not set
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x3',
+        },
+      };
+
+      renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={txWithoutDevice}
+            selectedInternalAccount={{ address: '0x123' }}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Action')).toBeOnTheScreen();
+      });
+      expect(screen.queryByText(/from this device/i)).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Speed up and Cancel visibility when gas paid with alternate token', () => {
+    it('does not render Speed up and Cancel when selectedGasFeeToken is set', async () => {
+      const txWithGasFeeToken = {
+        id: 'tx-gas-fee-token-1',
+        chainId: '0x1',
+        status: 'submitted',
+        time: Date.now(),
+        selectedGasFeeToken: '0x12345678901234567890123456789012345678',
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x1',
+        },
+      };
+
+      const { getByText, queryByText } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={txWithGasFeeToken}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Test Action')).toBeTruthy();
+      });
+
+      expect(queryByText('Speed up')).not.toBeOnTheScreen();
+      expect(queryByText('Cancel')).not.toBeOnTheScreen();
+    });
+
+    it('renders Speed up and Cancel when status is submitted and selectedGasFeeToken is not set', async () => {
+      const submittedTx = {
+        id: 'tx-submitted-1',
+        chainId: '0x1',
+        status: 'submitted',
+        time: Date.now(),
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x1',
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={submittedTx}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Test Action')).toBeTruthy();
+      });
+
+      expect(getByText('Speed up')).toBeOnTheScreen();
+      expect(getByText('Cancel')).toBeOnTheScreen();
+    });
+  });
+
+  describe('analytics tracking', () => {
+    it('tracks Transaction Detail List Item Clicked when pressed', async () => {
+      const tx = {
+        id: 'tx-analytics-1',
+        type: TransactionType.simpleSend,
+        chainId: '0x1',
+        status: 'confirmed',
+        time: Date.now(),
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x1',
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement tx={tx} navigation={{ navigate: mockNavigate }} />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Test Action')).toBeTruthy();
+      });
+
+      fireEvent.press(getByText('Test Action'));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transaction_type: expect.any(String),
+          transaction_status: 'confirmed',
+          location: TransactionDetailLocation.Home,
+          chain_id_source: '1',
+          chain_id_destination: '1',
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'test-event' });
+    });
+
+    it('tracks with asset_details location when provided', async () => {
+      const tx = {
+        id: 'tx-analytics-2',
+        type: TransactionType.simpleSend,
+        chainId: '0x1',
+        status: 'submitted',
+        time: Date.now(),
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x2',
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={tx}
+            navigation={{ navigate: mockNavigate }}
+            location={TransactionDetailLocation.AssetDetails}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Test Action')).toBeTruthy();
+      });
+
+      fireEvent.press(getByText('Test Action'));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: TransactionDetailLocation.AssetDetails,
+        }),
+      );
+    });
+
+    it('includes monetized_primitive for swap transactions', async () => {
+      const swapTx = {
+        id: 'tx-analytics-swap',
+        type: TransactionType.swap,
+        chainId: '0x1',
+        status: 'confirmed',
+        time: Date.now(),
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x3',
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={swapTx}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Test Action')).toBeTruthy();
+      });
+
+      fireEvent.press(getByText('Test Action'));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          monetized_primitive: 'swaps',
+        }),
+      );
     });
   });
 });

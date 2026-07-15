@@ -1,0 +1,53 @@
+/* eslint-disable @metamask/design-tokens/color-no-hex */
+/**
+ * Centralized static color fixtures for Predict tests.
+ * Keep hardcoded test-only colors in this file to avoid repeated
+ * `color-no-hex` suppressions across test suites.
+ */
+export const TEST_HEX_COLORS = {
+  TEAM_SEA: '#002244',
+  TEAM_SEA_ALPHA: '#002244FF',
+  TEAM_DEN: '#FB4F14',
+  TEAM_DEN_ALPHA: '#FB4F1480',
+  TEAM_NE: '#1D4E9B',
+  TEAM_SEA_GREEN: '#69BE28',
+  TEAM_SEA_OVERRIDE: '#5BA423',
+  TEAM_SF: '#AA0000',
+  TEAM_ALT_ORANGE: '#FC4C02',
+  // NBA teams
+  TEAM_LAL: '#552583',
+  TEAM_BOS: '#007A33',
+  TEAM_GSW: '#1D428A',
+  TEAM_CHI: '#CE1141',
+  GOLD: '#FFD700',
+  GOLD_ALPHA: '#FFD700FF',
+  CHART_SUCCESS: '#28C76F',
+  CHART_PRIMARY: '#4459FF',
+  CHART_ERROR: '#CA3542',
+  CHART_WARNING: '#F0B034',
+  CHART_CORAL: '#FF6B6B',
+  CUSTOM_ORANGE: '#FF5733',
+  ACCENT_BLUE: '#89b0ff',
+  ERROR_DARK: '#ca3542',
+  ERROR_BRIGHT: '#ff0000',
+  SUCCESS_BRIGHT: '#00ff00',
+  PURE_GREEN_SHORT: '#0F0',
+  PURE_GREEN_SHORT_ALPHA: '#0F08',
+  PURE_GREEN: '#00FF00',
+  PURE_RED: '#FF0000',
+  PURE_RED_ALPHA: '#FF0000FF',
+  PURE_RED_SHORT: '#F00',
+  PURE_RED_SHORT_ALPHA: '#F00F',
+  PURE_BLUE: '#0000FF',
+  WHITE_SHORT: '#FFF',
+  WHITE_BRIGHT: '#ffffff',
+  WHITE_FULL: '#FFFFFF',
+  PURE_BLACK: '#000',
+  EXAMPLE: '#123456',
+  EXAMPLE_LIGHT: '#ABCDEF',
+  EXAMPLE_789ABC: '#789ABC',
+  EXAMPLE_LOWER_ABC123: '#abc123',
+  EXAMPLE_LOWER_DEF456: '#def456',
+  EXAMPLE_UPPER_ABC123: '#ABC123',
+  EXAMPLE_UPPER_DEF456: '#DEF456',
+} as const;

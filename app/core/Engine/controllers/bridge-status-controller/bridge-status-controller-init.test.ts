@@ -1,23 +1,43 @@
 import {
   BridgeStatusController,
   type BridgeStatusControllerMessenger,
+  QuoteStatusGetError,
+  QuoteStatusUpdateError,
 } from '@metamask/bridge-status-controller';
 import { BridgeClientId } from '@metamask/bridge-controller';
 import { TransactionController } from '@metamask/transaction-controller';
 import { handleFetch } from '@metamask/controller-utils';
 
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { getBridgeStatusControllerMessenger } from '../../messengers/bridge-status-controller-messenger';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import { bridgeStatusControllerInit } from './bridge-status-controller-init';
 import { trace } from '../../../../util/trace';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { captureException } from '@sentry/react-native';
 
 jest.mock('@metamask/bridge-status-controller');
 jest.mock('../../../../util/trace');
 jest.mock('@metamask/controller-utils');
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+
+function buildRemoteFeatureFlagControllerMock(
+  bridgeQuoteStatusManager?: { enabled?: boolean },
+  localOverrides: Record<string, unknown> = {},
+) {
+  return {
+    state: {
+      remoteFeatureFlags: {
+        bridgeQuoteStatusManager,
+      },
+      localOverrides,
+    },
+  };
+}
 
 /**
  * Build a mock TransactionController.
@@ -29,10 +49,7 @@ function buildTransactionControllerMock(
   partialMock?: Partial<TransactionController>,
 ): TransactionController {
   const defaultMocks = {
-    addTransaction: jest.fn().mockResolvedValue('txId'),
-    estimateGasFee: jest.fn().mockResolvedValue({ gasLimit: '0x5208' }),
     addTransactionBatch: jest.fn().mockResolvedValue(['txId1', 'txId2']),
-    updateTransaction: jest.fn().mockResolvedValue(undefined),
   };
 
   // @ts-expect-error Incomplete mock, just includes properties used by code-under-test
@@ -44,12 +61,16 @@ function buildTransactionControllerMock(
 
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
-): jest.Mocked<ControllerInitRequest<BridgeStatusControllerMessenger>> {
+  options: {
+    bridgeQuoteStatusManager?: { enabled?: boolean };
+    localOverrides?: Record<string, unknown>;
+  } = {},
+): jest.Mocked<MessengerClientInitRequest<BridgeStatusControllerMessenger>> {
   const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
   const requestMock = {
-    ...buildControllerInitRequestMock(baseControllerMessenger),
+    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
     controllerMessenger: getBridgeStatusControllerMessenger(
       baseControllerMessenger,
     ),
@@ -62,10 +83,26 @@ function buildInitRequestMock(
     ...initRequestProperties,
   };
 
-  if (!initRequestProperties.getController) {
-    requestMock.getController = jest
+  if (!initRequestProperties.getMessengerClient) {
+    const mockTransactionController = buildTransactionControllerMock();
+    const mockRemoteFeatureFlagController =
+      buildRemoteFeatureFlagControllerMock(
+        options.bridgeQuoteStatusManager,
+        options.localOverrides,
+      );
+
+    requestMock.getMessengerClient = jest
       .fn()
-      .mockReturnValue(buildTransactionControllerMock());
+      .mockReturnValue(buildTransactionControllerMock())
+      .mockImplementation((name: string) => {
+        if (name === 'TransactionController') {
+          return mockTransactionController;
+        }
+        if (name === 'RemoteFeatureFlagController') {
+          return mockRemoteFeatureFlagController;
+        }
+        throw new Error(`${name} not found`);
+      });
   }
 
   return requestMock;
@@ -94,7 +131,7 @@ describe('BridgeStatusController Init', () => {
   it('throws error if TransactionController is not found', () => {
     // Arrange
     const requestMock = buildInitRequestMock({
-      getController: jest.fn().mockImplementation(() => {
+      getMessengerClient: jest.fn().mockImplementation(() => {
         throw new Error('TransactionController not found');
       }),
     });
@@ -197,69 +234,21 @@ describe('BridgeStatusController Init', () => {
       });
     });
 
-    it('correctly sets up addTransactionFn', () => {
-      // Arrange
-      const mockTransactionController = buildTransactionControllerMock({
-        addTransaction: jest.fn().mockResolvedValue('newTxId'),
-      });
-      const requestMock = buildInitRequestMock({
-        getController: jest.fn().mockReturnValue(mockTransactionController),
-      });
-
-      // Act
-      bridgeStatusControllerInit(requestMock);
-
-      // Assert
-      const constructorOptions =
-        bridgeStatusControllerClassMock.mock.calls[0][0];
-      const addTransactionFn = constructorOptions.addTransactionFn;
-      const mockTxParams = { from: '0xabc', to: '0x123', value: '0x0' };
-      const mockOrigin = 'test-origin';
-
-      addTransactionFn(mockTxParams, {
-        origin: mockOrigin,
-        networkClientId: 'mainnet',
-      });
-      expect(mockTransactionController.addTransaction).toHaveBeenCalledWith(
-        mockTxParams,
-        { origin: mockOrigin, networkClientId: 'mainnet' },
-      );
-    });
-
-    it('correctly sets up estimateGasFeeFn', () => {
-      // Arrange
-      const mockTransactionController = buildTransactionControllerMock({
-        estimateGasFee: jest.fn().mockResolvedValue({ gasLimit: '0x7530' }),
-      });
-      const requestMock = buildInitRequestMock({
-        getController: jest.fn().mockReturnValue(mockTransactionController),
-      });
-
-      // Act
-      bridgeStatusControllerInit(requestMock);
-
-      // Assert
-      const constructorOptions =
-        bridgeStatusControllerClassMock.mock.calls[0][0];
-      const estimateGasFeeFn = constructorOptions.estimateGasFeeFn;
-      const mockTxParams = {
-        transactionParams: { from: '0xabc', to: '0x123', value: '0x0' },
-        chainId: '0x1' as const,
-      };
-
-      estimateGasFeeFn(mockTxParams);
-      expect(mockTransactionController.estimateGasFee).toHaveBeenCalledWith(
-        mockTxParams,
-      );
-    });
-
     it('correctly sets up addTransactionBatchFn', () => {
       // Arrange
       const mockTransactionController = buildTransactionControllerMock({
         addTransactionBatch: jest.fn().mockResolvedValue(['txId1', 'txId2']),
       });
       const requestMock = buildInitRequestMock({
-        getController: jest.fn().mockReturnValue(mockTransactionController),
+        getMessengerClient: jest.fn().mockImplementation((name: string) => {
+          if (name === 'TransactionController') {
+            return mockTransactionController;
+          }
+          if (name === 'RemoteFeatureFlagController') {
+            return buildRemoteFeatureFlagControllerMock();
+          }
+          throw new Error(`${name} not found`);
+        }),
       });
 
       // Act
@@ -284,40 +273,6 @@ describe('BridgeStatusController Init', () => {
       ).toHaveBeenCalledWith(mockTxBatch);
     });
 
-    it('correctly sets up updateTransactionFn', () => {
-      // Arrange
-      const mockTransactionController = buildTransactionControllerMock({
-        updateTransaction: jest.fn().mockResolvedValue(undefined),
-      });
-      const requestMock = buildInitRequestMock({
-        getController: jest.fn().mockReturnValue(mockTransactionController),
-      });
-
-      // Act
-      bridgeStatusControllerInit(requestMock);
-
-      // Assert
-      const constructorOptions =
-        bridgeStatusControllerClassMock.mock.calls[0][0];
-      const updateTransactionFn = constructorOptions.updateTransactionFn;
-      const mockTxUpdate = {
-        id: 'txId',
-        chainId: '0x1' as const,
-        networkClientId: 'mainnet',
-        time: Date.now(),
-        txParams: { from: '0xabc', to: '0x123', value: '0x0' },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        status: 'confirmed' as any,
-      };
-      const mockNote = 'test note';
-
-      updateTransactionFn(mockTxUpdate, mockNote);
-      expect(mockTransactionController.updateTransaction).toHaveBeenCalledWith(
-        mockTxUpdate,
-        mockNote,
-      );
-    });
-
     it('handles undefined persistedState', () => {
       // Arrange
       const requestMock = buildInitRequestMock({
@@ -339,16 +294,128 @@ describe('BridgeStatusController Init', () => {
       // Arrange
       const mockTransactionController = buildTransactionControllerMock();
       const requestMock = buildInitRequestMock({
-        getController: jest.fn().mockReturnValue(mockTransactionController),
+        getMessengerClient: jest
+          .fn()
+          .mockReturnValue(mockTransactionController),
       });
 
       // Act
       bridgeStatusControllerInit(requestMock);
 
       // Assert
-      expect(requestMock.getController).toHaveBeenCalledWith(
+      expect(requestMock.getMessengerClient).toHaveBeenCalledWith(
         'TransactionController',
       );
+    });
+
+    it('passes quote status manager callbacks', () => {
+      // Arrange
+      const requestMock = buildInitRequestMock();
+
+      // Act
+      bridgeStatusControllerInit(requestMock);
+
+      // Assert
+      const constructorOptions =
+        bridgeStatusControllerClassMock.mock.calls[0][0];
+      expect(constructorOptions.onQuoteStatusManagerError).toEqual(
+        expect.any(Function),
+      );
+      expect(constructorOptions.isQuoteStatusManagerEnabled).toEqual(
+        expect.any(Function),
+      );
+    });
+  });
+
+  describe('onQuoteStatusManagerError', () => {
+    function getOnQuoteStatusManagerError() {
+      const requestMock = buildInitRequestMock();
+      bridgeStatusControllerInit(requestMock);
+      const constructorOptions =
+        bridgeStatusControllerClassMock.mock.calls[
+          bridgeStatusControllerClassMock.mock.calls.length - 1
+        ][0];
+      return constructorOptions.onQuoteStatusManagerError;
+    }
+
+    it('calls captureException for QuoteStatusUpdateError', () => {
+      const onQuoteStatusManagerError = getOnQuoteStatusManagerError();
+      const error = new QuoteStatusUpdateError('update failed', {
+        quoteId: 'quote-1',
+      });
+
+      onQuoteStatusManagerError?.(error);
+
+      expect(captureException).toHaveBeenCalledWith(error);
+    });
+
+    it('does not call captureException for QuoteStatusGetError', () => {
+      const onQuoteStatusManagerError = getOnQuoteStatusManagerError();
+      const error = new QuoteStatusGetError('get failed', {
+        quoteId: 'quote-1',
+      });
+
+      onQuoteStatusManagerError?.(error);
+
+      expect(captureException).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('isQuoteStatusManagerEnabled', () => {
+    function getIsQuoteStatusManagerEnabled(
+      bridgeQuoteStatusManager?: { enabled?: boolean },
+      localOverrides?: Record<string, unknown>,
+    ) {
+      const requestMock = buildInitRequestMock(
+        {},
+        { bridgeQuoteStatusManager, localOverrides },
+      );
+      bridgeStatusControllerInit(requestMock);
+      const constructorOptions =
+        bridgeStatusControllerClassMock.mock.calls[
+          bridgeStatusControllerClassMock.mock.calls.length - 1
+        ][0];
+      return constructorOptions.isQuoteStatusManagerEnabled;
+    }
+
+    it('returns true when the remote feature flag is enabled', () => {
+      const isQuoteStatusManagerEnabled = getIsQuoteStatusManagerEnabled({
+        enabled: true,
+      });
+
+      expect(isQuoteStatusManagerEnabled?.()).toBe(true);
+    });
+
+    it('returns false when the remote feature flag is disabled', () => {
+      const isQuoteStatusManagerEnabled = getIsQuoteStatusManagerEnabled({
+        enabled: false,
+      });
+
+      expect(isQuoteStatusManagerEnabled?.()).toBe(false);
+    });
+
+    it('returns false when the remote feature flag is not set', () => {
+      const isQuoteStatusManagerEnabled = getIsQuoteStatusManagerEnabled();
+
+      expect(isQuoteStatusManagerEnabled?.()).toBe(false);
+    });
+
+    it('returns true when a local override enables the feature flag', () => {
+      const isQuoteStatusManagerEnabled = getIsQuoteStatusManagerEnabled(
+        { enabled: false },
+        { bridgeQuoteStatusManager: { enabled: true } },
+      );
+
+      expect(isQuoteStatusManagerEnabled?.()).toBe(true);
+    });
+
+    it('returns false when a local override disables the feature flag', () => {
+      const isQuoteStatusManagerEnabled = getIsQuoteStatusManagerEnabled(
+        { enabled: true },
+        { bridgeQuoteStatusManager: { enabled: false } },
+      );
+
+      expect(isQuoteStatusManagerEnabled?.()).toBe(false);
     });
   });
 });

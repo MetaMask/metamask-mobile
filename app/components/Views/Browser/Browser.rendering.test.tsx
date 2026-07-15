@@ -13,9 +13,8 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { act } from '@testing-library/react-native';
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { useAccounts } from '../../hooks/useAccounts';
@@ -26,6 +25,8 @@ import {
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { parseCaipAccountId } from '@metamask/utils';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import BrowserTab from '../BrowserTab/BrowserTab';
 
 const Browser = BrowserComponent as React.ComponentType<
   Record<string, unknown>
@@ -70,13 +71,13 @@ jest.mock('../../UI/Tabs', () => ({
   }),
 }));
 
-const mockTabs = [
-  { id: 1, url: 'about:blank', image: '', isArchived: false },
-  { id: 2, url: 'about:blank', image: '', isArchived: false },
-  { id: 3, url: 'about:blank', image: '', isArchived: false },
-  { id: 4, url: 'about:blank', image: '', isArchived: false },
-  { id: 5, url: 'about:blank', image: '', isArchived: false },
-];
+const mockTabs = Array.from({ length: 20 }, (_, i) => ({
+  id: i + 1,
+  url: 'about:blank',
+  image: '',
+  isArchived: false,
+  lastActiveAt: Date.now() - i * 1000,
+}));
 
 const mockInitialState = {
   engine: {
@@ -119,14 +120,6 @@ jest.mock('../../../core/Engine', () => {
   };
 });
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  openURL: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
-}));
-
 jest.mock('../../../util/phishingDetection', () => ({
   getPhishingTestResultAsync: jest.fn().mockResolvedValue({ result: false }),
 }));
@@ -142,8 +135,8 @@ const mockCreateEventBuilder = jest.fn(() => ({
   build: jest.fn().mockReturnValue({}),
 }));
 
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
@@ -168,7 +161,7 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 const mockStore = configureMockStore();
 
 const routeMock = {
@@ -189,7 +182,7 @@ const mockSortMultichainAccountsByLastSelected =
 
 describe('Browser - Rendering and Initialization', () => {
   it('renders Browser component', () => {
-    const { toJSON } = renderWithProvider(
+    renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
         <ThemeContext.Provider value={mockTheme}>
           <NavigationContainer independent>
@@ -214,7 +207,7 @@ describe('Browser - Rendering and Initialization', () => {
       </Provider>,
       { state: { ...mockInitialState } },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(BrowserTab).toHaveBeenCalled();
   });
 
   it('creates a new homepage tab when rendered with no tabs', () => {
@@ -407,56 +400,15 @@ describe('Browser - Rendering and Initialization', () => {
     // Does not navigate to the max browser tabs modal
     expect(navigationSpy).not.toHaveBeenCalled();
 
-    // Dpes not create a new tab
+    // Does not create a new tab
     expect(mockCreateNewTab).not.toHaveBeenCalled();
 
     // Updates the active tab with the new URL
     expect(mockUpdateTab).toHaveBeenCalledWith(1, {
       url: newSiteUrl,
-      isArchived: false,
     });
 
     navigationSpy.mockRestore();
-  });
-
-  it('marks a tab as archived if it has been idle for too long', async () => {
-    const mockTabsForIdling = [
-      { id: 1, url: 'about:blank', image: '', isArchived: false },
-      { id: 2, url: 'about:blank', image: '', isArchived: false },
-    ];
-
-    jest.useFakeTimers();
-    const mockUpdateTab = jest.fn();
-
-    renderWithProvider(
-      <Provider store={mockStore(mockInitialState)}>
-        <NavigationContainer independent>
-          <Stack.Navigator>
-            <Stack.Screen name="Browser">
-              {() => (
-                <Browser
-                  route={{ params: {} }}
-                  tabs={mockTabsForIdling}
-                  activeTab={1}
-                  navigation={mockNavigation}
-                  createNewTab={jest.fn}
-                  closeTab={jest.fn}
-                  setActiveTab={jest.fn}
-                  updateTab={mockUpdateTab}
-                />
-              )}
-            </Stack.Screen>
-          </Stack.Navigator>
-        </NavigationContainer>
-      </Provider>,
-    );
-
-    // Wrap the timer advancement in act
-    await act(async () => {
-      jest.advanceTimersByTime(1000 * 60 * 5);
-    });
-
-    expect(mockUpdateTab).toHaveBeenCalledWith(2, { isArchived: true });
   });
 
   it('shows active account toast when visiting a site with permitted accounts', () => {

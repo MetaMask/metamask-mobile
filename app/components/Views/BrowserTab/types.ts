@@ -24,6 +24,27 @@ export enum WebViewNavigationEventName {
 }
 
 /**
+ * A back/forward navigation awaiting its committed document URL. We keep the
+ * navigation state captured at request time so the URL bar can be resolved once
+ * the WebView reports back the actual `window.location` for that request.
+ */
+export interface PendingBackForwardNav {
+  requestId: string;
+  canGoBack: boolean;
+  canGoForward: boolean;
+}
+
+/**
+ * Payload posted back from the WebView in response to a document URL sync
+ * request. `title` is optional because not every document defines one.
+ */
+export interface DocumentUrlForUrlBarPayload {
+  requestId: string;
+  url: string;
+  title?: string;
+}
+
+/**
  * The props for the BrowserTab component
  * Extends shared props and adds browser-specific properties
  */
@@ -79,10 +100,6 @@ export type BrowserTabProps = SharedTabProps & {
    */
   addBookmark: (bookmark: { name: string; url: string }) => void;
   /**
-   * Array of bookmarks
-   */
-  bookmarks: { name: string; url: string }[];
-  /**
    * String representing the current search engine
    */
   searchEngine: string;
@@ -114,6 +131,22 @@ export type BrowserTabProps = SharedTabProps & {
    * Whether browser was opened from Perps view
    */
   fromPerps?: boolean;
+  /**
+   * Whether browser was opened from Benefit view
+   */
+  fromBenefit?: boolean;
+  /**
+   * Whether browser was opened from Card (e.g. manage card / travel in-app)
+   */
+  fromCard?: boolean;
+  /**
+   * Whether browser was opened from the What's Happening detail view
+   */
+  fromWhatsHappening?: boolean;
+  /**
+   * Whether browser was opened from the Money tab
+   */
+  fromMoney?: boolean;
 
   /**
    * Boolean indicating if browser is in fullscreen mode

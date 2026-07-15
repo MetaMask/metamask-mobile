@@ -1,5 +1,10 @@
 /* eslint-disable @metamask/design-tokens/color-no-hex */
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import {
+  playImpact,
+  playSelection,
+  ImpactMoment,
+  type HapticImpactMoment,
+} from '../../../../../util/haptics';
 import React, {
   memo,
   useCallback,
@@ -8,7 +13,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 import {
   Gesture,
   GestureDetector,
@@ -21,49 +26,44 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../../util/theme';
 import { Theme } from '../../../../../util/theme/models';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+  PERFORMANCE_CONFIG,
+} from '@metamask/perps-controller';
 import {
   getLeverageRiskLevel,
   LEVERAGE_COLORS,
 } from '../../constants/leverageColors';
-import {
-  LEVERAGE_SLIDER_CONFIG,
-  PERFORMANCE_CONFIG,
-} from '../../constants/perpsConfig';
+import { LEVERAGE_SLIDER_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
 import { usePerpsLivePrices } from '../../hooks';
+import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
+  BottomSheetRef,
+  ButtonSize,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
@@ -181,13 +181,9 @@ const LeverageSlider: React.FC<{
     [onValueChange, onInteraction],
   );
 
-  // Haptic feedback callbacks
-  const triggerHapticFeedback = useCallback(
-    (impactStyle: ImpactFeedbackStyle) => {
-      impactAsync(impactStyle);
-    },
-    [],
-  );
+  const triggerHapticFeedback = useCallback((moment: HapticImpactMoment) => {
+    playImpact(moment);
+  }, []);
 
   // Check if value crosses leverage thresholds
   const checkThresholdCrossing = useCallback(
@@ -202,7 +198,7 @@ const LeverageSlider: React.FC<{
           (prevValue < threshold && newValue >= threshold) ||
           (prevValue > threshold && newValue <= threshold)
         ) {
-          runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
+          runOnJS(triggerHapticFeedback)(ImpactMoment.SliderTick);
           break;
         }
       }
@@ -215,7 +211,7 @@ const LeverageSlider: React.FC<{
   const panGesture = Gesture.Pan()
     .onBegin(() => {
       isPressed.value = true;
-      runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
+      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderGrip);
       runOnJS(onDragStart)();
     })
     .onUpdate((event) => {
@@ -231,7 +227,7 @@ const LeverageSlider: React.FC<{
       thumbScale.value = 1; // Direct assignment, no spring
       const currentValue = positionToValue(translateX.value, sliderWidth.value);
       runOnJS(updateValue)(currentValue);
-      runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Medium);
+      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderGrip);
       runOnJS(onDragEnd)(currentValue);
     })
     .onFinalize(() => {
@@ -245,7 +241,7 @@ const LeverageSlider: React.FC<{
     const newValue = positionToValue(newPosition, sliderWidth.value);
     runOnJS(updateValue)(newValue);
     runOnJS(checkThresholdCrossing)(newValue);
-    runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
+    runOnJS(triggerHapticFeedback)(ImpactMoment.SliderTick);
     runOnJS(onDragEnd)(newValue);
   };
 
@@ -342,7 +338,23 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const [draggingLeverage, setDraggingLeverage] = useState(initialLeverage);
   const [isDragging, setIsDragging] = useState(false);
   const [inputMethod, setInputMethod] = useState<'slider' | 'preset'>('slider');
-  const [shouldShowSkeleton, setShouldShowSkeleton] = useState(false);
+
+  // Cache last valid liquidation price to avoid skeleton blinking when the
+  // price updates passively (market price ticks). The cache is intentionally
+  // invalidated when the user changes leverage so that stale data from a
+  // previous leverage is never shown alongside the new leverage's percentage.
+  const lastValidLiquidationPrice = useRef<number | null>(null);
+
+  // Tracks whether the user actively changed leverage (slider/quick select).
+  // While true, the cache is bypassed and a loading skeleton is shown until
+  // the API returns a fresh liquidation price for the new leverage.
+  const [leverageChanged, setLeverageChanged] = useState(false);
+
+  // Records when the user last changed leverage. Used to enforce a minimum
+  // skeleton display time so that stale in-flight API calls (which the hook's
+  // debounce.cancel() cannot abort) don't prematurely clear the skeleton by
+  // setting isCalculating = false before the new calculation completes.
+  const leverageChangeTime = useRef<number>(0);
 
   const currentLivePrice = usePerpsLivePrices({
     symbols: [asset],
@@ -375,23 +387,72 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       },
     );
 
-  // Instead of using isDragging || isCalculating, we use shouldShowSkeleton to show the skeleton
-  // Otherwise the skeleton would flicker for a split second when the user stops dragging and the liquidation price is not yet being calculated
-  useEffect(() => {
-    setShouldShowSkeleton(isCalculating);
-  }, [isCalculating]);
-
   const dynamicLiquidationPrice = Number.parseFloat(apiLiquidationPrice);
 
+  // Cache last valid liquidation price so the UI always shows a value
+  // instead of blinking a skeleton loader during passive price updates.
+  // Guard: don't cache while leverageChanged is true — the hook's state may
+  // contain a stale price from a previous leverage's in-flight API call.
   useEffect(() => {
-    if (isVisible) {
-      bottomSheetRef.current?.onOpenBottomSheet();
-    } else {
-      // Reset all state when the bottom sheet is closed
+    if (
+      !Number.isNaN(dynamicLiquidationPrice) &&
+      dynamicLiquidationPrice > 0 &&
+      !leverageChanged
+    ) {
+      lastValidLiquidationPrice.current = dynamicLiquidationPrice;
+    }
+  }, [dynamicLiquidationPrice, leverageChanged]);
+
+  // Clear leverageChanged when the hook is done calculating, but enforce a
+  // minimum display time after user-initiated leverage changes.
+  //
+  // Why: usePerpsLiquidationPrice's debounce.cancel() only cancels the
+  // debounce timer, not in-flight async API calls. A stale call completing
+  // after a leverage change sets isCalculating = false with the old
+  // leverage's price still in hook state. Without the minimum time guard,
+  // the skeleton would disappear and show the stale price.
+  //
+  // By waiting at least debounceMs + buffer, we ensure the new debounced
+  // calculation has had time to fire and complete, so the first
+  // isCalculating = false we act on is from the correct leverage.
+  useEffect(() => {
+    if (!leverageChanged) return;
+
+    if (isCalculating) {
+      // A calculation is running — keep showing the skeleton.
+      return;
+    }
+
+    // isCalculating is false. Check if enough time has passed since the
+    // leverage change for this to be the *new* calculation's completion
+    // rather than a stale in-flight call.
+    const elapsed = Date.now() - leverageChangeTime.current;
+    const minSkeletonMs = PERFORMANCE_CONFIG.LiquidationPriceDebounceMs + 200;
+
+    if (leverageChangeTime.current > 0 && elapsed < minSkeletonMs) {
+      // Too soon — likely a stale completion. Keep the skeleton and
+      // schedule a deferred clear. If isCalculating goes back to true
+      // before the timer fires (new calculation started), the cleanup
+      // function cancels this timer and the effect re-runs.
+      const remaining = minSkeletonMs - elapsed;
+      const timer = setTimeout(() => {
+        setLeverageChanged(false);
+      }, remaining);
+      return () => clearTimeout(timer);
+    }
+
+    // Enough time has passed — safe to clear.
+    setLeverageChanged(false);
+  }, [isCalculating, leverageChanged]);
+
+  useEffect(() => {
+    if (!isVisible) {
       setTempLeverage(initialLeverage);
       setDraggingLeverage(initialLeverage);
       setIsDragging(false);
-      setShouldShowSkeleton(false);
+      setLeverageChanged(false);
+      lastValidLiquidationPrice.current = null;
+      leverageChangeTime.current = 0;
     }
   }, [isVisible, initialLeverage]);
 
@@ -408,6 +469,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         direction === 'long'
           ? PERPS_EVENT_VALUE.DIRECTION.LONG
           : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
     },
   });
 
@@ -462,6 +524,33 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     isDragging,
     draggingLeverage,
   ]);
+
+  // True when user changed leverage and the API hasn't returned fresh data yet.
+  // Used to render skeleton shimmer placeholders in the liquidation rows.
+  // The flag is checked FIRST so that the old API price (which persists in
+  // state until the debounced call completes) is never shown alongside
+  // the new leverage value.
+  const isRecalculating = leverageChanged;
+
+  // Resolve display values: prefer live API data, fall back to cached value.
+  //
+  // When recalculating after a leverage change, both values are null so the
+  // JSX renders skeleton placeholders instead of stale data.
+  //
+  // When the price is updating passively (market ticks, no leverage change),
+  // the cache is used as before to avoid skeleton blink.
+  const hasValidApiPrice =
+    !Number.isNaN(dynamicLiquidationPrice) && dynamicLiquidationPrice > 0;
+
+  const displayLiquidationPrice = isRecalculating
+    ? null // Show skeleton — old price is from previous leverage
+    : hasValidApiPrice
+      ? dynamicLiquidationPrice
+      : lastValidLiquidationPrice.current;
+
+  const displayLiquidationPercentage = isRecalculating
+    ? null // Show skeleton — percentage would be stale/mismatched
+    : `${liquidationDropPercentage.toFixed(1)}%`;
 
   // Generate dynamic leverage options based on maxLeverage
   const quickSelectValues = useMemo(() => {
@@ -527,21 +616,21 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         return {
           textStyle: styles.warningTextSafe,
           containerStyle: styles.warningContainerSafe,
-          iconColor: IconColor.Success,
+          iconColor: IconColor.SuccessDefault,
           priceColor: colors.text.alternative,
         };
       case 'caution':
         return {
           textStyle: styles.warningTextCaution,
           containerStyle: styles.warningContainerCaution,
-          iconColor: IconColor.Warning,
+          iconColor: IconColor.WarningDefault,
           priceColor: LEVERAGE_COLORS.CAUTION,
         };
       case 'medium':
         return {
           textStyle: styles.warningTextMedium,
           containerStyle: styles.warningContainerMedium,
-          iconColor: IconColor.Warning,
+          iconColor: IconColor.WarningDefault,
           priceColor: LEVERAGE_COLORS.MEDIUM,
         };
       case 'high':
@@ -549,7 +638,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         return {
           textStyle: styles.warningTextHigh,
           containerStyle: styles.warningContainerHigh,
-          iconColor: IconColor.Error,
+          iconColor: IconColor.ErrorDefault,
           priceColor: colors.error.default,
         };
     }
@@ -567,203 +656,233 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   const displayLeverage = isDragging ? draggingLeverage : tempLeverage;
 
-  const footerButtonProps = [
-    {
-      label: strings('perps.order.leverage_modal.set_leverage', {
-        leverage: displayLeverage,
-      }),
-      variant: ButtonVariants.Primary,
-      size: ButtonSize.Lg,
-      onPress: handleConfirm,
-    },
-  ];
+  // const footerButtonProps = [
+  //   {
+  //     label: strings('perps.order.leverage_modal.set_leverage', {
+  //       leverage: displayLeverage,
+  //     }),
+  //     variant: ButtonVariant.Primary,
+  //     size: ButtonSize.Lg,
+  //     onPress: handleConfirm,
+  //   },
+  // ];
 
   if (!isVisible) return null;
 
   return (
     <BottomSheet
       ref={bottomSheetRef}
-      shouldNavigateBack={false}
+      // shouldNavigateBack={false}
       onClose={onClose}
     >
       <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
           {strings('perps.order.leverage_modal.title')}
         </Text>
       </BottomSheetHeader>
 
-      <View style={styles.container}>
-        {/* Large leverage display */}
-        <View style={styles.leverageDisplay}>
-          <Text
-            variant={TextVariant.DisplayMD}
-            style={[styles.leverageText, getLeverageTextStyle()]}
-          >
-            {displayLeverage}x
-          </Text>
-        </View>
-
-        {/* Liquidation warning */}
-        <View style={[styles.warningContainer, warningStyles.containerStyle]}>
-          <Icon
-            name={IconName.Danger}
-            size={IconSize.Sm}
-            color={warningStyles.iconColor}
-            style={styles.warningIcon}
-          />
-          <View style={styles.warningTextContainer}>
+      <ScrollView
+        bounces={false}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.container}>
+          {/* Large leverage display */}
+          <View style={styles.leverageDisplay}>
             <Text
-              variant={TextVariant.BodySM}
-              style={[warningStyles.textStyle, styles.warningText]}
+              variant={TextVariant.DisplayLg}
+              fontWeight={FontWeight.Bold}
+              style={getLeverageTextStyle()}
             >
-              {shouldShowSkeleton || Number.isNaN(dynamicLiquidationPrice) ? (
-                <Skeleton height={16} width={200} />
-              ) : (
-                strings('perps.order.leverage_modal.liquidation_warning', {
-                  direction:
-                    direction === 'long'
-                      ? strings('perps.order.leverage_modal.drops')
-                      : strings('perps.order.leverage_modal.rises'),
-                  percentage: `${liquidationDropPercentage.toFixed(1)}%`,
-                })
-              )}
+              {displayLeverage}x
             </Text>
           </View>
-        </View>
 
-        {/* Price information */}
-        {currentPrice ? (
-          <View style={styles.priceInfoContainer}>
-            <View style={styles.priceRow}>
-              <Text
-                variant={TextVariant.BodyMD}
-                style={{ color: warningStyles.priceColor }}
-              >
-                {strings('perps.order.leverage_modal.liquidation_price')}
-              </Text>
-              <View style={styles.priceValueContainer}>
-                <Icon
-                  name={IconName.Danger}
-                  size={IconSize.Xs}
-                  color={warningStyles.priceColor}
-                  style={styles.priceIcon}
-                />
-                {shouldShowSkeleton || Number.isNaN(dynamicLiquidationPrice) ? (
-                  <Skeleton height={20} width={80} />
-                ) : (
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    style={{ color: warningStyles.priceColor }}
-                  >
-                    {formatPerpsFiat(dynamicLiquidationPrice, {
-                      ranges: PRICE_RANGES_UNIVERSAL,
-                    })}
-                  </Text>
-                )}
+          {/* Liquidation warning */}
+          <View style={[styles.warningContainer, warningStyles.containerStyle]}>
+            <Icon
+              name={IconName.Danger}
+              size={IconSize.Sm}
+              color={warningStyles.iconColor}
+              style={styles.warningIcon}
+            />
+            <View style={styles.warningTextContainer}>
+              {isRecalculating ? (
+                <Skeleton width="80%" height={14} />
+              ) : (
+                <Text
+                  variant={TextVariant.BodySm}
+                  style={[warningStyles.textStyle, styles.warningText]}
+                >
+                  {strings('perps.order.leverage_modal.liquidation_warning', {
+                    direction:
+                      direction === 'long'
+                        ? strings('perps.order.leverage_modal.drops')
+                        : strings('perps.order.leverage_modal.rises'),
+                    percentage: displayLiquidationPercentage ?? '--',
+                  })}
+                </Text>
+              )}
+            </View>
+          </View>
+
+          {/* Price information */}
+          {currentPrice ? (
+            <View style={styles.priceInfoContainer}>
+              <View style={styles.priceRow}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  style={{ color: warningStyles.priceColor }}
+                >
+                  {strings('perps.order.leverage_modal.liquidation_price')}
+                </Text>
+                <View style={styles.priceValueContainer}>
+                  {isRecalculating ? (
+                    <Skeleton width={80} height={16} />
+                  ) : (
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      style={{ color: warningStyles.priceColor }}
+                    >
+                      {displayLiquidationPrice
+                        ? formatPerpsFiat(displayLiquidationPrice, {
+                            ranges: PRICE_RANGES_UNIVERSAL,
+                          })
+                        : '--'}
+                    </Text>
+                  )}
+                </View>
+              </View>
+              <View style={styles.priceRow}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('perps.order.leverage_modal.current_price')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
+                  {formatPerpsFiat(currentPrice, {
+                    ranges: PRICE_RANGES_UNIVERSAL,
+                  })}
+                </Text>
               </View>
             </View>
-            <View style={styles.priceRow}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('perps.order.leverage_modal.current_price')}
+          ) : (
+            <View style={styles.priceInfoContainer}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                style={styles.emptyPriceInfo}
+              >
+                {strings('perps.order.leverage_modal.price_unavailable')}
               </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {formatPerpsFiat(currentPrice, {
-                  ranges: PRICE_RANGES_UNIVERSAL,
-                })}
+            </View>
+          )}
+
+          {/* Custom Leverage Slider */}
+          <View style={styles.sliderContainer}>
+            <LeverageSlider
+              value={isDragging ? draggingLeverage : tempLeverage}
+              onValueChange={(newValue) => {
+                if (isDragging) {
+                  setDraggingLeverage(newValue);
+                } else {
+                  setTempLeverage(newValue);
+                }
+              }}
+              onDragStart={() => {
+                setIsDragging(true);
+                setDraggingLeverage(tempLeverage);
+              }}
+              onDragEnd={(finalValue) => {
+                setIsDragging(false);
+                if (finalValue !== tempLeverage) {
+                  leverageChangeTime.current = Date.now();
+                  setLeverageChanged(true);
+                  lastValidLiquidationPrice.current = null;
+                }
+                setTempLeverage(finalValue);
+                setInputMethod('slider');
+              }}
+              minValue={minLeverage}
+              maxValue={maxLeverage}
+              colors={colors}
+              onInteraction={() => setInputMethod('slider')}
+            />
+            <View style={styles.sliderLabels}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {minLeverage}x
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {Math.floor((minLeverage + maxLeverage) / 2)}x
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {maxLeverage}x
               </Text>
             </View>
           </View>
-        ) : (
-          <View style={styles.priceInfoContainer}>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.emptyPriceInfo}
-            >
-              Price information unavailable
-            </Text>
-          </View>
-        )}
 
-        {/* Custom Leverage Slider */}
-        <View style={styles.sliderContainer}>
-          <LeverageSlider
-            value={isDragging ? draggingLeverage : tempLeverage}
-            onValueChange={(newValue) => {
-              setShouldShowSkeleton(true);
-
-              if (isDragging) {
-                setDraggingLeverage(newValue);
-              } else {
-                setTempLeverage(newValue);
-              }
-              setShouldShowSkeleton(true);
-            }}
-            onDragStart={() => {
-              setIsDragging(true);
-              setDraggingLeverage(tempLeverage);
-            }}
-            onDragEnd={(finalValue) => {
-              setIsDragging(false);
-              setTempLeverage(finalValue);
-              setInputMethod('slider');
-              if (tempLeverage === finalValue) {
-                setShouldShowSkeleton(false);
-              }
-            }}
-            minValue={minLeverage}
-            maxValue={maxLeverage}
-            colors={colors}
-            onInteraction={() => setInputMethod('slider')}
-          />
-          <View style={styles.sliderLabels}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {minLeverage}x
-            </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {Math.floor((minLeverage + maxLeverage) / 2)}x
-            </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {maxLeverage}x
-            </Text>
-          </View>
-        </View>
-
-        {/* Quick select buttons */}
-        <View style={styles.quickSelectButtons}>
-          {quickSelectValues.map((value) => (
-            <TouchableOpacity
-              key={value}
-              style={[
-                styles.quickSelectButton,
-                tempLeverage === value && styles.quickSelectButtonActive,
-              ]}
-              onPress={() => {
-                setIsDragging(false); // Ensure we're not in dragging state
-                setTempLeverage(value);
-                setInputMethod('preset');
-                // Add haptic feedback for quick select buttons
-                impactAsync(ImpactFeedbackStyle.Light);
-                if (value !== tempLeverage) {
-                  setShouldShowSkeleton(true);
-                }
-              }}
-            >
-              <Text
-                variant={TextVariant.BodyLGMedium}
-                color={
-                  tempLeverage === value ? TextColor.Inverse : TextColor.Default
-                }
-                style={styles.quickSelectText}
+          {/* Quick select buttons */}
+          <View style={styles.quickSelectButtons}>
+            {quickSelectValues.map((value) => (
+              <TouchableOpacity
+                key={value}
+                style={[
+                  styles.quickSelectButton,
+                  tempLeverage === value && styles.quickSelectButtonActive,
+                ]}
+                onPress={() => {
+                  setIsDragging(false); // Ensure we're not in dragging state
+                  if (value !== tempLeverage) {
+                    leverageChangeTime.current = Date.now();
+                    setLeverageChanged(true);
+                    lastValidLiquidationPrice.current = null;
+                  }
+                  setTempLeverage(value);
+                  setInputMethod('preset');
+                  // Add haptic feedback for quick select buttons
+                  playSelection();
+                }}
               >
-                {value}x
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={
+                    tempLeverage === value
+                      ? TextColor.PrimaryInverse
+                      : TextColor.TextDefault
+                  }
+                  style={styles.quickSelectText}
+                >
+                  {value}x
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-      </View>
+      </ScrollView>
 
-      <BottomSheetFooter buttonPropsArray={footerButtonProps} />
+      <BottomSheetFooter
+        primaryButtonProps={{
+          size: ButtonSize.Lg,
+          onPress: handleConfirm,
+          children: strings('perps.order.leverage_modal.set_leverage', {
+            leverage: displayLeverage,
+          }),
+          style: styles.footerButtonContainer,
+        }}
+      />
     </BottomSheet>
   );
 };

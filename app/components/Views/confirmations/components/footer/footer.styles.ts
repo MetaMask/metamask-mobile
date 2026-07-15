@@ -30,7 +30,6 @@ const styleSheet = (params: {
   };
 }) => {
   const {
-    theme: { colors },
     vars: { isStakingConfirmationBool, isFullScreenConfirmation },
   } = params;
 
@@ -42,7 +41,6 @@ const styleSheet = (params: {
       );
 
   const baseFooterStyle = {
-    backgroundColor: colors.background.alternative,
     paddingHorizontal: 16,
     paddingTop: 16,
   };
@@ -72,7 +70,7 @@ const styleSheet = (params: {
     },
     footerButtonSkeleton: {
       flex: 1,
-      borderRadius: 99,
+      borderRadius: 12,
     },
   });
 };

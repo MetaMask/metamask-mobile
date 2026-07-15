@@ -1,39 +1,49 @@
-import React, { useCallback, useLayoutEffect, useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import React, { useCallback, useLayoutEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
-import Text from '../../../component-library/components/Texts/Text';
-import {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text/Text.types';
 import {
   CommonActions,
+  RouteProp,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-import { useTheme } from '../../../util/theme';
 import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
 
-import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
-import createStyles from './index.styles';
 import OnboardingSuccessEndAnimation from './OnboardingSuccessEndAnimation/index';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
-
-import Engine from '../../../core/Engine/Engine';
-import { isMultichainAccountsState2Enabled } from '../../../multichain-accounts/remote-feature-flag';
-import { discoverAccounts } from '../../../multichain-accounts/discovery';
+import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
+import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
+import {
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontFamily,
+  FontWeight,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
   routes: [{ name: 'HomeNav' }],
 });
+
+interface OnboardingSuccessRouteParams {
+  successFlow?: ONBOARDING_SUCCESS_FLOW;
+}
+
+interface OnboardingSuccessParamList {
+  OnboardingSuccess: OnboardingSuccessRouteParams;
+  [key: string]: object | undefined;
+}
 
 interface OnboardingSuccessProps {
   onDone: () => void;
@@ -45,9 +55,16 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   successFlow,
 }) => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const accountType = useSelector(selectOnboardingAccountType);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
+  const walletSetupAttributionProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
+  );
 
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const tw = useTailwind();
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -56,26 +73,30 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   }, [navigation]);
 
   const goToDefaultSettings = () => {
-    navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
-      screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
-    });
+    navigation.navigate(Routes.ONBOARDING.DEFAULT_SETTINGS);
   };
 
   const handleOnDone = useCallback(() => {
-    const onOnboardingSuccess = async () => {
-      // We're not running EVM discovery on its own if state 2 is enabled. The discovery
-      // will be run on every account providers (EVM included) prior to that point.
-      if (isMultichainAccountsState2Enabled()) {
-        await discoverAccounts(
-          Engine.context.KeyringController.state.keyrings[0].metadata.id,
-        );
-      } else {
-        await importAdditionalAccounts();
-      }
-    };
-    onOnboardingSuccess();
-    onDone();
-  }, [onDone]);
+    finalizeOnboardingCompletion({
+      successFlow,
+      accountType,
+      isBasicFunctionalityEnabled,
+      walletSetupAttributionProps,
+      dispatch,
+      discoverAccountsLogContext: 'OnboardingSuccess',
+    });
+
+    queueMicrotask(() => {
+      onDone();
+    });
+  }, [
+    accountType,
+    dispatch,
+    isBasicFunctionalityEnabled,
+    onDone,
+    successFlow,
+    walletSetupAttributionProps,
+  ]);
 
   const getTitleString = () => {
     if (successFlow === ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP) {
@@ -91,61 +112,77 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
           // No-op: Animation completion not needed in success mode
         }}
       />
-      <Text variant={TextVariant.DisplayMD} style={styles.textTitle}>
+      <Text
+        variant={TextVariant.DisplayMd}
+        fontFamily={FontFamily.Accent}
+        fontWeight={FontWeight.Regular}
+        style={tw.style('mt-6 mb-4 mx-4 text-center', {
+          fontWeight: '400',
+        })}
+      >
         {getTitleString()}
       </Text>
     </>
   );
 
   const renderFooter = () => {
-    // Hide default settings for settings backup flow
     if (successFlow === ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP) {
       return null;
     }
 
     return (
-      <TouchableOpacity
+      <Button
         onPress={goToDefaultSettings}
         testID={OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON}
-        style={styles.footerLink}
+        variant={ButtonVariant.Tertiary}
+        size={ButtonSize.Lg}
+        isFullWidth
       >
-        <Text color={TextColor.Info} variant={TextVariant.BodyMDMedium}>
-          {strings('onboarding_success.manage_default_settings')}
-        </Text>
-      </TouchableOpacity>
+        {strings('onboarding_success.manage_default_settings')}
+      </Button>
     );
   };
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
-      <View
-        style={styles.container}
+    <Box twClassName="flex-1 bg-default">
+      <Box
+        twClassName="flex-1 px-4"
         testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
       >
-        <View style={styles.animationSection}>{renderContent()}</View>
+        <Box
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="flex-1"
+        >
+          {renderContent()}
+        </Box>
 
-        <View style={styles.buttonSection}>
+        <SafeAreaView
+          edges={['top', 'left', 'right', 'bottom']}
+          style={tw.style('items-center pb-1 gap-y-3')}
+        >
           <Button
             testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
-            label={strings('onboarding_success.done')}
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             onPress={handleOnDone}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-          />
+            isFullWidth
+          >
+            {strings('onboarding_success.done')}
+          </Button>
           {renderFooter()}
-        </View>
-      </View>
-    </SafeAreaView>
+        </SafeAreaView>
+      </Box>
+    </Box>
   );
 };
 
 export const OnboardingSuccess = () => {
   const navigation = useNavigation();
-  const route = useRoute();
-  const params = route.params as { successFlow: ONBOARDING_SUCCESS_FLOW };
-
-  const successFlow = params?.successFlow;
+  const route =
+    useRoute<RouteProp<OnboardingSuccessParamList, 'OnboardingSuccess'>>();
+  const successFlow =
+    route?.params?.successFlow ?? ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP;
   const nextScreen = ResetNavigationToHome;
 
   return (

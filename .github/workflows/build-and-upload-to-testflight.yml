@@ -1,0 +1,103 @@
+name: Build and upload to TestFlight
+
+# Summary metadata is passed from build.yml outputs (no second checkout for version parsing).
+#
+on:
+  workflow_call:
+    inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: true
+        type: string
+      environment:
+        description: 'Build environment / track (exp, beta, rc)'
+        required: true
+        type: string
+      testflight_group:
+        description: 'TestFlight external testing group'
+        required: false
+        type: string
+        default: 'MetaMask BETA & Release Candidates'
+      distribute_external:
+        description: 'Whether to distribute to external testers. (default: true)'
+        required: false
+        type: boolean
+        default: true
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: true
+        type: string
+        default: 'main'
+      environment:
+        description: 'Build environment / track'
+        required: true
+        type: choice
+        options:
+          - exp
+          - beta
+          - rc
+        default: rc
+      testflight_group:
+        description: 'TestFlight external testing group'
+        required: true
+        type: choice
+        default: 'MetaMask BETA & Release Candidates'
+        options:
+          - 'MetaMask BETA & Release Candidates'
+          - 'MM Card Team'
+          - 'Ramp Provider Testing'
+      distribute_external:
+        description: 'Whether to distribute to external testers (default: true)'
+        required: false
+        type: boolean
+        default: true
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: false
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  generate-build-version:
+    uses: ./.github/workflows/generate-build-version.yml
+
+  build:
+    name: Build iOS (${{ inputs.environment }})
+    needs: [generate-build-version]
+    uses: ./.github/workflows/build.yml
+    with:
+      build_name: main-${{ inputs.environment }}
+      platform: ios
+      source_branch: ${{ inputs.source_branch }}
+      build_number: ${{ needs.generate-build-version.outputs.build-version }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  upload-ios-testflight:
+    needs: [build]
+    uses: ./.github/workflows/upload-to-testflight.yml
+    with:
+      environment: ${{ inputs.environment }}
+      testflight_group: ${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }}
+      source_branch: ${{ inputs.source_branch }}
+      build_name: main-${{ inputs.environment }}
+      build_commit_sha: ${{ needs.build.outputs.built_commit_sha }}
+      build_version: ${{ needs.build.outputs.semantic_version }}
+      build_number: ${{ needs.build.outputs.ios_version_code }}
+      distribute_external: ${{ inputs.distribute_external }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit

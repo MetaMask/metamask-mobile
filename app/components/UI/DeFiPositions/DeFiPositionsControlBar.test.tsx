@@ -21,6 +21,7 @@ jest.mock('../../../selectors/networkController', () => ({
   selectIsAllNetworks: () => false,
   selectIsPopularNetwork: () => true,
   selectChainId: () => '0x1',
+  selectNetworkConfigurations: () => ({}),
   selectPopularNetworkConfigurationsByCaipChainId: () => ({
     '0x1': {
       chainId: '0x1',
@@ -99,6 +100,20 @@ jest.mock('../NetworkManager', () => ({
 
 jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest.fn(() => () => null),
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    NetworkEnablementController: {
+      listPopularEvmNetworks: jest.fn(() => ['0x1']),
+      listPopularMultichainNetworks: jest.fn(() => []),
+      listPopularNetworks: jest.fn(() => []),
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
+      enableNetworkInNamespace: jest.fn(),
+      enableAllPopularNetworks: jest.fn(),
+    },
+  },
 }));
 
 const mockStore = configureMockStore();
@@ -256,7 +271,7 @@ describe('DeFiPositionsControlBar', () => {
     );
   });
 
-  it('should be disabled when on testnet', () => {
+  it('is not disabled on testnet', () => {
     const networksModule = jest.requireMock('../../../util/networks');
     networksModule.isTestNet.mockReturnValue(true);
 
@@ -287,18 +302,16 @@ describe('DeFiPositionsControlBar', () => {
       </Provider>,
     );
 
-    const filterButton = getByTestId('defi-positions-network-filter');
-    expect(filterButton.props.disabled).toBe(true);
+    expect(getByTestId('defi-positions-network-filter')).not.toBeDisabled();
   });
 
-  it('should be disabled when not on popular network', () => {
+  it('is not disabled when not on popular network', () => {
     const networkControllerModule = jest.requireMock(
       '../../../selectors/networkController',
     );
     networkControllerModule.selectIsPopularNetwork = () => false;
 
-    const mockState = createMockState();
-    store = mockStore(mockState);
+    store = mockStore(createMockState());
 
     const { getByTestId } = render(
       <Provider store={store}>
@@ -306,8 +319,7 @@ describe('DeFiPositionsControlBar', () => {
       </Provider>,
     );
 
-    const filterButton = getByTestId('defi-positions-network-filter');
-    expect(filterButton.props.disabled).toBe(true);
+    expect(getByTestId('defi-positions-network-filter')).not.toBeDisabled();
   });
 
   it('should render sort button with filter icon', () => {

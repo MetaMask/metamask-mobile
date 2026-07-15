@@ -8,22 +8,21 @@ import {
   Dimensions,
 } from 'react-native';
 import {
+  Icon,
+  IconColor,
   IconColor as ReactNativeDsIconColor,
+  IconName,
+  IconSize,
   IconSize as ReactNativeDsIconSize,
+  Spinner,
 } from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
-import { WebSocketConnectionState } from '../../controllers/types';
+import { WebSocketConnectionState } from '@metamask/perps-controller';
 import { PerpsWebSocketHealthToastSelectorsIDs } from '../../Perps.testIds';
 import toastStyleSheet from './PerpsWebSocketHealthToast.styles';
 import { useWebSocketHealthToastContext } from './PerpsWebSocketHealthToast.context';
@@ -128,7 +127,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
           description: strings(
             'perps.connection.websocket_disconnected_message',
           ),
-          iconColor: IconColor.Error,
+          iconColor: IconColor.ErrorDefault,
           showSpinner: false,
         };
 
@@ -141,7 +140,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
               attempt: reconnectionAttempt,
             },
           ),
-          iconColor: IconColor.Warning,
+          iconColor: IconColor.WarningDefault,
           showSpinner: false,
         };
 
@@ -149,7 +148,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
         return {
           title: strings('perps.connection.websocket_connected'),
           description: strings('perps.connection.websocket_connected_message'),
-          iconColor: IconColor.Success,
+          iconColor: IconColor.SuccessDefault,
           showSpinner: false,
         };
 

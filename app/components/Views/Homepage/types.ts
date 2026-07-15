@@ -1,0 +1,25 @@
+/**
+ * Handle for section components that support refresh functionality
+ */
+export interface SectionRefreshHandle {
+  refresh: () => Promise<void>;
+}
+
+/** Imperative handle for HomepageDiscoveryTabs (refresh + deeplink tab selection). */
+export interface HomepageDiscoveryTabsHandle extends SectionRefreshHandle {
+  goToPerpsTab: () => void;
+}
+
+/**
+ * Rendering mode for homepage sections that have both positions and trending content.
+ *
+ * - 'default': current behavior — shows positions, falls back to trending/popular when empty
+ * - 'positions-only': shows only positions, returns null when empty
+ * - 'trending-only': always shows trending/popular content, ignores positions
+ * - 'sports': shows sports prediction markets with sport-type chips (Soccer, Basketball, Tennis, World Cup)
+ */
+export type HomeSectionMode =
+  | 'default'
+  | 'positions-only'
+  | 'trending-only'
+  | 'sports';

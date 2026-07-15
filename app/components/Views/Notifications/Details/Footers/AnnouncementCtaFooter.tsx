@@ -1,15 +1,13 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import { ModalFooterAnnouncementCta } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import useStyles from '../useStyles';
 import SharedDeeplinkManager from '../../../../../core/DeeplinkManager/DeeplinkManager';
 import AppConstants from '../../../../../core/AppConstants';
 import Logger from '../../../../../util/Logger';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 type AnnouncementCtaFooterProps = ModalFooterAnnouncementCta;
 
@@ -17,7 +15,7 @@ export default function AnnouncementCtaFooter(
   props: AnnouncementCtaFooterProps,
 ) {
   const { styles } = useStyles();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const callEvent = () => {
     trackEvent(
@@ -65,14 +63,15 @@ export default function AnnouncementCtaFooter(
 
   return (
     <Button
-      variant={ButtonVariants.Primary}
-      width={ButtonWidthTypes.Full}
-      label={linkConfig.label}
+      variant={ButtonVariant.Primary}
+      isFullWidth
       style={styles.ctaBtn}
       onPress={() => {
         callEvent();
         linkConfig.onPress();
       }}
-    />
+    >
+      {linkConfig.label}
+    </Button>
   );
 }

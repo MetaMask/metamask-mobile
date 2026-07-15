@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa/index';
-import { BridgeToken } from '../types';
 import { useSelector } from 'react-redux';
-import { TrendingAsset } from '@metamask/assets-controllers';
+import { BridgeToken } from '../types';
+import { isStockRwaBridgeToken } from '../utils/isStockRwaBridgeToken';
 
 export type DateLike = string | null | undefined | Date;
 
@@ -20,16 +20,15 @@ export function useRWAToken() {
   // To be removed once `isOpen` flag is also available from token API
   /**
    * Checks if the token is trading open
-   * @param token - The token to check
    * @returns {boolean} - True if the token is trading open, false otherwise
    */
   const isTokenTradingOpen = useCallback(
-    async (token: BridgeToken) => {
-      if (!isRWAEnabled || !token.rwaData) {
+    (token?: BridgeToken) => {
+      if (!isRWAEnabled || !token?.rwaData) {
         return true;
       }
-      const nextOpenMs = toMs(token.rwaData?.market?.nextOpen);
-      const nextCloseMs = toMs(token.rwaData?.market?.nextClose);
+      const nextOpenMs = toMs(token?.rwaData?.market?.nextOpen);
+      const nextCloseMs = toMs(token?.rwaData?.market?.nextClose);
       if (nextOpenMs == null || nextCloseMs == null) return false;
 
       const nowMs = new Date().getTime();
@@ -41,8 +40,8 @@ export function useRWAToken() {
         marketIsOpen = nowMs < nextCloseMs || nowMs >= nextOpenMs;
       }
 
-      const pauseStartMs = toMs(token.rwaData?.nextPause?.start);
-      const pauseEndMs = toMs(token.rwaData?.nextPause?.end);
+      const pauseStartMs = toMs(token?.rwaData?.nextPause?.start);
+      const pauseEndMs = toMs(token?.rwaData?.nextPause?.end);
 
       const inPause =
         (pauseStartMs != null &&
@@ -60,14 +59,7 @@ export function useRWAToken() {
    * @returns {boolean} - True if the token is a stock token, false otherwise
    */
   const isStockToken = useCallback(
-    (token: BridgeToken | TrendingAsset) => {
-      // If RWA is not enabled, always return false
-      if (!isRWAEnabled) {
-        return false;
-      }
-
-      return Boolean(token.rwaData?.instrumentType === 'stock');
-    },
+    (token?: BridgeToken) => isStockRwaBridgeToken(token, isRWAEnabled),
     [isRWAEnabled],
   );
 

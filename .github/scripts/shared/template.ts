@@ -1,3 +1,5 @@
+import { PR_TEMPLATE_SECTIONS } from './pr-template-checks';
+
 interface Template {
   titles: string[];
 }
@@ -27,24 +29,12 @@ const bugReportIssueTemplateTitles = [
   '### Expected behavior',
   '### Screenshots', // TODO: replace '### Screenshots' by '### Screenshots/Recordings' in January 2024 (as most issues will meet this criteria by then)
   '### Steps to reproduce',
-  '### Error messages or log output',
   '### Version',
   '### Build type',
   '### Device',
   '### Operating system',
   '### Additional context',
   '### Severity',
-];
-
-// Titles of PR template
-const prTemplateTitles = [
-  '## **Description**',
-  '## **Changelog**',
-  '## **Related issues**',
-  '## **Manual testing steps**',
-  '## **Screenshots/Recordings**',
-  '## **Pre-merge author checklist**',
-  '## **Pre-merge reviewer checklist**',
 ];
 
 export const templates = new Map<TemplateType, Template>([
@@ -63,7 +53,7 @@ export const templates = new Map<TemplateType, Template>([
   [
     TemplateType.PullRequest,
     {
-      titles: prTemplateTitles,
+      titles: PR_TEMPLATE_SECTIONS,
     },
   ],
 ]);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import EarnLendingDepositConfirmationView from '../../Earn/Views/EarnLendingDepositConfirmationView';
 import EarnLendingWithdrawalConfirmationView from '../Views/EarnLendingWithdrawalConfirmationView';
@@ -8,35 +8,33 @@ import EarnLendingMaxWithdrawalModal from '../modals/LendingMaxWithdrawalModal';
 import LendingLearnMoreModal from '../LendingLearnMoreModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../../constants/navigation/clearStackNavigatorOptions';
 
-const Stack = createStackNavigator();
-const ModalStack = createStackNavigator();
-
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
+const Stack = createNativeStackNavigator();
+const ModalStack = createNativeStackNavigator();
 
 const EarnScreenStack = () => {
   const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
 
   return (
-    <Stack.Navigator headerMode="screen">
+    <Stack.Navigator screenOptions={transparentModalScreenOptions}>
       <Stack.Screen
         name={Routes.EARN.LENDING_DEPOSIT_CONFIRMATION}
         component={EarnLendingDepositConfirmationView}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.EARN.LENDING_WITHDRAWAL_CONFIRMATION}
         component={EarnLendingWithdrawalConfirmationView}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
         component={Confirm}
-        options={emptyNavHeaderOptions}
+        options={{ ...emptyNavHeaderOptions, presentation: 'card' }}
       />
       <Stack.Screen
         name={Routes.EARN.MUSD.CONVERSION_EDUCATION}
@@ -48,7 +46,12 @@ const EarnScreenStack = () => {
 };
 
 const EarnModalStack = () => (
-  <ModalStack.Navigator mode="modal" screenOptions={clearStackNavigatorOptions}>
+  <ModalStack.Navigator
+    screenOptions={{
+      ...clearNativeStackNavigatorOptions,
+      ...transparentModalScreenOptions,
+    }}
+  >
     <ModalStack.Screen
       name={Routes.EARN.MODALS.LENDING_MAX_WITHDRAWAL}
       component={EarnLendingMaxWithdrawalModal}
@@ -57,6 +60,11 @@ const EarnModalStack = () => (
     <ModalStack.Screen
       name={Routes.EARN.MODALS.LENDING_LEARN_MORE}
       component={LendingLearnMoreModal}
+      options={{ headerShown: false }}
+    />
+    <ModalStack.Screen
+      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+      component={Confirm}
       options={{ headerShown: false }}
     />
   </ModalStack.Navigator>

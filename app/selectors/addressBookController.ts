@@ -10,7 +10,7 @@ export const selectAddressBookControllerState = (state: RootState) =>
 export const selectAddressBook = createSelector(
   selectAddressBookControllerState,
   (addressBookControllerState: AddressBookControllerState) =>
-    addressBookControllerState.addressBook,
+    addressBookControllerState?.addressBook ?? {},
 );
 
 export const selectAddressBookByChain = createDeepEqualSelector(

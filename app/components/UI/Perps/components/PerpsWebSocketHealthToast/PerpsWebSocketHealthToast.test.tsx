@@ -5,7 +5,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import PerpsWebSocketHealthToast from './PerpsWebSocketHealthToast';
-import { WebSocketConnectionState } from '../../controllers/types';
+import { WebSocketConnectionState } from '@metamask/perps-controller';
 import { PerpsWebSocketHealthToastSelectorsIDs } from '../../Perps.testIds';
 
 // Mock dependencies
@@ -41,16 +41,9 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
   IconColor: { Error: 'Error', Warning: 'Warning', Success: 'Success' },
 }));
 
-jest.mock(
-  '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs',
-  () => ({
-    Spinner: () => null,
-  }),
-);
-
 jest.mock('@metamask/design-system-react-native', () => ({
-  IconColor: { PrimaryDefault: 'PrimaryDefault' },
-  IconSize: { Md: 'Md' },
+  ...jest.requireActual('@metamask/design-system-react-native'),
+  Spinner: () => null,
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({

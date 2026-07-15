@@ -3,6 +3,7 @@ import {
   hasMinimumRequiredVersion,
   validatedVersionGatedFeatureFlag,
   isVersionGatedFeatureFlag,
+  parseBlockedCountriesEnv,
   VersionGatedFeatureFlag,
 } from '.';
 
@@ -16,6 +17,52 @@ jest.mock(
     isRemoteFeatureFlagOverrideActivated: false,
   }),
 );
+
+describe('parseBlockedCountriesEnv', () => {
+  it('returns empty array for undefined input', () => {
+    expect(parseBlockedCountriesEnv(undefined)).toEqual([]);
+  });
+
+  it('returns empty array for empty string', () => {
+    expect(parseBlockedCountriesEnv('')).toEqual([]);
+  });
+
+  it('returns empty array for whitespace-only string', () => {
+    expect(parseBlockedCountriesEnv('   ')).toEqual([]);
+  });
+
+  it('parses single country code', () => {
+    expect(parseBlockedCountriesEnv('GB')).toEqual(['GB']);
+  });
+
+  it('parses comma-separated country codes', () => {
+    expect(parseBlockedCountriesEnv('GB,US,FR')).toEqual(['GB', 'US', 'FR']);
+  });
+
+  it('trims whitespace around country codes', () => {
+    expect(parseBlockedCountriesEnv('GB , US , FR')).toEqual([
+      'GB',
+      'US',
+      'FR',
+    ]);
+  });
+
+  it('converts country codes to uppercase', () => {
+    expect(parseBlockedCountriesEnv('gb,us,fr')).toEqual(['GB', 'US', 'FR']);
+  });
+
+  it('filters out empty entries', () => {
+    expect(parseBlockedCountriesEnv('GB,,US,')).toEqual(['GB', 'US']);
+  });
+
+  it('handles mixed case and whitespace', () => {
+    expect(parseBlockedCountriesEnv(' gb , Us, FR ')).toEqual([
+      'GB',
+      'US',
+      'FR',
+    ]);
+  });
+});
 
 describe('isVersionGatedFeatureFlag', () => {
   it('returns true for valid VersionGatedFeatureFlag', () => {
@@ -210,6 +257,18 @@ describe('validatedVersionGatedFeatureFlag', () => {
       expect(result).toBe(true);
     });
 
+    it('returns true when flag is wrapped in a value property and version check passes', () => {
+      const wrappedFlag = {
+        value: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      };
+
+      const result = validatedVersionGatedFeatureFlag(wrappedFlag);
+      expect(result).toBe(true);
+    });
+
     it('returns false when flag is enabled but version check fails', () => {
       const flagWithHigherVersion: VersionGatedFeatureFlag = {
         enabled: true,
@@ -219,8 +278,32 @@ describe('validatedVersionGatedFeatureFlag', () => {
       expect(result).toBe(false);
     });
 
+    it('returns false when wrapped flag is enabled but version check fails', () => {
+      const wrappedFlag = {
+        value: {
+          enabled: true,
+          minimumVersion: '99.0.0',
+        },
+      };
+
+      const result = validatedVersionGatedFeatureFlag(wrappedFlag);
+      expect(result).toBe(false);
+    });
+
     it('returns false when flag is disabled regardless of version', () => {
       const result = validatedVersionGatedFeatureFlag(validDisabledFlag);
+      expect(result).toBe(false);
+    });
+
+    it('returns false when wrapped flag is disabled regardless of version', () => {
+      const wrappedFlag = {
+        value: {
+          enabled: false,
+          minimumVersion: '1.0.0',
+        },
+      };
+
+      const result = validatedVersionGatedFeatureFlag(wrappedFlag);
       expect(result).toBe(false);
     });
 
@@ -269,6 +352,27 @@ describe('validatedVersionGatedFeatureFlag', () => {
       const result = validatedVersionGatedFeatureFlag(
         undefined as unknown as VersionGatedFeatureFlag,
       );
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when flag is wrapped but value is malformed', () => {
+      const wrappedMalformedFlag = {
+        value: {
+          enabled: 'true',
+          minimumVersion: '1.0.0',
+        },
+      };
+
+      const result = validatedVersionGatedFeatureFlag(wrappedMalformedFlag);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when flag is wrapped but value is missing', () => {
+      const wrappedMissingValueFlag = {
+        value: undefined,
+      };
+
+      const result = validatedVersionGatedFeatureFlag(wrappedMissingValueFlag);
       expect(result).toBeUndefined();
     });
 

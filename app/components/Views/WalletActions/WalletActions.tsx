@@ -21,7 +21,7 @@ import { WalletActionsBottomSheetSelectorsIDs } from './WalletActionsBottomSheet
 
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 import {
@@ -29,7 +29,7 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../UI/Earn/selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
-import { PERPS_EVENT_VALUE } from '../../UI/Perps/constants/eventNames';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
@@ -60,7 +60,7 @@ const WalletActions = () => {
   );
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,

@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { NotificationFeedbackType } from 'expo-haptics';
+import { NotificationMoment } from '../../../../../util/haptics';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -26,16 +26,16 @@ import usePerpsToasts, {
 } from '../../hooks/usePerpsToasts';
 import { createStyles } from './PerpsCancelAllOrdersView.styles';
 import { useTheme } from '../../../../../util/theme';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
-import type { CancelOrdersResult } from '../../controllers/types';
+  type CancelOrdersResult,
+} from '@metamask/perps-controller';
 
 interface PerpsCancelAllOrdersViewProps {
-  sheetRef?: React.RefObject<BottomSheetRef>;
+  sheetRef?: React.RefObject<BottomSheetRef | null>;
   onClose?: () => void;
 }
 
@@ -64,6 +64,8 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.CANCEL_ALL_ORDERS,
       [PERPS_EVENT_PROPERTY.OPEN_POSITION]: orders?.length || 0,
+      [PERPS_EVENT_PROPERTY.SOURCE]:
+        PERPS_EVENT_VALUE.SOURCE.CANCEL_ALL_ORDERS_BUTTON,
     },
   });
 
@@ -75,7 +77,7 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
         iconName: IconName.CheckBold,
         backgroundColor: theme.colors.accent03.normal,
         iconColor: theme.colors.accent03.dark,
-        hapticsType: NotificationFeedbackType.Success,
+        hapticsType: NotificationMoment.Success,
         hasNoTimeout: false,
         labelOptions: message
           ? [
@@ -98,7 +100,7 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
         iconName: IconName.Warning,
         backgroundColor: theme.colors.accent01.light,
         iconColor: theme.colors.accent01.dark,
-        hapticsType: NotificationFeedbackType.Error,
+        hapticsType: NotificationMoment.Error,
         hasNoTimeout: false,
         labelOptions: message
           ? [

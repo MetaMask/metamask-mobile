@@ -1,13 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import Text, {
+import {
+  HeaderStandard,
+  Button,
+  ButtonVariant,
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import { TextVariant as TextVariantLegacy } from '../../../../../component-library/components/Texts/Text';
 import ScreenView from '../../../../Base/ScreenView';
-import { Box } from '../../../Box/Box';
-import { FlexDirection, AlignItems } from '../../../Box/box.types';
-import { getBridgeTransactionDetailsNavbar } from '../../../Navbar';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import {
   TransactionMeta,
@@ -20,29 +26,39 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import TransactionAsset from './TransactionAsset';
+import { BatchSell7702TransactionAssets } from './BatchSell7702TransactionAssets';
 import { calcTokenAmount } from '../../../../../util/transactions';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './BridgeStepList';
-import Button, {
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BridgeToken } from '../../types';
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
-  getNativeAssetForChainId,
   isNonEvmChainId,
   StatusTypes,
+  AllowedBridgeChainIds,
 } from '@metamask/bridge-controller';
 import { Transaction } from '@metamask/keyring-api';
 import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionDisplay/useMultichainTransactionDisplay';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
 import { StatusResponse } from '@metamask/bridge-status-controller';
 import { toDateFormat } from '../../../../../util/date';
+import TagColored, {
+  TagColor,
+} from '../../../../../component-library/components-temp/TagColored';
 // import { renderShortAddress } from '../../../../../util/address';
+import { isHardwareAccount } from '../../../../../util/address';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+import { isTransactionMarkedAsGasFeeSponsored } from '../../../../Views/confirmations/utils/transaction';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import AvatarNetwork from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import { useNativeCurrencySymbol } from '../../../../Views/confirmations/hooks/useNativeCurrencySymbol';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -88,6 +104,10 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 2,
   },
+  paidByMetaMask: {
+    height: undefined,
+    paddingVertical: 2,
+  },
 });
 
 interface BridgeTransactionDetailsProps {
@@ -99,31 +119,49 @@ interface BridgeTransactionDetailsProps {
   };
 }
 
+const PaidByMetaMask = () => (
+  <TagColored
+    color={TagColor.Success}
+    style={styles.paidByMetaMask}
+    labelProps={{
+      variant: TextVariantLegacy.BodySM,
+      style: {
+        textTransform: 'none',
+        textAlign: 'center',
+        fontWeight: 'normal',
+      },
+      testID: 'paid-by-metamask',
+    }}
+  >
+    {strings('transactions.paid_by_metamask')}
+  </TagColored>
+);
+
 const BridgeStatusToColorMap: Record<StatusTypes, TextColor> = {
-  [StatusTypes.PENDING]: TextColor.Warning,
-  [StatusTypes.COMPLETE]: TextColor.Success,
-  [StatusTypes.FAILED]: TextColor.Error,
-  [StatusTypes.UNKNOWN]: TextColor.Error,
-  [StatusTypes.SUBMITTED]: TextColor.Warning,
+  [StatusTypes.PENDING]: TextColor.WarningDefault,
+  [StatusTypes.COMPLETE]: TextColor.SuccessDefault,
+  [StatusTypes.FAILED]: TextColor.ErrorDefault,
+  [StatusTypes.UNKNOWN]: TextColor.ErrorDefault,
+  [StatusTypes.SUBMITTED]: TextColor.WarningDefault,
 };
 
 const SwapStatusToColorMap: Record<TransactionStatus, TextColor> = {
-  [TransactionStatus.submitted]: TextColor.Warning,
-  [TransactionStatus.confirmed]: TextColor.Success,
-  [TransactionStatus.failed]: TextColor.Error,
-  [TransactionStatus.unapproved]: TextColor.Warning,
-  [TransactionStatus.approved]: TextColor.Warning,
-  [TransactionStatus.signed]: TextColor.Warning,
-  [TransactionStatus.dropped]: TextColor.Error,
-  [TransactionStatus.rejected]: TextColor.Error,
-  [TransactionStatus.cancelled]: TextColor.Error,
+  [TransactionStatus.submitted]: TextColor.WarningDefault,
+  [TransactionStatus.confirmed]: TextColor.SuccessDefault,
+  [TransactionStatus.failed]: TextColor.ErrorDefault,
+  [TransactionStatus.unapproved]: TextColor.WarningDefault,
+  [TransactionStatus.approved]: TextColor.WarningDefault,
+  [TransactionStatus.signed]: TextColor.WarningDefault,
+  [TransactionStatus.dropped]: TextColor.ErrorDefault,
+  [TransactionStatus.rejected]: TextColor.ErrorDefault,
+  [TransactionStatus.cancelled]: TextColor.ErrorDefault,
 };
 
 const MultichainTxStatusToColorMap: Record<Transaction['status'], TextColor> = {
-  submitted: TextColor.Warning,
-  confirmed: TextColor.Success,
-  unconfirmed: TextColor.Warning,
-  failed: TextColor.Error,
+  submitted: TextColor.WarningDefault,
+  confirmed: TextColor.SuccessDefault,
+  unconfirmed: TextColor.WarningDefault,
+  failed: TextColor.ErrorDefault,
 };
 
 const getStatusColor = ({
@@ -149,22 +187,42 @@ const getStatusColor = ({
     return MultichainTxStatusToColorMap[multiChainTx.status];
   }
 
-  return TextColor.Error;
+  return TextColor.ErrorDefault;
 };
 
 export const BridgeTransactionDetails = (
   props: BridgeTransactionDetailsProps,
 ) => {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const evmTxMeta = props.route.params.evmTxMeta;
   const multiChainTx = props.route.params.multiChainTx;
 
-  const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
-    evmTxMeta,
-    multiChainTx,
-  });
+  const fromAddress = evmTxMeta?.txParams?.from;
+  // isGasFeeSponsored is set on tx submission and only cleared in the confirm
+  // callback, which never runs when a HW wallet user rejects signing.
+  // Guard against showing "Paid by MetaMask" on stale sponsored state.
+  const isHardwareWallet = Boolean(
+    fromAddress && isHardwareAccount(fromAddress),
+  );
 
+  const { bridgeTxHistoryItem, batchSellHistoryItems, is7702Batch } =
+    useBridgeTxHistoryData({
+      evmTxMeta,
+      multiChainTx,
+    });
+
+  const sourceChainId = useMemo(() => {
+    if (bridgeTxHistoryItem?.quote.srcChainId) {
+      const { srcChainId } = bridgeTxHistoryItem.quote;
+      return isNonEvmChainId(srcChainId)
+        ? formatChainIdToCaip(srcChainId)
+        : formatChainIdToHex(srcChainId);
+    }
+  }, [bridgeTxHistoryItem?.quote]);
+
+  const { nativeCurrencySymbol } = useNativeCurrencySymbol(sourceChainId);
   // Get source chain explorer data for swaps
   const swapSrcExplorerData = useMultichainBlockExplorerTxUrl({
     chainId: bridgeTxHistoryItem?.quote.srcChainId,
@@ -176,13 +234,23 @@ export const BridgeTransactionDetails = (
 
   const [isStepListExpanded, setIsStepListExpanded] = useState(false);
 
-  useEffect(() => {
-    navigation.setOptions(getBridgeTransactionDetailsNavbar(navigation));
+  const headerTitle = strings('bridge_transaction_details.transaction_details');
+
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
   }, [navigation]);
 
-  if (!bridgeTxHistoryItem) {
-    // TODO: display error page
-    return null;
+  const bridgeTransactionDetailsHeader = (
+    <HeaderStandard
+      title={headerTitle}
+      onBack={handleHeaderBack}
+      backButtonProps={{ testID: 'bridge-transaction-details-back-button' }}
+      includesTopInset
+    />
+  );
+
+  if (!bridgeTxHistoryItem || !sourceChainId) {
+    return <ScreenView>{bridgeTransactionDetailsHeader}</ScreenView>;
   }
 
   const { quote, status: bridgeStatus, startTime } = bridgeTxHistoryItem;
@@ -191,11 +259,6 @@ export const BridgeTransactionDetails = (
   const isBridge = !isSwap;
   const isIntentNotCompletedItem =
     quote.intent && !(bridgeStatus.status === StatusTypes.COMPLETE);
-
-  // Create token objects directly from the quote data
-  const sourceChainId = isNonEvmChainId(quote.srcChainId)
-    ? formatChainIdToCaip(quote.srcChainId)
-    : formatChainIdToHex(quote.srcChainId);
 
   const sourceToken: BridgeToken = {
     address: quote.srcAsset.address,
@@ -206,10 +269,12 @@ export const BridgeTransactionDetails = (
     chainId: sourceChainId,
   };
 
-  const sourceTokenAmount = calcTokenAmount(
-    quote.srcTokenAmount,
-    quote.srcAsset.decimals,
-  ).toFixed(5);
+  const sourceTokenAmount =
+    quote.gasSponsored && bridgeTxHistoryItem.pricingData?.amountSent
+      ? parseFloat(bridgeTxHistoryItem.pricingData.amountSent).toFixed(5)
+      : calcTokenAmount(quote.srcTokenAmount, quote.srcAsset.decimals).toFixed(
+          5,
+        );
 
   const destinationChainId = isNonEvmChainId(quote.destChainId)
     ? formatChainIdToCaip(quote.destChainId)
@@ -228,6 +293,10 @@ export const BridgeTransactionDetails = (
     quote.destTokenAmount,
     quote.destAsset.decimals,
   ).toFixed(5);
+
+  const networkName =
+    NETWORK_TO_SHORT_NETWORK_NAME_MAP[sourceChainId as AllowedBridgeChainIds];
+  const networkImageSource = getNetworkImageSource({ chainId: sourceChainId });
 
   const submissionDate = startTime ? new Date(startTime) : null;
   const submissionDateString = startTime ? toDateFormat(startTime) : 'N/A';
@@ -275,35 +344,49 @@ export const BridgeTransactionDetails = (
 
   return (
     <ScreenView>
+      {bridgeTransactionDetailsHeader}
       <Box style={styles.transactionContainer}>
         <Box style={styles.transactionAssetsContainer}>
-          <TransactionAsset
-            token={sourceToken}
-            tokenAmount={sourceTokenAmount}
-            chainId={sourceChainId}
-            txType={isBridge ? TransactionType.bridge : TransactionType.swap}
-          />
-          <Box style={styles.arrowContainer}>
-            <Icon name={IconName.Arrow2Down} size={IconSize.Sm} />
-          </Box>
-          <TransactionAsset
-            token={destinationToken}
-            tokenAmount={destinationTokenAmount}
-            chainId={destinationChainId}
-            txType={isBridge ? TransactionType.bridge : TransactionType.swap}
-          />
+          {is7702Batch && batchSellHistoryItems?.length ? (
+            <BatchSell7702TransactionAssets
+              batchSellHistoryItems={batchSellHistoryItems}
+            />
+          ) : (
+            <>
+              <TransactionAsset
+                token={sourceToken}
+                tokenAmount={sourceTokenAmount}
+                chainId={sourceChainId}
+                txType={
+                  isBridge ? TransactionType.bridge : TransactionType.swap
+                }
+              />
+              <Box style={styles.arrowContainer}>
+                <Icon name={IconName.Arrow2Down} size={IconSize.Sm} />
+              </Box>
+              <TransactionAsset
+                token={destinationToken}
+                tokenAmount={destinationTokenAmount}
+                chainId={destinationChainId}
+                txType={
+                  isBridge ? TransactionType.bridge : TransactionType.swap
+                }
+              />
+            </>
+          )}
         </Box>
         <Box style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('bridge_transaction_details.status')}
           </Text>
           <Box
-            flexDirection={FlexDirection.Row}
-            gap={4}
-            alignItems={AlignItems.center}
+            flexDirection={BoxFlexDirection.Row}
+            gap={1}
+            alignItems={BoxAlignItems.Center}
           >
             <Text
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               color={getStatusColor({
                 isBridge,
                 isSwap,
@@ -321,17 +404,19 @@ export const BridgeTransactionDetails = (
           bridgeStatus.status === StatusTypes.PENDING &&
           estimatedCompletionString && (
             <Box style={styles.detailRow}>
-              <Text variant={TextVariant.BodyMDMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings(
                   'bridge_transaction_details.estimated_completion',
                 )}{' '}
               </Text>
               <Box
-                flexDirection={FlexDirection.Row}
-                gap={4}
-                alignItems={AlignItems.center}
+                flexDirection={BoxFlexDirection.Row}
+                gap={1}
+                alignItems={BoxAlignItems.Center}
               >
-                <Text>{estimatedCompletionString}</Text>
+                <Text variant={TextVariant.BodyMd}>
+                  {estimatedCompletionString}
+                </Text>
                 <TouchableOpacity
                   onPress={() => setIsStepListExpanded(!isStepListExpanded)}
                 >
@@ -355,11 +440,30 @@ export const BridgeTransactionDetails = (
           </Box>
         )}
         <Box style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('bridge_transaction_details.date')}
           </Text>
-          <Text>{submissionDateString}</Text>
+          <Text variant={TextVariant.BodyMd}>{submissionDateString}</Text>
         </Box>
+        {is7702Batch && batchSellHistoryItems?.length && networkName ? (
+          <Box style={styles.detailRow}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {strings('bridge_transaction_details.network')}
+            </Text>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              gap={2}
+              alignItems={BoxAlignItems.Center}
+            >
+              <AvatarNetwork
+                name={networkName}
+                imageSource={networkImageSource}
+                size={AvatarSize.Xs}
+              />
+              <Text variant={TextVariant.BodyMd}>{networkName}</Text>
+            </Box>
+          </Box>
+        ) : null}
         {/* TODO uncomment when recipient is available */}
         {/* <Box style={styles.detailRow}>
           <Text variant={TextVariant.BodyMDMedium}>
@@ -368,21 +472,26 @@ export const BridgeTransactionDetails = (
           <Text>{renderShortAddress(bridgeTxHistoryItem.account)}</Text>
         </Box> */}
         <Box style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMDMedium}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('bridge_transaction_details.total_gas_fee')}
           </Text>
-          {/* TODO get solana gas fee from multiChainTx */}
-          {evmTotalGasFee && (
-            <Text>
-              {evmTotalGasFee}{' '}
-              {getNativeAssetForChainId(quote.srcChainId).symbol}
-            </Text>
-          )}
-          {multiChainTotalGasFee && (
-            <Text>
-              {multiChainTotalGasFee}{' '}
-              {getNativeAssetForChainId(quote.srcChainId).symbol}
-            </Text>
+          {isTransactionMarkedAsGasFeeSponsored(evmTxMeta) &&
+          !isHardwareWallet ? (
+            <PaidByMetaMask />
+          ) : (
+            <>
+              {/* TODO get solana gas fee from multiChainTx */}
+              {evmTotalGasFee && (
+                <Text variant={TextVariant.BodyMd}>
+                  {evmTotalGasFee} {nativeCurrencySymbol}
+                </Text>
+              )}
+              {multiChainTotalGasFee && (
+                <Text variant={TextVariant.BodyMd}>
+                  {multiChainTotalGasFee} {nativeCurrencySymbol}
+                </Text>
+              )}
+            </>
           )}
         </Box>
       </Box>
@@ -390,19 +499,24 @@ export const BridgeTransactionDetails = (
         {isIntentNotCompletedItem || (
           <Button
             style={styles.blockExplorerButton}
-            variant={ButtonVariants.Secondary}
-            label={strings('bridge_transaction_details.view_on_block_explorer')}
+            variant={ButtonVariant.Secondary}
             onPress={() => {
               // For swaps, go directly to block explorer web view
               if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
-                navigation.navigate(Routes.BROWSER.HOME, {
-                  screen: Routes.BROWSER.VIEW,
+                trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+                  location: 'bridge_transaction_details',
+                  text: strings(
+                    'bridge_transaction_details.view_on_block_explorer',
+                  ),
+                  url: swapSrcExplorerData.explorerTxUrl,
+                });
+                navigation.navigate(Routes.WEBVIEW.MAIN, {
+                  screen: Routes.WEBVIEW.SIMPLE,
                   params: {
-                    newTabUrl: swapSrcExplorerData.explorerTxUrl,
-                    timestamp: Date.now(),
+                    url: swapSrcExplorerData.explorerTxUrl,
                   },
                 });
-              } else {
+              } else if (isBridge) {
                 // For bridges, show the modal with both explorers
                 navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
                   screen:
@@ -414,7 +528,9 @@ export const BridgeTransactionDetails = (
                 });
               }
             }}
-          />
+          >
+            {strings('bridge_transaction_details.view_on_block_explorer')}
+          </Button>
         )}
       </Box>
     </ScreenView>

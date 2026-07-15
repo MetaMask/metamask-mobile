@@ -1,18 +1,20 @@
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import FooterActions from '../../../../e2e/pages/Browser/Confirmations/FooterActions';
-import SendView from '../../../../e2e/pages/Send/RedesignedSendView';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
-import WalletView from '../../../../e2e/pages/wallet/WalletView';
+import FixtureBuilder, {
+  DEFAULT_FIXTURE_ACCOUNT,
+} from '../../../framework/fixtures/FixtureBuilder';
+import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
+import SendView from '../../../page-objects/Send/RedesignedSendView';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import WalletView from '../../../page-objects/wallet/WalletView';
 import {
   Assertions,
   LocalNode,
   LocalNodeType,
   Matchers,
 } from '../../../framework';
-import { SmokeConfirmations } from '../../../../e2e/tags';
-import { loginToApp } from '../../../../e2e/viewHelper';
+import { SmokeConfirmations } from '../../../tags';
+import { loginToApp } from '../../../flows/wallet.flow';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import RowComponents from '../../../../e2e/pages/Browser/Confirmations/RowComponents';
+import RowComponents from '../../../page-objects/Browser/Confirmations/RowComponents';
 import { AnvilManager, Hardfork } from '../../../seeder/anvil-manager';
 import {
   setupMockPostRequest,
@@ -27,8 +29,8 @@ import {
   TRANSACTION_RELAY_SUBMIT_NETWORKS_MOCK,
 } from '../../../api-mocking/mock-responses/transaction-relay-mocks';
 import { RelayStatus } from '../../../../app/util/transactions/transaction-relay';
-import TransactionConfirmView from '../../../../e2e/pages/Send/TransactionConfirmView';
-import GasFeeTokenModal from '../../../../e2e/pages/Confirmation/GasFeeTokenModal';
+import TransactionConfirmView from '../../../page-objects/Send/TransactionConfirmView';
+import GasFeeTokenModal from '../../../page-objects/Confirmation/GasFeeTokenModal';
 import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
 
 const TRANSACTION_UUID_MOCK = '1234-5678';
@@ -139,7 +141,8 @@ const SIMULATION_GAS_STATION_MOCK = {
   },
 };
 
-describe(
+// Skipping due to https://consensys.slack.com/archives/C02U025CVU4/p1778589879443169
+describe.skip(
   SmokeConfirmations('Send native asset Gas Station using EIP-7702'),
   () => {
     beforeAll(async () => {
@@ -174,6 +177,28 @@ describe(
         mockServer,
         Object.assign({}, ...remoteFeatureEip7702),
       );
+
+      await setupMockRequest(mockServer, {
+        url: /accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances/,
+        response: {
+          balances: [
+            {
+              object: 'token',
+              address: '0x0000000000000000000000000000000000000000',
+              symbol: 'ETH',
+              name: 'Ether',
+              type: 'native',
+              decimals: 18,
+              chainId: 1337,
+              balance: '10.000000000000000000',
+              accountAddress: `eip155:1337:${DEFAULT_FIXTURE_ACCOUNT}`,
+            },
+          ],
+          unprocessedNetworks: [],
+        },
+        requestMethod: 'GET',
+        responseCode: 200,
+      });
     };
 
     const createFixture = ({ localNodes }: { localNodes?: LocalNode[] }) => {
@@ -184,13 +209,11 @@ describe(
           : undefined;
       return new FixtureBuilder()
         .withNetworkController({
-          providerConfig: {
-            chainId: '0x539',
-            rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-            type: 'custom',
-            nickname: 'Local RPC',
-            ticker: 'ETH',
-          },
+          chainId: '0x539',
+          rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+          type: 'custom',
+          nickname: 'Local RPC',
+          ticker: 'ETH',
         })
         .withDisabledSmartTransactions()
         .build();
@@ -293,9 +316,18 @@ describe(
           await GasFeeTokenModal.checkBalance('USDC', usdcValues.balance);
           await GasFeeTokenModal.tapToken('USDC');
 
-          await Assertions.expectElementToBeVisible(
-            Matchers.getElementByText('USDC'),
-            { description: 'Selected Gas Fee Token is USDC' },
+          await Assertions.expectElementToNotBeVisible(
+            Matchers.getElementByText('Select a token'),
+            { description: 'Select a token modal closed', timeout: 10000 },
+          );
+
+          await Assertions.expectElementToHaveText(
+            RowComponents.NetworkFeeGasFeeTokenSymbol,
+            'USDC',
+            {
+              description: 'Gas fee token pill shows USDC',
+              timeout: 15000,
+            },
           );
 
           const symbolElementLabel =

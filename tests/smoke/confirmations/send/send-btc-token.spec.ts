@@ -1,26 +1,10 @@
-import SendView from '../../../../e2e/pages/Send/RedesignedSendView';
-import TokenOverview from '../../../../e2e/pages/wallet/TokenOverview';
-import WalletView from '../../../../e2e/pages/wallet/WalletView';
-import { SmokeConfirmations } from '../../../../e2e/tags';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { loginToApp } from '../../../../e2e/viewHelper.ts';
+/* eslint-disable jest/no-disabled-tests -- E2E skipped; covered by component view tests */
+import { SmokeConfirmations } from '../../../tags';
 
 describe(SmokeConfirmations('Send Bitcoin'), () => {
-  it('shows insufficient funds', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-        await device.disableSynchronization();
-        await WalletView.tapOnToken('Bitcoin');
-        await TokenOverview.tapSendButton();
-        await SendView.enterZeroAmount();
-        await SendView.checkInsufficientFundsError();
-      },
-    );
+  // Moved to cv tests (send.non-evm.view.test.tsx)
+  it.skip('Send BTC', async () => {
+    // TODO: Update the test so if does a full e2e (define what should do). Keep this test to have something tested on e2e.
+    // https://consensyssoftware.atlassian.net/browse/MMQA-1794
   });
 });

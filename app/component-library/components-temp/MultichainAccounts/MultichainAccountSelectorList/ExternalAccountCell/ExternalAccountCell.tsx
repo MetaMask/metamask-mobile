@@ -1,20 +1,25 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-
-import { useStyles } from '../../../../hooks';
-import Text, {
+import {
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarNetwork,
+  AvatarNetworkSize,
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../components/Texts/Text';
-import AvatarAccount from '../../../../components/Avatars/Avatar/variants/AvatarAccount';
-import Avatar, { AvatarVariant } from '../../../../components/Avatars/Avatar';
-import { AvatarSize } from '../../../../components/Avatars/Avatar/Avatar.types';
+} from '@metamask/design-system-react-native';
+
+import { useStyles } from '../../../../hooks';
 import { formatAddress } from '../../../../../util/address';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { strings } from '../../../../../../locales/i18n';
 import createStyles from '../MultichainAccountSelectorList.styles';
+import { EXTERNAL_ACCOUNT_CELL_TEST_IDS } from './ExternalAccountCell.testIds';
+import { getAvatarAccountVariant } from '../../avatarAccountVariant';
 
 /**
  * ExternalAccountCell Component
@@ -26,6 +31,7 @@ export interface ExternalAccountCellProps {
   onPress: () => void;
   chainId?: string;
   isSelected?: boolean;
+  isDisabled?: boolean;
 }
 
 const ExternalAccountCell: React.FC<ExternalAccountCellProps> = ({
@@ -33,9 +39,11 @@ const ExternalAccountCell: React.FC<ExternalAccountCellProps> = ({
   onPress,
   chainId,
   isSelected = false,
+  isDisabled = false,
 }) => {
   const { styles } = useStyles(createStyles, { isSelected });
   const avatarAccountType = useSelector(selectAvatarAccountType);
+  const avatarAccountVariant = getAvatarAccountVariant(avatarAccountType);
   const formattedAddress = formatAddress(address, 'short');
 
   // Get network image if chainId is provided
@@ -49,24 +57,32 @@ const ExternalAccountCell: React.FC<ExternalAccountCellProps> = ({
       <View style={styles.accountCellWrapper}>
         <TouchableOpacity
           onPress={onPress}
-          style={styles.externalAccountContainer}
+          disabled={isDisabled}
+          style={[
+            styles.externalAccountContainer,
+            isDisabled && styles.externalAccountContainerDisabled,
+          ]}
+          testID={EXTERNAL_ACCOUNT_CELL_TEST_IDS.CONTAINER}
         >
           <AvatarAccount
-            accountAddress={address}
-            type={avatarAccountType}
-            size={AvatarSize.Md}
+            address={address}
+            variant={avatarAccountVariant}
+            size={AvatarAccountSize.Md}
           />
           <View style={styles.textContainer}>
             <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Default}
+              variant={TextVariant.BodyMd}
+              color={isDisabled ? TextColor.TextMuted : TextColor.TextDefault}
+              fontWeight={FontWeight.Medium}
               numberOfLines={1}
             >
               {strings('bridge.external_account')}
             </Text>
             <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodySm}
+              color={
+                isDisabled ? TextColor.TextMuted : TextColor.TextAlternative
+              }
               numberOfLines={1}
             >
               {formattedAddress}
@@ -74,10 +90,10 @@ const ExternalAccountCell: React.FC<ExternalAccountCellProps> = ({
           </View>
           {networkImageSource && (
             <View style={styles.networkAvatarContainer}>
-              <Avatar
-                variant={AvatarVariant.Network}
-                size={AvatarSize.Xs}
-                imageSource={networkImageSource}
+              <AvatarNetwork
+                size={AvatarNetworkSize.Xs}
+                src={networkImageSource}
+                testID={EXTERNAL_ACCOUNT_CELL_TEST_IDS.NETWORK_AVATAR}
               />
             </View>
           )}

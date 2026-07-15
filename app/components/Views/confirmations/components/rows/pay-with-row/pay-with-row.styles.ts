@@ -4,11 +4,13 @@ import { Theme } from '../../../../../../util/theme/models';
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
-      borderRadius: 9999,
-      backgroundColor: params.theme.colors.background.default,
-      paddingVertical: 8,
-      paddingLeft: 9,
-      paddingRight: 16,
+      paddingHorizontal: 8,
+      paddingBottom: 10,
+    },
+
+    skeletonContainer: {
+      paddingVertical: 12,
+      paddingHorizontal: 8,
     },
 
     spinner: {
@@ -32,6 +34,17 @@ const styleSheet = (params: { theme: Theme }) =>
     skeletonCircle: {
       marginLeft: -1,
       borderRadius: 99,
+    },
+
+    moneyIcon: {
+      width: 20,
+      height: 20,
+      borderRadius: 4,
+      backgroundColor: params.theme.colors.accent04.light,
+    },
+
+    disabled: {
+      opacity: 0.5,
     },
   });
 

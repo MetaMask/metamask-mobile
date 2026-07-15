@@ -1,16 +1,12 @@
-import {
-  selectOtaUpdatesEnabledRawFlag,
-  selectOtaUpdatesEnabledFlag,
-  OTA_UPDATES_FLAG_NAME,
-} from '.';
-// eslint-disable-next-line import/no-namespace
+import { selectOtaUpdatesEnabledFlag, OTA_UPDATES_FLAG_NAME } from './index';
+// eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
 
 jest.mock('react-native-device-info', () => ({
-  getVersion: jest.fn().mockReturnValue('1.0.0'),
+  getVersion: jest.fn(() => '7.60.0'),
 }));
 
-describe('OTA Updates Feature Flag Selectors', () => {
+describe('otaUpdates selectors', () => {
   let mockHasMinimumRequiredVersion: jest.SpyInstance;
 
   beforeEach(() => {
@@ -26,9 +22,9 @@ describe('OTA Updates Feature Flag Selectors', () => {
     mockHasMinimumRequiredVersion?.mockRestore();
   });
 
-  describe('selectOtaUpdatesEnabledRawFlag', () => {
+  describe('selectOtaUpdatesEnabledFlag', () => {
     it('returns true when remote flag is valid and enabled', () => {
-      const result = selectOtaUpdatesEnabledRawFlag.resultFunc({
+      const result = selectOtaUpdatesEnabledFlag.resultFunc({
         [OTA_UPDATES_FLAG_NAME]: {
           enabled: true,
           minimumVersion: '1.0.0',
@@ -39,7 +35,7 @@ describe('OTA Updates Feature Flag Selectors', () => {
     });
 
     it('returns false when remote flag is valid but disabled', () => {
-      const result = selectOtaUpdatesEnabledRawFlag.resultFunc({
+      const result = selectOtaUpdatesEnabledFlag.resultFunc({
         [OTA_UPDATES_FLAG_NAME]: {
           enabled: false,
           minimumVersion: '1.0.0',
@@ -52,7 +48,7 @@ describe('OTA Updates Feature Flag Selectors', () => {
     it('returns false when version check fails', () => {
       mockHasMinimumRequiredVersion.mockReturnValue(false);
 
-      const result = selectOtaUpdatesEnabledRawFlag.resultFunc({
+      const result = selectOtaUpdatesEnabledFlag.resultFunc({
         [OTA_UPDATES_FLAG_NAME]: {
           enabled: true,
           minimumVersion: '99.0.0',
@@ -63,7 +59,7 @@ describe('OTA Updates Feature Flag Selectors', () => {
     });
 
     it('returns false when remote flag is invalid', () => {
-      const result = selectOtaUpdatesEnabledRawFlag.resultFunc({
+      const result = selectOtaUpdatesEnabledFlag.resultFunc({
         [OTA_UPDATES_FLAG_NAME]: {
           enabled: 'invalid',
           minimumVersion: 123,
@@ -73,42 +69,16 @@ describe('OTA Updates Feature Flag Selectors', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false when remote feature flags are empty', () => {
-      const result = selectOtaUpdatesEnabledRawFlag.resultFunc({});
+    it('returns false when remoteFeatureFlags is empty', () => {
+      const result = selectOtaUpdatesEnabledFlag.resultFunc({});
 
       expect(result).toBe(false);
     });
 
     it('returns false when flag property is missing', () => {
-      const result = selectOtaUpdatesEnabledRawFlag.resultFunc({
+      const result = selectOtaUpdatesEnabledFlag.resultFunc({
         someOtherFlag: true,
       });
-
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('selectOtaUpdatesEnabledFlag', () => {
-    it('returns true when basic functionality is enabled and raw flag is true', () => {
-      const result = selectOtaUpdatesEnabledFlag.resultFunc(true, true);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when basic functionality is enabled and raw flag is false', () => {
-      const result = selectOtaUpdatesEnabledFlag.resultFunc(true, false);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when basic functionality is disabled even if raw flag is true', () => {
-      const result = selectOtaUpdatesEnabledFlag.resultFunc(false, true);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when basic functionality is disabled and raw flag is false', () => {
-      const result = selectOtaUpdatesEnabledFlag.resultFunc(false, false);
 
       expect(result).toBe(false);
     });

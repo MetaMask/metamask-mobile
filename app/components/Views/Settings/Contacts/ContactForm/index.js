@@ -1,16 +1,16 @@
 import React, { PureComponent } from 'react';
 import {
   Platform,
-  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { fontStyles } from '../../../../../styles/common';
 import PropTypes from 'prop-types';
-import { getEditableOptions } from '../../../../UI/Navbar';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import StyledButton from '../../../../UI/StyledButton';
 import Engine from '../../../../../core/Engine';
 import { connect } from 'react-redux';
@@ -22,6 +22,7 @@ import {
   validateAddressOrENS,
   toChecksumAddress,
 } from '../../../../../util/address';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorMessage from '../../../confirmations/legacy/components/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import ActionSheet from '@metamask/react-native-actionsheet';
@@ -31,15 +32,18 @@ import {
   SYMBOL_ERROR,
 } from '../../../../../constants/error';
 import Routes from '../../../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createQRScannerNavDetails } from '../../../QRTabSwitcher';
 import {
   selectEvmChainId,
   selectNetworkConfigurations,
 } from '../../../../../selectors/networkController';
 import { AddContactViewSelectorsIDs } from '../AddContactView.testIds';
+import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
-import NetworkListBottomSheet from '../../../AddAsset/components/NetworkListBottomSheet';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import NetworkListBottomSheet from '../../../AddAsset/components/NetworkListBottomSheet/NetworkListBottomSheet';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -108,6 +112,10 @@ const createStyles = (colors) =>
       color: colors.text.default,
       ...fontStyles.bold,
     },
+    headerEndActionText: {
+      color: colors.primary.default,
+      fontSize: 14,
+    },
     buttonsWrapper: {
       marginVertical: 12,
       flexDirection: 'row',
@@ -145,6 +153,17 @@ const createStyles = (colors) =>
 
 const ADD = 'add';
 const EDIT = 'edit';
+
+const getNetworkConfiguration = (networkConfigurations, chainId) => {
+  if (!chainId) return undefined;
+
+  return (
+    networkConfigurations[chainId] ||
+    (/^\d+$/.test(chainId)
+      ? networkConfigurations[`0x${Number(chainId).toString(16)}`]
+      : undefined)
+  );
+};
 
 /**
  * View that contains app information
@@ -201,23 +220,35 @@ class ContactForm extends PureComponent {
 
   validationTimeoutId = null;
 
-  updateNavBar = () => {
-    const { navigation, route } = this.props;
+  renderHeaderEndAccessory = () => {
+    const { route } = this.props;
+    const addMode = route.params?.mode === 'add';
+
+    if (addMode) {
+      return null;
+    }
+
     const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(
-      getEditableOptions(
-        strings(`address_book.${route.params?.mode ?? ADD}_contact_title`),
-        navigation,
-        route,
-        colors,
-      ),
+    const styles = createStyles(colors);
+    const editMode = route.params?.editMode === 'edit';
+
+    return (
+      <TouchableOpacity
+        onPress={this.onEdit}
+        testID={AddContactViewSelectorsIDs.EDIT_BUTTON}
+      >
+        <Text style={styles.headerEndActionText}>
+          {editMode
+            ? strings('address_book.edit')
+            : strings('address_book.cancel')}
+        </Text>
+      </TouchableOpacity>
     );
   };
 
   componentDidMount = () => {
     const { mode } = this.state;
     const { navigation } = this.props;
-    this.updateNavBar();
     // Workaround https://github.com/facebook/react-native/issues/9958
     this.state.inputWidth &&
       setTimeout(() => {
@@ -249,10 +280,6 @@ class ContactForm extends PureComponent {
       });
       navigation && navigation.setParams({ dispatch: this.onEdit, mode: EDIT });
     }
-  };
-
-  componentDidUpdate = () => {
-    this.updateNavBar();
   };
 
   componentWillUnmount = () => {
@@ -447,18 +474,41 @@ class ContactForm extends PureComponent {
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
 
+    const contactNetworkConfiguration = getNetworkConfiguration(
+      this.props.networkConfigurations,
+      contactChainId,
+    );
+    const currentNetworkConfiguration = getNetworkConfiguration(
+      this.props.networkConfigurations,
+      this.props.chainId,
+    );
     const networkName =
-      this.props.networkConfigurations[contactChainId]?.name ||
-      this.props.networkConfigurations[this.props.chainId]?.name ||
-      '';
+      contactNetworkConfiguration?.name ||
+      (contactChainId
+        ? strings('address_book.custom')
+        : currentNetworkConfiguration?.name || '');
     const isAddMode = editable && mode === ADD;
     const isEditMode = editable && mode === EDIT;
+    const headerTitle = strings(
+      `address_book.${this.props.route.params?.mode ?? ADD}_contact_title`,
+    );
+    const headerEndAccessory = this.renderHeaderEndAccessory();
 
     return (
       <SafeAreaView
         style={styles.wrapper}
         testID={AddContactViewSelectorsIDs.CONTAINER}
+        edges={{ bottom: 'additive' }}
       >
+        <HeaderStandard
+          includesTopInset
+          title={headerTitle}
+          onBack={() => this.props.navigation.pop()}
+          backButtonProps={{
+            testID: CommonSelectorsIDs.EDIT_CONTACT_BACK_BUTTON,
+          }}
+          endAccessory={headerEndAccessory ?? undefined}
+        />
         <KeyboardAwareScrollView style={styles.informationWrapper}>
           <View style={styles.scrollWrapper}>
             <Text style={styles.label}>{strings('address_book.name')}</Text>

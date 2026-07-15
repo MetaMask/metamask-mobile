@@ -3,21 +3,17 @@ import { View, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { SolScope } from '@metamask/keyring-api';
+import {
+  AvatarNetwork,
+  AvatarNetworkSize,
+  SelectButton,
+  SelectButtonVariant,
+  ButtonIcon,
+  ButtonIconSize,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
-import TextComponent, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
-import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { createTokensBottomSheetNavDetails } from '../../Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
 import { createNetworkManagerNavDetails } from '../../NetworkManager';
@@ -28,7 +24,6 @@ import {
 } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../../hooks/useStyles';
 import createControlBarStyles from '../ControlBarStyles';
-import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
 import { KnownCaipNamespace } from '@metamask/utils';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
@@ -60,10 +55,6 @@ export interface BaseControlBarProps {
    */
   additionalButtons?: ReactNode;
   /**
-   * Whether to show the EVM selection logic for filter handling
-   */
-  useEvmSelectionLogic?: boolean;
-  /**
    * Custom wrapper component for the control buttons
    */
   customWrapper?: 'outer' | 'none';
@@ -80,7 +71,6 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   onSortPress,
   hideSort = false,
   additionalButtons,
-  useEvmSelectionLogic = false,
   customWrapper = 'outer',
   style,
 }) => {
@@ -88,21 +78,13 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
   const navigation = useNavigation();
 
   // Shared selectors
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const networkName = useSelector(selectNetworkName);
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
 
   const selectedSolanaAccount =
     useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
 
   // Shared hooks
-  const {
-    enabledNetworks,
-    getNetworkInfo,
-    isDisabled: hookIsDisabled,
-  } = useCurrentNetworkInfo();
+  const { enabledNetworks, getNetworkInfo } = useCurrentNetworkInfo();
 
   const { enableAllPopularNetworks } = useNetworkEnablement();
   const { areAllNetworksSelected, totalEnabledNetworksCount } =
@@ -136,18 +118,12 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
       return customIsDisabled;
     }
 
-    // If multichain accounts state 2 is enabled, enable the button
-    if (isMultichainAccountsState2Enabled) {
-      return false;
-    }
+    return false;
+  }, [customIsDisabled]);
 
-    // Otherwise, use the hook's logic
-    return hookIsDisabled;
-  }, [customIsDisabled, isMultichainAccountsState2Enabled, hookIsDisabled]);
-
-  const displayAllNetworks = isMultichainAccountsState2Enabled
-    ? totalEnabledNetworksCount > 1
-    : enabledNetworks.length > 1;
+  const displayAllNetworks = totalEnabledNetworksCount > 1;
+  const showNetworkFilterAvatar =
+    !displayAllNetworks && !areAllNetworksSelected;
 
   // Shared navigation handlers
   const defaultHandleFilterControls = useCallback(() => {
@@ -168,64 +144,48 @@ const BaseControlBar: React.FC<BaseControlBarProps> = ({
     chainId: firstEnabledChainId,
   });
 
-  // Shared network label rendering
-  const renderNetworkLabel = () => (
-    <View style={styles.networkManagerWrapper}>
-      {!areAllNetworksSelected && (
-        <View style={styles.networkAvatarWrapper}>
-          <Avatar
-            variant={AvatarVariant.Network}
-            size={AvatarSize.Xs}
-            name={networkName}
-            imageSource={networkImageSource}
-          />
-        </View>
-      )}
-      <TextComponent
-        variant={TextVariant.BodyMDMedium}
-        style={styles.controlButtonText}
-        numberOfLines={1}
-        testID={`${networkFilterTestId}-${currentNetworkCaipChainId}`}
-      >
-        {displayAllNetworks
-          ? strings('wallet.popular_networks')
-          : (currentNetworkName ?? strings('wallet.current_network'))}
-      </TextComponent>
-    </View>
+  const networkLabelValue = useMemo(
+    () =>
+      displayAllNetworks
+        ? strings('wallet.popular_networks')
+        : (currentNetworkName ?? strings('wallet.current_network')),
+    [displayAllNetworks, currentNetworkName],
+  );
+
+  const networkStartAccessory = useMemo(
+    () =>
+      showNetworkFilterAvatar ? (
+        <AvatarNetwork
+          src={networkImageSource}
+          size={AvatarNetworkSize.Xs}
+          name={networkName}
+        />
+      ) : undefined,
+    [showNetworkFilterAvatar, networkImageSource, networkName],
   );
 
   const networkButton = (
-    <ButtonBase
+    <SelectButton
       testID={networkFilterTestId}
-      label={renderNetworkLabel()}
+      variant={SelectButtonVariant.Primary}
+      placeholder={strings('wallet.current_network')}
+      value={networkLabelValue}
+      startAccessory={networkStartAccessory}
+      textProps={{
+        numberOfLines: 1,
+        testID: `${networkFilterTestId}-${currentNetworkCaipChainId}`,
+      }}
       isDisabled={isDisabled}
-      onPress={
-        useEvmSelectionLogic &&
-        !isEvmSelected &&
-        !isMultichainAccountsState2Enabled
-          ? () => null
-          : handleFilterControls
-      }
-      endIconName={
-        useEvmSelectionLogic &&
-        !isEvmSelected &&
-        !isMultichainAccountsState2Enabled
-          ? undefined
-          : IconName.ArrowDown
-      }
-      style={isDisabled ? styles.controlButtonDisabled : styles.controlButton}
-      disabled={isDisabled}
-      activeOpacity={0.2}
+      onPress={handleFilterControls}
     />
   );
 
   const sortButton = !hideSort && (
     <ButtonIcon
       testID={WalletViewSelectorsIDs.SORT_BUTTON}
-      size={ButtonIconSizes.Lg}
+      size={ButtonIconSize.Md}
       onPress={handleSortControls}
       iconName={IconName.Filter}
-      style={styles.controlIconButton}
     />
   );
 

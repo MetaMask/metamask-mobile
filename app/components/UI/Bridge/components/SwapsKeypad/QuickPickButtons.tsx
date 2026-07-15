@@ -1,19 +1,20 @@
 import React from 'react';
 import { View } from 'react-native';
 import { quickPickButtonsStyles as styles } from './styles';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+} from '@metamask/design-system-react-native';
 import { QuickPickButtonOption } from './types';
 
 interface Props {
   options: QuickPickButtonOption[];
-  hidden?: boolean;
+  show?: boolean;
 }
 
-export const QuickPickButtons = ({ options, hidden }: Props) => {
-  if (hidden) {
+export const QuickPickButtons = ({ options, show }: Props) => {
+  if (!show) {
     return null;
   }
 
@@ -22,12 +23,13 @@ export const QuickPickButtons = ({ options, hidden }: Props) => {
       {options.map((option) => (
         <Button
           key={option.label}
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Md}
-          label={option.label}
+          variant={ButtonVariant.Secondary}
+          size={ButtonBaseSize.Lg}
           onPress={option.onPress}
           style={styles.button}
-        />
+        >
+          {option.label}
+        </Button>
       ))}
     </View>
   );

@@ -6,7 +6,7 @@ import {
 } from '@metamask/transaction-controller';
 import { useRoute } from '@react-navigation/native';
 import { act, fireEvent } from '@testing-library/react-native';
-import React, { ReactNode } from 'react';
+import React from 'react';
 import EarnLendingDepositConfirmationView, {
   EarnLendingDepositConfirmationViewProps,
 } from '.';
@@ -15,8 +15,7 @@ import Engine from '../../../../../core/Engine';
 import { MOCK_ADDRESS_2 } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { getStakingNavbar } from '../../../Navbar';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   MOCK_AUSDT_MAINNET_ASSET,
   MOCK_USDC_MAINNET_ASSET,
@@ -55,6 +54,7 @@ const mockNavigate = jest.fn();
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
   selectPooledStakingEnabledFlag: jest.fn(),
+  selectMusdConversionBlockedCountries: jest.fn(() => []),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -220,17 +220,12 @@ const mockCreateEventBuilder = jest.fn((eventName) => {
   };
 });
 
-jest.mock('../../../../hooks/useMetrics', () => {
-  const actual = jest.requireActual('../../../../hooks/useMetrics');
-  return {
-    ...actual,
-    useMetrics: () => ({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    }),
-    withMetricsAwareness: (Component: ReactNode) => Component,
-  };
-});
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock('../../../../../util/trace', () => ({
   ...jest.requireActual('../../../../../util/trace'),
@@ -239,8 +234,6 @@ jest.mock('../../../../../util/trace', () => ({
 }));
 
 describe('EarnLendingDepositConfirmationView', () => {
-  jest.mocked(getStakingNavbar);
-
   const mockExecuteLendingDeposit = jest.mocked(
     Engine.context.EarnController.executeLendingDeposit,
   );
@@ -295,28 +288,26 @@ describe('EarnLendingDepositConfirmationView', () => {
     ).mockReturnValue(true);
   });
 
-  it('matches snapshot', () => {
-    const { toJSON, getByTestId } = renderWithProvider(
+  it('renders token hero, deposit sections, and confirmation footer buttons', () => {
+    const { getByTestId } = renderWithProvider(
       <EarnLendingDepositConfirmationView />,
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
-
     // ERC20 Token Hero
-    expect(getByTestId('earn-token-selector-USDC-0x1')).toBeDefined();
+    expect(getByTestId('earn-token-selector-USDC-0x1')).toBeOnTheScreen();
     // Deposit Details Section
-    expect(getByTestId(DEPOSIT_DETAILS_SECTION_TEST_ID)).toBeDefined();
+    expect(getByTestId(DEPOSIT_DETAILS_SECTION_TEST_ID)).toBeOnTheScreen();
     // Deposit Receive Section
-    expect(getByTestId(DEPOSIT_RECEIVE_SECTION_TEST_ID)).toBeDefined();
+    expect(getByTestId(DEPOSIT_RECEIVE_SECTION_TEST_ID)).toBeOnTheScreen();
     // Footer
-    expect(getByTestId(CONFIRMATION_FOOTER_TEST_ID)).toBeDefined();
+    expect(getByTestId(CONFIRMATION_FOOTER_TEST_ID)).toBeOnTheScreen();
     expect(
       getByTestId(CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('does not render when stablecoin lending feature flag disabled', () => {
@@ -349,6 +340,56 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  describe('HeaderStandard', () => {
+    it('renders the supply title with the routed token ticker', () => {
+      const { getByText } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      expect(
+        getByText(
+          `${strings('earn.supply')} ${MOCK_USDC_MAINNET_ASSET.ticker}`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('falls back to the token symbol when the routed token has no ticker', () => {
+      (useRoute as jest.Mock).mockReturnValue({
+        ...defaultRouteParams,
+        params: {
+          ...defaultRouteParams.params,
+          token: {
+            ...defaultRouteParams.params.token,
+            ticker: undefined,
+            symbol: 'AUSDC',
+          },
+        },
+      });
+
+      const { getByText } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      expect(getByText(`${strings('earn.supply')} AUSDC`)).toBeOnTheScreen();
+    });
+
+    it('calls navigation.goBack when the back button is pressed', async () => {
+      const { getByLabelText } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      const backButton = getByLabelText(strings('navigation.back'));
+      await act(async () => {
+        fireEvent.press(backButton);
+      });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('USDT token allowance reset edge case', () => {
@@ -405,7 +446,7 @@ describe('EarnLendingDepositConfirmationView', () => {
         },
       );
 
-      expect(getByText(strings('earn.allowance_reset'))).toBeDefined();
+      expect(getByText(strings('earn.allowance_reset'))).toBeOnTheScreen();
       // 3 Pending Steps
       expect(
         getAllByTestId(PROGRESS_STEPPER_TEST_IDS.STEP_ICON.PENDING),
@@ -469,7 +510,9 @@ describe('EarnLendingDepositConfirmationView', () => {
         },
       );
 
-      expect(queryByText(strings('earn.allowance_reset'))).toBeNull();
+      expect(
+        queryByText(strings('earn.allowance_reset')),
+      ).not.toBeOnTheScreen();
       // 2 Pending Steps
       expect(
         getAllByTestId(PROGRESS_STEPPER_TEST_IDS.STEP_ICON.PENDING),
@@ -1212,7 +1255,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     // The button should be re-enabled after the error
-    expect(approveButton.props.disabled).toBe(false);
+    expect(approveButton).not.toBeDisabled();
   });
 
   it('handles empty transaction response during approval flow', async () => {
@@ -1249,7 +1292,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     // Button should be re-enabled when transaction is undefined
-    expect(approveButton.props.disabled).toBe(false);
+    expect(approveButton).not.toBeDisabled();
   });
 
   it('handles missing protocol or chainId during approval flow', async () => {
@@ -1298,7 +1341,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     expect(mockExecuteLendingTokenApprove).not.toHaveBeenCalled();
 
     // Button should remain enabled since no loading state was set
-    expect(approveButton.props.disabled).toBe(false);
+    expect(approveButton).not.toBeDisabled();
   });
 
   it('handles errors during approval flow and logs them', async () => {
@@ -1421,7 +1464,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       '[resetTokenAllowance] Lending deposit failed',
     );
 
-    expect(resetButton.props.disabled).toBe(false);
+    expect(resetButton).not.toBeDisabled();
 
     loggerSpy.mockRestore();
   });
@@ -1450,7 +1493,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     // Button should be re-enabled when transaction is empty
-    expect(depositButton.props.disabled).toBe(false);
+    expect(depositButton).not.toBeDisabled();
   });
 
   it('enables retries after transaction error during deposit flow', async () => {
@@ -1495,7 +1538,7 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     // The button should be re-enabled after the error
-    expect(depositButton.props.disabled).toBe(false);
+    expect(depositButton).not.toBeDisabled();
   });
 
   it('displays token information', () => {
@@ -1504,9 +1547,9 @@ describe('EarnLendingDepositConfirmationView', () => {
       { state: mockInitialState },
     );
 
-    expect(getByText('45 USDC')).toBeDefined();
-    expect(getByText('5 aUSDC')).toBeDefined();
-    expect(getByText('4.5%')).toBeDefined();
+    expect(getByText('45 USDC')).toBeOnTheScreen();
+    expect(getByText('5 aUSDC')).toBeOnTheScreen();
+    expect(getByText('4.5%')).toBeOnTheScreen();
   });
 
   it('displays amount information', () => {
@@ -1515,9 +1558,9 @@ describe('EarnLendingDepositConfirmationView', () => {
       { state: mockInitialState },
     );
 
-    expect(getAllByText('$4.99')).toBeDefined();
-    expect(getByText('5 aUSDC')).toBeDefined();
-    expect(getByText('5 USDC')).toBeDefined();
+    expect(getAllByText('$4.99').length).toBeGreaterThan(0);
+    expect(getByText('5 aUSDC')).toBeOnTheScreen();
+    expect(getByText('5 USDC')).toBeOnTheScreen();
   });
 
   it('displays nothing when missing route params', () => {
@@ -1818,7 +1861,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       errorMocked,
       '[depositTokens] Lending deposit failed',
     );
-    expect(confirmButton.props.disabled).toBe(false);
+    expect(confirmButton).not.toBeDisabled();
 
     errorSpy.mockRestore();
   });

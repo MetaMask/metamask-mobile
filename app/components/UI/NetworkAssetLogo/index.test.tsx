@@ -8,19 +8,19 @@ import { ChainId } from '@metamask/controller-utils';
 jest.mock('../../Base/TokenIcon', () => jest.fn(() => null));
 
 describe('NetworkAssetLogo Component', () => {
-  it('matches the snapshot for non-mainnet', () => {
-    const { toJSON } = render(
-      <NetworkAssetLogo
-        chainId="42"
-        ticker="DAI"
-        style={{}}
-        big
-        biggest={false}
-        testID="network-asset-logo"
-      />,
-    );
-
-    expect(toJSON()).toMatchSnapshot();
+  it('renders correctly for non-mainnet', () => {
+    expect(() =>
+      render(
+        <NetworkAssetLogo
+          chainId="42"
+          ticker="DAI"
+          style={{}}
+          big
+          biggest={false}
+          testID="network-asset-logo"
+        />,
+      ),
+    ).not.toThrow();
   });
 
   it('renders TokenIcon with ETH for mainnet chainId', () => {
@@ -43,7 +43,7 @@ describe('NetworkAssetLogo Component', () => {
         style: props.style,
         testID: props.testID,
       },
-      {},
+      undefined,
     );
   });
 
@@ -67,7 +67,7 @@ describe('NetworkAssetLogo Component', () => {
         style: props.style,
         testID: props.testID,
       },
-      {},
+      undefined,
     );
   });
 });

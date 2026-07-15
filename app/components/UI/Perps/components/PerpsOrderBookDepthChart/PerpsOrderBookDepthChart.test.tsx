@@ -3,6 +3,7 @@ import { render } from '@testing-library/react-native';
 import PerpsOrderBookDepthChart from './PerpsOrderBookDepthChart';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
 import { PerpsOrderBookDepthChartSelectorsIDs } from '../../Perps.testIds';
+const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Mock the strings function
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -21,7 +22,7 @@ jest.mock('../../../../hooks/useStyles', () => ({
     styles: {
       container: {
         width: '100%',
-        backgroundColor: '#ffffff',
+        backgroundColor: mockTheme.colors.background.default,
         borderRadius: 8,
         overflow: 'hidden',
       },
@@ -51,28 +52,13 @@ jest.mock('../../../../hooks/useStyles', () => ({
         borderRadius: 4,
       },
       bidDot: {
-        backgroundColor: '#28a745',
+        backgroundColor: mockTheme.colors.success.default,
       },
       askDot: {
-        backgroundColor: '#dc3545',
+        backgroundColor: mockTheme.colors.error.default,
       },
     },
-    theme: {
-      colors: {
-        background: {
-          default: '#ffffff',
-        },
-        border: {
-          default: '#e0e0e0',
-        },
-        success: {
-          default: '#28a745',
-        },
-        error: {
-          default: '#dc3545',
-        },
-      },
-    },
+    theme: mockTheme,
   })),
 }));
 

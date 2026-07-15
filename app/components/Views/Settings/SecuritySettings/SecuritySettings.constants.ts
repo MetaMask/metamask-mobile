@@ -1,7 +1,5 @@
 export const PASSCODE_CHOICE_STRING = 'passcodeChoice';
 export const BIOMETRY_CHOICE_STRING = 'biometryChoice';
-export const LOGIN_OPTIONS = 'login-options';
-export const TURN_ON_REMEMBER_ME = 'turn-on-remember-me';
 export const REVEAL_PRIVATE_KEY_SECTION = 'reveal-private-key-section';
 export const SDK_SECTION = 'sdk-section';
 export const CLEAR_PRIVACY_SECTION = 'clear-privacy-section';

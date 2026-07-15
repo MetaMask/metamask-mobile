@@ -2,14 +2,16 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { useMemo, useCallback } from 'react';
 import { Hex } from '@metamask/utils';
-import { AllowanceState, CardTokenAllowance } from '../types';
+import BigNumber from 'bignumber.js';
+import { type ExchangeRateResponse } from '@metamask/money-account-balance-service';
+import { useQuery } from '@metamask/react-data-query';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { MoneyAccountBalanceServiceQueryKeys } from '../../Money/queryKeys';
+import { FundingStatus, CardFundingToken } from '../types';
+import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { SOLANA_MAINNET } from '../../Ramp/Deposit/constants/networks';
-import Engine from '../../../../core/Engine';
-import { balanceToFiatNumber } from '../../../../util/number';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { TokenI } from '../../Tokens/types';
 import { MarketDataDetails } from '@metamask/assets-controllers';
@@ -17,6 +19,20 @@ import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
+import {
+  getCurrencyRateControllerCurrencyRates,
+  getMultichainAssetsRatesControllerConversionRates,
+  getTokenRatesControllerMarketData,
+  getTokensControllerAllTokens,
+} from '../../../../selectors/assets/assets-migration';
+import { CARD_CHAIN_IDS } from '../constants';
+import { balanceToFiatNumber } from '../../../../util/number/bigint';
+import { MUSD_DECIMALS } from '../../Earn/constants/musd';
+
+// Poll the vault exchange rate on the same cadence the Money tab refreshes the
+// account balance (which embeds a fresh vmUSD→mUSD value), so the Card's
+// "Avail. balance" tracks the Money balance instead of holding a stale rate.
+const EXCHANGE_RATE_REFETCH_INTERVAL_MS = 30 * 1000; // 30 seconds
 
 const extractTrailingCurrencyCode = (value: string): string | undefined => {
   const match = value.trim().match(/([A-Za-z]{3})$/);
@@ -82,37 +98,23 @@ export interface AssetBalanceInfo {
  * - For non-enabled tokens: shows the user's actual wallet balance from their wallet
  */
 export const useAssetBalances = (
-  tokens: CardTokenAllowance[],
+  tokens: CardFundingToken[],
 ): Map<string, AssetBalanceInfo> => {
-  const { MultichainAssetsRatesController, TokenRatesController } =
-    Engine.context;
-  const chainIds = [
-    CHAIN_IDS.LINEA_MAINNET,
-    SOLANA_MAINNET.chainId,
-    CHAIN_IDS.BASE,
-  ];
-
   const tokensWithBalance = useTokensWithBalance({
-    chainIds,
+    chainIds: CARD_CHAIN_IDS,
   });
 
   // Get raw state needed for asset lookups - these are stable references from Redux
-  const allAssets = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.TokensController.allTokens,
-  );
-  const allDetectedTokens = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.TokensController.allDetectedTokens,
-  );
+  const allAssets = useSelector(getTokensControllerAllTokens);
   const networkConfigs = useSelector(
     (state: RootState) =>
       state.engine.backgroundState.NetworkController
         .networkConfigurationsByChainId,
   );
-  const currencyRates = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.CurrencyRateController.currencyRates,
+  const currencyRates = useSelector(getCurrencyRateControllerCurrencyRates);
+  const marketData = useSelector(getTokenRatesControllerMarketData);
+  const conversionRates = useSelector(
+    getMultichainAssetsRatesControllerConversionRates,
   );
 
   // Build the walletAssetsMap in useMemo using raw state
@@ -129,23 +131,10 @@ export const useAssetBalances = (
 
           // Manually lookup asset from raw state (similar to selectAsset)
           const allTokensForChain = allAssets?.[chainId as Hex];
-          const detectedTokensForChain = allDetectedTokens?.[chainId as Hex];
 
           let asset: TokenI | undefined;
           if (allTokensForChain) {
             for (const accountTokens of Object.values(allTokensForChain)) {
-              const found = (accountTokens as TokenI[])?.find(
-                (t) =>
-                  t.address?.toLowerCase() === token.address?.toLowerCase(),
-              );
-              if (found) {
-                asset = found;
-                break;
-              }
-            }
-          }
-          if (!asset && detectedTokensForChain) {
-            for (const accountTokens of Object.values(detectedTokensForChain)) {
               const found = (accountTokens as TokenI[])?.find(
                 (t) =>
                   t.address?.toLowerCase() === token.address?.toLowerCase(),
@@ -164,7 +153,7 @@ export const useAssetBalances = (
         }
       });
     return map;
-  }, [tokens, allAssets, allDetectedTokens]);
+  }, [tokens, allAssets]);
 
   // Build the exchangeRatesMap in useMemo using raw state
   const exchangeRatesMap = useMemo(() => {
@@ -188,35 +177,60 @@ export const useAssetBalances = (
 
         const conversionRate = currencyRateEntry?.conversionRate;
 
-        const marketData =
-          TokenRatesController?.state?.marketData?.[chainId]?.[
-            token.address?.toLowerCase() as Hex
-          ];
+        const tokenMarketData =
+          marketData?.[chainId]?.[token.address?.toLowerCase() as Hex];
 
         // Only require conversionRate to be present (marketData is optional)
         if (conversionRate !== undefined && conversionRate !== null) {
           map.set(`${chainId}-${token.address?.toLowerCase()}`, {
             conversionRate,
-            marketData,
+            marketData: tokenMarketData,
           });
         }
       }
     });
 
     return map;
-  }, [
-    tokens,
-    networkConfigs,
-    currencyRates,
-    TokenRatesController?.state?.marketData,
-  ]);
+  }, [tokens, networkConfigs, currencyRates, marketData]);
 
   const currentCurrency = useSelector(selectCurrentCurrency);
+
+  // The Money account funding token is vmUSD — a yield-bearing Veda vault share
+  // whose on-chain balance is denominated in shares, not mUSD. Its mUSD value is
+  // `shares × exchangeRate`, so we fetch the vault exchange rate to convert it,
+  // matching how the Money account balance is derived. Only fetched when a Money
+  // account entry is present to avoid an unnecessary RPC read.
+  const hasMoneyAccountEntry = useMemo(
+    () => tokens.some((token) => token?.isMoneyAccountEntry),
+    [tokens],
+  );
+
+  const exchangeRateQuery = useQuery({
+    queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_EXCHANGE_RATE],
+    enabled: hasMoneyAccountEntry,
+    refetchInterval: EXCHANGE_RATE_REFETCH_INTERVAL_MS,
+  }) as UseQueryResult<ExchangeRateResponse>;
+
+  // Human-readable mUSD-per-vmUSD-share rate (e.g. 1.0002). The raw rate is a
+  // uint256 scaled to mUSD decimals, so a value of 1_000_000 means 1.0.
+  const vmusdToMusdRate = useMemo<number | undefined>(() => {
+    const rawRate = exchangeRateQuery.data?.rate;
+    if (!rawRate) {
+      return undefined;
+    }
+    const parsed = new BigNumber(rawRate).shiftedBy(-MUSD_DECIMALS);
+    // A non-positive or non-finite rate (e.g. a raw "0") is treated as
+    // unavailable so we fall back to the 1:1 share↔mUSD conversion rather than
+    // zeroing out the balance.
+    return parsed.isFinite() && parsed.isGreaterThan(0)
+      ? parsed.toNumber()
+      : undefined;
+  }, [exchangeRateQuery.data]);
 
   // Helper: Determine which balance to use based on token state
   const determineBalanceToUse = useCallback(
     (
-      token: CardTokenAllowance,
+      token: CardFundingToken,
       filteredToken: TokenI | undefined,
       walletAsset: TokenI | undefined,
     ): {
@@ -224,14 +238,14 @@ export const useAssetBalances = (
       source: 'availableBalance' | 'filteredToken' | 'walletAsset';
     } => {
       const isEnabled =
-        token.allowanceState === AllowanceState.Enabled ||
-        token.allowanceState === AllowanceState.Limited;
+        token.fundingStatus === FundingStatus.Enabled ||
+        token.fundingStatus === FundingStatus.Limited;
 
       if (isEnabled) {
         // Token is enabled/delegated - use availableBalance
-        if (token.availableBalance) {
+        if (token.spendableBalance) {
           return {
-            balance: token.availableBalance,
+            balance: token.spendableBalance,
             source: 'availableBalance',
           };
         }
@@ -259,11 +273,9 @@ export const useAssetBalances = (
   // Helper: Calculate fiat for Solana tokens
   const calculateSolanaFiat = useCallback(
     (
-      token: CardTokenAllowance,
+      token: CardFundingToken,
       balanceToUse: string,
     ): { balanceFiat: string; rawFiatNumber: number | undefined } => {
-      const conversionRates =
-        MultichainAssetsRatesController?.state?.conversionRates;
       const assetKey =
         `${token.caipChainId}/token:${token.address}` as `${string}:${string}/${string}:${string}`;
       const assetConversionRate = conversionRates?.[assetKey];
@@ -313,7 +325,7 @@ export const useAssetBalances = (
         rawFiatNumber: undefined,
       };
     },
-    [MultichainAssetsRatesController?.state?.conversionRates, currentCurrency],
+    [conversionRates, currentCurrency],
   );
 
   // Helper: Calculate fiat with market data
@@ -382,7 +394,7 @@ export const useAssetBalances = (
   // Helper: Calculate fiat for EVM tokens
   const calculateEvmFiat = useCallback(
     (
-      _token: CardTokenAllowance,
+      _token: CardFundingToken,
       balanceToUse: string,
       balanceSource: 'availableBalance' | 'filteredToken' | 'walletAsset',
       chainId: Hex,
@@ -540,8 +552,7 @@ export const useAssetBalances = (
               logo: buildTokenIconUrl(_token.caipChainId, _token.address ?? ''),
             } as TokenI);
 
-        const allMarketDataForChain =
-          TokenRatesController?.state?.marketData?.[chainId] || {};
+        const allMarketDataForChain = marketData?.[chainId] || {};
 
         const derivedBalance = deriveBalanceFromAssetMarketDetails(
           mockAsset,
@@ -611,7 +622,7 @@ export const useAssetBalances = (
     [
       calculateFiatFromMarketData,
       calculateProportionalFiat,
-      TokenRatesController?.state?.marketData,
+      marketData,
       currentCurrency,
     ],
   );
@@ -619,7 +630,7 @@ export const useAssetBalances = (
   // Helper: Build asset object
   const buildAssetObject = useCallback(
     (
-      token: CardTokenAllowance,
+      token: CardFundingToken,
       balanceToUse: string,
       balanceFiat: string,
       assetChainId: string,
@@ -654,7 +665,7 @@ export const useAssetBalances = (
       }
 
       // Create a unique key for this token
-      const tokenKey = `${token.address?.toLowerCase()}-${token.caipChainId}-${token.walletAddress?.toLowerCase()}`;
+      const tokenKey = getAssetBalanceKey(token);
       const isSolana = isSolanaChainId(token.caipChainId);
 
       // Get asset address and chain ID
@@ -718,6 +729,26 @@ export const useAssetBalances = (
       const rawTokenBalance = parseFloat(normalizedBalance);
       const balanceFormatted = `${parseFloat(normalizedBalance).toFixed(6)} ${token.symbol}`;
 
+      if (token.isMoneyAccountEntry) {
+        const safeBalance = Number.isNaN(rawTokenBalance) ? 0 : rawTokenBalance;
+        // vmUSD is a Veda vault share, so convert it to its mUSD value via the
+        // vault exchange rate (falling back to 1:1 when the rate is unavailable).
+        // mUSD is a USD-pegged stablecoin, so the mUSD amount IS the dollar
+        // value — we render it as USD 1:1 rather than through live market data,
+        // exactly as the Money account balance does (`moneyFormatUsd`). This
+        // keeps the Card "Avail. balance" identical to the Money balance for the
+        // same vmUSD position.
+        const musdBalance =
+          vmusdToMusdRate !== undefined
+            ? safeBalance * vmusdToMusdRate
+            : safeBalance;
+        balanceFiat = formatWithThreshold(musdBalance, 0.01, I18n.locale, {
+          style: 'currency',
+          currency: 'USD',
+        });
+        rawFiatNumber = musdBalance;
+      }
+
       // Build asset object
       const asset = buildAssetObject(
         token,
@@ -745,6 +776,7 @@ export const useAssetBalances = (
     calculateSolanaFiat,
     calculateEvmFiat,
     buildAssetObject,
+    vmusdToMusdRate,
   ]);
 
   return balancesMap;

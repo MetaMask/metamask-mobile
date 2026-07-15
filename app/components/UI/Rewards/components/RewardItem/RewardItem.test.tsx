@@ -42,7 +42,12 @@ const mockSelectRewardsActiveAccountAddress =
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => key),
+  strings: jest.fn((key: string, params?: Record<string, string | number>) => {
+    if (params) {
+      return `${key} ${JSON.stringify(params)}`;
+    }
+    return key;
+  }),
 }));
 
 // Mock format utils
@@ -277,8 +282,8 @@ describe('RewardItem', () => {
         />,
       );
 
-      expect(getByText(/2d 5h/)).toBeDefined();
       expect(getByText(/rewards.unlocked_rewards.time_left/)).toBeDefined();
+      expect(getByText(/2d 5h/)).toBeDefined();
     });
 
     it('hides claim button when end of season reward claim has expired', () => {

@@ -9,8 +9,10 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import { isEvmAccountType } from '@metamask/keyring-api';
+import type { NavigationProp } from '@react-navigation/native';
 import { isSolanaAccount } from '../../../core/Multichain/utils';
 import { getAddressAccountType } from '../../../util/address';
+import Routes from '../../../constants/navigation/Routes';
 
 // Initialize dayjs with relativeTime plugin
 dayjs.extend(relativeTime);
@@ -65,6 +67,17 @@ export const handleRewardsErrorMessage = (error: unknown) => {
     return strings('rewards.error_messages.cannot_use_own_referral_code');
   }
 
+  // Bonus code errors
+  if (message.toLowerCase().includes('invalid bonus code')) {
+    return strings('rewards.error_messages.invalid_bonus_code');
+  }
+  if (message.toLowerCase().includes('already redeemed')) {
+    return strings('rewards.error_messages.already_redeemed');
+  }
+  if (message.toLowerCase().includes('reached its maximum')) {
+    return strings('rewards.error_messages.reached_maximum');
+  }
+
   return message;
 };
 
@@ -93,6 +106,9 @@ export enum RewardsMetricsButtons {
   OPT_OUT = 'opt_out',
   OPT_OUT_CANCEL = 'opt_out_cancel',
   VISIT_APP_STORE = 'visit_app_store',
+  BUY_MUSD = 'buy_musd',
+  SWAP_TO_MUSD = 'swap_to_musd',
+  COPY_WINNER_VERIFICATION_CODE = 'copy_winner_verification_code',
 }
 
 export const deriveAccountMetricProps = (account?: InternalAccount) => {
@@ -121,6 +137,82 @@ export const deriveAccountMetricProps = (account?: InternalAccount) => {
     scope,
     account_type: type,
   };
+};
+
+interface NavigationRouteLike {
+  name?: string;
+  state?: NavigationStateLike;
+}
+
+export interface NavigationStateLike {
+  index?: number;
+  routes?: readonly NavigationRouteLike[];
+}
+
+export const getActiveRouteNameFromNavigationState = (
+  state?: NavigationStateLike,
+): string | undefined => {
+  const routeIndex = typeof state?.index === 'number' ? state.index : 0;
+  const route = state?.routes?.[routeIndex];
+
+  if (!route) {
+    return undefined;
+  }
+
+  return getActiveRouteNameFromNavigationState(route.state) ?? route.name;
+};
+
+/**
+ * Navigates into the rewards sub-pages stack (`RewardsNavigator`, registered at
+ * the root `MainNavigator` level under `Routes.REWARDS_FLOW`).
+ *
+ * The rewards dashboard lives in the Rewards tab (`RewardsHome`), separate from
+ * `RewardsNavigator`. A plain `navigation.navigate(<subPage>)` from the dashboard
+ * cannot resolve those routes because they live in the not-yet-mounted
+ * `RewardsNavigator`, so this uses React Navigation nested navigation to target
+ * the flow explicitly. Safe to call from within `RewardsNavigator` too —
+ * React Navigation resolves `REWARDS_FLOW` to the already-active navigator and
+ * pushes the screen.
+ *
+ * @param navigation - The navigation object from `useNavigation()`.
+ * @param screen - The destination route name inside the rewards flow.
+ * @param params - Optional params forwarded to the destination screen.
+ */
+export const navigateToRewardsRoute = (
+  navigation: Pick<NavigationProp<ReactNavigation.RootParamList>, 'navigate'>,
+  screen: string,
+  params?: Record<string, unknown>,
+): void => {
+  navigation.navigate(Routes.REWARDS_FLOW, { screen, params });
+};
+
+type RewardsFlowExitNavigation = Pick<
+  NavigationProp<ReactNavigation.RootParamList>,
+  'navigate' | 'goBack' | 'canGoBack'
+>;
+
+/**
+ * Leaves the pushed `REWARDS_FLOW` stack and returns the user to the Rewards
+ * dashboard in the tab.
+ *
+ * VIP screens previously used `StackActions.replace(Routes.REWARDS_DASHBOARD)`,
+ * but the dashboard lives in the Rewards tab — not inside `RewardsNavigator` —
+ * so that replace could not be handled. Popping the flow (or falling back to the
+ * Rewards tab) keeps navigation consistent with the native-stack migration.
+ *
+ * @param navigation - The navigation object from `useNavigation()`.
+ */
+export const exitRewardsFlow = (
+  navigation: RewardsFlowExitNavigation,
+): void => {
+  if (navigation.canGoBack()) {
+    navigation.goBack();
+    return;
+  }
+
+  navigation.navigate(Routes.HOME_TABS, {
+    screen: Routes.REWARDS_VIEW,
+  });
 };
 
 // Referral URL builder

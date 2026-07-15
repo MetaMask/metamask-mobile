@@ -25,7 +25,6 @@ describe('Banner', () => {
         description={SAMPLE_BANNER_PROPS.description}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
   });
 
   it('should render correctly with a start accessory', async () => {
@@ -39,7 +38,6 @@ describe('Banner', () => {
       />,
     );
 
-    expect(wrapper).toMatchSnapshot();
     expect(await wrapper.findByText('Test Start accessory')).toBeDefined();
   });
 
@@ -58,7 +56,6 @@ describe('Banner', () => {
       />,
     );
 
-    expect(wrapper).toMatchSnapshot();
     expect(await wrapper.findByText('Test Action Button')).toBeDefined();
   });
 
@@ -82,7 +79,6 @@ describe('Banner', () => {
       />,
     );
 
-    expect(wrapper).toMatchSnapshot();
     expect(await wrapper.findByText('Test Action Button')).toBeDefined();
     expect(
       await wrapper.queryByTestId(TESTID_BANNER_CLOSE_BUTTON_ICON),

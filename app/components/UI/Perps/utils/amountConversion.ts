@@ -1,8 +1,6 @@
 import { formatPerpsFiat } from '../utils/formatUtils';
-import BN from 'bnjs4';
 import { ensureError } from '../../../../util/errorUtils';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import type { PerpsLogger } from '../controllers/types';
+import { PERPS_CONSTANTS, type PerpsLogger } from '@metamask/perps-controller';
 
 /**
  * Optional logger for amount conversion functions.
@@ -14,7 +12,7 @@ export type AmountConversionLogger = PerpsLogger | undefined;
  * Converts various amount formats to USD display string for Perps
  * Uses existing Perps formatting utilities for consistency
  *
- * @param amount - Amount in various formats (USD string, hex wei, or numeric string)
+ * @param amount - Amount in various formats (USD string or numeric string)
  * @param logger - Optional logger for error reporting
  * @returns Formatted USD string using Perps formatting standards
  */
@@ -34,18 +32,9 @@ export const convertPerpsAmountToUSD = (
       return formatPerpsFiat(numericValue);
     }
 
-    // Check if it's a hex value (starts with 0x) - treat as wei
+    // Hex wei input is not supported in the Perps flow (all deposits use ERC-20 USDC)
     if (amount.startsWith('0x')) {
-      const weiBN = new BN(amount, 16);
-      const ethBN = weiBN.div(new BN(10).pow(new BN(18)));
-      const ethValue = ethBN.toNumber();
-
-      // For now, use a placeholder ETH price since we don't have real-time price data
-      // In a real implementation, this should come from a price feed
-      const ethPriceUSD = 2000; // TODO: Replace with actual ETH price from price feed
-      const usdValue = ethValue * ethPriceUSD;
-      // Preserve decimals for converted amounts
-      return formatPerpsFiat(usdValue);
+      return '$0';
     }
 
     // Otherwise, treat as a direct USD amount (e.g., "1.30" = $1.30)
@@ -58,7 +47,7 @@ export const convertPerpsAmountToUSD = (
     // Invalid input - return formatted zero
     return formatPerpsFiat(0);
   } catch (error) {
-    logger?.error(ensureError(error), {
+    logger?.error(ensureError(error, 'amountConversion.convertAmountToUsd'), {
       context: {
         name: PERPS_CONSTANTS.FeatureName,
         data: { message: `Error converting Perps amount to USD: ${amount}` },

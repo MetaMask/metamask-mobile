@@ -20,8 +20,12 @@ import {
   renderFromTokenMinimalUnit,
 } from '../../../../../util/number';
 import { useStyles } from '../../../../hooks/useStyles';
-import { getStakingNavbar } from '../../../Navbar';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { HeaderStandard } from '@metamask/design-system-react-native';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  MetaMetricsEvents,
+  IMetaMetricsEvent,
+} from '../../../../../core/Analytics';
 import { TokenI } from '../../../Tokens/types';
 import useEarnToken from '../../hooks/useEarnToken';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
@@ -35,7 +39,6 @@ import styleSheet from './EarnLendingDepositConfirmationView.styles';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { RootState } from '../../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
-import { IMetaMetricsEvent } from '../../../../../core/Analytics';
 import {
   EVENT_LOCATIONS,
   EVENT_PROVIDERS,
@@ -70,7 +73,7 @@ const Steps = {
 };
 
 const EarnLendingDepositConfirmationView = () => {
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency);
   const { params } =
     useRoute<EarnLendingDepositConfirmationViewProps['route']>();
@@ -86,9 +89,16 @@ const EarnLendingDepositConfirmationView = () => {
   } = params;
 
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
-  getStakingNavbar(strings('earn.supply'), navigation, theme.colors);
+  const headerTitle = useMemo(() => {
+    const tokenLabel = token?.ticker ?? token?.symbol ?? token?.name ?? '';
+    return `${strings('earn.supply')} ${tokenLabel}`;
+  }, [token?.ticker, token?.symbol, token?.name]);
+
+  const handleHeaderBackPress = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token?.chainId as Hex),
@@ -218,18 +228,8 @@ const EarnLendingDepositConfirmationView = () => {
         .addProperties(getTrackEventProperties('deposit'))
         .build(),
     );
-
-    const tokenLabel = token?.ticker ?? token?.symbol ?? token?.name ?? '';
-    const title = `${strings('earn.supply')} ${tokenLabel}`;
-
-    navigation.setOptions(
-      getStakingNavbar(title, navigation, theme.colors, {
-        hasCancelButton: false,
-        backgroundColor: theme.colors.background.alternative,
-      }),
-    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigation, theme.colors]);
+  }, []);
 
   const emitTxMetaMetric = useCallback(
     (txType: TransactionType) =>
@@ -790,6 +790,14 @@ const EarnLendingDepositConfirmationView = () => {
 
   return (
     <View style={styles.pageContainer}>
+      <HeaderStandard
+        title={headerTitle}
+        onBack={handleHeaderBackPress}
+        backButtonProps={{
+          accessibilityLabel: strings('navigation.back'),
+        }}
+        includesTopInset
+      />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.contentContainer}

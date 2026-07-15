@@ -10,9 +10,16 @@ jest.mock('../../../../util/analytics/analytics', () => ({
   },
 }));
 
-jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
-  runAfterInteractions: jest.fn((cb) => cb()),
-}));
+jest.mock('react-native/Libraries/Interaction/InteractionManager', () => {
+  const interactionManager = {
+    runAfterInteractions: jest.fn((cb) => cb()),
+  };
+  return {
+    __esModule: true,
+    default: interactionManager,
+    ...interactionManager,
+  };
+});
 
 describe('useAnalytics', () => {
   beforeEach(() => {
@@ -25,7 +32,7 @@ describe('useAnalytics', () => {
     const testEvent = 'RAMPS_BUTTON_CLICKED';
     const testEventParams = {
       location: 'Amount to Buy Screen',
-      text: 'Buy',
+      button_text: 'Buy',
       ramp_type: 'BUY',
       region: 'US',
     } as const;

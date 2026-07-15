@@ -1,20 +1,15 @@
 import { TransactionType } from '@metamask/transaction-controller';
-import { BigNumber } from 'bignumber.js';
+import perpsPayTokenIcon from 'images/perps-pay-token-icon.png';
 import { useCallback } from 'react';
 import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
-import { strings } from '../../../../../locales/i18n';
-import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
-import { AssetType } from '../../../Views/confirmations/types/token';
-import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
-import perpsPayTokenIcon from 'images/perps-pay-token-icon.png';
 import {
-  PERPS_BALANCE_CHAIN_ID,
-  PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-  PERPS_CONSTANTS,
-} from '../constants/perpsConfig';
-import { selectPerpsAccountState } from '../selectors/perpsController';
+  AssetType,
+  type TokenListItem,
+} from '../../../Views/confirmations/types/token';
+import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
+import { selectPerpsPayWithAnyTokenAllowlistAssets } from '../selectors/featureFlags';
 import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
 
 /** URI for the perps balance token icon, shared with PerpsPayRow and pay-with modal. */
@@ -22,23 +17,23 @@ const resolvedPerpsIcon = Image.resolveAssetSource(perpsPayTokenIcon);
 export const PERPS_BALANCE_ICON_URI = resolvedPerpsIcon?.uri ?? '';
 
 /**
- * Returns a filter that prepends a synthetic "Perps balance" token to the list
- * when the transaction type is perpsDepositAndOrder. The token shows the perps
- * account balance, USDC icon, and label "Perps balance".
+ * Returns a filter that applies allowlist filtering and deselects other tokens
+ * when the Perps balance is selected for perpsDepositAndOrder transactions.
  *
  * Uses PerpsController state (Redux) so it works in any screen, including
  * PayWithModal and confirmations where PerpsStreamProvider is not mounted.
  */
 export function usePerpsBalanceTokenFilter(): (
   tokens: AssetType[],
-) => AssetType[] {
+) => TokenListItem[] {
   const transactionMeta = useTransactionMetadataRequest();
   const isPerpsBalanceSelected = useIsPerpsBalanceSelected();
-  const perpsAccount = useSelector(selectPerpsAccountState);
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
+  const allowListAssets = useSelector(
+    selectPerpsPayWithAnyTokenAllowlistAssets,
+  );
 
   const filterAllowedTokens = useCallback(
-    (tokens: AssetType[]): AssetType[] => {
+    (tokens: AssetType[]): TokenListItem[] => {
       if (
         !hasTransactionType(transactionMeta, [
           TransactionType.perpsDepositAndOrder,
@@ -47,46 +42,23 @@ export function usePerpsBalanceTokenFilter(): (
         return tokens;
       }
 
-      const chainId = PERPS_BALANCE_CHAIN_ID;
-
-      const availableBalance = perpsAccount?.availableBalance || '0';
-      const balanceInSelectedCurrency = formatFiat(
-        new BigNumber(availableBalance),
-      );
-
-      const perpsBalanceName = strings('perps.adjust_margin.perps_balance');
-
-      const perpsBalanceToken: AssetType = {
-        address: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-        chainId,
-        tokenId: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-        name: perpsBalanceName,
-        symbol: PERPS_CONSTANTS.PerpsBalanceTokenSymbol,
-        balance: availableBalance,
-        balanceInSelectedCurrency,
-        image: PERPS_BALANCE_ICON_URI,
-        logo: PERPS_BALANCE_ICON_URI,
-        decimals: 2,
-        isETH: false,
-        isNative: false,
-        isSelected: isPerpsBalanceSelected,
-        description: PERPS_CONSTANTS.PerpsBalanceTokenDescription,
-      };
-
-      const mappedTokens = tokens.map((token) => ({
+      let mappedTokens = tokens.map((token) => ({
         ...token,
         isSelected:
           token.isSelected && isPerpsBalanceSelected ? false : token.isSelected,
       }));
 
-      return [perpsBalanceToken, ...mappedTokens];
+      if ((allowListAssets?.length ?? 0) > 0) {
+        const allowSet = new Set(allowListAssets);
+        mappedTokens = mappedTokens.filter((token) => {
+          const key = `${token.chainId}.${(token.address ?? '').toLowerCase()}`;
+          return allowSet.has(key);
+        });
+      }
+
+      return mappedTokens;
     },
-    [
-      transactionMeta,
-      isPerpsBalanceSelected,
-      perpsAccount?.availableBalance,
-      formatFiat,
-    ],
+    [allowListAssets, isPerpsBalanceSelected, transactionMeta],
   );
 
   return filterAllowedTokens;

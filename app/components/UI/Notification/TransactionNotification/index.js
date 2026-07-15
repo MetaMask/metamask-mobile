@@ -16,13 +16,17 @@ import TransactionActionContent from '../../TransactionActionModal/TransactionAc
 import ActionContent from '../../ActionModal/ActionContent';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import TransactionDetails from '../../TransactionElement/TransactionDetails';
-import BaseNotification from './../BaseNotification';
+import BaseNotification from '../../../../component-library/components-temp/BaseNotification';
 import Device from '../../../../util/device';
 import ElevatedView from 'react-native-elevated-view';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import BigNumber from 'bignumber.js';
 import { collectibleContractsSelector } from '../../../../reducers/collectibles';
 import { useTheme } from '../../../../util/theme';
+import {
+  getElevatedSurfaceColor,
+  isPureBlackEnabled,
+} from '../../../../util/theme/themeUtils';
 import {
   selectChainId,
   selectTickerByChainId,
@@ -41,8 +45,10 @@ const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
 const ACTION_SPEEDUP = 'speedup';
 
-const createStyles = (colors) =>
-  StyleSheet.create({
+const createStyles = (theme) => {
+  const { colors } = theme;
+
+  return StyleSheet.create({
     absoluteFill: {
       ...StyleSheet.absoluteFillObject,
     },
@@ -94,12 +100,17 @@ const createStyles = (colors) =>
     modalContainer: {
       width: '90%',
       borderRadius: 10,
-      backgroundColor: colors.background.default,
+      backgroundColor: getElevatedSurfaceColor(theme),
+      ...(isPureBlackEnabled && {
+        borderWidth: 1,
+        borderColor: colors.border.muted,
+      }),
     },
     elevatedView: {
       backgroundColor: importedColors.transparent,
     },
   });
+};
 
 function TransactionNotification(props) {
   const {
@@ -127,8 +138,8 @@ function TransactionNotification(props) {
   const actionXAnimated = useSharedValue(0);
   const detailsAnimated = useSharedValue(0);
 
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const theme = useTheme();
+  const styles = createStyles(theme);
 
   const detailsFadeIn = useCallback(async () => {
     setTransactionDetailsIsVisible(true);
@@ -234,7 +245,6 @@ function TransactionNotification(props) {
         tokens,
         primaryCurrency,
         swapsTransactions,
-        swapsTokens,
       } = props;
 
       const [transactionElement, transactionDetails] = await decodeTransaction({
@@ -251,7 +261,6 @@ function TransactionNotification(props) {
         tokens,
         primaryCurrency,
         swapsTransactions,
-        swapsTokens,
       });
       const existingGasPrice = new BigNumber(tx?.txParams?.gasPrice || '0x0');
       const gasFeeValue = fastSplit(
@@ -377,7 +386,6 @@ TransactionNotification.propTypes = {
   animatedTimingStart: PropTypes.func,
   currentNotification: PropTypes.object,
   swapsTransactions: PropTypes.object,
-  swapsTokens: PropTypes.array,
   /**
    * Map of accounts to information objects including balances
    */
@@ -437,11 +445,8 @@ TransactionNotification.propTypes = {
 const mapStateToProps = (state, ownProps) => {
   const chainId = selectChainId(state);
 
-  const {
-    SmartTransactionsController,
-    TransactionController,
-    SwapsController,
-  } = state.engine.backgroundState;
+  const { SmartTransactionsController, TransactionController } =
+    state.engine.backgroundState;
 
   const smartTransactions =
     SmartTransactionsController?.smartTransactionsState?.smartTransactions?.[
@@ -466,7 +471,6 @@ const mapStateToProps = (state, ownProps) => {
     currentCurrency: selectCurrentCurrency(state),
     primaryCurrency: state.settings.primaryCurrency,
     swapsTransactions: TransactionController.swapsTransactions || {},
-    swapsTokens: SwapsController.tokens,
     smartTransactions,
   };
 };

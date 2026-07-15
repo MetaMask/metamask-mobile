@@ -88,6 +88,42 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
+// Mock design-system Button to behave like TouchableOpacity in tests
+jest.mock('@metamask/design-system-react-native', () => {
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
+    __esModule: true,
+    Button: ({
+      label,
+      onPress,
+      isDisabled,
+      isLoading,
+      children,
+      ...props
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }: any) => (
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={isDisabled}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        {...props}
+      >
+        <Text>{label ?? children}</Text>
+      </TouchableOpacity>
+    ),
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+    },
+    ButtonSize: {
+      Lg: 'Lg',
+      Sm: 'Sm',
+    },
+  };
+});
+
 // Mock Text component
 jest.mock('../../../../../component-library/components/Texts/Text', () => {
   const { Text } = jest.requireActual('react-native');
@@ -108,6 +144,12 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
     },
   };
 });
+
+// Mock usePerpsEventTracking
+const mockTrack = jest.fn();
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: jest.fn(() => ({ track: mockTrack })),
+}));
 
 // Mock ScreenView
 jest.mock('../../../../Base/ScreenView', () => {
@@ -217,6 +259,30 @@ describe('PerpsConnectionErrorView', () => {
 
     const backButton = getByText('perps.errors.connectionFailed.go_back');
     expect(backButton).toBeTruthy();
+  });
+
+  it('navigates back and tracks event when back button is pressed', () => {
+    const { getByText } = render(
+      <PerpsConnectionErrorView
+        error="Test error"
+        onRetry={mockOnRetry}
+        showBackButton
+        retryAttempts={2}
+      />,
+    );
+
+    const backButton = getByText('perps.errors.connectionFailed.go_back');
+    if (backButton.parent) {
+      fireEvent.press(backButton.parent);
+    }
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        action: 'connection_go_back',
+      }),
+    );
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('should hide back button when showBackButton is false', () => {

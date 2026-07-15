@@ -1,0 +1,223 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { TextInput, View } from 'react-native';
+import {
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../hooks/useStyles';
+import styleSheet from './EnterEmail.styles';
+import ScreenLayout from '../../Aggregator/components/ScreenLayout';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../util/navigation/navUtils';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
+import { strings } from '../../../../../../locales/i18n';
+import TextField from '../../../../../component-library/components/Form/TextField';
+import { createV2OtpCodeNavDetails } from './OtpCode';
+import { validateEmail } from '../../utils/depositUtils';
+import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import Logger from '../../../../../util/Logger';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useTransakController } from '../../hooks/useTransakController';
+import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
+import { EnterEmailSelectorsIDs } from './EnterEmail.testIds';
+
+export interface V2EnterEmailParams {
+  amount?: string;
+  currency?: string;
+  assetId?: string;
+  /**
+   * When present, the screen is part of a headless buy flow and should
+   * forward this id to OtpCode, so post-OTP routing can land back on
+   * `Routes.RAMP.HEADLESS_HOST` instead of BuildQuote.
+   */
+  headlessSessionId?: string;
+}
+
+export const createV2EnterEmailNavDetails =
+  createNavigationDetails<V2EnterEmailParams>(Routes.RAMP.ENTER_EMAIL);
+
+const V2EnterEmail = () => {
+  const navigation = useNavigation();
+  const params = useParams<V2EnterEmailParams>();
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState(false);
+
+  const { styles, theme } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { sendUserOtp } = useTransakController();
+
+  // Headless deposit (TRAM-3623): when this screen is part of a headless buy
+  // flow, every analytics emit is tagged `ramp_type: 'HEADLESS'` (overriding
+  // the UB2/DEPOSIT literals) plus the seeded `ramp_surface`, sourced from the
+  // per-screen `headlessSessionId` so non-headless UB2 traffic is unaffected.
+  const headlessSessionId = params?.headlessSessionId;
+  const { headlessRampProps, headlessDepositRampProps } =
+    useHeadlessRampProps(headlessSessionId);
+
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+        .addProperties({
+          location: 'Enter Email',
+          ...headlessRampProps,
+        })
+        .build(),
+    );
+  }, [navigation, trackEvent, createEventBuilder, headlessRampProps]);
+
+  const hasTrackedScreenViewRef = useRef(false);
+  useEffect(() => {
+    if (hasTrackedScreenViewRef.current) return;
+    hasTrackedScreenViewRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+        .addProperties({
+          location: 'Enter Email',
+          ...headlessRampProps,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder, headlessRampProps]);
+
+  const emailInputRef = useRef<TextInput>(null);
+
+  const handleTextChange = useCallback(
+    (text: string) => {
+      setEmail(text);
+      setValidationError(false);
+      setError(null);
+    },
+    [setEmail, setValidationError, setError],
+  );
+
+  const handleSubmit = useCallback(async () => {
+    try {
+      setIsLoading(true);
+
+      if (validateEmail(email)) {
+        setValidationError(false);
+        const otpResponse = await sendUserOtp(email);
+
+        if (!otpResponse?.stateToken) {
+          throw new Error('State token is required for OTP verification');
+        }
+
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.RAMPS_EMAIL_SUBMITTED)
+            .addProperties({
+              ...headlessDepositRampProps,
+            })
+            .build(),
+        );
+        navigation.navigate(
+          ...createV2OtpCodeNavDetails({
+            email,
+            stateToken: otpResponse.stateToken,
+            amount: params?.amount,
+            currency: params?.currency,
+            assetId: params?.assetId,
+            headlessSessionId: params?.headlessSessionId,
+          }),
+        );
+      } else {
+        setValidationError(true);
+      }
+    } catch (e) {
+      setError(parseUserFacingError(e, strings('deposit.enter_email.error')));
+      Logger.error(e as Error, 'Error submitting email');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    email,
+    navigation,
+    sendUserOtp,
+    trackEvent,
+    createEventBuilder,
+    params,
+    headlessDepositRampProps,
+  ]);
+
+  return (
+    <ScreenLayout>
+      <ScreenLayout.Body>
+        <HeaderStandard
+          title={strings('deposit.enter_email.navbar_title')}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
+        <ScreenLayout.Content grow>
+          <DepositProgressBar steps={4} currentStep={0} />
+          <View style={styles.contentContainer}>
+            <Text variant={TextVariant.HeadingLg} style={styles.title}>
+              {strings('deposit.enter_email.title')}
+            </Text>
+            <Text variant={TextVariant.BodyMd} style={styles.description}>
+              {strings('deposit.enter_email.description')}
+            </Text>
+
+            <TextField
+              testID={EnterEmailSelectorsIDs.EMAIL_INPUT}
+              autoComplete="email"
+              keyboardType="email-address"
+              placeholder={strings('deposit.enter_email.input_placeholder')}
+              returnKeyType={'done'}
+              onSubmitEditing={handleSubmit}
+              autoCapitalize="none"
+              ref={emailInputRef}
+              onChangeText={handleTextChange}
+              value={email}
+              keyboardAppearance={theme.themeAppearance}
+              isDisabled={isLoading}
+            />
+
+            {validationError && (
+              <Text variant={TextVariant.BodySm} style={styles.error}>
+                {strings('deposit.enter_email.validation_error')}
+              </Text>
+            )}
+
+            {error && (
+              <Text variant={TextVariant.BodySm} style={styles.error}>
+                {error}
+              </Text>
+            )}
+          </View>
+        </ScreenLayout.Content>
+      </ScreenLayout.Body>
+
+      <ScreenLayout.Footer>
+        <ScreenLayout.Content style={styles.footerContent}>
+          <Button
+            testID={EnterEmailSelectorsIDs.SEND_EMAIL_BUTTON}
+            size={ButtonSize.Lg}
+            onPress={handleSubmit}
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            isLoading={isLoading}
+            isDisabled={isLoading}
+          >
+            {strings('deposit.enter_email.submit_button')}
+          </Button>
+          <PoweredByTransak name="powered-by-transak-logo" />
+        </ScreenLayout.Content>
+      </ScreenLayout.Footer>
+    </ScreenLayout>
+  );
+};
+
+export default V2EnterEmail;

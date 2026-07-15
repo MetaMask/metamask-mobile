@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { usePerpsLiveFills } from './index';
-import type { OrderFill } from '../../controllers/types';
+import { type OrderFill } from '@metamask/perps-controller';
 
 // Mock the stream provider
 const mockSubscribe = jest.fn();
@@ -39,7 +39,7 @@ describe('usePerpsLiveFills', () => {
     jest.useRealTimers();
   });
 
-  it('should subscribe to fills on mount', () => {
+  it('subscribes to fills on mount', () => {
     const throttleMs = 2000;
     mockSubscribe.mockReturnValue(jest.fn());
 
@@ -51,7 +51,7 @@ describe('usePerpsLiveFills', () => {
     });
   });
 
-  it('should unsubscribe on unmount', () => {
+  it('unsubscribes on unmount', () => {
     const mockUnsubscribe = jest.fn();
     mockSubscribe.mockReturnValue(mockUnsubscribe);
 
@@ -62,7 +62,7 @@ describe('usePerpsLiveFills', () => {
     expect(mockUnsubscribe).toHaveBeenCalled();
   });
 
-  it('should update fills when callback is invoked', async () => {
+  it('updates fills when callback is invoked', async () => {
     let capturedCallback: (fills: OrderFill[]) => void = jest.fn();
     mockSubscribe.mockImplementation((params) => {
       capturedCallback = params.callback;
@@ -71,8 +71,8 @@ describe('usePerpsLiveFills', () => {
 
     const { result } = renderHook(() => usePerpsLiveFills());
 
-    // Initially empty
-    expect(result.current).toEqual({ fills: [], isInitialLoading: true });
+    // Initially empty with isInitialLoading false (fills always start as [])
+    expect(result.current).toEqual({ fills: [], isInitialLoading: false });
 
     // Simulate fills update
     const fills: OrderFill[] = [
@@ -89,7 +89,7 @@ describe('usePerpsLiveFills', () => {
     });
   });
 
-  it('should use default throttle value when not provided', () => {
+  it('uses default throttle value when not provided', () => {
     mockSubscribe.mockReturnValue(jest.fn());
 
     renderHook(() => usePerpsLiveFills());
@@ -100,7 +100,7 @@ describe('usePerpsLiveFills', () => {
     });
   });
 
-  it('should handle throttle changes', () => {
+  it('handles throttle changes', () => {
     const mockUnsubscribe1 = jest.fn();
     const mockUnsubscribe2 = jest.fn();
 
@@ -131,7 +131,7 @@ describe('usePerpsLiveFills', () => {
     });
   });
 
-  it('should handle empty fills array', async () => {
+  it('handles empty fills array', async () => {
     let capturedCallback: (fills: OrderFill[]) => void = jest.fn();
     mockSubscribe.mockImplementation((params) => {
       capturedCallback = params.callback;
@@ -149,7 +149,7 @@ describe('usePerpsLiveFills', () => {
     });
   });
 
-  it('should handle null or undefined updates gracefully', async () => {
+  it('handles null or undefined updates gracefully', async () => {
     let capturedCallback: (fills: OrderFill[]) => void = jest.fn();
     mockSubscribe.mockImplementation((params) => {
       capturedCallback = params.callback;
@@ -186,7 +186,7 @@ describe('usePerpsLiveFills', () => {
     });
   });
 
-  it('should replace fills on each update', async () => {
+  it('replaces fills on each update', async () => {
     let capturedCallback: (fills: OrderFill[]) => void = jest.fn();
     mockSubscribe.mockImplementation((params) => {
       capturedCallback = params.callback;
@@ -221,7 +221,7 @@ describe('usePerpsLiveFills', () => {
     });
   });
 
-  it('should handle fills with different timestamps', async () => {
+  it('handles fills with different timestamps', async () => {
     let capturedCallback: (fills: OrderFill[]) => void = jest.fn();
     mockSubscribe.mockImplementation((params) => {
       capturedCallback = params.callback;
@@ -247,7 +247,7 @@ describe('usePerpsLiveFills', () => {
     });
   });
 
-  it('should handle fills for different symbols', async () => {
+  it('handles fills for different symbols', async () => {
     let capturedCallback: (fills: OrderFill[]) => void = jest.fn();
     mockSubscribe.mockImplementation((params) => {
       capturedCallback = params.callback;

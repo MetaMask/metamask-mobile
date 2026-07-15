@@ -85,7 +85,6 @@ const setupMultichainState = (
       ...(multichainEnabled && {
         AccountTreeController: {
           accountTree: {
-            selectedAccountGroup: `${AccountWalletType.Entropy}:wallet1/0`,
             wallets: options.emptyWalletsMap
               ? {}
               : (options.walletsMap ??
@@ -97,6 +96,7 @@ const setupMultichainState = (
                   [accountId],
                 )),
           },
+          selectedAccountGroup: `${AccountWalletType.Entropy}:wallet1/0`,
         },
       }),
     },

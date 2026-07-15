@@ -9,24 +9,36 @@ import { selectInternalAccountsById } from '../../../../../selectors/accountsCon
 import { selectAllNfts } from '../../../../../selectors/nftController';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { Nft } from '../../types/token';
-import { useSendScope } from './useSendScope';
+import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
+import useIpfsGateway from '../../../../hooks/useIpfsGateway';
+import Logger from '../../../../../util/Logger';
 
-export function useEVMNfts(): Nft[] {
+export interface UseEVMNftsResult {
+  nfts: Nft[];
+  isLoading: boolean;
+}
+
+export function useEVMNfts(): UseEVMNftsResult {
   const { NftController, AssetsContractController, NetworkController } =
     Engine.context;
   const selectedAccountGroup = useSelector(selectSelectedAccountGroup);
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const allNFTS = useSelector(selectAllNfts);
   const [transformedNfts, setTransformedNfts] = useState<Nft[]>([]);
-  const { isSolanaOnly } = useSendScope();
+  const [isLoading, setIsLoading] = useState(true);
+  const ipfsGateway = useIpfsGateway();
 
   const evmAccount = selectedAccountGroup?.accounts
     .map((accountId) => internalAccountsById[accountId])
     .filter((account) => isEvmAddress(account.address))?.[0];
 
   useEffect(() => {
+    let cancelled = false;
+
+    setIsLoading(true);
     if (!evmAccount || !allNFTS) {
       setTransformedNfts([]);
+      setIsLoading(false);
       return;
     }
 
@@ -58,6 +70,7 @@ export function useEVMNfts(): Nft[] {
 
       for (const nft of rawNfts) {
         const transformed = await transformNft(
+          ipfsGateway,
           nft,
           evmAccount.address,
           AssetsContractController,
@@ -68,11 +81,24 @@ export function useEVMNfts(): Nft[] {
         }
       }
 
-      setTransformedNfts(transformedResults);
+      if (!cancelled) {
+        setTransformedNfts(transformedResults);
+        setIsLoading(false);
+      }
     };
 
-    processNfts();
+    processNfts().catch((error) => {
+      if (!cancelled) {
+        Logger.error(error, 'useEVMNfts: processNfts failed');
+        setIsLoading(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [
+    ipfsGateway,
     evmAccount,
     allNFTS,
     NftController,
@@ -80,25 +106,35 @@ export function useEVMNfts(): Nft[] {
     NetworkController,
   ]);
 
-  if (isSolanaOnly) {
-    return [];
-  }
-
-  return transformedNfts;
+  return { nfts: transformedNfts, isLoading };
 }
 
-function getValidImageUrl(
+async function getValidImageUrl(
+  ipfsGateway: string,
   imageUrls: (string | undefined)[],
-): string | undefined {
+): Promise<string | undefined> {
   for (const url of imageUrls) {
-    if (url && !url.startsWith('ipfs:')) {
-      return url;
+    if (url) {
+      if (!url.startsWith('ipfs:')) {
+        return url;
+      }
+
+      try {
+        const ipfsUrl = await getFormattedIpfsUrl(ipfsGateway, url, false);
+        if (!ipfsUrl) {
+          continue;
+        }
+        return ipfsUrl;
+      } catch {
+        Logger.log(`Failed to resolve IPFS URL for ${url}`);
+      }
     }
   }
   return undefined;
 }
 
 async function transformNft(
+  ipfsGateway: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   nft: any,
   userAddress: string,
@@ -121,7 +157,7 @@ async function transformNft(
 
   if (standard === 'ERC721') {
     name = nft.name || undefined;
-    image = getValidImageUrl([
+    image = await getValidImageUrl(ipfsGateway, [
       nft.image,
       nft.imageUrl,
       collection?.imageUrl,
@@ -129,7 +165,7 @@ async function transformNft(
     ]);
   } else if (standard === 'ERC1155') {
     name = nft.name || undefined;
-    image = getValidImageUrl([
+    image = await getValidImageUrl(ipfsGateway, [
       nft.image,
       nft.imageOriginal,
       collection?.imageUrl,

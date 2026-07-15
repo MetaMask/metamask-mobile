@@ -3,8 +3,8 @@ import {
   type MultichainAssetsControllerMessenger,
   MultichainAssetsControllerState,
 } from '@metamask/assets-controllers';
-import type { ControllerInitRequest } from '../../types';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import type { MessengerClientInitRequest } from '../../types';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { multichainAssetsControllerInit } from './multichain-assets-controller-init';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
@@ -16,7 +16,7 @@ describe('multichain assets controller init', () => {
     MultichainAssetsController,
   );
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<MultichainAssetsControllerMessenger>
+    MessengerClientInitRequest<MultichainAssetsControllerMessenger>
   >;
 
   beforeEach(() => {
@@ -24,8 +24,10 @@ describe('multichain assets controller init', () => {
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
     });
-    // Create controller init request mock
-    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
+    // Create messenger client init request mock
+    initRequestMock = buildMessengerClientInitRequestMock(
+      baseControllerMessenger,
+    );
   });
 
   it('returns controller instance', () => {

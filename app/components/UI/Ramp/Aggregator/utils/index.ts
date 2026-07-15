@@ -11,11 +11,7 @@ import {
   QuoteSortMetadata,
   SellOrder,
 } from '@consensys/on-ramp-sdk/dist/API';
-import {
-  renderFromTokenMinimalUnit,
-  renderNumber,
-  toTokenMinimalUnit,
-} from '../../../../../util/number';
+import { renderNumber } from '../../../../../util/number';
 import { RampType } from '../types';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
@@ -120,6 +116,34 @@ export const timeToDescription = (timeArr: number[]) => {
   ];
 };
 
+export const renderDelayToken = (token: TimeDescriptions | string): string => {
+  switch (token) {
+    case TimeDescriptions.instant:
+      return strings('fiat_on_ramp_aggregator.payment_method.instant');
+    case TimeDescriptions.less_than:
+      return strings('fiat_on_ramp_aggregator.payment_method.less_than');
+    case TimeDescriptions.separator:
+      return '-';
+    case TimeDescriptions.minutes:
+      return strings('fiat_on_ramp_aggregator.payment_method.minutes');
+    case TimeDescriptions.minute:
+      return strings('fiat_on_ramp_aggregator.payment_method.minute');
+    case TimeDescriptions.hours:
+      return strings('fiat_on_ramp_aggregator.payment_method.hours');
+    case TimeDescriptions.hour:
+      return strings('fiat_on_ramp_aggregator.payment_method.hour');
+    case TimeDescriptions.business_days:
+      return strings('fiat_on_ramp_aggregator.payment_method.business_days');
+    case TimeDescriptions.business_day:
+      return strings('fiat_on_ramp_aggregator.payment_method.business_day');
+    default:
+      return String(token);
+  }
+};
+
+export const formatDelayFromArray = (delay: number[]): string =>
+  timeToDescription(delay).map(renderDelayToken).join(' ');
+
 export const formatId = (id: string) => {
   if (!id) {
     return id;
@@ -162,24 +186,7 @@ export function isNetworkRampNativeTokenSupported(
   return (network?.active && network.nativeTokenSupported) ?? false;
 }
 
-export function getOrderAmount(order: FiatOrder) {
-  let amount = '...';
-  if (order.cryptoAmount) {
-    const data = order?.data as Order;
-    if (data?.cryptoCurrency?.decimals !== undefined && order.cryptocurrency) {
-      amount = renderFromTokenMinimalUnit(
-        toTokenMinimalUnit(
-          order.cryptoAmount,
-          data.cryptoCurrency.decimals,
-        ).toString(),
-        data.cryptoCurrency.decimals,
-      );
-    } else {
-      amount = renderNumber(String(order.cryptoAmount));
-    }
-  }
-  return amount;
-}
+export { getOrderAmount } from '../../utils/getOrderAmount';
 
 export function isBuyQuotes(
   buyOrSellQuotes:
@@ -403,34 +410,47 @@ export function getCaipChainIdFromCryptoCurrency(
   }
 }
 
-export function getHexChainIdFromCryptoCurrency(
-  cryptoCurrency: CryptoCurrency | null,
-): Hex | undefined {
-  if (!cryptoCurrency?.network?.chainId) {
-    return;
+/**
+ * Resolves a chainId (hex, decimal or CAIP format) to an EVM hex chainId.
+ * Returns undefined for non-EVM or unparseable chainIds.
+ */
+export function getEvmHexChainId(chainId?: string): Hex | undefined {
+  if (!chainId) {
+    return undefined;
   }
 
-  let assetDecimalChainId = cryptoCurrency.network.chainId;
-
-  if (isCaipChainId(cryptoCurrency.network.chainId)) {
-    const { namespace, reference } = parseCaipChainId(
-      cryptoCurrency.network.chainId,
-    );
-
-    if (namespace === KnownCaipNamespace.Eip155) {
-      assetDecimalChainId = reference;
+  let decimalOrHexChainId: string = chainId;
+  if (isCaipChainId(chainId)) {
+    const { namespace, reference } = parseCaipChainId(chainId);
+    if (namespace !== KnownCaipNamespace.Eip155) {
+      return undefined;
     }
+    decimalOrHexChainId = reference;
   }
 
   try {
-    return toHex(assetDecimalChainId);
-  } catch (error) {
-    Logger.error(
-      new Error(
-        `getHexChainIdFromCryptoCurrency: Invalid chainId format: ${assetDecimalChainId}`,
-      ),
-      assetDecimalChainId,
-    );
+    return toHex(decimalOrHexChainId);
+  } catch {
+    return undefined;
+  }
+}
+
+export function getHexChainIdFromCryptoCurrency(
+  cryptoCurrency: CryptoCurrency | null,
+): Hex | undefined {
+  const chainId = cryptoCurrency?.network?.chainId;
+  if (!chainId) {
     return;
   }
+
+  const hexChainId = getEvmHexChainId(chainId);
+  if (!hexChainId) {
+    Logger.error(
+      new Error(
+        `getHexChainIdFromCryptoCurrency: Invalid chainId format: ${chainId}`,
+      ),
+      chainId,
+    );
+  }
+  return hexChainId;
 }

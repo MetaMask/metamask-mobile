@@ -1,0 +1,47 @@
+##############################################################################################
+#
+# Expo Dev Build.
+#
+# Triggered on every push to main. Builds the main-dev-expo configuration (Debug)
+# for both iOS and Android using the reusable build.yml workflow.
+#
+# Produces simulator .app + device IPA (iOS) and APK + test APK (Android).
+# No version bump or TestFlight upload.
+# Artifacts are uploaded to GitHub Actions (ios-app-main-dev-expo,
+# android-apk-main-dev-expo, ios-ipa-main-dev-expo, etc.).
+# Local install: yarn install:ios:dev / yarn install:android:dev
+#
+# [skip ci] commits (e.g. version bumps) are automatically skipped by GitHub Actions.
+#
+##############################################################################################
+name: Expo Dev Build
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: true
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  build-dev:
+    name: Expo dev build (main-dev-expo)
+    uses: ./.github/workflows/build.yml
+    with:
+      build_name: main-dev-expo
+      platform: both
+      source_branch: ${{ github.ref_name }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit

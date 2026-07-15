@@ -1,11 +1,10 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   AccountTrackerController,
   AccountTrackerControllerMessenger,
 } from '@metamask/assets-controllers';
 import { selectAssetsAccountApiBalancesEnabled } from '../../../selectors/featureFlagController/assetsAccountApiBalances';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
-
 /**
  * Initialize the accountTracker controller.
  *
@@ -13,11 +12,13 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const accountTrackerControllerInit: ControllerInitFunction<
+export const accountTrackerControllerInit: MessengerClientInitFunction<
   AccountTrackerController,
   AccountTrackerControllerMessenger
-> = ({ controllerMessenger, persistedState, getController, getState }) => {
-  const assetsContractController = getController('AssetsContractController');
+> = ({ controllerMessenger, persistedState, getMessengerClient, getState }) => {
+  const assetsContractController = getMessengerClient(
+    'AssetsContractController',
+  );
 
   const controller = new AccountTrackerController({
     messenger: controllerMessenger,
@@ -32,6 +33,7 @@ export const accountTrackerControllerInit: ControllerInitFunction<
     accountsApiChainIds: () =>
       selectAssetsAccountApiBalancesEnabled(getState()) as `0x${string}`[],
     allowExternalServices: () => selectBasicFunctionalityEnabled(getState()),
+    isHomepageSectionsV1Enabled: () => true,
   });
 
   return {

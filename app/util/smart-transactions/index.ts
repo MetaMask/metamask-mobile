@@ -1,12 +1,4 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
-import TransactionTypes from '../../core/TransactionTypes';
-import {
-  getIsSwapApproveTransaction,
-  getIsSwapApproveOrSwapTransaction,
-  getIsSwapTransaction,
-  getIsNativeTokenTransferred,
-} from '../transactions';
 import {
   SmartTransactionsController,
   type SmartTransaction,
@@ -16,75 +8,6 @@ import Engine, { type RootExtendedMessenger } from '../../core/Engine';
 import { isProduction } from '../environment';
 
 const TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT = 10000;
-
-export const getTransactionType = (
-  transactionMeta: TransactionMeta,
-  chainId: Hex,
-) => {
-  // Determine tx type
-  // If it isn't a dapp tx, check if it's MM Swaps or Send
-  // process.env.MM_FOX_CODE is from MM Swaps
-  const isDapp =
-    transactionMeta?.origin !== TransactionTypes.MMM &&
-    transactionMeta?.origin !== process.env.MM_FOX_CODE;
-
-  const to = transactionMeta.txParams.to?.toLowerCase();
-  const data = transactionMeta.txParams.data; // undefined for send txs of gas tokens
-
-  const isSwapApproveOrSwapTransaction = getIsSwapApproveOrSwapTransaction(
-    data,
-    transactionMeta.origin,
-    to,
-    chainId,
-  );
-  const isSwapApproveTx = getIsSwapApproveTransaction(
-    data,
-    transactionMeta.origin,
-    to,
-    chainId,
-  );
-  const isSwapTransaction = getIsSwapTransaction(
-    data,
-    transactionMeta.origin,
-    to,
-    chainId,
-  );
-
-  const isNativeTokenTransferred = getIsNativeTokenTransferred(
-    transactionMeta.txParams,
-  );
-
-  const isSend = !isDapp && !isSwapApproveOrSwapTransaction;
-
-  return {
-    isDapp,
-    isSend,
-    isInSwapFlow: isSwapApproveOrSwapTransaction,
-    isSwapApproveTx,
-    isSwapTransaction,
-    isNativeTokenTransferred,
-  };
-};
-
-// Status modal start, update, and close conditions
-// If ERC20 if from token in swap and requires additional allowance, Swap txs are the 2nd in the swap flow, so we don't want to show another status page for that
-export const getShouldStartApprovalRequest = (
-  isDapp: boolean,
-  isSend: boolean,
-  isSwapApproveTx: boolean,
-  hasPendingApprovalForSwapApproveTx: boolean,
-  mobileReturnTxHashAsap: boolean,
-): boolean =>
-  !mobileReturnTxHashAsap &&
-  (isDapp || isSend || isSwapApproveTx || !hasPendingApprovalForSwapApproveTx);
-
-export const getShouldUpdateApprovalRequest = (
-  isDapp: boolean,
-  isSend: boolean,
-  isSwapTransaction: boolean,
-  mobileReturnTxHashAsap: boolean,
-): boolean =>
-  !mobileReturnTxHashAsap && (isDapp || isSend || isSwapTransaction);
 
 const waitForSmartTransactionConfirmationDone = (
   controllerMessenger: RootExtendedMessenger,
@@ -106,8 +29,20 @@ export const getSmartTransactionMetricsProperties = async (
   transactionMeta: TransactionMeta | undefined,
   waitForSmartTransaction: boolean,
   controllerMessenger?: RootExtendedMessenger,
+  isSmartTransactionsUserOptIn?: boolean,
+  isSmartTransactionsAvailable?: boolean,
+  shouldUseSmartTransaction?: boolean,
 ) => {
-  if (!transactionMeta) return {};
+  const baseProperties = {
+    is_smart_transactions_user_opt_in: isSmartTransactionsUserOptIn ?? false,
+    is_smart_transactions_available: isSmartTransactionsAvailable ?? false,
+    is_smart_transaction: shouldUseSmartTransaction ?? false,
+  };
+
+  if (!transactionMeta || !baseProperties.is_smart_transaction) {
+    return baseProperties;
+  }
+
   let smartTransaction =
     smartTransactionsController.getSmartTransactionByMinedTxHash(
       transactionMeta.hash,
@@ -120,17 +55,17 @@ export const getSmartTransactionMetricsProperties = async (
     smartTransaction =
       await waitForSmartTransactionConfirmationDone(controllerMessenger);
   }
-  if (!smartTransaction) {
-    return {};
-  }
   if (!smartTransaction?.statusMetadata) {
-    return { is_smart_transaction: true };
+    // Still mark as smart transaction since this function is only called when
+    // smart transactions are enabled for the chain. Cancelled/dropped smart
+    // transactions won't have a mined tx hash, so the lookup above returns
+    // nothing, but the transaction still went through the smart transaction flow.
+    return baseProperties;
   }
-  const { timedOut, proxied } = smartTransaction.statusMetadata;
   return {
-    smart_transaction_timed_out: timedOut,
-    smart_transaction_proxied: proxied,
-    is_smart_transaction: true,
+    ...baseProperties,
+    stx_original_transaction_status:
+      smartTransaction.statusMetadata.originalTransactionStatus,
   };
 };
 
@@ -155,7 +90,10 @@ export const getGasIncludedTransactionFees = (quote: GasIncludedQuote) => {
   return transactionFees;
 };
 
-export const getIsAllowedRpcUrlForSmartTransactions = (rpcUrl?: string) => {
+export const getIsAllowedRpcUrlForSmartTransactions = (
+  allowedHosts: string[],
+  rpcUrl?: string,
+) => {
   // Allow in non-production environments.
   if (!isProduction()) {
     return true;
@@ -163,10 +101,14 @@ export const getIsAllowedRpcUrlForSmartTransactions = (rpcUrl?: string) => {
 
   const hostname = rpcUrl && new URL(rpcUrl).hostname;
 
-  return (
-    hostname?.endsWith('.infura.io') ||
-    hostname?.endsWith('.binance.org') ||
-    false
+  return Boolean(
+    hostname &&
+      allowedHosts.some((host) =>
+        // A leading dot denotes a suffix/subdomain match (e.g. `.infura.io`
+        // matches `mainnet.infura.io`); otherwise require an exact host match
+        // so `mainnet.base.org` does not match `developer-access-mainnet.base.org`.
+        host.startsWith('.') ? hostname.endsWith(host) : hostname === host,
+      ),
   );
 };
 

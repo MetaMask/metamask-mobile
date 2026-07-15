@@ -28,18 +28,35 @@ export class BrowserStackProvider extends BaseServiceProvider {
    * Create and return WebDriver browser instance for BrowserStack
    */
   async getDriver(): Promise<Browser> {
-    this.logger.debug('Creating driver for BrowserStack');
+    this.logger.info(
+      'Creating BrowserStack session (this can take several minutes on a busy grid)…',
+    );
 
     const configBuilder = new BrowserStackConfigBuilder(this.project);
     const config = configBuilder.build();
 
+    const sessionCreationStart = Date.now();
     const browser = await remote(config);
+    this.sessionCreationDurationMs = Date.now() - sessionCreationStart;
     this.sessionId = browser.sessionId;
 
     this.logger.info(
-      `Driver created for BrowserStack with session: ${this.sessionId}`,
+      `Driver created for BrowserStack with session: ${this.sessionId} (session creation took ${this.sessionCreationDurationMs}ms)`,
     );
     return browser;
+  }
+
+  /**
+   * Returns the BrowserStack session recording URL
+   */
+  async getRecordingUrl(sessionId: string): Promise<string | null> {
+    try {
+      const details = await this.api.getSessionDetails(sessionId);
+      if (!details?.buildId) return null;
+      return this.api.buildSessionURL(details.buildId, sessionId);
+    } catch {
+      return null;
+    }
   }
 
   /**

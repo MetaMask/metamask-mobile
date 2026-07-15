@@ -1,7 +1,8 @@
 import React from 'react';
 import { Text } from 'react-native';
-import { screen } from '@testing-library/react-native';
-import { RampSDKProvider, useRampSDK } from './index';
+import { act, screen } from '@testing-library/react-native';
+import { RampSDKProvider, useRampSDK, SDK } from './index';
+import { I18nEvents } from '../../../../../../locales/i18n';
 import { RampType } from '../types';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -91,5 +92,64 @@ describe('RampSDKProvider', () => {
     expect(contextValue?.rampType).toBe(RampType.SELL);
     expect(contextValue?.isBuy).toBe(false);
     expect(contextValue?.isSell).toBe(true);
+  });
+
+  it('syncs SDK locale on mount', () => {
+    const setLocaleSpy = jest.spyOn(SDK, 'setLocale');
+    const TestComponent = () => <Text>Test</Text>;
+
+    renderWithProvider(
+      <RampSDKProvider>
+        <TestComponent />
+      </RampSDKProvider>,
+      { state: mockedState },
+    );
+
+    expect(setLocaleSpy).toHaveBeenCalledWith(expect.any(String));
+
+    setLocaleSpy.mockRestore();
+  });
+
+  it('updates SDK locale when locale changes', () => {
+    const setLocaleSpy = jest.spyOn(SDK, 'setLocale');
+    const TestComponent = () => <Text>Test</Text>;
+
+    renderWithProvider(
+      <RampSDKProvider>
+        <TestComponent />
+      </RampSDKProvider>,
+      { state: mockedState },
+    );
+
+    setLocaleSpy.mockClear();
+
+    act(() => {
+      I18nEvents.emit('localeChanged', 'es');
+    });
+
+    expect(setLocaleSpy).toHaveBeenCalledWith('es');
+
+    setLocaleSpy.mockRestore();
+  });
+
+  it('removes locale listener on unmount', () => {
+    const removeListenerSpy = jest.spyOn(I18nEvents, 'removeListener');
+    const TestComponent = () => <Text>Test</Text>;
+
+    const { unmount } = renderWithProvider(
+      <RampSDKProvider>
+        <TestComponent />
+      </RampSDKProvider>,
+      { state: mockedState },
+    );
+
+    unmount();
+
+    expect(removeListenerSpy).toHaveBeenCalledWith(
+      'localeChanged',
+      expect.any(Function),
+    );
+
+    removeListenerSpy.mockRestore();
   });
 });

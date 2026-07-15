@@ -1,6 +1,10 @@
 import { Connection } from '../services/connection';
 import { ConnectionInfo } from './connection-info';
 
+export interface ShowConnectionLoadingOptions {
+  autodismissMs?: number;
+}
+
 /**
  * Defines the contract for the host MetaMask Mobile application.
  * This adapter is the sole boundary between the isolated SDKConnectV2 logic
@@ -13,7 +17,10 @@ export interface IHostApplicationAdapter {
    * Displays a global, non-interactive loading modal. Used to indicate
    * background activity, such as establishing a connection.
    */
-  showConnectionLoading(conninfo: ConnectionInfo): void;
+  showConnectionLoading(
+    conninfo: ConnectionInfo,
+    options?: ShowConnectionLoadingOptions,
+  ): void;
 
   /**
    * Hides the global loading modal.
@@ -21,9 +28,22 @@ export interface IHostApplicationAdapter {
   hideConnectionLoading(conninfo: ConnectionInfo): void;
 
   /**
-   * Displays a global, non-interactive error modal.
+   * Displays a connection-level error toast. Use only when the MWP
+   * session/handshake itself fails, not for RPC method errors.
    */
   showConnectionError(conninfo?: ConnectionInfo): void;
+
+  /**
+   * Displays a toast for an unexpected internal error (e.g. URL parsing
+   * failure, uncategorized error codes).
+   */
+  showInternalError(conninfo?: ConnectionInfo): void;
+
+  /**
+   * Displays a toast for an RPC method error that is not a user rejection
+   * (e.g. invalid params, method not found).
+   */
+  showMethodError(conninfo?: ConnectionInfo): void;
 
   /**
    * Displays a global, non-interactive not found modal.

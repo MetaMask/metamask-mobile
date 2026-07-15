@@ -5,9 +5,27 @@ import ReferredByCodeSection from './ReferredByCodeSection';
 import { useReferralDetails } from '../../hooks/useReferralDetails';
 import { useValidateReferralCode } from '../../hooks/useValidateReferralCode';
 import { useApplyReferralCode } from '../../hooks/useApplyReferralCode';
+import {
+  selectReferredByCode,
+  selectIsVipReferee,
+  selectReferralDetailsLoading,
+  selectReferralDetailsError,
+} from '../../../../../reducers/rewards/selectors';
+import { selectVipProgramEnabled } from '../../../../../selectors/featureFlagController/vipProgram';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+}));
+
+jest.mock('../../../../../reducers/rewards/selectors', () => ({
+  selectReferredByCode: jest.fn(),
+  selectIsVipReferee: jest.fn(),
+  selectReferralDetailsLoading: jest.fn(),
+  selectReferralDetailsError: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/featureFlagController/vipProgram', () => ({
+  selectVipProgramEnabled: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -109,11 +127,6 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
             endAccessory,
           ),
       ),
-    TextFieldSize: {
-      Sm: '32',
-      Md: '40',
-      Lg: '48',
-    },
   };
 });
 
@@ -157,7 +170,7 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Skeleton', () => {
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 
@@ -208,6 +221,17 @@ jest.mock('../RewardsErrorBanner', () => {
   };
 });
 
+jest.mock('../RewardsVipReferralTag/RewardsVipReferralTag', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, { testID: 'rewards-vip-referral-tag' }),
+  };
+});
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
@@ -217,6 +241,7 @@ jest.mock('../../hooks/useReferralDetails', () => ({
 }));
 
 jest.mock('../../hooks/useValidateReferralCode', () => ({
+  REFERRAL_CODE_MIN_LENGTH: 3,
   useValidateReferralCode: jest.fn(),
 }));
 
@@ -224,15 +249,12 @@ jest.mock('../../hooks/useApplyReferralCode', () => ({
   useApplyReferralCode: jest.fn(),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: { muted: '#f5f5f5' },
-      border: { muted: '#e0e0e0' },
-      error: { default: '#ff0000' },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn((callback) => callback()),
@@ -259,23 +281,32 @@ describe('ReferredByCodeSection', () => {
     referredByCode?: string | null;
     isLoading?: boolean;
     referralDetailsError?: boolean;
+    isVipReferee?: boolean;
+    isVipProgramEnabled?: boolean;
   }) => {
     const {
       referredByCode = null,
       isLoading = false,
       referralDetailsError = false,
+      isVipReferee = false,
+      isVipProgramEnabled = true,
     } = overrides;
 
     return (selector: unknown) => {
-      const selectorString = selector?.toString() || '';
-      if (selectorString.includes('selectReferredByCode')) {
+      if (selector === selectReferredByCode) {
         return referredByCode;
       }
-      if (selectorString.includes('selectReferralDetailsLoading')) {
+      if (selector === selectReferralDetailsLoading) {
         return isLoading;
       }
-      if (selectorString.includes('selectReferralDetailsError')) {
+      if (selector === selectReferralDetailsError) {
         return referralDetailsError;
+      }
+      if (selector === selectIsVipReferee) {
+        return isVipReferee;
+      }
+      if (selector === selectVipProgramEnabled) {
+        return isVipProgramEnabled;
       }
       return undefined;
     };
@@ -295,6 +326,7 @@ describe('ReferredByCodeSection', () => {
       isValidating: false,
       isValid: false,
       isUnknownError: false,
+      isVipReferralCode: false,
     });
 
     mockUseApplyReferralCode.mockReturnValue({
@@ -477,6 +509,7 @@ describe('ReferredByCodeSection', () => {
         isValidating: true,
         isValid: false,
         isUnknownError: false,
+        isVipReferralCode: false,
       });
 
       const { getByTestId } = render(<ReferredByCodeSection />);
@@ -494,6 +527,7 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: true,
         isUnknownError: false,
+        isVipReferralCode: false,
       });
       mockUseApplyReferralCode.mockReturnValue({
         applyReferralCode: mockApplyReferralCode,
@@ -509,7 +543,7 @@ describe('ReferredByCodeSection', () => {
       expect(endAccessory).toBeOnTheScreen();
     });
 
-    it('renders error icon when code is 6+ chars and invalid', () => {
+    it('renders error icon when code is non-empty and invalid', () => {
       mockUseValidateReferralCode.mockReturnValue({
         referralCode: 'INVALID',
         setReferralCode: mockSetInputCode,
@@ -517,6 +551,7 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: false,
         isUnknownError: false,
+        isVipReferralCode: false,
       });
 
       const { getByTestId } = render(<ReferredByCodeSection />);
@@ -533,6 +568,7 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: false,
         isUnknownError: false,
+        isVipReferralCode: false,
       });
 
       const { getByTestId } = render(<ReferredByCodeSection />);
@@ -548,6 +584,7 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: false,
         isUnknownError: true,
+        isVipReferralCode: false,
       });
 
       const { queryByTestId } = render(<ReferredByCodeSection />);
@@ -555,14 +592,15 @@ describe('ReferredByCodeSection', () => {
       expect(queryByTestId('referred-by-code-invalid-code')).toBeNull();
     });
 
-    it('does not render error text when code is less than 6 chars', () => {
+    it('does not render error text when code is empty', () => {
       mockUseValidateReferralCode.mockReturnValue({
-        referralCode: 'ABC',
+        referralCode: '',
         setReferralCode: mockSetInputCode,
         validateCode: jest.fn().mockResolvedValue(''),
         isValidating: false,
         isValid: false,
         isUnknownError: false,
+        isVipReferralCode: false,
       });
 
       const { queryByTestId } = render(<ReferredByCodeSection />);
@@ -585,6 +623,7 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: true,
         isUnknownError: false,
+        isVipReferralCode: false,
       });
 
       render(<ReferredByCodeSection />);
@@ -606,6 +645,7 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: true,
         isUnknownError: false,
+        isVipReferralCode: false,
       });
 
       render(<ReferredByCodeSection />);
@@ -621,6 +661,7 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: false,
         isUnknownError: false,
+        isVipReferralCode: false,
       });
 
       render(<ReferredByCodeSection />);
@@ -637,6 +678,7 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: true,
         isUnknownError: false,
+        isVipReferralCode: false,
       });
 
       render(<ReferredByCodeSection />);
@@ -655,6 +697,7 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: true,
         isUnknownError: false,
+        isVipReferralCode: false,
       });
       mockUseApplyReferralCode.mockReturnValue({
         applyReferralCode: mockApplyReferralCode,
@@ -673,7 +716,7 @@ describe('ReferredByCodeSection', () => {
   });
 
   describe('Apply Referral Code Error', () => {
-    it('renders error message when applyReferralCodeError exists and code is 6+ chars', () => {
+    it('renders error message when applyReferralCodeError exists and code is non-empty', () => {
       mockUseValidateReferralCode.mockReturnValue({
         referralCode: 'VALID1',
         setReferralCode: mockSetInputCode,
@@ -681,6 +724,7 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: true,
         isUnknownError: false,
+        isVipReferralCode: false,
       });
       mockUseApplyReferralCode.mockReturnValue({
         applyReferralCode: mockApplyReferralCode,
@@ -718,6 +762,7 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: true,
         isUnknownError: false,
+        isVipReferralCode: false,
       });
       mockUseApplyReferralCode.mockReturnValue({
         applyReferralCode: mockApplyReferralCode,
@@ -732,14 +777,15 @@ describe('ReferredByCodeSection', () => {
       expect(queryByTestId('apply-referral-code-error')).toBeNull();
     });
 
-    it('does not render error message when input code is less than 6 chars', () => {
+    it('does not render error message when input code is empty', () => {
       mockUseValidateReferralCode.mockReturnValue({
-        referralCode: 'ABC',
+        referralCode: '',
         setReferralCode: mockSetInputCode,
         validateCode: jest.fn().mockResolvedValue(''),
         isValidating: false,
         isValid: false,
         isUnknownError: false,
+        isVipReferralCode: false,
       });
       mockUseApplyReferralCode.mockReturnValue({
         applyReferralCode: mockApplyReferralCode,
@@ -764,6 +810,7 @@ describe('ReferredByCodeSection', () => {
         isValidating: false,
         isValid: true,
         isUnknownError: false,
+        isVipReferralCode: false,
       });
       mockUseApplyReferralCode.mockReturnValue({
         applyReferralCode: mockApplyReferralCode,
@@ -777,6 +824,132 @@ describe('ReferredByCodeSection', () => {
 
       const endAccessory = getByTestId('referred-by-code-input-end-accessory');
       expect(endAccessory).toBeOnTheScreen();
+    });
+  });
+
+  describe('VIP Referral Tag gating', () => {
+    it('renders the VIP referral tag when linked to a VIP referrer and the VIP program is enabled', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelectors({
+          referredByCode: 'VIPREFCODE',
+          isVipReferee: true,
+          isVipProgramEnabled: true,
+        }),
+      );
+
+      const { getByTestId } = render(<ReferredByCodeSection />);
+
+      expect(getByTestId('rewards-vip-referral-tag')).toBeOnTheScreen();
+    });
+
+    it('does not render the VIP referral tag when isVipReferee is true but the VIP program is disabled', () => {
+      // Simulates a fresh referral-details cache hit still holding
+      // isVipReferee: true after the VIP program was turned off locally.
+      mockUseSelector.mockImplementation(
+        createMockSelectors({
+          referredByCode: 'VIPREFCODE',
+          isVipReferee: true,
+          isVipProgramEnabled: false,
+        }),
+      );
+
+      const { queryByTestId } = render(<ReferredByCodeSection />);
+
+      expect(queryByTestId('rewards-vip-referral-tag')).toBeNull();
+    });
+
+    it('does not render the VIP referral tag when the VIP program is enabled but the user is not a VIP referee', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelectors({
+          referredByCode: 'NORMALCODE',
+          isVipReferee: false,
+          isVipProgramEnabled: true,
+        }),
+      );
+
+      const { queryByTestId } = render(<ReferredByCodeSection />);
+
+      expect(queryByTestId('rewards-vip-referral-tag')).toBeNull();
+    });
+
+    it('renders the VIP referral tag while entering a VIP code when the VIP program is enabled', () => {
+      mockUseValidateReferralCode.mockReturnValue({
+        referralCode: 'VIPENTRY',
+        setReferralCode: mockSetInputCode,
+        validateCode: jest.fn().mockResolvedValue(''),
+        isValidating: false,
+        isValid: false,
+        isUnknownError: false,
+        isVipReferralCode: true,
+      });
+      mockUseSelector.mockImplementation(
+        createMockSelectors({
+          referredByCode: null,
+          isVipReferee: false,
+          isVipProgramEnabled: true,
+        }),
+      );
+
+      const { getByTestId } = render(<ReferredByCodeSection />);
+
+      expect(getByTestId('rewards-vip-referral-tag')).toBeOnTheScreen();
+    });
+
+    it('does not render the VIP referral tag while entering a VIP code when the VIP program is disabled', () => {
+      mockUseValidateReferralCode.mockReturnValue({
+        referralCode: 'VIPENTRY',
+        setReferralCode: mockSetInputCode,
+        validateCode: jest.fn().mockResolvedValue(''),
+        isValidating: false,
+        isValid: false,
+        isUnknownError: false,
+        isVipReferralCode: true,
+      });
+      mockUseSelector.mockImplementation(
+        createMockSelectors({
+          referredByCode: null,
+          isVipReferee: false,
+          isVipProgramEnabled: false,
+        }),
+      );
+
+      const { queryByTestId } = render(<ReferredByCodeSection />);
+
+      expect(queryByTestId('rewards-vip-referral-tag')).toBeNull();
+    });
+  });
+
+  describe('keyboard handling', () => {
+    it('calls onInputFocus when referral input is focused', () => {
+      const onInputFocus = jest.fn();
+      mockUseSelector.mockImplementation(
+        createMockSelectors({
+          referredByCode: null,
+        }),
+      );
+
+      const { getByTestId } = render(
+        <ReferredByCodeSection onInputFocus={onInputFocus} />,
+      );
+
+      fireEvent(getByTestId('referred-by-code-input-input'), 'focus');
+      expect(onInputFocus).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onInputFocus when referral code is already linked', () => {
+      const onInputFocus = jest.fn();
+      mockUseSelector.mockImplementation(
+        createMockSelectors({
+          referredByCode: 'EXISTING',
+        }),
+      );
+
+      const { getByTestId } = render(
+        <ReferredByCodeSection onInputFocus={onInputFocus} />,
+      );
+
+      fireEvent(getByTestId('referred-by-code-input-input'), 'focus');
+      expect(onInputFocus).not.toHaveBeenCalled();
     });
   });
 });

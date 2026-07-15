@@ -17,7 +17,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import EarnMaintenanceBanner from '../../../Earn/components/EarnMaintenanceBanner';
 import { EVENT_LOCATIONS } from '../../constants/events/earnEvents';
 import useEarnings from '../../../Earn/hooks/useEarnings';
@@ -105,7 +105,7 @@ const EarningsContent = ({ asset }: EarningsProps) => {
             <ButtonIcon
               hitSlop={styles.hitSlop}
               testID="annual-rate-tooltip"
-              size={ButtonIconSizes.Sm}
+              size={ButtonIconSizes.Xs}
               iconColor={IconColor.Muted}
               iconName={IconName.Info}
               accessibilityRole="button"

@@ -6,16 +6,28 @@ import { View } from 'react-native';
 // Internal dependencies.
 import ListItemMultiSelectWithMenuButton from './ListItemMultiSelectWithMenuButton';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import { BUTTON_TEST_ID } from './ListItemMultiSelectWithMenuButton.constants';
+import {
+  BUTTON_TEST_ID,
+  ROW_TEST_ID,
+} from './ListItemMultiSelectWithMenuButton.constants';
 
 describe('ListItemMultiSelectWithMenuButton', () => {
   it('should render correctly with default props', () => {
-    const wrapper = render(
+    const { getByTestId } = render(
       <ListItemMultiSelectWithMenuButton>
         <View />
       </ListItemMultiSelectWithMenuButton>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(getByTestId(ROW_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('exposes accessibilityRole="button" on the row', () => {
+    const { getByTestId } = render(
+      <ListItemMultiSelectWithMenuButton>
+        <View />
+      </ListItemMultiSelectWithMenuButton>,
+    );
+    expect(getByTestId(ROW_TEST_ID).props.accessibilityRole).toBe('button');
   });
 
   it('should not render checkbox icon when isSelected is false', () => {
@@ -30,7 +42,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
 
   it('should call onPress when the button is pressed', () => {
     const mockOnPress = jest.fn();
-    const { getByRole } = render(
+    const { getByTestId } = render(
       <ListItemMultiSelectWithMenuButton
         onPress={mockOnPress}
         buttonProps={{
@@ -40,7 +52,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
         <View />
       </ListItemMultiSelectWithMenuButton>,
     );
-    fireEvent.press(getByRole('button'));
+    fireEvent.press(getByTestId(ROW_TEST_ID));
     expect(mockOnPress).toHaveBeenCalled();
   });
 
@@ -81,14 +93,14 @@ describe('ListItemMultiSelectWithMenuButton', () => {
 
   it('should be disabled when isDisabled is true', () => {
     const mockOnPress = jest.fn();
-    const { getByRole } = render(
+    const { getByTestId } = render(
       <ListItemMultiSelectWithMenuButton isDisabled onPress={mockOnPress}>
         <View />
       </ListItemMultiSelectWithMenuButton>,
     );
 
     // The component should render without error when disabled
-    expect(getByRole('button')).toBeTruthy();
+    expect(getByTestId(ROW_TEST_ID)).toBeTruthy();
   });
 
   it('should not render button icon when showButtonIcon is false', () => {
@@ -102,23 +114,23 @@ describe('ListItemMultiSelectWithMenuButton', () => {
 
   it('should call onPress on long press', () => {
     const mockOnPress = jest.fn();
-    const { getByRole } = render(
+    const { getByTestId } = render(
       <ListItemMultiSelectWithMenuButton onPress={mockOnPress}>
         <View />
       </ListItemMultiSelectWithMenuButton>,
     );
 
     // Test that the component renders with onLongPress prop set to onPress
-    expect(getByRole('button')).toBeTruthy();
+    expect(getByTestId(ROW_TEST_ID)).toBeTruthy();
   });
 
   it('should render with custom gap', () => {
-    const { getByRole } = render(
+    const { getByTestId } = render(
       <ListItemMultiSelectWithMenuButton gap={24}>
         <View />
       </ListItemMultiSelectWithMenuButton>,
     );
-    expect(getByRole('button')).toBeTruthy();
+    expect(getByTestId(ROW_TEST_ID)).toBeTruthy();
   });
 
   it('should use custom button test ID when provided', () => {
@@ -145,7 +157,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
   });
 
   it('should handle button props with text button', () => {
-    const { getByRole } = render(
+    const { getByTestId } = render(
       <ListItemMultiSelectWithMenuButton
         buttonProps={{
           textButton: 'Click Me',
@@ -155,7 +167,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
         <View />
       </ListItemMultiSelectWithMenuButton>,
     );
-    expect(getByRole('button')).toBeTruthy();
+    expect(getByTestId(ROW_TEST_ID)).toBeTruthy();
   });
 
   it('should handle button props with showButtonIcon false', () => {

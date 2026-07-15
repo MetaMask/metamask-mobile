@@ -1,93 +1,96 @@
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect, useState } from 'react';
-import Engine from '../../../../core/Engine';
+import { useEffect, useMemo } from 'react';
+import {
+  useInfiniteQuery,
+  type UseInfiniteQueryResult,
+} from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import type { PredictActivity } from '../types';
+import { PREDICT_ACTIVITY_PAGE_SIZE } from '../constants/transactions';
+import { usePredictNetworkManagement } from './usePredictNetworkManagement';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
+import { predictQueries } from '../queries';
+import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { ensureError } from '../utils/predictErrorHandler';
 
-interface UsePredictActivityOptions {
-  providerId?: string;
-  loadOnMount?: boolean;
-  refreshOnFocus?: boolean;
+export interface UsePredictActivityOptions {
+  limit?: number;
 }
 
-interface UsePredictActivityReturn {
+export interface UsePredictActivityResult
+  extends Omit<UseInfiniteQueryResult<PredictActivity[], Error>, 'data'> {
   activity: PredictActivity[];
-  isLoading: boolean;
-  isRefreshing: boolean;
-  error: string | null;
-  loadActivity: (options?: { isRefresh?: boolean }) => Promise<void>;
+  data: PredictActivity[];
 }
 
-export function usePredictActivity(
-  options: UsePredictActivityOptions = {},
-): UsePredictActivityReturn {
-  const { providerId, loadOnMount = true, refreshOnFocus = true } = options;
+export function usePredictActivity({
+  limit = PREDICT_ACTIVITY_PAGE_SIZE,
+}: UsePredictActivityOptions = {}): UsePredictActivityResult {
+  type PredictActivityQueryKey = ReturnType<
+    typeof predictQueries.activity.keys.byAddress
+  >;
 
-  const [activity, setActivity] = useState<PredictActivity[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadActivity = useCallback(
-    async (loadOptions?: { isRefresh?: boolean }) => {
-      const { isRefresh = false } = loadOptions || {};
-      try {
-        if (isRefresh) {
-          setIsRefreshing(true);
-        } else {
-          setIsLoading(true);
-        }
-        setError(null);
-
-        const controller = Engine.context.PredictController;
-        const data = await controller.getActivity({
-          providerId,
-        });
-        setActivity(data ?? []);
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Failed to load activity';
-        setError(message);
-
-        // Capture exception with activity loading context (no user address)
-        Logger.error(ensureError(err), {
-          tags: {
-            feature: PREDICT_CONSTANTS.FEATURE_NAME,
-            component: 'usePredictActivity',
-          },
-          context: {
-            name: 'usePredictActivity',
-            data: {
-              method: 'loadActivity',
-              action: 'activity_load',
-              operation: 'data_fetching',
-              providerId,
-            },
-          },
-        });
-      } finally {
-        setIsLoading(false);
-        setIsRefreshing(false);
-      }
-    },
-    [providerId],
-  );
+  const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
+  // Subscribe to account group changes so the hook re-renders when the user switches accounts
+  useSelector(selectSelectedAccountGroupId);
+  const evmAccount = getEvmAccountFromSelectedAccountGroup();
+  const address = evmAccount?.address;
 
   useEffect(() => {
-    if (loadOnMount) {
-      loadActivity();
-    }
-  }, [loadOnMount, loadActivity]);
+    ensurePolygonNetworkExists().catch(() => undefined);
+  }, [ensurePolygonNetworkExists]);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (refreshOnFocus) {
-        loadActivity({ isRefresh: true });
-      }
-    }, [refreshOnFocus, loadActivity]),
-  );
+  const queryResult = useInfiniteQuery<
+    PredictActivity[],
+    Error,
+    PredictActivity[],
+    PredictActivityQueryKey
+  >({
+    ...predictQueries.activity.options({ address: address ?? '', limit }),
+    enabled: Boolean(address),
+  });
 
-  return { activity, isLoading, isRefreshing, error, loadActivity };
+  const activity = useMemo(() => {
+    const seenActivityIds = new Set<string>();
+
+    return (
+      queryResult.data?.pages.flatMap((page) =>
+        page.filter((activityItem) => {
+          if (seenActivityIds.has(activityItem.id)) {
+            return false;
+          }
+
+          seenActivityIds.add(activityItem.id);
+          return true;
+        }),
+      ) ?? []
+    );
+  }, [queryResult.data]);
+
+  useEffect(() => {
+    if (!queryResult.error) return;
+
+    Logger.error(ensureError(queryResult.error), {
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        component: 'usePredictActivity',
+      },
+      context: {
+        name: 'usePredictActivity',
+        data: {
+          method: 'queryFn',
+          action: 'activity_load',
+          operation: 'data_fetching',
+          limit,
+        },
+      },
+    });
+  }, [limit, queryResult.error]);
+
+  return {
+    ...queryResult,
+    activity,
+    data: activity,
+  };
 }

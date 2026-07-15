@@ -1,4 +1,8 @@
-import { captureException, setMeasurement } from '@sentry/react-native';
+import {
+  addEventListener as netInfoAddEventListener,
+  type NetInfoState,
+} from '@react-native-community/netinfo';
+import { setMeasurement } from '@sentry/react-native';
 import BackgroundTimer from 'react-native-background-timer';
 import performance from 'react-native-performance';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,20 +17,48 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import {
+  startPerpsCufTrace,
+  endPerpsCufTrace,
+  endPerpsCufTraceAfter,
+  watchPerpsCufAnyPositions,
+  clearPendingPerpsCufTraces,
+} from '../utils/perpsCufTrace';
+import {
+  PERPS_CUF_TAG,
+  PERPS_CUF_END_REASON,
+  PERPS_CUF_STREAM_TIMEOUT_MS,
+} from '../constants/perpsCufTags';
 import Logger from '../../../../util/Logger';
-import { PERPS_CONSTANTS, PERFORMANCE_CONFIG } from '../constants/perpsConfig';
+import {
+  PERPS_CONSTANTS,
+  PERFORMANCE_CONFIG,
+  PerpsMeasurementName,
+  PERPS_ERROR_CODES,
+  wait,
+  TradingReadinessCache,
+  withPerpsConnectionAttemptContext,
+  type ReconnectOptions,
+} from '@metamask/perps-controller';
+import StorageWrapper from '../../../../store/storage-wrapper';
+import {
+  PERPS_DISK_CACHE_MARKETS,
+  PERPS_DISK_CACHE_USER_DATA,
+  PERPS_CONNECTION_SOURCE,
+} from '../constants/perpsConfig';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import {
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../selectors/perpsController';
 import { selectHip3ConfigVersion } from '../selectors/featureFlags';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
-import type { ReconnectOptions } from '../types/perps-types';
-import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
 import { ensureError } from '../../../../util/errorUtils';
-import { wait } from '../utils/wait';
-import { TradingReadinessCache } from './TradingReadinessCache';
+
+interface ConnectOptions {
+  source?: string;
+  suppressError?: boolean;
+  preserveCaches?: boolean;
+}
 
 /**
  * Singleton manager for Perps connection state
@@ -43,7 +75,9 @@ class PerpsConnectionManagerClass {
   private connectionRefCount = 0;
   private initPromise: Promise<void> | null = null;
   private disconnectPromise: Promise<void> | null = null;
+  private ensureConnectedPromise: Promise<void> | null = null;
   private hasPreloaded = false;
+  private isPreloading = false;
   private prewarmCleanups: (() => void)[] = [];
   private unsubscribeFromStore: (() => void) | null = null;
   private previousAddress: string | undefined;
@@ -54,6 +88,12 @@ class PerpsConnectionManagerClass {
   private isInGracePeriod = false;
   private pendingReconnectPromise: Promise<void> | null = null;
   private connectionTimeoutRef: ReturnType<typeof setTimeout> | null = null;
+  private stateChangeDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingSkipMarketNotify = false;
+  private netInfoUnsubscribe: (() => void) | null = null;
+  private wasOffline = false;
+  private networkRestoreRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  private networkRestoreRetryCount = 0;
 
   private constructor() {
     // Private constructor to enforce singleton pattern
@@ -138,22 +178,89 @@ class PerpsConnectionManagerClass {
           );
         }
 
+        // Account-only switches keep market data visible (it's global, not account-specific).
+        // Provider/network/HIP-3 switches must flush stale market data immediately.
+        const accountOnly =
+          hasAccountChanged &&
+          !hasProviderChanged &&
+          !hasPerpsNetworkChanged &&
+          !hasHip3Changed;
+
         // Clear caches immediately - this disconnects old WebSockets and sets accountAddress to null
         streamManager.positions.clearCache();
         streamManager.orders.clearCache();
         streamManager.account.clearCache();
         streamManager.prices.clearCache();
-        streamManager.marketData.clearCache();
+        streamManager.marketData.clearCache(accountOnly);
         streamManager.oiCaps.clearCache();
+        streamManager.fills.clearCache();
+        streamManager.topOfBook.clearCache();
+        streamManager.candles.clearCache();
 
-        // Force the controller to reconnect with new account
-        // This ensures proper WebSocket reconnection at the controller level
-        this.reconnectWithNewContext().catch((error) => {
-          Logger.error(ensureError(error), {
-            feature: PERPS_CONSTANTS.FeatureName,
-            message: 'Error reconnecting with new account/network context',
+        // Reset throttle so the next data arrival persists immediately
+        streamManager.resetDiskCacheThrottles();
+
+        // Invalidate disk-persisted cold-start cache (fire-and-forget)
+        if (accountOnly) {
+          StorageWrapper.removeItem(PERPS_DISK_CACHE_USER_DATA).catch(
+            () => undefined,
+          );
+        } else {
+          StorageWrapper.removeItem(PERPS_DISK_CACHE_MARKETS).catch(
+            () => undefined,
+          );
+          StorageWrapper.removeItem(PERPS_DISK_CACHE_USER_DATA).catch(
+            () => undefined,
+          );
+        }
+
+        // Store flag so performReconnection can thread it into the second clearCache call.
+        // AND with current value when a debounce timer is pending so that any
+        // non-account-only change within the window forces a full market reset.
+        this.pendingSkipMarketNotify =
+          this.stateChangeDebounceTimer !== null
+            ? this.pendingSkipMarketNotify && accountOnly
+            : accountOnly;
+
+        // Debounce: coalesce rapid state changes (e.g. provider switch + network
+        // toggle in the same tick) into a single reconnection attempt.
+        if (this.stateChangeDebounceTimer !== null) {
+          clearTimeout(this.stateChangeDebounceTimer);
+        }
+        this.stateChangeDebounceTimer = setTimeout(() => {
+          this.stateChangeDebounceTimer = null;
+          this.reconnectWithNewContext().catch((error) => {
+            Logger.error(
+              ensureError(error, 'PerpsConnectionManager.setupStateMonitoring'),
+              {
+                tags: { feature: PERPS_CONSTANTS.FeatureName },
+                context: {
+                  name: 'PerpsConnectionManager.setupStateMonitoring',
+                  data: {
+                    message:
+                      'Error reconnecting with new account/network context',
+                  },
+                },
+              },
+            );
           });
-        });
+        }, 50);
+      }
+
+      // Abandon pending CUFs on ANY session-identity change — even while
+      // disconnected, since the tracked identity advances below regardless of
+      // isConnected. Pending close/cancel/TP-SL/place ops and stale reconnect
+      // measurements must not survive into the next session and be falsely
+      // ended by that session's first delivery. Same-account soft reconnects
+      // don't reach here, so their pending confirmations are kept; the new
+      // reconnect measurement starts later inside performReconnection.
+      if (
+        hasAccountChanged ||
+        hasPerpsNetworkChanged ||
+        hasProviderChanged ||
+        hasHip3Changed
+      ) {
+        clearPendingPerpsCufTraces();
       }
 
       // Update tracked values
@@ -163,13 +270,144 @@ class PerpsConnectionManagerClass {
       this.previousHip3Version = currentHip3Version;
     });
 
+    // Listen for connectivity changes (WiFi off/on, airplane mode, etc.)
+    if (!this.netInfoUnsubscribe) {
+      this.netInfoUnsubscribe = netInfoAddEventListener(
+        (netState: NetInfoState) => {
+          const isOnline =
+            netState.isInternetReachable ?? netState.isConnected ?? false;
+
+          if (isOnline && this.wasOffline) {
+            DevLogger.log(
+              'PerpsConnectionManager: Network restored - validating connection',
+            );
+            this.reconnectAfterNetworkRestore();
+          }
+
+          if (!isOnline) {
+            this.wasOffline = true;
+          } else if (isOnline && this.isConnected) {
+            this.wasOffline = false;
+          }
+        },
+      );
+    }
+
     DevLogger.log('PerpsConnectionManager: State monitoring set up');
+  }
+
+  /**
+   * Validate the WebSocket connection and force-reconnect if it is stale.
+   * Used by the NetInfo (offline→online) recovery path.
+   *
+   * @param context - Caller identifier for error reporting
+   * @param skipPing - Skip ping and force reconnect after known network loss
+   */
+  private async validateAndReconnect(
+    context: string,
+    skipPing = false,
+  ): Promise<void> {
+    if (this.connectionRefCount <= 0 || this.isConnecting) {
+      return;
+    }
+
+    if (this.isConnected && !skipPing) {
+      try {
+        const provider = Engine.context.PerpsController.getActiveProvider();
+        await provider.ping();
+        DevLogger.log(
+          `PerpsConnectionManager: ${context} - connection healthy`,
+        );
+        return;
+      } catch {
+        DevLogger.log(
+          `PerpsConnectionManager: ${context} - connection stale, triggering reconnection`,
+        );
+      }
+    }
+
+    this.isConnected = false;
+    this.isInitialized = false;
+
+    await this.reconnectWithNewContext({ force: true });
+    DevLogger.log(
+      `PerpsConnectionManager: ${context} - reconnection successful`,
+    );
+  }
+
+  /**
+   * Attempt reconnection after network restore with exponential backoff.
+   * WebSocket endpoints may not be reachable immediately even though
+   * NetInfo reports isInternetReachable: true.
+   */
+  private reconnectAfterNetworkRestore(): void {
+    this.cancelNetworkRestoreRetry();
+    this.networkRestoreRetryCount = 0;
+    this.attemptNetworkRestoreReconnect();
+  }
+
+  private attemptNetworkRestoreReconnect(): void {
+    this.validateAndReconnect('PerpsConnectionManager.netInfoListener', true)
+      .then(() => {
+        this.wasOffline = false;
+        this.networkRestoreRetryCount = 0;
+      })
+      .catch((error) => {
+        this.networkRestoreRetryCount++;
+        if (
+          this.networkRestoreRetryCount <
+          PERPS_CONSTANTS.NetworkRestoreMaxRetries
+        ) {
+          const delay =
+            PERPS_CONSTANTS.NetworkRestoreRetryBaseMs *
+            this.networkRestoreRetryCount;
+          DevLogger.log(
+            `PerpsConnectionManager: Network restore retry ${this.networkRestoreRetryCount} in ${delay}ms`,
+          );
+          this.networkRestoreRetryTimer = setTimeout(() => {
+            this.networkRestoreRetryTimer = null;
+            this.attemptNetworkRestoreReconnect();
+          }, delay);
+        } else {
+          Logger.error(
+            ensureError(error, 'PerpsConnectionManager.netInfoListener'),
+            {
+              tags: { feature: PERPS_CONSTANTS.FeatureName },
+              context: {
+                name: 'PerpsConnectionManager.netInfoListener',
+                data: {
+                  message:
+                    'Network restore reconnection failed after max retries',
+                },
+              },
+            },
+          );
+        }
+      });
+  }
+
+  private cancelNetworkRestoreRetry(): void {
+    if (this.networkRestoreRetryTimer) {
+      clearTimeout(this.networkRestoreRetryTimer);
+      this.networkRestoreRetryTimer = null;
+    }
+    this.networkRestoreRetryCount = 0;
   }
 
   /**
    * Clean up state monitoring
    */
   private cleanupStateMonitoring(): void {
+    if (this.netInfoUnsubscribe) {
+      this.netInfoUnsubscribe();
+      this.netInfoUnsubscribe = null;
+      this.wasOffline = false;
+    }
+    this.cancelNetworkRestoreRetry();
+    if (this.stateChangeDebounceTimer !== null) {
+      clearTimeout(this.stateChangeDebounceTimer);
+      this.stateChangeDebounceTimer = null;
+    }
     if (this.unsubscribeFromStore) {
       this.unsubscribeFromStore();
       this.unsubscribeFromStore = null;
@@ -213,7 +451,7 @@ class PerpsConnectionManagerClass {
    * Start connection timeout timer
    * If connection takes longer than configured timeout, set error state
    */
-  private startConnectionTimeout(): void {
+  private startConnectionTimeout(suppressError = false): void {
     // Clear any existing timeout
     this.clearConnectionTimeout();
 
@@ -229,9 +467,90 @@ class PerpsConnectionManagerClass {
       this.isConnecting = false;
       this.isConnected = false;
       this.isInitialized = false;
-      this.setError(PERPS_ERROR_CODES.CONNECTION_TIMEOUT);
+      if (!suppressError) {
+        this.setError(PERPS_ERROR_CODES.CONNECTION_TIMEOUT);
+      }
       this.connectionTimeoutRef = null;
     }, timeoutMs);
+  }
+
+  private shouldSuppressConnectionError(options?: ConnectOptions): boolean {
+    if (options?.suppressError !== undefined) {
+      return options.suppressError;
+    }
+
+    const source = options?.source ?? PERPS_CONNECTION_SOURCE.UNSPECIFIED;
+
+    return (
+      source === PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT ||
+      source === PERPS_CONNECTION_SOURCE.WALLET_ROOT_RETRY ||
+      source === PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND ||
+      source === PERPS_CONNECTION_SOURCE.TUTORIAL_PRELOAD
+    );
+  }
+
+  /**
+   * Re-register all stream channel subscriptions (candles, prices, etc.) on a
+   * still-healthy connection. A ping success only proves the socket transport
+   * is alive — it does NOT prove the server-side topic subscriptions survived
+   * backgrounding. Mobile OSes frequently leave the WebSocket in a "zombie"
+   * state after backgrounding: ping/pong still works, but HyperLiquid has
+   * dropped the `candle`/`allMids` subscriptions, so no further ticks arrive
+   * until something forces a resubscribe. Without this, the chart and price
+   * header appear frozen after foregrounding until the user navigates away
+   * and back (which happens to trigger a fresh subscription elsewhere).
+   */
+  private resubscribeActiveStreamChannels(): void {
+    getStreamManagerInstance().clearAllChannels();
+  }
+
+  async resumeFromForeground(options?: ConnectOptions): Promise<void> {
+    const source =
+      options?.source ?? PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND;
+    const suppressError = this.shouldSuppressConnectionError(options);
+
+    this.cancelGracePeriod();
+
+    // Wallet-root always-on owns a single logical reference.
+    this.connectionRefCount = Math.max(this.connectionRefCount, 1);
+
+    // If the existing connection is healthy, keep it instead of forcing a reconnect.
+    if (this.isConnected && this.isInitialized) {
+      try {
+        const provider = Engine.context.PerpsController.getActiveProvider();
+        await provider.ping();
+        if (!suppressError) {
+          this.clearError();
+        }
+        this.resubscribeActiveStreamChannels();
+        return;
+      } catch {
+        // First ping failed — JS thread may be sluggish right after foregrounding.
+        // Wait briefly and retry before triggering a full reconnection.
+        await wait(PERPS_CONSTANTS.ForegroundPingRetryDelayMs);
+        try {
+          const retryProvider =
+            Engine.context.PerpsController.getActiveProvider();
+          await retryProvider.ping();
+          DevLogger.log(
+            'PerpsConnectionManager: resumeFromForeground - retry ping succeeded, connection healthy',
+          );
+          if (!suppressError) {
+            this.clearError();
+          }
+          this.resubscribeActiveStreamChannels();
+          return;
+        } catch {
+          DevLogger.log(
+            'PerpsConnectionManager: resumeFromForeground - retry ping also failed, falling through to soft reconnect',
+          );
+        }
+      }
+    }
+
+    // Soft reconnect: preserve cached data so no loading skeletons appear.
+    // The WebSocket was likely still alive — avoid a jarring skeleton flash.
+    await this.ensureConnected({ source, suppressError, preserveCaches: true });
   }
 
   /**
@@ -251,10 +570,19 @@ class PerpsConnectionManagerClass {
       BackgroundTimer.start();
       this.gracePeriodTimer = setTimeout(() => {
         this.performActualDisconnection().catch((error) => {
-          Logger.error(ensureError(error), {
-            feature: PERPS_CONSTANTS.FeatureName,
-            message: 'Error performing actual disconnection',
-          });
+          Logger.error(
+            ensureError(
+              error,
+              'PerpsConnectionManager.scheduleGracePeriodDisconnection',
+            ),
+            {
+              tags: { feature: PERPS_CONSTANTS.FeatureName },
+              context: {
+                name: 'PerpsConnectionManager.scheduleGracePeriodDisconnection',
+                data: { message: 'Error performing actual disconnection' },
+              },
+            },
+          );
         });
       }, PERPS_CONSTANTS.ConnectionGracePeriodMs) as unknown as number;
       // Stop immediately after scheduling (not in the callback)
@@ -263,19 +591,32 @@ class PerpsConnectionManagerClass {
       // Android uses BackgroundTimer.setTimeout directly
       this.gracePeriodTimer = BackgroundTimer.setTimeout(() => {
         this.performActualDisconnection().catch((error) => {
-          Logger.error(ensureError(error), {
-            feature: PERPS_CONSTANTS.FeatureName,
-            message: 'Error performing actual disconnection',
-          });
+          Logger.error(
+            ensureError(
+              error,
+              'PerpsConnectionManager.scheduleGracePeriodDisconnection',
+            ),
+            {
+              tags: { feature: PERPS_CONSTANTS.FeatureName },
+              context: {
+                name: 'PerpsConnectionManager.scheduleGracePeriodDisconnection',
+                data: { message: 'Error performing actual disconnection' },
+              },
+            },
+          );
         });
       }, PERPS_CONSTANTS.ConnectionGracePeriodMs);
     }
   }
 
   /**
-   * Perform the actual disconnection after grace period expires
+   * Perform the actual disconnection after grace period expires.
+   * @param options.force - Bypass refCount guard (used by ensureConnected).
+   * @param options.preserveCaches - Skip clearing stream caches (used by soft foreground resume).
    */
-  private async performActualDisconnection(): Promise<void> {
+  private async performActualDisconnection(
+    options: { force?: boolean; preserveCaches?: boolean } = {},
+  ): Promise<void> {
     DevLogger.log(
       `PerpsConnectionManager: Grace period expired, performing disconnection (refCount: ${this.connectionRefCount})`,
     );
@@ -284,8 +625,8 @@ class PerpsConnectionManagerClass {
     this.gracePeriodTimer = null;
     this.isInGracePeriod = false;
 
-    // Only disconnect if we still have no references
-    if (this.connectionRefCount <= 0) {
+    // Only disconnect if we still have no references (unless forced)
+    if (options.force || this.connectionRefCount <= 0) {
       if (this.isConnected || this.isInitialized) {
         // Track that we're disconnecting
         this.isDisconnecting = true;
@@ -299,11 +640,38 @@ class PerpsConnectionManagerClass {
             // Clean up preloaded subscriptions
             this.cleanupPreloadedSubscriptions();
 
+            // Clear all stream caches so subscribers reset to loading state
+            // and hasReceivedFirstUpdate is reset for clean reconnection.
+            // Skip when preserveCaches=true (soft foreground resume): cached data
+            // is still valid and clearing it would cause unnecessary loading skeletons.
+            if (!options.preserveCaches) {
+              const streamManager = getStreamManagerInstance();
+              streamManager.positions.clearCache();
+              streamManager.orders.clearCache();
+              streamManager.account.clearCache();
+              streamManager.prices.clearCache();
+              streamManager.marketData.clearCache();
+              streamManager.oiCaps.clearCache();
+              streamManager.fills.clearCache();
+              streamManager.topOfBook.clearCache();
+              streamManager.candles.clearCache();
+              // Hard teardown (streams torn down, caches cleared): abandon any
+              // pending confirmation CUF as `disconnected`, or a later reconnect
+              // delivery would end the stale op as a success with a duration
+              // inflated by the background/disconnect gap. Skipped for a
+              // preserveCaches soft resume above, where the stream continuity
+              // means the confirming delivery is still legitimate. No reconnect
+              // measurement span is armed during disconnect (it is armed later
+              // in performReconnection, after its own clear), so none is lost.
+              clearPendingPerpsCufTraces();
+            }
+
             // Reset state before disconnecting to prevent race conditions
             this.isConnected = false;
             this.isInitialized = false;
             this.isConnecting = false;
             this.hasPreloaded = false; // Reset pre-load flag on disconnect
+            this.isPreloading = false; // Reset in-flight preload guard on disconnect
             this.clearError(); // Clear any errors on disconnect
 
             await Engine.context.PerpsController.disconnect();
@@ -312,9 +680,15 @@ class PerpsConnectionManagerClass {
               'PerpsConnectionManager: Actual disconnection complete',
             );
           } catch (error) {
-            Logger.error(ensureError(error), {
-              feature: PERPS_CONSTANTS.FeatureName,
-            });
+            Logger.error(
+              ensureError(
+                error,
+                'PerpsConnectionManager.performActualDisconnection',
+              ),
+              {
+                tags: { feature: PERPS_CONSTANTS.FeatureName },
+              },
+            );
           } finally {
             this.isDisconnecting = false;
             this.disconnectPromise = null;
@@ -372,7 +746,10 @@ class PerpsConnectionManagerClass {
     }
   }
 
-  async connect(): Promise<void> {
+  async connect(options?: ConnectOptions): Promise<void> {
+    const source = options?.source ?? 'unspecified';
+    const suppressError = this.shouldSuppressConnectionError(options);
+
     // Cancel any active grace period when reconnecting
     if (this.isInGracePeriod) {
       DevLogger.log(
@@ -433,10 +810,12 @@ class PerpsConnectionManagerClass {
 
     this.isConnecting = true;
     // Clear previous errors when starting connection attempt
-    this.clearError();
+    if (!suppressError) {
+      this.clearError();
+    }
 
     // Start connection timeout to prevent hanging indefinitely
-    this.startConnectionTimeout();
+    this.startConnectionTimeout(suppressError);
 
     this.initPromise = (async () => {
       const traceId = uuidv4();
@@ -454,8 +833,13 @@ class PerpsConnectionManagerClass {
 
         // Stage 1: Initialize providers
         const initStart = performance.now();
-        await Engine.context.PerpsController.init();
-        this.isInitialized = true;
+        await withPerpsConnectionAttemptContext(
+          { source, suppressError },
+          async () => {
+            await Engine.context.PerpsController.init();
+            this.isInitialized = true;
+          },
+        );
         setMeasurement(
           PerpsMeasurementName.PerpsProviderInit,
           performance.now() - initStart,
@@ -478,9 +862,14 @@ class PerpsConnectionManagerClass {
           traceSpan,
         );
 
-        // Check if timeout fired during health check - respect timeout decision
-        if (this.error === PERPS_ERROR_CODES.CONNECTION_TIMEOUT) {
-          // Timeout already set error state, bail out early without overriding
+        // Check if timeout fired during health check - respect timeout decision.
+        // The timeout handler always sets isConnecting=false (even when
+        // suppressError is true), so checking that flag detects the timeout
+        // regardless of whether an error was surfaced to the UI.
+        if (
+          !this.isConnecting ||
+          this.error === PERPS_ERROR_CODES.CONNECTION_TIMEOUT
+        ) {
           traceData = {
             success: false,
             error: 'Connection timeout during health check',
@@ -558,32 +947,19 @@ class PerpsConnectionManagerClass {
         // Clear connection timeout on error
         this.clearConnectionTimeout();
 
-        // Capture exception with connection context
-        captureException(ensureError(error, 'PerpsConnectionManager.connect'), {
-          tags: {
-            component: 'PerpsConnectionManager',
-            action: 'connection_connection',
-            operation: 'connection_management',
-            provider: 'hyperliquid',
-          },
-          extra: {
-            connectionContext: {
-              provider: 'hyperliquid',
-              timestamp: new Date().toISOString(),
-              isTestnet:
-                Engine.context.PerpsController?.getCurrentNetwork?.() ===
-                'testnet',
-            },
-          },
-        });
-
         traceData = {
           success: false,
           error: ensureError(error, 'PerpsConnectionManager.connect').message,
         };
 
         // Set error state for UI
-        this.setError(ensureError(error, 'PerpsConnectionManager.connect'));
+        const errorInstance = ensureError(
+          error,
+          'PerpsConnectionManager.connect',
+        );
+        if (!suppressError) {
+          this.setError(errorInstance);
+        }
         DevLogger.log('PerpsConnectionManager: Connection failed', error);
         throw error;
       } finally {
@@ -665,6 +1041,32 @@ class PerpsConnectionManagerClass {
       'PerpsConnectionManager: Reconnecting with new account/network context',
     );
 
+    // Abandon any pending confirmation CUF (and any stale reconnect span) from
+    // the previous session BEFORE arming this reconnection's own span. The
+    // streams are being torn down and resubscribed here, so a stale op must not
+    // be ended by the new subscription's first delivery (which would record a
+    // success with a duration inflated by the offline/reconnect gap). This also
+    // covers reconnect paths that do not route through the identity-change or
+    // hard-disconnect clears — notably NetInfo offline->online.
+    clearPendingPerpsCufTraces();
+
+    // Freshness CUF: reconnect start -> first fresh positions delivery. Armed
+    // AFTER the clear above so it is never abandoned by it.
+    const reconnectCufOpId = startPerpsCufTrace({
+      name: TraceName.PerpsWebSocketReconnectToFreshData,
+    });
+    watchPerpsCufAnyPositions(reconnectCufOpId);
+    endPerpsCufTraceAfter(
+      {
+        id: reconnectCufOpId,
+        data: {
+          [PERPS_CUF_TAG.SUCCESS]: false,
+          [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+        },
+      },
+      PERPS_CUF_STREAM_TIMEOUT_MS,
+    );
+
     // Set connecting state immediately to prevent race conditions
     this.isConnecting = true;
 
@@ -684,12 +1086,18 @@ class PerpsConnectionManagerClass {
 
       // Clear all cached data from StreamManager to reset UI immediately
       const streamManager = getStreamManagerInstance();
+      const skipMarketNotify = this.pendingSkipMarketNotify;
+      this.pendingSkipMarketNotify = false;
+
       streamManager.prices.clearCache();
       streamManager.positions.clearCache();
       streamManager.orders.clearCache();
       streamManager.account.clearCache();
-      streamManager.marketData.clearCache();
+      streamManager.marketData.clearCache(skipMarketNotify);
       streamManager.oiCaps.clearCache();
+      streamManager.fills.clearCache();
+      streamManager.topOfBook.clearCache();
+      streamManager.candles.clearCache();
       setMeasurement(
         PerpsMeasurementName.PerpsReconnectionCleanup,
         performance.now() - cleanupStart,
@@ -701,11 +1109,24 @@ class PerpsConnectionManagerClass {
       this.isConnected = false;
       this.isInitialized = false;
       this.hasPreloaded = false;
+      this.isPreloading = false;
+      // Flag intentional teardown so WS state events can be suppressed in the UI
+      this.isDisconnecting = true;
       // Clear previous errors when starting reconnection attempt
       this.clearError();
 
       // Stage 2: Force the controller to reinitialize with new context
+      // Disconnect first so the controller resets its isInitialized flag —
+      // without this, init() silently skips when the controller thinks it's
+      // already initialized (even though the underlying WebSocket is dead).
       const reinitStart = performance.now();
+      try {
+        await Engine.context.PerpsController.disconnect();
+      } catch {
+        DevLogger.log(
+          'PerpsConnectionManager: disconnect before reinit failed (continuing)',
+        );
+      }
       await Engine.context.PerpsController.init();
       setMeasurement(
         PerpsMeasurementName.PerpsControllerReinit,
@@ -719,6 +1140,27 @@ class PerpsConnectionManagerClass {
         ? PERPS_CONSTANTS.ReconnectionDelayAndroidMs
         : PERPS_CONSTANTS.ReconnectionDelayIosMs;
       await wait(reconnectionDelay);
+
+      // Wait for any concurrent controller reinit (e.g. toggleTestnet) to finish
+      // before calling getActiveProvider(), which throws CLIENT_REINITIALIZING while
+      // isReinitializing is true.
+      {
+        const maxWaitMs = 2000;
+        const pollIntervalMs = 50;
+        let waited = 0;
+        while (
+          Engine.context.PerpsController.isCurrentlyReinitializing() &&
+          waited < maxWaitMs
+        ) {
+          await wait(pollIntervalMs);
+          waited += pollIntervalMs;
+        }
+        if (waited > 0) {
+          DevLogger.log(
+            `PerpsConnectionManager: Waited ${waited}ms for concurrent reinit to complete`,
+          );
+        }
+      }
 
       // Validate connection with WebSocket health check ping before marking as connected
       // This ensures the WebSocket connection is actually responsive after reconnection without expensive API calls
@@ -752,6 +1194,7 @@ class PerpsConnectionManagerClass {
       // No need to explicitly call getAccountState() - preloadSubscriptions() handles account data
       this.isConnected = true;
       this.isInitialized = true;
+      this.isDisconnecting = false;
       // Clear errors on successful reconnection
       this.clearError();
 
@@ -798,6 +1241,17 @@ class PerpsConnectionManagerClass {
       // Clear connection timeout on error
       this.clearConnectionTimeout();
 
+      // Reconnect failed: end its CUF span now as a failure rather than leaving
+      // it open for the 30s fallback — otherwise a retry's fresh positions
+      // delivery could end both this stale span and the new reconnect span.
+      endPerpsCufTrace({
+        id: reconnectCufOpId,
+        data: {
+          [PERPS_CUF_TAG.SUCCESS]: false,
+          [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+        },
+      });
+
       traceData = {
         success: false,
         error: ensureError(error, 'PerpsConnectionManager.reconnect').message,
@@ -816,8 +1270,70 @@ class PerpsConnectionManagerClass {
         id: traceId,
         data: traceData,
       });
-      // Always clear connecting state when done
+      // Always clear connecting/disconnecting state when done
       this.isConnecting = false;
+      this.isDisconnecting = false;
+    }
+  }
+
+  /**
+   * Force a full reconnect when the caller knows the connection must be reset.
+   *
+   * Wallet-root lifecycle should prefer `resumeFromForeground()` so healthy
+   * sockets survive short app-state transitions. Interactive flows can still
+   * use `ensureConnected()` when they need a guaranteed clean reconnect.
+   */
+  async ensureConnected(options?: ConnectOptions): Promise<void> {
+    // Guard against concurrent calls (e.g. rapid foreground transitions)
+    if (this.ensureConnectedPromise) {
+      return this.ensureConnectedPromise;
+    }
+
+    this.ensureConnectedPromise = this.performEnsureConnected(
+      options?.source,
+      options?.suppressError,
+      options?.preserveCaches,
+    );
+    try {
+      await this.ensureConnectedPromise;
+    } finally {
+      this.ensureConnectedPromise = null;
+    }
+  }
+
+  private async performEnsureConnected(
+    source?: string,
+    suppressError?: boolean,
+    preserveCaches?: boolean,
+  ): Promise<void> {
+    // Cancel grace period if still pending — we're taking over
+    this.cancelGracePeriod();
+
+    // Force clean state so connect() runs the full init → ping → preload path.
+    // Uses force: true to bypass the refCount guard — ensureConnected must
+    // always tear down, regardless of how many components hold references.
+    if (this.isConnected || this.isInitialized) {
+      await this.performActualDisconnection({ force: true, preserveCaches });
+    }
+
+    // Reset refCount so connect() brings it to exactly 1.
+    // Without this, repeated background/foreground cycles would drift
+    // refCount upward (1→2→3…), eventually preventing grace-period
+    // disconnects from firing (they require refCount ≤ 0).
+    this.connectionRefCount = 0;
+
+    // Full reconnect: init → ping → preload
+    await this.connect({
+      source: source ?? 'ensure_connected',
+      suppressError,
+    });
+
+    // A cache-preserving foreground reconnect intentionally skips stream cache
+    // clearing during disconnect. Rebind active channel handles after the
+    // controller comes back so subscribers do not keep stale WebSocket
+    // unsubscribe references from the pre-reconnect provider.
+    if (preserveCaches) {
+      this.resubscribeActiveStreamChannels();
     }
   }
 
@@ -858,12 +1374,15 @@ class PerpsConnectionManagerClass {
    * Also sets up balance update subscriptions for portfolio integration
    */
   private async preloadSubscriptions(): Promise<void> {
-    // Only pre-load once per session
-    if (this.hasPreloaded) {
-      DevLogger.log('PerpsConnectionManager: Already pre-loaded, skipping');
+    // Only pre-load once per session, and guard against concurrent calls
+    if (this.hasPreloaded || this.isPreloading) {
+      DevLogger.log(
+        'PerpsConnectionManager: Already pre-loaded or preloading, skipping',
+      );
       return;
     }
 
+    this.isPreloading = true;
     try {
       DevLogger.log(
         'PerpsConnectionManager: Pre-loading WebSocket subscriptions via StreamManager',
@@ -906,11 +1425,19 @@ class PerpsConnectionManagerClass {
         'PerpsConnectionManager: Pre-loading complete with persistent subscriptions',
       );
     } catch (error) {
-      Logger.error(ensureError(error), {
-        feature: PERPS_CONSTANTS.FeatureName,
-        message: 'Error pre-loading subscriptions',
-      });
+      Logger.error(
+        ensureError(error, 'PerpsConnectionManager.preloadSubscriptions'),
+        {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: {
+            name: 'PerpsConnectionManager.preloadSubscriptions',
+            data: { message: 'Error pre-loading subscriptions' },
+          },
+        },
+      );
       // Non-critical error - components will still work with on-demand subscriptions
+    } finally {
+      this.isPreloading = false;
     }
   }
 
@@ -959,6 +1486,28 @@ class PerpsConnectionManagerClass {
   }
 
   /**
+   * Returns a promise that resolves when the current connection attempt completes.
+   * If no connection is in progress, resolves immediately.
+   * Used by StreamChannel.ensureReady() to await connection instead of blind polling.
+   */
+  async waitForConnection(): Promise<void> {
+    if (this.initPromise) {
+      try {
+        await this.initPromise;
+      } catch {
+        // Connection failed — caller will check getConnectionState()
+      }
+    }
+    if (this.pendingReconnectPromise) {
+      try {
+        await this.pendingReconnectPromise;
+      } catch {
+        // Reconnection failed — caller will check getConnectionState()
+      }
+    }
+  }
+
+  /**
    * Check if the manager is fully disconnected and ready to connect
    */
   isFullyDisconnected(): boolean {
@@ -972,6 +1521,18 @@ class PerpsConnectionManagerClass {
   }
 
   /**
+   * Returns the active provider name from the PerpsController state.
+   * Used for consistent error/breadcrumb tagging without coupling callers to Engine.
+   */
+  getActiveProviderName(): string | undefined {
+    try {
+      return Engine.context.PerpsController.state.activeProvider;
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
    * Check if the manager is currently connecting
    */
   isCurrentlyConnecting(): boolean {
@@ -979,16 +1540,16 @@ class PerpsConnectionManagerClass {
   }
 
   /**
-   * Clear DEX abstraction cache for a specific address
+   * Clear unified account cache for a specific address
    * Useful for debugging or allowing user to retry after rejecting signature
-   * Note: This only clears DEX abstraction state, preserving builder fee and referral states
+   * Note: This only clears unified account state, preserving builder fee and referral states
    */
-  clearDexAbstractionCache(
+  clearUnifiedAccountCache(
     network: 'mainnet' | 'testnet',
     userAddress: string,
   ): void {
-    TradingReadinessCache.clearDexAbstraction(network, userAddress);
-    DevLogger.log('PerpsConnectionManager: DEX abstraction cache cleared', {
+    TradingReadinessCache.clearUnifiedAccount(network, userAddress);
+    DevLogger.log('PerpsConnectionManager: Unified Account cache cleared', {
       network,
       userAddress,
     });
@@ -1014,4 +1575,5 @@ class PerpsConnectionManagerClass {
 }
 
 export const PerpsConnectionManager = PerpsConnectionManagerClass.getInstance();
+
 export default PerpsConnectionManager;

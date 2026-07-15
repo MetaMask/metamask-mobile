@@ -7,7 +7,7 @@ Framework for controlling Perps feature availability through LaunchDarkly with l
 **Key Design Principles:**
 
 - LaunchDarkly is the single source of truth for feature enablement
-- Version-gated flags ensure features only activate on compatible app versions
+- Version-gated flags use `validatedVersionGatedFeatureFlag` from `app/util/remoteFeatureFlag` (see [Version-gated feature flags](../readme/version-gated-feature-flags.md))
 - Local environment variables provide development/testing fallback
 - Graceful degradation when LaunchDarkly is unavailable
 
@@ -74,6 +74,11 @@ See [Perps A/B Testing Framework](./perps-ab-testing.md) for variant-based flags
 **File:** `app/components/UI/Perps/selectors/featureFlags/index.ts`
 
 ```typescript
+import {
+  validatedVersionGatedFeatureFlag,
+  type VersionGatedFeatureFlag,
+} from '../../../../util/remoteFeatureFlag';
+
 /**
  * Selector for My Feature flag
  * Controls visibility of My Feature in the UI
@@ -159,13 +164,18 @@ Follow existing test patterns covering:
 
 ### Version-Gated Boolean Flags
 
-| Redux Property                                     | LaunchDarkly Key                                         | Env Variable                                   | Default | Purpose                   |
-| -------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------- | ------- | ------------------------- |
-| `perpsPerpTradingEnabled`                          | `perps-perp-trading-enabled`                             | `MM_PERPS_ENABLED`                             | false   | Main Perps feature toggle |
-| `perpsPerpTradingServiceInterruptionBannerEnabled` | `perps-perp-trading-service-interruption-banner-enabled` | `MM_PERPS_SERVICE_INTERRUPTION_BANNER_ENABLED` | false   | Service disruption banner |
-| `perpsPerpGtmOnboardingModalEnabled`               | `perps-perp-gtm-onboarding-modal-enabled`                | `MM_PERPS_GTM_MODAL_ENABLED`                   | false   | GTM onboarding modal      |
-| `perpsOrderBookEnabled`                            | `perps-order-book-enabled`                               | `MM_PERPS_ORDER_BOOK_ENABLED`                  | false   | Order Book feature        |
-| `perpsFeedbackEnabled`                             | `perps-feedback-enabled`                                 | `MM_PERPS_FEEDBACK_ENABLED`                    | false   | Feedback button on home   |
+| Redux Property                                     | LaunchDarkly Key                                         | Env Variable                                   | Default | Purpose                                                                                                  |
+| -------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
+| `perpsPerpTradingEnabled`                          | `perps-perp-trading-enabled`                             | `MM_PERPS_ENABLED`                             | false   | Main Perps feature toggle                                                                                |
+| `perpsPerpTradingServiceInterruptionBannerEnabled` | `perps-perp-trading-service-interruption-banner-enabled` | `MM_PERPS_SERVICE_INTERRUPTION_BANNER_ENABLED` | false   | Service disruption banner                                                                                |
+| `perpsPerpGtmOnboardingModalEnabled`               | `perps-perp-gtm-onboarding-modal-enabled`                | `MM_PERPS_GTM_MODAL_ENABLED`                   | false   | GTM onboarding modal                                                                                     |
+| `perpsOrderBookEnabled`                            | `perps-order-book-enabled`                               | `MM_PERPS_ORDER_BOOK_ENABLED`                  | false   | Order Book feature                                                                                       |
+| `perpsAdvancedChartEnabledV2`                      | `perps-advanced-chart-enabled-v2`                        | —                                              | false   | Perps market detail / fullscreen TradingView AdvancedChart (remote only)                                 |
+| `perpsShowFullAssetNames`                          | `perps-show-full-asset-names`                            | —                                              | false   | Show full asset names (e.g. "Bitcoin") instead of tickers (e.g. "BTC") in market row lists (remote only) |
+| `perpsFeedbackEnabled`                             | `perps-feedback-enabled`                                 | `MM_PERPS_FEEDBACK_ENABLED`                    | false   | Feedback button on home                                                                                  |
+| `perpsCompetitionBannerEnabled`                    | `perps-competition-banner-enabled`                       | —                                              | false   | Competition promotion banner on perps home (remote only)                                                 |
+| `perpsDefaultPayTokenWhenNoBalanceEnabled`         | `perps-default-pay-token-when-no-balance-enabled`        | —                                              | true    | Default pay token when no perps balance + Add funds CTA on market details (remote only)                  |
+| `vipProgramEnabled`                                | `vip-program-enabled`                                    | —                                              | false   | Gates VIP fee discount in perps (UI preview and order execution)                                         |
 
 ### A/B Test Flags
 
@@ -177,12 +187,13 @@ Follow existing test patterns covering:
 
 These flags are managed via `FeatureFlagConfigurationService` and control runtime configuration:
 
-| Redux Property                          | LaunchDarkly Key                              | Env Variable                      | Purpose                     |
-| --------------------------------------- | --------------------------------------------- | --------------------------------- | --------------------------- |
-| `perpsHip3Enabled`                      | `perps-hip3-enabled`                          | `MM_PERPS_HIP3_ENABLED`           | HIP-3 markets master switch |
-| `perpsHip3AllowlistMarkets`             | `perps-hip3-allowlist-markets`                | `MM_PERPS_HIP3_ALLOWLIST_MARKETS` | HIP-3 market allowlist      |
-| `perpsHip3BlocklistMarkets`             | `perps-hip3-blocklist-markets`                | `MM_PERPS_HIP3_BLOCKLIST_MARKETS` | HIP-3 market blocklist      |
-| `perpsPerpTradingGeoBlockedCountriesV2` | `perps-perp-trading-geo-blocked-countries-v2` | `MM_PERPS_BLOCKED_REGIONS`        | Geo-blocking regions list   |
+| Redux Property                          | LaunchDarkly Key                              | Env Variable                                   | Purpose                                                                                   |
+| --------------------------------------- | --------------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `perpsHip3Enabled`                      | `perps-hip3-enabled`                          | `MM_PERPS_HIP3_ENABLED`                        | HIP-3 markets master switch                                                               |
+| `perpsHip3AllowlistMarkets`             | `perps-hip3-allowlist-markets`                | `MM_PERPS_HIP3_ALLOWLIST_MARKETS`              | HIP-3 market allowlist                                                                    |
+| `perpsHip3BlocklistMarkets`             | `perps-hip3-blocklist-markets`                | `MM_PERPS_HIP3_BLOCKLIST_MARKETS`              | HIP-3 market blocklist                                                                    |
+| `perpsPayWithAnyTokenAllowlistAssets`   | `perps-pay-with-any-token-allowlist-assets`   | `MM_PERPS_PAY_WITH_ANY_TOKEN_ALLOWLIST_ASSETS` | Pay-with modal token allowlist (`chainId.address`, comma-separated; env overrides remote) |
+| `perpsPerpTradingGeoBlockedCountriesV2` | `perps-perp-trading-geo-blocked-countries-v2` | `MM_PERPS_BLOCKED_REGIONS`                     | Geo-blocking regions list                                                                 |
 
 > **Note:** `perpsPerpTradingGeoBlockedCountries` (without V2) is deprecated. Use the V2 variant.
 
@@ -226,11 +237,13 @@ These flags are managed via `FeatureFlagConfigurationService` and control runtim
 
 ### Version Gating
 
-The `minimumVersion` field ensures features only activate on compatible app versions:
+The `minimumVersion` field ensures features only activate on compatible app versions. **Do not** compare versions in selectors or components — use `validatedVersionGatedFeatureFlag`:
 
-- **Format:** Semantic version string (e.g., `"7.60.0"`)
-- **Comparison:** Uses `compare-versions` library with `>=` operator
+- **Format:** Semantic version string (e.g. `"7.60.0"`)
+- **Evaluation:** `validatedVersionGatedFeatureFlag(remoteFlag)` returns `true` only when `enabled` is true **and** the native app version is `>= minimumVersion`
 - **Use case:** Prevent feature activation on older app versions that lack required code
+
+See [`docs/readme/version-gated-feature-flags.md`](../readme/version-gated-feature-flags.md) for the full pattern and non-standard flag shapes.
 
 ---
 
@@ -245,8 +258,8 @@ The `minimumVersion` field ensures features only activate on compatible app vers
 ### Version Gating Not Working
 
 1. **Verify `minimumVersion` format:** Must be valid semver string
-2. **Check app version:** `getVersion()` from `react-native-device-info`
-3. **Check comparison:** Uses `>=` operator
+2. **Check native app version:** `getVersion()` from `react-native-device-info` (used inside `validatedVersionGatedFeatureFlag`) — not `package.json`
+3. **Confirm selector uses the helper:** `validatedVersionGatedFeatureFlag(remoteFlag) ?? localFallback` — not inline `compare-versions`
 
 ### Local Flag Not Overriding
 
@@ -261,9 +274,10 @@ The `minimumVersion` field ensures features only activate on compatible app vers
 - **Selectors:** `app/components/UI/Perps/selectors/featureFlags/index.ts`
 - **Mocks:** `app/components/UI/Perps/mocks/remoteFeatureFlagMocks.ts`
 - **Tests:** `app/components/UI/Perps/selectors/featureFlags/index.test.ts`
-- **Version validation:** `app/util/remoteFeatureFlag/index.ts`
+- **Version validation:** `app/util/remoteFeatureFlag/index.ts` (`validatedVersionGatedFeatureFlag`)
+- **Version-gated flags guide:** `docs/readme/version-gated-feature-flags.md`
 - **Controller init:** `app/core/Engine/controllers/remote-feature-flag-controller-init.ts`
-- **Configuration service:** `app/components/UI/Perps/controllers/services/FeatureFlagConfigurationService.ts`
+- **Configuration service:** `app/controllers/perps/services/FeatureFlagConfigurationService.ts`
 
 ---
 

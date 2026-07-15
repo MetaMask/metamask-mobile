@@ -78,8 +78,8 @@ describe('SecretRecoveryPhrase', () => {
     const button = getByTestId(AccountDetailsIds.SECRET_RECOVERY_PHRASE_LINK);
     fireEvent.press(button);
 
-    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
-      screen: 'SRPRevealQuiz',
+    expect(mockNavigate).toHaveBeenCalledWith('RevealPrivateCredentialView', {
+      shouldUpdateNav: true,
       keyringId: 'mock-entropy-source',
     });
   });

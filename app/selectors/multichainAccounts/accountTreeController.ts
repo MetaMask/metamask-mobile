@@ -11,6 +11,7 @@ import {
   parseAccountGroupId,
 } from '@metamask/account-api';
 import { AccountId } from '@metamask/accounts-controller';
+import { isEvmAccountType } from '@metamask/keyring-api';
 import {
   AccountWalletObject,
   AccountGroupObject,
@@ -74,12 +75,12 @@ export const selectAccountSections = createSelector(
 
     return Object.values(accountTreeState.accountTree.wallets).map(
       (wallet: AccountWalletObject) => {
-        const allAccountsIdInWallet = Object.values(wallet.groups).flatMap(
-          (group) => group.accounts,
+        const walletAccountIds = new Set(
+          Object.values(wallet.groups).flatMap((group) => group.accounts),
         );
         // To preserve the order of the accounts in the accounts controller
         const accountIds = internalAccounts
-          .filter((account) => allAccountsIdInWallet.includes(account.id))
+          .filter((account) => walletAccountIds.has(account.id))
           .map((account) => account.id);
 
         return {
@@ -280,8 +281,7 @@ export const selectResolvedSelectedAccountGroup = createSelector(
     accountToGroupMap,
     selectedAccountId,
   ): AccountGroupObject | null => {
-    const selectedAccountGroupId =
-      accountTreeState?.accountTree?.selectedAccountGroup;
+    const selectedAccountGroupId = accountTreeState?.selectedAccountGroup;
     if (selectedAccountGroupId) {
       const [walletId] = selectedAccountGroupId.split('/') as [AccountWalletId];
       const wallet = accountTreeState?.accountTree?.wallets?.[walletId];
@@ -347,7 +347,7 @@ export const selectInternalAccountFromAccountGroup = (
 export const selectSelectedAccountGroupId = createSelector(
   [selectAccountTreeControllerState],
   (accountTreeState: AccountTreeControllerState) =>
-    accountTreeState?.accountTree?.selectedAccountGroup || null,
+    accountTreeState?.selectedAccountGroup || null,
 );
 
 /**
@@ -379,18 +379,15 @@ export const selectAccountGroupWithInternalAccounts = createSelector(
   (
     accountGroups: readonly AccountGroupObject[],
     internalAccounts: readonly InternalAccount[],
-  ): readonly AccountGroupWithInternalAccounts[] =>
-    accountGroups.map((accountGroup) => ({
+  ): readonly AccountGroupWithInternalAccounts[] => {
+    const byId = new Map(internalAccounts.map((a) => [a.id, a]));
+    return accountGroups.map((accountGroup) => ({
       ...accountGroup,
       accounts: accountGroup.accounts
-        .map((accountId: string) => {
-          const internalAccount = internalAccounts.find(
-            (account) => account.id === accountId,
-          );
-          return internalAccount;
-        })
+        .map((accountId: string) => byId.get(accountId))
         .filter((account): account is InternalAccount => account !== undefined),
-    })),
+    }));
+  },
 );
 
 /**
@@ -418,6 +415,18 @@ export const selectSelectedAccountGroupInternalAccounts = createSelector(
 
     return (group?.accounts ?? EMPTY_ARR) as readonly InternalAccount[];
   },
+);
+
+/**
+ * Selector to get the EVM internal account (if any) from the currently selected account group.
+ *
+ * @param state - The Redux root state
+ * @returns The EVM internal account if any, null otherwise.
+ */
+export const selectSelectedAccountGroupEvmInternalAccount = createSelector(
+  selectSelectedAccountGroupInternalAccounts,
+  (accounts): InternalAccount | null =>
+    accounts.find((account) => isEvmAccountType(account.type)) ?? null,
 );
 
 /**

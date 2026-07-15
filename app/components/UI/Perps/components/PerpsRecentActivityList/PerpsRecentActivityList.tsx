@@ -1,27 +1,33 @@
 import React, { useCallback } from 'react';
 import { View, TouchableOpacity, FlatList } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import type { PerpsNavigationParamList } from '../../controllers/types';
+import {
+  getPerpsDisplaySymbol,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 import type { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsFillTag from '../PerpsFillTag';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsRecentActivityList.styles';
-import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
+import {
+  HOME_SCREEN_CONFIG,
+  PERPS_BALANCE_CHAIN_ID,
+} from '../../constants/perpsConfig';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
-import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+} from '../../../../../core/Analytics/events/transactions';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
@@ -35,7 +41,9 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const activityTitle = strings('perps.home.recent_activity');
 
   const handleSeeAll = useCallback(() => {
     navigation.navigate(Routes.PERPS.ACTIVITY, {
@@ -46,17 +54,28 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
 
   const handleTransactionPress = useCallback(
     (transaction: PerpsTransaction) => {
-      // Navigate to position transaction detail view for trades
       if (transaction.fill) {
+        trackEvent(
+          createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+            .addProperties({
+              transaction_type: `perps_${transaction.type}`,
+              transaction_status: 'confirmed',
+              location: TransactionDetailLocation.Home,
+              chain_id_source: PERPS_BALANCE_CHAIN_ID,
+              chain_id_destination: PERPS_BALANCE_CHAIN_ID,
+              monetized_primitive: MonetizedPrimitive.Perps,
+            })
+            .build(),
+        );
+
         navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
           transaction,
         });
       }
     },
-    [navigation],
+    [navigation, trackEvent, createEventBuilder],
   );
 
-  // Render right content for trades (only type shown)
   const renderRightContent = useCallback((transaction: PerpsTransaction) => {
     if (!transaction.fill) return null;
 
@@ -71,18 +90,12 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   }, []);
 
   const renderItem = useCallback(
-    (props: { item: PerpsTransaction; index: number }) => {
-      const { item, index } = props;
-      const isFirstItem = index === 0;
-      const isLastItem = index === transactions.length - 1;
+    (props: { item: PerpsTransaction }) => {
+      const { item } = props;
 
       return (
         <TouchableOpacity
-          style={[
-            styles.activityItem,
-            isFirstItem && styles.activityItemFirst,
-            isLastItem && styles.activityItemLast,
-          ]}
+          style={styles.activityItem}
           onPress={() => handleTransactionPress(item)}
           activeOpacity={0.7}
         >
@@ -122,71 +135,36 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
         </TouchableOpacity>
       );
     },
-    [
-      styles,
-      handleTransactionPress,
-      iconSize,
-      renderRightContent,
-      transactions.length,
-    ],
+    [styles, handleTransactionPress, iconSize, renderRightContent],
   );
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-            {strings('perps.home.recent_activity')}
-          </Text>
-        </View>
+      <Box>
+        <SectionHeader title={activityTitle} />
         <PerpsRowSkeleton count={3} />
-      </View>
+      </Box>
     );
   }
 
   if (transactions.length === 0) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-            {strings('perps.home.recent_activity')}
-          </Text>
-        </View>
-        <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
-          style={styles.emptyText}
-        >
-          {strings('perps.home.no_activity')}
-        </Text>
-      </View>
-    );
+    return null;
   }
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.header} onPress={handleSeeAll}>
-        <View style={styles.titleRow}>
-          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-            {strings('perps.home.recent_activity')}
-          </Text>
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Sm}
-            color={IconColor.Alternative}
-          />
-        </View>
-      </TouchableOpacity>
-
-      <View style={styles.listContainer}>
-        <FlatList
-          data={transactions}
-          renderItem={renderItem}
-          keyExtractor={(item, index) => `${item.id || index}`}
-          scrollEnabled={false}
-        />
-      </View>
-    </View>
+    <Box>
+      <SectionHeader
+        title={activityTitle}
+        isInteractive
+        onPress={handleSeeAll}
+      />
+      <FlatList
+        data={transactions}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => `${item.id || index}`}
+        scrollEnabled={false}
+      />
+    </Box>
   );
 };
 

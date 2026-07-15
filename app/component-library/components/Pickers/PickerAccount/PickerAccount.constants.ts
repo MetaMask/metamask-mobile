@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 // Internal dependencies.
 import { PickerAccountProps } from './PickerAccount.types';
 

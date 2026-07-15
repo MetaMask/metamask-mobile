@@ -14,35 +14,44 @@ import {
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../constants/navigation/Routes';
+import { IconName } from '../../Icons/Icon';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getDecimalChainId } from '../../../../util/networks';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies.
-import { TabBarProps } from './TabBar.types';
+import { TabBarProps, TabBarIconKey } from './TabBar.types';
 import {
   ICON_BY_TAB_BAR_ICON_KEY,
   LABEL_BY_TAB_BAR_ICON_KEY,
 } from './TabBar.constants';
 import { selectChainId } from '../../../../selectors/networkController';
-import { selectAssetsTrendingTokensEnabled } from '../../../../selectors/featureFlagController/assetsTrendingTokens';
+import { useMoneyNavigation } from '../../../../components/UI/Money/hooks/useMoneyNavigation';
+
+const FILLED_ICONS: Partial<Record<TabBarIconKey, IconName>> = {
+  [TabBarIconKey.Wallet]: IconName.HomeFilled,
+  [TabBarIconKey.Activity]: IconName.ClockFilled,
+  [TabBarIconKey.Trending]: IconName.Search,
+  [TabBarIconKey.Rewards]: IconName.MetamaskFoxFilled,
+  [TabBarIconKey.Money]: IconName.MusdFilled,
+};
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const chainId = useSelector(selectChainId);
-  const isAssetsTrendingTokensEnabled = useSelector(
-    selectAssetsTrendingTokensEnabled,
-  );
   const tabBarRef = useRef(null);
   const previousTabIndexRef = useRef<number>(state.index);
   const tw = useTailwind();
+  const { navigateToMoneyHome } = useMoneyNavigation();
 
   const renderTabBarItem = useCallback(
     (route: { name: string; key: string }, index: number) => {
-      const { options } = descriptors[route.key];
+      const descriptor = descriptors[route.key];
+      if (!descriptor) return null;
+      const { options } = descriptor;
       const tabBarIconKey = options.tabBarIconKey;
       //TODO: use another option on add it to the prop interface
       const callback = options.callback;
@@ -51,7 +60,10 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       const isSelected = options?.isSelected
         ? options.isSelected(state.routeNames[state.index])
         : state.index === index;
-      const icon = ICON_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
+      const baseIcon = ICON_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
+      const icon = isSelected
+        ? (FILLED_ICONS[tabBarIconKey] ?? baseIcon)
+        : baseIcon;
       const labelKey = LABEL_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
       const labelText = labelKey ? strings(labelKey) : '';
       const onPress = () => {
@@ -66,10 +78,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
         switch (rootScreenName) {
           case Routes.WALLET_VIEW:
             navigation.navigate(Routes.WALLET.HOME, {
-              screen: Routes.WALLET.TAB_STACK_FLOW,
-              params: {
-                screen: Routes.WALLET_VIEW,
-              },
+              screen: Routes.WALLET_VIEW,
             });
             break;
           case Routes.MODAL.WALLET_ACTIONS:
@@ -98,14 +107,16 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             break;
           case Routes.SETTINGS_VIEW:
             navigation.navigate(Routes.SETTINGS_VIEW, {
-              screen: 'Settings',
+              screen: Routes.ACCOUNTS_MENU_VIEW,
             });
             break;
           case Routes.TRENDING_VIEW:
-            if (isAssetsTrendingTokensEnabled) {
-              navigation.navigate(Routes.TRENDING_VIEW);
-            }
+            navigation.navigate(Routes.TRENDING_VIEW);
             break;
+          case Routes.MONEY.HOME: {
+            navigateToMoneyHome();
+            break;
+          }
         }
       };
 
@@ -130,14 +141,16 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       );
     },
     [
-      state,
       descriptors,
+      state.routeNames,
+      state.index,
+      state.routes,
+      tw,
       navigation,
-      chainId,
       trackEvent,
       createEventBuilder,
-      tw,
-      isAssetsTrendingTokensEnabled,
+      chainId,
+      navigateToMoneyHome,
     ],
   );
 

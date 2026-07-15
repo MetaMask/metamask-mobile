@@ -5,7 +5,7 @@ import createSagaMiddleware, { SagaMiddleware } from 'redux-saga';
 import { rootSaga } from './sagas';
 import rootReducer, { RootState } from '../reducers';
 import ReadOnlyNetworkStore from '../util/test/network-store';
-import { isE2E } from '../util/test/utils';
+import { hasTestOverrides } from '../util/test/utils';
 import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
 import thunk from 'redux-thunk';
 import persistConfig from './persistConfig';
@@ -15,6 +15,10 @@ import { onPersistedDataLoaded } from '../actions/user';
 import { setBasicFunctionality } from '../actions/settings';
 import Logger from '../util/Logger';
 import devToolsEnhancer from 'redux-devtools-expo-dev-plugin';
+import {
+  clearAttribution,
+  expireAttributionIfStale,
+} from '../core/redux/slices/attribution';
 
 // TODO: Improve type safety by using real Action types instead of `AnyAction`
 const pReducer = persistReducer<RootState, AnyAction>(
@@ -22,8 +26,9 @@ const pReducer = persistReducer<RootState, AnyAction>(
   rootReducer,
 );
 
-// eslint-disable-next-line import/no-mutable-exports
+// eslint-disable-next-line import-x/no-mutable-exports
 let store: ReduxStore, persistor: Persistor, runSaga: SagaMiddleware['run'];
+/* istanbul ignore next -- store initialization; runs at module load with heavy deps (sagas, persistence, tracing) */
 const createStoreAndPersistor = async () => {
   trace({
     name: TraceName.StoreInit,
@@ -31,7 +36,7 @@ const createStoreAndPersistor = async () => {
     op: TraceOperation.StoreInit,
   });
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
-  const initialState = isE2E
+  const initialState = hasTestOverrides
     ? await ReadOnlyNetworkStore.getState()
     : undefined;
 
@@ -73,14 +78,37 @@ const createStoreAndPersistor = async () => {
     store.dispatch(
       setBasicFunctionality(currentState.settings.basicFunctionalityEnabled),
     );
+
+    // Clear attribution when marketing consent has not been explicitly granted.
+    // The opt-out saga handles future consent toggles, but persisted attribution
+    // can rehydrate while security.dataCollectionForMarketing is false or null.
+    if (currentState.security.dataCollectionForMarketing !== true) {
+      store.dispatch(clearAttribution());
+    } else {
+      store.dispatch(expireAttributionIfStale());
+    }
   };
 
   persistor = persistStore(store, null, onPersistComplete);
 };
 
+/* istanbul ignore next -- app bootstrap IIFE; E2E polling tested in e2eCommandPolling.test.ts */
 (async () => {
   try {
     await createStoreAndPersistor();
+    if (hasTestOverrides) {
+      // Delay to give the store time to hydrate before first poll
+      setTimeout(async () => {
+        try {
+          const { startE2ECommandPolling } = await import(
+            '../util/test/e2eCommandPolling'
+          );
+          await startE2ECommandPolling();
+        } catch (err) {
+          Logger.error(err as Error, 'Error starting E2E command polling');
+        }
+      }, 5000);
+    }
   } catch (error) {
     Logger.error(error as Error, 'Error creating store and persistor');
   }

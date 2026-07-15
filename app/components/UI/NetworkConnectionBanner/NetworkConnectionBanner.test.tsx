@@ -8,31 +8,10 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 jest.mock('../../hooks/useNetworkConnectionBanner');
 
 jest.mock('../../../util/theme', () => {
-  const mockThemeColors = {
-    background: {
-      default: '#FFFFFF',
-      section: '#FFFFFF',
-    },
-    icon: {
-      default: '#000000',
-    },
-    error: {
-      muted: '#FFE5E5',
-      default: '#FF0000',
-    },
-  };
-
-  const theme = {
-    colors: mockThemeColors,
-    themeAppearance: 'light',
-    typography: {},
-    shadows: {},
-    brandColors: {},
-  };
-
+  const { mockTheme } = jest.requireActual('../../../util/theme');
   return {
-    useAppTheme: jest.fn(() => theme),
-    mockTheme: theme,
+    useAppTheme: jest.fn(() => mockTheme),
+    mockTheme,
   };
 });
 
@@ -219,6 +198,28 @@ describe('NetworkConnectionBanner', () => {
         expect(getByText(expectedMessage)).toBeTruthy();
       },
     );
+
+    it('limits primary message to 2 lines for long network names', () => {
+      useNetworkConnectionBannerMock.mockReturnValue({
+        networkConnectionBannerState: {
+          visible: true,
+          chainId: '0x89',
+          status: 'unavailable',
+          networkName: 'Monad Mainnet YOYOMI JOK.OK.OK.OK.OK.OK.OK.OK',
+          rpcUrl: 'https://custom-rpc.example.com',
+          isInfuraEndpoint: false,
+        },
+        updateRpc: mockUpdateRpc,
+        switchToInfura: jest.fn(),
+      });
+
+      const { getByText } = renderWithProvider(<NetworkConnectionBanner />);
+
+      const primaryText = getByText(
+        'Unable to connect to Monad Mainnet YOYOMI JOK.OK.OK.OK.OK.OK.OK.OK.',
+      );
+      expect(primaryText.props.numberOfLines).toBe(2);
+    });
 
     it('handles multiple rapid button presses', () => {
       useNetworkConnectionBannerMock.mockReturnValue({

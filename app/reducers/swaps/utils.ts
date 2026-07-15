@@ -1,6 +1,40 @@
-import { FeatureFlags } from '@metamask/swaps-controller/dist/types';
 import Device from '../../util/device';
-import { CHAIN_ID_TO_NAME_MAP } from '@metamask/swaps-controller/dist/constants';
+
+interface FeatureFlags {
+  [network: string]:
+    | {
+        mobileActive?: boolean;
+        mobileActiveIOS?: boolean;
+        mobileActiveAndroid?: boolean;
+        [key: string]: unknown;
+      }
+    | boolean
+    | undefined;
+  smart_transactions: {
+    mobile_active: boolean;
+    extension_active: boolean;
+  };
+  smartTransactions: {
+    mobileActive: boolean;
+    extensionActive: boolean;
+    mobileActiveIOS: boolean;
+    mobileActiveAndroid: boolean;
+  };
+}
+
+export const CHAIN_ID_TO_NAME_MAP: { [key: string]: string } = {
+  '0x1': 'ethereum',
+  '0x38': 'bsc',
+  '0x89': 'polygon',
+  '0xa86a': 'avalanche',
+  '0xa4b1': 'arbitrum',
+  '0xa': 'optimism',
+  '0x144': 'zksync',
+  '0xe708': 'linea',
+  '0x539': 'ethereum',
+  '0x2105': 'base',
+  '0x531': 'sei',
+};
 
 export const getChainFeatureFlags = (
   featureFlags: FeatureFlags,

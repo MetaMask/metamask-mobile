@@ -6,23 +6,74 @@
  */
 
 import Logger from '../../../../util/Logger';
+import StorageWrapper from '../../../../store/storage-wrapper';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
-import type { IMetaMetrics } from '../../../../core/Analytics/MetaMetrics.types';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../../util/analytics/analytics';
 import { trace, endTrace, TraceName } from '../../../../util/trace';
-import { setMeasurement } from '@sentry/react-native';
+import {
+  setMeasurement,
+  addBreadcrumb,
+  type SeverityLevel,
+} from '@sentry/react-native';
 import performance from 'react-native-performance';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import Engine from '../../../../core/Engine';
-import type {
-  PerpsPlatformDependencies,
-  PerpsMetrics,
-  PerpsTraceName,
-  PerpsTraceValue,
-  PerpsAnalyticsEvent,
-  PerpsAnalyticsProperties,
-} from '../controllers/types';
+import {
+  PERPS_CONSTANTS,
+  parseCommaSeparatedString,
+  type PerpsPlatformDependencies,
+  type PerpsControllerConfig,
+  type PerpsMetrics,
+  type PerpsTraceName,
+  type PerpsTraceValue,
+  type PerpsAnalyticsEvent,
+  type PerpsAnalyticsProperties,
+  type VersionGatedFeatureFlag,
+  type MarketDataFormatters,
+  type InvalidateCacheParams,
+} from '@metamask/perps-controller';
+import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
+import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
+import { store } from '../../../../store';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import {
+  formatVolume,
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../utils/formatUtils';
+import { getIntlNumberFormatter } from '../../../../util/intl';
+
+import { TERMINAL_API_URLS } from '../constants/terminalApi';
+
+/**
+ * Resolves the Terminal API base URL based on build environment.
+ *
+ * Mapping:
+ * - dev / test / e2e → DEV (takes priority over beta build type)
+ * - beta build type (non-dev envs) → UAT
+ * - production / rc → PRD
+ * - all other environments (local, undefined, etc.) → UAT
+ */
+export function getTerminalApiUrl(): string {
+  const env = process.env.METAMASK_ENVIRONMENT;
+
+  if (env === 'dev' || env === 'test' || env === 'e2e') {
+    return TERMINAL_API_URLS.DEV;
+  }
+
+  // Beta builds target UAT (except dev/test/e2e which are handled above).
+  if (process.env.METAMASK_BUILD_TYPE === 'beta') {
+    return TERMINAL_API_URLS.UAT;
+  }
+
+  if (env === 'production' || env === 'rc') {
+    return TERMINAL_API_URLS.PRD;
+  }
+
+  return TERMINAL_API_URLS.UAT;
+}
 
 /**
  * Type conversion helper - isolated cast for platform bridge.
@@ -33,14 +84,12 @@ function toTraceName(name: PerpsTraceName): TraceName {
 }
 
 /**
- * Creates a mobile-specific MetaMetrics adapter that implements PerpsMetrics
+ * Creates a mobile-specific analytics adapter that implements PerpsMetrics
  */
 function createMobileMetrics(): PerpsMetrics {
-  const metricsInstance: IMetaMetrics = MetaMetrics.getInstance();
-
   return {
     isEnabled(): boolean {
-      return metricsInstance.isEnabled();
+      return analytics.isEnabled();
     },
     trackPerpsEvent(
       event: PerpsAnalyticsEvent,
@@ -57,24 +106,21 @@ function createMobileMetrics(): PerpsMetrics {
       );
 
       if (metaMetricsEvent && typeof metaMetricsEvent === 'object') {
-        // Use MetricsEventBuilder for proper event construction
-        const eventBuilder =
-          MetricsEventBuilder.createEventBuilder(
-            metaMetricsEvent,
-          ).addProperties(properties);
-        metricsInstance.trackEvent(eventBuilder.build(), true);
+        const built = AnalyticsEventBuilder.createEventBuilder(metaMetricsEvent)
+          .addProperties(properties)
+          .build();
+        analytics.trackEvent(built);
       } else {
         // Fallback: log warning and track with a generic Perps event
-        // This shouldn't happen if PerpsAnalyticsEvent values match MetaMetricsEvents
         DevLogger.log(
           `PerpsAnalyticsEvent "${event}" not found in MetaMetricsEvents`,
         );
-        // Create a proper tracking event using MetricsEventBuilder
-        // Use event name as category to match generateOpt pattern in MetaMetrics.events.ts
-        const fallbackEvent = MetricsEventBuilder.createEventBuilder({
+        const fallbackEvent = AnalyticsEventBuilder.createEventBuilder({
           category: event,
-        }).addProperties(properties);
-        metricsInstance.trackEvent(fallbackEvent.build(), true);
+        })
+          .addProperties(properties)
+          .build();
+        analytics.trackEvent(fallbackEvent);
       }
     },
   };
@@ -129,6 +175,60 @@ function createStreamManagerAdapter() {
 }
 
 /**
+ * Creates a cache invalidator adapter that delegates to the mobile singleton.
+ * This allows controller services to invalidate caches without direct dependency
+ * on the mobile-specific PerpsCacheInvalidator singleton.
+ */
+function createCacheInvalidatorAdapter() {
+  return {
+    invalidate({ cacheType }: InvalidateCacheParams): void {
+      PerpsCacheInvalidator.invalidate(cacheType);
+    },
+    invalidateAll(): void {
+      PerpsCacheInvalidator.invalidateAll();
+    },
+  };
+}
+
+/**
+ * Creates mobile-specific client config from environment variables.
+ * Centralizes all process.env reads so the Engine init file stays pure wiring.
+ */
+export function createMobileClientConfig(): PerpsControllerConfig {
+  return {
+    fallbackBlockedRegions: parseCommaSeparatedString(
+      process.env.MM_PERPS_BLOCKED_REGIONS ?? '',
+    ),
+    fallbackHip3Enabled: process.env.MM_PERPS_HIP3_ENABLED === 'true',
+    fallbackHip3AllowlistMarkets: parseCommaSeparatedString(
+      process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS ?? '',
+    ),
+    fallbackHip3BlocklistMarkets: parseCommaSeparatedString(
+      process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS ?? '',
+    ),
+    providerCredentials: {
+      hyperliquid: {
+        builderAddressTestnet:
+          process.env.MM_PERPS_HL_BUILDER_ADDRESS_TESTNET ?? '',
+        builderAddressMainnet:
+          process.env.MM_PERPS_HL_BUILDER_ADDRESS_MAINNET ?? '',
+      },
+      myx: {
+        enabled: process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true',
+        appIdTestnet: process.env.MM_PERPS_MYX_APP_ID_TESTNET ?? '',
+        apiSecretTestnet: process.env.MM_PERPS_MYX_API_SECRET_TESTNET ?? '',
+        brokerAddressTestnet:
+          process.env.MM_PERPS_MYX_BROKER_ADDRESS_TESTNET ?? '',
+        appIdMainnet: process.env.MM_PERPS_MYX_APP_ID_MAINNET ?? '',
+        apiSecretMainnet: process.env.MM_PERPS_MYX_API_SECRET_MAINNET ?? '',
+        brokerAddressMainnet:
+          process.env.MM_PERPS_MYX_BROKER_ADDRESS_MAINNET ?? '',
+      },
+    },
+  };
+}
+
+/**
  * Creates mobile-specific platform dependencies for PerpsController.
  * Controller access uses messenger pattern (messenger.call()).
  */
@@ -144,8 +244,13 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
           extras?: Record<string, unknown>;
         },
       ): void {
-        // Logger.error expects (error, context) format
-        Logger.error(error, options?.context ?? options);
+        Logger.error(error, {
+          ...options,
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            ...options?.tags,
+          },
+        });
       },
     },
     debugLogger: {
@@ -189,17 +294,84 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
       setMeasurement(name: string, value: number, unit: string): void {
         setMeasurement(name, value, unit);
       },
+      addBreadcrumb(breadcrumb: {
+        category: string;
+        message: string;
+        level: SeverityLevel;
+        data?: Record<string, unknown>;
+      }): void {
+        addBreadcrumb(breadcrumb);
+      },
     },
 
     // === Platform Services ===
     streamManager: createStreamManagerAdapter(),
 
-    // === Rewards ===
-    rewards: {
-      getFeeDiscount: (caipAccountId: `${string}:${string}:${string}`) =>
-        Engine.context.RewardsController.getPerpsDiscountForAccount(
-          caipAccountId,
-        ),
+    // === Feature Flags ===
+    featureFlags: {
+      validateVersionGated(flag: VersionGatedFeatureFlag): boolean | undefined {
+        return validatedVersionGatedFeatureFlag(flag);
+      },
     },
+
+    // === Market Data Formatting ===
+    marketDataFormatters: createMobileMarketDataFormatters(),
+
+    // === Cache Invalidation ===
+    cacheInvalidator: createCacheInvalidatorAdapter(),
+
+    // === Disk Cache (cold-start persistence via MMKV) ===
+    diskCache: {
+      getItem: (key: string) => StorageWrapper.getItem(key),
+      getItemSync: (key: string) => StorageWrapper.getItemSync(key),
+      setItem: (key: string, value: string) =>
+        StorageWrapper.setItem(key, value),
+      removeItem: (key: string) =>
+        StorageWrapper.removeItem(key).then(() => undefined),
+    },
+
+    // === Terminal API (preferred market data source with HyperLiquid fallback) ===
+    terminalApiUrl: getTerminalApiUrl(),
+
+    // === Rewards (DI — no RewardsController in Core yet) ===
+    rewards: {
+      getPerpsDiscountForAccount(
+        caipAccountId: `${string}:${string}:${string}`,
+        baseFeeBips: number,
+      ) {
+        const isVipEnabled = selectVipProgramEnabled(store.getState());
+        if (!isVipEnabled) {
+          return Promise.resolve(0);
+        }
+        return Engine.context.RewardsController.getPerpsDiscountForAccount(
+          caipAccountId,
+          baseFeeBips,
+        );
+      },
+    },
+  };
+}
+
+/**
+ * Creates mobile-specific market data formatters.
+ * Wires up platform dependencies (intl, formatUtils) for portable market data transformation.
+ */
+function createMobileMarketDataFormatters(): MarketDataFormatters {
+  return {
+    formatVolume,
+    formatPerpsFiat,
+    formatPercentage: (percent: number): string => {
+      if (isNaN(percent) || !isFinite(percent)) return '0.00%';
+      if (percent === 0) return '0.00%';
+
+      const formatted = getIntlNumberFormatter('en-US', {
+        style: 'percent',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(percent / 100);
+
+      return percent > 0 ? `+${formatted}` : formatted;
+    },
+    priceRangesUniversal: PRICE_RANGES_UNIVERSAL,
   };
 }

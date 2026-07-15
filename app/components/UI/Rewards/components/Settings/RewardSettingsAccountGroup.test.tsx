@@ -35,15 +35,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      icon: {
-        default: '#000000',
-      },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('lodash', () => ({
   isEmpty: jest.fn((value: unknown) => {
@@ -621,7 +618,10 @@ describe('RewardSettingsAccountGroup', () => {
       const linkButton = getByTestId(
         `rewards-account-group-link-button-${mockAccountGroup.id}`,
       );
-      expect(linkButton).toHaveProp('disabled', true);
+      expect(
+        linkButton.props.accessibilityState?.disabled ??
+          linkButton.props.disabled,
+      ).toBe(true);
     });
 
     it('should enable link button when there are opted out accounts', () => {
@@ -636,7 +636,10 @@ describe('RewardSettingsAccountGroup', () => {
         `rewards-account-group-link-button-${mockAccountGroup.id}`,
       );
       // When enabled, disabled should be false or undefined
-      expect(linkButton.props.disabled).toBeFalsy();
+      expect(
+        linkButton.props.accessibilityState?.disabled ??
+          linkButton.props.disabled,
+      ).toBeFalsy();
     });
 
     it('should disable link button when bulk link is running', () => {
@@ -653,7 +656,10 @@ describe('RewardSettingsAccountGroup', () => {
       const linkButton = getByTestId(
         `rewards-account-group-link-button-${mockAccountGroup.id}`,
       );
-      expect(linkButton.props.disabled).toBe(true);
+      expect(
+        linkButton.props.accessibilityState?.disabled ??
+          linkButton.props.disabled,
+      ).toBe(true);
     });
 
     it('should disable link button when bulk link is running even with opted out accounts', () => {
@@ -670,7 +676,10 @@ describe('RewardSettingsAccountGroup', () => {
       const linkButton = getByTestId(
         `rewards-account-group-link-button-${mockAccountGroup.id}`,
       );
-      expect(linkButton.props.disabled).toBe(true);
+      expect(
+        linkButton.props.accessibilityState?.disabled ??
+          linkButton.props.disabled,
+      ).toBe(true);
     });
   });
 
@@ -1056,7 +1065,10 @@ describe('RewardSettingsAccountGroup', () => {
       const addressesButton = getByTestId(
         `rewards-account-addresses-${mockAccountGroup.id}`,
       );
-      expect(addressesButton).toHaveProp('disabled', true);
+      expect(
+        addressesButton.props.accessibilityState?.disabled ??
+          addressesButton.props.disabled,
+      ).toBe(true);
     });
 
     it('should show ActivityIndicator instead of link button when loading', () => {

@@ -18,7 +18,7 @@ const styleSheet = (params: {
       padding: 16,
       gap: 16,
       backgroundColor: isTransactionsRedesign
-        ? theme.colors.background.default
+        ? theme.colors.background.muted
         : undefined,
     },
     errorContentContainer: {

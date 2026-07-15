@@ -4,7 +4,6 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import React, {
   useCallback,
   useEffect,
@@ -14,6 +13,11 @@ import React, {
 } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import {
+  Box,
+  HeaderStandard,
+  TextButton,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -28,10 +32,11 @@ import { selectConversionRate } from '../../../../../selectors/currencyRateContr
 
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import Keypad from '../../../../Base/Keypad';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { IMetaMetricsEvent } from '../../../../../core/Analytics/MetaMetrics.types';
 import { useStyles } from '../../../../hooks/useStyles';
 import useEarnWithdrawInput from '../../../Earn/hooks/useEarnWithdrawInput';
-import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import {
@@ -39,7 +44,7 @@ import {
   EVENT_PROVIDERS,
 } from '../../constants/events/earnEvents';
 import usePoolStakedUnstake from '../../../Stake/hooks/usePoolStakedUnstake';
-import { StakeNavigationParamsList } from '../../../Stake/types';
+import EarnHeaderSubtitle from '../../components/EarnHeaderSubtitle';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
@@ -72,6 +77,21 @@ import { handleTronStakingNavigationResult } from '../../utils/tron';
 import TronStakePreview from '../../components/Tron/StakePreview/TronStakePreview';
 import { ComputeFeeResult } from '../../utils/tron-staking-snap';
 ///: END:ONLY_INCLUDE_IF
+
+export const EARN_WITHDRAW_INPUT_VIEW_BACK_BUTTON_TEST_ID =
+  'earn-withdraw-input-header-back-button';
+export const EARN_WITHDRAW_INPUT_VIEW_CANCEL_BUTTON_TEST_ID =
+  'earn-withdraw-input-header-cancel-button';
+
+interface NavBarButtonEvent {
+  event: IMetaMetricsEvent;
+  properties: Record<string, string | undefined>;
+}
+
+interface NavBarEventOptions {
+  backButtonEvent?: NavBarButtonEvent;
+  cancelButtonEvent?: NavBarButtonEvent;
+}
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
@@ -139,9 +159,8 @@ const EarnWithdrawInputView = () => {
     return undefined;
   }, [receiptTokenToUse, earnTokenFromMap]);
 
-  const navigation =
-    useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
-  const { styles, theme } = useStyles(styleSheet, {});
+  const navigation = useNavigation();
+  const { styles } = useStyles(styleSheet, {});
   const { attemptUnstakeTransaction } = usePoolStakedUnstake();
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
@@ -158,7 +177,7 @@ const EarnWithdrawInputView = () => {
   const lastQuickAmountButtonPressed = useRef<string | null>(null);
   const exchangeRate = contractExchangeRates?.[token?.address as Hex]?.price;
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { shouldLogStablecoinEvent, shouldLogStakingEvent } =
     useEarnAnalyticsEventLogging({
@@ -206,6 +225,7 @@ const EarnWithdrawInputView = () => {
 
     return percentageOptions;
   }, [isTronEnabled, isPreviewVisible, isNonZeroAmount, percentageOptions]);
+
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.EARN_INPUT_OPENED)
@@ -223,6 +243,21 @@ const EarnWithdrawInputView = () => {
   }, []);
 
   useEndTraceOnMount(TraceName.EarnWithdrawScreen);
+
+  // Debounced fee computation that reacts to amount/resourceType changes from any input method.
+  // resourceType is captured implicitly via tronValidateUnstakeAmount's dependency on it.
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  useEffect(() => {
+    if (!isTronEnabled || !isNonZeroAmount) return undefined;
+
+    // Debounce the fee computation to avoid unnecessary re-renders and API calls.
+    const timer = setTimeout(() => {
+      tronValidateUnstakeAmount?.(amountToken);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [amountToken, isTronEnabled, isNonZeroAmount, tronValidateUnstakeAmount]);
+  ///: END:ONLY_INCLUDE_IF
 
   const [maxRiskAwareWithdrawalAmount, setMaxRiskAwareWithdrawalAmount] =
     useState<string | undefined>(undefined);
@@ -323,7 +358,7 @@ const EarnWithdrawInputView = () => {
   const navBarOptions = isStablecoinLendingEnabled
     ? earnNavBarOptions
     : stakingNavBarOptions;
-  const navBarEventOptions = isStablecoinLendingEnabled
+  const navBarEventOptions: NavBarEventOptions = isStablecoinLendingEnabled
     ? earnNavBarEventOptions
     : stakingNavBarEventOptions;
 
@@ -331,38 +366,40 @@ const EarnWithdrawInputView = () => {
     receiptToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
   const tokenLabel = token?.ticker ?? token?.symbol ?? token?.name ?? '';
 
-  useEffect(() => {
-    const title = isLending
-      ? `${strings('earn.withdraw')} ${tokenLabel}`
-      : `${strings('stake.unstake')} ${tokenLabel}`;
+  const title = isLending
+    ? `${strings('earn.withdraw')} ${tokenLabel}`
+    : `${strings('stake.unstake')} ${tokenLabel}`;
 
-    navigation.setOptions(
-      // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
-      getStakingNavbar(
-        title,
-        navigation,
-        theme.colors,
-        navBarOptions,
-        navBarEventOptions,
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        receiptTokenToUse,
-        isTronEnabled ? tronApyPercent : null,
-        ///: END:ONLY_INCLUDE_IF
-      ),
-    );
-  }, [
-    navigation,
-    theme.colors,
-    navBarOptions,
-    navBarEventOptions,
-    isLending,
-    tokenLabel,
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
-    isTronEnabled,
-    receiptTokenToUse,
-    tronApyPercent,
-    ///: END:ONLY_INCLUDE_IF
-  ]);
+  const handleHeaderBackPress = useCallback(() => {
+    const backEvent = navBarEventOptions.backButtonEvent;
+    if (backEvent) {
+      trackEvent(
+        createEventBuilder(backEvent.event)
+          .addProperties(backEvent.properties)
+          .build(),
+      );
+    }
+    navigation.goBack();
+  }, [navigation, trackEvent, createEventBuilder, navBarEventOptions]);
+
+  const handleHeaderCancelPress = useCallback(() => {
+    const cancelEvent = navBarEventOptions.cancelButtonEvent;
+    if (cancelEvent) {
+      trackEvent(
+        createEventBuilder(cancelEvent.event)
+          .addProperties(cancelEvent.properties)
+          .build(),
+      );
+    }
+    navigation.goBack();
+  }, [navigation, trackEvent, createEventBuilder, navBarEventOptions]);
+
+  const headerSubtitle = receiptTokenToUse ? (
+    <EarnHeaderSubtitle
+      earnToken={receiptTokenToUse}
+      aprOverride={isTronEnabled ? tronApyPercent : null}
+    />
+  ) : undefined;
 
   // This component rerenders to recalculate gas estimate which causes duplicate events to fire.
   // This ref will allow one insufficient funds error to fire per visit to the page.
@@ -820,20 +857,8 @@ const EarnWithdrawInputView = () => {
   const handleKeypadChangeWithValidation = useCallback(
     (data: { value: string; valueAsNumber: number; pressedKey: string }) => {
       handleKeypadChange(data);
-      ///: BEGIN:ONLY_INCLUDE_IF(tron)
-      if (isTronEnabled && !isFiat) {
-        tronValidateUnstakeAmount?.(data.value);
-      }
-      ///: END:ONLY_INCLUDE_IF
     },
-    [
-      handleKeypadChange,
-      ///: BEGIN:ONLY_INCLUDE_IF(tron)
-      isTronEnabled,
-      isFiat,
-      tronValidateUnstakeAmount,
-      ///: END:ONLY_INCLUDE_IF
-    ],
+    [handleKeypadChange],
   );
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -857,79 +882,119 @@ const EarnWithdrawInputView = () => {
         !isNonZeroAmount) || isSubmittingStakeWithdrawalTransaction;
 
   return (
-    <ScreenLayout style={styles.container}>
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        isTronEnabled && (
-          <ResourceToggle value={resourceType} onChange={setResourceType} />
-        )
-        ///: END:ONLY_INCLUDE_IF
-      }
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
-      >
-        <InputDisplay
-          isOverMaximum={isOverMaximum}
-          balanceText={stakedBalanceText}
-          balanceValue={earnBalanceValue}
-          amountToken={amountToken}
-          amountFiatNumber={amountFiatNumber}
-          isFiat={isFiat}
-          asset={token}
-          currentCurrency={currentCurrency}
-          handleCurrencySwitch={handleCurrencySwitchWithTracking}
-          currencyToggleValue={currencyToggleValue}
-          maxWithdrawalAmount={maxRiskAwareWithdrawalText}
-          onPressAmount={() => setIsPreviewVisible(false)}
-          error={
-            isWithdrawingMoreThanAvailableForLendingToken
-              ? strings('earn.amount_exceeds_safe_withdrawal_limit')
-              : undefined
-          }
-        />
-        {isStablecoinLendingEnabled && (
-          <View style={styles.earnTokenSelectorContainer}>
-            <View style={styles.spacer} />
-            <EarnTokenSelector
-              token={token as TokenI}
-              action={EARN_INPUT_VIEW_ACTIONS.WITHDRAW}
+    <Box twClassName="flex-1 bg-default">
+      <HeaderStandard
+        title={title}
+        subtitle={headerSubtitle ?? undefined}
+        onBack={navBarOptions.hasBackButton ? handleHeaderBackPress : undefined}
+        backButtonProps={
+          navBarOptions.hasBackButton
+            ? { testID: EARN_WITHDRAW_INPUT_VIEW_BACK_BUTTON_TEST_ID }
+            : undefined
+        }
+        endAccessory={
+          navBarOptions.hasCancelButton ? (
+            <TextButton
+              onPress={handleHeaderCancelPress}
+              testID={EARN_WITHDRAW_INPUT_VIEW_CANCEL_BUTTON_TEST_ID}
+            >
+              {strings('navigation.cancel')}
+            </TextButton>
+          ) : undefined
+        }
+        includesTopInset
+        style={headerSubtitle ? styles.headerWithSubtitle : undefined}
+      />
+      <ScreenLayout style={styles.container}>
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(tron)
+          isTronEnabled && (
+            <ResourceToggle value={resourceType} onChange={setResourceType} />
+          )
+          ///: END:ONLY_INCLUDE_IF
+        }
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+        >
+          <InputDisplay
+            isOverMaximum={isOverMaximum}
+            balanceText={stakedBalanceText}
+            balanceValue={earnBalanceValue}
+            amountToken={amountToken}
+            amountFiatNumber={amountFiatNumber}
+            isFiat={isFiat}
+            asset={token}
+            currentCurrency={currentCurrency}
+            handleCurrencySwitch={handleCurrencySwitchWithTracking}
+            currencyToggleValue={currencyToggleValue}
+            maxWithdrawalAmount={maxRiskAwareWithdrawalText}
+            onPressAmount={() => setIsPreviewVisible(false)}
+            error={
+              isWithdrawingMoreThanAvailableForLendingToken
+                ? strings('earn.amount_exceeds_safe_withdrawal_limit')
+                : undefined
+            }
+          />
+          {isStablecoinLendingEnabled && (
+            <View style={styles.earnTokenSelectorContainer}>
+              <View style={styles.spacer} />
+              <EarnTokenSelector
+                token={token as TokenI}
+                action={EARN_INPUT_VIEW_ACTIONS.WITHDRAW}
+              />
+            </View>
+          )}
+        </ScrollView>
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(tron)
+          isTronEnabled && isPreviewVisible && isNonZeroAmount && (
+            <TronStakePreview
+              stakeAmount={amountToken}
+              fee={tronPreview?.fee as ComputeFeeResult}
+              mode="unstake"
             />
-          </View>
+          )
+          ///: END:ONLY_INCLUDE_IF
+        }
+        {!isPreviewVisible && (
+          <>
+            <QuickAmounts
+              amounts={quickAmounts}
+              onAmountPress={handleQuickAmountPressWithTracking}
+              onMaxPress={onRightActionPress}
+            />
+            <Keypad
+              value={isFiat ? amountFiatNumber : amountToken}
+              onChange={handleKeypadChangeWithValidation}
+              style={styles.keypad}
+              // TODO: this should be the underlying token symbol/ticker if not ETH
+              // once this data is available in the state we can use that
+              currency={token.isETH ? 'ETH' : (token.ticker ?? token.symbol)}
+              decimals={isFiat ? 2 : 5}
+            />
+          </>
         )}
-      </ScrollView>
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        isTronEnabled && isPreviewVisible && isNonZeroAmount && (
-          <TronStakePreview
-            stakeAmount={amountToken}
-            fee={tronPreview?.fee as ComputeFeeResult}
-            mode="unstake"
-          />
-        )
-        ///: END:ONLY_INCLUDE_IF
-      }
-      {!isPreviewVisible && (
-        <>
-          <QuickAmounts
-            amounts={quickAmounts}
-            onAmountPress={handleQuickAmountPressWithTracking}
-            onMaxPress={onRightActionPress}
-          />
-          <Keypad
-            value={isFiat ? amountFiatNumber : amountToken}
-            onChange={handleKeypadChangeWithValidation}
-            style={styles.keypad}
-            // TODO: this should be the underlying token symbol/ticker if not ETH
-            // once this data is available in the state we can use that
-            currency={token.isETH ? 'ETH' : (token.ticker ?? token.symbol)}
-            decimals={isFiat ? 2 : 5}
-          />
-        </>
-      )}
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        shouldShowTronWithdrawButton && (
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(tron)
+          shouldShowTronWithdrawButton && (
+            <View style={styles.reviewButtonContainer}>
+              <Button
+                testID="review-button"
+                label={buttonLabel}
+                size={ButtonSize.Lg}
+                labelTextVariant={TextVariant.BodyMDMedium}
+                variant={ButtonVariants.Primary}
+                loading={isSubmittingStakeWithdrawalTransaction}
+                isDisabled={isTronWithdrawButtonDisabled}
+                width={ButtonWidthTypes.Full}
+                onPress={handleWithdrawPress}
+              />
+            </View>
+          )
+          ///: END:ONLY_INCLUDE_IF
+        }
+        {!isTronEnabled && (
           <View style={styles.reviewButtonContainer}>
             <Button
               testID="review-button"
@@ -938,30 +1003,14 @@ const EarnWithdrawInputView = () => {
               labelTextVariant={TextVariant.BodyMDMedium}
               variant={ButtonVariants.Primary}
               loading={isSubmittingStakeWithdrawalTransaction}
-              isDisabled={isTronWithdrawButtonDisabled}
+              isDisabled={isWithdrawButtonDisabled}
               width={ButtonWidthTypes.Full}
               onPress={handleWithdrawPress}
             />
           </View>
-        )
-        ///: END:ONLY_INCLUDE_IF
-      }
-      {!isTronEnabled && (
-        <View style={styles.reviewButtonContainer}>
-          <Button
-            testID="review-button"
-            label={buttonLabel}
-            size={ButtonSize.Lg}
-            labelTextVariant={TextVariant.BodyMDMedium}
-            variant={ButtonVariants.Primary}
-            loading={isSubmittingStakeWithdrawalTransaction}
-            isDisabled={isWithdrawButtonDisabled}
-            width={ButtonWidthTypes.Full}
-            onPress={handleWithdrawPress}
-          />
-        </View>
-      )}
-    </ScreenLayout>
+        )}
+      </ScreenLayout>
+    </Box>
   );
 };
 

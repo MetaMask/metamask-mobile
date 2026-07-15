@@ -1,39 +1,53 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import React, { useCallback, useMemo } from 'react';
-import { type ImageSourcePropType, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import {
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarNetwork,
+  AvatarNetworkSize,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  SensitiveText,
+  SensitiveTextLength,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../hooks';
 import styleSheet from './AccountCell.styles';
-import Text, { TextColor, TextVariant } from '../../../components/Texts/Text';
 import { Box } from '../../../../components/UI/Box/Box';
 import {
   AlignItems,
   FlexDirection,
   JustifyContent,
 } from '../../../../components/UI/Box/box.types';
-import Icon, { IconName, IconSize } from '../../../components/Icons/Icon';
 import { AccountCellIds } from './AccountCell.testIds';
 import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balances';
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
-import AvatarAccount, {
-  AvatarAccountType,
-} from '../../../components/Avatars/Avatar/variants/AvatarAccount';
-import Avatar, { AvatarVariant } from '../../../components/Avatars/Avatar';
-import { AvatarSize } from '../../../components/Avatars/Avatar/Avatar.types';
 import {
   selectIconSeedAddressByAccountGroupId,
   selectInternalAccountByAccountGroupAndScope,
 } from '../../../../selectors/multichainAccounts/accounts';
+import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { createAccountGroupDetailsNavigationDetails } from '../../../../components/Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { renderShortAddress } from '../../../../util/address';
+import {
+  type AccountAvatarVariant,
+  getAvatarAccountVariant,
+} from '../avatarAccountVariant';
 
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
-  avatarAccountType: AvatarAccountType;
+  avatarAccountType: AccountAvatarVariant;
   hideMenu?: boolean;
   startAccessory?: React.ReactNode;
   endContainer?: React.ReactNode;
@@ -45,7 +59,7 @@ type BalanceEndContainerProps = Pick<
   AccountCellProps,
   'accountGroup' | 'hideMenu' | 'onSelectAccount'
 > & {
-  networkImageSource?: ImageSourcePropType;
+  networkImageSource?: React.ComponentProps<typeof AvatarNetwork>['src'];
 };
 
 const BalanceEndContainer = ({
@@ -68,6 +82,7 @@ const BalanceEndContainer = ({
   const groupBalance = useSelector(selectBalanceForGroup);
   const totalBalance = groupBalance?.totalBalanceInUserCurrency;
   const userCurrency = groupBalance?.userCurrency;
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const displayBalance = useMemo(() => {
     if (totalBalance == null || !userCurrency) {
@@ -83,19 +98,23 @@ const BalanceEndContainer = ({
     <>
       <TouchableOpacity onPress={onSelectAccount}>
         <View style={styles.balanceContainer}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Default}
+          <SensitiveText
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
+            fontWeight={FontWeight.Medium}
+            length={SensitiveTextLength.Long}
+            isHidden={
+              privacyMode && Boolean(displayBalance) && Boolean(totalBalance)
+            }
             testID={AccountCellIds.BALANCE}
           >
             {totalBalance ? displayBalance : null}
-          </Text>
+          </SensitiveText>
           {networkImageSource && (
-            <Avatar
-              variant={AvatarVariant.Network}
-              size={AvatarSize.Xs}
+            <AvatarNetwork
+              size={AvatarNetworkSize.Xs}
               style={styles.networkBadge}
-              imageSource={networkImageSource}
+              src={networkImageSource}
             />
           )}
         </View>
@@ -109,7 +128,7 @@ const BalanceEndContainer = ({
           <Icon
             name={IconName.MoreVertical}
             size={IconSize.Md}
-            color={TextColor.Alternative}
+            color={IconColor.IconAlternative}
           />
         </TouchableOpacity>
       )}
@@ -127,6 +146,7 @@ const AccountCell = ({
   onSelectAccount,
 }: AccountCellProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const avatarAccountVariant = getAvatarAccountVariant(avatarAccountType);
 
   const selectEvmAddress = useMemo(
     () => selectIconSeedAddressByAccountGroupId(accountGroup.id),
@@ -158,19 +178,24 @@ const AccountCell = ({
       alignItems={AlignItems.center}
       testID={AccountCellIds.CONTAINER}
     >
-      <TouchableOpacity onPress={onSelectAccount} style={styles.mainTouchable}>
+      <TouchableOpacity
+        onPress={onSelectAccount}
+        style={styles.mainTouchable}
+        testID={AccountCellIds.SELECT}
+      >
         {startAccessory}
         <AvatarAccount
-          accountAddress={evmAddress}
-          type={avatarAccountType}
-          size={AvatarSize.Md}
+          address={evmAddress ?? ''}
+          variant={avatarAccountVariant}
+          size={AvatarAccountSize.Md}
           testID={AccountCellIds.AVATAR}
         />
         <View style={styles.accountName}>
           <View style={styles.accountNameRow}>
             <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Default}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextDefault}
+              fontWeight={FontWeight.Medium}
               numberOfLines={1}
               style={styles.accountNameText}
               testID={AccountCellIds.ADDRESS}
@@ -181,8 +206,8 @@ const AccountCell = ({
           {networkAccountAddress && (
             <View style={styles.accountSubRow}>
               <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
                 numberOfLines={1}
                 style={styles.accountSubText}
               >

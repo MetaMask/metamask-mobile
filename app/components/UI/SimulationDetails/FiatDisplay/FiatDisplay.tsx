@@ -3,15 +3,16 @@ import React from 'react';
 import { StyleSheet, ViewProps } from 'react-native';
 import { BigNumber } from 'bignumber.js';
 import { useStyles } from '../../../hooks/useStyles';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import useFiatFormatter from './useFiatFormatter';
 import { FIAT_UNAVAILABLE, FiatAmount } from '../types';
 import useHideFiatForTestnet from '../../../hooks/useHideFiatForTestnet';
 import { shortenString } from '../../../../util/notifications';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
@@ -22,18 +23,9 @@ const styleSheet = () =>
   });
 
 const sharedTextProps = {
-  color: TextColor.Alternative,
-  variant: TextVariant.BodyMD,
+  color: TextColor.TextAlternative,
+  variant: TextVariant.BodyMd,
 } as const;
-
-const FiatNotAvailableDisplay: React.FC = () => {
-  const { styles } = useStyles(styleSheet, {});
-  return (
-    <Text {...sharedTextProps} style={styles.base}>
-      {strings('simulation_details.fiat_not_available')}
-    </Text>
-  );
-};
 
 export function calculateTotalFiat(fiatAmounts: FiatAmount[]): BigNumber {
   return fiatAmounts.reduce(
@@ -70,7 +62,7 @@ export const IndividualFiatDisplay: React.FC<IndividualFiatDisplayProps> = ({
   }
 
   if (fiatAmount === FIAT_UNAVAILABLE) {
-    return <FiatNotAvailableDisplay />;
+    return null;
   }
   const absFiat = new BigNumber(fiatAmount).abs();
 
@@ -84,7 +76,7 @@ export const IndividualFiatDisplay: React.FC<IndividualFiatDisplayProps> = ({
     : fiatFormatter(absFiat);
 
   return (
-    <Text {...sharedTextProps} style={styles.base} variant={TextVariant.BodySM}>
+    <Text {...sharedTextProps} style={styles.base} variant={TextVariant.BodySm}>
       {absFiatFormatted}
     </Text>
   );
@@ -108,10 +100,12 @@ export const TotalFiatDisplay: React.FC<{
     return null;
   }
 
-  return totalFiat.eq(0) ? (
-    <FiatNotAvailableDisplay />
-  ) : (
-    <Text {...sharedTextProps} variant={TextVariant.BodySM} style={styles.base}>
+  if (totalFiat === null || totalFiat.eq(0)) {
+    return null;
+  }
+
+  return (
+    <Text {...sharedTextProps} variant={TextVariant.BodySm} style={styles.base}>
       {strings('simulation_details.total_fiat', {
         currency: fiatFormatter(totalFiat.abs()),
       })}

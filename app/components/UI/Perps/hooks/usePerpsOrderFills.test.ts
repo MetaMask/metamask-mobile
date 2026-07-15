@@ -3,7 +3,10 @@ import { waitFor } from '@testing-library/react-native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { usePerpsOrderFills } from './usePerpsOrderFills';
-import type { OrderFill, GetOrderFillsParams } from '../controllers/types';
+import {
+  type OrderFill,
+  type GetOrderFillsParams,
+} from '@metamask/perps-controller';
 import { CaipAccountId, Hex } from '@metamask/utils';
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
@@ -105,7 +108,10 @@ describe('usePerpsOrderFills', () => {
       expect(result.current.orderFills).toEqual(mockOrderFills);
       expect(result.current.error).toBeNull();
       expect(mockPerpsController.getOrderFills).toHaveBeenCalledTimes(1);
-      expect(mockPerpsController.getOrderFills).toHaveBeenCalledWith(undefined);
+      expect(mockPerpsController.getOrderFills).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({ forceRefresh: false }),
+      );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'Perps: Fetching order fills from controller...',
       );
@@ -151,7 +157,10 @@ describe('usePerpsOrderFills', () => {
       });
 
       // Assert
-      expect(mockPerpsController.getOrderFills).toHaveBeenCalledWith(params);
+      expect(mockPerpsController.getOrderFills).toHaveBeenCalledWith(
+        params,
+        expect.any(Object),
+      );
     });
 
     it('updates fills when data changes', async () => {
@@ -445,6 +454,7 @@ describe('usePerpsOrderFills', () => {
 
       expect(mockPerpsController.getOrderFills).toHaveBeenCalledWith(
         initialParams,
+        expect.any(Object),
       );
 
       // Reset call count
@@ -460,6 +470,7 @@ describe('usePerpsOrderFills', () => {
       await waitFor(() => {
         expect(mockPerpsController.getOrderFills).toHaveBeenCalledWith(
           newParams,
+          expect.any(Object),
         );
       });
     });

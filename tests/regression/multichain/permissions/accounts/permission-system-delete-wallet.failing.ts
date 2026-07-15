@@ -1,29 +1,28 @@
-import TestHelpers from '../../../../../e2e/helpers';
-import { RegressionNetworkAbstractions } from '../../../../../e2e/tags';
-import OnboardingView from '../../../../../e2e/pages/Onboarding/OnboardingView';
-import ProtectYourWalletView from '../../../../../e2e/pages/Onboarding/ProtectYourWalletView';
-import CreatePasswordView from '../../../../../e2e/pages/Onboarding/CreatePasswordView';
-import WalletView from '../../../../../e2e/pages/wallet/WalletView';
-import Browser from '../../../../../e2e/pages/Browser/BrowserView';
-import SettingsView from '../../../../../e2e/pages/Settings/SettingsView';
-import TabBarComponent from '../../../../../e2e/pages/wallet/TabBarComponent';
-import SkipAccountSecurityModal from '../../../../../e2e/pages/Onboarding/SkipAccountSecurityModal';
-import ConnectedAccountsModal from '../../../../../e2e/pages/Browser/ConnectedAccountsModal';
-import DeleteWalletModal from '../../../../../e2e/pages/Settings/SecurityAndPrivacy/DeleteWalletModal';
-import LoginView from '../../../../../e2e/pages/wallet/LoginView';
-import NetworkListModal from '../../../../../e2e/pages/Network/NetworkListModal';
-import {
-  loginToApp,
-  navigateToBrowserView,
-} from '../../../../../e2e/viewHelper';
+import TestHelpers from '../../../../helpers';
+import { RegressionNetworkAbstractions } from '../../../../tags';
+import OnboardingView from '../../../../page-objects/Onboarding/OnboardingView';
+import ProtectYourWalletView from '../../../../page-objects/Onboarding/ProtectYourWalletView';
+import CreatePasswordView from '../../../../page-objects/Onboarding/CreatePasswordView';
+import WalletView from '../../../../page-objects/wallet/WalletView';
+import Browser from '../../../../page-objects/Browser/BrowserView';
+import SettingsView from '../../../../page-objects/Settings/SettingsView';
+import AccountMenu from '../../../../page-objects/AccountMenu/AccountMenu';
+import TabBarComponent from '../../../../page-objects/wallet/TabBarComponent';
+import SkipAccountSecurityModal from '../../../../page-objects/Onboarding/SkipAccountSecurityModal';
+import ConnectedAccountsModal from '../../../../page-objects/Browser/ConnectedAccountsModal';
+import DeleteWalletModal from '../../../../page-objects/Settings/SecurityAndPrivacy/DeleteWalletModal';
+import LoginView from '../../../../page-objects/wallet/LoginView';
+import NetworkListModal from '../../../../page-objects/Network/NetworkListModal';
+import { loginToApp } from '../../../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../../../flows/browser.flow';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import MetaMetricsOptIn from '../../../../../e2e/pages/Onboarding/MetaMetricsOptInView';
-import ProtectYourWalletModal from '../../../../../e2e/pages/Onboarding/ProtectYourWalletModal';
-import OnboardingSuccessView from '../../../../../e2e/pages/Onboarding/OnboardingSuccessView';
+import MetaMetricsOptIn from '../../../../page-objects/Onboarding/MetaMetricsOptInView';
+import ProtectYourWalletModal from '../../../../page-objects/Onboarding/ProtectYourWalletModal';
+import OnboardingSuccessView from '../../../../page-objects/Onboarding/OnboardingSuccessView';
 import Assertions from '../../../../framework/Assertions';
-import ToastModal from '../../../../../e2e/pages/wallet/ToastModal';
-import OnboardingSheet from '../../../../../e2e/pages/Onboarding/OnboardingSheet';
+import ToastModal from '../../../../page-objects/wallet/ToastModal';
+import OnboardingSheet from '../../../../page-objects/Onboarding/OnboardingSheet';
 import { DappVariants } from '../../../../framework/Constants';
 
 const SEEDLESS_ONBOARDING_ENABLED =
@@ -63,9 +62,9 @@ describe(RegressionNetworkAbstractions('Permission System'), () => {
         await ConnectedAccountsModal.scrollToBottomOfModal();
         await TestHelpers.delay(2000);
 
-        //go to settings then security & privacy
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapLock();
+        //go to accounts menu and lock
+        await TabBarComponent.tapAccountsMenu();
+        await AccountMenu.tapLock();
         await SettingsView.tapYesAlertButton();
         await Assertions.expectElementToBeVisible(LoginView.container);
 

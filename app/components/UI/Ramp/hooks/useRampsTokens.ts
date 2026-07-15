@@ -1,11 +1,13 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
+import { strings } from '../../../../../locales/i18n';
 import { selectTokens } from '../../../../selectors/rampsController';
 import {
   type RampsToken,
   type TokensResponse,
 } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+import { parseUserFacingError } from '../utils/parseUserFacingError';
 
 /**
  * Result returned by the useRampsTokens hook.
@@ -41,12 +43,13 @@ export interface UseRampsTokensResult {
  * @returns Tokens state.
  */
 export function useRampsTokens(): UseRampsTokensResult {
+  const tokensState = useSelector(selectTokens);
   const {
     data: tokens,
     selected: selectedToken,
     isLoading,
     error,
-  } = useSelector(selectTokens);
+  } = tokensState;
 
   const setSelectedToken = useCallback(
     (assetId: string) =>
@@ -59,7 +62,9 @@ export function useRampsTokens(): UseRampsTokensResult {
     selectedToken,
     setSelectedToken,
     isLoading,
-    error,
+    error: error
+      ? parseUserFacingError(tokensState, strings('fiat_on_ramp.payment_error'))
+      : null,
   };
 }
 

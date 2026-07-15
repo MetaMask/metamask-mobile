@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService';
-import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
+import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 import PerpsLoader from '../components/PerpsLoader';
 import { usePerpsConnection } from '../hooks/usePerpsConnection';
 
@@ -20,12 +20,14 @@ const PerpsRedirect: React.FC = () => {
       // 2. Mount the Wallet component
       // 3. Make navigation context available for setParams
       // Without this delay, the tab selection will fail
-      setTimeout(() => {
+      const timerId = setTimeout(() => {
         NavigationService.navigation.setParams({
           initialTab: 'perps',
           shouldSelectPerpsTab: true,
         });
       }, PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+
+      return () => clearTimeout(timerId);
     }
   }, [isConnected, isInitialized]);
 

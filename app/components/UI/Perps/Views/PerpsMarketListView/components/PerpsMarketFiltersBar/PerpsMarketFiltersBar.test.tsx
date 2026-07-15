@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsMarketFiltersBar from './PerpsMarketFiltersBar';
-import type { MarketTypeFilter } from '../../../../controllers/types';
+import { type MarketTypeFilter } from '@metamask/perps-controller';
 
 jest.mock('../../../../components/PerpsMarketSortDropdowns', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
@@ -30,19 +30,15 @@ jest.mock('../../../../components/PerpsMarketCategoryBadges', () => {
     default: ({
       selectedCategory,
       onCategorySelect,
-      availableCategories,
       testID,
     }: {
       selectedCategory: MarketTypeFilter;
       onCategorySelect: (category: MarketTypeFilter) => void;
-      availableCategories?: Exclude<MarketTypeFilter, 'all'>[];
       testID?: string;
     }) => (
       <View testID={testID}>
         <Text testID={`${testID}-selected`}>{selectedCategory}</Text>
-        {(
-          availableCategories || ['crypto', 'stocks', 'commodities', 'forex']
-        ).map((cat: string) => (
+        {['crypto', 'stock', 'commodity', 'forex'].map((cat: string) => (
           <TouchableOpacity
             key={cat}
             testID={`${testID}-${cat}`}
@@ -87,7 +83,8 @@ jest.mock(
         children: React.ReactNode;
         testID?: string;
       }) => <RNText testID={testID}>{children}</RNText>,
-      TextVariant: { BodyMD: 'BodyMD' },
+      TextVariant: { BodyMD: 'BodyMD', BodySM: 'BodySM' },
+      TextColor: { Alternative: 'Alternative', Default: 'Default' },
     };
   },
 );
@@ -101,6 +98,7 @@ describe('PerpsMarketFiltersBar', () => {
     onSortPress: mockOnSortPress,
     marketTypeFilter: 'all' as MarketTypeFilter,
     onCategorySelect: mockOnCategorySelect,
+    marketCount: 42,
     testID: 'filters-bar',
   };
 
@@ -160,22 +158,8 @@ describe('PerpsMarketFiltersBar', () => {
       fireEvent.press(getByTestId('filters-bar-categories-crypto'));
       expect(mockOnCategorySelect).toHaveBeenCalledWith('crypto');
 
-      fireEvent.press(getByTestId('filters-bar-categories-stocks'));
-      expect(mockOnCategorySelect).toHaveBeenCalledWith('stocks');
-    });
-
-    it('passes available categories to badges', () => {
-      const { getByTestId, queryByTestId } = render(
-        <PerpsMarketFiltersBar
-          {...defaultProps}
-          availableCategories={['crypto', 'stocks']}
-        />,
-      );
-
-      expect(getByTestId('filters-bar-categories-crypto')).toBeTruthy();
-      expect(getByTestId('filters-bar-categories-stocks')).toBeTruthy();
-      expect(queryByTestId('filters-bar-categories-commodities')).toBeNull();
-      expect(queryByTestId('filters-bar-categories-forex')).toBeNull();
+      fireEvent.press(getByTestId('filters-bar-categories-stock'));
+      expect(mockOnCategorySelect).toHaveBeenCalledWith('stock');
     });
   });
 
@@ -190,6 +174,66 @@ describe('PerpsMarketFiltersBar', () => {
     });
   });
 
+  describe('Market Count', () => {
+    it('displays the market count string', () => {
+      const { getByText } = render(
+        <PerpsMarketFiltersBar {...defaultProps} marketCount={42} />,
+      );
+
+      expect(getByText('42 markets')).toBeTruthy();
+    });
+
+    it('updates displayed count when marketCount prop changes', () => {
+      const { getByText, rerender } = render(
+        <PerpsMarketFiltersBar {...defaultProps} marketCount={10} />,
+      );
+
+      expect(getByText('10 markets')).toBeTruthy();
+
+      rerender(<PerpsMarketFiltersBar {...defaultProps} marketCount={3} />);
+      expect(getByText('3 markets')).toBeTruthy();
+    });
+
+    it('displays zero markets correctly', () => {
+      const { getByText } = render(
+        <PerpsMarketFiltersBar {...defaultProps} marketCount={0} />,
+      );
+
+      expect(getByText('0 markets')).toBeTruthy();
+    });
+
+    it('displays singular market count when there is exactly one market', () => {
+      const { getByText, queryByText } = render(
+        <PerpsMarketFiltersBar {...defaultProps} marketCount={1} />,
+      );
+
+      expect(getByText('1 market')).toBeTruthy();
+      expect(queryByText('1 markets')).toBeNull();
+    });
+
+    it('renders market count with the derived testID', () => {
+      const { getByTestId } = render(
+        <PerpsMarketFiltersBar {...defaultProps} testID="filters-bar" />,
+      );
+
+      expect(getByTestId('filters-bar-market-count')).toBeTruthy();
+    });
+
+    it('does not render market count when watchlist filter is active', () => {
+      const { queryByTestId } = render(
+        <PerpsMarketFiltersBar
+          {...defaultProps}
+          isWatchlistSelected
+          onWatchlistToggle={jest.fn()}
+        />,
+      );
+
+      // The entire sort row (including count) is hidden when watchlist is active
+      expect(queryByTestId('filters-bar-market-count')).toBeNull();
+      expect(queryByTestId('filters-bar-sort')).toBeNull();
+    });
+  });
+
   describe('Test IDs', () => {
     it('applies custom testID and derived testIDs', () => {
       const { getByTestId } = render(
@@ -199,6 +243,7 @@ describe('PerpsMarketFiltersBar', () => {
       expect(getByTestId('custom-filters')).toBeTruthy();
       expect(getByTestId('custom-filters-categories')).toBeTruthy();
       expect(getByTestId('custom-filters-sort')).toBeTruthy();
+      expect(getByTestId('custom-filters-market-count')).toBeTruthy();
     });
 
     it('handles missing testID gracefully', () => {
@@ -208,6 +253,7 @@ describe('PerpsMarketFiltersBar', () => {
           onSortPress={mockOnSortPress}
           marketTypeFilter="all"
           onCategorySelect={mockOnCategorySelect}
+          marketCount={0}
         />,
       );
 
@@ -229,8 +275,8 @@ describe('PerpsMarketFiltersBar', () => {
     it('renders with specific category selected', () => {
       const categories: MarketTypeFilter[] = [
         'crypto',
-        'stocks',
-        'commodities',
+        'stock',
+        'commodity',
         'forex',
       ];
 

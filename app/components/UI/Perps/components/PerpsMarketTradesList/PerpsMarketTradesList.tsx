@@ -1,24 +1,38 @@
 import React, { useCallback, useMemo } from 'react';
 import { View, TouchableOpacity, FlatList } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import Text, {
-  TextVariant,
+import { useNavigation } from '@react-navigation/native';
+import {
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import type { PerpsNavigationParamList } from '../../controllers/types';
+import {
+  getPerpsDisplaySymbol,
+  PERPS_CONSTANTS,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 import type { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsFillTag from '../PerpsFillTag';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsMarketTradesList.styles';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import { usePerpsMarketFills } from '../../hooks/usePerpsMarketFills';
 import { transformFillsToTransactions } from '../../utils/transactionTransforms';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+} from '../../../../../core/Analytics/events/transactions';
+import { PERPS_BALANCE_CHAIN_ID } from '../../constants/perpsConfig';
 
 interface PerpsMarketTradesListProps {
   symbol: string; // Market symbol to filter trades
@@ -30,7 +44,8 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   iconSize = 36,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Fetch order fills via WebSocket + REST API for complete history
   // WebSocket provides instant updates, REST provides complete historical data
@@ -57,12 +72,25 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
 
   const handleTradePress = useCallback(
     (transaction: PerpsTransaction) => {
+      trackEvent(
+        createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+          .addProperties({
+            transaction_type: `perps_${transaction.type}`,
+            transaction_status: 'confirmed',
+            location: TransactionDetailLocation.Home,
+            chain_id_source: PERPS_BALANCE_CHAIN_ID,
+            chain_id_destination: PERPS_BALANCE_CHAIN_ID,
+            monetized_primitive: MonetizedPrimitive.Perps,
+          })
+          .build(),
+      );
+
       // Navigate to the position transaction detail screen
       navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
         transaction,
       });
     },
-    [navigation],
+    [navigation, trackEvent, createEventBuilder],
   );
 
   // Render right content for trades
@@ -70,10 +98,14 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
     if (!transaction.fill) return null;
 
     const pnlColor = transaction.fill.isPositive
-      ? TextColor.Success
-      : TextColor.Error;
+      ? TextColor.SuccessDefault
+      : TextColor.ErrorDefault;
     return (
-      <Text variant={TextVariant.BodyMDMedium} color={pnlColor}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={pnlColor}
+      >
         {transaction.fill.amount}
       </Text>
     );
@@ -106,8 +138,9 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
             <View style={styles.tradeInfo}>
               <View style={styles.tradeTitleRow}>
                 <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
                   style={styles.tradeType}
                 >
                   {item.title}
@@ -121,8 +154,8 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
               </View>
               {!!item.subtitle && (
                 <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
                 >
                   {getPerpsDisplaySymbol(item.subtitle)}
                 </Text>
@@ -136,17 +169,29 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
     [styles, handleTradePress, iconSize, renderRightContent, trades.length],
   );
 
-  // Render header section
   const renderHeader = () => (
     <View style={styles.header}>
-      <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-        {strings('perps.market.recent_trades')}
-      </Text>
-      {!isLoading && (
-        <TouchableOpacity testID="see-all-button" onPress={handleSeeAll}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('perps.home.see_all')}
+      {isLoading ? (
+        <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+          {strings('perps.market.recent_trades')}
+        </Text>
+      ) : (
+        <TouchableOpacity
+          testID="see-all-button"
+          onPress={handleSeeAll}
+          accessibilityRole="button"
+          accessibilityLabel={strings('perps.home.see_all')}
+          activeOpacity={0.7}
+          style={styles.headerButton}
+        >
+          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+            {strings('perps.market.recent_trades')}
           </Text>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Md}
+            color={IconColor.IconAlternative}
+          />
         </TouchableOpacity>
       )}
     </View>
@@ -161,8 +206,8 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
     if (trades.length === 0) {
       return (
         <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
           style={styles.emptyText}
         >
           {strings('perps.market.no_trades')}

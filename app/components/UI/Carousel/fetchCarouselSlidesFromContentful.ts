@@ -75,15 +75,13 @@ export async function fetchCarouselSlidesFromContentful(): Promise<{
     return { prioritySlides: [], regularSlides: [] };
   }
 
-  const host = `https://${domain}/spaces/${spaceId}/environments/${environment}/entries`;
-
   // First try through the Contentful Client
   try {
     const contentfulClient = createClient({
       space: spaceId,
       accessToken,
       environment,
-      host,
+      host: domain,
     });
 
     const entries = await contentfulClient.getEntries({
@@ -102,7 +100,8 @@ export async function fetchCarouselSlidesFromContentful(): Promise<{
 
   // Otherwise fallback to URL fetch
   try {
-    const url = new URL(`${host}`);
+    const fallbackHost = `https://${domain}/spaces/${spaceId}/environments/${environment}/entries`;
+    const url = new URL(fallbackHost);
     url.searchParams.set('access_token', accessToken);
     url.searchParams.set('content_type', CONTENT_TYPE);
     url.searchParams.set('fields.showInMobile', 'true');

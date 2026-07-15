@@ -3,13 +3,20 @@ import AccountBackupStep1 from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
 import { fireEvent } from '@testing-library/react-native';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { InteractionManager, Platform } from 'react-native';
+import { AccountType } from '../../../constants/onboarding';
+import SRPDesignDark from '../../../images/secure_wallet_dark.png';
+import SRPDesignLight from '../../../images/secure_wallet_light.png';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
 // Use fake timers to resolve reanimated issues.
 jest.useFakeTimers();
@@ -27,18 +34,9 @@ jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
 }));
 
-const mockIsEnabled = jest.fn().mockReturnValue(true);
+const mockIsAnalyticsEnabled = jest.fn().mockReturnValue(true);
 
-jest.mock('../../hooks/useMetrics', () => {
-  const actualUseMetrics = jest.requireActual('../../hooks/useMetrics');
-  return {
-    ...actualUseMetrics,
-    useMetrics: jest.fn().mockReturnValue({
-      ...actualUseMetrics.useMetrics,
-      isEnabled: () => mockIsEnabled(),
-    }),
-  };
-});
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 // Mock useTheme hook - default to dark theme
 const mockUseTheme = jest.fn().mockReturnValue({
@@ -101,6 +99,15 @@ jest.doMock('react-native', () => {
 });
 
 describe('AccountBackupStep1', () => {
+  beforeEach(() => {
+    mockIsAnalyticsEnabled.mockReturnValue(true);
+    jest
+      .mocked(useAnalytics)
+      .mockReturnValue(
+        createMockUseAnalyticsHook({ isEnabled: mockIsAnalyticsEnabled }),
+      );
+  });
+
   afterEach(() => {
     jest.useFakeTimers({ legacyFakeTimers: true });
     jest.clearAllMocks();
@@ -122,30 +129,36 @@ describe('AccountBackupStep1', () => {
     };
   };
 
-  describe('Snapshots iOS', () => {
-    it('render matches snapshot', () => {
+  describe('Rendering iOS', () => {
+    it('renders correctly on iOS', () => {
       Platform.OS = 'ios';
       const { wrapper } = setupTest();
-      expect(wrapper).toMatchSnapshot();
+      expect(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER),
+      ).toBeOnTheScreen();
     });
   });
 
-  describe('Snapshots android', () => {
+  describe('Rendering android', () => {
     beforeEach(() => {
       Platform.OS = 'android';
     });
 
-    it('render matches snapshot', () => {
+    it('renders correctly on android', () => {
       const { wrapper } = setupTest();
-      expect(wrapper).toMatchSnapshot();
+      expect(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER),
+      ).toBeOnTheScreen();
     });
 
-    it('render matches snapshot with status bar height to zero', () => {
+    it('renders correctly on android with status bar height zero', () => {
       const { StatusBar } = jest.requireMock('react-native');
       const originalCurrentHeight = StatusBar.currentHeight;
       StatusBar.currentHeight = 0;
       const { wrapper } = setupTest();
-      expect(wrapper).toMatchSnapshot();
+      expect(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER),
+      ).toBeOnTheScreen();
       StatusBar.currentHeight = originalCurrentHeight;
     });
   });
@@ -170,6 +183,13 @@ describe('AccountBackupStep1', () => {
       strings('account_backup_step_1.remind_me_later'),
     );
     expect(reminderButton).toBeOnTheScreen();
+  });
+
+  it('does not render a navigation header', () => {
+    const { wrapper } = setupTest();
+
+    expect(mockSetOptions).not.toHaveBeenCalled();
+    expect(wrapper.queryByTestId('back-button')).toBeNull();
   });
 
   it('renders title and explanation text', () => {
@@ -261,11 +281,8 @@ describe('AccountBackupStep1', () => {
 
     const { wrapper } = setupTest();
 
-    // Verify AndroidBackHandler is rendered
+    // Verify AndroidBackHandler is rendered and customBackPress prop is passed
     const androidBackHandler = wrapper.UNSAFE_getByType(AndroidBackHandler);
-    expect(androidBackHandler).toBeTruthy();
-
-    // Verify customBackPress prop is passed
     expect(androidBackHandler.props.customBackPress).toBeDefined();
   });
 
@@ -331,7 +348,7 @@ describe('AccountBackupStep1', () => {
     });
 
     it('handle skip when metrics is disabled', async () => {
-      mockIsEnabled.mockReturnValue(false);
+      mockIsAnalyticsEnabled.mockReturnValue(false);
       (Engine.hasFunds as jest.Mock).mockReturnValue(false);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
@@ -356,6 +373,7 @@ describe('AccountBackupStep1', () => {
       // Verify navigation to OnboardingSuccess
       expect(mockNavigate).toHaveBeenCalledWith('OptinMetrics', {
         onContinue: expect.any(Function),
+        accountType: AccountType.Metamask,
       });
 
       // Get the onConfirm function from the modal params
@@ -368,7 +386,7 @@ describe('AccountBackupStep1', () => {
     });
 
     it('handle secure now button to goNext step when metrics is disabled', async () => {
-      mockIsEnabled.mockReturnValue(false);
+      mockIsAnalyticsEnabled.mockReturnValue(false);
       (Engine.hasFunds as jest.Mock).mockReturnValue(false);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
@@ -404,7 +422,7 @@ describe('AccountBackupStep1', () => {
       });
     });
 
-    it('renders dark SRP design image by default (dark theme)', () => {
+    it('renders dark SRP design image for dark theme', () => {
       mockUseTheme.mockReturnValue({
         colors: {},
         themeAppearance: 'dark',
@@ -412,7 +430,7 @@ describe('AccountBackupStep1', () => {
 
       const { wrapper } = setupTest();
 
-      expect(wrapper).toMatchSnapshot();
+      wrapper.UNSAFE_getByProps({ source: SRPDesignDark });
     });
 
     it('renders light SRP design image for light theme', () => {
@@ -423,7 +441,7 @@ describe('AccountBackupStep1', () => {
 
       const { wrapper } = setupTest();
 
-      expect(wrapper).toMatchSnapshot();
+      wrapper.UNSAFE_getByProps({ source: SRPDesignLight });
     });
   });
 });

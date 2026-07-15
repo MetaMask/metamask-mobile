@@ -29,7 +29,7 @@ export const useToAddressValidation = () => {
   const { validateName } = useNameValidation();
   const [result, setResult] = useState<ValidationResult>({});
   const [loading, setLoading] = useState(false);
-  const prevAddressValidated = useRef<string>();
+  const prevAddressValidated = useRef<string | undefined>(undefined);
   const unmountedRef = useRef(false);
 
   useEffect(
@@ -45,10 +45,9 @@ export const useToAddressValidation = () => {
         return {};
       }
 
-      if (
-        isEvmSendType &&
-        isValidHexAddress(toAddress, { mixedCaseUseChecksum: true })
-      ) {
+      // Accept any valid 20-byte hex address regardless of case (parity with
+      // Extension); EIP-55 checksum casing is not enforced for recipients.
+      if (isEvmSendType && isValidHexAddress(toAddress)) {
         return await validateHexAddress(
           toAddress,
           chainId as Hex,
@@ -109,7 +108,7 @@ export const useToAddressValidation = () => {
 
   const {
     toAddressValidated,
-    error: toAddressError,
+    error,
     warning: toAddressWarning,
     resolvedAddress,
   } = result ?? {};
@@ -117,7 +116,7 @@ export const useToAddressValidation = () => {
   return {
     loading,
     resolvedAddress,
-    toAddressError,
+    toAddressError: error,
     toAddressValidated,
     toAddressWarning,
   };

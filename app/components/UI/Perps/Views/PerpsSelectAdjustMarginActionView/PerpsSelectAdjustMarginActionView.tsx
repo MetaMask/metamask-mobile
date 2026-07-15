@@ -2,24 +2,24 @@ import React, { useCallback, useRef } from 'react';
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import type { Position } from '../../controllers/types';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  type Position,
+} from '@metamask/perps-controller';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import PerpsAdjustMarginActionSheet, {
   type AdjustMarginAction,
 } from '../../components/PerpsAdjustMarginActionSheet';
 import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+import { type BottomSheetRef } from '@metamask/design-system-react-native';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 interface PerpsSelectAdjustMarginActionViewProps {
-  sheetRef?: React.RefObject<BottomSheetRef>;
+  sheetRef?: React.RefObject<BottomSheetRef | null>;
   position?: Position;
   onClose?: () => void;
 }
@@ -31,18 +31,26 @@ const PerpsSelectAdjustMarginActionView: React.FC<
   position: positionProp,
   onClose: onExternalClose,
 }) => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const route =
     useRoute<
       RouteProp<PerpsNavigationParamList, 'PerpsSelectAdjustMarginAction'>
     >();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Support both props and route params
   const position = positionProp || route.params?.position;
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
   const { navigateToAdjustMargin } = usePerpsNavigation();
+
+  const handleClose = useCallback(() => {
+    if (externalSheetRef) {
+      onExternalClose?.();
+    } else {
+      navigation.goBack();
+    }
+  }, [navigation, externalSheetRef, onExternalClose]);
 
   const handleActionSelect = useCallback(
     (action: AdjustMarginAction) => {
@@ -76,29 +84,17 @@ const PerpsSelectAdjustMarginActionView: React.FC<
       }
 
       // Close bottom sheet AFTER navigation is triggered
-      sheetRef.current?.onCloseBottomSheet(() => {
-        onExternalClose?.();
-      });
+      sheetRef.current?.onCloseBottomSheet(handleClose);
     },
     [
       position,
       sheetRef,
-      onExternalClose,
+      handleClose,
       navigateToAdjustMargin,
       trackEvent,
       createEventBuilder,
     ],
   );
-
-  const handleClose = useCallback(() => {
-    if (externalSheetRef) {
-      sheetRef.current?.onCloseBottomSheet(() => {
-        onExternalClose?.();
-      });
-    } else {
-      navigation.goBack();
-    }
-  }, [navigation, externalSheetRef, sheetRef, onExternalClose]);
 
   return (
     <PerpsAdjustMarginActionSheet

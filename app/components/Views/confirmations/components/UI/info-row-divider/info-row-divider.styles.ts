@@ -19,7 +19,7 @@ const styleSheet = (params: {
       height: variant === InfoRowDividerVariant.Large ? 2 : 1,
       backgroundColor:
         variant === InfoRowDividerVariant.Large
-          ? theme.colors.background.alternative
+          ? theme.colors.background.muted
           : theme.colors.border.muted,
       marginVertical: 8,
       marginLeft: -8,

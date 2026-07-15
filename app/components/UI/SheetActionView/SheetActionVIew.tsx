@@ -1,10 +1,10 @@
 import React from 'react';
 import { View } from 'react-native';
 import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import Button from '../../../component-library/components/Buttons/Button/Button';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import createStyles from './SheetActionView.styles';
 import { SheetActionViewI } from './SheetActionView.types';
@@ -14,19 +14,21 @@ const SheetActionView = ({ onConfirm, onCancel }: SheetActionViewI) => {
   return (
     <View style={styles.actionsContainer}>
       <Button
-        label={strings('action_view.cancel')}
         onPress={onCancel}
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
         style={styles.cancelButton}
-      />
+      >
+        {strings('action_view.cancel')}
+      </Button>
       <Button
-        label={strings('action_view.confirm')}
         onPress={onConfirm}
-        variant={ButtonVariants.Primary}
+        variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
         style={styles.confirmButton}
-      />
+      >
+        {strings('action_view.confirm')}
+      </Button>
     </View>
   );
 };

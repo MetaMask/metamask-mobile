@@ -8,14 +8,15 @@ import {
 } from '../../Bridge/hooks/useSwapBridgeNavigation';
 import Routes from '../../../../constants/navigation/Routes';
 import { BridgeToken } from '../../Bridge/types';
-import { CardTokenAllowance } from '../types';
+import { CardFundingToken } from '../types';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { getHighestFiatToken } from '../util/getHighestFiatToken';
 import {
   selectSelectedSourceChainIds,
   setDestToken,
 } from '../../../../core/redux/slices/bridge';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 
 export interface OpenSwapsParams {
@@ -25,7 +26,7 @@ export interface OpenSwapsParams {
 export interface UseOpenSwapsOptions {
   location?: SwapBridgeNavigationLocation;
   sourcePage?: string;
-  priorityToken?: CardTokenAllowance | null;
+  priorityToken?: CardFundingToken | null;
 }
 
 export const useOpenSwaps = ({
@@ -38,7 +39,7 @@ export const useOpenSwaps = ({
   const tokensWithBalance = useTokensWithBalance({
     chainIds,
   });
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const sourceToken = useMemo(() => {
     if (priorityToken) {

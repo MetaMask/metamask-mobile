@@ -1,19 +1,21 @@
-import { FlaskBuildTests } from '../../../e2e/tags';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import { SmokeSnaps } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
+import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import { Assertions } from '../../framework';
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Cronjob Snap Tests'), () => {
+describe(SmokeSnaps('Cronjob Snap Tests'), () => {
   it('can connect to the Cronjob Snap which triggers a dialog', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();

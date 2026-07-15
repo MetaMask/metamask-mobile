@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { typedSignV4ConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as SignatureRequestHook from '../../../hooks/signatures/useSignatureRequest';
 import Message from './message';
 

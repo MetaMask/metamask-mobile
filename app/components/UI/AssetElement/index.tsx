@@ -1,14 +1,13 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { TouchableOpacity, StyleSheet, Platform, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import SkeletonText from '../Ramp/Aggregator/components/SkeletonText';
 import { TokenI } from '../Tokens/types';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { getAssetTestId } from '../../../../tests/selectors/Wallet/WalletView.selectors';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
@@ -40,6 +39,11 @@ interface AssetElementProps {
   hideSecondaryBalanceInPrivacyMode?: boolean;
   disabled?: boolean;
   onSecondaryBalancePress?: (asset: TokenI) => void;
+  /**
+   * Custom element to render in place of the secondary balance text.
+   * When set, takes precedence over `secondaryBalance`.
+   */
+  secondaryBalanceElement?: React.ReactNode;
 }
 
 const createStyles = (colors: Colors) =>
@@ -80,6 +84,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
   hideSecondaryBalanceInPrivacyMode = true,
   disabled = false,
   onSecondaryBalancePress,
+  secondaryBalanceElement,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -107,7 +112,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
       onPress={handleOnPress}
       onLongPress={handleOnLongPress}
       style={styles.itemWrapper}
-      {...generateTestId(Platform, getAssetTestId(asset.symbol))}
+      testID={getAssetTestId(asset.symbol)}
     >
       {children}
       <View style={styles.arrow}>
@@ -131,34 +136,34 @@ const AssetElement: React.FC<AssetElementProps> = ({
             )}
           </SensitiveText>
         )}
-        {secondaryBalance ? (
-          <TouchableOpacity
-            onPress={handleOnSecondaryBalancePress}
-            disabled={isSecondaryDisabled}
-            testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
-          >
-            <SensitiveText
-              variant={TextVariant.BodySMMedium}
-              style={
-                secondaryBalanceColor
-                  ? styles.secondaryBalanceCustomColor
-                  : styles.secondaryBalance
-              }
-              color={secondaryBalanceColor}
-              isHidden={privacyMode && hideSecondaryBalanceInPrivacyMode}
-              length={SensitiveTextLength.Short}
-              testID={SECONDARY_BALANCE_TEST_ID}
-              // Remove onPress from here since it's on Pressable now
+        {secondaryBalanceElement ??
+          (secondaryBalance ? (
+            <TouchableOpacity
+              onPress={handleOnSecondaryBalancePress}
+              disabled={isSecondaryDisabled}
+              testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
             >
-              {secondaryBalance === TOKEN_BALANCE_LOADING ||
-              secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                <SkeletonText thin style={styles.skeleton} />
-              ) : (
-                secondaryBalance
-              )}
-            </SensitiveText>
-          </TouchableOpacity>
-        ) : null}
+              <SensitiveText
+                variant={TextVariant.BodySMMedium}
+                style={
+                  secondaryBalanceColor
+                    ? styles.secondaryBalanceCustomColor
+                    : styles.secondaryBalance
+                }
+                color={secondaryBalanceColor}
+                isHidden={privacyMode && hideSecondaryBalanceInPrivacyMode}
+                length={SensitiveTextLength.Short}
+                testID={SECONDARY_BALANCE_TEST_ID}
+              >
+                {secondaryBalance === TOKEN_BALANCE_LOADING ||
+                secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
+                  <SkeletonText thin style={styles.skeleton} />
+                ) : (
+                  secondaryBalance
+                )}
+              </SensitiveText>
+            </TouchableOpacity>
+          ) : null)}
       </View>
     </TouchableOpacity>
   );

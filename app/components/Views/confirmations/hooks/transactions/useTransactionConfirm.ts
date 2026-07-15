@@ -9,17 +9,31 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { isHardwareAccount } from '../../../../../util/address';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import {
+  ConfirmationParams,
+  PayWithOption,
+} from '../../components/confirm/confirm-component';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
-import { hasTransactionType } from '../../utils/transaction';
+import {
+  hasTransactionType,
+  shouldApplyGasFeeSponsorship,
+} from '../../utils/transaction';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
+import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
+import { useFiatConfirm } from '../pay/useFiatConfirm';
+import { useHandleHwSend } from '../../../../UI/HardwareWallet/Swaps/useHandleHwSend';
 
 const log = createProjectLogger('transaction-confirm');
 
 export const GO_BACK_TYPES = [
+  TransactionType.moneyAccountWithdraw,
+  TransactionType.perpsWithdraw,
   TransactionType.predictClaim,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
@@ -28,22 +42,33 @@ export const GO_BACK_TYPES = [
 export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
   const navigation = useNavigation();
+  const { shouldDefer: shouldDeferHwSend, defer: deferHwSend } =
+    useHandleHwSend();
   const transactionMetadata = useTransactionMetadataRequest();
   const selectedGasFeeToken = useSelectedGasFeeToken();
   const { chainId, isGasFeeTokenIgnoredIfBalance, type } =
     transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
+  const { onFiatConfirm, isFiatPaymentSelected, orderId } = useFiatConfirm();
+  const { navigateOnConfirm: musdConversionNavigateOnConfirm } =
+    useMusdConfirmNavigation();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
+  const { payWithOption } = useParams<ConfirmationParams>({});
 
   const { isSupported: isGaslessSupportedSTX, isSmartTransaction } =
     useGaslessSupportedSmartTransactions();
 
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
 
+  const isHardwareWallet = isHardwareAccount(
+    transactionMetadata?.txParams?.from ?? '',
+  );
+
   const waitForResult =
-    !isSmartTransaction && !quotes?.length && !selectedGasFeeToken;
+    isHardwareWallet ||
+    (!isSmartTransaction && !quotes?.length && !selectedGasFeeToken);
 
   const handleSmartTransaction = useCallback(
     (updatedMetadata: TransactionMeta) => {
@@ -60,24 +85,8 @@ export function useTransactionConfirm() {
       updatedMetadata.txParams.maxFeePerGas = selectedGasFeeToken.maxFeePerGas;
       updatedMetadata.txParams.maxPriorityFeePerGas =
         selectedGasFeeToken.maxPriorityFeePerGas;
-
-      // If the gasless flow is not supported (e.g. stx is disabled by the user,
-      // or 7702 is not supported in the chain), we override the
-      // `isGasFeeSponsored` flag to `false` so the transaction meta object in
-      // state has the correct value for the transaction details on the activity
-      // list to not show as sponsored. One limitation on the activity list will
-      // be that pre-populated transactions on fresh installs will not show as
-      // sponsored even if they were because this is not easily observable onchain
-      // for all cases.
-      updatedMetadata.isGasFeeSponsored =
-        isGaslessSupported && transactionMetadata?.isGasFeeSponsored;
     },
-    [
-      selectedGasFeeToken,
-      isGasFeeTokenIgnoredIfBalance,
-      isGaslessSupported,
-      transactionMetadata?.isGasFeeSponsored,
-    ],
+    [selectedGasFeeToken, isGasFeeTokenIgnoredIfBalance],
   );
 
   const handleGasless7702 = useCallback(
@@ -87,82 +96,141 @@ export function useTransactionConfirm() {
       }
 
       updatedMetadata.isExternalSign = true;
-      updatedMetadata.isGasFeeSponsored =
-        isGaslessSupported && transactionMetadata?.isGasFeeSponsored;
     },
-    [
-      isGasFeeTokenIgnoredIfBalance,
-      isGaslessSupported,
-      selectedGasFeeToken,
-      transactionMetadata?.isGasFeeSponsored,
-    ],
+    [isGasFeeTokenIgnoredIfBalance, selectedGasFeeToken],
   );
 
-  const onConfirm = useCallback(async () => {
-    if (!transactionMetadata) {
-      return;
-    }
+  const onConfirm = useCallback(
+    async (options?: {
+      onError?: (error: unknown) => void;
+      waitForResult?: boolean;
+      existingOrderId?: string;
+    }) => {
+      if (isFiatPaymentSelected && !orderId && !options?.existingOrderId) {
+        onFiatConfirm();
+        return;
+      }
 
-    const updatedMetadata = cloneDeep(transactionMetadata);
+      if (!transactionMetadata) {
+        return;
+      }
 
-    if (isGaslessSupportedSTX) {
-      handleSmartTransaction(updatedMetadata);
-    } else if (selectedGasFeeToken) {
-      handleGasless7702(updatedMetadata);
-    }
+      const updatedMetadata = cloneDeep(transactionMetadata);
 
-    try {
-      await onRequestConfirm(
-        {
-          deleteAfterResult: true,
-          // Intentionally not hiding errors so we can log
-          handleErrors: false,
-          waitForResult,
-        },
-        { txMeta: updatedMetadata },
-      );
-    } catch (error) {
-      log('Error confirming transaction', error);
-    }
-
-    // Perps deposit-and-order: caller handles navigation (e.g. order flow)
-    if (type === TransactionType.perpsDepositAndOrder) {
-      return;
-    } else if (type === TransactionType.perpsDeposit) {
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
+      // Sponsorship eligibility is account-specific (HW wallets are excluded),
+      // unlike the controller's account-agnostic simulation result.
+      const isGaslessEligible = shouldApplyGasFeeSponsorship({
+        transactionMeta: transactionMetadata,
+        isGaslessSupported,
       });
-    } else if (type === TransactionType.musdConversion) {
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-    } else if (
-      isFullScreenConfirmation &&
-      !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
-    ) {
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
-    } else {
-      navigation.goBack();
-    }
+      updatedMetadata.isGasFeeSponsored = isGaslessEligible;
 
-    tryEnableEvmNetwork(chainId);
-  }, [
-    chainId,
-    handleGasless7702,
-    handleSmartTransaction,
-    isFullScreenConfirmation,
-    isGaslessSupportedSTX,
-    navigation,
-    onRequestConfirm,
-    selectedGasFeeToken,
-    transactionMetadata,
-    tryEnableEvmNetwork,
-    type,
-    waitForResult,
-  ]);
+      // The controller sets `isExternalSign` from `isGasFeeSponsored` for any
+      // account. When gasless isn't eligible, revert it or signing is skipped
+      // and an empty `'0x'` reaches `eth_sendRawTransaction`.
+      const isExternalSignStale =
+        Boolean(transactionMetadata.isExternalSign) && !isGaslessEligible;
+      if (isExternalSignStale) {
+        updatedMetadata.isExternalSign = false;
+      }
+
+      if (isGaslessSupportedSTX) {
+        handleSmartTransaction(updatedMetadata);
+      } else if (selectedGasFeeToken && !isHardwareWallet) {
+        handleGasless7702(updatedMetadata);
+      }
+
+      if (shouldDeferHwSend(updatedMetadata)) {
+        deferHwSend(updatedMetadata);
+        return;
+      }
+
+      const effectiveWaitForResult = options?.waitForResult ?? waitForResult;
+
+      try {
+        await onRequestConfirm(
+          {
+            deleteAfterResult: true,
+            // Intentionally not hiding errors so we can log
+            handleErrors: false,
+            waitForResult: effectiveWaitForResult,
+          },
+          { txMeta: updatedMetadata },
+        );
+      } catch (error) {
+        log('Error confirming transaction', error);
+        options?.onError?.(error);
+      }
+
+      // Perps deposit-and-order: caller handles navigation (e.g. order flow)
+      if (type === TransactionType.perpsDepositAndOrder) {
+        return;
+      } else if (type === TransactionType.perpsDeposit) {
+        if (payWithOption === PayWithOption.MoneyAccount) {
+          navigation.navigate(Routes.HOME_TABS, {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          });
+        } else {
+          navigation.navigate(Routes.PERPS.ROOT, {
+            screen: Routes.PERPS.PERPS_HOME,
+          });
+        }
+      } else if (type === TransactionType.predictDeposit) {
+        if (payWithOption === PayWithOption.MoneyAccount) {
+          navigation.navigate(Routes.HOME_TABS, {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          });
+        } else {
+          navigation.goBack();
+        }
+      } else if (type === TransactionType.musdConversion) {
+        musdConversionNavigateOnConfirm();
+      } else if (
+        hasTransactionType(transactionMetadata, [
+          TransactionType.moneyAccountDeposit,
+        ])
+      ) {
+        navigation.navigate(Routes.HOME_TABS, {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        });
+      } else if (
+        isFullScreenConfirmation &&
+        !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
+      ) {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      } else {
+        navigation.goBack();
+      }
+
+      tryEnableEvmNetwork(chainId);
+    },
+    [
+      chainId,
+      handleGasless7702,
+      shouldDeferHwSend,
+      deferHwSend,
+      handleSmartTransaction,
+      isFiatPaymentSelected,
+      isFullScreenConfirmation,
+      isGaslessSupported,
+      isGaslessSupportedSTX,
+      navigation,
+      musdConversionNavigateOnConfirm,
+      onFiatConfirm,
+      onRequestConfirm,
+      orderId,
+      payWithOption,
+      selectedGasFeeToken,
+      transactionMetadata,
+      tryEnableEvmNetwork,
+      type,
+      waitForResult,
+      isHardwareWallet,
+    ],
+  );
 
   return { onConfirm };
 }

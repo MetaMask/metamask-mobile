@@ -1,0 +1,82 @@
+// External dependencies.
+import {
+  Box,
+  ButtonIconProps,
+  ButtonProps,
+} from '@metamask/design-system-react-native';
+
+// Internal dependencies.
+import { TextFieldSearchProps } from '../../components/Form/TextFieldSearch/TextFieldSearch.types';
+
+/**
+ * Variant enum for HeaderSearch component.
+ */
+export enum HeaderSearchVariant {
+  Screen = 'screen',
+  Inline = 'inline',
+}
+
+// TODO: @MetaMask/design-system-engineers
+// Use the concrete Box component props here instead of BoxProps.
+// In MetaMask Mobile, extending BoxProps in forwarding wrappers can fail TS checks
+// because consumer code may resolve older @types/react-native callback types while
+// MMDS Box resolves React Native bundled types. Deriving props from the component
+// keeps wrapper props aligned with the actual JSX contract until the library-level
+// typing story is unified.
+// https://github.com/MetaMask/metamask-design-system/issues/1115
+type BoxComponentProps = React.ComponentProps<typeof Box>;
+
+/**
+ * Base props shared by both variants - extends BoxProps.
+ */
+interface HeaderSearchBaseProps extends Omit<BoxComponentProps, 'children'> {
+  /**
+   * Props to pass to the TextFieldSearch component.
+   */
+  textFieldSearchProps: Omit<TextFieldSearchProps, 'style'>;
+}
+
+/**
+ * Screen variant props.
+ * Renders a back button (ArrowLeft) on the left side.
+ */
+export interface HeaderSearchScreenProps extends HeaderSearchBaseProps {
+  /**
+   * The variant of the component.
+   */
+  variant: HeaderSearchVariant.Screen;
+  /**
+   * Callback when the back button is pressed.
+   */
+  onPressBackButton: () => void;
+  /**
+   * Optional props to pass to the back ButtonIcon.
+   */
+  backButtonProps?: Omit<ButtonIconProps, 'iconName' | 'onPress'>;
+}
+
+/**
+ * Inline variant props.
+ * Renders a cancel button on the right side.
+ */
+export interface HeaderSearchInlineProps extends HeaderSearchBaseProps {
+  /**
+   * The variant of the component.
+   */
+  variant: HeaderSearchVariant.Inline;
+  /**
+   * Callback when the cancel button is pressed.
+   */
+  onPressCancelButton: () => void;
+  /**
+   * Optional props to pass to the cancel Button.
+   */
+  cancelButtonProps?: Omit<ButtonProps, 'variant' | 'onPress' | 'children'>;
+}
+
+/**
+ * HeaderSearch component props.
+ */
+export type HeaderSearchProps =
+  | HeaderSearchScreenProps
+  | HeaderSearchInlineProps;

@@ -13,11 +13,11 @@ import { useWithdrawalRequests } from '../../hooks';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 import { usePerpsSelector } from '../../hooks/usePerpsSelector';
 import {
-  HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS,
   PROGRESS_BAR_COMPLETION_DELAY_MS,
   WITHDRAWAL_PROGRESS_STAGES,
   ZERO_BALANCE,
-} from '../../constants/hyperLiquidConfig';
+} from '@metamask/perps-controller';
+import { HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS } from '../../constants/perpsUIConfig';
 
 // Mock dependencies
 jest.mock('../../hooks/usePerpsDepositProgress');
@@ -1210,6 +1210,46 @@ describe('PerpsProgressBar', () => {
       expect(() => {
         renderWithProvider(<PerpsProgressBar {...defaultProps} />);
       }).not.toThrow();
+    });
+  });
+
+  describe('withdrawal progress selector stability (TAT-3328)', () => {
+    it('returns a stable fallback reference when withdrawalProgress is null/undefined', () => {
+      renderWithProvider(<PerpsProgressBar {...defaultProps} />);
+
+      // Capture the selector function passed to usePerpsSelector
+      const selector = mockUsePerpsSelector.mock.calls[0][0] as (
+        state: { withdrawalProgress?: unknown } | undefined,
+      ) => unknown;
+
+      // Simulate Redux evaluating the selector across unrelated dispatches
+      const firstResult = selector({ withdrawalProgress: undefined });
+      const secondResult = selector({ withdrawalProgress: undefined });
+      const thirdResult = selector(undefined);
+
+      // A new object literal on each call would break referential stability and
+      // cause spurious re-renders. The fallback must be the same reference.
+      expect(firstResult).toBe(secondResult);
+      expect(secondResult).toBe(thirdResult);
+    });
+
+    it('returns the actual withdrawalProgress when present, even with progress 0', () => {
+      renderWithProvider(<PerpsProgressBar {...defaultProps} />);
+
+      const selector = mockUsePerpsSelector.mock.calls[0][0] as (
+        state: { withdrawalProgress?: unknown } | undefined,
+      ) => unknown;
+
+      const validProgress = {
+        progress: 0,
+        lastUpdated: 123,
+        activeWithdrawalId: 'withdrawal1',
+      };
+
+      // A valid object with progress 0 must NOT be replaced by the fallback.
+      expect(selector({ withdrawalProgress: validProgress })).toBe(
+        validProgress,
+      );
     });
   });
 });

@@ -12,6 +12,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
+import { PREDICT_AMOUNT_DISPLAY_TEST_IDS } from './PredictAmountDisplay.testIds';
 
 interface PredictAmountDisplayProps {
   amount: string;
@@ -75,6 +76,8 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
   const amountValue = amount ? `$${amount}` : '$0';
   const fontSize = getFontSizeForInputLength(amountValue.length);
   const lineHeight = fontSize + 10; // Add 10px to font size for line height
+  // Match the caret height to the glyph cap height so it reads as part of the typography.
+  const cursorHeight = Math.round(fontSize * 0.72);
 
   const content = (
     <Box
@@ -92,16 +95,16 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
           color={hasError ? TextColor.Error : TextColor.Default}
           variant={TextVariant.BodyMDMedium}
           style={tw.style(
-            `text-[${fontSize}px] tracking-tight leading-[${lineHeight}px] font-medium px-2`,
+            `text-[${fontSize}px] tracking-tight leading-[${lineHeight}px] font-medium px-1`,
           )}
         >
           {amountValue}
         </Text>
         {isActive && (
           <Animated.View
-            testID="cursor"
+            testID={PREDICT_AMOUNT_DISPLAY_TEST_IDS.CURSOR}
             style={[
-              tw.style(`w-0.5 h-[${lineHeight - 4}px] ml-0.5`),
+              tw.style(`w-0.5 h-[${cursorHeight}px] ml-0`),
               {
                 opacity: fadeAnim,
                 backgroundColor: colors.text.default,

@@ -1,0 +1,73 @@
+import React from 'react';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import UnsupportedTokenModal from './UnsupportedTokenModal';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { fireEvent } from '@testing-library/react-native';
+
+const mockOnCloseBottomSheet = jest.fn();
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
+      (
+        {
+          children,
+        }: {
+          children: React.ReactNode;
+        },
+        ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: mockOnCloseBottomSheet,
+        }));
+        return <>{children}</>;
+      },
+    ),
+  };
+});
+
+function render(component: React.ComponentType) {
+  return renderScreen(
+    component,
+    {
+      name: Routes.RAMP.MODALS.UNSUPPORTED_TOKEN,
+    },
+    {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    },
+  );
+}
+
+describe('UnsupportedTokenModal', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders the modal with correct title and description', () => {
+    const { getByText } = render(UnsupportedTokenModal);
+
+    expect(getByText('Not available')).toBeOnTheScreen();
+    expect(
+      getByText(
+        'This token may not be available in your region or supported by any local payment providers',
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('closes the modal when the close button is pressed', () => {
+    const { getByTestId } = render(UnsupportedTokenModal);
+    const closeButton = getByTestId('bottomsheetheader-close-button');
+
+    fireEvent.press(closeButton);
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+  });
+});

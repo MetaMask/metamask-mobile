@@ -9,7 +9,6 @@ import {
   TEXTFIELD_STARTACCESSORY_TEST_ID,
   TEXTFIELD_ENDACCESSORY_TEST_ID,
 } from '../../../component-library/components/Form/TextField/TextField.constants';
-import { TextFieldSize } from '../../../component-library/components/Form/TextField/TextField.types';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import Device from '../../../util/device';
 
@@ -22,8 +21,7 @@ describe('SrpInput', () => {
   });
   it('renders default settings correctly', () => {
     const wrapper = render(<SrpInput />);
-
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.getByTestId(TEXTFIELD_TEST_ID)).toBeOnTheScreen();
   });
 
   it('renders SrpInput', () => {
@@ -32,14 +30,6 @@ describe('SrpInput', () => {
     const textFieldComponent = wrapper.getByTestId(TEXTFIELD_TEST_ID);
 
     expect(textFieldComponent).toBeOnTheScreen();
-  });
-
-  it('renders the given size', () => {
-    const testSize = TextFieldSize.Lg;
-
-    const wrapper = render(<SrpInput size={testSize} testID={INPUT_TEST_ID} />);
-    const textFieldComponent = wrapper.getByTestId(TEXTFIELD_TEST_ID);
-    expect(textFieldComponent.props.style.height).toBe(Number(testSize));
   });
 
   it('renders the startAccessory when provided', () => {

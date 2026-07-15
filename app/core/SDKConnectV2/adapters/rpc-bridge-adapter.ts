@@ -4,6 +4,7 @@ import { IRPCBridgeAdapter } from '../types/rpc-bridge-adapter';
 import Engine, { RootExtendedMessenger } from '../../Engine';
 import AppConstants from '../../AppConstants';
 import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
+import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
 import { ImageSourcePropType } from 'react-native';
 import { ConnectionInfo } from '../types/connection-info';
 import { whenEngineReady } from '../utils/when-engine-ready';
@@ -103,9 +104,22 @@ export class RPCBridgeAdapter
 
   /**
    * Creates a new BackgroundBridge instance configured for our use case.
+   *
+   * IMPORTANT: `connInfo.metadata.dapp.url`, `.name`, and `.icon` are
+   * **self-reported** by the dapp in the MWP connection request payload.
+   * They are NOT independently verified. They are shown in the confirmation/approval
+   * UI to indicate the claimed source of the request, and should NOT be treated as
+   * equivalent to a verified origin/hostname. The actual connection identity is
+   * secured by the MWP key exchange, but the displayed metadata could be spoofed
+   * by a malicious dapp.
    */
   private createClient(): BackgroundBridge {
     const middlewareHostname = `${AppConstants.MM_SDK.SDK_CONNECT_V2_ORIGIN}${this.connInfo.id}`;
+
+    // WARNING: These values are self-reported by the dapp and unverified.
+    const selfReportedDappUrl = this.connInfo.metadata.dapp.url;
+    const selfReportedDappName = this.connInfo.metadata.dapp.name;
+    const selfReportedDappIcon = this.connInfo.metadata.dapp.icon;
 
     return new BackgroundBridge({
       webview: null,
@@ -113,8 +127,7 @@ export class RPCBridgeAdapter
       sdkVersion: 'v2',
       isRemoteConn: true,
       channelId: this.connInfo.id,
-      url: this.connInfo.metadata.dapp.url,
-      remoteConnHost: this.connInfo.metadata.dapp.url,
+      url: selfReportedDappUrl,
       sendMessage: (response: unknown) => {
         this.emit('response', response);
       },
@@ -128,28 +141,29 @@ export class RPCBridgeAdapter
           channelId: this.connInfo.id,
           getProviderState,
           isMMSDK: true,
-          url: { current: this.connInfo.metadata.dapp.url },
-          title: { current: this.connInfo.metadata.dapp.name },
+          // Website info — self-reported by dapp, shown in confirmation/approval UI
+          // to indicate the claimed source. Not equivalent to a verified origin.
+          url: { current: selfReportedDappUrl },
+          title: { current: selfReportedDappName },
           icon: {
-            current: this.connInfo.metadata.dapp.icon as ImageSourcePropType,
+            current: selfReportedDappIcon as ImageSourcePropType,
           },
           navigation: null,
-          isHomepage: () => false,
-          fromHomepage: { current: false },
           tabId: '',
           isWalletConnect: false,
           analytics: {
             isRemoteConn: true,
+            transport: TransportType.MWP,
             platform:
               this.connInfo.metadata.sdk.platform ??
               AppConstants.MM_SDK.UNKNOWN_PARAM,
+            remote_session_id:
+              this.connInfo.metadata.analytics?.remote_session_id ?? '',
           },
-          toggleUrlModal: () => null,
-          injectHomePageScripts: () => null,
         }),
       isMainFrame: true,
       getApprovedHosts: () => ({
-        [this.connInfo.metadata.dapp.url]: true,
+        [selfReportedDappUrl]: true,
       }),
       isWalletConnect: false,
       wcRequestActions: undefined,

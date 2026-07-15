@@ -16,6 +16,7 @@ import { BigNumber } from 'bignumber.js';
 import { parseStandardTokenTransactionData } from '../../utils/transaction';
 import { getTokenTransferData } from '../../utils/transaction-pay';
 import { useConfirmationContext } from '../../context/confirmation-context';
+import Logger from '../../../../../util/Logger';
 
 export function useUpdateTokenAmount() {
   const dispatch = useDispatch();
@@ -32,9 +33,14 @@ export function useUpdateTokenAmount() {
   } = (transactionMeta && getTokenTransferData(transactionMeta)) ?? {};
 
   const { decimals } =
-    useSelector((state: RootState) =>
-      selectSingleTokenByAddressAndChainId(state, to as Hex, chainId as Hex),
-    ) ?? {};
+    useSelector((state: RootState) => {
+      if (!to) return { decimals: undefined };
+      return selectSingleTokenByAddressAndChainId(
+        state,
+        to as Hex,
+        chainId as Hex,
+      );
+    }) ?? {};
 
   const amountRaw = useMemo(() => {
     const transactionData = parseStandardTokenTransactionData(data);
@@ -79,9 +85,9 @@ export function useUpdateTokenAmount() {
           transactionIndex: nestedCallIndex,
           transactionData: newData,
         }).catch((error) => {
-          console.error(
-            'Failed to update token amount in nested transaction',
+          Logger.error(
             error,
+            'Failed to update token amount in nested transaction',
           );
         });
 

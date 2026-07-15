@@ -17,7 +17,7 @@ import initialRootState, {
   backgroundState,
 } from '../../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../../reducers';
-import { GasFeeToken } from '@metamask/transaction-controller';
+import { GasFeeToken, TransactionType } from '@metamask/transaction-controller';
 import { Token } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
 import { AccountsControllerState } from '@metamask/accounts-controller';
@@ -203,5 +203,25 @@ describe('GasFeeTokenToast', () => {
 
     // The component should still work with undefined chainId, defaulting to '0x1'
     expect(mockShowToast).toHaveBeenCalledTimes(1);
+  });
+
+  it('does nothing for mUSD conversion transactions', () => {
+    (useGasFeeToken as jest.Mock).mockReturnValue(GAS_FEE_TOKEN_MOCK);
+    (useSelectedGasFeeToken as jest.Mock).mockReturnValue(
+      GAS_FEE_TOKEN_USDC_MOCK,
+    );
+    (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
+      chainId: '0x1',
+      type: TransactionType.musdConversion,
+    });
+
+    renderWithProvider(
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <GasFeeTokenToast />
+      </ToastContext.Provider>,
+      { state: TOKENS_CONTROLLER_STATE },
+    );
+
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 });

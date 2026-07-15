@@ -18,8 +18,14 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // Internal dependencies
+import { useElevatedSurface } from '../../../util/theme/themeUtils';
 import { ActionListItemProps } from './ActionListItem.types';
 
+/**
+ * @deprecated Please update your code to use `ActionListItem` from `@metamask/design-system-react-native`.
+ * The API may have changed - compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/ActionListItem/README.md}
+ */
 const ActionListItem: React.FC<ActionListItemProps> = ({
   label,
   description,
@@ -33,6 +39,7 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
   ...pressableProps
 }) => {
   const tw = useTailwind();
+  const surfaceClass = useElevatedSurface();
 
   // Render label based on type
   const renderLabel = () => {
@@ -93,11 +100,11 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
   const getStyle = useCallback(
     ({ pressed }: { pressed: boolean }) =>
       tw.style(
-        'bg-default px-4 py-3',
+        `${surfaceClass} px-4 py-3`,
         pressed && !isDisabled && 'bg-default-pressed',
         isDisabled && 'opacity-50',
       ),
-    [tw, isDisabled],
+    [tw, isDisabled, surfaceClass],
   );
 
   return (

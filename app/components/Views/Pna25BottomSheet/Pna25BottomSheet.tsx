@@ -20,10 +20,11 @@ import BottomSheetFooter, {
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
 import { storePna25Acknowledged } from '../../../actions/legalNotices';
+import Engine from '../../../core/Engine';
 
 export enum Pna25BottomSheetAction {
   VIEWED = 'viewed',
@@ -38,12 +39,26 @@ const Pna25BottomSheet = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const hasSkippedDelay = useRef(false);
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleAction = useCallback(
     (action: Pna25BottomSheetAction) => {
       if (action !== Pna25BottomSheetAction.VIEWED) {
         dispatch(storePna25Acknowledged());
+      }
+
+      const shouldSkipDelay = [
+        Pna25BottomSheetAction.ACCEPT_AND_CLOSE,
+        Pna25BottomSheetAction.CLOSED,
+        Pna25BottomSheetAction.LEAVE,
+      ].includes(action);
+
+      if (shouldSkipDelay && !hasSkippedDelay.current) {
+        hasSkippedDelay.current = true;
+        Engine.controllerMessenger.call(
+          'ProfileMetricsController:skipInitialDelay',
+        );
       }
 
       // Don't emit events for the default close action to avoid double tracking

@@ -1,127 +1,42 @@
 /**
  * Slack RC Build Notification Script
  *
- * This script posts a notification to Slack after an RC build completes.
- * It reads the CHANGELOG.md using @metamask/auto-changelog to extract entries
- * for the current version and formats them into a Slack message with PR links.
+ * Posts a Slack message after an RC build with download links
+ * and a link to the cherry-picks section in the release PR comment.
  *
- * Required Environment Variables:
- *   - SEMVER: The semantic version (e.g., "7.40.0")
- *   - BUILD_NUMBER: The build number
- *   - SLACK_BOT_TOKEN: Slack Bot OAuth token for API calls
- *
- * Optional Environment Variables:
- *   - ANDROID_PUBLIC_URL: Public URL for Android APK download
- *   - IOS_PUBLIC_URL: Public URL for iOS build
- *   - BITRISE_PIPELINE_URL: URL to the Bitrise pipeline
- *   - GITHUB_REPOSITORY: Repository in format "owner/repo"
- *   - TEST_CHANNEL: Override channel for testing (e.g., "#mm-test-channel")
+ * Required env: SEMVER, SLACK_BOT_TOKEN
+ * Optional env: IOS_BUILD_NUMBER, ANDROID_BUILD_NUMBER, ANDROID_PUBLIC_URL,
+ *               IOS_PUBLIC_URL, BUILD_PIPELINE_URL, PR_NUMBER, GITHUB_REPOSITORY,
+ *               SLACK_RC_NOTIFICATION_DRY_RUN,
+ *               ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE (PLAY_STORE_CHECK_STATUS=pass|fail)
  */
 
-import { readFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { parseChangelog } from '@metamask/auto-changelog';
+import fs from 'fs';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Configuration
 const REPO_URL = process.env.GITHUB_REPOSITORY
   ? `https://github.com/${process.env.GITHUB_REPOSITORY}`
   : 'https://github.com/MetaMask/metamask-mobile';
 
 /**
- * Extract changelog entries for a specific version using auto-changelog
- * @param {string} version - The version to extract entries for
- * @returns {Object|null} The release changes or null if not found
+ * Optional Android Play Store lint/bundletool report from CI (see android-play-store-check-slack.mjs).
+ * @returns {string|null} Slack mrkdwn body or null to omit
  */
-function extractChangelogEntries(version) {
-  const changelogPath = join(__dirname, '..', 'CHANGELOG.md');
-
-  let changelogContent;
-  try {
-    changelogContent = readFileSync(changelogPath, 'utf8');
-  } catch (error) {
-    console.error(`Failed to read CHANGELOG.md: ${error.message}`);
+function loadPlayStoreCheckMrkdwn() {
+  const p = process.env.ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE?.trim();
+  if (!p || !fs.existsSync(p)) {
     return null;
   }
-
-  try {
-    const changelog = parseChangelog({
-      changelogContent,
-      repoUrl: REPO_URL,
-      shouldExtractPrLinks: true,
-    });
-
-    // Get changes for this specific version
-    const releaseChanges = changelog.getReleaseChanges(version);
-
-    if (!releaseChanges) {
-      console.warn(`No release found for version ${version}`);
-      return null;
-    }
-
-    return releaseChanges;
-  } catch (error) {
-    console.error(`Failed to parse CHANGELOG.md: ${error.message}`);
+  const raw = fs.readFileSync(p, 'utf8').trim();
+  if (!raw) {
     return null;
   }
-}
-
-/**
- * Format changelog entries for Slack
- * @param {Object} changes - The changelog changes object
- * @param {number} maxEntries - Maximum entries to display
- * @returns {string} Formatted changelog text for Slack
- */
-function formatChangesForSlack(changes, maxEntries = 15) {
-  const formattedEntries = [];
-
-  // Priority order for categories
-  const categoryOrder = [
-    'Added',
-    'Fixed',
-    'Changed',
-    'Deprecated',
-    'Removed',
-    'Uncategorized',
-  ];
-
-  for (const category of categoryOrder) {
-    const entries = changes[category] || [];
-    for (const entry of entries) {
-      if (formattedEntries.length >= maxEntries) {
-        break;
-      }
-
-      // Build description with PR links
-      let description = entry.description;
-
-      // If we have PR numbers from auto-changelog, format them for Slack
-      if (entry.prNumbers && entry.prNumbers.length > 0) {
-        const prLinks = entry.prNumbers
-          .map((prNum) => `<${REPO_URL}/pull/${prNum}|#${prNum}>`)
-          .join(', ');
-        description = `${description} (${prLinks})`;
-      }
-
-      formattedEntries.push(`• ${description}`);
-    }
+  const lines = raw.split('\n');
+  const statusLine = lines[0] ?? '';
+  if (statusLine === 'PLAY_STORE_CHECK_STATUS=pass') {
+    return null;
   }
-
-  // Count remaining entries
-  const allEntriesCount = Object.values(changes)
-    .flat()
-    .filter(Boolean).length;
-  const remaining = allEntriesCount - formattedEntries.length;
-
-  if (remaining > 0) {
-    formattedEntries.push(`\n_...and ${remaining} more changes_`);
-  }
-
-  return formattedEntries.join('\n');
+  const body = lines.slice(1).join('\n').trim();
+  return body || null;
 }
 
 /**
@@ -148,17 +63,19 @@ function isValidUrl(url) {
 /**
  * Build the Slack message payload
  * @param {Object} options - Message options
+ * @param {string|null} [options.playStoreCheckMrkdwn] - Optional mrkdwn from Android Play Store check
  * @returns {Object} Slack message payload
  */
 function buildSlackMessage(options) {
   const {
     version,
     buildNumber,
+    androidBuildNumber,
     androidUrl,
     iosUrl,
-    bitriseUrl,
-    changelogText,
-    hasChangelog,
+    pipelineUrl,
+    prNumber,
+    playStoreCheckMrkdwn,
   } = options;
 
   const blocks = [
@@ -203,14 +120,18 @@ function buildSlackMessage(options) {
           type: 'mrkdwn',
           text: isValidUrl(iosUrl)
             ? `*iOS Build:*\n<${iosUrl}|TestFlight>`
-            : '*iOS Build:*\n_Check TestFlight_',
+            : '*iOS Build:*\n<https://testflight.apple.com/join/hBrjtFuA|Check TestFlight>',
         },
       ],
     },
   ];
 
-  // Add changelog section if we have entries
-  if (hasChangelog && changelogText) {
+  // Add link to cherry-picks section in PR comment
+  // Note: GitHub prefixes user-provided anchor IDs with 'user-content-'
+  // We use build number in anchor to link to the correct comment (not older builds)
+  if (prNumber) {
+    const anchorSuffix = androidBuildNumber && androidBuildNumber !== 'N/A' ? `-${androidBuildNumber}` : '';
+    const cherryPicksLink = `<${REPO_URL}/pull/${prNumber}#user-content-cherry-picks${anchorSuffix}|View cherry-picks>`;
     blocks.push(
       {
         type: 'divider',
@@ -219,7 +140,7 @@ function buildSlackMessage(options) {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `*📋 What's in this RC:*\n${changelogText}`,
+          text: `*🍒 Cherry-picks:* ${cherryPicksLink}`,
         },
       },
     );
@@ -228,27 +149,56 @@ function buildSlackMessage(options) {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: '_No changelog entries found for this version. Check CHANGELOG.md_',
+        text: `_Cherry-picks available in the release PR._`,
       },
     });
   }
 
-  // Add Bitrise link
-  if (bitriseUrl) {
+  if (playStoreCheckMrkdwn) {
+    const truncated =
+      playStoreCheckMrkdwn.length > 2800
+        ? `${playStoreCheckMrkdwn.slice(0, 2800)}\n_…truncated_`
+        : playStoreCheckMrkdwn;
     blocks.push(
       {
         type: 'divider',
       },
       {
-        type: 'context',
-        elements: [
-          {
-            type: 'mrkdwn',
-            text: `<${bitriseUrl}|View Bitrise Pipeline> | <${REPO_URL}/blob/release/${version}/CHANGELOG.md|View Full Changelog>`,
-          },
-        ],
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*⚠️ Android Play Store check (non-blocking)*\n${truncated}`,
+        },
       },
     );
+  }
+
+  // Add pipeline and RC notes links
+  if (pipelineUrl || prNumber) {
+    const links = [];
+    if (pipelineUrl) {
+      links.push(`<${pipelineUrl}|View Build Pipeline>`);
+    }
+    if (prNumber) {
+      const anchorSuffix = androidBuildNumber && androidBuildNumber !== 'N/A' ? `-${androidBuildNumber}` : '';
+      links.push(`<${REPO_URL}/pull/${prNumber}#user-content-whats-in-this-rc${anchorSuffix}|View full RC notes>`);
+    }
+    if (links.length > 0) {
+      blocks.push(
+        {
+          type: 'divider',
+        },
+        {
+          type: 'context',
+          elements: [
+            {
+              type: 'mrkdwn',
+              text: links.join(' | '),
+            },
+          ],
+        },
+      );
+    }
   }
 
   return {
@@ -276,6 +226,8 @@ async function postToSlack(botToken, channelName, payload) {
         channel: channelName,
         blocks: payload.blocks,
         text: payload.text,
+        unfurl_links: false,
+        unfurl_media: false,
       }),
     });
 
@@ -311,8 +263,13 @@ function getSlackChannel(version) {
  * Main function
  */
 async function main() {
-  // Validate required environment variables (fail open - just log and return)
-  const requiredEnvVars = ['SEMVER', 'BUILD_NUMBER', 'SLACK_BOT_TOKEN'];
+  const dryRunEnv = process.env.SLACK_RC_NOTIFICATION_DRY_RUN;
+  const isDryRun =
+    dryRunEnv === '1' || String(dryRunEnv).toLowerCase() === 'true';
+
+  // Validate required environment variables (fail open - just log and return).
+  // Dry-run only needs SEMVER so you can inspect blocks without Slack or a token.
+  const requiredEnvVars = isDryRun ? ['SEMVER'] : ['SEMVER', 'SLACK_BOT_TOKEN'];
   const missingVars = requiredEnvVars.filter((v) => !process.env[v]);
 
   if (missingVars.length > 0) {
@@ -322,43 +279,26 @@ async function main() {
   }
 
   const version = process.env.SEMVER;
-  const buildNumber = process.env.BUILD_NUMBER;
+  const iosBuildNumber = process.env.IOS_BUILD_NUMBER || 'N/A';
+  const androidBuildNumber = process.env.ANDROID_BUILD_NUMBER || 'N/A';
+  const buildNumber = `iOS ${iosBuildNumber} / Android ${androidBuildNumber}`;
   const androidUrl = process.env.ANDROID_PUBLIC_URL;
   const iosUrl = process.env.IOS_PUBLIC_URL;
-  const bitriseUrl = process.env.BITRISE_PIPELINE_URL;
+  const pipelineUrl = process.env.BUILD_PIPELINE_URL;
   const botToken = process.env.SLACK_BOT_TOKEN;
 
-  // TEST_CHANNEL allows overriding the channel for local testing
-  const testChannel = process.env.TEST_CHANNEL;
-  const expectedChannelName = testChannel || getSlackChannel(version);
-  const isTestMode = Boolean(testChannel);
+  const prNumber = process.env.PR_NUMBER || '';
+  const playStoreCheckMrkdwn = loadPlayStoreCheckMrkdwn();
+  const expectedChannelName = getSlackChannel(version);
 
   console.log(`\n📣 Preparing Slack notification for RC v${version} (${buildNumber})`);
-  if (isTestMode) {
-    console.log(`🧪 TEST MODE: Posting to override channel: ${expectedChannelName}`);
+  if (prNumber) {
+    console.log(`📍 Release PR: #${prNumber}`);
+  }
+  if (isDryRun) {
+    console.log('🧪 DRY RUN: will print payload JSON and not call Slack');
   } else {
     console.log(`📍 Target channel: ${expectedChannelName}`);
-  }
-
-  // Extract changelog entries using auto-changelog
-  console.log('\n📖 Reading CHANGELOG.md...');
-  const changes = extractChangelogEntries(version);
-
-  let changelogText = '';
-  let hasChangelog = false;
-
-  if (changes) {
-    const totalChanges = Object.values(changes)
-      .flat()
-      .filter(Boolean).length;
-    console.log(`   Found ${totalChanges} changelog entries for v${version}`);
-
-    if (totalChanges > 0) {
-      hasChangelog = true;
-      changelogText = formatChangesForSlack(changes);
-    }
-  } else {
-    console.log('   ⚠️ Could not read changelog');
   }
 
   // Build and send the message
@@ -367,12 +307,25 @@ async function main() {
   const payload = buildSlackMessage({
     version,
     buildNumber,
+    androidBuildNumber,
     androidUrl,
     iosUrl,
-    bitriseUrl,
-    changelogText,
-    hasChangelog,
+    pipelineUrl,
+    prNumber,
+    playStoreCheckMrkdwn,
   });
+
+  if (isDryRun) {
+    const preview = {
+      channel: expectedChannelName,
+      text: payload.text,
+      blocks: payload.blocks,
+    };
+    console.log('\n--- Slack payload (dry run) ---\n');
+    console.log(JSON.stringify(preview, null, 2));
+    console.log('\n--- end dry run ---\n');
+    return;
+  }
 
   const result = await postToSlack(botToken, expectedChannelName, payload);
 
@@ -396,4 +349,3 @@ main().catch((error) => {
   console.error('⚠️ Unexpected error (non-critical):', error);
   // Don't exit with error code - this is a non-critical notification
 });
-

@@ -1,0 +1,1 @@
+export { createAdapter } from './factory';

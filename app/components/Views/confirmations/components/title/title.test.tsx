@@ -28,7 +28,47 @@ import Title from './title';
 
 jest.mock('../../hooks/useGetTokenStandardAndDetails');
 
+jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
+  useFullScreenConfirmation: jest.fn(() => ({
+    isFullScreenConfirmation: false,
+  })),
+}));
+
 describe('Confirm Title', () => {
+  const typedSignRequestId = 'fb2029e1-b0ab-11ef-9227-05a11087c334';
+  const daiPermitAllowedStringFalseData = JSON.stringify({
+    types: {
+      EIP712Domain: [
+        { name: 'name', type: 'string' },
+        { name: 'version', type: 'string' },
+        { name: 'chainId', type: 'uint256' },
+        { name: 'verifyingContract', type: 'address' },
+      ],
+      Permit: [
+        { name: 'holder', type: 'address' },
+        { name: 'spender', type: 'address' },
+        { name: 'nonce', type: 'uint256' },
+        { name: 'expiry', type: 'uint256' },
+        { name: 'allowed', type: 'bool' },
+      ],
+    },
+    primaryType: 'Permit',
+    domain: {
+      name: 'Dai Stablecoin',
+      version: '1',
+      chainId: 1,
+      verifyingContract: '0x6b175474e89094c44da98b954eedeac495271d0f',
+    },
+    message: {
+      holder: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+      spender: '0x5B38Da6a701c568545dCfcB03FcB875f56beddC4',
+      nonce: '0',
+      expiry:
+        '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+      allowed: 'false',
+    },
+  });
+
   const mockUseGetTokenStandardAndDetails = jest.mocked(
     useGetTokenStandardAndDetails,
   );
@@ -52,6 +92,119 @@ describe('Confirm Title', () => {
     expect(
       getByText('This site wants permission to spend your tokens.'),
     ).toBeTruthy();
+  });
+
+  it('renders permit title for DAI permit when allowed is string "false"', () => {
+    const state = merge({}, typedSignV4ConfirmationState, {
+      engine: {
+        backgroundState: {
+          ApprovalController: {
+            pendingApprovals: {
+              [typedSignRequestId]: {
+                requestData: {
+                  data: daiPermitAllowedStringFalseData,
+                },
+              },
+            },
+          },
+          SignatureController: {
+            signatureRequests: {
+              [typedSignRequestId]: {
+                messageParams: {
+                  data: daiPermitAllowedStringFalseData,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const { getByText, queryByText } = renderWithProvider(<Title />, {
+      state,
+    });
+
+    expect(getByText('Spending cap request')).toBeTruthy();
+    expect(
+      getByText('This site wants permission to spend your tokens.'),
+    ).toBeTruthy();
+    expect(queryByText('Remove permission')).toBeNull();
+  });
+
+  it('renders spending cap title for a Permit2 PermitBatch with an injected "value": "0" sibling', () => {
+    const permitBatchInjectedValueData = JSON.stringify({
+      types: {
+        EIP712Domain: [
+          { name: 'name', type: 'string' },
+          { name: 'version', type: 'string' },
+          { name: 'chainId', type: 'uint256' },
+          { name: 'verifyingContract', type: 'address' },
+        ],
+        PermitBatch: [
+          { name: 'details', type: 'PermitDetails[]' },
+          { name: 'spender', type: 'address' },
+          { name: 'sigDeadline', type: 'uint256' },
+        ],
+        PermitDetails: [
+          { name: 'token', type: 'address' },
+          { name: 'amount', type: 'uint160' },
+          { name: 'expiration', type: 'uint48' },
+          { name: 'nonce', type: 'uint48' },
+        ],
+      },
+      primaryType: 'PermitBatch',
+      domain: {
+        name: 'Permit2',
+        chainId: 1,
+        verifyingContract: '0x000000000022d473030f116ddee9f6b43ac78ba3',
+      },
+      message: {
+        details: [
+          {
+            token: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            amount: '1461501637330902918203684832716283019655932542975',
+            expiration: '281474976710655',
+            nonce: 0,
+          },
+        ],
+        spender: '0x4444444444444444444444444444444444444444',
+        sigDeadline: '281474976710655',
+        // Malicious undeclared sibling — stripped from the signed digest.
+        value: '0',
+      },
+    });
+
+    const state = merge({}, typedSignV4ConfirmationState, {
+      engine: {
+        backgroundState: {
+          ApprovalController: {
+            pendingApprovals: {
+              [typedSignRequestId]: {
+                requestData: {
+                  data: permitBatchInjectedValueData,
+                },
+              },
+            },
+          },
+          SignatureController: {
+            signatureRequests: {
+              [typedSignRequestId]: {
+                messageParams: {
+                  data: permitBatchInjectedValueData,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const { getByText, queryByText } = renderWithProvider(<Title />, {
+      state,
+    });
+
+    expect(getByText('Spending cap request')).toBeTruthy();
+    expect(queryByText('Remove permission')).toBeNull();
   });
 
   it('renders the title and subtitle for a permit NFT signature', () => {
@@ -95,8 +248,8 @@ describe('Confirm Title', () => {
     ).toBeTruthy();
   });
 
-  it('renders correct title for transfer', () => {
-    const { getByText } = renderWithProvider(<Title />, {
+  it('renders no title for transfer', () => {
+    const { queryByText } = renderWithProvider(<Title />, {
       state: merge(transferConfirmationState, {
         engine: {
           backgroundState: {
@@ -111,7 +264,7 @@ describe('Confirm Title', () => {
         },
       }),
     });
-    expect(getByText('Transfer request')).toBeTruthy();
+    expect(queryByText('Transfer request')).toBeNull();
   });
 
   it('renders correct title and subtitle for upgrade smart account', () => {
@@ -212,6 +365,66 @@ describe('Confirm Title', () => {
         getByText('This site wants decrease the spending cap for your tokens.'),
       ).toBeTruthy();
     });
+  });
+
+  it('renders correct title and subtitle for musdClaim', () => {
+    const musdClaimState = merge({}, generateContractInteractionState, {
+      engine: {
+        backgroundState: {
+          TransactionController: {
+            transactions: [
+              {
+                type: TransactionType.musdClaim,
+                chainId: '0xe708',
+              },
+            ],
+          },
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0xe708': {
+                name: 'Linea Mainnet',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'linea-mainnet',
+                    url: 'https://linea-mainnet.infura.io/v3/test',
+                    name: 'Linea Mainnet',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+              },
+            },
+          },
+        },
+      },
+    });
+    const { getByText } = renderWithProvider(<Title />, {
+      state: musdClaimState,
+    });
+    expect(getByText('Claim bonus')).toBeTruthy();
+    expect(getByText('Bonus will be paid out on Linea Mainnet.')).toBeTruthy();
+  });
+
+  it('renders max conversion title for musdMaxConversion', () => {
+    const musdMaxConversionState = merge({}, generateContractInteractionState, {
+      engine: {
+        backgroundState: {
+          TransactionController: {
+            transactions: [
+              {
+                type: TransactionType.musdConversion,
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    const { getByText } = renderWithProvider(<Title />, {
+      state: musdMaxConversionState,
+    });
+
+    expect(getByText('Convert max')).toBeOnTheScreen();
   });
 
   it.each([TransactionType.lendingDeposit, TransactionType.lendingWithdraw])(

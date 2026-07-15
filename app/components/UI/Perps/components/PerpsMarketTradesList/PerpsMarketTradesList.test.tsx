@@ -1,9 +1,17 @@
 import React from 'react';
+import { FlatList } from 'react-native';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketTradesList from './PerpsMarketTradesList';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePerpsMarketFills } from '../../hooks/usePerpsMarketFills';
-import type { OrderFill } from '../../controllers/types';
+import { type OrderFill } from '@metamask/perps-controller';
+import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
+import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn(() => ({ name: 'test-event' }));
+const mockCreateEventBuilder = jest.fn();
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -38,36 +46,6 @@ jest.mock('../../../../../component-library/hooks', () => ({
     },
   }),
 }));
-
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const ReactLib = jest.requireActual('react');
-  const { Text: ReactNativeText } = jest.requireActual('react-native');
-
-  const MockText = ({
-    children,
-    ...props
-  }: {
-    children?: React.ReactNode;
-    [key: string]: unknown;
-  }) => ReactLib.createElement(ReactNativeText, props, children);
-
-  return {
-    __esModule: true,
-    default: MockText,
-    TextVariant: {
-      HeadingSM: 'HeadingSM',
-      BodyMD: 'BodyMD',
-      BodyMDMedium: 'BodyMDMedium',
-      BodySM: 'BodySM',
-    },
-    TextColor: {
-      Default: 'Default',
-      Alternative: 'Alternative',
-      Success: 'Success',
-      Error: 'Error',
-    },
-  };
-});
 
 jest.mock('../PerpsTokenLogo', () => {
   const { View: RNView, Text: RNText } = jest.requireActual('react-native');
@@ -115,8 +93,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../../utils/marketUtils', () => ({
+jest.mock('@metamask/perps-controller', () => ({
   getPerpsDisplaySymbol: (symbol: string) => symbol,
+  PERPS_CONSTANTS: {
+    RecentActivityLimit: 3,
+  },
+  PERPS_EVENT_VALUE: {
+    SCREEN_NAME: {
+      PERPS_MARKET_DETAILS: 'perps_market_details',
+    },
+  },
 }));
 
 describe('PerpsMarketTradesList', () => {
@@ -199,6 +185,20 @@ describe('PerpsMarketTradesList', () => {
     });
     // Set default mock for usePerpsMarketFills
     mockUsePerpsMarketFills.mockReturnValue(createMockFillsReturn());
+
+    // Re-set up analytics mock (resetAllMocks in afterEach clears implementations)
+    const { useAnalytics } = jest.requireMock(
+      '../../../../hooks/useAnalytics/useAnalytics',
+    );
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    });
+    useAnalytics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    });
   });
 
   afterEach(() => {
@@ -551,11 +551,19 @@ describe('PerpsMarketTradesList', () => {
         createMockFillsReturn(mockOrderFills),
       );
 
-      render(<PerpsMarketTradesList symbol="ETH" />);
+      const { UNSAFE_getByType } = render(
+        <PerpsMarketTradesList symbol="ETH" />,
+      );
 
-      expect(screen.getByText('Opened long')).toBeOnTheScreen();
-      expect(screen.getByText('Closed long')).toBeOnTheScreen();
-      expect(screen.getByText('Opened short')).toBeOnTheScreen();
+      const flatList = UNSAFE_getByType(FlatList);
+      // keyExtractor is `${item.id || index}` — verify both the truthy-id and
+      // the index-fallback branches match the production template literal
+      const firstItem = flatList.props.data[0];
+      expect(flatList.props.keyExtractor(firstItem, 0)).toBe(
+        `${firstItem.id || 0}`,
+      );
+      expect(flatList.props.keyExtractor({ id: '' }, 3)).toBe('3');
+      expect(flatList.props.keyExtractor({ id: null }, 7)).toBe('7');
     });
 
     it('disables scroll on FlatList', () => {
@@ -563,9 +571,36 @@ describe('PerpsMarketTradesList', () => {
         createMockFillsReturn(mockOrderFills),
       );
 
-      const { root } = render(<PerpsMarketTradesList symbol="ETH" />);
+      const { UNSAFE_getByType } = render(
+        <PerpsMarketTradesList symbol="ETH" />,
+      );
 
-      expect(root).toBeTruthy();
+      const flatList = UNSAFE_getByType(FlatList);
+      expect(flatList.props.scrollEnabled).toBe(false);
+    });
+  });
+
+  describe('Analytics Tracking', () => {
+    it('tracks Transaction Detail List Item Clicked when a trade is pressed', () => {
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills),
+      );
+
+      render(<PerpsMarketTradesList symbol="ETH" />);
+
+      const tradeItem = screen.getByText('Opened long');
+      fireEvent.press(tradeItem.parent?.parent || tradeItem);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transaction_type: 'perps_trade',
+          monetized_primitive: MonetizedPrimitive.Perps,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });

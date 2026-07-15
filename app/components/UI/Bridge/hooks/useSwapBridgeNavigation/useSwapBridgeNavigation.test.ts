@@ -1,6 +1,7 @@
 import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '.';
+import Engine from '../../../../../core/Engine';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { Hex } from '@metamask/utils';
 import { EthScope, SolScope, BtcScope } from '@metamask/keyring-api';
@@ -12,6 +13,10 @@ import {
   ActionPosition,
 } from '../../../../../util/analytics/actionButtonTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  ARC_HEX_CHAIN_ID,
+  ARC_USDC_ERC20_ADDRESS,
+} from '../../../../../enablement/assets/arc';
 
 // Mock dependencies
 const mockNavigate = jest.fn();
@@ -20,22 +25,18 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: mockNavigate })),
 }));
 
-// Mock useMetrics hook
+// Mock useAnalytics hook
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 
-jest.mock('../../../../hooks/useMetrics', () => {
-  const actualMetrics = jest.requireActual('../../../../hooks/useMetrics');
-  return {
-    ...actualMetrics,
-    useMetrics: jest.fn(() => ({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    })),
-  };
-});
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  })),
+}));
 
 const mockGetIsBridgeEnabledSource = jest.fn(() => true);
 const mockSetIsDestTokenManuallySet = jest.fn();
@@ -78,6 +79,9 @@ jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
+      AuthenticationController: {
+        getBearerToken: jest.fn().mockResolvedValue('bearer-token'),
+      },
       NetworkController: {
         getNetworkConfigurationByChainId: jest.fn().mockReturnValue({
           rpcEndpoints: [
@@ -90,6 +94,9 @@ jest.mock('../../../../../core/Engine', () => ({
       },
       MultichainNetworkController: {
         setActiveNetwork: jest.fn(),
+      },
+      BridgeController: {
+        setLocation: jest.fn(),
       },
     },
   },
@@ -120,8 +127,18 @@ import {
 } from '../../utils/tokenUtils';
 
 jest.mock('../../utils/tokenUtils', () => ({
+  ...jest.requireActual('../../utils/tokenUtils'),
   getDefaultDestToken: jest.fn(),
   getNativeSourceToken: jest.fn(),
+}));
+
+const mockFetchPopularTokens = jest.fn().mockResolvedValue(undefined);
+jest.mock('../useFetchPopularTokens', () => ({
+  useFetchPopularTokens: jest.fn(
+    () =>
+      (...args: unknown[]) =>
+        mockFetchPopularTokens(...args),
+  ),
 }));
 
 describe('useSwapBridgeNavigation', () => {
@@ -163,6 +180,8 @@ describe('useSwapBridgeNavigation', () => {
       }),
       isDisabled: false,
       hasEnabledNetworks: true,
+      isNetworkEnabledForDefi: true,
+      hasMultipleNamespacesEnabled: false,
     });
 
     (isSolanaChainId as jest.Mock).mockReturnValue(false);
@@ -182,7 +201,6 @@ describe('useSwapBridgeNavigation', () => {
     // Reset setIsDestTokenManuallySet mock
     mockSetIsDestTokenManuallySet.mockClear();
     mockSetDestToken.mockClear();
-
     // Setup default mocks for token utilities
     (getDefaultDestToken as jest.Mock).mockReturnValue({
       address: '0x6B175474E89094C44Da98b954EesdfDcD0E0e6F',
@@ -226,8 +244,10 @@ describe('useSwapBridgeNavigation', () => {
         },
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
   it('uses provided token when available', () => {
@@ -257,8 +277,11 @@ describe('useSwapBridgeNavigation', () => {
         sourceToken: mockToken,
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+        autoFocusSourceAmountInput: true,
       },
     });
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
   it('uses tokenOverride when passed to goToSwaps', () => {
@@ -296,8 +319,11 @@ describe('useSwapBridgeNavigation', () => {
         sourceToken: overrideToken,
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+        autoFocusSourceAmountInput: true,
       },
     });
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
   it('falls back to ETH on mainnet when bridge is not enabled for source chain', () => {
@@ -344,8 +370,11 @@ describe('useSwapBridgeNavigation', () => {
         },
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+        autoFocusSourceAmountInput: true,
       },
     });
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
   it('navigates to Bridge when goToSwaps is called and bridge UI is enabled', () => {
@@ -366,11 +395,42 @@ describe('useSwapBridgeNavigation', () => {
         sourceToken: mockNativeAsset,
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
-  it('resets isDestTokenManuallySet flag when navigating to swaps', () => {
+  it('does not fetch popular tokens when basicFunctionalityEnabled is false', () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useSwapBridgeNavigation({
+          location: mockLocation,
+          sourcePage: mockSourcePage,
+        }),
+      {
+        state: {
+          ...initialState,
+          settings: { basicFunctionalityEnabled: false },
+        },
+      },
+    );
+
+    result.current.goToSwaps();
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: mockNativeAsset,
+        sourcePage: mockSourcePage,
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+      },
+    });
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(0);
+  });
+
+  it('resets isDestTokenManuallySet flag when navigating to swaps without an explicit dest token', () => {
     const { result } = renderHookWithProvider(
       () =>
         useSwapBridgeNavigation({
@@ -383,6 +443,40 @@ describe('useSwapBridgeNavigation', () => {
     result.current.goToSwaps();
 
     expect(mockSetIsDestTokenManuallySet).toHaveBeenCalledWith(false);
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
+  });
+
+  it('sets isDestTokenManuallySet when an explicit dest token is provided', () => {
+    const destOverride: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000005',
+      symbol: 'DEST_OVERRIDE',
+      name: 'Dest Override Token',
+      decimals: 18,
+      chainId: mockChainId,
+    };
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useSwapBridgeNavigation({
+          location: mockLocation,
+          sourcePage: mockSourcePage,
+          sourceToken: mockSourceToken,
+        }),
+      { state: initialState },
+    );
+
+    result.current.goToSwaps(undefined, destOverride);
+
+    expect(mockSetIsDestTokenManuallySet).toHaveBeenCalledWith(true);
+    expect(mockSetDestToken).toHaveBeenCalledWith(destOverride);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Bridge',
+      expect.objectContaining({
+        params: expect.objectContaining({
+          autoFocusSourceAmountInput: true,
+        }),
+      }),
+    );
   });
 
   it('uses home page filter network when no token is provided', () => {
@@ -395,6 +489,8 @@ describe('useSwapBridgeNavigation', () => {
       }),
       isDisabled: false,
       hasEnabledNetworks: true,
+      isNetworkEnabledForDefi: true,
+      hasMultipleNamespacesEnabled: false,
     });
 
     (getNativeAssetForChainId as jest.Mock).mockReturnValue({
@@ -428,8 +524,10 @@ describe('useSwapBridgeNavigation', () => {
         },
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
   it('falls back to Ethereum mainnet when multiple networks enabled', () => {
@@ -445,6 +543,8 @@ describe('useSwapBridgeNavigation', () => {
       }),
       isDisabled: false,
       hasEnabledNetworks: true,
+      isNetworkEnabledForDefi: true,
+      hasMultipleNamespacesEnabled: false,
     });
 
     const { result } = renderHookWithProvider(
@@ -471,8 +571,10 @@ describe('useSwapBridgeNavigation', () => {
         },
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
       },
     });
+    expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
   describe('Unified', () => {
@@ -494,8 +596,10 @@ describe('useSwapBridgeNavigation', () => {
           sourceToken: mockNativeAsset,
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
+      expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -624,9 +728,51 @@ describe('useSwapBridgeNavigation', () => {
           sourceToken: sourceOverride,
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
+          autoFocusSourceAmountInput: true,
         },
       });
       expect(mockSetDestToken).toHaveBeenCalledWith(destOverride);
+    });
+
+    it('lets sourceTokenOverride be overridden by NATIVE_SWAP_TOKEN_OVERRIDE_PER_CHAIN when applicable (Arc)', () => {
+      const sourceOverride: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'SRC_OVERRIDE',
+        name: 'Source Override Token',
+        decimals: 18,
+        chainId: ARC_HEX_CHAIN_ID,
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps(sourceOverride);
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          // Overridden because native on Arc
+          sourceToken: {
+            symbol: 'USDC',
+            name: 'USDC',
+            address: ARC_USDC_ERC20_ADDRESS,
+            chainId: ARC_HEX_CHAIN_ID,
+            decimals: 6,
+          },
+          sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
+          autoFocusSourceAmountInput: true,
+        },
+      });
     });
 
     it('falls back to native token when default dest same as source', () => {
@@ -733,6 +879,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(true);
@@ -768,6 +916,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -782,6 +931,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(true);
@@ -817,6 +968,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -833,6 +985,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(false);
@@ -868,6 +1022,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -886,6 +1041,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(true);
@@ -921,6 +1078,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -937,6 +1095,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(false);
@@ -972,6 +1132,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -990,6 +1151,8 @@ describe('useSwapBridgeNavigation', () => {
         }),
         isDisabled: false,
         hasEnabledNetworks: true,
+        isNetworkEnabledForDefi: true,
+        hasMultipleNamespacesEnabled: false,
       });
 
       (isSolanaChainId as jest.Mock).mockReturnValue(true);
@@ -1025,6 +1188,7 @@ describe('useSwapBridgeNavigation', () => {
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
       });
     });
@@ -1083,6 +1247,35 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockBuild).toHaveBeenCalled();
 
       expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
+    });
+
+    it('tracks swap button click with per-call onboarding_checklist location override', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.MainView,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        ActionLocation.ONBOARDING_CHECKLIST,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: ActionLocation.ONBOARDING_CHECKLIST,
+          chain_id_source: expect.any(String),
+          token_symbol_source: expect.anything(),
+          token_address_source: expect.anything(),
+          from_trending: expect.any(Boolean),
+        }),
+      );
     });
 
     it('tracks action button click with correct properties when location is TokenView', () => {
@@ -1172,6 +1365,146 @@ describe('useSwapBridgeNavigation', () => {
         button_label: 'Swap',
         location: ActionLocation.ASSET_DETAILS,
       });
+    });
+  });
+
+  describe('skipLocationUpdate', () => {
+    it('calls setLocation by default', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TokenView,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(Engine.context.BridgeController.setLocation).toHaveBeenCalledWith(
+        'Token View',
+      );
+    });
+
+    it('does not call setLocation when skipLocationUpdate is true', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TokenView,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+            skipLocationUpdate: true,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(
+        Engine.context.BridgeController.setLocation,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('still navigates and tracks events when skipLocationUpdate is true', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TokenView,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+            skipLocationUpdate: true,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: expect.objectContaining({
+          sourceToken: mockSourceToken,
+          sourcePage: mockSourcePage,
+          location: 'Token View',
+        }),
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('passes transactionActiveAbTests in bridge route params when caller provides them', () => {
+      const abTests = [
+        {
+          key: 'homeTMCU470AbtestTrendingSections',
+          value: 'trendingSections',
+          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
+        },
+      ];
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TokenView,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+            transactionActiveAbTests: abTests,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: expect.objectContaining({
+          transactionActiveAbTests: abTests,
+        }),
+      });
+    });
+
+    it('omits transactionActiveAbTests from bridge params when caller does not provide them', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: SwapBridgeNavigationLocation.TokenView,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: expect.not.objectContaining({
+          transactionActiveAbTests: expect.anything(),
+        }),
+      });
+    });
+  });
+
+  it('includes scrollToTopOnNav in bridge params when requested', () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useSwapBridgeNavigation({
+          location: SwapBridgeNavigationLocation.TokenView,
+          sourcePage: mockSourcePage,
+          sourceToken: mockSourceToken,
+        }),
+      { state: initialState },
+    );
+
+    result.current.goToSwaps(undefined, undefined, undefined, true);
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: expect.objectContaining({
+        sourceToken: mockSourceToken,
+        sourcePage: mockSourcePage,
+        location: 'Token View',
+        scrollToTopOnNav: true,
+      }),
     });
   });
 });

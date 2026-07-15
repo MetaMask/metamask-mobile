@@ -1,24 +1,24 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useRef } from 'react';
-import {
-  Pressable,
-  View,
-  Animated,
-  GestureResponderEvent,
-  Easing,
-} from 'react-native';
+import React from 'react';
+import { View, Animated, Pressable } from 'react-native';
 
 // External dependencies.
 import Icon, { IconSize, IconColor } from '../../components/Icons/Icon';
 import Text, { TextVariant, TextColor } from '../../components/Texts/Text';
-import { useStyles } from '../../hooks';
+import { useAnimatedPressable, useStyles } from '../../hooks';
 
 // Internal dependencies.
 import { MainActionButtonProps } from './MainActionButton.types';
 import styleSheet from './MainActionButton.styles';
 
+/**
+ * @deprecated Please update your code to use `MainActionButton` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/MainActionButton/README.md}
+ * @since @metamask/design-system-react-native@0.11.0
+ */
 const MainActionButton = ({
   iconName,
   label,
@@ -26,7 +26,9 @@ const MainActionButton = ({
   onPressIn,
   onPressOut,
   style,
+  containerStyle,
   isDisabled = false,
+  testID,
   ...props
 }: MainActionButtonProps) => {
   const { styles } = useStyles(styleSheet, {
@@ -34,36 +36,22 @@ const MainActionButton = ({
     isDisabled,
   });
 
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  const handlePressIn = (pressEvent: GestureResponderEvent) => {
-    Animated.timing(scaleAnim, {
-      toValue: 0.98,
-      duration: 150,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
-    onPressIn?.(pressEvent);
-  };
-
-  const handlePressOut = (pressEvent: GestureResponderEvent) => {
-    Animated.timing(scaleAnim, {
-      toValue: 1,
-      duration: 150,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
-    onPressOut?.(pressEvent);
-  };
+  const { scaleAnim, handlePressIn, handlePressOut } = useAnimatedPressable({
+    onPressIn: onPressIn ?? undefined,
+    onPressOut: onPressOut ?? undefined,
+  });
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+    <Animated.View
+      style={[containerStyle, { transform: [{ scale: scaleAnim }] }]}
+    >
       <Pressable
-        style={({ pressed }) => [styles.base, pressed && styles.pressed]}
+        testID={testID}
+        accessible
+        style={styles.base}
         onPress={!isDisabled ? onPress : undefined}
         onPressIn={!isDisabled ? handlePressIn : undefined}
         onPressOut={!isDisabled ? handlePressOut : undefined}
-        accessible
         disabled={isDisabled}
         {...props}
       >

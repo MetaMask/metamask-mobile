@@ -1,12 +1,28 @@
-import { ParamListBase } from '@react-navigation/native';
+/**
+ * Predict navigation parameters
+ */
+
+/**
+ * Nested navigation into the Predict stack root.
+ * Kept local to avoid a circular import with NavigationService/types.
+ */
+interface PredictNestedNavigationParams {
+  screen?: string;
+  params?: object;
+}
 import {
   PredictActivityItem,
+  PredictCategory,
   PredictMarket,
   PredictOutcome,
   PredictOutcomeToken,
   PredictPosition,
+  PredictSeries,
 } from '.';
 import { PredictEventValues } from '../constants/eventNames';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { PredictWorldCupTabKey } from '../constants/worldCupTabs';
+import type { PredictFeedId } from '../constants/feedConfig';
 
 export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.CAROUSEL
@@ -19,35 +35,168 @@ export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_CAROUSEL
   | typeof PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST
   | typeof PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON
+  | typeof PredictEventValues.ENTRY_POINT.HOMESCREEN_PILL
   | typeof PredictEventValues.ENTRY_POINT.BACKGROUND
   | typeof PredictEventValues.ENTRY_POINT.TRENDING_SEARCH
-  | typeof PredictEventValues.ENTRY_POINT.TRENDING;
+  | typeof PredictEventValues.ENTRY_POINT.TRENDING
+  | typeof PredictEventValues.ENTRY_POINT.HOME_SECTION
+  | typeof PredictEventValues.ENTRY_POINT.EXPLORE;
 
-export interface PredictNavigationParamList extends ParamListBase {
-  Predict: undefined;
-  PredictMarketList: {
-    entryPoint?: PredictEntryPoint;
-  };
-  PredictMarketDetails: {
-    marketId?: string;
-    entryPoint?: PredictEntryPoint;
-    title?: string;
-    image?: string;
-    isGame?: boolean;
-  };
-  PredictSellPreview: {
-    market: PredictMarket;
-    position: PredictPosition;
-    outcome: PredictOutcome;
-    entryPoint?: PredictEntryPoint;
-  };
-  PredictBuyPreview: {
-    market: PredictMarket;
-    outcome: PredictOutcome;
-    outcomeToken: PredictOutcomeToken;
-    entryPoint?: PredictEntryPoint;
-  };
-  PredictActivityDetail: {
-    activity: PredictActivityItem;
-  };
+/** Predict market list route parameters */
+export interface PredictMarketListRouteParams {
+  entryPoint?: PredictEntryPoint;
+  feedId?: PredictFeedId;
+  /**
+   * Legacy top-level Predict feed tab key (hot / world-cup / base tabs).
+   * Consumed by `usePredictTabs`. Not interchangeable with `tabId`.
+   */
+  tab?: PredictCategory;
+  /**
+   * Sub-tab id within a feed defined in the feed registry
+   * (e.g. `basketball`, `tennis`, `all`, `live`). Paired with `feedId`
+   * for deep-linking to a specific tab inside a feed. Kept as a plain
+   * string so the route stays decoupled from the registry shape.
+   */
+  tabId?: string;
+  query?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
+
+/**
+ * Generic Predict feed route parameters.
+ *
+ * Consumed by the config-driven `PredictFeedView` (powers Sports / Politics /
+ * Crypto / Live / Trending / Popular Today). Carries stable IDs only — the
+ * view resolves them into a render-ready config via `usePredictFeedConfig`.
+ * The route registration + deeplink parsing that populates these params lands
+ * separately (route + deeplinks ticket); the view reads them via `useRoute`.
+ */
+export interface PredictFeedRouteParams {
+  feedId: PredictFeedId;
+  /** Initial sub-tab id within the feed (e.g. `basketball`, `all`). */
+  initialTabId?: string;
+  /** Initial filter chip id within the active tab (e.g. `all`, `live`). */
+  initialFilterId?: string;
+  /** Opens the search overlay pre-filled with this query. */
+  query?: string;
+  entryPoint?: PredictEntryPoint;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+}
+
+/** Predict market details parameters */
+export interface PredictMarketDetailsParams {
+  marketId?: string;
+  series?: PredictSeries;
+  seriesId?: string;
+  seriesRecurrence?: string;
+  entryPoint?: PredictEntryPoint;
+  /** Active feed tab key at the time the market card was tapped (e.g. "trending", "world-cup"). */
+  predictFeedTab?: string;
+  /** Screen context the trade originated from (e.g. "world_cup"). */
+  predictScreen?: string;
+  title?: string;
+  image?: string;
+  isGame?: boolean;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+}
+
+/** Predict World Cup feed parameters */
+export interface PredictWorldCupParams {
+  entryPoint?: string;
+  initialTab?: PredictWorldCupTabKey;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+}
+
+/** Predict activity detail parameters */
+export interface PredictActivityDetailParams {
+  activity: PredictActivityItem;
+}
+
+export type PredictPositionsTabKey = 'positions' | 'history';
+
+/** Predict Positions screen parameters */
+export interface PredictPositionsParams {
+  entryPoint?: PredictEntryPoint;
+  initialTab?: PredictPositionsTabKey;
+}
+
+/** Predict add funds modal parameters */
+export interface PredictAddFundsModalParams {
+  /** When true, deposit() is called immediately on mount — skipping the explanation UI. */
+  autoDeposit?: boolean;
+}
+
+/** Predict buy preview parameters */
+export interface PredictBuyPreviewParams {
+  market: PredictMarket;
+  outcome: PredictOutcome;
+  outcomeToken: PredictOutcomeToken;
+  entryPoint?: PredictEntryPoint;
+  /** Active feed tab key at the time the market card was tapped (e.g. "trending", "world-cup"). */
+  predictFeedTab?: string;
+  /** Screen context the trade originated from (e.g. "world_cup"). */
+  predictScreen?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  /**
+   * When true, the beforeRemove listener in PredictBuyPreview will fire
+   * trackBetslipDismissed for swipe/hardware-back dismissals. Only set by
+   * PredictPreviewSheetProvider when disableBottomSheet is active — keeps the
+   * analytics change scoped to the new HomepageDiscoveryTabs flow and avoids
+   * changing event volume for the pre-existing flagless screen-mode path.
+   */
+  trackSwipeDismiss?: boolean;
+}
+
+/** Predict sell preview parameters */
+export interface PredictSellPreviewParams {
+  market: PredictMarket;
+  position: PredictPosition;
+  outcome: PredictOutcome;
+  entryPoint?: PredictEntryPoint;
+}
+
+/** Props for rendering PredictBuyPreview inside a BottomSheet */
+export interface PredictBuyPreviewContentProps extends PredictBuyPreviewParams {
+  onClose: () => void;
+}
+
+/** Props for rendering PredictSellPreview inside a BottomSheet */
+export interface PredictSellPreviewContentProps
+  extends PredictSellPreviewParams {
+  onClose: () => void;
+}
+
+/** Discriminated union props for PredictBuyPreview / PredictBuyWithAnyToken */
+export type PredictBuyPreviewProps =
+  | ({ mode: 'sheet' } & PredictBuyPreviewContentProps)
+  | { mode?: never };
+
+/** Discriminated union props for PredictSellPreview */
+export type PredictSellPreviewProps =
+  | ({ mode: 'sheet' } & PredictSellPreviewContentProps)
+  | { mode?: never };
+
+// Declared as a `type` (not `interface`) so it gains an implicit index
+// signature and satisfies React Navigation's `ParamListBase` constraint while
+// `keyof` stays a strict union of route names. The repo's
+// `consistent-type-definitions` rule prefers `interface`, hence the suppression.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictNavigationParamList = {
+  Predict: PredictNestedNavigationParams | undefined;
+  PredictMarketList: PredictMarketListRouteParams | undefined;
+  PredictFeed: PredictFeedRouteParams | undefined;
+  PredictMarketDetails: PredictMarketDetailsParams | undefined;
+  PredictPositions: PredictPositionsParams | undefined;
+  PredictWorldCup: PredictWorldCupParams | undefined;
+  PredictSellPreview: PredictSellPreviewParams;
+  PredictBuyPreview: PredictBuyPreviewParams;
+  PredictActivityDetail: PredictActivityDetailParams;
+  PredictAddFundsSheet: PredictAddFundsModalParams | undefined;
+  PredictUnavailable: undefined;
+  PredictGTMModal: undefined;
+  PredictModals: PredictNestedNavigationParams | undefined;
+  RedesignedConfirmations: undefined;
+  NoHeaderConfirmations: undefined;
+  ConfirmationPayWithModal: undefined;
+  ConfirmationPayWithBottomSheet: undefined;
+};

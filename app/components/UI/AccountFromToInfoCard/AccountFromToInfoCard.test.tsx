@@ -1,7 +1,4 @@
 import React from 'react';
-import { Provider } from 'react-redux';
-import { shallow } from 'enzyme';
-import configureMockStore from 'redux-mock-store';
 
 import renderWithProvider, {
   DeepPartial,
@@ -133,9 +130,6 @@ jest.mock('../../../util/address', () => ({
   isQRHardwareAccount: jest.fn(),
 }));
 
-const mockStore = configureMockStore();
-const store = mockStore(mockInitialState);
-
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
@@ -155,28 +149,16 @@ const transactionState: Transaction = {
 };
 
 describe('AccountFromToInfoCard', () => {
-  it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        {/* @ts-expect-error: Rest props are ignored for testing purposes */}
-        <AccountFromToInfoCard transactionState={transactionState} />
-      </Provider>,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-
-  it('should match snapshot', async () => {
-    const container = renderWithProvider(
-      //@ts-expect-error - Rest props are ignored for testing purposes
-      <AccountFromToInfoCard transactionState={transactionState} />,
-      { state: mockInitialState },
-    );
-    expect(container).toMatchSnapshot();
+  beforeAll(() => {
+    // Update the global store mock so that selectors called via
+    // store.getState() (e.g. inside renderAccountName) receive the
+    // correct background state.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require('../../../store')._updateMockState(mockInitialState);
   });
 
   it('should render to account name', async () => {
     const { findByText } = renderWithProvider(
-      //@ts-expect-error - Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
@@ -185,7 +167,6 @@ describe('AccountFromToInfoCard', () => {
 
   it('should render to address', async () => {
     const { findByText } = renderWithProvider(
-      //@ts-expect-error - Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
@@ -212,7 +193,6 @@ describe('AccountFromToInfoCard', () => {
       transactionToName: '0xF4e8263979A89Dc357d7f9F79533Febc7f3e287B',
     };
     const { findByText } = renderWithProvider(
-      //@ts-expect-error - Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={NFTTransaction} />,
       { state: mockInitialState },
     );
@@ -241,7 +221,6 @@ describe('AccountFromToInfoCard', () => {
       },
     };
     const { queryByText } = renderWithProvider(
-      //@ts-expect-error - Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={txState} />,
       { state: mockInitialState },
     );
@@ -251,7 +230,6 @@ describe('AccountFromToInfoCard', () => {
 
   it('renders correct network name', async () => {
     const { findByText } = renderWithProvider(
-      //@ts-expect-error - Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );

@@ -1,0 +1,1176 @@
+import React from 'react';
+import { renderHook, act } from '@testing-library/react-hooks';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { Pressable, Text, View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { HardwareWalletProvider } from './HardwareWalletProvider';
+import { useHardwareWallet } from './contexts';
+import { getHardwareWalletTypeForAddress } from './helpers';
+import { createAdapter } from './adapters';
+import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+jest.mock('./helpers', () => ({
+  ...jest.requireActual('./helpers'),
+  getHardwareWalletTypeForAddress: jest.fn(),
+}));
+
+const mockAdapterInstance = {
+  walletType: HardwareWalletType.Ledger,
+  requiresDeviceDiscovery: true,
+  connect: jest.fn().mockResolvedValue(undefined),
+  disconnect: jest.fn().mockResolvedValue(undefined),
+  getConnectedDeviceId: jest.fn().mockReturnValue('device-123'),
+  ensureDeviceReady: jest.fn().mockResolvedValue(true),
+  isConnected: jest.fn().mockReturnValue(true),
+  reset: jest.fn(),
+  markFlowComplete: jest.fn(),
+  isFlowComplete: jest.fn().mockReturnValue(false),
+  resetFlowState: jest.fn(),
+  destroy: jest.fn(),
+  startDeviceDiscovery: jest.fn(),
+  stopDeviceDiscovery: jest.fn(),
+  ensurePermissions: jest.fn().mockResolvedValue(true),
+  isTransportAvailable: jest.fn().mockReturnValue(true),
+  onTransportStateChange: jest
+    .fn()
+    .mockImplementation((callback: (available: boolean) => void) => {
+      // Immediately call with available=true
+      callback(true);
+      return jest.fn();
+    }),
+  getRequiredAppName: jest.fn().mockReturnValue('Ethereum'),
+  getTransportDisabledErrorCode: jest.fn().mockReturnValue('BluetoothDisabled'),
+};
+
+jest.mock('./adapters', () => ({
+  createAdapter: jest.fn(() => mockAdapterInstance),
+}));
+
+jest.mock('../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn().mockReturnValue({
+      addProperties: jest.fn().mockReturnValue({
+        build: jest.fn().mockReturnValue({ name: 'built-event' }),
+      }),
+    }),
+  }),
+}));
+
+jest.mock('@ledgerhq/react-native-hw-transport-ble', () => ({
+  __esModule: true,
+  default: {
+    observeState: jest.fn(() => ({
+      subscribe: jest.fn(() => ({
+        unsubscribe: jest.fn(),
+      })),
+    })),
+    open: jest.fn(),
+  },
+}));
+
+jest.mock('react-native', () => ({
+  ...jest.requireActual('react-native'),
+  Linking: {
+    openURL: jest.fn(),
+    openSettings: jest.fn(),
+  },
+  Platform: {
+    OS: 'ios',
+  },
+}));
+
+// Capture bottom sheet props so we can invoke internal actions in tests
+let capturedBottomSheetProps: Record<string, unknown> = {};
+jest.mock('./components', () => {
+  const { View: MockView } = jest.requireActual('react-native');
+  return {
+    HardwareWalletBottomSheet: (props: Record<string, unknown>) => {
+      capturedBottomSheetProps = props;
+      return <MockView testID="hardware-wallet-bottom-sheet-mock" />;
+    },
+  };
+});
+
+jest.mock('react-native-screens', () => {
+  const { View: MockView } = jest.requireActual('react-native');
+  return {
+    FullWindowOverlay: ({ children }: { children: React.ReactNode }) => (
+      <MockView testID="full-window-overlay">{children}</MockView>
+    ),
+  };
+});
+
+describe('HardwareWalletProvider', () => {
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
+  const mockGetHardwareWalletType =
+    getHardwareWalletTypeForAddress as jest.MockedFunction<
+      typeof getHardwareWalletTypeForAddress
+    >;
+  const mockCreateAdapter = createAdapter as jest.MockedFunction<
+    typeof createAdapter
+  >;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    capturedBottomSheetProps = {};
+    // Default: non-hardware wallet account
+    mockUseSelector.mockReturnValue(null);
+    mockGetHardwareWalletType.mockReturnValue(undefined);
+    mockCreateAdapter.mockImplementation(() => mockAdapterInstance);
+  });
+
+  const TestConsumer: React.FC = () => {
+    const { walletType, connectionState, ensureDeviceReady } =
+      useHardwareWallet();
+    return (
+      <>
+        <Text testID="walletType">{walletType ?? 'null'}</Text>
+        <Text testID="connectionStatus">{connectionState.status}</Text>
+        <Text testID="hasEnsureDeviceReady">
+          {String(typeof ensureDeviceReady === 'function')}
+        </Text>
+      </>
+    );
+  };
+
+  const renderProvider = (
+    props?: Partial<React.ComponentProps<typeof HardwareWalletProvider>>,
+  ) =>
+    render(
+      <HardwareWalletProvider {...props}>
+        <TestConsumer />
+      </HardwareWalletProvider>,
+    );
+
+  describe('context provision', () => {
+    it('provides config context', () => {
+      const { getByTestId } = renderProvider();
+
+      expect(getByTestId('walletType').children[0]).toBe('null');
+    });
+
+    it('provides state context', () => {
+      const { getByTestId } = renderProvider();
+
+      expect(getByTestId('connectionStatus').children[0]).toBe(
+        ConnectionStatus.Disconnected,
+      );
+    });
+
+    it('provides actions context', () => {
+      const { getByTestId } = renderProvider();
+
+      expect(getByTestId('hasEnsureDeviceReady').children[0]).toBe('true');
+    });
+  });
+
+  describe('wallet type detection', () => {
+    it('detects hardware wallet from selected account', async () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      const { getByTestId } = renderProvider();
+
+      await waitFor(() => {
+        expect(getByTestId('walletType').children[0]).toBe(
+          HardwareWalletType.Ledger,
+        );
+      });
+    });
+
+    it('identifies non-hardware accounts', () => {
+      mockUseSelector.mockReturnValue({ address: '0xsoftware' });
+      mockGetHardwareWalletType.mockReturnValue(undefined);
+
+      const { getByTestId } = renderProvider();
+
+      expect(getByTestId('walletType').children[0]).toBe('null');
+    });
+  });
+
+  describe('adapter creation', () => {
+    it('creates adapter when wallet type is set', async () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      renderProvider();
+
+      await waitFor(() => {
+        expect(mockCreateAdapter).toHaveBeenCalledWith(
+          HardwareWalletType.Ledger,
+          expect.objectContaining({
+            onDisconnect: expect.any(Function),
+            onDeviceEvent: expect.any(Function),
+          }),
+        );
+      });
+    });
+
+    it('creates non-hardware adapter for non-hardware accounts', () => {
+      mockUseSelector.mockReturnValue({ address: '0xsoftware' });
+      mockGetHardwareWalletType.mockReturnValue(undefined);
+
+      renderProvider();
+
+      expect(mockCreateAdapter).toHaveBeenCalledWith(
+        null,
+        expect.objectContaining({
+          onDisconnect: expect.any(Function),
+          onDeviceEvent: expect.any(Function),
+        }),
+      );
+    });
+  });
+
+  describe('actions', () => {
+    // Hook to access actions for testing
+    const useTestActions = () => {
+      const hw = useHardwareWallet();
+      return {
+        actions: hw,
+        state: {
+          connectionState: hw.connectionState,
+          deviceSelection: hw.deviceSelection,
+        },
+      };
+    };
+
+    const renderWithActions = () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      return renderHook(() => useTestActions(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <HardwareWalletProvider>{children}</HardwareWalletProvider>
+        ),
+      });
+    };
+
+    describe('connect (internal, via bottom sheet props)', () => {
+      it('connects to device', async () => {
+        const { result } = renderWithActions();
+
+        // The bottom sheet (and its captured props) only mounts while a flow
+        // is active, so start scanning first
+        act(() => {
+          result.current.actions.ensureDeviceReady();
+        });
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        });
+
+        const internalConnect = capturedBottomSheetProps.connect as (
+          deviceId: string,
+        ) => Promise<void>;
+        expect(internalConnect).toBeDefined();
+
+        await act(async () => {
+          await internalConnect('device-123');
+        });
+
+        const adapter = mockCreateAdapter.mock.results[0]?.value;
+        expect(adapter?.connect).toHaveBeenCalledWith('device-123');
+      });
+    });
+
+    describe('ensureDeviceReady', () => {
+      it('starts the device readiness flow', async () => {
+        const { result } = renderWithActions();
+
+        // Start the ensureDeviceReady flow (don't await - it's blocking)
+        // The provider's ensureDeviceReady returns a promise that only resolves
+        // when the success screen dismisses, which doesn't happen in tests
+        act(() => {
+          result.current.actions.ensureDeviceReady('device-123');
+        });
+
+        // Give time for the async flow to start
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        });
+
+        // Verify the adapter method was called
+        expect(mockAdapterInstance.ensureDeviceReady).toHaveBeenCalledWith(
+          'device-123',
+        );
+      });
+
+      it('updates the provider wallet type from the pending operation address', async () => {
+        mockUseSelector.mockReturnValue({ address: '0x1234' });
+        mockGetHardwareWalletType.mockImplementation((address: string) =>
+          address === '0xqr'
+            ? HardwareWalletType.Qr
+            : HardwareWalletType.Ledger,
+        );
+
+        const ledgerAdapter = {
+          ...mockAdapterInstance,
+          walletType: HardwareWalletType.Ledger,
+          requiresDeviceDiscovery: true,
+          ensureDeviceReady: jest.fn().mockResolvedValue(true),
+          resetFlowState: jest.fn(),
+          markFlowComplete: jest.fn(),
+          disconnect: jest.fn().mockResolvedValue(undefined),
+        };
+        const qrAdapter = {
+          ...mockAdapterInstance,
+          walletType: HardwareWalletType.Qr,
+          requiresDeviceDiscovery: false,
+          ensureDeviceReady: jest.fn().mockResolvedValue(true),
+          resetFlowState: jest.fn(),
+          markFlowComplete: jest.fn(),
+          disconnect: jest.fn().mockResolvedValue(undefined),
+        };
+
+        mockCreateAdapter.mockImplementation(
+          (walletType: HardwareWalletType | null) => {
+            if (walletType === HardwareWalletType.Qr) {
+              return qrAdapter;
+            }
+
+            return ledgerAdapter;
+          },
+        );
+
+        const { result } = renderHook(() => useTestActions(), {
+          wrapper: ({ children }: { children: React.ReactNode }) => (
+            <HardwareWalletProvider>{children}</HardwareWalletProvider>
+          ),
+        });
+
+        await waitFor(() => {
+          expect(mockCreateAdapter).toHaveBeenCalledWith(
+            HardwareWalletType.Ledger,
+            expect.any(Object),
+          );
+        });
+
+        await act(async () => {
+          result.current.actions.setPendingOperationAddress('0xqr');
+        });
+
+        // Mount the bottom sheet so its props can be captured
+        await act(async () => {
+          result.current.actions.showAwaitingConfirmation('transaction');
+        });
+
+        await waitFor(() => {
+          expect(capturedBottomSheetProps.walletType).toBe(
+            HardwareWalletType.Qr,
+          );
+        });
+      });
+
+      it('derives the pending operation wallet type once and reuses it on unrelated re-renders', async () => {
+        mockUseSelector.mockReturnValue({ address: '0x1234' });
+        mockGetHardwareWalletType.mockImplementation((address: string) =>
+          address === '0xqr'
+            ? HardwareWalletType.Qr
+            : HardwareWalletType.Ledger,
+        );
+
+        const { result } = renderHook(() => useTestActions(), {
+          wrapper: ({ children }: { children: React.ReactNode }) => (
+            <HardwareWalletProvider>{children}</HardwareWalletProvider>
+          ),
+        });
+
+        await act(async () => {
+          result.current.actions.setPendingOperationAddress('0xqr');
+        });
+
+        expect(
+          mockGetHardwareWalletType.mock.calls.filter(
+            ([address]) => address === '0xqr',
+          ),
+        ).toHaveLength(1);
+
+        mockGetHardwareWalletType.mockClear();
+
+        await act(async () => {
+          result.current.actions.showAwaitingConfirmation('transaction');
+        });
+
+        expect(
+          mockGetHardwareWalletType.mock.calls.filter(
+            ([address]) => address === '0xqr',
+          ),
+        ).toHaveLength(0);
+        expect(capturedBottomSheetProps.walletType).toBe(HardwareWalletType.Qr);
+      });
+    });
+  });
+
+  describe('props', () => {
+    it('renders with default props', async () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      const { getByTestId } = render(
+        <HardwareWalletProvider>
+          <TestConsumer />
+        </HardwareWalletProvider>,
+      );
+
+      await waitFor(() => {
+        expect(getByTestId('connectionStatus')).toBeOnTheScreen();
+      });
+    });
+  });
+
+  describe('device selection flow (internal actions via bottom sheet props)', () => {
+    const useTestActions = () => {
+      const hw = useHardwareWallet();
+      return {
+        actions: hw,
+        state: {
+          connectionState: hw.connectionState,
+          deviceSelection: hw.deviceSelection,
+        },
+      };
+    };
+
+    const renderWithActions = () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      return renderHook(() => useTestActions(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <HardwareWalletProvider>{children}</HardwareWalletProvider>
+        ),
+      });
+    };
+
+    describe('closeDeviceSelection', () => {
+      it('returns to disconnected state', async () => {
+        const { result } = renderWithActions();
+
+        act(() => {
+          result.current.actions.ensureDeviceReady();
+        });
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        });
+
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.Scanning,
+        );
+
+        const internalClose = capturedBottomSheetProps.onClose as () => void;
+        await act(async () => {
+          internalClose();
+        });
+
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.Disconnected,
+        );
+      });
+    });
+
+    describe('selectDevice', () => {
+      it('updates selected device in state', async () => {
+        const { result } = renderWithActions();
+
+        act(() => {
+          result.current.actions.ensureDeviceReady();
+        });
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        });
+
+        const mockDevice = { id: 'device-1', name: 'Nano X' };
+
+        const internalSelectDevice =
+          capturedBottomSheetProps.selectDevice as (device: {
+            id: string;
+            name: string;
+          }) => void;
+
+        await act(async () => {
+          internalSelectDevice(mockDevice);
+        });
+
+        expect(result.current.state.deviceSelection.selectedDevice).toEqual(
+          mockDevice,
+        );
+      });
+    });
+
+    describe('rescan', () => {
+      it('resets devices and restarts scanning', async () => {
+        const { result } = renderWithActions();
+
+        act(() => {
+          result.current.actions.ensureDeviceReady();
+        });
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        });
+
+        const internalSelectDevice =
+          capturedBottomSheetProps.selectDevice as (device: {
+            id: string;
+            name: string;
+          }) => void;
+        const internalRescan = capturedBottomSheetProps.rescan as () => void;
+
+        const mockDevice = { id: 'device-1', name: 'Nano X' };
+        await act(async () => {
+          internalSelectDevice(mockDevice);
+        });
+
+        await act(async () => {
+          internalRescan();
+        });
+
+        expect(result.current.state.deviceSelection.isScanning).toBe(true);
+        expect(result.current.state.deviceSelection.devices).toEqual([]);
+      });
+    });
+  });
+
+  describe('awaiting confirmation flow', () => {
+    const useTestActions = () => {
+      const hw = useHardwareWallet();
+      return {
+        actions: hw,
+        state: {
+          connectionState: hw.connectionState,
+          deviceSelection: hw.deviceSelection,
+        },
+      };
+    };
+
+    const renderWithActions = () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      return renderHook(() => useTestActions(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <HardwareWalletProvider>{children}</HardwareWalletProvider>
+        ),
+      });
+    };
+
+    describe('showAwaitingConfirmation', () => {
+      it('transitions to awaiting confirmation state', async () => {
+        const { result } = renderWithActions();
+
+        await act(async () => {
+          result.current.actions.showAwaitingConfirmation('transaction');
+        });
+
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.AwaitingConfirmation,
+        );
+      });
+
+      it('sets operationType to message for message operations', async () => {
+        const { result } = renderWithActions();
+
+        await act(async () => {
+          result.current.actions.showAwaitingConfirmation('message');
+        });
+
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.AwaitingConfirmation,
+        );
+        // Type narrow to access operationType
+        if (
+          result.current.state.connectionState.status ===
+          ConnectionStatus.AwaitingConfirmation
+        ) {
+          expect(result.current.state.connectionState.operationType).toBe(
+            'message',
+          );
+        }
+      });
+    });
+
+    describe('hideAwaitingConfirmation', () => {
+      it('returns to disconnected state', async () => {
+        const { result } = renderWithActions();
+
+        // Show awaiting confirmation
+        await act(async () => {
+          result.current.actions.showAwaitingConfirmation('transaction');
+        });
+
+        // Hide it
+        await act(async () => {
+          result.current.actions.hideAwaitingConfirmation();
+        });
+
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.Disconnected,
+        );
+      });
+
+      it('disconnects the active adapter so Ledger BLE is released after signing', async () => {
+        const { result } = renderWithActions();
+
+        await waitFor(() => {
+          expect(mockCreateAdapter).toHaveBeenCalledWith(
+            HardwareWalletType.Ledger,
+            expect.any(Object),
+          );
+        });
+
+        await act(async () => {
+          result.current.actions.showAwaitingConfirmation('transaction');
+        });
+
+        await act(async () => {
+          result.current.actions.hideAwaitingConfirmation();
+        });
+
+        expect(mockAdapterInstance.disconnect).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
+
+  describe('error handling', () => {
+    const useTestActions = () => {
+      const hw = useHardwareWallet();
+      return {
+        actions: hw,
+        state: {
+          connectionState: hw.connectionState,
+          deviceSelection: hw.deviceSelection,
+        },
+      };
+    };
+
+    const renderWithActions = () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      return renderHook(() => useTestActions(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <HardwareWalletProvider>{children}</HardwareWalletProvider>
+        ),
+      });
+    };
+
+    describe('showHardwareWalletError', () => {
+      it('transitions to error state', async () => {
+        const { result } = renderWithActions();
+
+        await act(async () => {
+          result.current.actions.showHardwareWalletError(
+            new Error('Test error'),
+          );
+        });
+
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.ErrorState,
+        );
+      });
+    });
+
+    describe('QR scan retry', () => {
+      it('closes QR scan errors when no retry handler is registered', () => {
+        const { result } = renderWithActions();
+
+        act(() => {
+          result.current.actions.showHardwareWalletError(
+            new Error('QR scan failed'),
+          );
+        });
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.ErrorState,
+        );
+
+        act(() => {
+          (capturedBottomSheetProps.onRetryQrScan as () => void)();
+        });
+
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.Disconnected,
+        );
+      });
+
+      it('calls registered QR scan retry handler for non-signing QR errors', () => {
+        const { result } = renderWithActions();
+        const retryHandler = jest.fn();
+
+        act(() => {
+          result.current.actions.showHardwareWalletError(
+            new Error('QR scan failed'),
+          );
+        });
+        act(() => {
+          result.current.actions.setQrScanRetryHandler?.(retryHandler);
+        });
+        act(() => {
+          (capturedBottomSheetProps.onRetryQrScan as () => void)();
+        });
+
+        expect(retryHandler).toHaveBeenCalledTimes(1);
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.Disconnected,
+        );
+      });
+
+      it('returns to awaiting confirmation when retrying a signing QR error', async () => {
+        const { result } = renderWithActions();
+
+        await act(async () => {
+          result.current.actions.showAwaitingConfirmation('message');
+        });
+        await act(async () => {
+          result.current.actions.showHardwareWalletError(
+            new Error('QR scan failed'),
+          );
+        });
+        act(() => {
+          (capturedBottomSheetProps.onRetryQrScan as () => void)();
+        });
+
+        expect(result.current.state.connectionState).toMatchObject({
+          status: ConnectionStatus.AwaitingConfirmation,
+          operationType: 'message',
+        });
+      });
+    });
+
+    describe('retryEnsureDeviceReady (internal, via bottom sheet props)', () => {
+      it('transitions to connecting state when retrying a connection error', async () => {
+        const { result } = renderWithActions();
+
+        act(() => {
+          result.current.actions.ensureDeviceReady('device-123');
+        });
+
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        });
+
+        await act(async () => {
+          result.current.actions.showHardwareWalletError(
+            new Error('Connection failed'),
+          );
+        });
+
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.ErrorState,
+        );
+
+        const internalRetry =
+          capturedBottomSheetProps.retryEnsureDeviceReady as () => Promise<void>;
+        await act(async () => {
+          await internalRetry();
+        });
+
+        expect(mockAdapterInstance.ensureDeviceReady).toHaveBeenCalled();
+      });
+
+      it('closes flow instead of retrying after a signing error', async () => {
+        const { result } = renderWithActions();
+
+        await act(async () => {
+          result.current.actions.showAwaitingConfirmation('transaction');
+        });
+
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.AwaitingConfirmation,
+        );
+
+        await act(async () => {
+          result.current.actions.hideAwaitingConfirmation();
+        });
+
+        await act(async () => {
+          result.current.actions.showHardwareWalletError(
+            new Error('Signing failed'),
+          );
+        });
+
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.ErrorState,
+        );
+
+        mockAdapterInstance.ensureDeviceReady.mockClear();
+
+        const internalRetry =
+          capturedBottomSheetProps.retryEnsureDeviceReady as () => Promise<void>;
+        await act(async () => {
+          await internalRetry();
+        });
+
+        expect(mockAdapterInstance.ensureDeviceReady).not.toHaveBeenCalled();
+        expect(result.current.state.connectionState.status).toBe(
+          ConnectionStatus.Disconnected,
+        );
+      });
+    });
+  });
+
+  describe('transport state monitoring', () => {
+    it('updates bluetooth enabled state from adapter', async () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      // Mock adapter to call the transport state change callback
+      let transportCallback: ((available: boolean) => void) | null = null;
+      mockAdapterInstance.onTransportStateChange.mockImplementation(
+        (callback: (available: boolean) => void) => {
+          transportCallback = callback;
+          callback(true); // Initially available
+          return jest.fn();
+        },
+      );
+
+      const { getByTestId } = renderProvider();
+
+      await waitFor(() => {
+        expect(getByTestId('connectionStatus')).toBeOnTheScreen();
+      });
+
+      // Simulate transport becoming unavailable
+      if (transportCallback) {
+        await act(async () => {
+          transportCallback?.(false);
+        });
+      }
+
+      // Adapter should have received onTransportStateChange registration
+      expect(mockAdapterInstance.onTransportStateChange).toHaveBeenCalled();
+    });
+  });
+
+  describe('connect error handling (internal, via bottom sheet props)', () => {
+    it('transitions to error state when adapter connect rejects', async () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      mockAdapterInstance.connect.mockRejectedValueOnce(
+        new Error('Connection failed'),
+      );
+
+      const useTestActions = () => {
+        const hw = useHardwareWallet();
+        return {
+          actions: hw,
+          state: {
+            connectionState: hw.connectionState,
+          },
+        };
+      };
+
+      const { result } = renderHook(() => useTestActions(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <HardwareWalletProvider>{children}</HardwareWalletProvider>
+        ),
+      });
+
+      act(() => {
+        result.current.actions.ensureDeviceReady();
+      });
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      const internalConnect = capturedBottomSheetProps.connect as (
+        deviceId: string,
+      ) => Promise<void>;
+
+      await act(async () => {
+        await internalConnect('device-123');
+      });
+
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.ErrorState,
+      );
+    });
+  });
+
+  describe('FullWindowOverlay mount gate (iOS a11y regression #32973)', () => {
+    it('does not mount FullWindowOverlay while idle / Disconnected', () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      const { queryByTestId } = render(
+        <HardwareWalletProvider>
+          <View testID="app-content" />
+        </HardwareWalletProvider>,
+      );
+
+      // Empty overlay would set accessibilityViewIsModal and hide the AX tree.
+      expect(queryByTestId('full-window-overlay')).toBeNull();
+      expect(queryByTestId('hardware-wallet-bottom-sheet-mock')).toBeNull();
+    });
+
+    it('mounts overlay with bottom sheet content during AwaitingConfirmation', async () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      const Trigger: React.FC = () => {
+        const { showAwaitingConfirmation } = useHardwareWallet();
+        React.useEffect(() => {
+          showAwaitingConfirmation('message');
+        }, [showAwaitingConfirmation]);
+        return <View testID="app-content" />;
+      };
+
+      const { getByTestId, queryByTestId } = render(
+        <HardwareWalletProvider>
+          <Trigger />
+        </HardwareWalletProvider>,
+      );
+
+      await waitFor(() => {
+        expect(getByTestId('full-window-overlay')).toBeOnTheScreen();
+      });
+      expect(
+        getByTestId('hardware-wallet-bottom-sheet-mock'),
+      ).toBeOnTheScreen();
+      expect(queryByTestId('app-content')).toBeOnTheScreen();
+    });
+
+    it('unmounts FullWindowOverlay when returning to Disconnected', async () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      const Trigger: React.FC = () => {
+        const { showAwaitingConfirmation, hideAwaitingConfirmation } =
+          useHardwareWallet();
+        React.useEffect(() => {
+          showAwaitingConfirmation('message');
+        }, [showAwaitingConfirmation]);
+        return (
+          <Pressable
+            testID="hide-confirmation"
+            onPress={() => hideAwaitingConfirmation()}
+          >
+            <Text>hide</Text>
+          </Pressable>
+        );
+      };
+
+      const { getByTestId, queryByTestId } = render(
+        <HardwareWalletProvider>
+          <Trigger />
+        </HardwareWalletProvider>,
+      );
+
+      await waitFor(() => {
+        expect(getByTestId('full-window-overlay')).toBeOnTheScreen();
+      });
+
+      fireEvent.press(getByTestId('hide-confirmation'));
+
+      await waitFor(() => {
+        expect(queryByTestId('full-window-overlay')).toBeNull();
+      });
+    });
+
+    it('does not mount FullWindowOverlay when forceHideBottomSheet is set', async () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      const Trigger: React.FC = () => {
+        const { showAwaitingConfirmation, setForceHideBottomSheet } =
+          useHardwareWallet();
+        React.useEffect(() => {
+          setForceHideBottomSheet?.(true);
+          showAwaitingConfirmation('message');
+        }, [setForceHideBottomSheet, showAwaitingConfirmation]);
+        return <View testID="app-content" />;
+      };
+
+      const { queryByTestId } = render(
+        <HardwareWalletProvider>
+          <Trigger />
+        </HardwareWalletProvider>,
+      );
+
+      await waitFor(() => {
+        expect(queryByTestId('app-content')).toBeOnTheScreen();
+      });
+      expect(queryByTestId('full-window-overlay')).toBeNull();
+    });
+  });
+
+  describe('handleBottomSheetConnectionSuccess (internal, via bottom sheet props)', () => {
+    it('resets refs and delegates to handleConnectionSuccess', async () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      const useTestActions = () => {
+        const hw = useHardwareWallet();
+        return {
+          actions: hw,
+          state: { connectionState: hw.connectionState },
+        };
+      };
+
+      const { result } = renderHook(() => useTestActions(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <HardwareWalletProvider>{children}</HardwareWalletProvider>
+        ),
+      });
+
+      // Put provider into awaiting-confirmation so refs are populated
+      await act(async () => {
+        result.current.actions.showAwaitingConfirmation('transaction');
+      });
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.AwaitingConfirmation,
+      );
+
+      const internalOnConnectionSuccess =
+        capturedBottomSheetProps.onConnectionSuccess as () => void;
+      await act(async () => {
+        internalOnConnectionSuccess();
+      });
+
+      // After connection success the flow resets to Disconnected
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.Disconnected,
+      );
+    });
+  });
+
+  describe('handleAwaitingConfirmationCancel (internal, via bottom sheet props)', () => {
+    it('disconnects adapter, invokes rejection callback, and hides confirmation', async () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      const onReject = jest.fn();
+
+      const useTestActions = () => {
+        const hw = useHardwareWallet();
+        return {
+          actions: hw,
+          state: { connectionState: hw.connectionState },
+        };
+      };
+
+      const { result } = renderHook(() => useTestActions(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <HardwareWalletProvider>{children}</HardwareWalletProvider>
+        ),
+      });
+
+      // Show awaiting confirmation with a rejection callback
+      await act(async () => {
+        result.current.actions.showAwaitingConfirmation(
+          'transaction',
+          onReject,
+        );
+      });
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.AwaitingConfirmation,
+      );
+
+      const internalCancel =
+        capturedBottomSheetProps.onAwaitingConfirmationCancel as () => void;
+      await act(async () => {
+        internalCancel();
+      });
+
+      // Adapter should disconnect once via hideAwaitingConfirmation
+      expect(mockAdapterInstance.disconnect).toHaveBeenCalledTimes(1);
+      // Rejection callback should fire
+      expect(onReject).toHaveBeenCalled();
+      // State should return to disconnected
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.Disconnected,
+      );
+    });
+
+    it('still hides confirmation and disconnects when rejection callback throws', async () => {
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
+      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+
+      const onReject = jest.fn(() => {
+        throw new Error('reject failed');
+      });
+      let thrownError: unknown;
+
+      const useTestActions = () => {
+        const hw = useHardwareWallet();
+        return {
+          actions: hw,
+          state: { connectionState: hw.connectionState },
+        };
+      };
+
+      const { result } = renderHook(() => useTestActions(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <HardwareWalletProvider>{children}</HardwareWalletProvider>
+        ),
+      });
+
+      await waitFor(() => {
+        expect(mockCreateAdapter).toHaveBeenCalledWith(
+          HardwareWalletType.Ledger,
+          expect.any(Object),
+        );
+      });
+
+      await act(async () => {
+        result.current.actions.showAwaitingConfirmation(
+          'transaction',
+          onReject,
+        );
+      });
+
+      const internalCancel =
+        capturedBottomSheetProps.onAwaitingConfirmationCancel as () => void;
+
+      await act(async () => {
+        try {
+          internalCancel();
+        } catch (error) {
+          thrownError = error;
+        }
+      });
+
+      expect(thrownError).toEqual(new Error('reject failed'));
+      expect(mockAdapterInstance.disconnect).toHaveBeenCalledTimes(1);
+      expect(result.current.state.connectionState.status).toBe(
+        ConnectionStatus.Disconnected,
+      );
+    });
+  });
+
+  describe('setTargetWalletType', () => {
+    const useTestActions = () => {
+      const hw = useHardwareWallet();
+      return {
+        actions: hw,
+        config: { walletType: hw.walletType, deviceId: hw.deviceId },
+      };
+    };
+
+    it('updates wallet type when set', async () => {
+      mockUseSelector.mockReturnValue(null);
+
+      const { result } = renderHook(() => useTestActions(), {
+        wrapper: ({ children }: { children: React.ReactNode }) => (
+          <HardwareWalletProvider>{children}</HardwareWalletProvider>
+        ),
+      });
+
+      await act(async () => {
+        result.current.actions.setTargetWalletType(HardwareWalletType.Ledger);
+      });
+
+      await waitFor(() => {
+        expect(result.current.config.walletType).toBe(
+          HardwareWalletType.Ledger,
+        );
+      });
+    });
+  });
+});

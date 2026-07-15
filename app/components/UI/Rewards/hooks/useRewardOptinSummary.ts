@@ -17,7 +17,7 @@ import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyt
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
 import { selectRewardsActiveAccountSubscriptionId } from '../../../../selectors/rewards';
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 
 // Helper function to enrich accounts with opt-in status
 const enrichAccountsWithOptInStatus = (
@@ -205,7 +205,7 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
   const isLoadingRef = useRef(false);
   const hasTrackedLinkedAccountsRef = useRef(false);
 
-  const { addTraitsToUser } = useMetrics();
+  const { identify } = useAnalytics();
 
   // Check if any account operations are loading
   const { isAccountSyncingInProgress } = useAccountsOperationsLoadingStates();
@@ -323,7 +323,7 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
           traits,
         );
 
-        await addTraitsToUser(traits);
+        await identify(traits);
       }
     } catch (error) {
       Logger.log('useRewardOptinSummary: Failed to fetch opt-in status', error);
@@ -339,7 +339,7 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
     debouncedAccountGroupsByWallet,
     debouncedInternalAccountsById,
     activeAccountSubscriptionId,
-    addTraitsToUser,
+    identify,
   ]);
 
   useEffect(() => {
@@ -404,7 +404,11 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
     fetchOptInStatus();
   }, [fetchOptInStatus]);
 
-  useInvalidateByRewardEvents(['RewardsController:accountLinked'], refresh);
+  const invalidateEvents = useMemo(
+    () => ['RewardsController:accountLinked' as const],
+    [],
+  );
+  useInvalidateByRewardEvents(invalidateEvents, refresh);
 
   // Fetch opt-in status when accounts change or enabled changes
   useEffect(() => {

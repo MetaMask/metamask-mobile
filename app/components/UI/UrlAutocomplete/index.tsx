@@ -48,16 +48,20 @@ import {
   useSwapBridgeNavigation,
 } from '../Bridge/hooks/useSwapBridgeNavigation';
 import { BridgeToken } from '../Bridge/types';
-import { useExploreSearch } from '../../Views/TrendingView/hooks/useExploreSearch';
-import { type SectionId } from '../../Views/TrendingView/sections.config';
+import {
+  useExploreSearch,
+  type SearchFeedId,
+} from '../../Views/TrendingView/search/useExploreSearch';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import type { PerpsMarketData } from '../Perps/controllers/types';
+import { type PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket } from '../Predict/types';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { PerpsConnectionProvider } from '../Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../Perps/providers/PerpsStreamManager';
 import { isCaipChainId, parseCaipChainId, type Hex } from '@metamask/utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
+import SitesSearchFooter from '../Sites/components/SitesSearchFooter/SitesSearchFooter';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 export * from './types';
 
@@ -79,19 +83,22 @@ const getTrendingTokenImageUrl = (assetId: string): string =>
   `https://token.api.cx.metamask.io/assets/${assetId}/logo.png`;
 
 interface ResultsWithCategory {
-  category: UrlAutocompleteCategory | SectionId;
+  category: UrlAutocompleteCategory | SearchFeedId;
   data: AutocompleteSearchResult[];
   isLoading?: boolean;
 }
 
 /**
- * Helper to map SectionId to UrlAutocompleteCategory for display
+ * Helper to map search feed id to UrlAutocompleteCategory for display
  */
-const sectionIdToCategory = (sectionId: SectionId): UrlAutocompleteCategory => {
+const sectionIdToCategory = (
+  sectionId: SearchFeedId,
+): UrlAutocompleteCategory => {
   switch (sectionId) {
     case 'sites':
       return UrlAutocompleteCategory.Sites;
     case 'tokens':
+    case 'stocks':
       return UrlAutocompleteCategory.Tokens;
     case 'perps':
       return UrlAutocompleteCategory.Perps;
@@ -191,19 +198,48 @@ const SearchContent: React.FC<SearchContentProps> = ({
   hide,
   styles,
 }) => {
+  const tw = useTailwind();
   const navigation = useNavigation();
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
 
-  // Use omni-search hook with browser-specific section order (Sites first)
+  // Bridge Explore `useExploreSearch` ({ sections }) to the record shape this UI expects
+  const exploreResult = useExploreSearch(searchQuery);
   const {
     data: omniSearchData,
     isLoading: omniSearchLoading,
     sectionsOrder,
-  } = useExploreSearch(searchQuery, {
-    sectionsOrder: BROWSER_SEARCH_SECTIONS_ORDER,
-  });
+  } = useMemo(() => {
+    const order = BROWSER_SEARCH_SECTIONS_ORDER;
+    const byFeedId = new Map(exploreResult.sections.map((s) => [s.feedId, s]));
+
+    const data: Partial<Record<SearchFeedId, unknown[]>> = {};
+    const isLoading: Partial<Record<SearchFeedId, boolean>> = {};
+
+    for (const sectionId of order) {
+      if (sectionId === 'tokens') {
+        const tokensSec = byFeedId.get('tokens');
+        const stocksSec = byFeedId.get('stocks');
+        data.tokens = [
+          ...((tokensSec?.items as TrendingAsset[]) ?? []),
+          ...((stocksSec?.items as TrendingAsset[]) ?? []),
+        ];
+        isLoading.tokens =
+          Boolean(tokensSec?.isLoading) || Boolean(stocksSec?.isLoading);
+        continue;
+      }
+      const sec = byFeedId.get(sectionId);
+      data[sectionId] = sec?.items ?? [];
+      isLoading[sectionId] = sec?.isLoading ?? false;
+    }
+
+    return {
+      data: data as Record<SearchFeedId, unknown[]>,
+      isLoading: isLoading as Record<SearchFeedId, boolean>,
+      sectionsOrder: order,
+    };
+  }, [exploreResult]);
 
   // Create Fuse instance for filtering Recents and Favorites
   const fuseInstance = useMemo(() => {
@@ -405,7 +441,27 @@ const SearchContent: React.FC<SearchContentProps> = ({
     [],
   );
 
-  if (searchResults.length === 0) {
+  /**
+   * Handler for search footer URL selection
+   * Creates a FuseSearchResult and calls onSelect
+   */
+  const handleSearchFooterSelect = useCallback(
+    (url: string) => {
+      const searchResult: FuseSearchResult = {
+        category: UrlAutocompleteCategory.Sites,
+        url,
+        name: url,
+      };
+      hide();
+      onSelect(searchResult);
+    },
+    [hide, onSelect],
+  );
+
+  // Always show search footer when there's a search query
+  const showSearchFooter = searchQuery.trim().length > 0;
+
+  if (searchResults.length === 0 && !showSearchFooter) {
     return null;
   }
 
@@ -418,6 +474,15 @@ const SearchContent: React.FC<SearchContentProps> = ({
         renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}
         keyboardShouldPersistTaps="handled"
+        ListFooterComponent={
+          showSearchFooter ? (
+            <SitesSearchFooter
+              searchQuery={searchQuery}
+              onPress={handleSearchFooterSelect}
+              containerStyle={tw`px-4`}
+            />
+          ) : null
+        }
       />
       {networkModal}
     </>
@@ -589,8 +654,8 @@ const UrlAutocomplete = forwardRef<
         keyboardVerticalOffset={100}
       >
         {isSearchMode ? (
-          // Search mode: wrap with Perps providers for omni-search
-          <PerpsConnectionProvider>
+          // Search mode: wrap with PerpsConnectionProvider (context only) and PerpsStreamProvider for omni-search
+          <PerpsConnectionProvider suppressErrorView>
             <PerpsStreamProvider>
               <SearchContent
                 searchQuery={searchQuery}

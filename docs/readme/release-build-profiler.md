@@ -5,7 +5,7 @@ This guide covers building an RC (Release Candidate) release, recording a Hermes
 ### 1) Build an RC release
 
 - Create a branch off the commit you want to profile and bump the version to `7.XX.99`.
-- In Bitrise, trigger `release_rc_builds_to_store_pipeline` for that branch.
+- Trigger the `Build Mobile App` GitHub Actions workflow and select an RC build.
 
 #### iOS
 
@@ -43,7 +43,9 @@ To have sourcemaps on the tracing, to be easier to identify the processes that a
 yarn react-native-release-profiler --local /path/to/profile.cpuprofile --sourcemap-path /path/to/sourcemaps
 ```
 
-You can find the sourcemaps at the artifcacts generated when running `release_rc_builds_to_store_pipeline` in bitrise, under the name `Android_Sourcemaps_prodRelease.zip`, download and unzip it.
+You can find the sourcemaps in the artifacts of the build that produced the APK/IPA:
+
+- **GitHub Actions**: artifacts uploaded by the `build` workflow, under the name `android-sourcemaps-<build-name>` (Android) or `ios-sourcemaps-<build-name>` (iOS). Download and unzip the artifact.
 
 Then open Chrome and load the generated JSON:
 
@@ -53,3 +55,11 @@ Other viewers:
 
 - SpeedScope: open the `.cpuprofile` directly at https://www.speedscope.app
 - Perfetto UI: open the converted JSON at https://ui.perfetto.dev
+
+### 4) Or: let an AI coding agent read it
+
+Instead of converting the trace and eyeballing a flame graph, you can hand the
+raw `.cpuprofile` to **Claude Code / your AI agent of choice** and ask "why is
+this slow?" — it parses the Hermes sampling profile and points you at the hot
+frames / culprit function directly, no viewer needed. Often the fastest path to
+a root cause.

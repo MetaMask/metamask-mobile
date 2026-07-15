@@ -6,11 +6,13 @@ import { fireEvent } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
+import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies
 import AssetSettings from '.';
 import { TOKEN_DETECTION_TOGGLE } from './index.constants';
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 
 let mockSetUseTokenDetection: jest.Mock;
 
@@ -32,27 +34,18 @@ jest.mock('../../../../core/Engine', () => {
   };
 });
 
-jest.mock('../../../hooks/useMetrics');
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 const mockAddTraitsToUser = jest.fn();
-
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: jest.fn(),
-  createEventBuilder: jest.fn(),
-  enable: jest.fn(),
-  addTraitsToUser: mockAddTraitsToUser,
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
 
 describe('AssetSettings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .mocked(useAnalytics)
+      .mockReturnValue(
+        createMockUseAnalyticsHook({ identify: mockAddTraitsToUser }),
+      );
   });
 
   const initialState = {
@@ -68,10 +61,12 @@ describe('AssetSettings', () => {
   };
 
   it('render matches snapshot', () => {
-    const tree = renderWithProvider(<AssetSettings />, {
+    const { getByText } = renderWithProvider(<AssetSettings />, {
       state: initialState,
     });
-    expect(tree).toMatchSnapshot();
+    expect(
+      getByText(strings('app_settings.token_detection_title')),
+    ).toBeOnTheScreen();
   });
 
   describe('Token Detection', () => {

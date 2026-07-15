@@ -19,14 +19,6 @@ jest.mock('../../../../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  openURL: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
-}));
-
 describe('PermitSimulation', () => {
   it('renders for Permit', async () => {
     const { getByText } = renderWithProvider(<PermitSimulation />, {
@@ -89,6 +81,32 @@ describe('PermitSimulation', () => {
 
     await waitFor(() => expect(getByText('1,461,501,637,3...')).toBeTruthy());
     await waitFor(() => expect(getByText('250')).toBeTruthy());
+  });
+
+  it('ignores an injected "value": "0" sibling on a Permit2 PermitBatch and renders as a spending cap', async () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <PermitSimulation />,
+      {
+        state: generateStateSignTypedData(
+          SignTypedDataMockType.BATCH_INJECTED_VALUE,
+        ),
+      },
+    );
+
+    expect(
+      getByText(
+        "You're giving the spender permission to spend this many tokens from your account.",
+      ),
+    ).toBeTruthy();
+    expect(getByText('Spending cap')).toBeTruthy();
+    expect(queryByText('Revoke')).toBeNull();
+    expect(
+      queryByText(
+        "You're removing someone's permission to spend tokens from your account.",
+      ),
+    ).toBeNull();
+
+    await waitFor(() => expect(getByText('1,461,501,637,3...')).toBeTruthy());
   });
 
   it('renders for Permit NFTs', async () => {

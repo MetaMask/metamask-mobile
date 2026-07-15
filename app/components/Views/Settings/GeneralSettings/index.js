@@ -18,29 +18,38 @@ import I18n, {
 } from '../../../../../locales/i18n';
 import SelectComponent from '../../../UI/SelectComponent';
 import infuraCurrencies from '../../../../util/infura-conversion.json';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   setSearchEngine,
   setPrimaryCurrency,
   setAvatarAccountType,
   setHideZeroBalanceTokens,
+  setHapticsEnabled,
 } from '../../../../actions/settings';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import PickComponent from '../../PickComponent';
 import AvatarAccount, {
   AvatarAccountType,
 } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import Text, {
-  TextVariant,
+import {
+  FontWeight,
+  Text,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+  TextVariant,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { colors as staticColors } from '../../../../styles/common';
+import { enablePushNotifications } from '../../../../actions/notification/helpers';
+import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
+
+export const GENERAL_SETTINGS_CURRENCY_SELECTOR =
+  'general-settings-currency-selector';
 
 const diameter = 40;
 const spacing = 8;
@@ -59,12 +68,12 @@ const infuraCurrencyOptions = sortedCurrencies.map(
   }),
 );
 
-export const updateUserTraitsWithCurrentCurrency = (currency, metrics) => {
+export const updateUserTraitsWithCurrentCurrency = (currency) => {
   // track event and add selected currency to user profile for analytics
   const traits = { [UserProfileProperty.CURRENT_CURRENCY]: currency };
-  metrics.addTraitsToUser(traits);
-  metrics.trackEvent(
-    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
+  analytics.identify(traits);
+  analytics.trackEvent(
+    AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
       .addProperties({
         ...traits,
         location: 'app_settings',
@@ -73,10 +82,10 @@ export const updateUserTraitsWithCurrentCurrency = (currency, metrics) => {
   );
 };
 
-export const updateUserTraitsWithCurrencyType = (primaryCurrency, metrics) => {
+export const updateUserTraitsWithCurrencyType = (primaryCurrency) => {
   // track event and add primary currency preference (fiat/crypto) to user profile for analytics
   const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
-  metrics.addTraitsToUser(traits);
+  analytics.identify(traits);
 };
 
 const createStyles = (colors) =>
@@ -105,13 +114,8 @@ const createStyles = (colors) =>
     accessory: {
       marginTop: 16,
     },
-    picker: {
-      borderColor: colors.border.default,
-      borderRadius: 5,
-      borderWidth: 2,
-    },
     setting: {
-      marginTop: 30,
+      marginTop: 24,
     },
     switch: {
       alignSelf: 'flex-start',
@@ -208,9 +212,17 @@ class Settings extends PureComponent {
      */
     // appTheme: PropTypes.string,
     /**
-     * Metrics injected by withMetricsAwareness HOC
+     * Whether push notifications are currently enabled
      */
-    metrics: PropTypes.object,
+    isPushNotificationsEnabled: PropTypes.bool,
+    /**
+     * Whether haptics are currently enabled
+     */
+    hapticsEnabled: PropTypes.bool,
+    /**
+     * Called to toggle haptics
+     */
+    setHapticsEnabled: PropTypes.func,
   };
 
   state = {
@@ -219,15 +231,27 @@ class Settings extends PureComponent {
   };
 
   selectCurrency = async (currency) => {
-    const { CurrencyRateController } = Engine.context;
+    const { CurrencyRateController, AssetsController } = Engine.context;
     CurrencyRateController.setCurrentCurrency(currency);
-    updateUserTraitsWithCurrentCurrency(currency, this.props.metrics);
+    // When the `assetsUnifyState` flag is enabled, the UI reads the active
+    // currency from AssetsController.selectedCurrency rather than from
+    // CurrencyRateController, so it must be updated here too. Otherwise the
+    // selection silently no-ops and the displayed currency stays unchanged.
+    AssetsController?.setSelectedCurrency?.(currency);
+    updateUserTraitsWithCurrentCurrency(currency);
   };
 
   selectLanguage = (language) => {
     if (language === this.state.currentLanguage) return;
     setLocale(language);
     this.setState({ currentLanguage: language });
+
+    if (this.props.isPushNotificationsEnabled) {
+      enablePushNotifications().catch(() => {
+        // Best-effort: token will be refreshed on next app launch
+      });
+    }
+
     setTimeout(() => this.props.navigation.navigate('Home'), 100);
   };
 
@@ -238,11 +262,15 @@ class Settings extends PureComponent {
   selectPrimaryCurrency = (primaryCurrency) => {
     this.props.setPrimaryCurrency(primaryCurrency);
 
-    updateUserTraitsWithCurrencyType(primaryCurrency, this.props.metrics);
+    updateUserTraitsWithCurrencyType(primaryCurrency);
   };
 
   toggleHideZeroBalanceTokens = (toggleHideZeroBalanceTokens) => {
     this.props.setHideZeroBalanceTokens(toggleHideZeroBalanceTokens);
+  };
+
+  toggleHapticsEnabled = (hapticsEnabled) => {
+    this.props.setHapticsEnabled(hapticsEnabled);
   };
 
   componentDidMount = () => {
@@ -256,6 +284,7 @@ class Settings extends PureComponent {
     this.searchEngineOptions = [
       { value: 'Google', label: 'Google', key: 'Google' },
       { value: 'DuckDuckGo', label: 'DuckDuckGo', key: 'DuckDuckGo' },
+      { value: 'Brave', label: 'Brave', key: 'Brave' },
     ];
     this.primaryCurrencyOptions = [
       {
@@ -285,7 +314,7 @@ class Settings extends PureComponent {
   //   return (
   //     <View style={styles.setting}>
   //       <View>
-  //         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+  //         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
   //           {strings('app_settings.theme_title', {
   //             theme: strings(`app_settings.theme_${AppThemeKey[appTheme]}`),
   //           })}
@@ -307,6 +336,7 @@ class Settings extends PureComponent {
       setAvatarAccountType,
       selectedAddress,
       hideZeroBalanceTokens,
+      hapticsEnabled,
       navigation,
     } = this.props;
     const themeTokens = this.context || mockTheme;
@@ -315,7 +345,7 @@ class Settings extends PureComponent {
 
     return (
       <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('app_settings.general_title')}
           onBack={() => navigation.goBack()}
           includesTopInset
@@ -323,34 +353,35 @@ class Settings extends PureComponent {
         <ScrollView style={styles.content}>
           <View style={styles.inner}>
             <View style={[styles.setting, styles.firstSetting]}>
-              <Text variant={TextVariant.BodyLGMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.conversion_title')}
               </Text>
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
                 style={styles.desc}
               >
                 {strings('app_settings.conversion_desc')}
               </Text>
               <View style={styles.accessory}>
-                <View style={styles.picker}>
-                  <SelectComponent
-                    selectedValue={currentCurrency}
-                    onValueChange={this.selectCurrency}
-                    label={strings('app_settings.current_conversion')}
-                    options={infuraCurrencyOptions}
-                  />
-                </View>
+                <SelectComponent
+                  testID={GENERAL_SETTINGS_CURRENCY_SELECTOR}
+                  selectedValue={currentCurrency}
+                  onValueChange={this.selectCurrency}
+                  label={strings('app_settings.current_conversion')}
+                  options={infuraCurrencyOptions}
+                />
               </View>
             </View>
             <View style={styles.setting}>
-              <Text variant={TextVariant.BodyLGMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.primary_currency_title')}
               </Text>
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
                 style={styles.desc}
               >
                 {strings('app_settings.primary_currency_desc')}
@@ -373,56 +404,58 @@ class Settings extends PureComponent {
               )}
             </View>
             <View style={styles.setting}>
-              <Text variant={TextVariant.BodyLGMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.current_language')}
               </Text>
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
                 style={styles.desc}
               >
                 {strings('app_settings.language_desc')}
               </Text>
               {this.languageOptions && (
                 <View style={styles.accessory}>
-                  <View style={styles.picker}>
-                    <SelectComponent
-                      selectedValue={this.state.currentLanguage}
-                      onValueChange={this.selectLanguage}
-                      label={strings('app_settings.current_language')}
-                      options={this.languageOptions}
-                    />
-                  </View>
+                  <SelectComponent
+                    selectedValue={this.state.currentLanguage}
+                    onValueChange={this.selectLanguage}
+                    label={strings('app_settings.current_language')}
+                    options={this.languageOptions}
+                  />
                 </View>
               )}
             </View>
             <View style={styles.setting}>
-              <Text variant={TextVariant.BodyLGMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.search_engine')}
               </Text>
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
                 style={styles.desc}
               >
                 {strings('app_settings.engine_desc')}
               </Text>
               {this.searchEngineOptions && (
                 <View style={styles.accessory}>
-                  <View style={styles.picker}>
-                    <SelectComponent
-                      selectedValue={this.props.searchEngine}
-                      onValueChange={this.selectSearchEngine}
-                      label={strings('app_settings.search_engine')}
-                      options={this.searchEngineOptions}
-                    />
-                  </View>
+                  <SelectComponent
+                    selectedValue={this.props.searchEngine}
+                    onValueChange={this.selectSearchEngine}
+                    label={strings('app_settings.search_engine')}
+                    options={this.searchEngineOptions}
+                  />
                 </View>
               )}
             </View>
             <View style={styles.setting}>
               <View style={styles.titleContainer}>
-                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  style={styles.title}
+                >
                   {strings('app_settings.hide_zero_balance_tokens_title')}
                 </Text>
                 <View style={styles.toggle}>
@@ -440,20 +473,54 @@ class Settings extends PureComponent {
                 </View>
               </View>
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
                 style={styles.desc}
               >
                 {strings('app_settings.hide_zero_balance_tokens_desc')}
               </Text>
             </View>
             <View style={styles.setting}>
-              <Text variant={TextVariant.BodyLGMedium}>
+              <View style={styles.titleContainer}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  style={styles.title}
+                >
+                  {strings('app_settings.haptic_feedback_title')}
+                </Text>
+                <View style={styles.toggle}>
+                  <Switch
+                    value={hapticsEnabled}
+                    onValueChange={this.toggleHapticsEnabled}
+                    trackColor={{
+                      true: colors.primary.default,
+                      false: colors.border.muted,
+                    }}
+                    thumbColor={themeTokens.brandColors.white}
+                    style={styles.switch}
+                    ios_backgroundColor={colors.border.muted}
+                  />
+                </View>
+              </View>
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.haptic_feedback_desc')}
+              </Text>
+            </View>
+            <View style={styles.setting}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.accounts_identicon_title')}
               </Text>
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
                 style={styles.desc}
               >
                 {strings('app_settings.accounts_identicon_desc')}
@@ -480,7 +547,12 @@ class Settings extends PureComponent {
                         size={diameter}
                       />
                     </View>
-                    <Text style={styles.identiconText}>Polycons</Text>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      style={styles.identiconText}
+                    >
+                      Polycons
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() =>
@@ -502,7 +574,10 @@ class Settings extends PureComponent {
                         size={diameter}
                       />
                     </View>
-                    <Text style={styles.identiconText}>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      style={styles.identiconText}
+                    >
                       {strings('app_settings.jazzicons')}
                     </Text>
                   </TouchableOpacity>
@@ -526,7 +601,10 @@ class Settings extends PureComponent {
                         size={diameter}
                       />
                     </View>
-                    <Text style={styles.identiconText}>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      style={styles.identiconText}
+                    >
                       {strings('app_settings.blockies')}
                     </Text>
                   </TouchableOpacity>
@@ -550,6 +628,8 @@ const mapStateToProps = (state) => ({
   avatarAccountType: state.settings.avatarAccountType,
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
+  hapticsEnabled: state.settings.hapticsEnabled !== false,
+  isPushNotificationsEnabled: selectIsMetaMaskPushNotificationsEnabled(state),
   // appTheme: state.user.appTheme,
 });
 
@@ -561,9 +641,8 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setAvatarAccountType(avatarAccountType)),
   setHideZeroBalanceTokens: (hideZeroBalanceTokens) =>
     dispatch(setHideZeroBalanceTokens(hideZeroBalanceTokens)),
+  setHapticsEnabled: (hapticsEnabled) =>
+    dispatch(setHapticsEnabled(hapticsEnabled)),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withMetricsAwareness(Settings));
+export default connect(mapStateToProps, mapDispatchToProps)(Settings);

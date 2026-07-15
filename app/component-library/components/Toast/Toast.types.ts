@@ -53,6 +53,7 @@ interface BaseToastVariants {
   closeButtonOptions?: ToastCloseButtonOptions;
   startAccessory?: ReactElement;
   customBottomOffset?: number;
+  onPress?: () => void;
 }
 
 export type ToastCloseButtonOptions =
@@ -125,5 +126,5 @@ export interface ToastRef {
  * Toast context parameters.
  */
 export interface ToastContextParams {
-  toastRef: React.RefObject<ToastRef> | undefined;
+  toastRef: React.RefObject<ToastRef | null> | undefined;
 }

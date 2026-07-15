@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { RefreshControl } from 'react-native';
+import { ActivityIndicator, type RefreshControlProps } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokenRowItem from '../TrendingTokenRowItem/TrendingTokenRowItem';
@@ -31,11 +31,23 @@ export interface TrendingTokensListProps {
   /**
    * Refresh control for pull-to-refresh functionality
    */
-  refreshControl?: React.ReactElement<typeof RefreshControl>;
+  refreshControl?: React.ReactElement<RefreshControlProps>;
   /**
    * Filter context for analytics tracking
    */
   filterContext?: TrendingFilterContext;
+  /**
+   * Called when the user scrolls near the end of the list to fetch the next page.
+   */
+  onLoadMore?: () => void;
+  /**
+   * Whether a pagination request is in flight. Shows a spinner in the list footer.
+   */
+  isLoadingMore?: boolean;
+  /**
+   * When provided, shows a Quick Trade flash button on each row.
+   */
+  onQuickTrade?: (token: TrendingAsset) => void;
 }
 
 /**
@@ -45,7 +57,15 @@ export interface TrendingTokensListProps {
  * (renderItem and keyExtractor) to avoid recreating them on every render
  */
 const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
-  ({ trendingTokens, selectedTimeOption, refreshControl, filterContext }) => {
+  ({
+    trendingTokens,
+    selectedTimeOption,
+    refreshControl,
+    filterContext,
+    onLoadMore,
+    isLoadingMore,
+    onQuickTrade,
+  }) => {
     const renderItem = useCallback(
       ({ item, index }: { item: TrendingAsset; index: number }) => (
         <TrendingTokenRowItem
@@ -53,9 +73,10 @@ const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
           selectedTimeOption={selectedTimeOption}
           position={index}
           filterContext={filterContext}
+          onQuickTrade={onQuickTrade}
         />
       ),
-      [selectedTimeOption, filterContext],
+      [selectedTimeOption, filterContext, onQuickTrade],
     );
 
     const keyExtractor = useCallback(
@@ -69,7 +90,12 @@ const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         keyboardShouldPersistTaps="handled"
-        refreshControl={refreshControl as React.ReactElement}
+        refreshControl={refreshControl}
+        onEndReached={onLoadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          isLoadingMore ? <ActivityIndicator size="small" /> : null
+        }
         testID="trending-tokens-list"
       />
     );

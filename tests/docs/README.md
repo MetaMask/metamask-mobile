@@ -3,7 +3,9 @@
 > **⚠️ ESSENTIAL:** Read [E2E Testing Overview](../../docs/readme/e2e-testing.md) for complete setup guide
 
 - [E2E Framework Structure](#e2e-framework-structure)
+- [Playwright: local emulator `buildPath` and app install](PLAYWRIGHT_LOCAL_EMULATOR.md)
 - [E2E Testing Best Practices](#e2e-testing-best-practices)
+- [Playwright Node Runtime Shims](#playwright-node-runtime-shims)
 - [E2E Test Examples and Patterns](#e2e-test-examples-and-patterns)
 - [E2E Testing Anti-Patterns (AVOID THESE)](#e2e-testing-anti-patterns-avoid-these)
 - [E2E Code Review Checklist](#e2e-code-review-checklist)
@@ -11,14 +13,16 @@
 
 ## E2E Framework Structure
 
-- **Regression Testing Scenarios (`e2e/regression/`)** - Regression Test files organized by feature
-- **Snoke Testing Scenarios (`e2e/smoke/`)** - Smoke Test files organized by feature
+- **Regression Testing Scenarios (`tests/regression/`)** - Regression Test files organized by feature
+- **Snoke Testing Scenarios (`tests/smoke/`)** - Smoke Test files organized by feature (Detox)
+- **Appium smoke (`tests/smoke-appium/`)** - Playwright + Appium smoke parity with `tests/smoke/` — see [appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md)
 - **TypeScript Framework (`tests/framework/`)**: Modern testing framework with type safety
-- **Legacy JavaScript (`e2e/utils/`)**: Deprecated utilities being migrated
-- **Page Objects (`e2e/pages/`)**: Page Object Model implementation
-- **Selectors (`e2e/selectors/`)**: Element selectors organized by feature
+- **Page Objects (`tests/page-objects/`)**: Page Object Model implementation
+- **Selectors (`tests/selectors/`)**: Element selectors organized by feature
 - **Fixtures (`tests/framework/fixtures/`)**: Test data and state management
 - **API Mocking (`tests/api-mocking/`)**: Comprehensive API mocking system
+- **WebSocket Mocking (`tests/websocket/`)**: Local WebSocket server for mocking real-time connections ([docs](WEBSOCKET_MOCKING.md))
+- **Playwright local emulator (Appium)**: When using `EmulatorProvider`, `use.app.buildPath` vs no path controls install vs pre-installed app — [PLAYWRIGHT_LOCAL_EMULATOR.md](PLAYWRIGHT_LOCAL_EMULATOR.md)
 
 **Core E2E Framework Classes:**
 
@@ -31,13 +35,13 @@
 **Key E2E Directories:**
 
 - `tests/framework/` - TypeScript framework foundation (USE THIS)
-- `tests/smoke/` - Smoke Test files organized by feature
+- `tests/smoke/` - Detox smoke tests organized by feature
+- `tests/smoke-appium/` - Appium smoke tests (Playwright); same layout as `tests/smoke/`
 - `tests/regression/` - Regression Test files organized by feature
-- `e2e/pages/` - Page Object classes following POM pattern
-- `e2e/selectors/` - Element selectors (avoid direct use in tests)
+- `tests/page-objects/` - Page Object classes following POM pattern
+- `tests/selectors/` - Element selectors (avoid direct use in tests)
 - `tests/api-mocking/` - API mocking utilities and responses
-- `e2e/fixtures/` - Test fixtures and data (⚠️ being deprecated)
-- `e2e/utils/` - Legacy utilities (⚠️ deprecated - use framework/)
+- `tests/framework/fixtures/` - Test fixtures and data
 
 ## E2E Testing Best Practices
 
@@ -89,6 +93,17 @@ await withFixtures(
 - Default mocks are loaded from `tests/api-mocking/mock-responses/defaults/`
 - Feature flags mocked via `setupRemoteFeatureFlagsMock` helper
 
+## Playwright Node Runtime Shims
+
+Playwright specs and `FixtureBuilder` run in Node, while the app runs in React Native/Metro. If a native-only module fails during Playwright import or fixture setup, keep the app on the native implementation and isolate the Node workaround in test infrastructure.
+
+We need this shim mechanism because some app dependencies patch CommonJS packages to call native modules such as `@metamask/native-utils`. Those calls are valid in the mobile app, but Playwright loads the same dependency graph in Node where React Native/Nitro native modules are unavailable.
+
+- Use `tests/framework/nodeNativeUtilsShim.cjs` for `@metamask/native-utils` in Playwright's Node process.
+- Register Node shims from Playwright framework entrypoints before importing code that may load native modules.
+- Do not add JS fallbacks to shared dependency patches unless the app runtime also needs them.
+- Validate with `yarn playwright test --list --project android --config tests/playwright.config.ts` before running devices.
+
 **Element State Configuration:**
 
 ```typescript
@@ -112,19 +127,19 @@ await Gestures.tap(loadingButton, {
 ## E2E Test Examples and Patterns
 
 - **ALWAYS** use `withFixtures` - every test must use this pattern
-- **Framework Migration**: Use TypeScript framework (`tests/framework/`), not legacy JavaScript (`e2e/utils/`)
+- **Framework Migration**: Use TypeScript framework (`tests/framework/`)
 - **API Mocking**: All tests run with mocked APIs - use `testSpecificMock` for test-specific needs
 - **Page Objects**: Mandatory pattern - no direct element access in test specs
 - **Element State**: Configure visibility, enabled, and stability checking appropriately
 - **Debugging**: Check test output for unmocked API requests and framework warnings
 - **Performance**: Use `checkStability: false` by default, enable only for animated elements
-- Check `e2e/.cursor/rules/e2e-testing-guidelines.mdc` for comprehensive testing guidelines
+- Check [`docs/testing/e2e-testing.md`](../../docs/testing/e2e-testing.md) for comprehensive testing guidelines
 
 **Basic E2E Test Structure:**
 
 ```typescript
 import { SmokeE2E } from '../../tags';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp } from '../../tests/flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../pages/wallet/WalletView';
@@ -315,3 +330,12 @@ await Utilities.executeWithRetry(
 - [ ] Tests work on both iOS and Android platforms
 - [ ] Test names are descriptive without 'should' prefix
 - [ ] Uses FixtureBuilder for test data setup
+
+## Existing tooling
+
+| Tool                 | Type              | Current use          | When to use                                                                                                         | Notes and Limitations                                                                                                                                                                                                                                                                         |
+| -------------------- | ----------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Component View Tests | White box testing | UI integration tests | - When following a full user flow is not needed <br> - When we want to test individual component and view rendering | - Does **not** require builds <br> - Low cost (faster runtime) <br> - Fast feedback loop                                                                                                                                                                                                      |
+| Detox                | Grey box testing  | E2E                  | - When we want to test user flows <br> - Run on PR basis                                                            | - High cost <br> - Low tool (detox) maintenance <br> - JS/TS based test files <br> - Handles deeply nested elements better (easier to find and locate elements) <br> - Uses emulators/simulators <br> - Allows runs with local Builds <br> - Can't be used with real devices (cloud included) |
+| Maestro              | Black box testing | TBD                  | TBD                                                                                                                 | - **Still in experimentation phase (!)** <br> - Struggles with deeply nested elements <br> - YAML based spec files <br> - Allows runs with local builds <br> - Can run on real devices (cloud) but can't be used with real devices                                                            |
+| Appium               | Black box testing | Performance tests    | - When we want to test user flows as a end user <br> - When we want to measure and report performance stats         | - High cost <br> - Struggles with deeply nested <br> - Uses a Cloud provider for real device testing elements <br> - Does not allow runs with local builds                                                                                                                                    |

@@ -14,7 +14,7 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Device from '../../../util/device';
 import { BrowserViewSelectorsIDs } from '../../Views/BrowserTab/BrowserView.testIds';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
@@ -22,7 +22,6 @@ import SearchApi from '@metamask/react-native-search-api';
 import Logger from '../../../util/Logger';
 import { RootState } from '../../../reducers';
 import { SessionENSNames } from '../../Views/BrowserTab/types';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { selectBrowserTabCount } from '../../../reducers/browser/selectors';
 
 interface BrowserBottomBarProps {
@@ -98,10 +97,9 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
 }) => {
   const { bottom: bottomInset } = useSafeAreaInsets();
   const tw = useTailwind();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const dispatch = useDispatch();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation();
   const bookmarks = useSelector((state: RootState) => state.bookmarks);
   const tabCount = useSelector(selectBrowserTabCount);
 
@@ -136,7 +134,7 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
    * Navigate to AddBookmarkView modal
    */
   const navigateToAddBookmark = useCallback(() => {
-    navigation.push('AddBookmarkView', {
+    navigation.navigate('AddBookmarkView', {
       screen: 'AddBookmark',
       params: {
         title: title || '',
@@ -188,7 +186,9 @@ const BrowserBottomBar: React.FC<BrowserBottomBarProps> = ({
         .build(),
     );
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE).build(),
+      createEventBuilder(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE)
+        .addProperties({ action: 'Dapp View', name: 'Add to Favorites' })
+        .build(),
     );
   }, [
     navigation,

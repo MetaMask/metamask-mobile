@@ -1,0 +1,821 @@
+import test from '@playwright/test';
+import type { DeviceMatrix, LaunchArgs } from './types';
+import { getWindowSize } from './DeviceInfoCache.ts';
+import { PlaywrightElement } from './PlaywrightAdapter';
+import {
+  CHROME_PACKAGE,
+  DEFAULT_IMPLICIT_WAIT_MS,
+  DEFAULT_SNAPSHOT_MAX_DEPTH,
+  DEFAULT_SNAPSHOT_MAX_CHILDREN,
+  DEFAULT_CUSTOM_SNAPSHOT_TIMEOUT,
+  FALLBACK_FIXTURE_SERVER_PORT,
+  FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  FALLBACK_MOCKSERVER_PORT,
+  resolveE2EWaitTimeoutMs,
+  isReleaseE2eArtifactForPlatform,
+} from './Constants';
+import Utilities from './Utilities';
+import { ACCOUNT_ACTIVITY_WS } from '../websocket/constants.ts';
+// eslint-disable-next-line import-x/no-nodejs-modules
+import { execSync } from 'child_process';
+import type { CurrentDeviceDetails } from './fixtures/playwright';
+import { createPlaywrightLogger } from './playwrightLogger.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
+
+const logger = createPlaywrightLogger('PlaywrightUtilities');
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires, import-x/no-commonjs, @typescript-eslint/no-require-imports
+const deviceMatrix: DeviceMatrix = require('../performance/device-matrix.json');
+
+type AndroidIntentExtra = ['s', string, string];
+
+/** Brief pause after force-stopping Android before startActivity (CI emulators). */
+const ANDROID_PRE_LAUNCH_SETTLE_MS = 1500;
+/** Brief pause after terminating iOS before relaunch (mirrors Android pre-launch settle). */
+const IOS_PRE_LAUNCH_SETTLE_MS = Number.parseInt(
+  process.env.IOS_PRE_LAUNCH_SETTLE_MS ?? '1500',
+  10,
+);
+const IOS_PRE_LAUNCH_TERMINATE_RETRY_DELAY_MS = 1000;
+const IOS_PRE_LAUNCH_TERMINATE_MAX_ATTEMPTS = 3;
+/** Let UiAutomator2 stabilize after Expo dev-client deep link before element queries. */
+const ANDROID_POST_DEEPLINK_SETTLE_MS = 3000;
+/** Cold Metro bundles can exceed 2 min; pre-warm before deep link to avoid DevLauncherError. */
+const METRO_PREWARM_TIMEOUT_MS = process.env.E2E_WAIT_TIMEOUT_MS
+  ? 120_000
+  : 300_000;
+const METRO_STATUS_POLL_MS = 1_000;
+const APPIUM_START_ACTIVITY_CONTROL_KEYS = new Set<keyof LaunchArgs>([
+  'stop',
+  'wait',
+]);
+
+const IOS_TERMINATE_TRANSIENT_ERROR_PATTERNS = [
+  'Could not proxy command to the remote server',
+  'connect ECONNREFUSED 127.0.0.1:8100',
+  'socket hang up',
+  'The session identified by',
+  'invalid session id',
+];
+
+const getMetroPort = (): string =>
+  process.env.METRO_PORT_E2E || process.env.WATCHER_PORT || '8081';
+
+/**
+ * Get the driver instance.
+ * @returns The driver instance.
+ */
+export function getDriver(): WebdriverIO.Browser {
+  const drv = globalThis.driver;
+  if (!drv) throw new Error('driver is not available');
+  return drv;
+}
+
+interface AppiumDeepLinkArgs {
+  url: string;
+  package?: string;
+}
+
+type AndroidSessionCapabilities = WebdriverIO.Capabilities & {
+  'appium:appPackage'?: string;
+  appPackage?: string;
+};
+
+function getAndroidSessionPackage(
+  drv: WebdriverIO.Browser,
+): string | undefined {
+  const caps = drv.capabilities as AndroidSessionCapabilities;
+  return (caps['appium:appPackage'] ?? caps.appPackage)?.trim();
+}
+
+/**
+ * Opens a deep link via Appium `mobile: deepLink`.
+ * On Android, scopes the intent to the active app package so the system
+ * "Open with" chooser is not shown (see launchAppAndroidForDebugBuild).
+ */
+export async function executeMobileDeepLink(
+  url: string,
+  options: { package?: string } = {},
+): Promise<void> {
+  const drv = getDriver();
+  const args: AppiumDeepLinkArgs = { url };
+
+  const explicitPackage = options.package?.trim();
+  if (explicitPackage) {
+    args.package = explicitPackage;
+  } else if (PlatformDetector.isAndroid()) {
+    const pkg = getAndroidSessionPackage(drv);
+    if (!pkg) {
+      throw new Error(
+        'Android mobile: deepLink requires appium:appPackage or appPackage in session capabilities.',
+      );
+    }
+    args.package = pkg;
+  }
+
+  await drv.execute('mobile: deepLink', args);
+}
+
+/**
+ * Runs a callback with a temporarily increased implicit wait timeout.
+ * Restores the default timeout afterward, even if the callback throws.
+ * Use this for operations that legitimately need a longer wait (e.g. waitForDisplayed with 30s).
+ * @param timeoutMs - The timeout in milliseconds.
+ * @param fn - The callback to run.
+ * @returns The result of the callback.
+ */
+export async function withImplicitWait<T>(
+  timeoutMs: number,
+  fn: () => Promise<T>,
+): Promise<T> {
+  const drv = getDriver();
+  await drv.setTimeout({ implicit: timeoutMs });
+  try {
+    return await fn();
+  } finally {
+    await drv.setTimeout({ implicit: DEFAULT_IMPLICIT_WAIT_MS });
+  }
+}
+
+export interface SnapshotSettings {
+  snapshotMaxDepth?: number;
+  snapshotMaxChildren?: number;
+  customSnapshotTimeout?: number;
+}
+
+/**
+ * Runs a callback with temporarily adjusted WDA snapshot settings.
+ * Restores defaults afterward, even if the callback throws.
+ * Use this for heavy screens (e.g. token selector lists) where
+ * a smaller depth/children limit speeds up element lookups.
+ */
+export async function withSnapshotSettings<T>(
+  settings: SnapshotSettings,
+  fn: () => Promise<T>,
+): Promise<T> {
+  const drv = getDriver();
+  await drv.updateSettings(settings);
+  try {
+    return await fn();
+  } finally {
+    await drv.updateSettings({
+      snapshotMaxDepth: DEFAULT_SNAPSHOT_MAX_DEPTH,
+      snapshotMaxChildren: DEFAULT_SNAPSHOT_MAX_CHILDREN,
+      customSnapshotTimeout: DEFAULT_CUSTOM_SNAPSHOT_TIMEOUT,
+    });
+  }
+}
+
+/**
+ * Run an async step with a timeout. Rejects after ms so callers can catch
+ * and continue.
+ * @param promise - The promise to run with a timeout
+ * @param ms - The timeout in milliseconds
+ * @param label - The label of the operation (default: 'operation')
+ * @returns The result of the promise
+ */
+export function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  label = 'operation',
+): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new Error(`${label} timed out after ${ms}ms`)),
+        ms,
+      ),
+    ),
+  ]);
+}
+
+/**
+ * boxedStep - Wraps a function in a Playwright step - Used for the Test Report
+ * Used for the Test Report of the Appium framework.
+ * @param target - The function to wrap
+ * @param context - The context of the function
+ * @returns - The wrapped function
+ */
+export function boxedStep<This, Args extends unknown[], Return>(
+  target: (this: This, ...args: Args) => Return,
+  context: ClassMethodDecoratorContext,
+): (this: This, ...args: Args) => Return {
+  const replacementMethod = function (this: This, ...args: Args): Return {
+    const self = this as This & {
+      name?: string; // For static methods, `this` is the class constructor which has a `name` property
+      constructor: {
+        name: string;
+      };
+      elem?: WebdriverIO.Element | { selector: string }; // WebdriverIO element with selector
+    };
+    const methodName = context.name as string;
+
+    // For static methods, `this` is the class constructor itself, so use `this.name`
+    // For instance methods, `this` is the instance, so use `this.constructor.name`
+    const className = context.static ? self.name : self.constructor.name;
+    let stepName = className + '.' + methodName;
+
+    if (self.elem?.selector) {
+      stepName += ` [${self.elem.selector}]`;
+    }
+
+    // Add args info for certain methods
+    if (args.length > 0 && ['fill', 'type', 'setValue'].includes(methodName)) {
+      const argPreview =
+        String(args[0]).length > 50
+          ? String(args[0]).substring(0, 50) + '...'
+          : String(args[0]);
+      stepName += ` ("${argPreview}")`;
+    }
+
+    return test.step(
+      stepName,
+      async () => {
+        try {
+          const result = await target.call(this, ...args);
+          return result;
+        } catch (error) {
+          // Take screenshot on error for better debugging
+          try {
+            const driver = getDriver();
+            const screenshot = await driver.takeScreenshot();
+            await test.info().attach(`${methodName}-error-screenshot`, {
+              body: Buffer.from(screenshot, 'base64'),
+              contentType: 'image/png',
+            });
+          } catch (screenshotError) {
+            // Don't fail if screenshot fails
+            logger.warn('Failed to capture error screenshot:', screenshotError);
+          }
+          throw error;
+        }
+      },
+      { box: true },
+    ) as Return;
+  };
+
+  return replacementMethod;
+}
+
+/**
+ * Lightweight Appium overhead accumulator for performance measurements.
+ *
+ * Problem: every WebDriver HTTP call (findElement, isExisting, click …) adds
+ * infrastructure latency — on BrowserStack this can be 3-18 s per command.
+ * Without compensation a 3 s app-load would be reported as 20+ s.
+ *
+ * Solution: framework methods call `addOverhead(ms)` for operations whose
+ * duration is *pure infra cost* (element resolution, post-detection probes).
+ * `TimerHelper.measure()` activates tracking before the action and subtracts
+ * the accumulated value after the timer stops.
+ *
+ * When no `measure()` is active (`_tracking === false`) all functions are
+ * no-ops, so regular (non-performance) tests pay zero cost.
+ */
+let _overheadMs = 0;
+let _tracking = false;
+
+export function startOverheadTracking(): void {
+  if (_tracking) {
+    logger.warn(
+      'TimerHelper: startOverheadTracking() called while already active — nested measure() calls are not supported; inner call ignored',
+    );
+    return;
+  }
+  _overheadMs = 0;
+  _tracking = true;
+}
+
+export function addOverhead(ms: number): void {
+  if (_tracking) _overheadMs += ms;
+}
+
+export function stopOverheadTracking(): number {
+  _tracking = false;
+  const result = _overheadMs;
+  _overheadMs = 0;
+  return result;
+}
+
+export function isOverheadTrackingActive(): boolean {
+  return _tracking;
+}
+
+class PlaywrightUtilities {
+  private static isTransientIosTerminateError(error: unknown): boolean {
+    const message = error instanceof Error ? error.message : String(error);
+    return IOS_TERMINATE_TRANSIENT_ERROR_PATTERNS.some((pattern) =>
+      message.includes(pattern),
+    );
+  }
+
+  /**
+   * iOS `terminateApp` intermittently fails in CI when WDA briefly drops the
+   * transport. We retry transient connection/session errors before launch so we
+   * do not fail the whole spec during fixture bootstrap.
+   */
+  private static async terminateIosAppBeforeLaunch(
+    bundleId: string,
+  ): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    for (
+      let attempt = 1;
+      attempt <= IOS_PRE_LAUNCH_TERMINATE_MAX_ATTEMPTS;
+      attempt++
+    ) {
+      try {
+        await drv.terminateApp(bundleId);
+        return;
+      } catch (error) {
+        const isTransient = this.isTransientIosTerminateError(error);
+        const message = error instanceof Error ? error.message : String(error);
+
+        if (isTransient && attempt < IOS_PRE_LAUNCH_TERMINATE_MAX_ATTEMPTS) {
+          logger.warn(
+            `terminateApp(${bundleId}) transient failure ` +
+              `(attempt ${attempt}/${IOS_PRE_LAUNCH_TERMINATE_MAX_ATTEMPTS}); ` +
+              `retrying: ${message}`,
+          );
+          await new Promise((resolve) =>
+            setTimeout(resolve, IOS_PRE_LAUNCH_TERMINATE_RETRY_DELAY_MS),
+          );
+          continue;
+        }
+
+        if (isTransient) {
+          logger.warn(
+            `terminateApp(${bundleId}) still failing after ` +
+              `${IOS_PRE_LAUNCH_TERMINATE_MAX_ATTEMPTS} transient attempts; ` +
+              `continuing with launch: ${message}`,
+          );
+          return;
+        }
+
+        throw error;
+      }
+    }
+  }
+
+  /**
+   * Get the device screen size.
+   * @returns The device screen size.
+   */
+  static async getDeviceScreenSize(): Promise<{
+    width: number;
+    height: number;
+  }> {
+    const screenSize = getWindowSize();
+    return { width: screenSize.width, height: screenSize.height };
+  }
+
+  /**
+   * Temporary wait method for the Playwright framework migration to keep the
+   * 1:1 to the old Appwright implementation.
+   * See: https://github.com/MetaMask/metamask-mobile/blob/dd3323cfabc55c2a3a44509c8b601cb9b218536c/tests/framework/utils/Flows.js#L228
+   * @param ms - The time to wait in milliseconds
+   * @returns A promise that resolves when the wait is complete
+   */
+  static async wait(ms: number): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  static buildDeviceAccountMapping(): Record<string, string | null> {
+    const mapping: Record<string, string | null> = {};
+
+    // Process Android devices
+    deviceMatrix.android_devices.forEach((device) => {
+      if (device.category === 'high') {
+        mapping[device.name] = 'Account 3';
+      } else if (device.category === 'low') {
+        // Low category Android devices use default Account 1
+        mapping[device.name] = 'Account 1';
+      }
+    });
+
+    // Process iOS devices
+    deviceMatrix.ios_devices.forEach((device) => {
+      if (device.category === 'high') {
+        mapping[device.name] = 'Account 4';
+      } else if (device.category === 'low') {
+        mapping[device.name] = 'Account 5';
+      }
+    });
+
+    return mapping;
+  }
+
+  /**
+   * Wait for element to be not visible and throw on failure
+   * @param element - The element to wait for
+   * @param timeout - The timeout in milliseconds
+   */
+  static async waitForElementToDisappear(
+    element: PlaywrightElement,
+    timeout = 5000,
+  ): Promise<void> {
+    await element.waitForDisplayed({ reverse: true, timeout });
+  }
+
+  static setupChromeDisableFre(): void {
+    try {
+      execSync(`adb shell am set-debug-app --persistent ${CHROME_PACKAGE}`, {
+        stdio: 'pipe',
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn(
+        `Could not set Chrome as debug app (FRE may show): ${message}`,
+      );
+    }
+
+    try {
+      execSync(
+        `adb shell "echo 'chrome --disable-fre --no-default-browser-check --no-first-run' > /data/local/tmp/chrome-command-line"`,
+        { stdio: 'pipe' },
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn(
+        `Could not write Chrome command-line (FRE may show): ${message}`,
+      );
+    }
+  }
+
+  static clearChromeData(): void {
+    try {
+      execSync(`adb shell pm clear ${CHROME_PACKAGE}`, { stdio: 'pipe' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn(
+        `Could not clear Chrome data (Chrome may open with existing tabs): ${message}`,
+      );
+    }
+  }
+
+  /**
+   * Resolves {@link LaunchArgs} defaults for Playwright + Appium (same logical defaults as
+   * `FixtureHelper` Detox Android: fallback ports + URL blacklist + account-activity WS fallback).
+   * Callers may override or extend via `launchArgs` (e.g. real ports when `withFixtures` is active).
+   */
+  private static buildResolvedLaunchArgs(
+    { launchArgs }: { launchArgs?: Partial<LaunchArgs> } = {
+      launchArgs: {} as Partial<LaunchArgs>,
+    },
+  ): Record<string, string> {
+    const e2eDefaults: Record<string, string> = {
+      fixtureServerPort: `${FALLBACK_FIXTURE_SERVER_PORT}`,
+      commandQueueServerPort: `${FALLBACK_COMMAND_QUEUE_SERVER_PORT}`,
+      detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+      mockServerPort: `${FALLBACK_MOCKSERVER_PORT}`,
+      [ACCOUNT_ACTIVITY_WS.launchArgKey]: `${ACCOUNT_ACTIVITY_WS.fallbackPort}`,
+    };
+
+    const resolved: Record<string, string> = { ...e2eDefaults };
+    if (launchArgs) {
+      for (const [key, value] of Object.entries(launchArgs)) {
+        if (
+          APPIUM_START_ACTIVITY_CONTROL_KEYS.has(key as keyof LaunchArgs) ||
+          value === undefined ||
+          value === ''
+        ) {
+          continue;
+        }
+        resolved[key] = typeof value === 'boolean' ? String(value) : value;
+      }
+    }
+    return resolved;
+  }
+
+  /**
+   * Builds Android string intent extras from {@link LaunchArgs}.
+   * Each defined string value is passed as a string extra (`--es`) using the
+   * same keys as Detox `launchArgs` / `react-native-launch-arguments`.
+   */
+  private static buildAndroidIntentExtras(
+    { launchArgs }: { launchArgs?: Partial<LaunchArgs> } = {
+      launchArgs: {} as Partial<LaunchArgs>,
+    },
+  ): AndroidIntentExtra[] {
+    const resolved = PlaywrightUtilities.buildResolvedLaunchArgs({
+      launchArgs,
+    });
+
+    const extras: AndroidIntentExtra[] = [];
+    for (const [key, value] of Object.entries(resolved)) {
+      if (value === undefined || value === '') {
+        continue;
+      }
+      extras.push(['s', key, String(value)]);
+    }
+
+    return extras;
+  }
+
+  /**
+   * Builds XCUITest process `arguments` for `mobile: launchApp`, consumed by
+   * `react-native-launch-arguments` on iOS (must terminate the app before relaunch for args to apply).
+   */
+  private static buildIosLaunchProcessArguments(
+    { launchArgs }: { launchArgs?: Partial<LaunchArgs> } = {
+      launchArgs: {} as Partial<LaunchArgs>,
+    },
+  ): string[] {
+    const resolved = PlaywrightUtilities.buildResolvedLaunchArgs({
+      launchArgs,
+    });
+    const argumentsList: string[] = [];
+    for (const [key, value] of Object.entries(resolved)) {
+      if (value === undefined || value === '') {
+        continue;
+      }
+      argumentsList.push(`-${key}`, String(value));
+    }
+    return argumentsList;
+  }
+
+  private static getDevLauncherPackagerUrl(
+    platform: 'android' | 'ios',
+  ): string {
+    const port = getMetroPort();
+    const host = platform === 'android' ? '10.0.2.2' : 'localhost';
+    return `http://${host}:${port}/index.bundle?platform=${platform}&dev=true&minify=false&disableOnboarding=1`;
+  }
+
+  private static getDeepLinkUrl(bundleUrl: string): string {
+    return `expo-metamask://expo-development-client/?url=${encodeURIComponent(
+      bundleUrl,
+    )}`;
+  }
+
+  private static setupAndroidMetroReverse(
+    currentDeviceDetails: CurrentDeviceDetails,
+  ): void {
+    const port = getMetroPort();
+    const serial = currentDeviceDetails.udid?.trim();
+    const adbFlag = serial ? `-s ${serial}` : '';
+    execSync(`adb ${adbFlag} reverse tcp:${port} tcp:${port}`, {
+      stdio: 'ignore',
+    });
+  }
+
+  /**
+   * Ensures Metro is running and the platform bundle is built before the dev-client
+   * deep link. Without this, cold bundles (60–160s) can land on DevLauncherErrorActivity
+   * while FixtureHelper waits for `/state.json`.
+   */
+  private static async ensureMetroBundleReady(
+    platform: 'android' | 'ios',
+  ): Promise<void> {
+    const port = getMetroPort();
+    const statusUrl = `http://127.0.0.1:${port}/status`;
+    const bundleUrl = `http://127.0.0.1:${port}/index.bundle?platform=${platform}&dev=true&minify=false&disableOnboarding=1`;
+    const deadline = Date.now() + METRO_PREWARM_TIMEOUT_MS;
+
+    while (Date.now() < deadline) {
+      try {
+        const statusResponse = await fetch(statusUrl);
+        const statusBody = await statusResponse.text();
+        if (statusResponse.ok && statusBody.includes('running')) {
+          break;
+        }
+      } catch {
+        // Metro not ready yet.
+      }
+      await new Promise((resolve) => setTimeout(resolve, METRO_STATUS_POLL_MS));
+    }
+
+    if (Date.now() >= deadline) {
+      throw new Error(
+        `Metro is not running on port ${port}. Start Metro before Appium smoke tests.`,
+      );
+    }
+
+    logger.debug(`Pre-warming Metro bundle: ${bundleUrl}`);
+    const controller = new AbortController();
+    const abortTimer = setTimeout(
+      () => controller.abort(),
+      METRO_PREWARM_TIMEOUT_MS,
+    );
+    try {
+      const bundleResponse = await fetch(bundleUrl, {
+        signal: controller.signal,
+      });
+      if (!bundleResponse.ok) {
+        throw new Error(
+          `Metro bundle pre-warm failed with status ${bundleResponse.status}`,
+        );
+      }
+      await bundleResponse.text();
+      logger.debug('Metro bundle pre-warm complete');
+    } finally {
+      clearTimeout(abortTimer);
+    }
+  }
+
+  /**
+   * Launches a local debug Android build via Expo dev-client deep link (no Metro picker).
+   * Two steps mirror Detox `launchApp({ url, launchArgs })` and iOS debug launch:
+   * 1. MAIN/LAUNCHER with intent extras (fixture ports)
+   * 2. `mobile: deepLink` scoped to the app package (avoids system "Open with" chooser)
+   */
+  private static async launchAppAndroidForDebugBuild(
+    currentDeviceDetails: CurrentDeviceDetails,
+    { launchArgs }: { launchArgs?: Partial<LaunchArgs> } = {
+      launchArgs: {} as Partial<LaunchArgs>,
+    },
+  ): Promise<void> {
+    const drv = getDriver();
+    const pkg = currentDeviceDetails.packageName?.trim();
+    const activity = currentDeviceDetails.launchableActivity?.trim();
+    if (!pkg || !activity) {
+      throw new Error(
+        'Android debug launch requires packageName and launchableActivity on currentDeviceDetails.',
+      );
+    }
+
+    this.setupAndroidMetroReverse(currentDeviceDetails);
+    await this.ensureMetroBundleReady('android');
+    const deepLinkUrl = this.getDeepLinkUrl(
+      this.getDevLauncherPackagerUrl('android'),
+    );
+    const extras = PlaywrightUtilities.buildAndroidIntentExtras({
+      launchArgs,
+    });
+
+    await drv.terminateApp(pkg).catch(() => undefined);
+    await new Promise((resolve) =>
+      setTimeout(resolve, ANDROID_PRE_LAUNCH_SETTLE_MS),
+    );
+
+    logger.debug(
+      `Launching Android debug app ${pkg}/${activity} with fixture extras`,
+    );
+    await drv.execute('mobile: startActivity', {
+      component: `${pkg}/${activity}`,
+      action: 'android.intent.action.MAIN',
+      categories: ['android.intent.category.LAUNCHER'],
+      stop: true,
+      wait: true,
+      ...(extras.length > 0 ? { extras } : {}),
+    });
+
+    logger.debug(`Opening Android debug deep link in ${pkg}: ${deepLinkUrl}`);
+    await executeMobileDeepLink(deepLinkUrl, { package: pkg });
+    await new Promise((resolve) =>
+      setTimeout(resolve, ANDROID_POST_DEEPLINK_SETTLE_MS),
+    );
+  }
+
+  /**
+   * Launches a local debug iOS build: XCUITest launchApp then Expo dev-client deep link.
+   */
+  private static async launchAppIOSForDebugBuild(
+    currentDeviceDetails: CurrentDeviceDetails,
+    { launchArgs }: { launchArgs?: Partial<LaunchArgs> } = {
+      launchArgs: {} as Partial<LaunchArgs>,
+    },
+  ): Promise<void> {
+    await this.launchAppIOS(currentDeviceDetails, { launchArgs });
+
+    const deepLinkUrl = this.getDeepLinkUrl(
+      this.getDevLauncherPackagerUrl('ios'),
+    );
+    logger.debug(`Opening iOS debug deep link: ${deepLinkUrl}`);
+    await executeMobileDeepLink(deepLinkUrl);
+  }
+
+  /**
+   *
+   * @param currentDeviceDetails - The current device details
+   * @param { launchArgs } - The launch arguments
+   * @returns A promise that resolves when the app is launched
+   */
+  private static async launchAppAndroid(
+    currentDeviceDetails: CurrentDeviceDetails,
+    { launchArgs }: { launchArgs?: Partial<LaunchArgs> } = {
+      launchArgs: {} as Partial<LaunchArgs>,
+    },
+  ): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    const pkg = currentDeviceDetails.packageName?.trim();
+    const activity = currentDeviceDetails.launchableActivity?.trim();
+    if (!pkg || !activity) {
+      throw new Error(
+        `Android launch requires non-empty packageName and launchableActivity on currentDeviceDetails (set tests/playwright.config.ts use.app.packageName and use.app.launchableActivity). Got packageName="${currentDeviceDetails.packageName}", launchableActivity="${currentDeviceDetails.launchableActivity}".`,
+      );
+    }
+
+    const extras = PlaywrightUtilities.buildAndroidIntentExtras({
+      launchArgs,
+    });
+    const stop = launchArgs?.stop ?? true;
+    const wait = launchArgs?.wait ?? true;
+
+    // Mirror iOS: terminate before launch so `-W -S` startActivity is not stuck on a hung process.
+    await drv.terminateApp(pkg).catch(() => undefined);
+    await new Promise((resolve) =>
+      setTimeout(resolve, ANDROID_PRE_LAUNCH_SETTLE_MS),
+    );
+
+    logger.debug(`Launching Android app ${pkg}/${activity}`);
+    await drv.execute('mobile: startActivity', {
+      component: `${pkg}/${activity}`,
+      action: 'android.intent.action.MAIN',
+      categories: ['android.intent.category.LAUNCHER'],
+      stop,
+      wait,
+      ...(extras.length > 0 ? { extras } : {}),
+    });
+  }
+
+  /**
+   * Launches the iOS app under test with {@link LaunchArgs} via XCUITest `mobile: launchApp`.
+   * Terminates first so process `arguments` are not ignored when the app was already running.
+   *
+   * @param currentDeviceDetails - The current device details
+   * @param { launchArgs } - The launch arguments
+   * @returns A promise that resolves when the app is launched
+   */
+  private static async launchAppIOS(
+    currentDeviceDetails: CurrentDeviceDetails,
+    { launchArgs }: { launchArgs?: Partial<LaunchArgs> } = {
+      launchArgs: {} as Partial<LaunchArgs>,
+    },
+  ): Promise<void> {
+    const bundleId = currentDeviceDetails.appId;
+    if (!bundleId) {
+      throw new Error('app id is not available for iOS launch');
+    }
+
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    const argumentsList = PlaywrightUtilities.buildIosLaunchProcessArguments({
+      launchArgs,
+    });
+
+    logger.debug(`Launching iOS app ${bundleId}`);
+    await PlaywrightUtilities.terminateIosAppBeforeLaunch(bundleId);
+    if (IOS_PRE_LAUNCH_SETTLE_MS > 0) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, IOS_PRE_LAUNCH_SETTLE_MS),
+      );
+    }
+
+    await drv.execute('mobile: launchApp', {
+      bundleId,
+      ...(argumentsList.length > 0 ? { arguments: argumentsList } : {}),
+    });
+  }
+
+  /**
+   * Launch an app
+   * @param currentDeviceDetails - The current device details
+   * @param { launchArgs } - The launch arguments
+   * @returns A promise that resolves when the app is launched
+   */
+  static async launchApp(
+    currentDeviceDetails: CurrentDeviceDetails,
+    { launchArgs }: { launchArgs?: Partial<LaunchArgs> } = {
+      launchArgs: {} as Partial<LaunchArgs>,
+    },
+  ): Promise<void> {
+    if (!currentDeviceDetails?.packageName && !currentDeviceDetails?.appId) {
+      throw new Error('Package name or app id is not available');
+    }
+
+    const platform = currentDeviceDetails.platform as 'android' | 'ios';
+    const useDebugDeepLinkLaunch = !isReleaseE2eArtifactForPlatform(platform);
+
+    if (currentDeviceDetails.platform === 'android') {
+      if (useDebugDeepLinkLaunch) {
+        await this.launchAppAndroidForDebugBuild(currentDeviceDetails, {
+          launchArgs,
+        });
+      } else {
+        await this.launchAppAndroid(currentDeviceDetails, {
+          launchArgs,
+        });
+      }
+    } else if (currentDeviceDetails.platform === 'ios') {
+      if (useDebugDeepLinkLaunch) {
+        await this.launchAppIOSForDebugBuild(currentDeviceDetails, {
+          launchArgs,
+        });
+      } else {
+        await this.launchAppIOS(currentDeviceDetails, { launchArgs });
+      }
+    } else {
+      throw new Error('Unsupported platform');
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+}
+
+// Change this once we use functions for the PlaywrightAdapter Utils
+export default PlaywrightUtilities;

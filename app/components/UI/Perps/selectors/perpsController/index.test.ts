@@ -1,6 +1,8 @@
 import { RootState } from '../../../../../reducers';
-import type { AccountState } from '../../controllers/types';
-import { InitializationState } from '../../controllers/PerpsController';
+import {
+  InitializationState,
+  type AccountState,
+} from '@metamask/perps-controller';
 import {
   selectPerpsProvider,
   selectPerpsAccountState,
@@ -9,6 +11,8 @@ import {
   selectPerpsNetwork,
   selectIsFirstTimePerpsUser,
   selectPerpsInitializationState,
+  selectPerpsPayWithToken,
+  selectIsPerpsBalanceSelected,
 } from './index';
 
 describe('PerpsController Selectors', () => {
@@ -89,7 +93,8 @@ describe('PerpsController Selectors', () => {
     it('returns account state from PerpsController', () => {
       // Arrange
       const mockAccountState: AccountState = {
-        availableBalance: '3000',
+        spendableBalance: '3000',
+        withdrawableBalance: '3000',
         marginUsed: '1000',
         unrealizedPnl: '50',
         returnOnEquity: '10.0',
@@ -134,7 +139,8 @@ describe('PerpsController Selectors', () => {
     it('handles zero balance account state', () => {
       // Arrange
       const mockAccountState: AccountState = {
-        availableBalance: '0',
+        spendableBalance: '0',
+        withdrawableBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
@@ -150,14 +156,15 @@ describe('PerpsController Selectors', () => {
 
       // Assert
       expect(result).toEqual(mockAccountState);
-      expect(result?.availableBalance).toBe('0');
+      expect(result?.spendableBalance).toBe('0');
       expect(result?.totalBalance).toBe('0');
     });
 
     it('handles account with positive PnL', () => {
       // Arrange
       const positivePnlState: AccountState = {
-        availableBalance: '5000',
+        spendableBalance: '5000',
+        withdrawableBalance: '5000',
         marginUsed: '1000',
         unrealizedPnl: '500',
         returnOnEquity: '100.0',
@@ -179,7 +186,8 @@ describe('PerpsController Selectors', () => {
     it('handles account with negative PnL', () => {
       // Arrange
       const negativePnlState: AccountState = {
-        availableBalance: '3000',
+        spendableBalance: '3000',
+        withdrawableBalance: '3000',
         marginUsed: '2000',
         unrealizedPnl: '-500',
         returnOnEquity: '-25.0',
@@ -536,7 +544,8 @@ describe('PerpsController Selectors', () => {
       const mockState = createMockState({
         activeProvider: 'testProvider',
         accountState: {
-          availableBalance: '1000',
+          spendableBalance: '1000',
+          withdrawableBalance: '1000',
           totalBalance: '1000',
           marginUsed: '0',
           unrealizedPnl: '0',
@@ -578,7 +587,8 @@ describe('PerpsController Selectors', () => {
       const complexState = createMockState({
         activeProvider: 'nestedProvider',
         accountState: {
-          availableBalance: '5000',
+          spendableBalance: '5000',
+          withdrawableBalance: '5000',
           totalBalance: '6000',
           marginUsed: '1000',
           unrealizedPnl: '100',
@@ -605,7 +615,8 @@ describe('PerpsController Selectors', () => {
       // Then - they extract only the relevant data
       expect(provider).toBe('nestedProvider');
       expect(account).toEqual({
-        availableBalance: '5000',
+        spendableBalance: '5000',
+        withdrawableBalance: '5000',
         totalBalance: '6000',
         marginUsed: '1000',
         unrealizedPnl: '100',
@@ -708,7 +719,13 @@ describe('PerpsController Selectors', () => {
 
     it('returns true when PerpsController state is undefined', () => {
       // Arrange
-      const mockState = createMockState(undefined);
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PerpsController: undefined,
+          },
+        },
+      } as unknown as RootState;
 
       // Act
       const result = selectIsFirstTimePerpsUser(mockState);
@@ -771,6 +788,56 @@ describe('PerpsController Selectors', () => {
 
       // Assert
       expect(result).toBe(InitializationState.Uninitialized);
+    });
+  });
+
+  describe('selectIsPerpsBalanceSelected', () => {
+    it('returns true when selectedPaymentToken is null', () => {
+      const mockState = createMockState({
+        selectedPaymentToken: null,
+      });
+
+      const result = selectIsPerpsBalanceSelected(mockState);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when selectedPaymentToken is set', () => {
+      const mockState = createMockState({
+        selectedPaymentToken: {
+          address: '0xusdc',
+          chainId: '0xa4b1',
+        },
+      });
+
+      const result = selectIsPerpsBalanceSelected(mockState);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPerpsPayWithToken', () => {
+    it('returns selectedPaymentToken from PerpsController state', () => {
+      const token = {
+        description: 'USDC',
+        address: '0xusdc',
+        chainId: '0xa4b1',
+      };
+      const mockState = createMockState({
+        selectedPaymentToken: token,
+      });
+
+      const result = selectPerpsPayWithToken(mockState);
+
+      expect(result).toEqual(token);
+    });
+
+    it('returns undefined when selectedPaymentToken is not set', () => {
+      const mockState = createMockState({});
+
+      const result = selectPerpsPayWithToken(mockState);
+
+      expect(result).toBeUndefined();
     });
   });
 });

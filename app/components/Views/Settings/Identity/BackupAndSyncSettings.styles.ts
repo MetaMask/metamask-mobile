@@ -17,7 +17,7 @@ const styleSheet = (params: { theme: Theme }) =>
       marginTop: 16,
     },
     setting: {
-      marginVertical: 16,
+      marginTop: 24,
     },
     clearHistoryConfirm: {
       marginTop: 18,
@@ -63,11 +63,5 @@ const styleSheet = (params: { theme: Theme }) =>
       marginBottom: 48,
     },
   });
-
-export const styles = StyleSheet.create({
-  headerLeft: {
-    marginHorizontal: 16,
-  },
-});
 
 export default styleSheet;

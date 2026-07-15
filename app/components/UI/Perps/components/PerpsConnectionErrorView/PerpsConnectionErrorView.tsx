@@ -1,16 +1,15 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import Icon, {
+  ButtonVariant,
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -23,7 +22,7 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+} from '@metamask/perps-controller';
 import styleSheet from './PerpsConnectionErrorView.styles';
 
 interface PerpsConnectionErrorViewProps {
@@ -45,13 +44,9 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
   const navigation = useNavigation();
   const { track } = usePerpsEventTracking();
 
-  // Track error screen view
-  usePerpsEventTracking({
-    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-    properties: {
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.ERROR,
-    },
-  });
+  const errorMessage =
+    (typeof error === 'string' ? error : error?.message) ||
+    PERPS_EVENT_VALUE.ERROR_MESSAGE_KEY.UNKNOWN;
 
   // Filter debug messages in production - show generic error message
   const shouldShowDebugDetails =
@@ -80,7 +75,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
       <View style={styles.errorContainer}>
         <Icon
           name={IconName.Warning}
-          color={IconColor.Muted}
+          color={IconColor.IconMuted}
           size={IconSize.Xl}
           style={styles.errorIcon}
         />
@@ -107,14 +102,9 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
 
       <View style={styles.buttonContainer}>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={
-            isRetrying
-              ? strings('perps.connection.retrying_connection')
-              : strings('perps.errors.connectionFailed.retry')
-          }
+          isFullWidth
           onPress={() => {
             track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
               [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
@@ -122,22 +112,38 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
               [PERPS_EVENT_PROPERTY.ACTION]:
                 PERPS_EVENT_VALUE.ACTION.CONNECTION_RETRY,
               [PERPS_EVENT_PROPERTY.ATTEMPT_NUMBER]: retryAttempts + 1,
+              [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
             });
             onRetry();
           }}
-          loading={isRetrying}
+          isLoading={isRetrying}
           style={styles.retryButton}
-        />
+        >
+          {isRetrying
+            ? strings('perps.connection.retrying_connection')
+            : strings('perps.errors.connectionFailed.retry')}
+        </Button>
 
         {shouldShowBackButton && (
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('perps.errors.connectionFailed.go_back')}
-            onPress={handleGoBack}
+            isFullWidth
+            onPress={() => {
+              track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+                [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+                  PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+                [PERPS_EVENT_PROPERTY.ACTION]:
+                  PERPS_EVENT_VALUE.ACTION.CONNECTION_GO_BACK,
+                [PERPS_EVENT_PROPERTY.ATTEMPT_NUMBER]: retryAttempts,
+                [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
+              });
+              handleGoBack();
+            }}
             style={styles.backButton}
-          />
+          >
+            {strings('perps.errors.connectionFailed.go_back')}
+          </Button>
         )}
       </View>
     </View>

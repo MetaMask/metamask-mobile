@@ -1,6 +1,13 @@
 // Core hooks (direct controller access)
+export { usePerpsCategories } from './usePerpsCategories';
+export { useHasNewMarkets } from './useHasNewMarkets';
 export { usePerpsMarkets } from './usePerpsMarkets';
+export {
+  usePerpsTopMovers,
+  isPerpsTopMoversSectionVisible,
+} from './usePerpsTopMovers';
 export { usePerpsNetwork } from './usePerpsNetwork';
+export { usePerpsProvider } from './usePerpsProvider';
 export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
 export { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 export { usePerpsTrading } from './usePerpsTrading';
@@ -16,7 +23,6 @@ export { usePerpsSorting } from './usePerpsSorting';
 export { usePerpsNavigation } from './usePerpsNavigation';
 
 // Connection management hooks
-export { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';
 export { usePerpsConnection } from './usePerpsConnection';
 export { useWebSocketHealthToast } from './useWebSocketHealthToast';
 
@@ -102,8 +108,9 @@ export { usePerpsBlockExplorerUrl } from './usePerpsBlockExplorerUrl';
 // Utility hooks
 export { useStableArray } from './useStableArray';
 
-// Tab view hooks
-export { usePerpsTabExploreData } from './usePerpsTabExploreData';
+// Discovery hooks (for use outside perps screens)
+export { usePerpsMarketForAsset } from './usePerpsMarketForAsset';
+export { usePerpsPositionForAsset } from './usePerpsPositionForAsset';
 
 // Stream hooks (WebSocket subscriptions)
 export * from './stream';

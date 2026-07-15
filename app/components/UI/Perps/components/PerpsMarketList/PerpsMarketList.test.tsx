@@ -2,14 +2,37 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { View, Text as RNText } from 'react-native';
 import PerpsMarketList from './PerpsMarketList';
-import type { PerpsMarketData } from '../../controllers/types';
-import type { SortField } from '../../utils/sortMarkets';
+import {
+  type PerpsMarketData,
+  type SortField,
+} from '@metamask/perps-controller';
+
+// Captures props passed to FlashList so tests can assert on them. `key` is a
+// special React prop and never appears here, which is precisely why filter
+// changes must flow through `extraData` instead.
+const mockFlashListProps: Record<string, unknown>[] = [];
+
+// Tracks how many times a market row is mounted, used to prove that changing
+// the filter re-renders rows without tearing them down (no remount).
+const mockRowMountCount = { value: 0 };
+
+// Records the `onPress` reference each row receives, keyed by symbol, so tests
+// can assert the reference is stable across re-renders (so React.memo on the
+// real row is not defeated by a new closure on every render).
+const mockRowOnPressBySymbol: Record<
+  string,
+  ((market: PerpsMarketData) => void)[]
+> = {};
 
 // Mock dependencies
 jest.mock('@shopify/flash-list', () => {
+  const ReactActual = jest.requireActual('react');
   const { FlatList } = jest.requireActual('react-native');
   return {
-    FlashList: FlatList,
+    FlashList: (props: Record<string, unknown>) => {
+      mockFlashListProps.push(props);
+      return ReactActual.createElement(FlatList, props);
+    },
   };
 });
 
@@ -24,6 +47,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
 }));
 
 jest.mock('../PerpsMarketRowItem', () => {
+  const ReactActual = jest.requireActual('react');
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return function MockPerpsMarketRowItem({
     market,
@@ -32,13 +56,19 @@ jest.mock('../PerpsMarketRowItem', () => {
     displayMetric,
   }: {
     market: PerpsMarketData;
-    onPress: () => void;
+    onPress: (market: PerpsMarketData) => void;
     iconSize?: number;
     displayMetric?: SortField;
   }) {
+    ReactActual.useEffect(() => {
+      mockRowMountCount.value += 1;
+    }, []);
+    (mockRowOnPressBySymbol[market.symbol] ||= []).push(onPress);
     return (
       <TouchableOpacity
-        onPress={onPress}
+        // The real PerpsMarketRowItem calls `onPress?.(displayMarket)`, so the
+        // mock forwards its own market rather than the press event.
+        onPress={() => onPress(market)}
         testID={`perps-market-row-${market.symbol}`}
       >
         <Text>{market.symbol}</Text>
@@ -93,6 +123,11 @@ describe('PerpsMarketList', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFlashListProps.length = 0;
+    mockRowMountCount.value = 0;
+    Object.keys(mockRowOnPressBySymbol).forEach(
+      (key) => delete mockRowOnPressBySymbol[key],
+    );
   });
 
   afterEach(() => {
@@ -574,6 +609,90 @@ describe('PerpsMarketList', () => {
         screen.queryByTestId('perps-market-list-empty'),
       ).not.toBeOnTheScreen();
       expect(screen.getByText('BTC')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Filter changes (no remount)', () => {
+    it('passes filterKey via extraData instead of keying the FlashList', () => {
+      render(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          filterKey="perps"
+        />,
+      );
+
+      const lastProps = mockFlashListProps[mockFlashListProps.length - 1];
+      expect(lastProps.extraData).toBe('perps');
+      // `key` is consumed by React and must never be forwarded as a prop here.
+      expect(lastProps.key).toBeUndefined();
+    });
+
+    it('does not remount rows when filterKey changes', () => {
+      const { rerender } = render(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          filterKey="perps"
+        />,
+      );
+
+      const mountsAfterInitialRender = mockRowMountCount.value;
+      expect(mountsAfterInitialRender).toBe(mockMarkets.length);
+
+      rerender(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          filterKey="spot"
+        />,
+      );
+
+      // No additional mounts means rows (and their live-price subscriptions)
+      // survived the filter change.
+      expect(mockRowMountCount.value).toBe(mountsAfterInitialRender);
+    });
+  });
+
+  describe('Stable onPress (React.memo not defeated)', () => {
+    it('passes the same onPress reference to a row across re-renders', () => {
+      const { rerender } = render(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          sortBy="volume"
+        />,
+      );
+
+      // Force the parent to re-render without changing onMarketPress.
+      rerender(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+          sortBy="priceChange"
+        />,
+      );
+
+      const btcOnPressRefs = mockRowOnPressBySymbol.BTC;
+      expect(btcOnPressRefs.length).toBeGreaterThanOrEqual(2);
+      // Every render must hand the row the exact same (stable) onPress function.
+      btcOnPressRefs.forEach((ref) => {
+        expect(ref).toBe(mockOnMarketPress);
+      });
+    });
+
+    it('still invokes onMarketPress with the correct market when pressed', () => {
+      render(
+        <PerpsMarketList
+          markets={mockMarkets}
+          onMarketPress={mockOnMarketPress}
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId('perps-market-row-ETH'));
+
+      expect(mockOnMarketPress).toHaveBeenCalledTimes(1);
+      expect(mockOnMarketPress).toHaveBeenCalledWith(mockMarkets[1]);
     });
   });
 

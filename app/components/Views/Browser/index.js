@@ -14,6 +14,7 @@ import { deepEqual } from 'fast-equals';
 import { parseCaipAccountId } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
 import { selectPermissionControllerState } from '../../../selectors/snaps';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { BrowserViewSelectorsIDs } from '../BrowserTab/BrowserView.testIds';
 import {
   closeTab,
@@ -36,23 +37,24 @@ import {
 import Logger from '../../../util/Logger';
 import getAccountNameWithENS from '../../../util/accounts';
 import Tabs from '../../UI/Tabs';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import BrowserTab from '../BrowserTab/BrowserTab';
 import URL from 'url-parse';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import { useBuildPortfolioUrl } from '../../hooks/useBuildPortfolioUrl';
-import { IDLE_TIME_CALC_INTERVAL, IDLE_TIME_MAX } from './constants';
 import { THUMB_WIDTH, THUMB_HEIGHT } from '../../UI/Tabs/Tabs.constants';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
+import { MAX_BROWSER_TABS, MAX_MOUNTED_TABS } from './constants';
+import { getMountedTabIds } from './utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import DiscoveryTab from '../DiscoveryTab/DiscoveryTab';
 ///: END:ONLY_INCLUDE_IF
-
-const MAX_BROWSER_TABS = 5;
 
 /**
  * Component that wraps all the browser
@@ -72,14 +74,19 @@ export const BrowserPure = (props) => {
   const previousTabs = useRef(null);
   const { top: topInset } = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { topInset });
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { toastRef } = useContext(ToastContext);
   const browserUrl = props.route?.params?.url;
   const linkType = props.route?.params?.linkType;
   const prevSiteHostname = useRef(browserUrl);
   const { accounts, ensByAccountAddress } = useAccounts();
-  const [_tabIdleTimes, setTabIdleTimes] = useState({});
   const [shouldShowTabs, setShouldShowTabs] = useState(false);
+
+  // Compute which tabs should be mounted (live WebView) based on recency
+  const mountedTabIds = useMemo(
+    () => getMountedTabIds(tabs, activeTabId, MAX_MOUNTED_TABS),
+    [tabs, activeTabId],
+  );
 
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
@@ -103,7 +110,6 @@ export const BrowserPure = (props) => {
           // If replaceActiveIfMax is true and a URL was provided, open it in the active tab
           updateTab(activeTab.id, {
             url,
-            isArchived: false,
           });
           setCurrentUrl(url);
           setShouldShowTabs(false);
@@ -146,65 +152,74 @@ export const BrowserPure = (props) => {
     [setShouldShowTabs, setCurrentUrl],
   );
 
+  const takeScreenshot = useCallback(
+    (url, tabID) =>
+      new Promise((resolve, reject) => {
+        captureScreen({
+          format: 'jpg',
+          quality: 0.2,
+          THUMB_WIDTH,
+          THUMB_HEIGHT,
+        }).then(
+          (uri) => {
+            updateTab(tabID, {
+              url,
+              image: uri,
+            });
+            resolve(true);
+          },
+          (error) => {
+            Logger.error(error, `Error saving tab ${url}`);
+            reject(error);
+          },
+        );
+      }),
+    [updateTab],
+  );
+
+  const activeTabUrl = useMemo(
+    () => tabs.find((tab) => tab.id === activeTabId)?.url,
+    [tabs, activeTabId],
+  );
+
   const switchToTab = useCallback(
-    (tab) => {
+    async (tab) => {
+      // Capture screenshot of the current active tab before switching away.
+      // Skip when the Tabs grid is visible because captureScreen would capture
+      // the grid overlay, not the tab content. A correct screenshot was already
+      // taken when the user opened the Tabs view (in showTabsView).
+      if (
+        activeTabId &&
+        activeTabUrl &&
+        tab.id !== activeTabId &&
+        !shouldShowTabs
+      ) {
+        try {
+          await takeScreenshot(activeTabUrl, activeTabId);
+        } catch (e) {
+          Logger.error(e, 'Error capturing tab screenshot before switch');
+        }
+      }
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.BROWSER_SWITCH_TAB).build(),
       );
       setActiveTab(tab.id);
       hideTabsAndUpdateUrl(tab.url);
-      updateTabInfo(tab.id, {
-        url: tab.url,
-        isArchived: false,
-      });
     },
     [
+      activeTabId,
+      activeTabUrl,
+      shouldShowTabs,
+      takeScreenshot,
       trackEvent,
       createEventBuilder,
       setActiveTab,
       hideTabsAndUpdateUrl,
-      updateTabInfo,
     ],
   );
 
   const hasAccounts = useRef(Boolean(accounts.length));
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // every so often calc each tab's idle time
-      setTabIdleTimes((prevIdleTimes) => {
-        const newIdleTimes = { ...prevIdleTimes };
-        // for each existing tab
-        tabs.forEach((tab) => {
-          // if it isn't the active tab
-          if (tab.id !== activeTabId) {
-            // add idle time for each non-active tab
-            newIdleTimes[tab.id] =
-              (newIdleTimes[tab.id] || 0) + IDLE_TIME_CALC_INTERVAL;
-            // if the tab has surpassed the maximum
-            if (newIdleTimes[tab.id] > IDLE_TIME_MAX) {
-              // then "archive" it
-              updateTab(tab.id, {
-                isArchived: true,
-              });
-            }
-          } else {
-            // set any active tab as NOT "archived"
-            // this can mean "unarchiving" a tab so that, for example,
-            // the actual browser tab window is mounted again
-            updateTab(tab.id, {
-              isArchived: false,
-            });
-            // also set new tab idle time back to zero
-            newIdleTimes[tab.id] = 0;
-          }
-        });
-        return newIdleTimes;
-      });
-    }, IDLE_TIME_CALC_INTERVAL);
-
-    return () => clearInterval(interval);
-  }, [tabs, activeTabId, updateTab]);
 
   useEffect(() => {
     const checkIfActiveAccountChanged = (hostnameForToastCheck) => {
@@ -350,44 +365,18 @@ export const BrowserPure = (props) => {
     ],
   );
 
-  const takeScreenshot = useCallback(
-    (url, tabID) =>
-      new Promise((resolve, reject) => {
-        captureScreen({
-          format: 'jpg',
-          quality: 0.2,
-          THUMB_WIDTH,
-          THUMB_HEIGHT,
-        }).then(
-          (uri) => {
-            updateTab(tabID, {
-              url,
-              image: uri,
-            });
-            resolve(true);
-          },
-          (error) => {
-            Logger.error(error, `Error saving tab ${url}`);
-            reject(error);
-          },
-        );
-      }),
-    [updateTab],
-  );
-
-  const activeTabUrl = useMemo(
-    () => tabs.find((tab) => tab.id === activeTabId)?.url,
-    [tabs, activeTabId],
-  );
-
   const showTabsView = useCallback(async () => {
-    try {
-      if (!activeTabUrl) {
-        throw new Error('Active tab URL is not set');
+    // Avoid a `throw` inside try/catch (unsupported by the React Compiler) by
+    // guarding up front; behavior is unchanged (the error is still logged and
+    // the tabs view is still shown).
+    if (!activeTabUrl) {
+      Logger.error(new Error('Active tab URL is not set'));
+    } else {
+      try {
+        await takeScreenshot(activeTabUrl, activeTabId);
+      } catch (e) {
+        Logger.error(e);
       }
-      await takeScreenshot(activeTabUrl, activeTabId);
-    } catch (e) {
-      Logger.error(e);
     }
 
     setShouldShowTabs(true);
@@ -463,13 +452,9 @@ export const BrowserPure = (props) => {
   const renderBrowserTabWindows = useCallback(
     () =>
       tabs
-        .filter((tab) => !tab.isArchived)
-        .map((tab) => {
-          // If the tab is not the active tab, don't render it
-          if (activeTabId !== tab.id) return null;
-
-          // If the tab is the active tab, render it
-          return tab.url || !isTokenDiscoveryBrowserEnabled() ? (
+        .filter((tab) => mountedTabIds.has(tab.id))
+        .map((tab) =>
+          tab.url || !isTokenDiscoveryBrowserEnabled() ? (
             <BrowserTab
               key={`tab_${tab.id}`}
               id={tab.id}
@@ -482,6 +467,10 @@ export const BrowserPure = (props) => {
               homePageUrl={homePageUrl()}
               fromTrending={route.params?.fromTrending}
               fromPerps={route.params?.fromPerps}
+              fromBenefit={route.params?.fromBenefit}
+              fromCard={route.params?.fromCard}
+              fromWhatsHappening={route.params?.fromWhatsHappening}
+              fromMoney={route.params?.fromMoney}
             />
           ) : (
             <DiscoveryTab
@@ -491,18 +480,22 @@ export const BrowserPure = (props) => {
               newTab={newTab}
               updateTabInfo={updateTabInfo}
             />
-          );
-        }),
+          ),
+        ),
     [
       tabs,
+      mountedTabIds,
       shouldShowTabs,
       newTab,
       homePageUrl,
       updateTabInfo,
       showTabsView,
-      activeTabId,
       route.params?.fromTrending,
       route.params?.fromPerps,
+      route.params?.fromBenefit,
+      route.params?.fromCard,
+      route.params?.fromWhatsHappening,
+      route.params?.fromMoney,
     ],
   );
 
@@ -574,12 +567,15 @@ const ConnectedBrowser = connect(mapStateToProps, mapDispatchToProps)(Browser);
 ConnectedBrowser.displayName = 'ConnectedBrowser';
 
 const MemoConnectedBrowser = ({ route, ...props }) => {
-  // Little hack to prevent some extra re-renders because route is an object that could be re-created (but stays the same) which triggers a re-render
-  const previousRoute = useRef(route);
-  if (!deepEqual(previousRoute.current, route)) {
-    previousRoute.current = route;
+  // Keep a referentially-stable `route` to prevent extra re-renders when the
+  // route object is re-created but deeply equal. Uses the render-time state
+  // update pattern instead of reading/writing a ref during render, which the
+  // React Compiler disallows.
+  const [stableRoute, setStableRoute] = useState(route);
+  if (!deepEqual(stableRoute, route)) {
+    setStableRoute(route);
   }
-  return <ConnectedBrowser route={previousRoute.current} {...props} />;
+  return <ConnectedBrowser route={stableRoute} {...props} />;
 };
 MemoConnectedBrowser.propTypes = BrowserPure.propTypes;
 

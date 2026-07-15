@@ -1,13 +1,14 @@
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { parseCaipAssetType, type Hex } from '@metamask/utils';
 import { zeroAddress } from 'ethereumjs-util';
+import { safeToChecksumAddress } from '../../../../util/address';
 import { TokenI } from '../../Tokens/types';
 import { TokenDetails } from '../TokenDetails/TokenDetails';
-import { parseCaipAssetType } from '@metamask/utils';
 
 export const getTokenDetails = (
   asset: TokenI,
   isNonEvmAsset: boolean,
   tokenContractAddress: string | undefined,
-  tokenMetadata: Record<string, string | number | string[]>,
 ): TokenDetails => {
   if (isNonEvmAsset) {
     // Use the same approach as useTokenHistoricalPrices
@@ -38,12 +39,20 @@ export const getTokenDetails = (
   }
   return {
     contractAddress: tokenContractAddress ?? null,
-    tokenDecimal:
-      typeof tokenMetadata?.decimals === 'number'
-        ? tokenMetadata.decimals
-        : (asset.decimals ?? null),
-    tokenList: Array.isArray(tokenMetadata?.aggregators)
-      ? tokenMetadata.aggregators.join(', ')
+    tokenDecimal: asset.decimals ?? null,
+    tokenList: Array.isArray(asset.aggregators)
+      ? asset.aggregators.join(', ')
       : null,
   };
+};
+
+export const resolveTokenContractAddress = (asset: TokenI): string | null => {
+  const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
+  const isNonEvmAsset = resultChainId === asset.chainId;
+  const tokenContractAddress = !isNonEvmAsset
+    ? safeToChecksumAddress(asset.address)
+    : asset.address;
+
+  return getTokenDetails(asset, isNonEvmAsset, tokenContractAddress)
+    .contractAddress;
 };

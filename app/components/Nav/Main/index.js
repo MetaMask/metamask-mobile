@@ -17,7 +17,6 @@ import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import GlobalAlert from '../../UI/GlobalAlert';
-import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
@@ -34,16 +33,18 @@ import {
 } from '../../../actions/notification';
 
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
+import PushNotificationOnboardingRoot from '../../Views/Notifications/PushNotificationOnboarding/PushNotificationOnboardingRoot';
 import MainNavigator from './MainNavigator';
 import { query } from '@metamask/controller-utils';
 import EarnTransactionMonitor from '../../UI/Earn/components/EarnTransactionMonitor';
+import MoneyTransactionMonitor from '../../UI/Money/components/MoneyTransactionMonitor/MoneyTransactionMonitor';
 
 import {
   setInfuraAvailabilityBlocked,
   setInfuraAvailabilityNotBlocked,
 } from '../../../actions/infuraAvailability';
 
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import ReviewModal from '../../UI/ReviewModal';
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
@@ -71,13 +72,9 @@ import {
   DEPRECATED_NETWORKS,
   NETWORKS_CHAIN_ID,
 } from '../../../constants/network';
+import Routes from '../../../constants/navigation/Routes';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
-import {
-  updateIncomingTransactions,
-  startIncomingTransactionPolling,
-  stopIncomingTransactionPolling,
-} from '../../../util/transaction-controller';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
@@ -94,9 +91,13 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
-import { CardVerification } from '../../UI/Card/sdk';
+import { shouldShowNetworkListToast } from './utils';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../constants/navigation/clearStackNavigatorOptions';
 
-const Stack = createStackNavigator();
+const NativeStack = createNativeStackNavigator();
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -148,12 +149,10 @@ const Main = (props) => {
     }
   }, [props.chainId]);
 
-  useEffect(() => {
-    stopIncomingTransactionPolling();
-    startIncomingTransactionPolling();
-  }, [chainId, networkClientId, props.networkConfigurations]);
-
-  const checkInfuraAvailability = useCallback(async () => {
+  // Plain function (not useCallback): it is only invoked, never used as a
+  // dependency, so letting the React Compiler memoize it avoids the "could not
+  // preserve existing manual memoization" bailout while keeping behavior intact.
+  const checkInfuraAvailability = async () => {
     if (props.providerType !== 'rpc') {
       try {
         const ethQuery = getGlobalEthQuery();
@@ -168,34 +167,16 @@ const Main = (props) => {
     } else {
       props.setInfuraAvailabilityNotBlocked();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    props.navigation,
-    props.providerType,
-    props.setInfuraAvailabilityBlocked,
-    props.setInfuraAvailabilityNotBlocked,
-  ]);
+  };
 
   const handleAppStateChange = useCallback(
     (appState) => {
       const newModeIsBackground = appState === 'background';
 
-      // If it was in background and it's not anymore
-      // we need to stop the Background timer
-      if (backgroundMode.current && !newModeIsBackground) {
-        BackgroundTimer.stop();
-      }
-
       backgroundMode.current = newModeIsBackground;
 
-      // If the app is now in background, we need to start
-      // the background timer, which is less intense
       if (backgroundMode.current) {
         removeNotVisibleNotifications();
-
-        BackgroundTimer.runBackgroundTimer(async () => {
-          await updateIncomingTransactions();
-        }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
     [backgroundMode, removeNotVisibleNotifications],
@@ -298,6 +279,7 @@ const Main = (props) => {
       previousNetworkConfigurations.current ?? {},
     );
 
+    // Emit network addition/deletion toast if network list changes
     if (
       previousNetworkValues.length &&
       currentNetworkValues.length !== previousNetworkValues.length
@@ -316,27 +298,33 @@ const Main = (props) => {
           ),
       );
 
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Plain,
-        labelOptions: [
-          {
-            label: `${
-              (newNetwork?.name || deletedNetwork?.name) ??
-              strings('asset_details.network')
-            } `,
-            isBold: true,
-          },
-          {
-            label: deletedNetwork
-              ? strings('toast.network_removed')
-              : strings('toast.network_added'),
-          },
-        ],
-        networkImageSource: networkImage,
+      const shouldShowToast = shouldShowNetworkListToast({
+        newNetworkChainId: newNetwork?.chainId,
+        hasDeletedNetwork: Boolean(deletedNetwork),
       });
+      if (shouldShowToast) {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Plain,
+          labelOptions: [
+            {
+              label: `${
+                (deletedNetwork?.name || newNetwork?.name) ??
+                strings('asset_details.network')
+              } `,
+              isBold: true,
+            },
+            {
+              label: deletedNetwork
+                ? strings('toast.network_removed')
+                : strings('toast.network_added'),
+            },
+          ],
+          networkImageSource: networkImage,
+        });
+      }
     }
     previousNetworkConfigurations.current = networkConfigurations;
-  }, [networkConfigurations, networkName, networkImage, toastRef]);
+  }, [networkConfigurations, networkImage, toastRef]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {
@@ -376,7 +364,7 @@ const Main = (props) => {
       removeConnectionStatusListener.current &&
         removeConnectionStatusListener.current();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // (exhaustive-deps disabled for this file via .eslintrc.js override.)
   }, [connectionChangeHandler]);
 
   const openDeprecatedNetworksArticle = () => {
@@ -417,8 +405,8 @@ const Main = (props) => {
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />
         <RampOrders />
-        <CardVerification />
         <EarnTransactionMonitor />
+        <MoneyTransactionMonitor />
         {renderDeprecatedNetworkAlert(
           props.chainId,
           props.backUpSeedphraseVisible,
@@ -426,6 +414,7 @@ const Main = (props) => {
         <ProtectYourWalletModal navigation={props.navigation} />
         <RootRPCMethodsUI navigation={props.navigation} />
         <ProtectWalletMandatoryModal />
+        <PushNotificationOnboardingRoot />
       </View>
     </React.Fragment>
   );
@@ -479,10 +468,6 @@ Main.propTypes = {
    * ID of the global network client
    */
   networkClientId: PropTypes.string,
-  /**
-   * Network configurations
-   */
-  networkConfigurations: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
@@ -490,7 +475,6 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   networkClientId: selectNetworkClientId(state),
   backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
-  networkConfigurations: selectNetworkConfigurations(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -508,21 +492,27 @@ const mapDispatchToProps = (dispatch) => ({
 
 const ConnectedMain = connect(mapStateToProps, mapDispatchToProps)(Main);
 
-const MainFlow = () => (
-  <Stack.Navigator
-    initialRouteName={'Main'}
-    mode={'modal'}
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name={'Main'} component={ConnectedMain} />
-    <Stack.Screen
-      name={'ReviewModal'}
-      component={ReviewModal}
-      options={{ animationEnabled: false }}
-    />
-  </Stack.Navigator>
-);
+const MainFlow = () => {
+  const { colors } = useTheme();
+  return (
+    <NativeStack.Navigator
+      initialRouteName={Routes.MAIN_FLOW}
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <NativeStack.Screen name={Routes.MAIN_FLOW} component={ConnectedMain} />
+      <NativeStack.Screen
+        name={'ReviewModal'}
+        component={ReviewModal}
+        options={{
+          ...clearNativeStackNavigatorOptions,
+          ...transparentModalScreenOptions,
+        }}
+      />
+    </NativeStack.Navigator>
+  );
+};
 
 export default MainFlow;

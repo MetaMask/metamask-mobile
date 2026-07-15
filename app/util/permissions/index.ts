@@ -38,7 +38,7 @@ const rejectApproval = ({
     case ApprovalType.SnapDialogPrompt:
     case DIALOG_APPROVAL_TYPES.default:
       approvalLog('Rejecting snap dialog', { id, interfaceId, origin, type });
-      ApprovalController.accept(id, null);
+      ApprovalController.acceptRequest(id, null);
       deleteInterface?.(interfaceId);
       break;
 
@@ -49,7 +49,7 @@ const rejectApproval = ({
         origin,
         type,
       });
-      ApprovalController.accept(id, false);
+      ApprovalController.acceptRequest(id, false);
       deleteInterface?.(interfaceId);
       break;
 
@@ -58,13 +58,16 @@ const rejectApproval = ({
     case SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.confirmAccountRemoval:
     case SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showSnapAccountRedirect:
       approvalLog('Rejecting snap account confirmation', { id, origin, type });
-      ApprovalController.accept(id, false);
+      ApprovalController.acceptRequest(id, false);
       break;
     ///: END:ONLY_INCLUDE_IF
 
     default:
       approvalLog('Rejecting pending approval', { id, origin, type });
-      ApprovalController.reject(id, providerErrors.userRejectedRequest());
+      ApprovalController.rejectRequest(
+        id,
+        providerErrors.userRejectedRequest(),
+      );
       break;
   }
 };

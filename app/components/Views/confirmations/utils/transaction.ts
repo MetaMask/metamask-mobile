@@ -3,6 +3,7 @@ import { Interface } from '@ethersproject/abi';
 import {
   TransactionMeta,
   TransactionParams,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import {
@@ -14,6 +15,8 @@ import {
 
 import ppomUtil from '../../../../lib/ppom/ppom-util';
 import { addTransaction } from '../../../../util/transaction-controller';
+import { POST_QUOTE_TRANSACTION_TYPES } from '../constants/confirmations';
+import { Severity } from '../components/status-icon';
 
 const erc20Interface = new Interface(abiERC20);
 const erc721Interface = new Interface(abiERC721);
@@ -82,6 +85,7 @@ export async function addMMOriginatedTransaction(
   const { transactionMeta } = await addTransaction(txParams, {
     ...options,
     origin: ORIGIN_METAMASK,
+    isInternal: true,
   });
 
   const id = transactionMeta.id;
@@ -102,9 +106,48 @@ export function get4ByteCode(data: string) {
   return data.slice(0, 10).toLowerCase();
 }
 
+/**
+ * Resolves the effective transaction type for fiat strategy purposes.
+ *
+ * For non-batch transactions returns the transaction's own type.
+ * For batch transactions returns the first nested transaction type
+ * that appears in the enabled types list, or the batch type itself
+ * if no nested type matches.
+ *
+ * @param transaction - The transaction metadata to inspect.
+ * @param types - Transaction types to resolve.
+ * @returns The resolved transaction type, or `undefined`.
+ */
+export function resolveTransactionType(
+  transaction: TransactionMeta,
+  types: TransactionType[],
+): TransactionType | undefined {
+  if (transaction.type !== TransactionType.batch) {
+    return transaction.type;
+  }
+
+  const nestedType = transaction.nestedTransactions?.find(
+    (tx) => tx.type && types.includes(tx.type),
+  )?.type;
+
+  return nestedType ?? transaction.type;
+}
+
+export function getTransactionType(
+  transactionMeta: TransactionMeta | undefined,
+): string | undefined {
+  if (!transactionMeta) return undefined;
+  const { type, nestedTransactions } = transactionMeta;
+  if (nestedTransactions?.length) {
+    const nestedType = nestedTransactions.find((tx) => tx.type)?.type;
+    if (nestedType) return nestedType;
+  }
+  return type;
+}
+
 export function hasTransactionType(
   transactionMeta: TransactionMeta | undefined,
-  types: TransactionType[],
+  types: readonly TransactionType[],
 ) {
   const { nestedTransactions, type } = transactionMeta ?? {};
 
@@ -117,4 +160,110 @@ export function hasTransactionType(
       types.includes(tx.type as TransactionType),
     ) ?? false
   );
+}
+
+/**
+ * Checks if the transaction is a post-quote type (predictWithdraw, perpsWithdraw, etc.)
+ * Post-quote transactions use "Receive as" instead of "Pay with" for token selection.
+ */
+export function isTransactionPayWithdraw(
+  transactionMeta: TransactionMeta | undefined,
+): boolean {
+  return hasTransactionType(
+    transactionMeta,
+    POST_QUOTE_TRANSACTION_TYPES as unknown as TransactionType[],
+  );
+}
+
+/**
+ * Returns the matching post-quote transaction type (e.g. "predictWithdraw")
+ * for the given transaction metadata. Used to look up override config in
+ * the confirmations_pay_post_quote feature flag.
+ */
+export function getPostQuoteTransactionType(
+  transactionMeta: TransactionMeta | undefined,
+): string | undefined {
+  if (!transactionMeta) {
+    return undefined;
+  }
+
+  return POST_QUOTE_TRANSACTION_TYPES.find((type) =>
+    hasTransactionType(transactionMeta, [type as unknown as TransactionType]),
+  );
+}
+
+/**
+ * Returns true if the user has selected a non-native token to pay for gas.
+ *
+ * @param transactionMeta - Transaction meta object
+ * @returns Whether a gas fee token is selected
+ */
+export function hasGasFeeTokenSelected(
+  transactionMeta: TransactionMeta | undefined,
+): boolean {
+  return Boolean(transactionMeta?.selectedGasFeeToken);
+}
+
+export function isRevokeDelegationTransaction(
+  transactionMeta: TransactionMeta | undefined,
+): boolean {
+  return transactionMeta?.type === TransactionType.revokeDelegation;
+}
+
+export function isTransactionMarkedAsGasFeeSponsored(
+  transactionMeta: TransactionMeta | undefined,
+): boolean {
+  return Boolean(
+    transactionMeta?.isGasFeeSponsored &&
+      !isRevokeDelegationTransaction(transactionMeta),
+  );
+}
+
+export function shouldApplyGasFeeSponsorship({
+  transactionMeta,
+  isGaslessSupported,
+}: {
+  transactionMeta: TransactionMeta | undefined;
+  isGaslessSupported: boolean;
+}): boolean {
+  return (
+    isGaslessSupported && isTransactionMarkedAsGasFeeSponsored(transactionMeta)
+  );
+}
+
+export function getSeverity(status: TransactionStatus): Severity {
+  switch (status) {
+    case TransactionStatus.confirmed:
+      return 'success';
+    case TransactionStatus.failed:
+    case TransactionStatus.dropped:
+      return 'error';
+    default:
+      return 'warning';
+  }
+}
+
+export function getErrorMessage(
+  transactionMeta: TransactionMeta,
+): string | undefined {
+  const { error } = transactionMeta;
+
+  if (!error) return undefined;
+
+  if (error.stack) {
+    try {
+      const start = error.stack.indexOf('{');
+      const end = error.stack.lastIndexOf('}');
+      const stackObject = JSON.parse(error.stack.substring(start, end + 1));
+      const stackMessage = stackObject?.data?.message;
+
+      if (stackMessage) {
+        return stackMessage;
+      }
+    } catch {
+      // Intentionally empty
+    }
+  }
+
+  return error.message;
 }

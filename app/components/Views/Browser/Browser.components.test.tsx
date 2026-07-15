@@ -14,11 +14,12 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { captureScreen } from 'react-native-view-shot';
 import Logger from '../../../util/Logger';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import BrowserTab from '../BrowserTab/BrowserTab';
 
 const Browser = BrowserComponent as ComponentType<BrowserComponentProps>;
@@ -111,14 +112,6 @@ jest.mock('../../../core/Engine', () => {
   };
 });
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  openURL: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
-}));
-
 jest.mock('../../../util/phishingDetection', () => ({
   isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
   getPhishingTestResult: jest.fn().mockReturnValue({ result: false }),
@@ -135,8 +128,8 @@ const mockCreateEventBuilder = jest.fn(() => ({
   build: jest.fn().mockReturnValue({}),
 }));
 
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
@@ -161,7 +154,7 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 const mockStore = configureMockStore();
 
 const routeMock = {
@@ -219,7 +212,7 @@ describe('Browser - Component Rendering', () => {
         expect.objectContaining({
           fromTrending: true,
         }),
-        {},
+        undefined,
       );
     });
 
@@ -265,7 +258,99 @@ describe('Browser - Component Rendering', () => {
         expect.objectContaining({
           fromPerps: true,
         }),
-        {},
+        undefined,
+      );
+    });
+
+    it('passes fromBenefit param to BrowserTab', () => {
+      const tabs = [
+        { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
+      ];
+      const BrowserTabMock = jest.mocked(BrowserTab);
+
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={{ params: { fromBenefit: true } }}
+                    tabs={tabs}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={jest.fn()}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: {
+              tabs,
+              activeTab: 1,
+            },
+          },
+        },
+      );
+
+      expect(BrowserTabMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fromBenefit: true,
+        }),
+        undefined,
+      );
+    });
+
+    it('passes fromCard param to BrowserTab', () => {
+      const tabs = [
+        { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
+      ];
+      const BrowserTabMock = jest.mocked(BrowserTab);
+
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <NavigationContainer independent>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={{ params: { fromCard: true } }}
+                    tabs={tabs}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={jest.fn()}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </NavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: {
+              tabs,
+              activeTab: 1,
+            },
+          },
+        },
+      );
+
+      expect(BrowserTabMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fromCard: true,
+        }),
+        undefined,
       );
     });
 
@@ -317,13 +402,13 @@ describe('Browser - Component Rendering', () => {
         expect.objectContaining({
           linkType: 'deeplink',
         }),
-        {},
+        undefined,
       );
     });
   });
 
   describe('showTabsView function', () => {
-    it('takes screenshot and shows tabs view when active tab exists', async () => {
+    it('takes screenshot and shows tabs view when active tab exists', () => {
       const tabs = [
         { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
       ];
@@ -367,7 +452,7 @@ describe('Browser - Component Rendering', () => {
       expect(mockUpdateTab).toBeDefined();
     });
 
-    it('handles screenshot error gracefully', async () => {
+    it('handles screenshot error gracefully', () => {
       const tabs = [
         { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
       ];

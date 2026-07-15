@@ -1,8 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { useEffect } from 'react';
 import { useTheme } from '../../../../../util/theme';
-import { StakeNavigationParamsList } from '../../../../UI/Stake/types';
 import {
   getModalNavigationOptions,
   getNavbar,
@@ -10,17 +8,18 @@ import {
 } from '../../components/UI/navbar/navbar';
 import { useConfirmActions } from '../useConfirmActions';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 const useNavbar = (
   title: string,
   addBackButton = true,
   overrides?: NavbarOverrides,
 ) => {
-  const navigation =
-    useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
+  const navigation = useNavigation();
   const { onReject } = useConfirmActions();
   const theme = useTheme();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const { mmPayRequestInProgressNavHandler } = useConfirmationContext();
 
   useEffect(() => {
     if (isFullScreenConfirmation) {
@@ -31,12 +30,14 @@ const useNavbar = (
           addBackButton,
           theme,
           overrides,
+          mmPayRequestInProgressNavHandler,
         }),
       );
     }
   }, [
     addBackButton,
     isFullScreenConfirmation,
+    mmPayRequestInProgressNavHandler,
     navigation,
     onReject,
     overrides,
@@ -46,8 +47,7 @@ const useNavbar = (
 };
 
 export function useModalNavbar() {
-  const navigation =
-    useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
+  const navigation = useNavigation();
 
   const { onReject } = useConfirmActions();
 

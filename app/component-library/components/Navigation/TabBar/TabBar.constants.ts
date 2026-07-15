@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 
 // Third party dependencies.
 import { IconName } from '../../Icons/Icon';
@@ -14,6 +14,7 @@ export const ICON_BY_TAB_BAR_ICON_KEY: IconByTabBarIconKey = {
   [TabBarIconKey.Setting]: IconName.Setting,
   [TabBarIconKey.Rewards]: IconName.MetamaskFoxOutline,
   [TabBarIconKey.Trending]: IconName.Search,
+  [TabBarIconKey.Money]: IconName.Musd,
 };
 
 export const LABEL_BY_TAB_BAR_ICON_KEY = {
@@ -25,6 +26,7 @@ export const LABEL_BY_TAB_BAR_ICON_KEY = {
   [TabBarIconKey.Activity]: 'bottom_nav.activity',
   [TabBarIconKey.Setting]: 'bottom_nav.settings',
   [TabBarIconKey.Rewards]: 'bottom_nav.rewards',
+  [TabBarIconKey.Money]: 'bottom_nav.money',
 } as const;
 
 export const TAB_BAR_HEIGHT = 54; // 22px text line height + 20px icon height + 12px padding top

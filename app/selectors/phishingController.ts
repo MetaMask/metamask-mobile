@@ -49,7 +49,7 @@ export const selectMultipleTokenScanResults = createDeepEqualSelector(
         return acc;
       }
 
-      const cacheKey = generateAddressCacheKey(chainId, address);
+      const cacheKey = generateAddressCacheKey(String(chainId), address);
       const cacheEntry = cache[cacheKey];
 
       acc.push({
@@ -102,7 +102,7 @@ export const selectMultipleAddressScanResults = createDeepEqualSelector(
         };
       }
 
-      const cacheKey = generateAddressCacheKey(chainId, address);
+      const cacheKey = generateAddressCacheKey(String(chainId), address);
       const cacheEntry = cache[cacheKey];
 
       return {

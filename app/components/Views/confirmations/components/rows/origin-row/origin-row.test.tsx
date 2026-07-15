@@ -1,8 +1,11 @@
 import React from 'react';
+import { merge } from 'lodash';
 
 import {
+  generateContractInteractionState,
   siweSignatureConfirmationState,
   typedSignV1ConfirmationState,
+  mockTxId,
 } from '../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import OriginRow from './origin-row';
@@ -22,7 +25,7 @@ describe('InfoRowOrigin', () => {
       state: siweSignatureConfirmationState,
     });
     expect(getByText('Signing in with')).toBeDefined();
-    expect(getByText('0x935E7...05477')).toBeDefined();
+    expect(getByText('0x8Eeee...73D12')).toBeDefined();
   });
 
   it('does not render origin for wallet originated approvals', async () => {
@@ -32,4 +35,45 @@ describe('InfoRowOrigin', () => {
     });
     expect(queryByText('Request from')).toBeNull();
   });
+
+  // When a transaction is requested from a dapp opened in an external
+  // browser, the wallet receives the request via the `ethereum:` deeplink
+  // path and the resulting transaction has `origin === 'deeplink'`. The
+  // dapp's identity isn't verifiable, so we display a generic
+  // "External app" label instead of the raw constant. The same applies
+  // to QR-scanned `ethereum:` URLs (`origin === 'qr-code'`).
+  it.each([
+    ['deeplink', 'deeplink'],
+    ['QR-code', 'qr-code'],
+  ])(
+    'renders "External app" instead of the raw origin for %s transactions',
+    (_label, origin) => {
+      const externalAppConfirmationState = merge(
+        {},
+        generateContractInteractionState,
+        {
+          engine: {
+            backgroundState: {
+              ApprovalController: {
+                pendingApprovals: {
+                  [mockTxId]: { origin },
+                },
+              },
+              TransactionController: {
+                transactions: [{ id: mockTxId, origin }],
+              },
+            },
+          },
+        },
+      );
+
+      const { getByText, queryByText } = renderWithProvider(<OriginRow />, {
+        state: externalAppConfirmationState,
+      });
+
+      expect(getByText('Request from')).toBeOnTheScreen();
+      expect(getByText('External app')).toBeOnTheScreen();
+      expect(queryByText(origin)).not.toBeOnTheScreen();
+    },
+  );
 });

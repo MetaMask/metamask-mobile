@@ -14,8 +14,12 @@ import {
 // =============================================================================
 
 export interface UseFeedScrollManagerParams {
-  headerRef: React.RefObject<View>;
-  tabBarRef: React.RefObject<View>;
+  headerRef: React.RefObject<View | null>;
+  tabBarRef: React.RefObject<View | null>;
+  setActiveIndex: (index: number) => void;
+  onHeaderHiddenChange?: (hidden: boolean) => void;
+  walletHeaderTranslateY?: SharedValue<number>;
+  walletHeaderHeight?: number;
 }
 
 export interface UseFeedScrollManagerReturn {
@@ -24,8 +28,7 @@ export interface UseFeedScrollManagerReturn {
   headerHeight: number;
   tabBarHeight: number;
   layoutReady: boolean;
-  activeIndex: number;
-  setActiveIndex: (index: number) => void;
+  onTabSwitch: (index: number) => void;
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
   onHeaderLayout: (event: LayoutChangeEvent) => void;
   onTabBarLayout: (event: LayoutChangeEvent) => void;
@@ -68,33 +71,31 @@ export const SCROLL_THRESHOLD = 250;
 export const useFeedScrollManager = ({
   headerRef,
   tabBarRef,
+  setActiveIndex,
+  onHeaderHiddenChange,
+  walletHeaderTranslateY,
+  walletHeaderHeight = 0,
 }: UseFeedScrollManagerParams): UseFeedScrollManagerReturn => {
-  // Header state: 0 = visible, 1 = hidden (binary, not continuous)
   const isHeaderHidden = useSharedValue(0);
-  // Header translateY: 0 = visible, -headerHeight = hidden
   const headerTranslateY = useSharedValue(0);
 
-  // Shared values for worklet access
   const sharedHeaderHeight = useSharedValue(0);
   const sharedTabBarHeight = useSharedValue(0);
+  const sharedWalletHeaderHeight = useSharedValue(walletHeaderHeight);
+  useLayoutEffect(() => {
+    sharedWalletHeaderHeight.value = walletHeaderHeight;
+  }, [walletHeaderHeight, sharedWalletHeaderHeight]);
   const lastScrollY = useSharedValue(0);
 
-  // Flag to skip direction detection on first scroll after tab switch
   const isTabSwitching = useSharedValue(false);
 
-  // Track accumulated scroll delta for threshold detection
   const accumulatedDelta = useSharedValue(0);
-  const lastDirection = useSharedValue(0); // 1 = down, -1 = up, 0 = none
+  const lastDirection = useSharedValue(0);
 
-  // Layout measurements (JS side)
   const [headerHeight, setHeaderHeight] = useState(0);
   const [tabBarHeight, setTabBarHeight] = useState(0);
   const [layoutReady, setLayoutReady] = useState(false);
 
-  // Tab state
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  // React state mirror of isHeaderHidden for reactive UI updates
   const [headerHidden, setHeaderHidden] = useState(false);
 
   useLayoutEffect(() => {
@@ -192,9 +193,13 @@ export const useFeedScrollManager = ({
       if (atTop && isHeaderHidden.value === 1 && currentDirection === -1) {
         isHeaderHidden.value = 0;
         headerTranslateY.value = withTiming(0, animationConfig);
+        if (walletHeaderTranslateY) {
+          walletHeaderTranslateY.value = withTiming(0, animationConfig);
+        }
         accumulatedDelta.value = 0;
         lastDirection.value = 0;
         runOnJS(setHeaderHidden)(false);
+        if (onHeaderHiddenChange) runOnJS(onHeaderHiddenChange)(false);
         return;
       }
 
@@ -202,33 +207,48 @@ export const useFeedScrollManager = ({
         return;
       }
 
-      // Scrolling down -> hide header
+      // Scrolling down -> hide header.
+      // When embedded in the Hub Page Discovery Tabs (feature flag treatment), walletHeaderTranslateY
+      // is provided and we slide both the predict header and predict tab bar away together so the
+      // outer discovery tabs become the only navigation row at the top. In the standalone screen
+      // path (no walletHeaderTranslateY), only the balance/carousel hides — predict tabs stay pinned.
       if (currentDirection === 1 && isHeaderHidden.value === 0) {
         isHeaderHidden.value = 1;
-        headerTranslateY.value = withTiming(
-          -sharedHeaderHeight.value,
-          animationConfig,
-        );
+        const hiddenTranslate = walletHeaderTranslateY
+          ? -(sharedHeaderHeight.value + sharedTabBarHeight.value)
+          : -sharedHeaderHeight.value;
+        headerTranslateY.value = withTiming(hiddenTranslate, animationConfig);
+        if (walletHeaderTranslateY) {
+          walletHeaderTranslateY.value = withTiming(
+            -sharedWalletHeaderHeight.value,
+            animationConfig,
+          );
+        }
         accumulatedDelta.value = 0;
         runOnJS(setHeaderHidden)(true);
+        if (onHeaderHiddenChange) runOnJS(onHeaderHiddenChange)(true);
       }
 
       // Scrolling up -> show header
       if (currentDirection === -1 && isHeaderHidden.value === 1) {
         isHeaderHidden.value = 0;
         headerTranslateY.value = withTiming(0, animationConfig);
+        if (walletHeaderTranslateY) {
+          walletHeaderTranslateY.value = withTiming(0, animationConfig);
+        }
         accumulatedDelta.value = 0;
         runOnJS(setHeaderHidden)(false);
+        if (onHeaderHiddenChange) runOnJS(onHeaderHiddenChange)(false);
       }
     },
   });
 
-  const handleSetActiveIndex = useCallback(
+  const onTabSwitch = useCallback(
     (index: number) => {
       isTabSwitching.value = true;
       setActiveIndex(index);
     },
-    [isTabSwitching],
+    [isTabSwitching, setActiveIndex],
   );
 
   return {
@@ -237,8 +257,7 @@ export const useFeedScrollManager = ({
     headerHeight,
     tabBarHeight,
     layoutReady,
-    activeIndex,
-    setActiveIndex: handleSetActiveIndex,
+    onTabSwitch,
     scrollHandler,
     onHeaderLayout,
     onTabBarLayout,

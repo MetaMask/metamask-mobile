@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { colors as importedColors } from '../../../../styles/common';
 import { Theme } from '../../../../util/theme/models';
 
 const createStyles = (params: {
@@ -18,6 +19,10 @@ const createStyles = (params: {
       paddingHorizontal: 16,
       paddingVertical: 8,
     },
+    searchErrorText: {
+      marginTop: 4,
+      marginLeft: 4,
+    },
     searchPlaceholder: {
       padding: 12,
       backgroundColor: theme.colors.background.alternative,
@@ -26,15 +31,6 @@ const createStyles = (params: {
       borderColor: theme.colors.border.muted,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    searchPlaceholderText: {
-      color: theme.colors.text.muted,
-    },
-    searchTextField: {
-      backgroundColor: theme.colors.background.muted,
-      borderWidth: 0,
-      borderRadius: 9999,
-      padding: 0,
     },
     listContainer: {
       flexGrow: 1,
@@ -45,7 +41,6 @@ const createStyles = (params: {
     sectionHeader: {
       paddingHorizontal: 16,
       paddingVertical: 8,
-      backgroundColor: theme.colors.background.default,
     },
     sectionHeaderText: {
       color: theme.colors.text.alternative,
@@ -56,8 +51,8 @@ const createStyles = (params: {
       paddingHorizontal: 16,
       width: '100%',
       backgroundColor: isSelected
-        ? colors.background.muted
-        : colors.background.default,
+        ? colors.background.section
+        : importedColors.transparent,
     },
     selectedIndicator: {
       marginLeft: -12, // The width of the indicator is 4px, so we need to offset by 12px to align with the cell
@@ -76,6 +71,9 @@ const createStyles = (params: {
       alignItems: 'center',
       gap: 16,
       paddingVertical: 16,
+    },
+    externalAccountContainerDisabled: {
+      opacity: 0.5,
     },
     textContainer: {
       flex: 1,

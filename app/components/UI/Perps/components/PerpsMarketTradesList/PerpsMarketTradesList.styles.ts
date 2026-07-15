@@ -11,9 +11,14 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     header: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
+      gap: 4,
       marginBottom: 16,
+    },
+    headerButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
     },
     listContainer: {
       gap: 1,
@@ -25,12 +30,12 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.section,
     },
     tradeItemFirst: {
-      borderTopLeftRadius: 8,
-      borderTopRightRadius: 8,
+      borderTopLeftRadius: 12,
+      borderTopRightRadius: 12,
     },
     tradeItemLast: {
-      borderBottomLeftRadius: 8,
-      borderBottomRightRadius: 8,
+      borderBottomLeftRadius: 12,
+      borderBottomRightRadius: 12,
     },
     leftSection: {
       flex: 1,

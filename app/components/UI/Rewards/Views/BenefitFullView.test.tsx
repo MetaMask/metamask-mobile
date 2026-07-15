@@ -1,0 +1,413 @@
+import React from 'react';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import BenefitFullView from './BenefitFullView';
+import Routes from '../../../../constants/navigation/Routes';
+import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
+import { formatDateRemaining } from '../utils/formatUtils';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockEventBuilder,
+  createMockUseAnalyticsHook,
+} from '../../../../util/test/analyticsMock';
+import { SubscriptionBenefitDto } from '../../../../core/Engine/controllers/rewards-controller/types.ts';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+
+const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+const mockPostBenefitImpression = jest.fn().mockResolvedValue(undefined);
+const mockUseSelector = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
+const mockFormatDateRemaining = formatDateRemaining as jest.MockedFunction<
+  typeof formatDateRemaining
+>;
+const mockStrings = jest.fn((key: string) => {
+  const translations: Record<string, string> = {
+    'rewards.benefits.title_claim': 'Claim benefit',
+    'rewards.benefits.action': 'Claim now',
+  };
+  return translations[key] || key;
+});
+
+const mockBenefit: SubscriptionBenefitDto = {
+  id: 1,
+  longTitle: 'Premium Benefit',
+  shortDescription: 'Short description',
+  longDescription: 'Long description',
+  thumbnail: 'https://example.com/thumb.png',
+  validFrom: '2026-01-01T00:00:00Z',
+  validTo: '2026-12-31T23:59:59Z',
+  url: 'https://benefits.example.com/claim?wallet=0x1111111111111111111111111111111111111111',
+  actionDate: '2026-12-30T00:00:00Z',
+  companyName: 'Pudgy Penguins',
+  chain: 'ethereum',
+  type: { id: 7, name: 'Partner' },
+};
+let mockRouteBenefit = mockBenefit;
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    goBack: mockGoBack,
+    navigate: mockNavigate,
+  }),
+  useRoute: () => ({
+    params: {
+      benefit: mockRouteBenefit,
+    },
+  }),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: unknown) => mockUseSelector(selector),
+}));
+
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    controllerMessenger: {
+      call: (...args: unknown[]) => mockPostBenefitImpression(...args),
+    },
+  },
+}));
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
+
+jest.mock('../utils/formatUtils', () => ({
+  ...jest.requireActual('../utils/formatUtils'),
+  formatDateRemaining: jest.fn(),
+}));
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => {
+    const tw = (..._args: unknown[]) => ({});
+    tw.style = jest.fn(() => ({}));
+    return tw;
+  },
+}));
+
+jest.mock('../../../Views/ErrorBoundary', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+jest.mock('react-native-safe-area-context', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    SafeAreaView: ({
+      children,
+      testID,
+    }: React.PropsWithChildren<{ testID?: string }>) =>
+      ReactActual.createElement(View, { testID }, children),
+    useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  };
+});
+
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => mockStrings(key),
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
+
+const MOCK_WALLET_ADDRESS = '0x1111111111111111111111111111111111111111';
+
+describe('BenefitFullView', () => {
+  let mockSubscriptionId: string | null;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockRouteBenefit = mockBenefit;
+    mockSubscriptionId = 'subscription-123';
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsSubscriptionId) {
+        return mockSubscriptionId;
+      }
+      return undefined;
+    });
+    mockFormatDateRemaining.mockReturnValue('1mo 3d');
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
+  });
+
+  it('renders title, description, and action button', () => {
+    const { getByText, getByTestId } = render(<BenefitFullView />);
+
+    expect(
+      getByTestId(REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_VIEW),
+    ).toBeOnTheScreen();
+    expect(getByText('Claim benefit')).toBeOnTheScreen();
+    expect(getByText('Premium Benefit')).toBeOnTheScreen();
+    expect(getByText('Long description')).toBeOnTheScreen();
+    expect(getByText('Pudgy Penguins')).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION),
+    ).toBeOnTheScreen();
+    expect(getByText('1mo 3d')).toBeOnTheScreen();
+    expect(mockFormatDateRemaining).toHaveBeenCalledWith(
+      mockBenefit.actionDate,
+      expect.any(Number),
+    );
+    expect(mockStrings).toHaveBeenCalledWith('rewards.benefits.title_claim');
+    expect(mockStrings).toHaveBeenCalledWith('rewards.benefits.action');
+  });
+
+  it('navigates back when the header back button is pressed', () => {
+    const { getByTestId } = render(<BenefitFullView />);
+
+    fireEvent.press(getByTestId('header-back-button'));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('posts benefit impression on mount with the wallet address from the benefit click URL', async () => {
+    render(<BenefitFullView />);
+
+    await waitFor(() => {
+      expect(mockPostBenefitImpression).toHaveBeenCalledWith(
+        'RewardsController:postBenefitImpression',
+        'subscription-123',
+        mockBenefit.id,
+        mockBenefit.type.id,
+        MOCK_WALLET_ADDRESS,
+      );
+    });
+  });
+
+  it('posts the wallet from the click URL even when it is not the first account in the wallet list', async () => {
+    const otherWallet = '0x2222222222222222222222222222222222222222';
+    mockRouteBenefit = {
+      ...mockBenefit,
+      url: `https://benefits.example.com/claim?wallet=${otherWallet}&ref=abc`,
+    };
+
+    render(<BenefitFullView />);
+
+    await waitFor(() => {
+      expect(mockPostBenefitImpression).toHaveBeenCalledWith(
+        'RewardsController:postBenefitImpression',
+        'subscription-123',
+        mockBenefit.id,
+        mockBenefit.type.id,
+        otherWallet,
+      );
+    });
+  });
+
+  it('posts benefit impression with an undefined wallet address when the URL has no wallet param', async () => {
+    mockRouteBenefit = {
+      ...mockBenefit,
+      url: 'https://benefits.example.com/claim',
+    };
+
+    render(<BenefitFullView />);
+
+    await waitFor(() => {
+      expect(mockPostBenefitImpression).toHaveBeenCalledWith(
+        'RewardsController:postBenefitImpression',
+        'subscription-123',
+        mockBenefit.id,
+        mockBenefit.type.id,
+        undefined,
+      );
+    });
+  });
+
+  it('posts benefit impression with an undefined wallet address when the benefit has no URL', async () => {
+    mockRouteBenefit = { ...mockBenefit, url: '' };
+
+    render(<BenefitFullView />);
+
+    await waitFor(() => {
+      expect(mockPostBenefitImpression).toHaveBeenCalledWith(
+        'RewardsController:postBenefitImpression',
+        'subscription-123',
+        mockBenefit.id,
+        mockBenefit.type.id,
+        undefined,
+      );
+    });
+  });
+
+  it('posts exactly one benefit impression when the subscription hydrates after mount', async () => {
+    mockSubscriptionId = null;
+    const { rerender } = render(<BenefitFullView />);
+    expect(mockPostBenefitImpression).not.toHaveBeenCalled();
+
+    mockSubscriptionId = 'subscription-123';
+    rerender(<BenefitFullView />);
+
+    await waitFor(() => {
+      expect(mockPostBenefitImpression).toHaveBeenCalledTimes(1);
+    });
+    expect(mockPostBenefitImpression).toHaveBeenCalledWith(
+      'RewardsController:postBenefitImpression',
+      'subscription-123',
+      mockBenefit.id,
+      mockBenefit.type.id,
+      MOCK_WALLET_ADDRESS,
+    );
+  });
+
+  it('does not post benefit impression when subscription is missing', async () => {
+    mockSubscriptionId = null;
+
+    render(<BenefitFullView />);
+
+    await waitFor(() => {
+      expect(mockPostBenefitImpression).not.toHaveBeenCalled();
+    });
+  });
+
+  it('tracks benefit detail views with benefit metadata', async () => {
+    render(<BenefitFullView />);
+
+    await waitFor(() => {
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_BENEFIT_DETAIL_VIEWED,
+      );
+    });
+    const builder = mockCreateEventBuilder.mock.results[0].value;
+    expect(builder.addProperties).toHaveBeenCalledWith({
+      benefit_id: mockBenefit.id.toString(),
+      benefit_name: mockBenefit.longTitle,
+      benefit_type: mockBenefit.type.name,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith(builder.build());
+  });
+
+  it('omits benefit type tracking property from detail views when benefit type name is missing', async () => {
+    mockRouteBenefit = {
+      ...mockBenefit,
+      type: { id: 7, name: '' },
+    };
+
+    render(<BenefitFullView />);
+
+    await waitFor(() => {
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_BENEFIT_DETAIL_VIEWED,
+      );
+    });
+    const builder = mockCreateEventBuilder.mock.results[0].value;
+    expect(builder.addProperties).toHaveBeenCalledWith({
+      benefit_id: mockBenefit.id.toString(),
+      benefit_name: mockBenefit.longTitle,
+    });
+  });
+
+  it('navigates to browser when claim action is pressed and url exists', () => {
+    const { getByTestId } = render(<BenefitFullView />);
+
+    fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: mockBenefit.url,
+        timestamp: expect.any(Number),
+        fromBenefit: true,
+      },
+    });
+  });
+
+  it('tracks benefit claim button clicks with benefit metadata', () => {
+    const { getByTestId } = render(<BenefitFullView />);
+    jest.clearAllMocks();
+
+    fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.REWARDS_BENEFIT_BUTTON_CLICKED,
+    );
+    const builder = mockCreateEventBuilder.mock.results[0].value;
+    expect(builder.addProperties).toHaveBeenCalledWith({
+      button_type: 'claim',
+      benefit_id: mockBenefit.id.toString(),
+      benefit_name: mockBenefit.longTitle,
+      benefit_type: mockBenefit.type.name,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith(builder.build());
+  });
+
+  it('omits benefit type tracking property when benefit type name is missing', () => {
+    mockRouteBenefit = {
+      ...mockBenefit,
+      type: { id: 7, name: '' },
+    };
+    const { getByTestId } = render(<BenefitFullView />);
+    jest.clearAllMocks();
+
+    fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION));
+
+    const builder = mockCreateEventBuilder.mock.results[0].value;
+    expect(builder.addProperties).toHaveBeenCalledWith({
+      button_type: 'claim',
+      benefit_id: mockBenefit.id.toString(),
+      benefit_name: mockBenefit.longTitle,
+    });
+  });
+
+  it('does not navigate when claim action is pressed and url is missing', () => {
+    mockRouteBenefit = { ...mockBenefit, url: '' };
+
+    const { getByTestId } = render(<BenefitFullView />);
+
+    fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('hides remaining time when formatter returns null', () => {
+    mockFormatDateRemaining.mockReturnValue(null);
+
+    const { queryByText } = render(<BenefitFullView />);
+
+    expect(queryByText('1mo 3d')).toBeNull();
+  });
+
+  it('does not format remaining time when actionDate is null', () => {
+    mockRouteBenefit = {
+      ...mockBenefit,
+      actionDate: null as unknown as string,
+    };
+
+    const { queryByText } = render(<BenefitFullView />);
+
+    expect(mockFormatDateRemaining).not.toHaveBeenCalled();
+    expect(queryByText('1mo 3d')).toBeNull();
+  });
+
+  it('does not render company label when companyName is null', () => {
+    mockRouteBenefit = {
+      ...mockBenefit,
+      companyName: null,
+    };
+
+    const { queryByText } = render(<BenefitFullView />);
+
+    expect(queryByText('Pudgy Penguins')).toBeNull();
+  });
+
+  it('renders benefit image from thumbnail', () => {
+    mockRouteBenefit = {
+      ...mockBenefit,
+      thumbnail: 'https://cdn.example.com/thumbnail.png',
+    };
+    const { getByTestId } = render(<BenefitFullView />);
+
+    const image = getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE);
+    expect(image.props.source).toEqual({
+      uri: 'https://cdn.example.com/thumbnail.png',
+    });
+  });
+});

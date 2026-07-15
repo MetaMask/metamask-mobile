@@ -1,6 +1,6 @@
 'use strict';
 import SampleFeatureView from '../pages/SampleFeatureView';
-import { RegressionSampleFeature } from '../../../../../e2e/tags';
+import { RegressionSampleFeature } from '../../../../../tests/tags';
 import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
 import { navigateToSampleFeature } from '../utils';

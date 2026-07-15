@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { usePerpsLivePrices } from './index';
-import type { PriceUpdate } from '../../controllers/types';
+import { type PriceUpdate } from '@metamask/perps-controller';
 
 // Mock the stream provider
 const mockSubscribeToSymbols = jest.fn();
@@ -74,6 +74,7 @@ describe('usePerpsLivePrices', () => {
       symbol: 'BTC-PERP',
       price: '50000',
       timestamp: Date.now(),
+      isTradable: true,
     };
 
     act(() => {
@@ -89,6 +90,7 @@ describe('usePerpsLivePrices', () => {
       symbol: 'ETH-PERP',
       price: '3000',
       timestamp: Date.now(),
+      isTradable: true,
     };
 
     act(() => {
@@ -210,6 +212,7 @@ describe('usePerpsLivePrices', () => {
       symbol: 'BTC-PERP',
       price: '50000',
       timestamp: Date.now(),
+      isTradable: true,
     };
 
     act(() => {
@@ -224,6 +227,7 @@ describe('usePerpsLivePrices', () => {
       symbol: 'ETH-PERP',
       price: '3000',
       timestamp: Date.now() + 1000,
+      isTradable: true,
     };
 
     act(() => {
@@ -244,6 +248,7 @@ describe('usePerpsLivePrices', () => {
       symbol: 'BTC-PERP',
       price: '51000',
       timestamp: Date.now() + 2000,
+      isTradable: true,
     };
 
     act(() => {
@@ -320,6 +325,7 @@ describe('usePerpsLivePrices', () => {
       symbol: 'BTC-PERP',
       price: '50000',
       timestamp: Date.now(),
+      isTradable: true,
     };
 
     act(() => {
@@ -351,6 +357,7 @@ describe('usePerpsLivePrices', () => {
       symbol: 'BTC-PERP',
       price: '50000',
       timestamp: Date.now(),
+      isTradable: true,
     };
 
     act(() => {

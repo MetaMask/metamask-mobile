@@ -1,22 +1,16 @@
 import { useCallback } from 'react';
 import Engine from '../../../../core/Engine';
 import {
+  ClaimParams,
   GetBalanceParams,
-  GetPositionsParams,
   OrderPreview,
   PlaceOrderParams,
-  PrepareWithdrawParams,
   PrepareDepositParams,
+  PrepareWithdrawParams,
   PreviewOrderParams,
-} from '../providers/types';
-import { ClaimParams } from '../types';
+} from '../types';
 
 export function usePredictTrading() {
-  const getPositions = useCallback(async (params: GetPositionsParams) => {
-    const controller = Engine.context.PredictController;
-    return controller.getPositions(params);
-  }, []);
-
   const claim = useCallback(async (claimParams: ClaimParams) => {
     const controller = Engine.context.PredictController;
     return controller.claimWithConfirmation(claimParams);
@@ -50,13 +44,18 @@ export function usePredictTrading() {
     return controller.depositWithConfirmation(params);
   }, []);
 
+  const initPayWithAnyToken = useCallback(async () => {
+    const controller = Engine.context.PredictController;
+    return controller.initPayWithAnyToken();
+  }, []);
+
   return {
-    getPositions,
     placeOrder,
     claim,
     getBalance,
     previewOrder,
     prepareWithdraw,
     deposit,
+    initPayWithAnyToken,
   };
 }

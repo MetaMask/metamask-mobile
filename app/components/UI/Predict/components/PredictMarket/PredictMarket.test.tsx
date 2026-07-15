@@ -1,4 +1,5 @@
 import React from 'react';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
@@ -7,6 +8,15 @@ import {
   PredictMarket as PredictMarketType,
 } from '../../types';
 import PredictMarket from './';
+import PredictMarketSingle from '../PredictMarketSingle';
+import PredictMarketMultiple from '../PredictMarketMultiple';
+import PredictMarketSportCard from '../PredictMarketSportCard';
+import PredictCryptoUpDownMarketCard from '../PredictCryptoUpDownMarketCard';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPredictUpDownEnabledFlag: jest.fn(() => true),
+}));
 
 // Mock the sub-components
 jest.mock('../PredictMarketSingle', () => {
@@ -32,6 +42,15 @@ jest.mock('../PredictMarketSportCard', () => {
   return jest.fn(({ market }) => (
     <View testID="predict-market-sport-card">
       <Text>PredictMarketSportCard: {market.title}</Text>
+    </View>
+  ));
+});
+
+jest.mock('../PredictCryptoUpDownMarketCard', () => {
+  const { View, Text } = jest.requireActual('react-native');
+  return jest.fn(({ market }) => (
+    <View testID="predict-crypto-up-down-market-card">
+      <Text>PredictCryptoUpDownMarketCard: {market.title}</Text>
     </View>
   ));
 });
@@ -175,7 +194,7 @@ const mockNflMarket: PredictMarketType = {
       name: 'Denver Broncos',
       logo: 'https://example.com/broncos.png',
       abbreviation: 'DEN',
-      color: '#FC4C02',
+      color: TEST_HEX_COLORS.TEAM_ALT_ORANGE,
       alias: 'Broncos',
     },
     awayTeam: {
@@ -183,9 +202,32 @@ const mockNflMarket: PredictMarketType = {
       name: 'Seattle Seahawks',
       logo: 'https://example.com/seahawks.png',
       abbreviation: 'SEA',
-      color: '#002244',
+      color: TEST_HEX_COLORS.TEAM_SEA,
       alias: 'Seahawks',
     },
+  },
+};
+
+const mockCryptoUpDownMarket: PredictMarketType = {
+  id: 'btc-up-down-market-1',
+  providerId: 'test-provider',
+  slug: 'btc-up-or-down-5m-1',
+  title: 'BTC Up or Down - 5 Minutes',
+  description: 'BTC Up or Down market',
+  image: 'https://example.com/btc.png',
+  status: 'open',
+  recurrence: Recurrence.NONE,
+  category: 'crypto',
+  tags: ['crypto', 'up-or-down', 'bitcoin'],
+  outcomes: [mockSingleOutcome],
+  liquidity: 1000000,
+  volume: 1000000,
+  endDate: '2026-04-09T19:45:00Z',
+  series: {
+    id: 'btc-series',
+    slug: 'btc-up-or-down-5m',
+    title: 'BTC Up or Down - 5 Minutes',
+    recurrence: '5m',
   },
 };
 
@@ -195,10 +237,26 @@ const initialState = {
   },
 };
 
+const transactionActiveAbTests: TransactionActiveAbTestEntry[] = [
+  {
+    key: 'predict-empty-state',
+    value: 'treatment',
+    key_value_pair: 'predict-empty-state=treatment',
+  },
+];
+
 // Helper function to set up test environment
-function setupPredictMarketTest(market: PredictMarketType) {
+function setupPredictMarketTest(
+  market: PredictMarketType,
+  props: Partial<React.ComponentProps<typeof PredictMarket>> = {},
+  { upDownEnabled = true }: { upDownEnabled?: boolean } = {},
+) {
   jest.clearAllMocks();
-  return renderWithProvider(<PredictMarket market={market} />, {
+  const { selectPredictUpDownEnabledFlag } = jest.requireMock(
+    '../../selectors/featureFlags',
+  );
+  selectPredictUpDownEnabledFlag.mockReturnValue(upDownEnabled);
+  return renderWithProvider(<PredictMarket {...props} market={market} />, {
     state: initialState,
   });
 }
@@ -230,6 +288,41 @@ describe('PredictMarket', () => {
     expect(getByTestId('predict-market-sport-card')).toBeOnTheScreen();
   });
 
+  it('renders PredictCryptoUpDownMarketCard for crypto Up/Down markets', () => {
+    const { getByTestId, queryByTestId } = setupPredictMarketTest(
+      mockCryptoUpDownMarket,
+    );
+
+    expect(getByTestId('predict-crypto-up-down-market-card')).toBeOnTheScreen();
+    expect(queryByTestId('predict-market-single')).toBeNull();
+    expect(queryByTestId('predict-market-multiple')).toBeNull();
+  });
+
+  it('does not render PredictCryptoUpDownMarketCard when predictUpDownEnabled flag is off', () => {
+    const { queryByTestId } = setupPredictMarketTest(
+      mockCryptoUpDownMarket,
+      {},
+      { upDownEnabled: false },
+    );
+
+    expect(queryByTestId('predict-crypto-up-down-market-card')).toBeNull();
+    expect(queryByTestId('predict-market-single')).toBeOnTheScreen();
+  });
+
+  it('passes transactionActiveAbTests to PredictCryptoUpDownMarketCard for crypto Up/Down markets', () => {
+    setupPredictMarketTest(mockCryptoUpDownMarket, {
+      transactionActiveAbTests,
+    });
+
+    expect(
+      (PredictCryptoUpDownMarketCard as jest.Mock).mock.calls[0][0],
+    ).toEqual(
+      expect.objectContaining({
+        transactionActiveAbTests,
+      }),
+    );
+  });
+
   it('passes market prop correctly to PredictMarketSportCard for NFL markets', () => {
     const { getByText } = setupPredictMarketTest(mockNflMarket);
 
@@ -252,5 +345,64 @@ describe('PredictMarket', () => {
 
     expect(getByTestId('predict-market-multiple')).toBeOnTheScreen();
     expect(queryByTestId('predict-market-sport-card')).toBeNull();
+  });
+
+  it('passes sponsored buy handler props to the selected child card', () => {
+    const onBuyButtonPress = jest.fn(() => true);
+
+    setupPredictMarketTest(mockSingleMarket, {
+      cardPressDisabled: true,
+      onBuyButtonPress,
+    });
+
+    expect(PredictMarketSingle).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cardPressDisabled: true,
+        onBuyButtonPress,
+      }),
+      undefined,
+    );
+  });
+
+  it('passes sponsored buy handler props to multi-outcome and sport cards', () => {
+    const onBuyButtonPress = jest.fn(() => true);
+
+    setupPredictMarketTest(mockMultipleMarket, {
+      cardPressDisabled: true,
+      onBuyButtonPress,
+    });
+    expect(PredictMarketMultiple).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cardPressDisabled: true,
+        onBuyButtonPress,
+      }),
+      undefined,
+    );
+
+    setupPredictMarketTest(mockNflMarket, {
+      cardPressDisabled: true,
+      onBuyButtonPress,
+    });
+
+    expect(PredictMarketSportCard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cardPressDisabled: true,
+        onBuyButtonPress,
+      }),
+      undefined,
+    );
+
+    setupPredictMarketTest(mockCryptoUpDownMarket, {
+      cardPressDisabled: true,
+      onBuyButtonPress,
+    });
+
+    expect(PredictCryptoUpDownMarketCard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cardPressDisabled: true,
+        onBuyButtonPress,
+      }),
+      undefined,
+    );
   });
 });

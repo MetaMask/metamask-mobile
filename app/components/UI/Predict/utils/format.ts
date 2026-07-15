@@ -1,5 +1,11 @@
 import { Dimensions } from 'react-native';
+import { strings } from '../../../../../locales/i18n';
 import { PredictSeries, Recurrence } from '../types';
+import {
+  formatSubscriptNotation,
+  type FormatSubscriptNotationOptions,
+} from '../../../../util/number/subscriptNotation';
+import currencySymbols from '../../../../util/currency-symbols.json';
 
 /**
  * Formats a percentage value
@@ -63,22 +69,20 @@ export const formatPercentage = (
 };
 
 /**
- * Subscript digits for formatting small prices
+ * Builds `amount` / `percent` for `strings('predict.unrealized_pnl_value', …)`.
+ * Same rules as PredictPositionsHeader: signed cash, signed % via `formatPercentage`.
  */
-const SUBSCRIPT_DIGITS = ['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉'];
-
-/**
- * Converts a number to subscript notation
- * @param num - Number to convert
- * @returns String with subscript digits
- * @example toSubscript(6) => "₆"
- * @example toSubscript(12) => "₁₂"
- */
-const toSubscript = (num: number): string =>
-  String(num)
-    .split('')
-    .map((digit) => SUBSCRIPT_DIGITS[parseInt(digit, 10)])
-    .join('');
+export function formatPredictUnrealizedPnLStringParts(data: {
+  cashUpnl: number;
+  percentUpnl: number;
+}): { amount: string; percent: string } {
+  const { cashUpnl, percentUpnl } = data;
+  const amountSign = cashUpnl >= 0 ? '+' : '-';
+  const amount = `${amountSign}$${Math.abs(cashUpnl).toFixed(2)}`;
+  const percentSign = percentUpnl >= 0 ? '+' : '';
+  const percent = `${percentSign}${formatPercentage(percentUpnl)}`;
+  return { amount, percent };
+}
 
 /**
  * Formats a price value as USD currency with rounding up to nearest cent
@@ -126,20 +130,34 @@ export const formatPrice = (
 };
 
 /**
- * Formats a price value for trending tokens with subscript notation for very small values
+ * Formats a price value with subscript notation for very small values
  * - Uses subscript notation for values with 4+ leading zeros (e.g., 0.00000614 → $0.0₅614)
  * - The subscript indicates the number of leading zeros after the decimal point
  * - Returns "—" for zero values
- * - Uses min 2, max 4 decimal places for regular values
+ * - Values >= 1: exactly 2 decimal places (e.g. $2,285.01)
+ * - Values < 1: up to 4 decimal places (e.g. $0.1446)
  * @param price - The price value to format (string or number)
- * @returns Formatted price string with $ prefix or "—" for zero
+ * @param currencyCode - ISO 4217 currency code (e.g. 'USD', 'EUR'). Defaults to 'USD'.
+ * @param options - Optional; set `maxDigitsAfterSubscript` to shorten the digit tail after `0.0ₙ` (e.g. compact OHLC rows).
+ * @returns Formatted price string with currency symbol or "—" for zero
+ * @example formatPriceWithSubscriptNotation(2285.013) => "$2,285.01"
  * @example formatPriceWithSubscriptNotation(1.99) => "$1.99"
  * @example formatPriceWithSubscriptNotation(0.144566) => "$0.1446"
  * @example formatPriceWithSubscriptNotation(0.00000614) => "$0.0₅614"
  * @example formatPriceWithSubscriptNotation(0) => "—"
+ * @example formatPriceWithSubscriptNotation(1.2345, 'EUR') => "€1.23"
+ * @example formatPriceWithSubscriptNotation(0.00003415, 'USD', { maxDigitsAfterSubscript: 2 }) => "$0.0₄34"
  */
+export interface FormatPriceWithSubscriptNotationOptions
+  extends FormatSubscriptNotationOptions {
+  /** Override the default max decimal places (2 for ≥1, 4 for <1). */
+  maximumFractionDigits?: number;
+}
+
 export const formatPriceWithSubscriptNotation = (
   price: string | number,
+  currencyCode = 'USD',
+  options?: FormatPriceWithSubscriptNotationOptions,
 ): string => {
   const num = typeof price === 'string' ? parseFloat(price) : price;
 
@@ -151,23 +169,24 @@ export const formatPriceWithSubscriptNotation = (
     return '—';
   }
 
-  // Handle very small values with subscript notation (e.g., 0.00000614 → $0.0₅614)
-  if (num > 0 && num < 0.0001) {
-    const priceStr = num.toFixed(20);
-    const match = priceStr.match(/^0\.0*([1-9]\d*)/);
+  // Known symbol (e.g. $, €) → prefix; unknown code (e.g. PLN) → suffix
+  // Matches addCurrencySymbol convention used elsewhere in the app
+  const symbol =
+    currencySymbols[currencyCode.toLowerCase() as keyof typeof currencySymbols];
+  const addSymbol = (n: string) =>
+    symbol ? `${symbol}${n}` : `${n} ${currencyCode.toUpperCase()}`;
 
-    if (match) {
-      const leadingZeros = priceStr.indexOf(match[1]) - 2;
+  const subscript = formatSubscriptNotation(num, options);
+  if (subscript) return addSymbol(subscript);
 
-      if (leadingZeros >= 4) {
-        const significantDigits =
-          match[1].slice(0, 4).replace(/0+$/, '') || match[1].slice(0, 2);
-        return `$0.0${toSubscript(leadingZeros)}${significantDigits}`;
-      }
-    }
-  }
-
-  return formatPrice(num, { minimumDecimals: 2, maximumDecimals: 4 });
+  const maximumFractionDigits =
+    options?.maximumFractionDigits ?? (num >= 1 ? 2 : 4);
+  const formattedNumber = new Intl.NumberFormat('en-US', {
+    style: 'decimal',
+    minimumFractionDigits: 2,
+    maximumFractionDigits,
+  }).format(num);
+  return addSymbol(formattedNumber);
 };
 
 /**
@@ -352,7 +371,7 @@ export const formatCurrencyValue = (
   value?: number,
   options: { showSign?: boolean } = {},
 ): string | undefined => {
-  if (value === undefined || value === null) {
+  if (value === undefined || value === null || !Number.isFinite(value)) {
     return undefined;
   }
 
@@ -362,6 +381,10 @@ export const formatCurrencyValue = (
   });
 
   if (!options.showSign) {
+    return formatted;
+  }
+
+  if (value === 0) {
     return formatted;
   }
 
@@ -417,6 +440,28 @@ export const estimateLineCount = (text: string | undefined): number => {
 };
 
 /**
+ * Formats a market end date into a user-friendly date/time string
+ * using the user's local timezone.
+ * @param endDate - ISO 8601 datetime string (e.g., "2026-04-09T19:45:00Z")
+ * @returns Formatted string (e.g., "April 9, 1:45 PM" in MDT)
+ * @example formatMarketEndDate("2026-04-09T19:45:00Z") => "April 9, 1:45 PM"
+ */
+export const formatMarketEndDate = (endDate: string): string => {
+  const dateObj = new Date(endDate);
+
+  if (isNaN(dateObj.getTime())) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(dateObj);
+};
+
+/**
  * Formats a game start time into separate date and time strings for display.
  * Uses locale-aware formatting via Intl.DateTimeFormat.
  * @param startTime - ISO 8601 datetime string (e.g., "2026-02-08T20:30:00Z")
@@ -448,4 +493,36 @@ export const formatGameStartTime = (
   }).format(dateObj);
 
   return { date, time };
+};
+
+/**
+ * Builds the localised cashout info subtitle string
+ * used in both the sell sheet header and the full-screen sell preview.
+ */
+export const getCashoutInfoText = ({
+  initialValue,
+  avgPrice,
+  outcomeSideText,
+  outcomeGroupTitle,
+}: {
+  initialValue: number;
+  avgPrice: number;
+  outcomeSideText: string;
+  outcomeGroupTitle: string;
+}): string => {
+  const amount = formatPrice(initialValue);
+  const initialPrice = formatCents(avgPrice);
+
+  return outcomeGroupTitle
+    ? strings('predict.cashout_info_multiple', {
+        amount,
+        outcomeGroupTitle,
+        outcome: outcomeSideText,
+        initialPrice,
+      })
+    : strings('predict.cashout_info', {
+        amount,
+        outcome: outcomeSideText,
+        initialPrice,
+      });
 };

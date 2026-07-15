@@ -1,3 +1,4 @@
+import { FeatureId } from '@metamask/bridge-controller';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -10,7 +11,11 @@ import { selectCurrencyRates } from '../../../../../selectors/currencyRateContro
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
-import { calcTokenFiatValue } from '../../utils/exchange-rates';
+import {
+  calcTokenFiatValue,
+  calcUsdAmountFromFiat,
+} from '../../utils/exchange-rates';
+import { getSecurityWarnings } from '../../utils/tokenSecurityUtils';
 
 export const useUnifiedSwapBridgeContext = () => {
   const smartTransactionsEnabled = useSelector(selectShouldUseSmartTransaction);
@@ -25,7 +30,6 @@ export const useUnifiedSwapBridgeContext = () => {
   );
   const nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
 
-  const usdConversionRate = evmMultiChainCurrencyRates?.usd?.conversionRate;
   const tokenFiatValue = useMemo(
     () =>
       calcTokenFiatValue({
@@ -46,18 +50,24 @@ export const useUnifiedSwapBridgeContext = () => {
     ],
   );
 
-  const usdAmountSource = usdConversionRate
-    ? tokenFiatValue / usdConversionRate
-    : 0;
+  const usdAmountSource =
+    calcUsdAmountFromFiat({
+      tokenFiatValue,
+      chainId: fromToken?.chainId,
+      networkConfigurationsByChainId,
+      evmMultiChainCurrencyRates,
+    }) ?? 0;
 
   return useMemo(
     () => ({
       stx_enabled: smartTransactionsEnabled,
       token_symbol_source: fromToken?.symbol ?? '',
       token_symbol_destination: toToken?.symbol ?? '',
-      security_warnings: [], // TODO
+      token_security_type_destination: toToken?.securityData?.type ?? null,
+      security_warnings: getSecurityWarnings(toToken),
       warnings: [], // TODO
       usd_amount_source: usdAmountSource,
+      feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
     }),
     [smartTransactionsEnabled, fromToken, toToken, usdAmountSource],
   );

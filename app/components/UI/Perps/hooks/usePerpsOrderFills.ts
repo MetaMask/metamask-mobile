@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
-import type { OrderFill, GetOrderFillsParams } from '../controllers/types';
+import {
+  type OrderFill,
+  type GetOrderFillsParams,
+} from '@metamask/perps-controller';
 
 export interface UsePerpsOrderFillsResult {
   /**
@@ -80,7 +83,12 @@ export const usePerpsOrderFills = (
         DevLogger.log('Perps: Fetching order fills from controller...');
 
         const controller = Engine.context.PerpsController;
-        const fills = await controller.getOrderFills(params);
+        // Explicit refresh (pull-to-refresh, polling tick) bypasses the
+        // MarketDataService request-coalesce cache so a fresh provider call
+        // runs instead of returning a still-hot cached payload.
+        const fills = await controller.getOrderFills(params, {
+          forceRefresh: isRefresh,
+        });
 
         setOrderFills(fills || []);
 

@@ -5,9 +5,9 @@ import {
 } from '@metamask/transaction-controller';
 
 import ppomUtil from '../../../../lib/ppom/ppom-util';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as TransactionUtils from '../../../../util/transaction-controller';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as EngineNetworkUtils from '../../../../util/networks/engineNetworkUtils';
 import { AssetType, TokenStandard } from '../types/token';
 import { InitSendLocation } from '../constants/send';
@@ -23,6 +23,7 @@ import {
   getLayer1GasFeeForSend,
   handleSendPageNavigation,
   isValidPositiveNumericString,
+  normalizeAmount,
   prepareEVMTransaction,
   submitEvmTransaction,
   toBNWithDecimals,
@@ -436,5 +437,33 @@ describe('addLeadingZeroIfNeeded', () => {
     expect(addLeadingZeroIfNeeded('.001')).toEqual('0.001');
     expect(addLeadingZeroIfNeeded('0.001')).toEqual('0.001');
     expect(addLeadingZeroIfNeeded('100')).toEqual('100');
+  });
+});
+
+describe('normalizeAmount', () => {
+  it('returns "0" for falsy values', () => {
+    expect(normalizeAmount(undefined)).toEqual('0');
+    expect(normalizeAmount('')).toEqual('0');
+  });
+
+  it('returns "0" for a standalone decimal point', () => {
+    expect(normalizeAmount('.')).toEqual('0');
+  });
+
+  it('strips trailing dot from intermediate inputs', () => {
+    expect(normalizeAmount('0.')).toEqual('0');
+    expect(normalizeAmount('5.')).toEqual('5');
+    expect(normalizeAmount('123.')).toEqual('123');
+  });
+
+  it('passes through valid numeric strings unchanged', () => {
+    expect(normalizeAmount('0')).toEqual('0');
+    expect(normalizeAmount('5.25')).toEqual('5.25');
+    expect(normalizeAmount('10')).toEqual('10');
+    expect(normalizeAmount('.01')).toEqual('.01');
+  });
+
+  it('coerces non-string values to string', () => {
+    expect(normalizeAmount(10 as unknown as string)).toEqual('10');
   });
 });

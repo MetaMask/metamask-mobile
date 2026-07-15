@@ -7,13 +7,12 @@ import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { ethers } from 'ethers';
 import { capitalize } from 'lodash';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import KeyValueRow, {
-  TooltipSizes,
-} from '../../../../../component-library/components-temp/KeyValueRow';
+import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import Badge, {
   BadgeVariant,
@@ -22,16 +21,18 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
-import { IMetaMetricsEvent } from '../../../../../core/Analytics';
+import {
+  IMetaMetricsEvent,
+  MetaMetricsEvents,
+} from '../../../../../core/Analytics';
 import Engine from '../../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../../hooks/useStyles';
 import InfoRowDivider from '../../../../Views/confirmations/components/UI/info-row-divider';
 import InfoSection from '../../../../Views/confirmations/components/UI/info-row/info-section';
-import { getStakingNavbar } from '../../../Navbar';
 import AccountTag from '../../../Stake/components/StakingConfirmation/AccountTag/AccountTag';
 import ContractTag from '../../../Stake/components/StakingConfirmation/ContractTag/ContractTag';
 import { TokenI } from '../../../Tokens/types';
@@ -69,8 +70,8 @@ export interface EarnWithdrawalConfirmationViewProps {
 }
 
 const EarnLendingWithdrawalConfirmationView = () => {
-  const { styles, theme } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { styles } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const navigation = useNavigation();
 
@@ -84,6 +85,11 @@ const EarnLendingWithdrawalConfirmationView = () => {
     lendingProtocol,
     // healthFactorSimulation,
   } = params;
+
+  const headerTitle = useMemo(() => {
+    const tokenLabel = token?.ticker ?? token?.symbol ?? token?.name ?? '';
+    return `${strings('earn.withdraw')} ${tokenLabel}`;
+  }, [token?.ticker, token?.symbol, token?.name]);
 
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
 
@@ -103,50 +109,34 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   useEndTraceOnMount(TraceName.EarnWithdrawReviewScreen);
 
-  useEffect(() => {
-    const tokenLabel = token?.ticker ?? token?.symbol ?? token?.name ?? '';
-    const title = `${strings('earn.withdraw')} ${tokenLabel}`;
-
-    navigation.setOptions(
-      getStakingNavbar(
-        title,
-        navigation,
-        theme.colors,
-        {
-          hasCancelButton: false,
-          backgroundColor: theme.colors.background.alternative,
-        },
-        {
-          backButtonEvent: {
-            event:
-              MetaMetricsEvents.EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED,
-            properties: {
-              selected_provider: EVENT_PROVIDERS.CONSENSYS,
-              location: EVENT_LOCATIONS.EARN_LENDING_WITHDRAW_CONFIRMATION_VIEW,
-              experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-              user_token_balance: outputToken?.balanceFormatted as string,
-              transaction_value: `${renderFromTokenMinimalUnit(
-                amountTokenMinimalUnit,
-                outputToken?.decimals as number,
-              )} ${outputToken?.symbol}`,
-              token: token.symbol,
-            },
-          },
-        },
-      ),
+  const handleHeaderBackPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED,
+      )
+        .addProperties({
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
+          location: EVENT_LOCATIONS.EARN_LENDING_WITHDRAW_CONFIRMATION_VIEW,
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          user_token_balance: outputToken?.balanceFormatted as string,
+          transaction_value: `${renderFromTokenMinimalUnit(
+            amountTokenMinimalUnit,
+            outputToken?.decimals as number,
+          )} ${outputToken?.symbol}`,
+          token: token.symbol,
+        })
+        .build(),
     );
+    navigation.goBack();
   }, [
     amountTokenMinimalUnit,
+    createEventBuilder,
     navigation,
     outputToken?.balanceFormatted,
-    outputToken?.balanceMinimalUnit,
     outputToken?.decimals,
-    outputToken?.experience.type,
     outputToken?.symbol,
-    theme.colors,
     token.symbol,
-    token.name,
-    token.ticker,
+    trackEvent,
   ]);
 
   // const riskTextColor = useMemo(() => {
@@ -466,6 +456,14 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   return (
     <View style={styles.pageContainer}>
+      <HeaderStandard
+        title={headerTitle}
+        onBack={handleHeaderBackPress}
+        backButtonProps={{
+          accessibilityLabel: strings('navigation.back'),
+        }}
+        includesTopInset
+      />
       <View style={styles.contentContainer}>
         <Erc20TokenHero
           token={token}
@@ -485,7 +483,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                   tooltip: {
                     title: strings('earn.withdrawal_time'),
                     content: strings('earn.tooltip_content.withdrawal_time'),
-                    size: TooltipSizes.Sm,
                   },
                 }}
                 value={{
@@ -528,7 +525,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                   tooltip: {
                     title: strings('earn.protocol'),
                     content: strings('earn.tooltip_content.protocol'),
-                    size: TooltipSizes.Sm,
                   },
                 }}
                 value={{
@@ -631,7 +627,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                           </View>
                         </View>
                       ),
-                      size: TooltipSizes.Sm,
                     },
                   }}
                   value={{

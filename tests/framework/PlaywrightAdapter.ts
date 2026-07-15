@@ -1,5 +1,28 @@
 import { ChainablePromiseElement } from 'webdriverio';
-import { boxedStep } from './Utilities.ts';
+import { boxedStep } from './PlaywrightUtilities.ts';
+
+export interface IsDisplayedParams {
+  /**
+   * `true` to check if the element is within the viewport. false by default.
+   */
+  withinViewport?: boolean;
+  /**
+   * `true` to check if the element content-visibility property has (or inherits) the value auto,
+   * and it is currently skipping its rendering. `true` by default.
+   * @default true
+   */
+  contentVisibilityAuto?: boolean;
+  /**
+   * `true` to check if the element opacity property has (or inherits) a value of 0. `true` by default.
+   * @default true
+   */
+  opacityProperty?: boolean;
+  /**
+   * `true` to check if the element is invisible due to the value of its visibility property. `true` by default.
+   * @default true
+   */
+  visibilityProperty?: boolean;
+}
 
 /**
  * PlaywrightAdapter - Provides Playwright-like API on top of WebdriverIO elems
@@ -46,12 +69,28 @@ export class PlaywrightElement {
   }
 
   /**
+   * Detox-compatible alias for textContent (used by WebView page objects).
+   */
+  @boxedStep
+  async getText(): Promise<string> {
+    return this.textContent();
+  }
+
+  /**
+   * Scroll element into view inside a WebView (Detox scrollToView equivalent).
+   */
+  @boxedStep
+  async scrollToView(): Promise<void> {
+    await this.elem.scrollIntoView();
+  }
+
+  /**
    * Check if elem is visible (Playwright-style)
    * Maps to WebdriverIO's isDisplayed()
    */
   @boxedStep
-  async isVisible(): Promise<boolean> {
-    return await this.elem.isDisplayed();
+  async isVisible(options?: IsDisplayedParams): Promise<boolean> {
+    return await this.elem.isDisplayed(options);
   }
 
   /**
@@ -61,6 +100,14 @@ export class PlaywrightElement {
   @boxedStep
   async isEnabled(): Promise<boolean> {
     return await this.elem.isEnabled();
+  }
+
+  /**
+   * Check if elem is displayed and enabled (WebdriverIO isClickable).
+   */
+  @boxedStep
+  async isClickable(): Promise<boolean> {
+    return await this.elem.isClickable();
   }
 
   /**
@@ -94,12 +141,30 @@ export class PlaywrightElement {
 
   /**
    * Wait for elem to be displayed
+   * Note: This will throw if the element is not displayed within the timeout.
+   * @param options - The options to pass to the waitForDisplayed method.
+   * @param options.timeout - The timeout in milliseconds.
+   * @returns The result of the waitForDisplayed method.
    */
   @boxedStep
   async waitForDisplayed(options?: {
     timeout?: number;
+    interval?: number;
+    timeoutMsg?: string;
+    withinViewport?: boolean;
+    contentVisibilityAuto?: boolean;
+    opacityProperty?: boolean;
+    visibilityProperty?: boolean;
     reverse?: boolean;
   }): Promise<void> {
+    if (!this.elem) {
+      if (options?.reverse) {
+        return;
+      }
+      throw new Error(
+        'An element could not be located on the page using the given search parameters.',
+      );
+    }
     await this.elem.waitForDisplayed(options);
   }
 
@@ -110,6 +175,8 @@ export class PlaywrightElement {
   async waitForEnabled(options?: {
     timeout?: number;
     reverse?: boolean;
+    interval?: number;
+    timeoutMsg?: string;
   }): Promise<void> {
     await this.elem.waitForEnabled(options);
   }

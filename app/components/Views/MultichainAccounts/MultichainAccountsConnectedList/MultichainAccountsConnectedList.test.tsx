@@ -4,7 +4,7 @@ import configureStore from 'redux-mock-store';
 import { render, fireEvent } from '@testing-library/react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
-import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
 
 import MultichainAccountsConnectedList from './MultichainAccountsConnectedList';
 import {
@@ -102,9 +102,12 @@ jest.mock('../../../../util/test/initial-root-state', () => ({
     },
     AccountTreeController: {
       accountTree: {
-        selectedAccountGroup: '',
         wallets: {},
       },
+      selectedAccountGroup: '',
+    },
+    PreferencesController: {
+      privacyMode: false,
     },
     RemoteFeatureFlagController: {
       remoteFeatureFlags: {
@@ -236,13 +239,11 @@ describe('MultichainAccountsConnectedList', () => {
   });
 
   it('renders component with different account group configurations', () => {
-    const { toJSON, getByText } = renderMultichainAccountsConnectedList();
-    // Assert visible content (robust behavior check)
-    expect(getByText('Account 1')).toBeTruthy();
-    expect(getByText('Account 2')).toBeTruthy();
-    expect(getByText('Edit accounts')).toBeTruthy();
-    // Snapshot for structural regressions
-    expect(toJSON()).toMatchSnapshot();
+    const { getByText } = renderMultichainAccountsConnectedList();
+
+    expect(getByText('Account 1')).toBeOnTheScreen();
+    expect(getByText('Account 2')).toBeOnTheScreen();
+    expect(getByText('Edit accounts')).toBeOnTheScreen();
   });
 
   it('calls handleEditAccountsButtonPress when edit button is pressed', () => {

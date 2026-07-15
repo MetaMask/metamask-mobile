@@ -91,24 +91,25 @@ app/
 ├── hooks/                # Custom React hooks
 └── styles/               # Global styles
 
-e2e/                      # Detox E2E tests
+tests/smoke               # Detox Smoke E2E tests
+tests/regression          # Detox Regression E2E tests
 docs/                     # Documentation
 scripts/                  # Build and automation scripts
 ```
 
 ## Development Guidelines
 
-**Detailed guidelines are in `.cursor/rules/`** - these are automatically applied by Cursor:
+**Detailed guidelines are in `docs/testing/`** (canonical, in-repo) and the `mms-*` skill set installed via `yarn skills` (Cursor / Codex / Claude harnesses):
 
-| Rule File                         | Scope                                                |
-| --------------------------------- | ---------------------------------------------------- |
-| `general-coding-guidelines.mdc`   | Always applied - coding standards, file organization |
-| `ui-development-guidelines.mdc`   | UI components - design system, Tailwind, styling     |
-| `unit-testing-guidelines.mdc`     | `*.test.*` files - test patterns, mocking, AAA       |
-| `e2e-testing-guidelines.mdc`      | Always applied - E2E patterns, Page Objects          |
-| `component-view-testing.mdc`      | Component testing with presets/renderers             |
-| `deeplink-handler-guidelines.mdc` | Deeplink handler implementation                      |
-| `pr-creation-guidelines.mdc`      | Pull request standards                               |
+| Guide                                                                                      | Scope                                                                        |
+| ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| [`docs/testing/unit-testing.md`](docs/testing/unit-testing.md)                             | `*.test.*` files — test patterns, mocking, AAA                               |
+| [`docs/testing/e2e-testing.md`](docs/testing/e2e-testing.md)                               | Detox smoke/regression — Page Objects, gestures                              |
+| [`docs/testing/appium-smoke-testing.md`](docs/testing/appium-smoke-testing.md)             | Appium smoke — main-e2e builds, `yarn appium-smoke:*`                        |
+| [`docs/testing/component-view-tests.md`](docs/testing/component-view-tests.md)             | `*.view.test.tsx` — framework, presets, renderers                            |
+| [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) | Version-gated remote flags — `validatedVersionGatedFeatureFlag` in selectors |
+
+General coding, UI, deeplink-handler, and PR-creation guidance now lives in the centralized `mms-*` skill set installed via `yarn skills` (see `.agents/skills/mms-*` after sync).
 
 ### Quick Reference
 
@@ -116,6 +117,7 @@ scripts/                  # Build and automation scripts
 - **Components**: Design system first → `component-library` second → custom last
 - **Styling**: Use `useTailwind()` hook, `Box`/`Text` components, design tokens
 - **Testing**: Mandatory for all code, AAA pattern, mock everything external
+- **Version-gated feature flags**: Use `validatedVersionGatedFeatureFlag` from `app/util/remoteFeatureFlag` in selectors — see [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) and [`.cursor/rules/version-gated-feature-flags.mdc`](.cursor/rules/version-gated-feature-flags.mdc)
 - **Commands**: ONLY use yarn (never npm/npx)
 
 ## Environment Setup
@@ -126,7 +128,27 @@ See detailed setup documentation:
 - **Native development**: [docs/readme/environment.md](./docs/readme/environment.md)
 - **Infura & Firebase**: [README.md](./README.md#getting-started)
 
-**Required Tools**: Node.js ^20.18.0 • Yarn ^4.10.3 • Watchman
+**Required Tools**: Node.js ^24.16.0 • Yarn ^4.14.1 • Watchman
+
+### AI Tooling — Developer Usage Collection
+
+Tool/skill usage is automatically recorded to a local CSV log at `~/.tool-usage-collection/metamask-mobile-events.log` across three collection paths: Yarn scripts, Claude Code skills, and Cursor skills. This is developer-only, stored locally, and never sent anywhere.
+
+To opt out, set `TOOL_USAGE_COLLECTION_OPT_IN=false` in your shell profile. Collection is also automatically disabled in CI (`CI` env var set).
+
+| Path              | Mechanism                                                            | Tokens |
+| ----------------- | -------------------------------------------------------------------- | ------ |
+| `yarn <script>`   | Yarn Berry plugin (`wrapScriptExecution`) → CSV log append           | 0      |
+| Claude Code skill | `PreToolUse` hook in `.claude/settings.json` → pure-shell dispatcher | 0      |
+| Cursor skill      | `preToolUse` hook in `.cursor/hooks.json` → pure-shell dispatcher    | 0      |
+
+Inspect your local activity:
+
+```bash
+tail -20 ~/.tool-usage-collection/metamask-mobile-events.log
+```
+
+See [`scripts/tooling/README.md`](./scripts/tooling/README.md) for full implementation details.
 
 ## Key Patterns
 
@@ -156,7 +178,6 @@ The app supports multiple build types:
 
 - `main`: Production MetaMask
 - `flask`: Development/experimental features
-- `qa`: QA testing builds
 
 Use environment variable `METAMASK_BUILD_TYPE` to switch.
 
@@ -186,7 +207,42 @@ If the user asks to implement a ticket directly from Jira:
 | Environment Setup         | `/docs/readme/environment.md`                |
 | E2E Testing               | `/docs/readme/e2e-testing.md`                |
 | Debugging                 | `/docs/readme/debugging.md`                  |
-| Performance               | `/docs/readme/performance.md`                |
+| Performance               | `/docs/performance/`                         |
 | Storybook                 | `/docs/readme/storybook.md`                  |
 | Troubleshooting           | `/docs/readme/troubleshooting.md`            |
 | MetaMask Contributor Docs | https://github.com/MetaMask/contributor-docs |
+| E2E CI Decision Tree      | `.github/guidelines/E2E_DECISION_TREE.md`    |
+
+## Test Guidelines
+
+Three test types coexist in this repo:
+
+- **Unit tests** (`*.test.tsx`)
+- **Component view tests** (`*.view.test.tsx`)
+- **E2E tests** (`tests/smoke/`, `tests/regression/`)
+
+For conventions and skill references for each type, read `tests/AGENTS.md`.
+
+## A/B Testing Agent Standard
+
+For A/B test implementation or review tasks, use the canonical standard:
+
+- `docs/ab-testing.md` (`Agent Execution Standard (SSOT)`)
+
+Codex skill entrypoint:
+
+- `.agents/skills/ab-testing-implementation/SKILL.md` (`$ab-testing-implementation`)
+
+Harness entrypoints:
+
+- Claude: `.claude/commands/create-ab-test.md` (`/create-ab-test`)
+- Cursor: `.cursor/commands/create-ab-test.md` (`/create-ab-test`) shim to Claude command
+- Windsurf and other harnesses: start prompts with `Follow docs/ab-testing.md section "Agent Execution Standard (SSOT)".`
+
+Compliance check command:
+
+```bash
+bash scripts/check-ab-testing-compliance.sh --staged
+```
+
+If no files are staged, the checker automatically falls back to changed working-tree files.

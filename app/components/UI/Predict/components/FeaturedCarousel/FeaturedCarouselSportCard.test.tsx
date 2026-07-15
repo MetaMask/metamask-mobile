@@ -1,0 +1,692 @@
+import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import {
+  PredictMarket,
+  PredictMarketGame,
+  PredictOutcome,
+  PredictOutcomeToken,
+  Recurrence,
+} from '../../types';
+import FeaturedCarouselSportCard from './FeaturedCarouselSportCard';
+import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
+import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import { usePredictGame } from '../../hooks/usePredictGame';
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn(() => ({})),
+  }),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackGeoBlockTriggered: jest.fn(),
+    },
+  },
+}));
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
+
+jest.mock('../../hooks/usePredictActiveOrder', () => ({
+  usePredictActiveOrder: () => ({
+    initializeActiveOrder: jest.fn(),
+    activeOrder: null,
+    updateActiveOrder: jest.fn(),
+    clearActiveOrder: jest.fn(),
+  }),
+}));
+
+const mockUsePredictEligibility = jest.fn().mockReturnValue({
+  isEligible: true,
+  isLoading: false,
+});
+jest.mock('../../hooks/usePredictEligibility', () => ({
+  usePredictEligibility: () => mockUsePredictEligibility(),
+}));
+
+const mockUsePredictBalance = jest.fn().mockReturnValue({
+  data: 100,
+  isLoading: false,
+});
+jest.mock('../../hooks/usePredictBalance', () => ({
+  usePredictBalance: () => mockUsePredictBalance(),
+}));
+
+jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
+  __esModule: true,
+  default: {
+    getInstance: () => ({
+      isFromTrending: false,
+    }),
+  },
+}));
+
+const mockOpenBuySheet = jest.fn();
+jest.mock('../../contexts', () => ({
+  usePredictEntryPoint: () => undefined,
+  usePredictPreviewSheet: () => ({
+    openBuySheet: mockOpenBuySheet,
+    openSellSheet: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/usePredictGame');
+const mockUsePredictGame = usePredictGame as jest.MockedFunction<
+  typeof usePredictGame
+>;
+
+const mockGetLivePrice = jest.fn();
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: jest.fn(() => ({
+    getPrice: mockGetLivePrice,
+  })),
+}));
+const mockUseLiveMarketPrices = jest.mocked(useLiveMarketPrices);
+
+jest.mock('../../constants/sportLeagueConfigs', () => ({
+  getLeagueConfig: () => ({}),
+}));
+
+jest.mock('../PredictSportTeamLogo/PredictSportTeamLogo', () => {
+  const { View: MockView } = jest.requireActual('react-native');
+  return ({ testID }: { testID?: string }) => (
+    <MockView testID={testID ?? 'predict-sport-team-logo'} />
+  );
+});
+
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: () => ({
+    executeGuardedAction: (action: () => void) => action(),
+    isEligible: true,
+  }),
+}));
+
+const initialState = {
+  engine: {
+    backgroundState,
+  },
+};
+
+const stateWithSportCardLivePricesEnabled = (enabled: boolean) => ({
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      RemoteFeatureFlagController: {
+        ...backgroundState.RemoteFeatureFlagController,
+        remoteFeatureFlags: {
+          ...backgroundState.RemoteFeatureFlagController?.remoteFeatureFlags,
+          predictSportCardLivePrices: {
+            enabled,
+            minimumVersion: '0.0.0',
+          },
+        },
+      },
+    },
+  },
+});
+
+const createMockOutcome = (
+  tokens: PredictOutcomeToken[],
+  volume = 1500000,
+): PredictOutcome => ({
+  id: 'outcome-1',
+  providerId: 'polymarket',
+  marketId: 'market-sport-1',
+  title: 'Game winner',
+  description: 'Pick winner',
+  image: 'https://example.com/market.png',
+  status: 'open',
+  tokens,
+  volume,
+  groupItemTitle: 'Game winner',
+  negRisk: false,
+  tickSize: '0.01',
+});
+
+const createMockGame = (
+  overrides: Partial<PredictMarketGame> = {},
+): PredictMarketGame => ({
+  id: 'game-1',
+  startTime: '2026-03-30T20:00:00Z',
+  status: 'ongoing',
+  league: 'ucl',
+  elapsed: '20',
+  period: '2H',
+  score: { away: 1, home: 2, raw: '1-2' },
+  homeTeam: {
+    id: 'team-home',
+    name: 'Lakers',
+    logo: 'https://example.com/home.png',
+    abbreviation: 'LAL',
+    color: 'purple',
+    alias: 'Lakers',
+  },
+  awayTeam: {
+    id: 'team-away',
+    name: 'Celtics',
+    logo: 'https://example.com/away.png',
+    abbreviation: 'BOS',
+    color: 'green',
+    alias: 'Celtics',
+  },
+  ...overrides,
+});
+
+const createMockSportMarket = (
+  overrides: Partial<PredictMarket> = {},
+): PredictMarket => ({
+  id: 'market-sport-1',
+  providerId: 'polymarket',
+  slug: 'lakers-vs-celtics',
+  title: 'Lakers vs Celtics',
+  description: 'Who wins?',
+  image: 'https://example.com/sport-market.png',
+  status: 'open',
+  recurrence: Recurrence.NONE,
+  category: 'sports',
+  tags: ['nba'],
+  outcomes: [
+    createMockOutcome([
+      { id: 'home-token', title: 'Lakers', price: 0.6 },
+      { id: 'away-token', title: 'Celtics', price: 0.4 },
+      { id: 'draw-token', title: 'Draw', price: 0.2 },
+      { id: 'extra-token', title: 'Bonus', price: 0.1 },
+    ]),
+  ],
+  liquidity: 1500000,
+  volume: 1500000,
+  game: createMockGame(),
+  ...overrides,
+});
+
+describe('FeaturedCarouselSportCard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetLivePrice.mockReturnValue(undefined);
+    mockUsePredictGame.mockImplementation((market) => ({
+      game: market?.game,
+      isConnected: false,
+      lastUpdateTime: null,
+    }));
+  });
+
+  it('renders league name and live indicator for ongoing games', () => {
+    const market = createMockSportMarket();
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getByText('UCL')).toBeOnTheScreen();
+    expect(getByText('Live 20')).toBeOnTheScreen();
+  });
+
+  it('renders team logos and scores', () => {
+    const market = createMockSportMarket();
+
+    const { getAllByTestId, getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getAllByTestId('predict-sport-team-logo')).toHaveLength(2);
+    expect(getByText('2')).toBeOnTheScreen();
+    expect(getByText('1')).toBeOnTheScreen();
+  });
+
+  it('renders cached game state from usePredictGame', () => {
+    const market = createMockSportMarket({
+      game: createMockGame({
+        status: 'scheduled',
+        elapsed: null,
+        score: null,
+      }),
+    });
+    mockUsePredictGame.mockReturnValue({
+      game: createMockGame({
+        status: 'ongoing',
+        elapsed: '75',
+        period: '2H',
+        score: { away: 3, home: 4, raw: '3-4' },
+      }),
+      isConnected: true,
+      lastUpdateTime: 1,
+    });
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getByText('Live 75')).toBeOnTheScreen();
+    expect(getByText('4')).toBeOnTheScreen();
+    expect(getByText('3')).toBeOnTheScreen();
+  });
+
+  it('renders team names', () => {
+    const market = createMockSportMarket();
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getByText('Lakers')).toBeOnTheScreen();
+    expect(getByText('Celtics')).toBeOnTheScreen();
+  });
+
+  it('renders payout prices for home and away teams', () => {
+    const market = createMockSportMarket();
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getByText('$166.67')).toBeOnTheScreen();
+    expect(getByText('$250.00')).toBeOnTheScreen();
+  });
+
+  it('renders percentage buttons for home and away', () => {
+    const market = createMockSportMarket();
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getByText('60%')).toBeOnTheScreen();
+    expect(getByText('40%')).toBeOnTheScreen();
+  });
+
+  it('renders draw button for UCL leagues', () => {
+    const market = createMockSportMarket({
+      game: createMockGame({ league: 'ucl' }),
+    });
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(
+      getByText(`${strings('predict.outcome_draw')} 20%`),
+    ).toBeOnTheScreen();
+  });
+
+  it.each(['nba', 'nfl'] as const)(
+    'does not render draw button for %s leagues',
+    (league) => {
+      const baseMarket = createMockSportMarket();
+      const market = createMockSportMarket({
+        game: createMockGame({ ...baseMarket.game, league }),
+      });
+
+      const { queryByText } = renderWithProvider(
+        <FeaturedCarouselSportCard market={market} index={0} />,
+        { state: initialState },
+      );
+
+      expect(
+        queryByText(strings('predict.outcome_draw')),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  it('renders footer with volume display', () => {
+    const market = createMockSportMarket();
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(
+      getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD_FOOTER(0)),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(new RegExp(strings('predict.volume_abbreviated'), 'i')),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders remaining outcomes count when market has multiple outcomes', () => {
+    const market = createMockSportMarket({
+      outcomes: [
+        createMockOutcome([
+          { id: 'home-token', title: 'Lakers', price: 0.6 },
+          { id: 'away-token', title: 'Celtics', price: 0.4 },
+        ]),
+        createMockOutcome([
+          { id: 'over-token', title: 'Over', price: 0.55 },
+          { id: 'under-token', title: 'Under', price: 0.45 },
+        ]),
+      ],
+    });
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getByText(/\+ 1/)).toBeOnTheScreen();
+  });
+
+  it('renders time remaining in footer for live games', () => {
+    const market = createMockSportMarket();
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getByText(/70 mins/)).toBeOnTheScreen();
+  });
+
+  it('navigates to market details on card press', () => {
+    const market = createMockSportMarket();
+
+    const { getByTestId } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByTestId(FEATURED_CAROUSEL_TEST_IDS.CARD(0)));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_DETAILS,
+      params: expect.objectContaining({
+        marketId: 'market-sport-1',
+        title: 'Lakers vs Celtics',
+      }),
+    });
+  });
+
+  it('calls buy handler on percentage button press', () => {
+    const market = createMockSportMarket();
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByText('60%'));
+
+    expect(mockOpenBuySheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        market,
+        outcome: market.outcomes[0],
+        outcomeToken: market.outcomes[0].tokens[0],
+      }),
+    );
+  });
+
+  it('renders scheduled time for games not yet started', () => {
+    const market = createMockSportMarket({
+      game: createMockGame({
+        status: 'scheduled',
+        elapsed: null,
+        score: null,
+      }),
+    });
+
+    const { queryByText, getByText, getAllByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(queryByText(/Live/)).not.toBeOnTheScreen();
+    expect(getByText('UCL')).toBeOnTheScreen();
+    expect(getAllByText(/Mar/).length).toBeGreaterThan(0);
+  });
+
+  it('renders 0-0 scores when game has no score data', () => {
+    const market = createMockSportMarket({
+      game: createMockGame({ score: null }),
+    });
+
+    const { getAllByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getAllByText('0')).toHaveLength(2);
+  });
+
+  it('renders away buy button with percentage', () => {
+    const market = createMockSportMarket();
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByText('40%'));
+
+    expect(mockOpenBuySheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        outcomeToken: expect.objectContaining({ title: 'Celtics' }),
+      }),
+    );
+  });
+
+  it('renders live best ask prices when available', () => {
+    mockGetLivePrice.mockImplementation((tokenId: string) => ({
+      tokenId,
+      price: 0,
+      bestBid: 0,
+      bestAsk:
+        tokenId === 'home-token'
+          ? 0.75
+          : tokenId === 'draw-token'
+            ? 0.18
+            : 0.25,
+    }));
+    const market = createMockSportMarket();
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getByText('$133.33')).toBeOnTheScreen();
+    expect(getByText('$400.00')).toBeOnTheScreen();
+    expect(getByText('75%')).toBeOnTheScreen();
+    expect(
+      getByText(`${strings('predict.outcome_draw')} 18%`),
+    ).toBeOnTheScreen();
+    expect(getByText('25%')).toBeOnTheScreen();
+  });
+
+  it('renders static prices and disables live subscriptions when the flag is off', () => {
+    mockGetLivePrice.mockImplementation((tokenId: string) => ({
+      tokenId,
+      price: 0,
+      bestBid: 0,
+      bestAsk: 0.99,
+    }));
+    const market = createMockSportMarket();
+
+    const { getByText, queryByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: stateWithSportCardLivePricesEnabled(false) },
+    );
+
+    expect(getByText('$166.67')).toBeOnTheScreen();
+    expect(getByText('$250.00')).toBeOnTheScreen();
+    expect(getByText('60%')).toBeOnTheScreen();
+    expect(
+      getByText(`${strings('predict.outcome_draw')} 20%`),
+    ).toBeOnTheScreen();
+    expect(getByText('40%')).toBeOnTheScreen();
+    expect(queryByText('99%')).not.toBeOnTheScreen();
+    expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
+      ['home-token', 'draw-token', 'away-token'],
+      { enabled: false },
+    );
+  });
+
+  describe('World Cup team-to-advance', () => {
+    const createWorldCupGame = (): PredictMarketGame => ({
+      id: 'game-world-cup',
+      startTime: '2026-06-08T21:30:00Z',
+      status: 'scheduled',
+      league: 'fifwc',
+      elapsed: null,
+      period: null,
+      score: null,
+      homeTeam: {
+        id: 'spain',
+        name: 'Spain',
+        logo: 'https://example.com/spain.png',
+        abbreviation: 'SPA',
+        color: 'orange',
+        alias: 'Spain',
+      },
+      awayTeam: {
+        id: 'england',
+        name: 'England',
+        logo: 'https://example.com/england.png',
+        abbreviation: 'ENG',
+        color: 'red',
+        alias: 'England',
+      },
+    });
+
+    const createWorldCupMarket = (outcomes: PredictOutcome[]): PredictMarket =>
+      createMockSportMarket({
+        id: 'market-world-cup',
+        title: 'Spain vs England',
+        tags: ['World Cup'],
+        game: createWorldCupGame(),
+        outcomes,
+      });
+
+    it('prefers team-to-advance outcomes for World Cup games', () => {
+      const moneylineOutcome = createMockOutcome([
+        { id: 'token-home', title: 'Spain', price: 0.6 },
+        { id: 'token-draw', title: 'Draw', price: 0.15 },
+        { id: 'token-away', title: 'England', price: 0.62 },
+      ]);
+      moneylineOutcome.id = 'outcome-moneyline';
+      moneylineOutcome.sportsMarketType = 'moneyline';
+
+      const teamToAdvanceOutcome = createMockOutcome([
+        { id: 'token-spain-advance', title: 'Spain', price: 0.72 },
+        { id: 'token-england-advance', title: 'England', price: 0.41 },
+      ]);
+      teamToAdvanceOutcome.id = 'outcome-team-to-advance';
+      teamToAdvanceOutcome.sportsMarketType = 'soccer_team_to_advance';
+      teamToAdvanceOutcome.groupItemTitle = 'Team to Advance';
+
+      const market = createWorldCupMarket([
+        moneylineOutcome,
+        teamToAdvanceOutcome,
+      ]);
+
+      const { getByText, queryByText } = renderWithProvider(
+        <FeaturedCarouselSportCard market={market} index={0} />,
+        { state: initialState },
+      );
+
+      expect(getByText('72%')).toBeOnTheScreen();
+      expect(getByText('41%')).toBeOnTheScreen();
+      expect(queryByText('60%')).not.toBeOnTheScreen();
+      expect(queryByText('62%')).not.toBeOnTheScreen();
+      expect(
+        queryByText(strings('predict.outcome_draw')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens buy sheet with team-to-advance outcome on away button press', () => {
+      const moneylineOutcome = createMockOutcome([
+        { id: 'token-home', title: 'Spain', price: 0.6 },
+        { id: 'token-draw', title: 'Draw', price: 0.15 },
+        { id: 'token-away', title: 'England', price: 0.62 },
+      ]);
+      moneylineOutcome.id = 'outcome-moneyline';
+      moneylineOutcome.sportsMarketType = 'moneyline';
+
+      const teamToAdvanceOutcome = createMockOutcome([
+        { id: 'token-spain-advance', title: 'Spain', price: 0.72 },
+        { id: 'token-england-advance', title: 'England', price: 0.41 },
+      ]);
+      teamToAdvanceOutcome.id = 'outcome-team-to-advance';
+      teamToAdvanceOutcome.sportsMarketType = 'soccer_team_to_advance';
+      teamToAdvanceOutcome.groupItemTitle = 'Team to Advance';
+
+      const market = createWorldCupMarket([
+        moneylineOutcome,
+        teamToAdvanceOutcome,
+      ]);
+
+      const { getByText } = renderWithProvider(
+        <FeaturedCarouselSportCard market={market} index={0} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByText('41%'));
+
+      expect(mockOpenBuySheet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          market,
+          outcome: teamToAdvanceOutcome,
+          outcomeToken: expect.objectContaining({
+            id: 'token-england-advance',
+          }),
+        }),
+      );
+    });
+
+    it('keeps moneyline outcomes for non-World-Cup games with team-to-advance markets', () => {
+      const moneylineOutcome = createMockOutcome([
+        { id: 'token-home', title: 'Spain', price: 0.6 },
+        { id: 'token-draw', title: 'Draw', price: 0.15 },
+        { id: 'token-away', title: 'England', price: 0.62 },
+      ]);
+      moneylineOutcome.id = 'outcome-moneyline';
+      moneylineOutcome.sportsMarketType = 'moneyline';
+
+      const teamToAdvanceOutcome = createMockOutcome([
+        { id: 'token-spain-advance', title: 'Spain', price: 0.72 },
+        { id: 'token-england-advance', title: 'England', price: 0.41 },
+      ]);
+      teamToAdvanceOutcome.id = 'outcome-team-to-advance';
+      teamToAdvanceOutcome.sportsMarketType = 'soccer_team_to_advance';
+      teamToAdvanceOutcome.groupItemTitle = 'Team to Advance';
+
+      const market = createWorldCupMarket([
+        moneylineOutcome,
+        teamToAdvanceOutcome,
+      ]);
+      market.game = createMockGame({
+        ...createWorldCupGame(),
+        league: 'ucl',
+      });
+
+      const { getByText, queryByText } = renderWithProvider(
+        <FeaturedCarouselSportCard market={market} index={0} />,
+        { state: initialState },
+      );
+
+      expect(getByText('60%')).toBeOnTheScreen();
+      expect(getByText('62%')).toBeOnTheScreen();
+      expect(
+        getByText(`${strings('predict.outcome_draw')} 15%`),
+      ).toBeOnTheScreen();
+      expect(queryByText('72%')).not.toBeOnTheScreen();
+      expect(queryByText('41%')).not.toBeOnTheScreen();
+    });
+  });
+});

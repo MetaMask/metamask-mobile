@@ -3,78 +3,96 @@ import {
   Gestures,
   Assertions,
   type ScrollOptions,
+  EncapsulatedElementType,
 } from '../../framework';
 import {
   TrendingViewSelectorsIDs,
   SECTION_BACK_BUTTONS,
   DETAILS_BACK_BUTTONS,
   SECTION_FULL_VIEW_HEADERS,
-} from '../../locators/Trending/TrendingView.selectors.ts';
-import { PredictMarketListSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds.ts';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent.ts';
-import BrowserView from '../../../e2e/pages/Browser/BrowserView.ts';
+  SECTION_TAB_CONFIG,
+} from '../../locators/Trending/TrendingView.selectors';
+import { PredictMarketListSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
+import TabBarComponent from '../wallet/TabBarComponent';
+import BrowserView from '../Browser/BrowserView';
 
 class TrendingView {
-  get searchButton(): DetoxElement {
+  private activeScrollViewID: string = TrendingViewSelectorsIDs.NOW_SCROLL_VIEW;
+
+  get searchButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_BUTTON);
   }
 
-  get browserButton(): DetoxElement {
+  get browserButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.BROWSER_BUTTON);
   }
 
-  get searchInput(): DetoxElement {
+  get searchInputContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_INPUT);
   }
 
-  get searchCancelButton(): DetoxElement {
+  get searchInput(): EncapsulatedElementType {
+    return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_TEXT_INPUT);
+  }
+
+  get searchCancelButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       TrendingViewSelectorsIDs.SEARCH_CANCEL_BUTTON,
     );
   }
 
-  get googleSearchButton(): DetoxElement {
+  get searchAllPill(): EncapsulatedElementType {
+    return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_PILL_ALL);
+  }
+
+  get searchCryptosPill(): EncapsulatedElementType {
     return Matchers.getElementByID(
-      TrendingViewSelectorsIDs.SEARCH_FOOTER_GOOGLE_LINK,
+      TrendingViewSelectorsIDs.SEARCH_PILL_CRYPTOS,
     );
   }
 
-  getTokenRow(assetId: string): DetoxElement {
+  get searchResultsList(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      TrendingViewSelectorsIDs.SEARCH_RESULTS_LIST,
+    );
+  }
+
+  getTokenRow(assetId: string): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${TrendingViewSelectorsIDs.TOKEN_ROW_ITEM_PREFIX}${assetId}`,
       0,
     );
   }
 
-  getPerpRow(symbol: string): DetoxElement {
+  getPerpRow(symbol: string): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${TrendingViewSelectorsIDs.PERPS_ROW_ITEM_PREFIX}${symbol}`,
       0,
     );
   }
 
-  getPredictionRow(id: string): DetoxElement {
+  getPredictionRow(id: string): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${TrendingViewSelectorsIDs.PREDICTIONS_ROW_ITEM_PREFIX}${id}`,
       0,
     );
   }
 
-  getSiteRow(name: string): DetoxElement {
+  getSiteRow(name: string): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${TrendingViewSelectorsIDs.SITE_ROW_ITEM_PREFIX}${name}`,
       0,
     );
   }
 
-  getSectionHeader(title: string): DetoxElement {
+  getSectionHeader(title: string): EncapsulatedElementType {
     return Matchers.getElementByText(title);
   }
 
   /**
    * Get section header by testID (for full view headers)
    */
-  getSectionHeaderByTestID(title: string): DetoxElement | null {
+  getSectionHeaderByTestID(title: string): EncapsulatedElementType | null {
     const headerTestID = SECTION_FULL_VIEW_HEADERS[title];
     if (!headerTestID) {
       return null;
@@ -82,12 +100,41 @@ class TrendingView {
     return Matchers.getElementByID(headerTestID);
   }
 
-  getBackButton(testID: string): DetoxElement {
+  getBackButton(testID: string): EncapsulatedElementType {
     return Matchers.getElementByID(testID);
   }
 
   async tapTrendingTab(): Promise<void> {
     await TabBarComponent.tapExploreButton();
+    this.activeScrollViewID = TrendingViewSelectorsIDs.NOW_SCROLL_VIEW;
+  }
+
+  async tapTab(tabTestID: string): Promise<void> {
+    await Gestures.tap(Matchers.getElementByID(`${tabTestID}-label`), {
+      elemDescription: `Tap tab ${tabTestID}`,
+      checkVisibility: false,
+    });
+  }
+
+  async navigateToSectionTab(sectionTitle: string): Promise<void> {
+    const sectionTabConfig = SECTION_TAB_CONFIG[sectionTitle];
+
+    if (!sectionTabConfig) {
+      throw new Error(`Unknown Explore section tab config: ${sectionTitle}`);
+    }
+
+    if (this.activeScrollViewID !== sectionTabConfig.scrollViewTestID) {
+      await this.tapTab(sectionTabConfig.tabTestID);
+      this.activeScrollViewID = sectionTabConfig.scrollViewTestID;
+    }
+
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID(sectionTabConfig.scrollViewTestID),
+      {
+        description: `${sectionTitle} tab content should be visible`,
+        timeout: 10000,
+      },
+    );
   }
 
   async tapSearchButton(): Promise<void> {
@@ -120,14 +167,14 @@ class TrendingView {
    * Uses Gestures.scrollToElement which retries scroll + visibility check until the element is on screen.
    */
   private async scrollToElementInFeed(
-    targetElement: DetoxElement,
+    targetElement: EncapsulatedElementType,
     description: string,
     direction: 'up' | 'down' = 'down',
     options: Partial<ScrollOptions> = {},
   ): Promise<void> {
     await Gestures.scrollToElement(
       targetElement,
-      Matchers.getIdentifier(TrendingViewSelectorsIDs.SCROLL_VIEW),
+      Matchers.getIdentifier(this.activeScrollViewID),
       {
         direction,
         scrollAmount: 300,
@@ -142,7 +189,8 @@ class TrendingView {
    */
   private getSectionId(sectionTitle: string): string {
     const sectionIdMap: Record<string, string> = {
-      'Trending tokens': 'tokens',
+      Trending: 'tokens',
+      Stocks: 'stocks',
       Sites: 'sites',
       Predictions: 'predictions',
       Perps: 'perps',
@@ -150,74 +198,29 @@ class TrendingView {
     return sectionIdMap[sectionTitle] || sectionTitle.toLowerCase();
   }
 
-  /**
-   * Get QuickAction button element for a section
-   */
-  getQuickActionButton(sectionTitle: string): DetoxElement {
-    const sectionId = this.getSectionId(sectionTitle);
-    return Matchers.getElementByID(`quick-action-${sectionId}`);
-  }
-
-  /**
-   * Scroll horizontally to make QuickAction button visible
-   */
-  private async scrollToQuickAction(
-    targetElement: DetoxElement,
-    description: string,
-  ): Promise<void> {
-    await Gestures.scrollToElement(
-      targetElement,
-      Matchers.getIdentifier(
-        TrendingViewSelectorsIDs.QUICK_ACTIONS_SCROLL_VIEW,
-      ),
-      {
-        direction: 'right',
-        scrollAmount: 200,
-        elemDescription: description,
-      },
-    );
-  }
-
-  /**
-   * Tap on QuickAction button (buttons below search bar)
-   */
-  async tapQuickAction(sectionTitle: string): Promise<void> {
-    const quickActionButton = this.getQuickActionButton(sectionTitle);
-
-    // Scroll horizontally if needed to make the button visible
-    await this.scrollToQuickAction(
-      quickActionButton,
-      `Scroll to ${sectionTitle} QuickAction button`,
-    );
-
-    await Gestures.tap(quickActionButton, {
-      elemDescription: `Tap QuickAction button for ${sectionTitle}`,
-    });
-  }
-
   async tapViewAll(sectionTitle: string): Promise<void> {
     const id = this.getSectionId(sectionTitle);
     const viewAllButton = Matchers.getElementByID(
-      `section-header-view-all-${id}`,
+      `${TrendingViewSelectorsIDs.VIEW_ALL_BUTTON_PREFIX}${id}`,
     );
 
-    // Determine scroll direction: Predictions and Trending tokens are usually near top
-    // But scrollToElement can handle both directions, so we try 'up' first for top sections
-    // and it will automatically adjust if needed
-    const direction =
-      sectionTitle === 'Predictions' || sectionTitle === 'Trending tokens'
-        ? 'up'
-        : 'down';
-
-    // Use generic scroll method
-    await this.scrollToElementInFeed(
-      viewAllButton,
-      `Scroll to ${sectionTitle} View All button`,
-      direction,
-    );
+    try {
+      await Assertions.expectElementToBeVisible(viewAllButton, {
+        description: `${sectionTitle} View All button`,
+        timeout: 3000,
+      });
+    } catch {
+      const direction = sectionTitle === 'Predictions' ? 'up' : 'down';
+      await this.scrollToElementInFeed(
+        viewAllButton,
+        `Scroll to ${sectionTitle} View All button`,
+        direction,
+      );
+    }
 
     await Gestures.tap(viewAllButton, {
       elemDescription: `Tap View All for ${sectionTitle}`,
+      checkStability: true,
     });
   }
 
@@ -265,7 +268,6 @@ class TrendingView {
   }
 
   async tapBackFromBrowser(): Promise<void> {
-    // Browser now uses close button (X) to return to feed
     await BrowserView.tapCloseBrowserButton();
   }
 
@@ -284,16 +286,18 @@ class TrendingView {
    * @param itemType - Type of item for description ('token', 'perp', 'prediction', 'site')
    */
   private async verifyItemVisible(
-    getElement: () => DetoxElement,
+    getElement: () => EncapsulatedElementType,
     identifier: string,
     itemType: string,
+    options: Partial<ScrollOptions> = {},
   ): Promise<void> {
     const targetElement = getElement();
 
-    // Scroll to element to ensure it's fully visible
     await this.scrollToElementInFeed(
       targetElement,
       `Scroll to ${identifier} ${itemType} row for verification`,
+      'down',
+      options,
     );
 
     await Assertions.expectElementToBeVisible(targetElement, {
@@ -306,13 +310,12 @@ class TrendingView {
    * Gestures.scrollToElement retries scroll until the element is visible.
    */
   private async tapItemRow(
-    getElement: () => DetoxElement,
+    getElement: () => EncapsulatedElementType,
     identifier: string,
     itemType: string,
   ): Promise<void> {
     const targetElement = getElement();
 
-    // Sites section is typically lower in the feed; give scroll retry more time (same idea as WalletView.scrollDownToAssetOverviewMusdCta)
     const scrollOptions: Partial<ScrollOptions> =
       itemType === 'site' ? { timeout: 15000 } : {};
 
@@ -361,17 +364,9 @@ class TrendingView {
   }
 
   async verifySiteVisible(name: string): Promise<void> {
-    const siteRow = () => this.getSiteRow(name);
-
-    // Scroll until Site row is visible (same pattern as WalletView.scrollDownToAssetOverviewMusdCta)
-    await this.scrollToElementInFeed(
-      siteRow(),
-      `Scroll to Site row for ${name}`,
-      'down',
-      { timeout: 15000 },
-    );
-
-    await this.verifyItemVisible(siteRow, name, 'site');
+    await this.verifyItemVisible(() => this.getSiteRow(name), name, 'site', {
+      timeout: 15000,
+    });
   }
 
   async tapSiteRow(name: string): Promise<void> {
@@ -466,24 +461,22 @@ class TrendingView {
     );
   }
 
-  /**
-   * Scroll down in search results to ensure Google Search Option is visible
-   */
-  async scrollToGoogleSearchOption(): Promise<void> {
-    await Gestures.scrollToElement(
-      this.googleSearchButton,
-      Matchers.getIdentifier(TrendingViewSelectorsIDs.SEARCH_RESULTS_LIST),
-      {
-        direction: 'down',
-        scrollAmount: 300,
-        elemDescription: 'Scroll to Google search option',
-      },
-    );
+  async verifySearchPillsVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.searchAllPill, {
+      description: 'All search pill should be visible',
+      timeout: 10000,
+    });
+
+    await Assertions.expectElementToBeVisible(this.searchCryptosPill, {
+      description: 'Crypto search pill should be visible',
+      timeout: 10000,
+    });
   }
 
-  async verifyGoogleSearchOptionVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.googleSearchButton, {
-      description: 'Google search option should be visible',
+  async verifySearchResultsListVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.searchResultsList, {
+      description: 'Search results list should be visible',
+      timeout: 10000,
     });
   }
 

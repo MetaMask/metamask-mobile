@@ -59,7 +59,7 @@ describe('useRouteParams', () => {
         return { '0x1': [] };
       }
     });
-    mockUseNfts.mockReturnValue([]);
+    mockUseNfts.mockReturnValue({ nfts: [], isLoading: false });
 
     renderHookWithProvider(() => useRouteParams(), mockState);
 
@@ -87,7 +87,7 @@ describe('useRouteParams', () => {
         return { '0x1': [] };
       }
     });
-    mockUseNfts.mockReturnValue([]);
+    mockUseNfts.mockReturnValue({ nfts: [], isLoading: false });
 
     renderHookWithProvider(() => useRouteParams(), mockState);
 
@@ -119,7 +119,7 @@ describe('useRouteParams', () => {
         return { '0x1': [] };
       }
     });
-    mockUseNfts.mockReturnValue([]);
+    mockUseNfts.mockReturnValue({ nfts: [], isLoading: false });
 
     renderHookWithProvider(() => useRouteParams(), mockState);
 
@@ -149,7 +149,7 @@ describe('useRouteParams', () => {
         return { '0x1': [] };
       }
     });
-    mockUseNfts.mockReturnValue([]);
+    mockUseNfts.mockReturnValue({ nfts: [], isLoading: false });
 
     renderHookWithProvider(() => useRouteParams(), mockState);
 
@@ -179,7 +179,7 @@ describe('useRouteParams', () => {
         return { '0x1': [assetToken] };
       }
     });
-    mockUseNfts.mockReturnValue([]);
+    mockUseNfts.mockReturnValue({ nfts: [], isLoading: false });
 
     renderHookWithProvider(() => useRouteParams(), mockState);
 
@@ -193,11 +193,13 @@ describe('useRouteParams', () => {
       id: '123',
       address: 'dummy_address',
       chainId: 'summy_chainId',
+      tokenId: '1',
     };
     const assetNft = {
       id: '123',
       address: 'dummy_address',
       chainId: 'summy_chainId',
+      tokenId: '1',
     };
     mockUseParams.mockReturnValue({ asset });
     const mockUpdateAsset = jest.fn();
@@ -209,12 +211,142 @@ describe('useRouteParams', () => {
         return { '0x1': [] };
       }
     });
-    mockUseNfts.mockReturnValue([assetNft as unknown as Nft]);
+    mockUseNfts.mockReturnValue({
+      nfts: [assetNft as unknown as Nft],
+      isLoading: false,
+    });
 
     renderHookWithProvider(() => useRouteParams(), mockState);
 
     await waitFor(() => {
       expect(mockUpdateAsset).toHaveBeenCalledWith(assetNft);
+    });
+  });
+
+  it('matches ERC1155 token by tokenId when multiple tokens share the same contract and chain', async () => {
+    const targetTokenId = '42';
+    const paramsAsset = {
+      address: '0xcontract',
+      chainId: '0x1',
+      tokenId: targetTokenId,
+    };
+    const wrongNft = {
+      address: '0xcontract',
+      chainId: '0x1',
+      tokenId: '1',
+      standard: 'ERC1155',
+      balance: '5',
+    };
+    const correctNft = {
+      address: '0xcontract',
+      chainId: '0x1',
+      tokenId: targetTokenId,
+      standard: 'ERC1155',
+      balance: '2',
+    };
+    mockUseParams.mockReturnValue({ asset: paramsAsset });
+    const mockUpdateAsset = jest.fn();
+    mockUseSendContext.mockReturnValue({
+      updateAsset: mockUpdateAsset,
+    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectAssetsBySelectedAccountGroup) {
+        return { '0x1': [] };
+      }
+    });
+    mockUseNfts.mockReturnValue({
+      nfts: [wrongNft, correctNft] as unknown as Nft[],
+      isLoading: false,
+    });
+
+    renderHookWithProvider(() => useRouteParams(), mockState);
+
+    await waitFor(() => {
+      expect(mockUpdateAsset).toHaveBeenCalledWith(correctNft);
+      expect(mockUpdateAsset).not.toHaveBeenCalledWith(wrongNft);
+    });
+  });
+
+  describe('isLoading', () => {
+    it('returns true while NFTs are loading and NFT asset is not resolved yet', async () => {
+      const asset = {
+        id: '123',
+        address: 'dummy_address',
+        chainId: 'dummy_chainId',
+        tokenId: '42',
+      };
+      mockUseParams.mockReturnValue({ asset });
+      mockUseSendContext.mockReturnValue({
+        asset: undefined,
+        updateAsset: jest.fn(),
+      } as unknown as ReturnType<typeof useSendContext>);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return { '0x1': [] };
+        }
+      });
+      mockUseNfts.mockReturnValue({ nfts: [], isLoading: true });
+
+      const { result } = renderHookWithProvider(
+        () => useRouteParams(),
+        mockState,
+      );
+
+      expect(result.current.isLoading).toBe(true);
+    });
+
+    it('returns false when NFTs finish loading and the asset is resolved', async () => {
+      const asset = {
+        id: '123',
+        address: 'dummy_address',
+        chainId: 'dummy_chainId',
+        tokenId: '42',
+      };
+      mockUseParams.mockReturnValue({ asset });
+      mockUseSendContext.mockReturnValue({
+        asset,
+        updateAsset: jest.fn(),
+      } as unknown as ReturnType<typeof useSendContext>);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return { '0x1': [] };
+        }
+      });
+      mockUseNfts.mockReturnValue({ nfts: [], isLoading: false });
+
+      const { result } = renderHookWithProvider(
+        () => useRouteParams(),
+        mockState,
+      );
+
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('returns false when the params asset has no tokenId (non-NFT flow)', async () => {
+      const asset = {
+        id: '123',
+        address: 'dummy_address',
+        chainId: 'dummy_chainId',
+        symbol: 'ETH',
+      };
+      mockUseParams.mockReturnValue({ asset });
+      mockUseSendContext.mockReturnValue({
+        asset: undefined,
+        updateAsset: jest.fn(),
+      } as unknown as ReturnType<typeof useSendContext>);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return { '0x1': [] };
+        }
+      });
+      mockUseNfts.mockReturnValue({ nfts: [], isLoading: true });
+
+      const { result } = renderHookWithProvider(
+        () => useRouteParams(),
+        mockState,
+      );
+
+      expect(result.current.isLoading).toBe(false);
     });
   });
 });

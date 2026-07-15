@@ -1,22 +1,26 @@
 import { useCallback } from 'react';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../types/navigation';
-import type { PerpsMarketData, Position, Order } from '../controllers/types';
+import {
+  PERPS_CONSTANTS,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  type PerpsMarketData,
+  type Position,
+  type Order,
+} from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-} from '../constants/eventNames';
-import { MetaMetricsEvents } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import {
-  PERPS_CONSTANTS,
-  CONFIRMATION_HEADER_CONFIG,
-} from '../constants/perpsConfig';
+  withPendingTransactionActiveAbTests,
+  type TransactionActiveAbTestEntry,
+} from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 
 /**
  * Navigation handler result interface
@@ -30,7 +34,11 @@ export interface PerpsNavigationHandlers {
   navigateToRewards: () => void;
 
   // Perps-specific navigation
-  navigateToMarketDetails: (market: PerpsMarketData, source?: string) => void;
+  navigateToMarketDetails: (
+    market: PerpsMarketData,
+    source?: string,
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[],
+  ) => void;
   navigateToHome: (source?: string) => void;
   navigateToMarketList: (
     params?: PerpsNavigationParamList['PerpsMarketListView'],
@@ -40,7 +48,7 @@ export interface PerpsNavigationHandlers {
     params?: PerpsNavigationParamList['PerpsTutorial'],
   ) => void;
   navigateToAdjustMargin: (position: Position, mode: 'add' | 'remove') => void;
-  navigateToClosePosition: (position: Position) => void;
+  navigateToClosePosition: (position: Position, source?: string) => void;
   navigateToOrderDetails: (order: Order) => void;
 
   // Utility navigation
@@ -76,7 +84,7 @@ export interface PerpsNavigationHandlers {
  * @returns Object containing all navigation handler functions
  */
 export const usePerpsNavigation = (): PerpsNavigationHandlers => {
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
 
   // Main app navigation handlers
   const navigateToWallet = useCallback(() => {
@@ -113,10 +121,17 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   // Perps-specific navigation handlers
   const navigateToMarketDetails = useCallback(
-    (market: PerpsMarketData, source?: string) => {
+    (
+      market: PerpsMarketData,
+      source?: string,
+      transactionActiveAbTests?: TransactionActiveAbTestEntry[],
+    ) => {
       navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
         market,
         source,
+        ...(transactionActiveAbTests?.length
+          ? { transactionActiveAbTests }
+          : {}),
       });
     },
     [navigation],
@@ -133,7 +148,13 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   const navigateToMarketList = useCallback(
     (params?: PerpsNavigationParamList['PerpsMarketListView']) => {
-      navigation.navigate(Routes.PERPS.MARKET_LIST, params);
+      // Navigate via the Perps root so this works from both contexts:
+      // 1. When PerpsHomeView is embedded as a tab in the main navigator (wallet home)
+      // 2. When PerpsHomeView is a stack screen inside PerpsScreenStack
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params,
+      });
     },
     [navigation],
   );
@@ -144,7 +165,10 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   const navigateToOrder = useCallback(
     (params: PerpsNavigationParamList['PerpsOrder']) => {
-      depositWithOrder()
+      withPendingTransactionActiveAbTests(
+        params.transactionActiveAbTests,
+        depositWithOrder,
+      )
         .then(() => {
           navigation.navigate(
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
@@ -156,11 +180,10 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
           );
         })
         .catch((error: unknown) => {
-          const err = ensureError(error);
+          const err = ensureError(error, 'usePerpsNavigation.navigateToOrder');
           Logger.error(err, {
-            feature: PERPS_CONSTANTS.FeatureName,
-            message:
-              'Failed to start one-click trade (deposit rejected or failed)',
+            tags: { feature: PERPS_CONSTANTS.FeatureName },
+            context: { name: 'usePerpsNavigation.navigateToOrder', data: {} },
           });
 
           track(MetaMetricsEvents.PERPS_ERROR, {
@@ -200,8 +223,8 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   );
 
   const navigateToClosePosition = useCallback(
-    (position: Position) => {
-      navigation.navigate(Routes.PERPS.CLOSE_POSITION, { position });
+    (position: Position, source?: string) => {
+      navigation.navigate(Routes.PERPS.CLOSE_POSITION, { position, source });
     },
     [navigation],
   );

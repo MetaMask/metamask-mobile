@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../../reducers';
 import { PredictPositionStatus } from '../../types';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 
 const selectPredictControllerState = (state: RootState) =>
   state.engine.backgroundState.PredictController;
@@ -8,6 +9,25 @@ const selectPredictControllerState = (state: RootState) =>
 const selectPredictPendingDeposits = createSelector(
   selectPredictControllerState,
   (predictControllerState) => predictControllerState?.pendingDeposits || {},
+);
+
+const selectPredictPendingClaims = createSelector(
+  selectPredictControllerState,
+  (predictControllerState) => predictControllerState?.pendingClaims || {},
+);
+
+const selectPredictWithdrawTransaction = createSelector(
+  selectPredictControllerState,
+  (predictControllerState) => predictControllerState?.withdrawTransaction,
+);
+
+const selectPredictActiveBuyOrder = createSelector(
+  selectPredictControllerState,
+  selectSelectedInternalAccountAddress,
+  (predictState, address) => {
+    if (!predictState || !address) return null;
+    return predictState.activeBuyOrders[address] ?? null;
+  },
 );
 
 const selectPredictClaimablePositions = createSelector(
@@ -49,29 +69,32 @@ const selectPredictBalances = createSelector(
   (predictControllerState) => predictControllerState?.balances || {},
 );
 
-const selectPredictBalanceByAddress = ({
-  providerId,
-  address,
-}: {
-  providerId: string;
-  address: string;
-}) =>
+const selectPredictBalanceByAddress = ({ address }: { address: string }) =>
   createSelector(
     selectPredictBalances,
-    (balances) => balances[providerId]?.[address]?.balance || 0,
+    (balances) => balances[address]?.balance || 0,
   );
 
 const selectPredictPendingDepositByAddress = ({
-  providerId,
   address,
 }: {
-  providerId: string;
   address: string;
 }) =>
   createSelector(
     selectPredictPendingDeposits,
-    (pendingDeposits) => pendingDeposits[providerId]?.[address] || undefined,
+    (pendingDeposits) => pendingDeposits[address] || undefined,
   );
+
+const selectPredictPendingClaimByAddress = ({ address }: { address: string }) =>
+  createSelector(
+    selectPredictPendingClaims,
+    (pendingClaims) => pendingClaims[address] || undefined,
+  );
+
+const selectPredictSelectedPaymentToken = createSelector(
+  selectPredictControllerState,
+  (predictState) => predictState?.selectedPaymentToken ?? null,
+);
 
 const selectPredictAccountMeta = createSelector(
   selectPredictControllerState,
@@ -93,6 +116,9 @@ const selectPredictAccountMetaByAddress = ({
 export {
   selectPredictControllerState,
   selectPredictPendingDeposits,
+  selectPredictPendingClaims,
+  selectPredictWithdrawTransaction,
+  selectPredictActiveBuyOrder,
   selectPredictClaimablePositions,
   selectPredictClaimablePositionsByAddress,
   selectPredictWonPositions,
@@ -101,6 +127,8 @@ export {
   selectPredictBalances,
   selectPredictBalanceByAddress,
   selectPredictPendingDepositByAddress,
+  selectPredictPendingClaimByAddress,
   selectPredictAccountMeta,
   selectPredictAccountMetaByAddress,
+  selectPredictSelectedPaymentToken,
 };

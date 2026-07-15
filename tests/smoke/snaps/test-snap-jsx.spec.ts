@@ -1,19 +1,21 @@
-import { FlaskBuildTests } from '../../../e2e/tags';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import { SmokeSnaps } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
+import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import { Assertions, Gestures, Matchers } from '../../framework';
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('JSX Snap Tests'), () => {
+describe(SmokeSnaps('JSX Snap Tests'), () => {
   it('can connect to the JSX Snap', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -30,6 +32,7 @@ describe(FlaskBuildTests('JSX Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.tapButton('displayJsxButton');

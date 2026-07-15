@@ -1,12 +1,14 @@
-import type { ControllerInitFunction } from '../../types';
+import type { MessengerClientInitFunction } from '../../types';
 import {
   PerpsController,
   PerpsControllerMessenger,
   getDefaultPerpsControllerState,
-} from '../../../../components/UI/Perps/controllers';
+} from '@metamask/perps-controller';
 import { applyE2EControllerMocks } from '../../../../components/UI/Perps/utils/e2eBridgePerps';
-import { parseCommaSeparatedString } from '../../../../components/UI/Perps/utils/stringParseUtils';
-import { createMobileInfrastructure } from '../../../../components/UI/Perps/adapters/mobileInfrastructure';
+import {
+  createMobileInfrastructure,
+  createMobileClientConfig,
+} from '../../../../components/UI/Perps/adapters/mobileInfrastructure';
 
 /**
  * Initialize the PerpsController.
@@ -14,7 +16,7 @@ import { createMobileInfrastructure } from '../../../../components/UI/Perps/adap
  * @param request - The request object.
  * @returns The PerpsController.
  */
-export const perpsControllerInit: ControllerInitFunction<
+export const perpsControllerInit: MessengerClientInitFunction<
   PerpsController,
   PerpsControllerMessenger
 > = (request) => {
@@ -23,25 +25,11 @@ export const perpsControllerInit: ControllerInitFunction<
   const perpsControllerState =
     persistedState.PerpsController ?? getDefaultPerpsControllerState();
 
-  // Pass fallback HIP-3 values from local env vars
-  // PerpsController will try to read remote feature flags on construction
-  // and subscribe to updates via RemoteFeatureFlagController:stateChange
   const controller = new PerpsController({
     messenger: controllerMessenger,
     state: perpsControllerState,
     infrastructure: createMobileInfrastructure(),
-    clientConfig: {
-      fallbackBlockedRegions: parseCommaSeparatedString(
-        process.env.MM_PERPS_BLOCKED_REGIONS ?? '',
-      ),
-      fallbackHip3Enabled: process.env.MM_PERPS_HIP3_ENABLED === 'true',
-      fallbackHip3AllowlistMarkets: parseCommaSeparatedString(
-        process.env.MM_PERPS_HIP3_ALLOWLIST_MARKETS ?? '',
-      ),
-      fallbackHip3BlocklistMarkets: parseCommaSeparatedString(
-        process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS ?? '',
-      ),
-    },
+    clientConfig: createMobileClientConfig(),
   });
 
   // Apply E2E mocks if configured via bridge

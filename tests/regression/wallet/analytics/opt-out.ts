@@ -1,20 +1,13 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import Assertions from '../../../framework/Assertions';
-import { RegressionWalletPlatform } from '../../../../e2e/tags';
-import SettingsView from '../../../../e2e/pages/Settings/SettingsView';
-import SecurityAndPrivacy from '../../../../e2e/pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-import { loginToApp } from '../../../../e2e/viewHelper';
-import TabBarComponent from '../../../../e2e/pages/wallet/TabBarComponent';
-import CommonView from '../../../../e2e/pages/CommonView';
-import {
-  EventPayload,
-  filterEvents,
-  getEventsPayloads,
-  onboardingEvents,
-} from '../../../helpers/analytics/helpers';
-import SoftAssert from '../../../framework/SoftAssert';
+import { RegressionWalletPlatform } from '../../../tags';
+import SettingsView from '../../../page-objects/Settings/SettingsView';
+import SecurityAndPrivacy from '../../../page-objects/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import { loginToApp } from '../../../flows/wallet.flow';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import CommonView from '../../../page-objects/CommonView';
+import { optOutAnalyticsExpectations } from '../../../helpers/analytics/expectations/opt-out.analytics';
 
 describe(
   RegressionWalletPlatform(
@@ -30,8 +23,9 @@ describe(
         {
           fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
           restartDevice: true,
+          analyticsExpectations: optOutAnalyticsExpectations,
         },
-        async ({ mockServer }) => {
+        async () => {
           await loginToApp();
 
           // Navigate to metametrics settings and disable it
@@ -49,30 +43,6 @@ describe(
           await Assertions.expectToggleToBeOff(
             SecurityAndPrivacy.metaMetricsToggle as Promise<Detox.IndexableNativeElement>,
           );
-
-          // Verify the analytics preference change event was tracked
-          const events = await getEventsPayloads(mockServer!);
-          const softAssert = new SoftAssert();
-
-          await softAssert.checkAndCollect(async () => {
-            const analyticsEvents = filterEvents(
-              events,
-              onboardingEvents.ANALYTICS_PREFERENCE_SELECTED,
-            ) as EventPayload[];
-            await Assertions.checkIfValueIsDefined(analyticsEvents);
-            await Assertions.checkIfArrayHasLength(analyticsEvents, 1);
-            await Assertions.checkIfObjectContains(
-              analyticsEvents[0].properties,
-              {
-                has_marketing_consent: false,
-                is_metrics_opted_in: true,
-                location: 'onboarding_metametrics',
-                updated_after_onboarding: false,
-              },
-            );
-          }, 'Analytics Preference Selected event should be tracked when disabling metametrics');
-
-          softAssert.throwIfErrors();
         },
       );
     });

@@ -12,5 +12,6 @@ export default {
     ERC1155: 'ERC1155',
   },
   MMM: 'MetaMask Mobile',
+  MMM_CARD: 'MetaMask Mobile Card',
   MM: 'metamask',
 };

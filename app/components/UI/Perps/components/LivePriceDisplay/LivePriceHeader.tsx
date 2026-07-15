@@ -11,7 +11,7 @@ import {
   formatPercentage,
 } from '../../utils/formatUtils';
 import { useStyles } from '../../../../../component-library/hooks';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 
 interface LivePriceHeaderProps {
   symbol: string;
@@ -105,14 +105,14 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   return (
     <View style={styles.container}>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Default}
+        variant={TextVariant.BodySM}
+        color={TextColor.Alternative}
         testID={testIDPrice}
       >
         {formattedPrice}
       </Text>
       <Text
-        variant={TextVariant.BodyMD}
+        variant={TextVariant.BodySM}
         color={changeColor}
         testID={testIDChange}
       >

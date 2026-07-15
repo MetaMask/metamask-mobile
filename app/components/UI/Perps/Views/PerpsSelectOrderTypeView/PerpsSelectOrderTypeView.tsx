@@ -1,11 +1,11 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import type { OrderType } from '../../controllers/types';
+import { type OrderType } from '@metamask/perps-controller';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 
 interface PerpsSelectOrderTypeViewProps {
-  sheetRef?: React.RefObject<BottomSheetRef>;
+  sheetRef?: React.RefObject<BottomSheetRef | null>;
   currentOrderType?: OrderType;
   asset?: string;
   direction?: 'long' | 'short';

@@ -8,8 +8,8 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useLatestBalance } from '.';
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { BigNumber, constants } from 'ethers';
-import { waitFor } from '@testing-library/react-native';
-import { Hex, type CaipAssetId } from '@metamask/utils';
+import { act, waitFor } from '@testing-library/react-native';
+import { Hex, type CaipAssetId, type CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { cloneDeep } from 'lodash';
 
@@ -62,6 +62,39 @@ describe('useLatestBalance', () => {
         atomicBalance: BigNumber.from('1000000000000000000'),
       });
     });
+  });
+
+  it('refetches EVM balance when refreshKey changes', async () => {
+    let refreshKey = 0;
+    mockProvider.getBalance
+      .mockResolvedValueOnce(BigNumber.from('1000000000000000000'))
+      .mockResolvedValueOnce(BigNumber.from('2000000000000000000'));
+
+    const { result, rerender } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: constants.AddressZero,
+          decimals: 18,
+          chainId: '0x1' as Hex,
+          refreshKey,
+        }),
+      { state: initialState },
+    );
+
+    await waitFor(() => {
+      expect(result.current?.displayBalance).toBe('1.0');
+    });
+
+    await act(async () => {
+      refreshKey = 1;
+      rerender({ state: initialState });
+    });
+
+    await waitFor(() => {
+      expect(result.current?.displayBalance).toBe('2.0');
+    });
+
+    expect(mockProvider.getBalance).toHaveBeenCalledTimes(2);
   });
 
   it('should fetch ERC20 token balance', async () => {
@@ -664,6 +697,105 @@ describe('useLatestBalance', () => {
   });
 
   describe('balance reset when token address changes', () => {
+    it('does not treat equivalent EVM address casing as token identity change', async () => {
+      let tokenAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+      let tokenBalance = '10.0';
+
+      const { result, rerender } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: tokenAddress,
+            decimals: 6,
+            chainId: '0x1' as Hex,
+            balance: tokenBalance,
+          }),
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        expect(result.current?.displayBalance).toBe('1.0');
+      });
+
+      tokenAddress = '0xABCDEFABCDEFABCDEFABCDEFABCDEFABCDEFABCD';
+      tokenBalance = '999.0';
+      rerender({ state: initialState });
+
+      expect(result.current?.displayBalance).toBe('1.0');
+    });
+
+    it('does not treat equivalent EVM chain formats as token identity change', async () => {
+      let chainId: Hex | CaipChainId = '0x1' as Hex;
+      let tokenBalance = '10.0';
+
+      const { result, rerender } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: constants.AddressZero,
+            decimals: 18,
+            chainId,
+            balance: tokenBalance,
+          }),
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        expect(result.current?.displayBalance).toBe('1.0');
+      });
+
+      chainId = 'eip155:1' as CaipChainId;
+      tokenBalance = '999.0';
+      rerender({ state: initialState });
+
+      expect(result.current?.displayBalance).toBe('1.0');
+      expect(getProviderByChainId).toHaveBeenCalledTimes(1);
+    });
+
+    it('fetches new balance when chainId changes for the same native token address', async () => {
+      let chainId = '0x1' as Hex;
+      const mainnetProvider = {
+        getBalance: jest
+          .fn()
+          .mockResolvedValue(BigNumber.from('1000000000000000000')),
+      };
+      const lineaProvider = {
+        getBalance: jest
+          .fn()
+          .mockResolvedValue(BigNumber.from('2000000000000000000')),
+      };
+
+      (getProviderByChainId as jest.Mock).mockImplementation(
+        (requestedChainId: Hex) =>
+          requestedChainId === ('0xe708' as Hex)
+            ? lineaProvider
+            : mainnetProvider,
+      );
+
+      const { result, rerender } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: constants.AddressZero,
+            decimals: 18,
+            chainId,
+          }),
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        expect(result.current?.displayBalance).toBe('1.0');
+      });
+
+      chainId = '0xe708' as Hex;
+      rerender({ state: initialState });
+
+      await waitFor(() => {
+        expect(result.current?.displayBalance).toBe('2.0');
+      });
+
+      expect(getProviderByChainId).toHaveBeenCalledWith('0xe708');
+      expect(mainnetProvider.getBalance).toHaveBeenCalledTimes(1);
+      expect(lineaProvider.getBalance).toHaveBeenCalledTimes(1);
+    });
+
     it('resets balance to undefined when token address changes', async () => {
       let tokenAddress = '0x1234567890123456789012345678901234567890';
 

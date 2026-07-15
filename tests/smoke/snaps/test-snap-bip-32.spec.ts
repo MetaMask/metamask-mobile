@@ -1,19 +1,21 @@
-import { FlaskBuildTests } from '../../../e2e/tags';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import { SmokeSnaps } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
-import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
+import TestSnaps from '../../page-objects/Browser/TestSnaps';
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
+describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
   it('can connect to BIP-32 snap', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -30,6 +32,7 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.tapButton('getPublicKeyBip32Button');
@@ -46,6 +49,7 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.fillMessage('messageSecp256k1Input', 'foo bar');
@@ -65,6 +69,7 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.fillMessage('messageEd25519Input', 'foo bar');
@@ -84,6 +89,7 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.fillMessage('messageEd25519Bip32Input', 'foo bar');
@@ -103,6 +109,7 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'SRP 1');
@@ -123,6 +130,7 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'SRP 2');
@@ -143,14 +151,17 @@ describe(FlaskBuildTests('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'Invalid');
         await TestSnaps.fillMessage('messageSecp256k1Input', 'bar baz');
         await TestSnaps.tapButton('signMessageBip32Secp256k1Button');
-        await Assertions.checkIfTextIsDisplayed(
+        await Assertions.expectTextDisplayed(
           'Entropy source with ID "invalid" not found.',
+          { timeout: 30000 },
         );
+        await TestSnaps.dismissAlert();
       },
     );
   });

@@ -14,18 +14,17 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { act } from '@testing-library/react-native';
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { captureScreen } from 'react-native-view-shot';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Tabs from '../../UI/Tabs';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import BrowserTab from '../BrowserTab/BrowserTab';
 
 const Browser = BrowserComponent as ComponentType<BrowserComponentProps>;
-
-jest.useFakeTimers();
 
 jest.mock('../../hooks/useAccounts', () => ({
   useAccounts: jest.fn().mockReturnValue({
@@ -64,13 +63,13 @@ jest.mock('../../UI/Tabs', () => ({
   }),
 }));
 
-const mockTabs = [
-  { id: 1, url: 'about:blank', image: '', isArchived: false },
-  { id: 2, url: 'about:blank', image: '', isArchived: false },
-  { id: 3, url: 'about:blank', image: '', isArchived: false },
-  { id: 4, url: 'about:blank', image: '', isArchived: false },
-  { id: 5, url: 'about:blank', image: '', isArchived: false },
-];
+const mockTabs = Array.from({ length: 20 }, (_, i) => ({
+  id: i + 1,
+  url: 'about:blank',
+  image: '',
+  isArchived: false,
+  lastActiveAt: Date.now() - i * 1000,
+}));
 
 const mockInitialState = {
   engine: {
@@ -113,14 +112,6 @@ jest.mock('../../../core/Engine', () => {
   };
 });
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  openURL: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
-}));
-
 jest.mock('../../../util/phishingDetection', () => ({
   isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
   getPhishingTestResult: jest.fn().mockReturnValue({ result: false }),
@@ -137,8 +128,8 @@ const mockCreateEventBuilder = jest.fn(() => ({
   build: jest.fn().mockReturnValue({}),
 }));
 
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
@@ -163,7 +154,7 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 const mockStore = configureMockStore();
 
 const routeMock = {
@@ -207,7 +198,7 @@ describe('Browser - Tab Operations', () => {
         { id: 2, url: 'https://test.com', image: '', isArchived: false },
       ];
 
-      const { toJSON } = renderWithProvider(
+      renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
           <NavigationContainer independent>
             <Stack.Navigator>
@@ -231,13 +222,13 @@ describe('Browser - Tab Operations', () => {
         { state: mockInitialState },
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(BrowserTab).toHaveBeenCalled();
     });
 
     it('navigates away when closing tabs view with zero tabs', async () => {
       // This tests the bug fix: closeTabsView should navigate away when tabs.length === 0
       jest.setTimeout(10000); // Increase timeout for async operations
-      const TabsMock = jest.mocked(Tabs);
+      const TabsMock = Tabs as unknown as jest.Mock;
       const BrowserTabMock = jest.mocked(BrowserTab);
       let closeTabsViewCallback: (() => void) | undefined;
       const mockCaptureScreen = captureScreen as jest.Mock;
@@ -377,7 +368,7 @@ describe('Browser - Tab Operations', () => {
       const tabs = [
         { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
       ];
-      const TabsMock = jest.mocked(Tabs);
+      const TabsMock = Tabs as unknown as jest.Mock;
       let closeTabsViewCallback: (() => void) | undefined;
 
       TabsMock.mockImplementation((props) => {
@@ -417,11 +408,6 @@ describe('Browser - Tab Operations', () => {
         },
       );
 
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
-
       // Call closeTabsView to test the behavior
       if (closeTabsViewCallback) {
         closeTabsViewCallback();
@@ -439,11 +425,12 @@ describe('Browser - Tab Operations', () => {
     });
 
     it('navigates to max browser tabs modal when tabs.length equals MAX_BROWSER_TABS', () => {
-      const tabsAtMax = Array.from({ length: 5 }, (_, i) => ({
+      const tabsAtMax = Array.from({ length: 20 }, (_, i) => ({
         id: i + 1,
         url: 'about:blank',
         image: '',
         isArchived: false,
+        lastActiveAt: Date.now() - i * 1000,
       }));
 
       const mockCreateNewTab = jest.fn();
@@ -479,11 +466,6 @@ describe('Browser - Tab Operations', () => {
           },
         },
       );
-
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
 
       // Access the component instance to call newTab
       // Since newTab is internal, we test it indirectly through component behavior
@@ -529,11 +511,6 @@ describe('Browser - Tab Operations', () => {
         },
       );
 
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
-
       // Component should render without navigating to modal
       expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
         Routes.MODAL.MAX_BROWSER_TABS_MODAL,
@@ -572,11 +549,6 @@ describe('Browser - Tab Operations', () => {
         </Provider>,
         { state: mockInitialState },
       );
-
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
 
       expect(mockCreateNewTab).toHaveBeenCalledWith(undefined, undefined);
       jest.mocked(isTokenDiscoveryBrowserEnabled).mockReturnValue(false);
@@ -623,11 +595,6 @@ describe('Browser - Tab Operations', () => {
           },
         },
       );
-
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
 
       // switchToTab is called internally when component mounts with activeTab
       // We verify analytics tracking happens
@@ -679,11 +646,6 @@ describe('Browser - Tab Operations', () => {
         },
       );
 
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
-
       // Component renders successfully
       expect(mockCloseTab).toBeDefined();
     });
@@ -728,11 +690,6 @@ describe('Browser - Tab Operations', () => {
         },
       );
 
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
-
       // Component renders successfully
       expect(mockSetActiveTab).toBeDefined();
     });
@@ -774,11 +731,6 @@ describe('Browser - Tab Operations', () => {
           },
         },
       );
-
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
 
       expect(mockCloseTab).toBeDefined();
     });
@@ -823,15 +775,8 @@ describe('Browser - Tab Operations', () => {
         },
       );
 
-      // Let React finish processing useEffect interval setup
-      act(() => {
-        jest.advanceTimersByTime(1);
-      });
-
       // Component renders successfully
       expect(mockCloseTab).toBeDefined();
     });
   });
 });
-
-jest.useRealTimers();

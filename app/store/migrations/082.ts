@@ -1,6 +1,5 @@
 import { hasProperty, Hex, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
-import { captureException } from '@sentry/react-native';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { Token } from '@metamask/assets-controllers';
@@ -38,11 +37,6 @@ const migration = (state: unknown): unknown => {
     !hasProperty(tokenBalancesControllerState, 'tokenBalances') ||
     !isObject(tokenBalancesControllerState.tokenBalances)
   ) {
-    captureException(
-      new Error(
-        `FATAL ERROR: Migration 82: Invalid TokenBalancesController state error: '${typeof tokenBalancesControllerState}'`,
-      ),
-    );
     return state;
   }
 
@@ -55,11 +49,6 @@ const migration = (state: unknown): unknown => {
     !hasProperty(tokensControllerState, 'allIgnoredTokens') ||
     !isObject(tokensControllerState.allIgnoredTokens)
   ) {
-    captureException(
-      new Error(
-        `FATAL ERROR: Migration 82: Invalid TokensController state error: '${typeof tokensControllerState}'`,
-      ),
-    );
     return state;
   }
 
@@ -70,11 +59,6 @@ const migration = (state: unknown): unknown => {
     !hasProperty(accountsControllerState.internalAccounts, 'accounts') ||
     !isObject(accountsControllerState.internalAccounts.accounts)
   ) {
-    captureException(
-      new Error(
-        `FATAL ERROR: Migration 82: Invalid AccountsController state error: '${typeof accountsControllerState}'`,
-      ),
-    );
     return state;
   }
 

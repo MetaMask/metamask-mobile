@@ -16,7 +16,7 @@ import {
   getAppStateForConfirmation,
 } from '../../../util/test/confirm-data-helpers';
 import { MMM_ORIGIN } from '../../Views/confirmations/constants/confirmations';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as BatchApprovalUtils from '../../Views/confirmations/hooks/7702/useBatchApproveBalanceChanges';
 import AnimatedSpinner from '../AnimatedSpinner';
 import SimulationDetails from './SimulationDetails';

@@ -1,24 +1,42 @@
-import { ParamListBase } from '@react-navigation/native';
-import type {
-  Position,
-  Order,
-  OrderType,
-  PerpsMarketData,
-  TPSLTrackingData,
-} from '../controllers/types';
+import {
+  type Position,
+  type Order,
+  type OrderType,
+  type PerpsMarketData,
+  type TPSLTrackingData,
+  type SortDirection,
+  type SortOptionId,
+  type MarketTypeFilter,
+} from '@metamask/perps-controller';
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 /**
- * PERPS navigation parameter types
+ * Nested navigation into the Perps stack root.
+ * Kept local to avoid a circular import with NavigationService/types.
  */
-export interface PerpsNavigationParamList extends ParamListBase {
-  [key: string]: object | undefined;
+interface PerpsNestedNavigationParams {
+  screen?: string;
+  params?: object;
+}
 
+/**
+ * PERPS navigation parameter types.
+ *
+ * Declared as a `type` (not `interface`) so it gains an implicit index
+ * signature and satisfies React Navigation's `ParamListBase` constraint while
+ * `keyof` stays a strict union of route names. The repo's
+ * `consistent-type-definitions` rule prefers `interface`, hence the suppression.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsNavigationParamList = {
   // Order flow routes
   PerpsOrder: {
     direction: 'long' | 'short';
     asset: string;
+    defaultSzDecimals?: number;
+    defaultMaxLeverage?: number;
     leverage?: number;
     amount?: string;
     price?: string;
@@ -27,6 +45,9 @@ export interface PerpsNavigationParamList extends ParamListBase {
     hideTPSL?: boolean; // Hide TP/SL row when modifying existing position
     /** When false, confirmation screen uses header: () => null; when true/undefined uses headerLeft/title options */
     showPerpsHeader?: boolean;
+    /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
+    source?: string;
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 
   PerpsOrderSuccess: {
@@ -77,18 +98,14 @@ export interface PerpsNavigationParamList extends ParamListBase {
     title?: string;
     showBalanceActions?: boolean;
     showBottomNav?: boolean;
-    defaultSearchVisible?: boolean;
     showWatchlistOnly?: boolean;
-    defaultMarketTypeFilter?:
-      | 'all'
-      | 'crypto'
-      | 'stocks'
-      | 'commodities'
-      | 'forex'
-      | 'new';
+    defaultMarketTypeFilter?: MarketTypeFilter;
+    defaultSortOptionId?: SortOptionId;
+    defaultSortDirection?: SortDirection;
     fromHome?: boolean;
     button_clicked?: string;
     button_location?: string;
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 
   PerpsMarketDetails: {
@@ -96,8 +113,10 @@ export interface PerpsNavigationParamList extends ParamListBase {
     initialTab?: 'position' | 'orders' | 'info';
     monitoringIntent?: Partial<DataMonitorParams>;
     source?: string;
+    source_section?: string;
     button_clicked?: string;
     button_location?: string;
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 
   PerpsPositions: undefined;
@@ -109,6 +128,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
 
   PerpsClosePosition: {
     position: Position;
+    source?: string;
   };
 
   PerpsAdjustMargin: {
@@ -157,6 +177,12 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsTutorial: {
     isFromDeeplink?: boolean;
     isFromGTMModal?: boolean;
+    /** Analytics: how the user got to the tutorial (e.g. homescreen_tab, main_action_button) */
+    source?: string;
+    /** Screen to navigate to after tutorial completion instead of the default PerpsHome */
+    redirectScreen?: string;
+    /** Params to pass to the redirect screen */
+    redirectParams?: Record<string, unknown>;
   };
 
   // TP/SL screen
@@ -172,11 +198,16 @@ export interface PerpsNavigationParamList extends ParamListBase {
     limitPrice?: string;
     amount?: string; // For new orders - USD amount to calculate position size for P&L
     szDecimals?: number; // For new orders - asset decimal precision for P&L
+    /**
+     * Called when user confirms TP/SL. First arg is position when editing existing position (avoids "No position found" from stale ref).
+     * Signature: (position?, takeProfitPrice?, stopLossPrice?, trackingData?) so both edit-flow and order-flow can use it.
+     */
     onConfirm: (
+      position?: Position,
       takeProfitPrice?: string,
       stopLossPrice?: string,
       trackingData?: TPSLTrackingData,
-    ) => Promise<void>;
+    ) => Promise<{ success: boolean } | void>;
   };
 
   // PnL Hero Card screen
@@ -209,13 +240,55 @@ export interface PerpsNavigationParamList extends ParamListBase {
   };
 
   // Root perps view
-  Perps: undefined;
+  Perps: PerpsNestedNavigationParams | undefined;
 
   /** Params for RedesignedConfirmations when shown in Perps stack (header options) */
   RedesignedConfirmations: {
     showPerpsHeader?: boolean;
   };
-}
+
+  /** Params for PerpsOrderRedirect - handles one-click trade from token details */
+  PerpsOrderRedirect: {
+    direction: 'long' | 'short';
+    asset: string;
+    /** When true, the order was initiated from the token details screen */
+    fromTokenDetails?: boolean;
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  };
+
+  // Screen names registered in the Perps stack (may differ from legacy aliases above)
+  PerpsTrendingView: {
+    source?: string;
+    variant?: 'full' | 'minimal';
+    title?: string;
+    showBalanceActions?: boolean;
+    showBottomNav?: boolean;
+    showWatchlistOnly?: boolean;
+    defaultMarketTypeFilter?: MarketTypeFilter;
+    defaultSortOptionId?: SortOptionId;
+    defaultSortDirection?: SortDirection;
+    fromHome?: boolean;
+    button_clicked?: string;
+    button_location?: string;
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  };
+  PerpsOrderDetailsView: {
+    order: Order;
+    action?: 'view' | 'edit' | 'cancel';
+  };
+  PerpsHIP3Debug: undefined;
+  PerpsClosePositionModals: PerpsNestedNavigationParams | undefined;
+  PerpsModals: PerpsNestedNavigationParams | undefined;
+  PerpsQuoteExpiredModal: undefined;
+  PerpsGTMModal: undefined;
+  PerpsCloseAllPositions: undefined;
+  PerpsCancelAllOrders: undefined;
+  PerpsTooltip: undefined;
+  PerpsCrossMarginWarning: undefined;
+  PerpsSelectProvider: undefined;
+  ConfirmationPayWithModal: undefined;
+  ConfirmationPayWithBottomSheet: undefined;
+};
 
 /**
  * Type helper for PERPS route parameters

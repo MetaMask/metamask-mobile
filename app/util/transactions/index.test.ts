@@ -1,8 +1,8 @@
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-namespace */
 import BN from 'bnjs4';
 
 import * as controllerUtilsModule from '@metamask/controller-utils';
-import { ERC721, ERC1155, ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { ERC721, ERC1155 } from '@metamask/controller-utils';
 import * as bridgeControllerModule from '@metamask/bridge-controller';
 
 import { handleMethodData } from '../../util/transaction-controller';
@@ -32,6 +32,7 @@ import {
   parseTransactionLegacy,
   getIsNativeTokenTransferred,
   getIsSwapApproveOrSwapTransaction,
+  isHardwareSwapApproveOrSwapTransaction,
   getIsSwapApproveTransaction,
   getIsSwapTransaction,
   INCREASE_ALLOWANCE_SIGNATURE,
@@ -48,6 +49,8 @@ import {
   getTransactionById,
   UPGRADE_SMART_ACCOUNT_ACTION_KEY,
   DOWNGRADE_SMART_ACCOUNT_ACTION_KEY,
+  SEND_ETHER_ACTION_KEY,
+  SMART_CONTRACT_INTERACTION_ACTION_KEY,
   isLegacyTransaction,
   getTokenAddressParam,
   getTokenValueParamAsHex,
@@ -65,6 +68,7 @@ import {
   isTransactionIncomplete,
 } from '.';
 import Engine from '../../core/Engine';
+import { isHardwareAccount } from '../address';
 import { strings } from '../../../locales/i18n';
 import { EIP_7702_REVOKE_ADDRESS } from '../../components/Views/confirmations/hooks/7702/useEIP7702Accounts';
 import {
@@ -149,6 +153,10 @@ jest.mock('../../core/Engine');
 const ENGINE_MOCK = Engine as jest.MockedClass<any>;
 
 jest.mock('../../util/transaction-controller');
+jest.mock('../address', () => ({
+  ...jest.requireActual('../address'),
+  isHardwareAccount: jest.fn(),
+}));
 
 const MOCK_ADDRESS1 = '0x0001';
 const MOCK_ADDRESS2 = '0x0002';
@@ -166,15 +174,6 @@ ENGINE_MOCK.context = {
     getNetworkClientById: () => ({
       provider: {} as Provider,
     }),
-  },
-  TokenListController: {
-    state: {
-      tokensChainsCache: {
-        '0x1': {
-          data: [],
-        },
-      },
-    },
   },
 };
 
@@ -744,6 +743,42 @@ describe('Transactions utils :: getActionKey', () => {
     expect(result).toBe(strings('transactions.smart_contract_interaction'));
   });
 
+  it('should be labeled as deposit to Money Account for money account deposit txs', async () => {
+    spyOnQueryMethod(UNI_ADDRESS);
+    const tx = {
+      type: TransactionType.moneyAccountDeposit,
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: UNI_ADDRESS,
+      },
+    };
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+    expect(result).toBe(strings('transactions.money_account_deposit'));
+  });
+
+  it('should be labeled as transfer from Money Account for money account withdraw txs', async () => {
+    spyOnQueryMethod(UNI_ADDRESS);
+    const tx = {
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: {
+        from: MOCK_ADDRESS1,
+        to: UNI_ADDRESS,
+      },
+    };
+    const result = await getActionKey(
+      tx,
+      MOCK_ADDRESS1,
+      undefined,
+      MOCK_CHAIN_ID,
+    );
+    expect(result).toBe(strings('transactions.money_account_withdraw'));
+  });
+
   it('should be labeled as "Contract Deployment" if the tx has no receiver', async () => {
     spyOnQueryMethod(UNI_ADDRESS);
     const tx = {
@@ -1261,6 +1296,7 @@ const dappTxMeta = {
 };
 const sendEthTxMeta = {
   chainId: '0x1',
+  type: TransactionType.simpleSend,
   origin: 'MetaMask Mobile',
   transaction: {
     from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -1276,6 +1312,7 @@ const sendEthTxMeta = {
 };
 const sendERC20TxMeta = {
   chainId: '0x1',
+  type: TransactionType.tokenMethodTransfer,
   origin: 'MetaMask Mobile',
   transaction: {
     from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -1292,6 +1329,7 @@ const sendERC20TxMeta = {
 
 const swapFlowApproveERC20TxMeta = {
   chainId: '0x1',
+  type: TransactionType.swapApproval,
   origin: process.env.MM_FOX_CODE,
   transaction: {
     from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -1307,6 +1345,7 @@ const swapFlowApproveERC20TxMeta = {
 };
 const swapFlowSwapERC20TxMeta = {
   chainId: '0x1',
+  type: TransactionType.swap,
   origin: process.env.MM_FOX_CODE,
   transaction: {
     from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -1322,6 +1361,7 @@ const swapFlowSwapERC20TxMeta = {
 };
 const swapFlowSwapEthTxMeta = {
   chainId: '0x1',
+  type: TransactionType.swap,
   origin: process.env.MM_FOX_CODE,
   transaction: {
     from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
@@ -1340,61 +1380,61 @@ describe('Transactions utils :: getIsSwapApproveOrSwapTransaction', () => {
   it('returns true if the transaction is an approve tx in the swap flow for ERC20 from token', () => {
     const result = getIsSwapApproveOrSwapTransaction(
       swapFlowApproveERC20TxMeta.transaction.data,
-      swapFlowApproveERC20TxMeta.origin,
       swapFlowApproveERC20TxMeta.transaction.to,
       swapFlowApproveERC20TxMeta.chainId,
+      swapFlowApproveERC20TxMeta.type,
     );
     expect(result).toBe(true);
   });
   it('returns true if the transaction is a swap tx in the swap flow for ERC20 from token', () => {
     const result = getIsSwapApproveOrSwapTransaction(
       swapFlowSwapERC20TxMeta.transaction.data,
-      swapFlowSwapERC20TxMeta.origin,
       swapFlowSwapERC20TxMeta.transaction.to,
       swapFlowSwapERC20TxMeta.chainId,
+      swapFlowSwapERC20TxMeta.type,
     );
     expect(result).toBe(true);
   });
   it('returns true if the transaction is a swap tx in the swap flow for ETH from token', () => {
     const result = getIsSwapApproveOrSwapTransaction(
       swapFlowSwapEthTxMeta.transaction.data,
-      swapFlowSwapEthTxMeta.origin,
       swapFlowSwapEthTxMeta.transaction.to,
       swapFlowSwapEthTxMeta.chainId,
+      swapFlowSwapEthTxMeta.type,
     );
     expect(result).toBe(true);
   });
   it('returns false if the transaction is a send ERC20 tx', () => {
     const result = getIsSwapApproveOrSwapTransaction(
       sendERC20TxMeta.transaction.data,
-      sendERC20TxMeta.origin,
       sendERC20TxMeta.transaction.to,
       sendERC20TxMeta.chainId,
+      sendERC20TxMeta.type,
     );
     expect(result).toBe(false);
   });
   it('returns false if the transaction is a send ETH tx', () => {
     const result = getIsSwapApproveOrSwapTransaction(
       sendEthTxMeta.transaction.data,
-      sendEthTxMeta.origin,
       sendEthTxMeta.transaction.to,
       sendEthTxMeta.chainId,
+      sendEthTxMeta.type,
     );
     expect(result).toBe(false);
   });
   it('returns false if the transaction is a dapp tx', () => {
     const result = getIsSwapApproveOrSwapTransaction(
       dappTxMeta.transaction.data,
-      dappTxMeta.origin,
       dappTxMeta.transaction.to,
       dappTxMeta.chainId,
+      TransactionType.contractInteraction,
     );
     expect(result).toBe(false);
   });
   it('returns false if the transaction is a token transfer from swap origin', () => {
     const tokenTransferFromSwapOrigin = {
       chainId: '0x1',
-      origin: ORIGIN_METAMASK,
+      type: TransactionType.swap,
       transaction: {
         from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
         data: '0xa9059cbb000000000000000000000000dc738206f559bdae106894a62876a119e470aee20000000000000000000000000000000000000000000000000de0b6b3a7640000',
@@ -1407,9 +1447,62 @@ describe('Transactions utils :: getIsSwapApproveOrSwapTransaction', () => {
 
     const result = getIsSwapApproveOrSwapTransaction(
       tokenTransferFromSwapOrigin.transaction.data,
-      tokenTransferFromSwapOrigin.origin,
       tokenTransferFromSwapOrigin.transaction.to,
       tokenTransferFromSwapOrigin.chainId,
+      tokenTransferFromSwapOrigin.type,
+    );
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: isHardwareSwapApproveOrSwapTransaction', () => {
+  const isHardwareAccountMock = jest.mocked(isHardwareAccount);
+
+  beforeEach(() => {
+    isHardwareAccountMock.mockReset();
+  });
+
+  it('returns true when it is a swap transaction from a hardware wallet', () => {
+    isHardwareAccountMock.mockReturnValue(true);
+
+    const result = isHardwareSwapApproveOrSwapTransaction(
+      swapFlowSwapERC20TxMeta.transaction.data,
+      swapFlowSwapERC20TxMeta.transaction.to,
+      swapFlowSwapERC20TxMeta.chainId,
+      swapFlowSwapERC20TxMeta.type,
+      swapFlowSwapERC20TxMeta.transaction.from,
+    );
+
+    expect(result).toBe(true);
+    expect(isHardwareAccountMock).toHaveBeenCalledWith(
+      swapFlowSwapERC20TxMeta.transaction.from,
+    );
+  });
+
+  it('returns false when it is a swap transaction but not from a hardware wallet', () => {
+    isHardwareAccountMock.mockReturnValue(false);
+
+    const result = isHardwareSwapApproveOrSwapTransaction(
+      swapFlowSwapERC20TxMeta.transaction.data,
+      swapFlowSwapERC20TxMeta.transaction.to,
+      swapFlowSwapERC20TxMeta.chainId,
+      swapFlowSwapERC20TxMeta.type,
+      swapFlowSwapERC20TxMeta.transaction.from,
+    );
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when it is from a hardware wallet but not a swap transaction', () => {
+    isHardwareAccountMock.mockReturnValue(true);
+
+    const result = isHardwareSwapApproveOrSwapTransaction(
+      sendERC20TxMeta.transaction.data,
+      sendERC20TxMeta.transaction.to,
+      sendERC20TxMeta.chainId,
+      sendERC20TxMeta.type,
+      sendERC20TxMeta.transaction.from,
     );
 
     expect(result).toBe(false);
@@ -1420,45 +1513,45 @@ describe('Transactions utils :: getIsSwapApproveTransaction', () => {
   it('returns true if the transaction is an approve ERC20 tx in the swap flow', () => {
     const result = getIsSwapApproveTransaction(
       swapFlowApproveERC20TxMeta.transaction.data,
-      swapFlowApproveERC20TxMeta.origin,
       swapFlowApproveERC20TxMeta.transaction.to,
       swapFlowApproveERC20TxMeta.chainId,
+      swapFlowApproveERC20TxMeta.type,
     );
     expect(result).toBe(true);
   });
   it('returns false if the transaction is a swap ERC20 tx in the swap flow', () => {
     const result = getIsSwapApproveTransaction(
       swapFlowSwapERC20TxMeta.transaction.data,
-      swapFlowSwapERC20TxMeta.origin,
       swapFlowSwapERC20TxMeta.transaction.to,
       swapFlowSwapERC20TxMeta.chainId,
+      swapFlowSwapERC20TxMeta.type,
     );
     expect(result).toBe(false);
   });
   it('returns false if the transaction is a send ETH tx', () => {
     const result = getIsSwapApproveTransaction(
       sendEthTxMeta.transaction.data,
-      sendEthTxMeta.origin,
       sendEthTxMeta.transaction.to,
       sendEthTxMeta.chainId,
+      sendEthTxMeta.type,
     );
     expect(result).toBe(false);
   });
   it('returns false if the transaction is a send ERC20 tx', () => {
     const result = getIsSwapApproveTransaction(
       sendERC20TxMeta.transaction.data,
-      sendERC20TxMeta.origin,
       sendERC20TxMeta.transaction.to,
       sendERC20TxMeta.chainId,
+      sendERC20TxMeta.type,
     );
     expect(result).toBe(false);
   });
   it('returns false if the transaction is a dapp tx', () => {
     const result = getIsSwapApproveTransaction(
       dappTxMeta.transaction.data,
-      dappTxMeta.origin,
       dappTxMeta.transaction.to,
       dappTxMeta.chainId,
+      TransactionType.contractInteraction,
     );
     expect(result).toBe(false);
   });
@@ -1468,45 +1561,45 @@ describe('Transactions utils :: getIsSwapTransaction', () => {
   it('returns false if the transaction is an approve ERC20 tx in the swap flow', () => {
     const result = getIsSwapTransaction(
       swapFlowApproveERC20TxMeta.transaction.data,
-      swapFlowApproveERC20TxMeta.origin,
       swapFlowApproveERC20TxMeta.transaction.to,
       swapFlowApproveERC20TxMeta.chainId,
+      swapFlowApproveERC20TxMeta.type,
     );
     expect(result).toBe(false);
   });
   it('returns true if the transaction is a swap ERC20 tx in the swap flow', () => {
     const result = getIsSwapTransaction(
       swapFlowSwapERC20TxMeta.transaction.data,
-      swapFlowSwapERC20TxMeta.origin,
       swapFlowSwapERC20TxMeta.transaction.to,
       swapFlowSwapERC20TxMeta.chainId,
+      swapFlowSwapERC20TxMeta.type,
     );
     expect(result).toBe(true);
   });
   it('returns true if the transaction is a swap ETH tx in the swap flow', () => {
     const result = getIsSwapTransaction(
       swapFlowSwapEthTxMeta.transaction.data,
-      swapFlowSwapEthTxMeta.origin,
       swapFlowSwapEthTxMeta.transaction.to,
       swapFlowSwapEthTxMeta.chainId,
+      swapFlowSwapEthTxMeta.type,
     );
     expect(result).toBe(true);
   });
   it('returns false if the transaction is a send tx', () => {
     const result = getIsSwapTransaction(
       sendEthTxMeta.transaction.data,
-      sendEthTxMeta.origin,
       sendEthTxMeta.transaction.to,
       sendEthTxMeta.chainId,
+      sendEthTxMeta.type,
     );
     expect(result).toBe(false);
   });
   it('returns false if the transaction is a dapp tx', () => {
     const result = getIsSwapTransaction(
       dappTxMeta.transaction.data,
-      dappTxMeta.origin,
       dappTxMeta.transaction.to,
       dappTxMeta.chainId,
+      TransactionType.contractInteraction,
     );
     expect(result).toBe(false);
   });
@@ -1603,7 +1696,10 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     TransactionType.lendingDeposit,
     TransactionType.lendingWithdraw,
     TransactionType.perpsDeposit,
+    TransactionType.perpsWithdraw,
     TransactionType.predictDeposit,
+    TransactionType.moneyAccountDeposit,
+    TransactionType.moneyAccountWithdraw,
   ])('returns transaction type if type is %s', async (type) => {
     const transaction = { type };
     const chainId = '1';
@@ -1611,6 +1707,34 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     const actionKey = await getTransactionActionKey(transaction, chainId);
 
     expect(actionKey).toBe(type);
+  });
+
+  it('returns moneyAccountDeposit when type is contractInteraction and nested has money account deposit', async () => {
+    const transaction = {
+      type: TransactionType.contractInteraction,
+      nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
+      txParams: {
+        to: '0x0000000000000000000000000000000000000001',
+        from: '0x0000000000000000000000000000000000000002',
+        data: '0x',
+      },
+    };
+    const actionKey = await getTransactionActionKey(transaction, '0x1');
+    expect(actionKey).toBe(TransactionType.moneyAccountDeposit);
+  });
+
+  it('returns moneyAccountWithdraw when type is contractInteraction and nested has money account withdraw', async () => {
+    const transaction = {
+      type: TransactionType.contractInteraction,
+      nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
+      txParams: {
+        to: '0x0000000000000000000000000000000000000001',
+        from: '0x0000000000000000000000000000000000000002',
+        data: '0x',
+      },
+    };
+    const actionKey = await getTransactionActionKey(transaction, '0x1');
+    expect(actionKey).toBe(TransactionType.moneyAccountWithdraw);
   });
 
   it('returns TRANSFER_FROM_ACTION_KEY for tokenMethodTransferFrom type', async () => {
@@ -1676,6 +1800,48 @@ describe('Transactions utils :: getTransactionActionKey', () => {
 
       expect(actionKey).toBe(TOKEN_METHOD_MINT);
     }
+  });
+
+  describe('simpleSend type bypasses smart contract check (gas-sponsored native sends)', () => {
+    it('returns SEND_ETHER_ACTION_KEY for simpleSend even when to is a smart contract', async () => {
+      const transaction = {
+        type: TransactionType.simpleSend,
+        toSmartContract: true,
+        txParams: {
+          to: '0xSmartContractAddress',
+        },
+      };
+
+      const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+      expect(actionKey).toBe(SEND_ETHER_ACTION_KEY);
+    });
+
+    it('returns SEND_ETHER_ACTION_KEY for simpleSend without toSmartContract flag', async () => {
+      const transaction = {
+        type: TransactionType.simpleSend,
+        txParams: {
+          to: '0x0000000000000000000000000000000000000001',
+        },
+      };
+
+      const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+      expect(actionKey).toBe(SEND_ETHER_ACTION_KEY);
+    });
+
+    it('returns SMART_CONTRACT_INTERACTION_ACTION_KEY when type is not simpleSend and to is a smart contract', async () => {
+      const transaction = {
+        toSmartContract: true,
+        txParams: {
+          to: '0xSmartContractAddress',
+        },
+      };
+
+      const actionKey = await getTransactionActionKey(transaction, '0x1');
+
+      expect(actionKey).toBe(SMART_CONTRACT_INTERACTION_ACTION_KEY);
+    });
   });
 });
 
@@ -2529,31 +2695,9 @@ describe('Transactions utils :: isSmartContractAddress', () => {
     expect(result).toBe(false);
   });
 
-  it('returns true when address is in token cache for mainnet', async () => {
-    const address = '0x1234567890123456789012345678901234567890';
-
-    // Mock the Engine context for mainnet with cached token
-    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
-      '0x1': {
-        data: {
-          [address]: { symbol: 'TEST' },
-        },
-      },
-    };
-
-    const result = await isSmartContractAddress(address, '0x1');
-    expect(result).toBe(true);
-  });
-
   it('returns true when contract code is found', async () => {
     const address = '0x1234567890123456789012345678901234567890';
 
-    // Clear token cache
-    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
-      '0x5': { data: {} },
-    };
-
-    // Mock contract code
     spyOnQueryMethod('0x608060405234801561001057600080fd5b50');
 
     const result = await isSmartContractAddress(address, '0x5');
@@ -2563,12 +2707,6 @@ describe('Transactions utils :: isSmartContractAddress', () => {
   it('returns false when no contract code is found', async () => {
     const address = '0x1234567890123456789012345678901234567890';
 
-    // Clear token cache
-    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
-      '0x5': { data: {} },
-    };
-
-    // Mock empty contract code
     spyOnQueryMethod('0x');
 
     const result = await isSmartContractAddress(address, '0x5');
@@ -2578,10 +2716,6 @@ describe('Transactions utils :: isSmartContractAddress', () => {
   it('uses provided networkClientId when specified', async () => {
     const address = '0x1234567890123456789012345678901234567890';
     const customNetworkClientId = 'custom-network';
-
-    ENGINE_MOCK.context.TokenListController.state.tokensChainsCache = {
-      '0x5': { data: {} },
-    };
 
     spyOnQueryMethod('0x608060405234801561001057600080fd5b50');
 

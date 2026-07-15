@@ -1,0 +1,587 @@
+import React from 'react';
+import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
+import V2OtpCode, { type V2OtpCodeParams } from './OtpCode';
+import { ThemeContext, mockTheme } from '../../../../../util/theme';
+
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    goBack: mockGoBack,
+  }),
+}));
+
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string, params?: Record<string, unknown>) => {
+    if (params) return `${key}`;
+    return key;
+  },
+  I18nEvents: { addListener: jest.fn() },
+}));
+
+const mockVerifyUserOtp = jest.fn();
+const mockSetAuthToken = jest.fn();
+const mockSendUserOtp = jest.fn();
+const mockGetBuyQuote = jest.fn();
+
+jest.mock('../../hooks/useTransakController', () => ({
+  useTransakController: () => ({
+    setAuthToken: mockSetAuthToken,
+    verifyUserOtp: mockVerifyUserOtp,
+    sendUserOtp: mockSendUserOtp,
+    isAuthenticated: false,
+    getBuyQuote: mockGetBuyQuote,
+  }),
+}));
+
+const mockRouteAfterAuthentication = jest.fn();
+
+jest.mock('../../hooks/useTransakRouting', () => ({
+  useTransakRouting: () => ({
+    routeAfterAuthentication: mockRouteAfterAuthentication,
+  }),
+}));
+
+jest.mock('../../hooks/useRampsController', () => ({
+  useRampsController: () => ({
+    selectedToken: { chainId: 'eip155:1' },
+    userRegion: { regionCode: 'us-ca' },
+    selectedPaymentMethod: { id: 'pm-1' },
+  }),
+}));
+
+const mockUseParams = jest.fn(
+  (): V2OtpCodeParams => ({
+    email: 'test@example.com',
+    stateToken: 'test-state-token',
+    amount: '100',
+    currency: 'USD',
+    assetId: 'eip155:1/erc20:0x123',
+  }),
+);
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  createNavigationDetails:
+    (..._args: unknown[]) =>
+    (params: unknown) => ['MockRoute', params],
+  useParams: () => mockUseParams(),
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
+jest.mock('../../../../../util/trace', () => ({
+  trace: jest.fn(),
+  TraceName: { DepositInputOtp: 'DepositInputOtp' },
+}));
+
+const mockTrackEvent = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: () => ({
+      addProperties: (props: object) => ({ build: () => ({ ...props }) }),
+    }),
+  }),
+}));
+
+jest.mock('@react-native-clipboard/clipboard', () => ({
+  getString: jest.fn().mockResolvedValue(''),
+}));
+
+jest.mock('react-native-confirmation-code-field', () => ({
+  CodeField: ({
+    onChangeText,
+    value,
+    renderCell,
+    cellCount,
+    editable,
+    ...rest
+  }: {
+    onChangeText: (text: string) => void;
+    value: string;
+    cellCount: number;
+    editable?: boolean;
+    renderCell: (info: {
+      index: number;
+      symbol: string;
+      isFocused: boolean;
+    }) => React.ReactNode;
+    testID?: string;
+  }) => {
+    const { createElement } = jest.requireActual('react');
+    const { TextInput, View } = jest.requireActual('react-native');
+    return createElement(
+      View,
+      null,
+      createElement(TextInput, {
+        testID: rest.testID || 'otp-code-input',
+        onChangeText,
+        value,
+        editable,
+      }),
+      Array.from({ length: cellCount }, (_, i) =>
+        renderCell({ index: i, symbol: value[i] || '', isFocused: false }),
+      ),
+    );
+  },
+  Cursor: () => null,
+  useBlurOnFulfill: () => ({ current: { focus: jest.fn() } }),
+  useClearByFocusCell: () => [{}, jest.fn()],
+}));
+
+jest.mock('../../constants', () => ({
+  TRANSAK_SUPPORT_URL: 'https://support.transak.com',
+}));
+
+const renderWithTheme = (component: React.ReactElement) =>
+  render(
+    <ThemeContext.Provider value={mockTheme}>
+      {component}
+    </ThemeContext.Provider>,
+  );
+
+describe('V2OtpCode', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('renders the OTP input and submit button', () => {
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    expect(getByTestId('otp-code-input')).toBeOnTheScreen();
+    expect(getByTestId('otp-code-submit-button')).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack when header back is pressed', () => {
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('renders the submit button', () => {
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    expect(getByTestId('otp-code-submit-button')).toBeOnTheScreen();
+  });
+
+  it('verifies OTP and navigates on successful submission', async () => {
+    jest.useRealTimers();
+
+    const mockToken = { accessToken: 'otp-token', ttl: 3600 };
+    mockVerifyUserOtp.mockResolvedValue(mockToken);
+    mockSetAuthToken.mockResolvedValue(true);
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    const otpInput = getByTestId('otp-code-input');
+
+    await act(async () => {
+      fireEvent.changeText(otpInput, '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockVerifyUserOtp).toHaveBeenCalledWith(
+        'test@example.com',
+        '123456',
+        'test-state-token',
+      );
+    });
+  });
+
+  it('shows error when OTP verification fails', async () => {
+    jest.useRealTimers();
+
+    mockVerifyUserOtp.mockRejectedValue(new Error('Invalid OTP'));
+
+    const { getByTestId, getByText } = renderWithTheme(<V2OtpCode />);
+
+    const otpInput = getByTestId('otp-code-input');
+
+    await act(async () => {
+      fireEvent.changeText(otpInput, '123456');
+    });
+
+    await waitFor(() => {
+      expect(getByText('Invalid OTP')).toBeOnTheScreen();
+    });
+  });
+
+  it('renders the paste button', () => {
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+    expect(getByTestId('otp-code-paste-button')).toBeOnTheScreen();
+  });
+
+  it('fetches buy quote and routes after successful OTP verification', async () => {
+    jest.useRealTimers();
+
+    const mockToken = { accessToken: 'otp-token', ttl: 3600 };
+    const mockQuote = { quoteId: 'q1', fiatAmount: 100 };
+    mockVerifyUserOtp.mockResolvedValue(mockToken);
+    mockSetAuthToken.mockResolvedValue(true);
+    mockGetBuyQuote.mockResolvedValue(mockQuote);
+    mockRouteAfterAuthentication.mockResolvedValue(undefined);
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockGetBuyQuote).toHaveBeenCalledWith(
+        'USD',
+        'eip155:1/erc20:0x123',
+        'eip155:1',
+        'pm-1',
+        '100',
+      );
+      expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('navigates back to BuildQuote with error when post-auth routing fails', async () => {
+    jest.useRealTimers();
+
+    const mockToken = { accessToken: 'otp-token', ttl: 3600 };
+    mockVerifyUserOtp.mockResolvedValue(mockToken);
+    mockSetAuthToken.mockResolvedValue(true);
+    mockGetBuyQuote.mockRejectedValue(new Error('Limit exceeded'));
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('RampAmountInput', {
+        nativeFlowError: 'Limit exceeded',
+      });
+    });
+  });
+
+  it('navigates to AMOUNT_INPUT when no amount/currency/assetId params', async () => {
+    jest.useRealTimers();
+
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: undefined,
+      currency: undefined,
+      assetId: undefined,
+    });
+
+    const mockToken = { accessToken: 'otp-token', ttl: 3600 };
+    mockVerifyUserOtp.mockResolvedValue(mockToken);
+    mockSetAuthToken.mockResolvedValue(true);
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('RampAmountInput');
+    });
+
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: '100',
+      currency: 'USD',
+      assetId: 'eip155:1/erc20:0x123',
+    });
+  });
+
+  it('navigates to HEADLESS_HOST with suppressFocusDismissal when headless and no amount/currency/assetId params', async () => {
+    jest.useRealTimers();
+
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: undefined,
+      currency: undefined,
+      assetId: undefined,
+      headlessSessionId: 'headless-buy-abc',
+    });
+
+    const mockToken = { accessToken: 'otp-token', ttl: 3600 };
+    mockVerifyUserOtp.mockResolvedValue(mockToken);
+    mockSetAuthToken.mockResolvedValue(true);
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    // Programmatic refocus of the still-mounted Host must flag itself so the
+    // host's focus-dismissal heuristic does not kill the live session.
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('RampHeadlessHost', {
+        headlessSessionId: 'headless-buy-abc',
+        suppressFocusDismissal: true,
+      });
+    });
+
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: '100',
+      currency: 'USD',
+      assetId: 'eip155:1/erc20:0x123',
+    });
+  });
+
+  it('navigates back to HEADLESS_HOST with nativeFlowError (not suppressFocusDismissal) when headless post-auth routing fails', async () => {
+    jest.useRealTimers();
+
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: '100',
+      currency: 'USD',
+      assetId: 'eip155:1/erc20:0x123',
+      headlessSessionId: 'headless-buy-abc',
+    });
+
+    const mockToken = { accessToken: 'otp-token', ttl: 3600 };
+    mockVerifyUserOtp.mockResolvedValue(mockToken);
+    mockSetAuthToken.mockResolvedValue(true);
+    mockGetBuyQuote.mockRejectedValue(new Error('Limit exceeded'));
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    // Failure must keep routing through nativeFlowError (so failSession runs);
+    // the success-only suppress flag must NOT be set on this path.
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('RampHeadlessHost', {
+        headlessSessionId: 'headless-buy-abc',
+        nativeFlowError: 'Limit exceeded',
+      });
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      'RampHeadlessHost',
+      expect.objectContaining({ suppressFocusDismissal: true }),
+    );
+
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: '100',
+      currency: 'USD',
+      assetId: 'eip155:1/erc20:0x123',
+    });
+  });
+
+  it('handles resend OTP', async () => {
+    mockSendUserOtp.mockResolvedValue({ stateToken: 'new-state-token' });
+
+    const { getByText } = renderWithTheme(<V2OtpCode />);
+
+    for (let i = 0; i < 60; i++) {
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+    }
+
+    await act(async () => {
+      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
+    });
+
+    await waitFor(() => {
+      expect(mockSendUserOtp).toHaveBeenCalledWith('test@example.com');
+    });
+  });
+
+  it('shows cooldown state after resend', async () => {
+    mockSendUserOtp.mockResolvedValue({ stateToken: 'new-state-token' });
+
+    const { getByText } = renderWithTheme(<V2OtpCode />);
+
+    for (let i = 0; i < 60; i++) {
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+    }
+
+    await act(async () => {
+      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
+    });
+
+    await waitFor(() => {
+      expect(getByText('deposit.otp_code.resend_cooldown')).toBeOnTheScreen();
+    });
+  });
+
+  it('shows error when verifyUserOtp returns null', async () => {
+    jest.useRealTimers();
+
+    mockVerifyUserOtp.mockResolvedValue(null);
+
+    const { getByTestId, getByText } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    await waitFor(() => {
+      expect(getByText('No response from verifyUserOtp')).toBeOnTheScreen();
+    });
+  });
+
+  it('does not submit when code length is less than 6', async () => {
+    jest.useRealTimers();
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123');
+    });
+
+    expect(mockVerifyUserOtp).not.toHaveBeenCalled();
+  });
+
+  it('handles paste from clipboard', async () => {
+    jest.useRealTimers();
+
+    const Clipboard = jest.requireMock('@react-native-clipboard/clipboard') as {
+      getString: jest.Mock;
+    };
+    Clipboard.getString.mockResolvedValue('654321');
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId('otp-code-paste-button'));
+    });
+
+    await waitFor(() => {
+      expect(Clipboard.getString).toHaveBeenCalled();
+    });
+  });
+
+  it('shows error when sendUserOtp API fails', async () => {
+    mockSendUserOtp.mockRejectedValue(new Error('Network error'));
+
+    const { getByText } = renderWithTheme(<V2OtpCode />);
+
+    for (let i = 0; i < 60; i++) {
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+    }
+
+    await act(async () => {
+      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
+    });
+
+    await waitFor(() => {
+      expect(getByText('Network error')).toBeOnTheScreen();
+    });
+  });
+
+  it('ignores OTP input changes while verification request is in-flight', async () => {
+    jest.useRealTimers();
+
+    let resolveAttempt: (value: unknown) => void = () => undefined;
+    const attemptPromise = new Promise((resolve) => {
+      resolveAttempt = resolve;
+    });
+
+    mockVerifyUserOtp.mockImplementationOnce(() => attemptPromise);
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    const otpInput = getByTestId('otp-code-input');
+
+    await act(async () => {
+      fireEvent.changeText(otpInput, '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockVerifyUserOtp).toHaveBeenCalledTimes(1);
+    });
+
+    await act(async () => {
+      fireEvent.changeText(otpInput, '654321');
+    });
+
+    expect(otpInput.props.value).toBe('123456');
+
+    await act(async () => {
+      resolveAttempt(null);
+    });
+  });
+
+  it('sets input to non-editable while verification request is in-flight', async () => {
+    jest.useRealTimers();
+
+    let resolveAttempt: (value: unknown) => void = () => undefined;
+    const attemptPromise = new Promise((resolve) => {
+      resolveAttempt = resolve;
+    });
+
+    mockVerifyUserOtp.mockImplementationOnce(() => attemptPromise);
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    const otpInput = getByTestId('otp-code-input');
+
+    expect(otpInput.props.editable).not.toBe(false);
+
+    await act(async () => {
+      fireEvent.changeText(otpInput, '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockVerifyUserOtp).toHaveBeenCalledTimes(1);
+    });
+
+    expect(otpInput.props.editable).toBe(false);
+
+    await act(async () => {
+      resolveAttempt(null);
+    });
+  });
+
+  it('shows fallback error when sendUserOtp fails without message', async () => {
+    mockSendUserOtp.mockRejectedValue(new Error());
+
+    const { getByText } = renderWithTheme(<V2OtpCode />);
+
+    for (let i = 0; i < 60; i++) {
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+    }
+
+    await act(async () => {
+      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
+    });
+
+    await waitFor(() => {
+      expect(getByText('deposit.otp_code.resend_code_error')).toBeOnTheScreen();
+    });
+  });
+});

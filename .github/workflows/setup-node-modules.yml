@@ -1,6 +1,16 @@
 # Reusable workflow for setting up node_modules
-# This workflow installs dependencies and runs the project setup, then uploads
-# the prepared node_modules as an artifact for consumption by other workflows.
+# This workflow installs dependencies and runs the project setup, then either
+# saves to GitHub Actions cache or uploads the prepared node_modules as an
+# artifact for consumption by other workflows.
+#
+# Use cases:
+# - Build on release/*: platform=ios|android, use-cache=true, build_name set;
+#   saves node_modules to actions/cache after full install/setup so the build
+#   job can restore it quickly without downloading a tarball artifact.
+# - Build on other branches: platform=ios|android, use-tarball=true; uploads a
+#   zstd-compressed tarball artifact for the build job to download and extract.
+# - EAS update: platform='', use-tarball=false, one ubuntu-latest runner;
+#   uploads node_modules as a zip artifact (no cache used).
 
 name: Setup Node Modules
 
@@ -17,13 +27,33 @@ on:
         required: false
         type: number
         default: 1
+      checkout-submodules:
+        description: 'Checkout with submodules recursive (required for build)'
+        required: false
+        type: boolean
+        default: false
+      platform:
+        description: "Platform for native setup: '' (generic/ubuntu), 'ios', or 'android'. When set, runs on platform-specific runner and uses platform-specific setup."
+        required: false
+        type: string
+        default: ''
+      build_name:
+        description: 'Build config name (e.g. main-prod). When set, applies build config before setup so METAMASK_BUILD_TYPE is correct for InpageBridgeWeb3.js.'
+        required: false
+        type: string
+        default: ''
+      use-tarball:
+        description: 'Upload a tar.gz artifact (preserves symlinks). Use for build.yml so the build job can extract on the same OS.'
+        required: false
+        type: boolean
+        default: false
       upload-artifact:
         description: 'Whether to upload node_modules as an artifact'
         required: false
         type: boolean
         default: true
       artifact-name:
-        description: 'Name of the artifact to upload'
+        description: 'Name of the artifact to upload. When platform is set, used as-is; otherwise suffix with node version and OS.'
         required: false
         type: string
         default: 'node-modules'
@@ -32,47 +62,153 @@ on:
         required: false
         type: number
         default: 1
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
+      use-cache:
+        description: >-
+          When true, save node_modules to actions/cache after a full install/setup
+          run, keyed on yarn.lock + inpage-bridge sources. The consuming build job
+          restores from this cache instead of downloading a tarball artifact.
+          Exposes cache-key output for the build job to use with fail-on-cache-miss.
+        required: false
+        type: boolean
+        default: false
     outputs:
       artifact-name:
-        description: 'The actual artifact name used (includes node version and OS)'
+        description: 'The actual artifact name used'
         value: ${{ jobs.setup.outputs.artifact-name }}
+      cache-key:
+        description: 'Exact cache key used when use-cache is true (empty otherwise)'
+        value: ${{ jobs.setup.outputs.cache-key }}
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   setup:
-    name: Setup Node Modules
-    runs-on: ubuntu-latest
+    name: Setup Node Modules ${{ inputs.platform && format('({0})', inputs.platform) || '' }}
+    # Platform-specific runner to match consumer (build needs same OS for native deps/symlinks)
+    runs-on: ${{ inputs.runner_provider == 'namespace' && (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-build' || (inputs.platform == 'android' && 'namespace-profile-metamask-android-build' || 'namespace-profile-metamask-ci-linux')) || (inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || (inputs.platform == 'android' && 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' || 'ubuntu-latest')) }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      CACHE_GENERATION: v1
     outputs:
       artifact-name: ${{ steps.set-artifact-name.outputs.artifact-name }}
+      cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
         with:
           ref: ${{ inputs.ref }}
           fetch-depth: ${{ inputs.fetch-depth }}
+          submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: ${{ inputs.fetch-depth }}
+          submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
+
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+
+      # iOS: Only Node + Ruby needed (setup runs gem/bundle install, no pods/Xcode). Full iOS env is in build job.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
+          cache: ${{ inputs.runner_provider == 'namespace' && '' || (inputs.platform == 'android' && 'yarn' || (inputs.platform == 'ios' && 'yarn') || '') }}
 
-      - name: Set artifact name with node version and OS
+      - name: Setup Ruby (iOS)
+        if: inputs.platform == 'ios'
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
+        with:
+          ruby-version: '3.2.9'
+          working-directory: ios
+          bundler-cache: true
+
+      - name: Set artifact name
         id: set-artifact-name
         run: |
+          if [ -n "${{ inputs.platform }}" ]; then
+            echo "artifact-name=${{ inputs.artifact-name }}" >> "$GITHUB_OUTPUT"
+            echo "📦 Artifact name: ${{ inputs.artifact-name }}"
+          else
+            NODE_VERSION=$(node --version | sed 's/v//')
+            OS_NAME=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
+            ARTIFACT_NAME="${{ inputs.artifact-name }}-node${NODE_VERSION}-${OS_NAME}"
+            echo "artifact-name=$ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
+            echo "📦 Artifact name: $ARTIFACT_NAME"
+          fi
+
+      - name: Compute cache key
+        id: cache-key
+        if: inputs.use-cache
+        run: |
           NODE_VERSION=$(node --version | sed 's/v//')
-          OS_NAME=$(echo "$RUNNER_OS" | tr '[:upper:]' '[:lower:]')
-          ARTIFACT_NAME="${{ inputs.artifact-name }}-node${NODE_VERSION}-${OS_NAME}"
-          echo "artifact-name=$ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
-          echo "📦 Artifact name: $ARTIFACT_NAME"
+          KEY="node-modules-${{ env.CACHE_GENERATION }}-${{ inputs.build_name }}-${{ inputs.platform }}-${RUNNER_OS}-${NODE_VERSION}-${{ hashFiles('yarn.lock', 'patches/**', 'scripts/inpage-bridge/**', 'scripts/build-inpage-bridge.sh') }}"
+          echo "key=${KEY}" >> "$GITHUB_OUTPUT"
+          echo "Cache key: ${KEY}"
 
       - name: Install dependencies
         run: |
           echo "📦 Installing dependencies..."
           yarn install --immutable
 
+      - name: Apply build config (for setup)
+        if: inputs.build_name != ''
+        run: |
+          node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
+
+      - name: Restore .metamask folder
+        id: restore-metamask
+        if: ${{ inputs.runner_provider != 'namespace' && inputs.platform != '' }}
+        uses: actions/cache@v4
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
+      - name: Install Foundry if cache missed
+        if: ${{ inputs.platform != '' && (inputs.runner_provider == 'namespace' || steps.restore-metamask.outputs.cache-hit != 'true') }}
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install:foundryup
+
       - name: Setup project
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        if: inputs.platform != ''
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "🔧 Running setup for ${{ inputs.platform }}..."
+            if [ "${{ inputs.platform }}" = "ios" ]; then
+              yarn setup:github-ci --build-ios --no-build-android --no-install-pods
+            else
+              yarn setup:github-ci --no-build-ios
+            fi
+
+      - name: Setup project (generic)
+        if: inputs.platform == ''
         run: |
           echo "🔧 Running setup for GitHub CI..."
           yarn setup:github-ci
@@ -80,7 +216,6 @@ jobs:
       - name: Verify setup completed
         run: |
           echo "✅ Verifying setup artifacts..."
-          # Check that critical setup artifacts exist
           if [ ! -d "node_modules" ]; then
             echo "❌ node_modules directory not found"
             exit 1
@@ -100,6 +235,7 @@ jobs:
           echo "✅ Setup verification passed"
 
       - name: Debug - List .yarn contents
+        if: inputs.platform == ''
         run: |
           echo "📂 Contents of .yarn directory:"
           ls -la .yarn/ || echo "No .yarn directory"
@@ -107,8 +243,59 @@ jobs:
           echo "📄 install-state.gz exists: $(test -f .yarn/install-state.gz && echo 'yes' || echo 'no')"
           echo "📁 cache dir exists: $(test -d .yarn/cache && echo 'yes' || echo 'no')"
 
-      - name: Upload node_modules artifact
-        if: inputs.upload-artifact
+      - name: Save node_modules cache
+        if: inputs.use-cache
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            app/util/termsOfUse/termsOfUseContent.ts
+            app/core/InpageBridgeWeb3.js
+            scripts/inpage-bridge/dist
+          key: ${{ steps.cache-key.outputs.key }}
+
+      # zstd compresses ~24% smaller than gzip and, being multithreaded (-T0),
+      # creates the tarball ~10x faster. This shrinks both this step (on the
+      # critical path) and the download in the consuming build job.
+      - name: Ensure zstd is available
+        if: inputs.upload-artifact && inputs.use-tarball
+        shell: bash
+        run: |
+          if command -v zstd >/dev/null 2>&1; then
+            echo "✅ zstd present: $(zstd --version)"
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            echo "Installing zstd via Homebrew..."
+            brew install zstd
+          else
+            echo "Installing zstd via apt..."
+            sudo apt-get update -qq && sudo apt-get install -y -qq zstd
+          fi
+
+      - name: Create tarball (preserves symlinks)
+        if: inputs.upload-artifact && inputs.use-tarball
+        run: |
+          echo "📦 Creating zstd tarball to preserve symlinks..."
+          tar --use-compress-program 'zstd -10 -T0' \
+            -cf node-modules-${{ inputs.platform }}.tar.zst \
+            node_modules \
+            app/util/termsOfUse/termsOfUseContent.ts \
+            app/core/InpageBridgeWeb3.js \
+            scripts/inpage-bridge/dist
+          echo "✅ Tarball created: $(du -h node-modules-${{ inputs.platform }}.tar.zst)"
+
+      - name: Upload node_modules tarball
+        if: inputs.upload-artifact && inputs.use-tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.set-artifact-name.outputs.artifact-name }}
+          path: node-modules-${{ inputs.platform }}.tar.zst
+          retention-days: ${{ inputs.artifact-retention-days }}
+          # Already zstd-compressed; skip the artifact zip's redundant compression.
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: Upload node_modules artifact (zip)
+        if: inputs.upload-artifact && !inputs.use-tarball
         uses: actions/upload-artifact@v4.5.0
         with:
           name: ${{ steps.set-artifact-name.outputs.artifact-name }}

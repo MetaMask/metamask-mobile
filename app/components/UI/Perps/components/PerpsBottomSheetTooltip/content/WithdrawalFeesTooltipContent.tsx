@@ -12,9 +12,9 @@ import { formatPerpsFiat } from '../../../utils/formatUtils';
 import Engine from '../../../../../../core/Engine';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
-  METAMASK_WITHDRAWAL_FEE_PLACEHOLDER,
-} from '../../../constants/hyperLiquidConfig';
-import { WITHDRAWAL_CONSTANTS } from '../../../constants/perpsConfig';
+  WITHDRAWAL_CONSTANTS,
+} from '@metamask/perps-controller';
+import { METAMASK_WITHDRAWAL_FEE_PLACEHOLDER } from '../../../constants/perpsUIConfig';
 
 const WithdrawalFeesTooltipContent: React.FC<TooltipContentProps> = ({
   testID,

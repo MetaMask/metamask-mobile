@@ -1,11 +1,13 @@
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import { loginToApp } from '../../../e2e/viewHelper';
+import WalletView from '../../page-objects/wallet/WalletView';
+import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TestHelpers from '../../../e2e/helpers';
+import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
-import NftDetectionModal from '../../../e2e/pages/wallet/NftDetectionModal';
-import { RegressionAssets } from '../../../e2e/tags';
+import NftDetectionModal from '../../page-objects/wallet/NftDetectionModal';
+import { RegressionAssets } from '../../tags';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
 import { NftDetectionModalSelectorsText } from '../../../app/components/Views/NFTAutoDetectionModal/NftDetectionModal.testIds.ts';
 
@@ -24,6 +26,9 @@ describe.skip(RegressionAssets('NFT Detection Modal'), () => {
           })
           .build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {});
+        },
       },
       async () => {
         await loginToApp();
@@ -36,7 +41,7 @@ describe.skip(RegressionAssets('NFT Detection Modal'), () => {
         await Assertions.expectElementToBeVisible(WalletView.container);
 
         // Go to NFTs tab and check that the banner is visible
-        await WalletView.tapNftTab();
+        await WalletView.scrollAndTapNftsSection();
         await Assertions.expectTextDisplayed(
           NftDetectionModalSelectorsText.NFT_AUTO_DETECTION_BANNER,
         );
@@ -53,6 +58,9 @@ describe.skip(RegressionAssets('NFT Detection Modal'), () => {
           })
           .build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(mockServer, {});
+        },
       },
       async () => {
         await loginToApp();
@@ -65,7 +73,7 @@ describe.skip(RegressionAssets('NFT Detection Modal'), () => {
         await device.disableSynchronization();
 
         // Go to NFTs tab and check that the banner is NOT visible
-        await WalletView.tapNftTab();
+        await WalletView.scrollAndTapNftsSection();
         await Assertions.expectTextNotDisplayed(
           NftDetectionModalSelectorsText.NFT_AUTO_DETECTION_BANNER,
         );

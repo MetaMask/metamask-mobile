@@ -3,10 +3,11 @@ import { View } from 'react-native';
 
 import { ApproveComponentIDs } from '../../../ConfirmationView.testIds';
 import { useStyles } from '../../../../../../component-library/hooks';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -91,18 +92,18 @@ export const EditSpendingCapModal = ({
 
         <View style={styles.buttonsContainer}>
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
             isDisabled={isDataUpdating}
             style={styles.button}
-            label={strings('confirm.edit_spending_cap_modal.cancel')}
             onPress={handleCloseModal}
-          />
+          >
+            {strings('confirm.edit_spending_cap_modal.cancel')}
+          </Button>
           <Button
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             style={styles.button}
-            label={strings('confirm.edit_spending_cap_modal.save')}
             isDisabled={!!error}
             testID={ApproveComponentIDs.EDIT_SPENDING_CAP_SAVE_BUTTON}
             onPress={async () => {
@@ -111,7 +112,9 @@ export const EditSpendingCapModal = ({
               onClose();
               setIsDataUpdating(false);
             }}
-          />
+          >
+            {strings('confirm.edit_spending_cap_modal.save')}
+          </Button>
         </View>
       </View>
     </BottomModal>

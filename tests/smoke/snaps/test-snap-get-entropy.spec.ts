@@ -1,19 +1,21 @@
-import { FlaskBuildTests } from '../../../e2e/tags';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import { SmokeSnaps } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
+import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions';
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
+describe(SmokeSnaps('Get Entropy Snap Tests'), () => {
   it('connects to the Get Entropy Snap', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -30,10 +32,14 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.fillMessage('entropyMessageInput', '1234');
         await TestSnaps.tapButton('signEntropyMessageButton');
+        await Assertions.expectTextDisplayed('Signature request', {
+          description: 'Snap signature request should be visible',
+        });
         await TestSnaps.approveSignRequest();
         await TestSnaps.checkResultSpan(
           'entropySignResultSpan',
@@ -59,11 +65,15 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
         {
           fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
           skipReactNativeReload: true,
+          disableSynchronization: true,
         },
         async () => {
           await TestSnaps.selectInDropdown('getEntropyDropDown', entropySource);
           await TestSnaps.fillMessage('entropyMessageInput', '5678');
           await TestSnaps.tapButton('signEntropyMessageButton');
+          await Assertions.expectTextDisplayed('Signature request', {
+            description: 'Snap signature request should be visible',
+          });
           await TestSnaps.approveSignRequest();
           await TestSnaps.checkResultSpan(
             'entropySignResultSpan',
@@ -79,15 +89,18 @@ describe(FlaskBuildTests('Get Entropy Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('getEntropyDropDown', 'Invalid');
         await TestSnaps.fillMessage('entropyMessageInput', 'foo bar');
         await TestSnaps.tapButton('signEntropyMessageButton');
         await TestSnaps.approveSignRequest();
-        await Assertions.checkIfTextIsDisplayed(
+        await Assertions.expectTextDisplayed(
           'Entropy source with ID "invalid" not found.',
+          { timeout: 30000 },
         );
+        await TestSnaps.dismissAlert();
       },
     );
   });

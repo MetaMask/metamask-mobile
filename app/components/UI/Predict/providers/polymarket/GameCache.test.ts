@@ -1,6 +1,8 @@
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { GameUpdate, PredictMarket, Recurrence } from '../../types';
 import { GameCache } from './GameCache';
 
+import { POLYMARKET_PROVIDER_ID } from './constants';
 const createMockGameUpdate = (
   overrides: Partial<GameUpdate> = {},
 ): GameUpdate => ({
@@ -17,7 +19,7 @@ const createMockMarket = (
   overrides: Partial<PredictMarket> = {},
 ): PredictMarket => ({
   id: 'market-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   slug: 'test-market',
   title: 'Test Market',
   description: 'A test market',
@@ -50,7 +52,7 @@ const createMockMarketWithGame = (
         name: 'Seattle Seahawks',
         logo: 'https://example.com/sea.png',
         abbreviation: 'SEA',
-        color: '#002244',
+        color: TEST_HEX_COLORS.TEAM_SEA,
         alias: 'Seahawks',
       },
       awayTeam: {
@@ -58,7 +60,7 @@ const createMockMarketWithGame = (
         name: 'Denver Broncos',
         logo: 'https://example.com/den.png',
         abbreviation: 'DEN',
-        color: '#FB4F14',
+        color: TEST_HEX_COLORS.TEAM_DEN,
         alias: 'Broncos',
       },
     },
@@ -209,6 +211,32 @@ describe('GameCache', () => {
       expect(result.game?.period).toBe('Q3');
       expect(result.game?.status).toBe('ongoing');
       expect(result.game?.turn).toBe('DEN');
+    });
+
+    it('normalizes cached scores for home-first leagues', () => {
+      const cache = GameCache.getInstance();
+      const update = createMockGameUpdate({
+        gameId: 'game-123',
+        score: '2-1',
+        status: 'ended',
+        period: 'FT',
+      });
+      const market = createMockMarketWithGame();
+
+      if (!market.game) {
+        throw new Error('Expected market.game to exist');
+      }
+
+      cache.updateGame('game-123', update);
+      const result = cache.overlayOnMarket({
+        ...market,
+        game: {
+          ...market.game,
+          league: 'ucl',
+        },
+      });
+
+      expect(result.game?.score).toEqual({ away: 1, home: 2, raw: '2-1' });
     });
 
     it('preserves non-overlaid game properties', () => {

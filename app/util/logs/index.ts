@@ -4,14 +4,11 @@ import {
   getBuildNumber,
   getVersion,
 } from 'react-native-device-info';
-import Share from 'react-native-share'; // eslint-disable-line  import/default
+import Share from 'react-native-share'; // eslint-disable-line  import-x/default
 import RNFS from 'react-native-fs';
-// eslint-disable-next-line import/no-nodejs-modules
-import { Buffer } from 'buffer';
 import Logger from '../../util/Logger';
 import { RootState } from '../../reducers';
-import Device from '../../util/device';
-import { MetaMetrics } from '../../core/Analytics';
+import { analytics } from '../analytics/analytics';
 import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
@@ -80,7 +77,7 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
 };
 
 // TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, import/prefer-default-export
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, import-x/prefer-default-export
 export const generateStateLogs = (state: any, loggedIn = true): string => {
   const fullState = JSON.parse(JSON.stringify(state));
 
@@ -92,6 +89,9 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   delete fullState.engine.backgroundState.AssetsContractController;
   delete fullState.engine.backgroundState.DeFiPositionsController;
   delete fullState.engine.backgroundState.PredictController;
+
+  // Strip cardHomeData to avoid leaking user PII (wallet addresses, holder names)
+  delete fullState.engine.backgroundState.CardController?.cardHomeData;
 
   // Remove SeedlessController controller data so that encrypted vault and sensitive data is not included in logs
   delete fullState.engine.backgroundState.SeedlessOnboardingController;
@@ -134,13 +134,11 @@ export const downloadStateLogs = async (
   const appName = await getApplicationName();
   const appVersion = await getVersion();
   const buildNumber = await getBuildNumber();
-  const metrics = MetaMetrics.getInstance();
-  const metaMetricsId = metrics.isEnabled()
-    ? await metrics.getMetaMetricsId()
+  const metaMetricsId = analytics.isEnabled()
+    ? await analytics.getAnalyticsId()
     : undefined;
-  const path =
-    RNFS.DocumentDirectoryPath +
-    `/state-logs-v${appVersion}-(${buildNumber}).json`;
+  const filename = `state-logs-v${appVersion}-(${buildNumber}).json`;
+  const path = `${RNFS.DocumentDirectoryPath}/${filename}`;
   // A not so great way to copy objects by value
 
   try {
@@ -159,19 +157,23 @@ export const downloadStateLogs = async (
       loggedIn,
     );
 
-    let url = `data:text/plain;base64,${new Buffer(
-      stateLogsWithReleaseDetails,
-    ).toString('base64')}`;
-    // // Android accepts attachements as BASE64
-    if (Device.isIos()) {
-      await RNFS.writeFile(path, stateLogsWithReleaseDetails, 'utf8');
-      url = path;
-    }
+    // Write the logs to a real file on both platforms and share that file.
+    // Previously Android shared a `data:text/plain;base64,...` URL, which was
+    // slow for large states and only surfaced "send to" targets in the share
+    // sheet (no option to save/download the file). Sharing an actual file with
+    // a filename and JSON mime type lets Android offer "Save to Files"/Drive.
+    await RNFS.writeFile(path, stateLogsWithReleaseDetails, 'utf8');
 
+    // Pass the plain file path (no `file://` scheme). react-native-share
+    // copies it into its own FileProvider and shares a `content://` URI;
+    // passing a raw `file://` URI crashes Android with FileUriExposedException.
     await Share.open({
       subject: `${appName} State logs -  v${appVersion} (${buildNumber})`,
       title: `${appName} State logs -  v${appVersion} (${buildNumber})`,
-      url,
+      url: path,
+      filename,
+      type: 'application/json',
+      failOnCancel: false,
     });
   } catch (err) {
     const e = err as Error;

@@ -178,14 +178,14 @@ export const selectSelectedInternalAccountByScope = createDeepEqualSelector(
     internalAccountsMap: Record<AccountId, InternalAccount>,
   ) =>
     (scope: CaipChainId): InternalAccount | undefined => {
-      if (!accountTreeState?.accountTree?.selectedAccountGroup) {
+      if (!accountTreeState?.selectedAccountGroup) {
         return undefined;
       }
 
       return findInternalAccountByScope(
         accountTreeState,
         internalAccountsMap,
-        accountTreeState.accountTree.selectedAccountGroup,
+        accountTreeState.selectedAccountGroup,
         scope,
       );
     },
@@ -469,13 +469,13 @@ export const selectIconSeedAddressesByAccountGroupIds = createDeepEqualSelector(
 export const selectAccountGroupsByAddress = createDeepEqualSelector(
   [
     selectAccountGroupWithInternalAccounts,
-    (_state: RootState, addresses: string[]) =>
-      new Set(addresses.map((address) => address.toLowerCase())),
+    (_state: RootState, addresses: string[]) => addresses,
   ],
   (
     accountGroupWithInternalAccounts,
-    addressesSet: Set<string>,
+    addresses: string[],
   ): AccountGroupWithInternalAccounts[] => {
+    const addressesSet = new Set(addresses.map((a) => a.toLowerCase()));
     const matchingGroups = new Set<AccountGroupWithInternalAccounts>();
 
     accountGroupWithInternalAccounts.forEach((group) => {

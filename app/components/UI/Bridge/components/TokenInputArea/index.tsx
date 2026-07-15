@@ -1,30 +1,42 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from 'react';
 import {
   StyleSheet,
   ImageSourcePropType,
   TextInput,
   StyleProp,
   ViewStyle,
+  Platform,
+  TextInputSelectionChangeEventData,
+  NativeSyntheticEvent,
+  TouchableOpacity,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
+import { colors as importedColors } from '../../../../../styles/common';
 import { Box } from '../../../Box/Box';
 import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
 import { TokenButton } from '../TokenButton';
-import {
-  selectCurrentCurrency,
-  selectCurrencyRates,
-} from '../../../../../selectors/currencyRateController';
-import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { BigNumber } from 'ethers';
-import { BridgeToken } from '../../types';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import Button, {
-  ButtonVariants,
+import { BridgeToken, TokenSelectorType } from '../../types';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+import OldButton, {
+  ButtonVariants as OldButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -33,24 +45,28 @@ import {
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
 } from '../../../../../core/redux/slices/bridge';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectMultichainAssetsRates } from '../../../../../selectors/multichain';
-///: END:ONLY_INCLUDE_IF(keyring-snaps)
-import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
-import { isNativeAddress } from '@metamask/bridge-controller';
+import {
+  FeatureId,
+  formatAddressToAssetId,
+  isNativeAddress,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
-import parseAmount from '../../../../../util/parseAmount';
 import { useTokenAddress } from '../../hooks/useTokenAddress';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
-import { calculateInputFontSize } from '../../utils/calculateInputFontSize';
+import { useAutoSizingFont } from '../../hooks/useAutoSizingFont';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
+import { useFormattedBalanceWithThreshold } from '../../hooks/useFormattedBalanceWithThreshold';
+import { useDisplayCurrencyValue } from '../../hooks/useDisplayCurrencyValue';
+import { formatSecondaryTokenAmount } from '../../utils/sourceAmountInputMode';
+import { normalizeTokenAddress } from '../../utils/tokenUtils';
+import Engine from '../../../../../core/Engine';
 
-const MAX_DECIMALS = 5;
 export const MAX_INPUT_LENGTH = 36;
 
 const createStyles = ({
@@ -62,7 +78,7 @@ const createStyles = ({
 }) =>
   StyleSheet.create({
     content: {
-      paddingVertical: 16,
+      paddingVertical: 0,
     },
     row: {
       flexDirection: 'row',
@@ -72,11 +88,39 @@ const createStyles = ({
     amountContainer: {
       flex: 1,
     },
+    amountInputWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      minWidth: 0,
+    },
     input: {
       borderWidth: 0,
       lineHeight: vars.fontSize * 1.25,
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
+      paddingVertical: Platform.OS === 'ios' ? 2 : 1,
+      backgroundColor: importedColors.transparent,
+      flex: 1,
+      flexShrink: 1,
+    },
+    inputPrefix: {
+      lineHeight: vars.fontSize * 1.25,
+      height: vars.fontSize * 1.25,
+      fontSize: vars.fontSize,
+      paddingVertical: Platform.OS === 'ios' ? 2 : 1,
+      transform: [{ translateY: -vars.fontSize * 0.08 }],
+      ...(Platform.OS === 'android' && {
+        includeFontPadding: false,
+        textAlignVertical: 'center',
+        paddingVertical: 0,
+        paddingTop: 1,
+      }),
+    },
+    secondaryValueContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
     },
     currencyContainer: {
       flex: 1,
@@ -104,38 +148,14 @@ const formatAddress = (address?: string) => {
   return renderShortAddress(address, 4);
 };
 
-export const getDisplayAmount = (
-  amount?: string,
-  tokenType?: TokenInputAreaType,
-  isMaxAmount?: boolean,
-) => {
-  if (amount === undefined) return amount;
-
-  // Only truncate for display when:
-  // 1. Amount came from Max button (isMaxAmount = true), OR
-  // 2. Destination token (always truncate)
-  const shouldTruncate =
-    tokenType === TokenInputAreaType.Destination || isMaxAmount;
-
-  const displayAmount = shouldTruncate
-    ? parseAmount(amount, MAX_DECIMALS)
-    : amount;
-
-  // Format with locale-appropriate separators
-  if (displayAmount && displayAmount !== '0') {
-    return formatAmountWithLocaleSeparators(displayAmount);
-  }
-
-  return displayAmount;
-};
-
 export interface TokenInputAreaRef {
   blur: () => void;
+  focus: () => void;
+  isFocused: () => boolean;
 }
 
 interface TokenInputAreaProps {
   amount?: string;
-  isMaxAmount?: boolean;
   token?: BridgeToken;
   tokenBalance?: string;
   networkImageSource?: ImageSourcePropType;
@@ -148,10 +168,20 @@ interface TokenInputAreaProps {
   onBlur?: () => void;
   onInputPress?: () => void;
   onMaxPress?: () => void;
+  selection?: { start: number; end: number };
+  onSelectionChange?: (
+    event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
+  ) => void;
   latestAtomicBalance?: BigNumber;
   isSourceToken?: boolean;
   style?: StyleProp<ViewStyle>;
   isQuoteSponsored?: boolean;
+  inputPrefix?: string;
+  secondaryValue?: string | null;
+  balanceCheckAmount?: string;
+  onAmountTypeTogglePress?: () => void;
+  amountTypeToggleTestID?: string;
+  showFiatAmountAsPrimary?: boolean;
 }
 
 export const TokenInputArea = forwardRef<
@@ -161,7 +191,6 @@ export const TokenInputArea = forwardRef<
   (
     {
       amount,
-      isMaxAmount = false,
       token,
       tokenBalance,
       networkImageSource,
@@ -174,10 +203,18 @@ export const TokenInputArea = forwardRef<
       onBlur,
       onInputPress,
       onMaxPress,
+      selection,
+      onSelectionChange,
       latestAtomicBalance,
       isSourceToken,
       style,
       isQuoteSponsored = false,
+      inputPrefix,
+      secondaryValue,
+      balanceCheckAmount,
+      onAmountTypeTogglePress,
+      amountTypeToggleTestID,
+      showFiatAmountAsPrimary = false,
     },
     ref,
   ) => {
@@ -202,60 +239,89 @@ export const TokenInputArea = forwardRef<
           onBlur?.();
         }
       },
+      focus: () => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          onFocus?.();
+        }
+      },
+      isFocused: () => !!inputRef.current?.isFocused(),
     }));
 
     const navigation = useNavigation();
+    const tokenSelectorType =
+      tokenType === TokenInputAreaType.Source || isSourceToken
+        ? TokenSelectorType.Source
+        : TokenSelectorType.Dest;
+
+    const trackAssetPickerOpened = useCallback((type: TokenSelectorType) => {
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+        UnifiedSwapBridgeEventName.AssetPickerOpened,
+        {
+          asset_location:
+            type === TokenSelectorType.Source ? 'source' : 'destination',
+          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+        },
+      );
+    }, []);
+
+    const handleTokenButtonPress = useCallback(() => {
+      trackAssetPickerOpened(tokenSelectorType);
+      onTokenPress?.();
+    }, [onTokenPress, tokenSelectorType, trackAssetPickerOpened]);
 
     const navigateToDestTokenSelector = () => {
+      trackAssetPickerOpened(TokenSelectorType.Dest);
       navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: 'dest',
+        type: TokenSelectorType.Dest,
       });
     };
 
     const navigateToSourceTokenSelector = () => {
+      trackAssetPickerOpened(TokenSelectorType.Source);
       navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: 'source',
+        type: TokenSelectorType.Source,
       });
     };
 
-    // // Data for fiat value calculation
-    const evmMultiChainMarketData = useSelector(selectTokenMarketData);
-    const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
-    const networkConfigurationsByChainId = useSelector(
-      selectNetworkConfigurations,
-    );
-
+    const tokenAmount = balanceCheckAmount ?? amount;
     const isInsufficientBalance = useIsInsufficientBalance({
-      amount,
+      amount: tokenAmount,
       token,
       latestAtomicBalance,
     });
 
-    let nonEvmMultichainAssetRates = {};
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    nonEvmMultichainAssetRates = useSelector(selectMultichainAssetsRates);
-    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+    const defaultCurrencyValue = useDisplayCurrencyValue(tokenAmount, token);
+    const shouldShowFiatAmountAsPrimary = Boolean(
+      tokenType === TokenInputAreaType.Destination &&
+        showFiatAmountAsPrimary &&
+        token &&
+        amount &&
+        Number(amount) > 0,
+    );
+    // Ensures the secondary amount is displayed with the same precision as the source amount
+    const secondaryTokenAmountDisplayValue = shouldShowFiatAmountAsPrimary
+      ? `${formatAmountWithLocaleSeparators(
+          formatSecondaryTokenAmount(amount) ?? amount ?? '0',
+        )} ${token?.symbol}`
+      : undefined;
+    const defaultSecondaryAmountDisplayValue =
+      secondaryTokenAmountDisplayValue ?? defaultCurrencyValue;
+    const secondaryAmountDisplayValue =
+      secondaryValue === undefined
+        ? defaultSecondaryAmountDisplayValue
+        : secondaryValue;
+    const shouldShowSecondaryAmount =
+      token &&
+      secondaryAmountDisplayValue &&
+      (secondaryValue !== undefined ||
+        shouldShowFiatAmountAsPrimary ||
+        (amount && Number(amount) > 0));
 
-    const currencyValue = getDisplayCurrencyValue({
+    const formattedBalance = useFormattedBalanceWithThreshold(
+      tokenBalance,
       token,
-      amount,
-      evmMultiChainMarketData,
-      networkConfigurationsByChainId,
-      evmMultiChainCurrencyRates,
-      currentCurrency,
-      nonEvmMultichainAssetRates,
-    });
-
-    // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
-    const parsedTokenBalance = parseFloat(tokenBalance || '0');
-    const roundedTokenBalance =
-      Math.floor(parsedTokenBalance * 100000) / 100000;
-    const formattedBalance =
-      token?.symbol && tokenBalance
-        ? `${roundedTokenBalance.toFixed(5).replace(/\.?0+$/, '')} ${
-            token?.symbol
-          }`
-        : undefined;
+    );
 
     const tokenAddress = useTokenAddress(token);
 
@@ -270,13 +336,35 @@ export const TokenInputArea = forwardRef<
     const formattedAddress =
       tokenAddress && !isNativeAsset ? formatAddress(tokenAddress) : undefined;
 
+    const tokenSecurityBadgeAssetId = useMemo(
+      () =>
+        token
+          ? formatAddressToAssetId(
+              normalizeTokenAddress(token.address, token.chainId),
+              token.chainId,
+            )
+          : undefined,
+      [token],
+    );
+
     const subtitle =
       tokenType === TokenInputAreaType.Source
         ? formattedBalance
         : formattedAddress;
 
-    const displayedAmount = getDisplayAmount(amount, tokenType, isMaxAmount);
-    const fontSize = calculateInputFontSize(displayedAmount?.length ?? 0);
+    const primaryAmountDisplayValue = useMemo(() => {
+      if (shouldShowFiatAmountAsPrimary) {
+        return defaultCurrencyValue;
+      }
+
+      return amount && amount !== '0'
+        ? formatAmountWithLocaleSeparators(amount)
+        : amount;
+    }, [amount, defaultCurrencyValue, shouldShowFiatAmountAsPrimary]);
+
+    const { fontSize, onContainerLayout } = useAutoSizingFont({
+      text: `${inputPrefix ?? ''}${primaryAmountDisplayValue || '0'}`,
+    });
     const { styles } = useStyles(createStyles, { fontSize, hidden: !subtitle });
 
     let tokenButtonText = 'bridge.swap_to';
@@ -286,38 +374,55 @@ export const TokenInputArea = forwardRef<
 
     return (
       <Box style={style}>
-        <Box style={styles.content} gap={4}>
+        <Box style={styles.content} gap={2}>
           <Box style={styles.row}>
-            <Box style={styles.amountContainer}>
+            <Box style={styles.amountContainer} onLayout={onContainerLayout}>
               {isLoading ? (
                 <Skeleton width="50%" height="80%" style={styles.input} />
               ) : (
-                <Input
-                  ref={inputRef}
-                  value={displayedAmount}
-                  style={styles.input}
-                  isDisabled={false}
-                  isReadonly={tokenType === TokenInputAreaType.Destination}
-                  showSoftInputOnFocus={false}
-                  caretHidden={false}
-                  autoFocus
-                  placeholder="0"
-                  testID={`${testID}-input`}
-                  onFocus={() => {
-                    onFocus?.();
-                    onInputPress?.();
-                  }}
-                  onBlur={() => {
-                    onBlur?.();
-                  }}
-                  // Android only issue, for long numbers, the input field will focus on the right hand side
-                  // Force it to focus on the left hand side
-                  selection={
-                    tokenType === TokenInputAreaType.Destination
-                      ? { start: 0, end: 0 }
-                      : undefined
-                  }
-                />
+                <Box style={styles.amountInputWrapper}>
+                  {inputPrefix ? (
+                    <Text style={styles.inputPrefix}>{inputPrefix}</Text>
+                  ) : null}
+                  <Input
+                    ref={inputRef}
+                    value={primaryAmountDisplayValue}
+                    style={styles.input}
+                    isDisabled={false}
+                    isReadonly={tokenType === TokenInputAreaType.Destination}
+                    showSoftInputOnFocus={false}
+                    caretHidden={false}
+                    autoFocus={false}
+                    placeholder="0"
+                    testID={`${testID}-input`}
+                    onPressIn={() => {
+                      onInputPress?.();
+                    }}
+                    onFocus={() => {
+                      onFocus?.();
+                      onInputPress?.();
+                    }}
+                    onBlur={() => {
+                      onBlur?.();
+                    }}
+                    // Source selection is controlled so Bridge can keep the
+                    // visible caret aligned with the raw cursor used by keypad
+                    // edits. On iOS you have to use the press-and-drag magnifier
+                    // handle; Android supports direct tap placement.
+                    selection={
+                      // Android only issue, for long numbers, the input field will focus on the right hand side
+                      // Force it to focus on the left hand side
+                      tokenType === TokenInputAreaType.Destination
+                        ? { start: 0, end: 0 }
+                        : selection
+                    }
+                    onSelectionChange={
+                      tokenType === TokenInputAreaType.Source
+                        ? onSelectionChange
+                        : undefined
+                    }
+                  />
+                </Box>
               )}
             </Box>
             {token ? (
@@ -327,19 +432,21 @@ export const TokenInputArea = forwardRef<
                 networkImageSource={networkImageSource}
                 networkName={networkName}
                 testID={testID}
-                onPress={onTokenPress}
+                onPress={handleTokenButtonPress}
+                securityBadgeAssetId={tokenSecurityBadgeAssetId}
               />
             ) : (
               <Button
-                variant={ButtonVariants.Primary}
-                label={strings(tokenButtonText)}
+                variant={ButtonVariant.Primary}
                 onPress={
                   isSourceToken
                     ? navigateToSourceTokenSelector
                     : navigateToDestTokenSelector
                 }
                 testID={testID}
-              />
+              >
+                {strings(tokenButtonText)}
+              </Button>
             )}
           </Box>
           <Box style={styles.row}>
@@ -348,9 +455,29 @@ export const TokenInputArea = forwardRef<
             ) : (
               <>
                 <Box style={styles.currencyContainer}>
-                  {token && amount && Number(amount) > 0 && currencyValue ? (
-                    <Text color={TextColor.Alternative}>{currencyValue}</Text>
-                  ) : null}
+                  <TouchableOpacity
+                    style={styles.secondaryValueContainer}
+                    onPress={onAmountTypeTogglePress}
+                    disabled={!onAmountTypeTogglePress}
+                    testID={
+                      onAmountTypeTogglePress
+                        ? amountTypeToggleTestID
+                        : undefined
+                    }
+                  >
+                    {shouldShowSecondaryAmount ? (
+                      <Text color={TextColor.Alternative}>
+                        {secondaryAmountDisplayValue}
+                      </Text>
+                    ) : null}
+                    {onAmountTypeTogglePress ? (
+                      <Icon
+                        name={IconName.SwapVertical}
+                        size={IconSize.Sm}
+                        color={IconColor.Alternative}
+                      />
+                    ) : null}
+                  </TouchableOpacity>
                 </Box>
                 <Box
                   flexDirection={
@@ -377,8 +504,8 @@ export const TokenInputArea = forwardRef<
                     tokenBalance &&
                     onMaxPress &&
                     shouldShowMaxButton && (
-                      <Button
-                        variant={ButtonVariants.Link}
+                      <OldButton
+                        variant={OldButtonVariants.Link}
                         label={strings('bridge.max')}
                         onPress={onMaxPress}
                         disabled={!subtitle}

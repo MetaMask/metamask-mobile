@@ -4,8 +4,8 @@ import {
 } from '@metamask/notification-services-controller/push-services';
 
 import Logger from '../../../../util/Logger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
-// eslint-disable-next-line import/no-namespace
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+// eslint-disable-next-line import-x/no-namespace
 import * as createNotificationServicesPushControllerModule from './create-notification-services-push-controller';
 import { notificationServicesPushControllerInit } from './notification-services-push-controller-init';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
@@ -25,7 +25,7 @@ describe('notificationServicesControllerInit', () => {
       namespace: MOCK_ANY_NAMESPACE,
     });
 
-    const initRequestMock = buildControllerInitRequestMock(
+    const initRequestMock = buildMessengerClientInitRequestMock(
       baseControllerMessenger,
     );
 

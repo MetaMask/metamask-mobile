@@ -16,8 +16,9 @@ import { v4 as uuid } from 'uuid';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import ppomUtil from '../../../../lib/ppom/ppom-util';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { addTransaction } from '../../../../util/transaction-controller';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineNetworkUtils';
 import {
@@ -29,6 +30,7 @@ import { BNToHex, hexToBN, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
+import { SendStackScreen } from '../hooks/send/useSendScreenNavigation';
 
 export enum ChainType {
   EVM = 'evm',
@@ -49,9 +51,8 @@ export interface SendNavigationParams {
 }
 
 const captureSendStartedEvent = (location: string) => {
-  const { trackEvent } = MetaMetrics.getInstance();
-  trackEvent(
-    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.SEND_STARTED)
+  analytics.trackEvent(
+    AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.SEND_STARTED)
       .addProperties({ location })
       .build(),
   );
@@ -109,7 +110,7 @@ export const handleSendPageNavigation = (
 ) => {
   const { location, asset, predefinedRecipient } = params;
   captureSendStartedEvent(location);
-  let screen = Routes.SEND.ASSET;
+  let screen: SendStackScreen = Routes.SEND.ASSET;
   if (asset) {
     if (asset.standard === TokenStandard.ERC721) {
       screen = Routes.SEND.RECIPIENT;
@@ -308,6 +309,7 @@ export const submitEvmTransaction = async ({
 
   await addTransaction(trxnParams, {
     origin: MMM_ORIGIN,
+    isInternal: true,
     networkClientId,
     type: transactionType,
     securityAlertResponse,
@@ -483,4 +485,18 @@ export const addLeadingZeroIfNeeded = (value?: string) => {
     return `0.${fracPart}`;
   }
   return value;
+};
+
+export const normalizeAmount = (value?: string): string => {
+  if (!value) {
+    return '0';
+  }
+  const str = String(value);
+  if (str === '.') {
+    return '0';
+  }
+  if (str.endsWith('.')) {
+    return str.slice(0, -1);
+  }
+  return str;
 };

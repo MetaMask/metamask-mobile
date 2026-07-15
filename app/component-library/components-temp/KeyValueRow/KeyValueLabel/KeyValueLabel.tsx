@@ -34,9 +34,7 @@ const KeyValueRowLabel = ({ label, tooltip }: KeyValueRowLabelProps) => {
 
   const onNavigateToTooltipModal = () => {
     if (!hasTooltip) return;
-    openTooltipModal(tooltip.title, tooltip.content, undefined, undefined, {
-      bottomPadding: tooltip.bottomPadding,
-    });
+    openTooltipModal(tooltip.title, tooltip.content, undefined, undefined);
     tooltip?.onPress?.();
   };
 
@@ -54,7 +52,7 @@ const KeyValueRowLabel = ({ label, tooltip }: KeyValueRowLabelProps) => {
       )}
       {hasTooltip && (
         <ButtonIcon
-          size={tooltip.size ?? TooltipSizes.Md}
+          size={tooltip.size ?? TooltipSizes.Xs}
           iconColor={IconColor.Alternative}
           iconName={tooltip.iconName ?? IconName.Question}
           accessibilityRole="button"

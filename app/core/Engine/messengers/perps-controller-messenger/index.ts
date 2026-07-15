@@ -1,47 +1,65 @@
-import { PerpsControllerMessenger } from '../../../../components/UI/Perps/controllers/PerpsController';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
+import { PerpsControllerMessenger } from '@metamask/perps-controller';
 import {
   Messenger,
   MessengerActions,
   MessengerEvents,
+  type ActionConstraint,
+  type EventConstraint,
 } from '@metamask/messenger';
+import { RootMessenger } from '../../types';
+
+type AllowedActions = MessengerActions<PerpsControllerMessenger>;
+
+type AllowedEvents = MessengerEvents<PerpsControllerMessenger>;
 
 /**
  * Get the PerpsControllerMessenger for the PerpsController.
  *
- * @param rootExtendedMessenger - The root extended messenger.
+ * PerpsController uses the messenger for all cross-controller communication:
+ * NetworkController, KeyringController, TransactionController,
+ * RemoteFeatureFlagController, AccountsController, AccountTreeController,
+ * AuthenticationController, AuthenticatedUserStorageService.
+ * The root messenger already registers actions for these controllers,
+ * so the child messenger can call them through the parent.
+ *
+ * @param rootMessenger - The base messenger used to create the restricted
+ * messenger.
  * @returns The PerpsControllerMessenger.
  */
 export function getPerpsControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
+  rootMessenger: RootMessenger<AllowedActions, AllowedEvents>,
 ): PerpsControllerMessenger {
-  const messenger = new Messenger<
-    'PerpsController',
-    MessengerActions<PerpsControllerMessenger>,
-    MessengerEvents<PerpsControllerMessenger>,
-    RootMessenger
-  >({
+  const messenger: PerpsControllerMessenger = new Messenger({
     namespace: 'PerpsController',
-    parent: rootExtendedMessenger,
+    parent: rootMessenger,
   });
-  rootExtendedMessenger.delegate({
+  rootMessenger.delegate({
+    messenger: messenger as Messenger<
+      'PerpsController',
+      ActionConstraint,
+      EventConstraint,
+      RootMessenger
+    >,
     actions: [
+      'GeolocationController:getGeolocation',
       'NetworkController:getState',
-      'AuthenticationController:getBearerToken',
-      'RemoteFeatureFlagController:getState',
-      'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      'KeyringController:signTypedMessage',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
+      'KeyringController:getState',
+      'KeyringController:signTypedMessage',
       'TransactionController:addTransaction',
+      'RemoteFeatureFlagController:getState',
+      'AccountsController:getSelectedAccount',
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      'AuthenticationController:getBearerToken',
+      'AuthenticatedUserStorageService:getNotificationPreferences',
+      'AuthenticatedUserStorageService:putNotificationPreferences',
     ],
     events: [
-      'TransactionController:transactionSubmitted',
-      'TransactionController:transactionConfirmed',
-      'TransactionController:transactionFailed',
       'RemoteFeatureFlagController:stateChange',
+      'AccountsController:selectedAccountChange',
+      'AccountTreeController:selectedAccountGroupChange',
     ],
-    messenger,
   });
   return messenger;
 }

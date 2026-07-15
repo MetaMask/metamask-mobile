@@ -41,7 +41,7 @@ This feature demonstrates:
 - Form validation and error handling
 - Navigation patterns within the app
 - UI component library usage and styling
-- MetaMetrics tracking implementation
+- Analytics tracking implementation
 - Performance tracing patterns and monitoring
 - Comprehensive unit testing
 - End-to-end testing
@@ -66,7 +66,7 @@ The SampleFeature's structure mirrors the main `/app` directory. This helps devs
 
 ```
 app/features/SampleFeature/
-├── analytics/              # MetaMetrics event definitions
+├── analytics/              # Analytics event definitions
 │   └── events.ts
 ├── components/             # React components
 │   ├── hooks/             # Custom React hooks
@@ -109,7 +109,7 @@ A simple counter implementation demonstrating:
 - Redux Toolkit state management
 - Custom hooks (`useSampleCounter`)
 - Action dispatching
-- MetaMetrics event tracking
+- Analytics event tracking
 
 **Key Files:**
 
@@ -208,14 +208,13 @@ The feature extensively uses the MetaMask component library:
 - Follows MetaMask design system
 - Responsive layout with KeyboardAwareScrollView
 
-## MetaMetrics Tracking
+## Analytics Tracking
 
 Events are defined in `analytics/events.ts` following the event builder pattern:
 
 - Centralized event definitions in a dedicated analytics module
 - Event builder helper functions for consistent event creation
-- Type-safe event generation using the `generateOpt` utility
-- Integration with the global MetaMetrics system
+- Integration with the `useAnalytics` hook and `AnalyticsEventBuilder`
 - Separation of event definition from event dispatching
 
 ### Privacy Considerations
@@ -424,7 +423,7 @@ The SampleFeature demonstrates comprehensive testing patterns and best practices
 - Module mocking for native dependencies
 - Redux store mocking with `configureStore`
 - Navigation mocking for testing navigation flows
-- MetaMetrics tracking mock verification
+- Analytics tracking mock verification
 - Controller mocking for isolated component tests
 
 **Best Practices Demonstrated:**

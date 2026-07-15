@@ -3,7 +3,7 @@ import { merge } from 'lodash';
 import { createProjectLogger } from '@metamask/utils';
 
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
-import { IMetaMetricsEvent } from '../../../../Analytics/MetaMetrics.types';
+import { IMetaMetricsEvent } from '../../../../../util/analytics/analytics.types';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { generateEvent, retryIfEngineNotInitialized } from '../utils';
 import type {
@@ -20,6 +20,9 @@ import { getStxMetricsProperties } from '../metrics_properties/stx';
 import { getHashMetricsProperties } from '../metrics_properties/hash';
 import { getBatchMetricsProperties } from '../metrics_properties/batch';
 import { getGasMetricsProperties } from '../metrics_properties/gas';
+import { getSecurityAlertResponseProperties } from '../metrics_properties/security-alert-response';
+import { getSwapTransactionActiveAbTestProperties } from '../metrics_properties/swap-transaction-ab-tests';
+import { registerPendingTransactionActiveAbTestsForTransactionIds } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const log = createProjectLogger('transaction-metrics');
 
@@ -28,19 +31,33 @@ const METRICS_BUILDERS: TransactionMetricsBuilder[] = [
   getBatchMetricsProperties,
   getGasMetricsProperties,
   getMetaMaskPayProperties,
+  getSecurityAlertResponseProperties,
   getSimulationValuesProperties,
   getRPCMetricsProperties,
   getStxMetricsProperties,
   getHashMetricsProperties,
+  getSwapTransactionActiveAbTestProperties,
 ];
 
+interface CreateTransactionEventHandlerOptions {
+  /**
+   * Runs synchronously before async metric builders so pending side effects
+   * (e.g. A/B attribution registration) cannot lose ordering vs. builders.
+   */
+  syncBeforeMetrics?: (transactionMeta: TransactionMeta) => void;
+}
+
 const createTransactionEventHandler =
-  (eventType: (typeof TRANSACTION_EVENTS)[keyof typeof TRANSACTION_EVENTS]) =>
+  (
+    eventType: (typeof TRANSACTION_EVENTS)[keyof typeof TRANSACTION_EVENTS],
+    options?: CreateTransactionEventHandlerOptions,
+  ) =>
   async (
     transactionMeta: TransactionMeta,
     transactionEventHandlerRequest: TransactionEventHandlerRequest,
   ) => {
     try {
+      options?.syncBeforeMetrics?.(transactionMeta);
       const metrics = await getBuilderMetrics({
         builders: METRICS_BUILDERS,
         eventType,
@@ -61,20 +78,32 @@ const createTransactionEventHandler =
       )
         .addProperties(event.properties)
         .addSensitiveProperties(event.sensitiveProperties)
-        .setSaveDataRecording(event.saveDataRecording)
         .build();
 
-      transactionEventHandlerRequest.initMessenger.call(
-        'AnalyticsController:trackEvent',
-        analyticsEvent,
-      );
+      // Cast needed until @metamask/analytics-controller removes saveDataRecording from its AnalyticsTrackingEvent
+      (
+        transactionEventHandlerRequest.initMessenger as {
+          call: (
+            action: 'AnalyticsController:trackEvent',
+            event: typeof analyticsEvent,
+          ) => void;
+        }
+      ).call('AnalyticsController:trackEvent', analyticsEvent);
     } catch (error) {
       log('Error in transaction event handler', error);
     }
   };
 
 export const handleTransactionAddedEventForMetrics =
-  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_ADDED);
+  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_ADDED, {
+    syncBeforeMetrics: (transactionMeta) => {
+      if (transactionMeta.id) {
+        registerPendingTransactionActiveAbTestsForTransactionIds([
+          transactionMeta.id,
+        ]);
+      }
+    },
+  });
 
 export const handleTransactionApprovedEventForMetrics =
   createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_APPROVED);
@@ -124,13 +153,17 @@ export async function handleTransactionFinalizedEventForMetrics(
     const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event.name)
       .addProperties(event.properties)
       .addSensitiveProperties(event.sensitiveProperties)
-      .setSaveDataRecording(event.saveDataRecording)
       .build();
 
-    transactionEventHandlerRequest.initMessenger.call(
-      'AnalyticsController:trackEvent',
-      analyticsEvent,
-    );
+    // Cast needed until @metamask/analytics-controller removes saveDataRecording from its AnalyticsTrackingEvent
+    (
+      transactionEventHandlerRequest.initMessenger as {
+        call: (
+          action: 'AnalyticsController:trackEvent',
+          event: typeof analyticsEvent,
+        ) => void;
+      }
+    ).call('AnalyticsController:trackEvent', analyticsEvent);
   } catch (error) {
     log('Error in finalized transaction event handler', error);
   }

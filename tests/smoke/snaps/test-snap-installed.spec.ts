@@ -1,19 +1,21 @@
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { FlaskBuildTests } from '../../../e2e/tags';
+import { SmokeSnaps } from '../../tags';
 
-import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import TestSnaps from '../../page-objects/Browser/TestSnaps';
+import { loginToApp } from '../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../flows/browser.flow';
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Installed Snap Tests'), () => {
+describe(SmokeSnaps('Installed Snap Tests'), () => {
   it('connects to the snap and displays the installed snaps', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -34,6 +36,7 @@ describe(FlaskBuildTests('Installed Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.tapButton('sendErrorButton');

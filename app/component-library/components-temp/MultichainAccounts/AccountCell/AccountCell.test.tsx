@@ -9,11 +9,14 @@ import {
   createMockState,
   createMockWallet,
 } from '../test-utils';
-import { AvatarAccountType } from '../../../components/Avatars/Avatar';
-import { Maskicon } from '@metamask/design-system-react-native';
-import JazzIcon from 'react-native-jazzicon';
-import { Image as RNImage } from 'react-native';
+import {
+  Blockies,
+  Jazzicon,
+  Maskicon,
+} from '@metamask/design-system-react-native';
 import { AccountCellIds } from './AccountCell.testIds';
+import { backgroundState } from '../../../../util/test/initial-root-state';
+import { AvatarAccountType } from '../avatarAccountVariant';
 
 // Configurable mock balance for selector
 const mockBalance: { value: number; currency: string } = {
@@ -68,15 +71,17 @@ const renderAccountCell = (
     hideMenu?: boolean;
     avatarAccountType?: AvatarAccountType;
     onSelectAccount?: () => void;
+    privacyMode?: boolean;
   } = {},
 ) => {
+  const { privacyMode = false, ...componentProps } = props;
   const defaultProps = {
     accountGroup: mockAccountGroup,
     avatarAccountType: AvatarAccountType.Maskicon,
     isSelected: false,
     hideMenu: false,
     onSelectAccount: jest.fn(),
-    ...props,
+    ...componentProps,
   };
 
   const groups = [defaultProps.accountGroup];
@@ -86,6 +91,16 @@ const renderAccountCell = (
   return renderWithProvider(<AccountCell {...defaultProps} />, {
     state: {
       ...baseState,
+      engine: {
+        ...baseState.engine,
+        backgroundState: {
+          ...baseState.engine.backgroundState,
+          PreferencesController: {
+            ...backgroundState.PreferencesController,
+            privacyMode,
+          },
+        },
+      },
       settings: {
         avatarAccountType: AvatarAccountType.Maskicon,
       },
@@ -146,18 +161,18 @@ describe('AccountCell', () => {
     expect(UNSAFE_getByType(Maskicon)).toBeTruthy();
   });
 
-  it('renders JazzIcon AvatarAccount when avatarAccountType is JazzIcon', () => {
+  it('renders Jazzicon AvatarAccount when avatarAccountType is JazzIcon', () => {
     const { UNSAFE_getByType } = renderAccountCell({
       avatarAccountType: AvatarAccountType.JazzIcon,
     });
-    expect(UNSAFE_getByType(JazzIcon)).toBeTruthy();
+    expect(UNSAFE_getByType(Jazzicon)).toBeTruthy();
   });
 
   it('renders Blockies AvatarAccount when avatarAccountType is Blockies', () => {
     const { UNSAFE_getByType } = renderAccountCell({
       avatarAccountType: AvatarAccountType.Blockies,
     });
-    expect(UNSAFE_getByType(RNImage)).toBeTruthy();
+    expect(UNSAFE_getByType(Blockies)).toBeTruthy();
   });
 
   it('calls onSelectAccount when account name is pressed', () => {
@@ -235,11 +250,42 @@ describe('AccountCell', () => {
     expect(getByTestId(AccountCellIds.AVATAR)).toBeTruthy();
   });
 
+  it('hides balance when privacyMode is true', () => {
+    mockBalance.value = 100;
+    mockBalance.currency = 'usd';
+    const { getByTestId, queryByText } = renderAccountCell({
+      privacyMode: true,
+    });
+
+    // The balance element should be present but showing masked characters
+    expect(getByTestId(AccountCellIds.BALANCE)).toBeOnTheScreen();
+    // The actual balance text should not be visible
+    expect(queryByText('$100.00')).toBeNull();
+  });
+
+  it('shows balance when privacyMode is false', () => {
+    mockBalance.value = 100;
+    mockBalance.currency = 'usd';
+    const { getByText } = renderAccountCell({ privacyMode: false });
+
+    expect(getByText('$100.00')).toBeOnTheScreen();
+  });
+
+  it('shows nothing when privacyMode is true and there is no balance', () => {
+    mockBalance.value = undefined as unknown as number;
+    mockBalance.currency = 'usd';
+    const { queryByText } = renderAccountCell({ privacyMode: true });
+
+    // No masked dots when there is no balance to hide
+    expect(queryByText('••••••••••••')).toBeNull();
+  });
+
   it('displays correct test IDs for all elements', () => {
     const { getByTestId } = renderAccountCell();
 
     // Verify all expected test IDs are present
     expect(getByTestId(AccountCellIds.CONTAINER)).toBeTruthy();
+    expect(getByTestId(AccountCellIds.SELECT)).toBeTruthy();
     expect(getByTestId(AccountCellIds.AVATAR)).toBeTruthy();
     expect(getByTestId(AccountCellIds.ADDRESS)).toBeTruthy();
     expect(getByTestId(AccountCellIds.BALANCE)).toBeTruthy();

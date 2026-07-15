@@ -3,9 +3,57 @@ import { getSdkEnvironment } from './getSdkEnvironment';
 
 describe('getSdkEnvironment', () => {
   const originalProcessEnv = process.env;
+  const originalBuildsEnabled =
+    process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
+  const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
+
+  beforeEach(() => {
+    process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'false';
+  });
 
   afterAll(() => {
     process.env = originalProcessEnv;
+  });
+
+  afterEach(() => {
+    if (originalBuildsEnabled !== undefined) {
+      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY =
+        originalBuildsEnabled;
+    } else {
+      delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
+    }
+    if (originalRampsEnvironment !== undefined) {
+      process.env.RAMPS_ENVIRONMENT = originalRampsEnvironment;
+    } else {
+      delete process.env.RAMPS_ENVIRONMENT;
+    }
+  });
+
+  describe('when BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (builds.yml path)', () => {
+    beforeEach(() => {
+      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'true';
+    });
+
+    it('returns Production when RAMPS_ENVIRONMENT is production', () => {
+      process.env.RAMPS_ENVIRONMENT = 'production';
+      expect(getSdkEnvironment()).toBe(Environment.Production);
+    });
+
+    it('returns Staging when RAMPS_ENVIRONMENT is not set', () => {
+      delete process.env.RAMPS_ENVIRONMENT;
+      expect(getSdkEnvironment()).toBe(Environment.Staging);
+    });
+
+    it('returns Staging when RAMPS_ENVIRONMENT is not production', () => {
+      process.env.RAMPS_ENVIRONMENT = 'staging';
+      expect(getSdkEnvironment()).toBe(Environment.Staging);
+    });
+
+    it('ignores METAMASK_ENVIRONMENT (uses RAMPS_ENVIRONMENT)', () => {
+      process.env.METAMASK_ENVIRONMENT = 'production';
+      process.env.RAMPS_ENVIRONMENT = 'staging';
+      expect(getSdkEnvironment()).toBe(Environment.Staging);
+    });
   });
 
   describe('Production environments', () => {

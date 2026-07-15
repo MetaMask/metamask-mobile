@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { KnownCaipNamespace } from '@metamask/utils';
-import { withNavigation } from '@react-navigation/compat';
+import { useNavigation } from '@react-navigation/native';
 import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
 import {
@@ -17,6 +17,7 @@ import {
   sortTransactions,
   filterByAddressAndNetwork,
   isTransactionOnChains,
+  buildTrustedAddressSet,
 } from '../../../util/activity';
 import { areAddressesEqual } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
@@ -26,7 +27,11 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectInternalAccounts,
+} from '../../../selectors/accountsController';
+import { selectAddressBook } from '../../../selectors/addressBookController';
 import { selectSortedTransactions } from '../../../selectors/transactionController';
 import {
   selectEnabledNetworksByNamespace,
@@ -48,7 +53,6 @@ const styles = StyleSheet.create({
 });
 
 const TransactionsView = ({
-  navigation,
   conversionRate,
   selectedInternalAccount,
   networkType,
@@ -56,7 +60,10 @@ const TransactionsView = ({
   transactions,
   tokens,
   tokenNetworkFilter,
+  addressBook,
+  internalAccounts,
 }) => {
+  const navigation = useNavigation();
   const [allTransactions, setAllTransactions] = useState([]);
   const [submittedTxs, setSubmittedTxs] = useState([]);
   const [confirmedTxs, setConfirmedTxs] = useState([]);
@@ -72,6 +79,15 @@ const TransactionsView = ({
 
   const selectedAddress = toChecksumHexAddress(
     selectedInternalAccount?.address,
+  );
+
+  const trustedAddresses = useMemo(
+    () =>
+      buildTrustedAddressSet(
+        addressBook,
+        internalAccounts.map((account) => account.address),
+      ),
+    [addressBook, internalAccounts],
   );
 
   const filterTransactions = useCallback(() => {
@@ -94,6 +110,7 @@ const TransactionsView = ({
         tokenNetworkFilter,
         allTransactionsSorted,
         bridgeHistory,
+        trustedAddresses,
       );
 
       if (!filter) return false;
@@ -189,6 +206,7 @@ const TransactionsView = ({
     tokenNetworkFilter,
     enabledNetworksByNamespace,
     bridgeHistory,
+    trustedAddresses,
   ]);
 
   useEffect(() => {
@@ -227,10 +245,6 @@ TransactionsView.propTypes = {
    */
   selectedInternalAccount: PropTypes.object,
   /**
-   * navigation object required to push new views
-   */
-  navigation: PropTypes.object,
-  /**
    * An array that represents the user transactions
    */
   transactions: PropTypes.array,
@@ -246,6 +260,14 @@ TransactionsView.propTypes = {
    * Array of network tokens filter
    */
   tokenNetworkFilter: PropTypes.object,
+  /**
+   * Address book from AddressBookController
+   */
+  addressBook: PropTypes.object,
+  /**
+   * Internal accounts from AccountsController
+   */
+  internalAccounts: PropTypes.array,
 };
 
 const mapStateToProps = (state) => {
@@ -278,6 +300,8 @@ const mapStateToProps = (state) => {
       (acc, network) => ({ ...acc, [network]: true }),
       {},
     ),
+    addressBook: selectAddressBook(state),
+    internalAccounts: selectInternalAccounts(state),
   };
 };
 
@@ -285,7 +309,4 @@ const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withNavigation(TransactionsView));
+export default connect(mapStateToProps, mapDispatchToProps)(TransactionsView);

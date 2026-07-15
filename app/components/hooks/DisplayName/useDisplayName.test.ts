@@ -1,13 +1,17 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 import { NameType } from '../../UI/Name/Name.types';
-import useDisplayName, { DisplayNameVariant } from './useDisplayName';
+import useDisplayName, {
+  DisplayNameVariant,
+  TrustSignalDisplayState,
+} from './useDisplayName';
 import { useFirstPartyContractNames } from './useFirstPartyContractNames';
 import { useERC20Tokens } from './useERC20Tokens';
 import { useWatchedNFTNames } from './useWatchedNFTNames';
 import { useAccountNames } from './useAccountNames';
 import { useAccountWalletNames } from './useAccountWalletNames';
 import { useSendFlowEnsResolutions } from '../../Views/confirmations/hooks/send/useSendFlowEnsResolutions';
+import { useAddressTrustSignals } from '../../Views/confirmations/hooks/useAddressTrustSignals';
 
 const UNKNOWN_ADDRESS_CHECKSUMMED =
   '0x299007B3F9E23B8d432D5f545F8a4a2B3E9A5B4e';
@@ -48,6 +52,10 @@ jest.mock(
   }),
 );
 
+jest.mock('../../Views/confirmations/hooks/useAddressTrustSignals', () => ({
+  useAddressTrustSignals: jest.fn(),
+}));
+
 describe('useDisplayName', () => {
   const mockUseWatchedNFTNames = jest.mocked(useWatchedNFTNames);
   const mockUseFirstPartyContractNames = jest.mocked(
@@ -57,6 +65,7 @@ describe('useDisplayName', () => {
   const mockUseAccountNames = jest.mocked(useAccountNames);
   const mockUseAccountWalletNames = jest.mocked(useAccountWalletNames);
   const mockUseSendFlowEnsResolutions = jest.mocked(useSendFlowEnsResolutions);
+  const mockUseAddressTrustSignals = jest.mocked(useAddressTrustSignals);
   const mockGetResolvedENSName = jest.fn();
 
   beforeEach(() => {
@@ -69,6 +78,9 @@ describe('useDisplayName', () => {
     mockUseSendFlowEnsResolutions.mockReturnValue({
       getResolvedENSName: mockGetResolvedENSName,
     } as unknown as ReturnType<typeof useSendFlowEnsResolutions>);
+    mockUseAddressTrustSignals.mockReturnValue([
+      { state: TrustSignalDisplayState.Unknown, label: null },
+    ]);
   });
 
   describe('unknown address', () => {
@@ -85,6 +97,10 @@ describe('useDisplayName', () => {
         image: undefined,
         isFirstPartyContractName: false,
         name: undefined,
+        displayState: TrustSignalDisplayState.Unknown,
+        icon: null,
+        isAccount: false,
+        subtitle: undefined,
       });
     });
   });
@@ -107,6 +123,10 @@ describe('useDisplayName', () => {
         contractDisplayName: undefined,
         image: undefined,
         isFirstPartyContractName: true,
+        displayState: TrustSignalDisplayState.Recognized,
+        icon: null,
+        isAccount: false,
+        subtitle: undefined,
       });
     });
 
@@ -134,6 +154,10 @@ describe('useDisplayName', () => {
         contractDisplayName: undefined,
         image: undefined,
         isFirstPartyContractName: false,
+        displayState: TrustSignalDisplayState.Recognized,
+        icon: null,
+        isAccount: false,
+        subtitle: undefined,
       });
     });
 
@@ -212,6 +236,167 @@ describe('useDisplayName', () => {
       expect(displayName).toEqual(
         expect.objectContaining({
           name: 'ensname.eth',
+        }),
+      );
+    });
+  });
+
+  describe('trust signal display state priority', () => {
+    it('returns Malicious state when trust signal is malicious (highest priority)', () => {
+      mockUseAddressTrustSignals.mockReturnValue([
+        { state: TrustSignalDisplayState.Malicious, label: null },
+      ]);
+      mockUseAccountNames.mockReturnValue([KNOWN_ACCOUNT_NAME]);
+
+      const displayName = useDisplayName({
+        type: NameType.EthereumAddress,
+        value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
+        variation: CHAIN_IDS.MAINNET,
+      });
+
+      expect(displayName).toEqual(
+        expect.objectContaining({
+          displayState: TrustSignalDisplayState.Malicious,
+          name: KNOWN_ACCOUNT_NAME,
+        }),
+      );
+    });
+
+    it('returns Petname state for saved account names', () => {
+      mockUseAddressTrustSignals.mockReturnValue([
+        { state: TrustSignalDisplayState.Verified, label: null },
+      ]);
+      mockUseAccountNames.mockReturnValue([KNOWN_ACCOUNT_NAME]);
+
+      const displayName = useDisplayName({
+        type: NameType.EthereumAddress,
+        value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
+        variation: CHAIN_IDS.MAINNET,
+      });
+
+      expect(displayName).toEqual(
+        expect.objectContaining({
+          displayState: TrustSignalDisplayState.Petname,
+          name: KNOWN_ACCOUNT_NAME,
+          isAccount: true,
+        }),
+      );
+    });
+
+    it('returns Warning state when trust signal is warning', () => {
+      mockUseAddressTrustSignals.mockReturnValue([
+        { state: TrustSignalDisplayState.Warning, label: null },
+      ]);
+
+      const displayName = useDisplayName({
+        type: NameType.EthereumAddress,
+        value: UNKNOWN_ADDRESS_CHECKSUMMED,
+        variation: CHAIN_IDS.MAINNET,
+      });
+
+      expect(displayName).toEqual(
+        expect.objectContaining({
+          displayState: TrustSignalDisplayState.Warning,
+        }),
+      );
+    });
+
+    it('returns Recognized state when address has a known name', () => {
+      mockUseAddressTrustSignals.mockReturnValue([
+        { state: TrustSignalDisplayState.Unknown, label: null },
+      ]);
+      mockUseFirstPartyContractNames.mockReturnValue([
+        KNOWN_FIRST_PARTY_CONTRACT_NAME,
+      ]);
+
+      const displayName = useDisplayName({
+        type: NameType.EthereumAddress,
+        value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
+        variation: CHAIN_IDS.MAINNET,
+      });
+
+      expect(displayName).toEqual(
+        expect.objectContaining({
+          displayState: TrustSignalDisplayState.Recognized,
+          name: KNOWN_FIRST_PARTY_CONTRACT_NAME,
+        }),
+      );
+    });
+
+    it('returns Verified state when trust signal is verified and no name exists', () => {
+      mockUseAddressTrustSignals.mockReturnValue([
+        { state: TrustSignalDisplayState.Verified, label: 'Verified Label' },
+      ]);
+
+      const displayName = useDisplayName({
+        type: NameType.EthereumAddress,
+        value: UNKNOWN_ADDRESS_CHECKSUMMED,
+        variation: CHAIN_IDS.MAINNET,
+      });
+
+      expect(displayName).toEqual(
+        expect.objectContaining({
+          displayState: TrustSignalDisplayState.Verified,
+          name: 'Verified Label',
+        }),
+      );
+    });
+
+    it('returns Unknown state when no trust signals or names exist', () => {
+      mockUseAddressTrustSignals.mockReturnValue([
+        { state: TrustSignalDisplayState.Unknown, label: null },
+      ]);
+
+      const displayName = useDisplayName({
+        type: NameType.EthereumAddress,
+        value: UNKNOWN_ADDRESS_CHECKSUMMED,
+        variation: CHAIN_IDS.MAINNET,
+      });
+
+      expect(displayName).toEqual(
+        expect.objectContaining({
+          displayState: TrustSignalDisplayState.Unknown,
+          name: undefined,
+        }),
+      );
+    });
+
+    it('uses trust signal label as name when no other name exists', () => {
+      mockUseAddressTrustSignals.mockReturnValue([
+        { state: TrustSignalDisplayState.Unknown, label: 'Scan Label' },
+      ]);
+
+      const displayName = useDisplayName({
+        type: NameType.EthereumAddress,
+        value: UNKNOWN_ADDRESS_CHECKSUMMED,
+        variation: CHAIN_IDS.MAINNET,
+      });
+
+      expect(displayName).toEqual(
+        expect.objectContaining({
+          name: 'Scan Label',
+        }),
+      );
+    });
+
+    it('prefers existing name over trust signal label', () => {
+      mockUseAddressTrustSignals.mockReturnValue([
+        { state: TrustSignalDisplayState.Verified, label: 'Scan Label' },
+      ]);
+      mockUseFirstPartyContractNames.mockReturnValue([
+        KNOWN_FIRST_PARTY_CONTRACT_NAME,
+      ]);
+
+      const displayName = useDisplayName({
+        type: NameType.EthereumAddress,
+        value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
+        variation: CHAIN_IDS.MAINNET,
+      });
+
+      expect(displayName).toEqual(
+        expect.objectContaining({
+          name: KNOWN_FIRST_PARTY_CONTRACT_NAME,
+          displayState: TrustSignalDisplayState.Recognized,
         }),
       );
     });

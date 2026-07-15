@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import PerpsPositionsView from './PerpsPositionsView';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
   usePerpsTrading,
   usePerpsTPSLUpdate,
@@ -15,7 +16,7 @@ import {
   usePerpsLivePositions,
 } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
-import type { Position } from '../../controllers/types';
+import { type Position } from '@metamask/perps-controller';
 
 // Mock component types
 interface MockRefreshControlProps {
@@ -152,7 +153,8 @@ const mockPositions: Position[] = [
 
 const mockAccountState = {
   totalBalance: '10000',
-  availableBalance: '4700',
+  spendableBalance: '4700',
+  withdrawableBalance: '4700',
   marginUsed: '5300',
 };
 
@@ -195,7 +197,7 @@ describe('PerpsPositionsView', () => {
       isInitialLoading: false,
     });
 
-    // Default eligibility mock
+    // Default selector mocks: eligible, privacy mode off
     const { useSelector } = jest.requireMock('react-redux');
     const mockSelectPerpsEligibility = jest.requireMock(
       '../../selectors/perpsController',
@@ -203,6 +205,9 @@ describe('PerpsPositionsView', () => {
     useSelector.mockImplementation((selector: unknown) => {
       if (selector === mockSelectPerpsEligibility) {
         return true;
+      }
+      if (selector === selectPrivacyMode) {
+        return false;
       }
       return undefined;
     });
@@ -235,7 +240,7 @@ describe('PerpsPositionsView', () => {
         // Check that the actual formatted values appear in the UI
         // PRICE_RANGES_MINIMAL_VIEW: Fixed 2 decimals, trailing zeros removed
         expect(screen.getByText('$10,000')).toBeOnTheScreen(); // totalBalance
-        expect(screen.getByText('$4,700')).toBeOnTheScreen(); // availableBalance
+        expect(screen.getByText('$4,700')).toBeOnTheScreen(); // spendableBalance
         expect(screen.getByText('$5,300')).toBeOnTheScreen(); // marginUsed
         expect(screen.getByText('+$75.50')).toBeOnTheScreen(); // total PnL
       });
@@ -383,7 +388,8 @@ describe('PerpsPositionsView', () => {
       (usePerpsLiveAccount as jest.Mock).mockReturnValue({
         account: {
           totalBalance: null,
-          availableBalance: undefined,
+          spendableBalance: undefined,
+          withdrawableBalance: undefined,
           marginUsed: '',
         },
         isInitialLoading: false,
@@ -564,6 +570,86 @@ describe('PerpsPositionsView', () => {
       mockLoadPositions({ isRefresh: true });
 
       expect(mockLoadPositions).toHaveBeenCalledWith({ isRefresh: true });
+    });
+  });
+
+  describe('Privacy Mode', () => {
+    const DOTS_SHORT = '•'.repeat(6); // SensitiveTextLength.Short
+
+    const enablePrivacyMode = () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) return true;
+        if (selector === selectPrivacyMode) return true;
+        return undefined;
+      });
+    };
+
+    it('hides account balance values when privacy mode is enabled', async () => {
+      // Arrange
+      enablePrivacyMode();
+
+      // Act
+      render(<PerpsPositionsView />);
+
+      // Assert - actual balance numbers not shown, dots shown in their place
+      await waitFor(() => {
+        expect(screen.queryByText('$10,000')).toBeNull();
+        expect(screen.queryByText('$4,700')).toBeNull();
+        expect(screen.queryByText('$5,300')).toBeNull();
+        const hiddenValues = screen.getAllByText(DOTS_SHORT);
+        expect(hiddenValues.length).toBeGreaterThanOrEqual(3);
+      });
+    });
+
+    it('hides total unrealized PnL when privacy mode is enabled', async () => {
+      // Arrange
+      enablePrivacyMode();
+
+      // Act
+      render(<PerpsPositionsView />);
+
+      // Assert - PnL value hidden
+      await waitFor(() => {
+        expect(screen.queryByText(/\+\$75\.50/)).toBeNull();
+        const hiddenValues = screen.getAllByText(DOTS_SHORT);
+        expect(hiddenValues.length).toBeGreaterThanOrEqual(4);
+      });
+    });
+
+    it('keeps account summary labels visible when privacy mode is enabled', async () => {
+      // Arrange
+      enablePrivacyMode();
+
+      // Act
+      render(<PerpsPositionsView />);
+
+      // Assert - labels (not values) remain visible
+      await waitFor(() => {
+        expect(screen.getByText('Total balance')).toBeOnTheScreen();
+        expect(screen.getByText('Available balance')).toBeOnTheScreen();
+        expect(screen.getByText('Margin used')).toBeOnTheScreen();
+        expect(screen.getByText('Total unrealized P&L')).toBeOnTheScreen();
+      });
+    });
+
+    it('shows account balance values when privacy mode is disabled', async () => {
+      // Arrange - privacy mode off (default from beforeEach)
+
+      // Act
+      render(<PerpsPositionsView />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByText('$10,000')).toBeOnTheScreen();
+        expect(screen.getByText('$4,700')).toBeOnTheScreen();
+        expect(screen.getByText('$5,300')).toBeOnTheScreen();
+        expect(screen.getByText(/\+\$75\.50/)).toBeOnTheScreen();
+        expect(screen.queryByText(DOTS_SHORT)).toBeNull();
+      });
     });
   });
 });

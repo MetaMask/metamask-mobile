@@ -6,23 +6,19 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import PerpsFlipPositionConfirmSheet from './PerpsFlipPositionConfirmSheet';
-import type { Position } from '../../controllers/types';
+import { type Position } from '@metamask/perps-controller';
+import { usePerpsOrderFees } from '../../hooks';
 
 const mockHandleFlipPosition = jest.fn();
 let mockIsFlipping = false;
 
 // Mock dependencies
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      primary: { default: '#0376C9' },
-      success: { default: '#00FF00' },
-      error: { default: '#FF0000' },
-      border: { muted: '#CCCCCC' },
-      background: { alternative: '#F5F5F5' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('./PerpsFlipPositionConfirmSheet.styles', () => () => ({
   contentContainer: {},
@@ -57,12 +53,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../hooks', () => ({
-  usePerpsOrderFees: () => ({
+  usePerpsOrderFees: jest.fn(() => ({
     totalFee: 0.5,
+    undiscountedTotalFee: 0.5,
     makerFee: 0.2,
     takerFee: 0.3,
     isLoadingMetamaskFee: false,
-  }),
+  })),
   usePerpsRewards: () => ({
     shouldShowRewardsRow: false,
     estimatedPoints: undefined,
@@ -99,7 +96,7 @@ jest.mock('../../utils/formatUtils', () => ({
   PRICE_RANGES_MINIMAL_VIEW: {},
 }));
 
-jest.mock('../../utils/marketUtils', () => ({
+jest.mock('@metamask/perps-controller', () => ({
   getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
 }));
 
@@ -107,13 +104,21 @@ jest.mock('../PerpsFeesDisplay', () => {
   const ReactModule = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
   return function MockPerpsFeesDisplay({
-    formatFeeText,
+    fee,
+    placeholder,
   }: {
-    formatFeeText: string;
+    fee?: number;
+    placeholder?: string;
   }) {
-    return ReactModule.createElement(Text, null, formatFeeText);
+    const text =
+      fee !== undefined ? `$${fee.toFixed(2)}` : (placeholder ?? '--');
+    return ReactModule.createElement(Text, null, text);
   };
 });
+
+jest.mock('../../../Rewards/hooks/useVipTier', () => ({
+  useVipTier: () => null,
+}));
 
 jest.mock('../../../Rewards/components/RewardPointsAnimation', () => ({
   __esModule: true,
@@ -240,10 +245,21 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
 jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
   __esModule: true,
   default: () => null,
-  IconName: { Arrow2Right: 'Arrow2Right' },
+  IconName: { ArrowRight: 'ArrowRight' },
   IconSize: { Md: 'Md' },
   IconColor: { Default: 'Default' },
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactModule = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    Icon: ({ name }: { name: string }) =>
+      ReactModule.createElement(View, { accessibilityLabel: name }),
+  };
+});
 
 jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
   ButtonSize: { Lg: 'Lg' },
@@ -275,6 +291,12 @@ describe('PerpsFlipPositionConfirmSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsFlipping = false;
+    (usePerpsOrderFees as jest.Mock).mockReturnValue({
+      totalFee: 0.5,
+      makerFee: 0.2,
+      takerFee: 0.3,
+      isLoadingMetamaskFee: false,
+    });
   });
 
   it('renders the flip position title', () => {
@@ -329,7 +351,13 @@ describe('PerpsFlipPositionConfirmSheet', () => {
     fireEvent.press(screen.getByText('Flip'));
 
     await waitFor(() => {
-      expect(mockHandleFlipPosition).toHaveBeenCalledWith(mockLongPosition);
+      expect(mockHandleFlipPosition).toHaveBeenCalledWith(
+        mockLongPosition,
+        expect.objectContaining({
+          totalFee: expect.any(Number),
+          marketPrice: expect.any(Number),
+        }),
+      );
     });
   });
 
@@ -370,5 +398,20 @@ describe('PerpsFlipPositionConfirmSheet', () => {
 
     // Math.abs(-2.5) = 2.5
     expect(screen.getByText('2.5 ETH')).toBeOnTheScreen();
+  });
+
+  it('uses ArrowRight (not Arrow2Right) for direction transition indicator', () => {
+    render(<PerpsFlipPositionConfirmSheet position={mockLongPosition} />);
+
+    expect(screen.getByLabelText('ArrowRight')).toBeOnTheScreen();
+  });
+
+  it('passes 2x position notional to usePerpsOrderFees for accurate fee estimate', () => {
+    render(<PerpsFlipPositionConfirmSheet position={mockLongPosition} />);
+
+    // ETH position: size=2.5, markPrice=2502 → 2x notional = 2.5 * 2 * 2502 = 12510
+    expect(usePerpsOrderFees).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: '12510' }),
+    );
   });
 });

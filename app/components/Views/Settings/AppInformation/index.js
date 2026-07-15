@@ -1,7 +1,7 @@
 /* eslint-disable dot-notation */
 import React, { PureComponent } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import {
-  SafeAreaView,
   StyleSheet,
   Image,
   Text,
@@ -10,6 +10,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   getApplicationName,
   getVersion,
@@ -24,15 +25,15 @@ import {
   checkAutomatically,
 } from 'expo-updates';
 import { connect } from 'react-redux';
-import { getFullVersion } from '../../../../constants/ota';
+import { OTA_VERSION } from '../../../../constants/ota';
 import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import AppConstants from '../../../../core/AppConstants';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
 import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
-import { isQa } from '../../../../util/test/utils';
+import { isProduction } from '../../../../util/environment';
 import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
@@ -98,7 +99,7 @@ const createStyles = (colors) =>
     },
   });
 
-const foxImage = require('../../../../images/branding/fox.png'); // eslint-disable-line import/no-commonjs
+const foxImage = require('../../../../images/branding/fox.png'); // eslint-disable-line import-x/no-commonjs
 
 /**
  * View that contains app information
@@ -113,37 +114,17 @@ class AppInformation extends PureComponent {
   };
 
   state = {
-    appInfo: '',
+    appName: '',
     appVersion: '',
+    buildNumber: '',
     showEnvironmentInfo: false,
   };
 
-  updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.info_title'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  };
-
   componentDidMount = async () => {
-    this.updateNavBar();
     const appName = await getApplicationName();
     const appVersion = await getVersion();
     const buildNumber = await getBuildNumber();
-    this.setState({
-      appInfo: `${appName} v${appVersion} (${buildNumber})`,
-      appVersion,
-    });
-  };
-
-  componentDidUpdate = () => {
-    this.updateNavBar();
+    this.setState({ appName, appVersion, buildNumber });
   };
 
   goTo = (url, title) => {
@@ -174,7 +155,7 @@ class AppInformation extends PureComponent {
   };
 
   onSupportCenter = () => {
-    const url = 'https://support.metamask.io';
+    const url = METAMASK_SUPPORT_URL;
     this.goTo(url, strings('drawer.metamask_support'));
   };
 
@@ -184,7 +165,7 @@ class AppInformation extends PureComponent {
   };
 
   onContactUs = () => {
-    const url = 'https://support.metamask.io';
+    const url = METAMASK_SUPPORT_URL;
     this.goTo(url, strings('drawer.metamask_support'));
   };
 
@@ -192,20 +173,47 @@ class AppInformation extends PureComponent {
     this.setState({ showEnvironmentInfo: true });
   };
 
+  /**
+   * Returns the version string to display (native app version or OTA version).
+   * When OTA is disabled we're always on embedded code; native isEmbeddedLaunch can be false in that case.
+   */
+  getVersionDisplay = () => {
+    const { appName, appVersion, buildNumber } = this.state;
+    const appInfo = `${appName} v${appVersion} (${buildNumber})`;
+    const appInfoOta = `${appName} ota ${OTA_VERSION} (${buildNumber})`;
+    const isRunningEmbedded = isEmbeddedLaunch || !isOTAUpdatesEnabled;
+    return __DEV__ || isRunningEmbedded ? appInfo : appInfoOta;
+  };
+
+  /**
+   * Returns the OTA update status message for the environment info section.
+   */
+  getOtaUpdateMessage = () => {
+    const isRunningEmbedded = isEmbeddedLaunch || !isOTAUpdatesEnabled;
+    return __DEV__ || isRunningEmbedded
+      ? 'This app is running from built-in code or in development mode'
+      : 'This app is running an update';
+  };
+
   render = () => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    const otaUpdateMessage = this.getOtaUpdateMessage();
 
-    const otaUpdateMessage =
-      __DEV__ || isEmbeddedLaunch
-        ? 'This app is running from built-in code or in development mode'
-        : 'This app is running an update';
+    const aboutTitle = strings('app_settings.info_title');
 
     return (
       <SafeAreaView
+        edges={{ bottom: 'additive' }}
         style={styles.wrapper}
         testID={AboutMetaMaskSelectorsIDs.CONTAINER}
       >
+        <HeaderStandard
+          includesTopInset
+          title={aboutTitle}
+          onBack={() => this.props.navigation.goBack()}
+          backButtonProps={{ testID: AboutMetaMaskSelectorsIDs.BACK_BUTTON }}
+        />
         <ScrollView contentContainerStyle={styles.wrapperContent}>
           <View style={styles.logoWrapper}>
             <TouchableOpacity
@@ -219,12 +227,10 @@ class AppInformation extends PureComponent {
                 resizeMethod={'auto'}
               />
             </TouchableOpacity>
-            <Text style={styles.versionInfo}>
-              {getFullVersion(this.state.appInfo)}
-            </Text>
-            {isQa ? (
+            <Text style={styles.versionInfo}>{this.getVersionDisplay()}</Text>
+            {!isProduction() ? (
               <Text style={styles.branchInfo}>
-                {`Branch: ${process.env['GIT_BRANCH']}`}
+                {`${process.env.METAMASK_ENVIRONMENT?.toUpperCase() ?? 'DEV'} | Branch: ${process.env['GIT_BRANCH']}`}
               </Text>
             ) : null}
 
@@ -238,6 +244,12 @@ class AppInformation extends PureComponent {
                 </Text>
                 <Text style={styles.branchInfo}>
                   {`Remote Feature Flag Distribution: ${getFeatureFlagAppDistribution()}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`Rewards API URL: ${process.env.REWARDS_API_URL ?? '—'}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`MM_PORTFOLIO_URL: ${process.env.MM_PORTFOLIO_URL ?? '—'}`}
                 </Text>
                 <Text style={styles.branchInfo}>
                   {`OTA Updates enabled: ${String(isOTAUpdatesEnabled)}`}
@@ -258,6 +270,9 @@ class AppInformation extends PureComponent {
                     </Text>
                     <Text style={styles.branchInfo}>
                       {`OTA Update status: ${otaUpdateMessage}`}
+                    </Text>
+                    <Text style={styles.branchInfo}>
+                      {`OTA Version: ${OTA_VERSION}`}
                     </Text>
                   </>
                 )}

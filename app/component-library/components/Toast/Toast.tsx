@@ -5,11 +5,13 @@ import React, {
   forwardRef,
   useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import {
   Dimensions,
   LayoutChangeEvent,
+  Pressable,
   StyleProp,
   View,
   ViewStyle,
@@ -51,6 +53,12 @@ const animationDuration = 250;
 const bottomPadding = 36;
 const screenHeight = Dimensions.get('window').height;
 
+/**
+ * @deprecated Please update your code to use `Toast` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Toast/README.md}
+ * @since @metamask/design-system-react-native@0.7.0
+ */
 const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const { styles } = useStyles(styleSheet, {});
   const [toastOptions, setToastOptions] = useState<ToastOptions | undefined>(
@@ -58,6 +66,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   );
   const { bottom: bottomNotchSpacing } = useSafeAreaInsets();
   const translateYProgress = useSharedValue(screenHeight);
+  const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const customOffset = toastOptions?.customBottomOffset ?? 0;
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -72,6 +81,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const resetState = () => setToastOptions(undefined);
 
   const showToast = (options: ToastOptions) => {
+    if (pendingTimeoutRef.current !== null) {
+      clearTimeout(pendingTimeoutRef.current);
+      pendingTimeoutRef.current = null;
+    }
+
     let timeoutDuration = 0;
     if (toastOptions) {
       if (!options.hasNoTimeout) {
@@ -81,7 +95,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       // Clear existing toast state to prevent animation conflicts when showing rapid successive toasts
       setToastOptions(undefined);
     }
-    setTimeout(() => {
+    pendingTimeoutRef.current = setTimeout(() => {
+      pendingTimeoutRef.current = null;
       setToastOptions(options);
     }, timeoutDuration);
   };
@@ -278,7 +293,17 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
   return (
     <Animated.View onLayout={onAnimatedViewLayout} style={baseStyle}>
-      {renderToastContent(toastOptions)}
+      {toastOptions.onPress ? (
+        <Pressable
+          style={styles.pressableContent}
+          onPress={toastOptions.onPress}
+          testID={ToastSelectorsIDs.PRESSABLE}
+        >
+          {renderToastContent(toastOptions)}
+        </Pressable>
+      ) : (
+        renderToastContent(toastOptions)
+      )}
     </Animated.View>
   );
 });

@@ -1,10 +1,11 @@
 import React, { PureComponent } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AddressList from '../../confirmations/legacy/components/AddressList';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
@@ -21,7 +22,6 @@ const createStyles = (colors) =>
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-      marginTop: 16,
     },
     addContact: {
       marginHorizontal: 24,
@@ -58,25 +58,7 @@ class Contacts extends PureComponent {
   actionSheet;
   contactAddressToRemove;
 
-  updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('app_settings.contacts_title'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  };
-
-  componentDidMount = () => {
-    this.updateNavBar();
-  };
-
   componentDidUpdate = (prevProps) => {
-    this.updateNavBar();
     const { chainId } = this.props;
     if (
       prevProps.addressBook &&
@@ -143,6 +125,15 @@ class Contacts extends PureComponent {
         testID={ContactsViewSelectorIDs.CONTAINER}
         edges={{ bottom: 'additive' }}
       >
+        <HeaderStandard
+          title={strings('app_settings.contacts_title')}
+          onBack={() => this.props.navigation.goBack()}
+          includesTopInset
+          testID={ContactsViewSelectorIDs.HEADER}
+          backButtonProps={{
+            testID: ContactsViewSelectorIDs.HEADER_BACK_BUTTON,
+          }}
+        />
         <AddressList
           chainId={chainId}
           onlyRenderAddressBook

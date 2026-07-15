@@ -6,20 +6,22 @@ import Engine from '../../../../core/Engine';
 import { selectDisplayNftMedia } from '../../../../selectors/preferencesController';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
-import Text, {
-  TextVariant,
+import {
+  FontWeight,
+  Text,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import styleSheet from './index.styles';
 import { NFT_DISPLAY_MEDIA_MODE_SECTION } from './index.constants';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 
 const DisplayNFTMediaSettings = () => {
   const theme = useTheme();
   const { colors } = theme;
   const { styles } = useStyles(styleSheet, {});
-  const { addTraitsToUser } = useMetrics();
+  const { identify } = useAnalytics();
 
   const displayNftMedia = useSelector(selectDisplayNftMedia);
 
@@ -37,13 +39,17 @@ const DisplayNFTMediaSettings = () => {
         [UserProfileProperty.NFT_AUTODETECTION]: UserProfileProperty.OFF,
       }),
     };
-    addTraitsToUser(traits);
+    identify(traits);
   };
 
   return (
     <View style={styles.halfSetting}>
       <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          style={styles.title}
+        >
           {strings('app_settings.display_nft_media')}
         </Text>
         <View style={styles.switchElement}>
@@ -62,8 +68,9 @@ const DisplayNFTMediaSettings = () => {
         </View>
       </View>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
         style={styles.desc}
       >
         {strings('app_settings.display_nft_media_desc_new')}

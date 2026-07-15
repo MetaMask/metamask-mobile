@@ -1,10 +1,13 @@
-import { INotification } from '../types';
+import {
+  INotification,
+  isOnChainNotification,
+} from '@metamask/notification-services-controller/notification-services';
 
 const onChainAnalyticProperties = (item: INotification) => {
   if (
     'notification_type' in item &&
-    item.notification_type === 'on-chain' &&
-    item.payload?.chain_id
+    isOnChainNotification(item) &&
+    item.payload.chain_id
   ) {
     return { chain_id: item.payload.chain_id };
   }

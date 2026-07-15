@@ -31,7 +31,6 @@ export interface PredictGameChartContentProps {
 
 export interface PredictGameChartProps {
   market: PredictMarket;
-  providerId?: string;
   testID?: string;
 }
 

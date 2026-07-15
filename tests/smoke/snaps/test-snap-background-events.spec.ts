@@ -1,22 +1,24 @@
-import { FlaskBuildTests } from '../../../e2e/tags';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import { SmokeSnaps } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
+import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
-import { TestSnapResultSelectorWebIDS } from '../../../e2e/selectors/Browser/TestSnaps.selectors';
+import { TestSnapResultSelectorWebIDS } from '../../selectors/Browser/TestSnaps.selectors';
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Background Events Snap Tests'), () => {
+describe(SmokeSnaps('Background Events Snap Tests'), () => {
   it('can connect to the background events Snap', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -33,6 +35,7 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         const futureDate = new Date(Date.now() + 5_000).toISOString();
@@ -56,6 +59,7 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.fillMessage('backgroundEventDurationInput', 'PT5S');
@@ -77,6 +81,7 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         // Intentionally scheduling an event for 1 hour into the future, so it
@@ -113,6 +118,7 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         const pastDate = new Date(Date.now() - 5_000).toISOString();
@@ -121,7 +127,9 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
         await TestSnaps.tapButton('scheduleBackgroundEventWithDateButton');
         await Assertions.expectTextDisplayed(
           'Cannot schedule an event in the past.',
+          { timeout: 30000 },
         );
+        await TestSnaps.dismissAlert();
       },
     );
   });

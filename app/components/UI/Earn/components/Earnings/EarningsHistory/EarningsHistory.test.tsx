@@ -238,6 +238,10 @@ describe('EarningsHistory', () => {
                   },
                 },
               },
+              AssetsController: {
+                ...mockInitialState.engine.backgroundState.AssetsController,
+                selectedCurrency: 'xlm',
+              },
             },
           },
         },

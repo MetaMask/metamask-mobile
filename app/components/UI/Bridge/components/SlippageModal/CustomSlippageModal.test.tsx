@@ -1,6 +1,7 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import { CustomSlippageModal } from './CustomSlippageModal';
+import { render, fireEvent, act } from '@testing-library/react-native';
+import { type TextInputSelectionChangeEvent } from 'react-native';
+import { SwapCustomSlippageModal as CustomSlippageModal } from './SwapCustomSlippageModal';
 
 // Mock BottomSheet
 jest.mock(
@@ -21,40 +22,16 @@ jest.mock(
   },
 );
 
-// Mock HeaderCompactStandard
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactNative = jest.requireActual('react-native');
-    const { View, Text, TouchableOpacity } = ReactNative;
-
-    return {
-      __esModule: true,
-      default: (props: { title: string; onClose: () => void }) => (
-        <View testID="header-center">
-          <Text>{props.title}</Text>
-          <TouchableOpacity onPress={props.onClose} accessibilityLabel="Close">
-            <Text>Close</Text>
-          </TouchableOpacity>
-        </View>
-      ),
-    };
-  },
-);
-
 // Mock InputStepper
 jest.mock('../InputStepper', () => ({
   InputStepper: jest.fn(
-    ({
-      value,
-      onIncrease,
-      onDecrease,
-      description,
-    }: {
+    (props: {
       value: string;
       onIncrease: () => void;
       onDecrease: () => void;
       description: unknown;
+      selection?: { start: number; end: number };
+      onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
     }) => {
       const ReactNative = jest.requireActual('react-native');
       const { View, Text, TouchableOpacity } = ReactNative;
@@ -63,18 +40,18 @@ jest.mock('../InputStepper', () => ({
         <View testID="input-stepper">
           <TouchableOpacity
             testID="input-stepper-decrease"
-            onPress={onDecrease}
+            onPress={props.onDecrease}
           >
             <Text>-</Text>
           </TouchableOpacity>
-          <Text testID="input-stepper-value">{value}</Text>
+          <Text testID="input-stepper-value">{props.value}</Text>
           <TouchableOpacity
             testID="input-stepper-increase"
-            onPress={onIncrease}
+            onPress={props.onIncrease}
           >
             <Text>+</Text>
           </TouchableOpacity>
-          {description && <View testID="input-stepper-description" />}
+          {props.description && <View testID="input-stepper-description" />}
         </View>
       );
     },
@@ -162,28 +139,18 @@ jest.mock('react-redux', () => ({
     mockSelector(selector),
 }));
 
-// Mock i18n
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const translations: Record<string, string> = {
-      'bridge.slippage': 'Slippage',
-      'bridge.cancel': 'Cancel',
-      'bridge.confirm': 'Confirm',
-    };
-    return translations[key] || key;
-  }),
-}));
-
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { useShouldDisableCustomSlippageConfirm } from '../../hooks/useShouldDisableCustomSlippageConfirm';
 import { useSlippageStepperDescription } from '../../hooks/useSlippageStepperDescription';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { InputStepper } from '../InputStepper';
 import Keypad from '../../../../Base/Keypad';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockUseSlippageConfig = useSlippageConfig as jest.MockedFunction<
   typeof useSlippageConfig
 >;
+
 const mockUseShouldDisableCustomSlippageConfirm =
   useShouldDisableCustomSlippageConfirm as jest.MockedFunction<
     typeof useShouldDisableCustomSlippageConfirm
@@ -197,6 +164,16 @@ const mockInputStepper = InputStepper as jest.MockedFunction<
   typeof InputStepper
 >;
 const mockKeypad = Keypad as jest.MockedFunction<typeof Keypad>;
+
+const createSelectionEvent = (start: number): TextInputSelectionChangeEvent =>
+  ({
+    nativeEvent: {
+      selection: {
+        start,
+        end: start,
+      },
+    },
+  }) as TextInputSelectionChangeEvent;
 
 describe('CustomSlippageModal', () => {
   const mockSlippageConfig = {
@@ -236,7 +213,7 @@ describe('CustomSlippageModal', () => {
 
       // Verify close was called (ref.onCloseBottomSheet)
       // Component should render without errors
-      expect(cancelButton).toBeTruthy();
+      expect(cancelButton).toBeOnTheScreen();
     });
 
     it('does not dispatch slippage on cancel', () => {
@@ -281,28 +258,35 @@ describe('CustomSlippageModal', () => {
       );
     });
 
+    it('sanitizes a trailing decimal before dispatching slippage', () => {
+      mockSelector.mockReturnValue('2.');
+
+      const { getByText } = render(<CustomSlippageModal />);
+
+      const confirmButton = getByText('Confirm');
+      fireEvent.press(confirmButton);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: '2',
+        }),
+      );
+    });
+
     it('is disabled when shouldDisableConfirm is true', () => {
       mockUseShouldDisableCustomSlippageConfirm.mockReturnValue(true);
 
-      const { toJSON, getByText } = render(<CustomSlippageModal />);
+      const { getByText } = render(<CustomSlippageModal />);
 
-      // Verify button exists
-      expect(getByText('Confirm')).toBeTruthy();
-
-      // Snapshot shows disabled state
-      expect(toJSON()).toMatchSnapshot('confirm button disabled');
+      expect(getByText('Confirm')).toBeDisabled();
     });
 
     it('is enabled when shouldDisableConfirm is false', () => {
       mockUseShouldDisableCustomSlippageConfirm.mockReturnValue(false);
 
-      const { toJSON, getByText } = render(<CustomSlippageModal />);
+      const { getByText } = render(<CustomSlippageModal />);
 
-      // Verify button exists
-      expect(getByText('Confirm')).toBeTruthy();
-
-      // Snapshot shows enabled state
-      expect(toJSON()).toMatchSnapshot('confirm button enabled');
+      expect(getByText('Confirm')).toBeEnabled();
     });
   });
 
@@ -512,10 +496,12 @@ describe('CustomSlippageModal', () => {
       const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
 
       // Try to input value that exceeds max_amount (e.g., 150)
-      keypadOnChange({
-        value: '150',
-        valueAsNumber: 150,
-        pressedKey: '0' as never,
+      act(() => {
+        keypadOnChange({
+          value: '150',
+          valueAsNumber: 150,
+          pressedKey: '0' as never,
+        });
       });
 
       // Re-render to apply state change
@@ -542,10 +528,12 @@ describe('CustomSlippageModal', () => {
       const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
 
       // Try to input value with 3 decimals (exceeds input_max_decimals: 2)
-      keypadOnChange({
-        value: '1.234',
-        valueAsNumber: 1.234,
-        pressedKey: '4' as never,
+      act(() => {
+        keypadOnChange({
+          value: '1.234',
+          valueAsNumber: 1.234,
+          pressedKey: '4' as never,
+        });
       });
 
       // Value should remain unchanged (rejected)
@@ -562,10 +550,12 @@ describe('CustomSlippageModal', () => {
       const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
 
       // Input value with exactly 2 decimals (should be accepted)
-      keypadOnChange({
-        value: '1.25',
-        valueAsNumber: 1.25,
-        pressedKey: '5' as never,
+      act(() => {
+        keypadOnChange({
+          value: '1.25',
+          valueAsNumber: 1.25,
+          pressedKey: '5' as never,
+        });
       });
 
       // Re-render to apply state change
@@ -585,10 +575,12 @@ describe('CustomSlippageModal', () => {
       const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
 
       // Try to add decimal point to max amount (100.)
-      keypadOnChange({
-        value: '100.',
-        valueAsNumber: 100,
-        pressedKey: 'Period' as never,
+      act(() => {
+        keypadOnChange({
+          value: '100.',
+          valueAsNumber: 100,
+          pressedKey: 'Period' as never,
+        });
       });
 
       // Re-render to apply state change
@@ -634,10 +626,12 @@ describe('CustomSlippageModal', () => {
       const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
 
       // Input valid value
-      keypadOnChange({
-        value: '25',
-        valueAsNumber: 25,
-        pressedKey: '5' as never,
+      act(() => {
+        keypadOnChange({
+          value: '25',
+          valueAsNumber: 25,
+          pressedKey: '5' as never,
+        });
       });
 
       // Re-render to apply state change
@@ -661,10 +655,12 @@ describe('CustomSlippageModal', () => {
 
       // Simulate backspace press that results in trailing dot
       // e.g., user had "5.5", pressed backspace, keypad returns "5."
-      keypadOnChange({
-        value: '5.',
-        valueAsNumber: 5,
-        pressedKey: 'Back' as never,
+      act(() => {
+        keypadOnChange({
+          value: '5.',
+          valueAsNumber: 5,
+          pressedKey: 'Back' as never,
+        });
       });
 
       // Re-render to apply state change
@@ -684,10 +680,12 @@ describe('CustomSlippageModal', () => {
       const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
 
       // Simulate backspace press on "0.5" resulting in "0."
-      keypadOnChange({
-        value: '0.',
-        valueAsNumber: 0,
-        pressedKey: 'Back' as never,
+      act(() => {
+        keypadOnChange({
+          value: '0.',
+          valueAsNumber: 0,
+          pressedKey: 'Back' as never,
+        });
       });
 
       // Re-render to apply state change
@@ -707,10 +705,12 @@ describe('CustomSlippageModal', () => {
       const keypadOnChange = mockKeypad.mock.calls[0][0].onChange;
 
       // Simulate period key press (not backspace)
-      keypadOnChange({
-        value: '5.',
-        valueAsNumber: 5,
-        pressedKey: 'Period' as never,
+      act(() => {
+        keypadOnChange({
+          value: '5.',
+          valueAsNumber: 5,
+          pressedKey: 'Period' as never,
+        });
       });
 
       // Re-render to apply state change
@@ -746,31 +746,31 @@ describe('CustomSlippageModal', () => {
     it('renders header with correct title', () => {
       const { getByText } = render(<CustomSlippageModal />);
 
-      expect(getByText('Slippage')).toBeTruthy();
+      expect(getByText('Slippage')).toBeOnTheScreen();
     });
 
     it('renders InputStepper', () => {
       const { getByTestId } = render(<CustomSlippageModal />);
 
-      expect(getByTestId('input-stepper')).toBeTruthy();
+      expect(getByTestId('input-stepper')).toBeOnTheScreen();
     });
 
     it('renders Keypad', () => {
       const { getByTestId } = render(<CustomSlippageModal />);
 
-      expect(getByTestId('keypad')).toBeTruthy();
+      expect(getByTestId('keypad')).toBeOnTheScreen();
     });
 
     it('renders cancel button', () => {
       const { getByText } = render(<CustomSlippageModal />);
 
-      expect(getByText('Cancel')).toBeTruthy();
+      expect(getByText('Cancel')).toBeOnTheScreen();
     });
 
     it('renders confirm button', () => {
       const { getByText } = render(<CustomSlippageModal />);
 
-      expect(getByText('Confirm')).toBeTruthy();
+      expect(getByText('Confirm')).toBeOnTheScreen();
     });
 
     it('passes correct props to InputStepper', () => {
@@ -796,7 +796,7 @@ describe('CustomSlippageModal', () => {
           postValue: '%',
           description: mockDescription,
         }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -810,16 +810,68 @@ describe('CustomSlippageModal', () => {
           value: '3.5',
           currency: 'native',
         }),
-        expect.anything(),
+        undefined,
       );
+    });
+
+    it('updates the displayed value at the selected cursor position', () => {
+      mockUseSlippageConfig.mockReturnValue({
+        ...mockSlippageConfig,
+        max_amount: 1000,
+      });
+      mockSelector.mockReturnValue('12.5');
+
+      const { getByTestId } = render(<CustomSlippageModal />);
+
+      const inputStepperProps = mockInputStepper.mock.calls[0][0];
+
+      act(() => {
+        inputStepperProps.onSelectionChange?.(createSelectionEvent(1));
+      });
+      const keypadOnChange =
+        mockKeypad.mock.calls[mockKeypad.mock.calls.length - 1][0].onChange;
+      act(() => {
+        keypadOnChange({
+          value: '12.55',
+          valueAsNumber: 12.55,
+          pressedKey: '5' as never,
+        });
+      });
+
+      expect(getByTestId('input-stepper-value').props.children).toBe('152.5');
+    });
+
+    it('resets the cursor when stepper buttons change the value', () => {
+      mockSelector.mockReturnValue('12.5');
+
+      const { getByTestId } = render(<CustomSlippageModal />);
+
+      const initialInputStepperProps = mockInputStepper.mock.calls[0][0];
+      act(() => {
+        initialInputStepperProps.onSelectionChange?.(createSelectionEvent(1));
+      });
+
+      fireEvent.press(getByTestId('input-stepper-increase'));
+
+      const latestKeypadOnChange =
+        mockKeypad.mock.calls[mockKeypad.mock.calls.length - 1][0].onChange;
+      act(() => {
+        latestKeypadOnChange({
+          value: '12.65',
+          valueAsNumber: 12.65,
+          pressedKey: '5' as never,
+        });
+      });
+
+      expect(getByTestId('input-stepper-value').props.children).toBe('12.65');
     });
   });
 
   describe('snapshot tests', () => {
     it('matches snapshot for complete modal', () => {
-      const { toJSON } = render(<CustomSlippageModal />);
+      const { getByText } = render(<CustomSlippageModal />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Confirm')).toBeOnTheScreen();
     });
 
     it('matches snapshot with description shown', () => {
@@ -834,17 +886,17 @@ describe('CustomSlippageModal', () => {
         >,
       );
 
-      const { toJSON } = render(<CustomSlippageModal />);
+      const { getByText } = render(<CustomSlippageModal />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Confirm')).toBeOnTheScreen();
     });
 
     it('matches snapshot with confirm disabled', () => {
       mockUseShouldDisableCustomSlippageConfirm.mockReturnValue(true);
 
-      const { toJSON } = render(<CustomSlippageModal />);
+      const { getByText } = render(<CustomSlippageModal />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Confirm')).toBeOnTheScreen();
     });
   });
 
@@ -950,17 +1002,17 @@ describe('CustomSlippageModal', () => {
     it('closes modal via header close button', () => {
       const { getByLabelText } = render(<CustomSlippageModal />);
 
-      const closeButton = getByLabelText('Close');
+      const closeButton = getByLabelText(strings('bridge.close'));
       fireEvent.press(closeButton);
 
       // Verify it doesn't throw and component handles close
-      expect(closeButton).toBeTruthy();
+      expect(closeButton).toBeOnTheScreen();
     });
 
     it('does not dispatch slippage when closing without confirm', () => {
       const { getByLabelText } = render(<CustomSlippageModal />);
 
-      const closeButton = getByLabelText('Close');
+      const closeButton = getByLabelText(strings('bridge.close'));
       fireEvent.press(closeButton);
 
       expect(mockDispatch).not.toHaveBeenCalled();

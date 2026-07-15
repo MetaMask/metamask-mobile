@@ -108,7 +108,13 @@ import {
   selectBalanceBySelectedAccountGroup,
   selectBalanceChangeBySelectedAccountGroup,
   selectAccountGroupBalanceForEmptyState,
+  selectTokenBalancesStateForBalances,
 } from './balances';
+import type { TokenBalancesControllerState } from '@metamask/assets-controllers';
+import {
+  ARC_USDC_TOKEN_ADDRESS,
+  NETWORKS_CHAIN_ID,
+} from '../../constants/network';
 
 // Enhanced state factory with realistic data
 const makeState = (overrides: Record<string, unknown> = {}) => ({
@@ -131,8 +137,8 @@ const makeState = (overrides: Record<string, unknown> = {}) => ({
               },
             },
           },
-          selectedAccountGroup: 'wallet-1/group-1',
         },
+        selectedAccountGroup: 'wallet-1/group-1',
       },
       AccountsController: {
         internalAccounts: {
@@ -202,6 +208,16 @@ const makeState = (overrides: Record<string, unknown> = {}) => ({
           '0x137': { '0x137': true },
         },
       },
+      // Provides selectNetworkConfigurations (EVM + non-EVM configs merged)
+      NetworkController: {
+        networkConfigurationsByChainId: {
+          '0x1': { chainId: '0x1', name: 'Ethereum Mainnet' },
+          '0x89': { chainId: '0x89', name: 'Polygon Mainnet' },
+        },
+      },
+      MultichainNetworkController: {
+        multichainNetworkConfigurationsByChainId: {},
+      },
     },
   },
   ...overrides,
@@ -211,7 +227,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
   describe('selectBalanceForAllWallets', () => {
     it('returns calculated balance for all wallets', () => {
       const state = makeState() as unknown as RootState;
-      const result = selectBalanceForAllWallets(state);
+      const result = selectBalanceForAllWallets()(state);
 
       expect(result.userCurrency).toBe('usd');
       expect(result.wallets).toHaveProperty('wallet-1');
@@ -220,12 +236,87 @@ describe('assets balance and balance change selectors (mobile)', () => {
       expect(result.wallets['wallet-2'].totalBalanceInUserCurrency).toBe(2000);
     });
 
+    it('passes networkConfigurationsByChainId as 11th argument to calculateBalanceForAllWallets', () => {
+      const mockCalculateBalanceForAllWallets = jest.requireMock(
+        '@metamask/assets-controllers',
+      ).calculateBalanceForAllWallets;
+      mockCalculateBalanceForAllWallets.mockClear();
+
+      const state = makeState() as unknown as RootState;
+      selectBalanceForAllWallets()(state);
+
+      expect(mockCalculateBalanceForAllWallets).toHaveBeenCalledTimes(1);
+      // 11th argument (index 10) is networkConfigurationsByChainId
+      const networkConfigsArg =
+        mockCalculateBalanceForAllWallets.mock.calls[0][10];
+      expect(networkConfigsArg).toEqual({
+        '0x1': { chainId: '0x1', name: 'Ethereum Mainnet' },
+        '0x89': { chainId: '0x89', name: 'Polygon Mainnet' },
+      });
+    });
+
+    it('includes non-EVM network configs in the 11th argument when present', () => {
+      const mockCalculateBalanceForAllWallets = jest.requireMock(
+        '@metamask/assets-controllers',
+      ).calculateBalanceForAllWallets;
+      mockCalculateBalanceForAllWallets.mockClear();
+
+      const state = makeState({
+        engine: {
+          backgroundState: {
+            ...makeState().engine.backgroundState,
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x1': { chainId: '0x1', name: 'Ethereum Mainnet' },
+              },
+            },
+            MultichainNetworkController: {
+              multichainNetworkConfigurationsByChainId: {
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                  chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                  name: 'Solana Mainnet',
+                },
+              },
+            },
+          },
+        },
+      }) as unknown as RootState;
+
+      selectBalanceForAllWallets()(state);
+
+      const networkConfigsArg =
+        mockCalculateBalanceForAllWallets.mock.calls[0][10];
+      expect(networkConfigsArg).toHaveProperty('0x1');
+      expect(networkConfigsArg).toHaveProperty(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
+    });
+
+    it('passes networkConfigurationsByChainId when called with popular chain IDs', () => {
+      const mockCalculateBalanceForAllWallets = jest.requireMock(
+        '@metamask/assets-controllers',
+      ).calculateBalanceForAllWallets;
+      mockCalculateBalanceForAllWallets.mockClear();
+
+      const state = makeState() as unknown as RootState;
+      selectBalanceForAllWallets(['eip155:1', 'eip155:137'])(state);
+
+      expect(mockCalculateBalanceForAllWallets).toHaveBeenCalledTimes(1);
+      const networkConfigsArg =
+        mockCalculateBalanceForAllWallets.mock.calls[0][10];
+      expect(networkConfigsArg).toEqual({
+        '0x1': { chainId: '0x1', name: 'Ethereum Mainnet' },
+        '0x89': { chainId: '0x89', name: 'Polygon Mainnet' },
+      });
+    });
+
     it('handles empty state gracefully', () => {
       const state = makeState({
         engine: {
           backgroundState: {
             AccountTreeController: {
-              accountTree: { wallets: {}, selectedAccountGroup: '' },
+              accountTree: { wallets: {} },
+              selectedAccountGroup: '',
             },
             AccountsController: {
               internalAccounts: { accounts: {}, selectedAccount: '' },
@@ -249,11 +340,15 @@ describe('assets balance and balance change selectors (mobile)', () => {
               currencyRates: {},
             },
             NetworkEnablementController: { enabledNetworkMap: {} },
+            NetworkController: { networkConfigurationsByChainId: {} },
+            MultichainNetworkController: {
+              multichainNetworkConfigurationsByChainId: {},
+            },
           },
         },
       }) as unknown as RootState;
 
-      const result = selectBalanceForAllWallets(state);
+      const result = selectBalanceForAllWallets()(state);
       expect(result).toBeDefined();
     });
   });
@@ -418,7 +513,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
   describe('selectBalanceBySelectedAccountGroup', () => {
     it('returns selected group balance when group exists', () => {
       const state = makeState() as unknown as RootState;
-      const result = selectBalanceBySelectedAccountGroup(state);
+      const result = selectBalanceBySelectedAccountGroup()(state);
 
       expect(result).toEqual({
         walletId: 'wallet-1',
@@ -430,10 +525,10 @@ describe('assets balance and balance change selectors (mobile)', () => {
 
     it('returns zeroed fallback when selected group does not exist', () => {
       const state = makeState() as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         'keyring:wallet-1/group-999';
 
-      const result = selectBalanceBySelectedAccountGroup(state);
+      const result = selectBalanceBySelectedAccountGroup()(state);
       expect(result).toEqual({
         walletId: 'keyring:wallet-1',
         groupId: 'keyring:wallet-1/group-999',
@@ -444,10 +539,10 @@ describe('assets balance and balance change selectors (mobile)', () => {
 
     it('returns null when no selected account group', () => {
       const state = makeState() as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         '';
 
-      const result = selectBalanceBySelectedAccountGroup(state);
+      const result = selectBalanceBySelectedAccountGroup()(state);
       expect(result).toBeNull();
     });
   });
@@ -470,7 +565,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
 
     it('returns change for selected wallet-2 group (1d)', () => {
       const state = makeState() as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         'keyring:wallet-2/group-1';
 
       const selector = selectBalanceChangeBySelectedAccountGroup('1d');
@@ -488,7 +583,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
 
     it('returns null when no selected account group', () => {
       const state = makeState() as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         '';
 
       const selector = selectBalanceChangeBySelectedAccountGroup('1d');
@@ -570,7 +665,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
           },
         },
       }) as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         '';
 
       const result = selectAccountGroupBalanceForEmptyState(state);
@@ -595,7 +690,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
           },
         },
       }) as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         'keyring:wallet-1/group-999';
 
       const result = selectAccountGroupBalanceForEmptyState(state);
@@ -606,5 +701,74 @@ describe('assets balance and balance change selectors (mobile)', () => {
         userCurrency: 'usd',
       });
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Arc USDC ERC-20 filtering in selectTokenBalancesStateForBalances
+// ---------------------------------------------------------------------------
+
+describe('selectTokenBalancesStateForBalances - Arc USDC ERC-20 filtering', () => {
+  const ACCOUNT = '0xaccount';
+  const OTHER_TOKEN = '0xother000000000000000000000000000000000000';
+
+  it('strips Arc USDC ERC-20 balance from Arc chain', () => {
+    const tokenBalances = {
+      [ACCOUNT]: {
+        [NETWORKS_CHAIN_ID.ARC]: {
+          [ARC_USDC_TOKEN_ADDRESS]: '0x3b9aca00', // 1 USDC (6 decimals)
+          [OTHER_TOKEN]: '0xde0b6b3a7640000',
+        },
+      },
+    } as TokenBalancesControllerState['tokenBalances'];
+
+    const result =
+      selectTokenBalancesStateForBalances.resultFunc(tokenBalances);
+
+    expect(
+      result.tokenBalances[ACCOUNT][NETWORKS_CHAIN_ID.ARC],
+    ).not.toHaveProperty(ARC_USDC_TOKEN_ADDRESS);
+    expect(
+      result.tokenBalances[ACCOUNT][NETWORKS_CHAIN_ID.ARC][OTHER_TOKEN],
+    ).toBe('0xde0b6b3a7640000');
+  });
+
+  it('does not affect balances on other chains', () => {
+    const tokenBalances = {
+      [ACCOUNT]: {
+        '0x1': {
+          [ARC_USDC_TOKEN_ADDRESS]: '0x1', // same address on Ethereum — must be kept
+          [OTHER_TOKEN]: '0x2',
+        },
+        [NETWORKS_CHAIN_ID.ARC]: {
+          [ARC_USDC_TOKEN_ADDRESS]: '0x3b9aca00', // must be stripped
+        },
+      },
+    } as TokenBalancesControllerState['tokenBalances'];
+
+    const result =
+      selectTokenBalancesStateForBalances.resultFunc(tokenBalances);
+
+    // Ethereum entry with same address is preserved
+    expect(result.tokenBalances[ACCOUNT]['0x1']).toHaveProperty(
+      ARC_USDC_TOKEN_ADDRESS,
+    );
+    // Arc entry is stripped
+    expect(
+      result.tokenBalances[ACCOUNT][NETWORKS_CHAIN_ID.ARC],
+    ).not.toHaveProperty(ARC_USDC_TOKEN_ADDRESS);
+  });
+
+  it('passes through unchanged when no Arc chain is present', () => {
+    const tokenBalances = {
+      [ACCOUNT]: {
+        '0x1': { [OTHER_TOKEN]: '0xabc' },
+      },
+    } as TokenBalancesControllerState['tokenBalances'];
+
+    const result =
+      selectTokenBalancesStateForBalances.resultFunc(tokenBalances);
+
+    expect(result.tokenBalances).toStrictEqual(tokenBalances);
   });
 });

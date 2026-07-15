@@ -2,14 +2,15 @@ import {
   selectShouldUseSmartTransaction,
   selectSmartTransactionsEnabled,
   selectSmartTransactionsForCurrentChain,
-  // Add the pending selector to test it.
   selectPendingSmartTransactionsBySender,
   selectPendingSmartTransactionsForSelectedAccountGroup,
+  getGaslessBridgeWith7702EnabledForChain,
 } from './smartTransactionsController';
 import { backgroundState } from '../util/test/initial-root-state';
 import { isHardwareAccount } from '../util/address';
 import { cloneDeep } from 'lodash';
 import { selectSelectedAccountGroupInternalAccounts } from './multichainAccounts/accountTreeController';
+import { getIsAllowedRpcUrlForSmartTransactions } from '../util/smart-transactions';
 
 const TEST_ADDRESS_ONE = '0x5a3ca5cd63807ce5e4d7841ab32ce6b6d9bbba2d';
 const TEST_ADDRESS_TWO = '0x202637daaefbd7f131f90338a4a6c69f6cd5ce91';
@@ -28,7 +29,6 @@ jest.mock('./accountsController', () => {
 });
 
 jest.mock('./tokensController', () => ({
-  selectTokensControllerState: jest.fn(),
   selectTokens: jest.fn(() => []),
   selectAllTokens: jest.fn(() => []),
 }));
@@ -51,6 +51,16 @@ jest.mock('./multichainAccounts/accountTreeController', () => {
 jest.mock('../core/Engine/controllers/remote-feature-flag-controller', () => ({
   isRemoteFeatureFlagOverrideActivated: false,
 }));
+
+jest.mock('../util/smart-transactions', () => {
+  const actual = jest.requireActual('../util/smart-transactions');
+  return {
+    ...actual,
+    getIsAllowedRpcUrlForSmartTransactions: jest.fn(
+      actual.getIsAllowedRpcUrlForSmartTransactions,
+    ),
+  };
+});
 
 // Default state is setup to be on mainnet, with smart transactions enabled and opted into
 const getDefaultState = () => {
@@ -137,17 +147,20 @@ describe('SmartTransactionsController Selectors', () => {
       const enabled = selectSmartTransactionsEnabled(state);
       expect(enabled).toEqual(false);
     });
-    it('returns false for hardware account address', () => {
+    it('returns true for hardware account address (sendBundle uses standard EIP-1559 signing)', () => {
       (isHardwareAccount as jest.Mock).mockReturnValueOnce(true);
       const state = getDefaultState();
       const enabled = selectSmartTransactionsEnabled(state);
-      expect(enabled).toEqual(false);
+      expect(enabled).toEqual(true);
     });
-    it('returns false on mainnet with non-default RPC', () => {
+    it('returns false when RPC URL check fails', () => {
+      jest
+        .mocked(getIsAllowedRpcUrlForSmartTransactions)
+        .mockReturnValueOnce(false);
       const state = getDefaultState();
-      state.engine.backgroundState.NetworkController.providerConfig.rpcUrl =
-        'https://example.com';
-      const enabled = selectSmartTransactionsEnabled(state);
+      // Pass explicit chainId to avoid memoized result from previous test
+      const enabled = selectSmartTransactionsEnabled(state, '0x1');
+      expect(getIsAllowedRpcUrlForSmartTransactions).toHaveBeenCalled();
       expect(enabled).toEqual(false);
     });
   });
@@ -407,6 +420,35 @@ describe('SmartTransactionsController Selectors', () => {
             isSmartTransaction: true,
           },
         ]),
+      );
+    });
+  });
+
+  describe('getGaslessBridgeWith7702EnabledForChain', () => {
+    it('returns false when flag is not set for chain', () => {
+      const state = getDefaultState();
+      expect(getGaslessBridgeWith7702EnabledForChain(state, '0x1')).toBe(false);
+    });
+
+    it('returns true when flag is true for chain', () => {
+      const state = getDefaultState();
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.smartTransactionsNetworks[
+        '0x1'
+      ].gaslessBridgeWith7702Enabled = true;
+      expect(getGaslessBridgeWith7702EnabledForChain(state, '0x1')).toBe(true);
+    });
+
+    it('returns false when smartTransactionsNetworks is undefined', () => {
+      const state = getDefaultState();
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.smartTransactionsNetworks =
+        undefined;
+      expect(getGaslessBridgeWith7702EnabledForChain(state, '0x1')).toBe(false);
+    });
+
+    it('returns false for a chain not in the config', () => {
+      const state = getDefaultState();
+      expect(getGaslessBridgeWith7702EnabledForChain(state, '0x89')).toBe(
+        false,
       );
     });
   });

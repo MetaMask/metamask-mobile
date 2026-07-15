@@ -6,7 +6,6 @@ import {
   balanceToFiat,
   balanceToFiatNumber,
   BNToHex,
-  calcTokenValueToSend,
   calculateEthFeeForMultiLayer,
   dotAndCommaDecimalFormatter,
   fastSplit,
@@ -514,16 +513,6 @@ describe('Number utils :: localizeLargeNumber', () => {
   });
 });
 
-describe('Number utils :: calcTokenValueToSend', () => {
-  it('calcTokenValueToSend', () => {
-    expect(calcTokenValueToSend(new BN4(1337), 0)).toEqual('539');
-    expect(calcTokenValueToSend(new BN4(1337), 9)).toEqual('1374b68fa00');
-    expect(calcTokenValueToSend(new BN4(1337), 18)).toEqual(
-      '487a9a304539440000',
-    );
-  });
-});
-
 describe('Number utils :: hexToBN', () => {
   it('hexToBN', () => {
     expect(hexToBN('0x539').toNumber()).toBe(1337);
@@ -690,6 +679,34 @@ describe('Number utils :: addCurrencySymbol', () => {
     expect(addCurrencySymbol(0.0001, 'usd')).toEqual('$0.00');
     expect(addCurrencySymbol(0.0001, 'usd', true)).toEqual('$0.0001');
     expect(addCurrencySymbol(0.000101, 'usd', true)).toEqual('$0.000101');
+  });
+});
+
+describe('Number utils :: addCurrencySymbol with useSubscriptNotation', () => {
+  it('formats very small USD amount with subscript notation', () => {
+    expect(addCurrencySymbol(0.00000614, 'usd', false, true)).toEqual(
+      '$0.0₅614',
+    );
+  });
+
+  it('formats very small amount for non-symbol currency', () => {
+    expect(addCurrencySymbol(0.00000614, 'xyz', false, true)).toEqual(
+      '0.0₅614 xyz',
+    );
+  });
+
+  it('falls back to normal formatting when number is not small enough', () => {
+    expect(addCurrencySymbol(0.01, 'usd', false, true)).toEqual('$0.01');
+  });
+
+  it('does not apply subscript when useSubscriptNotation is false', () => {
+    expect(addCurrencySymbol(0.00000614, 'usd', false, false)).toEqual('$0.00');
+  });
+
+  it('handles negative very small amounts with subscript notation', () => {
+    expect(addCurrencySymbol(-0.00000614, 'usd', false, true)).toEqual(
+      '-$0.0₅614',
+    );
   });
 });
 

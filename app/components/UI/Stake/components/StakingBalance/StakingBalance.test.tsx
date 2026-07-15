@@ -24,6 +24,8 @@ import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { TokenI } from '../../../Tokens/types';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 
 const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
 jest.mock('../../../Earn/hooks/useEarnings', () => ({
@@ -87,6 +89,8 @@ const MOCK_APR_VALUES: { [symbol: string]: string } = {
   USDT: '4.1',
   DAI: '5.0',
 };
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
@@ -182,6 +186,7 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
     .fn()
     .mockReturnValue(false),
+  selectMusdConversionBlockedCountries: jest.fn(() => []),
 }));
 
 afterEach(() => {
@@ -191,6 +196,7 @@ afterEach(() => {
 describe('StakingBalance', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
     mockUseStakingEligibility.mockReturnValue({
       isEligible: true,
       isLoadingEligibility: false,
@@ -247,30 +253,22 @@ describe('StakingBalance', () => {
     );
 
     // Assert: component renders
-    expect(getByTestId('staking-balance-container')).toBeDefined();
+    expect(getByTestId('staking-balance-container')).toBeOnTheScreen();
 
     // Assert: claim/unstake banners remain visible even if ineligible
-    expect(getByTestId('unstaking-banner')).toBeDefined();
-    expect(getByText(`${strings('stake.claim')} ETH`)).toBeDefined();
+    expect(getByTestId('unstaking-banner')).toBeOnTheScreen();
+    expect(getByText(`${strings('stake.claim')} ETH`)).toBeOnTheScreen();
 
     // Assert: deposit action is gated off when ineligible
     expect(queryByText(strings('stake.stake_more'))).toBeNull();
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders staking balance container', () => {
+    const { getByTestId } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       { state: mockInitialState },
     );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('should match the snapshot', () => {
-    const { toJSON } = renderWithProvider(
-      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
-      { state: mockInitialState },
-    );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId('staking-balance-container')).toBeOnTheScreen();
   });
 
   it('redirects to StakeInputView on stake button click', async () => {
@@ -338,8 +336,8 @@ describe('StakingBalance', () => {
     expect(queryByText(strings('stake.stake_more'))).toBeNull();
     expect(queryByText(strings('stake.stake_eth_and_earn'))).toBeNull();
 
-    expect(getByTestId('staking-balance-container')).toBeDefined();
-    expect(getByText(`${strings('stake.claim')} ETH`)).toBeDefined();
+    expect(getByTestId('staking-balance-container')).toBeOnTheScreen();
+    expect(getByText(`${strings('stake.claim')} ETH`)).toBeOnTheScreen();
   });
 
   it('should render claim link and action buttons if supported asset.chainId is not selected chainId', () => {
@@ -386,7 +384,7 @@ describe('StakingBalance', () => {
     expect(queryByText(strings('stake.stake_more'))).toBeNull();
     expect(queryByText(strings('stake.stake_eth_and_earn'))).toBeNull();
 
-    expect(getByTestId('staking-balance-container')).toBeDefined();
-    expect(getByText(`${strings('stake.claim')} ETH`)).toBeDefined();
+    expect(getByTestId('staking-balance-container')).toBeOnTheScreen();
+    expect(getByText(`${strings('stake.claim')} ETH`)).toBeOnTheScreen();
   });
 });

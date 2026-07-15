@@ -3,24 +3,19 @@ import { StyleSheet, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../component-library/hooks';
 import MainActionButton from '../../../../component-library/components-temp/MainActionButton';
-import { Skeleton } from '../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 import Routes from '../../../../constants/navigation/Routes';
-import { useMetrics } from '../../../hooks/useMetrics';
-import {
-  trackActionButtonClick,
-  ActionButtonType,
-  ActionLocation,
-  ActionPosition,
-} from '../../../../util/analytics/actionButtonTracking';
 import { TokenI } from '../../Tokens/types';
+import { TokenDetailsAction } from '../constants/constants';
 
 // Height of MainActionButton: paddingVertical (16 * 2) + Icon (24px) + label marginTop (2) + label lineHeight (~16)
 const SKELETON_BUTTON_HEIGHT = 74;
+const SKELETON_BUTTON_KEYS = ['buy', 'send', 'receive', 'more'];
 
 const styleSheet = () =>
   StyleSheet.create({
@@ -45,12 +40,15 @@ export interface TokenDetailsActionsProps {
   isBuyable: boolean;
   isNativeCurrency: boolean;
   token: TokenI;
-  onBuy?: () => void;
+  onBuy: () => void;
   onLong?: () => void;
   onShort?: () => void;
   onSend: () => void;
   onReceive: () => void;
   isLoading?: boolean;
+  /** Optional ref to receive a callback that resets the navigation lock. Used when Long/Short show a modal instead of navigating (e.g. geo block). */
+  resetNavigationLockRef?: React.MutableRefObject<(() => void) | null>;
+  onActionTapped?: (action: TokenDetailsAction) => void;
 }
 
 /**
@@ -59,18 +57,16 @@ export interface TokenDetailsActionsProps {
  */
 export const TokenDetailsActionsSkeleton: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
-  const skeletonCount = 4; // Maximum number of buttons to prevent layout shift
 
   return (
     <View style={styles.activitiesButton}>
-      {Array.from({ length: skeletonCount }).map((_, index) => (
-        <View key={`skeleton-${index}`} style={styles.buttonContainer}>
-          <Skeleton
-            width="100%"
-            height={SKELETON_BUTTON_HEIGHT}
-            style={styles.skeletonButton}
-          />
-        </View>
+      {SKELETON_BUTTON_KEYS.map((key) => (
+        <Skeleton
+          key={`skeleton-${key}`}
+          width="100%"
+          height={SKELETON_BUTTON_HEIGHT}
+          style={[styles.buttonContainer, styles.skeletonButton]}
+        />
       ))}
     </View>
   );
@@ -88,15 +84,29 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   onSend,
   onReceive,
   isLoading = false,
+  resetNavigationLockRef,
+  onActionTapped,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const navigation = useNavigation();
   const { navigate } = navigation;
-  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Prevent rapid navigation clicks - locks all buttons during navigation
   const navigationLockRef = useRef(false);
+
+  // Expose reset so parent can unlock when a non-navigating action ends (e.g. geo block modal dismissed)
+  const resetLock = useCallback(() => {
+    navigationLockRef.current = false;
+  }, []);
+  useEffect(() => {
+    if (resetNavigationLockRef) {
+      resetNavigationLockRef.current = resetLock;
+      return () => {
+        resetNavigationLockRef.current = null;
+      };
+    }
+  }, [resetNavigationLockRef, resetLock]);
 
   // Reset lock when screen comes into focus (handles return from navigation)
   useFocusEffect(
@@ -121,33 +131,8 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   }, []);
 
   const handleBuyPress = useCallback(() => {
-    withNavigationLock(() => {
-      trackActionButtonClick(trackEvent, createEventBuilder, {
-        action_name: ActionButtonType.BUY,
-        action_position: ActionPosition.FIRST_POSITION,
-        button_label: strings('asset_overview.cash_buy_button'),
-        location: ActionLocation.HOME,
-      });
-
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.FUND_ACTION_MENU,
-        params: {
-          onBuy,
-          asset: {
-            address: token.address,
-            chainId: token.chainId,
-          },
-        },
-      });
-    });
-  }, [
-    withNavigationLock,
-    trackEvent,
-    createEventBuilder,
-    navigate,
-    onBuy,
-    token,
-  ]);
+    withNavigationLock(onBuy);
+  }, [withNavigationLock, onBuy]);
 
   const handleLongPress = useCallback(() => {
     withNavigationLock(() => {
@@ -163,11 +148,13 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
 
   const handleSendPress = useCallback(() => {
     withNavigationLock(onSend);
-  }, [withNavigationLock, onSend]);
+    onActionTapped?.(TokenDetailsAction.Send);
+  }, [withNavigationLock, onSend, onActionTapped]);
 
   const handleReceivePress = useCallback(() => {
     withNavigationLock(onReceive);
-  }, [withNavigationLock, onReceive]);
+    onActionTapped?.(TokenDetailsAction.Receive);
+  }, [withNavigationLock, onReceive, onActionTapped]);
 
   const handleMorePress = useCallback(() => {
     withNavigationLock(() => {
@@ -181,9 +168,11 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
           asset: token,
           onBuy,
           onReceive,
+          onActionTapped,
         },
       });
     });
+    onActionTapped?.(TokenDetailsAction.MoreOpened);
   }, [
     withNavigationLock,
     navigate,
@@ -194,123 +183,105 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     token,
     onBuy,
     onReceive,
+    onActionTapped,
   ]);
 
   // Determine which buttons to display based on perps market and balance
   // IF no perps market:
-  //   IF buyable: ["Cash Buy", "Send", "Receive", "More"]
-  //   IF not buyable: ["Send", "Receive", "More"]
-  // IF has perps market:
+  //   IF buyable:
+  //     IF has balance: ["Cash Buy", "Send", "Receive", "More"]
+  //     IF no balance: ["Cash Buy", "Receive", "More"]
+  //   IF not buyable:
+  //     IF has balance: ["Send", "Receive", "More"]
+  //     IF no balance: ["Receive", "More"]
+  // IF has perps market and geolocation is in a region that supports perps:
   //   IF has balance: ["Long", "Short", "Send", "More"]
   //   IF no balance: ["Long", "Short", "Receive", "More"]
   const buttons = useMemo(() => {
-    if (!hasPerpsMarket) {
-      const noPerpsButtons = [];
+    const actionButtons = [];
 
-      if (isBuyable) {
-        noPerpsButtons.push({
-          key: 'buy',
-          iconName: IconName.AttachMoney,
-          label: strings('asset_overview.cash_buy_button'),
-          onPress: handleBuyPress,
-          isDisabled: !onBuy,
-          testID: TokenOverviewSelectorsIDs.BUY_BUTTON,
-        });
-      }
-
-      noPerpsButtons.push(
+    if (hasPerpsMarket) {
+      actionButtons.push(
         {
+          key: 'long',
+          iconName: IconName.TrendUp,
+          label: strings('asset_overview.long_button'),
+          onPress: handleLongPress,
+          isDisabled: !onLong,
+          testID: TokenOverviewSelectorsIDs.LONG_BUTTON,
+        },
+        {
+          key: 'short',
+          iconName: IconName.TrendDown,
+          label: strings('asset_overview.short_button'),
+          onPress: handleShortPress,
+          isDisabled: !onShort,
+          testID: TokenOverviewSelectorsIDs.SHORT_BUTTON,
+        },
+      );
+
+      if (hasBalance) {
+        actionButtons.push({
           key: 'send',
           iconName: IconName.Send,
           label: strings('asset_overview.send_button'),
           onPress: handleSendPress,
           isDisabled: !canSignTransactions,
           testID: TokenOverviewSelectorsIDs.SEND_BUTTON,
-        },
-        {
+        });
+      } else {
+        actionButtons.push({
           key: 'receive',
           iconName: IconName.QrCode,
           label: strings('asset_overview.receive_button'),
           onPress: handleReceivePress,
           isDisabled: false,
           testID: TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
-        },
-        {
-          key: 'more',
-          iconName: IconName.MoreHorizontal,
-          label: strings('asset_overview.more_button'),
-          onPress: handleMorePress,
+        });
+      }
+    } else {
+      if (isBuyable) {
+        actionButtons.push({
+          key: 'buy',
+          iconName: IconName.AttachMoney,
+          label: strings('asset_overview.cash_buy_button'),
+          onPress: handleBuyPress,
           isDisabled: false,
-          testID: TokenOverviewSelectorsIDs.MORE_BUTTON,
-        },
-      );
+          testID: TokenOverviewSelectorsIDs.BUY_BUTTON,
+        });
+      }
 
-      return noPerpsButtons;
-    }
-
-    // Has perps market
-    const baseButtons = [
-      {
-        key: 'long',
-        iconName: IconName.TrendUp,
-        label: strings('asset_overview.long_button'),
-        onPress: handleLongPress,
-        isDisabled: !onLong,
-        testID: TokenOverviewSelectorsIDs.LONG_BUTTON,
-      },
-      {
-        key: 'short',
-        iconName: IconName.TrendDown,
-        label: strings('asset_overview.short_button'),
-        onPress: handleShortPress,
-        isDisabled: !onShort,
-        testID: TokenOverviewSelectorsIDs.SHORT_BUTTON,
-      },
-    ];
-
-    if (hasBalance) {
-      // ["Long", "Short", "Send", "More"]
-      return [
-        ...baseButtons,
-        {
+      if (hasBalance) {
+        actionButtons.push({
           key: 'send',
           iconName: IconName.Send,
           label: strings('asset_overview.send_button'),
           onPress: handleSendPress,
           isDisabled: !canSignTransactions,
           testID: TokenOverviewSelectorsIDs.SEND_BUTTON,
-        },
-        {
-          key: 'more',
-          iconName: IconName.MoreHorizontal,
-          label: strings('asset_overview.more_button'),
-          onPress: handleMorePress,
-          isDisabled: false,
-          testID: TokenOverviewSelectorsIDs.MORE_BUTTON,
-        },
-      ];
-    }
+        });
+      }
 
-    // No balance: ["Long", "Short", "Receive", "More"]
-    return [
-      ...baseButtons,
-      {
+      actionButtons.push({
         key: 'receive',
         iconName: IconName.QrCode,
         label: strings('asset_overview.receive_button'),
         onPress: handleReceivePress,
         isDisabled: false,
         testID: TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
-      },
-      {
-        key: 'more',
-        iconName: IconName.MoreHorizontal,
-        label: strings('asset_overview.more_button'),
-        onPress: handleMorePress,
-        isDisabled: false,
-        testID: TokenOverviewSelectorsIDs.MORE_BUTTON,
-      },
-    ];
+      });
+    }
+
+    actionButtons.push({
+      key: 'more',
+      iconName: IconName.MoreHorizontal,
+      label: strings('asset_overview.more_button'),
+      onPress: handleMorePress,
+      isDisabled: false,
+      testID: TokenOverviewSelectorsIDs.MORE_BUTTON,
+    });
+
+    return actionButtons;
   }, [
     hasPerpsMarket,
     hasBalance,
@@ -322,7 +293,6 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     handleReceivePress,
     handleMorePress,
     canSignTransactions,
-    onBuy,
     onLong,
     onShort,
   ]);
@@ -334,15 +304,15 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   return (
     <View style={styles.activitiesButton}>
       {buttons.map((button) => (
-        <View key={button.key} style={styles.buttonContainer}>
-          <MainActionButton
-            iconName={button.iconName}
-            label={button.label}
-            onPress={button.onPress}
-            isDisabled={button.isDisabled}
-            testID={button.testID}
-          />
-        </View>
+        <MainActionButton
+          key={button.key}
+          iconName={button.iconName}
+          label={button.label}
+          onPress={button.onPress}
+          isDisabled={button.isDisabled}
+          testID={button.testID}
+          containerStyle={styles.buttonContainer}
+        />
       ))}
     </View>
   );

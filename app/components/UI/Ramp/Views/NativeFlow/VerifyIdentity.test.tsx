@@ -1,0 +1,141 @@
+import React from 'react';
+import { render, fireEvent } from '@testing-library/react-native';
+import { useDispatch } from 'react-redux';
+import V2VerifyIdentity from './VerifyIdentity';
+import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import { Linking } from 'react-native';
+import { setHasAgreedTransakNativePolicy } from '../../../../../reducers/fiatOrders';
+import { VerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const mockedUseDispatch = useDispatch as jest.MockedFunction<
+  typeof useDispatch
+>;
+
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    goBack: mockGoBack,
+  }),
+  useRoute: () => ({
+    params: {},
+  }),
+}));
+
+jest.mock('./EnterEmail', () => ({
+  createV2EnterEmailNavDetails: (params: unknown) => ['RampEnterEmail', params],
+}));
+
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string) => key,
+  I18nEvents: { addListener: jest.fn() },
+}));
+
+jest.mock('../../hooks/useRampsUserRegion', () => ({
+  useRampsUserRegion: () => ({
+    userRegion: {
+      country: { isoCode: 'US', currency: 'USD' },
+      regionCode: 'us-ca',
+    },
+  }),
+}));
+
+jest.mock('../../constants/transak', () => ({
+  TRANSAK_TERMS_URL_US: 'https://transak.com/terms-us',
+  TRANSAK_TERMS_URL_WORLD: 'https://transak.com/terms-world',
+  CONSENSYS_PRIVACY_POLICY_URL: 'https://consensys.io/privacy-policy',
+  TRANSAK_URL: 'https://transak.com',
+}));
+
+jest.mock('../../assets/verifyIdentityIllustration.png', () => 'mock-image');
+
+const mockTrackEvent = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: () => ({
+      addProperties: (props: object) => ({ build: () => ({ ...props }) }),
+    }),
+  }),
+}));
+
+const renderWithTheme = (component: React.ReactElement) =>
+  render(
+    <ThemeContext.Provider value={mockTheme}>
+      {component}
+    </ThemeContext.Provider>,
+  );
+
+describe('V2VerifyIdentity', () => {
+  let innerDispatch: jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    innerDispatch = jest.fn();
+    mockedUseDispatch.mockReturnValue(innerDispatch);
+  });
+
+  it('calls navigation.goBack when header back is pressed', () => {
+    const { getByTestId } = renderWithTheme(<V2VerifyIdentity />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('dispatches Transak native policy agreement and navigates to Enter Email on continue', () => {
+    const { getByTestId } = renderWithTheme(<V2VerifyIdentity />);
+
+    fireEvent.press(getByTestId(VerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
+
+    expect(innerDispatch).toHaveBeenCalledWith(
+      setHasAgreedTransakNativePolicy(true),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RampEnterEmail',
+      expect.objectContaining({
+        amount: undefined,
+        currency: undefined,
+        assetId: undefined,
+      }),
+    );
+  });
+
+  it('opens Transak URL when Transak link is pressed', () => {
+    const spy = jest.spyOn(Linking, 'openURL');
+    const { getByText } = renderWithTheme(<V2VerifyIdentity />);
+
+    fireEvent.press(getByText('deposit.verify_identity.description_2_transak'));
+
+    expect(spy).toHaveBeenCalledWith('https://transak.com');
+  });
+
+  it('opens privacy policy URL when privacy link is pressed', () => {
+    const spy = jest.spyOn(Linking, 'openURL');
+    const { getByTestId } = renderWithTheme(<V2VerifyIdentity />);
+
+    fireEvent.press(getByTestId('privacy-policy-link-1'));
+
+    expect(spy).toHaveBeenCalledWith('https://consensys.io/privacy-policy');
+  });
+
+  it('opens US terms URL for US region', () => {
+    const spy = jest.spyOn(Linking, 'openURL');
+    const { getByText } = renderWithTheme(<V2VerifyIdentity />);
+
+    fireEvent.press(
+      getByText('deposit.verify_identity.agreement_text_transak_terms'),
+    );
+
+    expect(spy).toHaveBeenCalledWith('https://transak.com/terms-us');
+  });
+});

@@ -1,9 +1,9 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { StyleSheet, ScrollView } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Icon, {
   IconName,
   IconSize,
@@ -18,7 +18,6 @@ import Cell, {
 import { strings } from '../../../../../../locales/i18n';
 import { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { CaipChainId } from '@metamask/utils';
-import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 
 export enum NetworkOption {
   AllNetworks = 'all',
@@ -29,6 +28,10 @@ export interface TrendingTokenNetworkBottomSheetProps {
   onClose: () => void;
   onNetworkSelect?: (chainIds: CaipChainId[] | null) => void;
   selectedNetwork?: CaipChainId[] | null;
+  /** Networks to display in the bottom sheet */
+  networks: ProcessedNetwork[];
+  /** When true, the "All networks" option is hidden */
+  hideAllNetworks?: boolean;
 }
 
 const TrendingTokenNetworkBottomSheet: React.FC<
@@ -38,9 +41,10 @@ const TrendingTokenNetworkBottomSheet: React.FC<
   onClose,
   onNetworkSelect,
   selectedNetwork: initialSelectedNetwork,
+  networks,
+  hideAllNetworks = false,
 }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const networks = TRENDING_NETWORKS_LIST;
 
   // Default to "All networks" if no selection
   const [selectedNetwork, setSelectedNetwork] = useState<
@@ -53,13 +57,6 @@ const TrendingTokenNetworkBottomSheet: React.FC<
       setSelectedNetwork(initialSelectedNetwork);
     }
   }, [initialSelectedNetwork]);
-
-  // Open bottom sheet when isVisible becomes true
-  useEffect(() => {
-    if (isVisible) {
-      sheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isVisible]);
 
   const optionStyles = StyleSheet.create({
     optionsList: {
@@ -118,27 +115,29 @@ const TrendingTokenNetworkBottomSheet: React.FC<
       onClose={handleSheetClose}
       testID="trending-token-network-bottom-sheet"
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('trending.networks')}
         onClose={handleClose}
         closeButtonProps={{ testID: 'close-button' }}
       />
       <ScrollView style={optionStyles.optionsList}>
-        <Cell
-          variant={CellVariant.Select}
-          title={strings('trending.all_networks')}
-          isSelected={isAllNetworksSelected}
-          onPress={() => onNetworkOptionPress(NetworkOption.AllNetworks)}
-          avatarProps={{
-            variant: AvatarVariant.Icon,
-            name: IconName.Global,
-            size: AvatarSize.Sm,
-          }}
-        >
-          {isAllNetworksSelected && (
-            <Icon name={IconName.Check} size={IconSize.Md} />
-          )}
-        </Cell>
+        {!hideAllNetworks && (
+          <Cell
+            variant={CellVariant.Select}
+            title={strings('trending.all_networks')}
+            isSelected={isAllNetworksSelected}
+            onPress={() => onNetworkOptionPress(NetworkOption.AllNetworks)}
+            avatarProps={{
+              variant: AvatarVariant.Icon,
+              name: IconName.Global,
+              size: AvatarSize.Sm,
+            }}
+          >
+            {isAllNetworksSelected && (
+              <Icon name={IconName.Check} size={IconSize.Md} />
+            )}
+          </Cell>
+        )}
         {networks.map((network) => {
           const isSelected = isNetworkSelected(network);
           return (

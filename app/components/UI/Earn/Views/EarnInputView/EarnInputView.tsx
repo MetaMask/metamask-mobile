@@ -42,10 +42,10 @@ import { selectContractExchangeRatesByChainId } from '../../../../../selectors/t
 import { getDecimalChainId } from '../../../../../util/networks';
 import { addTransactionBatch } from '../../../../../util/transaction-controller';
 import Keypad from '../../../../Base/Keypad';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useStyles } from '../../../../hooks/useStyles';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
-import { IconName } from '@metamask/design-system-react-native';
+import { HeaderStandard, IconName } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
@@ -126,7 +126,7 @@ const EarnInputView = () => {
 
   // other hooks
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const { getEarnToken } = useEarnTokens();
 
@@ -240,6 +240,21 @@ const EarnInputView = () => {
   }, []);
 
   useEndTraceOnMount(TraceName.EarnDepositScreen);
+
+  // Debounced fee computation that reacts to amount/resourceType changes from any input method.
+  // resourceType is captured implicitly via tronValidateStakeAmount's dependency on it.
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  useEffect(() => {
+    if (!isTronEnabled || !isNonZeroAmount) return undefined;
+
+    // Debounce the fee computation to avoid unnecessary re-renders and API calls.
+    const timer = setTimeout(() => {
+      tronValidateStakeAmount?.(amountToken);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [amountToken, isTronEnabled, isNonZeroAmount, tronValidateStakeAmount]);
+  ///: END:ONLY_INCLUDE_IF
 
   const navigateToLearnMoreModal = useCallback(() => {
     const tokenExperience = earnToken?.experience?.type;
@@ -458,6 +473,7 @@ const EarnInputView = () => {
         from: (selectedAccount?.address as Hex) || '0x',
         networkClientId,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         transactions: [approveTx, lendingDepositTx],
         requireApproval: true,
       });
@@ -793,20 +809,8 @@ const EarnInputView = () => {
   const handleKeypadChangeWithValidation = useCallback(
     (data: { value: string; valueAsNumber: number; pressedKey: string }) => {
       handleKeypadChange(data);
-      ///: BEGIN:ONLY_INCLUDE_IF(tron)
-      if (isTronEnabled && !isFiat) {
-        tronValidateStakeAmount?.(data.value);
-      }
-      ///: END:ONLY_INCLUDE_IF
     },
-    [
-      handleKeypadChange,
-      ///: BEGIN:ONLY_INCLUDE_IF(tron)
-      isTronEnabled,
-      isFiat,
-      tronValidateStakeAmount,
-      ///: END:ONLY_INCLUDE_IF
-    ],
+    [handleKeypadChange],
   );
 
   const getButtonLabel = () => {
@@ -896,12 +900,6 @@ const EarnInputView = () => {
     earnToken?.experience.apr,
     navigateToLearnMoreModal,
   ]);
-
-  useEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
 
   const headerTitle = useMemo(() => {
     const isLending =
@@ -1001,7 +999,7 @@ const EarnInputView = () => {
 
   return (
     <ScreenLayout style={styles.container}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={headerTitle}
         onBack={handleBackPress}
         endButtonIconProps={

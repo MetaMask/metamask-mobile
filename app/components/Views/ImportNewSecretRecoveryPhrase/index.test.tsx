@@ -11,8 +11,9 @@ import {
 } from '../../../selectors/keyringController/testUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import useMetrics from '../../hooks/useMetrics/useMetrics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import type { UseAnalyticsHook } from '../../hooks/useAnalytics/useAnalytics.types';
 import {
   ImportNewSecretRecoveryPhraseOptions,
   ImportNewSecretRecoveryPhraseReturnType,
@@ -38,11 +39,14 @@ jest.mock('react-native-keyboard-controller', () => {
 });
 
 // Mock Keyboard to prevent Jest environment teardown errors
-jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
-  dismiss: jest.fn(),
-  addListener: jest.fn(() => ({ remove: jest.fn() })),
-  removeListener: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
+  const keyboard = {
+    dismiss: jest.fn(),
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    removeListener: jest.fn(),
+  };
+  return { __esModule: true, default: keyboard, ...keyboard };
+});
 
 jest.mock('react-native', () => {
   const actualRN = jest.requireActual('react-native');
@@ -61,7 +65,6 @@ const mockSetOptions = jest.fn();
 const mockImportNewSecretRecoveryPhrase = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCheckIsSeedlessPasswordOutdated = jest.fn();
-const mockIsMultichainAccountsState2Enabled = jest.fn().mockReturnValue(true);
 const mockShowToast = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -97,14 +100,8 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
   getString: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMetrics/useMetrics', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-
-jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
-  isMultichainAccountsState2Enabled: () =>
-    mockIsMultichainAccountsState2Enabled(),
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('react', () => ({
@@ -147,14 +144,6 @@ const initialState = {
   },
 };
 
-// Mock the feature flag selector to return true
-jest.mock(
-  '../../../selectors/featureFlagController/importSrpWordSuggestion',
-  () => ({
-    selectImportSrpWordSuggestionEnabledFlag: () => true,
-  }),
-);
-
 describe('ImportNewSecretRecoveryPhrase', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -162,7 +151,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsMultichainAccountsState2Enabled.mockReturnValue(false);
     mockGetString.mockResolvedValue('');
 
     (useContext as jest.Mock).mockImplementation((context) => {
@@ -200,10 +188,10 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       },
     );
 
-    (useMetrics as jest.Mock).mockReturnValue({
+    jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
-    });
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+    } as unknown as UseAnalyticsHook);
 
     mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
 
@@ -257,7 +245,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await waitFor(() => {
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
+      expect(importButton).toBeEnabled();
     });
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -293,7 +281,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await waitFor(() => {
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
+      expect(importButton).toBeEnabled();
     });
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -320,7 +308,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     );
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-    expect(importButton.props.disabled).toBe(true);
+    expect(importButton).toBeDisabled();
   });
 
   it('disables import button when SRP length is invalid', async () => {
@@ -339,7 +327,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     });
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-    expect(importButton.props.disabled).toBe(true);
+    expect(importButton).toBeDisabled();
   });
 
   it('shows clear button after pasting SRP', async () => {
@@ -416,7 +404,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await waitFor(() => {
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
+      expect(importButton).toBeEnabled();
     });
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -433,7 +421,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     );
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
       )
         .addProperties({
@@ -441,48 +429,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
         })
         .build(),
     );
-  });
-
-  it('tracks IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED event when multichain state 2 is enabled', async () => {
-    mockIsMultichainAccountsState2Enabled.mockReturnValue(true);
-    mockGetString.mockResolvedValue(valid24WordMnemonic);
-
-    const { getByTestId, getByText } = renderScreen(
-      ImportNewSecretRecoveryPhrase,
-      { name: 'ImportNewSecretRecoveryPhrase' },
-      {
-        state: initialState,
-      },
-    );
-
-    const pasteButton = getByText(messages.import_from_seed.paste);
-
-    await act(async () => {
-      await fireEvent.press(pasteButton);
-    });
-
-    await waitFor(() => {
-      const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
-    });
-
-    const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-
-    await act(async () => {
-      await fireEvent.press(importButton);
-    });
-
-    await waitFor(() => {
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
-        )
-          .addProperties({
-            number_of_solana_accounts_discovered: 3,
-          })
-          .build(),
-      );
-    });
   });
 
   it('displays success toast after successful SRP import', async () => {
@@ -504,7 +450,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
     await waitFor(() => {
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(false);
+      expect(importButton).toBeEnabled();
     });
 
     const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -615,7 +561,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-        expect(importButton.props.disabled).toBe(false);
+        expect(importButton).toBeEnabled();
       });
 
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -658,7 +604,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-        expect(importButton.props.disabled).toBe(false);
+        expect(importButton).toBeEnabled();
       });
 
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -699,7 +645,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-        expect(importButton.props.disabled).toBe(false);
+        expect(importButton).toBeEnabled();
       });
 
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -740,7 +686,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-        expect(importButton.props.disabled).toBe(false);
+        expect(importButton).toBeEnabled();
       });
 
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
@@ -814,7 +760,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       });
 
       const importButton = getByTestId(ImportSRPIDs.IMPORT_BUTTON);
-      expect(importButton.props.disabled).toBe(true);
+      expect(importButton).toBeDisabled();
     });
 
     it('handles empty string in textarea', async () => {

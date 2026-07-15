@@ -7,7 +7,8 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
+import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+import { settlePerpsForegroundOnSpan } from '../utils/perpsLifecycleContext';
 
 // Static helper functions - moved outside component to avoid recreation
 const allTrue = (conditionArray: boolean[]): boolean =>
@@ -15,6 +16,8 @@ const allTrue = (conditionArray: boolean[]): boolean =>
 
 const anyTrue = (conditionArray: boolean[]): boolean =>
   conditionArray.some(Boolean);
+
+type MeasurementValue = string | number | boolean;
 
 interface MeasurementOptions {
   traceName: TraceName;
@@ -29,6 +32,16 @@ interface MeasurementOptions {
   resetConditions?: boolean[];
 
   debugContext?: Record<string, unknown>;
+
+  // Filterable Sentry tags applied at span start (e.g. feature:perps,
+  // lifecycle_context). Unlike debugContext (span attributes), these are
+  // queryable as tags in Discover/dashboards.
+  tags?: Record<string, MeasurementValue>;
+
+  // Span attributes set at span END, for values only known once the flow
+  // completes (e.g. the empty/position/order variant, which depends on loaded
+  // data). Queryable in the Sentry spans dataset.
+  endData?: Record<string, MeasurementValue>;
 }
 
 /**
@@ -80,6 +93,8 @@ export const usePerpsMeasurement = ({
   endConditions,
   resetConditions,
   debugContext = {},
+  tags,
+  endData,
 }: MeasurementOptions) => {
   const hasCompleted = useRef(false);
   const previousStartState = useRef(false);
@@ -173,6 +188,7 @@ export const usePerpsMeasurement = ({
         op,
         id: traceId.current,
         data: debugContext as Record<string, string | number | boolean>,
+        ...(tags ? { tags } : {}),
       });
       traceStarted.current = true;
     }
@@ -200,11 +216,16 @@ export const usePerpsMeasurement = ({
       endTrace({
         name: traceName,
         id: traceId.current,
-        data: { success: true },
+        data: { success: true, ...endData },
       });
       traceStarted.current = false;
 
       hasCompleted.current = true;
+
+      // If this span is a Perps entry-surface render, settle the foreground so
+      // later in-session flows read as `warm` — covers every entry path (Home,
+      // deeplink, homepage card) with no per-view opt-in.
+      settlePerpsForegroundOnSpan(traceName);
     }
 
     // Update previous states for edge detection
@@ -217,6 +238,8 @@ export const usePerpsMeasurement = ({
     shouldEnd,
     shouldReset,
     debugContext,
+    tags,
+    endData,
     actualStartConditions,
     actualEndConditions,
   ]);

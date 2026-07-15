@@ -61,23 +61,15 @@ export function toggleBasicFunctionality(basicFunctionalityEnabled) {
     // First dispatch the Redux state update
     dispatch(setBasicFunctionality(basicFunctionalityEnabled));
 
-    // Only call MultichainAccountService if State 2 (BIP-44 multichain accounts) is enabled
-    // to prevent unwanted account alignment from running
-    const {
-      isMultichainAccountsState2Enabled,
-    } = require('../../multichain-accounts/remote-feature-flag');
-    if (isMultichainAccountsState2Enabled()) {
-      // Call MultichainAccountService to update provider states and trigger alignment
-      const Engine = require('../../core/Engine').default;
-      Engine.context.MultichainAccountService.setBasicFunctionality(
-        basicFunctionalityEnabled,
-      ).catch((error) => {
-        console.error(
-          'Failed to set basic functionality on MultichainAccountService:',
-          error,
-        );
-      });
-    }
+    const Engine = require('../../core/Engine').default;
+    Engine.context.MultichainAccountService.setBasicFunctionality(
+      basicFunctionalityEnabled,
+    ).catch((error) => {
+      console.error(
+        'Failed to set basic functionality on MultichainAccountService:',
+        error,
+      );
+    });
   };
 }
 
@@ -99,6 +91,13 @@ export function setDeepLinkModalDisabled(deepLinkModalDisabled) {
   return {
     type: 'SET_DEEP_LINK_MODAL_DISABLED',
     deepLinkModalDisabled,
+  };
+}
+
+export function setHapticsEnabled(hapticsEnabled) {
+  return {
+    type: 'SET_HAPTICS_ENABLED',
+    hapticsEnabled,
   };
 }
 

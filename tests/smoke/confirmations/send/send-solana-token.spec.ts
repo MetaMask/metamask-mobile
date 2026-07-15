@@ -1,32 +1,12 @@
-import SendView from '../../../../e2e/pages/Send/RedesignedSendView';
-import SolanaTestDApp from '../../../../e2e/pages/Browser/SolanaTestDApp';
-import TokenOverview from '../../../../e2e/pages/wallet/TokenOverview';
-import WalletView from '../../../../e2e/pages/wallet/WalletView';
-import { SmokeConfirmations } from '../../../../e2e/tags';
-import { loginToApp } from '../../../../e2e/viewHelper';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+/* eslint-disable jest/no-disabled-tests -- E2E skipped; covered by component view tests */
 
-const RECIPIENT = '4Nd1mZyJY5ZqzR3n8bQF7h5L2Q9gY1yTtM6nQhc7P1Dp';
+import { SmokeConfirmations } from '../../../tags';
 
 describe(SmokeConfirmations('Send SOL token'), () => {
-  it('should send solana to an address', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-        await device.disableSynchronization();
-        await WalletView.tapOnToken('Solana');
-        await TokenOverview.tapSendButton();
-        await SendView.enterZeroAmount();
-        await SendView.pressContinueButton();
-        await SendView.inputRecipientAddress(RECIPIENT);
-        await SendView.pressReviewButton();
-        await SolanaTestDApp.tapCancelButton();
-      },
-    );
+  // Moved to cv tests (send.non-evm.view.test.tsx)
+
+  it.skip('should send solana to an address', async () => {
+    // TODO: Update the test so if does a full e2e (define what should do). Keep this test to have something tested on e2e.
+    // https://consensyssoftware.atlassian.net/browse/MMQA-1792
   });
 });

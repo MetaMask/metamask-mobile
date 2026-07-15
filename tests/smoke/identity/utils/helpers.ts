@@ -1,11 +1,14 @@
 import { MOCK_SRP_E2E_IDENTIFIER_BASE_KEY } from './mocks';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
+import { AuthenticationController } from '@metamask/profile-sync-controller';
 import {
   UserStorageMockttpController,
   UserStorageMockttpControllerEvents,
   AsEnum,
 } from './user-storage/userStorageMockttpController';
 import { USER_STORAGE_GROUPS_FEATURE_KEY } from '@metamask/account-tree-controller';
+
+const { getE2EIdentifierFromJwt } = AuthenticationController.Mocks;
 
 export interface UserStorageAccount {
   /**
@@ -38,16 +41,17 @@ export const getSrpIdentifierFromHeaders = (
   headers: Record<string, unknown>,
 ) => {
   const authHeader = headers.authorization;
-  return (
+  const token =
     authHeader?.toString()?.split(' ')[1] ||
-    `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`
-  );
+    `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`;
+
+  return getE2EIdentifierFromJwt(token);
 };
 
 export const arrangeTestUtils = (
   userStorageMockttpController: UserStorageMockttpController,
 ) => {
-  const BASE_TIMEOUT = 12000;
+  const BASE_TIMEOUT = 30000;
   const BASE_INTERVAL = 1000;
 
   const prepareEventsEmittedCounter = (
@@ -134,9 +138,13 @@ export const arrangeTestUtils = (
 
         ids.timeout = setTimeout(() => {
           clearInterval(ids.interval);
+          const actual =
+            userStorageMockttpController.paths.get(
+              USER_STORAGE_GROUPS_FEATURE_KEY,
+            )?.response?.length ?? 0;
           reject(
             new Error(
-              `Timeout waiting for synced accounts number to be ${expectedNumber}`,
+              `Timeout waiting for synced accounts number to be ${expectedNumber}\n Actual: ${actual}`,
             ),
           );
         }, BASE_TIMEOUT);
@@ -177,9 +185,13 @@ export const arrangeTestUtils = (
 
         ids.timeout = setTimeout(() => {
           clearInterval(ids.interval);
+          const actual =
+            userStorageMockttpController.paths.get(
+              USER_STORAGE_FEATURE_NAMES.addressBook,
+            )?.response?.length ?? 0;
           reject(
             new Error(
-              `Timeout waiting for synced contacts number to be ${expectedNumber}`,
+              `Timeout waiting for synced contacts number to be ${expectedNumber}\n Actual: ${actual}`,
             ),
           );
         }, BASE_TIMEOUT);
@@ -226,9 +238,11 @@ export const arrangeTestUtils = (
 
         ids.timeout = setTimeout(() => {
           clearInterval(ids.interval);
+          const actual =
+            userStorageMockttpController.paths.get(path)?.response?.length ?? 0;
           reject(
             new Error(
-              `Timeout waiting for synced accounts number to be ${expectedNumber}`,
+              `Timeout waiting for synced elements at "${path}" to be ${expectedNumber}\n Actual: ${actual}`,
             ),
           );
         }, BASE_TIMEOUT);

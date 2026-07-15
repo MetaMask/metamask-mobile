@@ -1,18 +1,17 @@
 import React from 'react';
 import { View } from 'react-native';
 import Checkbox from '../../../../component-library/components/Checkbox/Checkbox';
-import Icon, {
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../component-library/components/Icons/Icon';
-import Text, {
+  Text,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import createStyles from './styles';
 import { useTheme } from '../../../../util/theme';
 interface ModalContentProps {
@@ -59,10 +58,10 @@ const ModalContent = ({
         size={iconSize}
         style={styles.icon}
       />
-      <Text variant={TextVariant.HeadingMD} style={styles.title}>
+      <Text variant={TextVariant.HeadingMd} style={styles.title}>
         {title}
       </Text>
-      <Text variant={TextVariant.BodyMD} style={styles.description}>
+      <Text variant={TextVariant.BodyMd} style={styles.description}>
         {message}
       </Text>
       <View style={styles.bottom}>
@@ -75,27 +74,29 @@ const ModalContent = ({
         )}
         <View style={styles.buttonsContainer}>
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
             style={styles.button}
             accessibilityRole={'button'}
             accessible
-            label={btnLabelCancel}
             onPress={handleCancel}
-          />
+          >
+            {btnLabelCancel}
+          </Button>
           <View style={styles.spacer} />
           <Button
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             isDisabled={hascheckBox ? !isChecked : false}
             isDanger={hascheckBox ?? false}
             size={ButtonSize.Lg}
             style={styles.button}
             accessibilityRole={'button'}
             accessible
-            label={btnLabelCta}
             onPress={handleCta}
-            loading={loading}
-          />
+            isLoading={loading}
+          >
+            {btnLabelCta}
+          </Button>
         </View>
       </View>
     </View>

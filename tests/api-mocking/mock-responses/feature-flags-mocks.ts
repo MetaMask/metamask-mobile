@@ -109,6 +109,19 @@ export const remoteFeatureMultichainAccountsAccountDetailsV2 = (
   },
 });
 
+/**
+ * Disables the full-screen Predict / Polymarket GTM onboarding shown after reaching wallet home.
+ * Production remote-flag defaults enable this; `selectPredictGtmOnboardingModalEnabledFlag` prefers
+ * the remote value over `MM_PREDICT_GTM_MODAL_ENABLED`, so E2E tests should merge this into
+ * {@link setupRemoteFeatureFlagsMock} when the modal would block flows.
+ */
+export const remoteFeaturePredictGtmOnboardingModalDisabled = () => ({
+  predictGtmOnboardingModalEnabled: {
+    enabled: false,
+    minimumVersion: '7.60.0',
+  },
+});
+
 export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
   predictEnabled: enabled,
   predictTradingEnabled: {
@@ -121,16 +134,32 @@ export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
   },
 });
 
+export const remoteFeatureFlagHomepageSectionsV1Enabled = (enabled = true) => ({
+  homepageSectionsV1: {
+    enabled,
+    minimumVersion: '0.0.0',
+  },
+});
+
 export const remoteFeatureFlagTrendingTokensEnabled = (enabled = true) => ({
   trendingTokens: enabled,
 });
 
-export const remoteFeatureFlagExtensionUxPna25 = (enabled = true) => ({
-  extensionUxPna25: enabled,
-});
-
 export const remoteFeatureFlagTronAccounts = (enabled = true) => ({
   tronAccounts: {
+    enabled,
+    minimumVersion: '0.0.0',
+  },
+});
+
+/**
+ * Enables the Market Insights (AI social market analysis) feature on asset details.
+ * Uses minimumVersion '0.0.0' so debug/test builds always pass the version gate.
+ * Selector: selectMarketInsightsEnabled (featureFlagController/marketInsights/index.ts)
+ * Flag key: aiSocialMarketAnalysisEnabled
+ */
+export const remoteFeatureFlagMarketInsightsEnabled = (enabled = true) => ({
+  aiSocialMarketAnalysisEnabled: {
     enabled,
     minimumVersion: '0.0.0',
   },

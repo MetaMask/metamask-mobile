@@ -4,20 +4,23 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens } from '../../util/metrics';
 import WaitingKYCImage from '../../../../../images/waiting-kyc-card.png';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { colors as importedColors } from '../../../../../styles/common';
 
 // Threshold for small screen adjustments
@@ -30,7 +33,7 @@ const SMALL_SCREEN_THRESHOLD = 700;
 const KYCPending = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   // Responsive image dimensions based on current window dimensions
@@ -63,7 +66,7 @@ const KYCPending = () => {
         <Box twClassName="px-4 py-2 items-start">
           <ButtonIcon
             iconName={IconName.ArrowLeft}
-            size={ButtonIconSizes.Lg}
+            size={ButtonIconSizes.Md}
             iconColor={importedColors.white}
             onPress={navigateToHome}
             testID="kyc-pending-back-button"
@@ -114,13 +117,14 @@ const KYCPending = () => {
               {strings('card.card_onboarding.kyc_pending.footer_text')}
             </Text>
             <Button
-              variant={ButtonVariants.Primary}
-              label={strings('card.card_onboarding.kyc_pending.got_it_button')}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
               onPress={navigateToHome}
-              width={ButtonWidthTypes.Full}
+              isFullWidth
               testID="kyc-pending-got-it-button"
-            />
+            >
+              {strings('card.card_onboarding.kyc_pending.got_it_button')}
+            </Button>
           </Box>
         </SafeAreaView>
       </Box>

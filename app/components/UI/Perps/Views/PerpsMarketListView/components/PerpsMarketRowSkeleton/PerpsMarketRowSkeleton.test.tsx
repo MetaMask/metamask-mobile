@@ -2,20 +2,23 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import PerpsMarketRowSkeleton from './PerpsMarketRowSkeleton';
 
-jest.mock('../../../../../../../component-library/components/Skeleton', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    Skeleton: ({
-      testID,
-      ...props
-    }: {
-      testID?: string;
-      width?: number;
-      height?: number;
-      style?: object;
-    }) => <View testID={testID} {...props} />,
-  };
-});
+jest.mock(
+  '../../../../../../../component-library/components-temp/Skeleton',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      Skeleton: ({
+        testID,
+        ...props
+      }: {
+        testID?: string;
+        width?: number;
+        height?: number;
+        style?: object;
+      }) => <View testID={testID} {...props} />,
+    };
+  },
+);
 
 describe('PerpsMarketRowSkeleton', () => {
   it('renders without crashing with testID', () => {

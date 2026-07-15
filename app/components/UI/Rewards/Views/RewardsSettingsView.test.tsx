@@ -1,14 +1,17 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { configureStore } from '@reduxjs/toolkit';
-import RewardsSettingsView from './RewardsSettingsView';
+import RewardsSettingsView, {
+  REWARDS_SETTINGS_SAFE_AREA_TEST_ID,
+} from './RewardsSettingsView';
+import type { OffDeviceAccount } from '../hooks/useLinkedOffDeviceAccounts';
 
 // Mock navigation
 const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 const mockUseRoute = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -17,86 +20,44 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
-      setOptions: mockSetOptions,
+      goBack: mockGoBack,
     }),
     useRoute: () => mockUseRoute(),
   };
 });
 
-// Mock theme
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      primary: '#000',
-      background: '#fff',
-    },
-  }),
-}));
-
-// Mock getNavigationOptionsTitle
-jest.mock('../../Navbar', () => ({
-  getNavigationOptionsTitle: jest.fn(() => ({ title: 'Settings' })),
-}));
-
-// Mock design system components
-jest.mock('@metamask/design-system-react-native', () => {
-  const { View, Text } = jest.requireActual('react-native');
+// Mock react-native-safe-area-context (override SafeAreaView only; keep SafeAreaProvider etc. for stack)
+// Mock useTailwind hook
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const twFn = () => ({});
+  twFn.style = (styles: unknown) => (typeof styles === 'string' ? {} : styles);
+  twFn.color = () => 'black';
   return {
-    Box: function MockBox({
-      children,
-      testID,
-      twClassName,
-      ...props
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-      twClassName?: string;
-      [key: string]: unknown;
-    }) {
-      const ReactActual = jest.requireActual('react');
-      return ReactActual.createElement(View, { testID, ...props }, children);
-    },
-    Text: function MockText({
-      children,
-      variant,
-      twClassName,
-      ...props
-    }: {
-      children?: React.ReactNode;
-      variant?: string;
-      twClassName?: string;
-      [key: string]: unknown;
-    }) {
-      const ReactActual = jest.requireActual('react');
-      return ReactActual.createElement(Text, { ...props }, children);
-    },
-    TextVariant: {
-      HeadingMd: 'HeadingMd',
-      HeadingSm: 'HeadingSm',
-      BodyMd: 'BodyMd',
-      BodySm: 'BodySm',
-    },
+    useTailwind: () => twFn,
   };
 });
 
-// Mock useTailwind hook
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn((styles) => (typeof styles === 'string' ? {} : styles)),
-  }),
-}));
-
-// Mock RewardSettingsAccountGroupList component
+// Mock RewardSettingsAccountGroupList component — exposes onRequestOptOut via a pressable
 jest.mock('../components/Settings/RewardSettingsAccountGroupList', () => {
-  const { View, Text } = jest.requireActual('react-native');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: function MockRewardSettingsAccountGroupList() {
+    default: function MockRewardSettingsAccountGroupList({
+      onRequestOptOut,
+    }: {
+      onRequestOptOut?: () => void;
+    }) {
       const ReactActual = jest.requireActual('react');
       return ReactActual.createElement(
         View,
         { testID: 'reward-settings-account-group-list' },
         ReactActual.createElement(Text, null, 'Account Group List'),
+        onRequestOptOut
+          ? ReactActual.createElement(TouchableOpacity, {
+              testID: 'trigger-opt-out',
+              onPress: onRequestOptOut,
+            })
+          : null,
       );
     },
   };
@@ -124,25 +85,113 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
   },
 }));
 
-// Mock useMetrics hook
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      build: jest.fn(),
-    })),
-  }),
-  MetaMetricsEvents: {
-    REWARDS_SETTINGS_VIEWED: 'REWARDS_SETTINGS_VIEWED',
-  },
-}));
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockUseAnalyticsHook,
+  createMockEventBuilder,
+} from '../../../../util/test/analyticsMock';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 // Mock selectors
 jest.mock('../../../../selectors/rewards', () => ({}));
 
+// Mock useLinkedOffDeviceAccounts hook
+const mockUseLinkedOffDeviceAccounts = jest.fn<OffDeviceAccount[], []>(
+  () => [],
+);
+jest.mock('../hooks/useLinkedOffDeviceAccounts', () => ({
+  useLinkedOffDeviceAccounts: () => mockUseLinkedOffDeviceAccounts(),
+}));
+
+// Mock RewardsInfoBanner — pressable element that calls onConfirm
+jest.mock('../components/RewardsInfoBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      onConfirm,
+      testID,
+    }: {
+      onConfirm?: () => void;
+      testID?: string;
+      [key: string]: unknown;
+    }) =>
+      ReactActual.createElement(TouchableOpacity, {
+        testID: testID ?? 'rewards-info-banner',
+        onPress: onConfirm,
+      }),
+  };
+});
+
+// Mock OptOutConfirmationSheet — exposes confirm and close buttons for interaction tests
+const mockOptout = jest.fn();
+jest.mock('../hooks/useOptout', () => ({
+  useOptout: () => ({
+    optout: mockOptout,
+    isLoading: false,
+  }),
+}));
+
+jest.mock('../components/Settings/OptOutConfirmationSheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      onConfirm,
+      onClose,
+      errorMessage,
+    }: {
+      onConfirm?: () => void;
+      onClose?: () => void;
+      isLoading?: boolean;
+      errorMessage?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'opt-out-confirmation-sheet' },
+        ReactActual.createElement(TouchableOpacity, {
+          testID: 'opt-out-confirm-button',
+          onPress: onConfirm,
+        }),
+        ReactActual.createElement(TouchableOpacity, {
+          testID: 'opt-out-close-button',
+          onPress: onClose,
+        }),
+        errorMessage
+          ? ReactActual.createElement(View, { testID: 'opt-out-error-banner' })
+          : null,
+      ),
+  };
+});
+
+// Mock LinkedOffDeviceAccountsSheet — renders with a close button for interaction tests
+jest.mock('../components/Settings/LinkedOffDeviceAccountsSheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ onClose }: { accounts?: unknown[]; onClose?: () => void }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'linked-off-device-accounts-sheet' },
+        ReactActual.createElement(TouchableOpacity, {
+          testID: 'close-sheet-button',
+          onPress: onClose,
+        }),
+      ),
+  };
+});
+
 describe('RewardsSettingsView', () => {
   let store: ReturnType<typeof configureStore>;
-  const Stack = createStackNavigator();
+  const Stack = createNativeStackNavigator();
 
   // Helper function to create mock store
   const createMockStore = () =>
@@ -179,12 +228,22 @@ describe('RewardsSettingsView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOptout.mockResolvedValue(true);
     store = createMockStore();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
     // Set default mock return values
     mockUseRoute.mockReturnValue({
       params: {},
     });
+
+    // Default: no off-device accounts
+    mockUseLinkedOffDeviceAccounts.mockReturnValue([]);
   });
 
   const renderWithNavigation = (component: React.ReactElement) =>
@@ -208,15 +267,28 @@ describe('RewardsSettingsView', () => {
         getByTestId('reward-settings-account-group-list'),
       ).toBeOnTheScreen();
     });
+  });
 
-    it('sets navigation options on mount', async () => {
-      // Act
-      renderWithNavigation(<RewardsSettingsView />);
+  describe('header and SafeAreaView', () => {
+    it('renders SafeAreaView wrapper', () => {
+      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
 
-      // Assert
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
+      expect(getByTestId(REWARDS_SETTINGS_SAFE_AREA_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('renders HeaderStandard with settings title', () => {
+      const { getByText } = renderWithNavigation(<RewardsSettingsView />);
+
+      expect(getByText('Settings')).toBeOnTheScreen();
+    });
+
+    it('calls navigation.goBack when back button is pressed', () => {
+      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
+      const backButton = getByTestId('header-back-button');
+
+      fireEvent.press(backButton);
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -260,12 +332,207 @@ describe('RewardsSettingsView', () => {
 
   describe('Metrics tracking', () => {
     it('tracks settings viewed event on mount', () => {
-      // Act
       renderWithNavigation(<RewardsSettingsView />);
 
-      // Assert - Metrics tracking is handled by the component internally
-      // The component should render without errors and track the event
-      expect(true).toBe(true); // Placeholder assertion since we can't easily test the internal tracking
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_SETTINGS_VIEWED,
+      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_PAGE_VIEWED,
+      );
+    });
+  });
+
+  describe('Off-device accounts banner', () => {
+    it('does not render the banner when there are no off-device accounts', () => {
+      // Arrange
+      mockUseLinkedOffDeviceAccounts.mockReturnValue([]);
+
+      // Act
+      const { queryByTestId } = renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(queryByTestId('rewards-info-banner')).toBeNull();
+    });
+
+    it('renders the banner when off-device accounts exist', () => {
+      // Arrange
+      mockUseLinkedOffDeviceAccounts.mockReturnValue([
+        {
+          caip10: 'eip155:1:0x1234567890123456789012345678901234567890',
+          caipChainId: 'eip155:1',
+          address: '0x1234567890123456789012345678901234567890',
+        },
+      ]);
+
+      // Act
+      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(getByTestId('rewards-info-banner')).toBeOnTheScreen();
+    });
+
+    it('renders the banner for multiple off-device accounts', () => {
+      // Arrange
+      mockUseLinkedOffDeviceAccounts.mockReturnValue([
+        {
+          caip10: 'eip155:1:0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+          caipChainId: 'eip155:1',
+          address: '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+        },
+        {
+          caip10: 'eip155:1:0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+          caipChainId: 'eip155:1',
+          address: '0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+        },
+      ]);
+
+      // Act
+      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(getByTestId('rewards-info-banner')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Off-device accounts sheet', () => {
+    const singleOffDeviceAccount = [
+      {
+        caip10: 'eip155:1:0x1234567890123456789012345678901234567890',
+        caipChainId: 'eip155:1',
+        address: '0x1234567890123456789012345678901234567890',
+      },
+    ];
+
+    it('does not render the sheet on initial mount', () => {
+      // Arrange
+      mockUseLinkedOffDeviceAccounts.mockReturnValue(singleOffDeviceAccount);
+
+      // Act
+      const { queryByTestId } = renderWithNavigation(<RewardsSettingsView />);
+
+      // Assert
+      expect(queryByTestId('linked-off-device-accounts-sheet')).toBeNull();
+    });
+
+    it('opens the sheet when the banner confirm button is pressed', () => {
+      // Arrange
+      mockUseLinkedOffDeviceAccounts.mockReturnValue(singleOffDeviceAccount);
+
+      // Act
+      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
+      fireEvent.press(getByTestId('rewards-info-banner'));
+
+      // Assert
+      expect(getByTestId('linked-off-device-accounts-sheet')).toBeOnTheScreen();
+    });
+
+    it('closes the sheet when onClose is called', () => {
+      // Arrange
+      mockUseLinkedOffDeviceAccounts.mockReturnValue(singleOffDeviceAccount);
+      const { getByTestId, queryByTestId } = renderWithNavigation(
+        <RewardsSettingsView />,
+      );
+
+      // Open the sheet
+      fireEvent.press(getByTestId('rewards-info-banner'));
+      expect(getByTestId('linked-off-device-accounts-sheet')).toBeOnTheScreen();
+
+      // Act — close via the sheet's onClose callback
+      fireEvent.press(getByTestId('close-sheet-button'));
+
+      // Assert
+      expect(queryByTestId('linked-off-device-accounts-sheet')).toBeNull();
+    });
+
+    it('can reopen the sheet after closing', () => {
+      // Arrange
+      mockUseLinkedOffDeviceAccounts.mockReturnValue(singleOffDeviceAccount);
+      const { getByTestId, queryByTestId } = renderWithNavigation(
+        <RewardsSettingsView />,
+      );
+
+      // Open → close → reopen
+      fireEvent.press(getByTestId('rewards-info-banner'));
+      fireEvent.press(getByTestId('close-sheet-button'));
+      expect(queryByTestId('linked-off-device-accounts-sheet')).toBeNull();
+
+      fireEvent.press(getByTestId('rewards-info-banner'));
+      expect(getByTestId('linked-off-device-accounts-sheet')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Opt-out sheet', () => {
+    it('does not render the opt-out sheet on initial mount', () => {
+      const { queryByTestId } = renderWithNavigation(<RewardsSettingsView />);
+      expect(queryByTestId('opt-out-confirmation-sheet')).toBeNull();
+    });
+
+    it('opens the opt-out sheet when onRequestOptOut is triggered', () => {
+      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
+      fireEvent.press(getByTestId('trigger-opt-out'));
+      expect(getByTestId('opt-out-confirmation-sheet')).toBeOnTheScreen();
+    });
+
+    it('closes the opt-out sheet when onClose is called', () => {
+      const { getByTestId, queryByTestId } = renderWithNavigation(
+        <RewardsSettingsView />,
+      );
+      fireEvent.press(getByTestId('trigger-opt-out'));
+      expect(getByTestId('opt-out-confirmation-sheet')).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId('opt-out-close-button'));
+      expect(queryByTestId('opt-out-confirmation-sheet')).toBeNull();
+    });
+
+    it('closes the sheet after a successful opt-out', async () => {
+      mockOptout.mockResolvedValueOnce(true);
+      const { getByTestId, queryByTestId } = renderWithNavigation(
+        <RewardsSettingsView />,
+      );
+      fireEvent.press(getByTestId('trigger-opt-out'));
+
+      await act(async () => {
+        fireEvent.press(getByTestId('opt-out-confirm-button'));
+      });
+
+      expect(mockOptout).toHaveBeenCalledTimes(1);
+      expect(queryByTestId('opt-out-confirmation-sheet')).toBeNull();
+    });
+
+    it('keeps the sheet open and shows error when opt-out fails', async () => {
+      mockOptout.mockResolvedValueOnce(false);
+      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
+      fireEvent.press(getByTestId('trigger-opt-out'));
+
+      await act(async () => {
+        fireEvent.press(getByTestId('opt-out-confirm-button'));
+      });
+
+      expect(mockOptout).toHaveBeenCalledTimes(1);
+      expect(getByTestId('opt-out-confirmation-sheet')).toBeOnTheScreen();
+      expect(getByTestId('opt-out-error-banner')).toBeOnTheScreen();
+    });
+
+    it('clears the error message when the sheet is closed and reopened', async () => {
+      mockOptout.mockResolvedValueOnce(false);
+      const { getByTestId, queryByTestId } = renderWithNavigation(
+        <RewardsSettingsView />,
+      );
+
+      // Trigger failure to set error
+      fireEvent.press(getByTestId('trigger-opt-out'));
+      await act(async () => {
+        fireEvent.press(getByTestId('opt-out-confirm-button'));
+      });
+      expect(getByTestId('opt-out-error-banner')).toBeOnTheScreen();
+
+      // Close and reopen
+      fireEvent.press(getByTestId('opt-out-close-button'));
+      fireEvent.press(getByTestId('trigger-opt-out'));
+
+      expect(queryByTestId('opt-out-error-banner')).toBeNull();
     });
   });
 });

@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 /**
  * Metro configuration for React Native
  * https://github.com/facebook/react-native
@@ -10,9 +10,9 @@ const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
 const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
 
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const { parseArgs } = require('node:util');
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const os = require('node:os');
 
 const parsedArgs = parseArgs({
@@ -26,13 +26,26 @@ const parsedArgs = parseArgs({
 });
 
 const getPolyfills = () => [
-  // eslint-disable-next-line import/no-extraneous-dependencies
+  // eslint-disable-next-line import-x/no-extraneous-dependencies
   ...require('@react-native/js-polyfills')(),
   require.resolve('reflect-metadata'),
+  // Expo's `expo/fetch` (used by @metamask/bridge-controller for SSE
+  // `getQuoteStream`) constructs a `ReadableStream` for the response
+  // body. Hermes does not ship `ReadableStream`, and Expo expects Metro
+  // to inject one as a global (see
+  // node_modules/expo/src/winter/runtime.native.ts L17-18:
+  //   "// ReadableStream is injected by Metro as a global").
+  // The official `expo/metro-config` defaults wire this in
+  // automatically; because we bootstrap from `@react-native/js-polyfills`
+  // we have to opt in explicitly. Without this, `expo/fetch` rejects
+  // every request with `ReferenceError: Property 'ReadableStream'
+  // doesn't exist`, breaking bridge SSE quotes silently on iOS Hermes
+  // (and every other expo/fetch consumer).
+  require.resolve('expo/virtual/streams'),
 ];
 
 // We should replace path for react-native-fs
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const path = require('path');
 const {
   wrapWithReanimatedMetroConfig,
@@ -43,9 +56,23 @@ module.exports = function (baseConfig) {
   const {
     resolver: { assetExts, sourceExts },
   } = defaultConfig;
-  const isE2E =
-    process.env.IS_TEST === 'true' ||
-    process.env.METAMASK_ENVIRONMENT === 'e2e';
+  // IS_PERFORMANCE_TEST opts out of E2E startup overhead (ReadOnlyNetworkStore,
+  // command polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so
+  // the build still works on feature branches with e2e signing/secrets.
+  const isPerformanceTest = process.env.IS_PERFORMANCE_TEST === 'true';
+  const hasTestOverrides =
+    !isPerformanceTest && process.env.HAS_TEST_OVERRIDES === 'true';
+
+  /**
+   * E2E Metro redirects under tests/module-mocking.
+   * Enables both: seedless-onboarding-controller + OAuthLoginHandlers mocks.
+   * True when HAS_TEST_OVERRIDES OR E2E_MOCK_OAUTH.
+   * Performance builds set E2E_MOCK_OAUTH=true to keep this mock active
+   * even though hasTestOverrides is false (preventing real OAuth calls to production).
+   */
+  const isE2EMockOAuth = process.env.E2E_MOCK_OAUTH === 'true';
+
+  const e2eAllowsSeedlessOAuthMetroMocks = hasTestOverrides || isE2EMockOAuth;
 
   // For less powerful machines, leave room to do other tasks. For instance,
   // if you have 10 cores but only 16GB, only 3 workers would get used.
@@ -67,6 +94,7 @@ module.exports = function (baseConfig) {
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {
       resolver: {
+        unstable_enablePackageExports: true,
         assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
         sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
         resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
@@ -84,6 +112,7 @@ module.exports = function (baseConfig) {
           https: require.resolve('https-browserify'),
           vm: require.resolve('vm-browserify'),
           os: require.resolve('react-native-os'),
+          zlib: require.resolve('browserify-zlib'),
           net: require.resolve('react-native-tcp-socket'),
           fs: require.resolve('react-native-level-fs'),
           images: path.resolve(__dirname, 'app/images'),
@@ -93,29 +122,127 @@ module.exports = function (baseConfig) {
           buffer: '@craftzdog/react-native-buffer',
           'node:buffer': '@craftzdog/react-native-buffer',
         },
-        resolveRequest: isE2E
-          ? (context, moduleName, platform) => {
-              if (moduleName === '@sentry/react-native') {
-                return {
-                  type: 'sourceFile',
-                  filePath: path.resolve(
-                    __dirname,
-                    'tests/module-mocking/sentry/react-native.ts',
-                  ),
-                };
-              }
-              if (moduleName === '@sentry/core') {
-                return {
-                  type: 'sourceFile',
-                  filePath: path.resolve(
-                    __dirname,
-                    'tests/module-mocking/sentry/core.ts',
-                  ),
-                };
-              }
-              return context.resolveRequest(context, moduleName, platform);
+        resolveRequest: (context, moduleName, platform) => {
+          // MYXProvider is intentionally excluded from @metamask/perps-controller's
+          // published dist (extension-only). The dynamic import() uses webpackIgnore
+          // but babel's dynamicImportToRequire rewrites it to require(), causing Metro
+          // to resolve it statically. Return an empty module stub.
+          if (
+            moduleName === './providers/MYXProvider' &&
+            context.originModulePath?.includes('@metamask/perps-controller')
+          ) {
+            return { type: 'empty' };
+          }
+          // @metamask/perps-controller@9.2.1's CJS build (standaloneInfoClient.cjs,
+          // HyperLiquidClientService.cjs) contains a leftover absolute file:// require
+          // from the package's own CI build machine instead of `@nktkas/hyperliquid`
+          // (the ESM build correctly imports `@nktkas/hyperliquid`, confirming this is
+          // a CJS-transpile bug in the published package). Redirect to the real package
+          // until upstream ships a patched release.
+          if (
+            moduleName ===
+              'file:///home/runner/work/hyperliquid/hyperliquid/src/mod.ts' &&
+            context.originModulePath?.includes('@metamask/perps-controller')
+          ) {
+            return context.resolveRequest(
+              context,
+              '@nktkas/hyperliquid',
+              platform,
+            );
+          }
+          // @ledgerhq packages use exports field subpath mapping (e.g. ./signers/index -> ./lib/signers/index.js)
+          // which doesn't work with unstable_enablePackageExports: false — manually replicate the lib/ mapping
+          // Affected: domain-service, evm-tools, devices, cryptoassets-evm-signatures
+          const ledgerhqSubpathMatch = moduleName.match(
+            /^(@ledgerhq\/[^/]+)\/(.+)$/,
+          );
+          if (ledgerhqSubpathMatch) {
+            const [, pkgName, subpath] = ledgerhqSubpathMatch;
+            try {
+              return {
+                filePath: require.resolve(`${pkgName}/lib/${subpath}`),
+                type: 'sourceFile',
+              };
+            } catch {
+              // fall through to default resolution if lib/ mapping doesn't exist
             }
-          : defaultConfig.resolver.resolveRequest,
+          }
+          // Use axios browser build so Node-only deps (e.g. http2) are never pulled in
+          if (
+            moduleName === 'axios' ||
+            moduleName.includes('axios/dist/node/')
+          ) {
+            return {
+              filePath: require.resolve('axios/dist/browser/axios.cjs'),
+              type: 'sourceFile',
+            };
+          }
+          // Use contentful browser build so Node-only built-ins (tty, zlib, etc.) are never pulled in
+          if (moduleName === 'contentful') {
+            return {
+              filePath: require.resolve(
+                'contentful/dist/contentful.browser.js',
+              ),
+              type: 'sourceFile',
+            };
+          }
+          if (hasTestOverrides) {
+            if (moduleName === '@sentry/react-native') {
+              return {
+                type: 'sourceFile',
+                filePath: path.resolve(
+                  __dirname,
+                  'tests/module-mocking/sentry/react-native.ts',
+                ),
+              };
+            }
+            if (moduleName === '@sentry/core') {
+              return {
+                type: 'sourceFile',
+                filePath: path.resolve(
+                  __dirname,
+                  'tests/module-mocking/sentry/core.ts',
+                ),
+              };
+            }
+          }
+          if (e2eAllowsSeedlessOAuthMetroMocks) {
+            if (
+              moduleName.endsWith(
+                'controllers/seedless-onboarding-controller',
+              ) ||
+              moduleName.endsWith(
+                'controllers/seedless-onboarding-controller/index',
+              ) ||
+              moduleName === './seedless-onboarding-controller' ||
+              moduleName === '../seedless-onboarding-controller'
+            ) {
+              return {
+                type: 'sourceFile',
+                filePath: path.resolve(
+                  __dirname,
+                  'tests/module-mocking/seedless/index.ts',
+                ),
+              };
+            }
+            // Skips native Google/Apple UI; tokens still hit auth server (see module mock).
+            if (
+              moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||
+              moduleName.endsWith('OAuthService/OAuthLoginHandlers/index') ||
+              moduleName === './OAuthLoginHandlers' ||
+              moduleName === '../OAuthLoginHandlers'
+            ) {
+              return {
+                type: 'sourceFile',
+                filePath: path.resolve(
+                  __dirname,
+                  'tests/module-mocking/oauth/OAuthLoginHandlers/index.ts',
+                ),
+              };
+            }
+          }
+          return context.resolveRequest(context, moduleName, platform);
+        },
       },
       transformer: {
         babelTransformerPath: require.resolve('./metro.transform.js'),
@@ -143,7 +270,7 @@ module.exports = function (baseConfig) {
           getPolyfills,
         },
       ),
-      resetCache: true,
+      resetCache: process.env.METRO_RESET_CACHE !== 'false',
       maxWorkers,
     }),
   );

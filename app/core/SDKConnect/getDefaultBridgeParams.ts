@@ -1,14 +1,13 @@
 import { ImageSourcePropType } from 'react-native';
 import AppConstants from '../AppConstants';
 import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
+import { TransportType } from '../../components/hooks/useAnalytics/useAnalytics.types';
 import { DappClient } from './dapp-sdk-types';
 
 const getDefaultBridgeParams = (clientInfo: DappClient) => ({
   getApprovedHosts: (host: string) => ({
     [host]: true,
   }),
-  remoteConnHost:
-    clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
   getRpcMethodMiddleware: ({
     getProviderState,
   }: {
@@ -34,20 +33,16 @@ const getDefaultBridgeParams = (clientInfo: DappClient) => ({
       icon: {
         current: clientInfo.originatorInfo?.icon as ImageSourcePropType, // TODO: Need to change the type at the @metamask/sdk-communication-layer from string to ImageSourcePropType
       },
-      // Bookmarks
-      isHomepage: () => false,
-      // Show autocomplete
-      fromHomepage: { current: false },
       tabId: '',
       isWalletConnect: false,
       analytics: {
         isRemoteConn: true,
+        transport: TransportType.SOCKET_RELAY,
         platform:
           clientInfo.originatorInfo.platform ??
           AppConstants.MM_SDK.UNKNOWN_PARAM,
+        remote_session_id: clientInfo.originatorInfo?.anonId ?? '',
       },
-      toggleUrlModal: () => null,
-      injectHomePageScripts: () => null,
     }),
   isMainFrame: true,
   isWalletConnect: false,

@@ -1,16 +1,23 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '../../../../util/theme/models';
+import type { Theme } from '@metamask/design-tokens';
 
-const createStyles = (colors: Colors) =>
+const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
-      paddingHorizontal: 16,
-      paddingTop: 8,
+      flex: 1,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingHorizontal: 0,
+      paddingTop: 16,
       paddingBottom: 48,
     },
     heading: {
-      marginBottom: 24,
+      marginBottom: 16,
     },
     desc: {
       marginTop: 8,
@@ -35,13 +42,13 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
     },
     setting: {
-      marginTop: 32,
+      marginTop: 24,
     },
     firstSetting: {
       marginTop: 0,
     },
     halfSetting: {
-      marginTop: 16,
+      marginTop: 24,
     },
     modalView: {
       alignItems: 'center',
@@ -66,6 +73,7 @@ const createStyles = (colors: Colors) =>
     },
     inner: {
       paddingBottom: 112,
+      paddingHorizontal: 16,
     },
     picker: {
       borderColor: colors.border.default,
@@ -81,9 +89,13 @@ const createStyles = (colors: Colors) =>
     switch: {
       alignSelf: 'flex-start',
     },
-    cellBorder: { borderWidth: 0 },
     subHeading: {
-      marginTop: 32,
+      marginTop: 40,
+      marginHorizontal: -16,
+      paddingHorizontal: 16,
+      borderTopWidth: 1,
+      borderTopColor: colors.border.muted,
+      paddingTop: 36,
     },
   });
 

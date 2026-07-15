@@ -3,7 +3,11 @@ import {
   SOLANA_SIGNUP_NOT_SUPPORTED,
   convertInternalAccountToCaipAccountId,
   deriveAccountMetricProps,
+  getActiveRouteNameFromNavigationState,
+  exitRewardsFlow,
+  navigateToRewardsRoute,
 } from './utils';
+import Routes from '../../../constants/navigation/Routes';
 import { parseCaipChainId, toCaipAccountId } from '@metamask/utils';
 import Logger from '../../../util/Logger';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -200,6 +204,100 @@ describe('Rewards Utils', () => {
           '1',
           mockAccount.address,
         );
+      });
+    });
+  });
+
+  describe('getActiveRouteNameFromNavigationState', () => {
+    it('returns the active route name from a nested navigation state', () => {
+      const routeName = getActiveRouteNameFromNavigationState({
+        index: 1,
+        routes: [
+          { name: 'Wallet' },
+          {
+            name: 'RewardsTab',
+            state: {
+              index: 1,
+              routes: [
+                { name: 'RewardsDashboard' },
+                { name: 'RewardsCampaignsView' },
+              ],
+            },
+          },
+        ],
+      });
+
+      expect(routeName).toBe('RewardsCampaignsView');
+    });
+
+    it('falls back to the route name when there is no nested state', () => {
+      const routeName = getActiveRouteNameFromNavigationState({
+        index: 0,
+        routes: [{ name: 'RewardsDashboard' }],
+      });
+
+      expect(routeName).toBe('RewardsDashboard');
+    });
+
+    it('returns undefined when the navigation state has no active route', () => {
+      const routeName = getActiveRouteNameFromNavigationState({
+        index: 2,
+        routes: [{ name: 'RewardsDashboard' }],
+      });
+
+      expect(routeName).toBeUndefined();
+    });
+  });
+
+  describe('navigateToRewardsRoute', () => {
+    it('navigates into the rewards flow with the target screen and params', () => {
+      const mockNavigate = jest.fn();
+
+      navigateToRewardsRoute(
+        { navigate: mockNavigate },
+        'RewardsSettingsView',
+        {
+          foo: 'bar',
+        },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: 'RewardsSettingsView',
+        params: { foo: 'bar' },
+      });
+    });
+  });
+
+  describe('exitRewardsFlow', () => {
+    it('goes back when the flow can be popped from the root stack', () => {
+      const mockGoBack = jest.fn();
+      const mockNavigate = jest.fn();
+      const navigation = {
+        canGoBack: () => true,
+        goBack: mockGoBack,
+        navigate: mockNavigate,
+      };
+
+      exitRewardsFlow(navigation as never);
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('navigates to the rewards tab when there is no back route', () => {
+      const mockGoBack = jest.fn();
+      const mockNavigate = jest.fn();
+      const navigation = {
+        canGoBack: () => false,
+        goBack: mockGoBack,
+        navigate: mockNavigate,
+      };
+
+      exitRewardsFlow(navigation as never);
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.REWARDS_VIEW,
       });
     });
   });

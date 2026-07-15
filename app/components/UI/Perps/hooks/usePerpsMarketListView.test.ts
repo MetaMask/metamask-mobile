@@ -4,17 +4,19 @@ import { usePerpsMarketListView } from './usePerpsMarketListView';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import type { PerpsMarketData } from '../controllers/types';
 import {
+  PERPS_CONSTANTS,
   sortMarkets,
+  type PerpsMarketData,
+  type MarketTypeFilter,
   type SortField,
   type SortDirection,
-} from '../utils/sortMarkets';
+} from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 
 // Mock sortMarkets utility
-jest.mock('../utils/sortMarkets', () => ({
+jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
   sortMarkets: jest.fn(({ markets }) => markets),
 }));
 
@@ -53,6 +55,7 @@ const createMockMarket = (symbol: string, volume: string): PerpsMarketData => ({
   change24h: '+2.5%',
   change24hPercent: '2.5',
   volume,
+  openInterest: '$500M',
   isHip3: false, // Default to crypto (non-HIP3)
   isNewMarket: false,
 });
@@ -85,7 +88,10 @@ describe('usePerpsMarketListView', () => {
     // Default mock implementations
     // Mock usePerpsMarkets to filter markets based on showZeroVolume parameter
     mockUsePerpsMarkets.mockImplementation(
-      (options?: { showZeroVolume?: boolean }) => {
+      (options?: {
+        showZeroVolume?: boolean;
+        showZeroOpenInterest?: boolean;
+      }) => {
         const shouldFilter = !options?.showZeroVolume; // Default is false (filter out zero volume)
         const filteredMarkets = shouldFilter
           ? mockMarketsWithValidVolume
@@ -106,9 +112,6 @@ describe('usePerpsMarketListView', () => {
     mockUsePerpsSearch.mockReturnValue({
       searchQuery: '',
       setSearchQuery: jest.fn(),
-      isSearchVisible: false,
-      setIsSearchVisible: jest.fn(),
-      toggleSearchVisibility: jest.fn(),
       filteredMarkets: mockMarketsWithValidVolume, // Already filtered by volume
       clearSearch: jest.fn(),
     });
@@ -147,25 +150,11 @@ describe('usePerpsMarketListView', () => {
       expect(result.current.favoritesState).toBeDefined();
     });
 
-    it('respects defaultSearchVisible parameter', () => {
-      mockUsePerpsSearch.mockReturnValue({
-        searchQuery: '',
-        setSearchQuery: jest.fn(),
-        isSearchVisible: true,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
-        filteredMarkets: mockMarketsWithValidVolume,
-        clearSearch: jest.fn(),
-      });
+    it('passes markets to usePerpsSearch', () => {
+      renderHook(() => usePerpsMarketListView());
 
-      const { result } = renderHook(() =>
-        usePerpsMarketListView({ defaultSearchVisible: true }),
-      );
-
-      expect(result.current.searchState.isSearchVisible).toBe(true);
       expect(mockUsePerpsSearch).toHaveBeenCalledWith({
         markets: expect.any(Array),
-        initialSearchVisible: true,
       });
     });
 
@@ -183,6 +172,7 @@ describe('usePerpsMarketListView', () => {
       expect(mockUsePerpsMarkets).toHaveBeenCalledWith({
         enablePolling: true,
         showZeroVolume: false,
+        showZeroOpenInterest: false,
       });
     });
   });
@@ -195,6 +185,7 @@ describe('usePerpsMarketListView', () => {
       expect(mockUsePerpsMarkets).toHaveBeenCalledWith(
         expect.objectContaining({
           showZeroVolume: false,
+          showZeroOpenInterest: false,
         }),
       );
     });
@@ -206,6 +197,23 @@ describe('usePerpsMarketListView', () => {
       expect(mockUsePerpsMarkets).toHaveBeenCalledWith(
         expect.objectContaining({
           showZeroVolume: true,
+          showZeroOpenInterest: true,
+        }),
+      );
+    });
+
+    it('passes showZeroOpenInterest independently when provided', () => {
+      renderHook(() =>
+        usePerpsMarketListView({
+          showZeroVolume: false,
+          showZeroOpenInterest: true,
+        }),
+      );
+
+      expect(mockUsePerpsMarkets).toHaveBeenCalledWith(
+        expect.objectContaining({
+          showZeroVolume: false,
+          showZeroOpenInterest: true,
         }),
       );
     });
@@ -267,9 +275,6 @@ describe('usePerpsMarketListView', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: '',
         setSearchQuery: jest.fn(),
-        isSearchVisible: false,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: [],
         clearSearch: jest.fn(),
       });
@@ -285,9 +290,6 @@ describe('usePerpsMarketListView', () => {
       const mockSearchState = {
         searchQuery: 'BTC',
         setSearchQuery: jest.fn(),
-        isSearchVisible: true,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: [mockMarketsWithValidVolume[0]],
         clearSearch: jest.fn(),
       };
@@ -297,12 +299,8 @@ describe('usePerpsMarketListView', () => {
       const { result } = renderHook(() => usePerpsMarketListView());
 
       expect(result.current.searchState.searchQuery).toBe('BTC');
-      expect(result.current.searchState.isSearchVisible).toBe(true);
       expect(result.current.searchState.setSearchQuery).toBe(
         mockSearchState.setSearchQuery,
-      );
-      expect(result.current.searchState.toggleSearchVisibility).toBe(
-        mockSearchState.toggleSearchVisibility,
       );
       expect(result.current.searchState.clearSearch).toBe(
         mockSearchState.clearSearch,
@@ -327,6 +325,91 @@ describe('usePerpsMarketListView', () => {
 
       expect(mockUsePerpsSorting).toHaveBeenCalledWith({
         initialOptionId: 'priceChange',
+        initialDirection: 'asc',
+      });
+    });
+
+    it('defaultSortOptionId overrides the saved sort option and resets direction to default', () => {
+      let selectorCallCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        selectorCallCount++;
+        if (selectorCallCount % 2 === 1) {
+          return ['BTC'];
+        }
+        // Saved preference is volume/asc — user had it sorted ascending
+        return { optionId: 'volume', direction: 'asc' };
+      });
+
+      renderHook(() =>
+        usePerpsMarketListView({ defaultSortOptionId: 'priceChange' }),
+      );
+
+      // Option overridden → direction must reset to default (desc), not carry 'asc'
+      expect(mockUsePerpsSorting).toHaveBeenCalledWith({
+        initialOptionId: 'priceChange',
+        initialDirection: 'desc',
+      });
+    });
+
+    it('defaultSortDirection overrides saved direction when provided', () => {
+      let selectorCallCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        selectorCallCount++;
+        if (selectorCallCount % 2 === 1) {
+          return ['BTC'];
+        }
+        return { optionId: 'priceChange', direction: 'desc' };
+      });
+
+      renderHook(() =>
+        usePerpsMarketListView({
+          defaultSortOptionId: 'priceChange',
+          defaultSortDirection: 'asc',
+        }),
+      );
+
+      expect(mockUsePerpsSorting).toHaveBeenCalledWith({
+        initialOptionId: 'priceChange',
+        initialDirection: 'asc',
+      });
+    });
+
+    it('preserves saved direction when defaultSortOptionId matches the saved option', () => {
+      let selectorCallCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        selectorCallCount++;
+        if (selectorCallCount % 2 === 1) {
+          return ['BTC'];
+        }
+        // Saved preference is priceChange/asc
+        return { optionId: 'priceChange', direction: 'asc' };
+      });
+
+      renderHook(() =>
+        usePerpsMarketListView({ defaultSortOptionId: 'priceChange' }),
+      );
+
+      // Same option — carry the saved direction, don't reset
+      expect(mockUsePerpsSorting).toHaveBeenCalledWith({
+        initialOptionId: 'priceChange',
+        initialDirection: 'asc',
+      });
+    });
+
+    it('falls back to saved sort preference when defaultSortOptionId is not provided', () => {
+      let selectorCallCount = 0;
+      mockUseSelector.mockImplementation(() => {
+        selectorCallCount++;
+        if (selectorCallCount % 2 === 1) {
+          return ['BTC'];
+        }
+        return { optionId: 'fundingRate', direction: 'asc' };
+      });
+
+      renderHook(() => usePerpsMarketListView());
+
+      expect(mockUsePerpsSorting).toHaveBeenCalledWith({
+        initialOptionId: 'fundingRate',
         initialDirection: 'asc',
       });
     });
@@ -459,9 +542,6 @@ describe('usePerpsMarketListView', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: 'BTC',
         setSearchQuery: jest.fn(),
-        isSearchVisible: true,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: [mockMarketsWithValidVolume[0]], // Only BTC
         clearSearch: jest.fn(),
       });
@@ -488,9 +568,6 @@ describe('usePerpsMarketListView', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: 'ETH',
         setSearchQuery: jest.fn(),
-        isSearchVisible: true,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: [mockMarketsWithValidVolume[1]], // Only ETH
         clearSearch: jest.fn(),
       });
@@ -507,10 +584,7 @@ describe('usePerpsMarketListView', () => {
       });
 
       const { result } = renderHook(() =>
-        usePerpsMarketListView({
-          showWatchlistOnly: true,
-          defaultSearchVisible: true,
-        }),
+        usePerpsMarketListView({ showWatchlistOnly: true }),
       );
 
       // All filters applied
@@ -598,7 +672,10 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketCounts).toEqual({
         crypto: 3,
-        equity: 0,
+        stock: 0,
+        'pre-ipo': 0,
+        index: 0,
+        etf: 0,
         commodity: 0,
         forex: 0,
         new: 0,
@@ -611,12 +688,12 @@ describe('usePerpsMarketListView', () => {
         { ...createMockMarket('ETH', '$500M'), isHip3: false }, // crypto (no marketType, not HIP-3)
         {
           ...createMockMarket('AAPL', '$2B'),
-          marketType: 'equity' as const,
+          marketType: 'stock' as const,
           isHip3: true,
         },
         {
           ...createMockMarket('GOOGL', '$1.5B'),
-          marketType: 'equity' as const,
+          marketType: 'stock' as const,
           isHip3: true,
         },
         {
@@ -644,9 +721,6 @@ describe('usePerpsMarketListView', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: '',
         setSearchQuery: jest.fn(),
-        isSearchVisible: false,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: mixedMarkets,
         clearSearch: jest.fn(),
       });
@@ -655,7 +729,10 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketCounts).toEqual({
         crypto: 2,
-        equity: 2,
+        stock: 2,
+        'pre-ipo': 0,
+        index: 0,
+        etf: 0,
         commodity: 1,
         forex: 1,
         new: 0,
@@ -674,9 +751,6 @@ describe('usePerpsMarketListView', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: '',
         setSearchQuery: jest.fn(),
-        isSearchVisible: false,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: [],
         clearSearch: jest.fn(),
       });
@@ -685,7 +759,10 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketCounts).toEqual({
         crypto: 0,
-        equity: 0,
+        stock: 0,
+        'pre-ipo': 0,
+        index: 0,
+        etf: 0,
         commodity: 0,
         forex: 0,
         new: 0,
@@ -700,7 +777,7 @@ describe('usePerpsMarketListView', () => {
         ...initialMarkets,
         {
           ...createMockMarket('AAPL', '$2B'),
-          marketType: 'equity' as const,
+          marketType: 'stock' as const,
           isHip3: true,
         },
       ];
@@ -718,9 +795,6 @@ describe('usePerpsMarketListView', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: '',
         setSearchQuery: jest.fn(),
-        isSearchVisible: false,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: initialMarkets,
         clearSearch: jest.fn(),
       });
@@ -728,7 +802,7 @@ describe('usePerpsMarketListView', () => {
       const { result, rerender } = renderHook(() => usePerpsMarketListView());
 
       expect(result.current.marketCounts.crypto).toBe(1);
-      expect(result.current.marketCounts.equity).toBe(0);
+      expect(result.current.marketCounts.stock).toBe(0);
 
       // Update markets
       mockUsePerpsMarkets.mockReturnValue({
@@ -744,9 +818,6 @@ describe('usePerpsMarketListView', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: '',
         setSearchQuery: jest.fn(),
-        isSearchVisible: false,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: updatedMarkets,
         clearSearch: jest.fn(),
       });
@@ -754,7 +825,7 @@ describe('usePerpsMarketListView', () => {
       rerender();
 
       expect(result.current.marketCounts.crypto).toBe(1);
-      expect(result.current.marketCounts.equity).toBe(1);
+      expect(result.current.marketCounts.stock).toBe(1);
     });
   });
 
@@ -764,12 +835,12 @@ describe('usePerpsMarketListView', () => {
       { ...createMockMarket('ETH', '$500M'), isHip3: false }, // crypto (no marketType, not HIP-3)
       {
         ...createMockMarket('AAPL', '$2B'),
-        marketType: 'equity' as const,
+        marketType: 'stock' as const,
         isHip3: true,
       },
       {
         ...createMockMarket('GOOGL', '$1.5B'),
-        marketType: 'equity' as const,
+        marketType: 'stock' as const,
         isHip3: true,
       },
       {
@@ -798,9 +869,6 @@ describe('usePerpsMarketListView', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: '',
         setSearchQuery: jest.fn(),
-        isSearchVisible: false,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: mixedMarkets,
         clearSearch: jest.fn(),
       });
@@ -824,21 +892,21 @@ describe('usePerpsMarketListView', () => {
       expect(result.current.markets.every((m) => !m.isHip3)).toBe(true);
     });
 
-    it('filters to stocks (equity) when filter is "stocks"', () => {
+    it('filters to stocks when filter is "stock"', () => {
       const { result } = renderHook(() =>
-        usePerpsMarketListView({ defaultMarketTypeFilter: 'stocks' }),
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'stock' }),
       );
 
-      // Should only include equity markets
+      // Should only include stock markets
       expect(result.current.markets.length).toBe(2);
       expect(
-        result.current.markets.every((m) => m.marketType === 'equity'),
+        result.current.markets.every((m) => m.marketType === 'stock'),
       ).toBe(true);
     });
 
-    it('filters to commodities when filter is "commodities"', () => {
+    it('filters to commodities when filter is "commodity"', () => {
       const { result } = renderHook(() =>
-        usePerpsMarketListView({ defaultMarketTypeFilter: 'commodities' }),
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'commodity' }),
       );
 
       // Should only include commodity markets
@@ -860,14 +928,11 @@ describe('usePerpsMarketListView', () => {
       ).toBe(true);
     });
 
-    it('ignores category filter when searching', () => {
+    it('applies category filter when searching', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: 'BTC',
         setSearchQuery: jest.fn(),
-        isSearchVisible: true,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
-        filteredMarkets: [mixedMarkets[0]], // Only BTC from search
+        filteredMarkets: [mixedMarkets[0]], // BTC from search
         clearSearch: jest.fn(),
       });
 
@@ -875,22 +940,45 @@ describe('usePerpsMarketListView', () => {
         usePerpsMarketListView({ defaultMarketTypeFilter: 'forex' }),
       );
 
-      // When searching, should show search results regardless of category filter
-      expect(result.current.markets.length).toBe(1);
-      expect(result.current.markets[0].symbol).toBe('BTC');
+      expect(result.current.markets.length).toBe(0);
     });
 
     it('exposes market type filter state', () => {
       const { result } = renderHook(() =>
-        usePerpsMarketListView({ defaultMarketTypeFilter: 'stocks' }),
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'stock' }),
       );
 
       expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
-        'stocks',
+        'stock',
       );
       expect(
         typeof result.current.marketTypeFilterState.setMarketTypeFilter,
       ).toBe('function');
+    });
+
+    it('syncs filter when defaultMarketTypeFilter changes on rerender', () => {
+      const { result, rerender } = renderHook(
+        ({
+          defaultMarketTypeFilter,
+        }: {
+          defaultMarketTypeFilter: MarketTypeFilter;
+        }) => usePerpsMarketListView({ defaultMarketTypeFilter }),
+        {
+          initialProps: {
+            defaultMarketTypeFilter: 'crypto' as MarketTypeFilter,
+          },
+        },
+      );
+
+      expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
+        'crypto',
+      );
+
+      rerender({ defaultMarketTypeFilter: 'stock' });
+
+      expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
+        'stock',
+      );
     });
   });
 });

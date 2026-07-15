@@ -1,6 +1,7 @@
-import { FlaskBuildTests } from '../../../e2e/tags';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
-import TestSnaps from '../../../e2e/pages/Browser/TestSnaps';
+import { SmokeSnaps } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../flows/browser.flow';
+import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import { Matchers } from '../../framework';
@@ -9,13 +10,14 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Dialog Snap Tests'), () => {
+describe(SmokeSnaps('Dialog Snap Tests'), () => {
   it('connects to the Dialog Snap', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -33,6 +35,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
         {
           fixture: new FixtureBuilder().build(),
           skipReactNativeReload: true,
+          disableSynchronization: true,
         },
         async () => {
           await TestSnaps.tapButton('sendAlertButton');
@@ -53,6 +56,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
         {
           fixture: new FixtureBuilder().build(),
           skipReactNativeReload: true,
+          disableSynchronization: true,
         },
         async () => {
           await TestSnaps.tapButton('sendConfirmationButton');
@@ -69,6 +73,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
         {
           fixture: new FixtureBuilder().build(),
           skipReactNativeReload: true,
+          disableSynchronization: true,
         },
         async () => {
           await TestSnaps.tapButton('sendConfirmationButton');
@@ -87,6 +92,7 @@ describe(FlaskBuildTests('Dialog Snap Tests'), () => {
         {
           fixture: new FixtureBuilder().build(),
           skipReactNativeReload: true,
+          disableSynchronization: true,
         },
         async () => {
           await TestSnaps.tapButton('sendCustomButton');

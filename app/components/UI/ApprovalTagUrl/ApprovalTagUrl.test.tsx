@@ -4,7 +4,6 @@ import ApprovalTagUrl, { APPROVAL_TAG_URL_ORIGIN_PILL } from './ApprovalTagUrl';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
 
-const ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const DOMAIN_MOCK = 'metamask.github.io';
 
 const mockInitialState = {
@@ -12,16 +11,13 @@ const mockInitialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
-      PreferencesController: {
-        selectedAddress: ADDRESS_MOCK,
-      },
     },
   },
 };
 
 describe('ApprovalTagUrl', () => {
   it('renders correctly', () => {
-    const { toJSON, getByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <ApprovalTagUrl
         origin={DOMAIN_MOCK}
         url={`https://${DOMAIN_MOCK}/test-dapp/mock-url-query`}
@@ -30,7 +26,6 @@ describe('ApprovalTagUrl', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
     expect(getByTestId(APPROVAL_TAG_URL_ORIGIN_PILL)).toBeDefined();
   });
 
@@ -48,7 +43,7 @@ describe('ApprovalTagUrl', () => {
   });
 
   it('renders origin when only origin is provided', () => {
-    const { toJSON, getByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <ApprovalTagUrl
         origin={DOMAIN_MOCK}
         url=""
@@ -57,7 +52,6 @@ describe('ApprovalTagUrl', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
     expect(getByTestId(APPROVAL_TAG_URL_ORIGIN_PILL)).toBeDefined();
   });
 });

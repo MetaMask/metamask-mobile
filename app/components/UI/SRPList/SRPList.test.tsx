@@ -15,13 +15,11 @@ import SRPList from './SRPList';
 import { fireEvent } from '@testing-library/react-native';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import useMetrics from '../../hooks/useMetrics/useMetrics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 const mockTrackEvent = jest.fn();
-jest.mock('../../hooks/useMetrics/useMetrics', () => ({
-  __esModule: true,
-  default: jest.fn(),
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('../../../core/Engine', () => {
@@ -78,9 +76,12 @@ const getTestId = (selector: string, keyringId: string) =>
 describe('SRPList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useMetrics as jest.Mock).mockReturnValue({
+    const { useAnalytics } = jest.requireMock(
+      '../../hooks/useAnalytics/useAnalytics',
+    );
+    (useAnalytics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
     });
   });
 
@@ -133,7 +134,7 @@ describe('SRPList', () => {
     );
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
       )
         .addProperties({

@@ -1,14 +1,21 @@
 import React, { ReactNode } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import Text, {
-  TextVariant,
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Text,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
+  TextVariant,
+  FontWeight,
+  SectionHeader,
+  ButtonIcon,
+  ButtonIconSize,
   IconName,
-  IconSize,
   IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
+import HomepageSectionUnrealizedPnlRow from '../../../../Views/Homepage/components/HomepageSectionUnrealizedPnlRow';
+import { PerpsHomeSectionTestIds } from './PerpsHomeSection.testIds';
 
 export interface PerpsHomeSectionProps {
   /**
@@ -20,15 +27,15 @@ export interface PerpsHomeSectionProps {
    */
   subtitle?: string;
   /**
-   * Color for subtitle text (e.g., Success for profit, Error for loss)
+   * Color for subtitle value text (e.g., Success for profit, Error for loss)
    */
   subtitleColor?: TextColor;
   /**
-   * Optional suffix for subtitle (rendered in default color, e.g., "Unrealized PnL")
+   * Optional suffix for subtitle (rendered in muted color, e.g., "Unrealized P&L")
    */
   subtitleSuffix?: string;
   /**
-   * Test ID for subtitle element
+   * Test ID for subtitle value element
    */
   subtitleTestID?: string;
   /**
@@ -46,7 +53,7 @@ export interface PerpsHomeSectionProps {
    */
   showWhenEmpty?: boolean;
   /**
-   * Optional action handler - when provided, shows ">" chevron and makes header row pressable
+   * Optional action handler - when provided, shows "..." icon on the right of the header
    */
   onActionPress?: () => void;
   /**
@@ -63,25 +70,6 @@ export interface PerpsHomeSectionProps {
   testID?: string;
 }
 
-const styles = StyleSheet.create({
-  section: {
-    marginBottom: 24,
-  },
-  headerContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 12,
-    marginTop: 12,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  content: {
-    // Content styling handled by children
-  },
-});
-
 /**
  * PerpsHomeSection Component
  *
@@ -90,25 +78,11 @@ const styles = StyleSheet.create({
  * - Empty states (hide or show based on showWhenEmpty)
  * - Section headers with optional actions
  * - Consistent styling and layout
- *
- * @example
- * ```tsx
- * <PerpsHomeSection
- *   title="Positions"
- *   isLoading={isLoading.positions}
- *   isEmpty={positions.length === 0}
- *   showWhenEmpty={false}
- *   onActionPress={handleCloseAll}
- *   renderSkeleton={() => <PerpsRowSkeleton count={2} />}
- * >
- *   {positions.map(pos => <PerpsCard position={pos} />)}
- * </PerpsHomeSection>
- * ```
  */
 const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
   title,
   subtitle,
-  subtitleColor = TextColor.Alternative,
+  subtitleColor = TextColor.TextDefault,
   subtitleSuffix,
   subtitleTestID,
   isLoading,
@@ -119,69 +93,69 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
   children,
   testID,
 }) => {
-  // Hide section if empty and showWhenEmpty is false
   if (!isLoading && isEmpty && !showWhenEmpty) {
     return null;
   }
 
   const showAction = onActionPress && !isLoading && !isEmpty;
 
-  // Title row content (pressable when action is available)
-  const titleRowContent = (
-    <>
-      <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+  const actionButton = showAction ? (
+    <ButtonIcon
+      iconName={IconName.MoreHorizontal}
+      iconProps={{ color: IconColor.IconAlternative }}
+      size={ButtonIconSize.Md}
+      onPress={onActionPress}
+      testID={PerpsHomeSectionTestIds.ACTION_BUTTON}
+    />
+  ) : null;
+
+  const sectionTitle = showAction ? (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="w-full"
+    >
+      <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
         {title}
       </Text>
-      {showAction && (
-        <Icon
-          name={IconName.MoreHorizontal}
-          size={IconSize.Md}
-          color={IconColor.Alternative}
-        />
-      )}
-    </>
+      {actionButton}
+    </Box>
+  ) : (
+    title
   );
 
+  const subtitleContent =
+    subtitle && subtitleSuffix ? (
+      <HomepageSectionUnrealizedPnlRow
+        label={subtitleSuffix}
+        valueText={subtitle}
+        valueColor={subtitleColor}
+        paddingHorizontal={0}
+        valueTestID={subtitleTestID}
+        labelTestID={subtitleTestID ? `${subtitleTestID}-suffix` : undefined}
+      />
+    ) : subtitle ? (
+      <Text
+        variant={TextVariant.BodyMd}
+        color={subtitleColor}
+        fontWeight={FontWeight.Medium}
+        testID={subtitleTestID}
+      >
+        {subtitle}
+      </Text>
+    ) : null;
+
   return (
-    <View style={styles.section} testID={testID}>
-      {/* Section Header */}
-      <View style={styles.headerContainer}>
-        {/* Title row - only this is pressable */}
-        {showAction ? (
-          <TouchableOpacity style={styles.titleRow} onPress={onActionPress}>
-            {titleRowContent}
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.titleRow}>{titleRowContent}</View>
-        )}
-
-        {/* Subtitle - NOT pressable */}
-        {subtitle && (
-          <Text
-            variant={TextVariant.BodySM}
-            color={subtitleColor}
-            testID={subtitleTestID}
-          >
-            {subtitle}
-            {subtitleSuffix && (
-              <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
-                testID={subtitleTestID ? `${subtitleTestID}-suffix` : undefined}
-              >
-                {' '}
-                {subtitleSuffix}
-              </Text>
-            )}
-          </Text>
-        )}
-      </View>
-
-      {/* Section Content */}
-      <View style={styles.content}>
-        {isLoading ? renderSkeleton() : children}
-      </View>
-    </View>
+    <Box testID={testID}>
+      <SectionHeader
+        title={sectionTitle}
+        titleWrapperProps={showAction ? { twClassName: 'w-full' } : undefined}
+      >
+        {subtitleContent}
+      </SectionHeader>
+      {isLoading ? renderSkeleton() : children}
+    </Box>
   );
 };
 

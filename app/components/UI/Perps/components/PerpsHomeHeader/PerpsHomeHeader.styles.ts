@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 
 /**
- * Styles for PerpsHomeHeader component
+ * Styles for Perps home header — search-expanded mode (nav row uses HeaderStandard).
  */
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -17,25 +17,11 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: 8,
       backgroundColor: theme.colors.background.default,
     },
-    backButton: {
-      padding: 4,
-    },
     headerContainerWrapper: {
       flexDirection: 'row',
       alignItems: 'center',
       paddingTop: 16,
-    },
-    headerTitleContainer: {
       flex: 1,
-      paddingLeft: 4,
-      paddingRight: 12,
-    },
-    headerTitle: {
-      textAlign: 'left',
-    },
-    titleButtonsRightContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
     },
     searchButton: {
       padding: 4,
@@ -43,6 +29,22 @@ const styleSheet = (params: { theme: Theme }) => {
     searchBarContainer: {
       flex: 1,
       marginRight: 8,
+    },
+    testnetBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 16,
+      backgroundColor: theme.colors.warning.muted,
+      marginLeft: 8,
+      gap: 4,
+    },
+    testnetDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: theme.colors.warning.default,
     },
   });
 };

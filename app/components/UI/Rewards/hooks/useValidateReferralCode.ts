@@ -1,6 +1,18 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { debounce } from 'lodash';
 import Engine from '../../../../core/Engine';
+import { strings } from '../../../../../locales/i18n';
+
+export const REFERRAL_CODE_DEBOUNCE_MS = 1000;
+export const REFERRAL_CODE_MIN_LENGTH = 3;
+export const REFERRAL_CODE_MAX_LENGTH = 12;
+const REFERRAL_CODE_UNKNOWN_ERROR = 'Unknown error';
+const REFERRAL_CODE_PATTERN = /^[A-Z0-9-]+$/;
+
+const normalizeReferralCode = (code: string) => code.trim().toUpperCase();
+const isReferralCodeFormatValid = (code: string) =>
+  code.length >= REFERRAL_CODE_MIN_LENGTH &&
+  code.length <= REFERRAL_CODE_MAX_LENGTH &&
+  REFERRAL_CODE_PATTERN.test(code);
 
 export interface UseValidateReferralCodeResult {
   /**
@@ -16,7 +28,7 @@ export interface UseValidateReferralCodeResult {
    */
   validateCode: (code: string) => Promise<string>;
   /**
-   * Whether validation is currently in progress (during debounce period)
+   * Whether validation is currently in progress
    */
   isValidating: boolean;
   /**
@@ -28,73 +40,140 @@ export interface UseValidateReferralCodeResult {
    * Whether an unknown error occurred while validating the referral code
    */
   isUnknownError: boolean;
+
+  /**
+   * Whether the current referral code belongs to a VIP user
+   */
+  isVipReferralCode: boolean;
 }
 
 /**
- * Custom hook for validating referral codes with debounced validation.
- * Validates 6-character base32 encoded strings following RFC 4648 standard.
+ * Custom hook for validating referral codes.
+ * Debounces backend validation for referral codes that pass the backend format
+ * constraints: 3-12 uppercase letters, numbers, or hyphens. Stale responses
+ * from older requests are automatically discarded.
  *
  * @param initialValue - Initial referral code value (default: '')
- * @param debounceMs - Debounce delay in milliseconds (default: 300)
+ * @param debounceMs - Debounce delay in milliseconds
  * @returns UseValidateReferralCodeResult object with validation state and methods
  */
 export const useValidateReferralCode = (
   initialValue: string = '',
-  debounceMs: number = 1000,
+  debounceMs: number = REFERRAL_CODE_DEBOUNCE_MS,
 ): UseValidateReferralCodeResult => {
-  const [referralCode, setReferralCodeState] = useState(initialValue);
+  const initialReferralCode = normalizeReferralCode(initialValue);
+  const [referralCode, setReferralCodeState] = useState(initialReferralCode);
   const [error, setError] = useState('');
-  const [isValidating, setIsValidating] = useState(false);
-  const [unknownError, setUnknownError] = useState(false);
+  const [isVipCode, setIsVipCode] = useState(false);
+  const [isValidating, setIsValidating] = useState(
+    isReferralCodeFormatValid(initialReferralCode),
+  );
   const hasInitialized = useRef(false);
+  const requestIdRef = useRef(0);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const validateCode = useCallback(async (code: string): Promise<string> => {
-    try {
-      const valid = await Engine.controllerMessenger.call(
-        'RewardsController:validateReferralCode',
-        code,
-      );
-      if (!valid) {
-        return 'Invalid code';
-      }
-      return '';
-    } catch (err) {
-      setUnknownError(true);
-      return 'Unknown error';
+  const clearDebounceTimer = useCallback(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
     }
   }, []);
 
-  // Debounced validation
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedValidation = useCallback(
-    debounce(async (code: string) => {
-      setUnknownError(false);
+  const validateCode = useCallback(async (code: string): Promise<string> => {
+    const refinedCode = normalizeReferralCode(code);
+
+    if (!isReferralCodeFormatValid(refinedCode)) {
+      return strings('rewards.error_messages.invalid_referral_code');
+    }
+
+    try {
+      const result = await Engine.controllerMessenger.call(
+        'RewardsController:validateReferralCode',
+        refinedCode,
+      );
+      if (!result.valid) {
+        return strings('rewards.error_messages.invalid_referral_code');
+      }
+      return '';
+    } catch {
+      return REFERRAL_CODE_UNKNOWN_ERROR;
+    }
+  }, []);
+
+  const triggerValidation = useCallback(
+    (code: string) => {
+      requestIdRef.current += 1;
+      const currentRequestId = requestIdRef.current;
+
+      clearDebounceTimer();
       setError('');
-      const validationError = await validateCode(code);
-      setError(validationError);
-      setIsValidating(false);
-    }, debounceMs),
-    [debounceMs, validateCode],
+      setIsVipCode(false);
+      setIsValidating(true);
+
+      debounceTimerRef.current = setTimeout(async () => {
+        const refinedCode = normalizeReferralCode(code);
+
+        if (!isReferralCodeFormatValid(refinedCode)) {
+          if (currentRequestId !== requestIdRef.current) return;
+          setError(strings('rewards.error_messages.invalid_referral_code'));
+          setIsVipCode(false);
+          setIsValidating(false);
+          return;
+        }
+
+        try {
+          const result = await Engine.controllerMessenger.call(
+            'RewardsController:validateReferralCode',
+            refinedCode,
+          );
+
+          if (currentRequestId !== requestIdRef.current) return;
+
+          if (!result.valid) {
+            setError(strings('rewards.error_messages.invalid_referral_code'));
+            setIsVipCode(false);
+          } else {
+            setError('');
+            setIsVipCode(result.isVipCode);
+          }
+        } catch {
+          if (currentRequestId !== requestIdRef.current) return;
+          setError(REFERRAL_CODE_UNKNOWN_ERROR);
+          setIsVipCode(false);
+        }
+
+        setIsValidating(false);
+      }, debounceMs);
+    },
+    [clearDebounceTimer, debounceMs],
   );
 
-  // Function to update referral code and trigger validation
   const setReferralCode = useCallback(
     (code: string) => {
-      const refinedCode = code.trim().toUpperCase();
+      const refinedCode = normalizeReferralCode(code);
       setReferralCodeState(refinedCode);
-      // If not at minLength, do NOT validate; keep referral code state but clear error/validating state
-      if (refinedCode.length < 6) {
-        debouncedValidation.cancel();
+
+      if (refinedCode.length < REFERRAL_CODE_MIN_LENGTH) {
+        requestIdRef.current += 1;
+        clearDebounceTimer();
         setIsValidating(false);
-        setError('minLength 6 characters');
+        setError('');
+        setIsVipCode(false);
         return;
       }
-      if (refinedCode) {
-        setIsValidating(true);
+
+      if (!isReferralCodeFormatValid(refinedCode)) {
+        requestIdRef.current += 1;
+        clearDebounceTimer();
+        setIsValidating(false);
+        setError(strings('rewards.error_messages.invalid_referral_code'));
+        setIsVipCode(false);
+        return;
       }
-      debouncedValidation(refinedCode);
+
+      triggerValidation(refinedCode);
     },
-    [debouncedValidation],
+    [clearDebounceTimer, triggerValidation],
   );
 
   useEffect(() => {
@@ -102,17 +181,23 @@ export const useValidateReferralCode = (
       setReferralCode(initialValue);
       hasInitialized.current = true;
     } else if (initialValue !== referralCode) {
-      // Only update if initialValue actually changed from current referralCode
       setReferralCode(initialValue);
     }
-    // only run on mount or when initialValue changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialValue]);
 
-  // Cleanup debounced function on unmount
-  useEffect(() => () => debouncedValidation.cancel(), [debouncedValidation]);
+  useEffect(
+    () => () => {
+      requestIdRef.current += 1;
+      clearDebounceTimer();
+    },
+    [clearDebounceTimer],
+  );
 
-  const isValid = !!referralCode && !error && !isValidating;
+  const isValid =
+    isReferralCodeFormatValid(referralCode) && !error && !isValidating;
+  const isUnknownError = error === REFERRAL_CODE_UNKNOWN_ERROR;
+  const isVipReferralCode = isValid && isVipCode;
 
   return {
     referralCode,
@@ -120,7 +205,8 @@ export const useValidateReferralCode = (
     validateCode,
     isValidating,
     isValid,
-    isUnknownError: unknownError,
+    isUnknownError,
+    isVipReferralCode,
   };
 };
 

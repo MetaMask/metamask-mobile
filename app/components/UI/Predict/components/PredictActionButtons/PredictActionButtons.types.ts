@@ -5,7 +5,9 @@ import {
 } from '../../types';
 import { ButtonBaseSize } from '@metamask/design-system-react-native';
 
-export type PredictBetButtonVariant = 'yes' | 'no';
+export type PredictBetButtonVariant = 'yes' | 'no' | 'draw';
+
+export type PredictBetButtonLayout = 'inline' | 'inlineNoSeparator' | 'stacked';
 
 export interface PredictBetButtonProps {
   label: string;
@@ -16,12 +18,16 @@ export interface PredictBetButtonProps {
   disabled?: boolean;
   testID?: string;
   size?: ButtonBaseSize;
+  layout?: PredictBetButtonLayout;
 }
 
 export interface PredictBetButtonsProps {
   yesLabel: string;
   yesPrice: number;
   onYesPress: () => void;
+  drawLabel?: string;
+  drawPrice?: number;
+  onDrawPress?: () => void;
   noLabel: string;
   noPrice: number;
   onNoPress: () => void;
@@ -30,12 +36,16 @@ export interface PredictBetButtonsProps {
   disabled?: boolean;
   testID?: string;
   isCarousel?: boolean;
+  layout?: PredictBetButtonLayout;
+  gapClassName?: string;
 }
 
 export interface PredictClaimButtonProps {
   amount?: number;
   onPress: () => void;
   disabled?: boolean;
+  isLoading?: boolean;
+  isHidden?: boolean;
   testID?: string;
 }
 
@@ -46,6 +56,10 @@ export interface PredictActionButtonsProps {
   onClaimPress?: () => void;
   claimableAmount?: number;
   isLoading?: boolean;
+  isClaimPending?: boolean;
   testID?: string;
   isCarousel?: boolean;
+  buttonLayout?: PredictBetButtonLayout;
+  buttonGapClassName?: string;
+  buttonContainerClassName?: string;
 }

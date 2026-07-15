@@ -1,14 +1,18 @@
 import React from 'react';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { fireEvent, screen } from '@testing-library/react-native';
 import PredictGameDetailsFooter from './PredictGameDetailsFooter';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import {
   PredictMarket,
+  PredictMarketGame,
   PredictOutcome,
   PredictMarketStatus,
   Recurrence,
 } from '../../types';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, string>) => {
     if (
@@ -41,10 +45,15 @@ jest.mock('../../hooks/useLiveMarketPrices', () => ({
     lastUpdateTime: null,
   }),
 }));
+jest.mock('../../hooks/usePredictGame');
+
+const mockUsePredictGame = usePredictGame as jest.MockedFunction<
+  typeof usePredictGame
+>;
 
 const createMockOutcome = (overrides = {}): PredictOutcome => ({
   id: 'outcome-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: 'market-1',
   title: 'Will it happen?',
   description: 'Test outcome',
@@ -61,7 +70,7 @@ const createMockOutcome = (overrides = {}): PredictOutcome => ({
 
 const createMockMarket = (overrides = {}): PredictMarket => ({
   id: 'market-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   slug: 'test-market',
   title: 'Test Market',
   description: 'This is a test market description for testing purposes.',
@@ -91,7 +100,7 @@ const createMockGameMarket = (): PredictMarket =>
         name: 'Seattle Seahawks',
         logo: 'https://example.com/sea.png',
         abbreviation: 'SEA',
-        color: '#002244',
+        color: TEST_HEX_COLORS.TEAM_SEA,
         alias: 'Seahawks',
       },
       homeTeam: {
@@ -99,7 +108,7 @@ const createMockGameMarket = (): PredictMarket =>
         name: 'Denver Broncos',
         logo: 'https://example.com/den.png',
         abbreviation: 'DEN',
-        color: '#FB4F14',
+        color: TEST_HEX_COLORS.TEAM_DEN,
         alias: 'Broncos',
       },
     },
@@ -117,6 +126,11 @@ const createDefaultProps = (overrides = {}) => ({
 describe('PredictGameDetailsFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePredictGame.mockImplementation((market) => ({
+      game: market?.game,
+      isConnected: false,
+      lastUpdateTime: null,
+    }));
   });
 
   describe('info row', () => {
@@ -185,8 +199,8 @@ describe('PredictGameDetailsFooter', () => {
 
       renderWithProvider(<PredictGameDetailsFooter {...props} />);
 
-      expect(screen.getByText('YES · 65¢')).toBeOnTheScreen();
-      expect(screen.getByText('NO · 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES 65¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO 35¢')).toBeOnTheScreen();
     });
 
     it('renders team buttons for game market', () => {
@@ -196,8 +210,8 @@ describe('PredictGameDetailsFooter', () => {
 
       renderWithProvider(<PredictGameDetailsFooter {...props} />);
 
-      expect(screen.getByText('SEA · 65¢')).toBeOnTheScreen();
-      expect(screen.getByText('DEN · 35¢')).toBeOnTheScreen();
+      expect(screen.getByText('SEA 65¢')).toBeOnTheScreen();
+      expect(screen.getByText('DEN 35¢')).toBeOnTheScreen();
     });
 
     it('calls onBetPress when bet button is pressed', () => {
@@ -341,6 +355,26 @@ describe('PredictGameDetailsFooter', () => {
       renderWithProvider(<PredictGameDetailsFooter {...props} />);
 
       expect(screen.getByTestId('game-details-footer')).toBeOnTheScreen();
+    });
+
+    it('returns null when the cached live game has ended', () => {
+      const market = createMockGameMarket();
+      const cachedEndedGame: PredictMarketGame = {
+        ...(market.game as PredictMarketGame),
+        status: 'ended',
+        period: 'FT',
+        elapsed: null,
+      };
+      mockUsePredictGame.mockReturnValue({
+        game: cachedEndedGame,
+        isConnected: false,
+        lastUpdateTime: Date.now(),
+      });
+      const props = createDefaultProps({ market });
+
+      renderWithProvider(<PredictGameDetailsFooter {...props} />);
+
+      expect(screen.queryByTestId('game-details-footer')).toBeNull();
     });
   });
 

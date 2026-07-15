@@ -156,6 +156,23 @@ describe('MultichainAddressRowsList Utils', () => {
       expect(sorted[0].networkName).toBe('A Network');
       expect(sorted[1].networkName).toBe('Z Network');
     });
+
+    it('sorts decimal eip155 Polygon with same priority tier as hex eip155:0x89', () => {
+      const items: NetworkAddressItem[] = [
+        { chainId: 'eip155:137', networkName: 'Polygon A', address: '0x123' },
+        { chainId: 'eip155:0x89', networkName: 'Polygon B', address: '0x123' },
+        {
+          chainId: `eip155:${CHAIN_IDS.MAINNET}`,
+          networkName: 'Ethereum',
+          address: '0x123',
+        },
+      ];
+
+      const sorted = sortNetworkAddressItems(items);
+      expect(sorted[0].chainId).toBe(`eip155:${CHAIN_IDS.MAINNET}`);
+      expect(sorted[1].networkName).toBe('Polygon A');
+      expect(sorted[2].networkName).toBe('Polygon B');
+    });
   });
 
   describe('getCompatibleNetworksForAccount', () => {

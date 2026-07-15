@@ -46,7 +46,7 @@ export const handleConnectionReady = async ({
   if (!apiVersion) {
     // clear previous pending approval
     if (approvalController.get(connection.channelId)) {
-      approvalController.reject(
+      approvalController.rejectRequest(
         connection.channelId,
         providerErrors.userRejectedRequest(),
       );
@@ -62,15 +62,19 @@ export const handleConnectionReady = async ({
     return;
   }
 
-  let dappUrl = '';
+  // WARNING: originatorInfo.url is self-reported by the dapp and unverified.
+  // It is normalized here and shown in the confirmation/approval UI to indicate
+  // the claimed source of the request. It should NOT be treated as equivalent
+  // to a verified origin/hostname (e.g., browser-provided `sender.url`).
+  let selfReportedDappUrl = '';
 
   try {
     const urlObj = new URL(originatorInfo?.url);
     const hasPort = !!urlObj.port;
     if (hasPort) {
-      dappUrl = `${urlObj.protocol}//${urlObj.hostname}:${urlObj.port}`;
+      selfReportedDappUrl = `${urlObj.protocol}//${urlObj.hostname}:${urlObj.port}`;
     } else {
-      dappUrl = `${urlObj.protocol}//${urlObj.hostname}`;
+      selfReportedDappUrl = `${urlObj.protocol}//${urlObj.hostname}`;
     }
   } catch (e) {
     DevLogger.log('Invalid URL:', originatorInfo?.url);
@@ -78,14 +82,14 @@ export const handleConnectionReady = async ({
 
   connection.originatorInfo = {
     ...originatorInfo,
-    url: dappUrl,
+    url: selfReportedDappUrl,
   };
 
   updateOriginatorInfos({
     channelId: connection.channelId,
     originatorInfo: {
       ...originatorInfo,
-      url: dappUrl,
+      url: selfReportedDappUrl,
     },
   });
   DevLogger.log(
@@ -139,7 +143,7 @@ export const handleConnectionReady = async ({
         if (approvalController.get(connection.channelId)) {
           DevLogger.log(`SDKConnect::CLIENTS_READY reject previous approval`);
           // cleaning previous pending approval
-          approvalController.reject(
+          approvalController.rejectRequest(
             connection.channelId,
             providerErrors.userRejectedRequest(),
           );

@@ -1,0 +1,18 @@
+export const MoneyBalanceCardTestIds = {
+  EMPTY_CONTAINER: 'money-balance-card-empty-container',
+  FUNDED_CONTAINER: 'money-balance-card-funded-container',
+  ERROR_CONTAINER: 'money-balance-card-error-container',
+  UNAVAILABLE_CONTAINER: 'money-balance-card-unavailable-container',
+  LABEL: 'money-balance-card-label',
+  INFO_BUTTON: 'money-balance-card-info-button',
+  BALANCE: 'money-balance-card-balance',
+  BALANCE_SKELETON: 'money-balance-card-balance-skeleton',
+  BALANCE_ERROR: 'money-balance-card-balance-error',
+  BALANCE_RETRY: 'money-balance-card-balance-retry',
+  BALANCE_UNAVAILABLE: 'money-balance-card-balance-unavailable',
+  BALANCE_NO_ACCOUNT: 'money-balance-card-balance-no-account',
+  APY_TAG: 'money-balance-card-apy-tag',
+  APY_TAG_SKELETON: 'money-balance-card-apy-tag-skeleton',
+  ADD_BUTTON: 'money-balance-card-add-button',
+  GET_STARTED_BUTTON: 'money-balance-card-get-started-button',
+} as const;

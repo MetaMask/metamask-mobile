@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 // External dependencies.
 import { SAMPLE_AVATAR_PROPS } from '../../Avatars/Avatar/Avatar.constants';
 

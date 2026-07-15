@@ -45,13 +45,18 @@ export const ConfirmationRowComponentIDs = {
   STAKING_DETAILS: 'staking-details',
   TOKEN_HERO: 'token-hero',
   TOTAL: 'total',
+  RECEIVE: 'receive',
   TRANSACTION_FEE: 'transaction-fee',
-  NETWORK_FEE: 'network-fee',
+  AMOUNT: 'amount',
 } as const;
 
 export const ConfirmationFooterSelectorIDs = {
   CANCEL_BUTTON: 'cancel-button',
   CONFIRM_BUTTON: 'confirm-button',
+} as const;
+
+export const ConfirmationLoaderSelectorIDs = {
+  TRANSFER: 'confirm-loader-transfer',
 } as const;
 
 export const ConfirmAlertModalSelectorsIDs = {
@@ -93,10 +98,26 @@ export const GasFeeTokenModalSelectorsText = {
   GAS_FEE_TOKEN_AMOUNT_FIAT: 'gas-fee-token-list-item-amount-fiat',
 } as const;
 
+export const PerpsAccountPickerSelectorsIDs = {
+  ROW: 'perps-account-picker-row',
+  SHEET: 'perps-account-picker-sheet',
+  SEARCH_INPUT: 'perps-account-picker-search',
+  ACCOUNT_ITEM: 'perps-account-picker-item',
+} as const;
+
+export const PredictAccountPickerSelectorsIDs = {
+  ROW: 'predict-account-picker-row',
+  SHEET: 'predict-account-picker-sheet',
+  SEARCH_INPUT: 'predict-account-picker-search',
+  ACCOUNT_ITEM: 'predict-account-picker-item',
+} as const;
+
 export const TransactionPayComponentIDs = {
   CLOSE_MODAL_BUTTON: 'bridge-token-selector-close-button',
   KEYBOARD_CONTINUE_BUTTON: 'deposit-keyboard-done-button',
-  PAY_WITH_BALANCE: 'pay-with-balance',
   PAY_WITH_FIAT: 'pay-with-fiat',
+  PAY_WITH_BALANCE: 'pay-with-balance',
   PAY_WITH_SYMBOL: 'pay-with-symbol',
+  PAY_WITH_TOKEN_LIST: 'pay-with-token-list',
+  KEYBOARD_CONTAINER: 'custom-amount-input',
 };

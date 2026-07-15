@@ -2,7 +2,10 @@ import handleFastOnboarding from '../handleFastOnboarding';
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import ReduxService, { ReduxStore } from '../../../../redux';
-import { NavigationContainerRef } from '@react-navigation/native';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 
 describe('handleFastOnboarding', () => {
   let mockReset: jest.Mock;
@@ -19,7 +22,7 @@ describe('handleFastOnboarding', () => {
     jest.spyOn(NavigationService, 'navigation', 'get').mockReturnValue({
       reset: mockReset,
       navigate: mockNavigate,
-    } as unknown as NavigationContainerRef);
+    } as unknown as NavigationContainerRef<ParamListBase>);
 
     // Mock ReduxService
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -166,7 +169,9 @@ describe('handleFastOnboarding', () => {
       // Arrange
       jest
         .spyOn(NavigationService, 'navigation', 'get')
-        .mockReturnValue(null as unknown as NavigationContainerRef);
+        .mockReturnValue(
+          null as unknown as NavigationContainerRef<ParamListBase>,
+        );
       const deeplink = `/onboarding?type=google`;
       mockGetState.mockReturnValue({ user: { existingUser: false } });
 

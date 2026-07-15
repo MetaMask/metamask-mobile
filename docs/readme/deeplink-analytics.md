@@ -23,7 +23,7 @@ The `DEEP_LINK_USED` event is created using `AnalyticsEventBuilder` and includes
 
 | Property            | Type    | Description                                                                                  |
 | ------------------- | ------- | -------------------------------------------------------------------------------------------- |
-| `route`             | string  | The deep link route (e.g., "swap", "perps", "deposit")                                       |
+| `route`             | string  | The deep link route (e.g., "swap", "perps", "buy")                                           |
 | `was_app_installed` | boolean | `true` if app was already installed, `false` for deferred deep link (app installed via link) |
 | `signature`         | string  | Signature validation status: "valid", "invalid", or "missing"                                |
 | `interstitial`      | string  | Interstitial state: "accepted", "rejected", or "not shown"                                   |
@@ -59,15 +59,6 @@ Sensitive properties are extracted based on the route type and include transacti
 - `symbol` - Trading pair symbol
 - `screen` - Screen identifier (markets/asset/tabs)
 - `tab` - Tab identifier
-
-**DEPOSIT Route:**
-
-- All common properties
-- `provider` - Payment provider
-- `payment_method` - Payment method type
-- `sub_payment_method` - Sub-payment method
-- `fiat_currency` - Fiat currency code
-- `fiat_quantity` - Fiat amount
 
 **TRANSACTION Route:**
 
@@ -185,9 +176,9 @@ Routes are extracted from the deep link action and mapped to standardized route 
 | Route                | Value                | Actions Mapped                                                  |
 | -------------------- | -------------------- | --------------------------------------------------------------- |
 | `HOME`               | "home"               | `ACTIONS.HOME`                                                  |
+| `ASSET`              | "asset"              | `ACTIONS.ASSET`                                                 |
 | `SWAP`               | "swap"               | `ACTIONS.SWAP`                                                  |
 | `PERPS`              | "perps"              | `ACTIONS.PERPS`, `ACTIONS.PERPS_MARKETS`, `ACTIONS.PERPS_ASSET` |
-| `DEPOSIT`            | "deposit"            | `ACTIONS.DEPOSIT`                                               |
 | `TRANSACTION`        | "transaction"        | `ACTIONS.SEND`                                                  |
 | `BUY`                | "buy"                | `ACTIONS.BUY`, `ACTIONS.BUY_CRYPTO`                             |
 | `SELL`               | "sell"               | `ACTIONS.SELL`, `ACTIONS.SELL_CRYPTO`                           |
@@ -198,7 +189,7 @@ Routes are extracted from the deep link action and mapped to standardized route 
 
 ### Route Extraction
 
-Routes are extracted using `mapSupportedActionToRoute()`, which maps supported actions to their corresponding routes. Unsupported actions or invalid URLs result in the `INVALID` route.
+Routes are extracted using `mapSupportedActionToRoute()`, which maps supported actions to their corresponding routes. Unsupported actions or invalid URLs result in the `INVALID` route. Deprecated `deposit` URLs are treated as `INVALID`.
 
 ## Analytics Context
 

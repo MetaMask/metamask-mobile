@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { NotificationFeedbackType } from 'expo-haptics';
+import { NotificationMoment } from '../../../../../util/haptics';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -33,16 +33,16 @@ import usePerpsToasts, {
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
 import { createStyles } from './PerpsCloseAllPositionsView.styles';
 import { useTheme } from '../../../../../util/theme';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
-import type { ClosePositionsResult } from '../../controllers/types';
+  type ClosePositionsResult,
+} from '@metamask/perps-controller';
 
 interface PerpsCloseAllPositionsViewProps {
-  sheetRef?: React.RefObject<BottomSheetRef>;
+  sheetRef?: React.RefObject<BottomSheetRef | null>;
   onClose?: () => void;
 }
 
@@ -90,6 +90,8 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.CLOSE_ALL_POSITIONS,
       [PERPS_EVENT_PROPERTY.OPEN_POSITION]: positions?.length || 0,
+      [PERPS_EVENT_PROPERTY.SOURCE]:
+        PERPS_EVENT_VALUE.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
     },
   });
 
@@ -101,7 +103,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         iconName: IconName.CheckBold,
         backgroundColor: theme.colors.accent03.normal,
         iconColor: theme.colors.accent03.dark,
-        hapticsType: NotificationFeedbackType.Success,
+        hapticsType: NotificationMoment.Success,
         hasNoTimeout: false,
         labelOptions: message
           ? [
@@ -124,7 +126,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         iconName: IconName.Warning,
         backgroundColor: theme.colors.accent01.light,
         iconColor: theme.colors.accent01.dark,
-        hapticsType: NotificationFeedbackType.Error,
+        hapticsType: NotificationMoment.Error,
         hasNoTimeout: false,
         labelOptions: message
           ? [

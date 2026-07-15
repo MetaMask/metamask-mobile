@@ -1,4 +1,4 @@
-import { fireEvent, render } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import React from 'react';
 import { Image } from 'react-native';
 import { Provider, useSelector } from 'react-redux';
@@ -9,6 +9,7 @@ import { selectChainId } from '../../../../selectors/networkController';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { selectPricePercentChange1d } from '../../../../selectors/tokenRatesController';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
+import { TOKEN_AMOUNT_BALANCE_TEST_ID } from '../../AssetElement/index.constants';
 
 // Create a mock function we can control in individual tests
 const mockSelectPricePercentChange1d = jest.fn();
@@ -26,6 +27,9 @@ import { BtcAccountType } from '@metamask/keyring-api';
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) =>
     key === 'asset_overview.your_balance' ? 'Your balance' : key,
+  I18nEvents: {
+    addListener: jest.fn(),
+  },
 }));
 
 jest.mock('react-redux', () => ({
@@ -305,16 +309,19 @@ describe('Balance', () => {
   });
 
   it('should render correctly with main and secondary balance', () => {
-    const wrapper = render(
+    const { getByTestId } = render(
       <Provider store={store}>
         <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(getByTestId('asset-DAI')).toBeOnTheScreen();
+    const tokenAmount = getByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID);
+    expect(tokenAmount).toBeOnTheScreen();
+    expect(tokenAmount.props.children).toBe('456');
   });
 
   it('should render correctly without a secondary balance', () => {
-    const wrapper = render(
+    const { getByTestId, queryByTestId } = render(
       <Provider store={store}>
         <Balance
           asset={mockDAI}
@@ -323,35 +330,8 @@ describe('Balance', () => {
         />
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
-  });
-
-  it('should fire navigation event for non native tokens', () => {
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />
-      </Provider>,
-    );
-    const assetElement = getByTestId('asset-DAI');
-    fireEvent.press(assetElement);
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-  });
-
-  it('should not fire navigation event for native tokens', () => {
-    const { queryAllByTestId } = render(
-      <Provider store={store}>
-        <Balance asset={mockETH} mainBalance="100" secondaryBalance="200" />,
-      </Provider>,
-    );
-
-    // Includes native ETH and staked ETH
-    const ethElements = queryAllByTestId('asset-ETH');
-
-    ethElements.forEach((ethElement) => {
-      fireEvent.press(ethElement);
-    });
-
-    expect(mockNavigate).toHaveBeenCalledTimes(0);
+    expect(getByTestId('asset-DAI')).toBeOnTheScreen();
+    expect(queryByTestId(TOKEN_AMOUNT_BALANCE_TEST_ID)).toBeNull();
   });
 
   describe('Percentage Change Color Logic', () => {

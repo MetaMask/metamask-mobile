@@ -3,13 +3,13 @@ import {
   KnownCaipNamespace,
   CaipNamespace,
 } from '@metamask/utils';
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { decimalToHex } from '../../../util/conversions';
 import { RootState } from '../../../reducers';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { areAddressesEqual } from '../../../util/address';
 import { selectAddressBookByChain } from '../../../selectors/addressBookController';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { selectAccountGroupsByAddress } from '../../../selectors/multichainAccounts/accounts';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
@@ -54,20 +54,17 @@ export const useDisplayName = (
     areAddressesEqual(contact.address, address),
   );
 
-  const showAccountGroupName = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
-
   const parsedAddress = isEip155 ? toChecksumHexAddress(address) : address;
+  const addressArray = useMemo(() => [parsedAddress], [parsedAddress]);
   const accountGroups = useSelector((state: RootState) =>
-    selectAccountGroupsByAddress(state, [parsedAddress]),
+    selectAccountGroupsByAddress(state, addressArray),
   );
 
   const accountGroupName = accountGroups[0]?.metadata.name;
   const accountName = account?.metadata?.name;
 
   return (
-    (showAccountGroupName && accountGroupName) ||
+    accountGroupName ||
     accountName ||
     (isEip155 && addressBookEntry?.name) ||
     undefined

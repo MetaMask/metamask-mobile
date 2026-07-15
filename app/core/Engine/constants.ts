@@ -1,4 +1,4 @@
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { NETWORK_CHAIN_ID } from '../../util/networks/customNetworks';
 
 /**
  * Messageable modules that are part of the Engine's context, but are not defined with state.
@@ -14,9 +14,20 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'WebSocketService',
   'BackendWebSocketService',
   'AccountActivityService',
+  'OHLCVService',
   'MultichainAccountService',
+  'SnapAccountService',
+  'GeolocationApiService',
   'ProfileMetricsService',
+  'ProofOfOwnershipService',
   'RampsService',
+  'TransakService',
+  'ComplianceService',
+  'SocialService',
+  'AuthenticatedUserStorageService',
+  'MoneyAccountBalanceService',
+  'ConfigRegistryApiService',
+  'ChompApiService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -26,10 +37,13 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AddressBookController:stateChange',
   'AnalyticsController:stateChange',
   'AppMetadataController:stateChange',
+  'AssetsController:stateChange',
   'ConnectivityController:stateChange',
+  'ConfigRegistryController:stateChange',
   'ApprovalController:stateChange',
   'CurrencyRateController:stateChange',
   'GasFeeController:stateChange',
+  'GeolocationController:stateChange',
   'KeyringController:stateChange',
   'LoggingController:stateChange',
   'NetworkController:stateChange',
@@ -42,18 +56,16 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'SelectedNetworkController:stateChange',
   'SignatureController:stateChange',
   'SmartTransactionsController:stateChange',
-  'SwapsController:stateChange',
   'TokenBalancesController:stateChange',
-  'TokenListController:stateChange',
   'TokenRatesController:stateChange',
   'TokensController:stateChange',
   'TokenSearchDiscoveryDataController:stateChange',
   'TransactionController:stateChange',
   'TransactionPayController:stateChange',
   'MultichainNetworkController:stateChange',
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   'SnapController:stateChange',
-  'SnapsRegistry:stateChange',
+  'SnapRegistryController:stateChange',
   'SubjectMetadataController:stateChange',
   'AuthenticationController:stateChange',
   'UserStorageController:stateChange',
@@ -72,6 +84,8 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'BridgeController:stateChange',
   'BridgeStatusController:stateChange',
   'EarnController:stateChange',
+  'MoneyAccountController:stateChange',
+  'MoneyAccountUpgradeController:stateChanged',
   'PerpsController:stateChange',
   'RewardsController:stateChange',
   'DeFiPositionsController:stateChange',
@@ -81,23 +95,14 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   ///: END:ONLY_INCLUDE_IF
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
+  'CardController:stateChange',
+  'ClientController:stateChange',
   'DelegationController:stateChange',
   'ProfileMetricsController:stateChange',
+  'ComplianceController:stateChange',
+  'SocialController:stateChange',
+  'QrSyncController:stateChange',
 ] as const;
-
-export const swapsSupportedChainIds = [
-  CHAIN_IDS.MAINNET,
-  CHAIN_IDS.BSC,
-  CHAIN_IDS.POLYGON,
-  CHAIN_IDS.AVALANCHE,
-  CHAIN_IDS.ARBITRUM,
-  CHAIN_IDS.OPTIMISM,
-  CHAIN_IDS.ZKSYNC_ERA,
-  CHAIN_IDS.LINEA_MAINNET,
-  CHAIN_IDS.BASE,
-  CHAIN_IDS.SEI,
-  CHAIN_IDS.MONAD,
-];
 
 export const MAINNET_DISPLAY_NAME = 'Ethereum';
 export const LINEA_MAINNET_DISPLAY_NAME = 'Linea';
@@ -108,20 +113,31 @@ export const BNB_DISPLAY_NAME = 'BNB Chain';
 export const OPTIMISM_DISPLAY_NAME = 'OP';
 export const ZK_SYNC_ERA_DISPLAY_NAME = 'zkSync Era';
 export const BASE_DISPLAY_NAME = 'Base';
+export const SOLANA_DISPLAY_NAME = 'Solana';
 export const SEI_DISPLAY_NAME = 'Sei';
 export const MONAD_DISPLAY_NAME = 'Monad';
+export const HYPEREVM_DISPLAY_NAME = 'HyperEVM';
+export const MEGAETH_DISPLAY_NAME = 'MegaETH';
+
+// `NETWORK_CHAIN_ID` is sourced from `customNetworks`, which several test
+// suites mock to a partial object. Guard against an undefined value so that
+// importing this module (e.g. from UI utils consuming `NETWORK_TO_NAME_MAP`)
+// never throws while the map is built at module-eval time.
+const CHAIN_ID = NETWORK_CHAIN_ID ?? ({} as typeof NETWORK_CHAIN_ID);
 
 export const NETWORK_TO_NAME_MAP = {
-  [CHAIN_IDS.MAINNET]: MAINNET_DISPLAY_NAME,
-  [CHAIN_IDS.LINEA_MAINNET]: LINEA_MAINNET_DISPLAY_NAME,
-  [CHAIN_IDS.POLYGON]: POLYGON_DISPLAY_NAME,
-  [CHAIN_IDS.AVALANCHE]: AVALANCHE_DISPLAY_NAME,
-  [CHAIN_IDS.ARBITRUM]: ARBITRUM_DISPLAY_NAME,
-  [CHAIN_IDS.BSC]: BNB_DISPLAY_NAME,
-  [CHAIN_IDS.OPTIMISM]: OPTIMISM_DISPLAY_NAME,
-  [CHAIN_IDS.ZKSYNC_ERA]: ZK_SYNC_ERA_DISPLAY_NAME,
-  [CHAIN_IDS.BASE]: BASE_DISPLAY_NAME,
-  [CHAIN_IDS.SEI]: SEI_DISPLAY_NAME,
+  [CHAIN_ID.MAINNET]: MAINNET_DISPLAY_NAME,
+  [CHAIN_ID.LINEA_MAINNET]: LINEA_MAINNET_DISPLAY_NAME,
+  [CHAIN_ID.POLYGON]: POLYGON_DISPLAY_NAME,
+  [CHAIN_ID.AVALANCHE]: AVALANCHE_DISPLAY_NAME,
+  [CHAIN_ID.ARBITRUM]: ARBITRUM_DISPLAY_NAME,
+  [CHAIN_ID.BSC]: BNB_DISPLAY_NAME,
+  [CHAIN_ID.OPTIMISM]: OPTIMISM_DISPLAY_NAME,
+  [CHAIN_ID.ZKSYNC_ERA]: ZK_SYNC_ERA_DISPLAY_NAME,
+  [CHAIN_ID.BASE]: BASE_DISPLAY_NAME,
+  [CHAIN_ID.SEI]: SEI_DISPLAY_NAME,
   // TODO: Update to use CHAIN_IDS.MONAD when it is added to the transaction controller
-  [CHAIN_IDS.MONAD]: MONAD_DISPLAY_NAME,
+  [CHAIN_ID.MONAD]: MONAD_DISPLAY_NAME,
+  [CHAIN_ID.HYPE]: HYPEREVM_DISPLAY_NAME,
+  [CHAIN_ID.MEGAETH_MAINNET]: MEGAETH_DISPLAY_NAME,
 } as const;

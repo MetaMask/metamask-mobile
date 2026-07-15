@@ -1,19 +1,28 @@
 import { Platform } from 'react-native';
-import { ControllerInitFunction } from '../../types';
+import { MessengerClientInitFunction } from '../../types';
 import {
   RampsService,
   RampsServiceMessenger,
   RampsEnvironment,
 } from '@metamask/ramps-controller';
 
+/**
+ * When BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (and not E2E), uses RAMPS_ENVIRONMENT (set by builds.yml).
+ * Otherwise (legacy .js.env / E2E), uses METAMASK_ENVIRONMENT switch.
+ */
 export function getRampsEnvironment(): RampsEnvironment {
+  if (process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY === 'true') {
+    const rampsEnv = process.env.RAMPS_ENVIRONMENT;
+    return rampsEnv === 'production'
+      ? RampsEnvironment.Production
+      : RampsEnvironment.Staging;
+  }
   const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
   switch (metamaskEnvironment) {
     case 'production':
     case 'beta':
     case 'rc':
       return RampsEnvironment.Production;
-
     case 'dev':
     case 'exp':
     case 'test':
@@ -39,7 +48,7 @@ export function getRampsContext(): string {
  * @param request.controllerMessenger - The messenger to use for the service.
  * @returns The initialized service.
  */
-export const rampsServiceInit: ControllerInitFunction<
+export const rampsServiceInit: MessengerClientInitFunction<
   RampsService,
   RampsServiceMessenger
 > = ({ controllerMessenger }) => {

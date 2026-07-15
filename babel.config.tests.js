@@ -1,10 +1,16 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 
 const baseConfig = require('./babel.config');
 
-const newPlugins = baseConfig.plugins.filter(
-  (plugin) => plugin !== 'transform-inline-environment-variables',
-);
+// `transform-inline-environment-variables` is configured in the base config as
+// an array (`[name, options]`) so it can exclude `JEST_WORKER_ID`. Match on the
+// plugin name for both string and `[name, options]` forms — otherwise the global
+// inliner survives here and bakes env vars into every file at transform time,
+// defeating the per-file `exclude` list below (e.g. app/util/environment.ts).
+const newPlugins = baseConfig.plugins.filter((plugin) => {
+  const name = Array.isArray(plugin) ? plugin[0] : plugin;
+  return name !== 'transform-inline-environment-variables';
+});
 
 const newOverrides = [
   ...baseConfig.overrides,
@@ -12,29 +18,65 @@ const newOverrides = [
   {
     exclude: [
       'app/components/UI/Earn/selectors/featureFlags/index.ts',
+      'app/components/UI/Money/selectors/featureFlags.ts',
+      'app/components/UI/Money/selectors/featureFlags.test.ts',
+      'app/lib/Money/feature-flags.ts',
+      'app/lib/Money/feature-flags.test.ts',
       'app/components/UI/Perps/selectors/featureFlags/index.ts',
       'app/core/Engine/controllers/network-controller/utils.ts',
       'app/core/Engine/controllers/network-controller/utils.test.ts',
+      'app/util/test/utils.js',
       'app/core/Engine/controllers/gator-permissions-controller/gator-permissions-controller-init.ts',
       'app/core/Engine/controllers/gator-permissions-controller/gator-permissions-controller-init.test.ts',
       'app/core/Engine/controllers/remote-feature-flag-controller/utils.ts',
       'app/core/Engine/controllers/remote-feature-flag-controller/utils.test.ts',
-      'app/components/UI/Ramp/Deposit/sdk/getSdkEnvironment.ts',
-      'app/components/UI/Ramp/Deposit/sdk/getSdkEnvironment.test.ts',
+      'app/components/UI/Ramp/utils/getSdkEnvironment.ts',
+      'app/components/UI/Ramp/utils/getSdkEnvironment.test.ts',
       'app/components/UI/Ramp/Aggregator/sdk/getSdkEnvironment.ts',
       'app/components/UI/Ramp/Aggregator/sdk/getSdkEnvironment.test.ts',
       'app/core/Engine/controllers/ramps-controller/ramps-service-init.ts',
       'app/core/Engine/controllers/ramps-controller/ramps-service-init.test.ts',
-      'app/components/UI/Ramp/hooks/useRampsUnifiedV1Enabled.ts',
-      'app/components/UI/Ramp/hooks/useRampsUnifiedV1Enabled.test.ts',
-      'app/components/UI/Ramp/hooks/useRampsUnifiedV2Enabled.ts',
-      'app/components/UI/Ramp/hooks/useRampsUnifiedV2Enabled.test.ts',
-      'app/components/UI/Ramp/hooks/useRampsSmartRouting.ts',
-      'app/components/UI/Ramp/hooks/useRampsSmartRouting.test.ts',
+      'app/core/Engine/controllers/ramps-controller/ramps-controller-init.ts',
+      'app/core/Engine/controllers/ramps-controller/ramps-controller-init.test.ts',
+      'app/core/Engine/controllers/authenticated-user-storage-service-init.ts',
+      'app/core/Engine/controllers/authenticated-user-storage-service-init.test.ts',
       'app/components/UI/Ramp/hooks/useRampTokens.ts',
       'app/components/UI/Ramp/hooks/useRampTokens.test.ts',
+      'app/components/Views/confirmations/hooks/pay/useTransactionPayWithdraw.ts',
+      'app/components/Views/confirmations/hooks/pay/useTransactionPayWithdraw.test.ts',
+      'app/selectors/featureFlagController/moneyAccount/index.ts',
+      'app/selectors/featureFlagController/moneyAccount/index.test.ts',
+      'app/selectors/featureFlagController/legacyIosGoogleConfig/index.ts',
+      'app/selectors/featureFlagController/legacyIosGoogleConfig/index.test.ts',
+      'app/selectors/featureFlagController/googleLoginIosUnsupportedBlocking/index.ts',
+      'app/selectors/featureFlagController/googleLoginIosUnsupportedBlocking/index.test.ts',
+      'app/selectors/featureFlagController/confirmations/index.ts',
+      'app/selectors/featureFlagController/confirmations/index.test.ts',
+      'app/selectors/featureFlagController/seedlessTelegramLogin/index.ts',
+      'app/selectors/featureFlagController/seedlessTelegramLogin/index.test.ts',
+      'app/util/environment.ts',
+      'app/util/environment.test.ts',
+      'app/core/devApiEnv.ts',
+      'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.ts',
+      'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.test.ts',
+      'app/components/UI/Card/util/mapBaanxApiUrl.ts',
+      'app/components/UI/Card/util/mapBaanxApiUrl.test.ts',
+      'app/core/Engine/controllers/card-controller/services/baanx-config.ts',
+      'app/core/Engine/controllers/card-controller/services/baanx-config.test.ts',
+      'app/components/UI/Perps/adapters/mobileInfrastructure.ts',
+      'app/components/UI/Perps/adapters/mobileInfrastructure.test.ts',
+      'app/components/UI/Predict/providers/polymarket/protocol/definitions.ts',
+      'app/components/UI/Predict/providers/polymarket/protocol/definitions.test.ts',
       'app/store/migrations/**',
       'app/util/networks/customNetworks.tsx',
+      'tests/framework/playwrightLogger.ts',
+      'tests/framework/PlaywrightUtilities.ts',
+      'tests/framework/fixtures/FixtureHelper.ts',
+      'tests/framework/services/providers/emulator/reinstallLocalBuildFromPath.ts',
+      'tests/framework/services/appium/ScreenRecording.ts',
+      'tests/framework/services/appium/AppiumServer.ts',
+      '.yarn/plugins/plugin-usage-tracking.cjs',
+      '.yarn/plugins/plugin-usage-tracking.test.ts',
     ],
     plugins: ['transform-inline-environment-variables'],
   },

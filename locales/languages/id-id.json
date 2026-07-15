@@ -34,7 +34,6 @@
     "import_wallet_button": "Sinkronkan atau impor dompet",
     "new_to_crypto": "Baru menggunakan kripto?",
     "start_exploring_now": "Buat dompet baru",
-    "unlock": "Masuk",
     "new_to_metamask": "Baru menggunakan MetaMask?",
     "already_have_wallet": "Sudah punya dompet?",
     "optin_back_title": "Perhatian!",
@@ -133,7 +132,7 @@
     "reset_wallet": "Atur Ulang Dompet",
     "cant_proceed": "Anda tidak dapat melanjutkan hingga Anda mengetik kata ‘Hapus’. Dengan tindakan ini, Anda memilih untuk menghapus dompet Anda saat ini.",
     "invalid_password": "Kata sandi tidak valid",
-    "type_delete": "Ketik '%{delete}' untuk menghapus dompet saat ini secara permanen",
+    "type_delete": "Ketik '{{delete}}' untuk menghapus dompet saat ini secara permanen",
     "delete_my": "Hapus dompet saya",
     "are_you_sure": "Anda yakin ingin menghapus dompet Anda?",
     "your_current_wallet": "Dompet, akun, dan aset Anda saat ini akan ",
@@ -502,13 +501,13 @@
     "security_heading": "Keamanan",
     "privacy_heading": "Privasi",
     "failed_to_fetch_chain_id": "Tidak dapat mengambil ID rantai. Apakah URL RPC Anda benar?",
-    "endpoint_returned_different_chain_id": "Titik akhir memberikan hasil ID rantai yang berbeda: %{chainIdReturned}",
+    "endpoint_returned_different_chain_id": "Titik akhir memberikan hasil ID rantai yang berbeda: {{chainIdReturned}}",
     "chain_id_required": "ID rantai diperlukan. Harus cocok dengan ID rantai yang dikembalikan oleh jaringan. Anda dapat memasukkan bilangan heksadesimal berawalan '0x' atau desimal.",
     "invalid_hex_number": "Bilangan heksadesimal tidak valid.",
     "invalid_hex_number_leading_zeros": "Bilangan heksadesimal tidak valid. Hapus semua nol di depan.",
     "invalid_number": "Angka tidak valid. Masukkan bilangan heksadesimal berawalan '0x' atau desimal.",
     "invalid_number_leading_zeros": "Angka tidak valid. Hapus semua nol di depan.",
-    "invalid_number_range": "Angka tidak valid. Masukkan sebuah angka antara 1 dan %{maxSafeChainId}",
+    "invalid_number_range": "Angka tidak valid. Masukkan sebuah angka antara 1 dan {{maxSafeChainId}}",
     "hide_zero_balance_tokens_title": "Menyembunyikan Token Tanpa Saldo",
     "hide_zero_balance_tokens_desc": "Mencegah token tanpa saldo ditampilkan di daftar token Anda."
   },
@@ -582,6 +581,7 @@
     "ok": "Oke",
     "cancel": "Batal",
     "error": "Kesalahan",
+    "open_settings": "Pengaturan",
     "attempting_to_scan_with_wallet_locked": "Sepertinya Anda mencoba memindai kode QR, Anda perlu membuka dompet agar dapat menggunakannya.",
     "attempting_sync_from_wallet_error": "Sepertinya Anda mencoba menyinkronkan dengan ekstensi. Untuk melakukannya, Anda akan perlu menghapus dompet Anda saat ini. \n\nSetelah Anda menghapus atau menginstal ulang versi baru aplikasi, pilih opsi untuk \"Menyinkronkan dengan Ekstensi MetaMask\". Penting! Sebelum menghapus dompet, pastikan Anda telah mencadangkan Frasa Pemulihan Rahasia."
   },
@@ -1532,7 +1532,7 @@
     "title": "Lihat apa yang baru"
   },
   "invalid_network": {
-    "title": "ID rantai untuk jaringan kustom \n %{network} \n harus dimasukkan kembali.",
+    "title": "ID rantai untuk jaringan kustom \n {{network}} \n harus dimasukkan kembali.",
     "message": "Untuk melindungi Anda dari penyedia jaringan yang jahat atau salah, ID rantai kini diperlukan untuk semua jaringan kustom.",
     "hint": "Anda dapat menemukan ID rantai dari jaringan paling populer di ",
     "edit_network_button": "Edit jaringan",
@@ -1561,7 +1561,7 @@
     "cancel": "Batal",
     "approve": "Setujui",
     "unrecognized_chain": "Jaringan kustom ini tidak dikenali",
-    "invalid_chain": "%{rpcUrl} untuk ID rantai ini tidak cocok dengan chainid.network listing",
+    "invalid_chain": "{{rpcUrl}} untuk ID rantai ini tidak cocok dengan chainid.network listing",
     "alert_recommend": "Sebaiknya",
     "alert_verify": "verifikasikan ID rantai"
   },

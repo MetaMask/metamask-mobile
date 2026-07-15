@@ -3,13 +3,16 @@ import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalReque
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import PermissionApproval from './PermissionApproval';
-import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
+import { createMultichainAccountConnectNavDetails } from '../../Views/MultichainAccounts/shared';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { render } from '@testing-library/react-native';
-import { useMetrics } from '../../../components/hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import useOriginSource from '../../hooks/useOriginSource';
+import { SourceType } from '../../hooks/useAnalytics/useAnalytics.types';
+import AppConstants from '../../../core/AppConstants';
 import {
   Caip25EndowmentPermissionName,
   getAllScopesFromPermission,
@@ -21,13 +24,16 @@ import { selectPendingApprovals } from '../../../selectors/approvalController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
-jest.mock('../../../components/hooks/useMetrics');
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics');
 
-jest.mock('../../Views/AccountConnect', () => ({
-  createAccountConnectNavDetails: jest.fn(),
+jest.mock('../../Views/MultichainAccounts/shared', () => ({
+  createMultichainAccountConnectNavDetails: jest.fn(),
 }));
 
 jest.mock('../../hooks/useOriginSource');
+jest.mock('../../hooks/useSDKV2Connection', () => ({
+  useSDKV2Connection: jest.fn(() => undefined),
+}));
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -100,10 +106,10 @@ const mockApprovalRequest = (
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockCreateAccountConnectNavDetails = (details: any) => {
+const mockCreateMultichainAccountConnectNavDetails = (details: any) => {
   (
-    createAccountConnectNavDetails as jest.MockedFn<
-      typeof createAccountConnectNavDetails
+    createMultichainAccountConnectNavDetails as jest.MockedFn<
+      typeof createMultichainAccountConnectNavDetails
     >
   ).mockReturnValue(details);
 };
@@ -116,24 +122,26 @@ const mockAccountsLength = (accountsLength: number) => {
 
 const mockTrackEvent = jest.fn();
 
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
+jest.mocked(useAnalytics).mockReturnValue(
+  createMockUseAnalyticsHook({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+  }),
+);
 
 describe('PermissionApproval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useOriginSource as jest.Mock).mockImplementation(() => 'IN_APP_BROWSER');
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
+    (useOriginSource as jest.Mock).mockImplementation(() => ({
+      source: SourceType.IN_APP_BROWSER,
+      requestSource: AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+    }));
     (
       getAllScopesFromPermission as jest.MockedFn<
         typeof getAllScopesFromPermission
@@ -162,15 +170,15 @@ describe('PermissionApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    mockCreateAccountConnectNavDetails(NAV_DETAILS_MOCK);
+    mockCreateMultichainAccountConnectNavDetails(NAV_DETAILS_MOCK);
 
     render(<PermissionApproval navigation={navigationMock} />);
 
     expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
     expect(navigationMock.navigate).toHaveBeenCalledWith(NAV_DETAILS_MOCK[0]);
 
-    expect(createAccountConnectNavDetails).toHaveBeenCalledTimes(1);
-    expect(createAccountConnectNavDetails).toHaveBeenCalledWith({
+    expect(createMultichainAccountConnectNavDetails).toHaveBeenCalledTimes(1);
+    expect(createMultichainAccountConnectNavDetails).toHaveBeenCalledWith({
       hostInfo: HOST_INFO_MOCK,
       permissionRequestId: PERMISSION_REQUEST_ID_MOCK,
     });
@@ -194,18 +202,19 @@ describe('PermissionApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    mockCreateAccountConnectNavDetails(NAV_DETAILS_MOCK);
+    mockCreateMultichainAccountConnectNavDetails(NAV_DETAILS_MOCK);
 
     mockAccountsLength(3);
 
     render(<PermissionApproval navigation={navigationMock} />);
 
-    const expectedEvent = MetricsEventBuilder.createEventBuilder(
+    const expectedEvent = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.CONNECT_REQUEST_STARTED,
     )
       .addProperties({
         number_of_accounts: 3,
-        source: 'IN_APP_BROWSER',
+        source: SourceType.IN_APP_BROWSER,
+        request_source: AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
         chain_id_list: [],
         method: MESSAGE_TYPE.ETH_REQUEST_ACCOUNTS,
         api_source: MetaMetricsRequestedThrough.EthereumProvider,
@@ -289,12 +298,12 @@ describe('PermissionApproval', () => {
     expect(navigationMock.navigate).toHaveBeenCalledTimes(0);
   });
 
-  it('re-runs effect when pendingApprovals changes', async () => {
+  it('does not re-navigate for the same approval when pendingApprovals changes', async () => {
     const navigationMock = {
       navigate: jest.fn(),
     };
 
-    mockCreateAccountConnectNavDetails(NAV_DETAILS_MOCK);
+    mockCreateMultichainAccountConnectNavDetails(NAV_DETAILS_MOCK);
 
     const approvalRequest = {
       type: ApprovalTypes.REQUEST_PERMISSIONS,
@@ -329,12 +338,13 @@ describe('PermissionApproval', () => {
       anotherRequestId: anotherApprovalRequest,
     };
 
+    // The current approvalRequest is still the same (same metadata.id),
+    // so navigation should not fire again even though the queue changed.
     mockApprovalRequest(approvalRequest, pendingApprovals2);
 
     rerender(<PermissionApproval navigation={navigationMock} />);
 
-    // Effect should re-run when pendingApprovals content changes, causing navigation again
-    expect(navigationMock.navigate).toHaveBeenCalledTimes(2);
+    expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
   });
 
   it('navigates when new approval added after queue cleared', async () => {
@@ -342,7 +352,7 @@ describe('PermissionApproval', () => {
       navigate: jest.fn(),
     };
 
-    mockCreateAccountConnectNavDetails(NAV_DETAILS_MOCK);
+    mockCreateMultichainAccountConnectNavDetails(NAV_DETAILS_MOCK);
 
     const approvalRequest1 = {
       type: ApprovalTypes.REQUEST_PERMISSIONS,
@@ -369,7 +379,10 @@ describe('PermissionApproval', () => {
 
     const approvalRequest2 = {
       type: ApprovalTypes.REQUEST_PERMISSIONS,
-      requestData: HOST_INFO_MOCK,
+      requestData: {
+        ...HOST_INFO_MOCK,
+        metadata: { id: 'newRequestId' },
+      },
       id: 'newRequestId',
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

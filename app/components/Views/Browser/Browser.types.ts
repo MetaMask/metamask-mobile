@@ -8,6 +8,10 @@ export interface BrowserParams {
   existingTabId?: number;
   fromTrending?: boolean;
   fromPerps?: boolean;
+  fromBenefit?: boolean;
+  fromCard?: boolean;
+  fromWhatsHappening?: boolean;
+  fromMoney?: boolean;
   linkType?: string;
   url?: string;
 }
@@ -16,8 +20,11 @@ export interface BrowserTab {
   id: number;
   url?: string;
   image?: string;
+  /** @deprecated Use lastActiveAt-based mounting instead. */
   isArchived?: boolean;
   linkType?: string;
+  /** Timestamp (Date.now()) of when the user last activated this tab (switched to it or created it). */
+  lastActiveAt?: number;
 }
 
 export interface BrowserNavigation {

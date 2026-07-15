@@ -1,10 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import {
-  selectNativeCurrencyByChainId,
-  selectSelectedNetworkClientId,
-} from '../../../../selectors/networkController';
+import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
 import {
   selectCurrentCurrency,
   selectCurrencyRates,
@@ -22,11 +19,26 @@ import {
 import { calculateAssetPrice } from '../../AssetOverview/utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
+import { type MarketDataDetails } from '@metamask/assets-controllers';
 import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
-import Engine from '../../../../core/Engine';
-import Logger from '../../../../util/Logger';
 import { safeToChecksumAddress } from '../../../../util/address';
+
+/**
+ * Time ranges where the spot-prices API provides a reliable pre-computed
+ * percentage, mapped to the corresponding MarketDataDetails field.
+ * Ranges not covered here (3m, 3y, all) have no matching API field and
+ * will fall back to the historical-prices-derived percentage.
+ */
+const SPOT_PRICE_PCT_BY_TIME_PERIOD: Partial<
+  Record<TimePeriod, keyof MarketDataDetails>
+> = {
+  '1d': 'pricePercentChange1d',
+  '1w': 'pricePercentChange7d',
+  '7d': 'pricePercentChange7d',
+  '1m': 'pricePercentChange30d',
+  '1y': 'pricePercentChange1y',
+};
 
 export interface UseTokenPriceResult {
   currentPrice: number;
@@ -38,6 +50,7 @@ export interface UseTokenPriceResult {
   setTimePeriod: (period: TimePeriod) => void;
   chartNavigationButtons: TimePeriod[];
   currentCurrency: string;
+  hasInsufficientCoverage: boolean;
 }
 
 export interface UseTokenPriceParams {
@@ -64,7 +77,6 @@ export const useTokenPrice = ({
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const allTokenMarketData = useSelector(selectTokenMarketData);
-  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, chainId),
@@ -78,30 +90,17 @@ export const useTokenPrice = ({
     ? safeToChecksumAddress(token.address)
     : token.address;
 
-  const { data: prices = [], isLoading } = useTokenHistoricalPrices({
+  const {
+    data: prices = [],
+    isLoading,
+    hasInsufficientCoverage,
+  } = useTokenHistoricalPrices({
     asset: token,
     address: token.address as Hex,
     chainId,
     timePeriod,
     vsCurrency: currentCurrency,
   });
-
-  useEffect(() => {
-    const { SwapsController } = Engine.context;
-    const fetchTokenWithCache = async () => {
-      try {
-        await SwapsController.fetchTokenWithCache({
-          networkClientId: selectedNetworkClientId,
-        });
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'Swaps: error while fetching tokens with cache in useTokenPrice',
-        );
-      }
-    };
-    fetchTokenWithCache();
-  }, [selectedNetworkClientId]);
 
   const chartNavigationButtons: TimePeriod[] = useMemo(
     () =>
@@ -111,13 +110,29 @@ export const useTokenPrice = ({
     [isNonEvmToken],
   );
 
-  const marketDataRate =
-    allTokenMarketData?.[chainId]?.[itemAddress as Hex]?.price;
+  const tokenMarketEntry = allTokenMarketData?.[chainId]?.[itemAddress as Hex];
+  const marketDataRate = tokenMarketEntry?.price;
 
   const [fetchedRate, setFetchedRate] = useState<number | undefined>();
+  const [fetchedMarketData, setFetchedMarketData] = useState<
+    MarketDataDetails | undefined
+  >();
+  const fetchIdRef = useRef(0);
 
+  // Stable token key to prevent unnecessary re-fetches
+  const tokenKey = `${chainId}-${itemAddress}-${currentCurrency}`;
+
+  // For non-imported tokens (not in Redux), fetch price + market data in a
+  // single call. This gives us both the exchange rate and the pre-computed
+  // percentage changes from the spot-prices API, avoiding the historical-prices
+  // endpoint's incomplete-data problem for newly-listed tokens.
   useEffect(() => {
+    setFetchedRate(undefined);
+    setFetchedMarketData(undefined);
+
     if (marketDataRate !== undefined || !itemAddress) {
+      // Token data already available in Redux or no address - mark fetch as "not needed"
+      setFetchedMarketData({} as MarketDataDetails);
       return;
     }
 
@@ -127,42 +142,63 @@ export const useTokenPrice = ({
       conversionRateByTicker?.[nativeCurrency]?.conversionRate;
 
     if (!isNonEvm && !nativeTokenConversionRate) {
+      // Can't fetch without conversion rate - mark fetch as "not possible"
+      setFetchedMarketData({} as MarketDataDetails);
       return;
     }
 
-    const fetchRate = async () => {
+    const id = ++fetchIdRef.current;
+
+    const fetchData = async () => {
       try {
-        const tokenFiatPrice = await getTokenExchangeRate({
+        const data = (await getTokenExchangeRate({
           chainId,
           tokenAddress: itemAddress,
           currency: currentCurrency,
-        });
+          includeMarketData: true,
+        })) as MarketDataDetails | undefined;
 
-        if (!tokenFiatPrice) {
+        if (id !== fetchIdRef.current) return;
+
+        if (!data?.price) {
           setFetchedRate(undefined);
+          // Set empty object to indicate "fetch completed but no data available"
+          // This prevents infinite loading when API returns incomplete data
+          setFetchedMarketData({} as MarketDataDetails);
           return;
         }
 
+        setFetchedMarketData(data);
+
         if (isNonEvm) {
-          setFetchedRate(tokenFiatPrice);
+          setFetchedRate(data.price);
         } else if (nativeTokenConversionRate) {
-          setFetchedRate(tokenFiatPrice / nativeTokenConversionRate);
+          setFetchedRate(data.price / nativeTokenConversionRate);
         }
-      } catch (error) {
-        console.error('Failed to fetch token exchange rate:', error);
+      } catch {
+        if (id !== fetchIdRef.current) return;
         setFetchedRate(undefined);
+        // Set empty object to indicate "fetch attempted but failed"
+        // This prevents infinite loading when API request fails
+        setFetchedMarketData({} as MarketDataDetails);
       }
     };
 
-    fetchRate();
-  }, [
-    chainId,
-    itemAddress,
-    currentCurrency,
-    marketDataRate,
-    nativeCurrency,
-    conversionRateByTicker,
-  ]);
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tokenKey, marketDataRate]);
+
+  // For time periods that use spot-prices percentage (1d, 1w, 1m, 1y),
+  // wait for spot-prices to load before showing data to avoid flicker.
+  // For other periods (3m, 3y, all), we must rely on historical prices.
+  const spotPctField = SPOT_PRICE_PCT_BY_TIME_PERIOD[timePeriod];
+  const needsSpotPriceFetch = marketDataRate === undefined && !!itemAddress;
+  // Wait for spot-prices data when: token not in Redux, time period uses spot %,
+  // and we haven't fetched yet (fetchedMarketData is still undefined).
+  const isWaitingForSpotPrice =
+    needsSpotPriceFetch &&
+    spotPctField !== undefined &&
+    fetchedMarketData === undefined;
 
   const exchangeRate = marketDataRate ?? fetchedRate;
 
@@ -192,16 +228,40 @@ export const useTokenPrice = ({
     comparePrice = calculatedComparePrice;
   }
 
+  // When the spot-prices API has a pre-computed percentage for the active
+  // time range, prefer it over the percentage derived from historical-prices.
+  // The historical-prices endpoint can return incomplete data for newly-listed
+  // tokens (e.g., only 6h of data when 24h is requested), causing wildly
+  // incorrect percentages.
+  // For imported tokens, read from Redux (tokenMarketEntry); for non-imported
+  // tokens, fall back to the fetched market data.
+  const spotPct = spotPctField
+    ? ((tokenMarketEntry?.[spotPctField] as number | undefined) ??
+      (fetchedMarketData?.[spotPctField] as number | undefined) ??
+      null)
+    : null;
+
+  if (spotPct != null && currentPrice > 0) {
+    const derivedComparePrice = currentPrice / (1 + spotPct / 100);
+    comparePrice = derivedComparePrice;
+    priceDiff = currentPrice - derivedComparePrice;
+  }
+
+  // Combine loading states: wait for both historical prices AND spot-prices
+  // (when needed for the current time period) to avoid percentage flicker.
+  const combinedIsLoading = isLoading || isWaitingForSpotPrice;
+
   return {
     currentPrice,
     priceDiff,
     comparePrice,
     prices,
-    isLoading,
+    isLoading: combinedIsLoading,
     timePeriod,
     setTimePeriod,
     chartNavigationButtons,
     currentCurrency,
+    hasInsufficientCoverage,
   };
 };
 

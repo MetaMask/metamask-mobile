@@ -1,5 +1,4 @@
 import enContent from '../../../../locales/languages/en.json';
-import ExternalSites from '../../../../tests/resources/externalsites.json';
 
 export const BrowserViewSelectorsIDs = {
   BROWSER_WEBVIEW_ID: 'browser-webview',
@@ -17,6 +16,8 @@ export const BrowserViewSelectorsIDs = {
   BROWSER_CLOSE_BUTTON: 'browser-tab-close-button',
   ADD_NEW_TAB: 'tabs_add',
   TABS_BACK_BUTTON: 'tabs_back_button',
+  TABS_OPENED_TITLE: 'tabs_opened_title',
+  TABS_ITEM_REGEX: /browser-tab-\d+/,
   NO_TABS_MESSAGE: 'no-tabs-message',
   /** @deprecated No longer used - Close All button removed from tabs view */
   CLOSE_ALL_TABS: 'tabs_close_all',
@@ -32,7 +33,7 @@ export const BrowserViewSelectorsText = {
 export const BrowserViewSelectorsXPaths = {
   FAVORITE_TAB: `//div[@id='root']/div[@class='App']//ol//li[contains(text(), 'Favorites')]`,
   TEST_DAPP_TEXT: '//a[@href="https://metamask.github.io/test-dapp/"]',
-  TEST_DAPP_LINK: `//a[contains(@href, '${ExternalSites.TEST_DAPP}')]`,
+  TEST_DAPP_LINK: `//a[contains(@href, 'https://metamask.github.io/test-dapp/')]`,
 } as const;
 
 export type BrowserViewSelectorsIDsType = typeof BrowserViewSelectorsIDs;

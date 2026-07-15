@@ -139,16 +139,12 @@ jest.mock('../ReusableModal', () => {
 });
 
 // Mock useTheme
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      primary: { default: '#0000ff' },
-      border: { default: '#cccccc' },
-      text: { muted: '#999999' },
-    },
-    themeAppearance: 'light',
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 // Mock styles
 jest.mock('./styles', () => ({
@@ -160,16 +156,21 @@ jest.mock('./styles', () => ({
   }),
 }));
 
-// Mock Box from design-system-react-native
+// Mock Box and Text from design-system-react-native
 jest.mock('@metamask/design-system-react-native', () => {
-  const { View } = jest.requireActual('react-native');
+  const { Text, View } = jest.requireActual('react-native');
   return {
     Box: View,
+    Text,
     BoxFlexDirection: {
       Row: 'row',
     },
     BoxAlignItems: {
       Center: 'center',
+    },
+    TextVariant: {
+      HeadingLg: 'HeadingLg',
+      BodyMd: 'BodyMd',
     },
   };
 });
@@ -322,7 +323,7 @@ describe('TurnOffRememberMeModal', () => {
 
     await waitFor(() => {
       expect(mockDoesPasswordMatch).toHaveBeenCalled();
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
   });
 
@@ -340,12 +341,11 @@ describe('TurnOffRememberMeModal', () => {
 
     await waitFor(() => {
       expect(mockDoesPasswordMatch).toHaveBeenCalled();
-      expect(button.props.disabled).toBe(false);
+      expect(button).toBeEnabled();
     });
   });
 
-  it('restores previous auth type when disabling remember me', async () => {
-    mockGetItem.mockResolvedValue(AUTHENTICATION_TYPE.BIOMETRIC);
+  it('disables remember me with PASSWORD and clears previous auth type storage', async () => {
     mockDoesPasswordMatch.mockResolvedValue({ valid: true });
 
     const { getByTestId } = renderWithProvider(<TurnOffRememberMeModal />, {
@@ -355,28 +355,30 @@ describe('TurnOffRememberMeModal', () => {
     const input = getByTestId('text-input-turn_off_remember_me.placeholder');
     fireEvent.changeText(input, 'ValidPassword123!');
 
+    const button = getByTestId('warning-modal-cancel-button');
+
     await waitFor(() => {
       expect(mockDoesPasswordMatch).toHaveBeenCalled();
+      expect(button).toBeEnabled();
     });
-
-    const button = getByTestId('warning-modal-cancel-button');
 
     await act(async () => {
       fireEvent.press(button);
     });
 
     await waitFor(() => {
-      expect(mockGetItem).toHaveBeenCalledWith(
-        PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
-      );
       expect(mockUpdateAuthPreference).toHaveBeenCalledWith({
-        authType: AUTHENTICATION_TYPE.BIOMETRIC,
+        authType: AUTHENTICATION_TYPE.PASSWORD,
         password: 'ValidPassword123!',
       });
       expect(mockRemoveItem).toHaveBeenCalledWith(
         PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
       );
       expect(mockDismissModal).toHaveBeenCalled();
+    });
+
+    await act(async () => {
+      await Promise.resolve();
     });
   });
 
@@ -391,11 +393,12 @@ describe('TurnOffRememberMeModal', () => {
     const input = getByTestId('text-input-turn_off_remember_me.placeholder');
     fireEvent.changeText(input, 'ValidPassword123!');
 
+    const button = getByTestId('warning-modal-cancel-button');
+
     await waitFor(() => {
       expect(mockDoesPasswordMatch).toHaveBeenCalled();
+      expect(button).toBeEnabled();
     });
-
-    const button = getByTestId('warning-modal-cancel-button');
 
     await act(async () => {
       fireEvent.press(button);
@@ -406,6 +409,10 @@ describe('TurnOffRememberMeModal', () => {
         authType: AUTHENTICATION_TYPE.PASSWORD,
         password: 'ValidPassword123!',
       });
+    });
+
+    await act(async () => {
+      await Promise.resolve();
     });
   });
 
@@ -425,11 +432,13 @@ describe('TurnOffRememberMeModal', () => {
     const input = getByTestId('text-input-turn_off_remember_me.placeholder');
     fireEvent.changeText(input, 'ValidPassword123!');
 
+    const button = getByTestId('warning-modal-cancel-button');
+
     await waitFor(() => {
       expect(mockDoesPasswordMatch).toHaveBeenCalled();
+      expect(button).toBeEnabled();
     });
 
-    const button = getByTestId('warning-modal-cancel-button');
     await act(async () => {
       fireEvent.press(button);
     });
@@ -441,10 +450,13 @@ describe('TurnOffRememberMeModal', () => {
     expect(
       queryByTestId('text-input-turn_off_remember_me.placeholder'),
     ).toBeNull();
-    expect(button.props.disabled).toBe(true);
+    expect(button).toBeDisabled();
 
     if (resolveUpdateAuthPreference) {
       resolveUpdateAuthPreference();
+      await act(async () => {
+        await Promise.resolve();
+      });
     }
   });
 
@@ -464,11 +476,13 @@ describe('TurnOffRememberMeModal', () => {
     const input = getByTestId('text-input-turn_off_remember_me.placeholder');
     fireEvent.changeText(input, 'ValidPassword123!');
 
+    const button = getByTestId('warning-modal-cancel-button');
+
     await waitFor(() => {
       expect(mockDoesPasswordMatch).toHaveBeenCalled();
+      expect(button).toBeEnabled();
     });
 
-    const button = getByTestId('warning-modal-cancel-button');
     await act(async () => {
       fireEvent.press(button);
     });
@@ -480,10 +494,13 @@ describe('TurnOffRememberMeModal', () => {
     expect(
       queryByTestId('text-input-turn_off_remember_me.placeholder'),
     ).toBeNull();
-    expect(button.props.disabled).toBe(true);
+    expect(button).toBeDisabled();
 
     if (resolveUpdateAuthPreference) {
       resolveUpdateAuthPreference();
+      await act(async () => {
+        await Promise.resolve();
+      });
     }
   });
 
@@ -499,11 +516,13 @@ describe('TurnOffRememberMeModal', () => {
     const input = getByTestId('text-input-turn_off_remember_me.placeholder');
     fireEvent.changeText(input, 'ValidPassword123!');
 
+    const button = getByTestId('warning-modal-cancel-button');
+
     await waitFor(() => {
       expect(mockDoesPasswordMatch).toHaveBeenCalled();
+      expect(button).toBeEnabled();
     });
 
-    const button = getByTestId('warning-modal-cancel-button');
     await act(async () => {
       fireEvent.press(button);
     });
@@ -511,6 +530,10 @@ describe('TurnOffRememberMeModal', () => {
     await waitFor(() => {
       expect(mockUpdateAuthPreference).toHaveBeenCalled();
       expect(mockDismissModal).toHaveBeenCalled();
+    });
+
+    await act(async () => {
+      await Promise.resolve();
     });
   });
 
@@ -529,11 +552,12 @@ describe('TurnOffRememberMeModal', () => {
     const input = getByTestId('text-input-turn_off_remember_me.placeholder');
     fireEvent.changeText(input, 'ValidPassword123!');
 
+    const button = getByTestId('warning-modal-cancel-button');
+
     await waitFor(() => {
       expect(mockDoesPasswordMatch).toHaveBeenCalled();
+      expect(button).toBeEnabled();
     });
-
-    const button = getByTestId('warning-modal-cancel-button');
 
     await act(async () => {
       fireEvent.press(button);
@@ -551,6 +575,9 @@ describe('TurnOffRememberMeModal', () => {
       await waitFor(() => {
         expect(mockDismissModal).toHaveBeenCalled();
       });
+      await act(async () => {
+        await Promise.resolve();
+      });
     }
   });
 
@@ -564,11 +591,13 @@ describe('TurnOffRememberMeModal', () => {
     const input = getByTestId('text-input-turn_off_remember_me.placeholder');
     fireEvent.changeText(input, 'ValidPassword123!');
 
+    const button = getByTestId('warning-modal-cancel-button');
+
     await waitFor(() => {
       expect(mockDoesPasswordMatch).toHaveBeenCalled();
+      expect(button).toBeEnabled();
     });
 
-    const button = getByTestId('warning-modal-cancel-button');
     await act(async () => {
       fireEvent.press(button);
     });
@@ -576,6 +605,10 @@ describe('TurnOffRememberMeModal', () => {
     await waitFor(() => {
       expect(mockUpdateAuthPreference).toHaveBeenCalled();
       expect(mockDismissModal).toHaveBeenCalled();
+    });
+
+    await act(async () => {
+      await Promise.resolve();
     });
   });
 });

@@ -10,11 +10,11 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { AccountGroupId } from '@metamask/account-api';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useSelector } from 'react-redux';
@@ -373,11 +373,11 @@ const RewardOptInAccountGroupModal: React.FC = () => {
       onClose={handleDismiss}
     >
       {Boolean(accountGroupContext?.metadata?.name) && (
-        <BottomSheetHeader>
-          <Text variant={TextVariant.HeadingSm}>
-            {accountGroupContext?.metadata?.name}
-          </Text>
-        </BottomSheetHeader>
+        <HeaderStandard
+          title={accountGroupContext?.metadata.name}
+          onClose={() => sheetRef.current?.onCloseBottomSheet()}
+          closeButtonProps={{ testID: 'header-close-button' }}
+        />
       )}
 
       {flatListData.length > 0 && (

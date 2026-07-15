@@ -566,6 +566,16 @@ const BRIDGE_TOKEN_DETAILS_CHAIN_1 = [
   },
 ];
 
+/** Minimal valid response for `GET /getQuoteStatus` (QuoteStatusGetResponse). */
+const BRIDGE_QUOTE_STATUS_GET_RESPONSE = {
+  submittedTx: {
+    status: 'SUBMITTED',
+    srcChain: {
+      chainId: 1,
+    },
+  },
+};
+
 export const DEFAULT_BRIDGE_API_MOCKS = {
   GET: [
     {
@@ -574,8 +584,29 @@ export const DEFAULT_BRIDGE_API_MOCKS = {
       responseCode: 200,
     },
     {
-      urlEndpoint: 'https://bridge.api.cx.metamask.io/getTokens?chainId=1',
+      urlEndpoint:
+        /^https:\/\/bridge\.(api|dev-api)\.cx\.metamask\.io\/getTokens\?chainId=1(&.*)?$/,
       response: BRIDGE_TOKEN_DETAILS_CHAIN_1,
+      responseCode: 200,
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/bridge\.(api|dev-api)\.cx\.metamask\.io\/getTxStatus(\?.*)?$/,
+      response: { status: 'complete' },
+      responseCode: 200,
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/bridge\.(api|dev-api)\.cx\.metamask\.io\/getQuoteStatus(\?.*)?$/,
+      response: BRIDGE_QUOTE_STATUS_GET_RESPONSE,
+      responseCode: 200,
+    },
+  ],
+  POST: [
+    {
+      urlEndpoint:
+        /^https:\/\/bridge\.(api|dev-api)\.cx\.metamask\.io\/quote\/updateStatus$/,
+      response: {},
       responseCode: 200,
     },
   ],

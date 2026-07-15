@@ -1,15 +1,15 @@
 import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
 import BN4 from 'bnjs4';
 import React from 'react';
+import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
-import useMetrics from '../../../../hooks/useMetrics/useMetrics';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { flushPromises } from '../../../../../util/test/utils';
-import { getStakingNavbar } from '../../../Navbar';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
@@ -18,18 +18,21 @@ import {
   MOCK_USDC_MAINNET_ASSET,
 } from '../../../Stake/__mocks__/stakeMockData';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
+import {
+  EVENT_LOCATIONS,
+  EVENT_PROVIDERS,
+} from '../../constants/events/earnEvents';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import { getAaveV3MaxRiskAwareWithdrawalAmount } from '../../utils/tempLending';
-import EarnWithdrawInputView from './EarnWithdrawInputView';
+import EarnWithdrawInputView, {
+  EARN_WITHDRAW_INPUT_VIEW_BACK_BUTTON_TEST_ID,
+  EARN_WITHDRAW_INPUT_VIEW_CANCEL_BUTTON_TEST_ID,
+} from './EarnWithdrawInputView';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import { TokenI } from '../../../Tokens/types';
 import { trace, TraceName } from '../../../../../util/trace';
 import { MAINNET_DISPLAY_NAME } from '../../../../../core/Engine/constants';
-
-jest.mock('../../../Navbar', () => ({
-  getStakingNavbar: jest.fn().mockReturnValue({}),
-}));
 
 jest.mock('../../../../../selectors/multichain', () => ({
   selectAccountTokensAcrossChains: jest.fn(() => ({
@@ -60,6 +63,7 @@ const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 const mockPop = jest.fn();
+const mockGoBack = jest.fn();
 
 let mockRouteToken: TokenI | undefined;
 
@@ -69,11 +73,12 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: mockGoBack,
       setOptions: mockSetOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
       reset: mockReset,
-      dangerouslyGetParent: () => ({
+      getParent: () => ({
         pop: mockPop,
       }),
     }),
@@ -184,7 +189,10 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
 }));
 
-jest.mock('../../../../hooks/useMetrics/useMetrics');
+const mockUseAnalyticsFn = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: (...args: unknown[]) => mockUseAnalyticsFn(...args),
+}));
 
 jest.mock('../../hooks/useEarnTokens', () => ({
   __esModule: true,
@@ -423,30 +431,29 @@ jest.mock('react-native-fade-in-image', () => {
 });
 
 describe('EarnWithdrawInputView', () => {
-  const mockGetStakingNavbar = jest.mocked(getStakingNavbar);
   const mockTrackEvent = jest.fn();
-  const useMetricsMock = jest.mocked(useMetrics);
   const mockTrace = jest.mocked(trace);
 
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    mockGoBack.mockClear();
 
     // Reset route.param.token
     mockRouteToken = undefined;
 
-    // Setup global useMetrics mock for all tests
-    useMetricsMock.mockReturnValue({
+    // Setup global useAnalytics mock for all tests
+    mockUseAnalyticsFn.mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
-    } as unknown as ReturnType<typeof useMetrics>);
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+    } as unknown as ReturnType<typeof useAnalytics>);
   });
 
-  it('render matches snapshot', async () => {
+  it('renders withdraw input view with review button', async () => {
     render(EarnWithdrawInputView);
 
     await waitFor(async () => {
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(screen.getByTestId('review-button')).toBeOnTheScreen();
     });
   });
 
@@ -459,7 +466,7 @@ describe('EarnWithdrawInputView', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('4000 USD')).toBeTruthy();
+        expect(screen.getByText('4000 USD')).toBeOnTheScreen();
       });
     });
   });
@@ -468,10 +475,10 @@ describe('EarnWithdrawInputView', () => {
     it('switches between ETH and fiat correctly', () => {
       render(EarnWithdrawInputView);
 
-      expect(screen.getByText('ETH')).toBeTruthy();
+      expect(screen.getByText('ETH')).toBeOnTheScreen();
       fireEvent.press(screen.getByText('0 USD'));
 
-      expect(screen.getByText('USD')).toBeTruthy();
+      expect(screen.getByText('USD')).toBeOnTheScreen();
     });
   });
 
@@ -481,7 +488,7 @@ describe('EarnWithdrawInputView', () => {
 
       fireEvent.press(screen.getByText('25%'));
 
-      expect(screen.getByText('1.44783')).toBeTruthy();
+      expect(screen.getByText('1.44783')).toBeOnTheScreen();
     });
 
     it('handles Max button press and sets full balance', async () => {
@@ -491,7 +498,7 @@ describe('EarnWithdrawInputView', () => {
         fireEvent.press(screen.getByText('Max'));
       });
 
-      expect(screen.getByText('5.79133')).toBeTruthy();
+      expect(screen.getByText('5.79133')).toBeOnTheScreen();
     });
 
     it('tracks quick amount button press for staking flows', async () => {
@@ -522,7 +529,7 @@ describe('EarnWithdrawInputView', () => {
     it('displays `Enter amount` if input is 0', () => {
       render(EarnWithdrawInputView);
 
-      expect(screen.getByText('Enter amount')).toBeTruthy();
+      expect(screen.getByText('Enter amount')).toBeOnTheScreen();
     });
 
     it('displays `Review` on withdraw button if input is valid', () => {
@@ -530,7 +537,7 @@ describe('EarnWithdrawInputView', () => {
 
       fireEvent.press(screen.getByText('1'));
 
-      expect(screen.getByText('Review')).toBeTruthy();
+      expect(screen.getByText('Review')).toBeOnTheScreen();
     });
 
     it('displays `Not enough ETH` when input exceeds balance', () => {
@@ -582,15 +589,10 @@ describe('EarnWithdrawInputView', () => {
     it('renders "Unstake <token name>" for pooled-staking withdrawals', () => {
       render(EarnWithdrawInputView);
 
-      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Unstake ETH',
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        null,
-      );
+      expect(screen.getByText('Unstake ETH')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(EARN_WITHDRAW_INPUT_VIEW_CANCEL_BUTTON_TEST_ID),
+      ).toBeOnTheScreen();
     });
 
     it('renders "Withdraw <token name>" for supported stablecoin lending assets', () => {
@@ -628,15 +630,80 @@ describe('EarnWithdrawInputView', () => {
 
       render(EarnWithdrawInputView, mockLendingToken);
 
-      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Withdraw USDC',
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        null,
+      expect(screen.getByText('Withdraw USDC')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(EARN_WITHDRAW_INPUT_VIEW_BACK_BUTTON_TEST_ID),
+      ).toBeOnTheScreen();
+    });
+
+    it('emits UNSTAKE_CANCEL_CLICKED and calls navigation.goBack when Cancel is pressed', () => {
+      render(EarnWithdrawInputView);
+      mockTrackEvent.mockClear();
+
+      fireEvent.press(
+        screen.getByTestId(EARN_WITHDRAW_INPUT_VIEW_CANCEL_BUTTON_TEST_ID),
       );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Unstake Cancel Clicked',
+          properties: expect.objectContaining({
+            location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
+          }),
+        }),
+      );
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('emits EARN_INPUT_BACK_BUTTON_CLICKED and calls navigation.goBack when back is pressed for lending tokens', () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValueOnce(true);
+
+      const mockLendingToken: EarnTokenDetails = {
+        ...MOCK_USDC_MAINNET_ASSET,
+        balanceFormatted: '1000',
+        balanceMinimalUnit: '1000000000',
+        balanceFiatNumber: 1000,
+        tokenUsdExchangeRate: 1,
+        experiences: [
+          {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '5%',
+            estimatedAnnualRewardsFormatted: '50',
+            estimatedAnnualRewardsFiatNumber: 50,
+            estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+            estimatedAnnualRewardsTokenFormatted: '50',
+          },
+        ],
+        experience: {
+          type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          apr: '5%',
+          estimatedAnnualRewardsFormatted: '50',
+          estimatedAnnualRewardsFiatNumber: 50,
+          estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+          estimatedAnnualRewardsTokenFormatted: '50',
+        },
+      };
+
+      mockTrackEvent.mockClear();
+      render(EarnWithdrawInputView, mockLendingToken);
+
+      fireEvent.press(
+        screen.getByTestId(EARN_WITHDRAW_INPUT_VIEW_BACK_BUTTON_TEST_ID),
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn Input Back Button Clicked',
+          properties: expect.objectContaining({
+            location: EVENT_LOCATIONS.EARN_WITHDRAWAL_INPUT_VIEW,
+          }),
+        }),
+      );
+      expect(mockGoBack).toHaveBeenCalled();
     });
   });
 
@@ -906,8 +973,14 @@ describe('EarnWithdrawInputView', () => {
       await act(async () => {
         fireEvent.press(screen.getByText('1'));
       });
+
+      // Reveal the TRON unstake preview, which renders the "Unstake" button.
+      await act(async () => {
+        fireEvent.press(screen.getByText('Done'));
+      });
+
       await waitFor(() => {
-        expect(screen.getAllByText('Unstake')[0]).toBeTruthy();
+        expect(screen.getAllByText('Unstake')[0]).toBeOnTheScreen();
       });
     });
 
@@ -929,15 +1002,15 @@ describe('EarnWithdrawInputView', () => {
         tronToken,
       );
 
-      expect(getByText('Max')).toBeTruthy();
+      expect(getByText('Max')).toBeOnTheScreen();
 
       await act(async () => {
         fireEvent.press(getByText('1'));
       });
 
       await waitFor(() => {
-        expect(queryByText('Max')).toBeNull();
-        expect(getByText('Done')).toBeTruthy();
+        expect(queryByText('Max')).not.toBeOnTheScreen();
+        expect(getByText('Done')).toBeOnTheScreen();
       });
     });
   });
@@ -1123,7 +1196,7 @@ describe('EarnWithdrawInputView', () => {
       );
     });
 
-    it.skip('should track EARN_INPUT_VALUE_CHANGED for quick amount button press', async () => {
+    it('tracks EARN_INPUT_VALUE_CHANGED for quick amount button press (stablecoin lending)', async () => {
       (
         selectStablecoinLendingEnabledFlag as jest.MockedFunction<
           typeof selectStablecoinLendingEnabledFlag
@@ -1149,32 +1222,31 @@ describe('EarnWithdrawInputView', () => {
         experiences: [mockExperience3],
       };
 
-      const { getByText } = render(EarnWithdrawInputView, mockLendingToken);
+      render(EarnWithdrawInputView, mockLendingToken);
 
       mockTrackEvent.mockClear();
 
       await act(async () => {
-        fireEvent.press(getByText('25%'));
+        fireEvent.press(screen.getByText('25%'));
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Unstake Input Quick Amount Clicked',
-          properties: {
-            amount: 0.25,
-            experience: 'STABLECOIN_LENDING',
+          name: 'Input value changed',
+          properties: expect.objectContaining({
+            action_type: 'withdrawal',
+            input_value: '25%',
             is_max: false,
-            location: 'UnstakeInputView',
-            mode: 'native',
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            token: 'USDC',
             network: MAINNET_DISPLAY_NAME,
-            token: 'Ethereum',
             user_token_balance: '1000',
-          },
+          }),
         }),
       );
     });
 
-    it.skip('should track EARN_INPUT_VALUE_CHANGED for max button press', async () => {
+    it('tracks EARN_INPUT_VALUE_CHANGED for max button press (stablecoin lending)', async () => {
       (
         selectStablecoinLendingEnabledFlag as jest.MockedFunction<
           typeof selectStablecoinLendingEnabledFlag
@@ -1200,32 +1272,31 @@ describe('EarnWithdrawInputView', () => {
         experiences: [mockExperience4],
       };
 
-      const { getByText } = render(EarnWithdrawInputView, mockLendingToken);
+      render(EarnWithdrawInputView, mockLendingToken);
 
       mockTrackEvent.mockClear();
 
       await act(async () => {
-        fireEvent.press(getByText('Max'));
+        fireEvent.press(screen.getByText('Max'));
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Unstake Input Quick Amount Clicked',
-          properties: {
-            amount: 1,
-            experience: 'STABLECOIN_LENDING',
+          name: 'Input value changed',
+          properties: expect.objectContaining({
+            action_type: 'withdrawal',
+            input_value: 'MAX',
             is_max: true,
-            location: 'UnstakeInputView',
-            mode: 'native',
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            token: 'USDC',
             network: MAINNET_DISPLAY_NAME,
-            token: 'Ethereum',
             user_token_balance: '1000',
-          },
+          }),
         }),
       );
     });
 
-    it.skip('should track EARN_INPUT_CURRENCY_SWITCH_CLICKED for stablecoin lending', async () => {
+    it('tracks EARN_INPUT_CURRENCY_SWITCH_CLICKED for stablecoin lending', async () => {
       (
         selectStablecoinLendingEnabledFlag as jest.MockedFunction<
           typeof selectStablecoinLendingEnabledFlag
@@ -1251,29 +1322,29 @@ describe('EarnWithdrawInputView', () => {
         experiences: [mockExperience5],
       };
 
-      const { getByText } = render(EarnWithdrawInputView, mockLendingToken);
+      render(EarnWithdrawInputView, mockLendingToken);
 
       mockTrackEvent.mockClear();
 
       await act(async () => {
-        fireEvent.press(getByText('$0'));
+        fireEvent.press(screen.getByText('$0'));
       });
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Unstake Input Currency Switch Clicked',
-          properties: {
+          name: 'Earn Input Currency Switch Clicked',
+          properties: expect.objectContaining({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            text: 'Currency Switch Clicked',
+            location: EVENT_LOCATIONS.EARN_WITHDRAWAL_INPUT_VIEW,
             currency_type: 'fiat',
-            experience: 'POOLED_STAKING',
-            location: 'UnstakeInputView',
-            selected_provider: 'consensys',
-            text: 'Currency Switch Trigger',
-          },
+            experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          }),
         }),
       );
     });
 
-    it.skip('should track EARN_INPUT_INSUFFICIENT_BALANCE when balance is exceeded', async () => {
+    it.skip('tracks EARN_INPUT_INSUFFICIENT_BALANCE when withdrawal exceeds balance', async () => {
       (
         selectStablecoinLendingEnabledFlag as jest.MockedFunction<
           typeof selectStablecoinLendingEnabledFlag
@@ -1303,14 +1374,17 @@ describe('EarnWithdrawInputView', () => {
 
       mockTrackEvent.mockClear();
 
-      // Allow time for effects to run
+      await act(async () => {
+        fireEvent.press(screen.getByText('2'));
+      });
+
       await waitFor(() => {
         expect(mockTrackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
             name: 'Earn input insufficient balance',
             properties: expect.objectContaining({
-              provider: 'consensys',
-              location: 'EarnWithdrawalInputView',
+              provider: EVENT_PROVIDERS.CONSENSYS,
+              location: EVENT_LOCATIONS.EARN_WITHDRAWAL_INPUT_VIEW,
               token_name: 'USDC',
               token: 'USDC',
               network: MAINNET_DISPLAY_NAME,

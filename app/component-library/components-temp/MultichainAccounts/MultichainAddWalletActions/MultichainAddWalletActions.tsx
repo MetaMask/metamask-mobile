@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { Fragment, useCallback, useMemo } from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -10,11 +10,16 @@ import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { IMetaMetricsEvent } from '../../../../core/Analytics/MetaMetrics.types';
 import Routes from '../../../../constants/navigation/Routes';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
-import { AddAccountBottomSheetSelectorsIDs } from '../../../../components/Views/AddAccountActions/AddAccountBottomSheet.testIds';
+import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 
 // Types
 import { MultichainAddWalletActionsProps } from './MultichainAddWalletActions.types';
+
+export const MultichainAddWalletActionsTestIDs = {
+  IMPORT_SRP_BUTTON: 'add-account-srp-account',
+  IMPORT_ACCOUNT_BUTTON: 'add-account-import-account',
+  ADD_HARDWARE_WALLET_BUTTON: 'add-account-add-hardware-wallet',
+};
 
 // Internal types
 interface ActionConfig {
@@ -31,7 +36,7 @@ const MultichainAddWalletActions = ({
   onBack,
 }: MultichainAddWalletActionsProps) => {
   const { navigate } = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const createActionHandler = useCallback(
     (config: Omit<ActionConfig, 'isVisible'>) => () => {
@@ -48,7 +53,7 @@ const MultichainAddWalletActions = ({
         type: 'import_wallet',
         label: strings('account_actions.import_wallet'),
         iconName: IconName.Wallet,
-        testID: AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
+        testID: MultichainAddWalletActionsTestIDs.IMPORT_SRP_BUTTON,
         isVisible: true,
         analyticsEvent: MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
         navigationAction: () => {
@@ -60,7 +65,7 @@ const MultichainAddWalletActions = ({
         type: 'import_account',
         label: strings('accounts.import_account'),
         iconName: IconName.Download,
-        testID: AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
+        testID: MultichainAddWalletActionsTestIDs.IMPORT_ACCOUNT_BUTTON,
         isVisible: true,
         analyticsEvent: MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
         navigationAction: () => {
@@ -72,7 +77,7 @@ const MultichainAddWalletActions = ({
         type: 'hardware_wallet',
         label: strings('multichain_accounts.add_hardware_wallet'),
         iconName: IconName.Usb,
-        testID: AddAccountBottomSheetSelectorsIDs.ADD_HARDWARE_WALLET_BUTTON,
+        testID: MultichainAddWalletActionsTestIDs.ADD_HARDWARE_WALLET_BUTTON,
         isVisible: true,
         analyticsEvent: MetaMetricsEvents.ADD_HARDWARE_WALLET,
         navigationAction: () => {
@@ -85,7 +90,7 @@ const MultichainAddWalletActions = ({
   );
 
   return (
-    <SafeAreaView>
+    <SafeAreaView edges={['bottom']}>
       <Fragment>
         {actionConfigs.map(
           (config) =>

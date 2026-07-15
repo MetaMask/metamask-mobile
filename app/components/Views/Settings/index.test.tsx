@@ -15,8 +15,13 @@ jest.mock('../../../core', () => ({
   },
 }));
 
-// Import the mocked Authentication
-import { Authentication } from '../../../core';
+// Mock whenEngineReady to prevent Jest environment teardown errors
+jest.mock('../../../util/analytics/whenEngineReady', () => ({
+  whenEngineReady: jest.fn(() => Promise.resolve()),
+  isEngineReady: jest.fn(() => false),
+  getEngine: jest.fn(() => ({})),
+}));
+
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 
 const initialState = {
@@ -47,11 +52,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../util/networks', () => ({
-  ...jest.requireActual('../../../util/networks'),
-  isPermissionsSettingsV1Enabled: true,
-}));
-
 jest.mock('../../../util/notifications/constants/config', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => true),
 }));
@@ -61,11 +61,17 @@ describe('Settings', () => {
     jest.clearAllMocks();
   });
 
+  afterAll(() => {
+    jest.clearAllTimers();
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+  });
+
   it('renders settings component with all sections', () => {
-    const { toJSON } = renderWithProvider(<Settings />, {
+    const { getByText } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(strings('app_settings.title'))).toBeOnTheScreen();
   });
 
   it('renders header with correct title', () => {
@@ -108,12 +114,22 @@ describe('Settings', () => {
     const advancedSettings = getByTestId(SettingsViewSelectorsIDs.ADVANCED);
     expect(advancedSettings).toBeDefined();
   });
-  it('renders contacts settings button', () => {
-    const { getByTestId } = renderWithProvider(<Settings />, {
+
+  it('renders updated security and advanced descriptions', () => {
+    const { getByText } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    const contactsSettings = getByTestId(SettingsViewSelectorsIDs.CONTACTS);
-    expect(contactsSettings).toBeDefined();
+
+    expect(getByText(strings('app_settings.advanced_desc'))).toBeOnTheScreen();
+    expect(getByText(strings('app_settings.security_desc'))).toBeOnTheScreen();
+  });
+  it('does not render contacts (account menu entry)', () => {
+    const { queryByTestId } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+    expect(
+      queryByTestId(SettingsViewSelectorsIDs.CONTACTS),
+    ).not.toBeOnTheScreen();
   });
   it('render feature request button', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
@@ -131,42 +147,43 @@ describe('Settings', () => {
     );
     expect(experimentalSettings).toBeDefined();
   });
-  it('renders about metamask button', () => {
-    const { getByTestId } = renderWithProvider(<Settings />, {
+  it('does not render about metamask (account menu entry)', () => {
+    const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    const aboutMetamask = getByTestId(SettingsViewSelectorsIDs.ABOUT_METAMASK);
-    expect(aboutMetamask).toBeDefined();
+    expect(
+      queryByTestId(SettingsViewSelectorsIDs.ABOUT_METAMASK),
+    ).not.toBeOnTheScreen();
   });
-  it('renders request feature button', () => {
-    const { getByTestId } = renderWithProvider(<Settings />, {
+  it('does not render request feature (account menu entry)', () => {
+    const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    const requestFeature = getByTestId(SettingsViewSelectorsIDs.REQUEST);
-    expect(requestFeature).toBeDefined();
+    expect(
+      queryByTestId(SettingsViewSelectorsIDs.REQUEST),
+    ).not.toBeOnTheScreen();
   });
-  it('renders contact support button', () => {
-    const { getByTestId } = renderWithProvider(<Settings />, {
+  it('does not render contact support (account menu entry)', () => {
+    const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    const contactSupport = getByTestId(SettingsViewSelectorsIDs.CONTACT);
-    expect(contactSupport).toBeDefined();
+    expect(
+      queryByTestId(SettingsViewSelectorsIDs.CONTACT),
+    ).not.toBeOnTheScreen();
   });
-  it('renders lock button', () => {
-    const { getByTestId } = renderWithProvider(<Settings />, {
+  it('does not render lock button (account menu entry)', () => {
+    const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    const lock = getByTestId(SettingsViewSelectorsIDs.LOCK);
-    expect(lock).toBeDefined();
+    expect(queryByTestId(SettingsViewSelectorsIDs.LOCK)).not.toBeOnTheScreen();
   });
-  it('renders permissions settings button when enabled', () => {
-    const { getByTestId } = renderWithProvider(<Settings />, {
+  it('does not render permissions (account menu entry)', () => {
+    const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    const permissionsSettings = getByTestId(
-      SettingsViewSelectorsIDs.PERMISSIONS,
-    );
-    expect(permissionsSettings).toBeDefined();
+    expect(
+      queryByTestId(SettingsViewSelectorsIDs.PERMISSIONS),
+    ).not.toBeOnTheScreen();
   });
   it('renders backup and sync settings button and navigates to correct page on press', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
@@ -179,18 +196,6 @@ describe('Settings', () => {
 
     fireEvent.press(backupAndSyncSettings);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.BACKUP_AND_SYNC);
-  });
-
-  it('calls Authentication.lockApp with correct parameters when onPressLock is called', async () => {
-    // Test the Authentication.lockApp function directly with the expected parameters
-    await Authentication.lockApp({ reset: false, locked: false });
-
-    // Verify that Authentication.lockApp was called with the correct parameters
-    expect(Authentication.lockApp).toHaveBeenCalledWith({
-      reset: false,
-      locked: false,
-    });
-    expect(Authentication.lockApp).toHaveBeenCalledTimes(1);
   });
 
   describe('Feature Flag Override', () => {

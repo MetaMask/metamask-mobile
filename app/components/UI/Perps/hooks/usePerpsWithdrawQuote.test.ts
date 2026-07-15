@@ -7,7 +7,7 @@ import {
   HYPERLIQUID_WITHDRAWAL_FEE,
   METAMASK_WITHDRAWAL_FEE,
   METAMASK_WITHDRAWAL_FEE_PLACEHOLDER,
-} from '../constants/hyperLiquidConfig';
+} from '../constants/perpsUIConfig';
 import { usePerpsWithdrawQuote } from './usePerpsWithdrawQuote';
 
 // Mock i18n

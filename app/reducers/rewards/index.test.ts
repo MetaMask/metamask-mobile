@@ -24,9 +24,46 @@ import rewardsReducer, {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
-  setSnapshots,
-  setSnapshotsLoading,
-  setSnapshotsError,
+  setBenefits,
+  setBenefitsError,
+  setBenefitsLoading,
+  setVipDashboard,
+  setVipDashboardError,
+  setVipDashboardLoading,
+  setVipRefereeDashboard,
+  setVipRefereeDashboardError,
+  setVipRefereeDashboardLoading,
+  acceptVipInvite,
+  acceptVipRefereeInvite,
+  setCampaigns,
+  setCampaignsLoading,
+  setCampaignsError,
+  setCampaignParticipantStatus,
+  setOndoCampaignLeaderboard,
+  setOndoCampaignLeaderboardLoading,
+  setOndoCampaignLeaderboardError,
+  setOndoCampaignLeaderboardSelectedTier,
+  setOndoCampaignLeaderboardPosition,
+  setOndoCampaignPortfolioPosition,
+  setOndoCampaignActivity,
+  setOndoCampaignDeposits,
+  setOndoCampaignDepositsLoading,
+  setOndoCampaignDepositsError,
+  setPerpsTradingCampaignLeaderboard,
+  setPerpsTradingCampaignLeaderboardLoading,
+  setPerpsTradingCampaignLeaderboardError,
+  setPerpsTradingCampaignLeaderboardPosition,
+  setPerpsTradingCampaignVolume,
+  setPerpsTradingCampaignVolumeLoading,
+  setPerpsTradingCampaignVolumeError,
+  setPredictThePitchLeaderboard,
+  setPredictThePitchLeaderboardLoading,
+  setPredictThePitchLeaderboardError,
+  setPredictThePitchLeaderboardPosition,
+  setPredictThePitchPositions,
+  setPredictThePitchPrizePool,
+  setPredictThePitchPrizePoolLoading,
+  setPredictThePitchPrizePoolError,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -35,6 +72,11 @@ import rewardsReducer, {
   bulkLinkReset,
   bulkLinkResumed,
   BULK_LINK_CANCEL,
+  setVersionGuardMinimumMobileVersion,
+  setVersionGuardLoading,
+  setVersionGuardError,
+  dismissCampaignOutcomeToast,
+  subscribeCampaignReminder,
   RewardsState,
 } from '.';
 import { OnboardingStep } from './types';
@@ -42,9 +84,23 @@ import {
   SeasonStatusState,
   RewardClaimStatus,
   PointsEventDto,
-  SnapshotDto,
+  CampaignDto,
+  CampaignType,
+  CampaignLeaderboardDto,
+  CampaignLeaderboardPositionDto,
+  OndoGmPortfolioDto,
+  OndoGmActivityEntryDto,
+  PerpsTradingCampaignLeaderboardDto,
+  PerpsTradingCampaignLeaderboardPositionDto,
+  PerpsTradingCampaignVolumeDto,
+  PredictThePitchLeaderboardDto,
+  PredictThePitchLeaderboardPositionDto,
+  PredictThePitchPositionsDto,
+  PredictThePitchPrizePoolDto,
+  VipDashboardState,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
+import { brandColor } from '@metamask/design-tokens';
 
 const initialState: RewardsState = rewardsReducer(undefined, {
   type: 'unknown',
@@ -167,7 +223,6 @@ describe('rewardsReducer', () => {
       expect(state.currentTier?.id).toBe('tier-bronze');
       expect(state.nextTier?.id).toBe('tier-silver');
       expect(state.nextTierPointsNeeded).toBe(1000);
-      expect(state.seasonShouldInstallNewVersion).toBe(null);
     });
 
     it('should set fields to null when season status is null', () => {
@@ -191,8 +246,6 @@ describe('rewardsReducer', () => {
           },
         ],
         balanceTotal: 1000,
-        balanceRefereePortion: 200,
-        seasonShouldInstallNewVersion: '1.0.0',
         currentTier: {
           id: 'tier-gold',
           name: 'Gold',
@@ -222,7 +275,6 @@ describe('rewardsReducer', () => {
       expect(state.currentTier).toBe(null);
       expect(state.nextTier).toBe(null);
       expect(state.nextTierPointsNeeded).toBe(null);
-      expect(state.seasonShouldInstallNewVersion).toBe(null);
     });
 
     it('should handle season status with invalid balance types', () => {
@@ -273,6 +325,7 @@ describe('rewardsReducer', () => {
             },
           ],
           activityTypes: [],
+          waysToEarn: [],
         },
         balance: {
           total: 500,
@@ -372,9 +425,9 @@ describe('rewardsReducer', () => {
         ...initialState,
         seasonActivityTypes: [
           {
+            id: 'activity-referral',
             type: 'REFERRAL',
             title: 'Referral',
-            description: 'Refer a friend',
             icon: 'UserCircleAdd',
           },
         ],
@@ -386,94 +439,77 @@ describe('rewardsReducer', () => {
       expect(state.seasonActivityTypes).toEqual([]);
     });
 
-    it('should set seasonShouldInstallNewVersion when provided', () => {
-      // Arrange
+    it('should set seasonWaysToEarn from season data', () => {
       const mockSeasonStatus = {
         season: {
-          id: 'season-with-version',
-          name: 'Season With Version',
-          startDate: new Date('2024-01-01').getTime(),
-          endDate: new Date('2024-12-31').getTime(),
+          id: 'season-ways',
+          name: 'Season Ways',
+          startDate: new Date('2024-02-01').getTime(),
+          endDate: new Date('2024-03-01').getTime(),
           tiers: [],
-          shouldInstallNewVersion: '2.0.0',
-        },
-        balance: {
-          total: 100,
-        },
-        tier: {
-          currentTier: null,
-          nextTier: null,
-          nextTierPointsNeeded: null,
+          activityTypes: [],
+          waysToEarn: [
+            {
+              id: 'way-swap',
+              type: 'SWAP',
+              title: 'Swap',
+              icon: 'SwapHorizontal',
+              shortDescription: '80 points per $100',
+              bottomSheetTitle: 'Swap tokens',
+              pointsEarningRule: '80 points per $100 swapped',
+              description: 'Swap tokens on supported networks.',
+              buttonLabel: 'Start a swap',
+              buttonAction: { deeplink: 'metamask://swap' },
+            },
+            {
+              id: 'way-referral',
+              type: 'REFERRAL',
+              title: 'Refer friends',
+              icon: 'People',
+              shortDescription: '10 points per 50 from friends',
+              bottomSheetTitle: 'Refer friends',
+              pointsEarningRule: '10 points per 50 pts earned',
+              description: 'Invite your friends.',
+              buttonLabel: 'Share link',
+              buttonAction: { route: { root: 'ReferralView', screen: '' } },
+            },
+          ],
         },
       } as unknown as SeasonStatusState;
       const action = setSeasonStatus(mockSeasonStatus);
 
-      // Act
       const state = rewardsReducer(initialState, action);
 
-      // Assert
-      expect(state.seasonShouldInstallNewVersion).toBe('2.0.0');
+      expect(state.seasonWaysToEarn).toEqual(
+        mockSeasonStatus.season.waysToEarn,
+      );
+      expect(state.seasonWaysToEarn).toHaveLength(2);
+      expect(state.seasonWaysToEarn[0].type).toBe('SWAP');
+      expect(state.seasonWaysToEarn[1].type).toBe('REFERRAL');
     });
 
-    it('should set seasonShouldInstallNewVersion to null when not provided', () => {
-      // Arrange
-      const mockSeasonStatus = {
-        season: {
-          id: 'season-without-version',
-          name: 'Season Without Version',
-          startDate: new Date('2024-01-01').getTime(),
-          endDate: new Date('2024-12-31').getTime(),
-          tiers: [],
-        },
-        balance: {
-          total: 100,
-        },
-        tier: {
-          currentTier: null,
-          nextTier: null,
-          nextTierPointsNeeded: null,
-        },
-      } as unknown as SeasonStatusState;
-      const action = setSeasonStatus(mockSeasonStatus);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.seasonShouldInstallNewVersion).toBe(null);
-    });
-
-    it('should set seasonShouldInstallNewVersion to null when undefined', () => {
-      // Arrange
-      const stateWithVersion = {
+    it('should clear seasonWaysToEarn when season status is null', () => {
+      const stateWithWaysToEarn = {
         ...initialState,
-        seasonShouldInstallNewVersion: '1.0.0',
+        seasonWaysToEarn: [
+          {
+            id: 'way-swap',
+            type: 'SWAP',
+            title: 'Swap',
+            icon: 'SwapHorizontal',
+            shortDescription: '80 points per $100',
+            bottomSheetTitle: 'Swap tokens',
+            pointsEarningRule: '80 points per $100 swapped',
+            description: 'Swap tokens.',
+            buttonLabel: 'Start a swap',
+          },
+        ],
       };
-      const mockSeasonStatus = {
-        season: {
-          id: 'season-undefined-version',
-          name: 'Season Undefined Version',
-          startDate: new Date('2024-01-01').getTime(),
-          endDate: new Date('2024-12-31').getTime(),
-          tiers: [],
-          shouldInstallNewVersion: undefined,
-        },
-        balance: {
-          total: 100,
-        },
-        tier: {
-          currentTier: null,
-          nextTier: null,
-          nextTierPointsNeeded: null,
-        },
-      } as unknown as SeasonStatusState;
-      const action = setSeasonStatus(mockSeasonStatus);
+      const action = setSeasonStatus(null);
 
-      // Act
-      const state = rewardsReducer(stateWithVersion, action);
+      const state = rewardsReducer(stateWithWaysToEarn, action);
 
-      // Assert
-      expect(state.seasonShouldInstallNewVersion).toBe(null);
+      expect(state.seasonWaysToEarn).toEqual([]);
     });
   });
 
@@ -544,6 +580,18 @@ describe('rewardsReducer', () => {
 
       // Assert
       expect(state.refereeCount).toBe(0);
+    });
+
+    it('should store isVipReferee and referredByVipCode when provided', () => {
+      const action = setReferralDetails({
+        isVipReferee: true,
+        referredByVipCode: 'VIPCODE',
+      });
+
+      const state = rewardsReducer(initialState, action);
+
+      expect(state.isVipReferee).toBe(true);
+      expect(state.referredByVipCode).toBe('VIPCODE');
     });
 
     it('should set referralDetailsLoading to false', () => {
@@ -1369,7 +1417,6 @@ describe('rewardsReducer', () => {
           },
           nextTierPointsNeeded: 1000,
           balanceTotal: 1500,
-          balanceRefereePortion: 300,
           balanceUpdatedAt: new Date('2024-06-01'),
           onboardingActiveStep: OnboardingStep.STEP_2,
           onboardingReferralCode: 'ONBOARDING_REF',
@@ -1407,13 +1454,12 @@ describe('rewardsReducer', () => {
           ],
           seasonActivityTypes: [
             {
+              id: 'activity-predict',
               type: 'PREDICT',
               title: 'Predict',
-              description: 'Prediction',
               icon: 'Speedometer',
             },
           ],
-          seasonShouldInstallNewVersion: null,
         };
         const action = setCandidateSubscriptionId('new-subscription-id');
 
@@ -1436,9 +1482,6 @@ describe('rewardsReducer', () => {
           initialState.nextTierPointsNeeded,
         );
         expect(state.balanceTotal).toBe(initialState.balanceTotal);
-        expect(state.balanceRefereePortion).toBe(
-          initialState.balanceRefereePortion,
-        );
         expect(state.balanceUpdatedAt).toBe(initialState.balanceUpdatedAt);
         expect(state.activeBoosts).toBe(initialState.activeBoosts);
         expect(state.pointsEvents).toBe(initialState.pointsEvents);
@@ -1966,6 +2009,12 @@ describe('rewardsReducer', () => {
         referralCode: 'TEST123',
         refereeCount: 10,
         referredByCode: null,
+        isVipReferee: false,
+        referredByVipCode: null,
+        vipRefereeDashboard: {},
+        vipRefereeDashboardLoading: false,
+        vipRefereeDashboardError: false,
+        vipRefereeSplashAccepted: {},
         currentTier: {
           id: 'tier-platinum',
           name: 'Platinum',
@@ -1991,7 +2040,6 @@ describe('rewardsReducer', () => {
         },
         nextTierPointsNeeded: 1000,
         balanceTotal: 5000,
-        balanceRefereePortion: 1000,
         balanceUpdatedAt: new Date('2024-01-01'),
         seasonName: 'Test Season',
         seasonStartDate: new Date('2024-01-01'),
@@ -2010,7 +2058,7 @@ describe('rewardsReducer', () => {
           },
         ],
         seasonActivityTypes: [],
-        seasonShouldInstallNewVersion: null,
+        seasonWaysToEarn: [],
         onboardingActiveStep: OnboardingStep.STEP_1,
         onboardingReferralCode: 'REF123',
         candidateSubscriptionId: 'some-id',
@@ -2053,9 +2101,38 @@ describe('rewardsReducer', () => {
           wasInterrupted: false,
           initialSubscriptionId: null,
         },
-        snapshots: null,
-        snapshotsLoading: false,
-        snapshotsError: false,
+        benefits: [],
+        benefitsLoading: false,
+        benefitsError: false,
+        vipDashboard: {},
+        vipDashboardLoading: false,
+        vipDashboardError: false,
+        vipSplashAccepted: {
+          'sub-1': true,
+        },
+        campaigns: [],
+        campaignsLoading: false,
+        campaignsError: false,
+        campaignsHasLoaded: false,
+        campaignParticipantStatuses: {},
+        ondoCampaignLeaderboards: {},
+        ondoCampaignLeaderboardPositions: {},
+        ondoCampaignPortfolio: {},
+        ondoCampaignActivity: {},
+        ondoCampaignDeposits: {},
+        versionGuardMinimumMobileVersion: null,
+        versionGuardLoading: false,
+        versionGuardError: false,
+        perpsTradingCampaignLeaderboards: {},
+        perpsTradingCampaignLeaderboardPositions: {},
+        perpsTradingCampaignVolumes: {},
+        predictThePitchLeaderboards: {},
+        predictThePitchLeaderboardPositions: {},
+        predictThePitchPositions: {},
+        predictThePitchPrizePools: {},
+        pendingDeeplink: null,
+        dismissedCampaignOutcomeToasts: {},
+        subscribedCampaignReminders: {},
       };
       const action = resetRewardsState();
 
@@ -2078,6 +2155,12 @@ describe('rewardsReducer', () => {
         referralCode: 'PERSISTED123',
         refereeCount: 15,
         referredByCode: null,
+        isVipReferee: false,
+        referredByVipCode: null,
+        vipRefereeDashboard: {},
+        vipRefereeDashboardLoading: false,
+        vipRefereeDashboardError: false,
+        vipRefereeSplashAccepted: {},
         currentTier: {
           id: 'tier-diamond',
           name: 'Diamond',
@@ -2092,7 +2175,6 @@ describe('rewardsReducer', () => {
         nextTier: null,
         nextTierPointsNeeded: null,
         balanceTotal: 2000,
-        balanceRefereePortion: 400,
         balanceUpdatedAt: new Date('2024-05-01'),
         seasonName: 'Persisted Season',
         seasonStartDate: new Date('2024-01-01'),
@@ -2111,7 +2193,7 @@ describe('rewardsReducer', () => {
           },
         ],
         seasonActivityTypes: [],
-        seasonShouldInstallNewVersion: null,
+        seasonWaysToEarn: [],
         onboardingActiveStep: OnboardingStep.STEP_2,
         onboardingReferralCode: 'PERSISTED_REF',
         candidateSubscriptionId: 'some-id',
@@ -2155,9 +2237,36 @@ describe('rewardsReducer', () => {
           wasInterrupted: false,
           initialSubscriptionId: null,
         },
-        snapshots: null,
-        snapshotsLoading: false,
-        snapshotsError: false,
+        benefits: [],
+        benefitsLoading: false,
+        benefitsError: false,
+        vipDashboard: {},
+        vipDashboardLoading: false,
+        vipDashboardError: false,
+        vipSplashAccepted: {},
+        campaigns: [],
+        campaignsLoading: false,
+        campaignsError: false,
+        campaignsHasLoaded: false,
+        campaignParticipantStatuses: {},
+        ondoCampaignLeaderboards: {},
+        ondoCampaignLeaderboardPositions: {},
+        ondoCampaignPortfolio: {},
+        ondoCampaignActivity: {},
+        ondoCampaignDeposits: {},
+        versionGuardMinimumMobileVersion: null,
+        versionGuardLoading: false,
+        versionGuardError: false,
+        perpsTradingCampaignLeaderboards: {},
+        perpsTradingCampaignLeaderboardPositions: {},
+        perpsTradingCampaignVolumes: {},
+        predictThePitchLeaderboards: {},
+        predictThePitchLeaderboardPositions: {},
+        predictThePitchPositions: {},
+        predictThePitchPrizePools: {},
+        pendingDeeplink: null,
+        dismissedCampaignOutcomeToasts: {},
+        subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2194,7 +2303,6 @@ describe('rewardsReducer', () => {
           persistedRewardsState.hideCurrentAccountNotOptedInBanner,
         // These fields are restored from persisted state
         nextTierPointsNeeded: persistedRewardsState.nextTierPointsNeeded,
-        balanceRefereePortion: persistedRewardsState.balanceRefereePortion,
       };
       expect(state).toEqual(expectedState);
     });
@@ -2205,12 +2313,14 @@ describe('rewardsReducer', () => {
         seasonId: 'persisted-season-id',
         seasonActivityTypes: [
           {
+            id: 'activity-musd-deposit',
             type: 'MUSD_DEPOSIT',
             title: 'mUSD deposit',
-            description: 'Deposit mUSD',
             icon: 'Coin',
           },
         ],
+        dismissedCampaignOutcomeToasts: {},
+        subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2224,6 +2334,85 @@ describe('rewardsReducer', () => {
       expect(state.seasonActivityTypes).toEqual(
         persistedRewardsState.seasonActivityTypes,
       );
+    });
+
+    it('should default version guard state when rehydrating older persisted rewards state', () => {
+      const persistedRewardsState = {
+        ...initialState,
+      } as Partial<RewardsState>;
+      delete persistedRewardsState.versionGuardMinimumMobileVersion;
+      delete persistedRewardsState.versionGuardLoading;
+      delete persistedRewardsState.versionGuardError;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: {
+          rewards: persistedRewardsState,
+        },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.versionGuardMinimumMobileVersion).toBe(
+        initialState.versionGuardMinimumMobileVersion,
+      );
+      expect(state.versionGuardLoading).toBe(initialState.versionGuardLoading);
+      expect(state.versionGuardError).toBe(initialState.versionGuardError);
+    });
+
+    it('should restore seasonWaysToEarn from persisted state', () => {
+      const persistedRewardsState: RewardsState = {
+        ...initialState,
+        seasonId: 'persisted-season-id',
+        seasonWaysToEarn: [
+          {
+            id: 'way-perps',
+            type: 'PERPS',
+            title: 'Perps',
+            icon: 'Rocket',
+            shortDescription: '10 points per $100',
+            bottomSheetTitle: 'Trade perps',
+            pointsEarningRule: '10 points per $100 traded',
+            description: 'Trade perps to earn points.',
+            buttonLabel: 'Start a trade',
+            buttonAction: { route: { root: 'PerpsRoot', screen: 'PerpsHome' } },
+          },
+        ],
+        dismissedCampaignOutcomeToasts: {},
+        subscribedCampaignReminders: {},
+      };
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: {
+          rewards: persistedRewardsState,
+        },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.seasonWaysToEarn).toEqual(
+        persistedRewardsState.seasonWaysToEarn,
+      );
+    });
+
+    it('should default persisted season arrays to empty arrays when absent', () => {
+      const persistedRewardsStateWithoutFields = {
+        ...initialState,
+        seasonTiers: undefined,
+        seasonActivityTypes: undefined,
+        seasonWaysToEarn: undefined,
+      } as unknown as RewardsState;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: {
+          rewards: persistedRewardsStateWithoutFields,
+        },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.seasonTiers).toEqual([]);
+      expect(state.seasonActivityTypes).toEqual([]);
+      expect(state.seasonWaysToEarn).toEqual([]);
     });
 
     it('should preserve all persisted UI state fields', () => {
@@ -2301,6 +2490,8 @@ describe('rewardsReducer', () => {
             hide: true,
           },
         ],
+        dismissedCampaignOutcomeToasts: {},
+        subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2344,9 +2535,6 @@ describe('rewardsReducer', () => {
       expect(state.nextTierPointsNeeded).toBe(
         initialState.nextTierPointsNeeded,
       );
-      expect(state.balanceRefereePortion).toBe(
-        initialState.balanceRefereePortion,
-      );
     });
 
     it('should preserve current non-persistent state while restoring persisted UI state', () => {
@@ -2354,7 +2542,6 @@ describe('rewardsReducer', () => {
       const currentState = {
         ...initialState,
         nextTierPointsNeeded: 500, // This should be preserved
-        balanceRefereePortion: 100, // This should be preserved
         activeTab: 'activity' as const, // This should be reset to initial
         seasonStatusLoading: true, // This should be reset to initial
         onboardingActiveStep: OnboardingStep.STEP_3, // This should be reset to initial
@@ -2369,6 +2556,8 @@ describe('rewardsReducer', () => {
         hideUnlinkedAccountsBanner: true,
         onboardingActiveStep: OnboardingStep.STEP_4, // This should NOT be persisted
         onboardingReferralCode: 'PERSISTED_REF', // This should NOT be persisted
+        dismissedCampaignOutcomeToasts: {},
+        subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2382,7 +2571,6 @@ describe('rewardsReducer', () => {
 
       // Assert - Non-persistent state should be preserved from current state
       expect(state.nextTierPointsNeeded).toBe(null); // Restored from persisted state (initialState)
-      expect(state.balanceRefereePortion).toBe(0); // Restored from persisted state (initialState)
 
       // Persisted UI state should be restored
       expect(state.seasonId).toBe('persisted-season');
@@ -2432,6 +2620,167 @@ describe('rewardsReducer', () => {
 
       // Assert
       expect(state).toEqual(currentState);
+    });
+
+    it('should restore ondoCampaignLeaderboardPositions from persisted state', () => {
+      const mockPosition: CampaignLeaderboardPositionDto = {
+        projectedTier: 'MID',
+        rank: 3,
+        totalInTier: 150,
+        rateOfReturn: 0.15,
+        currentUsdValue: 12500.5,
+        totalUsdDeposited: 10000,
+        netDeposit: 8500,
+        qualifiedDays: 10,
+        qualified: true,
+        neighbors: [],
+        computedAt: '2024-03-20T12:00:00.000Z',
+      };
+      const persistedRewardsState: RewardsState = {
+        ...initialState,
+        ondoCampaignLeaderboardPositions: {
+          'sub-1:campaign-1': mockPosition,
+        },
+        dismissedCampaignOutcomeToasts: {},
+        subscribedCampaignReminders: {},
+      };
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persistedRewardsState },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.ondoCampaignLeaderboardPositions).toEqual({
+        'sub-1:campaign-1': mockPosition,
+      });
+    });
+
+    it('should default ondoCampaignLeaderboardPositions to {} when absent from persisted state (upgrade path)', () => {
+      const persistedRewardsStateWithoutField = {
+        ...initialState,
+        ondoCampaignLeaderboardPositions: undefined,
+      } as unknown as RewardsState;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persistedRewardsStateWithoutField },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.ondoCampaignLeaderboardPositions).toEqual({});
+    });
+
+    it('should restore ondoCampaignPortfolio from persisted state', () => {
+      const persisted: OndoGmPortfolioDto = {
+        positions: [],
+        summary: {
+          totalCurrentValue: '1',
+          totalBookValue: '1',
+          totalUsdDeposited: '1',
+          netDeposit: '1',
+          totalCashedOut: '0',
+          portfolioPnl: '0',
+          portfolioPnlPercent: '0',
+        },
+        computedAt: '2024-03-20T12:00:00.000Z',
+      };
+      const persistedRewardsState: RewardsState = {
+        ...initialState,
+        ondoCampaignPortfolio: {
+          'sub-1:campaign-1': persisted,
+        },
+        dismissedCampaignOutcomeToasts: {},
+        subscribedCampaignReminders: {},
+      };
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persistedRewardsState },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.ondoCampaignPortfolio).toEqual({
+        'sub-1:campaign-1': persisted,
+      });
+    });
+
+    it('should default ondoCampaignPortfolio to {} when absent from persisted state (upgrade path)', () => {
+      const persistedRewardsStateWithoutField = {
+        ...initialState,
+        ondoCampaignPortfolio: undefined,
+      } as unknown as RewardsState;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persistedRewardsStateWithoutField },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.ondoCampaignPortfolio).toEqual({});
+    });
+
+    it('should restore ondoCampaignActivity from persisted state', () => {
+      const mockEntries = [
+        {
+          type: 'DEPOSIT',
+          srcToken: {
+            tokenAsset: 'eip155:59144/erc20:0xabc',
+            tokenSymbol: 'USDC',
+            tokenName: 'USD Coin',
+          },
+          destToken: null,
+          destAddress: null,
+          usdAmount: '5000.000000',
+          timestamp: '2026-03-28T14:30:00.000Z',
+        },
+      ];
+      const persistedRewardsState = {
+        ...initialState,
+        ondoCampaignActivity: {
+          'sub-1:campaign-1': mockEntries,
+        },
+      } as unknown as RewardsState;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persistedRewardsState },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.ondoCampaignActivity).toEqual({
+        'sub-1:campaign-1': mockEntries,
+      });
+    });
+
+    it('should default ondoCampaignActivity to {} when absent from persisted state (upgrade path)', () => {
+      const persistedRewardsStateWithoutField = {
+        ...initialState,
+        ondoCampaignActivity: undefined,
+      } as unknown as RewardsState;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persistedRewardsStateWithoutField },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.ondoCampaignActivity).toEqual({});
+    });
+
+    it('should default campaigns to [] when absent from persisted state (upgrade path)', () => {
+      const persistedRewardsStateWithoutField = {
+        ...initialState,
+        campaigns: undefined,
+      } as unknown as RewardsState;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persistedRewardsStateWithoutField },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.campaigns).toEqual([]);
     });
   });
 
@@ -2523,7 +2872,7 @@ describe('setActiveBoosts', () => {
         icon: { lightModeUrl: 'old.png', darkModeUrl: 'old.png' },
         boostBips: 100,
         seasonLong: true,
-        backgroundColor: '#000000',
+        backgroundColor: brandColor.black,
       },
     ];
     const stateWithBoosts = {
@@ -2537,7 +2886,7 @@ describe('setActiveBoosts', () => {
         icon: { lightModeUrl: 'new.png', darkModeUrl: 'new.png' },
         boostBips: 2000,
         seasonLong: false,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: brandColor.white,
       },
     ];
     const action = setActiveBoosts(newBoosts);
@@ -4182,6 +4531,8 @@ describe('persist/REHYDRATE with bulk link state', () => {
         wasInterrupted: false,
         initialSubscriptionId: 'running-sub',
       },
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
     };
     const rehydrateAction = {
       type: 'persist/REHYDRATE',
@@ -4213,6 +4564,8 @@ describe('persist/REHYDRATE with bulk link state', () => {
         wasInterrupted: false,
         initialSubscriptionId: 'progress-sub',
       },
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
     };
     const rehydrateAction = {
       type: 'persist/REHYDRATE',
@@ -4242,6 +4595,8 @@ describe('persist/REHYDRATE with bulk link state', () => {
         wasInterrupted: false,
         initialSubscriptionId: 'validate-sub',
       },
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
     };
     const rehydrateAction = {
       type: 'persist/REHYDRATE',
@@ -4269,6 +4624,8 @@ describe('persist/REHYDRATE with bulk link state', () => {
         wasInterrupted: false,
         initialSubscriptionId: 'completed-sub',
       },
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
     };
     const rehydrateAction = {
       type: 'persist/REHYDRATE',
@@ -4297,6 +4654,8 @@ describe('persist/REHYDRATE with bulk link state', () => {
         wasInterrupted: false,
         initialSubscriptionId: 'old-sub',
       },
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
     };
     const rehydrateAction = {
       type: 'persist/REHYDRATE',
@@ -4338,329 +4697,2318 @@ describe('persist/REHYDRATE with bulk link state', () => {
   });
 });
 
-describe('setSnapshots', () => {
-  const mockSnapshot: SnapshotDto = {
-    id: '01974010-377f-7553-a365-0c33c8130980',
-    seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
-    name: 'Monad Airdrop',
-    description: 'Earn Monad tokens by participating in the airdrop',
-    tokenSymbol: 'MONAD',
-    tokenAmount: '50000000000000000000000',
-    tokenChainId: '1',
-    tokenAddress: '0x1234567890abcdef1234567890abcdef12345678',
-    receivingBlockchain: 'Ethereum',
-    opensAt: '2025-03-01T00:00:00.000Z',
-    closesAt: '2025-03-15T00:00:00.000Z',
-    calculatedAt: '2025-03-16T00:00:00.000Z',
-    distributedAt: '2025-03-20T00:00:00.000Z',
-    backgroundImage: {
-      lightModeUrl: 'https://example.com/light.png',
-      darkModeUrl: 'https://example.com/dark.png',
-    },
+describe('setBenefits', () => {
+  const mockBenefitsPayload = {
+    limit: 10,
+    lastFetched: 1767225600000,
+    benefits: [
+      {
+        id: 101,
+        longTitle: 'Premium Access',
+        shortDescription: 'Get premium perks',
+        longDescription: 'Unlock premium partner benefits.',
+        thumbnail: 'https://example.com/benefits/premium.png',
+        validFrom: '2026-01-01T00:00:00.000Z',
+        validTo: '2026-12-31T00:00:00.000Z',
+        actionDate: '2026-06-01T00:00:00.000Z',
+        url: 'https://example.com/claim',
+        chain: 'ethereum',
+        type: {
+          id: 1,
+          name: 'Partner',
+        },
+      },
+    ],
   };
 
-  it('should set snapshots array', () => {
-    // Arrange
-    const mockSnapshots: SnapshotDto[] = [mockSnapshot];
-    const action = setSnapshots(mockSnapshots);
+  it('sets benefits from payload', () => {
+    const action = setBenefits(mockBenefitsPayload);
 
-    // Act
     const state = rewardsReducer(initialState, action);
 
-    // Assert
-    expect(state.snapshots).toEqual(mockSnapshots);
-    expect(state.snapshotsError).toBe(false);
+    expect(state.benefits).toEqual(mockBenefitsPayload.benefits);
   });
 
-  it('should replace existing snapshots with new ones', () => {
-    // Arrange
-    const stateWithSnapshots: RewardsState = {
-      ...initialState,
-      snapshots: [mockSnapshot],
-    };
-    const newSnapshot: SnapshotDto = {
-      ...mockSnapshot,
-      id: 'new-snapshot-id',
-      name: 'New Airdrop',
-    };
-    const action = setSnapshots([newSnapshot]);
+  it('sets benefits to empty array when payload benefits are missing', () => {
+    const action = setBenefits({
+      ...mockBenefitsPayload,
+      benefits: undefined,
+    } as unknown as typeof mockBenefitsPayload);
 
-    // Act
-    const state = rewardsReducer(stateWithSnapshots, action);
+    const state = rewardsReducer(initialState, action);
 
-    // Assert
-    expect(state.snapshots).toHaveLength(1);
-    expect(state.snapshots?.[0].id).toBe('new-snapshot-id');
-    expect(state.snapshots?.[0].name).toBe('New Airdrop');
+    expect(state.benefits).toEqual([]);
   });
 
-  it('should set snapshots to empty array', () => {
-    // Arrange
-    const stateWithSnapshots: RewardsState = {
+  it('replaces existing benefits with new payload benefits', () => {
+    const stateWithBenefits: RewardsState = {
       ...initialState,
-      snapshots: [mockSnapshot],
+      benefits: mockBenefitsPayload.benefits,
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
     };
-    const action = setSnapshots([]);
+    const nextBenefitsPayload = {
+      limit: 20,
+      lastFetched: 1769904000000,
+      benefits: [
+        {
+          ...mockBenefitsPayload.benefits[0],
+          id: 202,
+          longTitle: 'Travel Perk',
+        },
+      ],
+    };
+    const action = setBenefits(nextBenefitsPayload);
 
-    // Act
-    const state = rewardsReducer(stateWithSnapshots, action);
+    const state = rewardsReducer(stateWithBenefits, action);
 
-    // Assert
-    expect(state.snapshots).toEqual([]);
-    expect(state.snapshotsError).toBe(false);
+    expect(state.benefits).toEqual(nextBenefitsPayload.benefits);
   });
 
-  it('should set snapshots to null', () => {
-    // Arrange
-    const stateWithSnapshots: RewardsState = {
+  it('updates benefits and preserves unrelated fields', () => {
+    const stateWithOtherFlags: RewardsState = {
       ...initialState,
-      snapshots: [mockSnapshot],
+      benefitsLoading: true,
+      benefitsError: true,
+      campaignsLoading: true,
+      activeTab: 'campaigns',
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
     };
-    const action = setSnapshots(null);
+    const action = setBenefits(mockBenefitsPayload);
 
-    // Act
-    const state = rewardsReducer(stateWithSnapshots, action);
+    const state = rewardsReducer(stateWithOtherFlags, action);
 
-    // Assert
-    expect(state.snapshots).toBeNull();
-    expect(state.snapshotsError).toBe(false);
-  });
-
-  it('should reset snapshotsError when setting snapshots', () => {
-    // Arrange
-    const stateWithError: RewardsState = {
-      ...initialState,
-      snapshotsError: true,
-    };
-    const action = setSnapshots([mockSnapshot]);
-
-    // Act
-    const state = rewardsReducer(stateWithError, action);
-
-    // Assert
-    expect(state.snapshots).toEqual([mockSnapshot]);
-    expect(state.snapshotsError).toBe(false);
+    expect(state.benefits).toEqual(mockBenefitsPayload.benefits);
+    expect(state.benefitsLoading).toBe(true);
+    expect(state.benefitsError).toBe(true);
+    expect(state.campaignsLoading).toBe(true);
+    expect(state.activeTab).toBe('campaigns');
   });
 });
 
-describe('setSnapshotsLoading', () => {
-  it('should set snapshotsLoading to true when no snapshots exist', () => {
-    // Arrange
-    const action = setSnapshotsLoading(true);
+describe('setBenefitsLoading', () => {
+  it('sets benefitsLoading to true', () => {
+    const action = setBenefitsLoading(true);
 
-    // Act
     const state = rewardsReducer(initialState, action);
 
-    // Assert
-    expect(state.snapshotsLoading).toBe(true);
+    expect(state.benefitsLoading).toBe(true);
   });
 
-  it('should not set loading to true when snapshots already exist', () => {
-    // Arrange
-    const mockSnapshot: SnapshotDto = {
-      id: '01974010-377f-7553-a365-0c33c8130980',
-      seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
-      name: 'Monad Airdrop',
-      tokenSymbol: 'MONAD',
-      tokenAmount: '50000000000000000000000',
-      tokenChainId: '1',
-      receivingBlockchain: 'Ethereum',
-      opensAt: '2025-03-01T00:00:00.000Z',
-      closesAt: '2025-03-15T00:00:00.000Z',
-      backgroundImage: {
-        lightModeUrl: 'https://example.com/light.png',
-        darkModeUrl: 'https://example.com/dark.png',
-      },
-    };
-    const stateWithSnapshots: RewardsState = {
-      ...initialState,
-      snapshots: [mockSnapshot],
-      snapshotsLoading: false,
-    };
-    const action = setSnapshotsLoading(true);
-
-    // Act
-    const state = rewardsReducer(stateWithSnapshots, action);
-
-    // Assert - loading should remain false when snapshots already loaded
-    expect(state.snapshotsLoading).toBe(false);
-  });
-
-  it('should set snapshotsLoading to false when loading is true', () => {
-    // Arrange
+  it('sets benefitsLoading to false', () => {
     const stateWithLoading: RewardsState = {
       ...initialState,
-      snapshotsLoading: true,
+      benefitsLoading: true,
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
     };
-    const action = setSnapshotsLoading(false);
+    const action = setBenefitsLoading(false);
 
-    // Act
     const state = rewardsReducer(stateWithLoading, action);
 
-    // Assert
-    expect(state.snapshotsLoading).toBe(false);
-  });
-
-  it('should set snapshotsLoading to false even when snapshots exist', () => {
-    // Arrange
-    const mockSnapshot: SnapshotDto = {
-      id: '01974010-377f-7553-a365-0c33c8130980',
-      seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
-      name: 'Monad Airdrop',
-      tokenSymbol: 'MONAD',
-      tokenAmount: '50000000000000000000000',
-      tokenChainId: '1',
-      receivingBlockchain: 'Ethereum',
-      opensAt: '2025-03-01T00:00:00.000Z',
-      closesAt: '2025-03-15T00:00:00.000Z',
-      backgroundImage: {
-        lightModeUrl: 'https://example.com/light.png',
-        darkModeUrl: 'https://example.com/dark.png',
-      },
-    };
-    const stateWithSnapshotsAndLoading: RewardsState = {
-      ...initialState,
-      snapshots: [mockSnapshot],
-      snapshotsLoading: true,
-    };
-    const action = setSnapshotsLoading(false);
-
-    // Act
-    const state = rewardsReducer(stateWithSnapshotsAndLoading, action);
-
-    // Assert
-    expect(state.snapshotsLoading).toBe(false);
-    expect(state.snapshots).toHaveLength(1);
-  });
-
-  it('should not affect other state properties', () => {
-    // Arrange
-    const stateWithData: RewardsState = {
-      ...initialState,
-      activeTab: 'activity' as const,
-      referralCode: 'TEST123',
-    };
-    const action = setSnapshotsLoading(true);
-
-    // Act
-    const state = rewardsReducer(stateWithData, action);
-
-    // Assert
-    expect(state.snapshotsLoading).toBe(true);
-    expect(state.activeTab).toBe('activity');
-    expect(state.referralCode).toBe('TEST123');
-  });
-
-  it('should allow setting loading true when snapshots is empty array', () => {
-    // Arrange
-    const stateWithEmptySnapshots: RewardsState = {
-      ...initialState,
-      snapshots: [],
-      snapshotsLoading: false,
-    };
-    const action = setSnapshotsLoading(true);
-
-    // Act
-    const state = rewardsReducer(stateWithEmptySnapshots, action);
-
-    // Assert - loading should be set to true when snapshots array is empty
-    expect(state.snapshotsLoading).toBe(true);
-  });
-
-  it('should allow setting loading true when snapshots is null', () => {
-    // Arrange
-    const stateWithNullSnapshots: RewardsState = {
-      ...initialState,
-      snapshots: null,
-      snapshotsLoading: false,
-    };
-    const action = setSnapshotsLoading(true);
-
-    // Act
-    const state = rewardsReducer(stateWithNullSnapshots, action);
-
-    // Assert - loading should be set to true when snapshots is null
-    expect(state.snapshotsLoading).toBe(true);
+    expect(state.benefitsLoading).toBe(false);
   });
 });
 
-describe('setSnapshotsError', () => {
-  it('should set snapshotsError to true', () => {
-    // Arrange
-    const action = setSnapshotsError(true);
+describe('setBenefitsError', () => {
+  it('sets benefitsError to true', () => {
+    const action = setBenefitsError(true);
 
-    // Act
     const state = rewardsReducer(initialState, action);
 
-    // Assert
-    expect(state.snapshotsError).toBe(true);
+    expect(state.benefitsError).toBe(true);
   });
 
-  it('should set snapshotsError to false', () => {
-    // Arrange
+  it('sets benefitsError to false', () => {
     const stateWithError: RewardsState = {
       ...initialState,
-      snapshotsError: true,
+      benefitsError: true,
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
     };
-    const action = setSnapshotsError(false);
+    const action = setBenefitsError(false);
 
-    // Act
     const state = rewardsReducer(stateWithError, action);
 
-    // Assert
-    expect(state.snapshotsError).toBe(false);
+    expect(state.benefitsError).toBe(false);
+  });
+});
+
+describe('setVipDashboard', () => {
+  const mockVipDashboard: VipDashboardState = {
+    program: { id: 'mock-vip-program', name: 'Acme Rewards Beta' },
+    period: {
+      start: '2099-06-01T00:00:00.000Z',
+      end: '2099-06-30T23:59:59.999Z',
+    },
+    computedAt: '2099-06-30T14:52:00.000Z',
+    currentTier: {
+      id: 'mock-tier-alpha-3',
+      name: 'Mock Tier Alpha 3',
+      tier: 3,
+    },
+    nextTier: { id: 'mock-tier-alpha-4', name: 'Mock Tier Alpha 4', tier: 4 },
+    progress: {
+      percent: 42,
+      remainingPointsToNextTier: 123456,
+      status: 'on_track',
+    },
+    fees: {
+      revenueShareBps: 99,
+      swapsBps: 11,
+      perpsBps: 7,
+      nextTierRevenueShareBps: 88,
+      nextTierSwapsBps: 9,
+      nextTierPerpsBps: 6,
+    },
+    volume: {
+      swapsUsd: 1234567,
+      perpsUsd: 9876543,
+      points: 5555555,
+      pointsFromReferrals: 111111,
+      referrals: 3,
+      referralsCap: 7,
+    },
+    pointsAllocation: {
+      earned: 5555555,
+      threshold: 7777777,
+      percent: 71.4,
+    },
+    tiers: [
+      {
+        id: 'mock-tier-alpha-3',
+        name: 'Mock Tier Alpha 3',
+        tier: 3,
+        pointsRequirement: 321000,
+        revenueShareBps: 99,
+        swapsBps: 11,
+        perpsBps: 7,
+        referralCarryoverBps: 4242,
+        status: 'current',
+      },
+    ],
+    localizedText: {
+      periodTitle: 'Jun 1 - Jun 30',
+      memberIdTitle: 'Member ID',
+      swapsFeeTitle: 'Swaps fee',
+      perpsFeeTitle: 'Perps fee',
+      nextTierSwapsFeeDelta: '↓ 9 bps next tier',
+      nextTierPerpsFeeDelta: '↓ 6 bps next tier',
+      revenueShareTitle: 'Revenue share',
+      referralPointsTitle: 'Referral points',
+      nextTierRevenueShareDelta: '↑ 1% next tier',
+      nextTierReferralPointsDelta: '↑ 42% next tier',
+      topTierDescription: 'Top tier reached',
+      statsTitle: 'Volume',
+      pointsTitle: 'Points',
+      swapsVolumeTitle: 'Swaps Volume',
+      pointsFromReferralsTitle: 'Points from Referrals',
+      perpsVolumeTitle: 'Perps Volume',
+      vipReferralsTitle: 'VIP Referrals',
+      totalPointsTitle: 'Points',
+      equityLockedTitle: 'Earn VIP allocations',
+      equityLockedDescription: 'Body copy',
+      equityUnlockedTitle: 'VIP allocation unlocked',
+      equityUnlockedDescription: 'Unlocked body copy',
+    },
+    lastFetched: 1767225600000,
+  };
+
+  it('sets VIP dashboard by subscription id and clears error', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      vipDashboardError: true,
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setVipDashboard({
+      subscriptionId: 'sub-1',
+      dashboard: mockVipDashboard,
+    });
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.vipDashboard['sub-1']).toEqual(mockVipDashboard);
+    expect(state.vipDashboardError).toBe(false);
+  });
+
+  it('removes VIP dashboard when payload dashboard is null', () => {
+    const stateWithDashboard: RewardsState = {
+      ...initialState,
+      vipDashboard: {
+        'sub-1': mockVipDashboard,
+      },
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setVipDashboard({
+      subscriptionId: 'sub-1',
+      dashboard: null,
+    });
+
+    const state = rewardsReducer(stateWithDashboard, action);
+
+    expect(state.vipDashboard['sub-1']).toBeUndefined();
+  });
+});
+
+describe('setVipDashboardLoading', () => {
+  it('sets vipDashboardLoading', () => {
+    const action = setVipDashboardLoading(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.vipDashboardLoading).toBe(true);
+  });
+});
+
+describe('setVipDashboardError', () => {
+  it('sets vipDashboardError', () => {
+    const action = setVipDashboardError(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.vipDashboardError).toBe(true);
+  });
+});
+
+describe('acceptVipInvite', () => {
+  it('marks the VIP invite as accepted for a subscription', () => {
+    const state = rewardsReducer(
+      initialState,
+      acceptVipInvite({ subscriptionId: 'sub-1' }),
+    );
+
+    expect(state.vipSplashAccepted['sub-1']).toBe(true);
+  });
+
+  it('preserves existing accepted VIP invites for other subscriptions', () => {
+    const stateWithAcceptedInvite: RewardsState = {
+      ...initialState,
+      vipSplashAccepted: {
+        'sub-1': true,
+      },
+    };
+
+    const state = rewardsReducer(
+      stateWithAcceptedInvite,
+      acceptVipInvite({ subscriptionId: 'sub-2' }),
+    );
+
+    expect(state.vipSplashAccepted).toEqual({
+      'sub-1': true,
+      'sub-2': true,
+    });
+  });
+});
+
+describe('VIP referee actions', () => {
+  // Obviously-synthetic fixture — never real VIP codes/figures.
+  const mockRefereeDashboard = {
+    referredByCode: 'TESTCODE',
+    points: 1234,
+    swapsVolume: 1000,
+    perpsVolume: 2000,
+    computedAt: '2099-06-30T14:52:00.000Z',
+    lastFetched: 1767225600000,
+  };
+
+  it('setReferralDetails stores isVipReferee and referredByVipCode', () => {
+    const state = rewardsReducer(
+      initialState,
+      setReferralDetails({
+        referralCode: 'MYCODE',
+        refereeCount: 0,
+        referredByCode: 'TESTCODE',
+        isVipReferee: true,
+        referredByVipCode: 'TESTCODE',
+      }),
+    );
+
+    expect(state.isVipReferee).toBe(true);
+    expect(state.referredByVipCode).toBe('TESTCODE');
+  });
+
+  it('setVipRefereeDashboard sets the dashboard by subscription id and clears error', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      vipRefereeDashboardError: true,
+    };
+    const state = rewardsReducer(
+      stateWithError,
+      setVipRefereeDashboard({
+        subscriptionId: 'sub-1',
+        dashboard: mockRefereeDashboard,
+      }),
+    );
+
+    expect(state.vipRefereeDashboard['sub-1']).toEqual(mockRefereeDashboard);
+    expect(state.vipRefereeDashboardError).toBe(false);
+  });
+
+  it('setVipRefereeDashboard removes the dashboard when payload is null', () => {
+    const stateWithDashboard: RewardsState = {
+      ...initialState,
+      vipRefereeDashboard: { 'sub-1': mockRefereeDashboard },
+    };
+    const state = rewardsReducer(
+      stateWithDashboard,
+      setVipRefereeDashboard({ subscriptionId: 'sub-1', dashboard: null }),
+    );
+
+    expect(state.vipRefereeDashboard['sub-1']).toBeUndefined();
+  });
+
+  it('setVipRefereeDashboardLoading sets the loading flag', () => {
+    const state = rewardsReducer(
+      initialState,
+      setVipRefereeDashboardLoading(true),
+    );
+
+    expect(state.vipRefereeDashboardLoading).toBe(true);
+  });
+
+  it('setVipRefereeDashboardError sets the error flag', () => {
+    const state = rewardsReducer(
+      initialState,
+      setVipRefereeDashboardError(true),
+    );
+
+    expect(state.vipRefereeDashboardError).toBe(true);
+  });
+
+  it('acceptVipRefereeInvite marks the referee splash accepted, distinct from vipSplashAccepted', () => {
+    const state = rewardsReducer(
+      initialState,
+      acceptVipRefereeInvite({ subscriptionId: 'sub-1' }),
+    );
+
+    expect(state.vipRefereeSplashAccepted['sub-1']).toBe(true);
+    // Must NOT touch the regular VIP splash flag.
+    expect(state.vipSplashAccepted['sub-1']).toBeUndefined();
+  });
+});
+
+const mockCampaign: CampaignDto = {
+  id: 'campaign-1',
+  type: 'ONDO_HOLDING' as CampaignType,
+  name: 'ONDO Holding Campaign',
+  startDate: '2025-01-01T00:00:00.000Z',
+  endDate: '2027-01-01T00:00:00.000Z',
+  termsAndConditions: null,
+  excludedRegions: [],
+  details: null,
+  featured: false,
+  showUpcomingDate: false,
+};
+
+describe('setCampaigns', () => {
+  it('should set campaigns array', () => {
+    const action = setCampaigns([mockCampaign]);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaigns).toEqual([mockCampaign]);
+    expect(state.campaignsError).toBe(false);
+  });
+
+  it('should replace existing campaigns with new ones', () => {
+    const stateWithCampaigns: RewardsState = {
+      ...initialState,
+      campaigns: [mockCampaign],
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const newCampaign: CampaignDto = {
+      ...mockCampaign,
+      id: 'campaign-2',
+      name: 'New Campaign',
+    };
+    const action = setCampaigns([newCampaign]);
+
+    const state = rewardsReducer(stateWithCampaigns, action);
+
+    expect(state.campaigns).toHaveLength(1);
+    expect(state.campaigns[0].id).toBe('campaign-2');
+  });
+
+  it('should set campaigns to empty array', () => {
+    const stateWithCampaigns: RewardsState = {
+      ...initialState,
+      campaigns: [mockCampaign],
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setCampaigns([]);
+
+    const state = rewardsReducer(stateWithCampaigns, action);
+
+    expect(state.campaigns).toEqual([]);
+    expect(state.campaignsError).toBe(false);
+  });
+
+  it('should reset campaignsError when setting campaigns', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      campaignsError: true,
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setCampaigns([mockCampaign]);
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.campaigns).toEqual([mockCampaign]);
+    expect(state.campaignsError).toBe(false);
+  });
+});
+
+describe('setCampaignsLoading', () => {
+  it('should set campaignsLoading to true when no campaigns exist', () => {
+    const action = setCampaignsLoading(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaignsLoading).toBe(true);
+  });
+
+  it('should not set loading to true when campaigns already exist', () => {
+    const stateWithCampaigns: RewardsState = {
+      ...initialState,
+      campaigns: [mockCampaign],
+      campaignsLoading: false,
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setCampaignsLoading(true);
+
+    const state = rewardsReducer(stateWithCampaigns, action);
+
+    expect(state.campaignsLoading).toBe(false);
+  });
+
+  it('should set campaignsLoading to false when loading is true', () => {
+    const stateWithLoading: RewardsState = {
+      ...initialState,
+      campaignsLoading: true,
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setCampaignsLoading(false);
+
+    const state = rewardsReducer(stateWithLoading, action);
+
+    expect(state.campaignsLoading).toBe(false);
+  });
+
+  it('should set campaignsLoading to false even when campaigns exist', () => {
+    const stateWithCampaigns: RewardsState = {
+      ...initialState,
+      campaigns: [mockCampaign],
+      campaignsLoading: true,
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setCampaignsLoading(false);
+
+    const state = rewardsReducer(stateWithCampaigns, action);
+
+    expect(state.campaignsLoading).toBe(false);
+  });
+});
+
+describe('setCampaignsError', () => {
+  it('should set campaignsError to true and mark hasLoaded as true', () => {
+    const action = setCampaignsError(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaignsError).toBe(true);
+    expect(state.campaignsHasLoaded).toBe(true);
+  });
+
+  it('should set campaignsError to false without changing hasLoaded', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      campaignsError: true,
+      campaignsHasLoaded: true,
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setCampaignsError(false);
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.campaignsError).toBe(false);
+    expect(state.campaignsHasLoaded).toBe(true);
+  });
+
+  it('should not change hasLoaded when clearing error and hasLoaded was false', () => {
+    const stateWithErrorNoLoad: RewardsState = {
+      ...initialState,
+      campaignsError: true,
+      campaignsHasLoaded: false,
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setCampaignsError(false);
+
+    const state = rewardsReducer(stateWithErrorNoLoad, action);
+
+    expect(state.campaignsError).toBe(false);
+    expect(state.campaignsHasLoaded).toBe(false);
+  });
+
+  it('should toggle error state correctly while maintaining hasLoaded', () => {
+    let currentState = initialState;
+
+    let action = setCampaignsError(true);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.campaignsError).toBe(true);
+    expect(currentState.campaignsHasLoaded).toBe(true);
+
+    action = setCampaignsError(false);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.campaignsError).toBe(false);
+    expect(currentState.campaignsHasLoaded).toBe(true);
+
+    action = setCampaignsError(true);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.campaignsError).toBe(true);
+    expect(currentState.campaignsHasLoaded).toBe(true);
+  });
+});
+
+describe('setCampaignParticipantStatus', () => {
+  it('should set participant status keyed by subscriptionId:campaignId', () => {
+    const action = setCampaignParticipantStatus({
+      subscriptionId: 'sub-1',
+      campaignId: 'campaign-1',
+      status: { optedIn: true, participantCount: 42 },
+    });
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaignParticipantStatuses['sub-1:campaign-1']).toEqual({
+      optedIn: true,
+      participantCount: 42,
+    });
+  });
+
+  it('should update existing participant status for the same subscriptionId:campaignId', () => {
+    const stateWithStatus: RewardsState = {
+      ...initialState,
+      campaignParticipantStatuses: {
+        'sub-1:campaign-1': { optedIn: false, participantCount: 10 },
+      },
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+
+    const action = setCampaignParticipantStatus({
+      subscriptionId: 'sub-1',
+      campaignId: 'campaign-1',
+      status: { optedIn: true, participantCount: 50 },
+    });
+
+    const state = rewardsReducer(stateWithStatus, action);
+
+    expect(state.campaignParticipantStatuses['sub-1:campaign-1']).toEqual({
+      optedIn: true,
+      participantCount: 50,
+    });
+  });
+
+  it('should store statuses independently per subscriptionId:campaignId', () => {
+    let currentState = initialState;
+
+    currentState = rewardsReducer(
+      currentState,
+      setCampaignParticipantStatus({
+        subscriptionId: 'sub-1',
+        campaignId: 'campaign-1',
+        status: { optedIn: true, participantCount: 42 },
+      }),
+    );
+
+    currentState = rewardsReducer(
+      currentState,
+      setCampaignParticipantStatus({
+        subscriptionId: 'sub-2',
+        campaignId: 'campaign-1',
+        status: { optedIn: false, participantCount: 0 },
+      }),
+    );
+
+    expect(
+      currentState.campaignParticipantStatuses['sub-1:campaign-1'],
+    ).toEqual({
+      optedIn: true,
+      participantCount: 42,
+    });
+    expect(
+      currentState.campaignParticipantStatuses['sub-2:campaign-1'],
+    ).toEqual({
+      optedIn: false,
+      participantCount: 0,
+    });
+  });
+});
+
+describe('setVersionGuardMinimumMobileVersion', () => {
+  it('should set minimum mobile version', () => {
+    const action = setVersionGuardMinimumMobileVersion('7.30.0');
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.versionGuardMinimumMobileVersion).toBe('7.30.0');
+  });
+
+  it('should update existing minimum mobile version', () => {
+    const stateWithVersion: RewardsState = {
+      ...initialState,
+      versionGuardMinimumMobileVersion: '7.29.0',
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setVersionGuardMinimumMobileVersion('7.30.0');
+
+    const state = rewardsReducer(stateWithVersion, action);
+
+    expect(state.versionGuardMinimumMobileVersion).toBe('7.30.0');
+  });
+
+  it('should set minimum mobile version to null', () => {
+    const stateWithVersion: RewardsState = {
+      ...initialState,
+      versionGuardMinimumMobileVersion: '7.30.0',
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setVersionGuardMinimumMobileVersion(null);
+
+    const state = rewardsReducer(stateWithVersion, action);
+
+    expect(state.versionGuardMinimumMobileVersion).toBeNull();
   });
 
   it('should not affect other state properties', () => {
-    // Arrange
-    const mockSnapshot: SnapshotDto = {
-      id: '01974010-377f-7553-a365-0c33c8130980',
-      seasonId: '7444682d-9050-43b8-9038-28a6a62d6264',
-      name: 'Monad Airdrop',
-      tokenSymbol: 'MONAD',
-      tokenAmount: '50000000000000000000000',
-      tokenChainId: '1',
-      receivingBlockchain: 'Ethereum',
-      opensAt: '2025-03-01T00:00:00.000Z',
-      closesAt: '2025-03-15T00:00:00.000Z',
-      backgroundImage: {
-        lightModeUrl: 'https://example.com/light.png',
-        darkModeUrl: 'https://example.com/dark.png',
-      },
-    };
-    const stateWithData: RewardsState = {
+    const action = setVersionGuardMinimumMobileVersion('7.30.0');
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.versionGuardLoading).toBe(initialState.versionGuardLoading);
+    expect(state.versionGuardError).toBe(initialState.versionGuardError);
+    expect(state.activeTab).toBe(initialState.activeTab);
+  });
+});
+
+describe('setVersionGuardLoading', () => {
+  it('should set versionGuardLoading to true', () => {
+    const action = setVersionGuardLoading(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.versionGuardLoading).toBe(true);
+  });
+
+  it('should set versionGuardLoading to false', () => {
+    const stateWithLoading: RewardsState = {
       ...initialState,
-      snapshots: [mockSnapshot],
-      snapshotsLoading: true,
+      versionGuardLoading: true,
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
     };
-    const action = setSnapshotsError(true);
+    const action = setVersionGuardLoading(false);
 
-    // Act
-    const state = rewardsReducer(stateWithData, action);
+    const state = rewardsReducer(stateWithLoading, action);
 
-    // Assert
-    expect(state.snapshotsError).toBe(true);
-    expect(state.snapshots).toHaveLength(1);
-    expect(state.snapshotsLoading).toBe(true);
+    expect(state.versionGuardLoading).toBe(false);
+  });
+
+  it('should not affect other state properties', () => {
+    const action = setVersionGuardLoading(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.versionGuardMinimumMobileVersion).toBe(
+      initialState.versionGuardMinimumMobileVersion,
+    );
+    expect(state.versionGuardError).toBe(initialState.versionGuardError);
+  });
+});
+
+describe('setVersionGuardError', () => {
+  it('should set versionGuardError to true', () => {
+    const action = setVersionGuardError(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.versionGuardError).toBe(true);
+  });
+
+  it('should set versionGuardError to false', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      versionGuardError: true,
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setVersionGuardError(false);
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.versionGuardError).toBe(false);
   });
 
   it('should toggle error state correctly', () => {
-    // Arrange
     let currentState = initialState;
 
-    // Act & Assert - Set error to true
-    let action = setSnapshotsError(true);
+    let action = setVersionGuardError(true);
     currentState = rewardsReducer(currentState, action);
-    expect(currentState.snapshotsError).toBe(true);
+    expect(currentState.versionGuardError).toBe(true);
 
-    // Act & Assert - Set error back to false
-    action = setSnapshotsError(false);
+    action = setVersionGuardError(false);
     currentState = rewardsReducer(currentState, action);
-    expect(currentState.snapshotsError).toBe(false);
+    expect(currentState.versionGuardError).toBe(false);
 
-    // Act & Assert - Set error to true again
-    action = setSnapshotsError(true);
+    action = setVersionGuardError(true);
     currentState = rewardsReducer(currentState, action);
-    expect(currentState.snapshotsError).toBe(true);
+    expect(currentState.versionGuardError).toBe(true);
+  });
+
+  it('should not affect other state properties', () => {
+    const action = setVersionGuardError(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.versionGuardMinimumMobileVersion).toBe(
+      initialState.versionGuardMinimumMobileVersion,
+    );
+    expect(state.versionGuardLoading).toBe(initialState.versionGuardLoading);
+  });
+});
+
+const mockLeaderboard: CampaignLeaderboardDto = {
+  campaignId: 'campaign-1',
+  computedAt: '2024-03-20T12:00:00.000Z',
+  tiers: {
+    STARTER: {
+      entries: [
+        {
+          rank: 1,
+          referralCode: 'TOP001',
+          rateOfReturn: 0.325,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 2,
+          referralCode: 'TOP002',
+          rateOfReturn: 0.284,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 3,
+          referralCode: 'TOP003',
+          rateOfReturn: 0.261,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 4,
+          referralCode: 'TOP004',
+          rateOfReturn: 0.238,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 5,
+          referralCode: 'TOP005',
+          rateOfReturn: 0.217,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 6,
+          referralCode: 'TOP006',
+          rateOfReturn: 0.198,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 7,
+          referralCode: 'TOP007',
+          rateOfReturn: 0.182,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 8,
+          referralCode: 'TOP008',
+          rateOfReturn: 0.167,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 9,
+          referralCode: 'TOP009',
+          rateOfReturn: 0.154,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 10,
+          referralCode: 'TOP010',
+          rateOfReturn: 0.141,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 11,
+          referralCode: 'TOP011',
+          rateOfReturn: 0.129,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 12,
+          referralCode: 'TOP012',
+          rateOfReturn: 0.118,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 13,
+          referralCode: 'TOP013',
+          rateOfReturn: 0.108,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 14,
+          referralCode: 'TOP014',
+          rateOfReturn: 0.099,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 15,
+          referralCode: 'TOP015',
+          rateOfReturn: 0.091,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 16,
+          referralCode: 'TOP016',
+          rateOfReturn: 0.083,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 17,
+          referralCode: 'TOP017',
+          rateOfReturn: 0.076,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 18,
+          referralCode: 'TOP018',
+          rateOfReturn: 0.069,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 19,
+          referralCode: 'MY_CODE',
+          rateOfReturn: 0.063,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 20,
+          referralCode: 'TOP020',
+          rateOfReturn: 0.057,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+      ],
+      totalParticipants: 150,
+    },
+    MID: {
+      entries: [
+        {
+          rank: 1,
+          referralCode: 'MID001',
+          rateOfReturn: 0.412,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 2,
+          referralCode: 'MID002',
+          rateOfReturn: 0.368,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+        {
+          rank: 3,
+          referralCode: 'MID003',
+          rateOfReturn: 0.341,
+          qualifiedDays: 10,
+          qualified: true,
+        },
+      ],
+      totalParticipants: 75,
+    },
+  },
+};
+
+const mockPosition: CampaignLeaderboardPositionDto = {
+  projectedTier: 'STARTER',
+  rank: 19,
+  totalInTier: 150,
+  rateOfReturn: 0.063,
+  currentUsdValue: 5063,
+  totalUsdDeposited: 5000,
+  netDeposit: 4800,
+  qualifiedDays: 10,
+  qualified: true,
+  neighbors: [],
+  computedAt: '2024-03-20T12:00:00.000Z',
+};
+
+const mockPortfolio: OndoGmPortfolioDto = {
+  positions: [],
+  summary: {
+    totalCurrentValue: '5063',
+    totalBookValue: '5000',
+    totalUsdDeposited: '5000',
+    netDeposit: '4800',
+    totalCashedOut: '0',
+    portfolioPnl: '63',
+    portfolioPnlPercent: '0.0126',
+  },
+  computedAt: '2024-03-20T12:00:00.000Z',
+};
+
+const MOCK_CAMPAIGN_ID = 'campaign-1';
+const PERPS_CAMPAIGN_ID = 'perps-c-1';
+const PREDICT_CAMPAIGN_ID = 'predict-c-1';
+
+describe('setOndoCampaignLeaderboard', () => {
+  it('should set leaderboard data', () => {
+    const action = setOndoCampaignLeaderboard({
+      campaignId: MOCK_CAMPAIGN_ID,
+      leaderboard: mockLeaderboard,
+    });
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].data).toEqual(
+      mockLeaderboard,
+    );
+    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].error).toBe(false);
+  });
+
+  it('should set first tier as selected when not already set', () => {
+    const action = setOndoCampaignLeaderboard({
+      campaignId: MOCK_CAMPAIGN_ID,
+      leaderboard: mockLeaderboard,
+    });
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].selectedTier).toBe(
+      'STARTER',
+    );
+  });
+
+  it('should not override existing selected tier', () => {
+    const stateWithSelectedTier: RewardsState = {
+      ...initialState,
+      ondoCampaignLeaderboards: {
+        [MOCK_CAMPAIGN_ID]: {
+          data: null,
+          loading: false,
+          error: false,
+          selectedTier: 'MID',
+        },
+      },
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setOndoCampaignLeaderboard({
+      campaignId: MOCK_CAMPAIGN_ID,
+      leaderboard: mockLeaderboard,
+    });
+
+    const state = rewardsReducer(stateWithSelectedTier, action);
+
+    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].selectedTier).toBe(
+      'MID',
+    );
+  });
+
+  it('should reset selected tier to first when current selection does not exist in new data', () => {
+    const stateWithStaleSelection: RewardsState = {
+      ...initialState,
+      ondoCampaignLeaderboards: {
+        [MOCK_CAMPAIGN_ID]: {
+          data: null,
+          loading: false,
+          error: false,
+          selectedTier: 'UPPER',
+        },
+      },
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setOndoCampaignLeaderboard({
+      campaignId: MOCK_CAMPAIGN_ID,
+      leaderboard: mockLeaderboard,
+    });
+
+    const state = rewardsReducer(stateWithStaleSelection, action);
+
+    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].selectedTier).toBe(
+      'STARTER',
+    );
+  });
+
+  it('should set leaderboard to null', () => {
+    const stateWithLeaderboard: RewardsState = {
+      ...initialState,
+      ondoCampaignLeaderboards: {
+        [MOCK_CAMPAIGN_ID]: {
+          data: mockLeaderboard,
+          loading: false,
+          error: false,
+          selectedTier: 'STARTER',
+        },
+      },
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setOndoCampaignLeaderboard({
+      campaignId: MOCK_CAMPAIGN_ID,
+      leaderboard: null,
+    });
+
+    const state = rewardsReducer(stateWithLeaderboard, action);
+
+    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].data).toBeNull();
+  });
+
+  it('should reset error when setting leaderboard', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      ondoCampaignLeaderboards: {
+        [MOCK_CAMPAIGN_ID]: {
+          data: null,
+          loading: false,
+          error: true,
+          selectedTier: null,
+        },
+      },
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setOndoCampaignLeaderboard({
+      campaignId: MOCK_CAMPAIGN_ID,
+      leaderboard: mockLeaderboard,
+    });
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].error).toBe(false);
+  });
+
+  it('should keep campaign A data when setting campaign B data', () => {
+    const campaignA = 'campaign-a';
+    const campaignB = 'campaign-b';
+    const leaderboardA = { ...mockLeaderboard, campaignId: campaignA };
+    const leaderboardB = { ...mockLeaderboard, campaignId: campaignB };
+
+    let state = rewardsReducer(
+      initialState,
+      setOndoCampaignLeaderboard({
+        campaignId: campaignA,
+        leaderboard: leaderboardA,
+      }),
+    );
+    state = rewardsReducer(
+      state,
+      setOndoCampaignLeaderboard({
+        campaignId: campaignB,
+        leaderboard: leaderboardB,
+      }),
+    );
+
+    expect(state.ondoCampaignLeaderboards[campaignA].data).toEqual(
+      leaderboardA,
+    );
+    expect(state.ondoCampaignLeaderboards[campaignB].data).toEqual(
+      leaderboardB,
+    );
+  });
+});
+
+describe('setOndoCampaignLeaderboardLoading', () => {
+  it('should set loading to true', () => {
+    const action = setOndoCampaignLeaderboardLoading({
+      campaignId: MOCK_CAMPAIGN_ID,
+      loading: true,
+    });
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].loading).toBe(true);
+  });
+
+  it('should set loading to false', () => {
+    const stateWithLoading: RewardsState = {
+      ...initialState,
+      ondoCampaignLeaderboards: {
+        [MOCK_CAMPAIGN_ID]: {
+          data: null,
+          loading: true,
+          error: false,
+          selectedTier: null,
+        },
+      },
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setOndoCampaignLeaderboardLoading({
+      campaignId: MOCK_CAMPAIGN_ID,
+      loading: false,
+    });
+
+    const state = rewardsReducer(stateWithLoading, action);
+
+    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].loading).toBe(
+      false,
+    );
+  });
+});
+
+describe('setOndoCampaignLeaderboardError', () => {
+  it('should set error to true and clear data', () => {
+    const stateWithData: RewardsState = {
+      ...initialState,
+      ondoCampaignLeaderboards: {
+        [MOCK_CAMPAIGN_ID]: {
+          data: mockLeaderboard,
+          loading: false,
+          error: false,
+          selectedTier: 'STARTER',
+        },
+      },
+    };
+    const action = setOndoCampaignLeaderboardError({
+      campaignId: MOCK_CAMPAIGN_ID,
+      error: true,
+    });
+
+    const state = rewardsReducer(stateWithData, action);
+
+    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].error).toBe(true);
+    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].data).toBeNull();
+  });
+
+  it('should set error to false', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      ondoCampaignLeaderboards: {
+        [MOCK_CAMPAIGN_ID]: {
+          data: null,
+          loading: false,
+          error: true,
+          selectedTier: null,
+        },
+      },
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setOndoCampaignLeaderboardError({
+      campaignId: MOCK_CAMPAIGN_ID,
+      error: false,
+    });
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].error).toBe(false);
+  });
+});
+
+describe('setOndoCampaignLeaderboardSelectedTier', () => {
+  it('should set selected tier', () => {
+    const action = setOndoCampaignLeaderboardSelectedTier({
+      campaignId: MOCK_CAMPAIGN_ID,
+      tier: 'MID',
+    });
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].selectedTier).toBe(
+      'MID',
+    );
+  });
+
+  it('should update selected tier', () => {
+    const stateWithSelectedTier: RewardsState = {
+      ...initialState,
+      ondoCampaignLeaderboards: {
+        [MOCK_CAMPAIGN_ID]: {
+          data: null,
+          loading: false,
+          error: false,
+          selectedTier: 'STARTER',
+        },
+      },
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setOndoCampaignLeaderboardSelectedTier({
+      campaignId: MOCK_CAMPAIGN_ID,
+      tier: 'UPPER',
+    });
+
+    const state = rewardsReducer(stateWithSelectedTier, action);
+
+    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].selectedTier).toBe(
+      'UPPER',
+    );
+  });
+});
+
+describe('setOndoCampaignLeaderboardPosition', () => {
+  it('should set position for a campaign', () => {
+    const action = setOndoCampaignLeaderboardPosition({
+      subscriptionId: 'sub-1',
+      campaignId: 'campaign-1',
+      position: mockPosition,
+    });
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.ondoCampaignLeaderboardPositions['sub-1:campaign-1']).toEqual(
+      mockPosition,
+    );
+  });
+
+  it('should remove position when null is provided', () => {
+    const stateWithPosition: RewardsState = {
+      ...initialState,
+      ondoCampaignLeaderboardPositions: { 'sub-1:campaign-1': mockPosition },
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setOndoCampaignLeaderboardPosition({
+      subscriptionId: 'sub-1',
+      campaignId: 'campaign-1',
+      position: null,
+    });
+
+    const state = rewardsReducer(stateWithPosition, action);
+
+    expect(
+      state.ondoCampaignLeaderboardPositions['sub-1:campaign-1'],
+    ).toBeUndefined();
+  });
+
+  it('should store positions for multiple campaigns', () => {
+    let currentState = initialState;
+
+    currentState = rewardsReducer(
+      currentState,
+      setOndoCampaignLeaderboardPosition({
+        subscriptionId: 'sub-1',
+        campaignId: 'campaign-1',
+        position: mockPosition,
+      }),
+    );
+
+    const position2 = { ...mockPosition, rank: 10, projectedTier: 'MID' };
+    currentState = rewardsReducer(
+      currentState,
+      setOndoCampaignLeaderboardPosition({
+        subscriptionId: 'sub-1',
+        campaignId: 'campaign-2',
+        position: position2,
+      }),
+    );
+
+    expect(
+      currentState.ondoCampaignLeaderboardPositions['sub-1:campaign-1'],
+    ).toEqual(mockPosition);
+    expect(
+      currentState.ondoCampaignLeaderboardPositions['sub-1:campaign-2'],
+    ).toEqual(position2);
+  });
+});
+
+describe('setOndoCampaignPortfolioPosition', () => {
+  it('should set portfolio for a campaign', () => {
+    const action = setOndoCampaignPortfolioPosition({
+      subscriptionId: 'sub-1',
+      campaignId: 'campaign-1',
+      portfolio: mockPortfolio,
+    });
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.ondoCampaignPortfolio['sub-1:campaign-1']).toEqual(
+      mockPortfolio,
+    );
+  });
+
+  it('should remove portfolio when null is provided', () => {
+    const stateWithPortfolio: RewardsState = {
+      ...initialState,
+      ondoCampaignPortfolio: { 'sub-1:campaign-1': mockPortfolio },
+      dismissedCampaignOutcomeToasts: {},
+      subscribedCampaignReminders: {},
+    };
+    const action = setOndoCampaignPortfolioPosition({
+      subscriptionId: 'sub-1',
+      campaignId: 'campaign-1',
+      portfolio: null,
+    });
+
+    const state = rewardsReducer(stateWithPortfolio, action);
+
+    expect(state.ondoCampaignPortfolio['sub-1:campaign-1']).toBeUndefined();
+  });
+});
+
+describe('setOndoCampaignActivity', () => {
+  it('should set activity entries for a campaign', () => {
+    const mockEntries: OndoGmActivityEntryDto[] = [
+      {
+        type: 'DEPOSIT',
+        srcToken: {
+          tokenAsset: 'eip155:59144/erc20:0xabc',
+          tokenSymbol: 'USDC',
+          tokenName: 'USD Coin',
+        },
+        destToken: null,
+        destAddress: null,
+        usdAmount: '5000.000000',
+        timestamp: '2026-03-28T14:30:00.000Z',
+      },
+    ];
+    const action = setOndoCampaignActivity({
+      subscriptionId: 'sub-1',
+      campaignId: 'campaign-1',
+      entries: mockEntries,
+    });
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.ondoCampaignActivity['sub-1:campaign-1']).toEqual(mockEntries);
+  });
+
+  it('should set null when null entries provided', () => {
+    const action = setOndoCampaignActivity({
+      subscriptionId: 'sub-1',
+      campaignId: 'campaign-1',
+      entries: null,
+    });
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.ondoCampaignActivity['sub-1:campaign-1']).toBeNull();
+  });
+});
+
+const mockPerpsLeaderboard: PerpsTradingCampaignLeaderboardDto = {
+  campaignId: 'perps-c-1',
+  computedAt: '2025-08-15T12:00:00.000Z',
+  entries: [],
+  totalParticipants: 42,
+  minVolumeForEligibility: 25_000,
+};
+
+const mockPerpsPosition: PerpsTradingCampaignLeaderboardPositionDto = {
+  rank: 2,
+  totalParticipants: 42,
+  pnl: 100,
+  volume: 5000,
+  eligible: true,
+  minVolumeForEligibility: 25000,
+  neighbors: [],
+  computedAt: '2025-08-15T12:00:00.000Z',
+};
+
+describe('setPerpsTradingCampaignLeaderboard', () => {
+  it('sets leaderboard data and clears error', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      perpsTradingCampaignLeaderboards: {
+        [PERPS_CAMPAIGN_ID]: {
+          data: null,
+          loading: false,
+          error: true,
+        },
+      },
+    };
+
+    const state = rewardsReducer(
+      stateWithError,
+      setPerpsTradingCampaignLeaderboard({
+        campaignId: PERPS_CAMPAIGN_ID,
+        leaderboard: mockPerpsLeaderboard,
+      }),
+    );
+
+    expect(
+      state.perpsTradingCampaignLeaderboards[PERPS_CAMPAIGN_ID].data,
+    ).toEqual(mockPerpsLeaderboard);
+    expect(
+      state.perpsTradingCampaignLeaderboards[PERPS_CAMPAIGN_ID].error,
+    ).toBe(false);
+  });
+
+  it('sets leaderboard to null', () => {
+    const stateWithData: RewardsState = {
+      ...initialState,
+      perpsTradingCampaignLeaderboards: {
+        [PERPS_CAMPAIGN_ID]: {
+          data: mockPerpsLeaderboard,
+          loading: false,
+          error: false,
+        },
+      },
+    };
+
+    const state = rewardsReducer(
+      stateWithData,
+      setPerpsTradingCampaignLeaderboard({
+        campaignId: PERPS_CAMPAIGN_ID,
+        leaderboard: null,
+      }),
+    );
+
+    expect(
+      state.perpsTradingCampaignLeaderboards[PERPS_CAMPAIGN_ID].data,
+    ).toBeNull();
+  });
+});
+
+describe('setPerpsTradingCampaignLeaderboardLoading', () => {
+  it('sets loading to true', () => {
+    const state = rewardsReducer(
+      initialState,
+      setPerpsTradingCampaignLeaderboardLoading({
+        campaignId: PERPS_CAMPAIGN_ID,
+        loading: true,
+      }),
+    );
+
+    expect(
+      state.perpsTradingCampaignLeaderboards[PERPS_CAMPAIGN_ID].loading,
+    ).toBe(true);
+  });
+
+  it('clears loading to false', () => {
+    const stateWithLoading: RewardsState = {
+      ...initialState,
+      perpsTradingCampaignLeaderboards: {
+        [PERPS_CAMPAIGN_ID]: {
+          data: null,
+          loading: true,
+          error: false,
+        },
+      },
+    };
+
+    const state = rewardsReducer(
+      stateWithLoading,
+      setPerpsTradingCampaignLeaderboardLoading({
+        campaignId: PERPS_CAMPAIGN_ID,
+        loading: false,
+      }),
+    );
+
+    expect(
+      state.perpsTradingCampaignLeaderboards[PERPS_CAMPAIGN_ID].loading,
+    ).toBe(false);
+  });
+});
+
+describe('setPerpsTradingCampaignLeaderboardError', () => {
+  it('sets and clears the error flag and clears data on error', () => {
+    const withData: RewardsState = {
+      ...initialState,
+      perpsTradingCampaignLeaderboards: {
+        [PERPS_CAMPAIGN_ID]: {
+          data: mockPerpsLeaderboard,
+          loading: false,
+          error: false,
+        },
+      },
+    };
+    const withError = rewardsReducer(
+      withData,
+      setPerpsTradingCampaignLeaderboardError({
+        campaignId: PERPS_CAMPAIGN_ID,
+        error: true,
+      }),
+    );
+    expect(
+      withError.perpsTradingCampaignLeaderboards[PERPS_CAMPAIGN_ID].error,
+    ).toBe(true);
+    expect(
+      withError.perpsTradingCampaignLeaderboards[PERPS_CAMPAIGN_ID].data,
+    ).toBeNull();
+
+    const cleared = rewardsReducer(
+      withError,
+      setPerpsTradingCampaignLeaderboardError({
+        campaignId: PERPS_CAMPAIGN_ID,
+        error: false,
+      }),
+    );
+    expect(
+      cleared.perpsTradingCampaignLeaderboards[PERPS_CAMPAIGN_ID].error,
+    ).toBe(false);
+  });
+});
+
+describe('setPerpsTradingCampaignLeaderboardPosition', () => {
+  it('stores a position for subscription + campaign and removes on null', () => {
+    let state = rewardsReducer(
+      initialState,
+      setPerpsTradingCampaignLeaderboardPosition({
+        subscriptionId: 'sub-p',
+        campaignId: 'camp-p',
+        position: mockPerpsPosition,
+      }),
+    );
+
+    expect(
+      state.perpsTradingCampaignLeaderboardPositions['sub-p:camp-p'],
+    ).toEqual(mockPerpsPosition);
+
+    state = rewardsReducer(
+      state,
+      setPerpsTradingCampaignLeaderboardPosition({
+        subscriptionId: 'sub-p',
+        campaignId: 'camp-p',
+        position: null,
+      }),
+    );
+
+    expect(
+      state.perpsTradingCampaignLeaderboardPositions['sub-p:camp-p'],
+    ).toBeUndefined();
+  });
+});
+
+describe('perps trading campaign volume', () => {
+  const mockVolume: PerpsTradingCampaignVolumeDto = {
+    totalUsdVolume: '1000000',
+  };
+
+  it('setPerpsTradingCampaignVolume sets data and clears error', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      perpsTradingCampaignVolumes: {
+        [PERPS_CAMPAIGN_ID]: {
+          data: null,
+          loading: false,
+          error: true,
+        },
+      },
+    };
+
+    const state = rewardsReducer(
+      stateWithError,
+      setPerpsTradingCampaignVolume({
+        campaignId: PERPS_CAMPAIGN_ID,
+        volume: mockVolume,
+      }),
+    );
+
+    expect(state.perpsTradingCampaignVolumes[PERPS_CAMPAIGN_ID].data).toEqual(
+      mockVolume,
+    );
+    expect(state.perpsTradingCampaignVolumes[PERPS_CAMPAIGN_ID].error).toBe(
+      false,
+    );
+  });
+
+  it('setPerpsTradingCampaignVolumeLoading toggles loading per campaign', () => {
+    const stateWithVolume: RewardsState = {
+      ...initialState,
+      perpsTradingCampaignVolumes: {
+        [PERPS_CAMPAIGN_ID]: {
+          data: mockVolume,
+          loading: false,
+          error: false,
+        },
+      },
+    };
+
+    const loading = rewardsReducer(
+      stateWithVolume,
+      setPerpsTradingCampaignVolumeLoading({
+        campaignId: PERPS_CAMPAIGN_ID,
+        loading: true,
+      }),
+    );
+    expect(loading.perpsTradingCampaignVolumes[PERPS_CAMPAIGN_ID].loading).toBe(
+      true,
+    );
+  });
+
+  it('setPerpsTradingCampaignVolumeError toggles the flag and clears data', () => {
+    const withData: RewardsState = {
+      ...initialState,
+      perpsTradingCampaignVolumes: {
+        [PERPS_CAMPAIGN_ID]: {
+          data: mockVolume,
+          loading: false,
+          error: false,
+        },
+      },
+    };
+    const on = rewardsReducer(
+      withData,
+      setPerpsTradingCampaignVolumeError({
+        campaignId: PERPS_CAMPAIGN_ID,
+        error: true,
+      }),
+    );
+    expect(on.perpsTradingCampaignVolumes[PERPS_CAMPAIGN_ID].error).toBe(true);
+    expect(on.perpsTradingCampaignVolumes[PERPS_CAMPAIGN_ID].data).toBeNull();
+
+    const off = rewardsReducer(
+      on,
+      setPerpsTradingCampaignVolumeError({
+        campaignId: PERPS_CAMPAIGN_ID,
+        error: false,
+      }),
+    );
+    expect(off.perpsTradingCampaignVolumes[PERPS_CAMPAIGN_ID].error).toBe(
+      false,
+    );
+  });
+});
+
+const mockPredictLeaderboard: PredictThePitchLeaderboardDto = {
+  campaignId: 'predict-c-1',
+  computedAt: '2026-06-30T12:00:00.000Z',
+  entries: [],
+  totalParticipants: 10,
+};
+
+const mockPredictPosition: PredictThePitchLeaderboardPositionDto = {
+  rank: 1,
+  totalParticipants: 10,
+  roi: 0.25,
+  pnl: 50,
+  volume: 200,
+  eligible: true,
+  neighbors: [],
+  computedAt: '2026-06-30T12:00:00.000Z',
+  marketsTraded: 3,
+  minimumMarketsTraded: 3,
+};
+
+const mockPredictPositions: PredictThePitchPositionsDto = {
+  openPositions: [
+    {
+      outcomeAssetId: 'token-1',
+      outcomeAsset: 'Yes',
+      conditionId: '0xcondition',
+      conditionName: 'Brazil vs Argentina',
+      conditionSlug: 'brazil-vs-argentina',
+      eventId: '0xnav',
+      eventSlug: 'world-cup',
+      iconUrl: null,
+      capitalDeployed: 200,
+      pnl: 50,
+      roi: 0.25,
+      status: 'open',
+      fillShares: 100,
+      fillSharesBought: 100,
+      fillSharesSold: 0,
+      fillPrice: 2,
+      fillDate: '2026-06-30T12:00:00.000Z',
+    },
+  ],
+  resolvedPositions: [],
+  computedAt: '2026-06-30T12:00:00.000Z',
+};
+
+const mockPredictPrizePool: PredictThePitchPrizePoolDto = {
+  totalVolumeUsd: 1000,
+  unlockedPoolUsd: 500,
+  thresholdsUsd: [0, 1000],
+  poolScheduleUsd: [250, 500],
+  breakdown: [{ rank: 1, amountUsd: 500 }],
+  computedAt: null,
+};
+
+describe('predict the pitch reducers', () => {
+  it('sets and removes leaderboard data', () => {
+    let state = rewardsReducer(
+      {
+        ...initialState,
+        predictThePitchLeaderboards: {
+          [PREDICT_CAMPAIGN_ID]: {
+            data: null,
+            loading: false,
+            error: true,
+          },
+        },
+      },
+      setPredictThePitchLeaderboard({
+        campaignId: PREDICT_CAMPAIGN_ID,
+        leaderboard: mockPredictLeaderboard,
+      }),
+    );
+
+    expect(state.predictThePitchLeaderboards[PREDICT_CAMPAIGN_ID].data).toEqual(
+      mockPredictLeaderboard,
+    );
+    expect(state.predictThePitchLeaderboards[PREDICT_CAMPAIGN_ID].error).toBe(
+      false,
+    );
+
+    state = rewardsReducer(
+      state,
+      setPredictThePitchLeaderboard({
+        campaignId: PREDICT_CAMPAIGN_ID,
+        leaderboard: null,
+      }),
+    );
+
+    expect(
+      state.predictThePitchLeaderboards[PREDICT_CAMPAIGN_ID].data,
+    ).toBeNull();
+  });
+
+  it('toggles leaderboard loading and errors per campaign', () => {
+    const withLoading = rewardsReducer(
+      initialState,
+      setPredictThePitchLeaderboardLoading({
+        campaignId: PREDICT_CAMPAIGN_ID,
+        loading: true,
+      }),
+    );
+    expect(
+      withLoading.predictThePitchLeaderboards[PREDICT_CAMPAIGN_ID].loading,
+    ).toBe(true);
+
+    const withError = rewardsReducer(
+      {
+        ...initialState,
+        predictThePitchLeaderboards: {
+          [PREDICT_CAMPAIGN_ID]: {
+            data: mockPredictLeaderboard,
+            loading: false,
+            error: false,
+          },
+        },
+      },
+      setPredictThePitchLeaderboardError({
+        campaignId: PREDICT_CAMPAIGN_ID,
+        error: true,
+      }),
+    );
+    expect(
+      withError.predictThePitchLeaderboards[PREDICT_CAMPAIGN_ID].error,
+    ).toBe(true);
+    expect(
+      withError.predictThePitchLeaderboards[PREDICT_CAMPAIGN_ID].data,
+    ).toBeNull();
+  });
+
+  it('sets and removes leaderboard positions and positions by subscription/campaign key', () => {
+    let state = rewardsReducer(
+      initialState,
+      setPredictThePitchLeaderboardPosition({
+        subscriptionId: 'sub-1',
+        campaignId: 'predict-c-1',
+        position: mockPredictPosition,
+      }),
+    );
+    state = rewardsReducer(
+      state,
+      setPredictThePitchPositions({
+        subscriptionId: 'sub-1',
+        campaignId: 'predict-c-1',
+        positions: mockPredictPositions,
+      }),
+    );
+
+    expect(
+      state.predictThePitchLeaderboardPositions['sub-1:predict-c-1'],
+    ).toEqual(mockPredictPosition);
+    expect(state.predictThePitchPositions['sub-1:predict-c-1']).toEqual(
+      mockPredictPositions,
+    );
+
+    state = rewardsReducer(
+      state,
+      setPredictThePitchLeaderboardPosition({
+        subscriptionId: 'sub-1',
+        campaignId: 'predict-c-1',
+        position: null,
+      }),
+    );
+    state = rewardsReducer(
+      state,
+      setPredictThePitchPositions({
+        subscriptionId: 'sub-1',
+        campaignId: 'predict-c-1',
+        positions: null,
+      }),
+    );
+
+    expect(
+      state.predictThePitchLeaderboardPositions['sub-1:predict-c-1'],
+    ).toBeUndefined();
+    expect(state.predictThePitchPositions['sub-1:predict-c-1']).toBeUndefined();
+  });
+
+  it('sets and removes prize-pool data', () => {
+    let state = rewardsReducer(
+      {
+        ...initialState,
+        predictThePitchPrizePools: {
+          [PREDICT_CAMPAIGN_ID]: {
+            data: null,
+            loading: false,
+            error: true,
+          },
+        },
+      },
+      setPredictThePitchPrizePool({
+        campaignId: PREDICT_CAMPAIGN_ID,
+        prizePool: mockPredictPrizePool,
+      }),
+    );
+
+    expect(state.predictThePitchPrizePools[PREDICT_CAMPAIGN_ID].data).toEqual(
+      mockPredictPrizePool,
+    );
+    expect(state.predictThePitchPrizePools[PREDICT_CAMPAIGN_ID].error).toBe(
+      false,
+    );
+
+    state = rewardsReducer(
+      state,
+      setPredictThePitchPrizePool({
+        campaignId: PREDICT_CAMPAIGN_ID,
+        prizePool: null,
+      }),
+    );
+
+    expect(
+      state.predictThePitchPrizePools[PREDICT_CAMPAIGN_ID].data,
+    ).toBeNull();
+  });
+
+  it('toggles prize-pool loading and errors per campaign', () => {
+    const withLoading = rewardsReducer(
+      initialState,
+      setPredictThePitchPrizePoolLoading({
+        campaignId: PREDICT_CAMPAIGN_ID,
+        loading: true,
+      }),
+    );
+    expect(
+      withLoading.predictThePitchPrizePools[PREDICT_CAMPAIGN_ID].loading,
+    ).toBe(true);
+
+    const withError = rewardsReducer(
+      {
+        ...initialState,
+        predictThePitchPrizePools: {
+          [PREDICT_CAMPAIGN_ID]: {
+            data: mockPredictPrizePool,
+            loading: false,
+            error: false,
+          },
+        },
+      },
+      setPredictThePitchPrizePoolError({
+        campaignId: PREDICT_CAMPAIGN_ID,
+        error: true,
+      }),
+    );
+    expect(withError.predictThePitchPrizePools[PREDICT_CAMPAIGN_ID].error).toBe(
+      true,
+    );
+    expect(
+      withError.predictThePitchPrizePools[PREDICT_CAMPAIGN_ID].data,
+    ).toBeNull();
+  });
+});
+
+describe('ondoCampaignDeposits', () => {
+  it('setOndoCampaignDeposits sets data and clears error', () => {
+    const deposits = { totalUsdDeposited: '1250000.000000' };
+    const prevState = {
+      ...initialState,
+      ondoCampaignDeposits: {
+        [MOCK_CAMPAIGN_ID]: {
+          data: null,
+          loading: false,
+          error: true,
+        },
+      },
+    };
+
+    const state = rewardsReducer(
+      prevState,
+      setOndoCampaignDeposits({ campaignId: MOCK_CAMPAIGN_ID, deposits }),
+    );
+
+    expect(state.ondoCampaignDeposits[MOCK_CAMPAIGN_ID].data).toEqual(deposits);
+    expect(state.ondoCampaignDeposits[MOCK_CAMPAIGN_ID].error).toBe(false);
+  });
+
+  it('setOndoCampaignDepositsLoading toggles loading per campaign', () => {
+    const state = rewardsReducer(
+      initialState,
+      setOndoCampaignDepositsLoading({
+        campaignId: MOCK_CAMPAIGN_ID,
+        loading: true,
+      }),
+    );
+
+    expect(state.ondoCampaignDeposits[MOCK_CAMPAIGN_ID].loading).toBe(true);
+  });
+
+  it('setOndoCampaignDepositsLoading(false) clears loading', () => {
+    const prevState = {
+      ...initialState,
+      ondoCampaignDeposits: {
+        [MOCK_CAMPAIGN_ID]: {
+          data: null,
+          loading: true,
+          error: false,
+        },
+      },
+    };
+
+    const state = rewardsReducer(
+      prevState,
+      setOndoCampaignDepositsLoading({
+        campaignId: MOCK_CAMPAIGN_ID,
+        loading: false,
+      }),
+    );
+
+    expect(state.ondoCampaignDeposits[MOCK_CAMPAIGN_ID].loading).toBe(false);
+  });
+
+  it('setOndoCampaignDepositsError clears data on error', () => {
+    const prevState = {
+      ...initialState,
+      ondoCampaignDeposits: {
+        [MOCK_CAMPAIGN_ID]: {
+          data: { totalUsdDeposited: '500000' },
+          loading: false,
+          error: false,
+        },
+      },
+    };
+
+    const state = rewardsReducer(
+      prevState as RewardsState,
+      setOndoCampaignDepositsError({
+        campaignId: MOCK_CAMPAIGN_ID,
+        error: true,
+      }),
+    );
+
+    expect(state.ondoCampaignDeposits[MOCK_CAMPAIGN_ID].error).toBe(true);
+    expect(state.ondoCampaignDeposits[MOCK_CAMPAIGN_ID].data).toBeNull();
+  });
+
+  it('resetRewardsState resets deposits map', () => {
+    const prevState = {
+      ...initialState,
+      ondoCampaignDeposits: {
+        [MOCK_CAMPAIGN_ID]: {
+          data: { totalUsdDeposited: '500000' },
+          loading: true,
+          error: true,
+        },
+      },
+    };
+
+    const state = rewardsReducer(
+      prevState as RewardsState,
+      resetRewardsState(),
+    );
+
+    expect(state.ondoCampaignDeposits).toEqual({});
+  });
+
+  describe('dismissCampaignOutcomeToast', () => {
+    it('records winner variant as dismissed', () => {
+      const state = rewardsReducer(
+        initialState,
+        dismissCampaignOutcomeToast({
+          campaignId: 'perps-c-1',
+          subscriptionId: 'sub-9',
+          variant: 'winner',
+        }),
+      );
+
+      expect(
+        state.dismissedCampaignOutcomeToasts['perps-c-1:sub-9:winner'],
+      ).toBe(true);
+    });
+
+    it('records non_winner variant as dismissed', () => {
+      const state = rewardsReducer(
+        initialState,
+        dismissCampaignOutcomeToast({
+          campaignId: 'ondo-c-1',
+          subscriptionId: 'sub-8',
+          variant: 'non_winner',
+        }),
+      );
+
+      expect(
+        state.dismissedCampaignOutcomeToasts['ondo-c-1:sub-8:non_winner'],
+      ).toBe(true);
+    });
+
+    it('accumulates multiple dismissed toasts without overwriting existing ones', () => {
+      let state = rewardsReducer(
+        initialState,
+        dismissCampaignOutcomeToast({
+          campaignId: 'c1',
+          subscriptionId: 's1',
+          variant: 'winner',
+        }),
+      );
+      state = rewardsReducer(
+        state,
+        dismissCampaignOutcomeToast({
+          campaignId: 'c2',
+          subscriptionId: 's2',
+          variant: 'non_winner',
+        }),
+      );
+
+      expect(state.dismissedCampaignOutcomeToasts['c1:s1:winner']).toBe(true);
+      expect(state.dismissedCampaignOutcomeToasts['c2:s2:non_winner']).toBe(
+        true,
+      );
+    });
+
+    it('starts with empty dismissedCampaignOutcomeToasts in initial state', () => {
+      expect(initialState.dismissedCampaignOutcomeToasts).toEqual({});
+    });
+  });
+
+  describe('subscribeCampaignReminder', () => {
+    it('records subscription keyed by subscriptionId and campaignId', () => {
+      const state = rewardsReducer(
+        initialState,
+        subscribeCampaignReminder({
+          subscriptionId: 'sub-1',
+          campaignId: 'camp-2',
+        }),
+      );
+
+      expect(state.subscribedCampaignReminders['sub-1:camp-2']).toBe(true);
+    });
+
+    it('accumulates multiple subscriptions without overwriting existing ones', () => {
+      let state = rewardsReducer(
+        initialState,
+        subscribeCampaignReminder({
+          subscriptionId: 'sub-1',
+          campaignId: 'camp-1',
+        }),
+      );
+      state = rewardsReducer(
+        state,
+        subscribeCampaignReminder({
+          subscriptionId: 'sub-1',
+          campaignId: 'camp-2',
+        }),
+      );
+
+      expect(state.subscribedCampaignReminders['sub-1:camp-1']).toBe(true);
+      expect(state.subscribedCampaignReminders['sub-1:camp-2']).toBe(true);
+    });
+
+    it('starts with empty subscribedCampaignReminders in initial state', () => {
+      expect(initialState.subscribedCampaignReminders).toEqual({});
+    });
+  });
+
+  describe('persist/REHYDRATE — dismissedCampaignOutcomeToasts', () => {
+    it('restores dismissedCampaignOutcomeToasts from persisted state', () => {
+      const persisted: RewardsState = {
+        ...initialState,
+        dismissedCampaignOutcomeToasts: {
+          'campaign-1:sub-1:winner': true,
+        },
+      };
+
+      const state = rewardsReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persisted },
+      });
+
+      expect(state.dismissedCampaignOutcomeToasts).toEqual({
+        'campaign-1:sub-1:winner': true,
+      });
+    });
+
+    it('defaults to empty object when dismissedCampaignOutcomeToasts is absent from persisted state', () => {
+      const persisted = { ...initialState } as Partial<RewardsState>;
+      delete persisted.dismissedCampaignOutcomeToasts;
+
+      const state = rewardsReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persisted },
+      });
+
+      expect(state.dismissedCampaignOutcomeToasts).toEqual({});
+    });
+  });
+
+  describe('persist/REHYDRATE — subscribedCampaignReminders', () => {
+    it('restores subscribedCampaignReminders from persisted state', () => {
+      const persisted: RewardsState = {
+        ...initialState,
+        subscribedCampaignReminders: {
+          'sub-1:camp-1': true,
+        },
+      };
+
+      const state = rewardsReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persisted },
+      });
+
+      expect(state.subscribedCampaignReminders).toEqual({
+        'sub-1:camp-1': true,
+      });
+    });
+
+    it('defaults to empty object when subscribedCampaignReminders is absent from persisted state', () => {
+      const persisted = { ...initialState } as Partial<RewardsState>;
+      delete persisted.subscribedCampaignReminders;
+
+      const state = rewardsReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persisted },
+      });
+
+      expect(state.subscribedCampaignReminders).toEqual({});
+    });
+  });
+
+  describe('persist/REHYDRATE — vipSplashAccepted', () => {
+    it('restores accepted VIP invite state from persisted rewards state', () => {
+      const persisted: RewardsState = {
+        ...initialState,
+        vipSplashAccepted: {
+          'sub-1': true,
+        },
+      };
+
+      const state = rewardsReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persisted },
+      });
+
+      expect(state.vipSplashAccepted).toEqual({ 'sub-1': true });
+    });
+
+    it('defaults to empty object when vipSplashAccepted is absent from persisted state', () => {
+      const persisted = { ...initialState } as Partial<RewardsState>;
+      delete persisted.vipSplashAccepted;
+
+      const state = rewardsReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persisted },
+      });
+
+      expect(state.vipSplashAccepted).toEqual({});
+    });
+  });
+
+  describe('setCandidateSubscriptionId — preserves dismissedCampaignOutcomeToasts', () => {
+    it('preserves dismissedCampaignOutcomeToasts when subscription ID changes', () => {
+      const stateWithDismissals: RewardsState = {
+        ...initialState,
+        candidateSubscriptionId: 'old-sub',
+        dismissedCampaignOutcomeToasts: {
+          'campaign-1:old-sub:winner': true,
+        },
+      };
+
+      const state = rewardsReducer(
+        stateWithDismissals,
+        setCandidateSubscriptionId('new-sub'),
+      );
+
+      expect(state.dismissedCampaignOutcomeToasts).toEqual({
+        'campaign-1:old-sub:winner': true,
+      });
+    });
+  });
+
+  describe('setCandidateSubscriptionId — preserves subscribedCampaignReminders', () => {
+    it('preserves subscribedCampaignReminders when subscription ID changes', () => {
+      const stateWithReminders: RewardsState = {
+        ...initialState,
+        candidateSubscriptionId: 'old-sub',
+        subscribedCampaignReminders: {
+          'old-sub:camp-1': true,
+        },
+      };
+
+      const state = rewardsReducer(
+        stateWithReminders,
+        setCandidateSubscriptionId('new-sub'),
+      );
+
+      expect(state.subscribedCampaignReminders).toEqual({
+        'old-sub:camp-1': true,
+      });
+    });
+  });
+
+  describe('setCandidateSubscriptionId — preserves vipSplashAccepted', () => {
+    it('preserves accepted VIP invites when subscription ID changes', () => {
+      const stateWithAcceptedInvite: RewardsState = {
+        ...initialState,
+        candidateSubscriptionId: 'old-sub',
+        vipSplashAccepted: {
+          'old-sub': true,
+        },
+      };
+
+      const state = rewardsReducer(
+        stateWithAcceptedInvite,
+        setCandidateSubscriptionId('new-sub'),
+      );
+
+      expect(state.vipSplashAccepted).toEqual({
+        'old-sub': true,
+      });
+    });
   });
 });

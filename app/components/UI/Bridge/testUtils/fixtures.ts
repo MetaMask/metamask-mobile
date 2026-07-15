@@ -1,6 +1,5 @@
 import { CaipChainId, CaipAssetType } from '@metamask/utils';
-import { BridgeToken } from '../types';
-import { PopularToken, IncludeAsset } from '../hooks/usePopularTokens';
+import { BridgeToken, PopularToken, IncludeAsset } from '../types';
 import { BalanceData } from '../hooks/useBalancesByAssetId';
 
 export const createMockToken = (
@@ -91,7 +90,9 @@ export const createMockSearchResponse = (
     endCursor?: string;
   } = {},
 ) => ({
-  data: overrides.data ?? [createMockPopularToken({ symbol: 'SRCH' })],
+  data: overrides.data ?? [
+    createMockPopularToken({ symbol: 'SRCH', isVerified: true }),
+  ],
   count: overrides.data?.length ?? 1,
   totalCount: overrides.data?.length ?? 1,
   pageInfo: {

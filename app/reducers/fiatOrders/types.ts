@@ -9,7 +9,8 @@ import {
   DepositCryptoCurrency,
   DepositPaymentMethod,
   DepositRegion,
-} from '@consensys/native-ramps-sdk';
+} from '../../components/UI/Ramp/types/legacyDeposit';
+import type { RampsOrder } from '@metamask/ramps-controller';
 import {
   addAuthenticationUrl,
   addFiatCustomIdData,
@@ -34,8 +35,7 @@ import {
   updateOnRampNetworks,
   setFiatSellTxHash,
   removeFiatSellTxHash,
-  setDetectedGeolocation,
-  setRampRoutingDecision,
+  setHasAgreedTransakNativePolicy,
 } from '.';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -69,7 +69,7 @@ export interface FiatOrder {
   errorCount?: number; // Number of errors
   lastTimeFetched?: number; // Last time fetched
   forceUpdate?: boolean; // Force update when processing
-  data: Order | WyreOrder | DepositOrder; // Original provider data
+  data: Order | WyreOrder | DepositOrder | RampsOrder; // Original provider data
 }
 
 export interface CustomIdData {
@@ -103,10 +103,10 @@ export interface FiatOrdersState {
   getStartedAgg: boolean;
   getStartedSell: boolean;
   getStartedDeposit: boolean;
+  /** Unified Buy / Transak native: user agreed to policy copy on the verify-identity explainer screen */
+  hasAgreedTransakNativePolicy: boolean;
   authenticationUrls: string[];
   activationKeys: ActivationKey[];
-  detectedGeolocation?: string;
-  rampRoutingDecision: UnifiedRampRoutingType | null;
 }
 
 export const ACTIONS = {
@@ -135,8 +135,8 @@ export const ACTIONS = {
   FIAT_UPDATE_NETWORKS: 'FIAT_UPDATE_NETWORKS',
   FIAT_SET_SELL_TX_HASH: 'FIAT_SET_SELL_TX_HASH',
   FIAT_REMOVE_SELL_TX_HASH: 'FIAT_REMOVE_SELL_TX_HASH',
-  FIAT_SET_DETECTED_GEOLOCATION: 'FIAT_SET_DETECTED_GEOLOCATION',
-  FIAT_SET_RAMP_ROUTING_DECISION: 'FIAT_SET_RAMP_ROUTING_DECISION',
+  FIAT_SET_HAS_AGREED_TRANSAK_NATIVE_POLICY:
+    'FIAT_SET_HAS_AGREED_TRANSAK_NATIVE_POLICY',
 } as const;
 
 export type Action =
@@ -163,19 +163,11 @@ export type Action =
   | ReturnType<typeof updateOnRampNetworks>
   | ReturnType<typeof setFiatSellTxHash>
   | ReturnType<typeof removeFiatSellTxHash>
-  | ReturnType<typeof setDetectedGeolocation>
-  | ReturnType<typeof setRampRoutingDecision>;
+  | ReturnType<typeof setHasAgreedTransakNativePolicy>;
 
 export type Region = Country & State;
 
 export enum RampType {
   BUY = 'buy',
   SELL = 'sell',
-}
-
-export enum UnifiedRampRoutingType {
-  DEPOSIT = 'DEPOSIT',
-  AGGREGATOR = 'AGGREGATOR',
-  UNSUPPORTED = 'UNSUPPORTED',
-  ERROR = 'ERROR',
 }

@@ -5,14 +5,14 @@ import { useSelector } from 'react-redux';
 
 // External dependencies.
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
-import Text, {
+import {
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+  Text,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import { useStyles } from '../../../../../component-library/hooks';
 import HelpText, {
   HelpTextSeverity,
@@ -21,16 +21,17 @@ import HelpText, {
 // Internal dependencies.
 import { AccountGroupId } from '@metamask/account-api';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import { ConnectAccountBottomSheetSelectorsIDs } from '../../../AccountConnect/ConnectAccountBottomSheet.testIds';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { AccountListBottomSheetSelectorsIDs } from '../../../AccountSelector/AccountListBottomSheet.testIds';
 import styleSheet from './MultichainAccountConnectMultiSelector.styles';
-import { ConnectedAccountsSelectorsIDs } from '../../../AccountConnect/ConnectedAccountModal.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import { USER_INTENT } from '../../../../../constants/permissions';
 import { ConnectionProps } from '../../../../../core/SDKConnect/Connection';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
 import { AccountGroupWithInternalAccounts } from '../../../../../selectors/multichainAccounts/accounts.type';
 import { selectAccountGroups } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 
@@ -59,7 +60,15 @@ const MultichainAccountConnectMultiSelector = ({
   hostname,
   connection,
 }: MultichainAccountConnectMultiSelectorProps) => {
+  const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
+  const safeAreaContainerStyle = useMemo(
+    () => [
+      styles.safeArea,
+      { paddingTop: insets.top, paddingBottom: insets.bottom },
+    ],
+    [styles.safeArea, insets.top, insets.bottom],
+  );
   const navigation = useNavigation();
   const [selectedAccountGroupIdsSet, setSelectedAccountGroupIdsSet] = useState<
     Set<AccountGroupId>
@@ -109,17 +118,18 @@ const MultichainAccountConnectMultiSelector = ({
         <View style={styles.connectOrUpdateButtonContainer}>
           {areAnyAccountsSelected && (
             <Button
-              variant={ButtonVariants.Primary}
-              label={strings('networks.update')}
+              variant={ButtonVariant.Primary}
               onPress={handleSubmit}
-              size={ButtonSize.Lg}
+              size={ButtonBaseSize.Lg}
               style={{
                 ...styles.button,
                 ...(isLoading && styles.disabled),
               }}
-              disabled={isLoading}
+              isDisabled={isLoading}
               testID={ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON}
-            />
+            >
+              {strings('networks.update')}
+            </Button>
           )}
         </View>
         {areNoAccountsSelected && showDisconnectAllButton && (
@@ -133,16 +143,17 @@ const MultichainAccountConnectMultiSelector = ({
             </View>
             <View style={styles.disconnectAllButtonContainer}>
               <Button
-                variant={ButtonVariants.Primary}
-                label={strings('accounts.disconnect')}
+                variant={ButtonVariant.Primary}
                 testID={ConnectedAccountsSelectorsIDs.DISCONNECT}
                 onPress={handleDisconnect}
                 isDanger
-                size={ButtonSize.Lg}
+                size={ButtonBaseSize.Lg}
                 style={{
                   ...styles.button,
                 }}
-              />
+              >
+                {strings('accounts.disconnect')}
+              </Button>
             </View>
           </View>
         )}
@@ -161,7 +172,7 @@ const MultichainAccountConnectMultiSelector = ({
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={safeAreaContainerStyle}>
       <View style={styles.container}>
         <SheetHeader
           title={screenTitle || strings('accounts.connect_accounts_title')}
@@ -176,7 +187,7 @@ const MultichainAccountConnectMultiSelector = ({
         {connection?.originatorInfo?.apiVersion && (
           <View style={styles.sdkInfoContainer}>
             <View style={styles.sdkInfoDivier} />
-            <Text color={TextColor.Muted}>
+            <Text color={TextColor.TextMuted}>
               {strings('permissions.sdk_connection', {
                 originator_platform: connection?.originatorInfo?.platform,
                 api_version: connection?.originatorInfo?.apiVersion,
@@ -186,7 +197,7 @@ const MultichainAccountConnectMultiSelector = ({
         )}
         <View style={styles.body}>{renderCtaButtons()}</View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

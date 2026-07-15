@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import Logger from '../../../../../util/Logger';
+import { prefixUrlWithProtocol } from '../../../../../util/browser';
 import type { SiteData } from '../../components/SiteRowItem/SiteRowItem';
 
 interface ApiDappResponse {
@@ -28,8 +29,20 @@ interface UseSitesDataResult {
   refetch: () => void;
 }
 
-const PORTFOLIO_API_BASE_URL = 'https://portfolio.api.cx.metamask.io/';
-const DEFAULT_SITES_LIMIT = 200;
+// Module-level cache so fetched sites persist across mounts
+let cachedSites: SiteData[] | null = null;
+
+/**
+ * Clears the in-memory sites cache.
+ * Primarily exposed for testing purposes.
+ */
+export const clearSitesCache = (): void => {
+  cachedSites = null;
+};
+
+// Assets team is now hosting the explore-sites endpoint on the NFT API (Temporarily)
+const NFT_API_BASE_URL = 'https://nft.api.cx.metamask.io/';
+const DEFAULT_SITES_LIMIT = 100;
 const PORTFOLIO_HOSTNAME = 'portfolio.metamask.io';
 
 /**
@@ -48,9 +61,10 @@ const PORTFOLIO_SITE: SiteData = {
 };
 
 /**
- * Helper function to extract display URL from full URL
+ * Returns just the hostname (no www., no path) — used for curated site cards
+ * where a clean domain label is preferred.
  */
-const extractDisplayUrl = (url: string): string => {
+export const extractDisplayUrl = (url: string): string => {
   try {
     const urlObj = new URL(url);
     return urlObj.hostname.replace('www.', '');
@@ -59,14 +73,35 @@ const extractDisplayUrl = (url: string): string => {
   }
 };
 
+/**
+ * Returns the full URL without the protocol (e.g. `uniswap.org/swap?chain=1`).
+ * Used for user-generated entries (recents, favorites) where the full path
+ * provides meaningful context.
+ */
+export const extractFullDisplayUrl = (url: string): string => {
+  try {
+    const urlObj = new URL(url);
+    const withoutProtocol = url.slice(urlObj.protocol.length + 2); // strip "scheme://"
+    return withoutProtocol.replace(/^www\./, '');
+  } catch {
+    return url;
+  }
+};
+
+export const matchesSiteQuery = (site: SiteData, query: string): boolean => {
+  const q = query.toLowerCase();
+  return (
+    site.name.toLowerCase().includes(q) ||
+    site.displayUrl.toLowerCase().includes(q) ||
+    site.url.toLowerCase().includes(q)
+  );
+};
+
 const isPortfolioSiteUrl = (url: string): boolean => {
   try {
-    const trimmedUrl = url.trim();
-    const normalizedUrl =
-      trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')
-        ? trimmedUrl
-        : `https://${trimmedUrl}`;
-    return new URL(normalizedUrl).hostname === PORTFOLIO_HOSTNAME;
+    return (
+      new URL(prefixUrlWithProtocol(url.trim())).hostname === PORTFOLIO_HOSTNAME
+    );
   } catch {
     return false;
   }
@@ -91,26 +126,30 @@ const mergePortfolioSite = (sites: SiteData[]): SiteData[] => {
 };
 
 /**
- * Hook to fetch sites data from the Portfolio API
- * @param params - Parameters for the API request
- * @returns Sites data, loading state, and error
+ * Hook to fetch and cache sites data from the NFT API.
+ * Results are cached in memory; subsequent mounts return cached data instantly.
+ * Use `refetch` to bypass the cache and fetch fresh data.
+ * @param searchQuery - Optional search query to filter sites locally
+ * @returns Sites data, loading state, error, and refetch function
  */
-export const useSitesData = (
-  searchQuery?: string,
-  limit = DEFAULT_SITES_LIMIT,
-): UseSitesDataResult => {
-  const [allSites, setAllSites] = useState<SiteData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export const useSitesData = (searchQuery?: string): UseSitesDataResult => {
+  const [allSites, setAllSites] = useState<SiteData[]>(cachedSites ?? []);
+  const [isLoading, setIsLoading] = useState(!cachedSites);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchSites = useCallback(async () => {
     try {
+      if (cachedSites) {
+        setAllSites(cachedSites);
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
 
       // Use current timestamp
       const timestamp = Date.now();
-      const url = `${PORTFOLIO_API_BASE_URL}explore/sites?limit=${limit}&ts=${timestamp}`;
+      const url = `${NFT_API_BASE_URL}explore/sites?limit=${DEFAULT_SITES_LIMIT}&ts=${timestamp}`;
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -131,6 +170,9 @@ export const useSitesData = (
 
       // Ensure Portfolio is always included in the list
       const sitesWithPortfolio = mergePortfolioSite(transformedSites);
+
+      // Update module-level cache
+      cachedSites = sitesWithPortfolio;
       setAllSites(sitesWithPortfolio);
     } catch (err) {
       const fetchError = err instanceof Error ? err : new Error(String(err));
@@ -141,29 +183,24 @@ export const useSitesData = (
     } finally {
       setIsLoading(false);
     }
-  }, [limit]);
+  }, []);
 
   useEffect(() => {
     fetchSites();
   }, [fetchSites]);
 
+  // refetch always bypasses the cache
   const refetch = useCallback(() => {
+    clearSitesCache();
     fetchSites();
   }, [fetchSites]);
 
   // Filter sites locally based on search query
   const sites = useMemo(() => {
-    if (!searchQuery?.trim()) {
-      return allSites;
-    }
-
-    const query = searchQuery.toLowerCase().trim();
-    return allSites.filter(
-      (site) =>
-        site.name.toLowerCase().includes(query) ||
-        site.displayUrl.toLowerCase().includes(query) ||
-        site.url.toLowerCase().includes(query),
-    );
+    const query = searchQuery?.trim() ?? '';
+    return query
+      ? allSites.filter((site) => matchesSiteQuery(site, query))
+      : allSites;
   }, [allSites, searchQuery]);
 
   return { sites, isLoading, error, refetch };

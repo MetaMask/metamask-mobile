@@ -1,5 +1,9 @@
 # WithFixtureOptions Documentation
 
+## Playwright performance fixtures
+
+Performance tests use Playwright `test.extend` fixtures under [`playwright/`](./playwright/README.md) (import `{ test }` from `framework/fixtures/playwright`). `FixtureBuilder` / `withFixtures` (documented below) are shared across Detox and Playwright.
+
 ## Overview
 
 The `withFixtures` function provides a standardized way to set up test fixtures for MetaMask Mobile E2E tests. It handles the creation of fixture data, device configuration, and cleanup after tests.
@@ -42,6 +46,7 @@ describe('My Test Suite', () => {
 | `languageAndLocale`     | `LanguageAndLocale`                                     | `false`  | -       | Set the device Language and Locale of the device                                                      |
 | `permissions`           | `object`                                                | `false`  | -       | Allows setting specific device permissions                                                            |
 | `endTestfn`             | `fn()`                                                  | `false`  | -       | Allows providing a function that is executed at the end of the test before the cleanup                |
+| `analyticsExpectations` | `AnalyticsExpectations`                                 | `false`  | -       | Optional MetaMetrics checks after `endTestfn`, before mock drain; see `tests/docs/analytics-e2e.md`   |
 | `skipReactNativeReload` | `boolean`                                               | `false`  | `false` | Skip React Native reload during cleanup to preserve app state between tests                           |
 | `useCommandQueueServer` | `boolean`                                               | `false`  | `false` | Launches an instance of CommandQueueServer to create a queue of items the app consumes on E2E context |
 

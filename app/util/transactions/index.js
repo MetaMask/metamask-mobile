@@ -17,7 +17,11 @@ import {
 } from '@metamask/transaction-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
-import { safeToChecksumAddress, toChecksumAddress } from '../address';
+import {
+  safeToChecksumAddress,
+  toChecksumAddress,
+  isHardwareAccount,
+} from '../address';
 import {
   balanceToFiatNumber,
   BNToHex,
@@ -30,7 +34,6 @@ import {
   toTokenMinimalUnit,
 } from '../number';
 import AppConstants from '../../core/AppConstants';
-import { isMainnetByChainId } from '../networks';
 import FIRST_PARTY_CONTRACT_NAMES from '../../constants/first-party-contracts';
 import {
   UINT256_BN_MAX_VALUE,
@@ -125,6 +128,7 @@ export const TRANSACTION_TYPES = {
   SITE_INTERACTION: 'transaction_site_interaction',
   SWAPS_TRANSACTION: 'swaps_transaction',
   BRIDGE_TRANSACTION: 'bridge_transaction',
+  BATCH_SELL_TRANSACTION: 'batch_sell_transaction',
 };
 
 const MULTIPLIER_HEX = 16;
@@ -175,6 +179,12 @@ const reviewActionKeys = {
   [TransactionType.musdConversion]: strings(
     'transactions.tx_review_musd_conversion',
   ),
+  [TransactionType.moneyAccountDeposit]: strings(
+    'transactions.money_account_deposit',
+  ),
+  [TransactionType.moneyAccountWithdraw]: strings(
+    'transactions.money_account_withdraw',
+  ),
 };
 
 /**
@@ -219,6 +229,9 @@ const actionKeys = {
   [TransactionType.perpsDeposit]: strings(
     'transactions.tx_review_perps_deposit',
   ),
+  [TransactionType.perpsDepositAndOrder]: strings(
+    'transactions.tx_review_perps_deposit',
+  ),
   [TransactionType.predictDeposit]: strings(
     'transactions.tx_review_predict_deposit',
   ),
@@ -228,8 +241,17 @@ const actionKeys = {
   [TransactionType.predictWithdraw]: strings(
     'transactions.tx_review_predict_withdraw',
   ),
+  [TransactionType.perpsWithdraw]: strings(
+    'transactions.tx_review_perps_withdraw',
+  ),
   [TransactionType.musdConversion]: strings(
     'transactions.tx_review_musd_conversion',
+  ),
+  [TransactionType.moneyAccountDeposit]: strings(
+    'transactions.money_account_deposit',
+  ),
+  [TransactionType.moneyAccountWithdraw]: strings(
+    'transactions.money_account_withdraw',
   ),
 };
 
@@ -502,15 +524,6 @@ export async function isSmartContractAddress(
 
   address = toChecksumAddress(address);
 
-  // If in contract map we don't need to cache it
-  if (
-    isMainnetByChainId(chainId) &&
-    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]
-      ?.data?.[address]
-  ) {
-    return Promise.resolve(true);
-  }
-
   const { NetworkController } = Engine.context;
   const finalNetworkClientId =
     networkClientId ?? NetworkController.findNetworkClientIdByChainId(chainId);
@@ -569,7 +582,11 @@ export async function getTransactionActionKey(transaction, chainId) {
       TransactionType.lendingDeposit,
       TransactionType.lendingWithdraw,
       TransactionType.perpsDeposit,
+      TransactionType.perpsDepositAndOrder,
       TransactionType.musdConversion,
+      TransactionType.musdClaim,
+      TransactionType.moneyAccountDeposit,
+      TransactionType.moneyAccountWithdraw,
     ].includes(type)
   ) {
     return type;
@@ -603,6 +620,18 @@ export async function getTransactionActionKey(transaction, chainId) {
     return TransactionType.predictWithdraw;
   }
 
+  if (hasTransactionType(transaction, [TransactionType.perpsWithdraw])) {
+    return TransactionType.perpsWithdraw;
+  }
+
+  if (hasTransactionType(transaction, [TransactionType.moneyAccountDeposit])) {
+    return TransactionType.moneyAccountDeposit;
+  }
+
+  if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {
+    return TransactionType.moneyAccountWithdraw;
+  }
+
   if (!to) {
     return CONTRACT_METHOD_DEPLOY;
   }
@@ -629,6 +658,10 @@ export async function getTransactionActionKey(transaction, chainId) {
 
   if (type === TransactionType.contractInteraction) {
     return SMART_CONTRACT_INTERACTION_ACTION_KEY;
+  }
+
+  if (type === TransactionType.simpleSend) {
+    return SEND_ETHER_ACTION_KEY;
   }
 
   const toSmartContract =
@@ -1862,12 +1895,7 @@ export const minimumTokenAllowance = (tokenDecimals) => {
 /**
  * For a MM Swap tx: Determines if the transaction is an ERC20 approve tx OR the actual swap tx where tokens are transferred
  */
-export const getIsSwapApproveOrSwapTransaction = (
-  data,
-  origin,
-  to,
-  chainId,
-) => {
+export const getIsSwapApproveOrSwapTransaction = (data, to, chainId, type) => {
   if (!data) {
     return false;
   }
@@ -1878,50 +1906,69 @@ export const getIsSwapApproveOrSwapTransaction = (
     return false;
   }
 
-  const isLegacySwap = origin === process.env.MM_FOX_CODE;
-  const isUnifiedSwap = origin === ORIGIN_METAMASK;
-
-  // if approval data includes metaswap contract
-  // if destination address is metaswap contract
-  return (
-    (isLegacySwap || isUnifiedSwap) &&
+  const isSwap =
+    type === TransactionType.swap &&
     to &&
-    (isValidSwapsContractAddress(chainId, to) ||
-      (data?.startsWith(APPROVE_FUNCTION_SIGNATURE) &&
-        decodeApproveData(data).spenderAddress?.toLowerCase() ===
-          getSwapsContractAddress(chainId)))
-  );
+    isValidSwapsContractAddress(chainId, to);
+
+  const isSwapApproval =
+    type === TransactionType.swapApproval &&
+    to &&
+    data?.startsWith(APPROVE_FUNCTION_SIGNATURE) &&
+    decodeApproveData(data).spenderAddress?.toLowerCase() ===
+      getSwapsContractAddress(chainId);
+
+  return isSwap || isSwapApproval;
 };
+
+/**
+ * Determines if the transaction is a swap approve or swap transaction
+ * from a hardware wallet (Ledger or QR).
+ * Used as an additional guard at the call site before invoking autoSign.
+ */
+export const isHardwareSwapApproveOrSwapTransaction = (
+  data,
+  to,
+  chainId,
+  type,
+  from,
+) =>
+  isHardwareAccount(from) &&
+  getIsSwapApproveOrSwapTransaction(data, to, chainId, type);
 
 /**
  * For a MM Swap tx: Determines if the transaction is an ERC20 approve tx
  */
-export const getIsSwapApproveTransaction = (data, origin, to, chainId) => {
+export const getIsSwapApproveTransaction = (data, to, chainId, type) => {
   if (!data) {
     return false;
   }
 
-  const isFromSwaps = origin === process.env.MM_FOX_CODE;
   const isApproveFunction =
     data && getFourByteSignature(data) === APPROVE_FUNCTION_SIGNATURE;
   const isSpenderSwapsContract =
     decodeApproveData(data).spenderAddress?.toLowerCase() ===
     getSwapsContractAddress(chainId);
 
-  return isFromSwaps && to && isApproveFunction && isSpenderSwapsContract;
+  return (
+    type === TransactionType.swapApproval &&
+    to &&
+    isApproveFunction &&
+    isSpenderSwapsContract
+  );
 };
 
 /**
  * For a MM Swap tx: Determines if the transaction is the actual swap tx where tokens are transferred
  */
-export const getIsSwapTransaction = (data, origin, to, chainId) => {
+export const getIsSwapTransaction = (data, to, chainId, type) => {
   const isSwapApproveOrSwapTransaction = getIsSwapApproveOrSwapTransaction(
     data,
-    origin,
     to,
     chainId,
+    type,
   );
-  const isSwapApprove = getIsSwapApproveTransaction(data, origin, to, chainId);
+  const isSwapApprove = getIsSwapApproveTransaction(data, to, chainId, type);
 
   return isSwapApproveOrSwapTransaction && !isSwapApprove;
 };

@@ -1,13 +1,8 @@
 import React from 'react';
 import { fontStyles } from '../../../../../../styles/common';
 import { strings } from '../../../../../../../locales/i18n';
-import {
-  StyleSheet,
-  View,
-  TextInput,
-  SafeAreaView,
-  TouchableOpacity,
-} from 'react-native';
+import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ModalDragger from '../../../../../Base/ModalDragger';
 import Text from '../../../../../Base/Text';

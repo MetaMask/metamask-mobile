@@ -9,7 +9,7 @@ import Engine from '../../../../core/Engine';
 import {
   ARBITRUM_MAINNET_CAIP_CHAIN_ID,
   ARBITRUM_TESTNET_CAIP_CHAIN_ID,
-} from '../constants/hyperLiquidConfig';
+} from '@metamask/perps-controller';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -210,7 +210,7 @@ describe('usePerpsNetworkManagement', () => {
           nativeCurrency: 'ETH',
           rpcEndpoints: [
             {
-              url: 'https://arbitrum-mainnet.infura.io/v3/undefined',
+              url: 'https://arbitrum-mainnet.infura.io/v3/fake-infura-project-id',
               name: 'Arbitrum One',
               type: RpcEndpointType.Custom,
             },
@@ -240,7 +240,7 @@ describe('usePerpsNetworkManagement', () => {
           nativeCurrency: 'ETH',
           rpcEndpoints: [
             {
-              url: 'https://arbitrum-sepolia.infura.io/v3/undefined',
+              url: 'https://arbitrum-sepolia.infura.io/v3/fake-infura-project-id',
               name: 'Arbitrum Sepolia',
               type: RpcEndpointType.Custom,
             },
@@ -271,7 +271,7 @@ describe('usePerpsNetworkManagement', () => {
           nativeCurrency: 'ETH',
           rpcEndpoints: [
             {
-              url: 'https://arbitrum-mainnet.infura.io/v3/undefined',
+              url: 'https://arbitrum-mainnet.infura.io/v3/fake-infura-project-id',
               name: 'Arbitrum One',
               type: RpcEndpointType.Custom,
             },

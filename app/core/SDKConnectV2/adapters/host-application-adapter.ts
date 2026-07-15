@@ -1,5 +1,8 @@
 import { Connection } from '../services/connection';
-import { IHostApplicationAdapter } from '../types/host-application-adapter';
+import {
+  IHostApplicationAdapter,
+  ShowConnectionLoadingOptions,
+} from '../types/host-application-adapter';
 import { SDKSessions } from '../../../core/SDKConnect/SDKConnect';
 import { store } from '../../../store';
 import { setSdkV2Connections } from '../../../actions/sdk';
@@ -14,12 +17,23 @@ import Engine from '../../Engine';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 import logger from '../services/logger';
 
+const DEFAULT_CONNECTION_LOADING_AUTODISMISS_MS = 10_000;
+
+/** Longer timeout for multi-step agentic CLI connect (MWP → OTP → dashboard). */
+export const AGENTIC_CLI_CONNECTION_LOADING_AUTODISMISS_MS = 15_000;
+
 export class HostApplicationAdapter implements IHostApplicationAdapter {
-  showConnectionLoading(conninfo: ConnectionInfo): void {
+  showConnectionLoading(
+    conninfo: ConnectionInfo,
+    options?: ShowConnectionLoadingOptions,
+  ): void {
+    const autodismiss =
+      options?.autodismissMs ?? DEFAULT_CONNECTION_LOADING_AUTODISMISS_MS;
+
     store.dispatch(
       showSimpleNotification({
         id: conninfo.id,
-        autodismiss: 8000,
+        autodismiss,
         title: strings('sdk_connect_v2.show_loading.title'),
         description: strings('sdk_connect_v2.show_loading.description', {
           dappName: conninfo.metadata.dapp.name,
@@ -40,6 +54,30 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
         autodismiss: 5000,
         title: strings('sdk_connect_v2.show_error.title'),
         description: strings('sdk_connect_v2.show_error.description'),
+        status: 'error',
+      }),
+    );
+  }
+
+  showInternalError(conninfo?: ConnectionInfo): void {
+    store.dispatch(
+      showSimpleNotification({
+        id: conninfo?.id || Date.now().toString(),
+        autodismiss: 5000,
+        title: strings('sdk_connect_v2.show_internal_error.title'),
+        description: strings('sdk_connect_v2.show_internal_error.description'),
+        status: 'error',
+      }),
+    );
+  }
+
+  showMethodError(conninfo?: ConnectionInfo): void {
+    store.dispatch(
+      showSimpleNotification({
+        id: conninfo?.id || Date.now().toString(),
+        autodismiss: 5000,
+        title: strings('sdk_connect_v2.show_method_error.title'),
+        description: strings('sdk_connect_v2.show_method_error.description'),
         status: 'error',
       }),
     );
@@ -94,6 +132,7 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
           dappId: conn.info.metadata.dapp.name,
           apiVersion: conn.info.metadata.sdk.version,
           platform: conn.info.metadata.sdk.platform,
+          anonId: conn.info.metadata.analytics?.remote_session_id,
         },
         isV2: true, // Flag to identify this as a V2 connection
       };

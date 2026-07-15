@@ -1,9 +1,10 @@
 // Third party dependencies.
-import { StyleSheet, TextStyle, Platform } from 'react-native';
+import { Platform, StyleSheet, TextStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
 import { colors } from '../../../../../../styles/common';
+import { getElevatedSurfaceColor } from '../../../../../../util/theme/themeUtils';
 import { getFontFamily } from '../../../../Texts/Text/';
 
 // Internal dependencies
@@ -19,8 +20,19 @@ import { InputStyleSheetVars } from './Input.types';
  */
 const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
   const { theme, vars } = params;
-  const { style, textVariant, isDisabled, isStateStylesDisabled, isFocused } =
-    vars;
+  const {
+    style,
+    textVariant,
+    isDisabled,
+    isStateStylesDisabled,
+    isFocused,
+    value = '',
+    placeholder,
+  } = vars;
+
+  const hasPlaceholder = placeholder != null && placeholder !== '';
+  const isPlaceholderVisible =
+    hasPlaceholder && (value === '' || value == null);
 
   const stateObj = isStateStylesDisabled
     ? {
@@ -39,20 +51,13 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
         color: theme.colors.text.default,
         borderWidth: 1,
         borderColor: colors.transparent,
-        backgroundColor: theme.colors.background.default,
-        height: 24,
+        backgroundColor: getElevatedSurfaceColor(theme),
         ...stateObj,
-        // Fix for placeholder text shifting with custom Geist fonts
-        // Use minimal padding that works cross-platform with preloaded fonts
-        paddingVertical: Platform.OS === 'ios' ? 2 : 1,
         fontFamily: getFontFamily(textVariant),
         fontWeight: theme.typography[textVariant].fontWeight,
         fontSize: theme.typography[textVariant].fontSize,
         letterSpacing: theme.typography[textVariant].letterSpacing,
-        // iOS-specific fix for custom font baseline alignment
-        ...(Platform.OS === 'ios' && {
-          textAlignVertical: 'center',
-        }),
+        ...(Platform.OS === 'ios' && isPlaceholderVisible && { lineHeight: 0 }),
       },
       style,
     ) as TextStyle,

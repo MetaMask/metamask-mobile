@@ -53,7 +53,8 @@ describe('usePerpsAdjustMarginData', () => {
   };
 
   const mockAccount = {
-    availableBalance: '10000',
+    spendableBalance: '10000',
+    withdrawableBalance: '10000',
     totalBalance: '15000',
     marginUsed: '5000',
     unrealizedPnl: '500',
@@ -88,7 +89,12 @@ describe('usePerpsAdjustMarginData', () => {
     });
 
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { price: '100000', symbol: 'BTC', timestamp: Date.now() },
+      BTC: {
+        price: '100000',
+        symbol: 'BTC',
+        timestamp: Date.now(),
+        isTradable: true,
+      },
     });
 
     mockUsePerpsMarkets.mockReturnValue({
@@ -178,7 +184,7 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      expect(result.current.availableBalance).toBe(10000);
+      expect(result.current.spendableBalance).toBe(10000);
     });
   });
 
@@ -313,7 +319,12 @@ describe('usePerpsAdjustMarginData', () => {
 
     it('returns 0 when current price is 0', () => {
       mockUsePerpsLivePrices.mockReturnValue({
-        BTC: { price: '0', symbol: 'BTC', timestamp: Date.now() },
+        BTC: {
+          price: '0',
+          symbol: 'BTC',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
       });
 
       const { result } = renderHook(() =>

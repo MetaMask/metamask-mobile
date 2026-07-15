@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
+import { createMultichainAccountConnectNavDetails } from '../../Views/MultichainAccounts/shared';
 import { useSelector } from 'react-redux';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import useOriginSource from '../../hooks/useOriginSource';
 import {
   Caip25EndowmentPermissionName,
@@ -14,6 +14,7 @@ import {
 import { getApiAnalyticsProperties } from '../../../util/metrics/MultichainAPI/getApiAnalyticsProperties';
 import { selectPendingApprovals } from '../../../selectors/approvalController';
 import { isEqual } from 'lodash';
+import { useSDKV2Connection } from '../../hooks/useSDKV2Connection';
 
 export interface PermissionApprovalProps {
   // TODO: Replace "any" with type
@@ -22,19 +23,25 @@ export interface PermissionApprovalProps {
 }
 
 const PermissionApproval = (props: PermissionApprovalProps) => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
   const { approvalRequest } = useApprovalRequest();
   const totalAccounts = useSelector(selectAccountsLength);
 
-  const eventSource = useOriginSource({
-    origin: approvalRequest?.requestData?.metadata?.origin,
-  });
+  // Prevents re-navigation for the same approval when pendingApprovals changes.
+  const lastNavigatedApprovalIdRef = useRef<string | null>(null);
+
+  const origin = approvalRequest?.requestData?.metadata?.origin;
+
+  const originSource = useOriginSource({ origin });
+
+  const sdkV2Connection = useSDKV2Connection(origin);
+  const anonId = sdkV2Connection?.originatorInfo?.anonId;
 
   useEffect(() => {
     if (
       approvalRequest?.type !== ApprovalTypes.REQUEST_PERMISSIONS ||
-      !eventSource
+      !originSource
     ) {
       return;
     }
@@ -52,6 +59,11 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
       return;
     }
 
+    if (lastNavigatedApprovalIdRef.current === id) {
+      return;
+    }
+    lastNavigatedApprovalIdRef.current = id;
+
     const chainIds = getAllScopesFromPermission(
       requestData.permissions[Caip25EndowmentPermissionName],
     );
@@ -63,15 +75,17 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
       createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_STARTED)
         .addProperties({
           number_of_accounts: totalAccounts,
-          source: eventSource,
+          source: originSource.source,
+          request_source: originSource.requestSource,
           chain_id_list: chainIds,
           ...getApiAnalyticsProperties(isMultichainRequest),
+          ...(anonId ? { remote_session_id: anonId } : {}),
         })
         .build(),
     );
 
     props.navigation.navigate(
-      ...createAccountConnectNavDetails({
+      ...createMultichainAccountConnectNavDetails({
         hostInfo: requestData,
         permissionRequestId: id,
       }),
@@ -82,11 +96,10 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     props.navigation,
     trackEvent,
     createEventBuilder,
-    eventSource,
-    // Include pendingApprovals to ensure the effect re-runs when the approval queue changes.
-    // This prevents the queue from getting permanently stuck and handles cases where new approvals
-    // are added to the list, ensuring previous approvals that weren't rendered for other reasons
-    // can be processed. Ideally we can identify all cases where approval fail to render and then remove this dependency.
+    originSource,
+    anonId,
+    // Re-run when the queue changes so new approvals are picked up.
+    // The ref guard above prevents re-navigation for the same approval.
     pendingApprovals,
   ]);
 

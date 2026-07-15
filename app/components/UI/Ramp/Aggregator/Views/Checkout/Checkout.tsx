@@ -5,8 +5,6 @@ import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import { Provider } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
-import { useTheme } from '../../../../../../util/theme';
-import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useRampSDK, SDK } from '../../sdk';
 import {
   addFiatCustomIdData,
@@ -42,6 +40,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../../util/browser';
+import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
 
 interface CheckoutParams {
   url: string;
@@ -65,7 +64,6 @@ const CheckoutWebView = () => {
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
   const params = useParams<CheckoutParams>();
-  const theme = useTheme();
   const handleSuccessfulOrder = useHandleSuccessfulOrder();
 
   const { styles } = useStyles(styleSheet, {});
@@ -93,17 +91,6 @@ const CheckoutWebView = () => {
     handleCancelPress();
     sheetRef.current?.onCloseBottomSheet();
   }, [handleCancelPress]);
-
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: provider.name },
-        theme,
-        handleCancelPress,
-      ),
-    );
-  }, [navigation, theme, handleCancelPress, provider.name]);
 
   useEffect(() => {
     if (
@@ -136,7 +123,7 @@ const CheckoutWebView = () => {
           // There was no query params in the URL to parse
           // Most likely the user clicked the X in Wyre widget
           // @ts-expect-error navigation prop mismatch
-          navigation.dangerouslyGetParent()?.pop();
+          navigation.getParent()?.pop();
           return;
         }
         if (!selectedAddress) {
@@ -201,7 +188,7 @@ const CheckoutWebView = () => {
               iconName={IconName.Close}
               size={ButtonIconSizes.Lg}
               iconColor={IconColor.Default}
-              testID="checkout-close-button"
+              testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
               onPress={handleClosePress}
             />
           }
@@ -233,7 +220,7 @@ const CheckoutWebView = () => {
               iconName={IconName.Close}
               size={ButtonIconSizes.Lg}
               iconColor={IconColor.Default}
-              testID="checkout-close-button"
+              testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
               onPress={handleClosePress}
             />
           }
@@ -272,7 +259,7 @@ const CheckoutWebView = () => {
               iconName={IconName.Close}
               size={ButtonIconSizes.Lg}
               iconColor={IconColor.Default}
-              testID="checkout-close-button"
+              testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
               onPress={handleClosePress}
             />
           }
@@ -302,7 +289,7 @@ const CheckoutWebView = () => {
           onNavigationStateChange={handleNavigationStateChange}
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
           userAgent={provider?.features?.buy?.userAgent ?? undefined}
-          testID="checkout-webview"
+          testID={CHECKOUT_TEST_IDS.WEBVIEW}
         />
       </BottomSheet>
     );
@@ -321,7 +308,7 @@ const CheckoutWebView = () => {
             iconName={IconName.Close}
             size={ButtonIconSizes.Lg}
             iconColor={IconColor.Default}
-            testID="checkout-close-button"
+            testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
             onPress={handleClosePress}
           />
         }

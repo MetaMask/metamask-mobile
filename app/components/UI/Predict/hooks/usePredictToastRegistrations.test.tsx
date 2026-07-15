@@ -1,0 +1,1136 @@
+import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
+import { act, renderHook } from '@testing-library/react-hooks';
+
+import Routes from '../../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
+import { ActivityTypeFilter } from '../../../Views/ActivityScreen/types';
+
+import { usePredictToastRegistrations } from './usePredictToastRegistrations';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import {
+  isPerpsPredictMoneyDeposit,
+  isPerpsPredictMoneyWithdraw,
+} from '../../Money/utils/moneyTransactionGuards';
+import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
+import { selectTickerByChainId } from '../../../../selectors/networkController';
+
+const mockInvalidateQueries = jest.fn();
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => ({ invalidateQueries: mockInvalidateQueries }),
+}));
+
+const mockDeposit = jest.fn();
+const mockClaim = jest.fn();
+const mockWithdraw = jest.fn();
+const mockNavigate = jest.fn();
+
+let mockWithdrawTransaction: { amount: number } | undefined = {
+  amount: 123.45,
+};
+const selectedAddress = '0x1234567890123456789012345678901234567890';
+
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string, params?: Record<string, unknown>) =>
+    params ? `${key}:${JSON.stringify(params)}` : key,
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
+
+jest.mock('../../../../util/theme', () => ({
+  useAppThemeFromContext: () => ({
+    colors: {
+      primary: { default: mockTestHexColors.CHART_PRIMARY },
+      success: { default: mockTestHexColors.SUCCESS_BRIGHT },
+      error: { default: mockTestHexColors.ERROR_BRIGHT },
+      accent04: { normal: mockTestHexColors.WHITE_BRIGHT },
+    },
+  }),
+}));
+
+jest.mock('./usePredictDeposit', () => ({
+  usePredictDeposit: () => ({
+    deposit: mockDeposit,
+  }),
+}));
+
+jest.mock('./usePredictClaim', () => ({
+  usePredictClaim: () => ({
+    claim: mockClaim,
+  }),
+}));
+
+jest.mock('./usePredictWithdraw', () => ({
+  usePredictWithdraw: () => ({
+    withdraw: mockWithdraw,
+    withdrawTransaction: mockWithdrawTransaction,
+  }),
+}));
+
+jest.mock('../utils/accounts', () => ({
+  getEvmAccountFromSelectedAccountGroup: jest.fn(() => ({
+    address: selectedAddress,
+  })),
+}));
+
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroupId: jest.fn(() => 'mock-account-group-id'),
+  }),
+);
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (selector: () => unknown) => selector(),
+}));
+
+jest.mock('../../../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({})),
+  },
+}));
+
+jest.mock('../../../../selectors/transactionController', () => ({
+  selectTransactionMetadataById: jest.fn(() => undefined),
+}));
+
+jest.mock('../../Money/utils/moneyTransactionGuards', () => ({
+  isPerpsPredictMoneyDeposit: jest.fn(() => false),
+  isPerpsPredictMoneyWithdraw: jest.fn(() => false),
+}));
+
+jest.mock('../../../../selectors/tokensController', () => ({
+  selectSingleTokenByAddressAndChainId: jest.fn(() => undefined),
+}));
+
+jest.mock('../../../../selectors/networkController', () => ({
+  selectTickerByChainId: jest.fn(() => undefined),
+}));
+
+let mockBottomSheetEnabled = false;
+let mockProviderMounted = false;
+
+jest.mock('../selectors/featureFlags', () => ({
+  selectPredictBottomSheetEnabledFlag: jest.fn(() => mockBottomSheetEnabled),
+}));
+
+jest.mock('../contexts/PredictPreviewSheetContext', () => ({
+  shouldSuppressLegacyOrderFailureToast: jest.fn(() => mockProviderMounted),
+}));
+
+describe('usePredictToastRegistrations', () => {
+  const showToast = jest.fn();
+
+  const getHandler = () => {
+    const { result } = renderHook(() => usePredictToastRegistrations());
+
+    return result.current[0].handler;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+
+    mockBottomSheetEnabled = false;
+    mockProviderMounted = false;
+    mockWithdrawTransaction = { amount: 123.45 };
+
+    mockDeposit.mockResolvedValue(undefined);
+    mockClaim.mockResolvedValue(undefined);
+    mockWithdraw.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('returns registrations array with predict transaction status event name', () => {
+    const { result } = renderHook(() => usePredictToastRegistrations());
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0].eventName).toBe(
+      'PredictController:transactionStatusChanged',
+    );
+  });
+
+  describe('deposit transactions', () => {
+    it('shows pending toast on approved status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'deposit',
+          status: 'approved',
+          transactionId: 'tx-1',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Loading',
+          closeButtonOptions: expect.objectContaining({
+            onPress: expect.any(Function),
+          }),
+          startAccessory: expect.any(Object),
+        }),
+      );
+
+      const onTrack = showToast.mock.calls[0][0].closeButtonOptions.onPress;
+      onTrack();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
+        screen: Routes.TRANSACTIONS_VIEW,
+        params: { initialTypeFilter: ActivityTypeFilter.Predictions },
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
+        transactionId: 'tx-1',
+      });
+    });
+
+    it('shows success toast on confirmed status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'deposit',
+          status: 'confirmed',
+          amount: 102,
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Confirmation',
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'balance'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'unrealizedPnL'],
+        }),
+      );
+    });
+
+    it('uses account ready fallback when deposit confirmed amount is missing', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'deposit',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining(
+                'predict.deposit.account_ready_description:{"amount":"predict.deposit.account_ready"}',
+              ),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('shows error toast with retry on failed status', async () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'deposit',
+          status: 'failed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Error',
+          linkButtonOptions: expect.objectContaining({
+            onPress: expect.any(Function),
+          }),
+        }),
+      );
+
+      const onRetry = showToast.mock.calls[0][0].linkButtonOptions.onPress;
+      await act(async () => {
+        await onRetry();
+      });
+
+      expect(mockDeposit).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows deposit error toast without retry when sender differs from selected account', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'deposit',
+          status: 'failed',
+          senderAddress: '0xabc0000000000000000000000000000000000000',
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
+    });
+
+    it('does not show toast on rejected status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'deposit',
+          status: 'rejected',
+        },
+        showToast,
+      );
+
+      expect(showToast).not.toHaveBeenCalled();
+      expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    });
+
+    it.each(['approved', 'confirmed', 'failed'])(
+      'does not show toast on %s status when funded from the Money account',
+      (status) => {
+        (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue(
+          { id: 'tx-money' },
+        );
+        (isPerpsPredictMoneyDeposit as unknown as jest.Mock).mockReturnValue(
+          true,
+        );
+
+        const handler = getHandler();
+
+        handler(
+          {
+            type: 'deposit',
+            status,
+            transactionId: 'tx-money',
+            senderAddress: selectedAddress,
+            amount: 100,
+          },
+          showToast,
+        );
+
+        expect(showToast).not.toHaveBeenCalled();
+      },
+    );
+
+    it('still shows pending toast for a non-money deposit', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        id: 'tx-normal',
+      });
+      (isPerpsPredictMoneyDeposit as unknown as jest.Mock).mockReturnValue(
+        false,
+      );
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'deposit',
+          status: 'approved',
+          transactionId: 'tx-normal',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Loading',
+        }),
+      );
+    });
+  });
+
+  describe('claim transactions', () => {
+    it('shows pending toast on approved status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'claim',
+          status: 'approved',
+          amount: 55.12,
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$55.12'),
+            }),
+          ]),
+          iconName: 'Loading',
+          startAccessory: expect.any(Object),
+        }),
+      );
+    });
+
+    it('shows success toast on confirmed status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'claim',
+          status: 'confirmed',
+          amount: 45.5,
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$45.50'),
+            }),
+          ]),
+          iconName: 'Confirmation',
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'balance'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'unrealizedPnL'],
+        }),
+      );
+    });
+
+    it('shows redeemed toast on confirmed status when amount is zero', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'claim',
+          status: 'confirmed',
+          amount: 0,
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Info',
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'predict.claim.toasts.redeemed.title',
+            }),
+            expect.objectContaining({
+              label: 'predict.claim.toasts.redeemed.description',
+            }),
+          ]),
+        }),
+      );
+      expect(showToast).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$0.00'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('shows error toast with retry on failed status', async () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'claim',
+          status: 'failed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Error',
+          linkButtonOptions: expect.objectContaining({
+            onPress: expect.any(Function),
+          }),
+        }),
+      );
+
+      const onRetry = showToast.mock.calls[0][0].linkButtonOptions.onPress;
+      await act(async () => {
+        await onRetry();
+      });
+
+      expect(mockClaim).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows claim error toast without retry when sender differs from selected account', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'claim',
+          status: 'failed',
+          senderAddress: '0xabc0000000000000000000000000000000000000',
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
+    });
+  });
+
+  describe('withdraw transactions', () => {
+    it('shows pending toast on approved status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'approved',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Loading',
+          startAccessory: expect.any(Object),
+        }),
+      );
+    });
+
+    it('shows success toast on confirmed status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Confirmation',
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'balance'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'unrealizedPnL'],
+        }),
+      );
+    });
+
+    it('uses payload amount for withdraw success toast when state amount is unavailable', () => {
+      mockWithdrawTransaction = undefined;
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          amount: 55.12,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$55.12'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('looks up transaction from store and resolves token for post-quote withdraw toast', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        metamaskPay: {
+          isPostQuote: true,
+          targetFiat: '25.50',
+          chainId: '0x38',
+          tokenAddress: '0x55d398326f99059ff775485246999027b3197955',
+        },
+      });
+      (
+        selectSingleTokenByAddressAndChainId as unknown as jest.Mock
+      ).mockReturnValue({
+        symbol: 'USDT',
+      });
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-withdraw-1',
+          amount: 10,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$25.50'),
+            }),
+            expect.objectContaining({
+              label: expect.stringContaining('USDT'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('falls back to original USDC message when metamaskPay is undefined', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue(
+        undefined,
+      );
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-1',
+          amount: 50,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('withdraw_completed_subtitle'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('falls back to original USDC message when isPostQuote is false', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        metamaskPay: { isPostQuote: false },
+      });
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-1',
+          amount: 42,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('withdraw_completed_subtitle'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('falls back to event amount when targetFiat is invalid on post-quote', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        metamaskPay: {
+          isPostQuote: true,
+          targetFiat: undefined,
+          chainId: '0x38',
+          tokenAddress: '0xabc',
+        },
+      });
+      (
+        selectSingleTokenByAddressAndChainId as unknown as jest.Mock
+      ).mockReturnValue(undefined);
+      (selectTickerByChainId as unknown as jest.Mock).mockReturnValue('BNB');
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-1',
+          amount: 77,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$77'),
+            }),
+            expect.objectContaining({
+              label: expect.stringContaining('BNB'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('falls back to USDC when both token selectors return undefined on post-quote', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        metamaskPay: {
+          isPostQuote: true,
+          targetFiat: '10',
+          chainId: '0x38',
+          tokenAddress: '0xabc',
+        },
+      });
+      (
+        selectSingleTokenByAddressAndChainId as unknown as jest.Mock
+      ).mockReturnValue(undefined);
+      (selectTickerByChainId as unknown as jest.Mock).mockReturnValue(
+        undefined,
+      );
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-no-symbol',
+          amount: 10,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('USDC'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('falls back to event amount when targetFiat is zero on post-quote', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        metamaskPay: {
+          isPostQuote: true,
+          targetFiat: '0',
+          chainId: '0x1',
+          tokenAddress: '0xabc',
+        },
+      });
+      (
+        selectSingleTokenByAddressAndChainId as unknown as jest.Mock
+      ).mockReturnValue(undefined);
+      (selectTickerByChainId as unknown as jest.Mock).mockReturnValue('ETH');
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-zero',
+          amount: 30,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$30'),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('shows error toast with retry on failed status', async () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'failed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Error',
+          linkButtonOptions: expect.objectContaining({
+            onPress: expect.any(Function),
+          }),
+        }),
+      );
+
+      const onRetry = showToast.mock.calls[0][0].linkButtonOptions.onPress;
+      await act(async () => {
+        await onRetry();
+      });
+
+      expect(mockWithdraw).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows withdraw error toast without retry when sender differs from selected account', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'failed',
+          senderAddress: '0xabc0000000000000000000000000000000000000',
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
+    });
+
+    it('does not show toast on rejected status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'rejected',
+        },
+        showToast,
+      );
+
+      expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('suppresses the native success toast on confirmed when destination is the Money account', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        id: 'tx-money-withdraw',
+      });
+      (isPerpsPredictMoneyWithdraw as unknown as jest.Mock).mockReturnValue(
+        true,
+      );
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-money-withdraw',
+          amount: 50,
+        },
+        showToast,
+      );
+
+      expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('still shows the native success toast for a non-Money withdraw (other flows unchanged)', () => {
+      (selectTransactionMetadataById as unknown as jest.Mock).mockReturnValue({
+        id: 'tx-normal-withdraw',
+      });
+      (isPerpsPredictMoneyWithdraw as unknown as jest.Mock).mockReturnValue(
+        false,
+      );
+
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'withdraw',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+          transactionId: 'tx-normal-withdraw',
+          amount: 50,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({ iconName: 'Confirmation' }),
+      );
+    });
+  });
+
+  describe('order transactions', () => {
+    it('shows pending toast with spinner on depositing status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'depositing',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Loading',
+          hasNoTimeout: false,
+          startAccessory: expect.any(Object),
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'predict.order.prediction_in_progress',
+              isBold: true,
+            }),
+            expect.objectContaining({
+              label: 'predict.order.prediction_in_progress_description',
+              isBold: false,
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('invalidates positions queries on depositing status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'depositing',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'positions'],
+        }),
+      );
+    });
+
+    it('shows prediction placed toast on confirmed status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'Icon',
+          iconName: 'Check',
+          hasNoTimeout: false,
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'balance'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'positions'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'activity'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'unrealizedPnL'],
+        }),
+      );
+    });
+
+    it('shows prediction placed toast without View button when marketId is absent', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
+    });
+
+    it('shows error toast on failed status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'Icon',
+          iconName: 'Error',
+          hasNoTimeout: false,
+        }),
+      );
+    });
+
+    it('shows error toast without Try Again button when marketId is absent', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
+    });
+
+    it('suppresses the failure toast when bottom sheet flag is ON and provider is mounted (state-based trigger handles it)', () => {
+      mockBottomSheetEnabled = true;
+      mockProviderMounted = true;
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('shows the plain failure toast when bottom sheet flag is ON but provider is not mounted (fallback)', () => {
+      mockBottomSheetEnabled = true;
+      mockProviderMounted = false;
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledTimes(1);
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
+    });
+
+    it('shows the legacy plain failure toast when bottom sheet flag is OFF', () => {
+      mockBottomSheetEnabled = false;
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledTimes(1);
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          linkButtonOptions: expect.anything(),
+        }),
+      );
+    });
+  });
+});

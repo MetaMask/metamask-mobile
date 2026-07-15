@@ -5,7 +5,8 @@ import type {
   DepositRegion,
   DepositCryptoCurrency,
   DepositPaymentMethod,
-} from '@consensys/native-ramps-sdk';
+} from '../../components/UI/Ramp/types/legacyDeposit';
+import type { RampsOrder } from '@metamask/ramps-controller';
 import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
@@ -24,7 +25,6 @@ import type { RootState } from '../';
 import { getDecimalChainId } from '../../util/networks';
 
 export type { FiatOrder } from './types';
-export { UnifiedRampRoutingType } from './types';
 
 /** Action Creators */
 
@@ -135,16 +135,9 @@ export const removeFiatSellTxHash = (orderId: string) => ({
   payload: orderId,
 });
 
-export const setDetectedGeolocation = (geolocation: string | undefined) => ({
-  type: ACTIONS.FIAT_SET_DETECTED_GEOLOCATION,
-  payload: geolocation,
-});
-
-export const setRampRoutingDecision = (
-  routingDecision: FiatOrdersState['rampRoutingDecision'],
-) => ({
-  type: ACTIONS.FIAT_SET_RAMP_ROUTING_DECISION,
-  payload: routingDecision,
+export const setHasAgreedTransakNativePolicy = (hasAgreed: boolean) => ({
+  type: ACTIONS.FIAT_SET_HAS_AGREED_TRANSAK_NATIVE_POLICY,
+  payload: hasAgreed,
 });
 
 /**
@@ -164,11 +157,16 @@ export const getProviderName = (
     case FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY: {
       return 'Wyre';
     }
-    case FIAT_ORDER_PROVIDERS.TRANSAK: {
+    case FIAT_ORDER_PROVIDERS.TRANSAK:
+    case FIAT_ORDER_PROVIDERS.DEPOSIT: {
       return 'Transak';
     }
     case FIAT_ORDER_PROVIDERS.MOONPAY: {
       return 'MoonPay';
+    }
+    case FIAT_ORDER_PROVIDERS.RAMPS_V2: {
+      const providerName = (data as RampsOrder).provider?.name;
+      return providerName ? `${providerName}` : '...';
     }
     case FIAT_ORDER_PROVIDERS.AGGREGATOR: {
       const providerName = (data as Order).provider?.name;
@@ -222,15 +220,24 @@ export const fiatOrdersGetStartedDeposit: (
 ) => FiatOrdersState['getStartedDeposit'] = (state: RootState) =>
   state.fiatOrders.getStartedDeposit;
 
+export const selectHasAgreedTransakNativePolicy = (state: RootState): boolean =>
+  state.fiatOrders.hasAgreedTransakNativePolicy === true;
+
 export const getOrdersProviders = createSelector(ordersSelector, (orders) => {
   const providers = orders
     .filter(
       (order) =>
-        order.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR &&
+        (order.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR ||
+          order.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2) &&
         order.state === FIAT_ORDER_STATES.COMPLETED &&
-        (order.data as Order)?.provider?.id,
+        ((order.data as Order)?.provider?.id ||
+          (order.data as RampsOrder)?.provider?.id),
     )
-    .map((order) => (order.data as Order).provider.id);
+    .map((order) =>
+      order.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
+        ? (order.data as RampsOrder).provider?.id
+        : (order.data as Order).provider?.id,
+    );
   return Array.from(new Set(providers));
 });
 
@@ -313,13 +320,11 @@ export const networkShortNameSelector = createSelector(
 
 export const getDetectedGeolocation: (
   state: RootState,
-) => string | undefined = (state: RootState) =>
-  state.fiatOrders.detectedGeolocation;
-
-export const getRampRoutingDecision: (
-  state: RootState,
-) => FiatOrdersState['rampRoutingDecision'] = (state: RootState) =>
-  state.fiatOrders.rampRoutingDecision;
+) => string | undefined = (state: RootState) => {
+  const location =
+    state.engine?.backgroundState?.GeolocationController?.location;
+  return location === 'UNKNOWN' || !location ? undefined : location;
+};
 
 export const initialState: FiatOrdersState = {
   orders: [],
@@ -333,10 +338,9 @@ export const initialState: FiatOrdersState = {
   getStartedAgg: false,
   getStartedSell: false,
   getStartedDeposit: false,
+  hasAgreedTransakNativePolicy: false,
   authenticationUrls: [],
   activationKeys: [],
-  detectedGeolocation: undefined,
-  rampRoutingDecision: null,
 };
 
 const findOrderIndex = (
@@ -625,16 +629,10 @@ const fiatOrderReducer: (
         ],
       };
     }
-    case ACTIONS.FIAT_SET_DETECTED_GEOLOCATION: {
+    case ACTIONS.FIAT_SET_HAS_AGREED_TRANSAK_NATIVE_POLICY: {
       return {
         ...state,
-        detectedGeolocation: action.payload,
-      };
-    }
-    case ACTIONS.FIAT_SET_RAMP_ROUTING_DECISION: {
-      return {
-        ...state,
-        rampRoutingDecision: action.payload,
+        hasAgreedTransakNativePolicy: action.payload,
       };
     }
 

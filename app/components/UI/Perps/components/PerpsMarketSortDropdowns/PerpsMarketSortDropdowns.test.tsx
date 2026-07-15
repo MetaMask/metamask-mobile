@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketSortDropdowns from './PerpsMarketSortDropdowns';
-import type { SortOptionId } from '../../constants/perpsConfig';
+import { type SortOptionId } from '@metamask/perps-controller';
 
 // Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -21,24 +21,8 @@ jest.mock('../../../../../component-library/hooks', () => ({
 jest.mock('@metamask/design-system-react-native', () => {
   const { View } = jest.requireActual('react-native');
   return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
     Box: View,
-  };
-});
-
-// Mock component-library Text component
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ children, ...props }: { children?: React.ReactNode }) => (
-      <Text {...props}>{children}</Text>
-    ),
-    TextColor: {
-      Default: 'Default',
-    },
-    TextVariant: {
-      BodySM: 'BodySM',
-    },
   };
 });
 
@@ -248,15 +232,15 @@ describe('PerpsMarketSortDropdowns', () => {
       expect(() => unmount()).not.toThrow();
     });
 
-    it('cleans up properly when remounted with different props', () => {
-      const { root, rerender, unmount } = render(
+    it('updates displayed label when selectedOptionId prop changes', () => {
+      const { rerender, getByText, queryByText, unmount } = render(
         <PerpsMarketSortDropdowns
           selectedOptionId="volume"
           onSortPress={mockOnSortPress}
         />,
       );
 
-      expect(root).toBeTruthy();
+      expect(getByText('Volume')).toBeOnTheScreen();
 
       rerender(
         <PerpsMarketSortDropdowns
@@ -265,7 +249,8 @@ describe('PerpsMarketSortDropdowns', () => {
         />,
       );
 
-      expect(root).toBeTruthy();
+      expect(queryByText('Volume')).toBeNull();
+      expect(getByText('Price change')).toBeOnTheScreen();
 
       expect(() => unmount()).not.toThrow();
     });

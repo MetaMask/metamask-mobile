@@ -1,9 +1,9 @@
 import { AddressResolution } from '@metamask/snaps-sdk';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as SnapNameResolution from '../../../../Snaps/hooks/useSnapNameResolution';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as SendValidationUtils from '../../utils/send-address-validations';
 import { evmSendStateMock } from '../../__mocks__/send.mock';
 import { useNameValidation } from './useNameValidation';
@@ -11,6 +11,7 @@ import { useSendType } from './useSendType';
 import { useSendFlowEnsResolutions } from './useSendFlowEnsResolutions';
 
 jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
   formatChainIdToCaip: jest.fn(),
 }));
 

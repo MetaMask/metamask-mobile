@@ -24,8 +24,13 @@ import { PredictDepositInfo } from '../info/predict-deposit-info';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
-import { MusdConversionInfo } from '../info/musd-conversion-info';
+import { PerpsWithdrawInfo } from '../info/perps-withdraw-info';
+import { MusdClaimInfo } from '../info/musd-claim-info';
+import { MusdConversionInfoRoot } from '../info/musd-conversion-info-root';
+import { MoneyAccountDepositInfo } from '../info/money-account-deposit-info';
+import { MoneyAccountWithdrawInfo } from '../info/money-account-withdraw-info';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
+import { useTransactionPayAutoFiatSubmission } from '../../hooks/pay/useTransactionPayAutoFiatSubmission';
 import PerpsOrderView from '../../../../UI/Perps/Views/PerpsOrderView';
 
 interface ConfirmationInfoComponentRequest {
@@ -83,10 +88,11 @@ interface InfoProps {
 const Info = ({ route }: InfoProps) => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
-  const { isSigningQRObject } = useQRHardwareContext();
+  const { isSigningQRObject, signingConfirmed } = useQRHardwareContext();
   const { isDowngrade, isUpgradeOnly } = use7702TransactionType();
   // Refresh STX liveness for the transaction's network
   useRefreshSmartTransactionsLiveness(transactionMetadata?.chainId);
+  useTransactionPayAutoFiatSubmission();
 
   if (!approvalRequest?.type) {
     return null;
@@ -96,15 +102,22 @@ const Info = ({ route }: InfoProps) => {
     return <SwitchAccountType />;
   }
 
-  if (isSigningQRObject) {
+  if (isSigningQRObject && signingConfirmed) {
     return <QRInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.musdClaim])
+  ) {
+    return <MusdClaimInfo />;
   }
 
   if (
     transactionMetadata &&
     hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
   ) {
-    return <MusdConversionInfo />;
+    return <MusdConversionInfoRoot />;
   }
 
   if (
@@ -112,6 +125,24 @@ const Info = ({ route }: InfoProps) => {
     hasTransactionType(transactionMetadata, [TransactionType.predictDeposit])
   ) {
     return <PredictDepositInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [
+      TransactionType.moneyAccountDeposit,
+    ])
+  ) {
+    return <MoneyAccountDepositInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [
+      TransactionType.moneyAccountWithdraw,
+    ])
+  ) {
+    return <MoneyAccountWithdrawInfo />;
   }
 
   if (
@@ -126,6 +157,13 @@ const Info = ({ route }: InfoProps) => {
     hasTransactionType(transactionMetadata, [TransactionType.predictWithdraw])
   ) {
     return <PredictWithdrawInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.perpsWithdraw])
+  ) {
+    return <PerpsWithdrawInfo />;
   }
 
   const { requestData } = approvalRequest ?? {

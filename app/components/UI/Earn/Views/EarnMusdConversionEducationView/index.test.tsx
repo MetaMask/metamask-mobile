@@ -3,7 +3,6 @@ import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import { Linking } from 'react-native';
 import EarnMusdConversionEducationView from './index';
 import {
   setMusdConversionEducationSeen,
@@ -14,12 +13,15 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MUSD_CONVERSION_APY } from '../../constants/musd';
 import { EARN_TEST_IDS } from '../../constants/testIds';
 import { useMusdConversionFlowData } from '../../hooks/useMusdConversionFlowData';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
-import AppConstants from '../../../../../core/AppConstants';
+import { selectMoneyHubEnabledFlag } from '../../../Money/selectors/featureFlags';
+import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
+import { MONEY_HUB_EVENTS_CONSTANTS } from '../../../Money/constants/moneyHubEvents';
 
 const FIXED_NOW_MS = 1730000000000;
 const mockTrackEvent = jest.fn();
@@ -68,33 +70,27 @@ jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => {
-  const actual = jest.requireActual('../../../../hooks/useMetrics');
-  return {
-    ...actual,
-    useMetrics: () => ({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    }),
-  };
-});
+jest.mock('../../../Money/selectors/featureFlags', () => ({
+  selectMoneyHubEnabledFlag: jest.fn(() => false),
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn().mockReturnValue({
-    colors: {
-      background: { default: '#FFFFFF' },
-      text: { default: '#000000' },
-    },
-    themeAppearance: 'light',
-    typography: {},
-    shadows: {},
-    brandColors: {},
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
@@ -119,6 +115,10 @@ const mockUseMusdConversionFlowData =
 const mockUseRampNavigation = useRampNavigation as jest.MockedFunction<
   typeof useRampNavigation
 >;
+const mockSelectMoneyHubEnabledFlag =
+  selectMoneyHubEnabledFlag as jest.MockedFunction<
+    typeof selectMoneyHubEnabledFlag
+  >;
 
 const mockConversionToken = {
   address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -131,11 +131,28 @@ const mockConversionToken = {
   balance: '1000000',
   logo: undefined,
   isETH: false,
+  fiat: { balance: 50 },
+};
+
+const mockConversionTokenHighBalance = {
+  address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+  chainId: '0x1',
+  aggregators: [],
+  decimals: 6,
+  image: '',
+  name: 'Tether USD',
+  symbol: 'USDT',
+  balance: '5000000',
+  logo: undefined,
+  isETH: false,
+  fiat: { balance: 500 },
 };
 
 describe('EarnMusdConversionEducationView', () => {
   const mockDispatch = jest.fn();
   const mockInitiateConversion = jest.fn();
+  const mockInitiateMaxConversion = jest.fn();
+  const mockClearError = jest.fn();
   const mockGoToAggregator = jest.fn();
   const mockGetPreferredPaymentToken = jest.fn();
   const mockGetChainIdForBuyFlow = jest.fn();
@@ -161,14 +178,15 @@ describe('EarnMusdConversionEducationView', () => {
     jest.spyOn(Date, 'now').mockReturnValue(FIXED_NOW_MS);
 
     mockUseDispatch.mockReturnValue(mockDispatch);
-    // @ts-expect-error - partial mock of navigation is sufficient for testing
     mockUseNavigation.mockReturnValue(mockNavigation);
     mockUseFocusEffect.mockImplementation((callback) => {
       callback();
     });
     mockUseParams.mockReturnValue(mockRouteParams);
     mockUseMusdConversion.mockReturnValue({
-      initiateConversion: mockInitiateConversion,
+      initiateMaxConversion: mockInitiateMaxConversion,
+      initiateCustomConversion: mockInitiateConversion,
+      clearError: mockClearError,
       error: null,
       hasSeenConversionEducationScreen: false,
     });
@@ -204,8 +222,8 @@ describe('EarnMusdConversionEducationView', () => {
       goToBuy: jest.fn(),
       goToAggregator: mockGoToAggregator,
       goToSell: jest.fn(),
-      goToDeposit: jest.fn(),
     });
+    mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
 
     mockBuild.mockReturnValue({ name: 'mock-built-event' });
     mockAddProperties.mockImplementation(() => ({ build: mockBuild }));
@@ -241,9 +259,6 @@ describe('EarnMusdConversionEducationView', () => {
         ),
       ).toBeOnTheScreen();
       expect(getByText(descriptionText, { exact: false })).toBeOnTheScreen();
-      expect(
-        getByText(strings('earn.musd_conversion.education.terms_apply')),
-      ).toBeOnTheScreen();
       expect(
         getByText(strings('earn.musd_conversion.education.primary_button')),
       ).toBeOnTheScreen();
@@ -281,7 +296,7 @@ describe('EarnMusdConversionEducationView', () => {
         );
       });
 
-      // Should call initiateConversion directly, not deeplink logic
+      // Should call initiateCustomConversion directly, not deeplink logic
       await waitFor(() => {
         expect(mockInitiateConversion).toHaveBeenCalledWith({
           preferredPaymentToken: {
@@ -443,7 +458,7 @@ describe('EarnMusdConversionEducationView', () => {
       });
     });
 
-    it('navigates to home when has convertible tokens but no valid payment token and mUSD is not buyable', async () => {
+    it('falls back to first conversion token when getPaymentTokenForSelectedNetwork returns null', async () => {
       mockUseMusdConversionFlowData.mockReturnValue({
         isGeoEligible: true,
         hasConvertibleTokens: true,
@@ -454,7 +469,170 @@ describe('EarnMusdConversionEducationView', () => {
         isPopularNetworksFilterActive: false,
         selectedChainId: null,
         selectedChains: [],
-        conversionTokens: [mockConversionToken],
+        conversionTokens: [mockConversionTokenHighBalance, mockConversionToken],
+        isMusdBuyableOnChain: {},
+        isMusdBuyableOnAnyChain: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockInitiateConversion).toHaveBeenCalledWith({
+          preferredPaymentToken: {
+            address: mockConversionTokenHighBalance.address,
+            chainId: mockConversionTokenHighBalance.chainId,
+          },
+          skipEducationCheck: true,
+        });
+      });
+    });
+
+    it('falls through to buy when first conversion token has no chainId', async () => {
+      const mockGoToBuy = jest.fn();
+      mockUseRampNavigation.mockReturnValue({
+        goToBuy: mockGoToBuy,
+        goToAggregator: mockGoToAggregator,
+        goToSell: jest.fn(),
+      });
+
+      mockUseMusdConversionFlowData.mockReturnValue({
+        isGeoEligible: true,
+        hasConvertibleTokens: true,
+        isEmptyWallet: false,
+        getPaymentTokenForSelectedNetwork: jest.fn().mockReturnValue(null),
+        getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
+        isMusdBuyable: true,
+        isPopularNetworksFilterActive: false,
+        selectedChainId: null,
+        selectedChains: [],
+        conversionTokens: [{ ...mockConversionToken, chainId: undefined }],
+        isMusdBuyableOnChain: {},
+        isMusdBuyableOnAnyChain: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockInitiateConversion).not.toHaveBeenCalled();
+        expect(mockGoToBuy).toHaveBeenCalled();
+      });
+    });
+
+    it('falls through to navigate_home when first token invalid and mUSD not buyable', async () => {
+      mockUseMusdConversionFlowData.mockReturnValue({
+        isGeoEligible: true,
+        hasConvertibleTokens: true,
+        isEmptyWallet: false,
+        getPaymentTokenForSelectedNetwork: jest.fn().mockReturnValue(null),
+        getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
+        isMusdBuyable: false,
+        isPopularNetworksFilterActive: false,
+        selectedChainId: null,
+        selectedChains: [],
+        conversionTokens: [{ ...mockConversionToken, chainId: undefined }],
+        isMusdBuyableOnChain: {},
+        isMusdBuyableOnAnyChain: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockInitiateConversion).not.toHaveBeenCalled();
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
+          Routes.WALLET.HOME,
+          {
+            screen: Routes.WALLET.TAB_STACK_FLOW,
+            params: {
+              screen: Routes.WALLET_VIEW,
+            },
+          },
+        );
+      });
+    });
+
+    it('navigates to Money Hub when no convertible tokens, not buyable, and Money Hub is enabled', async () => {
+      mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
+      mockUseMusdConversionFlowData.mockReturnValue({
+        isGeoEligible: true,
+        hasConvertibleTokens: false,
+        isEmptyWallet: true,
+        getPaymentTokenForSelectedNetwork: jest.fn().mockReturnValue(null),
+        getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
+        isMusdBuyable: false,
+        isPopularNetworksFilterActive: false,
+        selectedChainId: null,
+        selectedChains: [],
+        conversionTokens: [],
+        isMusdBuyableOnChain: {},
+        isMusdBuyableOnAnyChain: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
+          Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+        );
+      });
+    });
+
+    it('navigates to WALLET.HOME when no convertible tokens, not buyable, and Money Hub is disabled', async () => {
+      mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
+      mockUseMusdConversionFlowData.mockReturnValue({
+        isGeoEligible: true,
+        hasConvertibleTokens: false,
+        isEmptyWallet: true,
+        getPaymentTokenForSelectedNetwork: jest.fn().mockReturnValue(null),
+        getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
+        isMusdBuyable: false,
+        isPopularNetworksFilterActive: false,
+        selectedChainId: null,
+        selectedChains: [],
+        conversionTokens: [],
         isMusdBuyableOnChain: {},
         isMusdBuyableOnAnyChain: false,
       });
@@ -477,11 +655,47 @@ describe('EarnMusdConversionEducationView', () => {
           Routes.WALLET.HOME,
           {
             screen: Routes.WALLET.TAB_STACK_FLOW,
-            params: {
-              screen: Routes.WALLET_VIEW,
-            },
+            params: { screen: Routes.WALLET_VIEW },
           },
         );
+        expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+          Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+        );
+      });
+    });
+
+    it('does not call initiateCustomConversion when navigate_money_hub action is active', async () => {
+      mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
+      mockUseMusdConversionFlowData.mockReturnValue({
+        isGeoEligible: true,
+        hasConvertibleTokens: false,
+        isEmptyWallet: true,
+        getPaymentTokenForSelectedNetwork: jest.fn().mockReturnValue(null),
+        getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
+        isMusdBuyable: false,
+        isPopularNetworksFilterActive: false,
+        selectedChainId: null,
+        selectedChains: [],
+        conversionTokens: [],
+        isMusdBuyableOnChain: {},
+        isMusdBuyableOnAnyChain: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockInitiateConversion).not.toHaveBeenCalled();
       });
     });
 
@@ -500,10 +714,6 @@ describe('EarnMusdConversionEducationView', () => {
         isMusdBuyableOnChain: {},
         isMusdBuyableOnAnyChain: false,
       });
-
-      const { MetaMetricsEvents } = jest.requireActual(
-        '../../../../hooks/useMetrics',
-      );
 
       const { getByTestId } = renderWithProvider(
         <EarnMusdConversionEducationView />,
@@ -538,25 +748,182 @@ describe('EarnMusdConversionEducationView', () => {
     });
   });
 
-  describe('external links', () => {
-    it('opens bonus terms of use when "Terms apply" is pressed', () => {
-      const openUrlSpy = jest
-        .spyOn(Linking, 'openURL')
-        .mockResolvedValueOnce(undefined);
+  describe('handleNotNow', () => {
+    it('navigates to Money Hub when deeplink, Money Hub enabled, and geo-eligible', () => {
+      mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
+      mockUseParams.mockReturnValue({ isDeeplink: true });
 
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <EarnMusdConversionEducationView />,
         { state: {} },
       );
 
       fireEvent.press(
-        getByText(strings('earn.musd_conversion.education.terms_apply')),
+        getByTestId(
+          EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON,
+        ),
       );
 
-      expect(openUrlSpy).toHaveBeenCalledTimes(1);
-      expect(openUrlSpy).toHaveBeenCalledWith(
-        AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.WALLET.CASH_TOKENS_FULL_VIEW,
       );
+    });
+
+    it('calls goBack before navigating to Money Hub when canGoBack is true to pop education screen from the navigation stack', () => {
+      mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
+      mockUseParams.mockReturnValue({ isDeeplink: true });
+      mockNavigation.canGoBack.mockReturnValue(true);
+
+      const callOrder: string[] = [];
+      mockNavigation.goBack.mockImplementation(() => {
+        callOrder.push('goBack');
+      });
+      mockNavigation.navigate.mockImplementation(() => {
+        callOrder.push('navigate');
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      fireEvent.press(
+        getByTestId(
+          EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON,
+        ),
+      );
+
+      expect(callOrder).toEqual(['goBack', 'navigate']);
+    });
+
+    it('dispatches setMusdConversionEducationSeen when redirecting to Money Hub', () => {
+      mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
+      mockUseParams.mockReturnValue({ isDeeplink: true });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      fireEvent.press(
+        getByTestId(
+          EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON,
+        ),
+      );
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN,
+        payload: { seen: true },
+      });
+    });
+
+    it('dispatches setMusdConversionEducationSeen in normal non-deeplink flow', () => {
+      mockUseParams.mockReturnValue({ isDeeplink: false });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      fireEvent.press(
+        getByTestId(
+          EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON,
+        ),
+      );
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN,
+        payload: { seen: true },
+      });
+    });
+
+    it('does not navigate to Money Hub when Money Hub flag is disabled', () => {
+      mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
+      mockUseParams.mockReturnValue({ isDeeplink: true });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      fireEvent.press(
+        getByTestId(
+          EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON,
+        ),
+      );
+
+      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+        Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+      );
+    });
+
+    it('does not navigate to Money Hub when user is geo-ineligible', () => {
+      mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
+      mockUseParams.mockReturnValue({ isDeeplink: true });
+      mockUseMusdConversionFlowData.mockReturnValue({
+        isGeoEligible: false,
+        hasConvertibleTokens: true,
+        isEmptyWallet: false,
+        getPaymentTokenForSelectedNetwork: mockGetPreferredPaymentToken,
+        getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
+        isMusdBuyable: true,
+        isPopularNetworksFilterActive: false,
+        selectedChainId: null,
+        selectedChains: [],
+        conversionTokens: [mockConversionToken],
+        isMusdBuyableOnChain: {},
+        isMusdBuyableOnAnyChain: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      fireEvent.press(
+        getByTestId(
+          EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON,
+        ),
+      );
+
+      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+        Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+      );
+    });
+
+    it('calls goBack in normal non-deeplink flow when canGoBack is true', () => {
+      mockUseParams.mockReturnValue({ isDeeplink: false });
+      mockNavigation.canGoBack.mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      fireEvent.press(
+        getByTestId(
+          EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON,
+        ),
+      );
+
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call goBack when canGoBack returns false', () => {
+      mockNavigation.canGoBack.mockReturnValue(false);
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      fireEvent.press(
+        getByTestId(
+          EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON,
+        ),
+      );
+
+      expect(mockNavigation.goBack).not.toHaveBeenCalled();
     });
   });
 
@@ -591,7 +958,7 @@ describe('EarnMusdConversionEducationView', () => {
         callOrder.push('dispatch');
       });
       mockInitiateConversion.mockImplementation(async () => {
-        callOrder.push('initiateConversion');
+        callOrder.push('initiateCustomConversion');
       });
 
       const { getByTestId } = renderWithProvider(
@@ -608,13 +975,13 @@ describe('EarnMusdConversionEducationView', () => {
       });
 
       await waitFor(() => {
-        expect(callOrder).toEqual(['dispatch', 'initiateConversion']);
+        expect(callOrder).toEqual(['dispatch', 'initiateCustomConversion']);
       });
     });
   });
 
   describe('conversion initiation', () => {
-    it('calls initiateConversion with correct params when preferredPaymentToken provided', async () => {
+    it('calls initiateCustomConversion with correct params when preferredPaymentToken provided', async () => {
       const { getByTestId } = renderWithProvider(
         <EarnMusdConversionEducationView />,
         { state: {} },
@@ -663,14 +1030,37 @@ describe('EarnMusdConversionEducationView', () => {
         expect(mockInitiateConversion).not.toHaveBeenCalled();
       });
     });
+
+    it('navigates to returnTo.screen when returnTo is provided, without initiating conversion', async () => {
+      mockUseParams.mockReturnValue({
+        returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
+          Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+          undefined,
+        );
+      });
+      expect(mockInitiateConversion).not.toHaveBeenCalled();
+    });
   });
 
   describe('MetaMetrics', () => {
     it('tracks fullscreen announcement displayed event once per visit', () => {
-      const { MetaMetricsEvents } = jest.requireActual(
-        '../../../../hooks/useMetrics',
-      );
-
       const { unmount } = renderWithProvider(
         <EarnMusdConversionEducationView />,
         { state: {} },
@@ -713,10 +1103,6 @@ describe('EarnMusdConversionEducationView', () => {
     });
 
     it('tracks fullscreen announcement button clicked event when continue button is pressed', async () => {
-      const { MetaMetricsEvents } = jest.requireActual(
-        '../../../../hooks/useMetrics',
-      );
-
       const { getByTestId } = renderWithProvider(
         <EarnMusdConversionEducationView />,
         { state: {} },
@@ -757,10 +1143,6 @@ describe('EarnMusdConversionEducationView', () => {
     });
 
     it('tracks fullscreen announcement button clicked event when go back button is pressed', () => {
-      const { MetaMetricsEvents } = jest.requireActual(
-        '../../../../hooks/useMetrics',
-      );
-
       const { getByTestId } = renderWithProvider(
         <EarnMusdConversionEducationView />,
         { state: {} },
@@ -793,6 +1175,106 @@ describe('EarnMusdConversionEducationView', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });
 
+    it('includes redirects_to money_hub when secondary button pressed with deeplink, Money Hub enabled, and geo-eligible', () => {
+      mockSelectMoneyHubEnabledFlag.mockReturnValue(true);
+      mockUseParams.mockReturnValue({ isDeeplink: true });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      fireEvent.press(
+        getByTestId(
+          EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON,
+        ),
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location:
+          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+        button_type: 'secondary',
+        button_text: strings('earn.musd_conversion.education.secondary_button'),
+        redirects_to: MONEY_HUB_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
+      });
+    });
+
+    it('omits redirects_to when secondary button pressed in normal non-deeplink flow', () => {
+      mockUseParams.mockReturnValue({ isDeeplink: false });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      fireEvent.press(
+        getByTestId(
+          EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON,
+        ),
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location:
+          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+        button_type: 'secondary',
+        button_text: strings('earn.musd_conversion.education.secondary_button'),
+      });
+      expect(mockAddProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({ redirects_to: expect.anything() }),
+      );
+    });
+
+    it('tracks money_hub redirect when continue is pressed with returnTo', async () => {
+      mockUseParams.mockReturnValue({
+        returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.MUSD_FULLSCREEN_ANNOUNCEMENT_BUTTON_CLICKED,
+        );
+
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          location:
+            MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+          button_type: 'primary',
+          button_text: strings('earn.musd_conversion.education.primary_button'),
+          redirects_to: MONEY_HUB_EVENTS_CONSTANTS.EVENT_LOCATIONS.MONEY_HUB,
+        });
+      });
+    });
+
     it('tracks buy button text and buy_screen redirect when deeplink triggers buy flow', async () => {
       mockUseParams.mockReturnValue({
         preferredPaymentToken: null,
@@ -813,10 +1295,6 @@ describe('EarnMusdConversionEducationView', () => {
         isMusdBuyableOnChain: {},
         isMusdBuyableOnAnyChain: false,
       });
-
-      const { MetaMetricsEvents } = jest.requireActual(
-        '../../../../hooks/useMetrics',
-      );
 
       const { getByTestId } = renderWithProvider(
         <EarnMusdConversionEducationView />,
@@ -852,7 +1330,7 @@ describe('EarnMusdConversionEducationView', () => {
   });
 
   describe('error handling', () => {
-    it('logs error when initiateConversion throws error', async () => {
+    it('logs error when initiateCustomConversion throws error', async () => {
       const testError = new Error('Conversion failed');
       mockInitiateConversion.mockRejectedValue(testError);
 

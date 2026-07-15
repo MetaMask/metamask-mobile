@@ -7,8 +7,10 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
+import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
+import { useConfirmActions } from '../useConfirmActions';
+import { useIsGasSponsored } from '../gas/useIsGasSponsored';
 
 /**
  * Configuration for gas sponsorship warning rules per chain.
@@ -17,6 +19,8 @@ import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
 interface SponsorshipWarningRule {
   /** The localization message key for the warning */
   messageKey: string;
+  /** The localization title key for the warning */
+  titleKey: string;
   /** The minimum balance required for sponsorship */
   minBalance: string;
   /** The native token symbol for this chain (e.g., 'MON' for Monad) */
@@ -42,6 +46,7 @@ const GAS_SPONSORSHIP_WARNING_RULES: Partial<
 > = {
   [NETWORKS_CHAIN_ID.MONAD as Hex]: {
     messageKey: 'alert_system.gas_sponsorship_reserve_balance.message',
+    titleKey: 'alert_system.gas_sponsorship_reserve_balance.title',
     minBalance: '10',
     nativeCurrency: 'MON',
     matchers: ['reserve balance violation'],
@@ -87,10 +92,11 @@ function hasGasSponsorshipWarning(
  */
 export const useGasSponsorshipWarningAlert = (): Alert[] => {
   const transactionMetadata = useTransactionMetadataRequest();
-  const { isSupported: isGaslessSupported } = useIsGaslessSupported();
+  const isGasSponsored = useIsGasSponsored();
+  const { goToBuy } = useRampNavigation();
+  const { onReject } = useConfirmActions();
 
-  const { chainId, isGasFeeSponsored, simulationData } =
-    transactionMetadata ?? {};
+  const { chainId, simulationData } = transactionMetadata ?? {};
 
   const callTraceErrors = (
     simulationData as SimulationDataWithCallTraceErrors | undefined
@@ -107,9 +113,8 @@ export const useGasSponsorshipWarningAlert = (): Alert[] => {
 
   // Only show warning when:
   // 1. We have a warning match from configured rules
-  // 2. Gas fee is NOT currently sponsored (the warning explains why)
-  // 3. Gasless is supported on this network (otherwise sponsorship wouldn't be expected)
-  const shouldShow = hasWarning && !isGasFeeSponsored && isGaslessSupported;
+  // 2. Gas Sponsorship is expected to be enabled for this transaction.
+  const shouldShow = hasWarning && isGasSponsored;
 
   return useMemo(() => {
     if (!shouldShow || !chainId) {
@@ -121,18 +126,30 @@ export const useGasSponsorshipWarningAlert = (): Alert[] => {
       return [];
     }
 
+    const { titleKey, messageKey, nativeCurrency, minBalance } = rule;
+
     return [
       {
-        isBlocking: false,
+        action: {
+          label: strings('alert_system.insufficient_balance.buy_action', {
+            nativeCurrency,
+          }),
+          callback: () => {
+            goToBuy();
+            onReject(undefined, true);
+          },
+        },
+        isBlocking: true,
         field: RowAlertKey.EstimatedFee,
         key: AlertKeys.GasSponsorshipReserveBalance,
-        message: strings(rule.messageKey, {
-          minBalance: rule.minBalance,
-          nativeTokenSymbol: rule.nativeCurrency,
+        message: strings(messageKey, {
+          minBalance,
+          nativeTokenSymbol: nativeCurrency,
         }),
-        title: strings('alert_system.gas_sponsorship_reserve_balance.title'),
-        severity: Severity.Warning,
+        title: strings(titleKey),
+        severity: Severity.Danger,
+        skipConfirmation: true,
       },
     ];
-  }, [shouldShow, chainId]);
+  }, [shouldShow, chainId, goToBuy, onReject]);
 };

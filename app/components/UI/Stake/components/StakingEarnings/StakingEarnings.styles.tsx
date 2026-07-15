@@ -19,6 +19,8 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     keyValuePrimaryTextWrapper: {
       flexDirection: 'row',
+      alignItems: 'center',
+      gap: 2,
     },
     keyValuePrimaryTextWrapperCentered: {
       flexDirection: 'row',
@@ -29,6 +31,9 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     keyValueSecondaryText: {
       alignItems: 'flex-end',
+    },
+    stakingEarningsContent: {
+      paddingBottom: 24,
     },
   });
 };

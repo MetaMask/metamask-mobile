@@ -5,11 +5,9 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import {
-  type EdgeInsets,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { StyleSheet, Text } from 'react-native';
+import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
+import { CommonActions } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
 import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
 import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
@@ -21,28 +19,38 @@ import { UR } from '@ngraveio/bc-ur';
 import Alert, { AlertType } from '../../Base/Alert';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { useTheme } from '../../../util/theme';
 import { fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import ExtendedKeyringTypes, {
   HardwareDeviceTypes,
 } from '../../../constants/keyringTypes';
 import { ThemeColors } from '@metamask/design-tokens';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
-import { getChecksumAddress } from '@metamask/utils';
+import { getChecksumAddress, Hex } from '@metamask/utils';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
+import { ConnectQRHardwareSelectorsIDs } from './ConnectQRHardware.testIds';
+import { useHardwareWallet } from '../../../core/HardwareWallet/contexts/HardwareWalletContext';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { useQrScanErrorForwarding } from '../../../core/HardwareWallet/hooks/useQrScanErrorForwarding';
+import Routes from '../../../constants/navigation/Routes';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 
 interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  route?: any;
 }
 
-const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
+const SAFE_AREA_EDGES: Edge[] = ['left', 'right'];
+
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -50,27 +58,13 @@ const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
       alignItems: 'center',
     },
     header: {
-      marginTop: insets.top,
-      flexDirection: 'row',
-      width: '100%',
-      paddingHorizontal: 32,
+      paddingLeft: 32,
+      paddingRight: 32,
       alignItems: 'center',
     },
-    navbarRightButton: {
-      flexDirection: 'row',
-      justifyContent: 'flex-end',
-      height: 48,
-      width: 48,
-      flex: 1,
-    },
-    closeIcon: {
-      fontSize: 28,
-      color: colors.text.default,
-    },
     qrcode: {
-      flex: 1,
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     error: {
       ...fontStyles.normal,
@@ -84,11 +78,12 @@ const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
     },
   });
 
-const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
+const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
-  const insets = useSafeAreaInsets();
-  const styles = createStyles(colors, insets);
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { setTargetWalletType, setQrScanRetryHandler } = useHardwareWallet();
+  const styles = createStyles(colors);
+  const hideMarketingContent = route?.params?.hideMarketingContent ?? false;
 
   const [isScanning, setIsScanning] = useState(false);
 
@@ -104,6 +99,18 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   }, []);
 
   const [existingAccounts, setExistingAccounts] = useState<string[]>([]);
+  const safeAreaEdges = SAFE_AREA_EDGES;
+
+  useEffect(() => {
+    setTargetWalletType(HardwareWalletType.Qr);
+    setQrScanRetryHandler?.(() => {
+      setIsScanning(true);
+    });
+
+    return () => {
+      setQrScanRetryHandler?.(null);
+    };
+  }, [setQrScanRetryHandler, setTargetWalletType]);
 
   useEffect(() => {
     KeyringController.getAccounts().then((value: string[]) => {
@@ -164,6 +171,12 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     Engine.getQrKeyringScanner().rejectPendingScan(new Error(error));
   }, []);
 
+  const hideScanner = useCallback(() => {
+    setIsScanning(false);
+  }, []);
+  const { onQRHardwareScanError, handleScannerModalHide } =
+    useQrScanErrorForwarding({ hideScanner });
+
   const cancelScan = useCallback(() => {
     Engine.getQrKeyringScanner().rejectPendingScan(new Error('Scan cancelled'));
   }, []);
@@ -204,10 +217,20 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       try {
         const accountToSelect = await withQrKeyring(async ({ keyring }) => {
           let lastAccount: string | undefined;
+          const isAccountMode = keyring.getMode() === 'account';
           for (const index of accountIndexs) {
-            keyring.setAccountToUnlock(index);
-            const [newAccount] = await keyring.addAccounts(1);
-            lastAccount = newAccount;
+            const [newAccount] = isAccountMode
+              ? await keyring.createAccounts({
+                  type: 'custom',
+                  entropySource: keyring.entropySource,
+                  addressIndex: index,
+                })
+              : await keyring.createAccounts({
+                  type: 'bip44:derive-index',
+                  entropySource: keyring.entropySource,
+                  groupIndex: index,
+                });
+            lastAccount = newAccount?.address;
           }
           return lastAccount;
         });
@@ -264,11 +287,19 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       // back into CAIP Account Id. Hex addresses are used in
       // `removeAccountsFromPermissions` because too many places in the UI still
       // operate on hex addresses rather than CAIP Account Id.
-      removeAccountsFromPermissions(existingQrAccounts.map(getChecksumAddress));
+      removeAccountsFromPermissions(
+        existingQrAccounts.map(({ address }) =>
+          getChecksumAddress(address as Hex),
+        ),
+      );
       await keyring.forgetDevice();
-      return existingQrAccounts;
     });
-    navigation.pop(2);
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      }),
+    );
   }, [
     KeyringController.state.keyrings,
     createEventBuilder,
@@ -288,26 +319,34 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 
   return (
     <Fragment>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Icon
-            name="qrcode"
-            size={42}
-            style={styles.qrcode}
-            color={colors.text.default}
-          />
-          <TouchableOpacity
-            onPress={navigation.goBack}
-            style={styles.navbarRightButton}
-          >
-            <MaterialIcon name="close" size={15} style={styles.closeIcon} />
-          </TouchableOpacity>
-        </View>
+      <SafeAreaView
+        style={styles.container}
+        edges={safeAreaEdges}
+        testID={ConnectQRHardwareSelectorsIDs.CONTAINER}
+      >
+        <HeaderStandard
+          includesTopInset
+          testID={ConnectQRHardwareSelectorsIDs.HEADER}
+          style={styles.header}
+          startAccessory={
+            <Icon
+              name="qrcode"
+              size={42}
+              style={styles.qrcode}
+              color={colors.text.default}
+            />
+          }
+          onClose={navigation.goBack}
+          closeButtonProps={{
+            iconProps: { style: { width: 30, height: 30 } },
+          }}
+        />
         {accounts.length <= 0 ? (
           <ConnectQRInstruction
             onConnect={onConnectHardware}
             renderAlert={renderAlert}
             navigation={navigation}
+            hideMarketingContent={hideMarketingContent}
           />
         ) : (
           <AccountSelector
@@ -321,12 +360,14 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
             title={strings('connect_qr_hardware.select_accounts')}
           />
         )}
-      </View>
+      </SafeAreaView>
       <AnimatedQRScannerModal
         visible={isScanning}
         purpose={QrScanRequestType.PAIR}
         onScanSuccess={onScanSuccess}
         onScanError={onScanError}
+        onQRHardwareScanError={onQRHardwareScanError}
+        onModalHideComplete={handleScannerModalHide}
         hideModal={cancelScan}
       />
       <BlockingActionModal modalVisible={blockingModalVisible} isLoadingAction>

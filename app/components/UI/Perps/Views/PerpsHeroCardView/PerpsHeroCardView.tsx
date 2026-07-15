@@ -16,11 +16,12 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+  IconName as DSIconName,
+} from '@metamask/design-system-react-native';
 import {
   IconName,
   IconColor,
@@ -43,16 +44,18 @@ import NegativePnlCharacter1 from '../../../../../images/negative_pnl_character_
 import NegativePnlCharacter2 from '../../../../../images/negative_pnl_character_2_3x.png';
 import PositivePnlCharacter2 from '../../../../../images/positive_pnl_character_2_3x.png';
 import PositivePnlCharacter3 from '../../../../../images/positive_pnl_character_3_3x.png';
-import type { Position } from '../../controllers/types';
+import {
+  PERPS_CONSTANTS,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  getPerpsDisplaySymbol,
+  type Position,
+} from '@metamask/perps-controller';
 import { darkTheme } from '@metamask/design-tokens';
 import styleSheet from './PerpsHeroCardView.styles';
 import Logger from '../../../../../util/Logger';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { buildReferralUrl } from '../../../Rewards/utils';
 import { usePerpsToasts } from '../../hooks';
 import { ShareOpenResult } from 'react-native-share/lib/typescript/types';
@@ -61,8 +64,6 @@ import {
   getPerpsHeroCardViewSelector,
 } from '../../Perps.testIds';
 import { useReferralDetails } from '../../../Rewards/hooks/useReferralDetails';
-import { useSeasonStatus } from '../../../Rewards/hooks/useSeasonStatus';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import { ensureError } from '../../../../../util/errorUtils';
 
 // To add a new card, add the image to the array.
@@ -94,9 +95,6 @@ const PerpsHeroCardView: React.FC = () => {
   const isReferralEnabled = useSelector(
     selectPerpsRewardsReferralCodeEnabledFlag,
   );
-
-  // Fetch season status to populate seasonId (required by useReferralDetails)
-  useSeasonStatus({ onlyForExplicitFetch: false });
 
   // Fetch referral details to ensure code is available for display
   useReferralDetails();
@@ -194,7 +192,7 @@ const PerpsHeroCardView: React.FC = () => {
   };
 
   const pnlSign = data.pnl >= 0 ? '+' : '';
-  const pnlDisplay = `${pnlSign}${data.roe.toFixed(1)}%`;
+  const pnlDisplay = `${pnlSign}${data.roe.toFixed(2)}%`;
   const directionText =
     data.direction.charAt(0).toUpperCase() + data.direction.slice(1);
   const directionBadgeText = data.leverage
@@ -230,11 +228,9 @@ const PerpsHeroCardView: React.FC = () => {
 
           {/* Asset Info Row */}
           <View style={styles.heroCardAssetRow}>
-            <PerpsTokenLogo
-              symbol={data.asset}
-              size={14.5}
-              style={styles.assetIcon}
-            />
+            <View style={styles.assetIcon}>
+              <PerpsTokenLogo symbol={data.asset} size={14.5} />
+            </View>
             <Text
               variant={TextVariant.BodySMMedium}
               style={styles.assetName}
@@ -363,9 +359,9 @@ const PerpsHeroCardView: React.FC = () => {
       }
       return null;
     } catch (error) {
-      Logger.error(ensureError(error), {
-        message: 'Error capturing Perps Hero Card',
-        context: 'PerpsHeroCardView.captureCard',
+      Logger.error(ensureError(error, 'PerpsHeroCardView.captureCard'), {
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
+        context: { name: 'PerpsHeroCardView.captureCard', data: {} },
       });
       return null;
     }
@@ -439,9 +435,9 @@ const PerpsHeroCardView: React.FC = () => {
         showToast(PerpsToastOptions.contentSharing.pnlHeroCard.shareFailed);
       }
 
-      Logger.error(ensureError(error), {
-        message: 'Error sharing Perps Hero Card',
-        context: 'PerpsHeroCardView.handleShare',
+      Logger.error(ensureError(error, 'PerpsHeroCardView.handleShare'), {
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
+        context: { name: 'PerpsHeroCardView.handleShare', data: {} },
       });
     } finally {
       setIsSharing(false);
@@ -518,16 +514,17 @@ const PerpsHeroCardView: React.FC = () => {
       {/* Footer Button */}
       <View style={styles.footerButtonContainer}>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('perps.pnl_hero_card.share_button')}
-          startIconName={isSharing ? undefined : IconName.Share}
+          isFullWidth
+          startIconName={isSharing ? undefined : DSIconName.Share}
           onPress={handleShare}
-          loading={isSharing}
+          isLoading={isSharing}
           isDisabled={isSharing}
           testID={PerpsHeroCardViewSelectorsIDs.SHARE_BUTTON}
-        />
+        >
+          {strings('perps.pnl_hero_card.share_button')}
+        </Button>
       </View>
     </SafeAreaView>
   );

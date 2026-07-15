@@ -27,7 +27,7 @@ import {
 import { useUnlockedRewards } from '../../hooks/useUnlockedRewards';
 import RewardsSeasonEndedNoUnlockedRewardsImage from '../../../../../images/rewards/rewards-season-ended-no-unlocked-rewards.svg';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import RewardItem from '../RewardItem/RewardItem';
 import { useTheme } from '../../../../../util/theme';

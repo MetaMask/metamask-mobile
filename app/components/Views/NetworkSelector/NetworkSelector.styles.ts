@@ -200,6 +200,13 @@ const createStyles = (colors: Colors) =>
       bottom: 10,
       right: 10,
     },
+    noNetworkFeeContainer: {
+      alignSelf: 'center',
+    },
+    networkNameText: {
+      flex: 1,
+      minWidth: 0,
+    },
   });
 
 export default createStyles;

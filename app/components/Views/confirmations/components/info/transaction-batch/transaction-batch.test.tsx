@@ -69,6 +69,9 @@ jest.mock('@react-navigation/native', () => {
       setOptions: jest.fn(),
       addListener: jest.fn().mockReturnValue(noop),
     }),
+    useRoute: () => ({
+      params: {},
+    }),
   };
 });
 
@@ -113,6 +116,9 @@ describe('BatchTransaction', () => {
       onReject: mockOnReject,
       addBackButton: true,
       theme: expect.any(Object),
+      mmPayRequestInProgressNavHandler: expect.objectContaining({
+        current: false,
+      }),
     });
   });
 

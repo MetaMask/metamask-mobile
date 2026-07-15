@@ -3,7 +3,7 @@ import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
 import Logger from '../../../../util/Logger';
 import { processAggregatorOrder } from '../Aggregator/orderProcessor/aggregator';
-import { processDepositOrder } from '../Deposit/orderProcessor';
+import { processUnifiedOrder } from './unifiedOrderProcessor';
 
 function processOrder(
   order: FiatOrder,
@@ -12,20 +12,27 @@ function processOrder(
   switch (order.provider) {
     case FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY:
     case FIAT_ORDER_PROVIDERS.TRANSAK:
-    case FIAT_ORDER_PROVIDERS.MOONPAY: {
+    case FIAT_ORDER_PROVIDERS.MOONPAY:
+    case FIAT_ORDER_PROVIDERS.DEPOSIT: {
       return order;
+    }
+    case FIAT_ORDER_PROVIDERS.RAMPS_V2: {
+      return processUnifiedOrder(order, options);
     }
     case FIAT_ORDER_PROVIDERS.AGGREGATOR: {
       return processAggregatorOrder(order, options);
-    }
-    case FIAT_ORDER_PROVIDERS.DEPOSIT: {
-      return processDepositOrder(order, options);
     }
     default: {
       const unrecognizedProviderError = new Error(
         'FiatOrders::ProcessOrder unrecognized provider',
       );
-      Logger.error(unrecognizedProviderError, order);
+      Logger.error(unrecognizedProviderError, {
+        orderId: order.id,
+        provider: order.provider,
+        orderType: order.orderType,
+        state: order.state,
+        network: order.network,
+      });
       return order;
     }
   }

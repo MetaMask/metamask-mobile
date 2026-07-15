@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -76,6 +76,9 @@ jest.mock('../../../../../locales/i18n', () => ({
 jest.mock('../utils', () => ({
   convertInternalAccountToCaipAccountId: jest.fn(
     (account) => `eip155:1:${account.id}`,
+  ),
+  navigateToRewardsRoute: jest.fn((navigation, screen, params) =>
+    navigation.navigate('RewardsFlow', { screen, params }),
   ),
 }));
 
@@ -158,7 +161,7 @@ describe('useRewardDashboardModals', () => {
           confirmAction: {
             label: 'Add accounts',
             onPress: expect.any(Function),
-            variant: 'Primary',
+            variant: 'primary',
           },
           onCancel: expect.any(Function),
           cancelMode: 'top-right-cross-icon',
@@ -240,7 +243,10 @@ describe('useRewardDashboardModals', () => {
         type: 'SET_HIDE_UNLINKED_ACCOUNTS_BANNER',
         payload: true,
       });
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_SETTINGS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_SETTINGS_VIEW,
+        params: undefined,
+      });
     });
 
     it('handles cancel action correctly', () => {
@@ -270,7 +276,7 @@ describe('useRewardDashboardModals', () => {
         type: 'SET_HIDE_UNLINKED_ACCOUNTS_BANNER',
         payload: true,
       });
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('does not show modal when bulk link is running', () => {
@@ -370,7 +376,7 @@ describe('useRewardDashboardModals', () => {
             label: 'Add account',
             loadOnPress: true,
             onPress: expect.any(Function),
-            variant: 'Primary',
+            variant: 'primary',
           },
           cancelMode: 'top-right-cross-icon',
           showCancelButton: true,
@@ -439,7 +445,7 @@ describe('useRewardDashboardModals', () => {
       expect(mockLinkAccountGroup).toHaveBeenCalledWith(
         mockSelectedAccountGroup.id,
       );
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
       expect(mockDispatch).toHaveBeenCalledWith({
         type: 'SET_HIDE_CURRENT_ACCOUNT_NOT_OPTED_IN_BANNER',
         payload: { accountGroupId: mockSelectedAccountGroup.id, hide: true },
@@ -549,7 +555,7 @@ describe('useRewardDashboardModals', () => {
           confirmAction: {
             label: 'OK',
             onPress: expect.any(Function),
-            variant: 'Primary',
+            variant: 'primary',
           },
           showCancelButton: true,
           cancelMode: 'top-right-cross-icon',
@@ -600,7 +606,7 @@ describe('useRewardDashboardModals', () => {
           confirmAction: {
             label: 'OK',
             onPress: expect.any(Function),
-            variant: 'Primary',
+            variant: 'primary',
           },
           showCancelButton: true,
           cancelMode: 'top-right-cross-icon',

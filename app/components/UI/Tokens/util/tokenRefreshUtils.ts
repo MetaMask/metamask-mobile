@@ -25,7 +25,7 @@ const withTimeout = <T>(
 
 /**
  * Refreshes token-specific data (detection, balances, rates).
- * Does NOT refresh account balance - use performEvmRefresh for that.
+ * Does NOT refresh account balance.
  */
 export const performEvmTokenRefresh = async (
   evmNetworkConfigurationsByChainId: Record<
@@ -71,57 +71,9 @@ export const performEvmTokenRefresh = async (
       REFRESH_TIMEOUT_MS,
       'performEvmTokenRefresh',
     );
-  } catch (error) {
-    Logger.error(error as Error, 'Error while refreshing tokens');
+  } catch {
+    Logger.log(
+      'performEvmTokenRefresh timed out; balances may be stale until the next refresh',
+    );
   }
-};
-
-/**
- * Refreshes both token data AND account balance/currency rates.
- * Use this for full refresh that includes native balance.
- */
-export const performEvmRefresh = async (
-  evmNetworkConfigurationsByChainId: Record<
-    string,
-    { chainId: Hex; nativeCurrency: string }
-  >,
-  nativeCurrencies: string[],
-) => {
-  const {
-    AccountTrackerController,
-    CurrencyRateController,
-    NetworkController,
-    NetworkEnablementController,
-  } = Engine.context;
-
-  const networkConfigurations =
-    NetworkController.state.networkConfigurationsByChainId;
-
-  const chainIds = Object.entries(
-    NetworkEnablementController.state.enabledNetworkMap[
-      KnownCaipNamespace.Eip155
-    ] || {},
-  )
-    .filter(([, isEnabled]) => isEnabled === true)
-    .map(([chainId]) => chainId as Hex);
-
-  const networkClientIds = chainIds
-    .map((c) => {
-      const config = networkConfigurations[c];
-      if (!config) {
-        return undefined;
-      }
-
-      return config?.rpcEndpoints?.[config?.defaultRpcEndpointIndex]
-        ?.networkClientId;
-    })
-    .filter((c: string | undefined): c is string => Boolean(c));
-
-  await Promise.all([
-    performEvmTokenRefresh(evmNetworkConfigurationsByChainId),
-    AccountTrackerController.refresh(networkClientIds),
-    CurrencyRateController.updateExchangeRate(nativeCurrencies),
-  ]).catch((error) => {
-    Logger.error(error, 'Error while refreshing tokens');
-  });
 };

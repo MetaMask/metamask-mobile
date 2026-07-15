@@ -4,6 +4,8 @@ import RewardsReferralCodeTag from './RewardsReferralCodeTag';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import { useStyles } from '../../../../../component-library/hooks';
 
+const { mockTheme } = jest.requireActual('../../../../../util/theme');
+
 jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: jest.fn((_styleSheet, params) => ({
     styles: {
@@ -41,10 +43,7 @@ jest.mock('react', () => ({
   })),
 }));
 
-jest.mock(
-  '../../../../../images/rewards/metamask-rewards-points.svg',
-  () => 'FoxRewardIcon',
-);
+jest.mock('../../../../../images/rewards/vip.svg', () => 'VipIcon');
 
 describe('RewardsReferralCodeTag', () => {
   beforeEach(() => {
@@ -62,7 +61,7 @@ describe('RewardsReferralCodeTag', () => {
   });
 
   it('applies custom backgroundColor when provided', () => {
-    const customBackgroundColor = '#FF0000';
+    const customBackgroundColor = mockTheme.colors.error.default;
 
     render(
       <RewardsReferralCodeTag
@@ -80,7 +79,7 @@ describe('RewardsReferralCodeTag', () => {
   });
 
   it('applies custom fontColor when provided', () => {
-    const customFontColor = '#00FF00';
+    const customFontColor = mockTheme.colors.success.default;
 
     render(
       <RewardsReferralCodeTag

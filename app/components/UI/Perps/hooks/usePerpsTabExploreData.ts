@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
-import type { PerpsMarketData } from '../controllers/types';
+import { type PerpsMarketData } from '@metamask/perps-controller';
+import { getSuggestedWatchlistMarkets } from '../utils/marketUtils';
 
 const EXPLORE_MARKETS_LIMIT = 8;
 
@@ -12,10 +13,12 @@ interface UsePerpsTabExploreDataOptions {
 }
 
 interface UsePerpsTabExploreDataResult {
-  /** Top 8 crypto + equity markets by volume */
+  /** Top 8 markets by volume (all types) */
   exploreMarkets: PerpsMarketData[];
   /** Markets in user's watchlist */
   watchlistMarkets: PerpsMarketData[];
+  /** Top 5 markets by 24h volume, used as suggestions when watchlist is empty */
+  suggestedWatchlistMarkets: PerpsMarketData[];
   /** Loading state for markets data */
   isLoading: boolean;
   /** Whether user has any watchlist symbols (available before markets load) */
@@ -27,7 +30,7 @@ interface UsePerpsTabExploreDataResult {
  * Used when user has no open positions or orders.
  *
  * Provides:
- * - Top 8 markets by volume (crypto + equity)
+ * - Top 8 markets by volume (all types)
  * - Watchlist markets
  */
 export const usePerpsTabExploreData = ({
@@ -55,9 +58,18 @@ export const usePerpsTabExploreData = ({
     return markets.filter((m) => watchlistSymbols.includes(m.symbol));
   }, [markets, watchlistSymbols, enabled]);
 
+  // Top markets by 24h volume — shown as suggestions below the watchlist.
+  // Excludes already-watchlisted markets so the list shrinks as items are added,
+  // with a floor of one via volume-ranked refill.
+  const suggestedWatchlistMarkets = useMemo(() => {
+    if (!enabled) return [];
+    return getSuggestedWatchlistMarkets(markets, watchlistSymbols);
+  }, [markets, watchlistSymbols, enabled]);
+
   return {
     exploreMarkets,
     watchlistMarkets,
+    suggestedWatchlistMarkets,
     isLoading,
     hasWatchlistSymbols: watchlistSymbols.length > 0,
   };

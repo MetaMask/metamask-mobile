@@ -4,7 +4,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { AccountGroupType, AccountGroupId } from '@metamask/account-api';
 import { Box } from '@metamask/design-system-react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   Caip25EndowmentPermissionName,
   Caip25CaveatValue,
@@ -13,11 +13,10 @@ import {
 
 import MultichainAccountConnect from './MultichainAccountConnect';
 import { AccountGroupWithInternalAccounts } from '../../../../selectors/multichainAccounts/accounts.type';
-import { AccountConnectProps } from '../../AccountConnect/AccountConnect.types';
-import { ToastContextWrapper } from '../../../../component-library/components/Toast';
+import { AccountConnectProps } from '../../MultichainAccounts/shared/AccountConnect.types';
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const createMockAccountGroupWithInternalAccounts = (
   id: string,
@@ -31,6 +30,7 @@ const createMockAccountGroupWithInternalAccounts = (
     name,
     pinned: false,
     hidden: false,
+    lastSelected: 0,
   },
   accounts: [createMockInternalAccount(address, name)],
 });
@@ -208,13 +208,11 @@ const MultichainAccountConnectMeta = {
       }: { args: { accountGroups?: AccountGroupWithInternalAccounts[] } },
     ) => (
       <Provider store={createMockStore(args.accountGroups)}>
-        <ToastContextWrapper>
-          <MockNavigationWrapper>
-            <Box twClassName="flex-1 bg-default">
-              <Story />
-            </Box>
-          </MockNavigationWrapper>
-        </ToastContextWrapper>
+        <MockNavigationWrapper>
+          <Box twClassName="flex-1 bg-default">
+            <Story />
+          </Box>
+        </MockNavigationWrapper>
       </Provider>
     ),
   ],

@@ -5,15 +5,12 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useCallback, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { selectERC20TokensByChain } from '../../../../selectors/tokenListController';
-import { safeToChecksumAddress } from '../../../../util/address';
+import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
 import useEarnToasts from './useEarnToasts';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { decodeTransferData } from '../../../../util/transactions';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
-import NetworkList from '../../../../util/networks';
 import { TOAST_TRACKING_CLEANUP_DELAY_MS } from '../constants/musd';
 import {
   trace,
@@ -23,6 +20,13 @@ import {
 } from '../../../../util/trace';
 import { store } from '../../../../store';
 import { selectTransactionPayQuotesByTransactionId } from '../../../../selectors/transactionPayController';
+import { getNetworkName } from '../utils/network';
+import { getMusdConversionQuoteTrackingData } from '../utils/analytics';
+
+function getTransactionPayQuotes(transactionId: string) {
+  const state = store.getState();
+  return selectTransactionPayQuotesByTransactionId(state, transactionId) ?? [];
+}
 
 /**
  * Hook to monitor mUSD conversion transaction status and show appropriate toasts
@@ -40,43 +44,36 @@ import { selectTransactionPayQuotesByTransactionId } from '../../../../selectors
  * navigating away from the conversion screen.
  */
 export const useMusdConversionStatus = () => {
-  const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
-
   const { showToast, EarnToastOptions } = useEarnToasts();
-  const tokensChainsCache = useSelector(selectERC20TokensByChain);
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const shownToastsRef = useRef<Set<string>>(new Set());
-  const tokensCacheRef = useRef(tokensChainsCache);
-  tokensCacheRef.current = tokensChainsCache;
-
-  const getNetworkName = useCallback(
-    (chainId?: Hex) => {
-      if (!chainId) return 'Unknown Network';
-
-      const nickname = networkConfigurations[chainId]?.name;
-
-      const name = Object.values(NetworkList).find(
-        (network: { chainId?: Hex; shortName: string }) =>
-          network.chainId === chainId,
-      )?.shortName;
-
-      return name ?? nickname ?? chainId;
-    },
-    [networkConfigurations],
-  );
 
   const submitConversionEvent = useCallback(
     (
       transactionMeta: TransactionMeta,
       token: { name: string; symbol: string },
     ) => {
-      const [, amountDecimalString, amountHexString] = decodeTransferData(
-        'transfer',
-        transactionMeta?.txParams?.data || '',
+      let amountDecimalString = '';
+      let amountHexString = '';
+
+      try {
+        const decoded = decodeTransferData(
+          'transfer',
+          transactionMeta?.txParams?.data || '',
+        );
+        amountDecimalString = decoded?.[1] ?? '';
+        amountHexString = decoded?.[2] ?? '';
+      } catch {
+        // If txParams.data is malformed or missing, keep amounts empty.
+      }
+
+      const quotes = getTransactionPayQuotes(transactionMeta.id);
+
+      const quoteTrackingData = getMusdConversionQuoteTrackingData(
+        transactionMeta,
+        quotes,
       );
 
       trackEvent(
@@ -90,27 +87,25 @@ export const useMusdConversionStatus = () => {
             network_name: getNetworkName(transactionMeta?.chainId),
             amount_decimal: amountDecimalString,
             amount_hex: amountHexString,
+            ...quoteTrackingData,
           })
           .build(),
       );
     },
-    [createEventBuilder, getNetworkName, trackEvent],
+    [createEventBuilder, trackEvent],
   );
 
   useEffect(() => {
     const getTokenData = (chainId: Hex, tokenAddress: string) => {
-      const chainTokens = tokensCacheRef.current?.[chainId]?.data;
-      if (!chainTokens) return { symbol: '', name: '' };
-
-      const checksumAddress = safeToChecksumAddress(tokenAddress);
-      const tokenData =
-        chainTokens[checksumAddress as string] ||
-        chainTokens[tokenAddress.toLowerCase()];
-
+      const state = store.getState();
+      const token = selectSingleTokenByAddressAndChainId(
+        state,
+        tokenAddress as Hex,
+        chainId,
+      );
       return {
-        symbol: tokenData?.symbol || '',
-        iconUrl: tokenData?.iconUrl,
-        name: tokenData?.name || '',
+        symbol: token?.symbol || '',
+        name: token?.name || '',
       };
     };
 
@@ -176,12 +171,7 @@ export const useMusdConversionStatus = () => {
           );
           shownToastsRef.current.add(toastKey);
 
-          // Get quotes from state to include strategy in trace
-          const state = store.getState();
-          const quotes = selectTransactionPayQuotesByTransactionId(
-            state,
-            transactionId,
-          );
+          const quotes = getTransactionPayQuotes(transactionId);
 
           // Start confirmation trace (approved fires immediately after user confirms)
           trace({

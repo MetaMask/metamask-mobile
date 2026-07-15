@@ -39,6 +39,7 @@ import {
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { isTradableToken } from '../../utils/isTradableToken';
+import { normalizeTokenAddress } from '../../utils/tokenUtils';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -51,6 +52,10 @@ interface CalculateFiatBalancesParams {
   currentCurrency: string;
   selectedAddress: Hex;
   evmAccountsByChainId: ReturnType<typeof selectAccountsByChainId>;
+}
+
+function hasNonZeroBalance(token: BridgeToken) {
+  return Number(token.balance ?? 0) > 0;
 }
 
 /**
@@ -261,7 +266,7 @@ export const useTokensWithBalance: ({
         }
 
         return {
-          address: token.address,
+          address: normalizeTokenAddress(token.address, chainId),
           name: token.name,
           decimals: token.decimals,
           symbol: token.isETH ? 'ETH' : token.symbol, // TODO: not sure why symbol is ETHEREUM, will also break the token icon for ETH
@@ -280,7 +285,9 @@ export const useTokensWithBalance: ({
             : undefined) as BridgeToken['rwaData'],
         };
       });
-    return sortAssets(properTokens, tokenSortConfig);
+    const tokensWithPositiveBalance = properTokens.filter(hasNonZeroBalance);
+
+    return sortAssets(tokensWithPositiveBalance, tokenSortConfig);
   }, [
     evmAccountTokensAcrossChains,
     multiChainMarketData,

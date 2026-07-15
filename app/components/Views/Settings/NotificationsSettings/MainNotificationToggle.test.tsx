@@ -1,13 +1,11 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { Linking } from 'react-native';
-import AppConstants from '../../../../core/AppConstants';
 import {
-  MAIN_NOTIFICATION_TOGGLE_LEARN_MORE_TEST_ID,
   MAIN_NOTIFICATION_TOGGLE_TEST_ID,
   MainNotificationToggle,
 } from './MainNotificationToggle';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as MainNotificationToggleHookModule from './MainNotificationToggle.hooks';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 
@@ -18,6 +16,7 @@ const arrangeToggleHook = () => {
     .mockReturnValue({
       onToggle: mockOnToggle,
       value: true,
+      isUpdating: false,
     });
 
   return {
@@ -51,26 +50,23 @@ describe('MainNotificationToggle', () => {
       NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE,
     );
 
-    fireEvent(toggleSwitch, 'onChange', { nativeEvent: { value: false } });
+    fireEvent(toggleSwitch, 'onValueChange', false);
 
     await waitFor(() => {
-      expect(mocks.mockOnToggle).toHaveBeenCalled();
+      expect(mocks.mockOnToggle).toHaveBeenCalledWith(false);
     });
   });
 
-  it('opens learn more link', async () => {
-    const mocks = arrangeMocks();
-    const { getByTestId } = render(<MainNotificationToggle />);
-    const learnMoreText = getByTestId(
-      MAIN_NOTIFICATION_TOGGLE_LEARN_MORE_TEST_ID,
-    );
-
-    fireEvent.press(learnMoreText);
-
-    await waitFor(() => {
-      expect(mocks.mockOpenURL).toHaveBeenCalledWith(
-        AppConstants.URLS.PROFILE_SYNC,
-      );
+  it('disables the switch while updating', () => {
+    arrangeMocks().mockUseMainNotificationToggle.mockReturnValue({
+      onToggle: jest.fn(),
+      value: true,
+      isUpdating: true,
     });
+    const { getByTestId } = render(<MainNotificationToggle />);
+
+    expect(
+      getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
+    ).toHaveProp('disabled', true);
   });
 });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, fireEvent, render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { QuickPickButtons } from './QuickPickButtons';
 import { QuickPickButtonOption } from './types';
 
@@ -27,7 +28,7 @@ describe('QuickPickButtons', () => {
   describe('rendering', () => {
     it('renders all buttons with correct labels', () => {
       const { getByText } = render(
-        <QuickPickButtons options={defaultOptions} />,
+        <QuickPickButtons options={defaultOptions} show />,
       );
 
       expect(getByText('25%')).toBeTruthy();
@@ -38,7 +39,7 @@ describe('QuickPickButtons', () => {
 
     it('renders buttons in correct order', () => {
       const { getAllByRole } = render(
-        <QuickPickButtons options={defaultOptions} />,
+        <QuickPickButtons options={defaultOptions} show />,
       );
 
       const buttons = getAllByRole('button');
@@ -46,9 +47,9 @@ describe('QuickPickButtons', () => {
       expect(buttons).toHaveLength(4);
     });
 
-    it('returns null when hidden prop is true', () => {
+    it('returns null when show prop is false', () => {
       const { queryByText } = render(
-        <QuickPickButtons options={defaultOptions} hidden />,
+        <QuickPickButtons options={defaultOptions} show={false} />,
       );
 
       expect(queryByText('25%')).toBeNull();
@@ -57,9 +58,9 @@ describe('QuickPickButtons', () => {
       expect(queryByText('Max')).toBeNull();
     });
 
-    it('renders when hidden prop is false', () => {
+    it('renders when show prop is true', () => {
       const { getByText } = render(
-        <QuickPickButtons options={defaultOptions} hidden={false} />,
+        <QuickPickButtons options={defaultOptions} show />,
       );
 
       expect(getByText('25%')).toBeTruthy();
@@ -68,22 +69,22 @@ describe('QuickPickButtons', () => {
       expect(getByText('Max')).toBeTruthy();
     });
 
-    it('renders when hidden prop is undefined', () => {
-      const { getByText } = render(
-        <QuickPickButtons options={defaultOptions} hidden={undefined} />,
+    it('does not render when show prop is undefined', () => {
+      const { queryByText } = render(
+        <QuickPickButtons options={defaultOptions} show={undefined} />,
       );
 
-      expect(getByText('25%')).toBeTruthy();
-      expect(getByText('50%')).toBeTruthy();
-      expect(getByText('75%')).toBeTruthy();
-      expect(getByText('Max')).toBeTruthy();
+      expect(queryByText('25%')).toBeNull();
+      expect(queryByText('50%')).toBeNull();
+      expect(queryByText('75%')).toBeNull();
+      expect(queryByText('Max')).toBeNull();
     });
   });
 
   describe('button interactions', () => {
     it('calls correct onPress handler when 25% button is pressed', () => {
       const { getByText } = render(
-        <QuickPickButtons options={defaultOptions} />,
+        <QuickPickButtons options={defaultOptions} show />,
       );
 
       const button25 = getByText('25%');
@@ -100,7 +101,7 @@ describe('QuickPickButtons', () => {
 
     it('calls correct onPress handler when 50% button is pressed', () => {
       const { getByText } = render(
-        <QuickPickButtons options={defaultOptions} />,
+        <QuickPickButtons options={defaultOptions} show />,
       );
 
       const button50 = getByText('50%');
@@ -117,7 +118,7 @@ describe('QuickPickButtons', () => {
 
     it('calls correct onPress handler when 75% button is pressed', () => {
       const { getByText } = render(
-        <QuickPickButtons options={defaultOptions} />,
+        <QuickPickButtons options={defaultOptions} show />,
       );
 
       const button75 = getByText('75%');
@@ -134,7 +135,7 @@ describe('QuickPickButtons', () => {
 
     it('calls correct onPress handler when Max button is pressed', () => {
       const { getByText } = render(
-        <QuickPickButtons options={defaultOptions} />,
+        <QuickPickButtons options={defaultOptions} show />,
       );
 
       const buttonMax = getByText('Max');
@@ -151,7 +152,7 @@ describe('QuickPickButtons', () => {
 
     it('handles multiple button presses correctly', () => {
       const { getByText } = render(
-        <QuickPickButtons options={defaultOptions} />,
+        <QuickPickButtons options={defaultOptions} show />,
       );
 
       act(() => {
@@ -173,7 +174,7 @@ describe('QuickPickButtons', () => {
 
   describe('edge cases', () => {
     it('renders with empty options array', () => {
-      const { queryByRole } = render(<QuickPickButtons options={[]} />);
+      const { queryByRole } = render(<QuickPickButtons options={[]} show />);
 
       const buttons = queryByRole('button');
 
@@ -186,7 +187,7 @@ describe('QuickPickButtons', () => {
       ];
 
       const { getByText, queryByText } = render(
-        <QuickPickButtons options={singleOption} />,
+        <QuickPickButtons options={singleOption} show />,
       );
 
       expect(getByText('Single')).toBeTruthy();
@@ -202,7 +203,7 @@ describe('QuickPickButtons', () => {
       ];
 
       const { getByText } = render(
-        <QuickPickButtons options={customOptions} />,
+        <QuickPickButtons options={customOptions} show />,
       );
 
       expect(getByText('Low')).toBeTruthy();
@@ -218,7 +219,7 @@ describe('QuickPickButtons', () => {
       ];
 
       const { getAllByText } = render(
-        <QuickPickButtons options={duplicateOptions} />,
+        <QuickPickButtons options={duplicateOptions} show />,
       );
 
       const buttons = getAllByText('Same');
@@ -239,7 +240,9 @@ describe('QuickPickButtons', () => {
         { label: 'NoOp', onPress: () => {} },
       ];
 
-      const { getByText } = render(<QuickPickButtons options={noOpOptions} />);
+      const { getByText } = render(
+        <QuickPickButtons options={noOpOptions} show />,
+      );
 
       expect(() => {
         act(() => {
@@ -259,7 +262,7 @@ describe('QuickPickButtons', () => {
       ];
 
       const { getByText } = render(
-        <QuickPickButtons options={standardOptions} />,
+        <QuickPickButtons options={standardOptions} show />,
       );
 
       expect(getByText('25%')).toBeTruthy();
@@ -279,7 +282,7 @@ describe('QuickPickButtons', () => {
       ];
 
       const { getByText, queryByText } = render(
-        <QuickPickButtons options={gaslessOptions} />,
+        <QuickPickButtons options={gaslessOptions} show />,
       );
 
       expect(getByText('25%')).toBeTruthy();
@@ -293,13 +296,32 @@ describe('QuickPickButtons', () => {
   describe('button accessibility', () => {
     it('all buttons are accessible', () => {
       const { getAllByRole } = render(
-        <QuickPickButtons options={defaultOptions} />,
+        <QuickPickButtons options={defaultOptions} show />,
       );
 
       const buttons = getAllByRole('button');
 
       buttons.forEach((button) => {
         expect(button).toBeTruthy();
+      });
+    });
+
+    it('applies shrink-safe styles so all quick-pick buttons stay visible', () => {
+      const { getAllByRole } = render(
+        <QuickPickButtons options={defaultOptions} show />,
+      );
+
+      const buttons = getAllByRole('button');
+
+      buttons.forEach((button) => {
+        const flattenedStyle = StyleSheet.flatten(button.props.style);
+
+        expect(flattenedStyle).toMatchObject({
+          flex: 1,
+          flexBasis: 0,
+          flexShrink: 1,
+          minWidth: 0,
+        });
       });
     });
   });
@@ -311,7 +333,7 @@ describe('QuickPickButtons', () => {
       ];
 
       const { getByText, rerender, queryByText } = render(
-        <QuickPickButtons options={initialOptions} />,
+        <QuickPickButtons options={initialOptions} show />,
       );
 
       expect(getByText('Initial')).toBeTruthy();
@@ -320,30 +342,30 @@ describe('QuickPickButtons', () => {
         { label: 'Updated', onPress: mockOnPress50 },
       ];
 
-      rerender(<QuickPickButtons options={updatedOptions} />);
+      rerender(<QuickPickButtons options={updatedOptions} show />);
 
       expect(getByText('Updated')).toBeTruthy();
       expect(queryByText('Initial')).toBeNull();
     });
 
-    it('updates when hidden prop changes', () => {
+    it('updates when show prop changes', () => {
       const { getByText, rerender, queryByText } = render(
-        <QuickPickButtons options={defaultOptions} hidden={false} />,
+        <QuickPickButtons options={defaultOptions} show />,
       );
 
       expect(getByText('25%')).toBeTruthy();
 
-      rerender(<QuickPickButtons options={defaultOptions} hidden />);
+      rerender(<QuickPickButtons options={defaultOptions} show={false} />);
 
       expect(queryByText('25%')).toBeNull();
     });
 
     it('maintains functionality after re-render', () => {
       const { getByText, rerender } = render(
-        <QuickPickButtons options={defaultOptions} />,
+        <QuickPickButtons options={defaultOptions} show />,
       );
 
-      rerender(<QuickPickButtons options={defaultOptions} />);
+      rerender(<QuickPickButtons options={defaultOptions} show />);
 
       act(() => {
         fireEvent.press(getByText('25%'));

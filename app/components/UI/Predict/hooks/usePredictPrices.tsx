@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -8,7 +8,6 @@ import { PriceQuery, GetPriceResponse, Side } from '../types';
 
 export interface UsePredictPricesOptions {
   queries: PriceQuery[];
-  providerId?: string;
   enabled?: boolean;
   /**
    * optional polling interval in milliseconds.
@@ -30,12 +29,7 @@ export interface UsePredictPricesResult {
 export const usePredictPrices = (
   options: UsePredictPricesOptions,
 ): UsePredictPricesResult => {
-  const {
-    queries = [],
-    providerId = 'polymarket',
-    enabled = true,
-    pollingInterval,
-  } = options;
+  const { queries = [], enabled = true, pollingInterval } = options;
 
   const [prices, setPrices] = useState<GetPriceResponse>({
     providerId: '',
@@ -68,7 +62,10 @@ export const usePredictPrices = (
     }
   }, [enabled]);
 
-  const queriesKey = JSON.stringify(queries);
+  // Memoize so the (potentially large) serialization only runs when the
+  // queries array identity actually changes, not on every re-render driven
+  // by live price ticks.
+  const queriesKey = useMemo(() => JSON.stringify(queries), [queries]);
 
   const fetchPrices = useCallback(async () => {
     if (!enabled) {
@@ -101,19 +98,11 @@ export const usePredictPrices = (
 
       const fetchedPrices = await controller.getPrices({
         queries,
-        providerId,
       });
 
       if (isMountedRef.current) {
         setPrices(fetchedPrices);
         setError(null);
-      }
-
-      // set up next poll if polling is enabled
-      if (pollingInterval && isMountedRef.current) {
-        pollingTimeoutRef.current = setTimeout(() => {
-          fetchPrices();
-        }, pollingInterval);
       }
     } catch (err) {
       const errorMessage =
@@ -133,23 +122,26 @@ export const usePredictPrices = (
             action: 'prices_load',
             operation: 'data_fetching',
             queriesCount: queries.length,
-            providerId,
           },
         },
       });
 
       if (isMountedRef.current) {
         setError(errorMessage);
-        setPrices({ providerId: '', results: [] });
       }
     } finally {
       if (isMountedRef.current) {
         setIsFetching(false);
+        if (pollingInterval && enabled) {
+          pollingTimeoutRef.current = setTimeout(() => {
+            fetchPrices();
+          }, pollingInterval);
+        }
       }
     }
     // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, queriesKey, providerId, pollingInterval]);
+  }, [enabled, queriesKey, pollingInterval]);
 
   useEffect(() => {
     if (pollingTimeoutRef.current) {

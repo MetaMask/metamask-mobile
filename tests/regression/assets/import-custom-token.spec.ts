@@ -1,12 +1,12 @@
-import { RegressionAssets } from '../../../e2e/tags';
-import TestHelpers from '../../../e2e/helpers';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import ConfirmAddAssetView from '../../../e2e/pages/wallet/ImportTokenFlow/ConfirmAddAsset';
-import ImportTokensView from '../../../e2e/pages/wallet/ImportTokenFlow/ImportTokensView';
+import { RegressionAssets } from '../../tags';
+import TestHelpers from '../../helpers';
+import WalletView from '../../page-objects/wallet/WalletView';
+import ConfirmAddAssetView from '../../page-objects/wallet/ImportTokenFlow/ConfirmAddAsset';
+import ImportTokensView from '../../page-objects/wallet/ImportTokenFlow/ImportTokensView';
 import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { LocalNode } from '../../framework';
@@ -30,13 +30,11 @@ describe(RegressionAssets('Import custom token'), () => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
+              chainId: '0x539',
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Local RPC',
+              ticker: 'ETH',
             })
             .withNetworkEnabledMap({
               eip155: { '0x539': true },

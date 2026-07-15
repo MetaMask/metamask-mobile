@@ -6,8 +6,10 @@ import { render } from '@testing-library/react-native';
 import ButtonPill from './ButtonPill';
 
 describe('ButtonPill', () => {
-  it('should render correctly', () => {
-    const { toJSON } = render(<ButtonPill onPress={jest.fn} />);
-    expect(toJSON()).toMatchSnapshot();
+  it('renders with default props', () => {
+    const { getByTestId } = render(
+      <ButtonPill onPress={jest.fn} testID="button-pill" />,
+    );
+    expect(getByTestId('button-pill')).toBeOnTheScreen();
   });
 });

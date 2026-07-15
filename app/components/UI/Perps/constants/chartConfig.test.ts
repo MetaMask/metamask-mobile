@@ -4,8 +4,9 @@ import {
   getCandlePeriodsForDuration,
   getDefaultCandlePeriodForDuration,
   calculateCandleCount,
-  getCandlestickColors,
-} from './chartConfig';
+} from '@metamask/perps-controller';
+import { getCandlestickColors } from './chartConfig';
+import { mockTheme } from '../../../../util/theme';
 
 describe('chartConfig', () => {
   describe('getCandlePeriodsForDuration', () => {
@@ -97,17 +98,19 @@ describe('chartConfig', () => {
   describe('getCandlestickColors', () => {
     it('returns colors object with positive and negative properties', () => {
       // Arrange
-      const mockColors = {
-        success: { default: '#00ff00' },
-        error: { default: '#ff0000' },
-      } as Parameters<typeof getCandlestickColors>[0];
+      const mockColors = mockTheme.colors as Parameters<
+        typeof getCandlestickColors
+      >[0];
 
       // Act
       const colors = getCandlestickColors(mockColors);
 
       // Assert
-      expect(colors).toHaveProperty('positive', '#00ff00');
-      expect(colors).toHaveProperty('negative', '#ff0000');
+      expect(colors).toHaveProperty(
+        'positive',
+        mockTheme.colors.success.default,
+      );
+      expect(colors).toHaveProperty('negative', mockTheme.colors.error.default);
     });
   });
 });

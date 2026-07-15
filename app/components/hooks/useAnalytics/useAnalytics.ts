@@ -5,7 +5,12 @@ import {
   type AnalyticsTrackingEvent,
 } from '../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../util/analytics/analytics';
-import { MetaMetrics } from '../../../core/Analytics';
+import {
+  createDataDeletionTask as createDataDeletionTaskUtil,
+  checkDataDeleteStatus as checkDataDeleteStatusUtil,
+  getDeleteRegulationCreationDate as getDeleteRegulationCreationDateUtil,
+  getDeleteRegulationId as getDeleteRegulationIdUtil,
+} from '../../../util/analytics/analyticsDataDeletion';
 import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
 
 /**
@@ -26,7 +31,7 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
  * - The anonymous event includes sensitive properties so you can know **what** but not **who**
  * - The non-anonymous event has either no properties or not sensitive one so you can know **who** but not **what**
  *
- * @returns Analytics functions compatible with the useMetrics API
+ * @returns Analytics functions
  *
  * @example basic non-anonymous tracking with no properties:
  * const { trackEvent, createEventBuilder } = useAnalytics();
@@ -75,12 +80,11 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
  *   trackEvent,
  *   createEventBuilder,
  *   enable,
- *   addTraitsToUser,
+ *   identify,
  *   createDataDeletionTask,
  *   checkDataDeleteStatus,
  *   getDeleteRegulationCreationDate,
  *   getDeleteRegulationId,
- *   isDataRecorded,
  *   isEnabled,
  *   getAnalyticsId,
  * } = useAnalytics();
@@ -88,19 +92,8 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
 export const useAnalytics = (): UseAnalyticsHook =>
   useMemo(
     () => ({
-      trackEvent: (
-        event: AnalyticsTrackingEvent,
-        saveDataRecording?: boolean,
-      ): void => {
-        const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event)
-          .setSaveDataRecording(saveDataRecording ?? true)
-          .build();
-        analytics.trackEvent(analyticsEvent);
-
-        // Preserve data deletion behavior until MetaMetrics is fully removed.
-        MetaMetrics.getInstance().updateDataRecordingFlag(
-          analyticsEvent.saveDataRecording,
-        );
+      trackEvent: (event: AnalyticsTrackingEvent): void => {
+        analytics.trackEvent(event);
       },
       enable: async (enable?: boolean): Promise<void> => {
         if (enable === false) {
@@ -109,20 +102,14 @@ export const useAnalytics = (): UseAnalyticsHook =>
           await analytics.optIn();
         }
       },
-      addTraitsToUser: async (
-        userTraits: AnalyticsUserTraits,
-      ): Promise<void> => {
+      identify: async (userTraits: AnalyticsUserTraits): Promise<void> => {
         analytics.identify(userTraits);
       },
-      createDataDeletionTask: () =>
-        MetaMetrics.getInstance().createDataDeletionTask(),
-      checkDataDeleteStatus: () =>
-        MetaMetrics.getInstance().checkDataDeleteStatus(),
+      createDataDeletionTask: () => createDataDeletionTaskUtil(),
+      checkDataDeleteStatus: () => checkDataDeleteStatusUtil(),
       getDeleteRegulationCreationDate: () =>
-        MetaMetrics.getInstance().getDeleteRegulationCreationDate(),
-      getDeleteRegulationId: () =>
-        MetaMetrics.getInstance().getDeleteRegulationId(),
-      isDataRecorded: () => MetaMetrics.getInstance().isDataRecorded(),
+        getDeleteRegulationCreationDateUtil(),
+      getDeleteRegulationId: () => getDeleteRegulationIdUtil(),
       isEnabled: (): boolean => analytics.isEnabled(),
       getAnalyticsId: async (): Promise<string | undefined> => {
         const id = await analytics.getAnalyticsId();
