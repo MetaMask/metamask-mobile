@@ -12,6 +12,12 @@ jest.mock('../../../UI/Perps/hooks/stream', () => ({
     mockUsePerpsLivePrices(options),
 }));
 
+const mockUseIsFocused = jest.fn(() => true);
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useIsFocused: () => mockUseIsFocused(),
+}));
+
 // ── Test data ──────────────────────────────────────────────────────────────────
 
 const tslaAsset: RelatedAsset = {
@@ -43,6 +49,7 @@ describe('useWhatsHappeningAssetPrices', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePerpsLivePrices.mockReturnValue({});
+    mockUseIsFocused.mockReturnValue(true);
   });
 
   describe('perps live price subscription', () => {
@@ -127,6 +134,66 @@ describe('useWhatsHappeningAssetPrices', () => {
     expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
       symbols: [],
       throttleMs: 3000,
+    });
+  });
+
+  describe('focus gating', () => {
+    it('subscribes with the real symbols while focused', () => {
+      mockUseIsFocused.mockReturnValue(true);
+
+      renderHook(() => useWhatsHappeningAssetPrices([tslaAsset]));
+
+      expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
+        symbols: ['xyz:TSLA'],
+        throttleMs: 3000,
+      });
+    });
+
+    it('passes an empty symbol list to pause the subscription while unfocused', () => {
+      mockUseIsFocused.mockReturnValue(false);
+
+      renderHook(() => useWhatsHappeningAssetPrices([tslaAsset]));
+
+      expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
+        symbols: [],
+        throttleMs: 3000,
+      });
+    });
+
+    it('keeps the last known prices, keyed by the full symbol set, while unfocused', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        'xyz:TSLA': { price: '172.50', percentChange24h: '3.45' },
+      });
+      mockUseIsFocused.mockReturnValue(false);
+
+      const { result } = renderHook(() =>
+        useWhatsHappeningAssetPrices([tslaAsset]),
+      );
+
+      expect(result.current.perpsPriceBySymbol['xyz:TSLA']).toEqual({
+        price: 172.5,
+        percentChange24h: 3.45,
+      });
+    });
+
+    it('re-subscribes with the real symbols once focus is regained', () => {
+      mockUseIsFocused.mockReturnValue(false);
+
+      const { rerender } = renderHook(() =>
+        useWhatsHappeningAssetPrices([tslaAsset]),
+      );
+      expect(mockUsePerpsLivePrices).toHaveBeenLastCalledWith({
+        symbols: [],
+        throttleMs: 3000,
+      });
+
+      mockUseIsFocused.mockReturnValue(true);
+      rerender(() => useWhatsHappeningAssetPrices([tslaAsset]));
+
+      expect(mockUsePerpsLivePrices).toHaveBeenLastCalledWith({
+        symbols: ['xyz:TSLA'],
+        throttleMs: 3000,
+      });
     });
   });
 });

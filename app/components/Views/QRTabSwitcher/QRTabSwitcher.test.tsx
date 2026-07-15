@@ -3,7 +3,6 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import QRTabSwitcher, { QRTabSwitcherScreens } from './QRTabSwitcher';
 import { useRoute } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -15,6 +14,10 @@ import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncControl
 import type { RootState } from '../../../reducers';
 import { showExtensionCancelledErrorSheet } from '../../../core/QrSync/showExtensionCancelledErrorSheet';
 import { completeExistingUserQrSyncImport } from '../../../core/QrSync/completeExistingUserQrSyncImport';
+
+const { ButtonIcon } = jest.requireActual(
+  '@metamask/design-system-react-native',
+);
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -42,13 +45,19 @@ jest.mock('../../../util/trace', () => ({
     QRTabSwitcher: 'QRTabSwitcher',
   },
 }));
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    QrSyncController: {
-      resetState: jest.fn(),
+jest.mock('../../../core/Engine', () => {
+  const { defaultQrSyncControllerState: mockDefaultQrSyncControllerState } =
+    jest.requireActual('../../../core/QrSync/QrSyncController');
+
+  return {
+    context: {
+      QrSyncController: {
+        state: { ...mockDefaultQrSyncControllerState },
+        resetState: jest.fn(),
+      },
     },
-  },
-}));
+  };
+});
 
 import Engine from '../../../core/Engine';
 
@@ -106,6 +115,13 @@ const renderWithQrSyncState = (
   qrSyncState: Partial<typeof defaultQrSyncControllerState>,
   completedOnboarding = false,
 ) => {
+  const nextQrSyncState = {
+    ...defaultQrSyncControllerState,
+    ...qrSyncState,
+  };
+
+  Engine.context.QrSyncController.state = nextQrSyncState;
+
   const reactReduxModule = jest.requireMock('react-redux') as {
     useSelector: jest.Mock;
   };
@@ -114,10 +130,7 @@ const renderWithQrSyncState = (
       selector({
         engine: {
           backgroundState: {
-            QrSyncController: {
-              ...defaultQrSyncControllerState,
-              ...qrSyncState,
-            },
+            QrSyncController: nextQrSyncState,
           },
         },
         onboarding: {
@@ -236,9 +249,6 @@ describe('QRTabSwitcher', () => {
       otp: { otp: '123456', deadline: Date.now() + 30_000 },
     });
 
-    const ButtonIcon = jest.requireActual(
-      '../../../component-library/components/Buttons/ButtonIcon',
-    ).default;
     fireEvent.press(UNSAFE_getByType(ButtonIcon));
 
     expect(mockResetState).toHaveBeenCalledTimes(1);

@@ -41,6 +41,19 @@ export function shouldShowPlusSign(activityType: ActivityListItem['type']) {
   return !hidePlusSignActivityTypes.has(activityType);
 }
 
+/**
+ * A send/receive that failed or was cancelled moved no tokens, so its transfer
+ * amount (surfaced from the attempted/original transaction) is misleading. The
+ * row, the details amount header, and the details total all suppress it via this
+ * predicate so they stay consistent.
+ */
+export function isFailedOrCancelledTransfer(item: ActivityListItem): boolean {
+  return (
+    (item.status === 'failed' || item.status === 'cancelled') &&
+    (item.type === 'send' || item.type === 'receive')
+  );
+}
+
 export const isSameLocalDay = (date: Date, otherDate: Date) =>
   date.getFullYear() === otherDate.getFullYear() &&
   date.getMonth() === otherDate.getMonth() &&
@@ -92,6 +105,26 @@ export const getActivityValue = (item: ActivityListItem) => {
 
   return undefined;
 };
+
+export function enrichTokenFromApi(
+  token: TokenAmount | undefined,
+  dataByAssetId: Record<string, { symbol?: string; decimals?: number }>,
+): TokenAmount | undefined {
+  if (!token?.assetId) {
+    return token;
+  }
+  const listToken = dataByAssetId[token.assetId.toLowerCase()];
+  if (!listToken) {
+    return token;
+  }
+  const symbol = token.symbol ?? listToken.symbol;
+  const decimals = token.decimals ?? listToken.decimals;
+  return {
+    ...token,
+    ...(symbol ? { symbol } : {}),
+    ...(decimals === undefined ? {} : { decimals }),
+  };
+}
 
 export const getActivityFromTo = (item: ActivityListItem) => {
   const { data } = item;

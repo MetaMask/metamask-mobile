@@ -218,6 +218,49 @@
     "try_again": "Try again",
     "failed": "Something went wrong"
   },
+  "scam_questionnaire": {
+    "header_title": "Security check",
+    "continue": "Continue",
+    "select_an_answer": "Select an answer",
+    "q1": {
+      "title": "Did someone you only know online tell you to send this?",
+      "subtitle": "This includes dating apps, social media, and group chats—even if you've spoken on video.",
+      "yes": "Yes, someone I met online told me to send this",
+      "no": "No, I know this person in real life"
+    },
+    "q2": {
+      "title": "What's this payment for?",
+      "subtitle": "Choose the option that best describes this payment.",
+      "investment_title": "Investment",
+      "investment_subtitle": "Buying crypto, tokens, or a financial opportunity",
+      "helping_title": "Helping someone I care about",
+      "helping_subtitle": "Sending money to a partner, family member, or friend in need",
+      "government_title": "Paying the police or a government agency",
+      "government_subtitle": "Fines, taxes, or official fees requested in crypto",
+      "job_title": "A job opportunity or work-related",
+      "job_subtitle": "Onboarding fees, equipment, or task payments",
+      "goods_title": "Buying goods or services",
+      "goods_subtitle": "Paying a merchant for something I'm receiving",
+      "self_transfer_title": "Moving funds between my own wallets",
+      "self_transfer_subtitle": "Self-transfer or moving to cold storage"
+    },
+    "q3": {
+      "title": "Is someone guiding you through this transaction?",
+      "subtitle": "This could be over a phone call, video chat, or sharing your screen.",
+      "yes": "Yes, someone is walking me through the steps right now",
+      "no": "No, I am doing this entirely on my own"
+    },
+    "warning": {
+      "title": "You might be getting scammed right now",
+      "reason_known_scam": "Based on your answers and this recipient's history, this transaction might be a scam.",
+      "reason_irreversible_emphasis": "Crypto transactions are irreversible.",
+      "reason_irreversible_detail": "Once you send, your funds can't be recovered.",
+      "stop_payment": "Stop this payment",
+      "contact_support": "Contact support",
+      "proceed_anyway": "Ignore risks and continue anyway",
+      "proceed_anyway_countdown": "Continue anyway in {{seconds}}s"
+    }
+  },
   "date": {
     "months": {
       "0": "Jan",
@@ -1064,6 +1107,50 @@
         "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
         "open_settings": "Open settings"
       }
+    },
+    "feed": {
+      "title": "Top Traders",
+      "tabs": {
+        "leaderboard": "Leaderboard",
+        "feed": "Feed"
+      },
+      "following": "Following",
+      "all": "All",
+      "trade": "Trade",
+      "action": {
+        "bought": "bought",
+        "sold": "sold",
+        "opened": "opened",
+        "closed": "closed"
+      },
+      "type_filter": {
+        "all": "All types",
+        "tokens": "Tokens",
+        "perps": "Perps"
+      },
+      "empty_following": {
+        "title": "No activity yet",
+        "description": "Follow traders to see their trades show up here."
+      },
+      "empty_all": {
+        "title": "No activity yet",
+        "description": "Trader activity will show up here as trades come in."
+      },
+      "empty_type": {
+        "tokens": {
+          "title": "No token activity"
+        },
+        "perps": {
+          "title": "No perps activity"
+        },
+        "description": "No matching trades in the activity so far."
+      },
+      "load_more": "Load more",
+      "error": {
+        "title": "Couldn't load the feed",
+        "retry": "Try again"
+      },
+      "no_data": "No data"
     },
     "onboarding": {
       "slide_trade": {
@@ -4146,7 +4233,13 @@
       "waiting_for_extension_description": "Finish choosing accounts on your computer to continue.",
       "extension_cancelled_title": "Import cancelled",
       "extension_cancelled_description": "The account import was cancelled/failed. Try again.",
-      "extension_cancelled_button": "Try again"
+      "extension_cancelled_button": "Try again",
+      "already_synced_title": "Account already synced",
+      "already_synced_description": "This account has already been synced to this device.",
+      "already_synced_button": "Close",
+      "import_failed_title": "Couldn't add account",
+      "import_failed_description": "Something went wrong while adding the account from your extension. Try again.",
+      "import_failed_button": "Close"
     }
   },
   "aes_crypto_test_form": {
@@ -10268,6 +10361,7 @@
       "trending_tokens": "Trending",
       "trending_perpetuals": "Trending perpetuals",
       "trending_predictions": "Trending predictions",
+      "watchlist": "Watchlist",
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
       "view_more": "View more",
@@ -10312,6 +10406,8 @@
   },
   "token_watchlist": {
     "added_to_watchlist": "Added to Watchlist",
-    "removed_from_watchlist": "Removed from Watchlist"
+    "removed_from_watchlist": "Removed from Watchlist",
+    "home_empty_title": "Watchlist",
+    "home_empty_subtitle": "You have no watchlist items yet"
   }
 }
