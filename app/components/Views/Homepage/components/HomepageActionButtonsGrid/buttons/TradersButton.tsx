@@ -44,7 +44,7 @@ const TradersButton = ({
   return (
     <HomepageActionButton
       allowTwoLineLabel={allowTwoLineLabel}
-      iconName={IconName.User}
+      iconName={IconName.People}
       isDisabled={!isSocialLeaderboardEnabled}
       label={label}
       onPress={handlePress}
