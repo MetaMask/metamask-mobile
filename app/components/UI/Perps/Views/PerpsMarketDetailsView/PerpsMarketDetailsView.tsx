@@ -22,6 +22,8 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, {
   useCallback,
   useEffect,
@@ -220,7 +222,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { handleUpdateTPSL } = usePerpsTPSLUpdate();
 
   // Keep direct navigation for configuration methods (setOptions, setParams)
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
   const {

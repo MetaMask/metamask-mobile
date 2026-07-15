@@ -55,6 +55,8 @@ import {
   useNavigation,
   StackActions,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -82,7 +84,7 @@ const PerpsMarketListView = ({
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
 
   const perpsNavigation = usePerpsNavigation();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const variant = route.params?.variant ?? propVariant ?? 'full';
   const title = route.params?.title ?? propTitle;

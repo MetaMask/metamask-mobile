@@ -14,6 +14,8 @@ import {
   useFocusEffect,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   Button,
   ButtonVariant,
@@ -152,7 +154,7 @@ const PerpsHomeView = ({
 }: PerpsHomeViewProps) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;

@@ -12,6 +12,8 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import Text, {
   TextVariant,
   TextColor,
@@ -224,7 +226,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   activeSLOrderId,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const hasUserInteracted = useRef(false);
   const hasSetInitialTab = useRef(false);
   const tabsListRef = useRef<TabsListRef>(null);

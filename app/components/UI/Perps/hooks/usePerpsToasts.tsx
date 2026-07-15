@@ -6,6 +6,8 @@ import {
   Spinner,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+
 import {
   playNotification,
   NotificationMoment,
@@ -249,7 +251,7 @@ const usePerpsToasts = (): {
 } => {
   const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const perpsBaseToastOptions: Record<string, PerpsToastOptions> = useMemo(
     () => ({

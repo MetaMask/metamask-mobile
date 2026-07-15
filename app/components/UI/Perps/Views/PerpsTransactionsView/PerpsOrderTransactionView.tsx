@@ -1,4 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, { useLayoutEffect } from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -32,7 +34,7 @@ import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/ext
 
 const PerpsOrderTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route = useRoute<PerpsOrderTransactionRouteProp>();
   const selectedInternalAccount = useSelector(

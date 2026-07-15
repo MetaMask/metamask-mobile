@@ -1,5 +1,7 @@
 import React, { useRef, useCallback } from 'react';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -22,7 +24,7 @@ export interface PerpsTooltipViewRouteParams {
 }
 
 const PerpsTooltipView: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<Record<string, PerpsTooltipViewRouteParams>, string>>();
   const bottomSheetRef = useRef<BottomSheetRef>(null);

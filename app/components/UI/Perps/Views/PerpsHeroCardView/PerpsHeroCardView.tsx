@@ -7,6 +7,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { captureRef } from 'react-native-view-shot';
 import Share from 'react-native-share';
 import { useSelector } from 'react-redux';
@@ -76,7 +78,7 @@ const CARD_IMAGES: { image: ImageSourcePropType; id: number; name: string }[] =
   ];
 
 const PerpsHeroCardView: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const viewShotRefs = useRef<(View | null)[]>(
     Array.from({ length: CARD_IMAGES.length }, () => null),

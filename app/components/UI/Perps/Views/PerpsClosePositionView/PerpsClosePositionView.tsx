@@ -3,6 +3,8 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, {
   useCallback,
   useEffect,
@@ -84,7 +86,7 @@ import { selectPerpsClosePositionLimitOrderEnabledFlag } from '../../selectors/f
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsClosePosition'>>();
   const { position, source: routeSource } = route.params as {

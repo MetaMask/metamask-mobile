@@ -1,6 +1,8 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { strings } from '../../../../../../locales/i18n';
 import {
   BottomSheet,
@@ -16,7 +18,7 @@ import createStyles from './PerpsQuoteExpiredModal.styles';
 import { DEPOSIT_CONFIG } from '@metamask/perps-controller';
 
 const PerpsQuoteExpiredModal = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(createStyles, {});
   const refreshRate = DEPOSIT_CONFIG.RefreshRate / 1000; // Convert to seconds
 

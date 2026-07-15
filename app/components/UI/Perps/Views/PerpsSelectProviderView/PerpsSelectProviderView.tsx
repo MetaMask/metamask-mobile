@@ -1,5 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { useSelector } from 'react-redux';
 import Logger from '../../../../../util/Logger';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
@@ -16,7 +18,7 @@ import { PERPS_CONSTANTS } from '@metamask/perps-controller';
  * Handles combined provider + network switching.
  */
 const PerpsSelectProviderView: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { activeProvider, switchProvider } = usePerpsProvider();
   const { toggleTestnet } = usePerpsNetworkConfig();
   const network = useSelector(selectPerpsNetwork);

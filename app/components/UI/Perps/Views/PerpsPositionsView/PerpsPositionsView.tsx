@@ -1,4 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -36,7 +38,7 @@ import { PerpsPositionsViewSelectorsIDs } from '../../Perps.testIds';
 
 const PerpsPositionsView: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const privacyMode = useSelector(selectPrivacyMode);
 
   const { account } = usePerpsLiveAccount();

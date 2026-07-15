@@ -1,4 +1,6 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { FlashList } from '@shopify/flash-list';
 import React, {
   useCallback,
@@ -59,7 +61,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 const PerpsTransactionsView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const [activeFilter, setActiveFilter] = useState<FilterTab>('Trades');
   const [refreshing, setRefreshing] = useState(false);

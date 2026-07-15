@@ -1,4 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { NotificationMoment } from '../../../../../util/haptics';
@@ -52,7 +54,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
 }) => {
   const theme = useTheme();
   const styles = createStyles(theme);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
   const { showToast } = usePerpsToasts();

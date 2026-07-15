@@ -2,6 +2,8 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,
@@ -59,7 +61,7 @@ interface DetailRow {
 }
 
 const PerpsOrderDetailsView: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: OrderDetailsRouteParams }, 'params'>>();
   const { order } = route.params ?? {};

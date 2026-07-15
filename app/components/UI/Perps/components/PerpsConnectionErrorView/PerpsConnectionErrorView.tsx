@@ -1,6 +1,8 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   Button,
   ButtonSize,
@@ -41,7 +43,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
   retryAttempts = 0,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { track } = usePerpsEventTracking();
 
   const errorMessage =

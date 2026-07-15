@@ -7,6 +7,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
@@ -31,7 +33,7 @@ const PerpsProviderSelectorBadge: React.FC<PerpsProviderSelectorBadgeProps> = ({
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { activeProvider, isMultiProviderEnabled } = usePerpsProvider();
   const network = useSelector(selectPerpsNetwork);
   const isTestnet = network === 'testnet';

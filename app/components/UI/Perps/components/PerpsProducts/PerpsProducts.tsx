@@ -1,5 +1,7 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -56,7 +58,7 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
   transactionActiveAbTests,
 }) => {
   const isEnabled = useSelector(selectPerpsProductsEnabledFlag);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const categoriesWithLabels = usePerpsCategories();

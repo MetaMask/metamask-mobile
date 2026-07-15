@@ -48,6 +48,8 @@ import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
 import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+
 /* eslint-disable-next-line */
 import { NavigationContext } from '@react-navigation/core';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
@@ -83,7 +85,7 @@ export function getRedesignedConfirmationsHeaderOptions({
 }
 
 const PerpsConfirmScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { params } =
     useRoute<RouteProp<PerpsNavigationParamList, 'RedesignedConfirmations'>>();
   const showPerpsHeader =

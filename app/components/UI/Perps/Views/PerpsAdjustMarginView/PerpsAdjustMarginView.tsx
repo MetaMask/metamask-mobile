@@ -2,6 +2,8 @@ import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,
@@ -47,7 +49,7 @@ interface AdjustMarginRouteParams {
 }
 
 const PerpsAdjustMarginView: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: AdjustMarginRouteParams }, 'params'>>();
   const { position: routePosition, mode } = route.params || {};

@@ -5,6 +5,8 @@ import {
   RouteProp,
   StackActions,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+
 import {
   Box,
   BoxAlignItems,
@@ -38,7 +40,7 @@ type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
  * is ready before calling depositWithOrder().
  */
 const PerpsOrderRedirect: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteParams>();
   const { direction, asset, fromTokenDetails, transactionActiveAbTests } =
     route.params;

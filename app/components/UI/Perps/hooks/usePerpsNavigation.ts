@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+
 import Routes from '../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../types/navigation';
 import {
@@ -84,7 +86,7 @@ export interface PerpsNavigationHandlers {
  * @returns Object containing all navigation handler functions
  */
 export const usePerpsNavigation = (): PerpsNavigationHandlers => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   // Main app navigation handlers
   const navigateToWallet = useCallback(() => {

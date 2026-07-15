@@ -1,4 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   Icon,
   IconColor,
@@ -54,7 +56,7 @@ const PerpsTabView = () => {
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { account } = usePerpsLiveAccount();
   const isEligible = useSelector(selectPerpsEligibility);
   const { track } = usePerpsEventTracking();
