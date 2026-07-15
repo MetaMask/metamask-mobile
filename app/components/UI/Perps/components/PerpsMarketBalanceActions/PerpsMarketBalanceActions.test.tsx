@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { StyleProp, ViewStyle } from 'react-native';
+import { StyleProp, View, ViewStyle } from 'react-native';
 import PerpsMarketBalanceActions from './PerpsMarketBalanceActions';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsLiveAccount } from '../../hooks/stream';
@@ -551,6 +551,26 @@ describe('PerpsMarketBalanceActions', () => {
         getByTestId(PerpsMarketBalanceActionsSelectorsIDs.CONTAINER),
       ).toBeOnTheScreen();
       expect(getByText('perps.deposit_in_progress')).toBeOnTheScreen();
+    });
+
+    it('renders children between progress status and action buttons', () => {
+      mockUsePerpsDepositProgress.mockReturnValue({
+        isDepositInProgress: true,
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsMarketBalanceActions hideBalanceSection showActionButtons>
+          <View testID="title-hub-slot" />
+        </PerpsMarketBalanceActions>,
+        { state: createMockState() },
+        false,
+      );
+
+      expect(getByTestId('title-hub-slot')).toBeOnTheScreen();
+      expect(getByText('perps.deposit_in_progress')).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('shows empty-balance add funds UI after loading when balance is hidden', () => {
