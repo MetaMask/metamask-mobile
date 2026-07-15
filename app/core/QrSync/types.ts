@@ -51,6 +51,7 @@ export interface QrSyncOffer {
  * - `INVALID_PAYLOAD` — scan payload, wire message, or import data failed validation
  * - `UNSUPPORTED_VERSION` — peer message uses an unsupported protocol version
  * - `SESSION_EXPIRED` — scanned session request or sync-ready deadline has expired
+ * - `GRANT_WAIT_TIMEOUT` — OTP was shown but handshake did not complete before the grant deadline
  * - `SYNC_REJECTED` — extension explicitly rejected the sync (peer-originated)
  * - `SYNC_FAILED` — unexpected runtime or wallet-client failure during an active session
  */
@@ -60,6 +61,7 @@ export type QrSyncErrorCode =
   | 'INVALID_PAYLOAD'
   | 'UNSUPPORTED_VERSION'
   | 'SESSION_EXPIRED'
+  | 'GRANT_WAIT_TIMEOUT'
   | 'SYNC_REJECTED'
   | 'SYNC_FAILED'
   | 'UNKNOWN_ERROR';

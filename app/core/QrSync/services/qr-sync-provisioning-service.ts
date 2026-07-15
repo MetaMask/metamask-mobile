@@ -49,7 +49,7 @@ import type {
   QrSyncSecretImportEntry,
 } from '../types';
 import { toFormattedAddress } from '../../../util/address';
-import Logger from '../../../util/Logger';
+import { reportQrSyncFailure } from '../qrSyncTelemetry';
 
 const SERVICE_NAME = 'QrSyncProvisioningService' as const;
 
@@ -147,16 +147,22 @@ export class QrSyncProvisioningService {
             );
           }
         } else {
-          Logger.error(
+          reportQrSyncFailure(
             new Error('QrSyncProvisioningService: Unknown secret type'),
-            secret.type,
+            {
+              surface: 'import',
+              operation: 'import_secrets_unknown_type',
+              source: 'QrSyncProvisioningService.importSecretsToVault',
+              extras: { secretType: String(secret.type) },
+            },
           );
         }
       } catch (error) {
-        Logger.error(
-          error as Error,
-          'QrSyncProvisioningService.importSecretsToVault',
-        );
+        reportQrSyncFailure(error, {
+          surface: 'import',
+          operation: 'import_secrets_to_vault',
+          source: 'QrSyncProvisioningService.importSecretsToVault',
+        });
       }
     }
   }
@@ -426,10 +432,11 @@ export class QrSyncProvisioningService {
     try {
       await this.#messenger.call('AccountTreeController:syncWithUserStorage');
     } catch (error) {
-      Logger.error(
-        error as Error,
-        'QrSyncProvisioningService: user storage reconciliation failed',
-      );
+      reportQrSyncFailure(error, {
+        surface: 'import',
+        operation: 'user_storage_reconciliation',
+        source: 'QrSyncProvisioningService.reconcileWithUserStorage',
+      });
     }
   }
 

@@ -33,7 +33,10 @@ import {
   RELAY_URL,
 } from './constants';
 import { routeIncomingQrSyncMessage } from './services/qr-sync-message-router';
-import Logger from '../../util/Logger';
+import {
+  addQrSyncPhaseBreadcrumb,
+  reportQrSyncFailure,
+} from './qrSyncTelemetry';
 
 const metadata: StateMetadata<QrSyncControllerState> = {
   phase: {
@@ -111,6 +114,8 @@ export class QrSyncController extends BaseController<
   private client: WalletClient | null = null;
 
   private sessionId: string | null = null;
+
+  private grantWaitTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   constructor({
     messenger,
@@ -221,10 +226,12 @@ export class QrSyncController extends BaseController<
     try {
       this.finalizeSecretImport();
     } catch (error) {
-      Logger.error(
-        error as Error,
-        'QrSyncController.importRemainingSecrets finalize',
-      );
+      reportQrSyncFailure(error, {
+        surface: 'import',
+        operation: 'import_remaining_secrets_finalize',
+        phase: this.state.phase,
+        source: 'QrSyncController.importRemainingSecrets',
+      });
     }
   }
 
@@ -312,6 +319,7 @@ export class QrSyncController extends BaseController<
 
   private readonly handleClientConnected = (): void => {
     // Wallet-client `connected` fires after the extension verifies OTP (handshake_ack).
+    this.clearGrantWaitTimeout();
     this.setConnectionStatus('connected');
   };
 
@@ -390,14 +398,30 @@ export class QrSyncController extends BaseController<
   private readonly handleSessionServiceEvent = (event: QrSyncServiceEvent) => {
     switch (event.type) {
       case QrSyncActionTypes.OTP_DISPLAY_GRANT: {
+        const from = this.state.phase;
+        if (from !== QrSyncPhases.DISPLAYING_OTP) {
+          addQrSyncPhaseBreadcrumb({
+            from,
+            to: QrSyncPhases.DISPLAYING_OTP,
+          });
+        }
         this.update((state) => {
           state.phase = QrSyncPhases.DISPLAYING_OTP;
           state.otp = event.data;
           state.error = null;
         });
+        this.scheduleGrantWaitTimeout(event.data.deadline);
         break;
       }
       case QrSyncActionTypes.SYNC_READY: {
+        this.clearGrantWaitTimeout();
+        const from = this.state.phase;
+        if (from !== QrSyncPhases.REVIEWING_IMPORT) {
+          addQrSyncPhaseBreadcrumb({
+            from,
+            to: QrSyncPhases.REVIEWING_IMPORT,
+          });
+        }
         this.update((state) => {
           state.phase = QrSyncPhases.REVIEWING_IMPORT;
           state.error = null;
@@ -405,6 +429,14 @@ export class QrSyncController extends BaseController<
         break;
       }
       case QrSyncActionTypes.SYNC_COMPLETED: {
+        this.clearGrantWaitTimeout();
+        const from = this.state.phase;
+        if (from !== QrSyncPhases.COMPLETED) {
+          addQrSyncPhaseBreadcrumb({
+            from,
+            to: QrSyncPhases.COMPLETED,
+          });
+        }
         this.update((state) => {
           state.phase = QrSyncPhases.COMPLETED;
           state.otp = null;
@@ -414,6 +446,7 @@ export class QrSyncController extends BaseController<
         break;
       }
       case QrSyncActionTypes.SYNC_CANCEL: {
+        this.clearGrantWaitTimeout();
         this.clearControllerState();
         this.destroySession().catch(() => undefined);
         break;
@@ -438,10 +471,17 @@ export class QrSyncController extends BaseController<
       },
     });
 
+    const from = this.state.phase;
     this.update((state) => {
       state.otp = null;
       state.phase = QrSyncPhases.AWAITING_SYNC_READY;
     });
+    if (from !== QrSyncPhases.AWAITING_SYNC_READY) {
+      addQrSyncPhaseBreadcrumb({
+        from,
+        to: QrSyncPhases.AWAITING_SYNC_READY,
+      });
+    }
   }
 
   private async sendSyncCompleted(): Promise<void> {
@@ -450,11 +490,19 @@ export class QrSyncController extends BaseController<
       version: QrSyncMessageVersion.V1,
     });
 
+    this.clearGrantWaitTimeout();
+    const from = this.state.phase;
     this.update((state) => {
       state.phase = QrSyncPhases.COMPLETED;
       state.otp = null;
       state.error = null;
     });
+    if (from !== QrSyncPhases.COMPLETED) {
+      addQrSyncPhaseBreadcrumb({
+        from,
+        to: QrSyncPhases.COMPLETED,
+      });
+    }
     await this.destroySession();
   }
 
@@ -482,10 +530,12 @@ export class QrSyncController extends BaseController<
         entropySource: primaryEntropySource,
       });
     } catch (error) {
-      Logger.error(
-        error as Error,
-        'QrSyncController.enrichPrimaryProvisioningEntry',
-      );
+      reportQrSyncFailure(error, {
+        surface: 'import',
+        operation: 'enrich_primary_provisioning_entry',
+        phase: this.state.phase,
+        source: 'QrSyncController.enrichPrimaryProvisioningEntry',
+      });
     }
   }
 
@@ -517,7 +567,11 @@ export class QrSyncController extends BaseController<
     await this.client.sendResponse(message);
   }
 
-  private transitionTo(phase: QrSyncPhase): void {
+  private transitionTo(phase: QrSyncPhase, errorCode?: QrSyncErrorCode): void {
+    const from = this.state.phase;
+    if (from !== phase) {
+      addQrSyncPhaseBreadcrumb({ from, to: phase, errorCode });
+    }
     this.update((state) => {
       state.phase = phase;
     });
@@ -529,12 +583,36 @@ export class QrSyncController extends BaseController<
     );
   }
 
+  private scheduleGrantWaitTimeout(deadline: number): void {
+    this.clearGrantWaitTimeout();
+    const delayMs = Math.max(0, deadline - Date.now());
+    this.grantWaitTimeoutId = setTimeout(() => {
+      this.grantWaitTimeoutId = null;
+      if (this.state.phase !== QrSyncPhases.DISPLAYING_OTP) {
+        return;
+      }
+      this.terminateWithError({
+        code: 'GRANT_WAIT_TIMEOUT',
+        message: 'QR sync OTP grant wait timed out before handshake completed.',
+      });
+    }, delayMs);
+  }
+
+  private clearGrantWaitTimeout(): void {
+    if (this.grantWaitTimeoutId !== null) {
+      clearTimeout(this.grantWaitTimeoutId);
+      this.grantWaitTimeoutId = null;
+    }
+  }
+
   private async notifyPeerAndEndSession(
     wireType:
       | typeof QrSyncActionTypes.SYNC_CANCEL
       | typeof QrSyncActionTypes.SYNC_ERROR,
     error?: QrSyncError,
   ): Promise<void> {
+    this.clearGrantWaitTimeout();
+
     if (this.client) {
       try {
         if (wireType === QrSyncActionTypes.SYNC_ERROR && error) {
@@ -557,6 +635,21 @@ export class QrSyncController extends BaseController<
     await this.destroySession();
 
     if (wireType === QrSyncActionTypes.SYNC_ERROR && error) {
+      const from = this.state.phase;
+      if (from !== QrSyncPhases.FAILED) {
+        addQrSyncPhaseBreadcrumb({
+          from,
+          to: QrSyncPhases.FAILED,
+          errorCode: error.code,
+        });
+      }
+      reportQrSyncFailure(new Error(error.message), {
+        surface: error.code === 'GRANT_WAIT_TIMEOUT' ? 'grant_wait' : 'session',
+        operation: 'terminate_with_error',
+        errorCode: error.code,
+        phase: from,
+        source: 'QrSyncController',
+      });
       this.update((state) => {
         state.phase = QrSyncPhases.FAILED;
         state.error = error;
@@ -568,6 +661,8 @@ export class QrSyncController extends BaseController<
   }
 
   private async destroySession(): Promise<void> {
+    this.clearGrantWaitTimeout();
+
     if (!this.client) {
       return;
     }
@@ -616,6 +711,7 @@ export class QrSyncController extends BaseController<
   }
 
   private clearControllerState(): void {
+    this.clearGrantWaitTimeout();
     this.update(() => ({
       ...defaultQrSyncControllerState,
     }));

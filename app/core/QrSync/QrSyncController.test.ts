@@ -354,6 +354,38 @@ describe('QrSyncController', () => {
       expect(walletClient.client.sendResponse).toHaveBeenCalledTimes(1);
     });
 
+    it('terminates with GRANT_WAIT_TIMEOUT when the OTP grant deadline elapses', async () => {
+      jest.useFakeTimers();
+      const controller = buildController();
+      const walletClient = buildMockWalletClient({ deferOtpAck: true });
+
+      mockCreateQrSyncWalletClient.mockResolvedValue({
+        sessionId: VALID_SESSION_ID,
+        client: walletClient.client,
+      });
+
+      const scanPromise = controller.handleScannedQrPayload(
+        buildValidScanPayload(),
+      );
+      await flushPromises();
+
+      expect(controller.state.phase).toBe(QrSyncPhases.DISPLAYING_OTP);
+
+      jest.advanceTimersByTime(30_000);
+      await flushPromises();
+
+      expect(controller.state.phase).toBe(QrSyncPhases.FAILED);
+      expect(controller.state.error).toEqual({
+        code: 'GRANT_WAIT_TIMEOUT',
+        message: 'QR sync OTP grant wait timed out before handshake completed.',
+      });
+
+      walletClient.completeOtpHandshake();
+      await scanPromise;
+      await flushPromises();
+      jest.useRealTimers();
+    });
+
     it('sends sync-offer once after connect completes the OTP handshake', async () => {
       const controller = buildController();
       const walletClient = buildMockWalletClient();

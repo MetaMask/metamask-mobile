@@ -10,6 +10,7 @@ import { getOnboardingCompletedAnalyticsPropsFromSuccessFlow } from '../analytic
 import type { WalletSetupCompletedAttributionAnalyticsPayload } from '../analytics/walletSetupCompletedAttribution';
 import { analytics } from '../analytics/analytics';
 import Logger from '../Logger';
+import { reportQrSyncFailure } from '../../core/QrSync/qrSyncTelemetry';
 import { shouldMarkWalletHomeOnboardingStepsEligible } from './walletHomeOnboardingStepsEligibility';
 
 export interface FinalizeOnboardingCompletionParams {
@@ -74,10 +75,11 @@ export function finalizeOnboardingCompletion({
     if (needsQrProvisioning) {
       Engine.context.QrSyncProvisioningService.provisionFromMetadata().catch(
         (error: unknown) => {
-          Logger.error(
-            error as Error,
-            `${discoverAccountsLogContext}: provisionFromMetadata failed`,
-          );
+          reportQrSyncFailure(error, {
+            surface: 'import',
+            operation: 'provision_from_metadata',
+            source: discoverAccountsLogContext,
+          });
         },
       );
     } else if (keyrings?.length > 0) {

@@ -16,7 +16,7 @@ import { navigateToQrSyncImport } from './navigateToQrSyncImport';
 import { showAlreadySyncedSheet } from '../../components/Views/AddDeviceToWallet/showAlreadySyncedSheet';
 import { showImportFailedSheet } from '../../components/Views/AddDeviceToWallet/showImportFailedSheet';
 import type { QrSyncSecretImportEntry } from './types';
-import Logger from '../../util/Logger';
+import { reportQrSyncFailure } from './qrSyncTelemetry';
 
 interface UseQrSyncImportNavigationOptions {
   enabled: boolean;
@@ -57,8 +57,13 @@ const finishExistingUserSyncWithoutMnemonic = async (
 
   try {
     await Engine.context.QrSyncController.importRemainingSecrets();
-  } catch {
+  } catch (error) {
     importFailed = true;
+    reportQrSyncFailure(error, {
+      surface: 'import',
+      operation: 'import_remaining_secrets',
+      source: 'finishExistingUserSyncWithoutMnemonic',
+    });
   }
 
   const accountsAfter = await Engine.context.KeyringController.getAccounts();
@@ -125,10 +130,11 @@ export const useQrSyncImportNavigation = ({
           .catch((error: unknown) => {
             hasHandledImportNavigationRef.current = false;
             Engine.context.QrSyncController.resetState();
-            Logger.error(
-              error as Error,
-              'useQrSyncImportNavigation: existing-user import failed',
-            );
+            reportQrSyncFailure(error, {
+              surface: 'import',
+              operation: 'existing_user_import_navigation',
+              source: 'useQrSyncImportNavigation',
+            });
           })
           .finally(() => {
             inFlightImportNavigation = null;
