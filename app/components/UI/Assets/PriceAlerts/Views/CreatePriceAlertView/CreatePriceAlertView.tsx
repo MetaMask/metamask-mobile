@@ -123,7 +123,6 @@ const CreatePriceAlertView: React.FC = () => {
             assetId={assetId}
             displayTicker={displayTicker}
             fromManage={fromManage}
-            isEditing={isEditing}
             editingAlert={editingPercentAlert}
             existingPercentAlerts={existingPercentAlerts}
           />
@@ -134,7 +133,6 @@ const CreatePriceAlertView: React.FC = () => {
             currentPrice={currentPrice}
             currentCurrency={currentCurrency}
             fromManage={fromManage}
-            isEditing={isEditing}
             editingAlert={editingAbsoluteAlert}
             existingThresholds={existingThresholds}
           />

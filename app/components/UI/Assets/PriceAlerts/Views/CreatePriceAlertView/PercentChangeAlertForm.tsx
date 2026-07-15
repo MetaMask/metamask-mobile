@@ -43,7 +43,6 @@ interface PercentChangeAlertFormProps {
   assetId: string;
   displayTicker: string;
   fromManage?: boolean;
-  isEditing: boolean;
   editingAlert?: PercentChangeAlert;
   existingPercentAlerts?: PercentChangeAlert[];
 }
@@ -52,12 +51,12 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
   assetId,
   displayTicker,
   fromManage,
-  isEditing,
   editingAlert,
   existingPercentAlerts,
 }) => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const isEditing = Boolean(editingAlert);
   const [percentAmount, setPercentAmount] = useState(
     editingAlert ? toPercentKeypadString(editingAlert.threshold) : KEYPAD_EMPTY,
   );
@@ -127,7 +126,7 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
         direction,
         recurring: isRecurring,
       });
-      if (isEditing && editingAlert) {
+      if (editingAlert) {
         patchAlertCache(editingAlert.id, {
           threshold: percentValue,
           recurring: isRecurring,
@@ -179,7 +178,6 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
     displayTicker,
     editingAlert,
     hasValidPercent,
-    isEditing,
     isRecurring,
     navigateAfterSave,
     patchAlertCache,

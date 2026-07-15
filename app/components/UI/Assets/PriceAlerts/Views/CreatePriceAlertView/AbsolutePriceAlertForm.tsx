@@ -38,7 +38,6 @@ interface AbsolutePriceAlertFormProps {
   currentPrice: number;
   currentCurrency: string;
   fromManage?: boolean;
-  isEditing: boolean;
   editingAlert?: AbsolutePriceAlert;
   existingThresholds?: number[];
 }
@@ -49,12 +48,12 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
   currentPrice,
   currentCurrency,
   fromManage,
-  isEditing,
   editingAlert,
   existingThresholds,
 }) => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const isEditing = Boolean(editingAlert);
   const [targetAmount, setTargetAmount] = useState(
     editingAlert ? toKeypadString(editingAlert.threshold) : KEYPAD_EMPTY,
   );
@@ -128,7 +127,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
         threshold: targetPrice,
         recurring: isRecurring,
       });
-      if (isEditing && editingAlert) {
+      if (editingAlert) {
         patchAlertCache(editingAlert.id, {
           threshold: targetPrice,
           recurring: isRecurring,
@@ -175,7 +174,6 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
     displayTicker,
     editingAlert,
     hasValidTarget,
-    isEditing,
     isRecurring,
     navigateAfterSave,
     patchAlertCache,

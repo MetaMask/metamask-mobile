@@ -51,7 +51,6 @@ function WithToast({ children }: { children: React.ReactNode }) {
 const baseProps: React.ComponentProps<typeof PercentChangeAlertForm> = {
   assetId: 'eip155:1/slip44:60',
   displayTicker: 'ETH',
-  isEditing: false,
 };
 
 const editingPercentAlert: PercentChangeAlert = {
@@ -158,7 +157,6 @@ describe('PercentChangeAlertForm', () => {
 
   it('prepopulates edit values and locks immutable form controls', () => {
     const screen = renderForm({
-      isEditing: true,
       editingAlert: editingPercentAlert,
       existingPercentAlerts: [editingPercentAlert],
     });
@@ -179,7 +177,6 @@ describe('PercentChangeAlertForm', () => {
 
   it('updates a percent alert after recurrence changes', async () => {
     const screen = renderForm({
-      isEditing: true,
       editingAlert: editingPercentAlert,
       existingPercentAlerts: [editingPercentAlert],
     });

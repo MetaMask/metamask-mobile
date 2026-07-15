@@ -53,7 +53,6 @@ const baseProps: React.ComponentProps<typeof AbsolutePriceAlertForm> = {
   displayTicker: 'ETH',
   currentPrice: 1201.98,
   currentCurrency: 'USD',
-  isEditing: false,
 };
 
 const editingAlert: AbsolutePriceAlert = {
@@ -504,7 +503,6 @@ describe('AbsolutePriceAlertForm', () => {
   describe('editing', () => {
     const renderEditingForm = () =>
       renderForm({
-        isEditing: true,
         editingAlert,
         existingThresholds: [1500],
         fromManage: true,
@@ -713,7 +711,6 @@ describe('AbsolutePriceAlertForm', () => {
 
     it('tracks previous and updated threshold properties while editing', async () => {
       const screen = renderForm({
-        isEditing: true,
         editingAlert,
         existingThresholds: [1500],
         fromManage: true,
