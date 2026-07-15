@@ -15,7 +15,7 @@ import {
   selectMoneyParallaxAnimationEnabledFlag,
   selectMoneyVaultApyRemoteConfig,
   selectIsMoneyTokenListItemCtaEnabledFlag,
-  selectMoneyTokenListCtaTokens,
+  selectMoneyDepositCtaTokens,
 } from './featureFlags';
 import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
 
@@ -266,7 +266,7 @@ describe('selectIsMoneyTokenListItemCtaEnabledFlag', () => {
   });
 });
 
-describe('selectMoneyTokenListCtaTokens', () => {
+describe('selectMoneyDepositCtaTokens', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
@@ -282,16 +282,16 @@ describe('selectMoneyTokenListCtaTokens', () => {
       earnMoneyTokenListCtaTokens: { '*': ['USDC'] },
     });
 
-    const result = selectMoneyTokenListCtaTokens(state as never);
+    const result = selectMoneyDepositCtaTokens(state as never);
 
     expect(result).toEqual({ '*': ['USDC'] });
   });
 
   it('falls back to local wildcard token list when remote config is absent', () => {
-    process.env.MM_MONEY_TOKEN_LIST_CTA_TOKENS = '{"0x1":["DAI"]}';
+    process.env.MM_MONEY_DEPOSIT_CTA_TOKENS = '{"0x1":["DAI"]}';
     const state = createState({ _unique: 'token-list-cta-local-tokens' });
 
-    const result = selectMoneyTokenListCtaTokens(state as never);
+    const result = selectMoneyDepositCtaTokens(state as never);
 
     expect(result).toEqual({ '0x1': ['DAI'] });
   });

@@ -131,14 +131,14 @@ export const selectIsMoneyTokenListItemCtaEnabledFlag = createSelector(
  * Selects stablecoins that can display the Money account deposit CTA.
  * Remote config takes precedence over the local environment override.
  */
-export const selectMoneyTokenListCtaTokens = createSelector(
+export const selectMoneyDepositCtaTokens = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): WildcardTokenList =>
     getWildcardTokenListFromConfig(
-      remoteFeatureFlags?.earnMoneyTokenListCtaTokens,
-      'earnMoneyTokenListCtaTokens',
-      process.env.MM_MONEY_TOKEN_LIST_CTA_TOKENS,
-      'MM_MONEY_TOKEN_LIST_CTA_TOKENS',
+      remoteFeatureFlags?.earnMoneyDepositCtaTokens,
+      'earnMoneyDepositCtaTokens',
+      process.env.MM_MONEY_DEPOSIT_CTA_TOKENS,
+      'MM_MONEY_DEPOSIT_CTA_TOKENS',
     ),
 );
 

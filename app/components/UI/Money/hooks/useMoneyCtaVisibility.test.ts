@@ -6,7 +6,7 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import {
   selectIsMoneyTokenListItemCtaEnabledFlag,
-  selectMoneyTokenListCtaTokens,
+  selectMoneyDepositCtaTokens,
 } from '../selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
 import { useMoneyDepositTokens } from './useMoneyDepositTokens';
@@ -57,7 +57,7 @@ const setupSelectors = ({
     if (selector === selectIsMoneyTokenListItemCtaEnabledFlag) {
       return ctaEnabled;
     }
-    if (selector === selectMoneyTokenListCtaTokens) {
+    if (selector === selectMoneyDepositCtaTokens) {
       return ctaTokens;
     }
     if (selector === selectIsMoneyAccountGeoEligible) {

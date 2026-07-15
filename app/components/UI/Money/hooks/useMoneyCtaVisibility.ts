@@ -6,7 +6,7 @@ import { TokenI } from '../../Tokens/types';
 import { isTokenInWildcardList } from '../../Earn/utils/wildcardTokenList';
 import {
   selectIsMoneyTokenListItemCtaEnabledFlag,
-  selectMoneyTokenListCtaTokens,
+  selectMoneyDepositCtaTokens,
 } from '../selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
 import { useMoneyDepositTokens } from './useMoneyDepositTokens';
@@ -21,7 +21,7 @@ export const useMoneyCtaVisibility = () => {
   const isTokenListItemCtaEnabled = useSelector(
     selectIsMoneyTokenListItemCtaEnabledFlag,
   );
-  const ctaTokens = useSelector(selectMoneyTokenListCtaTokens);
+  const ctaTokens = useSelector(selectMoneyDepositCtaTokens);
   const isGeoEligible = useSelector(selectIsMoneyAccountGeoEligible);
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
