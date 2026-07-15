@@ -57,26 +57,24 @@ interface Props {
   onAmountPress: (amount: QuickAmount) => any;
 }
 
-const QuickAmounts = ({ amounts, onAmountPress, isBuy, disabled }: Props) => {
-  return (
-    <View style={styles.content}>
-      <ScrollView
-        horizontal
-        contentContainerStyle={{ paddingLeft: INSET, paddingRight: INSET }}
-        showsHorizontalScrollIndicator={false}
-      >
-        {amounts.map((amount, index: number) => (
-          <Amount
-            isBuy={isBuy}
-            amount={amount}
-            onPress={onAmountPress}
-            key={index}
-            disabled={disabled}
-          />
-        ))}
-      </ScrollView>
-    </View>
-  );
-};
+const QuickAmounts = ({ amounts, onAmountPress, isBuy, disabled }: Props) => (
+  <View style={styles.content}>
+    <ScrollView
+      horizontal
+      contentContainerStyle={{ paddingLeft: INSET, paddingRight: INSET }}
+      showsHorizontalScrollIndicator={false}
+    >
+      {amounts.map((amount, index: number) => (
+        <Amount
+          isBuy={isBuy}
+          amount={amount}
+          onPress={onAmountPress}
+          key={index}
+          disabled={disabled}
+        />
+      ))}
+    </ScrollView>
+  </View>
+);
 
 export default QuickAmounts;
