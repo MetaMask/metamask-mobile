@@ -186,7 +186,28 @@ export const navigateToDappAndroid = async (url: string) => {
   try {
     PlaywrightUtilities.openUrlInChrome(url);
     await new Promise((r) => setTimeout(r, CHROME_VIEW_INTENT_SETTLE_MS));
-    return;
+    try {
+      await withTimeout(
+        dismissChromeAdPrivacyIfPresent(),
+        CHROME_DISMISS_TIMEOUT_MS,
+        'dismissChromeAfterViewIntent',
+      );
+    } catch {
+      // No post-navigation dialog
+    }
+    // If Chrome is still on the NTP, the intent was ignored — use omnibox.
+    try {
+      const ntpSearch = await PlaywrightMatchers.getElementByText(
+        'Search or type web address',
+        true,
+      );
+      if (!(await ntpSearch.isVisible())) {
+        return;
+      }
+    } catch {
+      // NTP placeholder absent — assume the dapp URL loaded.
+      return;
+    }
   } catch {
     // Fall back to omnibox UI navigation
   }
