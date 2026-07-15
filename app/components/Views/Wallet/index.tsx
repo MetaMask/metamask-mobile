@@ -132,6 +132,9 @@ import Homepage from '../Homepage';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import HomepageDiscoveryTabs from '../Homepage/components/HomepageDiscoveryTabs';
 import {
+  HOMEPAGE_ACTION_BUTTONS_GRID_AB_KEY,
+  HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_EXPOSURE_OPTIONS,
+  HOMEPAGE_ACTION_BUTTONS_GRID_VARIANTS,
   HOMEPAGE_DISCOVERY_PILLS_AB_KEY,
   HOMEPAGE_DISCOVERY_PILLS_AB_TEST_EXPOSURE_OPTIONS,
   HOMEPAGE_DISCOVERY_PILLS_VARIANTS,
@@ -142,6 +145,8 @@ import {
 } from '../Homepage/abTestConfig';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageDiscoveryPills } from '../Homepage/components/HomepageDiscoveryPills';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { HomepageActionButtonsGrid } from '../Homepage/components/HomepageActionButtonsGrid';
 import { useABTest } from '../../../hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
@@ -537,6 +542,30 @@ const Wallet = ({
     ///: END:ONLY_INCLUDE_IF
   ]);
 
+  /** Navigation-only send for AB treatment buttons (they own ACTION_BUTTON_CLICKED). */
+  const onSendWithoutTracking = useCallback(async () => {
+    try {
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      const wasHandledAsNonEvm = await sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
+      if (wasHandledAsNonEvm) {
+        return;
+      }
+      ///: END:ONLY_INCLUDE_IF
+
+      navigateToSendPage({ location: InitSendLocation.HomePage });
+    } catch (error) {
+      console.error('Error initiating send flow:', error);
+      navigateToSendPage({ location: InitSendLocation.HomePage });
+    }
+  }, [
+    navigateToSendPage,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    sendNonEvmAsset,
+    ///: END:ONLY_INCLUDE_IF
+  ]);
+
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
   );
@@ -755,6 +784,12 @@ const Wallet = ({
     HOMEPAGE_DISCOVERY_PILLS_AB_KEY,
     HOMEPAGE_DISCOVERY_PILLS_VARIANTS,
     HOMEPAGE_DISCOVERY_PILLS_AB_TEST_EXPOSURE_OPTIONS,
+  );
+
+  const { variant: actionButtonsGridVariant } = useABTest(
+    HOMEPAGE_ACTION_BUTTONS_GRID_AB_KEY,
+    HOMEPAGE_ACTION_BUTTONS_GRID_VARIANTS,
+    HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_EXPOSURE_OPTIONS,
   );
 
   const isDiscoveryTabsTreatment =
@@ -1021,18 +1056,25 @@ const Wallet = ({
   };
 
   const walletHomeMainAssetDetailsActions = showWalletHomeMainActions ? (
-    <AssetDetailsActions
-      displayBuyButton={displayBuyButton}
-      displaySwapsButton={displaySwapsButton}
-      goToSwaps={goToSwaps}
-      onReceive={onReceive}
-      onSend={onSend}
-      buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-      swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-      sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-      receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
-      containerTestID={WalletViewSelectorsIDs.ACTION_BUTTONS_CONTAINER}
-    />
+    actionButtonsGridVariant.layout === 'eightCircular' ? (
+      <HomepageActionButtonsGrid
+        onSend={onSendWithoutTracking}
+        rowOrder={actionButtonsGridVariant.rowOrder}
+      />
+    ) : (
+      <AssetDetailsActions
+        displayBuyButton={displayBuyButton}
+        displaySwapsButton={displaySwapsButton}
+        goToSwaps={goToSwaps}
+        onReceive={onReceive}
+        onSend={onSend}
+        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+        containerTestID={WalletViewSelectorsIDs.ACTION_BUTTONS_CONTAINER}
+      />
+    )
   ) : null;
 
   const homepageDiscoveryPills = showDiscoveryPills ? (
