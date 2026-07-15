@@ -44,6 +44,9 @@ import {
 } from '../../headless/headlessEntryNavigation';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './Checkout.styles';
+import { useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
+import { colors } from '../../../../../styles/common';
 import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
@@ -99,6 +102,11 @@ const Checkout = () => {
   const navigation = useNavigation();
   const params = useParams<CheckoutParams>();
   const { styles } = useStyles(styleSheet, {});
+  const { themeAppearance } = useTheme();
+  const transakBgClassName =
+    themeAppearance === AppThemeKey.dark
+      ? `bg-[${colors.transakBackgroundDark}]`
+      : `bg-[${colors.transakBackgroundLight}]`;
   const { addOrder, addPrecreatedOrder, getOrderFromCallback } =
     useRampsOrders();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -695,6 +703,7 @@ const Checkout = () => {
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
+        twClassName={transakBgClassName}
       >
         {sharedHeader}
         <WebView

@@ -27,6 +27,8 @@ export const colors = {
   gettingStartedPageBackgroundColor: '#EAC2FF',
   gettingStartedTextColor: '#3D065F',
   gettingStartedPageBackgroundColorLightMode: '#FFF2EB',
+  transakBackgroundDark: '#1a1a1a',
+  transakBackgroundLight: '#ffffff',
 };
 
 export const onboardingCarouselColors: Record<
