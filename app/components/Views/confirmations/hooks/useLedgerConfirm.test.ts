@@ -50,7 +50,7 @@ describe('useLedgerConfirm', () => {
       await result.current.onConfirm();
     });
 
-    expect(mockEnsureDeviceReady).toHaveBeenCalledWith('device-123');
+    expect(mockEnsureDeviceReady).toHaveBeenCalledWith('device-123', undefined);
     expect(mockSetPendingOperationAddress).toHaveBeenNthCalledWith(
       1,
       defaultOptions.fromAddress,
