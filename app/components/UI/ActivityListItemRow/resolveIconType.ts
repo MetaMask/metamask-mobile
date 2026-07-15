@@ -12,6 +12,7 @@ export function resolveIconType(type: ActivityKind): string {
     case 'nftSell':
     case 'lendingDeposit':
     case 'deposit':
+    case 'stake':
     case 'wrap':
     case 'perpsAddFunds':
     case 'predictionsAddFunds':

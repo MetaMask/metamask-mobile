@@ -30,8 +30,11 @@ on:
         description: 'Whether performance E2E tests should be forced to run via the run-performance-tests PR label'
         value: ${{ jobs.detect-changes.outputs.run_performance }}
       run_appium_ios:
-        description: 'Whether Appium iOS smoke tests should also run on a PR via the run-appium-ios-tests label'
+        description: 'Whether Appium iOS smoke tests should also run on a PR via the run-appium-ios-tests label or e2e smoke infra file changes'
         value: ${{ jobs.detect-changes.outputs.run_appium_ios }}
+      native_build_needed:
+        description: 'Whether fresh iOS/Android native E2E builds are required. False when only E2E/performance test files changed — CI reuses main branch builds instead.'
+        value: ${{ jobs.detect-changes.outputs.native_build_needed }}
 
 jobs:
   detect-changes:
@@ -48,6 +51,7 @@ jobs:
       run_smart_e2e_selection: ${{ steps.set-outputs.outputs.run_smart_e2e_selection }}
       run_performance: ${{ steps.set-outputs.outputs.run_performance }}
       run_appium_ios: ${{ steps.set-outputs.outputs.run_appium_ios }}
+      native_build_needed: ${{ steps.set-outputs.outputs.native_build_needed }}
     env:
       # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
       # For a `push` event, the head commit hash is `github.sha`.
@@ -135,140 +139,31 @@ jobs:
           filters: .github/rules/filter-rules.yml
           list-files: shell
 
+      - name: Setup Node.js for E2E requirement computation
+        if: steps.skip-merge-queue.outputs.up-to-date != 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
       - name: Compute E2E flags
         id: set-outputs
         if: steps.skip-merge-queue.outputs.up-to-date != 'true'
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          BASE_REF: ${{ github.event.pull_request.base.ref }}
           IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
           SHOULD_SKIP_E2E: ${{ steps.skip-e2e-tag.outputs.SKIP == 'true' || steps.check-labels.outputs.SKIP_E2E == 'true' }}
           LABEL_BLOCKS_MERGE: ${{ steps.check-labels.outputs.LABEL_BLOCKS_MERGE }}
           RUN_PERFORMANCE_LABEL: ${{ steps.check-labels.outputs.RUN_PERFORMANCE }}
           RUN_APPIUM_IOS_LABEL: ${{ steps.check-labels.outputs.RUN_APPIUM_IOS }}
+          E2E_SMOKE_INFRA_COUNT: ${{ steps.filter.outputs.e2e_smoke_infra_count }}
           ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
           ALL_CHANGES_FILES: ${{ github.event_name == 'pull_request' && steps.filter.outputs.all_changes_files || '' }}
           IGNORABLE_COUNT: ${{ steps.filter.outputs.e2e_ignorable_count }}
+          E2E_TEST_FILES_COUNT: ${{ steps.filter.outputs.e2e_test_files_count }}
+          E2E_TEST_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.e2e_test_or_ignorable_count }}
           E2E_WORKFLOWS_COUNT: ${{ steps.filter.outputs.e2e_relevant_workflows_count }}
           ANDROID_COUNT: ${{ steps.filter.outputs.android_count }}
           IOS_COUNT: ${{ steps.filter.outputs.ios_count }}
           ANDROID_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.android_or_ignorable_count }}
           IOS_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.ios_or_ignorable_count }}
-        run: |
-          set -euo pipefail
-
-          ANDROID=false
-          IOS=false
-          CHANGED=""
-          MSG=""
-
-          # Compute ignorable-only signal up-front so it's available for the merge-block
-          # bypass below regardless of which platform-decision branch fires.
-          # The label-driven SHOULD_SKIP_E2E branch would otherwise short-circuit and leave
-          # this flag unset for the very PRs that should bypass the merge block.
-          IGNORABLE_ONLY=false
-          if [[ "$ALL_CHANGES_COUNT" -gt 0 &&
-                "$IGNORABLE_COUNT" -eq "$ALL_CHANGES_COUNT" &&
-                "$E2E_WORKFLOWS_COUNT" -eq 0 ]]; then
-            IGNORABLE_ONLY=true
-          fi
-
-          # Scheduled runs and push to main always test both platforms
-          if [[ "$GITHUB_EVENT_NAME" == "schedule" || "$GITHUB_EVENT_NAME" == "push" ]]; then
-            MSG="E2E for both platforms (scheduled or push to main)"
-            ANDROID=true; IOS=true
-
-          # Merge queue: E2E builds and tests never run
-          elif [[ "$GITHUB_EVENT_NAME" == "merge_group" ]]; then
-            MSG="Skipping E2E (merge queue)"
-
-          # Fork PRs should not run E2E
-          elif [[ "$IS_FORK" == "true" ]]; then
-            MSG="Skipping E2E (fork PR)"
-
-          # Hard skip signals (label / commit tag) ALWAYS win for PRs
-          elif [[ "$SHOULD_SKIP_E2E" == "true" ]]; then
-            MSG="Skipping E2E (skip signal)"
-
-          # All changed files are ignorable AND no E2E-relevant workflow touched
-          elif [[ "$IGNORABLE_ONLY" == "true" ]]; then
-            MSG="Skipping E2E (ignorable-only changes)"
-
-          # Android-only: all changed files are android/** or ignorable, no iOS, no E2E workflows
-          elif [[ "$ANDROID_COUNT" -gt 0 &&
-                  "$IOS_COUNT" -eq 0 &&
-                  "$E2E_WORKFLOWS_COUNT" -eq 0 &&
-                  "$ANDROID_OR_IGNORABLE_COUNT" -ge "$ALL_CHANGES_COUNT" ]]; then
-            MSG="E2E Android only"
-            ANDROID=true
-            CHANGED="$ALL_CHANGES_FILES"
-
-          # iOS-only: all changed files are ios/** or ignorable, no Android, no E2E workflows
-          elif [[ "$IOS_COUNT" -gt 0 &&
-                  "$ANDROID_COUNT" -eq 0 &&
-                  "$E2E_WORKFLOWS_COUNT" -eq 0 &&
-                  "$IOS_OR_IGNORABLE_COUNT" -ge "$ALL_CHANGES_COUNT" ]]; then
-            MSG="E2E iOS only"
-            IOS=true
-            CHANGED="$ALL_CHANGES_FILES"
-
-          # Conservative default
-          else
-            MSG="E2E for both platforms"
-            ANDROID=true; IOS=true
-            CHANGED="$ALL_CHANGES_FILES"
-          fi
-
-          RUN_APPIUM_IOS=false
-          if [[ "$GITHUB_EVENT_NAME" == "pull_request" && \
-                "$IS_FORK" != "true" && \
-                "$RUN_APPIUM_IOS_LABEL" == "true" ]]; then
-            RUN_APPIUM_IOS=true
-          fi
-
-          E2E_NEEDED=false
-          [[ "$ANDROID" == "true" || "$IOS" == "true" ]] && E2E_NEEDED=true
-
-          # Run smart-e2e-selection for non-fork, non-hard-skip PRs with no skip-smart-e2e-selection label.
-          # Non-PR events and all skip signals bypass AI selection.
-          RUN_SMART=false
-          if [[ "$GITHUB_EVENT_NAME" == "pull_request" && \
-                "$E2E_NEEDED" == "true" && \
-                "$IS_FORK" != "true" && \
-                "$SHOULD_SKIP_E2E" != "true" ]]; then
-            RUN_SMART=true
-          fi
-
-          # Compute final merge-block signal.
-          # The label blocks merge in general, but is bypassed for ignorable-only PRs:
-          # E2E doesn't run on those, so requiring the label to be removed adds friction with no benefit.
-          BLOCK_MERGE=false
-          if [[ "$LABEL_BLOCKS_MERGE" == "true" && "$IGNORABLE_ONLY" != "true" ]]; then
-            BLOCK_MERGE=true
-          elif [[ "$LABEL_BLOCKS_MERGE" == "true" && "$IGNORABLE_ONLY" == "true" ]]; then
-            echo "-> BLOCK_MERGE bypassed — ignorable-only changes, E2E_WORKFLOWS_COUNT=0"
-          fi
-
-          RUN_PERF=false
-          if [[ "$GITHUB_EVENT_NAME" == "pull_request" && \
-                "$IS_FORK" != "true" && \
-                "$RUN_PERFORMANCE_LABEL" == "true" ]]; then
-            RUN_PERF=true
-          fi
-
-          echo "$MSG"
-          {
-            echo "android_final=$ANDROID"
-            echo "ios_final=$IOS"
-            echo "e2e_needed=$E2E_NEEDED"
-            echo "run_smart_e2e_selection=$RUN_SMART"
-            echo "block_merge=$BLOCK_MERGE"
-            echo "run_performance=$RUN_PERF"
-            echo "run_appium_ios=$RUN_APPIUM_IOS"
-          } >> "$GITHUB_OUTPUT"
-
-          {
-            echo "changed_files<<GH_EOF"
-            printf '%s\n' "$CHANGED"
-            echo "GH_EOF"
-          } >> "$GITHUB_OUTPUT"
+        run: node .github/scripts/run-compute-e2e-platform-flags.cjs

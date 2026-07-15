@@ -34,16 +34,16 @@ import {
   resetProviderToken,
 } from '../../../utils/ProviderTokenVault';
 import { PROVIDER_LINKS } from '../../../Aggregator/types';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 /**
- * Transak native provider path prefix - matches both production
- * ('/providers/transak-native') and staging ('/providers/transak-native-staging')
+ * Transak native provider code. Provider ids are canonical (non-prefixed), so
+ * `transak-native` matches both the native provider and its staging variant
+ * (`transak-native-staging`).
  */
-const TRANSAK_NATIVE_PREFIX = '/providers/transak-native';
+const TRANSAK_NATIVE_CODE = 'transak-native';
 
 const isTransakNativeProvider = (providerId?: string): boolean =>
-  providerId?.startsWith(TRANSAK_NATIVE_PREFIX) ?? false;
+  providerId?.startsWith(TRANSAK_NATIVE_CODE) ?? false;
 
 export const createSettingsModalNavDetails = createNavigationDetails(
   Routes.RAMP.MODALS.ID,
@@ -56,7 +56,6 @@ function SettingsModal() {
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
   const { selectedProvider, setSelectedProvider } = useRampsProviders();
-  const surfaceClass = useElevatedSurface();
   const [isAuthenticatedWithProvider, setIsAuthenticatedWithProvider] =
     useState<boolean>(false);
 
@@ -198,11 +197,7 @@ function SettingsModal() {
   }, []);
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      goBack={navigation.goBack}
-      twClassName={surfaceClass}
-    >
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderStandard
         title={strings('fiat_on_ramp.build_quote_settings_modal.title')}
         onClose={handleClosePress}

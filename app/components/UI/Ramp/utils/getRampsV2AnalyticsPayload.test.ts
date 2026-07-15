@@ -365,6 +365,34 @@ describe('getRampsV2AnalyticsPayload', () => {
     );
   });
 
+  it('emits provider_order_id from RampsOrder.providerOrderId when present', () => {
+    const orderWithProviderOrderId = {
+      ...mockBuyOrder,
+      state: FIAT_ORDER_STATES.COMPLETED,
+      data: {
+        ...mockBuyOrder.data,
+        providerOrderId: 'provider-order-abc',
+      },
+    };
+
+    const [, params] = getRampsV2AnalyticsPayload(
+      orderWithProviderOrderId as FiatOrder,
+    );
+
+    expect(params).toEqual(
+      expect.objectContaining({ provider_order_id: 'provider-order-abc' }),
+    );
+  });
+
+  it('omits provider_order_id when RampsOrder.providerOrderId is absent', () => {
+    const [, params] = getRampsV2AnalyticsPayload({
+      ...mockBuyOrder,
+      state: FIAT_ORDER_STATES.COMPLETED,
+    } as FiatOrder);
+
+    expect(params).not.toHaveProperty('provider_order_id');
+  });
+
   it('falls back to 0 for computed exchange_rate when cryptoAmount is 0', () => {
     const orderZeroCrypto = {
       ...mockBuyOrder,

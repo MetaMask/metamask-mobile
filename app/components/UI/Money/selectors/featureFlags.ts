@@ -8,7 +8,10 @@ import {
 } from '../../../../util/remoteFeatureFlag';
 import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
 import { WildcardTokenList } from '../../Earn/utils/wildcardTokenList';
-import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
+import {
+  MUSD_TOKEN_ADDRESS,
+  getTokenDisplaySymbol,
+} from '../../Earn/constants/musd';
 import {
   MONEY_NO_FEE_TOKENS_FALLBACK,
   ensureMonadMusdListed,
@@ -30,6 +33,23 @@ export const selectMoneyEnableActivityDetailsFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.moneyEnableActivityDetails as unknown as VersionGatedFeatureFlag;
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects whether the tilt-driven parallax animation is shown on the Money
+ * onboarding "Next Best Action" card. Defaults to off (opt-in) so the feature
+ * stays disabled unless the remote flag or MM_MONEY_PARALLAX_ANIMATION_ENABLED
+ * turns it on; the static image is used otherwise, when reduce-motion is
+ * enabled, or when Rive fails to load.
+ */
+export const selectMoneyParallaxAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyParallaxAnimationEnabled as unknown as VersionGatedFeatureFlag;
+    const local = process.env.MM_MONEY_PARALLAX_ANIMATION_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
   },
 );
 
@@ -165,6 +185,9 @@ const AAVE_TOKEN_ALIASES = new Set(['ausdc', 'ausdt', 'adai', 'ausdcn']);
  * - Strip the chain prefix ("eth_usdc" → "usdc")
  * - Known aave tokens (see AAVE_TOKEN_ALIASES): "ausdc" → "aUSDC"
  * - All others: full uppercase ("usdc" → "USDC")
+ *
+ * mUSD casing is handled by address via getTokenDisplaySymbol at the call
+ * site, not by alias here.
  */
 const normalizeTokenSymbol = (tokenAlias: string): string => {
   const underscoreIdx = tokenAlias.indexOf('_');
@@ -215,7 +238,9 @@ export const selectMoneyNoFeeDepositTokens = createSelector(
       }
 
       const srcChainHex = route.sourceChain.toLowerCase();
-      const symbol = normalizeTokenSymbol(route.sourceTokenAlias);
+      const normalized = normalizeTokenSymbol(route.sourceTokenAlias);
+      const symbol =
+        getTokenDisplaySymbol(route.sourceToken, normalized) ?? normalized;
 
       if (!catalog[srcChainHex]) catalog[srcChainHex] = [];
       if (!catalog[srcChainHex].includes(symbol)) {

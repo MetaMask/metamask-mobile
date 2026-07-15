@@ -7,6 +7,8 @@ import React, {
   useTransition,
 } from 'react';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   Box,
   FontWeight,
   HeaderStandardAnimated,
@@ -48,6 +50,7 @@ import {
   selectSocialLeaderboardPerpsEnabled,
 } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import Logger from '../../../../util/Logger';
+import NotificationService from '../../../../util/notifications/services/NotificationService';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import {
   ImpactMoment,
@@ -79,6 +82,11 @@ import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 
 type TabFilter = 'all' | 'tokens' | 'perps';
+
+// How long the post-onboarding "turn on notifications" nudge stays up before it
+// auto-dismisses (ms). Long enough to notice and act on after landing here, but
+// still transient so it never becomes permanent chrome.
+const NOTIFICATIONS_BANNER_AUTO_DISMISS_MS = 20000;
 
 interface IdleCallbackGlobals {
   requestIdleCallback?: (
@@ -239,7 +247,18 @@ const FilterTabs: React.FC<FilterTabsProps> = ({
   );
 };
 
-const TopTradersView = () => {
+export interface TopTradersViewProps {
+  /**
+   * When true, renders only the leaderboard body (filter pills + list) without
+   * its own SafeAreaView, animated header, large title, or pinned filter bar,
+   * so it can be embedded as a page inside the Leaderboard | Feed tabs.
+   */
+  embeddedInTabs?: boolean;
+}
+
+const TopTradersView: React.FC<TopTradersViewProps> = ({
+  embeddedInTabs = false,
+}) => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
   const tw = useTailwind();
@@ -276,6 +295,12 @@ const TopTradersView = () => {
   });
   const [, startTabTransition] = useTransition();
   const [refreshing, setRefreshing] = useState(false);
+  // One-shot nudge shown when onboarding reports the user tapped "Allow
+  // notifications" but the OS denied it. Seeded from the route param so it only
+  // appears on that hand-off, never on normal tab visits.
+  const [showNotificationsBanner, setShowNotificationsBanner] = useState(
+    Boolean(route.params?.showNotificationsBanner),
+  );
   // Tracks whether we've already emitted the screen-viewed event this mount.
   // Avoids re-firing if the user changes filters or refreshes.
   const hasFiredScreenViewedRef = useRef(false);
@@ -397,6 +422,7 @@ const TopTradersView = () => {
           traderAddress: trader?.address ?? '',
           traderUsername: trader?.username,
           traderRank: trader?.rank,
+          traderAvatarUri: trader?.avatarUri,
         });
       if (!wasFollowing && openSetupIfNeeded(performFollow)) {
         return;
@@ -435,6 +461,28 @@ const TopTradersView = () => {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  // Auto-dismiss the notifications nudge after a fixed window so it never lingers
+  // as permanent chrome. Cleared on manual close/unmount via the effect cleanup.
+  useEffect(() => {
+    if (!showNotificationsBanner) {
+      return undefined;
+    }
+    const timeoutId = setTimeout(
+      () => setShowNotificationsBanner(false),
+      NOTIFICATIONS_BANNER_AUTO_DISMISS_MS,
+    );
+    return () => clearTimeout(timeoutId);
+  }, [showNotificationsBanner]);
+
+  const handleDismissNotificationsBanner = useCallback(() => {
+    setShowNotificationsBanner(false);
+  }, []);
+
+  const handleOpenNotificationSettings = useCallback(() => {
+    setShowNotificationsBanner(false);
+    NotificationService.openSystemSettings();
+  }, []);
 
   const handleNotificationPreferencesPress = useCallback(() => {
     if (isLoadingNotificationPreferences) {
@@ -564,19 +612,21 @@ const TopTradersView = () => {
   const listHeader = useMemo(
     () => (
       <>
-        <Box
-          twClassName="px-4 pt-2 pb-3"
-          testID={TopTradersViewSelectorsIDs.TITLE_SECTION_WRAPPER}
-          onLayout={(e) => setTitleSectionHeight(e.nativeEvent.layout.height)}
-        >
-          <Text
-            variant={TextVariant.HeadingLg}
-            color={TextColor.TextDefault}
-            testID={TopTradersViewSelectorsIDs.TITLE}
+        {!embeddedInTabs && (
+          <Box
+            twClassName="px-4 pt-2 pb-3"
+            testID={TopTradersViewSelectorsIDs.TITLE_SECTION_WRAPPER}
+            onLayout={(e) => setTitleSectionHeight(e.nativeEvent.layout.height)}
           >
-            {title}
-          </Text>
-        </Box>
+            <Text
+              variant={TextVariant.HeadingLg}
+              color={TextColor.TextDefault}
+              testID={TopTradersViewSelectorsIDs.TITLE}
+            >
+              {title}
+            </Text>
+          </Box>
+        )}
 
         <FilterTabs
           filters={tabFilters}
@@ -585,8 +635,95 @@ const TopTradersView = () => {
         />
       </>
     ),
-    [activeTab, handleTabPress, setTitleSectionHeight, tabFilters, title],
+    [
+      activeTab,
+      embeddedInTabs,
+      handleTabPress,
+      setTitleSectionHeight,
+      tabFilters,
+      title,
+    ],
   );
+
+  const listBody = (
+    <Box twClassName="flex-1">
+      {isLoading && traders.length === 0 ? (
+        <Animated.ScrollView
+          // `flex-1` matches FlatList's default behavior so the list area sits
+          // directly under the filters and skeletons render top-aligned.
+          style={tw.style('flex-1')}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={tw.style('pb-6')}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+            />
+          }
+        >
+          {listHeader}
+          {skeletonKeys.map((key) => (
+            <TraderRowSkeleton key={key} />
+          ))}
+        </Animated.ScrollView>
+      ) : (
+        <Animated.FlatList<TopTrader>
+          data={traders}
+          keyExtractor={(item) => item.id}
+          renderItem={renderTraderRow}
+          ListHeaderComponent={listHeader}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={tw.style('pb-6')}
+          testID={TopTradersViewSelectorsIDs.TRADER_LIST}
+          initialNumToRender={INITIAL_TRADER_ROWS_TO_RENDER}
+          maxToRenderPerBatch={INITIAL_TRADER_ROWS_TO_RENDER}
+          windowSize={5}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+            />
+          }
+        />
+      )}
+
+      {!embeddedInTabs && (
+        <Animated.View
+          pointerEvents={isFilterBarPinned ? 'auto' : 'none'}
+          accessibilityElementsHidden={!isFilterBarPinned}
+          importantForAccessibility={
+            isFilterBarPinned ? 'auto' : 'no-hide-descendants'
+          }
+          style={[
+            tw.style(
+              'absolute top-0 left-0 right-0 z-10 border-b border-muted bg-default',
+            ),
+            pinnedFilterStyle,
+          ]}
+          testID={TopTradersViewSelectorsIDs.PINNED_FILTER_BAR}
+        >
+          <FilterTabs
+            filters={tabFilters}
+            selectedTab={activeTab}
+            onTabPress={handleTabPress}
+            suppressTestIDs
+          />
+        </Animated.View>
+      )}
+    </Box>
+  );
+
+  if (embeddedInTabs) {
+    return listBody;
+  }
 
   return (
     <SafeAreaView
@@ -613,77 +750,24 @@ const TopTradersView = () => {
         testID={TopTradersViewSelectorsIDs.HEADER}
       />
 
-      <Box twClassName="flex-1">
-        {isLoading && traders.length === 0 ? (
-          <Animated.ScrollView
-            // `flex-1` matches FlatList's default behavior so the list area sits
-            // directly under the filters and skeletons render top-aligned.
-            style={tw.style('flex-1')}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={tw.style('pb-6')}
-            onScroll={onScroll}
-            scrollEventThrottle={16}
-            refreshControl={
-              <RefreshControl
-                colors={[colors.primary.default]}
-                tintColor={colors.icon.default}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-              />
-            }
-          >
-            {listHeader}
-            {skeletonKeys.map((key) => (
-              <TraderRowSkeleton key={key} />
-            ))}
-          </Animated.ScrollView>
-        ) : (
-          <Animated.FlatList<TopTrader>
-            data={traders}
-            keyExtractor={(item) => item.id}
-            renderItem={renderTraderRow}
-            ListHeaderComponent={listHeader}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={tw.style('pb-6')}
-            testID={TopTradersViewSelectorsIDs.TRADER_LIST}
-            initialNumToRender={INITIAL_TRADER_ROWS_TO_RENDER}
-            maxToRenderPerBatch={INITIAL_TRADER_ROWS_TO_RENDER}
-            windowSize={5}
-            onScroll={onScroll}
-            scrollEventThrottle={16}
-            refreshControl={
-              <RefreshControl
-                colors={[colors.primary.default]}
-                tintColor={colors.icon.default}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-              />
-            }
+      {showNotificationsBanner && (
+        <Box twClassName="px-4 pt-2">
+          <BannerAlert
+            severity={BannerAlertSeverity.Info}
+            description={strings(
+              'social_leaderboard.top_traders_view.notifications_banner.description',
+            )}
+            actionButtonLabel={strings(
+              'social_leaderboard.top_traders_view.notifications_banner.open_settings',
+            )}
+            actionButtonOnPress={handleOpenNotificationSettings}
+            onClose={handleDismissNotificationsBanner}
+            testID={TopTradersViewSelectorsIDs.NOTIFICATIONS_BANNER}
           />
-        )}
+        </Box>
+      )}
 
-        <Animated.View
-          pointerEvents={isFilterBarPinned ? 'auto' : 'none'}
-          accessibilityElementsHidden={!isFilterBarPinned}
-          importantForAccessibility={
-            isFilterBarPinned ? 'auto' : 'no-hide-descendants'
-          }
-          style={[
-            tw.style(
-              'absolute top-0 left-0 right-0 z-10 border-b border-muted bg-default',
-            ),
-            pinnedFilterStyle,
-          ]}
-          testID={TopTradersViewSelectorsIDs.PINNED_FILTER_BAR}
-        >
-          <FilterTabs
-            filters={tabFilters}
-            selectedTab={activeTab}
-            onTabPress={handleTabPress}
-            suppressTestIDs
-          />
-        </Animated.View>
-      </Box>
+      {listBody}
     </SafeAreaView>
   );
 };

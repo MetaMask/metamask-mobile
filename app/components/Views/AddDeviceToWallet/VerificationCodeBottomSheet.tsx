@@ -26,7 +26,9 @@ const VerificationCodeBottomSheet = () => {
   const otp = useSelector(selectQrSyncOtp) ?? '';
 
   const closeSheet = useCallback(() => {
-    navigation.goBack();
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
   }, [navigation]);
 
   useEffect(() => {

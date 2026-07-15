@@ -41,6 +41,7 @@ import {
 } from '../types';
 import {
   getDefaultPredictControllerState,
+  OPTIMISTIC_BALANCE_MAX_AGE_MS,
   PredictController,
   PredictControllerMessenger,
   type PredictControllerState,
@@ -541,6 +542,40 @@ describe('PredictController', () => {
     });
 
     return fn({ controller, messenger: rootMessenger });
+  }
+
+  function installOneTimeUpdateFailure({
+    controller,
+    shouldFail,
+    errorMessage,
+  }: {
+    controller: PredictController;
+    shouldFail: () => boolean;
+    errorMessage: string;
+  }): { didFail: () => boolean; restore: () => void } {
+    type UpdateFn = (
+      updater: (state: PredictControllerState) => void,
+    ) => unknown;
+
+    const controllerWithUpdate = controller as unknown as { update: UpdateFn };
+    const originalUpdate = controllerWithUpdate.update;
+    let updateFailed = false;
+
+    controllerWithUpdate.update = (updater) => {
+      if (shouldFail() && !updateFailed) {
+        updateFailed = true;
+        throw new Error(errorMessage);
+      }
+
+      return originalUpdate.call(controller, updater);
+    };
+
+    return {
+      didFail: () => updateFailed,
+      restore: () => {
+        controllerWithUpdate.update = originalUpdate;
+      },
+    };
   }
 
   describe('constructor', () => {
@@ -4189,7 +4224,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('tracks a user_rejected mm_predict_claim failure when signing is cancelled', async () => {
+    it('tracks a cancelled mm_predict_claim transaction when signing is cancelled', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
           {
@@ -4215,10 +4250,10 @@ describe('PredictController', () => {
         expect(result.status).toBe(PredictClaimStatus.CANCELLED);
         const event = (analytics.trackEvent as jest.Mock).mock.calls
           .map((call) => call[0])
-          .find((arg) => arg?.properties?.status === 'failed');
+          .find((arg) => arg?.properties?.status === 'cancelled');
         expect(event).toBeDefined();
         expect(event.properties.transaction_type).toBe('mm_predict_claim');
-        expect(event.properties.failure_reason).toBe('user_rejected');
+        expect(event.properties.failure_reason).toBeUndefined();
         expect(event.properties.entry_point).toBe('predict_market_details');
       });
     });
@@ -4250,6 +4285,98 @@ describe('PredictController', () => {
 
         // Assert
         expect(controller.state.pendingClaims[signerAddress]).toBeUndefined();
+      });
+    });
+
+    it('treats an error with EIP-1193 code 4001 as user cancellation regardless of message', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest.fn().mockRejectedValue(
+          Object.assign(new Error('Some upstream wording change'), {
+            code: 4001,
+          }),
+        );
+        await controller.getPositions({ claimable: true });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        // Act
+        const result = await controller.claimWithConfirmation({});
+
+        // Assert
+        expect(result.status).toBe(PredictClaimStatus.CANCELLED);
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find((arg) => arg?.properties?.status === 'cancelled');
+        expect(event).toBeDefined();
+        expect(event.properties.transaction_type).toBe('mm_predict_claim');
+      });
+    });
+
+    it('does not record a failed claim when local bookkeeping fails after submission', async () => {
+      const signerAddress = '0x1234567890123456789012345678901234567890';
+      const mockBatchId = 'claim-batch-post-submit';
+      let batchSubmitted = false;
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockImplementation(async () => {
+          batchSubmitted = true;
+          return { batchId: mockBatchId };
+        });
+        await controller.getPositions({ claimable: true });
+
+        const updateFailure = installOneTimeUpdateFailure({
+          controller,
+          errorMessage: 'state update failed after claim submission',
+          shouldFail: () => batchSubmitted,
+        });
+
+        try {
+          (analytics.trackEvent as jest.Mock).mockClear();
+
+          // Act — should resolve with the pending claim rather than throwing,
+          // so the calling hook does not record a false claim failure.
+          const result = await controller.claimWithConfirmation({});
+
+          // Assert
+          expect(result).toEqual({
+            batchId: mockBatchId,
+            chainId: mockClaim.chainId,
+            status: PredictClaimStatus.PENDING,
+          });
+          expect(updateFailure.didFail()).toBe(true);
+          // The pending-claim lock is preserved while the claim is in flight.
+          expect(controller.state.pendingClaims[signerAddress]).toBe('pending');
+
+          const failedOrCancelledEvent = (
+            analytics.trackEvent as jest.Mock
+          ).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type === 'mm_predict_claim' &&
+                (arg?.properties?.status === 'failed' ||
+                  arg?.properties?.status === 'cancelled'),
+            );
+          expect(failedOrCancelledEvent).toBeUndefined();
+        } finally {
+          updateFailure.restore();
+        }
       });
     });
   });
@@ -4552,6 +4679,16 @@ describe('PredictController', () => {
           skipInitialGasEstimate: true,
           transactions: mockTransactions,
         });
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type ===
+                'mm_predict_transaction_submission' &&
+              arg?.properties?.status === 'succeeded',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.entry_point).toBe('background');
       });
     });
 
@@ -4568,6 +4705,15 @@ describe('PredictController', () => {
         await expect(controller.depositWithConfirmation({})).rejects.toThrow(
           errorMessage,
         );
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.failure_reason).toBe(errorMessage);
       });
     });
 
@@ -4596,6 +4742,25 @@ describe('PredictController', () => {
         await expect(controller.depositWithConfirmation({})).rejects.toThrow(
           errorMessage,
         );
+        const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type ===
+                'mm_predict_transaction_submission' &&
+              arg?.properties?.status === 'failed',
+          );
+        const depositEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(submissionEvent).toBeDefined();
+        expect(submissionEvent.properties.failure_reason).toBe(errorMessage);
+        expect(depositEvent).toBeDefined();
+        expect(depositEvent.properties.failure_reason).toBe(errorMessage);
       });
     });
 
@@ -4701,6 +4866,23 @@ describe('PredictController', () => {
         // Then it should return success with NA batchId instead of throwing
         expect(result.success).toBe(true);
         expect(result.response?.batchId).toBe('NA');
+        const cancelledEvents = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .filter((arg) => arg?.properties?.status === 'cancelled');
+        expect(cancelledEvents).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              properties: expect.objectContaining({
+                transaction_type: 'mm_predict_transaction_submission',
+              }),
+            }),
+            expect.objectContaining({
+              properties: expect.objectContaining({
+                transaction_type: 'mm_predict_deposit',
+              }),
+            }),
+          ]),
+        );
       });
     });
 
@@ -4875,6 +5057,94 @@ describe('PredictController', () => {
         await expect(controller.depositWithConfirmation({})).rejects.toThrow(
           'Value must be a hexadecimal string.',
         );
+        expect(addTransactionBatch).not.toHaveBeenCalled();
+
+        const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type ===
+              'mm_predict_transaction_submission',
+          );
+        expect(submissionEvent).toBeUndefined();
+      });
+    });
+
+    it('does not track deposit failure when local bookkeeping fails after submission', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      let batchSubmitted = false;
+      (addTransactionBatch as jest.Mock).mockImplementation(async () => {
+        batchSubmitted = true;
+        return {
+          batchId: 'batch-123',
+        };
+      });
+
+      await withController(async ({ controller }) => {
+        const signerAddress = '0x1234567890123456789012345678901234567890';
+        const updateFailure = installOneTimeUpdateFailure({
+          controller,
+          errorMessage: 'state update failed after submission',
+          shouldFail: () =>
+            batchSubmitted &&
+            (analytics.trackEvent as jest.Mock).mock.calls
+              .map((call) => call[0])
+              .some(
+                (arg) =>
+                  arg?.properties?.transaction_type ===
+                    'mm_predict_transaction_submission' &&
+                  arg?.properties?.status === 'succeeded',
+              ),
+        });
+
+        try {
+          (analytics.trackEvent as jest.Mock).mockClear();
+
+          await expect(controller.depositWithConfirmation({})).resolves.toEqual(
+            {
+              success: true,
+              response: { batchId: 'batch-123' },
+            },
+          );
+
+          const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type ===
+                  'mm_predict_transaction_submission' &&
+                arg?.properties?.status === 'succeeded',
+            );
+          const depositFailureEvent = (
+            analytics.trackEvent as jest.Mock
+          ).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+                arg?.properties?.status === 'failed',
+            );
+
+          expect(updateFailure.didFail()).toBe(true);
+          expect(submissionEvent).toBeDefined();
+          expect(depositFailureEvent).toBeUndefined();
+          expect(controller.state.pendingDeposits[signerAddress]).toBe(
+            'pending',
+          );
+        } finally {
+          updateFailure.restore();
+        }
       });
     });
 
@@ -5786,6 +6056,74 @@ describe('PredictController', () => {
         ).toBeUndefined();
       });
     });
+
+    it('does not track deposit failure when local bookkeeping fails after pay-with-any-token submission', async () => {
+      let batchSubmitted = false;
+      (addTransactionBatch as jest.Mock).mockImplementation(async () => {
+        batchSubmitted = true;
+        return {
+          batchId: 'batch-pay-with-any-token',
+        };
+      });
+
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.activeBuyOrders[MOCK_ADDRESS] = {
+            state: ActiveOrderState.PREVIEW,
+            error: 'previous-error',
+          };
+        });
+
+        const updateFailure = installOneTimeUpdateFailure({
+          controller,
+          errorMessage:
+            'state update failed after pay-with-any-token submission',
+          shouldFail: () =>
+            batchSubmitted &&
+            (analytics.trackEvent as jest.Mock).mock.calls
+              .map((call) => call[0])
+              .some(
+                (arg) =>
+                  arg?.properties?.transaction_type ===
+                    'mm_predict_transaction_submission' &&
+                  arg?.properties?.status === 'succeeded',
+              ),
+        });
+
+        try {
+          (analytics.trackEvent as jest.Mock).mockClear();
+
+          await expect(controller.initPayWithAnyToken()).resolves.toEqual({
+            success: true,
+            response: { batchId: 'batch-pay-with-any-token' },
+          });
+
+          const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type ===
+                  'mm_predict_transaction_submission' &&
+                arg?.properties?.status === 'succeeded',
+            );
+          const depositFailureEvent = (
+            analytics.trackEvent as jest.Mock
+          ).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+                arg?.properties?.status === 'failed',
+            );
+
+          expect(updateFailure.didFail()).toBe(true);
+          expect(submissionEvent).toBeDefined();
+          expect(depositFailureEvent).toBeUndefined();
+        } finally {
+          updateFailure.restore();
+        }
+      });
+    });
   });
 
   describe('transactionStatusChanged event', () => {
@@ -6262,6 +6600,38 @@ describe('PredictController', () => {
       });
     });
 
+    it('clears cached balance and invalidates account state after confirmed withdrawals', async () => {
+      await withController(async ({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictWithdraw,
+          status: TransactionStatus.confirmed,
+          from: accountAddress,
+        });
+
+        // Cache entries can be keyed by checksummed addresses — seed one to
+        // verify the case-insensitive cleanup.
+        const checksummedAddress =
+          accountAddress.slice(0, 2) + accountAddress.slice(2).toUpperCase();
+        controller.updateStateForTesting((state) => {
+          state.balances[checksummedAddress] = {
+            balance: 250,
+            validUntil: Date.now() + 60_000,
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        await Promise.resolve();
+
+        expect(
+          mockPolymarketProvider.invalidateAccountState,
+        ).toHaveBeenCalledWith(accountAddress);
+        expect(controller.state.balances[checksummedAddress]).toBeUndefined();
+      });
+    });
+
     it('invalidates account state and syncs deposit-wallet balance allowance after confirmed deposits', async () => {
       await withController(async ({ controller, messenger }) => {
         const transactionMeta = createPredictTransactionMeta({
@@ -6470,7 +6840,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('tracks a failed mm_predict_claim transaction with user_rejected when rejected', () => {
+    it('tracks a cancelled mm_predict_claim transaction when rejected', () => {
       withController(({ controller, messenger }) => {
         const transactionMeta = createPredictTransactionMeta({
           nestedType: TransactionType.predictClaim,
@@ -6493,9 +6863,10 @@ describe('PredictController', () => {
           transactionMeta,
         } as unknown as { transactionMeta: TransactionMeta });
 
-        const event = findPredictTradeEvent('failed');
+        const event = findPredictTradeEvent('cancelled');
         expect(event).toBeDefined();
-        expect(event.properties.failure_reason).toBe('user_rejected');
+        expect(event.properties.transaction_type).toBe('mm_predict_claim');
+        expect(event.properties.failure_reason).toBeUndefined();
       });
     });
 
@@ -6664,6 +7035,33 @@ describe('PredictController', () => {
             transactionId: 'tx-1',
           }),
         );
+      });
+    });
+
+    it('tracks failed mm_predict_withdraw when withdraw transaction fails', () => {
+      withController(({ messenger }) => {
+        const transactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictWithdraw,
+            status: TransactionStatus.failed,
+          }),
+          error: { message: 'Withdraw reverted' },
+        };
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_withdraw' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.failure_reason).toBe('Withdraw reverted');
       });
     });
 
@@ -6839,6 +7237,45 @@ describe('PredictController', () => {
       });
     });
 
+    it('tracks succeeded mm_predict_deposit when pending deposit confirms', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictDeposit,
+            status: TransactionStatus.confirmed,
+            batchId: 'batch-1',
+          }),
+          metamaskPay: {
+            totalFiat: '105',
+            bridgeFeeFiat: '3',
+            networkFeeFiat: '2',
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.pendingDeposits = {
+            [accountAddress]: 'batch-1',
+          };
+        });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+              arg?.properties?.status === 'succeeded',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.entry_point).toBe('background');
+        expect(event.sensitiveProperties.amount_usd).toBe(100);
+      });
+    });
+
     it('clears pending deposit when deposit transaction is rejected', () => {
       withController(({ controller, messenger }) => {
         const transactionMeta = createPredictTransactionMeta({
@@ -6962,6 +7399,36 @@ describe('PredictController', () => {
         expect(
           controller.state.activeBuyOrders[MOCK_ADDRESS]?.transactionId,
         ).toBeUndefined();
+      });
+    });
+
+    it('tracks cancelled mm_predict_deposit when deposit-and-order is rejected', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDepositAndOrder,
+          status: TransactionStatus.rejected,
+          batchId: 'batch-1',
+        });
+
+        setActiveOrderForTest(controller, {
+          transactionId: 'tx-1',
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+              arg?.properties?.status === 'cancelled',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.failure_reason).toBeUndefined();
       });
     });
 
@@ -7609,6 +8076,15 @@ describe('PredictController', () => {
           transactionId: mockBatchId,
           amount: 0,
         });
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type ===
+                'mm_predict_transaction_submission' &&
+              arg?.properties?.status === 'succeeded',
+          );
+        expect(event).toBeDefined();
       });
     });
 
@@ -7625,6 +8101,15 @@ describe('PredictController', () => {
         expect(controller.state.lastError).toBe('Provider error');
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
         expect(controller.state.withdrawTransaction).toBeNull();
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_withdraw' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.failure_reason).toBe('Provider error');
       });
     });
 
@@ -7761,6 +8246,69 @@ describe('PredictController', () => {
       });
     });
 
+    it('does not track withdraw failure when local bookkeeping fails after submission', async () => {
+      mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
+        mockWithdrawResponse,
+      );
+      let batchSubmitted = false;
+      (addTransactionBatch as jest.Mock).mockImplementation(async () => {
+        batchSubmitted = true;
+        return {
+          batchId: 'batch-withdraw',
+        };
+      });
+
+      await withController(async ({ controller }) => {
+        const updateFailure = installOneTimeUpdateFailure({
+          controller,
+          errorMessage: 'state update failed after withdraw submission',
+          shouldFail: () =>
+            batchSubmitted &&
+            (analytics.trackEvent as jest.Mock).mock.calls
+              .map((call) => call[0])
+              .some(
+                (arg) =>
+                  arg?.properties?.transaction_type ===
+                    'mm_predict_transaction_submission' &&
+                  arg?.properties?.status === 'succeeded',
+              ),
+        });
+
+        try {
+          (analytics.trackEvent as jest.Mock).mockClear();
+
+          await expect(controller.prepareWithdraw({})).resolves.toEqual({
+            success: true,
+            response: 'batch-withdraw',
+          });
+
+          const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type ===
+                  'mm_predict_transaction_submission' &&
+                arg?.properties?.status === 'succeeded',
+            );
+          const withdrawFailureEvent = (
+            analytics.trackEvent as jest.Mock
+          ).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type === 'mm_predict_withdraw' &&
+                arg?.properties?.status === 'failed',
+            );
+
+          expect(updateFailure.didFail()).toBe(true);
+          expect(submissionEvent).toBeDefined();
+          expect(withdrawFailureEvent).toBeUndefined();
+        } finally {
+          updateFailure.restore();
+        }
+      });
+    });
+
     it('returns error when addTransactionBatch fails', async () => {
       mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
         mockWithdrawResponse,
@@ -7777,6 +8325,23 @@ describe('PredictController', () => {
         expect(controller.state.lastError).toBe(
           'Transaction batch submission failed',
         );
+        const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type ===
+                'mm_predict_transaction_submission' &&
+              arg?.properties?.status === 'failed',
+          );
+        const withdrawEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_withdraw' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(submissionEvent).toBeDefined();
+        expect(withdrawEvent).toBeDefined();
       });
     });
 
@@ -7828,6 +8393,15 @@ describe('PredictController', () => {
 
         expect(result.success).toBe(true);
         expect(result.response).toBe('User cancelled transaction');
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_withdraw' &&
+              arg?.properties?.status === 'cancelled',
+          );
+        expect(event).toBeDefined();
+        expect(addTransactionBatch).not.toHaveBeenCalled();
       });
     });
 
@@ -7846,6 +8420,23 @@ describe('PredictController', () => {
 
         expect(result.success).toBe(true);
         expect(result.response).toBe('User cancelled transaction');
+        const cancelledEvents = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .filter((arg) => arg?.properties?.status === 'cancelled');
+        expect(cancelledEvents).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              properties: expect.objectContaining({
+                transaction_type: 'mm_predict_transaction_submission',
+              }),
+            }),
+            expect.objectContaining({
+              properties: expect.objectContaining({
+                transaction_type: 'mm_predict_withdraw',
+              }),
+            }),
+          ]),
+        );
       });
     });
 
@@ -8925,7 +9516,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('sets validUntil to 5 seconds in future for BUY orders', async () => {
+    it('holds optimistic balance for the settlement safety window for BUY orders', async () => {
       const preview = createMockOrderPreview({ side: Side.BUY });
       const mockResult = {
         success: true as const,
@@ -8951,7 +9542,9 @@ describe('PredictController', () => {
             controller.state.balances[
               '0x1234567890123456789012345678901234567890'
             ];
-          expect(updatedBalance.validUntil).toBe(now + 5000);
+          expect(updatedBalance.validUntil).toBe(
+            now + OPTIMISTIC_BALANCE_MAX_AGE_MS,
+          );
         },
         {
           state: {
@@ -9001,7 +9594,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('sets validUntil to 5 seconds in future for SELL orders', async () => {
+    it('holds optimistic balance for the settlement safety window for SELL orders', async () => {
       const preview = createMockOrderPreview({ side: Side.SELL });
       const mockResult = {
         success: true as const,
@@ -9027,13 +9620,80 @@ describe('PredictController', () => {
             controller.state.balances[
               '0x1234567890123456789012345678901234567890'
             ];
-          expect(updatedBalance.validUntil).toBe(now + 5000);
+          expect(updatedBalance.validUntil).toBe(
+            now + OPTIMISTIC_BALANCE_MAX_AGE_MS,
+          );
         },
         {
           state: {
             balances: {
               '0x1234567890123456789012345678901234567890':
                 createMockPredictBalance(),
+            },
+          },
+        },
+      );
+    });
+
+    it('skips optimistic balance update when there is no cached balance baseline', async () => {
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '50',
+          receivedAmount: '100',
+        },
+      };
+      mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await withController(async ({ controller }) => {
+        // Act
+        await controller.placeOrder({
+          preview,
+        });
+
+        // Assert — no baseline means no optimistic entry; the next
+        // getBalance call must fetch the real value from chain.
+        expect(
+          controller.state.balances[
+            '0x1234567890123456789012345678901234567890'
+          ],
+        ).toBeUndefined();
+      });
+    });
+
+    it('clamps optimistic BUY balance at zero when spend exceeds the cached baseline', async () => {
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '50',
+          receivedAmount: '100',
+        },
+      };
+      mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          await controller.placeOrder({
+            preview,
+          });
+
+          // Assert
+          const updatedBalance =
+            controller.state.balances[
+              '0x1234567890123456789012345678901234567890'
+            ];
+          expect(updatedBalance.balance).toBe(0);
+        },
+        {
+          state: {
+            balances: {
+              '0x1234567890123456789012345678901234567890':
+                createMockPredictBalance({ balance: 40 }),
             },
           },
         },
@@ -9931,11 +10591,42 @@ describe('PredictController', () => {
       });
     });
 
-    it('calls analytics.trackEvent for trackCategoryClicked', () => {
+    it('calls analytics.trackEvent for trackHomeViewed', () => {
       withController(({ controller }) => {
-        controller.trackCategoryClicked({
-          categoryName: 'politics',
+        controller.trackHomeViewed({ entryPoint: 'home_section' });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackHomeSectionInteraction', () => {
+      withController(({ controller }) => {
+        controller.trackHomeSectionInteraction({
+          sectionId: 'trending',
+          actionType: 'viewed',
           entryPoint: 'home_section',
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackFeedTabChanged', () => {
+      withController(({ controller }) => {
+        controller.trackFeedTabChanged({
+          feedId: 'sports',
+          tabId: 'tennis',
+          entryPoint: 'home_section',
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackFeedFilterChanged', () => {
+      withController(({ controller }) => {
+        controller.trackFeedFilterChanged({
+          feedId: 'sports',
+          tabId: 'tennis',
+          filterId: 'live',
+          isDynamicFilter: false,
         });
         expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
       });
@@ -11384,7 +12075,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('fires swap_failed analytics event when depositAndOrder transaction is rejected', () => {
+    it('fires cancelled analytics event when depositAndOrder transaction is rejected', () => {
       withController(({ controller, messenger }) => {
         const trackSpy = jest.spyOn(controller, 'trackPredictOrderEvent');
 
@@ -11426,8 +12117,7 @@ describe('PredictController', () => {
 
         expect(trackSpy).toHaveBeenCalledWith(
           expect.objectContaining({
-            status: 'swap_failed',
-            failureReason: 'user_rejected',
+            status: 'cancelled',
           }),
         );
       });
