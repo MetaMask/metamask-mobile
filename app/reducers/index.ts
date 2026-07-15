@@ -139,7 +139,9 @@ export interface RootState {
   networkConnectionBanner: NetworkConnectionBannerState;
   attribution: StateFromReducer<typeof attributionReducer>;
   headlessOrderContexts: StateFromReducer<typeof headlessOrderContextsReducer>;
-  terminalOrderAnalytics: StateFromReducer<typeof terminalOrderAnalyticsReducer>;
+  terminalOrderAnalytics: StateFromReducer<
+    typeof terminalOrderAnalyticsReducer
+  >;
 }
 
 const baseReducers = {

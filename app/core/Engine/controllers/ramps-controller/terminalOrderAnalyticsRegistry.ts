@@ -49,7 +49,9 @@ const emittedTerminalOrders = new Set<string>();
 export function markTerminalOrderAnalyticsEmitted(order: RampsOrder): void {
   const orderCode = getInternalOrderCode(order);
   emittedTerminalOrders.add(orderCode);
-  ReduxService.store.dispatch(markTerminalOrderAnalyticsEmittedEntry(orderCode));
+  ReduxService.store.dispatch(
+    markTerminalOrderAnalyticsEmittedEntry(orderCode),
+  );
 }
 
 /**
