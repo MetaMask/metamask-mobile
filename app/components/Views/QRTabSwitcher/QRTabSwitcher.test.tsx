@@ -45,13 +45,19 @@ jest.mock('../../../util/trace', () => ({
     QRTabSwitcher: 'QRTabSwitcher',
   },
 }));
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    QrSyncController: {
-      resetState: jest.fn(),
+jest.mock('../../../core/Engine', () => {
+  const { defaultQrSyncControllerState: mockDefaultQrSyncControllerState } =
+    jest.requireActual('../../../core/QrSync/QrSyncController');
+
+  return {
+    context: {
+      QrSyncController: {
+        state: { ...mockDefaultQrSyncControllerState },
+        resetState: jest.fn(),
+      },
     },
-  },
-}));
+  };
+});
 
 import Engine from '../../../core/Engine';
 
@@ -109,6 +115,13 @@ const renderWithQrSyncState = (
   qrSyncState: Partial<typeof defaultQrSyncControllerState>,
   completedOnboarding = false,
 ) => {
+  const nextQrSyncState = {
+    ...defaultQrSyncControllerState,
+    ...qrSyncState,
+  };
+
+  Engine.context.QrSyncController.state = nextQrSyncState;
+
   const reactReduxModule = jest.requireMock('react-redux') as {
     useSelector: jest.Mock;
   };
@@ -117,10 +130,7 @@ const renderWithQrSyncState = (
       selector({
         engine: {
           backgroundState: {
-            QrSyncController: {
-              ...defaultQrSyncControllerState,
-              ...qrSyncState,
-            },
+            QrSyncController: nextQrSyncState,
           },
         },
         onboarding: {
