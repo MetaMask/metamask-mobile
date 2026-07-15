@@ -12,8 +12,8 @@ export interface PriceAlertRouteParams {
 export interface CreatePriceAlertRouteParams extends PriceAlertRouteParams {
   /** When true the screen was opened from ManagePriceAlertsView; pop 2 on save to return to TokenDetails. */
   fromManage?: boolean;
-  /** Thresholds of existing absolute-price alerts for this asset, used for duplicate-threshold validation. */
-  existingThresholds?: number[];
+  /** Existing absolute-price alerts for this asset, used for duplicate-threshold validation. */
+  existingAbsoluteAlerts?: AbsolutePriceAlert[];
   /** Existing percent-change alerts for this asset, used for duplicate-tuple validation. */
   existingPercentAlerts?: PercentChangeAlert[];
   /** When present the screen is in edit mode; pre-populates threshold/recurring and calls PATCH on save. */

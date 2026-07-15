@@ -44,7 +44,7 @@ const CreatePriceAlertView: React.FC = () => {
     currentCurrency,
     assetId,
     fromManage,
-    existingThresholds,
+    existingAbsoluteAlerts,
     existingPercentAlerts,
     editingAlert,
     initialType,
@@ -67,7 +67,7 @@ const CreatePriceAlertView: React.FC = () => {
           asset_id: assetId,
           token_symbol: displayTicker,
           has_existing_alert:
-            (existingThresholds?.length ?? 0) > 0 ||
+            (existingAbsoluteAlerts?.length ?? 0) > 0 ||
             (existingPercentAlerts?.length ?? 0) > 0,
         })
         .build(),
@@ -76,8 +76,8 @@ const CreatePriceAlertView: React.FC = () => {
     assetId,
     createEventBuilder,
     displayTicker,
+    existingAbsoluteAlerts,
     existingPercentAlerts,
-    existingThresholds,
     isEditing,
     trackEvent,
   ]);
@@ -134,7 +134,7 @@ const CreatePriceAlertView: React.FC = () => {
             currentCurrency={currentCurrency}
             fromManage={fromManage}
             editingAlert={editingAbsoluteAlert}
-            existingThresholds={existingThresholds}
+            existingAbsoluteAlerts={existingAbsoluteAlerts}
           />
         )}
       </Box>

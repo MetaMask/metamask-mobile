@@ -33,7 +33,7 @@ interface AbsolutePriceAlertFormProps {
   currentCurrency: string;
   fromManage?: boolean;
   editingAlert?: AbsolutePriceAlert;
-  existingThresholds?: number[];
+  existingAbsoluteAlerts?: AbsolutePriceAlert[];
 }
 
 const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
@@ -43,7 +43,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
   currentCurrency,
   fromManage,
   editingAlert,
-  existingThresholds,
+  existingAbsoluteAlerts,
 }) => {
   const isEditing = Boolean(editingAlert);
   const [targetAmount, setTargetAmount] = useState(
@@ -63,11 +63,12 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
   const isDuplicateThreshold = useMemo(
     () =>
       hasValidTarget &&
-      (existingThresholds ?? []).some(
-        (threshold) =>
-          threshold === targetPrice && threshold !== editingAlert?.threshold,
+      (existingAbsoluteAlerts ?? []).some(
+        (existingAlert) =>
+          existingAlert.id !== editingAlert?.id &&
+          existingAlert.threshold === targetPrice,
       ),
-    [editingAlert, existingThresholds, hasValidTarget, targetPrice],
+    [editingAlert, existingAbsoluteAlerts, hasValidTarget, targetPrice],
   );
 
   const isUnchanged =

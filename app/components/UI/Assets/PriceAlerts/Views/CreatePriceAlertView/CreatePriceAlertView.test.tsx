@@ -140,7 +140,10 @@ describe('CreatePriceAlertView', () => {
   });
 
   it('tracks creation viewed with has_existing_alert true for an absolute alert', () => {
-    mockRouteParams = { ...baseRoute, existingThresholds: [1500] };
+    mockRouteParams = {
+      ...baseRoute,
+      existingAbsoluteAlerts: [absoluteAlert],
+    };
 
     render(<CreatePriceAlertView />);
 

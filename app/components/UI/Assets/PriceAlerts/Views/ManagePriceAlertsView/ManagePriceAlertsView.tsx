@@ -46,8 +46,10 @@ import { IconName } from '../../../../../../component-library/components/Icons/I
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
 import {
-  Alert,
+  type AbsolutePriceAlert,
+  type Alert,
   ManagePriceAlertsTestIds,
+  type PercentChangeAlert,
   PriceAlertRouteParams,
   PriceAlertAnalytics,
 } from '../../constants';
@@ -174,11 +176,11 @@ const ManagePriceAlertsView: React.FC = () => {
         currentCurrency,
         assetId,
         fromManage: true,
-        existingThresholds: alerts
-          .filter((a) => a.type === 'absolute_price')
-          .map((a) => a.threshold),
+        existingAbsoluteAlerts: alerts.filter(
+          (a): a is AbsolutePriceAlert => a.type === 'absolute_price',
+        ),
         existingPercentAlerts: alerts.filter(
-          (a) => a.type === 'percent_change',
+          (a): a is PercentChangeAlert => a.type === 'percent_change',
         ),
         editingAlert,
         initialType: editingAlert?.type,

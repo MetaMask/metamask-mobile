@@ -92,7 +92,7 @@ describeForPlatforms('CreatePriceAlertView', () => {
     const { getByText, getByTestId } = renderCreatePriceAlertViewWithRoutes({
       routeParams: {
         editingAlert,
-        existingThresholds: [],
+        existingAbsoluteAlerts: [],
       },
     });
 
@@ -149,7 +149,13 @@ describeForPlatforms('CreatePriceAlertView', () => {
   it('disables button with duplicate text when threshold matches an existing alert', async () => {
     const { getByTestId, findByText } = renderCreatePriceAlertViewWithRoutes({
       routeParams: {
-        existingThresholds: [3000],
+        existingAbsoluteAlerts: [
+          {
+            ...editingAlert,
+            id: 'existing-alert',
+            threshold: 3000,
+          },
+        ],
       },
     });
 
@@ -173,7 +179,7 @@ describeForPlatforms('CreatePriceAlertView', () => {
     const { getByTestId } = renderCreatePriceAlertViewWithRoutes({
       routeParams: {
         editingAlert,
-        existingThresholds: [],
+        existingAbsoluteAlerts: [],
       },
     });
 

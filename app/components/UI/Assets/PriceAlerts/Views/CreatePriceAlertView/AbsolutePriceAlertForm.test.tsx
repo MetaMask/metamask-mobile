@@ -66,6 +66,21 @@ const editingAlert: AbsolutePriceAlert = {
   createdAt: '2025-01-01T00:00:00.000Z',
 };
 
+const absoluteAlertAt = (
+  threshold: number,
+  overrides: Partial<AbsolutePriceAlert> = {},
+): AbsolutePriceAlert => ({
+  id: 'other-alert',
+  userId: 'user-1',
+  asset: 'eip155:1/slip44:60',
+  type: 'absolute_price',
+  threshold,
+  recurring: true,
+  active: true,
+  createdAt: '2025-01-01T00:00:00.000Z',
+  ...overrides,
+});
+
 const renderForm = (
   overrides: Partial<React.ComponentProps<typeof AbsolutePriceAlertForm>> = {},
 ) =>
@@ -318,7 +333,9 @@ describe('AbsolutePriceAlertForm', () => {
 
   describe('duplicate threshold validation', () => {
     it('displays the duplicate label and disables saving for a matching threshold', () => {
-      const screen = renderForm({ existingThresholds: [1500] });
+      const screen = renderForm({
+        existingAbsoluteAlerts: [absoluteAlertAt(1500)],
+      });
       enter1500(screen.getByTestId);
 
       expect(
@@ -330,7 +347,9 @@ describe('AbsolutePriceAlertForm', () => {
     });
 
     it('displays the normal label and enables saving for a different threshold', () => {
-      const screen = renderForm({ existingThresholds: [1500] });
+      const screen = renderForm({
+        existingAbsoluteAlerts: [absoluteAlertAt(1500)],
+      });
 
       fireEvent.press(screen.getByTestId('keypad-key-2'));
       fireEvent.press(screen.getByTestId('keypad-key-0'));
@@ -344,7 +363,9 @@ describe('AbsolutePriceAlertForm', () => {
     });
 
     it('does not submit a duplicate threshold', async () => {
-      const screen = renderForm({ existingThresholds: [1500] });
+      const screen = renderForm({
+        existingAbsoluteAlerts: [absoluteAlertAt(1500)],
+      });
       enter1500(screen.getByTestId);
 
       await act(async () => {
@@ -445,7 +466,7 @@ describe('AbsolutePriceAlertForm', () => {
     const renderEditingForm = () =>
       renderForm({
         editingAlert,
-        existingThresholds: [1500],
+        existingAbsoluteAlerts: [editingAlert],
         fromManage: true,
       });
 
@@ -510,7 +531,7 @@ describe('AbsolutePriceAlertForm', () => {
       ).not.toBeDisabled();
     });
 
-    it('excludes the edited alert threshold from duplicate validation', () => {
+    it('excludes the edited alert from duplicate validation by id', () => {
       const screen = renderEditingForm();
 
       expect(
@@ -519,6 +540,31 @@ describe('AbsolutePriceAlertForm', () => {
       expect(
         screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
       ).not.toHaveTextContent('An alert at this price already exists.');
+    });
+
+    it('flags a duplicate when another absolute alert shares the threshold', () => {
+      const screen = renderForm({
+        editingAlert,
+        existingAbsoluteAlerts: [
+          editingAlert,
+          absoluteAlertAt(2000, { id: 'alert-other' }),
+        ],
+        fromManage: true,
+      });
+      for (let index = 0; index < 4; index++) {
+        fireEvent.press(screen.getByTestId('keypad-delete-button'));
+      }
+      fireEvent.press(screen.getByTestId('keypad-key-2'));
+      fireEvent.press(screen.getByTestId('keypad-key-0'));
+      fireEvent.press(screen.getByTestId('keypad-key-0'));
+      fireEvent.press(screen.getByTestId('keypad-key-0'));
+
+      expect(
+        screen.getByText('An alert at this price already exists.'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+      ).toBeDisabled();
     });
 
     it('submits updated threshold and recurring values', async () => {
@@ -605,7 +651,7 @@ describe('AbsolutePriceAlertForm', () => {
     it('tracks threshold properties while editing', async () => {
       const screen = renderForm({
         editingAlert,
-        existingThresholds: [1500],
+        existingAbsoluteAlerts: [editingAlert],
         fromManage: true,
       });
       fireEvent(

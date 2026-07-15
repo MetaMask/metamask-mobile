@@ -299,7 +299,7 @@ describe('ManagePriceAlertsView', () => {
       );
     });
 
-    it('passes existingThresholds of current alerts when navigating to Add alert', async () => {
+    it('passes existing absolute alerts when navigating to Add alert', async () => {
       const screen = renderView();
       await waitForLoaded(screen);
 
@@ -310,7 +310,10 @@ describe('ManagePriceAlertsView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CREATE_PRICE_ALERT,
         expect.objectContaining({
-          existingThresholds: expect.arrayContaining([3000, 1500]),
+          existingAbsoluteAlerts: expect.arrayContaining([
+            expect.objectContaining({ id: 'alert-1', threshold: 3000 }),
+            expect.objectContaining({ id: 'alert-2', threshold: 1500 }),
+          ]),
         }),
       );
     });
@@ -386,7 +389,7 @@ describe('ManagePriceAlertsView', () => {
       );
     });
 
-    it('passes existingThresholds of all current alerts when editing', async () => {
+    it('passes existing absolute alerts of all current alerts when editing', async () => {
       const screen = renderView();
       await waitForLoaded(screen);
 
@@ -399,7 +402,10 @@ describe('ManagePriceAlertsView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CREATE_PRICE_ALERT,
         expect.objectContaining({
-          existingThresholds: expect.arrayContaining([3000, 1500]),
+          existingAbsoluteAlerts: expect.arrayContaining([
+            expect.objectContaining({ id: 'alert-1', threshold: 3000 }),
+            expect.objectContaining({ id: 'alert-2', threshold: 1500 }),
+          ]),
         }),
       );
     });
@@ -775,7 +781,7 @@ describe('ManagePriceAlertsView', () => {
       expect(screen.getByText('24h • Recurring')).toBeOnTheScreen();
     });
 
-    it('passes absolute thresholds and percent alerts separately when adding an alert', async () => {
+    it('passes absolute and percent alerts separately when adding an alert', async () => {
       const screen = renderView();
       await waitForLoaded(screen);
 
@@ -786,7 +792,7 @@ describe('ManagePriceAlertsView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CREATE_PRICE_ALERT,
         expect.objectContaining({
-          existingThresholds: [3000],
+          existingAbsoluteAlerts: [makeAlert()],
           existingPercentAlerts: [percentAlert],
         }),
       );
