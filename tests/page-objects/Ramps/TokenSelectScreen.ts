@@ -58,15 +58,13 @@ class TokenSelectScreen {
         await PlaywrightGestures.dismissKeyboardAfterTokenSearch();
 
         const isAndroid = await PlatformDetector.isAndroid();
-        // Android: typed search value is @text on EditText — exclude it and
-        // match Detox's atIndex(1) list row. iOS: avoid retapping the search field.
         const tokenElement = isAndroid
           ? await PlaywrightMatchers.getElementByAndroidUIAutomator(
               `.text("${token}")`,
               { index: 1 },
             )
-          : await PlaywrightMatchers.getLazyElementByXPath(
-              `//*[@name='${token}' or @label='${token}' or @text='${token}' or contains(@label,'${token}')][not(contains(@name,'search'))][not(contains(@name,'textfield'))]`,
+          : await PlaywrightMatchers.getElementByIOSPredicate(
+              `(label == "${token}" OR name == "${token}" OR label BEGINSWITH "${token} " OR name BEGINSWITH "${token} " OR label MATCHES ".*\\\\b${token}\\\\b.*" OR name MATCHES ".*\\\\b${token}\\\\b.*") AND NOT (name CONTAINS[c] "search") AND NOT (name CONTAINS[c] "textfield")`,
             );
 
         await PlaywrightAssertions.expectElementToBeVisible(tokenElement, {

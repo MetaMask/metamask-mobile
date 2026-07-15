@@ -15,8 +15,8 @@ import {
   type EncapsulatedElementType,
 } from '../../framework';
 
-const EMAIL_INPUT_IOS_XPATH = `//*[@name='${EnterEmailSelectorsIDs.EMAIL_INPUT}' or contains(@name,'${EnterEmailSelectorsIDs.EMAIL_INPUT}') or contains(@label,'name@domain.com') or contains(@name,'name@domain.com') or contains(@value,'name@domain.com')] | //XCUIElementTypeTextField`;
-const OTP_INPUT_IOS_XPATH = `//*[@name='${OtpCodeSelectorsIDs.OTP_CODE_INPUT}' or contains(@name,'${OtpCodeSelectorsIDs.OTP_CODE_INPUT}')] | //XCUIElementTypeTextField`;
+const EMAIL_INPUT_IOS_XPATH = `//*[@name='${EnterEmailSelectorsIDs.EMAIL_INPUT}' or contains(@name,'${EnterEmailSelectorsIDs.EMAIL_INPUT}') or contains(@label,'name@domain.com') or contains(@name,'name@domain.com') or contains(@value,'name@domain.com')]`;
+const OTP_INPUT_IOS_XPATH = `//*[@name='${OtpCodeSelectorsIDs.OTP_CODE_INPUT}' or contains(@name,'${OtpCodeSelectorsIDs.OTP_CODE_INPUT}')]//XCUIElementTypeTextField | //*[@name='${OtpCodeSelectorsIDs.OTP_CODE_INPUT}' or contains(@name,'${OtpCodeSelectorsIDs.OTP_CODE_INPUT}')]`;
 
 class KYCScreen {
   get verifyIdentityContinueButton(): EncapsulatedElementType {
@@ -70,8 +70,7 @@ class KYCScreen {
               exact: true,
             },
           ),
-        ios: () =>
-          PlaywrightMatchers.getLazyElementByXPath(OTP_INPUT_IOS_XPATH),
+        ios: () => PlaywrightMatchers.getElementByXPath(OTP_INPUT_IOS_XPATH),
       },
     });
   }
