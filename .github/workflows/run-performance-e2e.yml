@@ -81,6 +81,14 @@ on:
         description: 'TestMu AI access key.'
         required: false
         type: string
+      testmu_app_url_android_onboarding:
+        description: 'TestMu AI Android Onboarding App URL (lt://...).'
+        required: false
+        type: string
+      testmu_app_url_android_imported_wallet:
+        description: 'TestMu AI Android Imported Wallet App URL (lt://...).'
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -352,11 +360,22 @@ jobs:
       needs.prepare.result == 'success' &&
       needs.prepare.outputs.run_tests == 'true' &&
       (needs.resolve-main-browserstack-urls.result == 'skipped' || needs.resolve-main-browserstack-urls.result == 'success') &&
-      (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet) &&
       (
-        !inputs.reuse_main_builds ||
-        inputs.build_variant != 'e2e' ||
-        needs.resolve-main-browserstack-urls.outputs.found != 'true'
+        (
+          !inputs.browserstack_app_url_android_onboarding &&
+          !inputs.browserstack_app_url_android_imported_wallet
+        ) &&
+        (
+          !inputs.reuse_main_builds ||
+          inputs.build_variant != 'e2e' ||
+          needs.resolve-main-browserstack-urls.outputs.found != 'true'
+        )
+      ) ||
+      (
+        inputs.enable_testmu_benchmark == true &&
+        needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
+        !inputs.testmu_app_url_android_onboarding &&
+        !inputs.testmu_app_url_android_imported_wallet
       )
     with:
       branch_name: ${{ inputs.branch_name }}
@@ -429,14 +448,17 @@ jobs:
       inputs.enable_testmu_benchmark == true &&
       needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
       needs.prepare.outputs.run_tests == 'true' &&
-      needs.trigger-android-dual-versions.outputs.without-srp-testmu-url != ''
+      (
+        inputs.testmu_app_url_android_onboarding != '' ||
+        needs.trigger-android-dual-versions.outputs.without-srp-testmu-url != ''
+      )
     with:
       platform: android
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.prepare.outputs.android_matrix }}
-      testmu_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-testmu-url }}
+      testmu_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-testmu-url || inputs.testmu_app_url_android_onboarding }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-testmu-version || 'Manual-Input' }}
       branch_name: ${{ inputs.branch_name }}
       testmu_build_name: ${{ needs.prepare.outputs.testmu_android_build_name }}
@@ -517,14 +539,17 @@ jobs:
       inputs.enable_testmu_benchmark == true &&
       needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
       needs.prepare.outputs.run_tests == 'true' &&
-      needs.trigger-android-dual-versions.outputs.with-srp-testmu-url != ''
+      (
+        inputs.testmu_app_url_android_imported_wallet != '' ||
+        needs.trigger-android-dual-versions.outputs.with-srp-testmu-url != ''
+      )
     with:
       platform: android
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.prepare.outputs.android_matrix }}
-      testmu_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-testmu-url }}
+      testmu_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-testmu-url || inputs.testmu_app_url_android_imported_wallet }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-testmu-version || 'Manual-Input' }}
       branch_name: ${{ inputs.branch_name }}
       testmu_build_name: ${{ needs.prepare.outputs.testmu_android_build_name }}
