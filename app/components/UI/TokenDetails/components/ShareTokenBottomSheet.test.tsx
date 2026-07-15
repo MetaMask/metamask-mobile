@@ -1,9 +1,20 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { Platform, Share } from 'react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { strings } from '../../../../../locales/i18n';
 import ShareTokenBottomSheet from './ShareTokenBottomSheet';
 import type { TokenI } from '../../Tokens/types';
+import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
+import {
+  isAssetFromSearch,
+  selectTokenDisplayData,
+} from '../../../../selectors/tokenSearchDiscoveryDataController';
+import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
+import { formatMarketDetails } from '../../AssetOverview/utils/marketDetails';
+import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+import { safeToChecksumAddress } from '../../../../util/address';
 
 const mockBottomSheetHeader = jest.fn(
   ({
@@ -28,6 +39,46 @@ const mockBottomSheetHeader = jest.fn(
   },
 );
 
+const mockShareTokenCard = jest.fn(
+  ({
+    formattedPrice,
+    priceChangePercent,
+    marketCap,
+    liquidity,
+    holdersCount,
+    volume24h,
+    networkBadgeSource,
+    networkName,
+  }: {
+    formattedPrice: string;
+    priceChangePercent: number;
+    marketCap: string | null;
+    liquidity: string | null;
+    holdersCount: string | null;
+    volume24h: string | null;
+    networkBadgeSource?: { uri: string };
+    networkName?: string;
+  }) => {
+    const { View, Text } = jest.requireActual('react-native');
+    return (
+      <View testID="share-token-card-mock">
+        <Text testID="share-token-card-price">{formattedPrice}</Text>
+        <Text testID="share-token-card-change">{priceChangePercent}</Text>
+        <Text testID="share-token-card-market-cap">{marketCap ?? 'null'}</Text>
+        <Text testID="share-token-card-liquidity">{liquidity ?? 'null'}</Text>
+        <Text testID="share-token-card-holders">{holdersCount ?? 'null'}</Text>
+        <Text testID="share-token-card-volume">{volume24h ?? 'null'}</Text>
+        <Text testID="share-token-card-network-name">
+          {networkName ?? 'null'}
+        </Text>
+        <Text testID="share-token-card-network-badge">
+          {networkBadgeSource?.uri ?? 'null'}
+        </Text>
+      </View>
+    );
+  },
+);
+
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
   const {
@@ -40,10 +91,17 @@ jest.mock('@metamask/design-system-react-native', () => {
     BottomSheet: ({
       children,
       testID,
+      onClose,
     }: {
       children?: React.ReactNode;
       testID?: string;
-    }) => ReactActual.createElement(View, { testID }, children),
+      onClose?: () => void;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID, onClose, accessibilityLabel: 'bottom-sheet' },
+        children,
+      ),
     BottomSheetHeader: (props: {
       children?: React.ReactNode;
       onClose?: () => void;
@@ -130,28 +188,25 @@ jest.mock('../../AssetOverview/Balance/Balance', () => ({
   NetworkBadgeSource: jest.fn(() => ({ uri: 'network-badge' })),
 }));
 
-jest.mock('./ShareTokenCard', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      formattedPrice,
-      priceChangePercent,
-    }: {
-      formattedPrice: string;
-      priceChangePercent: number;
-    }) => (
-      <View testID="share-token-card-mock">
-        <Text testID="share-token-card-price">{formattedPrice}</Text>
-        <Text testID="share-token-card-change">{priceChangePercent}</Text>
-      </View>
-    ),
-  };
-});
+jest.mock('../../../../core/Multichain/utils', () => ({
+  isNonEvmChainId: jest.fn(() => false),
+}));
+
+jest.mock('../../../../util/address', () => ({
+  safeToChecksumAddress: jest.fn((address: string) => address),
+}));
+
+jest.mock('./ShareTokenCard', () => ({
+  __esModule: true,
+  default: (props: unknown) => mockShareTokenCard(props),
+}));
+
+const CHECKSUMMED_ADDRESS = '0x6b175474e89094c44da98b954eedeac495271d0f';
+const CHAIN_ID_HEX = '0x1';
 
 const mockToken: TokenI = {
-  address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-  chainId: '0x1',
+  address: CHECKSUMMED_ADDRESS,
+  chainId: CHAIN_ID_HEX,
   symbol: 'DAI',
   name: 'Dai Stablecoin',
   decimals: 18,
@@ -210,38 +265,514 @@ const defaultProps = {
   onClose: jest.fn(),
 };
 
+const renderSheet = (overrides: Partial<typeof defaultProps> = {}) =>
+  render(<ShareTokenBottomSheet {...defaultProps} {...overrides} />);
+
 describe('ShareTokenBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (selectTokenMarketData as jest.Mock).mockReturnValue({});
+    (isAssetFromSearch as jest.Mock).mockReturnValue(false);
+    (selectTokenDisplayData as jest.Mock).mockReturnValue({ found: false });
+    (getTokenExchangeRate as jest.Mock).mockResolvedValue(undefined);
+    (isNonEvmChainId as jest.Mock).mockReturnValue(false);
+    (safeToChecksumAddress as jest.Mock).mockImplementation(
+      (address: string) => address,
+    );
+    (formatMarketDetails as jest.Mock).mockReturnValue({
+      marketCap: '$126.57M',
+      totalVolume: '$75.57M',
+    });
+    (NetworkBadgeSource as jest.Mock).mockReturnValue({ uri: 'network-badge' });
   });
 
-  it('renders share token info title with large heading variant and no close button', () => {
-    const { getByTestId, queryByTestId } = render(
-      <ShareTokenBottomSheet {...defaultProps} />,
-    );
-
-    expect(getByTestId('share-token-sheet-title').props.children).toBe(
-      strings('share_token.title'),
-    );
-    expect(getByTestId('share-token-sheet-title-variant').props.children).toBe(
-      'HeadingLg',
-    );
-    expect(queryByTestId('share-token-close-button')).toBeNull();
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
-  it('renders the share URL and passes formatted card data', () => {
-    const { getByTestId } = render(<ShareTokenBottomSheet {...defaultProps} />);
+  describe('layout', () => {
+    it('renders share token info title with large heading variant and no close button', () => {
+      const { getByTestId, queryByTestId } = renderSheet();
 
-    expect(getByTestId('share-token-url').props.children).toBe(
-      defaultProps.shareUrl,
-    );
-    expect(getByTestId('share-token-card-price').props.children).toBe('$1.00');
-    expect(getByTestId('share-token-card-change').props.children).toBe(-2.5);
+      expect(getByTestId('share-token-sheet-title').props.children).toBe(
+        strings('share_token.title'),
+      );
+      expect(
+        getByTestId('share-token-sheet-title-variant').props.children,
+      ).toBe('HeadingLg');
+      expect(queryByTestId('share-token-close-button')).toBeNull();
+    });
+
+    it('renders the share URL and passes formatted card data', () => {
+      const { getByTestId } = renderSheet();
+
+      expect(getByTestId('share-token-url').props.children).toBe(
+        defaultProps.shareUrl,
+      );
+      expect(getByTestId('share-token-card-price').props.children).toBe(
+        '$1.00',
+      );
+      expect(getByTestId('share-token-card-change').props.children).toBe(-2.5);
+    });
+
+    it('renders the share token info action button label', () => {
+      const { getByTestId } = renderSheet();
+
+      expect(getByTestId('share-token-native-share-button')).toBeTruthy();
+    });
+
+    it('passes network badge and network name to ShareTokenCard', () => {
+      renderSheet();
+
+      expect(NetworkBadgeSource).toHaveBeenCalledWith(CHAIN_ID_HEX);
+      expect(mockShareTokenCard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          networkName: 'Ethereum Mainnet',
+          networkBadgeSource: { uri: 'network-badge' },
+        }),
+      );
+    });
+
+    it('omits network badge when token chainId is missing', () => {
+      renderSheet({
+        token: { ...mockToken, chainId: undefined },
+      });
+
+      expect(NetworkBadgeSource).not.toHaveBeenCalled();
+      expect(mockShareTokenCard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          networkBadgeSource: undefined,
+        }),
+      );
+    });
   });
 
-  it('renders the share token info action button label', () => {
-    const { getByTestId } = render(<ShareTokenBottomSheet {...defaultProps} />);
+  describe('price formatting', () => {
+    it('renders em dash formatted price when currentPrice is zero', () => {
+      const { getByTestId } = renderSheet({ currentPrice: 0 });
 
-    expect(getByTestId('share-token-native-share-button')).toBeTruthy();
+      expect(getByTestId('share-token-card-price').props.children).toBe('—');
+    });
+
+    it('renders em dash formatted price when currentPrice is not finite', () => {
+      const { getByTestId } = renderSheet({ currentPrice: Number.NaN });
+
+      expect(getByTestId('share-token-card-price').props.children).toBe('—');
+    });
+
+    it('formats sub-dollar prices with up to six decimal places', () => {
+      const { getByTestId } = renderSheet({ currentPrice: 0.123456 });
+
+      expect(getByTestId('share-token-card-price').props.children).toBe(
+        '$0.123456',
+      );
+    });
+
+    it('falls back to fixed decimal formatting when Intl throws', () => {
+      const originalNumberFormat = Intl.NumberFormat;
+      Intl.NumberFormat = jest.fn(() => {
+        throw new Error('invalid currency');
+      }) as unknown as typeof Intl.NumberFormat;
+
+      const { getByTestId } = renderSheet({
+        currentPrice: 1.23,
+        currentCurrency: 'INVALID',
+      });
+
+      expect(getByTestId('share-token-card-price').props.children).toBe(
+        '1.23 INVALID',
+      );
+
+      Intl.NumberFormat = originalNumberFormat;
+    });
+  });
+
+  describe('price change percent', () => {
+    it('prefers token.pricePercentChange1d over computed fallback', () => {
+      renderSheet({
+        token: { ...mockToken, pricePercentChange1d: 4.2 },
+        priceDiff: 10,
+        comparePrice: 100,
+      });
+
+      expect(mockShareTokenCard).toHaveBeenCalledWith(
+        expect.objectContaining({ priceChangePercent: 4.2 }),
+      );
+    });
+
+    it('computes priceChangePercent from priceDiff when token lacks API percent', () => {
+      renderSheet({
+        token: { ...mockToken, pricePercentChange1d: undefined },
+        priceDiff: -0.02,
+        comparePrice: 1.02,
+      });
+
+      expect(mockShareTokenCard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          priceChangePercent: expect.closeTo(-1.96, 2),
+        }),
+      );
+    });
+
+    it('uses tokenMarketEntry pricePercentChange1d when token lacks API percent', () => {
+      (selectTokenMarketData as jest.Mock).mockReturnValue({
+        [CHAIN_ID_HEX]: {
+          [CHECKSUMMED_ADDRESS]: {
+            price: 1,
+            pricePercentChange1d: 7.5,
+            marketCap: '1000000',
+            totalVolume: '500000',
+          },
+        },
+      });
+
+      renderSheet({
+        token: { ...mockToken, pricePercentChange1d: undefined },
+      });
+
+      expect(mockShareTokenCard).toHaveBeenCalledWith(
+        expect.objectContaining({ priceChangePercent: 7.5 }),
+      );
+    });
+
+    it('returns zero priceChangePercent when comparePrice is zero and no API percent exists', () => {
+      renderSheet({
+        token: { ...mockToken, pricePercentChange1d: undefined },
+        comparePrice: 0,
+        priceDiff: 1,
+      });
+
+      expect(mockShareTokenCard).toHaveBeenCalledWith(
+        expect.objectContaining({ priceChangePercent: 0 }),
+      );
+    });
+  });
+
+  describe('security and market stats', () => {
+    it('passes holdersCount liquidity and volume24h derived from security data', () => {
+      const { getByTestId } = renderSheet();
+
+      expect(getByTestId('share-token-card-holders').props.children).toBe(
+        '28.78K',
+      );
+      expect(getByTestId('share-token-card-liquidity').props.children).toBe(
+        '$126.57M',
+      );
+      expect(getByTestId('share-token-card-volume').props.children).toBe(
+        '$75.57M',
+      );
+    });
+
+    it('formats holdersCount below one thousand as a plain integer string', () => {
+      const { getByTestId } = renderSheet({
+        securityData: {
+          ...mockSecurityData,
+          financialStats: {
+            ...mockSecurityData.financialStats,
+            holdersCount: 842,
+          },
+        },
+      });
+
+      expect(getByTestId('share-token-card-holders').props.children).toBe(
+        '842',
+      );
+    });
+
+    it('passes null holdersCount when security data is absent', () => {
+      const { getByTestId } = renderSheet({ securityData: null });
+
+      expect(getByTestId('share-token-card-holders').props.children).toBe(
+        'null',
+      );
+    });
+
+    it('passes null holdersCount when holders count is zero', () => {
+      const { getByTestId } = renderSheet({
+        securityData: {
+          ...mockSecurityData,
+          financialStats: {
+            ...mockSecurityData.financialStats,
+            holdersCount: 0,
+          },
+        },
+      });
+
+      expect(getByTestId('share-token-card-holders').props.children).toBe(
+        'null',
+      );
+    });
+
+    it('passes null liquidity when security markets are empty', () => {
+      const { getByTestId } = renderSheet({
+        securityData: {
+          ...mockSecurityData,
+          financialStats: {
+            ...mockSecurityData.financialStats,
+            markets: [],
+          },
+        },
+      });
+
+      expect(getByTestId('share-token-card-liquidity').props.children).toBe(
+        'null',
+      );
+    });
+
+    it('passes null liquidity when market reserves sum to zero', () => {
+      const { getByTestId } = renderSheet({
+        securityData: {
+          ...mockSecurityData,
+          financialStats: {
+            ...mockSecurityData.financialStats,
+            markets: [
+              {
+                marketType: 'dex',
+                marketName: 'Uniswap',
+                pairName: 'DAI/USDC',
+                reserveUSD: 0,
+              },
+            ],
+          },
+        },
+      });
+
+      expect(getByTestId('share-token-card-liquidity').props.children).toBe(
+        'null',
+      );
+    });
+
+    it('passes null volume24h when trade volume is zero and market details lack volume', () => {
+      (formatMarketDetails as jest.Mock).mockReturnValue({
+        marketCap: '$126.57M',
+        totalVolume: undefined,
+      });
+
+      const { getByTestId } = renderSheet({
+        securityData: {
+          ...mockSecurityData,
+          financialStats: {
+            ...mockSecurityData.financialStats,
+            tradeVolume24h: 0,
+          },
+        },
+      });
+
+      expect(getByTestId('share-token-card-volume').props.children).toBe(
+        'null',
+      );
+    });
+  });
+
+  describe('market data sources', () => {
+    it('passes marketCap from redux token market data when available', () => {
+      (selectTokenMarketData as jest.Mock).mockReturnValue({
+        [CHAIN_ID_HEX]: {
+          [CHECKSUMMED_ADDRESS]: {
+            price: 1,
+            marketCap: '5000000',
+            totalVolume: '1000000',
+          },
+        },
+      });
+      (formatMarketDetails as jest.Mock).mockReturnValue({
+        marketCap: '$5.00M',
+        totalVolume: '$1.00M',
+      });
+
+      const { getByTestId } = renderSheet();
+
+      expect(getByTestId('share-token-card-market-cap').props.children).toBe(
+        '$5.00M',
+      );
+    });
+
+    it('uses search market data when token is from search discovery', () => {
+      (isAssetFromSearch as jest.Mock).mockReturnValue(true);
+      (selectTokenDisplayData as jest.Mock).mockReturnValue({
+        found: true,
+        price: {
+          price: 2,
+          pricePercentChange1d: 1.1,
+          marketCap: '9000000',
+          totalVolume: '800000',
+        },
+      });
+      (formatMarketDetails as jest.Mock).mockReturnValue({
+        marketCap: '$9.00M',
+        totalVolume: '$800.00K',
+      });
+
+      renderSheet({
+        token: { ...mockToken, pricePercentChange1d: undefined },
+      });
+
+      expect(getTokenExchangeRate).not.toHaveBeenCalled();
+      expect(mockShareTokenCard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          priceChangePercent: 1.1,
+          marketCap: '$9.00M',
+        }),
+      );
+    });
+
+    it('fetches exchange rate when redux and search market data are absent', async () => {
+      (getTokenExchangeRate as jest.Mock).mockResolvedValue({
+        price: 1,
+        pricePercentChange1d: 2.2,
+        marketCap: '3000000',
+        totalVolume: '400000',
+      });
+      (formatMarketDetails as jest.Mock).mockReturnValue({
+        marketCap: '$3.00M',
+        totalVolume: '$400.00K',
+      });
+
+      renderSheet({
+        token: { ...mockToken, pricePercentChange1d: undefined },
+      });
+
+      await waitFor(() => {
+        expect(getTokenExchangeRate).toHaveBeenCalledWith({
+          chainId: CHAIN_ID_HEX,
+          tokenAddress: CHECKSUMMED_ADDRESS,
+          currency: 'usd',
+          includeMarketData: true,
+        });
+      });
+
+      await waitFor(() => {
+        expect(mockShareTokenCard).toHaveBeenCalledWith(
+          expect.objectContaining({
+            priceChangePercent: 2.2,
+            marketCap: '$3.00M',
+          }),
+        );
+      });
+    });
+
+    it('does not fetch exchange rate when redux market entry already has price', () => {
+      (selectTokenMarketData as jest.Mock).mockReturnValue({
+        [CHAIN_ID_HEX]: {
+          [CHECKSUMMED_ADDRESS]: { price: 1.5 },
+        },
+      });
+
+      renderSheet();
+
+      expect(getTokenExchangeRate).not.toHaveBeenCalled();
+    });
+
+    it('ignores exchange rate fetch errors without crashing', async () => {
+      (getTokenExchangeRate as jest.Mock).mockRejectedValue(
+        new Error('network error'),
+      );
+
+      const { getByTestId } = renderSheet();
+
+      await waitFor(() => {
+        expect(getTokenExchangeRate).toHaveBeenCalled();
+      });
+
+      expect(getByTestId('share-token-sheet')).toBeTruthy();
+    });
+
+    it('does not update market data when exchange rate fetch resolves empty', async () => {
+      (getTokenExchangeRate as jest.Mock).mockResolvedValue(undefined);
+
+      renderSheet({
+        token: { ...mockToken, pricePercentChange1d: undefined },
+      });
+
+      await waitFor(() => {
+        expect(getTokenExchangeRate).toHaveBeenCalled();
+      });
+
+      expect(mockShareTokenCard).toHaveBeenCalledWith(
+        expect.objectContaining({ marketCap: null }),
+      );
+    });
+
+    it('does not fetch exchange rate when checksum address is unavailable', () => {
+      (safeToChecksumAddress as jest.Mock).mockReturnValue('');
+
+      renderSheet();
+
+      expect(getTokenExchangeRate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('non-EVM tokens', () => {
+    it('uses raw token address without checksum for non-EVM chains', async () => {
+      (isNonEvmChainId as jest.Mock).mockReturnValue(true);
+      (safeToChecksumAddress as jest.Mock).mockReturnValue(
+        'should-not-be-used',
+      );
+
+      renderSheet({
+        token: {
+          ...mockToken,
+          chainId: 'solana:mainnet',
+          address: 'So11111111111111111111111111111111111111112',
+        },
+      });
+
+      await waitFor(() => {
+        expect(getTokenExchangeRate).toHaveBeenCalledWith(
+          expect.objectContaining({
+            tokenAddress: 'So11111111111111111111111111111111111111112',
+          }),
+        );
+      });
+
+      expect(safeToChecksumAddress).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('native share', () => {
+    it('invokes Share.share with url on iOS when share button is pressed', async () => {
+      jest.spyOn(Share, 'share').mockResolvedValue({
+        action: Share.dismissedAction,
+      });
+      Object.defineProperty(Platform, 'OS', {
+        value: 'ios',
+        configurable: true,
+      });
+
+      const { getByTestId } = renderSheet();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('share-token-native-share-button'));
+      });
+
+      expect(Share.share).toHaveBeenCalledWith({
+        url: defaultProps.shareUrl,
+      });
+    });
+
+    it('invokes Share.share with message on Android when share button is pressed', async () => {
+      jest.spyOn(Share, 'share').mockResolvedValue({
+        action: Share.dismissedAction,
+      });
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        configurable: true,
+      });
+
+      const { getByTestId } = renderSheet();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('share-token-native-share-button'));
+      });
+
+      expect(Share.share).toHaveBeenCalledWith({
+        message: defaultProps.shareUrl,
+      });
+
+      Object.defineProperty(Platform, 'OS', {
+        value: 'ios',
+        configurable: true,
+      });
+    });
   });
 });
