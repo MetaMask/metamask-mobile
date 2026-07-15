@@ -19,12 +19,15 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { strings } from '../../../../../../locales/i18n';
 import { playSelection } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
-import type { FeedTypeFilter } from '../types';
+import type { SocialTypeFilter } from './types';
 import {
-  FeedViewSelectorsIDs,
-  getFeedTypeOptionTestId,
-} from '../FeedView.testIds';
-import { FEED_TYPE_LABEL_KEY, FEED_TYPE_OPTIONS } from './feedTypeOptions';
+  TypeFilterSelectorsIDs,
+  getTypeFilterOptionTestId,
+} from './TypeFilter.testIds';
+import {
+  TYPE_FILTER_LABEL_KEY,
+  TYPE_FILTER_OPTIONS,
+} from './typeFilterOptions';
 
 const styles = StyleSheet.create({
   root: {
@@ -32,28 +35,37 @@ const styles = StyleSheet.create({
   },
 });
 
-export interface FeedTypeSheetProps {
+export interface TypeFilterSheetProps {
   isOpen: boolean;
-  value: FeedTypeFilter;
-  onChange: (value: FeedTypeFilter) => void;
+  value: SocialTypeFilter;
+  onChange: (value: SocialTypeFilter) => void;
   onClose: () => void;
+  sheetTestID?: string;
+  backdropTestID?: string;
+  getOptionTestID?: (value: SocialTypeFilter) => string;
 }
 
-interface FeedTypeSheetInnerProps {
-  value: FeedTypeFilter;
-  onChange: (value: FeedTypeFilter) => void;
+interface TypeFilterSheetInnerProps {
+  value: SocialTypeFilter;
+  onChange: (value: SocialTypeFilter) => void;
   onClose: () => void;
+  sheetTestID: string;
+  backdropTestID: string;
+  getOptionTestID: (value: SocialTypeFilter) => string;
 }
 
-const FeedTypeSheetInner: React.FC<FeedTypeSheetInnerProps> = ({
+const TypeFilterSheetInner: React.FC<TypeFilterSheetInnerProps> = ({
   value,
   onChange,
   onClose,
+  sheetTestID,
+  backdropTestID,
+  getOptionTestID,
 }) => {
   const { colors } = useTheme();
 
   const handleSelect = useCallback(
-    (next: FeedTypeFilter) => {
+    (next: SocialTypeFilter) => {
       if (next !== value) {
         playSelection().catch(() => undefined);
         onChange(next);
@@ -65,9 +77,9 @@ const FeedTypeSheetInner: React.FC<FeedTypeSheetInnerProps> = ({
 
   const options = useMemo(
     () =>
-      FEED_TYPE_OPTIONS.map((option) => ({
+      TYPE_FILTER_OPTIONS.map((option) => ({
         key: option,
-        label: strings(FEED_TYPE_LABEL_KEY[option]),
+        label: strings(TYPE_FILTER_LABEL_KEY[option]),
       })),
     [],
   );
@@ -94,13 +106,10 @@ const FeedTypeSheetInner: React.FC<FeedTypeSheetInnerProps> = ({
             ]}
             onPress={onClose}
             accessibilityRole="button"
-            testID={FeedViewSelectorsIDs.TYPE_SELECTOR_BACKDROP}
+            testID={backdropTestID}
           />
 
-          <BottomSheetDialog
-            onClose={onClose}
-            testID={FeedViewSelectorsIDs.TYPE_SELECTOR_SHEET}
-          >
+          <BottomSheetDialog onClose={onClose} testID={sheetTestID}>
             <Box twClassName="px-4 pt-2 pb-4">
               {options.map((option) => {
                 const isSelected = option.key === value;
@@ -110,7 +119,7 @@ const FeedTypeSheetInner: React.FC<FeedTypeSheetInnerProps> = ({
                     onPress={() => handleSelect(option.key)}
                     accessibilityRole="button"
                     accessibilityState={{ selected: isSelected }}
-                    testID={getFeedTypeOptionTestId(option.key)}
+                    testID={getOptionTestID(option.key)}
                   >
                     <Box
                       flexDirection={BoxFlexDirection.Row}
@@ -147,25 +156,38 @@ const FeedTypeSheetInner: React.FC<FeedTypeSheetInnerProps> = ({
 };
 
 /**
- * Bottom sheet with the feed type options (All Types / Spot tokens / Perps).
+ * Bottom sheet with the position-type options (All types / Tokens / Perps).
  *
  * Mounted only while open — `BottomSheetDialog` auto-opens (and animates in) on
  * mount, so keeping it mounted would leave it permanently open and overlapping
  * the row above it. Unmounting on close mirrors the QuickBuy sheet pattern.
+ *
+ * Shared by `TopTradersView` and `FeedView`; testIDs are parametrized so each
+ * surface can keep its own selectors while reusing the same UI.
  */
-const FeedTypeSheet: React.FC<FeedTypeSheetProps> = ({
+const TypeFilterSheet: React.FC<TypeFilterSheetProps> = ({
   isOpen,
   value,
   onChange,
   onClose,
+  sheetTestID = TypeFilterSelectorsIDs.SHEET,
+  backdropTestID = TypeFilterSelectorsIDs.BACKDROP,
+  getOptionTestID = getTypeFilterOptionTestId,
 }) => {
   if (!isOpen) {
     return null;
   }
 
   return (
-    <FeedTypeSheetInner value={value} onChange={onChange} onClose={onClose} />
+    <TypeFilterSheetInner
+      value={value}
+      onChange={onChange}
+      onClose={onClose}
+      sheetTestID={sheetTestID}
+      backdropTestID={backdropTestID}
+      getOptionTestID={getOptionTestID}
+    />
   );
 };
 
-export default FeedTypeSheet;
+export default TypeFilterSheet;
