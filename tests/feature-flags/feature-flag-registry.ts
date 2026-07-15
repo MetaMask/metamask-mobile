@@ -4132,6 +4132,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictGtmOnboardingModalEnabled: {
+    name: 'predictGtmOnboardingModalEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   predictHomeFeaturedVariant: {
     name: 'predictHomeFeaturedVariant',
     type: FeatureFlagType.Remote,
