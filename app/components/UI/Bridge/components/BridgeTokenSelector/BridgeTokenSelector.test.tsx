@@ -10,6 +10,12 @@ import {
 } from '../../testUtils/fixtures';
 import { BridgeTokenSelector } from './BridgeTokenSelector';
 import { tokenToIncludeAsset } from '../../utils/tokenUtils';
+import {
+  BATCH_SELL_ASSET_PICKER_BANNER_DISMISS_TEST_ID,
+  BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID,
+} from './BatchSellAssetPickerBanner';
+import { BATCH_SELL_ASSET_PICKER_BANNER_LOCATION } from './useBatchSellAssetPickerBanner';
+import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
 
 let mockBridgeFeatureFlags: {
   chainRanking?: { chainId: CaipChainId; name?: string }[];
@@ -129,6 +135,23 @@ jest.mock('../../../../../selectors/featureFlagController/rwa', () => ({
   selectRWAEnabledFlag: jest.fn(() => false),
 }));
 
+let mockIsBatchSellEnabled = true;
+jest.mock('../../../../../selectors/featureFlagController/batchSell', () => ({
+  selectBatchSellEnabled: jest.fn(() => mockIsBatchSellEnabled),
+}));
+
+let mockSelectedInternalAccountAddress: string | undefined = '0xabc';
+jest.mock('../../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountAddress: jest.fn(
+    () => mockSelectedInternalAccountAddress,
+  ),
+}));
+
+const mockIsHardwareAccount = jest.fn<boolean, [string]>(() => false);
+jest.mock('../../../../../util/address', () => ({
+  isHardwareAccount: (address: string) => mockIsHardwareAccount(address),
+}));
+
 jest.mock('../../../../../hooks', () => ({
   useABTest: () => ({ variant: undefined }),
 }));
@@ -166,6 +189,10 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     ),
     setIsSelectingToken: jest.fn(() => ({
       type: 'bridge/setIsSelectingToken',
+    })),
+    setSourceAmount: jest.fn((amount: string | undefined) => ({
+      type: 'bridge/setSourceAmount',
+      payload: amount,
     })),
     selectTokenSelectorNetworkFilter: jest.fn(
       (state: { bridge: { tokenSelectorNetworkFilter?: CaipChainId } }) =>
@@ -253,6 +280,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 const mockTrackEvent = jest.fn();
+const mockResetBridgeControllerState = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
@@ -260,6 +288,7 @@ jest.mock('../../../../../core/Engine', () => ({
       BridgeController: {
         trackUnifiedSwapBridgeEvent: (...args: unknown[]) =>
           mockTrackEvent(...args),
+        resetState: () => mockResetBridgeControllerState(),
       },
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('bearer-token'),
@@ -282,6 +311,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
 
 jest.mock('../../../../../constants/navigation/Routes', () => ({
   BRIDGE: {
+    BATCH_SELL_TOKEN_SELECT: 'BatchSellTokenSelect',
     MODALS: {
       ROOT: 'BridgeModals',
       NETWORK_LIST_MODAL: 'NetworkListModal',
@@ -317,22 +347,36 @@ jest.mock('@metamask/design-system-react-native', () => {
     ButtonIcon: ({
       onPress,
       iconName,
+      testID,
     }: {
       onPress?: () => void;
       iconName?: string;
+      testID?: string;
     }) =>
       createElement(TouchableOpacity, {
         onPress,
         // Derive the testID from the iconName so different ButtonIcons
         // (e.g. Info on each row, ArrowLeft in the inline header) don't
         // collide on the same selector.
-        testID: `button-icon-${String(iconName ?? 'unknown').toLowerCase()}`,
+        testID:
+          testID ??
+          `button-icon-${String(iconName ?? 'unknown').toLowerCase()}`,
       }),
-    ButtonIconSize: { Md: 'Md' },
-    IconColor: { IconAlternative: 'IconAlternative' },
-    IconName: { Info: 'Info', Check: 'Check', ArrowLeft: 'ArrowLeft' },
+    ButtonIconSize: { Md: 'Md', Sm: 'Sm' },
+    IconColor: {
+      IconAlternative: 'IconAlternative',
+      IconDefault: 'IconDefault',
+      PrimaryDefault: 'PrimaryDefault',
+    },
+    IconName: {
+      Info: 'Info',
+      Check: 'Check',
+      ArrowLeft: 'ArrowLeft',
+      Close: 'Close',
+      Merge: 'Merge',
+    },
     Icon: 'Icon',
-    IconSize: { Md: 'Md' },
+    IconSize: { Md: 'Md', Lg: 'Lg' },
     HeaderStandard: ({
       title,
       onBack,
@@ -368,12 +412,12 @@ jest.mock('@metamask/design-system-react-native', () => {
       TextAlternative: 'text-alternative',
       PrimaryInverse: 'text-primary-inverse',
     },
+    FontWeight: { Medium: '500' },
     AvatarNetwork: 'AvatarNetwork',
     AvatarNetworkSize: { Xs: '16', Sm: '24' },
     AvatarBaseShape: { Circle: 'circle', Square: 'square' },
     BoxAlignItems: { Center: 'center' },
     BoxFlexDirection: { Row: 'row' },
-    FontWeight: { Medium: '500' },
   };
 });
 
@@ -392,6 +436,16 @@ jest.mock('../../../../../constants/bridge', () => ({
 }));
 jest.mock('../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'https://network.png' })),
+}));
+
+const mockStorageGetItemSync = jest.fn();
+const mockStorageSetItem = jest.fn();
+jest.mock('../../../../../store/storage-wrapper', () => ({
+  __esModule: true,
+  default: {
+    getItemSync: (...args: unknown[]) => mockStorageGetItemSync(...args),
+    setItem: (...args: unknown[]) => mockStorageSetItem(...args),
+  },
 }));
 
 jest.mock('./NetworkPills', () => ({
@@ -421,6 +475,10 @@ jest.mock('./NetworkPills', () => ({
       createElement(TouchableOpacity, {
         testID: 'select-polygon-network',
         onPress: () => onChainSelect(MOCK_CHAIN_IDS.polygon),
+      }),
+      createElement(TouchableOpacity, {
+        testID: 'select-all-networks',
+        onPress: () => onChainSelect(undefined),
       }),
       createElement(TouchableOpacity, {
         testID: 'open-network-modal',
@@ -526,8 +584,38 @@ jest.mock('react-native-gesture-handler', () => {
   return { FlatList, ScrollView };
 });
 
+const mockFlashListScrollToIndex = jest.fn().mockResolvedValue(undefined);
+const mockFlashListMount = jest.fn();
+const mockFlashListUnmount = jest.fn();
+
+jest.mock('@shopify/flash-list', () => {
+  const ReactMock = jest.requireActual('react');
+  const { FlatList } = jest.requireActual('react-native');
+
+  const MockFlashList = ReactMock.forwardRef(
+    (props: Record<string, unknown>, ref: React.ForwardedRef<unknown>) => {
+      ReactMock.useImperativeHandle(ref, () => ({
+        scrollToIndex: mockFlashListScrollToIndex,
+      }));
+      ReactMock.useEffect(() => {
+        mockFlashListMount();
+        return () => mockFlashListUnmount();
+      }, []);
+
+      return ReactMock.createElement(FlatList, props);
+    },
+  );
+
+  return { FlashList: MockFlashList };
+});
+
 const resetMocks = () => {
   mockRouteParams = { type: 'source' };
+  mockIsBatchSellEnabled = true;
+  mockSelectedInternalAccountAddress = '0xabc';
+  mockIsHardwareAccount.mockReturnValue(false);
+  mockStorageGetItemSync.mockReturnValue(null);
+  mockStorageSetItem.mockResolvedValue(undefined);
   mockBridgeFeatureFlags = {
     chainRanking: [
       { chainId: MOCK_CHAIN_IDS.ethereum, name: 'Ethereum' },
@@ -727,6 +815,58 @@ describe('BridgeTokenSelector', () => {
 
       await waitFor(() => expect(getByTestId('verified-ETH')).toBeTruthy());
     });
+
+    it('renders Batch Sell banner in source picker when eligible and not dismissed', async () => {
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      await waitFor(() =>
+        expect(
+          getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeTruthy(),
+      );
+    });
+
+    it('omits Batch Sell banner in destination picker', async () => {
+      mockRouteParams = { type: 'dest' };
+
+      const { queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await waitFor(() =>
+        expect(
+          queryByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeNull(),
+      );
+    });
+
+    it('omits Batch Sell banner when persistent dismissal exists', async () => {
+      mockStorageGetItemSync.mockReturnValue('true');
+
+      const { queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await waitFor(() =>
+        expect(
+          queryByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeNull(),
+      );
+    });
+
+    it('omits Batch Sell banner for hardware wallet accounts', async () => {
+      mockIsHardwareAccount.mockReturnValue(true);
+
+      const { queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await waitFor(() =>
+        expect(
+          queryByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeNull(),
+      );
+    });
   });
 
   describe('search', () => {
@@ -734,6 +874,21 @@ describe('BridgeTokenSelector', () => {
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ETH');
       expect(mockDebouncedSearch).toHaveBeenCalledWith('ETH');
+    });
+
+    it('hides Batch Sell banner while search query is active', async () => {
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await waitFor(() =>
+        expect(
+          getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeTruthy(),
+      );
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ETH');
+
+      expect(queryByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID)).toBeNull();
     });
 
     it('displays search results when query meets minimum length', async () => {
@@ -839,6 +994,41 @@ describe('BridgeTokenSelector', () => {
   });
 
   describe('chain selection', () => {
+    it('resets the mounted list after scrolling and changing networks', async () => {
+      const { getByTestId, UNSAFE_getByType } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+      const initialMountCount = mockFlashListMount.mock.calls.length;
+      const { FlatList } = jest.requireActual('react-native');
+
+      await act(async () => {
+        UNSAFE_getByType(FlatList).props.onScroll({
+          nativeEvent: {
+            layoutMeasurement: { height: 500 },
+            contentOffset: { y: 500 },
+            contentSize: { height: 2000 },
+          },
+        });
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('select-eth-network'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('select-all-networks'));
+      });
+
+      await waitFor(() => {
+        expect(mockFlashListScrollToIndex).toHaveBeenCalledTimes(1);
+        expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
+          index: 0,
+          animated: false,
+        });
+      });
+      expect(mockFlashListMount).toHaveBeenCalledTimes(initialMountCount);
+      expect(mockFlashListUnmount).not.toHaveBeenCalled();
+    });
+
     it('cancels search and resets when chain changes', async () => {
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ETH');
@@ -927,6 +1117,26 @@ describe('BridgeTokenSelector', () => {
   });
 
   describe('pagination', () => {
+    it('disables visible-content position maintenance', () => {
+      const { UNSAFE_getByType } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+      const { FlatList } = jest.requireActual('react-native');
+
+      expect(
+        UNSAFE_getByType(FlatList).props.maintainVisibleContentPosition,
+      ).toEqual({ disabled: true });
+    });
+
+    it('sets a frame-rate scroll event throttle', () => {
+      const { UNSAFE_getByType } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+      const { FlatList } = jest.requireActual('react-native');
+
+      expect(UNSAFE_getByType(FlatList).props.scrollEventThrottle).toBe(16);
+    });
+
     it('triggers load more on scroll near bottom with cursor', async () => {
       mockSearchTokensState = {
         ...mockSearchTokensState,
@@ -996,6 +1206,56 @@ describe('BridgeTokenSelector', () => {
   });
 
   describe('navigation and tracking', () => {
+    it('dismisses Batch Sell banner without navigating', async () => {
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await waitFor(() =>
+        expect(
+          getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeTruthy(),
+      );
+      fireEvent.press(
+        getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_DISMISS_TEST_ID),
+      );
+
+      expect(mockStorageSetItem).toHaveBeenCalledWith(
+        'batch_sell_asset_picker_banner_dismissed',
+        'true',
+      );
+      expect(mockNavigationDispatch).not.toHaveBeenCalled();
+      expect(queryByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID)).toBeNull();
+    });
+
+    it('opens Batch Sell token selector from Batch Sell banner', async () => {
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      await waitFor(() =>
+        expect(
+          getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeTruthy(),
+      );
+      fireEvent.press(getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID));
+
+      expect(mockStorageSetItem).toHaveBeenCalledWith(
+        'batch_sell_asset_picker_banner_dismissed',
+        'true',
+      );
+      expect(mockNavigationDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'REPLACE',
+          payload: expect.objectContaining({
+            name: 'BatchSellTokenSelect',
+            params: {
+              batchSellLocation: BATCH_SELL_ASSET_PICKER_BANNER_LOCATION,
+              preserveBridgeState: true,
+            },
+          }),
+        }),
+      );
+    });
+
     it('navigates and tracks event on info button press', async () => {
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());

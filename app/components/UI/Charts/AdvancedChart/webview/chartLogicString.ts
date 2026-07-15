@@ -166,9 +166,9 @@ const state = {
     rnBackedPagination: { enabled: false },
     hasExplicitCurrentPriceLine: false,
     hotReloadSeq: 0,
-    inHotReloadPreResetPhase: false,
     slbMode: false,
     slbCenteringPending: false,
+    legendOwnsLayoutSettle: false,
 };
 // ----- Widget lifecycle ---------------------------------------------------
 function getWidget() {
@@ -350,12 +350,6 @@ function bumpHotReloadSeq() {
 function getHotReloadSeq() {
     return state.hotReloadSeq;
 }
-function isInHotReloadPreResetPhase() {
-    return state.inHotReloadPreResetPhase;
-}
-function setInHotReloadPreResetPhase(phase) {
-    state.inHotReloadPreResetPhase = phase;
-}
 // ----- SLB (Social Leaderboard) mode -----------------------------------------
 function getSlbMode() {
     return state.slbMode;
@@ -368,6 +362,13 @@ function isSlbCenteringPending() {
 }
 function setSlbCenteringPending(pending) {
     state.slbCenteringPending = pending;
+}
+// ----- Legend owns layout settle ---------------------------------------------
+function setLegendOwnsLayoutSettle(owns) {
+    state.legendOwnsLayoutSettle = owns;
+}
+function doesLegendOwnLayoutSettle() {
+    return state.legendOwnsLayoutSettle;
 }
 // ----- Explicit current price line -------------------------------------------
 function getHasExplicitCurrentPriceLine() {
@@ -405,9 +406,9 @@ function __resetStateForTests() {
     state.rnBackedPagination = { enabled: false };
     state.hasExplicitCurrentPriceLine = false;
     state.hotReloadSeq = 0;
-    state.inHotReloadPreResetPhase = false;
     state.slbMode = false;
     state.slbCenteringPending = false;
+    state.legendOwnsLayoutSettle = false;
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/loadLibrary.ts
@@ -1133,8 +1134,12 @@ function holdCenteredVisibleRange(chart, fromSec, toSec) {
  *
  * The centering flag is cleared after success so subsequent REALTIME_UPDATE
  * messages don't re-trigger the slide. Only a fresh SET_OHLCV_DATA resets it.
+ *
+ * When \`options.immediate\` is true, applies centering synchronously instead of
+ * waiting for \`onDataLoaded\`. Used after \`setResolution\` where TradingView has
+ * already completed its data cycle by the time the callback fires.
  */
-function slbCenterViewport(chart) {
+function slbCenterViewport(chart, options) {
     if (!getSlbMode() || !isSlbCenteringPending())
         return;
     const fromMs = getVisibleFromMs();
@@ -1142,9 +1147,7 @@ function slbCenterViewport(chart) {
     if (fromMs == null || toMs == null)
         return;
     const capturedGeneration = getOhlcvGeneration();
-    const subscription = chart.onDataLoaded();
-    const onLoaded = () => {
-        subscription.unsubscribe(null, onLoaded);
+    const applyCenter = () => {
         if (capturedGeneration !== getOhlcvGeneration())
             return;
         if (!isSlbCenteringPending())
@@ -1176,6 +1179,15 @@ function slbCenterViewport(chart) {
         catch (error) {
             reportErrorToRN(error);
         }
+    };
+    if (options?.immediate) {
+        applyCenter();
+        return;
+    }
+    const subscription = chart.onDataLoaded();
+    const onLoaded = () => {
+        subscription.unsubscribe(null, onLoaded);
+        applyCenter();
     };
     subscription.subscribe(null, onLoaded);
 }
@@ -1220,6 +1232,127 @@ function slbHandleGetBars(onResult) {
     return true;
 }
 
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/priceFormatter.ts
+// Price formatting for TradingView's \`custom_formatters.priceFormatterFactory\`.
+//
+// Ported from chartLogic.js: SUBSCRIPT_DIGITS_CROSSHAIR / toSubscriptDigitsCrosshair
+// (~line 1328), formatSubscriptNotationCrosshair (~1350), formatCrosshairPrice
+// (~1373), advancedChartPriceFormatterFactory (~1397).
+//
+// This is a TV widget option, not a message handler — the factory returns a
+// { format(price) } object that TV uses to render the price scale + last-value
+// pill. Without it, TV falls back to a plain \`x.xx\` format that ignores our
+// \`useSubscriptPriceFormat\` config.
+const SUBSCRIPT_DIGITS = [
+    '₀',
+    '₁',
+    '₂',
+    '₃',
+    '₄',
+    '₅',
+    '₆',
+    '₇',
+    '₈',
+    '₉',
+];
+function toSubscriptDigits(n) {
+    return String(n)
+        .split('')
+        .map((digit) => SUBSCRIPT_DIGITS[Number.parseInt(digit, 10)] ?? digit)
+        .join('');
+}
+/**
+ * For values strictly between 0 and 0.0001, produces the compact
+ * \`0.0₆12345\` notation. Returns \`null\` when the value doesn't qualify so
+ * callers can fall through to Intl formatting.
+ */
+function formatSubscriptNotation(abs) {
+    if (!(abs > 0 && abs < 0.0001))
+        return null;
+    const priceStr = abs.toFixed(20);
+    const match = /^0\\.0*([1-9]\\d*)/.exec(priceStr);
+    if (!match)
+        return null;
+    const leadingZeros = priceStr.indexOf(match[1]) - 2;
+    if (leadingZeros < 4)
+        return null;
+    const sig = match[1];
+    const significantDigits = sig.slice(0, 4).replace(/0{1,4}$/, '') || sig.slice(0, 2);
+    return \`0.0\${toSubscriptDigits(leadingZeros)}\${significantDigits}\`;
+}
+function getConfiguredPriceDecimals() {
+    const decimals = window.CONFIG?.priceDecimals;
+    if (typeof decimals !== 'number' || !Number.isFinite(decimals)) {
+        return null;
+    }
+    return Math.max(0, Math.floor(decimals));
+}
+function formatPriceWithConfiguredDecimals(price, maxDecimals) {
+    const p = Number(price);
+    if (p === 0) {
+        return '0';
+    }
+    const abs = Math.abs(p);
+    let decimals = maxDecimals;
+    if (abs >= 1) {
+        const integerDigits = Math.floor(Math.log10(abs)) + 1;
+        decimals = Math.min(maxDecimals, Math.max(0, 5 - integerDigits));
+    }
+    const rounded = Number(p.toFixed(decimals));
+    return new Intl.NumberFormat('en-US', {
+        style: 'decimal',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: decimals,
+    }).format(rounded);
+}
+/**
+ * Formats a price for the TV built-in price scale + crosshair label. Zero-
+ * safe. Numbers below 0.0001 use subscript notation; others use Intl decimal.
+ */
+function formatCrosshairPrice(price) {
+    if (price === undefined || price === null || Number.isNaN(Number(price))) {
+        return '';
+    }
+    const p = Number(price);
+    if (p === 0)
+        return '0.00';
+    const abs = Math.abs(p);
+    const sub = formatSubscriptNotation(abs);
+    if (sub) {
+        return p < 0 ? \`-\${sub}\` : sub;
+    }
+    const configuredPriceDecimals = getConfiguredPriceDecimals();
+    if (configuredPriceDecimals !== null) {
+        return formatPriceWithConfiguredDecimals(p, configuredPriceDecimals);
+    }
+    return new Intl.NumberFormat('en-US', {
+        style: 'decimal',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: abs >= 1 ? 2 : 4,
+    }).format(p);
+}
+/**
+ * TradingView \`custom_formatters.priceFormatterFactory\`. Returns null (letting
+ * TV fall back to its default) when subscript formatting is disabled or when
+ * the symbol is a volume series. Otherwise returns a formatter that routes
+ * through \`formatCrosshairPrice\`.
+ */
+function advancedChartPriceFormatterFactory(symbolInfo, _minTick) {
+    if (symbolInfo === null || symbolInfo.format === 'volume') {
+        return null;
+    }
+    if (!window.CONFIG ||
+        (!window.CONFIG.useSubscriptPriceFormat &&
+            getConfiguredPriceDecimals() === null)) {
+        return null;
+    }
+    return {
+        format(price) {
+            return formatCrosshairPrice(price);
+        },
+    };
+}
+
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/datafeed.ts
 // TradingView UDF datafeed object passed into the widget constructor.
 //
@@ -1227,6 +1360,7 @@ function slbHandleGetBars(onResult) {
 // helpers \`filterBarsForRange\` (~4944), \`fetchOlderBars\` (~4991).
 // Phase 2 wires the default Price API paginator; Phase 6 swaps in
 // pagination/rnBacked.ts when consumers opt into the custom strategy.
+
 
 
 
@@ -1248,7 +1382,7 @@ const SUPPORTED_RESOLUTIONS = [
     '1W',
     '1M',
 ];
-const VARIABLE_TICK_SIZE = [
+const DEFAULT_VARIABLE_TICK_SIZE = [
     '0.0000000001',
     '0.000001',
     '0.00000001',
@@ -1261,6 +1395,25 @@ const VARIABLE_TICK_SIZE = [
     '10000',
     '0.1',
 ].join(' ');
+const PERPS_VARIABLE_TICK_SIZE = [
+    '0.0000000001',
+    '0.000001',
+    '0.00000001',
+    '0.0001',
+    '0.000001',
+    '0.01',
+    '0.0001',
+    '10000',
+    '1',
+].join(' ');
+function getVariableTickSize() {
+    return getConfiguredPriceDecimals() !== null
+        ? PERPS_VARIABLE_TICK_SIZE
+        : DEFAULT_VARIABLE_TICK_SIZE;
+}
+function getPriceScale() {
+    return getConfiguredPriceDecimals() !== null ? 10000000000 : 100;
+}
 /** Strips internal fields from an OHLCVBar to the shape TV expects. */
 function toTVBar(bar) {
     return {
@@ -1317,8 +1470,8 @@ const customDatafeed = {
             timezone: 'Etc/UTC',
             exchange: '',
             minmov: 1,
-            pricescale: 100,
-            variable_tick_size: VARIABLE_TICK_SIZE,
+            pricescale: getPriceScale(),
+            variable_tick_size: getVariableTickSize(),
             has_intraday: true,
             has_daily: true,
             has_weekly_and_monthly: true,
@@ -1333,10 +1486,6 @@ const customDatafeed = {
             const fromMs = periodParams.from * 1000;
             const toMs = periodParams.to * 1000;
             const { countBack, firstDataRequest } = periodParams;
-            if (firstDataRequest && isInHotReloadPreResetPhase()) {
-                onResult([], { noData: true });
-                return;
-            }
             const bars = filterBarsForRange(fromMs, toMs, countBack);
             if (bars.length > 0) {
                 onResult(bars, { noData: false });
@@ -1412,96 +1561,6 @@ function forwardRealtimeTick(tick) {
             reportErrorToRN(error);
         }
     }
-}
-
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/priceFormatter.ts
-// Price formatting for TradingView's \`custom_formatters.priceFormatterFactory\`.
-//
-// Ported from chartLogic.js: SUBSCRIPT_DIGITS_CROSSHAIR / toSubscriptDigitsCrosshair
-// (~line 1328), formatSubscriptNotationCrosshair (~1350), formatCrosshairPrice
-// (~1373), advancedChartPriceFormatterFactory (~1397).
-//
-// This is a TV widget option, not a message handler — the factory returns a
-// { format(price) } object that TV uses to render the price scale + last-value
-// pill. Without it, TV falls back to a plain \`x.xx\` format that ignores our
-// \`useSubscriptPriceFormat\` config.
-const SUBSCRIPT_DIGITS = [
-    '₀',
-    '₁',
-    '₂',
-    '₃',
-    '₄',
-    '₅',
-    '₆',
-    '₇',
-    '₈',
-    '₉',
-];
-function toSubscriptDigits(n) {
-    return String(n)
-        .split('')
-        .map((digit) => SUBSCRIPT_DIGITS[Number.parseInt(digit, 10)] ?? digit)
-        .join('');
-}
-/**
- * For values strictly between 0 and 0.0001, produces the compact
- * \`0.0₆12345\` notation. Returns \`null\` when the value doesn't qualify so
- * callers can fall through to Intl formatting.
- */
-function formatSubscriptNotation(abs) {
-    if (!(abs > 0 && abs < 0.0001))
-        return null;
-    const priceStr = abs.toFixed(20);
-    const match = /^0\\.0*([1-9]\\d*)/.exec(priceStr);
-    if (!match)
-        return null;
-    const leadingZeros = priceStr.indexOf(match[1]) - 2;
-    if (leadingZeros < 4)
-        return null;
-    const sig = match[1];
-    const significantDigits = sig.slice(0, 4).replace(/0{1,4}$/, '') || sig.slice(0, 2);
-    return \`0.0\${toSubscriptDigits(leadingZeros)}\${significantDigits}\`;
-}
-/**
- * Formats a price for the TV built-in price scale + crosshair label. Zero-
- * safe. Numbers below 0.0001 use subscript notation; others use Intl decimal.
- */
-function formatCrosshairPrice(price) {
-    if (price === undefined || price === null || Number.isNaN(Number(price))) {
-        return '';
-    }
-    const p = Number(price);
-    if (p === 0)
-        return '0.00';
-    const abs = Math.abs(p);
-    const sub = formatSubscriptNotation(abs);
-    if (sub) {
-        return p < 0 ? \`-\${sub}\` : sub;
-    }
-    return new Intl.NumberFormat('en-US', {
-        style: 'decimal',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: abs >= 1 ? 2 : 4,
-    }).format(p);
-}
-/**
- * TradingView \`custom_formatters.priceFormatterFactory\`. Returns null (letting
- * TV fall back to its default) when subscript formatting is disabled or when
- * the symbol is a volume series. Otherwise returns a formatter that routes
- * through \`formatCrosshairPrice\`.
- */
-function advancedChartPriceFormatterFactory(symbolInfo, _minTick) {
-    if (symbolInfo === null || symbolInfo.format === 'volume') {
-        return null;
-    }
-    if (!window.CONFIG?.useSubscriptPriceFormat) {
-        return null;
-    }
-    return {
-        format(price) {
-            return formatCrosshairPrice(price);
-        },
-    };
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/resolution.ts
@@ -1582,6 +1641,16 @@ function detectResolution(data) {
 let firstDataCallback = null;
 let firstDataDelivered = false;
 /**
+ * When active indicators exist, defers the CHART_LAYOUT_SETTLED signal to the
+ * legend module so it fires after the first successful legend render — not on
+ * the premature 2-rAF timer in emitLayoutSettled.
+ */
+function claimLegendSettleOwnership() {
+    if (getActiveStudies().size > 0 || getMaStudies().size > 0) {
+        setLegendOwnsLayoutSettle(true);
+    }
+}
+/**
  * Registers the callback invoked the first time SET_OHLCV_DATA arrives.
  * Bootstrap wires this to widget creation (loads the TV library if needed,
  * then calls createChartWidget).
@@ -1625,7 +1694,8 @@ function handleSetOHLCVData(payload) {
         try {
             const chart = widget.activeChart();
             if (previousResolution === newResolution) {
-                setInHotReloadPreResetPhase(false);
+                // Same resolution — TV won't re-fetch via getBars, so we must
+                // resetData to force it to pick up the new bars from the datafeed.
                 resetDatafeedCacheBeforeHotReload(widget);
                 chart.resetData();
                 resetMainPriceScaleAutoScale(chart);
@@ -1634,30 +1704,23 @@ function handleSetOHLCVData(payload) {
                 emitLayoutSettled();
             }
             else {
-                setInHotReloadPreResetPhase(true);
+                // Different resolution — let setResolution handle the transition
+                // naturally. TV calls getBars internally, the datafeed returns the
+                // new bars (already stored via setOhlcvData above), and TV renders
+                // them smoothly without a blank frame. No resetData needed.
+                claimLegendSettleOwnership();
                 const seq = bumpHotReloadSeq();
                 chart.setResolution(newResolution, () => {
                     if (getHotReloadSeq() !== seq) {
                         return;
                     }
-                    setInHotReloadPreResetPhase(false);
-                    try {
-                        resetDatafeedCacheBeforeHotReload(widget);
-                        chart.resetData();
-                        resetMainPriceScaleAutoScale(chart);
-                        notifyDataLifecycle('ohlcvReset');
-                        applyVisibleRange(chart);
-                        emitLayoutSettled();
-                    }
-                    catch (error) {
-                        setInHotReloadPreResetPhase(false);
-                        reportErrorToRN(error);
-                    }
+                    resetMainPriceScaleAutoScale(chart);
+                    applyVisibleRange(chart, { dataAlreadyLoaded: true });
+                    emitLayoutSettled();
                 });
             }
         }
         catch (error) {
-            setInHotReloadPreResetPhase(false);
             reportErrorToRN(error);
         }
         return;
@@ -1687,12 +1750,12 @@ function handleRealtimeUpdate(payload) {
         volume: bar.volume,
     });
 }
-function applyVisibleRange(chart) {
+function applyVisibleRange(chart, options) {
     // Strategy C (SLB): center the viewport on the trade window using both
     // visibleFromMs and visibleToMs. Handled by the socialLeaderboard overlay
     // which subscribes to onDataLoaded and frames the exact trade window.
     if (getSlbMode()) {
-        slbCenterViewport(chart);
+        slbCenterViewport(chart, { immediate: options?.dataAlreadyLoaded });
         return;
     }
     const fromMs = getVisibleFromMs();
@@ -1731,6 +1794,9 @@ function applyVisibleRange(chart) {
     subscription.subscribe(null, onLoaded);
 }
 function emitLayoutSettled() {
+    if (doesLegendOwnLayoutSettle()) {
+        return;
+    }
     const send = () => {
         if (getWidget() && isChartReady()) {
             postToRN('CHART_LAYOUT_SETTLED', {});
@@ -2721,7 +2787,7 @@ function __resetVisibleRangeForTests() {
 // The overlay is a \`<div id="study-legend-overlay">\` injected into
 // #tv_chart_container that holds one \`.legend-pill\` per active indicator.
 // Theme-aware text colors are computed from CONFIG.theme; per-plot colors
-// come from CONFIG.indicatorColors.
+// come from the legend config supplied by RN.
 //
 // \`LEGEND_RENDERED\` is posted to RN once the overlay has settled (either
 // real values returned by chart.exportData() or after the retry timeout).
@@ -2737,12 +2803,15 @@ let exportGeneration = 0;
 let retryCount = 0;
 let timeoutId = null;
 let legendOverlayEnabled = false;
-let indicatorColors;
+/** Typed legend config from RN — the single source of truth for legend rendering. */
+let legendConfig;
+/** Sub-pane overlay elements keyed by indicator name. */
+const subPaneOverlays = new Map();
 // ----- Lifecycle ---------------------------------------------------------
 /** Called once on chart-ready to set up the DOM container. */
-function setupLegendOverlay(config, colors) {
+function setupLegendOverlay(config) {
     legendOverlayEnabled = Boolean(config?.enabled);
-    indicatorColors = colors;
+    legendConfig = config?.config;
     if (!legendOverlayEnabled)
         return;
     createOverlayElement();
@@ -2759,6 +2828,7 @@ function attachLegendResizeListener(widget) {
             const el = document.getElementById(OVERLAY_ID);
             if (el)
                 updateLegendOverlayLayout();
+            repositionSubPaneOverlays(widget.activeChart());
         });
     }
     catch {
@@ -2802,80 +2872,13 @@ function injectHideLegendButtonsCSS() {
             '.legendElement .buttonsWrapper{display:none!important;}';
     targetDoc.head.appendChild(style);
 }
-function getMACDColors() {
-    return indicatorColors?.MACD ?? {};
-}
-function getRSIColors() {
-    return indicatorColors?.RSI ?? {};
-}
-function getBOLColors() {
-    return indicatorColors?.BOL ?? {};
-}
-function getMAColors() {
-    return indicatorColors?.MA ?? {};
-}
-function buildPresetMap() {
-    const macd = getMACDColors();
-    const rsi = getRSIColors();
-    const bol = getBOLColors();
-    const ma = getMAColors();
-    return {
-        MACD: {
-            plots: [
-                { tvTitle: 'MACD', label: 'MACD(12,26)', color: macd.macd ?? null },
-                { tvTitle: 'Signal', label: 'Signal', color: macd.signal ?? null },
-                {
-                    tvTitle: 'Histogram',
-                    label: 'Hist',
-                    color: macd.histogramPositive ?? null,
-                },
-            ],
-            useIndex: true,
-        },
-        RSI: {
-            plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: rsi.plot ?? null }],
-            useIndex: true,
-        },
-        BOL: {
-            combineInOnePill: true,
-            title: 'BB(20,2)',
-            plots: [
-                { tvTitle: 'Upper', label: 'U:', color: bol.upper ?? null },
-                { tvTitle: 'Median', label: 'M:', color: bol.basis ?? null },
-                { tvTitle: 'Lower', label: 'L:', color: bol.lower ?? null },
-            ],
-            useIndex: true,
-        },
-        Volume: {
-            plots: [{ tvTitle: 'Vol', label: 'Vol', color: null }],
-            useIndex: true,
-        },
-        MA5: {
-            isMA: true,
-            useIndex: true,
-            plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: ma.MA5 ?? null }],
-        },
-        MA10: {
-            isMA: true,
-            useIndex: true,
-            plots: [{ tvTitle: 'Plot', label: 'MA(10)', color: ma.MA10 ?? null }],
-        },
-        MA20: {
-            isMA: true,
-            useIndex: true,
-            plots: [{ tvTitle: 'Plot', label: 'MA(20)', color: ma.MA20 ?? null }],
-        },
-        MA50: {
-            isMA: true,
-            useIndex: true,
-            plots: [{ tvTitle: 'Plot', label: 'MA(50)', color: ma.MA50 ?? null }],
-        },
-        MA200: {
-            isMA: true,
-            useIndex: true,
-            plots: [{ tvTitle: 'Plot', label: 'MA(200)', color: ma.MA200 ?? null }],
-        },
-    };
+// ----- Legend rebuild ---------------------------------------------------
+/**
+ * Returns the per-indicator legend config supplied by RN via legendOverlay.config.
+ * Consumers must pass their own config — there is no built-in fallback.
+ */
+function getPresetMap() {
+    return legendConfig ?? {};
 }
 function getLegendAltColor() {
     const theme = getTheme();
@@ -2900,7 +2903,7 @@ function wrapPill(innerHtml, color) {
 }
 function buildHTML(entries) {
     const altColor = getLegendAltColor();
-    const presets = buildPresetMap();
+    const presets = getPresetMap();
     const successColor = getTheme()?.successColor ?? 'rgb(38,166,154)';
     const pills = [];
     for (const entry of entries) {
@@ -2997,7 +3000,13 @@ function hasAnyEmpty(entries) {
 }
 function notifyLegendRendered() {
     requestAnimationFrame(() => {
-        requestAnimationFrame(() => postToRN('LEGEND_RENDERED', {}));
+        requestAnimationFrame(() => {
+            postToRN('LEGEND_RENDERED', {});
+            if (doesLegendOwnLayoutSettle()) {
+                setLegendOwnsLayoutSettle(false);
+                postToRN('CHART_LAYOUT_SETTLED', {});
+            }
+        });
     });
 }
 function clearTimer() {
@@ -3030,11 +3039,42 @@ function scheduleRetry(gen) {
     }, RETRY_DELAY_MS);
 }
 function renderOverlay(entries) {
-    const overlay = document.getElementById(OVERLAY_ID);
-    if (!overlay)
-        return;
-    overlay.innerHTML = buildHTML(entries);
+    const presets = getPresetMap();
+    const widget = getWidget();
+    const chart = widget?.activeChart();
+    const activeStudies = getActiveStudies();
+    const mainEntries = [];
+    const subPaneEntries = [];
+    for (const entry of entries) {
+        const cfg = presets[entry.name];
+        if (cfg?.subPaneLegend && chart) {
+            const studyId = activeStudies.get(entry.name);
+            const study = studyId ? chart.getStudyById(studyId) : null;
+            const paneIdx = study?.paneIndex?.();
+            if (paneIdx !== undefined && paneIdx > 0) {
+                subPaneEntries.push({ name: entry.name, paneIdx, entry });
+                continue;
+            }
+        }
+        mainEntries.push(entry);
+    }
+    const mainOverlay = document.getElementById(OVERLAY_ID);
+    if (mainOverlay) {
+        mainOverlay.innerHTML = buildHTML(mainEntries);
+    }
+    const activeNames = new Set(subPaneEntries.map((s) => s.name));
+    for (const name of subPaneOverlays.keys()) {
+        if (!activeNames.has(name))
+            removeSubPaneOverlay(name);
+    }
+    for (const { name, paneIdx, entry } of subPaneEntries) {
+        const overlay = ensureSubPaneOverlay(name, paneIdx, chart ?? undefined);
+        if (overlay)
+            overlay.innerHTML = buildHTML([entry]);
+    }
     updateLegendOverlayLayout();
+    if (chart)
+        repositionSubPaneOverlays(chart);
 }
 function refreshStudyLegendFromExport() {
     if (!legendOverlayEnabled)
@@ -3049,6 +3089,7 @@ function refreshStudyLegendFromExport() {
     const studyIds = Object.keys(studyIdMap);
     if (studyIds.length === 0) {
         overlay.innerHTML = '';
+        removeAllSubPaneOverlays();
         retryCount = 0;
         clearTimer();
         return;
@@ -3138,7 +3179,9 @@ function subscribeStudyDataLoaded(chart, studyId) {
     try {
         const study = chart.getStudyById(studyId);
         if (study?.onDataLoaded) {
-            study.onDataLoaded().subscribe(null, () => scheduleLegendRefresh());
+            study.onDataLoaded().subscribe(null, () => {
+                scheduleLegendRefresh();
+            });
             return;
         }
     }
@@ -3147,44 +3190,88 @@ function subscribeStudyDataLoaded(chart, studyId) {
     }
     scheduleLegendRefresh();
 }
-// ----- Layout ------------------------------------------------------------
-function getMainPriceAxisLeftRelativeTo(el) {
-    if (!el?.getBoundingClientRect)
+// ----- Sub-pane overlay management ----------------------------------------
+function subPaneOverlayId(name) {
+    return \`\${OVERLAY_ID}-pane-\${name}\`;
+}
+function getSubPaneTopPx(paneIndex, chart) {
+    const heights = chart.getAllPanesHeight();
+    let top = 0;
+    for (let i = 0; i < paneIndex && i < heights.length; i++) {
+        top += heights[i];
+    }
+    return top + 4;
+}
+function ensureSubPaneOverlay(name, paneIndex, chart) {
+    const existing = subPaneOverlays.get(name);
+    if (existing && document.contains(existing))
+        return existing;
+    const container = document.getElementById('tv_chart_container');
+    if (!container)
         return null;
-    const orect = el.getBoundingClientRect();
-    let bestLeft = null;
-    let bestTop = Infinity;
-    eachChartDocument((doc) => {
-        const nodes = doc.querySelectorAll('.price-axis-container');
-        for (const node of Array.from(nodes)) {
-            const r = node.getBoundingClientRect();
-            if (r.width < 2 || r.height < 16)
-                continue;
-            if (r.top < bestTop) {
-                bestTop = r.top;
-                bestLeft = r.left - orect.left;
-            }
+    const div = document.createElement('div');
+    div.id = subPaneOverlayId(name);
+    const topPx = chart ? getSubPaneTopPx(paneIndex, chart) : 0;
+    div.style.cssText =
+        \`position:absolute;top:\${topPx}px;left:\${OVERLAY_LEFT_PX}px;z-index:5;\` +
+            \`pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-start;\` +
+            \`column-gap:8px;row-gap:2px;\`;
+    container.appendChild(div);
+    subPaneOverlays.set(name, div);
+    return div;
+}
+function removeSubPaneOverlay(name) {
+    const el = subPaneOverlays.get(name);
+    if (el) {
+        el.remove();
+        subPaneOverlays.delete(name);
+    }
+}
+function removeAllSubPaneOverlays() {
+    for (const el of subPaneOverlays.values())
+        el.remove();
+    subPaneOverlays.clear();
+}
+function repositionSubPaneOverlays(chart) {
+    const activeStudies = getActiveStudies();
+    for (const [name, el] of subPaneOverlays) {
+        const studyId = activeStudies.get(name);
+        const study = studyId ? chart.getStudyById(studyId) : null;
+        const paneIdx = study?.paneIndex?.();
+        if (paneIdx !== undefined && paneIdx > 0) {
+            el.style.top = \`\${getSubPaneTopPx(paneIdx, chart)}px\`;
         }
-    });
-    if (bestLeft === null || Number.isNaN(bestLeft))
-        return null;
-    const maxW = el.clientWidth;
-    if (maxW <= 0)
-        return null;
-    return Math.max(0, Math.min(bestLeft, maxW));
+    }
+}
+// ----- Layout ------------------------------------------------------------
+const FALLBACK_SCALE_WIDTH = 48;
+const SCALE_GAP = 4;
+function getPriceScaleWidth() {
+    const widget = getWidget();
+    if (!widget)
+        return FALLBACK_SCALE_WIDTH;
+    const chart = widget.activeChart();
+    const panes = chart.getPanes?.();
+    if (!panes || panes.length === 0)
+        return FALLBACK_SCALE_WIDTH;
+    const scales = panes[0].getRightPriceScales?.();
+    const w = scales?.[0]?.width?.();
+    return w && w > 0 ? w : FALLBACK_SCALE_WIDTH;
 }
 function updateLegendOverlayLayout() {
-    const overlay = document.getElementById(OVERLAY_ID);
     const container = document.getElementById('tv_chart_container');
-    if (!overlay || !container)
+    if (!container)
         return;
-    const scaleGap = 4;
-    const boundaryLeft = getMainPriceAxisLeftRelativeTo(container);
-    if (boundaryLeft !== null && boundaryLeft > OVERLAY_LEFT_PX + scaleGap) {
-        overlay.style.maxWidth = \`\${boundaryLeft - OVERLAY_LEFT_PX - scaleGap}px\`;
-    }
-    else {
-        overlay.style.maxWidth = 'calc(100% - 56px)';
+    const containerWidth = container.clientWidth;
+    if (containerWidth <= 0)
+        return;
+    const scaleWidth = getPriceScaleWidth();
+    const maxWidth = \`\${containerWidth - OVERLAY_LEFT_PX - scaleWidth - SCALE_GAP}px\`;
+    const overlay = document.getElementById(OVERLAY_ID);
+    if (overlay)
+        overlay.style.maxWidth = maxWidth;
+    for (const el of subPaneOverlays.values()) {
+        el.style.maxWidth = maxWidth;
     }
 }
 /** Test-only: clear all module-local state between cases. */
@@ -3193,7 +3280,8 @@ function __resetLegendForTests() {
     retryCount = 0;
     clearTimer();
     legendOverlayEnabled = false;
-    indicatorColors = undefined;
+    legendConfig = undefined;
+    removeAllSubPaneOverlays();
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/resize.ts
@@ -3224,6 +3312,75 @@ function scheduleChartWidgetResize() {
         setTimeout(run, 0);
     }
     setTimeout(run, 120);
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/subPane.ts
+// Sub-pane height ratio handler.
+//
+// Ported from chartLogic.js handleSetSubPaneLayout (~line 783) +
+// applySubPaneHeightRatio (~line 750). The consumer-supplied ratio
+// (subPaneHeightRatio prop) governs the size of RSI/MACD sub-panes.
+
+
+const MIN_MAIN_PX = 72;
+function hasActiveSubPaneIndicators() {
+    const widget = getWidget();
+    if (!widget)
+        return false;
+    const chart = widget.activeChart();
+    for (const studyId of getActiveStudies().values()) {
+        const study = chart.getStudyById(studyId);
+        const paneIdx = study?.paneIndex?.();
+        if (paneIdx !== undefined && paneIdx > 0)
+            return true;
+    }
+    return false;
+}
+function applySubPaneHeightRatio(chart) {
+    const ratio = getSubPaneHeightRatio();
+    if (ratio === null)
+        return;
+    try {
+        const heights = chart.getAllPanesHeight();
+        if (heights.length < 2)
+            return;
+        const total = heights.reduce((sum, h) => sum + h, 0);
+        const bottomCount = heights.length - 1;
+        let bottomTotal = Math.round(total * ratio * bottomCount);
+        let main = total - bottomTotal;
+        if (main < MIN_MAIN_PX) {
+            main = MIN_MAIN_PX;
+            bottomTotal = total - main;
+        }
+        const newHeights = [main];
+        let remaining = bottomTotal;
+        for (let i = 0; i < bottomCount; i++) {
+            const h = i === bottomCount - 1
+                ? remaining
+                : Math.floor(bottomTotal / bottomCount);
+            newHeights.push(h);
+            remaining -= h;
+        }
+        chart.setAllPanesHeight(newHeights);
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+function handleSetSubPaneLayout(payload) {
+    if (payload.heightRatio == null) {
+        setSubPaneHeightRatio(null);
+        return;
+    }
+    const ratio = payload.heightRatio;
+    if (typeof ratio !== 'number' || !(ratio > 0 && ratio <= 1)) {
+        return;
+    }
+    setSubPaneHeightRatio(ratio);
+    const widget = getWidget();
+    if (widget && isChartReady() && hasActiveSubPaneIndicators()) {
+        applySubPaneHeightRatio(widget.activeChart());
+    }
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/studies.ts
@@ -3269,6 +3426,7 @@ function macdPreset(colors) {
             'Histogram.color.0': c.histogramPositive,
             'Histogram.color.1': c.histogramNegative,
         },
+        paneTarget: 'sub',
     };
 }
 function rsiPreset(colors) {
@@ -3280,6 +3438,7 @@ function rsiPreset(colors) {
             'Plot.color': c.plot,
             'hlines background.visible': false,
         },
+        paneTarget: 'sub',
     };
 }
 function bolPreset(colors) {
@@ -3344,13 +3503,8 @@ function resolveStudyPreset(name, indicatorColors, inputsOverride) {
         }
     }
 }
-/** Sub-pane indicators always render in a dedicated pane below the main series. */
-const SUB_PANE_INDICATOR_NAMES = new Set([
-    'MACD',
-    'RSI',
-]);
-function isSubPaneIndicator(name) {
-    return SUB_PANE_INDICATOR_NAMES.has(name);
+function isSubPanePreset(preset) {
+    return preset.paneTarget === 'sub';
 }
 /**
  * Creates the indicator study on the given chart, returning the studyId once
@@ -3358,70 +3512,6 @@ function isSubPaneIndicator(name) {
  */
 function createIndicatorStudy(chart, preset) {
     return chart.createStudy(preset.studyName, false, false, preset.inputs, preset.overrides);
-}
-
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/subPane.ts
-// Sub-pane height ratio handler.
-//
-// Ported from chartLogic.js handleSetSubPaneLayout (~line 783) +
-// applySubPaneHeightRatio (~line 750). The consumer-supplied ratio
-// (subPaneHeightRatio prop) governs the size of RSI/MACD sub-panes.
-
-
-
-const MIN_MAIN_PX = 72;
-function hasActiveSubPaneIndicators() {
-    for (const name of getActiveStudies().keys()) {
-        if (isSubPaneIndicator(name))
-            return true;
-    }
-    return false;
-}
-function applySubPaneHeightRatio(chart) {
-    const ratio = getSubPaneHeightRatio();
-    if (ratio === null)
-        return;
-    try {
-        const heights = chart.getAllPanesHeight();
-        if (heights.length < 2)
-            return;
-        const total = heights.reduce((sum, h) => sum + h, 0);
-        const bottomCount = heights.length - 1;
-        let bottomTotal = Math.round(total * ratio * bottomCount);
-        let main = total - bottomTotal;
-        if (main < MIN_MAIN_PX) {
-            main = MIN_MAIN_PX;
-            bottomTotal = total - main;
-        }
-        const newHeights = [main];
-        let remaining = bottomTotal;
-        for (let i = 0; i < bottomCount; i++) {
-            const h = i === bottomCount - 1
-                ? remaining
-                : Math.floor(bottomTotal / bottomCount);
-            newHeights.push(h);
-            remaining -= h;
-        }
-        chart.setAllPanesHeight(newHeights);
-    }
-    catch (error) {
-        reportErrorToRN(error);
-    }
-}
-function handleSetSubPaneLayout(payload) {
-    if (payload.heightRatio == null) {
-        setSubPaneHeightRatio(null);
-        return;
-    }
-    const ratio = payload.heightRatio;
-    if (typeof ratio !== 'number' || !(ratio > 0 && ratio <= 1)) {
-        return;
-    }
-    setSubPaneHeightRatio(ratio);
-    const widget = getWidget();
-    if (widget && isChartReady() && hasActiveSubPaneIndicators()) {
-        applySubPaneHeightRatio(widget.activeChart());
-    }
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/index.ts
@@ -3468,7 +3558,7 @@ function handleAddIndicator(payload, config) {
     createIndicatorStudy(chart, preset)
         .then((studyId) => {
         registerStudy('active', name, studyId);
-        if (isSubPaneIndicator(name)) {
+        if (isSubPanePreset(preset)) {
             applySubPaneHeightRatio(chart);
         }
         subscribeStudyDataLoaded(chart, studyId);
@@ -3497,10 +3587,16 @@ function handleRemoveIndicator(payload) {
         return;
     try {
         const chart = widget.activeChart();
+        const study = chart.getStudyById(studyId);
+        const paneIdx = study?.paneIndex?.();
+        const wasSubPane = paneIdx !== undefined && paneIdx > 0;
+        if (wasSubPane) {
+            removeSubPaneOverlay(name);
+        }
         chart.removeEntity(studyId);
         scheduleLegendRefresh();
         postToRN('INDICATOR_REMOVED', { name });
-        if (isSubPaneIndicator(name) && hasActiveSubPaneIndicators()) {
+        if (wasSubPane && hasActiveSubPaneIndicators()) {
             applySubPaneHeightRatio(chart);
         }
     }
@@ -4920,7 +5016,7 @@ function bootstrap() {
                         flushPendingTheme();
                         applyScaleLayout();
                         applyVisualOverrides(config.visualOverrides);
-                        setupLegendOverlay(config.legendOverlay, config.indicatorColors);
+                        setupLegendOverlay(config.legendOverlay);
                         const chart = widget.activeChart();
                         // Match legacy onChartReady: when no explicit visible range
                         // was passed, pin a 2-bar gap on the right. TV's default is

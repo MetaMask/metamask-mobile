@@ -3,6 +3,7 @@
  */
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import {
   TransactionStatus,
   TransactionType,
@@ -454,6 +455,42 @@ describe('ActivityListItemRow — row content', () => {
     expect(getByTestId('avatar-token-USDC')).toBeOnTheScreen();
   });
 
+  it('shows "Send cancelled" and hides the amount for a cancelled send', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'cancelled',
+      to: '0x1234567890',
+      token: { amount: '10', symbol: 'USDC', direction: 'out' },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Send cancelled',
+    );
+    // The amount is suppressed — a cancelled send moved nothing.
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+    expect(queryByTestId('activity-secondary-amount-0xabc')).toBeNull();
+  });
+
+  it('shows "Send failed" and hides the amount for a failed send', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'failed',
+      to: '0x1234567890',
+      token: { amount: '10', symbol: 'USDC', direction: 'out' },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Send failed',
+    );
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+  });
+
   it('renders receive title, sender subtitle, and positive primary amount', () => {
     const item = makeItem({
       type: 'receive',
@@ -717,6 +754,140 @@ describe('ActivityListItemRow — row content', () => {
     expect(liquidated).not.toBe(stopLoss);
   });
 
+  const makeLimitOrder = (status: Status, hash: string): ActivityListItem =>
+    ({
+      type: 'limitShort',
+      chainId: 'eip155:42161',
+      status,
+      timestamp: 1_700_000_000_000,
+      hash,
+      data: {
+        token: { amount: '14', symbol: 'USD', direction: 'out' },
+        sourceToken: { amount: '0.0002', symbol: 'BTC', direction: 'out' },
+      },
+    }) as unknown as ActivityListItem;
+
+  const flattenColor = (node: ReactTestInstance) => {
+    const { StyleSheet } = jest.requireActual('react-native');
+    return StyleSheet.flatten(node.props.style).color;
+  };
+
+  it('keeps a cancelled order title neutral while still marking a failed one red', () => {
+    const neutral = render(
+      <ActivityListItemRow
+        item={makeItem({
+          type: 'send',
+          status: 'success',
+          token: { amount: '1', symbol: 'ETH', direction: 'out' },
+        })}
+        index={0}
+      />,
+    ).getByTestId('activity-title-0xabc');
+    const cancelled = render(
+      <ActivityListItemRow
+        item={makeLimitOrder('cancelled', '0xcxl')}
+        index={1}
+      />,
+    ).getByTestId('activity-title-0xcxl');
+    const failed = render(
+      <ActivityListItemRow
+        item={makeLimitOrder('failed', '0xfail')}
+        index={2}
+      />,
+    ).getByTestId('activity-title-0xfail');
+
+    // Cancelled → same neutral color as an ordinary row; the spaced " — Canceled"
+    // suffix still conveys the status. Failed → a distinct (error) color.
+    expect(flattenColor(cancelled)).toBe(flattenColor(neutral));
+    expect(flattenColor(failed)).not.toBe(flattenColor(neutral));
+    expect(cancelled.props.children).toBe(
+      `${strings('transactions.activity_limit_short')} — ${strings(
+        'transaction.canceled',
+      )}`,
+    );
+  });
+
+  it('renders limit orders with the market logo, no network badge, and a $ amount', () => {
+    const { getByTestId } = render(
+      <ActivityListItemRow
+        item={makeLimitOrder('cancelled', '0xlimit')}
+        index={0}
+      />,
+    );
+
+    // Single market logo — not the generic split two-token avatar.
+    const logo = getByTestId('perps-token-logo-BTC');
+    expect(logo.props.symbol).toBe('BTC');
+    // Perps is single-network (Arbitrum) → no network badge is resolved.
+    expect(getNetworkImageSource).not.toHaveBeenCalled();
+    // Fiat-style amount ("$"), not the "<amount> USD" token suffix.
+    const primary = getByTestId('activity-primary-amount-0xlimit').props
+      .children as string;
+    expect(primary).toContain('$');
+    expect(primary).not.toContain('USD');
+    expect(primary.startsWith('-')).toBe(true);
+  });
+
+  it('colors a perps trade loss with the error color and a gain with the incoming color', () => {
+    const makeClose = (
+      direction: 'in' | 'out',
+      hash: string,
+    ): ActivityListItem =>
+      ({
+        type: 'perpsCloseLong',
+        chainId: 'eip155:42161',
+        status: 'success',
+        timestamp: 1_700_000_000_000,
+        hash,
+        data: {
+          token: { amount: '5', symbol: 'USD', direction },
+          sourceToken: { amount: '2.01', symbol: 'ETH', direction: 'out' },
+        },
+      }) as unknown as ActivityListItem;
+
+    const loss = render(
+      <ActivityListItemRow item={makeClose('out', '0xloss')} index={0} />,
+    ).getByTestId('activity-primary-amount-0xloss');
+    const gain = render(
+      <ActivityListItemRow item={makeClose('in', '0xgain')} index={1} />,
+    ).getByTestId('activity-primary-amount-0xgain');
+    // An order amount (notional, not PnL) stays neutral even though outgoing.
+    const order = render(
+      <ActivityListItemRow
+        item={makeLimitOrder('cancelled', '0xorder')}
+        index={2}
+      />,
+    ).getByTestId('activity-primary-amount-0xorder');
+
+    // Loss shares the error color used for a failed title; gain shares the green
+    // used for an incoming receive amount; the order amount matches neither.
+    const errorColor = flattenColor(
+      render(
+        <ActivityListItemRow
+          item={makeLimitOrder('failed', '0xfailref')}
+          index={3}
+        />,
+      ).getByTestId('activity-title-0xfailref'),
+    );
+    const incomingColor = flattenColor(
+      render(
+        <ActivityListItemRow
+          item={makeItem({
+            type: 'receive',
+            status: 'success',
+            token: { amount: '1', symbol: 'ETH', direction: 'in' },
+          })}
+          index={4}
+        />,
+      ).getByTestId('activity-primary-amount-0xabc'),
+    );
+
+    expect(flattenColor(loss)).toBe(errorColor);
+    expect(flattenColor(gain)).toBe(incomingColor);
+    expect(flattenColor(order)).not.toBe(errorColor);
+    expect(flattenColor(order)).not.toBe(incomingColor);
+  });
+
   it('strips the HyperLiquid builder prefix from the trade subtitle', () => {
     const openLong = {
       type: 'perpsOpenLong',
@@ -798,7 +969,7 @@ describe('ActivityListItemRow — row content', () => {
     ).toBe('4,000 USDC');
   });
 
-  it('appends an em-dash "Failed" suffix to a failed domain (predict) row title', () => {
+  it('appends a spaced em-dash "Failed" suffix to a failed domain (predict) row title', () => {
     const failedWithdraw = {
       type: 'predictionsWithdrawFunds',
       chainId: 'eip155:137',
@@ -820,7 +991,7 @@ describe('ActivityListItemRow — row content', () => {
     );
 
     expect(getByTestId('activity-title-0xpredictwdfailed').props.children).toBe(
-      `${strings('transactions.activity_prediction_withdrawal')}—${strings(
+      `${strings('transactions.activity_prediction_withdrawal')} — ${strings(
         'transaction.failed',
       )}`,
     );
@@ -980,6 +1151,64 @@ describe('ActivityListItemRow — row content', () => {
     expect(getByTestId('avatar-token-USDC')).toBeOnTheScreen();
 
     jest.mocked(useTokensData).mockReturnValue({});
+  });
+
+  it('resolves a lending-deposit token symbol/decimals from the tokens API and scales the amount', () => {
+    const assetId =
+      'eip155:42161/erc20:0x0000000000000000000000000000000000000002';
+    jest.mocked(useTokensData).mockReturnValue({
+      [assetId]: {
+        assetId,
+        symbol: 'USDT',
+        decimals: 6,
+        name: 'Tether USD',
+        iconUrl: '',
+      },
+    });
+
+    // The adapter carries only the atomic amount + asset id (the tx targets the
+    // pool, so symbol/decimals aren't in local metadata). Without decimals the
+    // amount would render unscaled (10,000 instead of 0.01).
+    const item = makeItem({
+      type: 'lendingDeposit',
+      status: 'success',
+      chainId: 'eip155:42161',
+      sourceToken: { amount: '10000', direction: 'out', assetId },
+    });
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-0.01 USDT',
+    );
+    expect(getByTestId('avatar-token-USDT')).toBeOnTheScreen();
+
+    jest.mocked(useTokensData).mockReturnValue({});
+  });
+
+  it('renders a lending-deposit amount from adapter-provided decimals without an API lookup', () => {
+    // When the adapter already resolved symbol/decimals, the row scales the
+    // amount without depending on the tokens API (which returns nothing here).
+    const item = makeItem({
+      type: 'lendingDeposit',
+      status: 'success',
+      sourceToken: {
+        amount: '10000',
+        decimals: 6,
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-0.01 USDC',
+    );
   });
 
   it('renders cross-token bridge as swapped with token pair subtitle', () => {
@@ -1679,12 +1908,12 @@ describe('getLocalTransactionStatus — all local transaction status paths', () 
     expect(getLocalTransactionStatus(group)).toBe('failed');
   });
 
-  it('maps cancelled (cancel-type tx) → failed', () => {
+  it('maps a confirmed cancel-type tx → cancelled (not failed)', () => {
     const group = makeGroup({
       status: TransactionStatus.confirmed,
       type: 'cancel',
     });
-    expect(getLocalTransactionStatus(group)).toBe('failed');
+    expect(getLocalTransactionStatus(group)).toBe('cancelled');
   });
 
   it('maps submitted → pending', () => {

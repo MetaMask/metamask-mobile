@@ -171,16 +171,35 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
     const { styles } = useStyles(styleSheet, {});
-    const [isKeyboardVisible, setIsKeyboardVisible] =
-      useState(!isAddMusdIntent);
-    const keyboardEverShown = useRef(!isAddMusdIntent);
 
+    const {
+      amountFiat,
+      amountFiatDebounced,
+      amountHuman,
+      amountHumanDebounced,
+      hasInput,
+      isDepositPrefillEnabled,
+      isDepositPrefilled,
+      isDepositPrefillLoading,
+      isInputChanged,
+      isPrefillPending,
+      updatePendingAmount,
+      updatePendingAmountPercentage,
+      updateTokenAmount,
+    } = useTransactionCustomAmount({ currency });
+
+    const [isKeyboardVisible, setIsKeyboardVisible] = useState(
+      !isAddMusdIntent && !isDepositPrefillEnabled,
+    );
+    const wasKeyboardEverVisible = useRef(isKeyboardVisible);
+    if (isKeyboardVisible) {
+      wasKeyboardEverVisible.current = true;
+    }
     useMMPayNavigation(
       isKeyboardVisible,
       setIsKeyboardVisible,
-      keyboardEverShown,
+      wasKeyboardEverVisible,
     );
-
     const { hasTokens: hasAvailableTokens } =
       useTransactionPayAvailableTokens();
     const fiatPayment = useTransactionPayFiatPayment();
@@ -218,18 +237,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       Boolean(quotes?.length) ||
       (!isAddMusdIntent && !hasSourceAmount && !hasNoQuotesAlert);
 
-    const {
-      amountFiat,
-      amountFiatDebounced,
-      amountHuman,
-      amountHumanDebounced,
-      hasInput,
-      isInputChanged,
-      isPrefillPending,
-      updatePendingAmount,
-      updatePendingAmountPercentage,
-      updateTokenAmount,
-    } = useTransactionCustomAmount({ currency });
+    const isAwaitingPrefillResult =
+      !hasAccountNoFunds &&
+      (isDepositPrefillLoading ||
+        (isDepositPrefilled && !hasSourceAmount && !isKeyboardVisible));
 
     const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
       isInputChanged,
@@ -283,8 +294,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       wasPrefillPending.current = isPrefillPending;
     }, [isPrefillPending, handleDone]);
 
+    const hasAutoSubmittedPrefill = useRef(false);
+    useEffect(() => {
+      if (
+        !hasAutoSubmittedPrefill.current &&
+        isDepositPrefilled &&
+        amountFiat !== '0'
+      ) {
+        hasAutoSubmittedPrefill.current = true;
+        handleDone();
+      }
+    }, [isDepositPrefilled, amountFiat, handleDone]);
+
     const handleAmountPress = useCallback(() => {
-      keyboardEverShown.current = true;
+      wasKeyboardEverVisible.current = true;
       setIsKeyboardVisible(true);
     }, []);
 
@@ -303,7 +326,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             amountFiat={amountFiat}
             currency={currency}
             hasAlert={Boolean(alertMessage)}
-            isLoading={isPrefillPending}
+            isLoading={
+              !hasAccountNoFunds &&
+              (isPrefillPending || isDepositPrefillLoading)
+            }
             onPress={handleAmountPress}
             disabled={!hasPaymentOption}
             showCursor={isKeyboardVisible}
@@ -326,7 +352,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           style={styles.bottomBlock}
         >
           <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
-          {!isResultReady && !(isKeyboardVisible && isMoneyAccountDeposit) && (
+          {!isResultReady && !(isKeyboardVisible && isAddMusdIntent) && (
             <>
               {supportAccountSelection &&
                 !selectedFiatPaymentMethodId &&
@@ -349,8 +375,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}
-              {!hideDetailsForNoFunds &&
-                (showPaymentDetails ? (
+              {!hasAccountNoFunds &&
+                (showPaymentDetails && !isAwaitingPrefillResult ? (
                   <>
                     <BridgeFeeRow />
                     <BridgeTimeRow />
@@ -361,7 +387,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                     )}
                   </>
                 ) : (
-                  isAddMusdIntent && (
+                  (isAddMusdIntent || isAwaitingPrefillResult) && (
                     <>
                       <InfoRowSkeleton />
                       <InfoRowSkeleton />
@@ -399,14 +425,17 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               }
             />
           )}
-          {(!hasPaymentOption || hasAccountNoFunds) && !hideBuyForNoFunds && (
-            <BuySection />
-          )}
+          {(!hasPaymentOption || hasAccountNoFunds) &&
+            !hideBuyForNoFunds &&
+            !isDepositPrefillEnabled && <BuySection />}
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
               disableConfirm={
-                disableConfirm || isAccountSelectionNeeded || isPrefillPending
+                disableConfirm ||
+                isAccountSelectionNeeded ||
+                isPrefillPending ||
+                isAwaitingPrefillResult
               }
               onContinue={trackContinue}
             />
@@ -436,6 +465,10 @@ export function CustomAmountInfoSkeleton() {
 
 export function AdvancedCustomAmountInfoSkeleton() {
   const { styles } = useStyles(styleSheet, {});
+  const params = useParams<ConfirmationParams>();
+  // Fiat flows never render the account selector or pay-with rows while the
+  // keyboard is up, so their skeletons would cause a layout shift on load.
+  const hideAccountRows = Boolean(params?.autoSelectFiatPayment);
 
   return (
     <View
@@ -447,8 +480,12 @@ export function AdvancedCustomAmountInfoSkeleton() {
         <PayTokenAmountSkeleton />
       </View>
       <View>
-        <AccountSelectorSkeleton />
-        <PayWithRowSkeleton />
+        {!hideAccountRows && (
+          <>
+            <AccountSelectorSkeleton />
+            <PayWithRowSkeleton />
+          </>
+        )}
         <DepositKeyboardSkeleton />
       </View>
     </View>
