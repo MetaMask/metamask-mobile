@@ -4231,7 +4231,13 @@
       "waiting_for_extension_description": "계속하려면 컴퓨터에서 계정 선택을 완료하세요.",
       "extension_cancelled_title": "가져오기 취소됨",
       "extension_cancelled_description": "계정 가져오기가 취소되었거나 실패했습니다. 다시 시도해 주세요.",
-      "extension_cancelled_button": "다시 시도"
+      "extension_cancelled_button": "다시 시도",
+      "already_synced_title": "Account already synced",
+      "already_synced_description": "This account has already been synced to this device.",
+      "already_synced_button": "Close",
+      "import_failed_title": "Couldn't add account",
+      "import_failed_description": "Something went wrong while adding the account from your extension. Try again.",
+      "import_failed_button": "Close"
     }
   },
   "aes_crypto_test_form": {

@@ -4231,7 +4231,13 @@
       "waiting_for_extension_description": "Selesaikan pemilihan akun di komputer Anda untuk melanjutkan.",
       "extension_cancelled_title": "Impor dibatalkan",
       "extension_cancelled_description": "Impor akun dibatalkan/gagal. Coba lagi.",
-      "extension_cancelled_button": "Coba lagi"
+      "extension_cancelled_button": "Coba lagi",
+      "already_synced_title": "Account already synced",
+      "already_synced_description": "This account has already been synced to this device.",
+      "already_synced_button": "Close",
+      "import_failed_title": "Couldn't add account",
+      "import_failed_description": "Something went wrong while adding the account from your extension. Try again.",
+      "import_failed_button": "Close"
     }
   },
   "aes_crypto_test_form": {

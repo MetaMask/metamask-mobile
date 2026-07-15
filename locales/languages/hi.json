@@ -4231,7 +4231,13 @@
       "waiting_for_extension_description": "जारी रखने के लिए अपने कंप्यूटर पर अकाउंट चुनना पूरा करें।",
       "extension_cancelled_title": "इंपोर्ट कैंसिल किया गया",
       "extension_cancelled_description": "अकाउंट इंपोर्ट कैंसिल हो गया/नहीं हो पाया था। फिर से कोशिश करें।",
-      "extension_cancelled_button": "फिर से प्रयास करें"
+      "extension_cancelled_button": "फिर से प्रयास करें",
+      "already_synced_title": "Account already synced",
+      "already_synced_description": "This account has already been synced to this device.",
+      "already_synced_button": "Close",
+      "import_failed_title": "Couldn't add account",
+      "import_failed_description": "Something went wrong while adding the account from your extension. Try again.",
+      "import_failed_button": "Close"
     }
   },
   "aes_crypto_test_form": {
