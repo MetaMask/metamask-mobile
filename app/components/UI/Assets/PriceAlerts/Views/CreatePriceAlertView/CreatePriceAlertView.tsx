@@ -91,6 +91,7 @@ const CreatePriceAlertView: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
+  // Narrow the alert union so each form receives only its supported alert type.
   const editingAbsoluteAlert =
     editingAlert?.type === 'absolute_price' ? editingAlert : undefined;
   const editingPercentAlert =
