@@ -4,6 +4,7 @@ import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 import { renderNumber } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
 import { AppThemeKey, Colors } from '../../../../util/theme/models';
+import { isPureBlackEnabled } from '../../../../util/theme/themeUtils';
 
 const emailRegex =
   /^[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~](\.?[-!#$%&'*+/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
@@ -105,11 +106,22 @@ export const generateThemeParameters = (
   themeAppearance: AppThemeKey,
   colors: Colors,
 ) => {
-  const backgroundColors = [
-    colors.background.default,
-    colors.background.default,
-    colors.background.alternative,
-  ].join(',');
+  const widgetBackgroundFillColor =
+    isPureBlackEnabled && themeAppearance === AppThemeKey.dark
+      ? colors.background.alternative
+      : colors.background.default;
+
+  const backgroundColors = isPureBlackEnabled
+    ? [
+        widgetBackgroundFillColor,
+        widgetBackgroundFillColor,
+        colors.background.muted,
+      ].join(',')
+    : [
+        colors.background.default,
+        colors.background.default,
+        colors.background.alternative,
+      ].join(',');
 
   const textColors = [
     colors.text.default,
@@ -123,7 +135,7 @@ export const generateThemeParameters = (
     colors.border.muted,
   ].join(',');
 
-  return {
+  const themeParameters = {
     themeColor: colors.primary.default,
     colorMode: themeAppearance === AppThemeKey.light ? 'LIGHT' : 'DARK',
     backgroundColors,
@@ -132,6 +144,15 @@ export const generateThemeParameters = (
     primaryButtonFillColor: colors.icon.default,
     primaryButtonTextColor: colors.icon.inverse,
     surfaceFillColor: colors.background.muted,
+  };
+
+  if (!isPureBlackEnabled) {
+    return themeParameters;
+  }
+
+  return {
+    ...themeParameters,
+    widgetBackgroundFillColor,
   };
 };
 

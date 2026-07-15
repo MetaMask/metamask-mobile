@@ -9,9 +9,10 @@ import { strings } from '../../../../../locales/i18n';
 import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
 import { selectHasAgreedTransakNativePolicy } from '../../../../reducers/fiatOrders';
 import Device from '../../../../util/device';
+import { useTheme } from '../../../../util/theme';
 
 import {
-  buildQuoteWithRedirectUrl,
+  buildQuoteWithWidgetTheme,
   getCheckoutContext,
   getWidgetRedirectConfig,
 } from '../utils/buildQuoteWithRedirectUrl';
@@ -123,6 +124,7 @@ export function useContinueWithQuote(
   const hasAgreedTransakNativePolicy = useSelector(
     selectHasAgreedTransakNativePolicy,
   );
+  const theme = useTheme();
 
   const currency = userRegion?.country?.currency || 'USD';
 
@@ -252,7 +254,11 @@ export function useContinueWithQuote(
         );
         useExternalBrowser = redirectConfig.useExternalBrowser;
         redirectUrl = redirectConfig.redirectUrl;
-        const quoteForWidget = buildQuoteWithRedirectUrl(quote, redirectUrl);
+        const quoteForWidget = buildQuoteWithWidgetTheme(
+          quote,
+          redirectUrl,
+          theme,
+        );
         buyWidget = await getBuyWidgetData(quoteForWidget);
       } catch (error) {
         throw new Error(
@@ -370,6 +376,7 @@ export function useContinueWithQuote(
       getBuyWidgetData,
       addPrecreatedOrder,
       navigateAfterExternalBrowser,
+      theme,
     ],
   );
 
