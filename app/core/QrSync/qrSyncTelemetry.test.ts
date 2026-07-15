@@ -83,23 +83,23 @@ describe('qrSyncTelemetry', () => {
     it('emits a phase breadcrumb without secrets', () => {
       addQrSyncPhaseBreadcrumb({
         from: 'initializing',
-        to: 'displaying_otp',
+        to: 'displaying-otp',
       });
 
       expect(addBreadcrumb).toHaveBeenCalledWith({
         category: 'qr_sync',
         level: 'info',
-        message: 'qr_sync.phase initializing->displaying_otp',
+        message: 'qr_sync.phase initializing->displaying-otp',
         data: {
           from: 'initializing',
-          to: 'displaying_otp',
+          to: 'displaying-otp',
         },
       });
     });
 
     it('marks failed transitions as error level with errorCode', () => {
       addQrSyncPhaseBreadcrumb({
-        from: 'displaying_otp',
+        from: 'displaying-otp',
         to: 'failed',
         errorCode: 'GRANT_WAIT_TIMEOUT',
       });
@@ -108,7 +108,7 @@ describe('qrSyncTelemetry', () => {
         expect.objectContaining({
           level: 'error',
           message:
-            'qr_sync.phase displaying_otp->failed code=GRANT_WAIT_TIMEOUT',
+            'qr_sync.phase displaying-otp->failed code=GRANT_WAIT_TIMEOUT',
           data: expect.objectContaining({
             errorCode: 'GRANT_WAIT_TIMEOUT',
           }),

@@ -383,6 +383,18 @@ describe('QrSyncController', () => {
       walletClient.completeOtpHandshake();
       await scanPromise;
       await flushPromises();
+
+      expect(controller.state.phase).toBe(QrSyncPhases.FAILED);
+      expect(controller.state.error?.code).toBe('GRANT_WAIT_TIMEOUT');
+      expect(walletClient.client.sendResponse).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: QrSyncActionTypes.SYNC_ERROR,
+          data: expect.objectContaining({ code: 'GRANT_WAIT_TIMEOUT' }),
+        }),
+      );
+      expect(walletClient.client.sendResponse).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: QrSyncActionTypes.SYNC_OFFER }),
+      );
       jest.useRealTimers();
     });
 

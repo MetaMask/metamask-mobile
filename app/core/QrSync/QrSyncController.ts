@@ -173,8 +173,14 @@ export class QrSyncController extends BaseController<
       this.attachClient(client, sessionId);
       this.setConnectionStatus('connecting');
       await client.connect({ sessionRequest });
+      if (this.state.phase === QrSyncPhases.FAILED) {
+        return;
+      }
       await this.sendSyncOffer();
     } catch (error) {
+      if (this.state.phase === QrSyncPhases.FAILED) {
+        return;
+      }
       this.terminateWithError(this.toQrSyncError(error, 'CHANNEL_INIT_FAILED'));
     }
   }
@@ -462,6 +468,10 @@ export class QrSyncController extends BaseController<
   };
 
   private async sendSyncOffer(): Promise<void> {
+    if (this.state.phase === QrSyncPhases.FAILED) {
+      return;
+    }
+
     await this.sendMessage({
       type: QrSyncActionTypes.SYNC_OFFER,
       version: QrSyncMessageVersion.V1,
@@ -470,6 +480,10 @@ export class QrSyncController extends BaseController<
         isOnboardingCompleted: this.getIsOnboardingCompleted(),
       },
     });
+
+    if (this.state.phase === QrSyncPhases.FAILED) {
+      return;
+    }
 
     const from = this.state.phase;
     this.update((state) => {

@@ -505,7 +505,14 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
       await waitFor(() => {
         expect(Logger.error).toHaveBeenCalledWith(
           expect.objectContaining({ message: 'provisioning failed' }),
-          'OptinMetrics: provisionFromMetadata failed',
+          expect.objectContaining({
+            tags: expect.objectContaining({
+              feature: 'qr-sync',
+              surface: 'import',
+              operation: 'provision_from_metadata',
+              source: 'OptinMetrics',
+            }),
+          }),
         );
       });
     });
