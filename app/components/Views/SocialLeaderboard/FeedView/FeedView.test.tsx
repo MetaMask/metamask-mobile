@@ -165,6 +165,7 @@ describe('FeedView', () => {
     jest.clearAllMocks();
     mockFeedResult = buildResult();
     mockQuickBuyAnalyticsContext = undefined;
+    handleTypeFilterChange = undefined;
   });
 
   it('renders the type selector, audience toggle, and feed list when items exist', () => {
