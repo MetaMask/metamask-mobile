@@ -11,12 +11,12 @@ import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayW
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 import { CustomAmountInfo } from '../custom-amount-info';
+import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 
 export const MONEY_ACCOUNT_CURRENCY = 'usd';
-const HARDCODED_BALANCE = '$0.00';
 
 export function MoneyAccountWithdrawInfo() {
-  useNavbar(strings('confirm.title.money_account_withdraw'));
+  useNavbar(strings('confirm.title.money_account_send'));
 
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
@@ -24,10 +24,8 @@ export function MoneyAccountWithdrawInfo() {
     <CustomAmountInfo
       currency={MONEY_ACCOUNT_CURRENCY}
       disablePay={!canSelectWithdrawToken}
-      preferredToken={{
-        address: MUSD_TOKEN_ADDRESS,
-        chainId: CHAIN_IDS.MAINNET,
-      }}
+      hasMax
+      supportAccountSelection
     >
       <MoneyAccountWithdrawBalance />
     </CustomAmountInfo>
@@ -35,12 +33,14 @@ export function MoneyAccountWithdrawInfo() {
 }
 
 function MoneyAccountWithdrawBalance() {
+  const { withdrawableFiatFormatted } = useMoneyAccountBalance();
+
   return (
     <Box alignItems={AlignItems.center} testID="money-account-withdraw-balance">
       <Text
         variant={TextVariant.BodyMDMedium}
         color={TextColor.Alternative}
-      >{`${strings('confirm.available_balance')}${HARDCODED_BALANCE}`}</Text>
+      >{`${strings('confirm.available_balance')}${withdrawableFiatFormatted ?? ''}`}</Text>
     </Box>
   );
 }

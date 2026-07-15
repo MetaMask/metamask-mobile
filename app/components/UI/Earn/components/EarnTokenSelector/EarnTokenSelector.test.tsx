@@ -66,14 +66,14 @@ describe('EarnTokenSelector', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders token APR', () => {
+    const { getByText } = renderWithProvider(
       <EarnTokenSelector {...mockProps} />,
       {
         state: mockInitialState,
       },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('4.5% APR')).toBeOnTheScreen();
   });
 
   it('displays token symbol and APR', () => {
@@ -81,8 +81,8 @@ describe('EarnTokenSelector', () => {
       <EarnTokenSelector {...mockProps} />,
       { state: mockInitialState },
     );
-    expect(getByText('4.5% APR')).toBeDefined();
-    expect(getByText('6.84314 USDC')).toBeDefined();
+    expect(getByText('4.5% APR')).toBeOnTheScreen();
+    expect(getByText('6.84314 USDC')).toBeOnTheScreen();
   });
 
   it('navigates to earn token list when pressed', () => {

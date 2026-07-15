@@ -19,7 +19,6 @@ import {
 } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { FlatList } from 'react-native-gesture-handler';
 import { NetworkPills } from './NetworkPills';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -28,11 +27,13 @@ import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import {
   selectAllowedChainRanking,
+  selectBridgeFeatureFlags,
   selectTokenSelectorNetworkFilter,
   setIsSelectingToken,
   setTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import {
+  FeatureId,
   formatChainIdToCaip,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
@@ -40,6 +41,7 @@ import {
   Box,
   ButtonIcon,
   ButtonIconSize,
+  HeaderStandard,
   IconColor,
   IconName,
   Text,
@@ -53,24 +55,87 @@ import { SkeletonItem } from '../SkeletonItem';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { BridgeToken, TokenSelectorType } from '../../types';
-import { usePopularTokens, IncludeAsset } from '../../hooks/usePopularTokens';
+import { type BridgeToken, TokenSelectorType } from '../../types';
+import { usePopularTokens } from '../../hooks/usePopularTokens';
 import { useSearchTokens } from '../../hooks/useSearchTokens';
-import { useBalancesByAssetId } from '../../hooks/useBalancesByAssetId';
 import { useTokensWithBalances } from '../../hooks/useTokensWithBalances';
 import { useTokenSelection } from '../../hooks/useTokenSelection';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
-import { tokenToIncludeAsset, tokenMatchesQuery } from '../../utils/tokenUtils';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
+import { useInitialBridgeTokens } from '../../hooks/useInitialBridgeTokens';
+import { selectRWAEnabledFlag } from '../../../../../selectors/featureFlagController/rwa';
+import { isStockRwaBridgeToken } from '../../utils/isStockRwaBridgeToken';
+import { useABTest } from '../../../../../hooks';
+import {
+  TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  TokenSelectorBalanceLayoutConfig,
+  TokenSelectorBalanceLayoutVariant,
+} from '../TokenSelectorItem.abTestConfig';
+import { BatchSellAssetPickerBanner } from './BatchSellAssetPickerBanner';
+import { useBatchSellAssetPickerBanner } from './useBatchSellAssetPickerBanner';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
 }
 
 const MIN_SEARCH_LENGTH = 3;
-const ESTIMATED_ITEM_HEIGHT = 72;
+const ESTIMATED_ITEM_HEIGHT = 68; // container paddingVertical(4×2) + itemWrapper paddingVertical(10×2) + AvatarSize.Lg(40px)
 const LOAD_MORE_DISTANCE_THRESHOLD = 300; // Distance from bottom to trigger load
+
+interface BridgeTokenSelectorRowProps {
+  token: BridgeToken;
+  isSelected: boolean;
+  isNoFeeAsset: boolean;
+  showStockBadge: boolean;
+  balanceLayoutConfig: TokenSelectorBalanceLayoutConfig;
+  onTokenPress: (token: BridgeToken) => void;
+  onInfoPress: (token: BridgeToken) => void;
+}
+
+const BridgeTokenSelectorRow = React.memo(
+  ({
+    token,
+    isSelected,
+    isNoFeeAsset,
+    showStockBadge,
+    balanceLayoutConfig,
+    onTokenPress,
+    onInfoPress,
+  }: BridgeTokenSelectorRowProps) => {
+    const handleInfoPress = useCallback(() => {
+      onInfoPress(token);
+    }, [onInfoPress, token]);
+
+    const networkImageSource = useMemo(
+      () =>
+        getNetworkImageSource({
+          chainId: token.chainId,
+        }),
+      [token.chainId],
+    );
+
+    return (
+      <TokenSelectorItem
+        token={token}
+        isSelected={isSelected}
+        onPress={onTokenPress}
+        networkImageSource={networkImageSource}
+        isNoFeeAsset={isNoFeeAsset}
+        showStockBadge={showStockBadge}
+        balanceLayoutConfigOverride={balanceLayoutConfig}
+      >
+        <ButtonIcon
+          iconName={IconName.Info}
+          size={ButtonIconSize.Sm}
+          onPress={handleInfoPress}
+          iconProps={{ color: IconColor.IconAlternative }}
+        />
+      </TokenSelectorItem>
+    );
+  },
+);
 
 export const BridgeTokenSelector: React.FC = () => {
   const navigation = useNavigation();
@@ -104,17 +169,25 @@ export const BridgeTokenSelector: React.FC = () => {
   );
 
   const enabledChainRanking = useSelector(selectAllowedChainRanking);
-
-  // Set navigation options for header
-  useEffect(() => {
-    navigation.setOptions(
-      getHeaderCompactStandardNavbarOptions({
-        title: strings('bridge.select_token'),
-        onBack: () => navigation.goBack(),
-        includesTopInset: true,
-      }),
-    );
-  }, [navigation]);
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const isRWAEnabled = useSelector(selectRWAEnabledFlag);
+  const {
+    dismiss: dismissBatchSellBanner,
+    handlePress: handleBatchSellBannerPress,
+    shouldShow: shouldShowBatchSellBanner,
+  } = useBatchSellAssetPickerBanner({
+    isSearchActive: isValidSearch,
+    pickerType: route.params?.type,
+  });
+  const { variant: balanceLayoutConfig } = useABTest(
+    TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  );
+  const tokenBalanceLayoutConfig =
+    balanceLayoutConfig ??
+    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
+      TokenSelectorBalanceLayoutVariant.Control
+    ];
 
   // Use custom hook for token selection
   const { handleTokenPress, selectedToken } = useTokenSelection(
@@ -176,38 +249,18 @@ export const BridgeTokenSelector: React.FC = () => {
     );
   }, [selectedChainId, enabledChainRanking]);
 
-  // Get balances indexed by assetId for O(1) lookup when merging with API results
-  const { tokensWithBalance, balancesByAssetId } = useBalancesByAssetId({
-    chainIds: chainIdsToFetch,
-  });
-  const searchQuery = searchString.trim();
-
-  const filteredTokensWithBalance = useMemo(
-    () =>
-      tokensWithBalance.filter(
-        (token) =>
-          token.balance &&
-          parseFloat(token.balance) > 0 &&
-          tokenMatchesQuery(token, searchQuery),
-      ),
-    [tokensWithBalance, searchQuery],
-  );
-
-  // Create includeAssets array from tokens with balance to be sent to API
-  // Stringified to avoid triggering the useEffect when only balances change
-  const includeAssets = useMemo(() => {
-    const balanceAssets = filteredTokensWithBalance
-      .map(tokenToIncludeAsset)
-      .filter((asset): asset is IncludeAsset => asset !== null);
-
-    return JSON.stringify(balanceAssets);
-  }, [filteredTokensWithBalance]);
+  const {
+    includeAssets,
+    fetchPopularTokens,
+    balancesByAssetId,
+    searchIncludeAssets,
+  } = useInitialBridgeTokens(chainIdsToFetch, searchString);
 
   // Fetch popular tokens
   const { popularTokens, isLoading: isPopularTokensLoading } = usePopularTokens(
     {
-      chainIds: chainIdsToFetch,
       includeAssets,
+      fetchTokens: fetchPopularTokens,
     },
   );
 
@@ -223,7 +276,7 @@ export const BridgeTokenSelector: React.FC = () => {
     resetSearch,
   } = useSearchTokens({
     chainIds: chainIdsToFetch,
-    includeAssets,
+    includeAssets: searchIncludeAssets,
   });
 
   // React to network filter changes from any source (pill press or modal).
@@ -266,16 +319,23 @@ export const BridgeTokenSelector: React.FC = () => {
         !isSearchLoading && currentSearchQuery !== searchString.trim();
 
       if (isLoading || isWaitingForDebounce) {
+        const skeletonItemsCount = 8 - searchResultsWithBalance.length;
         // Show skeleton items while loading
-        return Array(8).fill(null);
+        return [
+          ...searchResultsWithBalance,
+          ...Array(Math.max(1, skeletonItemsCount)).fill(null),
+        ];
       }
-
       return searchResultsWithBalance;
     }
 
     if (isLoading) {
       // Show skeleton items while loading
-      return Array(8).fill(null);
+      const skeletonItemsCount = 8 - popularTokensWithBalance.length;
+      return [
+        ...popularTokensWithBalance,
+        ...Array(Math.max(1, skeletonItemsCount)).fill(null),
+      ];
     }
     return popularTokensWithBalance;
   }, [
@@ -287,6 +347,27 @@ export const BridgeTokenSelector: React.FC = () => {
     currentSearchQuery,
     searchString,
   ]);
+
+  const getIsNoFeeAsset = useCallback(
+    (token: BridgeToken) => {
+      const routeNoFee =
+        route.params?.type === TokenSelectorType.Source
+          ? token.noFee?.isSource
+          : token.noFee?.isDestination;
+
+      if (routeNoFee) {
+        return true;
+      }
+
+      const caipChainId = formatChainIdToCaip(token.chainId);
+      return (
+        bridgeFeatureFlags.chains?.[caipChainId]?.noFeeAssets?.includes(
+          token.address,
+        ) ?? false
+      );
+    },
+    [bridgeFeatureFlags.chains, route.params?.type],
+  );
 
   // Re-trigger search when chain IDs change if there's an active search
   useEffect(() => {
@@ -386,6 +467,7 @@ export const BridgeTokenSelector: React.FC = () => {
           token_contract: item.address,
           chain_name: networkName,
           chain_id: item.chainId,
+          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
         },
       );
     },
@@ -400,38 +482,29 @@ export const BridgeTokenSelector: React.FC = () => {
         return <SkeletonItem />;
       }
 
-      const isNoFeeAsset =
-        route.params?.type === TokenSelectorType.Source
-          ? item.noFee?.isSource
-          : item.noFee?.isDestination;
+      const isSelected =
+        selectedToken?.address === item.address &&
+        selectedToken?.chainId === item.chainId;
+
       return (
-        <TokenSelectorItem
+        <BridgeTokenSelectorRow
           token={item}
-          isSelected={
-            selectedToken &&
-            selectedToken.address === item.address &&
-            selectedToken.chainId === item.chainId
-          }
-          onPress={handleTokenPress}
-          networkImageSource={getNetworkImageSource({
-            chainId: item.chainId,
-          })}
-          isNoFeeAsset={isNoFeeAsset}
-        >
-          <ButtonIcon
-            iconName={IconName.Info}
-            size={ButtonIconSize.Sm}
-            onPress={() => handleInfoButtonPress(item)}
-            iconProps={{ color: IconColor.IconAlternative }}
-          />
-        </TokenSelectorItem>
+          isSelected={isSelected}
+          onTokenPress={handleTokenPress}
+          onInfoPress={handleInfoButtonPress}
+          isNoFeeAsset={getIsNoFeeAsset(item)}
+          showStockBadge={isStockRwaBridgeToken(item, isRWAEnabled)}
+          balanceLayoutConfig={tokenBalanceLayoutConfig}
+        />
       );
     },
     [
       selectedToken,
       handleTokenPress,
-      route.params?.type,
       handleInfoButtonPress,
+      getIsNoFeeAsset,
+      isRWAEnabled,
+      tokenBalanceLayoutConfig,
     ],
   );
 
@@ -479,6 +552,23 @@ export const BridgeTokenSelector: React.FC = () => {
     return <SkeletonItem />;
   }, [isLoadingMore]);
 
+  const renderListHeader = useCallback(() => {
+    if (!shouldShowBatchSellBanner) {
+      return null;
+    }
+
+    return (
+      <BatchSellAssetPickerBanner
+        onDismiss={dismissBatchSellBanner}
+        onPress={handleBatchSellBannerPress}
+      />
+    );
+  }, [
+    dismissBatchSellBanner,
+    handleBatchSellBannerPress,
+    shouldShowBatchSellBanner,
+  ]);
+
   // Capture FlatList height for auto-load logic
   const handleFlatListLayout = useCallback(
     (event: { nativeEvent: { layout: { height: number } } }) => {
@@ -525,7 +615,24 @@ export const BridgeTokenSelector: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <Box style={styles.buttonContainer}>
+      <HeaderStandard
+        title={strings('bridge.select_token')}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
+      <Box twClassName="px-4 pb-3">
+        <TextFieldSearch
+          value={searchString}
+          onChangeText={handleSearchTextChange}
+          placeholder={strings('swaps.search_token')}
+          testID="bridge-token-search-input"
+          autoComplete="off"
+          autoCorrect={false}
+          autoCapitalize="none"
+          onPressClearButton={handleClearSearch}
+        />
+      </Box>
+      <Box twClassName="pt-2 pb-4 pl-4">
         <NetworkPills
           selectedChainId={selectedChainId}
           onChainSelect={handleChainSelect}
@@ -534,18 +641,6 @@ export const BridgeTokenSelector: React.FC = () => {
               screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
             })
           }
-        />
-
-        <TextFieldSearch
-          value={searchString}
-          onChangeText={handleSearchTextChange}
-          placeholder={strings('swaps.search_token')}
-          testID="bridge-token-search-input"
-          style={styles.searchInput}
-          autoComplete="off"
-          autoCorrect={false}
-          autoCapitalize="none"
-          onPressClearButton={handleClearSearch}
         />
       </Box>
 
@@ -564,8 +659,13 @@ export const BridgeTokenSelector: React.FC = () => {
         onScroll={handleScroll}
         scrollEventThrottle={400}
         ListFooterComponent={renderFooter}
+        ListHeaderComponent={renderListHeader}
         ListEmptyComponent={renderEmptyState}
         onLayout={handleFlatListLayout}
+        initialNumToRender={8}
+        maxToRenderPerBatch={5}
+        windowSize={5}
+        removeClippedSubviews
       />
     </SafeAreaView>
   );

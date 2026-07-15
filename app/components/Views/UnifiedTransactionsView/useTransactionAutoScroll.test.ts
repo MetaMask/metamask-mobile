@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { RefObject } from 'react';
+import { RefObject, MutableRefObject } from 'react';
 import { FlashListRef } from '@shopify/flash-list';
 import { useTransactionAutoScroll } from './useTransactionAutoScroll';
 import Logger from '../../../util/Logger';
@@ -557,8 +557,33 @@ describe('useTransactionAutoScroll', () => {
   });
 
   describe('Edge cases', () => {
+    it('handles list ref becoming null before auto-scroll timeout fires', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
+
+      const { rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+          },
+        },
+      );
+
+      rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }] });
+      (
+        listRef as MutableRefObject<FlashListRef<{ id: string }> | null>
+      ).current = null;
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
     it('handles list ref being null', () => {
-      const listRef: RefObject<FlashListRef<{ id: string }>> = {
+      const listRef: RefObject<FlashListRef<{ id: string }> | null> = {
         current: null,
       };
       const keyExtractor = jest.fn((item: { id: string }) => item.id);

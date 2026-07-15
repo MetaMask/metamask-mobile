@@ -34,6 +34,8 @@ export interface TeamInfo {
 
 export interface MetricsEntry {
   testName: string;
+  /** Playwright project name; disambiguates the same title across projects. */
+  projectName?: string;
   testFilePath?: string;
   tags?: string[];
   steps: MetricStep[];
@@ -57,6 +59,7 @@ export interface MetricsEntry {
   qualityGates?: QualityGatesResult | null;
   videoURL?: string | null;
   sessionId?: string | null;
+  sessionCreationDurationMs?: number;
   profilingData?: ProfilingData | null;
   profilingSummary?: ProfilingSummary | null;
   apiCalls?: NetworkLogEntry[] | null;
@@ -87,6 +90,7 @@ export interface ProfilingData {
       status?: string;
       detected_issues?: ProfilingIssue[];
       metrics: {
+        app_size?: number;
         cpu?: { avg?: number; max?: number };
         mem?: { avg?: number; max?: number };
         batt?: { total_batt_usage?: number; total_batt_usage_pct?: number };
@@ -115,6 +119,7 @@ export interface ProfilingSummary {
   status?: string;
   issues?: number;
   criticalIssues?: number;
+  appSizeMb?: number;
   cpu?: { avg: number; max: number; unit?: string };
   memory?: { avg: number; max: number; unit?: string };
   battery?: { total: number; percentage: number; unit?: string };

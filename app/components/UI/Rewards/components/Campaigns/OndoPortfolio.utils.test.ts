@@ -12,8 +12,8 @@ describe('groupPortfolioPositionsByAsset', () => {
         tokenName: 'A',
         tokenAsset: 'eip155:1/erc20:0xabc',
         units: '10',
-        costBasis: '100',
-        avgCostPerUnit: '10',
+        bookPrice: '10',
+        bookValue: '100',
         currentPrice: '11',
         currentValue: '110',
         unrealizedPnl: '10',
@@ -24,8 +24,8 @@ describe('groupPortfolioPositionsByAsset', () => {
         tokenName: 'A',
         tokenAsset: 'eip155:1/erc20:0xabc',
         units: '5',
-        costBasis: '50',
-        avgCostPerUnit: '10',
+        bookPrice: '10',
+        bookValue: '50',
         currentPrice: '11',
         currentValue: '55',
         unrealizedPnl: '5',
@@ -35,7 +35,7 @@ describe('groupPortfolioPositionsByAsset', () => {
 
     expect(merged).toHaveLength(1);
     expect(merged[0].units).toBe('15');
-    expect(merged[0].costBasis).toBe('150.000000');
+    expect(merged[0].bookValue).toBe('150.000000');
     expect(merged[0].currentValue).toBe('165.000000');
     expect(merged[0].unrealizedPnl).toBe('15.000000');
   });
@@ -47,8 +47,8 @@ describe('groupPortfolioPositionsByAsset', () => {
         tokenName: 'A',
         tokenAsset: 'eip155:1/erc20:0xaaa',
         units: '1',
-        costBasis: '1',
-        avgCostPerUnit: '1',
+        bookPrice: '1',
+        bookValue: '1',
         currentPrice: '1',
         currentValue: '1',
         unrealizedPnl: '0',
@@ -59,8 +59,8 @@ describe('groupPortfolioPositionsByAsset', () => {
         tokenName: 'B',
         tokenAsset: 'eip155:1/erc20:0xbbb',
         units: '2',
-        costBasis: '2',
-        avgCostPerUnit: '1',
+        bookPrice: '1',
+        bookValue: '2',
         currentPrice: '1',
         currentValue: '2',
         unrealizedPnl: '0',

@@ -7,14 +7,13 @@ import React, {
   useRef,
 } from 'react';
 import {
-  SafeAreaView,
   Image,
   BackHandler,
   TouchableOpacity,
   Platform,
   Alert,
-  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../locales/i18n';
@@ -26,8 +25,10 @@ import {
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import Routes from '../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { LoginViewSelectors } from '../Login/LoginView.testIds';
 import { downloadStateLogs } from '../../../util/logs';
 import {
@@ -45,8 +46,12 @@ import {
   WRONG_PASSWORD_ERROR,
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../Login/constants';
-import { isBiometricUnlockCancelledByUser } from '../../../core/Authentication/utils';
+import {
+  isAndroidKeychainBiometricLockout,
+  isBiometricUnlockCancelledByUser,
+} from '../../../core/Authentication/utils';
 import {
   SeedlessOnboardingControllerErrorMessage,
   RecoveryError as SeedlessOnboardingControllerRecoveryError,
@@ -56,6 +61,7 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import { useNetInfo } from '@react-native-community/netinfo';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -256,11 +262,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       );
     }
   }, [getAuthType]);
-
-  // default biometric choice to true
-  useEffect(() => {
-    setBiometryChoice(true);
-  }, [setBiometryChoice]);
 
   const tooManyAttemptsError = useCallback(
     async (initialRemainingTime: number) => {
@@ -501,6 +502,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         return;
       }
 
+      if (isAndroidKeychainBiometricLockout(loginError)) {
+        setError(strings('login.biometric_too_many_attempts'));
+        setLoading(false);
+        return;
+      }
+
       const isPasscodeNotSet = loginErrorMessage === PASSCODE_NOT_SET_ERROR;
 
       if (isPasscodeNotSet) {
@@ -669,24 +676,32 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     };
   }, []);
 
-  const handleBackPress = () => {
-    navigation.goBack();
-    return false;
-  };
-
+  const hasTrackedScreenView = useRef(false);
   useEffect(() => {
+    if (hasTrackedScreenView.current) return;
+    hasTrackedScreenView.current = true;
     trace({
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
     });
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+  }, [track]);
+
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+    return false;
+  }, [navigation]);
+
+  useEffect(() => {
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress,
+    );
 
     return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+      backHandlerSubscription.remove();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleBackPress]);
 
   useEffect(() => {
     const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
@@ -748,16 +763,19 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const renderPasswordField = () => (
     <TextField
       placeholder={strings('login.password_placeholder')}
-      testID={LoginViewSelectors.PASSWORD_INPUT}
-      returnKeyType={'done'}
-      autoCapitalize="none"
-      secureTextEntry
       onChangeText={handlePasswordChange}
       value={password}
-      onSubmitEditing={handleLogin}
-      keyboardAppearance={themeAppearance}
       isDisabled={disabledInput}
       isError={!!error}
+      inputProps={{
+        testID: LoginViewSelectors.PASSWORD_INPUT,
+        accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
+        returnKeyType: 'done',
+        autoCapitalize: 'none',
+        secureTextEntry: true,
+        onSubmitEditing: handleLogin,
+        keyboardAppearance: themeAppearance,
+      }}
     />
   );
 
@@ -806,9 +824,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         style={[
           tw.style('flex-1'),
           { backgroundColor: colors.background.default },
-          Platform.OS === 'android' && {
-            paddingTop: StatusBar.currentHeight ?? 0,
-          },
         ]}
       >
         <KeyboardAwareScrollView

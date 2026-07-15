@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { Platform, StatusBar } from 'react-native';
 import { RevealSRP } from './RevealSRP';
 import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
 import { EthAccountType } from '@metamask/keyring-api';
@@ -11,20 +12,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { SRP_GUIDE_URL } from '../../../../../constants/urls';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-    SafeAreaView: jest.fn().mockImplementation(({ children }) => children),
-  };
-});
-
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   return {
@@ -34,6 +21,10 @@ jest.mock('react-native', () => {
       addEventListener: jest.fn(),
       removeEventListener: jest.fn(),
       getInitialURL: jest.fn(() => Promise.resolve()),
+    },
+    Platform: {
+      ...RN.Platform,
+      OS: 'ios',
     },
   };
 });
@@ -69,10 +60,28 @@ jest.mock('../../../../hooks/useKeyringId', () => ({
 const render = () => renderWithProvider(<RevealSRP />);
 
 describe('RevealSRP', () => {
+  const originalPlatformOs = Platform.OS;
+  const originalStatusBarCurrentHeight = StatusBar.currentHeight;
+
   beforeEach(() => {
     jest.clearAllMocks();
     // Re-establish the default return value after clearing mocks
     mockUseKeyringId.mockReturnValue('test-keyring-id');
+    Platform.OS = 'ios';
+    Object.defineProperty(StatusBar, 'currentHeight', {
+      configurable: true,
+      writable: true,
+      value: originalStatusBarCurrentHeight,
+    });
+  });
+
+  afterAll(() => {
+    Platform.OS = originalPlatformOs;
+    Object.defineProperty(StatusBar, 'currentHeight', {
+      configurable: true,
+      writable: true,
+      value: originalStatusBarCurrentHeight,
+    });
   });
 
   it('navigates back when back button is pressed', () => {
@@ -112,5 +121,29 @@ describe('RevealSRP', () => {
         url: SRP_GUIDE_URL,
       },
     });
+  });
+
+  it('renders on Android when status bar height is available', () => {
+    Platform.OS = 'android';
+    Object.defineProperty(StatusBar, 'currentHeight', {
+      configurable: true,
+      writable: true,
+      value: 24,
+    });
+
+    const { getByTestId } = render();
+    expect(getByTestId(AccountDetailsIds.BACK_BUTTON)).toBeOnTheScreen();
+  });
+
+  it('renders on Android when status bar height is unavailable', () => {
+    Platform.OS = 'android';
+    Object.defineProperty(StatusBar, 'currentHeight', {
+      configurable: true,
+      writable: true,
+      value: undefined,
+    });
+
+    const { getByTestId } = render();
+    expect(getByTestId(AccountDetailsIds.BACK_BUTTON)).toBeOnTheScreen();
   });
 });

@@ -1,9 +1,7 @@
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import {
-  selectBitcoinRewardsEnabledFlag,
-  selectTronRewardsEnabledFlag,
-} from '../../../../selectors/featureFlagController/rewards/rewardsEnabled';
-import type { ControllerInitFunction } from '../../types';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import { selectRewardsFirstPredictOnUsEnabled } from '../../../../selectors/featureFlagController/rewardsFirstPredictOnUs';
+import type { MessengerClientInitFunction } from '../../types';
 import {
   RewardsController,
   RewardsControllerMessenger,
@@ -16,7 +14,7 @@ import {
  * @param request - The request object.
  * @returns The RewardsController.
  */
-export const rewardsControllerInit: ControllerInitFunction<
+export const rewardsControllerInit: MessengerClientInitFunction<
   RewardsController,
   RewardsControllerMessenger
 > = (request) => {
@@ -31,8 +29,15 @@ export const rewardsControllerInit: ControllerInitFunction<
       const isEnabled = selectBasicFunctionalityEnabled(getState());
       return !isEnabled;
     },
-    isBitcoinOptinEnabled: () => selectBitcoinRewardsEnabledFlag(getState()),
-    isTronOptinEnabled: () => selectTronRewardsEnabledFlag(getState()),
+    isVipDisabled: () => {
+      const isVipEnabled = selectVipProgramEnabled(getState());
+      return !isVipEnabled;
+    },
+    isFirstPredictOnUsDisabled: () => {
+      const isFirstPredictOnUsEnabled =
+        selectRewardsFirstPredictOnUsEnabled(getState());
+      return !isFirstPredictOnUsEnabled;
+    },
   });
 
   return { controller };
@@ -58,11 +63,13 @@ export type {
   RewardsControllerGetCampaignsAction,
   RewardsControllerGetCandidateSubscriptionIdAction,
   RewardsControllerGetClientVersionRequirementsAction,
+  RewardsControllerGetFirstPredictOnUsAction,
   RewardsControllerGetDefaultRewardsEnvUrlAction,
   RewardsControllerGetFirstSubscriptionIdAction,
   RewardsControllerGetGeoRewardsMetadataAction,
   RewardsControllerGetHasAccountOptedInAction,
   RewardsControllerGetOffDeviceSubscriptionAccountsAction,
+  RewardsControllerGetOndoCampaignDepositsAction,
   RewardsControllerGetOndoCampaignLeaderboardAction,
   RewardsControllerGetOndoCampaignLeaderboardPositionAction,
   RewardsControllerGetOndoCampaignPortfolioPositionAction,
@@ -85,6 +92,7 @@ export type {
   RewardsControllerInvalidateSubscriptionCacheAction,
   RewardsControllerIsOptInSupportedAction,
   RewardsControllerIsRewardsFeatureEnabledAction,
+  RewardsControllerIsVipFeatureEnabledAction,
   RewardsControllerLinkAccountsToSubscriptionCandidateAction,
   RewardsControllerLinkAccountToSubscriptionCandidateAction,
   RewardsControllerLogoutAction,

@@ -2,6 +2,7 @@ import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
+import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
 import setupBridge from './setupBridge';
 
 jest.mock('../../BackgroundBridge/BackgroundBridge');
@@ -11,6 +12,13 @@ jest.mock('./handleSendMessage');
 jest.mock('../../../util/Logger');
 jest.mock('../../AppConstants');
 jest.mock('../../../constants/deeplinks');
+jest.mock('../../RPCMethods/RPCMethodMiddleware', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+const mockedGetRpcMethodMiddleware = getRpcMethodMiddleware as jest.Mock;
+const MockedBackgroundBridge = BackgroundBridge as unknown as jest.Mock;
 
 describe('setupBridge', () => {
   let originatorInfo = {} as OriginatorInfo;
@@ -87,18 +95,6 @@ describe('setupBridge', () => {
     );
   });
 
-  it('should setup backgroundBridge with correct remoteConnHost', () => {
-    connection.backgroundBridge = undefined;
-
-    setupBridge({ originatorInfo, connection });
-
-    expect(BackgroundBridge).toHaveBeenCalledWith(
-      expect.objectContaining({
-        remoteConnHost: connection.host,
-      }),
-    );
-  });
-
   it('should setup backgroundBridge with correct getRpcMethodMiddleware', () => {
     connection.backgroundBridge = undefined;
 
@@ -161,5 +157,45 @@ describe('setupBridge', () => {
 
     expect(() => setupBridge({ originatorInfo, connection })).not.toThrow();
     expect(BackgroundBridge).toHaveBeenCalled();
+  });
+
+  describe('analytics.remote_session_id', () => {
+    const invokeRpcMiddleware = () => {
+      const { getRpcMethodMiddleware: middlewareFactory } =
+        MockedBackgroundBridge.mock.calls[0][0];
+      middlewareFactory({ getProviderState: jest.fn() });
+    };
+
+    it('passes originatorInfo.anonId as remote_session_id when present', () => {
+      connection.backgroundBridge = undefined;
+      originatorInfo.anonId = 'anon-id-123';
+
+      setupBridge({ originatorInfo, connection });
+      invokeRpcMiddleware();
+
+      expect(mockedGetRpcMethodMiddleware).toHaveBeenCalledWith(
+        expect.objectContaining({
+          analytics: expect.objectContaining({
+            remote_session_id: 'anon-id-123',
+          }),
+        }),
+      );
+    });
+
+    it('falls back to empty string when originatorInfo.anonId is missing', () => {
+      connection.backgroundBridge = undefined;
+      delete (originatorInfo as Partial<OriginatorInfo>).anonId;
+
+      setupBridge({ originatorInfo, connection });
+      invokeRpcMiddleware();
+
+      expect(mockedGetRpcMethodMiddleware).toHaveBeenCalledWith(
+        expect.objectContaining({
+          analytics: expect.objectContaining({
+            remote_session_id: '',
+          }),
+        }),
+      );
+    });
   });
 });

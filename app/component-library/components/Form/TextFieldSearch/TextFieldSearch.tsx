@@ -13,6 +13,11 @@ import { TextFieldSearchProps } from './TextFieldSearch.types';
 import { TEXTFIELDSEARCH_TEST_ID } from './TextFieldSearch.constants';
 import styles from './TextFieldSearch.styles';
 
+/**
+ * @deprecated Please update your code to use `TextFieldSearch` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/TextFieldSearch/README.md}
+ */
 const TextFieldSearch: React.FC<TextFieldSearchProps> = ({
   onPressClearButton,
   clearButtonProps,

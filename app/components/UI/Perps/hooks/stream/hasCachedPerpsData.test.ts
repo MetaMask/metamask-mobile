@@ -81,7 +81,7 @@ describe('hasPreloadedData', () => {
       mockCachedUserDataForActiveProvider = {
         positions: [],
         orders: [],
-        accountState: { availableBalance: '1000' },
+        accountState: { spendableBalance: '1000' },
       };
       expect(hasPreloadedData('cachedAccountState')).toBe(true);
     });
@@ -162,7 +162,7 @@ describe('getPreloadedData', () => {
   });
 
   it('returns cached accountState when available', () => {
-    const accountState = { availableBalance: '1000' };
+    const accountState = { spendableBalance: '1000' };
     mockCachedUserDataForActiveProvider = {
       positions: [],
       orders: [],

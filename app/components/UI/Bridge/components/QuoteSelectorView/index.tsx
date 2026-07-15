@@ -1,14 +1,17 @@
 import ScreenView from '../../../../Base/ScreenView';
 import {
   Box,
+  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useEffect, useMemo } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import { useStyles } from '../../../../../component-library/hooks';
+import { createStyles } from './QuoteSelectorView.styles';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectDestToken,
@@ -30,6 +33,7 @@ import { useTrackAllQuotesSortedEvent } from '../../hooks/useTrackAllQuotesSorte
 import { fromTokenMinimalUnit } from '../../../../../util/number';
 
 export const QuoteSelectorView = () => {
+  const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const selectedQuoteRequestId = useSelector(selectSelectedQuoteRequestId);
@@ -112,16 +116,6 @@ export const QuoteSelectorView = () => {
     destToken,
   ]);
 
-  useEffect(() => {
-    navigation.setOptions(
-      getHeaderCompactStandardNavbarOptions({
-        title: strings('bridge.select_quote'),
-        onBack: () => navigation.goBack(),
-        includesTopInset: true,
-      }),
-    );
-  }, [navigation]);
-
   // Go back to bridge view only if there's an error or quotes are expired
   useEffect(() => {
     if (quoteFetchError || blockaidError) {
@@ -130,13 +124,23 @@ export const QuoteSelectorView = () => {
   }, [quoteFetchError, blockaidError, navigation]);
 
   return (
-    <ScreenView>
-      <Box padding={4}>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('bridge.select_quote_info')}
-        </Text>
-      </Box>
-      <QuoteList data={data} />
-    </ScreenView>
+    <SafeAreaView
+      style={styles.screenWrapper}
+      edges={['bottom', 'left', 'right']}
+    >
+      <HeaderStandard
+        title={strings('bridge.select_quote')}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
+      <ScreenView safeAreaEdges={[]}>
+        <Box padding={4}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('bridge.select_quote_info')}
+          </Text>
+        </Box>
+        <QuoteList data={data} />
+      </ScreenView>
+    </SafeAreaView>
   );
 };

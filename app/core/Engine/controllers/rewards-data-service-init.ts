@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   RewardsDataService,
   type RewardsDataServiceMessenger,
@@ -14,7 +14,7 @@ import type { RewardsControllerState } from './rewards-controller/types';
  * @param request.persistedState - The full persisted state for all controllers.
  * @returns The initialized controller.
  */
-export const rewardsDataServiceInit: ControllerInitFunction<
+export const rewardsDataServiceInit: MessengerClientInitFunction<
   RewardsDataService,
   RewardsDataServiceMessenger
 > = ({ controllerMessenger, persistedState }) => {

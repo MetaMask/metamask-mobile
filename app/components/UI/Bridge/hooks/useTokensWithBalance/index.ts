@@ -54,6 +54,10 @@ interface CalculateFiatBalancesParams {
   evmAccountsByChainId: ReturnType<typeof selectAccountsByChainId>;
 }
 
+function hasNonZeroBalance(token: BridgeToken) {
+  return Number(token.balance ?? 0) > 0;
+}
+
 /**
  * Calculate the fiat value of tokens and their balances
  * Originally rom app/components/UI/Tokens/index.tsx
@@ -281,7 +285,9 @@ export const useTokensWithBalance: ({
             : undefined) as BridgeToken['rwaData'],
         };
       });
-    return sortAssets(properTokens, tokenSortConfig);
+    const tokensWithPositiveBalance = properTokens.filter(hasNonZeroBalance);
+
+    return sortAssets(tokensWithPositiveBalance, tokenSortConfig);
   }, [
     evmAccountTokensAcrossChains,
     multiChainMarketData,

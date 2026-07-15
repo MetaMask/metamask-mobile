@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
 import { ConfirmationUIType } from '../../ConfirmationView.testIds';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -27,9 +28,13 @@ import Title from '../title';
 import { Footer, FooterSkeleton } from '../footer';
 import styleSheet from './confirm-component.styles';
 import { TransactionType } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
-import { CustomAmountInfoSkeleton } from '../info/custom-amount-info';
+import {
+  AdvancedCustomAmountInfoSkeleton,
+  CustomAmountInfoSkeleton,
+} from '../info/custom-amount-info';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../utils/transaction';
@@ -51,14 +56,25 @@ const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
 export enum ConfirmationLoader {
   Default = 'default',
   CustomAmount = 'customAmount',
+  AdvancedCustomAmount = 'advancedCustomAmount',
   PredictClaim = 'predictClaim',
   Transfer = 'transfer',
 }
 
+export enum PayWithOption {
+  MoneyAccount = 'money_account',
+}
+
 export interface ConfirmationParams {
+  autoSelectFiatPayment?: boolean;
   loader?: ConfirmationLoader;
   maxValueMode?: boolean;
   forceBottomSheet?: boolean;
+  payWithOption?: PayWithOption;
+  preferredPaymentToken?: {
+    address: Hex;
+    chainId: Hex;
+  };
 }
 
 const ConfirmWrapped = ({
@@ -122,27 +138,24 @@ export const Confirm = ({
   });
 
   useEffect(() => {
-    if (approvalRequest) {
-      const options = {
-        headerShown: false,
-        // If there is an approvalRequest, we need to allow the user to swipe to reject the confirmation
-        gestureEnabled: true,
-      };
+    const options: NativeStackNavigationOptions = {
+      // If not, keep the loading state in place until there is a request that can be rejected.
+      gestureEnabled: Boolean(approvalRequest),
+    };
 
-      if (isFullScreenConfirmation) {
-        // If the confirmation is full screen, we need to show the header
-        options.headerShown = true;
-      }
-      navigation.setOptions(options);
+    if (approvalRequest) {
+      options.headerShown = Boolean(isFullScreenConfirmation);
     }
+
+    navigation.setOptions(options);
   }, [approvalRequest, isFullScreenConfirmation, navigation]);
 
   useEffect(() => {
     if (!approvalRequest) {
       const backHandlerSubscription = BackHandler.addEventListener(
         'hardwareBackPress',
-        // Do nothing if back button is pressed for Android in case of no approvalRequest (loading state)
-        () => undefined,
+        // Keep users on the loading state until there is an approval request that can be rejected.
+        () => true,
       );
 
       return () => {
@@ -200,6 +213,17 @@ function Loader() {
     return (
       <InfoLoader testId="confirm-loader-custom-amount" loader={loader}>
         <CustomAmountInfoSkeleton />
+      </InfoLoader>
+    );
+  }
+
+  if (loader === ConfirmationLoader.AdvancedCustomAmount) {
+    return (
+      <InfoLoader
+        testId="confirm-loader-advanced-custom-amount"
+        loader={loader}
+      >
+        <AdvancedCustomAmountInfoSkeleton />
       </InfoLoader>
     );
   }

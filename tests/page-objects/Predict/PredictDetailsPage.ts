@@ -8,12 +8,21 @@ import {
   encapsulatedAction,
   type EncapsulatedElementType,
 } from '../../framework';
+import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 import {
   PredictBalanceSelectorsIDs,
   PredictBuyPreviewSelectorsIDs,
   PredictMarketDetailsSelectorsIDs,
   PredictMarketDetailsSelectorsText,
 } from '../../../app/components/UI/Predict/Predict.testIds';
+import { PREDICT_PICK_ITEM_TEST_IDS } from '../../../app/components/UI/Predict/components/PredictPicks/PredictPickItem.testIds';
+import {
+  PREDICT_GAME_DETAILS_FOOTER,
+  PREDICT_GAME_DETAILS_FOOTER_TEST_IDS,
+} from '../../../app/components/UI/Predict/components/PredictGameDetailsFooter/PredictGameDetailsFooter.testIds';
+import { PREDICT_ACTION_BUTTONS_TEST_IDS } from '../../../app/components/UI/Predict/components/PredictActionButtons/PredictActionButtons.testIds';
+import { PREDICT_BET_BUTTONS_TEST_IDS } from '../../../app/components/UI/Predict/components/PredictActionButtons/PredictBetButtons.testIds';
+import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from '../../../app/components/UI/Predict/components/PredictGameDetailsContent/PredictGameDetailsContent.testIds';
 
 class PredictDetailsPage {
   get container(): EncapsulatedElementType {
@@ -141,6 +150,14 @@ class PredictDetailsPage {
     });
   }
 
+  private get backButtonByLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByLabel('Back') as unknown as DetoxElement,
+      appium: () => PlaywrightMatchers.getElementByText('Back', true),
+    });
+  }
+
   get balanceCard(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -188,16 +205,20 @@ class PredictDetailsPage {
   }
 
   private getKeypadDigitButton(digit: string): EncapsulatedElementType {
+    const testID = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
     return encapsulated({
       detox: () => Matchers.getElementByText(digit),
-      appium: () => PlaywrightMatchers.getElementByText(digit),
+      appium: () => PlaywrightMatchers.getElementById(testID, { exact: true }),
     });
   }
 
   private getDoneButton(): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText('Done'),
-      appium: () => PlaywrightMatchers.getElementByText('Done'),
+      appium: () =>
+        PlaywrightMatchers.getElementByText('Done', false, {
+          lastElement: true,
+        }),
     });
   }
 
@@ -208,10 +229,18 @@ class PredictDetailsPage {
     });
   }
 
+  get gameBetYesButton(): EncapsulatedElementType {
+    const testID = `${PREDICT_GAME_DETAILS_FOOTER}${PREDICT_GAME_DETAILS_FOOTER_TEST_IDS.ACTION_BUTTONS}${PREDICT_ACTION_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON}${PREDICT_BET_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON_YES}`;
+    return encapsulated({
+      detox: () => Matchers.getElementByID(testID),
+      appium: () => PlaywrightMatchers.getElementById(testID, { exact: true }),
+    });
+  }
+
   async waitForScreenToDisplay(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.container, {
       description: 'Predict market details screen',
-      timeout: 15000,
+      timeout: resolveE2EWaitTimeoutMs(30_000),
     });
   }
 
@@ -220,8 +249,40 @@ class PredictDetailsPage {
   }
 
   async tapBackButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.backButton, {
-      description: 'Back button',
+    await encapsulatedAction({
+      detox: async () => {
+        await UnifiedGestures.waitAndTap(this.backButton, {
+          description: 'Back button',
+          timeout: 30_000,
+        });
+      },
+      appium: async () => {
+        const tapBack = async (target: EncapsulatedElementType) => {
+          await Assertions.expectElementToBeVisible(target, {
+            description: 'Market details back button',
+            timeout: 10_000,
+          });
+          await UnifiedGestures.waitAndTap(target, {
+            description: 'Back button',
+            timeout: 30_000,
+          });
+        };
+
+        try {
+          await tapBack(this.backButton);
+        } catch {
+          try {
+            await tapBack(this.backButtonByLabel);
+          } catch {
+            if (!globalThis.driver) {
+              throw new Error(
+                'WebDriver session not available for back navigation',
+              );
+            }
+            await globalThis.driver.back();
+          }
+        }
+      },
     });
   }
 
@@ -233,11 +294,13 @@ class PredictDetailsPage {
   async tapAboutTab(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.aboutTab, {
       description: 'About tab',
+      checkForDisplayed: false,
     });
   }
   async tapOutcomesTab(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.outcomesTab, {
       description: 'Outcomes tab',
+      checkForDisplayed: false,
     });
   }
   async tapCashOutButton(): Promise<void> {
@@ -246,9 +309,120 @@ class PredictDetailsPage {
     });
   }
 
+  getGameCashOutButton(positionId: string): EncapsulatedElementType {
+    const testID = `${PREDICT_PICK_ITEM_TEST_IDS.PREDICT_PICKS_CASH_OUT_BUTTON}-${positionId}`;
+    return encapsulated({
+      detox: () => Matchers.getElementByID(testID),
+      appium: () => PlaywrightMatchers.getElementById(testID, { exact: true }),
+    });
+  }
+
+  private get gameDetailsScrollView(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.SCROLL_VIEW,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.SCROLL_VIEW,
+          { exact: true },
+        ),
+    });
+  }
+
+  private async scrollMarketDetailsDown(percent = 0.45): Promise<void> {
+    await UnifiedGestures.swipe(this.gameDetailsScrollView, 'up', {
+      percentage: percent,
+      description: 'Scroll game market details down',
+    });
+  }
+
+  private async scrollMarketDetailsToRevealCashOut(
+    positionId: string,
+    timeout: number,
+  ): Promise<void> {
+    const cashOutButton = this.getGameCashOutButton(positionId);
+    const maxAttempts = Math.max(8, Math.ceil(timeout / 2_000));
+
+    await Assertions.expectElementToBeVisible(this.container, {
+      timeout: resolveE2EWaitTimeoutMs(20_000),
+      description: 'Predict market details screen before scrolling to cash out',
+    });
+
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      try {
+        await Assertions.expectElementToBeVisible(cashOutButton, {
+          timeout: 1_500,
+          description: 'Game details cash out button',
+        });
+        return;
+      } catch {
+        await this.scrollMarketDetailsDown(0.5);
+      }
+    }
+
+    await Assertions.expectElementToBeVisible(cashOutButton, {
+      timeout: 5_000,
+      description: 'Game details cash out button after scrolling',
+    });
+  }
+
+  async waitForGameCashOutButton(
+    positionId: string,
+    timeout: number = resolveE2EWaitTimeoutMs(30_000),
+  ): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(
+          this.getGameCashOutButton(positionId),
+          {
+            timeout,
+            description: 'Game details cash out button',
+          },
+        );
+      },
+      appium: async () => {
+        await this.scrollMarketDetailsToRevealCashOut(positionId, timeout);
+      },
+    });
+  }
+
+  async tapGameCashOutButton(positionId: string): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await UnifiedGestures.waitAndTap(
+          this.getGameCashOutButton(positionId),
+          {
+            description: 'Game details cash out button',
+          },
+        );
+      },
+      appium: async () => {
+        await this.scrollMarketDetailsToRevealCashOut(
+          positionId,
+          resolveE2EWaitTimeoutMs(30_000),
+        );
+        await UnifiedGestures.waitAndTap(
+          this.getGameCashOutButton(positionId),
+          {
+            description: 'Game details cash out button',
+            timeout: 30_000,
+          },
+        );
+      },
+    });
+  }
+
   async tapOpenPositionValue(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.getOpenPositionValueButton(), {
       description: 'Celtics outcome button',
+    });
+  }
+
+  async tapGameBetYesButton(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.gameBetYesButton, {
+      description: 'Game bet yes button',
     });
   }
 
@@ -283,8 +457,18 @@ class PredictDetailsPage {
         });
       },
       appium: async () => {
+        await Assertions.expectElementToBeVisible(this.placeBetButton, {
+          description: 'Place bet button before submitting order',
+          timeout: 30_000,
+        });
         await UnifiedGestures.waitAndTap(this.placeBetButton, {
           description: 'Place bet button',
+          delay: 1000,
+          waitForInteractive: true,
+        });
+        await Assertions.expectElementToBeVisible(this.container, {
+          description: 'Market details screen after order submission',
+          timeout: 60_000,
         });
       },
     });

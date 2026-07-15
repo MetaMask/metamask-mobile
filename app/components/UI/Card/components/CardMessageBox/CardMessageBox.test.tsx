@@ -6,7 +6,7 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
+  strings: jest.fn((key: string, params?: Record<string, string | number>) => {
     const mockStrings: Record<string, string> = {
       'card.card_home.warnings.close_spending_limit.title':
         'Close Spending Limit',
@@ -22,8 +22,31 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_home.messages.card_provisioning.description':
         'Your card is being automatically provisioned. This may take a few moments.',
       'card.card_spending_limit.dismiss': 'Dismiss',
+      'card.card_authentication.auth_prompt_info':
+        'Log in to your card account to access this feature.',
+      'card.cashback_screen.funding_required.title': 'Set up Linea funding',
+      'card.cashback_screen.funding_required.description':
+        'You need at least one approved funding source on Linea before redeeming cashback.',
+      'card.cashback_screen.funding_required.confirm_button_label':
+        'Set up funding',
+      'card.cashback_screen.money_account_required.title':
+        'Set up Money Account',
+      'card.cashback_screen.money_account_required.description':
+        'You need a linked Money Account before redeeming cashback.',
+      'card.cashback_screen.money_account_required.confirm_button_label':
+        'Set up Money Account',
+      'card.credit_banner.title': 'Refund balance: {{amount}}',
+      'card.credit_banner.description':
+        'Spend it or move it to your Money account to keep earning on your balance.',
+      'card.credit_banner.confirm_button_label': 'Move funds',
     };
-    return mockStrings[key] || key;
+    let value = mockStrings[key] || key;
+    if (params) {
+      Object.entries(params).forEach(([name, replacement]) => {
+        value = value.replace(`{{${name}}}`, String(replacement));
+      });
+    }
+    return value;
   }),
 }));
 
@@ -52,12 +75,12 @@ describe('CardMessageBox', () => {
   });
 
   describe('CloseSpendingLimit warning', () => {
-    it('renders warning icon', () => {
+    it('renders warning banner', () => {
       const { getByTestId } = renderWithProvider(() => (
         <CardMessageBox messageType={CardMessageBoxType.CloseSpendingLimit} />
       ));
 
-      expect(getByTestId('icon')).toBeOnTheScreen();
+      expect(getByTestId('card-message-box')).toBeOnTheScreen();
     });
 
     it('renders title and description', () => {
@@ -111,12 +134,12 @@ describe('CardMessageBox', () => {
   });
 
   describe('KYCPending warning', () => {
-    it('renders warning icon', () => {
+    it('renders warning banner', () => {
       const { getByTestId } = renderWithProvider(() => (
         <CardMessageBox messageType={CardMessageBoxType.KYCPending} />
       ));
 
-      expect(getByTestId('icon')).toBeOnTheScreen();
+      expect(getByTestId('card-message-box')).toBeOnTheScreen();
     });
 
     it('renders title and description', () => {
@@ -138,17 +161,17 @@ describe('CardMessageBox', () => {
         />
       ));
 
-      expect(queryByTestId('confirm-button')).toBeNull();
+      expect(queryByTestId('confirm-button')).not.toBeOnTheScreen();
     });
   });
 
   describe('CardProvisioning info', () => {
-    it('renders info icon', () => {
+    it('renders info banner', () => {
       const { getByTestId } = renderWithProvider(() => (
         <CardMessageBox messageType={CardMessageBoxType.CardProvisioning} />
       ));
 
-      expect(getByTestId('icon')).toBeOnTheScreen();
+      expect(getByTestId('card-message-box')).toBeOnTheScreen();
     });
 
     it('renders title and description', () => {
@@ -172,7 +195,7 @@ describe('CardMessageBox', () => {
         />
       ));
 
-      expect(queryByTestId('confirm-button')).toBeNull();
+      expect(queryByTestId('confirm-button')).not.toBeOnTheScreen();
     });
 
     it('renders with info variant styling (blue background)', () => {
@@ -181,6 +204,93 @@ describe('CardMessageBox', () => {
       ));
 
       expect(getByTestId('card-message-box')).toBeOnTheScreen();
+    });
+  });
+
+  describe('CashbackFundingRequired warning', () => {
+    it('renders title and description', () => {
+      const { getByText } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CashbackFundingRequired}
+        />
+      ));
+
+      expect(getByText('Set up Linea funding')).toBeOnTheScreen();
+      expect(
+        getByText(
+          'You need at least one approved funding source on Linea before redeeming cashback.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onConfirm when the funding setup button is pressed', () => {
+      const { getByText } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CashbackFundingRequired}
+          onConfirm={mockOnConfirm}
+        />
+      ));
+
+      fireEvent.press(getByText('Set up funding'));
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('CashbackMoneyAccountRequired warning', () => {
+    it('renders title and description', () => {
+      const { getByText } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CashbackMoneyAccountRequired}
+        />
+      ));
+
+      expect(getByText('Set up Money Account')).toBeOnTheScreen();
+      expect(
+        getByText('You need a linked Money Account before redeeming cashback.'),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onConfirm when the Money Account setup button is pressed', () => {
+      const { getByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CashbackMoneyAccountRequired}
+          onConfirm={mockOnConfirm}
+        />
+      ));
+
+      fireEvent.press(getByTestId('confirm-button'));
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('CreditAvailable info', () => {
+    it('interpolates the amount into the title and renders the description', () => {
+      const { getByText } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CreditAvailable}
+          values={{ amount: '$10.86' }}
+        />
+      ));
+
+      expect(getByText('Refund balance: $10.86')).toBeOnTheScreen();
+      expect(
+        getByText(
+          'Spend it or move it to your Money account to keep earning on your balance.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onConfirm when the Move funds button is pressed', () => {
+      const { getByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CreditAvailable}
+          values={{ amount: '$10.86' }}
+          onConfirm={mockOnConfirm}
+        />
+      ));
+
+      fireEvent.press(getByTestId('confirm-button'));
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -214,8 +324,8 @@ describe('CardMessageBox', () => {
         <CardMessageBox messageType={CardMessageBoxType.CloseSpendingLimit} />
       ));
 
-      expect(queryByTestId('confirm-button')).toBeNull();
-      expect(queryByTestId('dismiss-button')).toBeNull();
+      expect(queryByTestId('confirm-button')).not.toBeOnTheScreen();
+      expect(queryByTestId('dismiss-button')).not.toBeOnTheScreen();
     });
 
     it('calls onDismiss when dismiss button is pressed', () => {
@@ -230,11 +340,14 @@ describe('CardMessageBox', () => {
       expect(mockOnDismiss).toHaveBeenCalledTimes(1);
     });
 
-    it('renders all message types with icon and content', () => {
+    it('renders all message types as banners', () => {
       const allMessageTypes = [
         CardMessageBoxType.CloseSpendingLimit,
         CardMessageBoxType.KYCPending,
         CardMessageBoxType.CardProvisioning,
+        CardMessageBoxType.AuthPrompt,
+        CardMessageBoxType.CashbackFundingRequired,
+        CardMessageBoxType.CashbackMoneyAccountRequired,
       ];
 
       allMessageTypes.forEach((messageType) => {
@@ -242,7 +355,7 @@ describe('CardMessageBox', () => {
           <CardMessageBox messageType={messageType} />
         ));
 
-        expect(getByTestId('icon')).toBeOnTheScreen();
+        expect(getByTestId('card-message-box')).toBeOnTheScreen();
       });
     });
   });

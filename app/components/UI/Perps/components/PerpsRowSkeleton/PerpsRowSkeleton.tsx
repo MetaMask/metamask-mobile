@@ -1,6 +1,12 @@
 import React from 'react';
-import { View, StyleSheet, type ViewStyle } from 'react-native';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import type { ViewStyle } from 'react-native';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Skeleton,
+} from '@metamask/design-system-react-native';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 
 export interface PerpsRowSkeletonProps {
@@ -18,45 +24,6 @@ export interface PerpsRowSkeletonProps {
   style?: ViewStyle;
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  leftSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  iconSkeleton: {
-    borderRadius: 100, // Fully circular
-    marginRight: 12,
-  },
-  textInfo: {
-    flex: 1,
-    gap: 6,
-  },
-  primaryText: {
-    marginBottom: 0,
-  },
-  secondaryText: {
-    marginBottom: 0,
-  },
-  rightSection: {
-    alignItems: 'flex-end',
-    gap: 6,
-  },
-  valueText: {
-    marginBottom: 0,
-  },
-  labelText: {
-    marginBottom: 0,
-  },
-});
-
 /**
  * PerpsRowSkeleton Component
  *
@@ -73,41 +40,52 @@ const PerpsRowSkeleton: React.FC<PerpsRowSkeletonProps> = ({
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   style,
 }) => {
-  // Generate array for count
   const rows = Array.from({ length: count }, (_, i) => i);
 
   return (
     <>
       {rows.map((index) => (
-        <View key={index} style={[styles.row, style]}>
+        <Box
+          key={index}
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          paddingVertical={3}
+          paddingHorizontal={4}
+          style={style}
+        >
           {/* Left section: Icon + Info */}
-          <View style={styles.leftSection}>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="flex-1"
+          >
             {/* Circular icon skeleton */}
             <Skeleton
               height={iconSize}
               width={iconSize}
-              style={styles.iconSkeleton}
+              twClassName="rounded-full mr-3"
             />
 
             {/* Text info */}
-            <View style={styles.textInfo}>
+            <Box twClassName="flex-1 gap-1.5">
               {/* Primary text (larger) */}
-              <Skeleton height={16} width="70%" style={styles.primaryText} />
+              <Skeleton height={16} width="70%" />
 
               {/* Secondary text (smaller) */}
-              <Skeleton height={14} width="50%" style={styles.secondaryText} />
-            </View>
-          </View>
+              <Skeleton height={14} width="50%" />
+            </Box>
+          </Box>
 
           {/* Right section: Value + Label */}
-          <View style={styles.rightSection}>
+          <Box alignItems={BoxAlignItems.End} twClassName="gap-1.5">
             {/* Value text */}
-            <Skeleton height={16} width={80} style={styles.valueText} />
+            <Skeleton height={16} width={80} />
 
             {/* Label/change text */}
-            <Skeleton height={14} width={60} style={styles.labelText} />
-          </View>
-        </View>
+            <Skeleton height={14} width={60} />
+          </Box>
+        </Box>
       ))}
     </>
   );

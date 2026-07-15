@@ -99,6 +99,7 @@ const VerifyingVeriffKYC = () => {
       )}
       formFields={renderFormFields()}
       actions={null}
+      headerMode="close-direct"
     />
   );
 };

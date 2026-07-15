@@ -1,4 +1,5 @@
 import React from 'react';
+import { FlatList } from 'react-native';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketTradesList from './PerpsMarketTradesList';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -45,36 +46,6 @@ jest.mock('../../../../../component-library/hooks', () => ({
     },
   }),
 }));
-
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const ReactLib = jest.requireActual('react');
-  const { Text: ReactNativeText } = jest.requireActual('react-native');
-
-  const MockText = ({
-    children,
-    ...props
-  }: {
-    children?: React.ReactNode;
-    [key: string]: unknown;
-  }) => ReactLib.createElement(ReactNativeText, props, children);
-
-  return {
-    __esModule: true,
-    default: MockText,
-    TextVariant: {
-      HeadingSM: 'HeadingSM',
-      BodyMD: 'BodyMD',
-      BodyMDMedium: 'BodyMDMedium',
-      BodySM: 'BodySM',
-    },
-    TextColor: {
-      Default: 'Default',
-      Alternative: 'Alternative',
-      Success: 'Success',
-      Error: 'Error',
-    },
-  };
-});
 
 jest.mock('../PerpsTokenLogo', () => {
   const { View: RNView, Text: RNText } = jest.requireActual('react-native');
@@ -580,11 +551,19 @@ describe('PerpsMarketTradesList', () => {
         createMockFillsReturn(mockOrderFills),
       );
 
-      render(<PerpsMarketTradesList symbol="ETH" />);
+      const { UNSAFE_getByType } = render(
+        <PerpsMarketTradesList symbol="ETH" />,
+      );
 
-      expect(screen.getByText('Opened long')).toBeOnTheScreen();
-      expect(screen.getByText('Closed long')).toBeOnTheScreen();
-      expect(screen.getByText('Opened short')).toBeOnTheScreen();
+      const flatList = UNSAFE_getByType(FlatList);
+      // keyExtractor is `${item.id || index}` — verify both the truthy-id and
+      // the index-fallback branches match the production template literal
+      const firstItem = flatList.props.data[0];
+      expect(flatList.props.keyExtractor(firstItem, 0)).toBe(
+        `${firstItem.id || 0}`,
+      );
+      expect(flatList.props.keyExtractor({ id: '' }, 3)).toBe('3');
+      expect(flatList.props.keyExtractor({ id: null }, 7)).toBe('7');
     });
 
     it('disables scroll on FlatList', () => {
@@ -592,9 +571,12 @@ describe('PerpsMarketTradesList', () => {
         createMockFillsReturn(mockOrderFills),
       );
 
-      const { root } = render(<PerpsMarketTradesList symbol="ETH" />);
+      const { UNSAFE_getByType } = render(
+        <PerpsMarketTradesList symbol="ETH" />,
+      );
 
-      expect(root).toBeTruthy();
+      const flatList = UNSAFE_getByType(FlatList);
+      expect(flatList.props.scrollEnabled).toBe(false);
     });
   });
 

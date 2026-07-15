@@ -5,11 +5,13 @@ import React, {
   forwardRef,
   useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import {
   Dimensions,
   LayoutChangeEvent,
+  Pressable,
   StyleProp,
   View,
   ViewStyle,
@@ -64,6 +66,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   );
   const { bottom: bottomNotchSpacing } = useSafeAreaInsets();
   const translateYProgress = useSharedValue(screenHeight);
+  const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const customOffset = toastOptions?.customBottomOffset ?? 0;
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -78,6 +81,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const resetState = () => setToastOptions(undefined);
 
   const showToast = (options: ToastOptions) => {
+    if (pendingTimeoutRef.current !== null) {
+      clearTimeout(pendingTimeoutRef.current);
+      pendingTimeoutRef.current = null;
+    }
+
     let timeoutDuration = 0;
     if (toastOptions) {
       if (!options.hasNoTimeout) {
@@ -87,7 +95,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       // Clear existing toast state to prevent animation conflicts when showing rapid successive toasts
       setToastOptions(undefined);
     }
-    setTimeout(() => {
+    pendingTimeoutRef.current = setTimeout(() => {
+      pendingTimeoutRef.current = null;
       setToastOptions(options);
     }, timeoutDuration);
   };
@@ -284,7 +293,17 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
   return (
     <Animated.View onLayout={onAnimatedViewLayout} style={baseStyle}>
-      {renderToastContent(toastOptions)}
+      {toastOptions.onPress ? (
+        <Pressable
+          style={styles.pressableContent}
+          onPress={toastOptions.onPress}
+          testID={ToastSelectorsIDs.PRESSABLE}
+        >
+          {renderToastContent(toastOptions)}
+        </Pressable>
+      ) : (
+        renderToastContent(toastOptions)
+      )}
     </Animated.View>
   );
 });

@@ -4,8 +4,15 @@ import TronStakingLearnMoreModal from '.';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import {
+  createMockEventBuilder,
+  createMockUseAnalyticsHook,
+} from '../../../../../../util/test/analyticsMock';
+import { TRON_STAKING_FAQ_URL } from '../../../../../../constants/urls';
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -13,34 +20,15 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: mockGoBack,
     }),
   };
 });
 
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue({}),
-}));
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
 
-jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
-
-// LearnMoreModalFooter (child component) still uses useMetrics - mock it
-jest.mock('../../../../../hooks/useMetrics', () => {
-  const actual = jest.requireActual('../../../../../../core/Analytics');
-  return {
-    ...actual,
-    useMetrics: () => ({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    }),
-  };
-});
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics');
 
 const mockTrace = jest.fn();
 const mockEndTrace = jest.fn();
@@ -102,8 +90,15 @@ const renderModal = () =>
   );
 
 describe('TronStakingLearnMoreModal', () => {
+  let mockHook: ReturnType<typeof createMockUseAnalyticsHook>;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHook = createMockUseAnalyticsHook({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    });
+    jest.mocked(useAnalytics).mockReturnValue(mockHook);
     mockUseTronStakeApy.mockReturnValue({
       fetchStatus: 'fetched',
       apyPercent: '4.5%',
@@ -193,9 +188,20 @@ describe('TronStakingLearnMoreModal', () => {
       expect(mockNavigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
         params: {
-          url: 'https://support.metamask.io/metamask-portfolio/move-crypto/stake/',
+          url: TRON_STAKING_FAQ_URL,
         },
       });
+    });
+
+    it('closes the bottom sheet before navigating to webview', () => {
+      const { getByText } = renderModal();
+
+      fireEvent.press(getByText('Learn more'));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockGoBack.mock.invocationCallOrder[0]).toBeLessThan(
+        mockNavigate.mock.invocationCallOrder[0],
+      );
     });
 
     it('tracks analytics event when Learn More button is pressed', () => {
@@ -207,6 +213,28 @@ describe('TronStakingLearnMoreModal', () => {
         MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED,
       );
       expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks analytics event with stake learn more modal properties', () => {
+      const { getByText } = renderModal();
+
+      fireEvent.press(getByText('Learn more'));
+
+      const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
+      expect(eventBuilder.addProperties).toHaveBeenCalledWith({
+        selected_provider: 'consensys',
+        text: 'Learn More',
+        location: 'LearnMoreModal',
+      });
+    });
+
+    it('closes the bottom sheet when Got it button is pressed', () => {
+      const { getByText } = renderModal();
+
+      fireEvent.press(getByText('Got it'));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

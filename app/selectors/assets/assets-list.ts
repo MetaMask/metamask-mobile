@@ -1,48 +1,65 @@
+import type { AccountGroupId } from '@metamask/account-api';
 import {
+  AccountGroupAssets,
   Asset,
+  AssetListState,
   selectAllAssets as _selectAllAssets,
   selectAssetsBySelectedAccountGroup as _selectAssetsBySelectedAccountGroup,
   getNativeTokenAddress,
-  TokenListState,
-  AssetListState,
-  AccountGroupAssets,
 } from '@metamask/assets-controllers';
-import type { AccountGroupId } from '@metamask/account-api';
+import { toHex } from '@metamask/controller-utils';
 import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
   toEvmCaipChainId,
 } from '@metamask/multichain-network-controller';
-import { toHex } from '@metamask/controller-utils';
 import { CaipChainId, Hex, hexToBigInt, isCaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
+import { getLocaleLanguageCode } from '../../components/hooks/useFormatters';
 import { TokenI } from '../../components/UI/Tokens/types';
-import { RootState } from '../../reducers';
-import { formatWithThreshold } from '../../util/assets';
-import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
-import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
-import { selectTokenSortConfig } from '../preferencesController';
-import { selectHideZeroBalanceTokens } from '../settings';
-import { createDeepEqualSelector } from '../util';
-import { fromWei, hexToBN, weiToFiatNumber } from '../../util/number';
-import {
-  selectCurrencyRates,
-  selectCurrentCurrency,
-} from '../currencyRateController';
-import { safeParseBigNumber } from '../../util/number/bignumber';
-import { selectAccountsByChainId } from '../accountTrackerController';
+import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
 import {
   TRON_SPECIAL_ASSET_SYMBOLS,
   TRON_SPECIAL_ASSET_SYMBOLS_SET,
   TronSpecialAssetSymbol,
 } from '../../core/Multichain/constants';
+import {
+  ARC_USDC_TOKEN_ADDRESS,
+  NETWORKS_CHAIN_ID,
+} from '../../constants/network';
 import { isTronSpecialAsset } from '../../core/Multichain/utils';
-import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
-import { selectAllTokens } from '../tokensController';
+import { RootState } from '../../reducers';
+import { formatWithThreshold } from '../../util/assets';
+import { fromWei, hexToBN, weiToFiatNumber } from '../../util/number';
+import { safeParseBigNumber } from '../../util/number/bignumber';
 import { selectSelectedInternalAccountAddress } from '../accountsController';
+import { selectAccountsByChainId } from '../accountTrackerController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../currencyRateController';
 import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
-import { getLocaleLanguageCode } from '../../components/hooks/useFormatters';
+import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
+import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
+import { selectTokenSortConfig } from '../preferencesController';
+import { selectHideZeroBalanceTokens } from '../settings';
+import { selectAllTokens } from '../tokensController';
+import { createDeepEqualSelector } from '../util';
+import {
+  getAccountTrackerControllerAccountsByChainId,
+  getCurrencyRateControllerCurrencyRates,
+  getCurrencyRateControllerCurrentCurrency,
+  getMultiChainAssetsControllerAccountsAssets,
+  getMultiChainAssetsControllerAllIgnoredAssets,
+  getMultiChainAssetsControllerAssetsMetadata,
+  getMultiChainBalancesControllerBalances,
+  getMultichainAssetsRatesControllerConversionRates,
+  getTokenBalancesControllerTokenBalances,
+  getTokenRatesControllerMarketData,
+  getTokensControllerAllIgnoredTokens,
+  getTokensControllerAllTokens,
+} from './assets-migration';
 
 /**
  * Structured map of Tron special assets for efficient access.
@@ -92,60 +109,58 @@ const EMPTY_TRON_SPECIAL_ASSETS_MAP: TronSpecialAssetsMap = Object.freeze({
 });
 
 const getStateForAssetSelector = (state: RootState) => {
-  const {
-    AccountTreeController,
-    AccountsController,
-    TokensController,
-    TokenBalancesController,
-    TokenRatesController,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    MultichainAssetsController,
-    MultichainBalancesController,
-    MultichainAssetsRatesController,
-    ///: END:ONLY_INCLUDE_IF
-    CurrencyRateController,
-    NetworkController,
-    AccountTrackerController,
-  } = state.engine.backgroundState;
-
-  let multichainState = {
-    accountsAssets: {},
-    assetsMetadata: {},
-    allIgnoredAssets: {},
-    balances: {},
-    conversionRates: {},
-  };
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainState = {
-    ...MultichainAssetsController,
-    ...MultichainBalancesController,
-    ...MultichainAssetsRatesController,
-  };
-  ///: END:ONLY_INCLUDE_IF
+  const { AccountTreeController, AccountsController, NetworkController } =
+    state.engine.backgroundState;
 
   return {
     ...AccountTreeController,
     ...AccountsController,
-    ...TokensController,
-    ...TokenBalancesController,
-    ...TokenRatesController,
-    ...multichainState,
-    ...CurrencyRateController,
+    allTokens: getTokensControllerAllTokens(state),
+    allIgnoredTokens: getTokensControllerAllIgnoredTokens(state),
+    tokenBalances: getTokenBalancesControllerTokenBalances(state),
+    marketData: getTokenRatesControllerMarketData(state),
+    assetsMetadata: getMultiChainAssetsControllerAssetsMetadata(state),
+    accountsAssets: getMultiChainAssetsControllerAccountsAssets(state),
+    allIgnoredAssets: getMultiChainAssetsControllerAllIgnoredAssets(state),
+    balances: getMultiChainBalancesControllerBalances(state),
+    conversionRates: getMultichainAssetsRatesControllerConversionRates(state),
+    currencyRates: getCurrencyRateControllerCurrencyRates(state),
+    currentCurrency: getCurrencyRateControllerCurrentCurrency(state),
     ...NetworkController,
-    ...(AccountTrackerController as {
-      accountsByChainId: Record<
+    accountsByChainId: getAccountTrackerControllerAccountsByChainId(
+      state,
+    ) as Record<
+      Hex,
+      Record<
         Hex,
-        Record<
-          Hex,
-          {
-            balance: Hex | null;
-          }
-        >
-      >;
-    }),
+        {
+          balance: Hex | null;
+        }
+      >
+    >,
   };
 };
+
+/**
+ * Removes the Arc USDC ERC-20 (0x3600…) from the per-chain asset map so it
+ * never appears as a duplicate of the native token on Arc. The native token
+ * (zero address) is kept — it is the source of truth for USDC on Arc.
+ */
+function filterArcUsdcErc20Token(
+  assets: AccountGroupAssets,
+): AccountGroupAssets {
+  const arcAssets = assets[NETWORKS_CHAIN_ID.ARC];
+  if (!arcAssets) {
+    return assets;
+  }
+  return {
+    ...assets,
+    [NETWORKS_CHAIN_ID.ARC]: arcAssets.filter(
+      (asset) =>
+        !('address' in asset) || asset?.address !== ARC_USDC_TOKEN_ADDRESS,
+    ),
+  };
+}
 
 /**
  * Invokes the assets-controllers selector; on failure returns {} so the wallet UI
@@ -166,7 +181,33 @@ function callSelectAssetsBySelectedAccountGroup(
 
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   getStateForAssetSelector,
-  (assetsState) => callSelectAssetsBySelectedAccountGroup(assetsState),
+  (assetsState) =>
+    filterArcUsdcErc20Token(
+      callSelectAssetsBySelectedAccountGroup(assetsState),
+    ),
+);
+
+/**
+ * Cheap boolean check: does the selected account group hold any
+ * positive-fiat-balance asset.
+ *
+ * A held asset is itself a valid swap source (it can be swapped away), so the
+ * currently-viewed token is intentionally counted. This drives the Token
+ * Details footer's Swap / QuickBuy visibility and the Buy on-ramp fallback.
+ */
+export const selectHasEligibleSwapSource = createSelector(
+  [selectAssetsBySelectedAccountGroup],
+  (assetsByChain): boolean => {
+    for (const chainAssets of Object.values(assetsByChain)) {
+      for (const asset of chainAssets) {
+        if ((asset.fiat?.balance ?? 0) > 0) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  },
 );
 
 const EMPTY_ACCOUNT_GROUP_ASSETS: AccountGroupAssets = {};
@@ -310,14 +351,28 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
       enabledNetworksSelector,
       selectTokenSortConfig,
       selectStakedAssets,
+      selectHideZeroBalanceTokens,
     ],
-    (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
+    (
+      bip44Assets,
+      enabledNetworks,
+      tokenSortConfig,
+      stakedAssets,
+      hideZeroBalance,
+    ) => {
       const filteredAssets = Object.entries(bip44Assets)
         .filter(([networkId]) => enabledNetworks.includes(networkId))
         .flatMap(([_, chainAssets]) =>
-          chainAssets.filter(
-            (asset) => !isTronSpecialAsset(asset.chainId, asset.symbol),
-          ),
+          chainAssets.filter((asset) => {
+            if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (
+              hideZeroBalance &&
+              !asset.isNative &&
+              parseFloat(asset.balance ?? '0') === 0
+            )
+              return false;
+            return true;
+          }),
         );
       return mergeStakedSortAndDedupeAssets(
         filteredAssets,
@@ -482,8 +537,6 @@ export const selectAsset = createSelector(
   [
     selectAssetsBySelectedAccountGroup,
     selectStakedAssets,
-    (state: RootState) =>
-      state.engine.backgroundState.TokenListController.tokensChainsCache,
     selectAllTokens,
     selectSelectedInternalAccountAddress,
     selectSelectedInternalAccountByScope,
@@ -503,7 +556,6 @@ export const selectAsset = createSelector(
   (
     assets,
     stakedAssets,
-    tokensChainsCache,
     allTokens,
     selectedAddress,
     getAccountByScope,
@@ -535,16 +587,17 @@ export const selectAsset = createSelector(
           );
         });
 
-    // Look up rwaData from the original token in allTokens
+    // Look up aggregators and rwaData from the original token in allTokens
     const originalToken = selectedAddress
       ? allTokens?.[chainId as Hex]?.[selectedAddress]?.find(
           (token) => token.address.toLowerCase() === address.toLowerCase(),
         )
       : undefined;
 
+    const aggregators = originalToken?.aggregators;
     const rwaData = (originalToken as TokenI | undefined)?.rwaData;
 
-    return asset ? assetToToken(asset, tokensChainsCache, rwaData) : undefined;
+    return asset ? assetToToken(asset, aggregators, rwaData) : undefined;
   },
 );
 
@@ -554,15 +607,12 @@ const oneHundredths = 0.01;
 // BIP44 MAINTENANCE: Review what fields are really needed
 function assetToToken(
   asset: Asset & { isStaked?: boolean },
-  tokensChainsCache: TokenListState['tokensChainsCache'],
+  aggregators?: string[],
   rwaData?: TokenI['rwaData'],
 ): TokenI {
   return {
     address: asset.assetId,
-    aggregators:
-      ('address' in asset &&
-        tokensChainsCache[asset.chainId]?.data[asset.address]?.aggregators) ||
-      [],
+    aggregators: aggregators ?? [],
     decimals: asset.decimals,
     image: asset.image,
     name: asset.name,

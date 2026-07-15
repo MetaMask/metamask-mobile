@@ -30,7 +30,7 @@ const createMockAssetCtx = (overrides: Record<string, unknown> = {}) => ({
   premium: '0.001',
   oraclePx: '51000',
   totalVlm: '5000000000',
-  impactPxs: ['50000', '52000'],
+  impactPxs: ['50000', '52000'] as [string, string],
   markPx: '51500',
   impactPx: '51000',
   dayBaseVlm: '500000',
@@ -68,7 +68,7 @@ describe('marketDataTransform', () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         symbol: 'BTC',
-        name: 'BTC',
+        name: 'Bitcoin', // Human-readable name from HYPERLIQUID_ASSET_NAMES (@metamask/perps-controller 8.1.0)
         maxLeverage: '50x',
         price: '$52,000', // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $10k-$100k
         change24h: '+$2,000', // No trailing zeros
@@ -309,7 +309,7 @@ describe('marketDataTransform', () => {
       expect(result[0].fundingIntervalHours).toBeUndefined();
     });
 
-    it('extracts marketSource and marketType for HIP-3 equity assets', () => {
+    it('extracts marketSource and marketType for HIP-3 index assets', () => {
       const xyzAsset = {
         name: 'xyz:XYZ100',
         maxLeverage: 20,
@@ -331,7 +331,7 @@ describe('marketDataTransform', () => {
       expect(result).toHaveLength(1);
       expect(result[0].symbol).toBe('xyz:XYZ100');
       expect(result[0].marketSource).toBe('xyz');
-      expect(result[0].marketType).toBe('equity');
+      expect(result[0].marketType).toBe('index');
       expect(result[0].isHip3).toBe(true);
       expect(result[0].isNewMarket).toBe(false); // Explicitly mapped, not "new"
     });

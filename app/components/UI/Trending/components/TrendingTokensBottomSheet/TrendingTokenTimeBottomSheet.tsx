@@ -1,4 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import BottomSheet, {
@@ -7,7 +8,6 @@ import BottomSheet, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Icon, {
   IconName,
   IconSize,
@@ -139,7 +139,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
       onClose={handleSheetClose}
       testID="trending-token-time-bottom-sheet"
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('trending.time')}
         onClose={handleClose}
         closeButtonProps={{ testID: 'close-button' }}

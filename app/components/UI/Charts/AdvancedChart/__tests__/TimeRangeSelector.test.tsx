@@ -1,9 +1,11 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import TimeRangeSelector, {
   TIME_RANGE_CONFIGS,
   type TimeRange,
 } from '../TimeRangeSelector';
+import { ChartType } from '../AdvancedChart.types';
 
 describe('TimeRangeSelector', () => {
   const defaultProps = {
@@ -58,6 +60,58 @@ describe('TimeRangeSelector', () => {
     fireEvent.press(getByText('1D'));
 
     expect(onSelect).toHaveBeenCalledWith('1D');
+  });
+
+  describe('chart type segmented toggle', () => {
+    it('highlights the active chart type icon', () => {
+      const { getByLabelText } = render(
+        <TimeRangeSelector
+          {...defaultProps}
+          chartType={ChartType.Line}
+          onChartTypeSelect={jest.fn()}
+        />,
+      );
+
+      const lineButton = getByLabelText('Line chart');
+      const lineIcon = lineButton.children[0] as ReactTestInstance;
+      expect(lineIcon.props.twClassName).toBe('text-icon-default');
+
+      const candleButton = getByLabelText('Candlestick chart');
+      const candleIcon = candleButton.children[0] as ReactTestInstance;
+      expect(candleIcon.props.twClassName).toBe('text-icon-alternative');
+    });
+
+    it('highlights candlestick icon when candles are active', () => {
+      const { getByLabelText } = render(
+        <TimeRangeSelector
+          {...defaultProps}
+          chartType={ChartType.Candles}
+          onChartTypeSelect={jest.fn()}
+        />,
+      );
+
+      const candleButton = getByLabelText('Candlestick chart');
+      const candleIcon = candleButton.children[0] as ReactTestInstance;
+      expect(candleIcon.props.twClassName).toBe('text-icon-default');
+
+      const lineButton = getByLabelText('Line chart');
+      const lineIcon = lineButton.children[0] as ReactTestInstance;
+      expect(lineIcon.props.twClassName).toBe('text-icon-alternative');
+    });
+
+    it('calls onChartTypeSelect with the tapped chart type', () => {
+      const onChartTypeSelect = jest.fn();
+      const { getByLabelText } = render(
+        <TimeRangeSelector
+          {...defaultProps}
+          chartType={ChartType.Line}
+          onChartTypeSelect={onChartTypeSelect}
+        />,
+      );
+
+      fireEvent.press(getByLabelText('Candlestick chart'));
+      expect(onChartTypeSelect).toHaveBeenCalledWith(ChartType.Candles);
+    });
   });
 
   describe('TIME_RANGE_CONFIGS', () => {

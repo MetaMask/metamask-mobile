@@ -11,11 +11,8 @@ const mockIsMoneyAccountEnabled = jest.requireMock(
 const mockUpdateAccounts = jest.fn();
 const mockAccountTreeInit = jest.fn();
 const mockAccountTreeClearState = jest.fn();
-const mockAccountTreeGetSelectedAccountGroup = jest.fn();
 const mockMoneyAccountInit = jest.fn();
 const mockMoneyAccountClearState = jest.fn();
-const mockForwardSelectedAccountGroupToSnapKeyring = jest.fn();
-
 jest.mock('../../core/Engine', () => ({
   __esModule: true,
   default: {
@@ -30,9 +27,6 @@ jest.mock('../../core/Engine', () => ({
         clearState: jest
           .fn()
           .mockImplementation(() => mockAccountTreeClearState()),
-        getSelectedAccountGroup: jest
-          .fn()
-          .mockImplementation(() => mockAccountTreeGetSelectedAccountGroup()),
       },
       MoneyAccountController: {
         init: jest.fn().mockImplementation(() => mockMoneyAccountInit()),
@@ -46,15 +40,6 @@ jest.mock('../../core/Engine', () => ({
     },
   },
 }));
-
-jest.mock(
-  '../../core/SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring',
-  () => ({
-    forwardSelectedAccountGroupToSnapKeyring: jest
-      .fn()
-      .mockImplementation(() => mockForwardSelectedAccountGroupToSnapKeyring()),
-  }),
-);
 
 describe('AccountTreeInitService', () => {
   let service: AccountTreeInitService;
@@ -91,36 +76,12 @@ describe('AccountTreeInitService', () => {
 
       expect(mockMoneyAccountInit).not.toHaveBeenCalled();
     });
-
-    it('forwards the selected account group to the Snap keyring', async () => {
-      await service.initializeAccountTree();
-      expect(mockForwardSelectedAccountGroupToSnapKeyring).toHaveBeenCalled();
-    });
-
-    it('forwards the result of getSelectedAccountGroup to the Snap keyring', async () => {
-      const mockGroup = { id: 'test-group' };
-      mockAccountTreeGetSelectedAccountGroup.mockReturnValue(mockGroup);
-
-      await service.initializeAccountTree();
-
-      const { forwardSelectedAccountGroupToSnapKeyring } = jest.requireMock(
-        '../../core/SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring',
-      );
-      expect(forwardSelectedAccountGroupToSnapKeyring).toHaveBeenCalledWith(
-        mockGroup,
-      );
-    });
   });
 
   describe('clearState', () => {
     it('calls AccountTreeController.clearState', async () => {
       await service.clearState();
       expect(mockAccountTreeClearState).toHaveBeenCalled();
-    });
-
-    it('calls MoneyAccountController.clearState', async () => {
-      await service.clearState();
-      expect(mockMoneyAccountClearState).toHaveBeenCalled();
     });
   });
 });

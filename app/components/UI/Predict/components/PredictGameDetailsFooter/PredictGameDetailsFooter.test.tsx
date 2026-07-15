@@ -3,8 +3,10 @@ import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { fireEvent, screen } from '@testing-library/react-native';
 import PredictGameDetailsFooter from './PredictGameDetailsFooter';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import {
   PredictMarket,
+  PredictMarketGame,
   PredictOutcome,
   PredictMarketStatus,
   Recurrence,
@@ -43,6 +45,11 @@ jest.mock('../../hooks/useLiveMarketPrices', () => ({
     lastUpdateTime: null,
   }),
 }));
+jest.mock('../../hooks/usePredictGame');
+
+const mockUsePredictGame = usePredictGame as jest.MockedFunction<
+  typeof usePredictGame
+>;
 
 const createMockOutcome = (overrides = {}): PredictOutcome => ({
   id: 'outcome-1',
@@ -119,6 +126,11 @@ const createDefaultProps = (overrides = {}) => ({
 describe('PredictGameDetailsFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePredictGame.mockImplementation((market) => ({
+      game: market?.game,
+      isConnected: false,
+      lastUpdateTime: null,
+    }));
   });
 
   describe('info row', () => {
@@ -187,10 +199,8 @@ describe('PredictGameDetailsFooter', () => {
 
       renderWithProvider(<PredictGameDetailsFooter {...props} />);
 
-      expect(screen.getByText('YES')).toBeOnTheScreen();
-      expect(screen.getByText('65¢')).toBeOnTheScreen();
-      expect(screen.getByText('NO')).toBeOnTheScreen();
-      expect(screen.getByText('35¢')).toBeOnTheScreen();
+      expect(screen.getByText('YES 65¢')).toBeOnTheScreen();
+      expect(screen.getByText('NO 35¢')).toBeOnTheScreen();
     });
 
     it('renders team buttons for game market', () => {
@@ -200,8 +210,8 @@ describe('PredictGameDetailsFooter', () => {
 
       renderWithProvider(<PredictGameDetailsFooter {...props} />);
 
-      expect(screen.getByText('SEA')).toBeOnTheScreen();
-      expect(screen.getByText('DEN')).toBeOnTheScreen();
+      expect(screen.getByText('SEA 65¢')).toBeOnTheScreen();
+      expect(screen.getByText('DEN 35¢')).toBeOnTheScreen();
     });
 
     it('calls onBetPress when bet button is pressed', () => {
@@ -345,6 +355,26 @@ describe('PredictGameDetailsFooter', () => {
       renderWithProvider(<PredictGameDetailsFooter {...props} />);
 
       expect(screen.getByTestId('game-details-footer')).toBeOnTheScreen();
+    });
+
+    it('returns null when the cached live game has ended', () => {
+      const market = createMockGameMarket();
+      const cachedEndedGame: PredictMarketGame = {
+        ...(market.game as PredictMarketGame),
+        status: 'ended',
+        period: 'FT',
+        elapsed: null,
+      };
+      mockUsePredictGame.mockReturnValue({
+        game: cachedEndedGame,
+        isConnected: false,
+        lastUpdateTime: Date.now(),
+      });
+      const props = createDefaultProps({ market });
+
+      renderWithProvider(<PredictGameDetailsFooter {...props} />);
+
+      expect(screen.queryByTestId('game-details-footer')).toBeNull();
     });
   });
 

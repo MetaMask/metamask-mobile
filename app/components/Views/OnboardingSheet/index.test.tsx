@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import OnboardingSheet from '.';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
+import Routes from '../../../constants/navigation/Routes';
 
 // Mock callback functions
 const mockOnPressCreate = jest.fn();
@@ -13,16 +14,25 @@ const mockOnPressContinueWithApple = jest.fn();
 const mockNavigate = jest.fn();
 const mockUseRoute = jest.fn();
 
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { forwardRef, useImperativeHandle } = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const MockBottomSheet = forwardRef(
+    (
+      { children }: { children: React.ReactNode },
+      ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
+    ) => {
+      useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: jest.fn(),
+        onOpenBottomSheet: jest.fn(),
+      }));
+      return <View>{children}</View>;
+    },
+  );
   return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
+    ...actual,
+    BottomSheet: MockBottomSheet,
   };
 });
 
@@ -53,18 +63,20 @@ describe('OnboardingSheet', () => {
     mockUseRoute.mockReturnValue({ params: defaultParams });
   });
 
-  describe('Snapshots', () => {
+  describe('Rendering', () => {
     it('renders correctly with createWallet=false (import mode)', () => {
-      const { toJSON } = render(<OnboardingSheet />);
-      expect(toJSON()).toMatchSnapshot();
+      const { getByText } = render(<OnboardingSheet />);
+      expect(getByText(strings('onboarding.import_srp'))).toBeOnTheScreen();
     });
 
     it('renders correctly with createWallet=true (create mode)', () => {
       mockUseRoute.mockReturnValue({
         params: { ...defaultParams, createWallet: true },
       });
-      const { toJSON } = render(<OnboardingSheet />);
-      expect(toJSON()).toMatchSnapshot();
+      const { getByText } = render(<OnboardingSheet />);
+      expect(
+        getByText(strings('onboarding.continue_with_srp')),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -166,12 +178,9 @@ describe('OnboardingSheet', () => {
         const termsLink = getByTestId('terms-of-use-link');
         fireEvent.press(termsLink);
 
-        expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-          screen: 'SimpleWebview',
-          params: {
-            url: AppConstants.URLS.TERMS_OF_USE_URL,
-            title: strings('onboarding.terms_of_use'),
-          },
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.SIMPLE, {
+          url: AppConstants.URLS.TERMS_OF_USE_URL,
+          title: strings('onboarding.terms_of_use'),
         });
       });
 
@@ -181,12 +190,9 @@ describe('OnboardingSheet', () => {
         const privacyLink = getByTestId('privacy-notice-link');
         fireEvent.press(privacyLink);
 
-        expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-          screen: 'SimpleWebview',
-          params: {
-            url: AppConstants.URLS.PRIVACY_NOTICE,
-            title: strings('onboarding.privacy_notice'),
-          },
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.SIMPLE, {
+          url: AppConstants.URLS.PRIVACY_NOTICE,
+          title: strings('onboarding.privacy_notice'),
         });
       });
     });

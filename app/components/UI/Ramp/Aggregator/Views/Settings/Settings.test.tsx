@@ -3,6 +3,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import Settings, {
   RAMP_SETTINGS_BACK_BUTTON_TEST_ID,
   RAMP_SETTINGS_HEADER_TEST_ID,
+  RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID,
 } from './Settings';
 import useActivationKeys from '../../hooks/useActivationKeys';
 import { RampSDK, withRampSDK } from '../../sdk';
@@ -45,12 +46,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-
-jest.mock('../../../utils/withRampAndDepositSDK', () =>
-  jest.fn((Component) => (props: Record<string, unknown>) => (
-    <Component {...props} />
-  )),
-);
 
 const mockedActivationKeys: ActivationKey[] = [
   {
@@ -175,12 +170,6 @@ jest.mock('../../sdk', () => ({
   withRampSDK: jest.fn().mockImplementation((Component) => Component),
 }));
 
-let mockUseRampsUnifiedV2EnabledValue = true;
-
-jest.mock('../../../hooks/useRampsUnifiedV2Enabled', () =>
-  jest.fn(() => mockUseRampsUnifiedV2EnabledValue),
-);
-
 describe('Settings', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -196,12 +185,11 @@ describe('Settings', () => {
     mockUseRampsControllerValues = {
       ...mockUseRampsControllerInitialValues,
     };
-    mockUseRampsUnifiedV2EnabledValue = true;
   });
 
   it('renders correctly', () => {
     render(Settings);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText('Buy & sell crypto')).toBeOnTheScreen();
     expect(withRampSDK).toHaveBeenCalled();
   });
 
@@ -224,86 +212,59 @@ describe('Settings', () => {
       isInternalBuild: true,
     };
     render(Settings);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByRole('button', { name: 'Add activation key' }),
+    ).toBeOnTheScreen();
   });
 
   describe('Region', () => {
-    describe('V2 enabled', () => {
-      beforeEach(() => {
-        mockUseRampsUnifiedV2EnabledValue = true;
-      });
-
-      it('renders correctly when region is set', () => {
-        render(Settings);
-        expect(screen.toJSON()).toMatchSnapshot();
-      });
-
-      it('renders correctly when region is not set', () => {
-        mockUseRampsControllerValues = {
-          ...mockUseRampsControllerInitialValues,
-          userRegion: null,
-        };
-        render(Settings);
-        expect(screen.toJSON()).toMatchSnapshot();
-      });
-
-      it('renders correctly when region has state', () => {
-        mockUseRampsControllerValues = {
-          ...mockUseRampsControllerInitialValues,
-          userRegion: createMockUserRegion('eu-fr'),
-        };
-        render(Settings);
-        expect(screen.toJSON()).toMatchSnapshot();
-      });
-
-      it('renders correctly when region is country only (no state)', () => {
-        mockUseRampsControllerValues = {
-          ...mockUseRampsControllerInitialValues,
-          userRegion: createMockUserRegion('fr'),
-        };
-        render(Settings);
-        expect(screen.toJSON()).toMatchSnapshot();
-      });
-
-      it('navigates to region selector when change region button is pressed', () => {
-        render(Settings);
-        const changeRegionButton = screen.getByRole('button', {
-          name: 'Change region',
-        });
-        fireEvent.press(changeRegionButton);
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.SETTINGS.REGION_SELECTOR,
-        );
-      });
+    it('renders correctly when region is set', () => {
+      render(Settings);
+      expect(
+        screen.getByRole('button', { name: 'Change region' }),
+      ).toBeOnTheScreen();
     });
 
-    describe('V2 disabled (Original)', () => {
-      beforeEach(() => {
-        mockUseRampsUnifiedV2EnabledValue = false;
-      });
+    it('renders correctly when region is not set', () => {
+      mockUseRampsControllerValues = {
+        ...mockUseRampsControllerInitialValues,
+        userRegion: null,
+      };
+      render(Settings);
+      expect(
+        screen.getByRole('button', { name: 'Change region' }),
+      ).toBeOnTheScreen();
+    });
 
-      it('renders correctly when region is set', () => {
-        render(Settings);
-        expect(screen.toJSON()).toMatchSnapshot();
-      });
+    it('renders correctly when region has state', () => {
+      mockUseRampsControllerValues = {
+        ...mockUseRampsControllerInitialValues,
+        userRegion: createMockUserRegion('eu-fr'),
+      };
+      render(Settings);
+      expect(screen.getByText('FR')).toBeOnTheScreen();
+    });
 
-      it('renders correctly when region is not set', () => {
-        mockUseRampSDKValues = {
-          ...mockuseRampSDKInitialValues,
-          selectedRegion: null,
-        };
-        render(Settings);
-        expect(screen.toJSON()).toMatchSnapshot();
-      });
+    it('renders correctly when region is country only (no state)', () => {
+      mockUseRampsControllerValues = {
+        ...mockUseRampsControllerInitialValues,
+        userRegion: createMockUserRegion('fr'),
+      };
+      render(Settings);
+      expect(
+        screen.getByRole('button', { name: 'Change region' }),
+      ).toBeOnTheScreen();
+    });
 
-      it('calls reset region when reset button is pressed', () => {
-        render(Settings);
-        const resetRegionButton = screen.getByRole('button', {
-          name: 'Reset region',
-        });
-        fireEvent.press(resetRegionButton);
-        expect(mockSetSelectedRegion).toHaveBeenCalledWith(null);
+    it('navigates to region selector when change region button is pressed', () => {
+      render(Settings);
+      const changeRegionButton = screen.getByRole('button', {
+        name: 'Change region',
       });
+      fireEvent.press(changeRegionButton);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SETTINGS.REGION_SELECTOR,
+      );
     });
   });
 
@@ -322,7 +283,6 @@ describe('Settings', () => {
       };
 
       render(Settings);
-      expect(screen.toJSON()).toMatchSnapshot();
       const addActivationKeyButton = screen.getByRole('button', {
         name: 'Add activation key',
       });
@@ -331,9 +291,9 @@ describe('Settings', () => {
       });
       const [switchButton] = screen.getAllByRole('switch');
 
-      expect(addActivationKeyButton.props.disabled).toBe(true);
-      expect(removeActivationKeyButton.props.disabled).toBe(true);
-      expect(switchButton.props.disabled).toBe(true);
+      expect(addActivationKeyButton).toBeDisabled();
+      expect(removeActivationKeyButton).toBeDisabled();
+      expect(switchButton).toHaveProp('disabled', true);
     });
 
     it('renders correctly when there are no keys', () => {
@@ -342,7 +302,9 @@ describe('Settings', () => {
         activationKeys: [],
       };
       render(Settings);
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(
+        screen.queryByRole('button', { name: 'Delete activation key' }),
+      ).not.toBeOnTheScreen();
     });
 
     it('navigates to add activation key when pressing add new key', () => {
@@ -410,6 +372,45 @@ describe('Settings', () => {
       });
       fireEvent.press(removeActivationKeyButton);
       expect(mockRemoveActivationKey).toHaveBeenCalledWith('testKey1');
+    });
+  });
+
+  describe('Headless Playground entry', () => {
+    it('does not render the entry button when not an internal build', () => {
+      mockUseRampSDKValues = {
+        ...mockuseRampSDKInitialValues,
+        isInternalBuild: false,
+      };
+      render(Settings);
+      expect(
+        screen.queryByTestId(RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the entry button when on an internal build', () => {
+      mockUseRampSDKValues = {
+        ...mockuseRampSDKInitialValues,
+        isInternalBuild: true,
+      };
+      render(Settings);
+      expect(
+        screen.getByTestId(RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates to the headless playground when the entry button is pressed', () => {
+      mockUseRampSDKValues = {
+        ...mockuseRampSDKInitialValues,
+        isInternalBuild: true,
+      };
+      render(Settings);
+      const entryButton = screen.getByTestId(
+        RAMP_SETTINGS_HEADLESS_PLAYGROUND_BUTTON_TEST_ID,
+      );
+      fireEvent.press(entryButton);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.RAMP.HEADLESS_PLAYGROUND,
+      );
     });
   });
 });

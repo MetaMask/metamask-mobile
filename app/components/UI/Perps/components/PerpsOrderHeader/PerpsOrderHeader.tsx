@@ -1,37 +1,24 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
-import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../../util/theme';
 import {
-  PERPS_CONSTANTS,
+  HeaderSubpage,
+  SelectButton,
+  SelectButtonSize,
+  SelectButtonVariant,
+} from '@metamask/design-system-react-native';
+import React, { useCallback, useMemo } from 'react';
+import {
   getPerpsDisplaySymbol,
   type OrderType,
 } from '@metamask/perps-controller';
-import {
-  formatPercentage,
-  formatPerpsFiat,
-  PRICE_RANGES_UNIVERSAL,
-} from '../../utils/formatUtils';
-import { createStyles } from './PerpsOrderHeader.styles';
 import { strings } from '../../../../../../locales/i18n';
+import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
+import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
+import PerpsTokenLogo from '../PerpsTokenLogo';
 
 interface PerpsOrderHeaderProps {
   asset: string;
   price: number;
-  priceChange: number;
+  priceChange?: number;
   orderType?: OrderType;
   direction?: 'long' | 'short';
   onBack?: () => void;
@@ -43,7 +30,6 @@ interface PerpsOrderHeaderProps {
 const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   asset,
   price,
-  priceChange,
   orderType,
   direction = 'long',
   onBack,
@@ -51,8 +37,6 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   title,
   isLoading,
 }) => {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation();
 
   const handleBack = useCallback(() => {
@@ -64,96 +48,70 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   }, [navigation, onBack]);
 
   const handleOrderTypePress = useCallback(() => {
-    if (onOrderTypePress) {
-      onOrderTypePress();
-    }
-    // Note: onOrderTypePress callback is now required
+    onOrderTypePress?.();
   }, [onOrderTypePress]);
 
-  // Format price display with edge case handling
-  const formattedPrice = useMemo(() => {
-    // Handle invalid or edge case values
-    if (!price || price <= 0 || !Number.isFinite(price)) {
-      return PERPS_CONSTANTS.FallbackPriceDisplay;
+  const displayTitle = useMemo(
+    () =>
+      title ||
+      `${
+        direction === 'long'
+          ? strings('perps.market.long')
+          : strings('perps.market.short')
+      } ${getPerpsDisplaySymbol(asset)}`,
+    [asset, direction, title],
+  );
+
+  const orderTypeLabel = useMemo(() => {
+    if (!orderType) {
+      return undefined;
     }
 
-    try {
-      return formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
-    } catch {
-      // Fallback if formatPerpsFiat throws
-      return PERPS_CONSTANTS.FallbackPriceDisplay;
-    }
-  }, [price]);
+    return orderType === 'market'
+      ? strings('perps.order.market')
+      : strings('perps.order.limit');
+  }, [orderType]);
 
-  const formattedChange = useMemo(() => {
-    if (!price || price <= 0 || !Number.isFinite(price)) {
-      return PERPS_CONSTANTS.FallbackPercentageDisplay;
+  const description = useMemo(
+    () => (
+      <LivePriceHeader symbol={asset} throttleMs={1000} currentPrice={price} />
+    ),
+    [asset, price],
+  );
+
+  const endAccessory = useMemo(() => {
+    if (!orderType || !orderTypeLabel) {
+      return undefined;
     }
-    try {
-      return formatPercentage(priceChange.toString());
-    } catch {
-      return PERPS_CONSTANTS.FallbackPercentageDisplay;
-    }
-  }, [priceChange, price]);
+
+    return (
+      <SelectButton
+        testID={PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON}
+        variant={SelectButtonVariant.Primary}
+        size={SelectButtonSize.Md}
+        placeholder={orderTypeLabel}
+        value={orderTypeLabel}
+        onPress={handleOrderTypePress}
+        isDisabled={isLoading}
+      />
+    );
+  }, [handleOrderTypePress, isLoading, orderType, orderTypeLabel]);
 
   return (
-    <View style={styles.header} testID={PerpsOrderHeaderSelectorsIDs.HEADER}>
-      <ButtonIcon
-        testID={PerpsOrderHeaderSelectorsIDs.BACK_BUTTON}
-        iconName={IconName.ArrowLeft}
-        onPress={handleBack}
-        iconColor={IconColor.Default}
-        size={ButtonIconSizes.Md}
-      />
-      <View style={styles.headerLeft}>
-        <Text
-          variant={TextVariant.HeadingMD}
-          style={styles.headerTitle}
-          testID={PerpsOrderHeaderSelectorsIDs.ASSET_TITLE}
-        >
-          {title ||
-            `${
-              direction === 'long'
-                ? strings('perps.market.long')
-                : strings('perps.market.short')
-            } ${getPerpsDisplaySymbol(asset)}`}
-        </Text>
-        <View style={styles.priceRow}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {formattedPrice}
-          </Text>
-          {price > 0 && (
-            <Text
-              variant={TextVariant.BodyMD}
-              color={priceChange >= 0 ? TextColor.Success : TextColor.Error}
-            >
-              {formattedChange}
-            </Text>
-          )}
-        </View>
-      </View>
-      {Boolean(orderType) && (
-        <TouchableOpacity
-          onPress={handleOrderTypePress}
-          testID={PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON}
-          disabled={isLoading}
-        >
-          <View style={styles.marketButton}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {orderType === 'market'
-                ? strings('perps.order.market')
-                : strings('perps.order.limit')}
-            </Text>
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Xs}
-              color={IconColor.Default}
-              style={styles.marketButtonIcon}
-            />
-          </View>
-        </TouchableOpacity>
-      )}
-    </View>
+    <HeaderSubpage
+      includesTopInset
+      twClassName="min-h-14 h-auto bg-default justify-center pr-4"
+      testID={PerpsOrderHeaderSelectorsIDs.HEADER}
+      onBack={handleBack}
+      backButtonProps={{
+        testID: PerpsOrderHeaderSelectorsIDs.BACK_BUTTON,
+      }}
+      avatar={<PerpsTokenLogo symbol={asset} size={40} />}
+      title={displayTitle}
+      titleProps={{ testID: PerpsOrderHeaderSelectorsIDs.ASSET_TITLE }}
+      description={description}
+      endAccessory={endAccessory}
+    />
   );
 };
 

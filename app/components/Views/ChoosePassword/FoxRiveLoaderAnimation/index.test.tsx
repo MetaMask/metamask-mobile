@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import { render } from '@testing-library/react-native';
 import { brandColor } from '@metamask/design-tokens';
 import { mockTheme } from '../../../../util/theme';
+
+const mockRiveMethods = {
+  stop: jest.fn(),
+  fireState: jest.fn(),
+};
 
 // Mock useTheme hook
 const mockUseTheme = jest.fn().mockReturnValue(mockTheme);
@@ -21,16 +26,28 @@ jest.mock('react-native', () => ({
 }));
 
 // Mock Rive component
-jest.mock('rive-react-native', () => ({
-  __esModule: true,
-  default: 'RiveView',
-  Fit: {
-    FitWidth: 'FitWidth',
-  },
-  Alignment: {
-    Center: 'Center',
-  },
-}));
+jest.mock('rive-react-native', () => {
+  const MockReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  const MockRive = MockReact.forwardRef(
+    (_props: unknown, ref: React.Ref<unknown>) => {
+      MockReact.useImperativeHandle(ref, () => mockRiveMethods);
+      return MockReact.createElement(View, { testID: 'mock-rive-view' });
+    },
+  );
+
+  return {
+    __esModule: true,
+    default: MockRive,
+    Fit: {
+      Contain: 'Contain',
+    },
+    Alignment: {
+      Center: 'Center',
+    },
+  };
+});
 
 jest.mock('../../../../animations/fox_loading.riv', () => 'mock-rive-file');
 
@@ -56,7 +73,9 @@ jest.mock('../../../../util/device', () => ({
   default: mockDevice,
 }));
 
-import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation';
+import FoxRiveLoaderAnimation, {
+  type FoxRiveLoaderAnimationRef,
+} from './FoxRiveLoaderAnimation';
 
 describe('FoxRiveLoaderAnimation', () => {
   beforeEach(() => {
@@ -79,12 +98,17 @@ describe('FoxRiveLoaderAnimation', () => {
   });
 
   it('displays Rive animation and ActivityIndicator', () => {
-    // Arrange & Act
-    const { toJSON } = render(<FoxRiveLoaderAnimation />);
+    const { getByTestId } = render(<FoxRiveLoaderAnimation />);
+    expect(getByTestId('fox-rive-loader-animation')).toBeOnTheScreen();
+  });
 
-    // Assert
-    const tree = toJSON();
-    expect(tree).toMatchSnapshot();
+  it('forwards stop to the underlying Rive ref', () => {
+    const ref = createRef<FoxRiveLoaderAnimationRef>();
+    render(<FoxRiveLoaderAnimation ref={ref} />);
+
+    ref.current?.stop();
+
+    expect(mockRiveMethods.stop).toHaveBeenCalledTimes(1);
   });
 
   it('cleans up timers on unmount', () => {
@@ -100,14 +124,14 @@ describe('FoxRiveLoaderAnimation', () => {
   });
 
   it('starts Rive animation with correct state machine', () => {
-    // Arrange & Act
-    const { toJSON } = render(<FoxRiveLoaderAnimation />);
+    render(<FoxRiveLoaderAnimation />);
 
-    // Advance timer to trigger Rive animation setup
     jest.advanceTimersByTime(100);
 
-    // Assert - Component continues to render properly
-    expect(toJSON()).not.toBeNull();
+    expect(mockRiveMethods.fireState).toHaveBeenCalledWith(
+      'FoxRaiseUp',
+      'Loader2',
+    );
   });
 
   it('uses dark mode when theme is dark', () => {

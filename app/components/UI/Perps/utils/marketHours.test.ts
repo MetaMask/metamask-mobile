@@ -36,11 +36,14 @@ describe('marketHours utilities', () => {
   });
 
   describe('isEquityAsset', () => {
-    it('returns true for equity market type', () => {
-      expect(isEquityAsset('equity')).toBe(true);
+    it('returns true for stock-like market types', () => {
+      expect(isEquityAsset('stock')).toBe(true);
+      expect(isEquityAsset('pre-ipo')).toBe(true);
+      expect(isEquityAsset('index')).toBe(true);
+      expect(isEquityAsset('etf')).toBe(true);
     });
 
-    it('returns false for non-equity market types', () => {
+    it('returns false for non-stock market types', () => {
       expect(isEquityAsset('crypto')).toBe(false);
       expect(isEquityAsset('commodity')).toBe(false);
       expect(isEquityAsset('forex')).toBe(false);

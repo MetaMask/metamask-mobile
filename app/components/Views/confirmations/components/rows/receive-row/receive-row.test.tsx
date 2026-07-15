@@ -6,14 +6,11 @@ import { simpleSendTransactionControllerMock } from '../../../__mocks__/controll
 import { transactionApprovalControllerMock } from '../../../__mocks__/controllers/approval-controller-mock';
 import {
   useIsTransactionPayLoading,
-  useTransactionPayQuotes,
+  useTransactionPaySourceAmounts,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
-import {
-  TransactionPayQuote,
-  TransactionPayTotals,
-} from '@metamask/transaction-pay-controller';
-import { Json } from '@metamask/utils';
+import { TransactionControllerState } from '@metamask/transaction-controller';
+import { TransactionPayTotals } from '@metamask/transaction-pay-controller';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
@@ -24,14 +21,26 @@ const SOURCE_NETWORK_FEE_USD_MOCK = '0.02';
 const TARGET_NETWORK_FEE_USD_MOCK = '0.10';
 const EXPECTED_RECEIVE_MOCK = '$99.38';
 
-function render(inputAmountUsd: string = INPUT_AMOUNT_USD_MOCK) {
+function render(
+  inputAmountUsd: string = INPUT_AMOUNT_USD_MOCK,
+  options: { isGasFeeSponsored?: boolean } = {},
+) {
+  const state = merge(
+    {},
+    simpleSendTransactionControllerMock,
+    transactionApprovalControllerMock,
+    otherControllersMock,
+  );
+
+  if (options.isGasFeeSponsored !== undefined) {
+    (
+      state.engine.backgroundState
+        .TransactionController as TransactionControllerState
+    ).transactions[0].isGasFeeSponsored = options.isGasFeeSponsored;
+  }
+
   return renderWithProvider(<ReceiveRow inputAmountUsd={inputAmountUsd} />, {
-    state: merge(
-      {},
-      simpleSendTransactionControllerMock,
-      transactionApprovalControllerMock,
-      otherControllersMock,
-    ),
+    state,
   });
 }
 
@@ -40,10 +49,11 @@ describe('ReceiveRow', () => {
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
-  const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    jest.mocked(useTransactionPaySourceAmounts).mockReturnValue([]);
 
     useTransactionPayTotalsMock.mockReturnValue({
       fees: {
@@ -54,9 +64,6 @@ describe('ReceiveRow', () => {
     } as unknown as TransactionPayTotals);
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
-    useTransactionPayQuotesMock.mockReturnValue([
-      {} as TransactionPayQuote<Json>,
-    ]);
   });
 
   it('renders the receive amount (input minus all fees)', () => {
@@ -97,10 +104,15 @@ describe('ReceiveRow', () => {
     expect(queryByText(EXPECTED_RECEIVE_MOCK)).toBeNull();
   });
 
-  it('renders empty receive amount when there are no quotes', () => {
-    useTransactionPayQuotesMock.mockReturnValue([]);
+  it('renders receive amount from totals without quotes', () => {
+    const { getByText } = render();
+    expect(getByText(EXPECTED_RECEIVE_MOCK)).toBeOnTheScreen();
+  });
 
-    const { getByTestId } = render();
-    expect(getByTestId('receive-row')).toBeDefined();
+  it('renders full input amount when transaction is gas fee sponsored', () => {
+    const { getByText } = render(INPUT_AMOUNT_USD_MOCK, {
+      isGasFeeSponsored: true,
+    });
+    expect(getByText('$100')).toBeOnTheScreen();
   });
 });

@@ -4,8 +4,75 @@ import { Linking, useColorScheme } from 'react-native';
 import SecurityTrustScreen from './SecurityTrustScreen';
 import { strings } from '../../../../../locales/i18n';
 
+jest.mock('../../../../util/analytics/externalLinkTracking', () => ({
+  ...jest.requireActual('../../../../util/analytics/externalLinkTracking'),
+  trackBlockExplorerLinkClicked: jest.fn(),
+}));
+import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+
+const createDefaultRouteParams = () => ({
+  address: '0x1234567890abcdef',
+  chainId: '0x1',
+  symbol: 'TEST',
+  decimals: 18,
+  name: 'Test Token',
+  isNative: false,
+  securityData: {
+    resultType: 'Verified',
+    maliciousScore: '0',
+    features: [
+      {
+        featureId: 'VERIFIED_CONTRACT',
+        type: 'Info',
+        description: 'Contract is verified',
+      },
+      {
+        featureId: 'HIGH_REPUTATION_TOKEN',
+        type: 'Benign',
+        description: 'Token has high reputation',
+      },
+    ],
+    fees: {
+      buy: 1,
+      sell: 2,
+      transfer: 0,
+      transferFeeMaxAmount: null,
+    },
+    financialStats: {
+      supply: 1000000000000000000000000,
+      holdersCount: 5000,
+      topHolders: [
+        {
+          label: 'Holder 1',
+          name: null,
+          address: '0xholder1',
+          holdingPercentage: 15,
+        },
+        {
+          label: 'Holder 2',
+          name: null,
+          address: '0xholder2',
+          holdingPercentage: 10,
+        },
+      ],
+      tradeVolume24h: 1000000,
+      lockedLiquidityPct: 80,
+      markets: [],
+    },
+    metadata: {
+      externalLinks: {
+        homepage: 'https://example.com',
+        twitterPage: 'testtoken',
+        telegramChannelId: 'testtoken',
+      },
+    },
+    created: '2023-01-01T00:00:00Z',
+  },
+});
+
+let mockRouteParams = createDefaultRouteParams();
 
 jest.mock('react-native', () => {
   const actual = jest.requireActual('react-native');
@@ -25,65 +92,7 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
   }),
   useRoute: () => ({
-    params: {
-      address: '0x1234567890abcdef',
-      chainId: '0x1',
-      symbol: 'TEST',
-      decimals: 18,
-      name: 'Test Token',
-      isNative: false,
-      securityData: {
-        resultType: 'Verified',
-        maliciousScore: '0',
-        features: [
-          {
-            featureId: 'VERIFIED_CONTRACT',
-            type: 'Info',
-            description: 'Contract is verified',
-          },
-          {
-            featureId: 'HIGH_REPUTATION_TOKEN',
-            type: 'Benign',
-            description: 'Token has high reputation',
-          },
-        ],
-        fees: {
-          buy: 1,
-          sell: 2,
-          transfer: 0,
-          transferFeeMaxAmount: null,
-        },
-        financialStats: {
-          supply: 1000000000000000000000000,
-          holdersCount: 5000,
-          topHolders: [
-            {
-              label: 'Holder 1',
-              name: null,
-              address: '0xholder1',
-              holdingPercentage: 15,
-            },
-            {
-              label: 'Holder 2',
-              name: null,
-              address: '0xholder2',
-              holdingPercentage: 10,
-            },
-          ],
-          tradeVolume24h: 1000000,
-          lockedLiquidityPct: 80,
-          markets: [],
-        },
-        metadata: {
-          externalLinks: {
-            homepage: 'https://example.com',
-            twitterPage: 'testtoken',
-            telegramChannelId: 'testtoken',
-          },
-        },
-        created: '2023-01-01T00:00:00Z',
-      },
-    },
+    params: mockRouteParams,
   }),
 }));
 
@@ -109,23 +118,23 @@ jest.mock('react-redux', () => ({
   }),
 }));
 
-jest.mock('../../../hooks/useBlockExplorer', () => ({
-  __esModule: true,
-  default: () => ({
-    getBlockExplorerTokenUrl: (address: string) =>
-      `https://etherscan.io/address/${address}`,
-    getBlockExplorerName: () => 'Etherscan',
-  }),
-}));
+jest.mock('../../../hooks/useBlockExplorer', () => {
+  const mockGetBlockExplorerTokenUrl = jest.fn(
+    (address: string) => `https://etherscan.io/address/${address}`,
+  );
+  return {
+    __esModule: true,
+    default: () => ({
+      getBlockExplorerTokenUrl: mockGetBlockExplorerTokenUrl,
+      getBlockExplorerName: () => 'Etherscan',
+    }),
+    mockGetBlockExplorerTokenUrl,
+  };
+});
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  }),
-}));
+const { mockGetBlockExplorerTokenUrl } = jest.requireMock(
+  '../../../hooks/useBlockExplorer',
+) as { mockGetBlockExplorerTokenUrl: jest.Mock };
 
 jest.mock('../../TokenDetails/components/TokenDetailsStickyFooter', () => ({
   __esModule: true,
@@ -141,9 +150,30 @@ jest.mock('../../TokenDetails/hooks/useTokenActions', () => ({
   })),
 }));
 
+jest.mock('../../TokenDetails/hooks/useStickyQuickBuy', () => ({
+  useStickyQuickBuy: jest.fn(() => ({
+    isQuickBuyEnabled: true,
+    onQuickBuyPress: jest.fn(),
+    quickBuySheet: null,
+  })),
+}));
+
+const getMockUseStickyQuickBuy = () =>
+  (
+    jest.requireMock('../../TokenDetails/hooks/useStickyQuickBuy') as {
+      useStickyQuickBuy: jest.Mock;
+    }
+  ).useStickyQuickBuy;
+
 describe('SecurityTrustScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = createDefaultRouteParams();
+    getMockUseStickyQuickBuy().mockReturnValue({
+      isQuickBuyEnabled: true,
+      onQuickBuyPress: jest.fn(),
+      quickBuySheet: null,
+    });
   });
 
   it('renders without crashing', () => {
@@ -201,6 +231,21 @@ describe('SecurityTrustScreen', () => {
     fireEvent.press(backButton);
 
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('tracks External Link Clicked when block explorer button is pressed', () => {
+    const { getByText } = render(<SecurityTrustScreen />);
+
+    fireEvent.press(getByText('Etherscan'));
+
+    expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+      expect.objectContaining({
+        location: 'security_trust_page',
+        url: expect.stringContaining('etherscan.io'),
+      }),
+    );
   });
 
   it('opens external link when link is pressed', () => {
@@ -265,5 +310,66 @@ describe('SecurityTrustScreen', () => {
 
     expect(getByText('Published contract')).toBeTruthy();
     expect(getByText('Established reputation')).toBeTruthy();
+  });
+
+  it('passes EVM token address unchanged to getBlockExplorerTokenUrl', () => {
+    render(<SecurityTrustScreen />);
+
+    expect(mockGetBlockExplorerTokenUrl).toHaveBeenCalledWith(
+      '0x1234567890abcdef',
+      '0x1',
+    );
+  });
+
+  it('extracts asset reference from Solana CAIP asset type for block explorer URL', () => {
+    const solanaMint = 'USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB';
+    const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    mockRouteParams.address = `${solanaChainId}/token:${solanaMint}`;
+    mockRouteParams.chainId = solanaChainId;
+
+    render(<SecurityTrustScreen />);
+
+    expect(mockGetBlockExplorerTokenUrl).toHaveBeenCalledWith(
+      solanaMint,
+      solanaChainId,
+    );
+  });
+
+  describe('Quick Buy', () => {
+    it('calls useStickyQuickBuy with the security_trust source and route token', () => {
+      render(<SecurityTrustScreen />);
+
+      expect(getMockUseStickyQuickBuy()).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'security_trust',
+          token: expect.objectContaining({
+            symbol: 'TEST',
+            chainId: '0x1',
+          }),
+        }),
+      );
+    });
+
+    it('passes onQuickBuyPress from the hook to TokenDetailsStickyFooter', () => {
+      const onQuickBuyPress = jest.fn();
+      getMockUseStickyQuickBuy().mockReturnValue({
+        isQuickBuyEnabled: true,
+        onQuickBuyPress,
+        quickBuySheet: null,
+      });
+
+      // Renders without errors — the footer (mocked) receives the prop.
+      expect(() => render(<SecurityTrustScreen />)).not.toThrow();
+    });
+
+    it('does not throw when quick-buy is disabled', () => {
+      getMockUseStickyQuickBuy().mockReturnValue({
+        isQuickBuyEnabled: false,
+        onQuickBuyPress: undefined,
+        quickBuySheet: null,
+      });
+
+      expect(() => render(<SecurityTrustScreen />)).not.toThrow();
+    });
   });
 });

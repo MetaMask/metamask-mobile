@@ -9,17 +9,23 @@ import {
   BUFFER_SUBSEQUENT_DEFAULT,
   STX_DISABLED_DEFAULT,
   selectNonZeroUnusedApprovalsAllowList,
-  selectGasFeeTokenFlags,
-  GasFeeTokenFlags,
   selectPayQuoteConfig,
   selectMetaMaskPayFiatFlags,
-  PAY_FIAT_ENABLED_DEFAULT,
+  PAY_FIAT_ENABLED_TRANSACTION_TYPES,
+  PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
+  selectMetaMaskPayHardwareFlags,
+  PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT,
+  PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT,
+  PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT,
+  PAY_HARDWARE_ENABLED_DEFAULT,
+  selectDepositLimits,
+  PAY_DEPOSIT_LIMITS_DEFAULT,
   PreferredToken,
   getPreferredTokensForTransactionType,
+  selectRelayFixedSpread,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
-import { Hex } from '@metamask/utils';
 import { RootState } from '../../../reducers';
 
 jest.mock('../../../core/Engine', () => ({
@@ -202,84 +208,6 @@ describe('Non-Zero Unused Approvals Allow List', () => {
       undefinedFeatureFlagState,
     );
     expect(result).toEqual([]);
-  });
-});
-
-describe('Gas Fee Token Flags', () => {
-  const chainIdMock = '0x1' as Hex;
-
-  const mockedGasFeeTokenFlags: GasFeeTokenFlags = {
-    gasFeeTokens: {
-      [chainIdMock]: {
-        name: 'Ethereum',
-        tokens: [
-          {
-            name: 'USDC',
-            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex,
-          },
-          {
-            name: 'DAI',
-            address: '0x6b175474e89094c44da98b954eedeac495271d0f' as Hex,
-          },
-        ],
-      },
-      '0x89': {
-        name: 'Polygon',
-        tokens: [{ name: 'USDC.e', address: '0xusdce' as Hex }],
-      },
-    },
-  };
-
-  const mockedStateWithGasFeeTokenFlags = {
-    engine: {
-      backgroundState: {
-        RemoteFeatureFlagController: {
-          remoteFeatureFlags: {
-            confirmations_gas_fee_tokens: mockedGasFeeTokenFlags,
-          },
-          cacheTimestamp: 0,
-        },
-      },
-    },
-  };
-
-  it('returns empty gasFeeTokens when empty feature flag state', () => {
-    const result = selectGasFeeTokenFlags(mockedEmptyFlagsState);
-
-    expect(result).toEqual({ gasFeeTokens: {} });
-  });
-
-  it('returns empty gasFeeTokens when undefined RemoteFeatureFlagController state', () => {
-    const result = selectGasFeeTokenFlags(mockedUndefinedFlagsState);
-
-    expect(result).toEqual({ gasFeeTokens: {} });
-  });
-
-  it('returns gas fee tokens from feature flag', () => {
-    const result = selectGasFeeTokenFlags(
-      mockedStateWithGasFeeTokenFlags as never,
-    );
-
-    expect(result).toEqual(mockedGasFeeTokenFlags);
-  });
-
-  it('returns empty gasFeeTokens when confirmations_gas_fee_tokens exists but gasFeeTokens is undefined', () => {
-    const stateWithUndefinedGasFeeTokens = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              confirmations_gas_fee_tokens: {},
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-    };
-
-    const result = selectGasFeeTokenFlags(stateWithUndefinedGasFeeTokens);
-
-    expect(result).toEqual({ gasFeeTokens: {} });
   });
 });
 
@@ -503,9 +431,50 @@ describe('getPreferredTokensForTransactionType', () => {
 });
 
 describe('selectMetaMaskPayFiatFlags', () => {
-  it('returns default when flag is absent', () => {
+  it('returns defaults when flag is absent', () => {
     expect(selectMetaMaskPayFiatFlags(mockedEmptyFlagsState)).toEqual({
-      enabled: PAY_FIAT_ENABLED_DEFAULT,
+      enabledTransactionTypes: PAY_FIAT_ENABLED_TRANSACTION_TYPES,
+      maxDelayMinutesForPaymentMethods:
+        PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
+    });
+  });
+
+  it('returns enabledTransactionTypes from flag value', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_fiat: {
+          enabledTransactionTypes: ['simpleSend', 'swap'],
+        },
+      };
+
+    expect(selectMetaMaskPayFiatFlags(state)).toEqual({
+      enabledTransactionTypes: ['simpleSend', 'swap'],
+      maxDelayMinutesForPaymentMethods:
+        PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
+    });
+  });
+
+  it('returns maxDelayMinutesForPaymentMethods from flag value', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_fiat: {
+          maxDelayMinutesForPaymentMethods: 30,
+        },
+      };
+
+    expect(selectMetaMaskPayFiatFlags(state)).toEqual({
+      enabledTransactionTypes: PAY_FIAT_ENABLED_TRANSACTION_TYPES,
+      maxDelayMinutesForPaymentMethods: 30,
+    });
+  });
+});
+
+describe('selectMetaMaskPayHardwareFlags', () => {
+  it('returns default when flag is absent', () => {
+    expect(selectMetaMaskPayHardwareFlags(mockedEmptyFlagsState)).toEqual({
+      enabled: PAY_HARDWARE_ENABLED_DEFAULT,
     });
   });
 
@@ -513,9 +482,203 @@ describe('selectMetaMaskPayFiatFlags', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmations_pay_fiat: { enabled: true },
+        confirmations_pay_hardware: { enabled: true },
       };
 
-    expect(selectMetaMaskPayFiatFlags(state)).toEqual({ enabled: true });
+    expect(selectMetaMaskPayHardwareFlags(state)).toEqual({ enabled: true });
+  });
+});
+
+describe('selectMetaMaskPayFlags extended flags', () => {
+  it('returns default enableDepositWalletWithdraw when flag is absent', () => {
+    expect(
+      selectMetaMaskPayFlags(mockedEmptyFlagsState).enableDepositWalletWithdraw,
+    ).toEqual(PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT);
+  });
+
+  it('returns enableDepositWalletWithdraw from flag value', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_extended: { enableDepositWalletWithdraw: true },
+      };
+
+    expect(selectMetaMaskPayFlags(state).enableDepositWalletWithdraw).toEqual(
+      true,
+    );
+  });
+
+  it('returns default enableMoneyAccountTransactions when flag is absent', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    expect(
+      selectMetaMaskPayFlags(state).enableMoneyAccountTransactions,
+    ).toEqual(PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT);
+  });
+
+  it('returns enableMoneyAccountTransactions from flag value', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_extended: {
+          enableMoneyAccountTransactions: {
+            perpsDeposit: true,
+            perpsWithdraw: true,
+            predictDeposit: true,
+            predictWithdraw: true,
+          },
+        },
+      };
+
+    expect(
+      selectMetaMaskPayFlags(state).enableMoneyAccountTransactions,
+    ).toEqual({
+      perpsDeposit: true,
+      perpsWithdraw: true,
+      predictDeposit: true,
+      predictWithdraw: true,
+    });
+  });
+
+  describe('defaultPaySelectedSection', () => {
+    it('returns default (undefined) when remote flag is absent', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+
+      expect(selectMetaMaskPayFlags(state).defaultPaySelectedSection).toEqual(
+        PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT,
+      );
+    });
+
+    it('returns per-type object when remote flag is set', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+        {
+          confirmations_pay_extended: {
+            defaultPaySelectedSection: {
+              perpsWithdraw: 'money-account',
+              predictWithdraw: 'money-account',
+            },
+          },
+        };
+
+      expect(selectMetaMaskPayFlags(state).defaultPaySelectedSection).toEqual({
+        perpsWithdraw: 'money-account',
+        predictWithdraw: 'money-account',
+      });
+    });
+  });
+
+  describe('selectDepositLimits', () => {
+    it('returns default empty map when remote flag is absent', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+
+      expect(selectDepositLimits(state as unknown as RootState)).toEqual(
+        PAY_DEPOSIT_LIMITS_DEFAULT,
+      );
+    });
+
+    it('returns all deposit limits from flag value', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+        {
+          confirmations_pay_extended: {
+            depositLimit: {
+              moneyAccountDeposit: 100000,
+            },
+          },
+        };
+
+      expect(selectDepositLimits(state as unknown as RootState)).toEqual({
+        moneyAccountDeposit: 100000,
+      });
+    });
+
+    it('returns multiple deposit type limits', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+        {
+          confirmations_pay_extended: {
+            depositLimit: {
+              moneyAccountDeposit: 100000,
+              perpsDeposit: 25000,
+            },
+          },
+        };
+
+      expect(selectDepositLimits(state as unknown as RootState)).toEqual({
+        moneyAccountDeposit: 100000,
+        perpsDeposit: 25000,
+      });
+    });
+  });
+});
+
+describe('selectRelayFixedSpread', () => {
+  let consoleWarnSpy: jest.SpyInstance;
+
+  const ETH_USDC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+  const ETH_MUSD = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+  const samplePayload = {
+    chains: { eth: '0x1' },
+    tokens: { eth_usdc: ETH_USDC, musd: ETH_MUSD },
+    routes: [['eth', 'eth_usdc', 'eth', 'musd']],
+  };
+
+  const expectedRoute = {
+    sourceChain: '0x1',
+    sourceToken: ETH_USDC,
+    targetChain: '0x1',
+    targetToken: ETH_MUSD,
+  };
+
+  beforeEach(() => {
+    consoleWarnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    consoleWarnSpy.mockRestore();
+  });
+
+  it('returns parsed routes when remote object is valid', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_relay_fixed_spread: samplePayload,
+      };
+
+    expect(selectRelayFixedSpread(state).routes).toEqual([expectedRoute]);
+  });
+
+  it('parses remote value provided as a JSON string', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_relay_fixed_spread: JSON.stringify(samplePayload),
+      };
+
+    expect(selectRelayFixedSpread(state).routes).toEqual([expectedRoute]);
+  });
+
+  it('warns and returns empty when remote is structurally invalid', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_relay_fixed_spread: { routes: 'not-an-array' },
+      };
+
+    expect(selectRelayFixedSpread(state)).toEqual({ routes: [] });
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('produced invalid structure'),
+    );
+  });
+
+  it('returns empty routes when remote flag is absent', () => {
+    expect(selectRelayFixedSpread(mockedEmptyFlagsState)).toEqual({
+      routes: [],
+    });
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
   });
 });

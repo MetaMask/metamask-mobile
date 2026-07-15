@@ -90,7 +90,10 @@ export const getGasIncludedTransactionFees = (quote: GasIncludedQuote) => {
   return transactionFees;
 };
 
-export const getIsAllowedRpcUrlForSmartTransactions = (rpcUrl?: string) => {
+export const getIsAllowedRpcUrlForSmartTransactions = (
+  allowedHosts: string[],
+  rpcUrl?: string,
+) => {
   // Allow in non-production environments.
   if (!isProduction()) {
     return true;
@@ -98,10 +101,14 @@ export const getIsAllowedRpcUrlForSmartTransactions = (rpcUrl?: string) => {
 
   const hostname = rpcUrl && new URL(rpcUrl).hostname;
 
-  return (
-    hostname?.endsWith('.infura.io') ||
-    hostname?.endsWith('.binance.org') ||
-    false
+  return Boolean(
+    hostname &&
+      allowedHosts.some((host) =>
+        // A leading dot denotes a suffix/subdomain match (e.g. `.infura.io`
+        // matches `mainnet.infura.io`); otherwise require an exact host match
+        // so `mainnet.base.org` does not match `developer-access-mainnet.base.org`.
+        host.startsWith('.') ? hostname.endsWith(host) : hostname === host,
+      ),
   );
 };
 

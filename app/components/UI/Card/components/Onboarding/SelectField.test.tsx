@@ -75,7 +75,7 @@ describe('SelectField', () => {
     );
 
     expect(queryByText('Canada')).toBeOnTheScreen();
-    expect(queryByTestId('icon-arrow-down')).toBeNull();
+    expect(queryByTestId('icon-arrow-down')).not.toBeOnTheScreen();
   });
 
   it('applies text-text-alternative style in read-only mode', () => {
@@ -103,7 +103,7 @@ describe('SelectField', () => {
     const { queryByTestId } = render(
       <SelectField value="United States" onPress={mockOnPress} hideIcon />,
     );
-    expect(queryByTestId('icon-arrow-down')).toBeNull();
+    expect(queryByTestId('icon-arrow-down')).not.toBeOnTheScreen();
   });
 
   it('calls onPress when tapped', () => {
@@ -128,7 +128,7 @@ describe('SelectField', () => {
       />,
     );
     const touchable = getByTestId('select-field');
-    expect(touchable.props.disabled).toBe(true);
+    expect(touchable).toBeDisabled();
   });
 
   it('applies opacity-50 class when disabled', () => {
@@ -185,6 +185,6 @@ describe('SelectField', () => {
     const { queryByTestId } = render(
       <SelectField value="Test" testID="select-field" />,
     );
-    expect(queryByTestId('select-field')).toBeNull();
+    expect(queryByTestId('select-field')).not.toBeOnTheScreen();
   });
 });

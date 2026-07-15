@@ -12,6 +12,7 @@ import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import { getTransactionIcon } from '../../../util/transaction-icons';
 import { toDateFormat } from '../../../util/date';
+import { strings } from '../../../../locales/i18n';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 import styles from './MultichainTransactionListItem.styles';
 import { useSelector } from 'react-redux';
@@ -21,6 +22,7 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import { getNetworkImageSource } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -48,7 +50,15 @@ const MultichainTransactionListItem = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const displayData = useMultichainTransactionDisplay(transaction, chainId);
-  const { title, to, priorityFee, baseFee, isRedeposit } = displayData;
+  const {
+    title,
+    from,
+    to,
+    priorityFee,
+    baseFee,
+    isRedeposit,
+    isUnlimitedApproval,
+  } = displayData;
 
   const handlePress = useCallback(() => {
     trackEvent(
@@ -91,10 +101,13 @@ const MultichainTransactionListItem = ({
 
     return (
       <BadgeWrapper
+        badgePosition={{ bottom: -4, right: -4 }}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
             imageSource={networkImageSource}
+            isScaled={false}
+            size={AvatarSize.Xs}
           />
         }
       >
@@ -109,7 +122,17 @@ const MultichainTransactionListItem = ({
     }
 
     if (transaction.type === TransactionType.Unknown) {
-      return `${baseFee?.amount} ${baseFee?.unit}`;
+      return baseFee ? `${baseFee.amount} ${baseFee.unit}` : ``;
+    }
+
+    if (transaction.type === TransactionType.TokenApprove) {
+      const unit = from?.unit || to?.unit || '';
+      if (isUnlimitedApproval) {
+        const unitSuffix = unit ? ` ${unit}` : '';
+        return `${strings('confirm.unlimited')}${unitSuffix}`;
+      }
+      const amount = to?.amount || from?.amount?.replace(/^-/, '') || '';
+      return `${amount} ${unit}`.trim();
     }
 
     return `${to?.amount} ${to?.unit}`;

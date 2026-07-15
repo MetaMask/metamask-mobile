@@ -14,6 +14,8 @@ export const NotificationSettingsViewSelectorsIDs = {
     'notification-settings-feature-announcements-separator',
   PERPS_NOTIFICATIONS_TOGGLE:
     'notification-settings-perps-notifications-toggle',
+  ACCOUNT_NOTIFICATIONS_SELECT_ALL:
+    'notification-settings-account-notifications-select-all',
   ACCOUNT_NOTIFICATION_TOGGLE: (address: string) =>
     `notification-settings-account-notifications-${address}`,
 };

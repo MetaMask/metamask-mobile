@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
@@ -24,7 +24,11 @@ import Routes from '../../../constants/navigation/Routes';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import CelebratingFox from '../../../animations/Celebrating_Fox.json';
 import Device from '../../../util/device';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { OnboardingSelectorIDs } from '../Onboarding/Onboarding.testIds';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import { getSocialAccountType } from '../../../constants/onboarding';
 
 interface SocialLoginIosUserProps {
   type: 'new' | 'existing';
@@ -34,6 +38,7 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const route = useRoute();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { accountName, oauthLoginSuccess, onboardingTraceCtx, provider } =
     (route.params as {
@@ -43,7 +48,32 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
       provider?: string;
     }) || {};
 
+  const isUserTypeNew = type === 'new';
+  const accountType = getSocialAccountType(provider ?? '', !isUserTypeNew);
+
+  const hasTrackedView = useRef(false);
+  useEffect(() => {
+    if (hasTrackedView.current) return;
+    hasTrackedView.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_VIEWED)
+        .addProperties({
+          is_new_user: isUserTypeNew,
+          account_type: accountType,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder, isUserTypeNew, accountType]);
+
   const handleSetMetaMaskPin = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED)
+        .addProperties({
+          is_new_user: isUserTypeNew,
+          account_type: accountType,
+        })
+        .build(),
+    );
     navigation.dispatch(
       StackActions.replace(Routes.ONBOARDING.CHOOSE_PASSWORD, {
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -56,20 +86,27 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
   };
 
   const handleSecureWallet = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED)
+        .addProperties({
+          is_new_user: isUserTypeNew,
+          account_type: accountType,
+        })
+        .build(),
+    );
     navigation.dispatch(
       StackActions.replace(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess: true,
         onboardingTraceCtx,
+        provider,
       }),
     );
   };
 
-  const isUserTypeNew = type === 'new';
   const isMedium = Device.isMediumDevice();
   const foxSize = isMedium ? 180 : 240;
   const foxPadding = isMedium ? 30 : 40;
-
   return (
     <SafeAreaView
       edges={['bottom', 'left', 'right']}

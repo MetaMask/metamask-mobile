@@ -1,10 +1,9 @@
 import React, { useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import ContentfulRichText, {
@@ -12,6 +11,7 @@ import ContentfulRichText, {
 } from '../components/ContentfulRichText/ContentfulRichText';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { strings } from '../../../../../locales/i18n';
+import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -38,6 +38,11 @@ const CampaignMechanicsView: React.FC = () => {
     [campaigns, campaignId],
   );
 
+  useTrackRewardsPageView({
+    page_type: 'ondo_campaign_help',
+    campaign_id: campaignId,
+  });
+
   const howItWorks = campaign?.details?.howItWorks ?? null;
   const notes = howItWorks?.notes ?? null;
 
@@ -48,7 +53,7 @@ const CampaignMechanicsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={CAMPAIGN_MECHANICS_TEST_IDS.CONTAINER}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('rewards.campaign_mechanics.title')}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'campaign-mechanics-back-button' }}
@@ -59,12 +64,16 @@ const CampaignMechanicsView: React.FC = () => {
           contentContainerStyle={tw.style('pb-4')}
         >
           {howItWorks && (
-            <Box
-              twClassName="px-4 py-4 border-b border-border-muted"
-              testID={CAMPAIGN_MECHANICS_TEST_IDS.HOW_IT_WORKS_SECTION}
-            >
-              <CampaignHowItWorks howItWorks={howItWorks} />
-            </Box>
+            <>
+              <Box
+                twClassName="px-4 py-4"
+                testID={CAMPAIGN_MECHANICS_TEST_IDS.HOW_IT_WORKS_SECTION}
+              >
+                <CampaignHowItWorks howItWorks={howItWorks} />
+              </Box>
+              {/* ── Divider ── */}
+              <Box twClassName="my-1 border-b border-border-muted" />
+            </>
           )}
 
           {isDocument(notes) && (

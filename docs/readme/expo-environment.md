@@ -20,7 +20,7 @@ Install node version defined in the file `.nvmrc`
 
 ### Yarn v4
 
-Ensure you are using the correct yarn version (yarn v4.10.3) as noted in the `package.json`.
+Ensure you are using the correct yarn version (yarn v4.14.1) as noted in the `package.json`.
 
 <details>
   <summary>Install Yarn v4 using corepack (recommended)</summary>
@@ -28,7 +28,7 @@ Ensure you are using the correct yarn version (yarn v4.10.3) as noted in the `pa
 ```bash
 corepack enable
 
-# check yarn version (should show 4.10.3)
+# check yarn version (should show 4.14.1)
 yarn --version
 ```
 
@@ -38,9 +38,9 @@ yarn --version
   <summary>Install Yarn v4 with NPM</summary>
 
 ```bash
-npm install -g yarn@4.10.3
+npm install -g yarn@4.14.1
 
-# check yarn version (should show 4.10.3)
+# check yarn version (should show 4.14.1)
 yarn --version
 ```
 
@@ -49,10 +49,10 @@ yarn --version
 <details>
   <summary>Use project's bundled Yarn (no global install needed)</summary>
 
-The project includes its own Yarn v4.10.3 binary at `.yarn/releases/yarn-4.10.3.cjs`. If you have any version of Yarn installed, the project will automatically use the correct version thanks to the `.yarnrc.yml` configuration.
+The project includes its own Yarn v4.14.1 binary at `.yarn/releases/yarn-4.14.1.cjs`. If you have any version of Yarn installed, the project will automatically use the correct version thanks to the `.yarnrc.yml` configuration.
 
 ```bash
-# check yarn version (should show 4.10.3 when run from project directory)
+# check yarn version (should show 4.14.1 when run from project directory)
 yarn --version
 ```
 

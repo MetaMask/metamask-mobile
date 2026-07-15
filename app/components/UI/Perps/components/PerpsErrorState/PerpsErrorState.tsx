@@ -1,16 +1,15 @@
 import React from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import Icon, {
+  ButtonVariant,
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -86,7 +85,7 @@ const PerpsErrorState: React.FC<PerpsErrorStateProps> = ({
       <View style={styles.content}>
         <Icon
           name={errorContent.icon}
-          color={IconColor.Muted}
+          color={IconColor.IconMuted}
           size={iconSize}
           style={styles.icon}
         />
@@ -108,13 +107,14 @@ const PerpsErrorState: React.FC<PerpsErrorStateProps> = ({
         )}
         {errorContent.primaryAction?.onPress && (
           <Button
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            label={errorContent.primaryAction.label}
             onPress={errorContent.primaryAction.onPress}
             style={styles.button}
-            width={ButtonWidthTypes.Full}
-          />
+            isFullWidth
+          >
+            {errorContent.primaryAction.label}
+          </Button>
         )}
       </View>
     </View>

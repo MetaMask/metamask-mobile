@@ -3,7 +3,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectMissingEnrolledAccountsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import { AuthorizationFailedError } from '../../../../core/Engine/controllers/rewards-controller/services/rewards-data-service';
 import {
@@ -29,16 +28,13 @@ export interface OffDeviceAccount {
  */
 export const useLinkedOffDeviceAccounts = (): OffDeviceAccount[] => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const isMissingEnrolledAccountsEnabled = useSelector(
-    selectMissingEnrolledAccountsRewardsEnabledFlag,
-  );
   const dispatch = useDispatch();
   const [offDeviceAccounts, setOffDeviceAccounts] = useState<
     OffDeviceAccount[]
   >([]);
 
   const fetchOffDeviceAccounts = useCallback(async (): Promise<void> => {
-    if (!isMissingEnrolledAccountsEnabled || !subscriptionId) {
+    if (!subscriptionId) {
       setOffDeviceAccounts([]);
       return;
     }
@@ -67,7 +63,7 @@ export const useLinkedOffDeviceAccounts = (): OffDeviceAccount[] => {
       }
       setOffDeviceAccounts([]);
     }
-  }, [dispatch, isMissingEnrolledAccountsEnabled, subscriptionId]);
+  }, [dispatch, subscriptionId]);
 
   useFocusEffect(
     useCallback(() => {

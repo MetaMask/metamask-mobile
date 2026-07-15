@@ -4,8 +4,13 @@ import Engine from '../../../../core/Engine';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { selectPredictSelectedPaymentToken } from '../selectors/predictController';
 
+export type PredictPaymentTokenInput =
+  | AssetType
+  | { address: string; chainId: string; symbol?: string }
+  | null;
+
 export interface UsePredictPaymentTokenResult {
-  onPaymentTokenChange: (token: AssetType | null) => void;
+  onPaymentTokenChange: (token: PredictPaymentTokenInput) => void;
   isPredictBalanceSelected: boolean;
   selectedPaymentToken: {
     address: string;
@@ -22,12 +27,12 @@ export function usePredictPaymentToken(): UsePredictPaymentTokenResult {
   const { PredictController } = Engine.context;
 
   const onPaymentTokenChange = useCallback(
-    (token: AssetType | null) => {
+    (token: PredictPaymentTokenInput) => {
       if (!token) {
         return;
       }
 
-      PredictController.selectPaymentToken(token);
+      PredictController.selectPaymentToken(token as AssetType);
     },
     [PredictController],
   );

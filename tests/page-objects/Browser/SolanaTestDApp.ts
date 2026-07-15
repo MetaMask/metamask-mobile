@@ -1,11 +1,13 @@
 import { dataTestIds } from '@metamask/test-dapp-solana';
-import { getTestDappLocalUrl } from '../../framework/fixtures/FixtureUtils';
 import Matchers from '../../framework/Matchers';
+import type { PlaywrightElement } from '../../framework/PlaywrightAdapter';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Browser from './BrowserView';
 import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
+import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
+import { Utilities } from '../../framework';
 
 /**
  * Get a test element by data-testid
@@ -17,7 +19,7 @@ import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTes
 function getTestElement(
   dataTestId: string,
   options: { extraXPath?: string; tag?: string } = {},
-): Promise<DetoxElement | WebElement> {
+): Promise<DetoxElement | WebElement | PlaywrightElement> {
   const { tag = 'div', extraXPath = '' } = options;
   const xpath = `//${tag}[@data-testid="${dataTestId}"]${extraXPath}`;
 
@@ -75,7 +77,7 @@ class SolanaTestDApp {
   async navigateToSolanaTestDApp(): Promise<void> {
     await Browser.tapUrlInputBox();
 
-    await Browser.navigateToURL(getTestDappLocalUrl());
+    await Browser.navigateToURL(getDappUrl(0));
 
     await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
       .toBeVisible()
@@ -91,7 +93,7 @@ class SolanaTestDApp {
    */
   async tapButton(webElement: WebElement): Promise<void> {
     await Gestures.scrollToWebViewPort(webElement);
-    await Gestures.tap(webElement);
+    await Gestures.waitAndTap(webElement);
   }
 
   getHeader() {
@@ -130,12 +132,17 @@ class SolanaTestDApp {
           }),
         );
       },
-      getSignedMessage: async () =>
-        (
-          await getTestElement(dataTestIds.testPage.signMessage.signedMessage, {
-            tag: 'pre',
-          })
-        ).getText(),
+      getSignedMessage: () =>
+        Utilities.executeWithRetry(
+          async () => {
+            const el = await getTestElement(
+              dataTestIds.testPage.signMessage.signedMessage,
+              { tag: 'pre' },
+            );
+            return el.getText();
+          },
+          { timeout: 30_000, description: 'read signed message from webview' },
+        ),
     };
   }
 

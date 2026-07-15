@@ -45,6 +45,14 @@ jest.mock('../../hooks/usePredictEligibility', () => ({
   usePredictEligibility: () => mockUsePredictEligibility(),
 }));
 
+const mockOpenBuySheet = jest.fn();
+jest.mock('../../contexts', () => ({
+  usePredictPreviewSheet: () => ({
+    openBuySheet: mockOpenBuySheet,
+    openSellSheet: jest.fn(),
+  }),
+}));
+
 const mockOutcome: PredictOutcome = {
   id: 'test-outcome-1',
   marketId: 'test-market-1',
@@ -135,6 +143,29 @@ describe('PredictMarketOutcome', () => {
     expect(getByText(/35¢/)).toBeOnTheScreen();
   });
 
+  it('shows the mid as the odds % and the ask (buyPrice) on the buttons (wide spread)', () => {
+    // Mirrors the reported Almeria case: mid 63% but ask 92c.
+    const wideSpreadOutcome: PredictOutcome = {
+      ...mockOutcome,
+      tokens: [
+        { id: 'token-yes', title: 'Yes', price: 0.63, buyPrice: 0.92 },
+        { id: 'token-no', title: 'No', price: 0.37, buyPrice: 0.66 },
+      ],
+    };
+
+    const { getByText, queryByText } = renderWithProvider(
+      <PredictMarketOutcome outcome={wideSpreadOutcome} market={mockMarket} />,
+      { state: initialState },
+    );
+
+    // Odds % uses the mid, not the ask.
+    expect(getByText('63%')).toBeOnTheScreen();
+    expect(queryByText('92%')).toBeNull();
+    // Buy buttons use the ask.
+    expect(getByText(/92¢/)).toBeOnTheScreen();
+    expect(getByText(/66¢/)).toBeOnTheScreen();
+  });
+
   it('handles button press events', () => {
     const { getByText } = renderWithProvider(
       <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,
@@ -145,7 +176,7 @@ describe('PredictMarketOutcome', () => {
     const noButton = getByText(/35¢/);
 
     fireEvent.press(yesButton);
-    expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+    expect(mockOpenBuySheet).toHaveBeenCalledWith({
       market: mockMarket,
       outcome: mockOutcome,
       outcomeToken: mockOutcome.tokens[0],
@@ -153,7 +184,7 @@ describe('PredictMarketOutcome', () => {
     });
 
     fireEvent.press(noButton);
-    expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+    expect(mockOpenBuySheet).toHaveBeenCalledWith({
       market: mockMarket,
       outcome: mockOutcome,
       outcomeToken: mockOutcome.tokens[1],
@@ -623,7 +654,7 @@ describe('PredictMarketOutcome', () => {
 
       fireEvent.press(yesButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+      expect(mockOpenBuySheet).toHaveBeenCalledWith({
         market: mockMarket,
         outcome: outcomeWithLongLabels,
         outcomeToken: outcomeWithLongLabels.tokens[0],
@@ -632,7 +663,7 @@ describe('PredictMarketOutcome', () => {
 
       fireEvent.press(noButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('PredictBuyPreview', {
+      expect(mockOpenBuySheet).toHaveBeenCalledWith({
         market: mockMarket,
         outcome: outcomeWithLongLabels,
         outcomeToken: outcomeWithLongLabels.tokens[1],

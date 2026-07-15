@@ -1,5 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
-import { waitFor } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsMarkets, parseVolume } from './usePerpsMarkets';
 import { type PerpsMarketData } from '@metamask/perps-controller';
@@ -18,9 +17,11 @@ jest.mock('../../../../core/Engine', () => ({
 // Mock PerpsStreamManager
 const mockSubscribe = jest.fn();
 const mockRefresh = jest.fn();
+let mockChannelMarketsSnapshot: PerpsMarketData[] | null | undefined;
 const mockMarketData = {
   subscribe: mockSubscribe,
   refresh: mockRefresh,
+  getSnapshot: () => mockChannelMarketsSnapshot,
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -38,6 +39,7 @@ const mockMarketDataArray: PerpsMarketData[] = [
     change24h: '+2.5%',
     change24hPercent: '2.5',
     volume: '$1.2B',
+    openInterest: '$500M',
   },
   {
     symbol: 'ETH',
@@ -47,6 +49,7 @@ const mockMarketDataArray: PerpsMarketData[] = [
     change24h: '-1.2%',
     change24hPercent: '-1.2',
     volume: '$900M',
+    openInterest: '$400M',
   },
 ];
 
@@ -56,6 +59,7 @@ describe('usePerpsMarkets', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockChannelMarketsSnapshot = undefined;
 
     // Set up default mock behavior
     mockSubscribe.mockImplementation(({ callback }) => {
@@ -72,6 +76,18 @@ describe('usePerpsMarkets', () => {
   });
 
   describe('Initial state', () => {
+    it('returns channel snapshot immediately when available', () => {
+      mockChannelMarketsSnapshot = mockMarketDataArray;
+      mockSubscribe.mockImplementation(() => jest.fn());
+
+      const { result } = renderHook(() => usePerpsMarkets());
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.markets).toHaveLength(2);
+      expect(result.current.markets[0].symbol).toBe('BTC');
+      expect(result.current.markets[1].symbol).toBe('ETH');
+    });
+
     it('returns initial state with empty markets and loading true', () => {
       // Setup to not call the callback immediately
       mockSubscribe.mockImplementation(() => jest.fn());
@@ -162,6 +178,7 @@ describe('usePerpsMarkets', () => {
           change24h: '+5.0%',
           change24hPercent: '5.0',
           volume: '$100M',
+          openInterest: '$50M',
         },
       ];
 
@@ -227,11 +244,13 @@ describe('usePerpsMarkets', () => {
 
     it('sets isRefreshing state during refresh', async () => {
       // Arrange
-      let resolveRefresh: () => void;
-      const refreshPromise = new Promise<void>((resolve) => {
-        resolveRefresh = resolve;
-      });
-      mockRefresh.mockReturnValue(refreshPromise);
+      let resolveRefresh!: () => void;
+      mockRefresh.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveRefresh = resolve;
+          }),
+      );
 
       const { result } = renderHook(() => usePerpsMarkets());
 
@@ -239,16 +258,19 @@ describe('usePerpsMarkets', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Act - start refresh
-      const refreshCall = act(() => result.current.refresh());
+      // Act - start refresh and wait for state to flush
+      let refreshPromise: Promise<void> = Promise.resolve();
+      await act(async () => {
+        refreshPromise = result.current.refresh();
+      });
 
       // Assert - should be refreshing
       expect(result.current.isRefreshing).toBe(true);
 
       // Complete refresh
       await act(async () => {
-        resolveRefresh?.();
-        await refreshCall;
+        resolveRefresh();
+        await refreshPromise;
       });
 
       // Assert - no longer refreshing
@@ -419,6 +441,7 @@ describe('usePerpsMarkets', () => {
           change24h: '+0%',
           change24hPercent: '0',
           volume: '$100K',
+          openInterest: '$100K',
         },
         {
           symbol: 'B',
@@ -428,6 +451,7 @@ describe('usePerpsMarkets', () => {
           change24h: '+0%',
           change24hPercent: '0',
           volume: '$1.5B',
+          openInterest: '$1.5B',
         },
         {
           symbol: 'C',
@@ -437,6 +461,7 @@ describe('usePerpsMarkets', () => {
           change24h: '+0%',
           change24hPercent: '0',
           volume: '$<1',
+          openInterest: '$<1',
         },
         {
           symbol: 'D',
@@ -446,6 +471,7 @@ describe('usePerpsMarkets', () => {
           change24h: '+0%',
           change24hPercent: '0',
           volume: '$500M',
+          openInterest: '$500M',
         },
         {
           symbol: 'E',
@@ -455,6 +481,7 @@ describe('usePerpsMarkets', () => {
           change24h: '+0%',
           change24hPercent: '0',
           volume: '--', // FALLBACK_DATA_DISPLAY
+          openInterest: '$10M',
         },
         {
           symbol: 'F',
@@ -464,6 +491,7 @@ describe('usePerpsMarkets', () => {
           change24h: '+0%',
           change24hPercent: '0',
           volume: '$0',
+          openInterest: '$10M',
         },
         {
           symbol: 'G',
@@ -473,6 +501,7 @@ describe('usePerpsMarkets', () => {
           change24h: '+0%',
           change24hPercent: '0',
           volume: '--', // FALLBACK_DATA_DISPLAY
+          openInterest: '$10M',
         },
       ];
 
@@ -505,6 +534,7 @@ describe('usePerpsMarkets', () => {
           change24h: '+0%',
           change24hPercent: '0',
           volume: '$100K',
+          openInterest: '$100K',
         },
         {
           symbol: 'B',
@@ -514,6 +544,7 @@ describe('usePerpsMarkets', () => {
           change24h: '+0%',
           change24hPercent: '0',
           volume: '$1.5B',
+          openInterest: '$1.5B',
         },
         {
           symbol: 'F',
@@ -523,6 +554,7 @@ describe('usePerpsMarkets', () => {
           change24h: '+0%',
           change24hPercent: '0',
           volume: '$0',
+          openInterest: '$10M',
         },
       ];
 
@@ -543,6 +575,92 @@ describe('usePerpsMarkets', () => {
       // Assert - should include F ($0) when showZeroVolume is true
       const sortedSymbols = result.current.markets.map((m) => m.symbol);
       expect(sortedSymbols).toEqual(['B', 'A', 'F']);
+    });
+
+    it('filters out zero open interest markets when showZeroOpenInterest is false', async () => {
+      const markets: PerpsMarketData[] = [
+        {
+          symbol: 'A',
+          name: 'A',
+          maxLeverage: '1x',
+          price: '$1',
+          change24h: '+0%',
+          change24hPercent: '0',
+          volume: '$100K',
+          openInterest: '$100K',
+        },
+        {
+          symbol: 'B',
+          name: 'B',
+          maxLeverage: '1x',
+          price: '$1',
+          change24h: '+0%',
+          change24hPercent: '0',
+          volume: '$1.5B',
+          openInterest: '$0',
+        },
+      ];
+
+      mockSubscribe.mockImplementation(({ callback }) => {
+        setTimeout(() => callback(markets), 0);
+        return jest.fn();
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsMarkets({
+          showZeroVolume: false,
+          showZeroOpenInterest: false,
+        }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.markets.map((m) => m.symbol)).toEqual(['A']);
+    });
+
+    it('includes zero open interest markets when showZeroOpenInterest is true', async () => {
+      const markets: PerpsMarketData[] = [
+        {
+          symbol: 'A',
+          name: 'A',
+          maxLeverage: '1x',
+          price: '$1',
+          change24h: '+0%',
+          change24hPercent: '0',
+          volume: '$100K',
+          openInterest: '$100K',
+        },
+        {
+          symbol: 'B',
+          name: 'B',
+          maxLeverage: '1x',
+          price: '$1',
+          change24h: '+0%',
+          change24hPercent: '0',
+          volume: '$1.5B',
+          openInterest: '$0',
+        },
+      ];
+
+      mockSubscribe.mockImplementation(({ callback }) => {
+        setTimeout(() => callback(markets), 0);
+        return jest.fn();
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsMarkets({
+          showZeroVolume: false,
+          showZeroOpenInterest: true,
+        }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.markets.map((m) => m.symbol)).toEqual(['B', 'A']);
     });
   });
 

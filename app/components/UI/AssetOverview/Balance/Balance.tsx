@@ -23,8 +23,6 @@ import BadgeWrapper, {
 } from '../../../../component-library/components/Badges/BadgeWrapper';
 import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
 import Badge from '../../../../component-library/components/Badges/Badge/Badge';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import NetworkAssetLogo from '../../NetworkAssetLogo';
 import Text, {
   TextColor,
@@ -34,7 +32,6 @@ import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../component-library/components/Texts/SensitiveText';
 import { TokenI } from '../../Tokens/types';
-import { useNavigation } from '@react-navigation/native';
 import {
   PopularList,
   UnpopularNetworkList,
@@ -53,6 +50,7 @@ import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import StockBadge from '../../shared/StockBadge';
+import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -108,7 +106,6 @@ const Balance = ({
   hidePercentageChange,
 }: BalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
   const { isStockToken } = useRWAToken();
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
@@ -186,29 +183,12 @@ const Balance = ({
       );
     }
 
-    return (
-      <AvatarToken
-        name={asset.symbol}
-        imageSource={{ uri: asset.image }}
-        size={AvatarSize.Lg}
-      />
-    );
+    return <AssetLogo asset={asset} />;
   }, [asset, styles.ethLogo]);
 
   const isDisabled = useMemo(
     () => asset.isNative || isCaipChainId(asset.chainId as CaipAssetId),
     [asset.chainId, asset.isNative],
-  );
-
-  const handlePress = useCallback(
-    () =>
-      !asset.isNative &&
-      navigation.navigate('AssetDetails', {
-        chainId: asset.chainId,
-        address: asset.address,
-        asset,
-      }),
-    [asset, navigation],
   );
 
   const label = asset.accountType
@@ -232,7 +212,6 @@ const Balance = ({
         }
         privacyMode={privacyMode}
         hideSecondaryBalanceInPrivacyMode={false}
-        onPress={handlePress}
       >
         <BadgeWrapper
           style={styles.badgeWrapper}

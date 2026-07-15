@@ -96,11 +96,37 @@ jest.mock(
   () => {
     const ReactActual = jest.requireActual('react');
     return ReactActual.forwardRef(
-      ({ children }: { children: React.ReactNode }) =>
-        ReactActual.createElement('View', { testID: 'bottom-sheet' }, children),
+      (
+        {
+          children,
+          keyboardAvoidingViewEnabled,
+        }: {
+          children: React.ReactNode;
+          keyboardAvoidingViewEnabled?: boolean;
+        },
+        _ref: unknown,
+      ) =>
+        ReactActual.createElement(
+          'View',
+          { testID: 'bottom-sheet', keyboardAvoidingViewEnabled },
+          children,
+        ),
     );
   },
 );
+
+jest.mock('react-native-keyboard-aware-scroll-view', () => {
+  const ReactActual = jest.requireActual('react');
+  const { ScrollView } = jest.requireActual('react-native');
+  return {
+    KeyboardAwareScrollView: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+    }) => ReactActual.createElement(ScrollView, props, children),
+  };
+});
 
 // Mock TextField component
 jest.mock(
@@ -197,8 +223,8 @@ jest.mock('@metamask/design-system-react-native', () => {
           testID,
           onPress,
           disabled,
-          'data-loading': isLoading,
           accessibilityState: disabled ? { disabled: true } : undefined,
+          accessibilityValue: isLoading ? { text: 'loading' } : undefined,
         },
         ReactActual.createElement(RNText, {}, children),
       ),
@@ -473,7 +499,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       const claimButton = getByTestId(
         REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
       );
-      expect(claimButton.props['data-loading']).toBe(true);
+      expect(claimButton.props.accessibilityValue).toEqual({ text: 'loading' });
 
       mockUseClaimRewardState.isClaimingReward = false;
     });
@@ -503,7 +529,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       const claimButton = getByTestId(
         REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
       );
-      expect(claimButton.props['data-loading']).toBe(true);
+      expect(claimButton.props.accessibilityValue).toEqual({ text: 'loading' });
 
       mockUseClaimRewardState.isClaimingReward = false;
     });
@@ -518,7 +544,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       const claimButton = getByTestId(
         REWARDS_VIEW_SELECTORS.CLAIM_MODAL_CONFIRM_BUTTON,
       );
-      expect(claimButton.props['data-loading']).toBeFalsy();
+      expect(claimButton.props.accessibilityValue?.text).toBeUndefined();
     });
 
     it('should disable button when input is required but empty', () => {
@@ -675,6 +701,39 @@ describe('RewardsClaimBottomSheetModal', () => {
           <RewardsClaimBottomSheetModal route={routeWithConflictingParams} />,
         ),
       ).not.toThrow();
+    });
+  });
+
+  describe('KeyboardAwareScrollView configuration', () => {
+    it('disables BottomSheet keyboard avoidance when showInput is true', () => {
+      const { getByTestId } = render(
+        <RewardsClaimBottomSheetModal route={routeWithAlphaFoxInviteReward} />,
+      );
+
+      expect(getByTestId('bottom-sheet')).toHaveProp(
+        'keyboardAvoidingViewEnabled',
+        false,
+      );
+    });
+
+    it('uses KeyboardAwareScrollView with enableOnAndroid when showInput is true', () => {
+      const { UNSAFE_root } = render(
+        <RewardsClaimBottomSheetModal route={routeWithAlphaFoxInviteReward} />,
+      );
+
+      const scrollView = UNSAFE_root.findByProps({ enableOnAndroid: true });
+      expect(scrollView.props.extraScrollHeight).toBe(20);
+    });
+
+    it('keeps BottomSheet keyboard avoidance enabled when showInput is false', () => {
+      const { getByTestId } = render(
+        <RewardsClaimBottomSheetModal route={defaultRoute} />,
+      );
+
+      expect(getByTestId('bottom-sheet')).toHaveProp(
+        'keyboardAvoidingViewEnabled',
+        true,
+      );
     });
   });
 });

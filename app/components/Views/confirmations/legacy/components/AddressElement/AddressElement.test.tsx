@@ -81,8 +81,8 @@ const renderComponent = (
 
 describe('AddressElement', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByTestId } = renderComponent(initialState);
+    expect(getByTestId('address-element')).toBeOnTheScreen();
   });
 
   it('should render the address', () => {

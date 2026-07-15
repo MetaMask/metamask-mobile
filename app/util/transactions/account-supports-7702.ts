@@ -12,6 +12,7 @@ interface KeyringControllerLike {
 const KEYRING_TYPES_SUPPORTING_7702: string[] = [
   ExtendedKeyringTypes.hd,
   ExtendedKeyringTypes.simple,
+  ExtendedKeyringTypes.money,
 ];
 
 /**

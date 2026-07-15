@@ -61,10 +61,6 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(() => ({ bottom: 10, top: 0, left: 0, right: 0 })),
-}));
-
 jest.mock('../../../component-library/hooks', () => ({
   useStyles: () => ({ styles: {} }),
 }));

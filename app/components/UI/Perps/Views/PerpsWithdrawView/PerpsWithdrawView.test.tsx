@@ -44,7 +44,8 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
-      availableBalance: '1000.00',
+      spendableBalance: '1000.00',
+      withdrawableBalance: '1000.00',
       marginUsed: '0.00',
       unrealizedPnl: '0.00',
       returnOnEquity: '0.00',
@@ -87,7 +88,8 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 // Mock hooks
 jest.mock('../../hooks', () => ({
   usePerpsAccount: jest.fn(() => ({
-    availableBalance: '$1000.00',
+    spendableBalance: '$1000.00',
+    withdrawableBalance: '$1000.00',
   })),
   usePerpsWithdrawQuote: jest.fn(() => ({
     formattedQuoteData: {
@@ -277,6 +279,19 @@ describe('PerpsWithdrawView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
+    const mockUsePerpsLiveAccount =
+      jest.requireMock('../../hooks/stream').usePerpsLiveAccount;
+    mockUsePerpsLiveAccount.mockReturnValue({
+      account: {
+        spendableBalance: '1000.00',
+        withdrawableBalance: '1000.00',
+        marginUsed: '0.00',
+        unrealizedPnl: '0.00',
+        returnOnEquity: '0.00',
+        totalBalance: '1000.00',
+      },
+      isInitialLoading: false,
+    });
   });
 
   describe('Component Rendering', () => {
@@ -291,6 +306,34 @@ describe('PerpsWithdrawView', () => {
         screen.getByText(
           strings('perps.withdrawal.available_balance', {
             amount: '$1,000',
+          }),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('uses withdrawableBalance for the displayed Unified Account balance', () => {
+      const mockUsePerpsLiveAccount =
+        jest.requireMock('../../hooks/stream').usePerpsLiveAccount;
+      // Diverge spendable from withdrawable so the assertion proves the view
+      // reads `withdrawableBalance` specifically (not `spendableBalance`).
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '0.00',
+          withdrawableBalance: '2500.00',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0.00',
+          totalBalance: '2500.00',
+        },
+        isInitialLoading: false,
+      });
+
+      renderWithProviders(<PerpsWithdrawView />);
+
+      expect(
+        screen.getByText(
+          strings('perps.withdrawal.available_balance', {
+            amount: '$2,500',
           }),
         ),
       ).toBeOnTheScreen();

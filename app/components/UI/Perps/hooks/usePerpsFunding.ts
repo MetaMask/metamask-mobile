@@ -83,7 +83,12 @@ export const usePerpsFunding = (
         DevLogger.log('Perps: Fetching funding data from controller...');
 
         const controller = Engine.context.PerpsController;
-        const fundingData = await controller.getFunding(params);
+        // Explicit refresh (pull-to-refresh, polling tick) bypasses the
+        // MarketDataService request-coalesce cache so a fresh provider call
+        // runs instead of returning a still-hot cached payload.
+        const fundingData = await controller.getFunding(params, {
+          forceRefresh: isRefresh,
+        });
 
         setFunding(fundingData || []);
 

@@ -14,14 +14,12 @@ import { RootMessenger } from '../types';
  * @returns The NftControllerMessenger.
  */
 export function getNftControllerMessenger(
-  rootMessenger: RootMessenger,
-): NftControllerMessenger {
-  const messenger = new Messenger<
-    'NftController',
+  rootMessenger: RootMessenger<
     MessengerActions<NftControllerMessenger>,
-    MessengerEvents<NftControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<NftControllerMessenger>
+  >,
+): NftControllerMessenger {
+  const messenger: NftControllerMessenger = new Messenger({
     namespace: 'NftController',
     parent: rootMessenger,
   });
@@ -33,8 +31,6 @@ export function getNftControllerMessenger(
       'AssetsContractController:getERC721AssetName',
       'AssetsContractController:getERC721AssetSymbol',
       'AssetsContractController:getERC721TokenURI',
-      'AssetsContractController:getERC721OwnerOf',
-      'AssetsContractController:getERC1155BalanceOf',
       'AssetsContractController:getERC1155TokenURI',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',

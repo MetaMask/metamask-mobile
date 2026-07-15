@@ -1,26 +1,15 @@
-import { InteractionManager } from 'react-native';
 import NavigationService from '../../../../NavigationService';
-import ReduxService from '../../../../redux';
 import Routes from '../../../../../constants/navigation/Routes';
-import { ONDO_RESTRICTED_COUNTRIES } from '../../../../../util/ondoGeoRestrictions';
-import { handleTrendingUrl } from '../handleTrendingUrl';
-
-// Mock Variable used for testing purposes only
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type MockedVar = any;
+import { EXPLORE_TAB_INDEX } from '../../../../../constants/navigation/exploreTabIndices';
+import {
+  handleTrendingUrl,
+  EXPLORE_SCREEN_DEEPLINK_PARAM,
+  EXPLORE_TAB_DEEPLINK_PARAM,
+} from '../handleTrendingUrl';
 
 jest.mock('../../../../NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
-  },
-}));
-
-jest.mock('../../../../redux', () => ({
-  __esModule: true,
-  default: {
-    store: {
-      getState: jest.fn(),
-    },
   },
 }));
 
@@ -31,79 +20,142 @@ describe('handleTrendingUrl', () => {
     jest.clearAllMocks();
   });
 
-  it('navigates to trending view by default', () => {
-    handleTrendingUrl({ actionPath: '' });
+  it.each([
+    { description: 'default explore view', actionPath: '' },
+    { description: 'unknown screen param', actionPath: '?screen=unknown' },
+    { description: 'unknown tab param', actionPath: '?tab=unknown' },
+  ])('falls back to trending view for $description', async ({ actionPath }) => {
+    await handleTrendingUrl({ actionPath });
 
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
   });
 });
 
-describe('handleTrendingUrl - stocks deeplink (screen=stocks)', () => {
+describe('handleTrendingUrl - explore tabs (tab=...)', () => {
   const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
-  const mockGetState = ReduxService.store.getState as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest
-      .mocked(InteractionManager.runAfterInteractions)
-      .mockImplementation((task) => {
-        if (typeof task === 'function') {
-          task();
-        }
-        return null as MockedVar;
-      });
   });
 
-  const geoBlockedCases = [...ONDO_RESTRICTED_COUNTRIES].map((location) => ({
-    location,
-  }));
+  it.each([
+    {
+      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.NOW,
+      expectedIndex: EXPLORE_TAB_INDEX.NOW,
+    },
+    {
+      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.MACRO,
+      expectedIndex: EXPLORE_TAB_INDEX.MACRO,
+    },
+    {
+      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.RWAS,
+      expectedIndex: EXPLORE_TAB_INDEX.RWAS,
+    },
+    {
+      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.CRYPTO,
+      expectedIndex: EXPLORE_TAB_INDEX.CRYPTO,
+    },
+    {
+      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.SPORTS,
+      expectedIndex: EXPLORE_TAB_INDEX.SPORTS,
+    },
+    {
+      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.SITES,
+      expectedIndex: EXPLORE_TAB_INDEX.SITES,
+    },
+    { tabParam: 'CRYPTO', expectedIndex: EXPLORE_TAB_INDEX.CRYPTO },
+  ])(
+    'navigates to the Explore feed with tab=$tabParam preselected',
+    async ({ tabParam, expectedIndex }) => {
+      await handleTrendingUrl({ actionPath: `?tab=${tabParam}` });
 
-  /** ISO codes known to be outside `ONDO_RESTRICTED_COUNTRIES` for stocks deeplink routing. */
-  const notBlockedCases = [
-    { location: 'AR' },
-    { location: 'JP' },
-    { location: 'MX' },
-  ];
-
-  it.each(geoBlockedCases)(
-    'navigates to trending view for geo-blocked country $location',
-    ({ location }) => {
-      mockGetState.mockReturnValue({
-        engine: {
-          backgroundState: {
-            GeolocationController: {
-              location,
-            },
-          },
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW, {
+        screen: Routes.TRENDING_FEED,
+        params: {
+          initialTab: expectedIndex,
+          source: 'deeplink',
         },
       });
-
-      handleTrendingUrl({ actionPath: '?screen=stocks' });
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
     },
   );
+});
 
-  it.each(notBlockedCases)(
-    'navigates to RWA tokens full view for non-geo-blocked country $location',
-    ({ location }) => {
-      mockGetState.mockReturnValue({
-        engine: {
-          backgroundState: {
-            GeolocationController: {
-              location,
-            },
-          },
-        },
+describe('handleTrendingUrl - full-screen views (screen=...)', () => {
+  const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.each([
+    {
+      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.STOCKS,
+      expectedRoute: Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+    },
+    {
+      screenParam: 'STOCKS',
+      expectedRoute: Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+    },
+    {
+      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.TRENDING_TOKENS,
+      expectedRoute: Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+    },
+    {
+      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.SITES,
+      expectedRoute: Routes.SITES_FULL_VIEW,
+    },
+    {
+      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.FAVORITE_SITES,
+      expectedRoute: Routes.SITES_FULL_VIEW,
+      expectedParams: { mode: 'favorites' },
+    },
+    {
+      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.SEARCH,
+      expectedRoute: Routes.EXPLORE_SEARCH,
+    },
+    {
+      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.SEARCH,
+      actionPath: '?screen=search&q=ethereum',
+      expectedRoute: Routes.EXPLORE_SEARCH,
+      expectedParams: { initialQuery: 'ethereum' },
+    },
+    {
+      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.SEARCH,
+      actionPath: '?screen=search&query=bitcoin',
+      expectedRoute: Routes.EXPLORE_SEARCH,
+      expectedParams: { initialQuery: 'bitcoin' },
+    },
+  ])(
+    'activates Explore tab then navigates to the full view for screen=$screenParam',
+    async ({ screenParam, actionPath, expectedRoute, expectedParams }) => {
+      await handleTrendingUrl({
+        actionPath: actionPath ?? `?screen=${screenParam}`,
       });
 
-      handleTrendingUrl({ actionPath: '?screen=stocks' });
-
+      expect(mockNavigate).toHaveBeenCalledTimes(2);
       expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
-      expect(mockNavigate).toHaveBeenNthCalledWith(
-        2,
-        Routes.WALLET.RWA_TOKENS_FULL_VIEW,
-      );
+      if (expectedParams) {
+        expect(mockNavigate).toHaveBeenNthCalledWith(
+          2,
+          expectedRoute,
+          expectedParams,
+        );
+      } else {
+        expect(mockNavigate).toHaveBeenNthCalledWith(2, expectedRoute);
+      }
     },
   );
+
+  it('prioritizes screen over tab when both are provided', async () => {
+    await handleTrendingUrl({ actionPath: '?tab=crypto&screen=stocks' });
+
+    expect(mockNavigate).toHaveBeenCalledTimes(2);
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
+    expect(mockNavigate).toHaveBeenNthCalledWith(
+      2,
+      Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+    );
+  });
 });

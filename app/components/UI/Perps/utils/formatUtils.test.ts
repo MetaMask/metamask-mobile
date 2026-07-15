@@ -3,6 +3,7 @@
  */
 
 import {
+  formatPerpsBalance,
   formatPerpsFiat,
   formatPnl,
   formatPercentage,
@@ -11,6 +12,7 @@ import {
   formatPositionSize,
   formatLeverage,
   parseCurrencyString,
+  truncateToTwoDecimals,
   parsePercentageString,
   formatTransactionDate,
   formatDateSection,
@@ -938,6 +940,62 @@ describe('formatUtils', () => {
       expect(parseCurrencyString(null as any)).toBe(0);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(parseCurrencyString(undefined as any)).toBe(0);
+    });
+  });
+
+  describe('truncateToTwoDecimals', () => {
+    it('truncates without rounding up', () => {
+      expect(truncateToTwoDecimals(16.069)).toBe(16.06);
+      expect(truncateToTwoDecimals(16.999)).toBe(16.99);
+      expect(truncateToTwoDecimals(0.009)).toBe(0);
+    });
+
+    it('preserves values with 2 or fewer decimals', () => {
+      expect(truncateToTwoDecimals(16.07)).toBe(16.07);
+      expect(truncateToTwoDecimals(16)).toBe(16);
+      expect(truncateToTwoDecimals(0)).toBe(0);
+    });
+
+    it('handles IEEE 754 edge cases correctly', () => {
+      expect(truncateToTwoDecimals(10.29)).toBe(10.29);
+      expect(truncateToTwoDecimals(1.005)).toBe(1);
+      expect(truncateToTwoDecimals(0.1 + 0.2)).toBe(0.3);
+    });
+
+    it('handles negative values', () => {
+      expect(truncateToTwoDecimals(-16.069)).toBe(-16.06);
+      expect(truncateToTwoDecimals(-10.29)).toBe(-10.29);
+    });
+  });
+
+  describe('formatPerpsBalance', () => {
+    it('truncates values that would otherwise round up under halfExpand', () => {
+      // Without truncation, Intl.NumberFormat would render $50.39 for 50.389.
+      // formatPerpsBalance must show $50.38 so the Max button and
+      // insufficient-balance comparisons stay consistent.
+      expect(formatPerpsBalance('50.389')).toBe('$50.38');
+      expect(formatPerpsBalance('50.385')).toBe('$50.38');
+      expect(formatPerpsBalance('50.399')).toBe('$50.39');
+    });
+
+    it('preserves values that already have two decimals', () => {
+      expect(formatPerpsBalance('50.39')).toBe('$50.39');
+    });
+
+    it('accepts numeric input', () => {
+      expect(formatPerpsBalance(50.389)).toBe('$50.38');
+      expect(formatPerpsBalance(0)).toBe('$0');
+    });
+
+    it('strips currency formatting from input strings', () => {
+      expect(formatPerpsBalance('$1,232.39')).toBe('$1,232.39');
+      expect(formatPerpsBalance('$50.389')).toBe('$50.38');
+    });
+
+    it('returns zero for null, undefined, or empty input', () => {
+      expect(formatPerpsBalance(null)).toBe('$0');
+      expect(formatPerpsBalance(undefined)).toBe('$0');
+      expect(formatPerpsBalance('')).toBe('$0');
     });
   });
 

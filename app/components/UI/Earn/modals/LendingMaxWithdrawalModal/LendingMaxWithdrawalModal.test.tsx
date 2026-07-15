@@ -26,9 +26,11 @@ jest.mock(
 
 describe('LendingMaxWithdrawalModal', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(<LendingMaxWithdrawalModal />);
+    const { getByText } = render(<LendingMaxWithdrawalModal />);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByText("Why can't I withdraw my full balance?"),
+    ).toBeOnTheScreen();
   });
 
   it('should handle close action', () => {
@@ -40,6 +42,6 @@ describe('LendingMaxWithdrawalModal', () => {
 
     // The close functionality is handled by the BottomSheet component
     // which is mocked, so we just verify the component renders without errors
-    expect(closeButton).toBeTruthy();
+    expect(closeButton).toBeOnTheScreen();
   });
 });

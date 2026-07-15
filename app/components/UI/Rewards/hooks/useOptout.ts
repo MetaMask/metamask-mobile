@@ -1,26 +1,22 @@
 import { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { ButtonVariant } from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { resetRewardsState } from '../../../../reducers/rewards';
 import { strings } from '../../../../../locales/i18n';
-import { ModalType } from '../components/RewardsBottomSheetModal';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import useRewardsToast from './useRewardsToast';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useRewardDashboardModals } from './useRewardDashboardModals';
-import { RewardsMetricsButtons } from '../utils';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { useBulkLinkState } from './useBulkLinkState';
 
 interface UseOptoutResult {
   optout: () => Promise<boolean>;
   isLoading: boolean;
-  showOptoutBottomSheet: (dismissRoute?: string) => void;
 }
 
 export const useOptout = (): UseOptoutResult => {
@@ -71,6 +67,16 @@ export const useOptout = (): UseOptoutResult => {
         // Clear rewards Redux state back to initial state
         dispatch(resetRewardsState());
         resetAllSessionTrackingForRewardsDashboardModals();
+
+        // Navigate to home screen then show "Request received" banner
+        navigation.navigate(Routes.WALLET_VIEW);
+        showToast(
+          RewardsToastOptions.warning(
+            strings('rewards.optout.request_received.title'),
+            strings('rewards.optout.request_received.description'),
+          ),
+        );
+
         return true;
       }
       Logger.log('useOptout: Opt-out failed - controller returned false');
@@ -78,7 +84,6 @@ export const useOptout = (): UseOptoutResult => {
         createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_FAILED).build(),
       );
 
-      // Show error toast
       showToast(
         RewardsToastOptions.error(
           strings('rewards.optout.modal.error_message'),
@@ -92,7 +97,6 @@ export const useOptout = (): UseOptoutResult => {
         createEventBuilder(MetaMetricsEvents.REWARDS_OPT_OUT_FAILED).build(),
       );
 
-      // Show error toast
       showToast(
         RewardsToastOptions.error(
           strings('rewards.optout.modal.error_message'),
@@ -113,57 +117,11 @@ export const useOptout = (): UseOptoutResult => {
     dispatch,
     resetAllSessionTrackingForRewardsDashboardModals,
     cancelBulkLink,
+    navigation,
   ]);
-
-  const showOptoutBottomSheet = useCallback(
-    (dismissRoute?: string) => {
-      const handleOptoutSuccess = () => {
-        navigation.navigate(Routes.WALLET_VIEW);
-      };
-
-      const handleOptoutCancel = () => {
-        // Navigate to dismissRoute if provided, otherwise default to REWARDS_SETTINGS_VIEW
-        navigation.navigate(dismissRoute || Routes.REWARDS_SETTINGS_VIEW);
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
-            .addProperties({
-              button_type: RewardsMetricsButtons.OPT_OUT_CANCEL,
-            })
-            .build(),
-        );
-      };
-
-      const handleOptoutConfirm = async () => {
-        const success = await optout();
-        // Only navigate on successful opt-out (when state is reset)
-        if (success) {
-          handleOptoutSuccess();
-        }
-        // If failed, keep modal open to show error toast
-      };
-
-      navigation.navigate(Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL, {
-        title: strings('rewards.optout.modal.confirmation_title'),
-        description: strings('rewards.optout.modal.confirmation_description'),
-        type: ModalType.Danger,
-        onCancel: handleOptoutCancel,
-        confirmAction: {
-          label: isLoading
-            ? strings('rewards.optout.modal.processing')
-            : strings('rewards.optout.modal.confirm'),
-          loadOnPress: true,
-          onPress: handleOptoutConfirm,
-          variant: ButtonVariant.Primary,
-          disabled: isLoading,
-        },
-      });
-    },
-    [navigation, isLoading, optout, trackEvent, createEventBuilder],
-  );
 
   return {
     optout,
     isLoading,
-    showOptoutBottomSheet,
   };
 };

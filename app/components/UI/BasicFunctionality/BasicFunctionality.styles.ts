@@ -3,6 +3,10 @@ const styles = StyleSheet.create({
   setting: {
     marginVertical: 16,
   },
+  settingFlushTop: {
+    marginTop: 0,
+    marginBottom: 16,
+  },
   heading: {
     flexDirection: 'row',
     alignItems: 'center',

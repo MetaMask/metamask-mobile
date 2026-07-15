@@ -42,12 +42,7 @@ jest.mock('../../../../core/redux/slices/bridge', () => ({
   selectIsSwapsEnabled: jest.fn(),
 }));
 
-// Mock the ramp hooks
-jest.mock('../../../UI/Ramp/Aggregator/hooks/useRampNetwork', () => () => [
-  true,
-]);
-
-jest.mock('../../../UI/Ramp/Deposit/hooks/useDepositEnabled', () => ({
+jest.mock('../../../UI/Ramp/hooks/useDepositEnabled', () => ({
   __esModule: true,
   default: () => ({ isDepositEnabled: true }),
 }));
@@ -102,12 +97,12 @@ describe('AssetDetailsActions', () => {
     jest.mocked(selectIsSwapsEnabled).mockReset();
   });
 
-  it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders without crashing', () => {
+    const { getByTestId } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} />,
       { state: initialRootState },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeOnTheScreen();
   });
 
   it('renders correctly with all buttons displayed', () => {

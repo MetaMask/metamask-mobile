@@ -1,5 +1,5 @@
 import { BridgeStatusControllerMessenger } from '@metamask/bridge-status-controller';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
+import { RootMessenger } from '../../types';
 import {
   Messenger,
   MessengerActions,
@@ -9,43 +9,39 @@ import {
 /**
  * Get the BridgeControllerMessenger for the BridgeController.
  *
- * @param rootExtendedMessenger - The base controller messenger.
+ * @param rootMessenger - The root messenger.
  * @returns The BridgeControllerMessenger.
  */
 export function getBridgeStatusControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
-): BridgeStatusControllerMessenger {
-  const messenger = new Messenger<
-    'BridgeStatusController',
+  rootMessenger: RootMessenger<
     MessengerActions<BridgeStatusControllerMessenger>,
-    MessengerEvents<BridgeStatusControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<BridgeStatusControllerMessenger>
+  >,
+): BridgeStatusControllerMessenger {
+  const messenger: BridgeStatusControllerMessenger = new Messenger({
     namespace: 'BridgeStatusController',
-    parent: rootExtendedMessenger,
+    parent: rootMessenger,
   });
-  rootExtendedMessenger.delegate({
+  rootMessenger.delegate({
     actions: [
       'AccountsController:getAccountByAddress',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getState',
       'KeyringController:signTypedMessage',
+      'BridgeController:getState',
       'BridgeController:stopPollingForQuotes',
       'BridgeController:trackUnifiedSwapBridgeEvent',
-      'GasFeeController:getState',
       'SnapController:handleRequest',
       'TransactionController:getState',
       'AuthenticationController:getBearerToken',
+      'RemoteFeatureFlagController:getState',
       'TransactionController:addTransaction',
       'TransactionController:updateTransaction',
       'TransactionController:estimateGasFee',
       'TransactionController:isAtomicBatchSupported',
     ],
-    events: [
-      'TransactionController:transactionConfirmed',
-      'TransactionController:transactionFailed',
-    ],
+    events: ['TransactionController:transactionStatusUpdated'],
     messenger,
   });
   return messenger;

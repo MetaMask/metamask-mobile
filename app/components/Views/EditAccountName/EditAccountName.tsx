@@ -7,7 +7,8 @@ import {
   ParamListBase,
 } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { InteractionManager, SafeAreaView } from 'react-native';
+import { InteractionManager } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // External dependencies
 import { InternalAccount } from '@metamask/keyring-internal-api';

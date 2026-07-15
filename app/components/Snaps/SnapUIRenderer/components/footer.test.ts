@@ -1,7 +1,7 @@
 import { ButtonElement, FooterElement } from '@metamask/snaps-sdk/jsx';
 import { footer, DEFAULT_FOOTER } from './footer';
 import { mockTheme } from '../../../../util/theme';
-import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import { ButtonVariant } from '@metamask/design-system-react-native';
 
 describe('footer', () => {
   const mockT = (value: string) => `translated_${value}`;
@@ -60,7 +60,7 @@ describe('footer', () => {
             name: undefined,
             onCancel: undefined,
             type: undefined,
-            variant: 'Primary',
+            variant: 'primary',
           },
           children: [
             {
@@ -102,7 +102,7 @@ describe('footer', () => {
       props: {
         isSnapAction: false,
         onCancel: mockOnCancel,
-        variant: 'Secondary',
+        variant: 'secondary',
       },
       children: 'translated_template_confirmation.cancel',
     });
@@ -124,11 +124,11 @@ describe('footer', () => {
     expect(Array.isArray(result.children)).toBe(true);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result.children as any[])[0].props.variant).toBe(
-      ButtonVariants.Secondary,
+      ButtonVariant.Secondary,
     );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result.children as any[])[1].props.variant).toBe(
-      ButtonVariants.Primary,
+      ButtonVariant.Primary,
     );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((result.children as any[])[0].props.isSnapAction).toBe(true);

@@ -1,7 +1,7 @@
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { Assertions } from '../../framework';
+import { Assertions, EncapsulatedElementType } from '../../framework';
 
 /**
  * Page Object for the DeFi full view screen.
@@ -10,14 +10,14 @@ import { Assertions } from '../../framework';
  */
 class DefiView {
   /** Main container wrapping the DeFi positions list and control bar */
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
     );
   }
 
   /** Network filter button ("Popular networks" with chevron) */
-  get networkFilter(): DetoxElement {
+  get networkFilter(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
     );

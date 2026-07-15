@@ -27,7 +27,7 @@ const PopularNetworksList = {
     providerConfig: {
       type: 'rpc',
       chainId: toHex('324'),
-      rpcUrl: `https://mainnet.era.zksync.io`,
+      rpcUrl: `https://zksync-mainnet.infura.io/v3/${infuraProjectId}`,
       nickname: 'zkSync Era Mainnet',
       ticker: 'FTM',
     },
@@ -192,7 +192,7 @@ const CustomNetworks = {
       rpcUrl: 'https://sei-mainnet.infura.io',
       nickname: 'Sei Testnet',
       ticker: 'SEI',
-      BlockExplorerUrl: 'https://seitrace.com/',
+      BlockExplorerUrl: 'https://seiscan.io/',
     },
   },
 };

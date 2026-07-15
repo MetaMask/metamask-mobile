@@ -21,7 +21,8 @@ interface UsePerpsOrderValidationParams {
   orderForm: OrderFormState;
   positionSize: string;
   assetPrice: number;
-  availableBalance: number;
+  /** Max USD that can collateralize a new position (mirrors AccountState.spendableBalance). */
+  spendableBalance: number;
   marginRequired: string;
   existingPositionLeverage?: number;
   skipValidation?: boolean;
@@ -53,7 +54,7 @@ export function usePerpsOrderValidation(
     orderForm,
     positionSize,
     assetPrice,
-    availableBalance,
+    spendableBalance,
     marginRequired,
     existingPositionLeverage,
     skipValidation,
@@ -92,11 +93,11 @@ export function usePerpsOrderValidation(
 
     // Balance validation (immediate)
     const requiredMargin = Number.parseFloat(marginRequired);
-    if (requiredMargin > availableBalance) {
+    if (requiredMargin > spendableBalance) {
       immediateErrors.push(
         strings('perps.order.validation.insufficient_balance', {
           required: marginRequired,
-          available: availableBalance.toString(),
+          available: spendableBalance.toString(),
         }),
       );
     }
@@ -228,7 +229,7 @@ export function usePerpsOrderValidation(
     orderForm.type,
     positionSize,
     assetPrice,
-    availableBalance,
+    spendableBalance,
     marginRequired,
     existingPositionLeverage,
     originalUsdAmount,

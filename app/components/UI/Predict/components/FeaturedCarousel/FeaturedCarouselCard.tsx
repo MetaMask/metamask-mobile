@@ -27,7 +27,7 @@ import {
 import { formatPercentage } from '../../utils/format';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { usePredictNavigation } from '../../hooks/usePredictNavigation';
+import { usePredictPreviewSheet } from '../../contexts';
 import FeaturedCarouselSportCard from './FeaturedCarouselSportCard';
 import FeaturedCarouselCardFooter from './FeaturedCarouselCardFooter';
 import FeaturedCarouselPayoutRow from './FeaturedCarouselPayoutRow';
@@ -48,7 +48,7 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
   const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { navigateToBuyPreview } = usePredictNavigation();
+  const { openBuySheet } = usePredictPreviewSheet();
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
 
   const handleCardPress = useCallback(() => {
@@ -67,20 +67,17 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
     (outcome: PredictOutcome, token: PredictOutcomeToken) => {
       executeGuardedAction(
         () => {
-          navigateToBuyPreview(
-            {
-              market,
-              outcome,
-              outcomeToken: token,
-              entryPoint,
-            },
-            { throughRoot: true },
-          );
+          openBuySheet({
+            market,
+            outcome,
+            outcomeToken: token,
+            entryPoint,
+          });
         },
         { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT },
       );
     },
-    [market, entryPoint, executeGuardedAction, navigateToBuyPreview],
+    [market, entryPoint, executeGuardedAction, openBuySheet],
   );
 
   if (market.game) {
@@ -93,8 +90,39 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
     );
   }
 
-  const displayOutcomes = market.outcomes.slice(0, 2);
-  const remainingOptions = Math.max(0, market.outcomes.length - 2);
+  const isBinaryMarket =
+    market.outcomes.length === 1 && market.outcomes[0].tokens.length >= 2;
+
+  interface DisplayItem {
+    key: string;
+    label: string;
+    outcome: PredictOutcome;
+    token: PredictOutcomeToken;
+  }
+
+  const displayItems: DisplayItem[] = isBinaryMarket
+    ? market.outcomes[0].tokens.slice(0, 2).map((token) => ({
+        key: token.id,
+        label: token.title,
+        outcome: market.outcomes[0],
+        token,
+      }))
+    : market.outcomes.slice(0, 2).reduce<DisplayItem[]>((acc, outcome) => {
+        const token = outcome.tokens[0];
+        if (token) {
+          acc.push({
+            key: outcome.id,
+            label: outcome.groupItemTitle || outcome.title,
+            outcome,
+            token,
+          });
+        }
+        return acc;
+      }, []);
+
+  const remainingOptions = isBinaryMarket
+    ? 0
+    : Math.max(0, market.outcomes.length - 2);
   const totalVolume = calculateTotalVolume(market.outcomes);
 
   const formattedEndDate = market.endDate
@@ -140,17 +168,15 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
             justifyContent={BoxJustifyContent.Center}
             twClassName="gap-6"
           >
-            {displayOutcomes.map((outcome, outcomeIdx) => {
-              const token = outcome.tokens[0];
-              if (!token) return null;
-              const percentage = Math.round(token.price * 100);
+            {displayItems.map((item, itemIdx) => {
+              const percentage = Math.round(item.token.price * 100);
 
               return (
                 <Box
-                  key={outcome.id}
+                  key={item.key}
                   testID={FEATURED_CAROUSEL_TEST_IDS.CARD_OUTCOME(
                     index,
-                    outcomeIdx,
+                    itemIdx,
                   )}
                   alignItems={BoxAlignItems.Center}
                   twClassName="flex-1"
@@ -161,18 +187,18 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
                     color={TextColor.TextDefault}
                     numberOfLines={1}
                   >
-                    {outcome.groupItemTitle || outcome.title}
+                    {item.label}
                   </Text>
 
-                  <FeaturedCarouselPayoutRow price={token.price} />
+                  <FeaturedCarouselPayoutRow price={item.token.price} />
 
                   <Box twClassName="w-full mt-2">
                     <Button
                       testID={FEATURED_CAROUSEL_TEST_IDS.CARD_BUY_BUTTON(
                         index,
-                        outcomeIdx,
+                        itemIdx,
                       )}
-                      onPress={() => handleBuy(outcome, token)}
+                      onPress={() => handleBuy(item.outcome, item.token)}
                       twClassName="bg-success-muted"
                       isFullWidth
                       size={ButtonBaseSize.Lg}

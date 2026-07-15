@@ -1,14 +1,12 @@
 import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../util/Logger';
-import { ensureError } from '../../../../util/errorUtils';
 import { usePerpsTrading } from './usePerpsTrading';
 import {
   getPerpsDisplaySymbol,
-  PERPS_CONSTANTS,
   type Position,
   type OrderDirection,
+  type TrackingData,
 } from '@metamask/perps-controller';
 import usePerpsToasts from './usePerpsToasts';
 
@@ -31,7 +29,7 @@ export function usePerpsFlipPosition(options?: UsePerpsFlipPositionOptions) {
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const handleFlipPosition = useCallback(
-    async (position: Position) => {
+    async (position: Position, trackingData?: TrackingData) => {
       setIsFlipping(true);
       DevLogger.log('usePerpsFlipPosition: Setting isFlipping to true');
 
@@ -46,6 +44,7 @@ export function usePerpsFlipPosition(options?: UsePerpsFlipPositionOptions) {
         const result = await flipPosition({
           symbol: position.symbol,
           position,
+          trackingData,
         });
 
         if (result.success) {
@@ -80,34 +79,6 @@ export function usePerpsFlipPosition(options?: UsePerpsFlipPositionOptions) {
         }
       } catch (error) {
         DevLogger.log('Error flipping position:', error);
-
-        Logger.error(ensureError(error, 'usePerpsFlipPosition.handle'), {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            component: 'usePerpsFlipPosition',
-            action: 'flip_position',
-            operation: 'position_management',
-          },
-          context: {
-            name: 'usePerpsFlipPosition',
-            data: {
-              symbol: position.symbol,
-              size: position.size,
-              currentDirection,
-              targetDirection: oppositeDirection,
-              positionSize,
-              entryPrice: position.entryPrice,
-              unrealizedPnl: position.unrealizedPnl,
-              leverage: position.leverage,
-              rawError:
-                error instanceof Error
-                  ? undefined
-                  : error === undefined
-                    ? 'undefined'
-                    : String(error),
-            },
-          },
-        });
 
         const errorMessage =
           error instanceof Error

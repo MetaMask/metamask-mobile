@@ -119,8 +119,6 @@ const mockBTCAccount: InternalAccount = {
     },
     snap: {
       id: 'npm:"@metamask/bitcoin-wallet-snap',
-      name: 'Bitcoin Wallet Snap',
-      enabled: true,
     },
   },
   options: {},
@@ -142,8 +140,6 @@ const mockSolAccount: InternalAccount = {
     },
     snap: {
       id: 'npm:"@metamask/solana-wallet-snap',
-      name: 'Solana Wallet Snap',
-      enabled: true,
     },
   },
   scopes: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet],

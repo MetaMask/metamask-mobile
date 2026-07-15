@@ -2,6 +2,7 @@
 import { randomUUID } from 'node:crypto';
 import { createLogger } from '../../../framework/logger';
 import type { MetricsOutput } from '../../PerformanceTracker';
+import type { ProfilingSummary } from '../../types';
 
 const logger = createLogger({ name: 'PerformanceSentryPublisher' });
 
@@ -21,6 +22,14 @@ const MAX_MEASUREMENT_KEY_LENGTH = 64;
 const RESERVED_MEASUREMENT_KEYS = [
   'scenario_total_time_ms',
   'scenario_total_threshold_ms',
+  'bs_session_creation_ms',
+  'profiling_slow_frames_pct',
+  'profiling_frozen_frames_pct',
+  'profiling_anrs',
+  'profiling_cpu_avg_pct',
+  'profiling_cpu_max_pct',
+  'profiling_memory_avg_mb',
+  'profiling_memory_max_mb',
 ] as const;
 
 interface PublishPerformanceScenarioOptions {
@@ -33,6 +42,9 @@ interface PublishPerformanceScenarioOptions {
   retry?: number;
   workerIndex?: number;
   videoRecordingUrl?: string | null;
+  profilingSummary?: ProfilingSummary | null;
+  /** Unix epoch seconds. When provided, anchors the transaction to the actual test end time instead of the moment the publish call is made. */
+  testEndTimestamp?: number;
 }
 
 interface ParsedSentryDsn {
@@ -55,7 +67,7 @@ interface TimerMeasurement {
 
 interface SentryMeasurement {
   value: number;
-  unit: 'millisecond';
+  unit: 'millisecond' | 'none' | 'percent' | 'megabyte';
 }
 
 interface MirroredScenarioAttributes {
@@ -215,7 +227,10 @@ function getGithubJobUrl(): string | null {
 export async function publishPerformanceScenarioToSentry(
   options: PublishPerformanceScenarioOptions,
 ): Promise<boolean> {
-  if (options.metrics.steps.length === 0) {
+  if (
+    options.metrics.steps.length === 0 &&
+    options.metrics.appSizeMb === undefined
+  ) {
     return false;
   }
 
@@ -251,7 +266,7 @@ export async function publishPerformanceScenarioToSentry(
   const transactionSpanId = createHexId(16);
 
   const totalDurationMs = Math.round(options.metrics.total * 1000);
-  const endTimestamp = Date.now() / 1000;
+  const endTimestamp = options.testEndTimestamp ?? Date.now() / 1000;
   const startTimestamp = endTimestamp - totalDurationMs / 1000;
 
   const usedMeasurementKeys = new Set<string>(RESERVED_MEASUREMENT_KEYS);
@@ -286,6 +301,56 @@ export async function publishPerformanceScenarioToSentry(
     measurements.scenario_total_threshold_ms = {
       value: options.metrics.totalThreshold,
       unit: 'millisecond',
+    };
+  }
+
+  if (options.metrics.sessionCreationDurationMs !== undefined) {
+    measurements.bs_session_creation_ms = {
+      value: options.metrics.sessionCreationDurationMs,
+      unit: 'millisecond',
+    };
+  }
+
+  if (options.metrics.appSizeMb !== undefined) {
+    measurements.app_size_mb = {
+      value: options.metrics.appSizeMb,
+      unit: 'megabyte',
+    };
+  }
+
+  if (options.profilingSummary?.uiRendering) {
+    const { slowFrames, frozenFrames, anrs } =
+      options.profilingSummary.uiRendering;
+    measurements.profiling_slow_frames_pct = {
+      value: slowFrames,
+      unit: 'percent',
+    };
+    measurements.profiling_frozen_frames_pct = {
+      value: frozenFrames,
+      unit: 'percent',
+    };
+    measurements.profiling_anrs = { value: anrs, unit: 'none' };
+  }
+
+  if (options.profilingSummary?.cpu) {
+    measurements.profiling_cpu_avg_pct = {
+      value: options.profilingSummary.cpu.avg,
+      unit: 'percent',
+    };
+    measurements.profiling_cpu_max_pct = {
+      value: options.profilingSummary.cpu.max,
+      unit: 'percent',
+    };
+  }
+
+  if (options.profilingSummary?.memory) {
+    measurements.profiling_memory_avg_mb = {
+      value: options.profilingSummary.memory.avg,
+      unit: 'megabyte',
+    };
+    measurements.profiling_memory_max_mb = {
+      value: options.profilingSummary.memory.max,
+      unit: 'megabyte',
     };
   }
 
@@ -373,7 +438,7 @@ export async function publishPerformanceScenarioToSentry(
       },
     },
     tags: {
-      source: 'appwright-e2e-performance',
+      source: 'playwright-e2e-performance',
       project_name: mirroredScenarioAttributes.project_name,
       provider: mirroredScenarioAttributes.provider,
       team_id: mirroredScenarioAttributes.team_id,
@@ -398,6 +463,8 @@ export async function publishPerformanceScenarioToSentry(
       total_threshold_ms: options.metrics.totalThreshold,
       total_validation: options.metrics.totalValidation,
       timer_steps: timerMeasurements,
+      bs_session_creation_ms: options.metrics.sessionCreationDurationMs ?? null,
+      profiling_summary: options.profilingSummary ?? null,
       sentry_project_id: parsedDsn.projectId,
     },
   };
@@ -418,7 +485,7 @@ export async function publishPerformanceScenarioToSentry(
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-sentry-envelope',
-        'User-Agent': 'metamask-mobile-appwright-performance',
+        'User-Agent': 'metamask-mobile-playwright-performance',
       },
       body: envelope,
     });

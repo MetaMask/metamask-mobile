@@ -19,11 +19,11 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   PredictMarket as PredictMarketType,
   PredictOutcomeToken,
+  type PredictMarketBuyButtonPress,
 } from '../../types';
 import {
   PredictNavigationParamList,
@@ -32,8 +32,9 @@ import {
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
 import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint } from '../../contexts';
-import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import { usePredictPreviewSheet } from '../../contexts';
+import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 interface SemiCircleYesPercentageProps {
   percentage: number;
@@ -129,29 +130,34 @@ interface PredictMarketSingleProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
+  cardPressDisabled?: boolean;
+  /** Called synchronously before the card's navigation press fires. */
+  onCardPress?: () => void;
+  /** Called when the user taps a buy button (before betslip opens). */
+  onBuyButtonPress?: PredictMarketBuyButtonPress;
+  predictFeedTab?: string;
+  predictScreen?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   market,
   testID,
+  cardPressDisabled,
   entryPoint: propEntryPoint,
   isCarousel = false,
+  onCardPress,
+  onBuyButtonPress,
+  predictFeedTab,
+  predictScreen,
+  transactionActiveAbTests,
 }) => {
-  const contextEntryPoint = usePredictEntryPoint();
-  const baseEntryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
-
-  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
-    .isFromTrending
-    ? PredictEventValues.ENTRY_POINT.TRENDING
-    : baseEntryPoint;
+  const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
 
   const outcome = market.outcomes[0];
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { navigateToBuyPreview } = usePredictNavigation();
+  const { openBuySheet } = usePredictPreviewSheet();
   const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
 
@@ -186,17 +192,25 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const yesPercentage = getYesPercentage();
 
   const handleBuy = (token: PredictOutcomeToken) => {
+    const handledExternally =
+      onBuyButtonPress?.({ market, outcome, outcomeToken: token }) === true;
+    if (handledExternally) {
+      return;
+    }
+
     executeGuardedAction(
       () => {
-        navigateToBuyPreview(
-          {
-            market,
-            outcome,
-            outcomeToken: token,
-            entryPoint: resolvedEntryPoint,
-          },
-          { throughRoot: true },
-        );
+        openBuySheet({
+          market,
+          outcome,
+          outcomeToken: token,
+          entryPoint: resolvedEntryPoint,
+          ...(predictFeedTab && { predictFeedTab }),
+          ...(predictScreen && { predictScreen }),
+          ...(transactionActiveAbTests?.length && {
+            transactionActiveAbTests,
+          }),
+        });
       },
       {
         attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
@@ -208,13 +222,23 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
     <TouchableOpacity
       testID={testID}
       onPress={() => {
+        if (cardPressDisabled) {
+          return;
+        }
+
+        onCardPress?.();
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {
             marketId: market.id,
             entryPoint: resolvedEntryPoint,
+            ...(predictFeedTab && { predictFeedTab }),
+            ...(predictScreen && { predictScreen }),
             title: market.title,
             image: getImageUrl(),
+            ...(transactionActiveAbTests?.length && {
+              transactionActiveAbTests,
+            }),
           },
         });
       }}

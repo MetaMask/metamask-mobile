@@ -9,21 +9,31 @@ import {
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { TransactionPayTotals } from '@metamask/transaction-pay-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 
 const TOTAL_FIAT_MOCK = '$123.46';
 
-function render() {
-  return renderWithProvider(<TotalRow />, {
-    state: merge(
-      {},
-      simpleSendTransactionControllerMock,
-      transactionApprovalControllerMock,
-      otherControllersMock,
-    ),
-  });
+function render(options: { type?: TransactionType } = {}) {
+  const state = merge(
+    {},
+    simpleSendTransactionControllerMock,
+    transactionApprovalControllerMock,
+    otherControllersMock,
+    options.type && {
+      engine: {
+        backgroundState: {
+          TransactionController: {
+            transactions: [{ type: options.type }],
+          },
+        },
+      },
+    },
+  );
+
+  return renderWithProvider(<TotalRow />, { state });
 }
 
 describe('TotalRow', () => {
@@ -53,5 +63,14 @@ describe('TotalRow', () => {
     const { getByTestId } = render();
 
     expect(getByTestId('total-row-skeleton')).toBeDefined();
+  });
+
+  it('renders nothing for musd conversion transactions', () => {
+    const { queryByTestId, queryByText } = render({
+      type: TransactionType.musdConversion,
+    });
+
+    expect(queryByTestId('total-row')).toBeNull();
+    expect(queryByText(TOTAL_FIAT_MOCK)).toBeNull();
   });
 });

@@ -2,6 +2,7 @@ import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-s
 import {
   performSignIn,
   performSignOut,
+  requestProfilePairing,
   setIsBackupAndSyncFeatureEnabled,
   syncContactsWithUserStorage,
 } from '.';
@@ -13,6 +14,7 @@ jest.mock('../../core/Engine', () => ({
     AuthenticationController: {
       performSignIn: jest.fn(),
       performSignOut: jest.fn(),
+      requestProfilePairing: jest.fn(),
     },
     UserStorageController: {
       setIsBackupAndSyncFeatureEnabled: jest.fn(),
@@ -36,6 +38,29 @@ describe('Identity actions', () => {
     expect(
       Engine.context.AuthenticationController.performSignIn,
     ).toHaveBeenCalled();
+  });
+
+  it('requests profile pairing successfully', () => {
+    (
+      Engine.context.AuthenticationController.requestProfilePairing as jest.Mock
+    ).mockReturnValue(undefined);
+
+    const result = requestProfilePairing();
+
+    expect(
+      Engine.context.AuthenticationController.requestProfilePairing,
+    ).toHaveBeenCalled();
+    expect(result).toBeUndefined();
+  });
+
+  it('returns the error message if requestProfilePairing throws', () => {
+    (
+      Engine.context.AuthenticationController.requestProfilePairing as jest.Mock
+    ).mockImplementation(() => {
+      throw new Error('boom');
+    });
+
+    expect(requestProfilePairing()).toBe('boom');
   });
 
   it('signs out successfully', () => {

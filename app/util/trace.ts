@@ -13,6 +13,7 @@ import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
 import { AGREED, METRICS_OPT_IN } from '../constants/storage';
 import StorageWrapper from '../store/storage-wrapper';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
 const projectLogger = createProjectLogger('sentry');
@@ -62,6 +63,12 @@ export enum TraceName {
   EvmDiscoverAccounts = 'EVM Discover Accounts',
   SnapDiscoverAccounts = 'Snap Discover Accounts',
   FetchHistoricalPrices = 'Fetch Historical Prices',
+  CryptoUpDownWsMessage = 'Crypto Up Down WS Message',
+  CryptoUpDownBufferFlush = 'Crypto Up Down Buffer Flush',
+  /** Token overview advanced chart: skeleton cleared after initial load / asset or currency change. */
+  TokenOverviewAdvancedChartInitialVisible = 'Token Overview Advanced Chart Initial Visible',
+  /** Token overview advanced chart: skeleton cleared after time range selector change only. */
+  TokenOverviewAdvancedChartTimeRangeVisible = 'Token Overview Advanced Chart Time Range Visible',
   TransactionConfirmed = 'Transaction Confirmed',
   LoadCollectibles = 'Load Collectibles',
   DetectNfts = 'Detect Nfts',
@@ -171,6 +178,33 @@ export enum TraceName {
   PerpsAccountSwitchReconnection = 'Perps Account Switch Reconnection',
   PerpsMarketDataPreload = 'Perps Market Data Preload',
   PerpsUserDataPreload = 'Perps User Data Preload',
+  /** Perps advanced chart: skeleton cleared after initial load or symbol/interval change. */
+  PerpsAdvancedChartInitialVisible = 'Perps Advanced Chart Initial Visible',
+  /** Perps advanced chart: skeleton cleared after interval change only. */
+  PerpsAdvancedChartIntervalVisible = 'Perps Advanced Chart Interval Visible',
+  // Perps user-perceived CUF spans: gesture/open -> render with live data
+  /** Tap/open -> Perps market list rendered with live prices. */
+  PerpsEntryToLiveMarketList = 'Perps Entry To Live Market List',
+  /** Market route open -> stats + chart + top-of-book live. */
+  PerpsMarketDetailLive = 'Perps Market Detail Live',
+  /** Market detail -> order form ready with current price + account state. */
+  PerpsTradePageRender = 'Perps Trade Page Render',
+  /** Order submit tap -> matching position rendered from the live stream. */
+  PerpsPlaceOrderToPositionRendered = 'Perps Place Order To Position Rendered',
+  /** Limit order submit tap -> resting order rendered in the live orders stream. */
+  PerpsPlaceLimitOrderToOrderRendered = 'Perps Place Limit Order To Order Rendered',
+  /** Close confirm tap -> position absent/reduced in the live stream. */
+  PerpsClosePositionToConfirmation = 'Perps Close Position To Confirmation',
+  /** Cancel tap -> order absent from the live stream. */
+  PerpsCancelOrderToConfirmation = 'Perps Cancel Order To Confirmation',
+  /** TP/SL submit -> updated values visible in the live stream. */
+  PerpsUpdateTPSLToConfirmation = 'Perps Update TPSL To Confirmation',
+  /** WebSocket price subscription -> first price delivered. */
+  PerpsWebSocketFirstPrice = 'Perps WebSocket First Price',
+  /** WebSocket top-of-book subscription -> first book delivered. */
+  PerpsWebSocketFirstOrderBook = 'Perps WebSocket First Order Book',
+  /** Reconnect start -> first fresh positions delivered. */
+  PerpsWebSocketReconnectToFreshData = 'Perps WebSocket Reconnect To Fresh Data',
   // Predict
   PredictFeedView = 'Predict Feed View',
   PredictMarketDetailsView = 'Predict Market Details View',
@@ -178,7 +212,6 @@ export enum TraceName {
   PredictSellPreviewView = 'Predict Sell Preview View',
   PredictActivityDetailView = 'Predict Activity Detail View',
   PredictTransactionHistoryView = 'Predict Transaction History View',
-  PredictTabView = 'Predict Tab View',
   PredictAddFundsModal = 'Predict Add Funds Modal',
   PredictUnavailableModal = 'Predict Unavailable Modal',
   PredictOrderSubmissionToast = 'Predict Order Submission Toast',
@@ -195,14 +228,18 @@ export enum TraceName {
 
   // Predict Data Fetches
   PredictGetMarkets = 'Predict Get Markets',
+  PredictListMarkets = 'Predict List Markets',
+  PredictListFilterOptions = 'Predict List Filter Options',
   PredictGetMarket = 'Predict Get Market',
   PredictGetPositions = 'Predict Get Positions',
   PredictGetActivity = 'Predict Get Activity',
   PredictGetBalance = 'Predict Get Balance',
   PredictGetAccountState = 'Predict Get Account State',
   PredictGetPriceHistory = 'Predict Get Price History',
+  PredictGetCryptoPriceHistory = 'Predict Get Crypto Price History',
   PredictGetPrices = 'Predict Get Prices',
   PredictGetUnrealizedPnL = 'Predict Get Unrealized PnL',
+  PredictGetCryptoTargetPrice = 'Predict Get Crypto Target Price',
   // mUSD Conversion
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',
@@ -214,6 +251,10 @@ export enum TraceName {
   // Homepage Section Performance
   HomepageSectionTimeToContent = 'Homepage Section Time To Content',
   HomepageSectionDataFetch = 'Homepage Section Data Fetch',
+  // Money Home Performance
+  MoneyHomeTimeToContent = 'Money Home Time To Content',
+  MoneyHomeBalanceTimeToContent = 'Money Home Balance Time To Content',
+  MoneyHomeActivityTimeToContent = 'Money Home Activity Time To Content',
 }
 
 export enum TraceOperation {
@@ -255,6 +296,10 @@ export enum TraceOperation {
   PerpsMarketData = 'perps.market_data',
   PerpsOrderSubmission = 'perps.order_submission',
   PerpsPositionManagement = 'perps.position_management',
+  /** Perps advanced chart: initial load or symbol/interval change */
+  PerpsAdvancedChart = 'perps.advanced_chart',
+  /** Perps advanced chart: interval change only */
+  PerpsAdvancedChartInterval = 'perps.advanced_chart_interval',
   // Predict
   PredictOperation = 'predict.operation',
   PredictOrderSubmission = 'predict.order_submission',
@@ -267,6 +312,12 @@ export enum TraceOperation {
   MarketInsightsViewportTracking = 'market_insights.viewport_tracking',
   // Homepage Section Performance
   HomepageSectionPerformance = 'homepage.section.performance',
+  // Money Home Performance
+  MoneyHomePerformance = 'money.home.performance',
+  /** Token overview OHLCV WebView: initial load or asset/currency change */
+  TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
+  /** Token overview OHLCV WebView: time range change only */
+  TokenOverviewAdvancedChartTimeRange = 'token_overview.advanced_chart_time_range',
 }
 
 const ID_DEFAULT = 'default';
@@ -542,9 +593,32 @@ export async function flushBufferedTraces() {
 let cachedConsent: boolean | null = null;
 
 /**
- * Check if user has given consent for metrics
+ * Check if user has given consent for metrics (for Sentry init).
+ * Reads from AnalyticsController's persisted state in FilesystemStorage.
+ *
+ * This bypasses Engine/Redux because Sentry initializes in index.js before they're available.
+ * Follows the same pattern as ControllerStorage.getAllPersistedState() in persistConfig.
  */
 export async function hasMetricsConsent(): Promise<boolean> {
+  try {
+    // Read directly from AnalyticsController's persisted state (same as ControllerStorage does)
+    const persistedData = await FilesystemStorage.getItem(
+      'persist:AnalyticsController',
+    );
+    if (persistedData) {
+      const parsed = JSON.parse(persistedData);
+      // Remove redux-persist metadata and get controller state
+      const { _persist, ...controllerState } = parsed;
+      if (typeof controllerState?.optedIn === 'boolean') {
+        cachedConsent = controllerState.optedIn;
+        return controllerState.optedIn;
+      }
+    }
+  } catch {
+    // Fall through to legacy storage
+  }
+
+  // Fallback: legacy METRICS_OPT_IN (migration 108, may be stale)
   const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
   const hasConsent = metricsOptIn === AGREED;
   cachedConsent = hasConsent;

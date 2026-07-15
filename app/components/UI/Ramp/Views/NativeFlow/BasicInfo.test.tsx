@@ -1,27 +1,24 @@
 import React from 'react';
 import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
+import { TransakApiError } from '@metamask/ramps-controller';
 import V2BasicInfo from './BasicInfo';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
 const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
-    setOptions: mockSetOptions,
+    goBack: mockGoBack,
   }),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
   I18nEvents: { addListener: jest.fn() },
-}));
-
-jest.mock('../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn(() => ({})),
 }));
 
 const mockUseParamsReturn = {
@@ -43,6 +40,7 @@ const mockLogoutFromProvider = jest.fn();
 let mockUserRegion: unknown = {
   country: {
     isoCode: 'US',
+    name: 'United States',
     currency: 'USD',
     flag: '🇺🇸',
     phone: {
@@ -54,11 +52,63 @@ let mockUserRegion: unknown = {
   regionCode: 'us-ca',
 };
 
+const mockUnitedStatesCountry = {
+  isoCode: 'US',
+  name: 'United States',
+  currency: 'USD',
+  flag: '🇺🇸',
+  supported: { buy: true, sell: true },
+  phone: {
+    prefix: '+1',
+    placeholder: '(XXX) XXX-XXXX',
+    template: 'XXX-XXX-XXXX',
+  },
+};
+
+const mockPortugalCountry = {
+  isoCode: 'PT',
+  name: 'Portugal',
+  currency: 'EUR',
+  flag: '🇵🇹',
+  supported: { buy: true, sell: true },
+  phone: {
+    prefix: '+351',
+    placeholder: 'XXX XXX XXX',
+    template: 'XXX-XXX-XXX',
+  },
+};
+
+const mockUnitedKingdomCountry = {
+  isoCode: 'GB',
+  name: 'United Kingdom',
+  currency: 'GBP',
+  flag: '🇬🇧',
+  supported: { buy: true, sell: true },
+  phone: {
+    prefix: '+44',
+    placeholder: 'XXXX XXX XXXX',
+    template: 'XXXX-XXX-XXXX',
+  },
+};
+
+let mockCountries = [
+  mockUnitedStatesCountry,
+  mockPortugalCountry,
+  mockUnitedKingdomCountry,
+];
+
 jest.mock('../../hooks/useTransakController', () => ({
   useTransakController: () => ({
     logoutFromProvider: mockLogoutFromProvider,
     patchUser: mockPatchUser,
     submitSsnDetails: mockSubmitSsnDetails,
+  }),
+}));
+
+jest.mock('../../hooks/useRampsController', () => ({
+  __esModule: true,
+  default: () => ({
+    selectedToken: { assetId: 'eip155:1/erc20:0xmock' },
   }),
 }));
 
@@ -68,22 +118,42 @@ jest.mock('../../hooks/useRampsUserRegion', () => ({
   }),
 }));
 
+jest.mock('../../hooks/useRampsCountries', () => ({
+  useRampsCountries: () => ({
+    countries: mockCountries,
+    isLoading: false,
+    error: null,
+  }),
+}));
+
 const mockTrackEvent = jest.fn();
 jest.mock('../../hooks/useAnalytics', () => ({
   __esModule: true,
   default: () => mockTrackEvent,
 }));
 
+const createTransakPhoneRegisteredError = (apiMessage: string) =>
+  new TransakApiError(
+    400,
+    `Fetching 'https://api.transak.com/api/v2/kyc/user' failed with status '400': {"error":{"errorCode":2020,"message":"${apiMessage}"}}`,
+    '2020',
+    apiMessage,
+  );
+
+const transakPhoneRegisteredError = createTransakPhoneRegisteredError(
+  'Phone registered with t***@test.com',
+);
+
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../Deposit/utils', () => ({
+jest.mock('../../utils/depositUtils', () => ({
   timestampToTransakFormat: (ts: string) => (ts ? '1990-01-01' : ''),
   generateThemeParameters: jest.fn(() => ({})),
 }));
 
-jest.mock('../../Deposit/constants/constants', () => ({
+jest.mock('../../constants/transak', () => ({
   VALIDATION_REGEX: {
     firstName: /^[a-zA-Z\s'-]+$/,
     lastName: /^[a-zA-Z\s'-]+$/,
@@ -92,14 +162,11 @@ jest.mock('../../Deposit/constants/constants', () => ({
   },
 }));
 
-jest.mock(
-  '../../Deposit/components/DepositPhoneField/formatNumberToTemplate',
-  () => ({
-    formatNumberToTemplate: (num: string) => num,
-  }),
-);
+jest.mock('../../utils/formatNumberToTemplate', () => ({
+  formatNumberToTemplate: (num: string) => num,
+}));
 
-jest.mock('../../Deposit/hooks/useForm', () => ({
+jest.mock('../../hooks/useForm', () => ({
   useForm: <T extends Record<string, string>>({
     initialFormData,
     validateForm,
@@ -150,9 +217,15 @@ describe('V2BasicInfo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParamsReturn.previousFormData = undefined;
+    mockCountries = [
+      mockUnitedStatesCountry,
+      mockPortugalCountry,
+      mockUnitedKingdomCountry,
+    ];
     mockUserRegion = {
       country: {
         isoCode: 'US',
+        name: 'United States',
         currency: 'USD',
         flag: '🇺🇸',
         phone: {
@@ -165,9 +238,12 @@ describe('V2BasicInfo', () => {
     };
   });
 
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(<V2BasicInfo />);
-    expect(toJSON()).toMatchSnapshot();
+  it('calls navigation.goBack when header back is pressed', () => {
+    const { getByTestId } = renderWithTheme(<V2BasicInfo />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('renders the form fields', () => {
@@ -175,6 +251,7 @@ describe('V2BasicInfo', () => {
 
     expect(getByTestId('first-name-input')).toBeOnTheScreen();
     expect(getByTestId('last-name-input')).toBeOnTheScreen();
+    expect(getByTestId('phone-input')).toBeOnTheScreen();
     expect(getByTestId('date-of-birth-input')).toBeOnTheScreen();
   });
 
@@ -201,7 +278,7 @@ describe('V2BasicInfo', () => {
 
     const { queryByTestId } = renderWithTheme(<V2BasicInfo />);
 
-    expect(queryByTestId('ssn-input')).toBeNull();
+    expect(queryByTestId('ssn-input')).not.toBeOnTheScreen();
   });
 
   it('renders the continue button', () => {
@@ -326,17 +403,7 @@ describe('V2BasicInfo', () => {
 
   it('handles phone registered error (errorCode 2020)', async () => {
     mockUseParamsReturn.previousFormData = validPreviousFormData;
-    mockPatchUser.mockRejectedValue({
-      response: {
-        data: {
-          error: {
-            errorCode: 2020,
-            message: 'Phone registered with t***@test.com',
-          },
-        },
-      },
-      message: 'Phone registered with t***@test.com',
-    });
+    mockPatchUser.mockRejectedValue(transakPhoneRegisteredError);
 
     const { getByTestId } = renderWithTheme(<V2BasicInfo />);
 
@@ -347,31 +414,88 @@ describe('V2BasicInfo', () => {
     });
 
     await waitFor(() => {
-      expect(mockPatchUser).toHaveBeenCalled();
+      expect(getByTestId('basic-info-logout-button')).toBeOnTheScreen();
     });
   });
 
   it('handles phone input changes', () => {
     const { getByTestId } = renderWithTheme(<V2BasicInfo />);
 
-    const phoneInput = getByTestId('first-name-input');
-    fireEvent.changeText(phoneInput, 'Jane');
-    expect(phoneInput).toBeOnTheScreen();
+    const phoneInput = getByTestId('phone-input');
+    fireEvent.changeText(phoneInput, '1234567890');
+    expect(phoneInput.props.value).toBe('1234567890');
+  });
+
+  it('opens phone country selector with countries and selected phone country', () => {
+    const { getByTestId } = renderWithTheme(<V2BasicInfo />);
+
+    fireEvent.press(getByTestId('phone-country-selector'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'MockRoute',
+      expect.objectContaining({
+        countries: mockCountries,
+        selectedCountry: expect.objectContaining({ isoCode: 'US' }),
+        onCountrySelect: expect.any(Function),
+      }),
+    );
+  });
+
+  it('updates only the phone country code when a new phone country is selected', async () => {
+    mockUserRegion = {
+      country: mockPortugalCountry,
+      regionCode: 'pt',
+    };
+    mockUseParamsReturn.previousFormData = {
+      ...validPreviousFormData,
+      mobileNumber: '+351912345678',
+      countryCode: 'PT',
+    };
+    mockPatchUser.mockResolvedValue({});
+
+    const { getByTestId, getByText } = renderWithTheme(<V2BasicInfo />);
+
+    fireEvent.press(getByTestId('phone-country-selector'));
+    act(() => {
+      const countrySelect = mockNavigate.mock.calls[0][1].onCountrySelect;
+      countrySelect(mockUnitedKingdomCountry);
+    });
+
+    expect(getByText('+44')).toBeOnTheScreen();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('continue-button'));
+    });
+
+    await waitFor(() => {
+      expect(mockPatchUser).toHaveBeenCalledWith({
+        personalDetails: expect.objectContaining({
+          mobileNumber: '+44912345678',
+        }),
+      });
+    });
+    expect(mockSubmitSsnDetails).not.toHaveBeenCalled();
+  });
+
+  it('initializes phone country from a prefilled phone prefix when it differs from user region', () => {
+    mockUserRegion = {
+      country: mockPortugalCountry,
+      regionCode: 'pt',
+    };
+    mockUseParamsReturn.previousFormData = {
+      ...validPreviousFormData,
+      mobileNumber: '+447123456789',
+      countryCode: 'PT',
+    };
+
+    const { getByText } = renderWithTheme(<V2BasicInfo />);
+
+    expect(getByText('+44')).toBeOnTheScreen();
   });
 
   it('calls logoutFromProvider when logout button is pressed', async () => {
     mockUseParamsReturn.previousFormData = validPreviousFormData;
-    mockPatchUser.mockRejectedValue({
-      response: {
-        data: {
-          error: {
-            errorCode: 2020,
-            message: 'Phone registered with t***@test.com',
-          },
-        },
-      },
-      message: 'Phone registered with t***@test.com',
-    });
+    mockPatchUser.mockRejectedValue(transakPhoneRegisteredError);
     mockLogoutFromProvider.mockResolvedValue(undefined);
 
     const { getByTestId } = renderWithTheme(<V2BasicInfo />);
@@ -383,7 +507,7 @@ describe('V2BasicInfo', () => {
     });
 
     await waitFor(() => {
-      expect(mockPatchUser).toHaveBeenCalled();
+      expect(getByTestId('basic-info-logout-button')).toBeOnTheScreen();
     });
 
     await act(async () => {
@@ -392,10 +516,14 @@ describe('V2BasicInfo', () => {
 
     await waitFor(() => {
       expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
+      expect(mockNavigate).toHaveBeenCalledWith('MockRoute', {
+        amount: '100',
+        assetId: 'eip155:1/erc20:0xmock',
+      });
     });
   });
 
-  it('matches snapshot for non-US region', () => {
+  it('does not render SSN field for non-US region (GB)', () => {
     mockUserRegion = {
       country: {
         isoCode: 'GB',
@@ -410,8 +538,9 @@ describe('V2BasicInfo', () => {
       regionCode: 'gb',
     };
 
-    const { toJSON } = renderWithTheme(<V2BasicInfo />);
-    expect(toJSON()).toMatchSnapshot();
+    const { queryByTestId, getByTestId } = renderWithTheme(<V2BasicInfo />);
+    expect(queryByTestId('ssn-input')).not.toBeOnTheScreen();
+    expect(getByTestId('first-name-input')).toBeOnTheScreen();
   });
 
   it('disables continue button while loading', async () => {
@@ -444,7 +573,7 @@ describe('V2BasicInfo', () => {
     });
   });
 
-  it('handles region with no phone prefix', () => {
+  it('renders form fields when region has no phone prefix', () => {
     mockUserRegion = {
       country: {
         isoCode: 'GB',
@@ -459,8 +588,9 @@ describe('V2BasicInfo', () => {
       regionCode: 'gb',
     };
 
-    const { toJSON } = renderWithTheme(<V2BasicInfo />);
-    expect(toJSON()).toMatchSnapshot();
+    const { getByTestId } = renderWithTheme(<V2BasicInfo />);
+    expect(getByTestId('first-name-input')).toBeOnTheScreen();
+    expect(getByTestId('last-name-input')).toBeOnTheScreen();
   });
 
   it('shows validation errors when fields are empty', async () => {
@@ -536,15 +666,8 @@ describe('V2BasicInfo', () => {
   it('handles phone registered error with extractable email', async () => {
     mockUseParamsReturn.previousFormData = validPreviousFormData;
     mockPatchUser.mockRejectedValue({
-      response: {
-        data: {
-          error: {
-            errorCode: 2020,
-            message: 'Phone already registered with user@example.com',
-          },
-        },
-      },
-      message: 'Phone already registered with user@example.com',
+      errorCode: '2020',
+      apiMessage: 'Phone already registered with user@example.com',
     });
 
     const { getByTestId } = renderWithTheme(<V2BasicInfo />);

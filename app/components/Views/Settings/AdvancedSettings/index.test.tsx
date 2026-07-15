@@ -70,13 +70,13 @@ jest.mock('../../../../core/Engine', () => {
 
 describe('AdvancedSettings', () => {
   it('should render correctly', () => {
-    const container = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <AdvancedSettings navigation={defaultNavigation} />,
       {
         state: initialState,
       },
     );
-    expect(container).toMatchSnapshot();
+    expect(getByText(strings('app_settings.advanced_title'))).toBeOnTheScreen();
   });
 
   it('renders header with correct title', () => {

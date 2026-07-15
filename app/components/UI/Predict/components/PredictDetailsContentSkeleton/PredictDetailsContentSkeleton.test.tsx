@@ -27,9 +27,4 @@ describe('PredictDetailsContentSkeleton', () => {
     expect(getByTestId(`${customTestId}-line-2`)).toBeTruthy();
     expect(getByTestId(`${customTestId}-block-2`)).toBeTruthy();
   });
-
-  it('matches snapshot', () => {
-    const tree = render(<PredictDetailsContentSkeleton />).toJSON();
-    expect(tree).toMatchSnapshot();
-  });
 });

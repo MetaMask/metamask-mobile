@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -400,7 +401,7 @@ describe('ManualBackupStep2', () => {
       expect(mockDispatch).toHaveBeenCalled();
 
       expect(mockNavigate).toHaveBeenCalledWith('OptinMetrics', {
-        onContinue: expect.any(Function),
+        successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
         accountType: AccountType.Metamask,
       });
     });
@@ -631,29 +632,21 @@ describe('ManualBackupStep2', () => {
       mockNavigation.mockRestore();
     });
 
-    it('configures navigation header with headerLeft component', () => {
+    it('does not configure navigation header via setOptions', () => {
       const { mockSetOptions } = setupTest();
 
-      expect(mockSetOptions).toHaveBeenCalled();
-      const setOptionsCall = mockSetOptions.mock.calls[0][0];
-
-      expect(setOptionsCall.headerLeft).toEqual(expect.any(Function));
+      expect(mockSetOptions).not.toHaveBeenCalled();
     });
   });
 
-  describe('headerLeft back button', () => {
-    it('triggers goBack when headerLeft back button is pressed', () => {
+  describe('HeaderStandard back button', () => {
+    it('triggers goBack when back button is pressed', () => {
       const mockGoBack = jest.fn();
-      const mockSetOptions = jest.fn();
-
-      const navProps = createMockNavigationProps({
-        goBack: mockGoBack,
-        setOptions: mockSetOptions,
-      });
+      const navProps = createMockNavigationProps({ goBack: mockGoBack });
 
       (useNavigation as jest.Mock).mockReturnValue(navProps);
 
-      renderWithProvider(
+      const wrapper = renderWithProvider(
         <Provider store={store}>
           <ManualBackupStep2
             route={{ params: { ...defaultRouteParams } }}
@@ -662,14 +655,9 @@ describe('ManualBackupStep2', () => {
         </Provider>,
       );
 
-      const headerLeftComponent = mockSetOptions.mock.calls[0][0].headerLeft;
-      expect(headerLeftComponent).toEqual(expect.any(Function));
-
-      const backButton = renderWithProvider(headerLeftComponent());
-      const backButtonElement = backButton.getByTestId(
-        ManualBackUpStepsSelectorsIDs.BACK_BUTTON,
+      fireEvent.press(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BACK_BUTTON),
       );
-      fireEvent.press(backButtonElement);
 
       expect(mockGoBack).toHaveBeenCalled();
     });

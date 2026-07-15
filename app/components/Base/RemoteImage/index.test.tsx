@@ -1,13 +1,46 @@
 import React from 'react';
 import RemoteImage from './';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';
-import { act, render, waitFor } from '@testing-library/react-native';
+import { act, render, waitFor, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Logger from '../../../util/Logger';
 import { Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { mockTheme } from '../../../util/theme';
+
+// Keep image loading explicit in these tests so the mock cannot overwrite
+// dimension assertions with a timer-driven default load.
+jest.mock('expo-image', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View: MockView } = jest.requireActual('react-native');
+
+  const MockImage = ReactActual.forwardRef(
+    (
+      props: {
+        testID?: string;
+        style?: object;
+        source?: unknown;
+        recyclingKey?: string;
+      },
+      ref: React.Ref<unknown>,
+    ) => ReactActual.createElement(MockView, { ...props, ref }),
+  );
+
+  MockImage.displayName = 'MockedExpoImage';
+
+  return {
+    __esModule: true,
+    Image: MockImage,
+    ImageContentFit: {
+      contain: 'contain',
+      cover: 'cover',
+      fill: 'fill',
+      none: 'none',
+      'scale-down': 'scale-down',
+    },
+  };
+});
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -49,15 +82,19 @@ jest.mock('./RemoteImageBadgeWrapper', () => ({
 
 const mockGetFormattedIpfsUrl = getFormattedIpfsUrl as jest.Mock;
 const mockLogger = Logger as jest.Mocked<typeof Logger>;
+const createPendingIpfsResolution = () =>
+  new Promise<false>(() => {
+    // Tests that assert IPFS behavior override this default mock.
+  });
 
 describe('RemoteImage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetFormattedIpfsUrl.mockResolvedValue(false);
+    mockGetFormattedIpfsUrl.mockImplementation(createPendingIpfsResolution);
   });
 
   it('renders svg correctly', () => {
-    const { toJSON } = render(
+    const { UNSAFE_getByType } = render(
       <RemoteImage
         source={{
           uri: 'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg',
@@ -65,11 +102,13 @@ describe('RemoteImage', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(UNSAFE_getByType(Image).props.source.uri).toBe(
+      'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/dai.svg',
+    );
   });
 
   it('renders static sources', () => {
-    const { toJSON } = render(
+    const { UNSAFE_getByType } = render(
       <RemoteImage
         source={{
           uri: 'https://s3.amazonaws.com/airswap-token-images/OXT.png',
@@ -77,14 +116,17 @@ describe('RemoteImage', () => {
       />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    const image = UNSAFE_getByType(Image);
+    expect(image.props.source.uri).toBe(
+      'https://s3.amazonaws.com/airswap-token-images/OXT.png',
+    );
   });
 
   it('renders ipfs sources', async () => {
     const testIpfsUri = 'ipfs://QmeE94srcYV9WwJb1p42eM4zncdLUai2N9zmMxxukoEQ23';
     mockGetFormattedIpfsUrl.mockResolvedValue(testIpfsUri);
 
-    const wrapper = render(
+    const { UNSAFE_getByType } = render(
       <RemoteImage
         source={{
           uri: testIpfsUri,
@@ -97,7 +139,8 @@ describe('RemoteImage', () => {
     });
 
     await waitFor(() => {
-      expect(wrapper).toMatchSnapshot();
+      const image = UNSAFE_getByType(Image);
+      expect(image.props.source.uri).toBe(testIpfsUri);
     });
   });
 
@@ -118,7 +161,7 @@ describe('RemoteImage', () => {
       return selector(mockState);
     });
 
-    const wrapper = render(
+    const { UNSAFE_getByType } = render(
       <RemoteImage
         fadeIn
         isTokenImage
@@ -133,18 +176,14 @@ describe('RemoteImage', () => {
     });
 
     await waitFor(() => {
-      expect(wrapper).toMatchSnapshot();
+      const image = UNSAFE_getByType(Image);
+      expect(image.props.source.uri).toBe('https://example.com/token.png');
     });
   });
 
   describe('Error State Reset', () => {
     beforeEach(() => {
       jest.clearAllMocks();
-      jest.useFakeTimers();
-    });
-
-    afterEach(() => {
-      jest.useRealTimers();
     });
 
     it('renders image when source URI changes', async () => {
@@ -154,10 +193,6 @@ describe('RemoteImage', () => {
           testID="remote-image"
         />,
       );
-
-      await act(async () => {
-        jest.runAllTimers();
-      });
 
       await waitFor(() => {
         expect(queryByTestId('remote-image')).toBeOnTheScreen();
@@ -170,7 +205,6 @@ describe('RemoteImage', () => {
             testID="remote-image"
           />,
         );
-        jest.runAllTimers();
       });
 
       await waitFor(() => {
@@ -187,10 +221,6 @@ describe('RemoteImage', () => {
         />,
       );
 
-      await act(async () => {
-        jest.runAllTimers();
-      });
-
       await waitFor(() => {
         expect(queryByTestId('remote-image')).toBeOnTheScreen();
       });
@@ -204,10 +234,6 @@ describe('RemoteImage', () => {
         />,
       );
 
-      await act(async () => {
-        jest.runAllTimers();
-      });
-
       await waitFor(() => {
         expect(queryByTestId('remote-image-1')).toBeOnTheScreen();
       });
@@ -219,7 +245,6 @@ describe('RemoteImage', () => {
             testID="remote-image-2"
           />,
         );
-        jest.runAllTimers();
       });
 
       await waitFor(() => {
@@ -241,7 +266,7 @@ describe('RemoteImage', () => {
 
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onLoad({ source: { width: 100, height: 100 } });
+        fireEvent(image, 'load', { source: { width: 100, height: 100 } });
       });
 
       await waitFor(() => {
@@ -262,7 +287,7 @@ describe('RemoteImage', () => {
 
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onError({ error: 'Failed to load image' });
+        fireEvent(image, 'error', { error: 'Failed to load image' });
       });
 
       await waitFor(async () => {
@@ -283,7 +308,7 @@ describe('RemoteImage', () => {
 
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onError({ error: 'Failed to load image' });
+        fireEvent(image, 'error', { error: 'Failed to load image' });
       });
 
       await waitFor(() => {
@@ -302,7 +327,7 @@ describe('RemoteImage', () => {
 
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onError({ error: 'Failed to load image' });
+        fireEvent(image, 'error', { error: 'Failed to load image' });
       });
 
       // After error, Identicon should be rendered
@@ -324,7 +349,7 @@ describe('RemoteImage', () => {
       await waitFor(() => {
         expect(queryByTestId('identicon')).not.toBeOnTheScreen();
         const image = UNSAFE_getByType(Image);
-        expect(image).toBeDefined();
+        expect(image).not.toBeNull();
       });
     });
   });
@@ -398,7 +423,6 @@ describe('RemoteImage', () => {
     let dimensionsSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      jest.useFakeTimers();
       dimensionsSpy = jest.spyOn(Dimensions, 'get').mockReturnValue({
         width: 400,
         height: 800,
@@ -408,8 +432,6 @@ describe('RemoteImage', () => {
     });
 
     afterEach(() => {
-      jest.runOnlyPendingTimers();
-      jest.useRealTimers();
       jest.restoreAllMocks();
       dimensionsSpy.mockRestore();
     });
@@ -424,12 +446,9 @@ describe('RemoteImage', () => {
         />,
       );
 
-      // Clear any pending timers from the mock's automatic onLoad
-      jest.clearAllTimers();
-
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onLoad({
+        fireEvent(image, 'load', {
           source: { width: 800, height: 400 },
         });
       });
@@ -451,12 +470,9 @@ describe('RemoteImage', () => {
         />,
       );
 
-      // Clear any pending timers from the mock's automatic onLoad
-      jest.clearAllTimers();
-
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onLoad({
+        fireEvent(image, 'load', {
           source: { width: 400, height: 800 },
         });
       });
@@ -478,12 +494,9 @@ describe('RemoteImage', () => {
         />,
       );
 
-      // Clear any pending timers from the mock's automatic onLoad
-      jest.clearAllTimers();
-
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onLoad({
+        fireEvent(image, 'load', {
           source: { width: 500, height: 500 },
         });
       });
@@ -505,12 +518,9 @@ describe('RemoteImage', () => {
         />,
       );
 
-      // Clear any pending timers from the mock's automatic onLoad
-      jest.clearAllTimers();
-
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onLoad({
+        fireEvent(image, 'load', {
           source: { width: 500, height: 500 },
         });
       });
@@ -525,7 +535,7 @@ describe('RemoteImage', () => {
 
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onLoad({
+        fireEvent(image, 'load', {
           source: { width: 500, height: 500 },
         });
       });
@@ -552,17 +562,14 @@ describe('RemoteImage', () => {
         />,
       );
 
-      // Clear any pending timers from the mock's automatic onLoad
-      jest.clearAllTimers();
-
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onLoad({ source: {} });
+        fireEvent(image, 'load', { source: {} });
       });
 
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
-        expect(image).toBeDefined();
+        expect(image).not.toBeNull();
       });
     });
   });
@@ -578,7 +585,6 @@ describe('RemoteImage', () => {
       );
 
       const image = UNSAFE_getByType(Image);
-      expect(image).toBeDefined();
       expect(image.props.source.uri).toBe('https://example.com/image.png');
     });
 
@@ -600,7 +606,6 @@ describe('RemoteImage', () => {
 
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
-        expect(image).toBeDefined();
         expect(image.props.source.uri).toBe('https://example.com/image.png');
       });
     });
@@ -622,7 +627,6 @@ describe('RemoteImage', () => {
 
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
-        expect(image).toBeDefined();
         expect(image.props.source.uri).toBe('https://example.com/token.png');
       });
     });
@@ -646,7 +650,7 @@ describe('RemoteImage', () => {
 
       await act(async () => {
         const image = UNSAFE_getByType(Image);
-        image.props.onLoad({
+        fireEvent(image, 'load', {
           source: { width: 600, height: 400 },
         });
       });
@@ -674,7 +678,6 @@ describe('RemoteImage', () => {
 
       await waitFor(() => {
         const image = UNSAFE_getByType(Image);
-        expect(image).toBeDefined();
         expect(image.props.source.uri).toBe('https://example.com/token.png');
       });
     });

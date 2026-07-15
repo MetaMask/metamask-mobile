@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   TokenSearchDiscoveryDataController,
   type TokenSearchDiscoveryDataControllerMessenger,
@@ -11,7 +11,7 @@ import {
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const tokenSearchDiscoveryDataControllerInit: ControllerInitFunction<
+export const tokenSearchDiscoveryDataControllerInit: MessengerClientInitFunction<
   TokenSearchDiscoveryDataController,
   TokenSearchDiscoveryDataControllerMessenger
 > = ({ controllerMessenger, codefiTokenApiV2 }) => {

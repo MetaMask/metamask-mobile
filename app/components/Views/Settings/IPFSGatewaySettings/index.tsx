@@ -9,10 +9,12 @@ import {
 } from '../../../../selectors/preferencesController';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
-import Text, {
-  TextVariant,
+import {
+  FontWeight,
+  Text,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import ipfsGateways from '../../../../util/ipfs-gateways.json';
 import { timeoutFetch } from '../../../../util/general';
 import SelectComponent from '../../../UI/SelectComponent';
@@ -87,7 +89,11 @@ const IPFSGatewaySettings = () => {
   return (
     <View style={styles.setting}>
       <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          style={styles.title}
+        >
           {strings('app_settings.ipfs_gateway')}
         </Text>
         <View style={styles.switchElement}>
@@ -106,8 +112,9 @@ const IPFSGatewaySettings = () => {
         </View>
       </View>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
         style={styles.desc}
       >
         {strings('app_settings.ipfs_gateway_content')}
@@ -115,8 +122,9 @@ const IPFSGatewaySettings = () => {
       {isIpfsGatewayEnabled && (
         <View style={styles.accessory}>
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
             style={styles.desc}
           >
             {strings('app_settings.ipfs_gateway_desc')}

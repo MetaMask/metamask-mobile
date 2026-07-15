@@ -27,21 +27,30 @@ const TRENDING_TOKENS_RESPONSE = [
 export const RWA_STOCK_ASSET_ID =
   'eip155:1/erc20:0x96f6ef951840721adbf46ac996b59e0235cb985c';
 
-const RWA_TOKENS_SEARCH_RESPONSE = {
-  count: 1,
+const RWA_ENDPOINT_RESPONSE = {
   data: [
     {
+      id: '1',
       assetId: RWA_STOCK_ASSET_ID,
       symbol: 'USDY',
-      name: 'Ondo US Dollar Yield (Ondo Tokenized)',
+      name: 'Ondo US Dollar Yield',
       decimals: 18,
-      price: '1.05',
-      aggregatedUsdVolume: 500000,
-      marketCap: 200000000,
-      pricePercentChange1d: '0.12',
-      rwaData: { type: 'rwa' },
+      rwaData: {
+        price: '1.05',
+        priceChange: '0.12',
+        aggregatedUsdVolume: 500000,
+        marketCap: 200000000,
+        active: true,
+        ticker: 'USDY',
+        instrumentType: 'fund',
+        custodians: ['ondo'],
+        industry: ['finance'],
+      },
     },
   ],
+  count: 1,
+  totalCount: 1,
+  pageInfo: { nextCursor: null, hasNextPage: false },
 };
 
 /**
@@ -162,6 +171,92 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
       priority: 1000,
     },
     {
+      urlEndpoint: /https:\/\/gamma-api\.polymarket\.com\/events\/keyset.*/,
+      responseCode: 200,
+      response: {
+        events: [
+          {
+            id: '1',
+            title: 'Will Bitcoin hit $100k?',
+            slug: 'bitcoin-100k',
+            icon: 'https://polymarket.com/icon.png',
+            description: 'Bitcoin price prediction',
+            startDate: '2024-01-01T00:00:00Z',
+            endDate: '2024-12-31T23:59:59Z',
+            markets: [
+              {
+                conditionId: '123',
+                question: 'Will Bitcoin hit $100k?',
+                status: 'open',
+                outcomes: '["Yes", "No"]',
+                outcomePrices: '["0.6", "0.4"]',
+                clobTokenIds: '["1", "2"]',
+                volumeNum: 1000000,
+                liquidity: 500000,
+                orderPriceMinTickSize: 0.01,
+                active: true,
+                closed: false,
+                sportsMarketType: 'moneyline',
+                groupItemTitle: 'Bitcoin',
+              },
+            ],
+            tags: [{ label: 'Crypto', slug: 'crypto' }],
+            volume: 1000000,
+            liquidity: 500000,
+          },
+        ],
+        next_cursor: null,
+      },
+      priority: 1000,
+    },
+    {
+      // Event details fetched when user taps a prediction row in the trending feed.
+      // Returns the same Bitcoin event payload as /events/pagination so the detail
+      // screen renders without crashing. Matches any numeric event id (highlights,
+      // prefetch) — not only id "1".
+      urlEndpoint: /https:\/\/gamma-api\.polymarket\.com\/events\/\d+(\?.*)?$/,
+      responseCode: 200,
+      response: {
+        id: '1',
+        title: 'Will Bitcoin hit $100k?',
+        slug: 'bitcoin-100k',
+        icon: 'https://polymarket.com/icon.png',
+        description: 'Bitcoin price prediction',
+        startDate: '2024-01-01T00:00:00Z',
+        endDate: '2024-12-31T23:59:59Z',
+        markets: [
+          {
+            conditionId: '123',
+            question: 'Will Bitcoin hit $100k?',
+            status: 'open',
+            outcomes: '["Yes", "No"]',
+            outcomePrices: '["0.6", "0.4"]',
+            clobTokenIds: '["1", "2"]',
+            volumeNum: 1000000,
+            liquidity: 500000,
+            orderPriceMinTickSize: 0.01,
+            active: true,
+            closed: false,
+            sportsMarketType: 'moneyline',
+            groupItemTitle: 'Bitcoin',
+          },
+        ],
+        tags: [{ label: 'Crypto', slug: 'crypto' }],
+        volume: 1000000,
+        liquidity: 500000,
+      },
+      priority: 1000,
+    },
+    {
+      // Prices-history (chart series) fetched on prediction detail render.
+      // Empty history is safe — consumer (PolymarketProvider) returns [] when
+      // history is not a non-empty array.
+      urlEndpoint: /https:\/\/clob\.polymarket\.com\/prices-history.*/,
+      responseCode: 200,
+      response: { history: [] },
+      priority: 1000,
+    },
+    {
       urlEndpoint: /\/exchange.*/, // Hyperliquid
       responseCode: 200,
       response: [
@@ -195,9 +290,9 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
       priority: 1000,
     },
     {
-      urlEndpoint: /\/tokens\/search.*Ondo/,
+      urlEndpoint: /\/v1\/rwas.*/,
       responseCode: 200,
-      response: RWA_TOKENS_SEARCH_RESPONSE,
+      response: RWA_ENDPOINT_RESPONSE,
       priority: 1001,
     },
     {
@@ -255,6 +350,14 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
       response: {
         status: 'ok',
       },
+      priority: 1000,
+    },
+    {
+      // CLOB prices fetched on prediction detail render. Empty object is
+      // safe for trending-feed which only renders the prediction row.
+      urlEndpoint: /https:\/\/clob\.polymarket\.com\/prices.*/,
+      responseCode: 200,
+      response: {},
       priority: 1000,
     },
   ],

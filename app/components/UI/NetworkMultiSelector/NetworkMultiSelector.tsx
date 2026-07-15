@@ -11,10 +11,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // external dependencies
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
+import { useTheme } from '../../../util/theme';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import { Box } from '@metamask/design-system-react-native';
 import { ExtendedNetwork } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
-import { PopularList } from '../../../util/networks/customNetworks';
 import CustomNetwork from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import { strings } from '../../../../locales/i18n';
 import NetworkMultiSelectorList from '../NetworkMultiSelectorList/NetworkMultiSelectorList';
@@ -31,6 +31,7 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectEvmChainId,
 } from '../../../selectors/networkController';
+import { getAdditionalNetworksList } from '../../../selectors/configRegistry';
 import {
   selectNonEvmNetworkConfigurationsByChainId,
   selectIsEvmNetworkSelected,
@@ -82,7 +83,8 @@ const NetworkMultiSelector = ({
   openRpcModal,
 }: NetworkMultiSelectorProps) => {
   const insets = useSafeAreaInsets();
-  const { styles } = useStyles(stylesheet, {});
+  const theme = useTheme();
+  const { styles } = useStyles(stylesheet, { theme });
 
   const [modalState, setModalState] = useState<ModalState>(initialModalState);
 
@@ -100,6 +102,7 @@ const NetworkMultiSelector = ({
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
   const currentEvmChainId = useSelector(selectEvmChainId);
+  const additionalNetworksList = useSelector(getAdditionalNetworksList);
 
   const { networksToUse, areAllNetworksSelectedCombined } = useNetworksToUse({
     networks,
@@ -208,7 +211,7 @@ const NetworkMultiSelector = ({
       selectedNetwork: modalState.popularNetwork,
       toggleWarningModal,
       showNetworkModal,
-      customNetworksList: PopularList,
+      customNetworksList: additionalNetworksList,
       skipConfirmation: true,
       onNetworkAdd: handleAddPopularNetwork,
     }),
@@ -219,6 +222,7 @@ const NetworkMultiSelector = ({
       toggleWarningModal,
       showNetworkModal,
       handleAddPopularNetwork,
+      additionalNetworksList,
     ],
   );
 

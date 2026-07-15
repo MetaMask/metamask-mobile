@@ -9,6 +9,8 @@ import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
 import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
 import { ProgressListItem } from '../../progress-list';
 import { getErrorMessage, getSeverity } from '../../../utils/transaction';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../../../../util/analytics/externalLinkTracking';
 
 interface TransactionSummaryLineProps {
   chainId?: Hex;
@@ -30,6 +32,7 @@ export function TransactionSummaryLine({
   txHash,
 }: TransactionSummaryLineProps) {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const resolvedChainId = chainId ?? transactionMeta.chainId;
   const rawHash = txHash ?? transactionMeta.hash;
@@ -54,11 +57,24 @@ export function TransactionSummaryLine({
       return;
     }
 
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+      location: 'transaction_details_summary',
+      text: explorerName ?? title,
+      url: explorerTxUrl,
+    });
+
     navigation.navigate(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: { url: explorerTxUrl, title: explorerName },
     });
-  }, [explorerName, explorerTxUrl, navigation]);
+  }, [
+    createEventBuilder,
+    explorerName,
+    explorerTxUrl,
+    navigation,
+    title,
+    trackEvent,
+  ]);
 
   return (
     <ProgressListItem

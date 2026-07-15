@@ -156,6 +156,7 @@ describe('analytics', () => {
               {
                 key: 'cardCARD338AbtestAttentionBadge',
                 value: 'withBadge',
+                key_value_pair: 'cardCARD338AbtestAttentionBadge=withBadge',
               },
             ],
           },

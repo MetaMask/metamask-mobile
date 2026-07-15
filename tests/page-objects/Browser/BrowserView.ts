@@ -11,70 +11,77 @@ import {
   getTestDappLocalUrl,
   getDappUrl,
 } from '../../framework/fixtures/FixtureUtils';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
-import { Gestures, Matchers } from '../../framework';
+import { Assertions, Gestures, Matchers, Utilities } from '../../framework';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
 }
 
 class Browser {
-  get reloadButton(): DetoxElement {
+  get reloadButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.RELOAD_BUTTON);
   }
 
-  get bookmarkButton(): DetoxElement {
+  get bookmarkButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.BOOKMARK_BUTTON);
   }
 
-  get newTabButton(): DetoxElement {
+  get newTabButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.NEW_TAB_BUTTON);
   }
 
-  get closeBrowserButton(): DetoxElement {
+  get closeBrowserButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       BrowserViewSelectorsIDs.BROWSER_CLOSE_BUTTON,
     );
   }
 
   // Legacy getters for backward compatibility with existing tests
-  get homeButton(): DetoxElement {
+  get homeButton(): EncapsulatedElementType {
     // Home button removed, but kept for backward compatibility
     // Tests using this should be updated
     return this.newTabButton;
   }
 
-  get browserScreenID(): DetoxElement {
+  get browserScreenID(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID);
   }
 
-  get androidBrowserWebViewID(): DetoxElement {
+  get androidBrowserWebViewID(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID);
   }
 
-  get addressBar(): DetoxElement {
+  get addressBar(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.URL_INPUT);
   }
 
-  get urlInputBoxID(): DetoxElement {
+  get urlInputBoxID(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT);
   }
 
-  get clearURLButton(): DetoxElement {
+  get clearURLButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_CLEAR_ICON);
   }
 
-  get backToSafetyButton(): DetoxElement {
+  get cancelUrlInputButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID,
+    );
+  }
+
+  get backToSafetyButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       BrowserViewSelectorsText.BACK_TO_SAFETY_BUTTON,
     );
   }
 
-  get returnHomeButton(): DetoxElement {
+  get returnHomeButton(): EncapsulatedElementType {
     return Matchers.getElementByText(BrowserViewSelectorsText.RETURN_HOME);
   }
 
-  get addFavouritesButton(): DetoxElement {
+  get addFavouritesButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.ADD_NEW_TAB);
   }
 
@@ -97,33 +104,33 @@ class Browser {
         );
   }
 
-  get multiTabButton(): DetoxElement {
+  get multiTabButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.ADD_NEW_TAB);
   }
 
-  get DefaultAvatarImageForLocalHost(): DetoxElement {
+  get DefaultAvatarImageForLocalHost(): EncapsulatedElementType {
     return Matchers.getElementByLabel('L');
   }
 
-  get networkAvatarOrAccountButton(): DetoxElement {
+  get networkAvatarOrAccountButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON);
   }
 
-  get addBookmarkButton(): DetoxElement {
+  get addBookmarkButton(): EncapsulatedElementType {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON)
       : Matchers.getElementByLabel(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON);
   }
 
-  get tabsNumber(): DetoxElement {
+  get tabsNumber(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.TABS_NUMBER);
   }
 
-  get closeAllTabsButton(): DetoxElement {
+  get closeAllTabsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.CLOSE_ALL_TABS);
   }
 
-  get noTabsMessage(): DetoxElement {
+  get noTabsMessage(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.NO_TABS_MESSAGE);
   }
 
@@ -165,9 +172,30 @@ class Browser {
   }
 
   async tapCloseBrowserButton(): Promise<void> {
+    // The close button (`browser-tab-close-button`) is conditionally rendered
+    // and is removed from the tree while the URL bar is focused (i.e. the
+    // URL editor / "Recents" autocomplete overlay is open). After flows that
+    // dismiss a modal (e.g. transaction confirmation) the URL bar focus can
+    // be restored under RN 0.81 / React 19, leaving the close button missing.
+    // Defensively dismiss the URL editor if the Cancel button is visible.
+    await this.dismissUrlEditorIfOpen();
     await Gestures.waitAndTap(this.closeBrowserButton, {
       elemDescription: 'Close browser button',
     });
+  }
+
+  /**
+   * Tap the URL bar "Cancel" button if the URL editor / autocomplete overlay
+   * is currently open. Used defensively before tapping any of the top-bar
+   * action buttons (network/account avatar, close button, etc.) which are
+   * unmounted while the URL editor is focused.
+   */
+  async dismissUrlEditorIfOpen(): Promise<void> {
+    if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
+      await Gestures.waitAndTap(this.cancelUrlInputButton, {
+        elemDescription: 'Cancel URL input (dismiss URL editor)',
+      });
+    }
   }
 
   // Legacy methods for backward compatibility with existing tests
@@ -288,13 +316,40 @@ class Browser {
     }
   }
 
-  async navigateToURL(url: string): Promise<void> {
-    await device.disableSynchronization(); // because animations makes typing into the browser slow
+  async expectUrlNotEqualTo(text: string, description?: string): Promise<void> {
+    await Assertions.expectElementToNotHaveText(this.urlInputBoxID, text, {
+      description: description ?? `URL input box text is not "${text}"`,
+    });
+  }
+
+  async navigateToURL(
+    url: string,
+    options: { skipUrlEditorDismissal?: boolean } = {},
+  ): Promise<void> {
     await Gestures.typeText(this.urlInputBoxID, url, {
       hideKeyboard: true,
       elemDescription: 'URL input box',
     });
-    await device.enableSynchronization(); // re-enabling synchronization
+    // After typing the URL + "\n", `onSubmitEditing` triggers navigation but
+    // does not always blur the URL bar `TextInput` under RN 0.81 / React 19
+    // on Android. The result is that the URL editor "Cancel" button stays
+    // mounted while the navigation completes, and the right-side action
+    // buttons in the top bar (close, network/account avatar) remain hidden.
+    // Defensively tap Cancel to drop the URL bar back into its non-editing
+    // state so subsequent gestures can target those buttons.
+    //
+    // Callers can opt-out via `skipUrlEditorDismissal: true` when the
+    // dismissal would race with concurrent app work that breaks Detox sync —
+    // notably `browser-phishing.spec.ts`, where phishing detection triggers
+    // AsyncStorage v2 writes that interact badly with Detox's
+    // `AsyncStorageIdlingResource` if dismissal taps land on top of them.
+    if (!options.skipUrlEditorDismissal) {
+      if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
+        await Gestures.waitAndTap(this.cancelUrlInputButton, {
+          elemDescription: 'Cancel URL input (dismiss URL editor)',
+        });
+      }
+    }
   }
 
   /**

@@ -35,7 +35,6 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { TokenI } from '../../Tokens/types';
-import { updateIncomingTransactions } from '../../../../util/transaction-controller';
 import { RootState } from '../../../../reducers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain';
@@ -374,12 +373,13 @@ export const useTokenTransactions = (
   );
 
   // Determine which filter to use
+  const isNativeToken = asset.isNative || asset.isETH;
   const filter = useMemo(() => {
-    if (navSymbol.toUpperCase() !== 'ETH' && navAddress !== '') {
-      return noEthFilter;
+    if (isNativeToken) {
+      return ethFilter;
     }
-    return ethFilter;
-  }, [navSymbol, navAddress, ethFilter, noEthFilter]);
+    return noEthFilter;
+  }, [isNativeToken, ethFilter, noEthFilter]);
 
   // Check if pending tx statuses changed
   const didTxStatusesChange = useCallback(
@@ -547,7 +547,6 @@ export const useTokenTransactions = (
   // Refresh handler
   const onRefresh = useCallback(async () => {
     setTxState((prev) => ({ ...prev, refreshing: true }));
-    await updateIncomingTransactions();
     setTxState((prev) => ({ ...prev, refreshing: false }));
   }, []);
 

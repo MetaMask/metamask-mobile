@@ -1,7 +1,8 @@
 import { seedlessOnboardingControllerInit } from '.';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ControllerInitRequest } from '../../types';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import type { MessengerClientInitRequest } from '../../types';
+import { getSeedlessOnboardingControllerMessenger } from '../../messengers/seedless-onboarding-controller-messenger';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerMessenger,
@@ -113,12 +114,34 @@ const mockEncryptResult = {
   keyMetadata: { algorithm: 'PBKDF2', params: { iterations: 600000 } },
 };
 
+function getInitRequestMock(
+  overrides?: Partial<
+    MessengerClientInitRequest<SeedlessOnboardingControllerMessenger>
+  >,
+): jest.Mocked<
+  MessengerClientInitRequest<SeedlessOnboardingControllerMessenger>
+> {
+  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+
+  return {
+    ...buildMessengerClientInitRequestMock(baseMessenger),
+    controllerMessenger:
+      getSeedlessOnboardingControllerMessenger(baseMessenger),
+    initMessenger: undefined,
+    ...overrides,
+  } as jest.Mocked<
+    MessengerClientInitRequest<SeedlessOnboardingControllerMessenger>
+  >;
+}
+
 describe('seedless onboarding controller init', () => {
   const seedlessOnboardingControllerClassMock = jest.mocked(
     SeedlessOnboardingController,
   );
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<SeedlessOnboardingControllerMessenger>
+    MessengerClientInitRequest<SeedlessOnboardingControllerMessenger>
   >;
 
   beforeEach(() => {
@@ -141,11 +164,7 @@ describe('seedless onboarding controller init', () => {
       salt: 'mock-salt',
     });
 
-    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
-      namespace: MOCK_ANY_NAMESPACE,
-    });
-    // Create controller init request mock
-    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
+    initRequestMock = getInitRequestMock();
   });
 
   it('returns controller instance', () => {
@@ -444,7 +463,7 @@ describe('seedless onboarding controller init', () => {
         // The underlying Encryptor must receive the vault with `cipher` injected
         const expectedNormalized = JSON.stringify({
           ...encryptedVault,
-          cipher: encryptedVault.data,
+          cipher: mockEncryptResult.cipher,
         });
         expect(mockDecrypt).toHaveBeenCalledWith(
           'user-password',
@@ -482,7 +501,7 @@ describe('seedless onboarding controller init', () => {
 
         const expectedNormalized = JSON.stringify({
           ...encryptedVault,
-          cipher: encryptedVault.data,
+          cipher: mockEncryptResult.cipher,
         });
         expect(mockDecryptWithDetail).toHaveBeenCalledWith(
           'user-password',

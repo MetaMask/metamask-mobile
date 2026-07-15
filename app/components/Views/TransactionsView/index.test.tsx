@@ -4,7 +4,7 @@ import { act, render } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   EthMethod,
   SolAccountType,
@@ -192,7 +192,7 @@ import { selectSelectedInternalAccount } from '../../../selectors/accountsContro
 import { selectSortedTransactions } from '../../../selectors/transactionController';
 
 const TRANSACTION_ID_MOCK = '123';
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 const mockStore = configureMockStore();
 
 interface MockTransaction {
@@ -400,37 +400,6 @@ describe('TransactionsView', () => {
     jest.useRealTimers();
 
     jest.clearAllMocks();
-  });
-
-  describe('Basic Rendering', () => {
-    it('renders correctly and matches snapshot', async () => {
-      (
-        selectSelectedInternalAccount as jest.MockedFunction<
-          typeof selectSelectedInternalAccount
-        >
-      ).mockReturnValue(createMockAccount() as any);
-
-      const component = renderTransactionsView();
-
-      act(() => {
-        jest.runAllTimers();
-      });
-
-      expect(component.toJSON()).toMatchSnapshot();
-    });
-
-    it('renders with loading state initially', () => {
-      (
-        selectSelectedInternalAccount as jest.MockedFunction<
-          typeof selectSelectedInternalAccount
-        >
-      ).mockReturnValue(createMockAccount() as any);
-
-      const component = renderTransactionsView();
-
-      expect(component).toBeDefined();
-      expect(component.toJSON()).toBeTruthy();
-    });
   });
 
   describe('Transaction Filtering Logic', () => {
@@ -687,7 +656,6 @@ describe('TransactionsView', () => {
       });
 
       expect(selectNonEvmTransactions).toHaveBeenCalled();
-      expect(component).toBeDefined();
     });
   });
 
@@ -711,22 +679,6 @@ describe('TransactionsView', () => {
       });
 
       expect(sortTransactions).toHaveBeenCalledWith([]);
-    });
-
-    it('handles missing selected account gracefully', async () => {
-      (
-        selectSelectedInternalAccount as jest.MockedFunction<
-          typeof selectSelectedInternalAccount
-        >
-      ).mockReturnValue(undefined);
-
-      const component = renderTransactionsView();
-
-      act(() => {
-        jest.runAllTimers();
-      });
-
-      expect(component).toBeDefined();
     });
 
     it('handles transactions with invalid structures', async () => {

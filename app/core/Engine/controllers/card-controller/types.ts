@@ -9,10 +9,30 @@ import type {
   AccountTreeControllerStateChangeEvent,
 } from '@metamask/account-tree-controller';
 import type { AccountsControllerGetStateAction } from '@metamask/accounts-controller';
-import type { KeyringControllerUnlockEvent } from '@metamask/keyring-controller';
-import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
+import type {
+  KeyringControllerUnlockEvent,
+  KeyringControllerSignPersonalMessageAction,
+} from '@metamask/keyring-controller';
+import type {
+  RemoteFeatureFlagControllerGetStateAction,
+  RemoteFeatureFlagControllerStateChangeEvent,
+} from '@metamask/remote-feature-flag-controller';
+import type { NetworkControllerFindNetworkClientIdByChainIdAction } from '@metamask/network-controller';
+import type {
+  TransactionControllerAddTransactionAction,
+  TransactionControllerAddTransactionBatchAction,
+  TransactionControllerGetStateAction,
+  TransactionControllerTransactionConfirmedEvent,
+  TransactionControllerTransactionFailedEvent,
+} from '@metamask/transaction-controller';
 
 export const CARD_CONTROLLER_NAME = 'CardController';
+
+/** The provider ID used when no other provider has been selected. */
+export const DEFAULT_CARD_PROVIDER_ID = 'baanx';
+
+export type CardHomeDataStatus = 'idle' | 'loading' | 'error' | 'success';
+export type CardUnauthenticatedReason = 'onboarding_token_revoked';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardControllerState = {
@@ -22,6 +42,8 @@ export type CardControllerState = {
   activeProviderId: string | null;
   /** Whether the user is authenticated with the active provider. */
   isAuthenticated: boolean;
+  /** Last reason the active provider session became unauthenticated. */
+  lastUnauthenticatedReason: CardUnauthenticatedReason | null;
   /** CAIP-10 account IDs that are card holders. */
   cardholderAccounts: string[];
   /**
@@ -29,6 +51,17 @@ export type CardControllerState = {
    * Values are JSON-serializable objects (e.g. `{ location: 'us' }`).
    */
   providerData: Record<string, Record<string, Json>>;
+  /**
+   * Cached card home data fetched from the active provider.
+   * Not persisted to disk — re-fetched after each session validation.
+   * Typed as Record<string, Json> to satisfy StateConstraint; cast to
+   * CardHomeData when accessed in the controller.
+   */
+  cardHomeData: Record<string, Json> | null;
+  /** Fetch status for cardHomeData. Not persisted. */
+  cardHomeDataStatus: CardHomeDataStatus;
+  /** True while `linkMoneyAccountCard` is in flight. Not persisted. */
+  moneyAccountCardLinkInProgress: boolean;
 };
 
 export type CardControllerActions = ControllerGetStateAction<
@@ -44,11 +77,19 @@ export type CardControllerEvents = ControllerStateChangeEvent<
 type CardControllerAllowedActions =
   | AccountsControllerGetStateAction
   | AccountTreeControllerGetStateAction
-  | RemoteFeatureFlagControllerGetStateAction;
+  | RemoteFeatureFlagControllerGetStateAction
+  | KeyringControllerSignPersonalMessageAction
+  | NetworkControllerFindNetworkClientIdByChainIdAction
+  | TransactionControllerAddTransactionAction
+  | TransactionControllerAddTransactionBatchAction
+  | TransactionControllerGetStateAction;
 
 type CardControllerAllowedEvents =
   | AccountTreeControllerStateChangeEvent
-  | KeyringControllerUnlockEvent;
+  | RemoteFeatureFlagControllerStateChangeEvent
+  | KeyringControllerUnlockEvent
+  | TransactionControllerTransactionConfirmedEvent
+  | TransactionControllerTransactionFailedEvent;
 
 export type CardControllerMessenger = Messenger<
   typeof CARD_CONTROLLER_NAME,

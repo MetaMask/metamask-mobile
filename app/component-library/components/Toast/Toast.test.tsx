@@ -1,36 +1,21 @@
 // Third party dependencies.
 import React, { createRef } from 'react';
-import { render, screen, act } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
+import { render, screen, act, fireEvent } from '@testing-library/react-native';
+
+// External dependencies.
+import { ButtonVariants } from '../Buttons/Button';
 
 // Internal dependencies.
 import Toast from './Toast';
 import { ToastRef, ToastVariants, ToastOptions } from './Toast.types';
+import { ToastSelectorsIDs } from './ToastModal.testIds';
 
-// Mock react-native-reanimated
-jest.mock('react-native-reanimated', () => ({
-  useSharedValue: jest.fn(() => ({ value: 0 })),
-  useAnimatedStyle: jest.fn(() => ({})),
-  withTiming: jest.fn((value, _config, callback) => {
-    if (callback) {
-      callback();
-    }
-    return value;
-  }),
-  withDelay: jest.fn((_delay, animation) => animation),
-  cancelAnimation: jest.fn(),
-  runOnJS: jest.fn((fn) => () => fn()),
-  default: {
-    View: 'Animated.View',
-  },
-}));
+// react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
 
 // Mock safe area context
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => ({ bottom: 0, top: 0, left: 0, right: 0 }),
-}));
-
 describe('Toast', () => {
-  let toastRef: React.RefObject<ToastRef>;
+  let toastRef: React.RefObject<ToastRef | null>;
 
   beforeEach(() => {
     toastRef = createRef<ToastRef>();
@@ -144,8 +129,147 @@ describe('Toast', () => {
     // Close toast
     await act(async () => {
       toastRef.current?.closeToast();
+      jest.runAllTimers();
     });
 
     expect(screen.queryByText('Test Label')).toBeNull();
+  });
+
+  it('cancels pending toast when showToast is called rapidly in succession', async () => {
+    const inProgressOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'In Progress' }],
+      hasNoTimeout: true,
+    };
+
+    const successOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Success' }],
+      hasNoTimeout: false,
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    // Call showToast twice in the same tick (simulating approved + confirmed
+    // firing before React processes the first state update).
+    act(() => {
+      toastRef.current?.showToast(inProgressOptions);
+      toastRef.current?.showToast(successOptions);
+    });
+
+    // The first setTimeout(0) is cleared and replaced by the second call;
+    // additional framework timers (e.g. Reanimated) may also be pending.
+    expect(jest.getTimerCount()).toBeGreaterThanOrEqual(1);
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(screen.queryByText('In Progress')).toBeNull();
+    expect(screen.getByText('Success')).toBeOnTheScreen();
+  });
+
+  it('uses flex-start justifyContent on labels container by default', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Aligned label' }],
+      hasNoTimeout: true,
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    const labelsContainer = screen.getByTestId(ToastSelectorsIDs.CONTAINER);
+    const flat = StyleSheet.flatten(labelsContainer.props.style);
+
+    expect(flat.justifyContent).toBe('flex-start');
+  });
+
+  it('wraps toast content in a pressable when onPress is provided', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Pressable Label' }],
+      hasNoTimeout: true,
+      onPress: jest.fn(),
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    expect(screen.getByTestId(ToastSelectorsIDs.PRESSABLE)).toBeOnTheScreen();
+  });
+
+  it('calls onPress when the toast content is pressed', async () => {
+    const onPress = jest.fn();
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Pressable Label' }],
+      hasNoTimeout: true,
+      onPress,
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    fireEvent.press(screen.getByTestId(ToastSelectorsIDs.PRESSABLE));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not render a pressable wrapper when onPress is absent', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Plain Label' }],
+      hasNoTimeout: true,
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    expect(screen.queryByTestId(ToastSelectorsIDs.PRESSABLE)).toBeNull();
+  });
+
+  it('calls the close button onPress without triggering the toast onPress', async () => {
+    const onPress = jest.fn();
+    const onCloseButtonPress = jest.fn();
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Pressable Label' }],
+      hasNoTimeout: true,
+      onPress,
+      closeButtonOptions: {
+        variant: ButtonVariants.Primary,
+        label: 'Close',
+        onPress: onCloseButtonPress,
+      },
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    fireEvent.press(screen.getByText('Close'));
+
+    expect(onCloseButtonPress).toHaveBeenCalledTimes(1);
+    expect(onPress).not.toHaveBeenCalled();
   });
 });

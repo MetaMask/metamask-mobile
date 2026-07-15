@@ -1,9 +1,36 @@
 import React from 'react';
-import { act } from '@testing-library/react-native';
+
 import AccountGroupBalance from './AccountGroupBalance';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { useAccountGroupBalanceFetchState } from './useAccountGroupBalanceFetchState';
+
+jest.mock('../../../BalanceEmptyState', () => {
+  const { View: V } = jest.requireActual('react-native');
+  return ({ testID }: { testID?: string }) => <V testID={testID} />;
+});
+
+jest.mock('../../../WalletHomeOnboardingSteps', () => {
+  const { View: V } = jest.requireActual('react-native');
+  return ({ testID }: { testID?: string }) => <V testID={testID} />;
+});
+
+jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({ goToBuy: jest.fn() }),
+}));
+
+jest.mock('../../../../Views/Wallet/hooks/useBalanceRefresh', () => ({
+  useBalanceRefresh: jest.fn(() => ({ refreshBalance: jest.fn() })),
+}));
+
+jest.mock('./useAccountGroupBalanceFetchState', () => ({
+  useAccountGroupBalanceFetchState: jest.fn(() => false),
+}));
+
+jest.mock('./useWalletHomeOnboardingBalanceRefreshEffect', () => ({
+  useWalletHomeOnboardingBalanceRefreshEffect: jest.fn(),
+}));
 
 jest.mock('../../../../../selectors/assets/balances', () => ({
   // Factory: selectBalanceBySelectedAccountGroup(popularChainIds?) -> (state) => value
@@ -14,10 +41,15 @@ jest.mock('../../../../../selectors/assets/balances', () => ({
   selectAccountGroupBalanceForEmptyState: jest.fn(() => null),
 }));
 
-// Mock homepage feature flags (BalanceEmptyState and AccountGroupBalance use these)
-jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
-  selectHomepageRedesignV1Enabled: jest.fn(() => true),
-  selectHomepageSectionsV1Enabled: jest.fn(() => true),
+// Mock onboarding selectors (BalanceEmptyState and AccountGroupBalance use these)
+jest.mock('../../../../../selectors/onboarding', () => ({
+  selectShouldShowWalletHomeOnboardingSteps: jest.fn(() => false),
+  selectWalletHomeOnboardingStepsEligible: jest.fn(() => false),
+  selectWalletHomeOnboardingSkipInitialBalanceWait: jest.fn(() => false),
+  selectWalletHomeOnboardingSteps: jest.fn(() => ({
+    suppressedReason: null,
+    stepIndex: 0,
+  })),
 }));
 
 // This selector is used to determine if the current network is a testnet for BalanceEmptyState display logic
@@ -45,12 +77,14 @@ jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-// AccountGroupBalance uses listPopularNetworks for balance selectors
+// AccountGroupBalance uses `popularNetworks` from useNetworkEnablement (arrays, not controller methods)
 jest.mock(
   '../../../../hooks/useNetworkEnablement/useNetworkEnablement',
   () => ({
     useNetworkEnablement: () => ({
-      listPopularNetworks: () => [],
+      popularNetworks: [],
+      popularEvmNetworks: [],
+      popularMultichainNetworks: [],
     }),
   }),
 );
@@ -85,12 +119,7 @@ describe('AccountGroupBalance', () => {
     (selectBalanceChangeBySelectedAccountGroup as jest.Mock).mockImplementation(
       () => () => null,
     );
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
+    jest.mocked(useAccountGroupBalanceFetchState).mockReturnValue(false);
   });
 
   it('renders without crashing when balance is not ready', () => {
@@ -102,10 +131,11 @@ describe('AccountGroupBalance', () => {
     expect(getByTestId('balance-container')).toBeOnTheScreen();
   });
 
-  it('renders formatted balance when selector returns data and timeout expires', () => {
+  it('renders formatted balance when balance data is fetched', () => {
     const { selectBalanceBySelectedAccountGroup } = jest.requireMock(
       '../../../../../selectors/assets/balances',
     );
+    jest.mocked(useAccountGroupBalanceFetchState).mockReturnValue(true);
     (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
       () => () => ({
         walletId: 'wallet-1',
@@ -119,20 +149,16 @@ describe('AccountGroupBalance', () => {
       state: testState,
     });
 
-    // After timeout expires (3 seconds), balance should display
-    act(() => {
-      jest.advanceTimersByTime(3000);
-    });
-
     const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
     expect(el).toBeOnTheScreen();
   });
 
-  it('renders empty state when account group balance is zero after timeout', () => {
+  it('renders empty state when fetched account group balance is zero', () => {
     const {
       selectAccountGroupBalanceForEmptyState,
       selectBalanceBySelectedAccountGroup,
     } = jest.requireMock('../../../../../selectors/assets/balances');
+    jest.mocked(useAccountGroupBalanceFetchState).mockReturnValue(true);
 
     // Mock the regular balance selector to return zero balance data
     (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
@@ -152,142 +178,13 @@ describe('AccountGroupBalance', () => {
       }),
     );
 
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <AccountGroupBalance />,
-      {
-        state: testState,
-      },
-    );
-
-    // Initially shows loader because hasBalanceFetched is false
-    expect(
-      queryByTestId(WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER),
-    ).toBeNull();
-
-    // After timeout expires (3 seconds), empty state should display
-    act(() => {
-      jest.advanceTimersByTime(3000);
+    const { getByTestId } = renderWithProvider(<AccountGroupBalance />, {
+      state: testState,
     });
 
     const el = getByTestId(
       WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER,
     );
     expect(el).toBeOnTheScreen();
-  });
-
-  it('renders balance immediately when balance changes from 0 to non-zero before timeout', () => {
-    const {
-      selectBalanceBySelectedAccountGroup,
-      selectAccountGroupBalanceForEmptyState,
-    } = jest.requireMock('../../../../../selectors/assets/balances');
-
-    // Start with zero balance
-    (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
-      () => () => ({
-        walletId: 'wallet-1',
-        groupId: 'wallet-1/group-1',
-        totalBalanceInUserCurrency: 0,
-        userCurrency: 'usd',
-      }),
-    );
-
-    (selectAccountGroupBalanceForEmptyState as jest.Mock).mockImplementation(
-      () => ({
-        totalBalanceInUserCurrency: 0,
-        userCurrency: 'usd',
-      }),
-    );
-
-    const { getByTestId, rerender } = renderWithProvider(
-      <AccountGroupBalance />,
-      {
-        state: testState,
-      },
-    );
-
-    // Update mocks to return non-zero balance (simulating balance fetch completing)
-    (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
-      () => () => ({
-        walletId: 'wallet-1',
-        groupId: 'wallet-1/group-1',
-        totalBalanceInUserCurrency: 123.45,
-        userCurrency: 'usd',
-      }),
-    );
-
-    (selectAccountGroupBalanceForEmptyState as jest.Mock).mockImplementation(
-      () => ({
-        totalBalanceInUserCurrency: 123.45,
-        userCurrency: 'usd',
-      }),
-    );
-
-    // Trigger re-render with new balance
-    rerender(<AccountGroupBalance />);
-
-    // Balance should display immediately without waiting for timeout
-    const el = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
-    expect(el).toBeOnTheScreen();
-  });
-
-  it('renders balance after updating when initially zero', () => {
-    const {
-      selectBalanceBySelectedAccountGroup,
-      selectAccountGroupBalanceForEmptyState,
-    } = jest.requireMock('../../../../../selectors/assets/balances');
-
-    // Start with zero balance (simulates account with no funds or just switched)
-    (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
-      () => () => ({
-        walletId: 'wallet-1',
-        groupId: 'wallet-1/group-1',
-        totalBalanceInUserCurrency: 0,
-        userCurrency: 'usd',
-      }),
-    );
-
-    (selectAccountGroupBalanceForEmptyState as jest.Mock).mockImplementation(
-      () => ({
-        totalBalanceInUserCurrency: 0,
-        userCurrency: 'usd',
-      }),
-    );
-
-    const { getByTestId, rerender } = renderWithProvider(
-      <AccountGroupBalance />,
-      {
-        state: testState,
-      },
-    );
-
-    // Advance time less than timeout
-    act(() => {
-      jest.advanceTimersByTime(1000);
-    });
-
-    // Update mocks to show balance has loaded with funds
-    (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
-      () => () => ({
-        walletId: 'wallet-1',
-        groupId: 'wallet-1/group-1',
-        totalBalanceInUserCurrency: 150,
-        userCurrency: 'usd',
-      }),
-    );
-
-    (selectAccountGroupBalanceForEmptyState as jest.Mock).mockImplementation(
-      () => ({
-        totalBalanceInUserCurrency: 150,
-        userCurrency: 'usd',
-      }),
-    );
-
-    // Trigger re-render
-    rerender(<AccountGroupBalance />);
-
-    // Should show balance immediately after update (hasChanged condition)
-    expect(
-      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
-    ).toBeOnTheScreen();
   });
 });

@@ -138,4 +138,18 @@ describe('usePredictSeries', () => {
       ]),
     ).toEqual(seriesEvents);
   });
+
+  it('does not fetch when disabled', () => {
+    const { Wrapper } = createWrapper();
+
+    const { result } = renderHook(
+      () => usePredictSeries(params, { enabled: false }),
+      {
+        wrapper: Wrapper,
+      },
+    );
+
+    expect(result.current.fetchStatus).toBe('idle');
+    expect(mockGetMarketSeries).not.toHaveBeenCalled();
+  });
 });

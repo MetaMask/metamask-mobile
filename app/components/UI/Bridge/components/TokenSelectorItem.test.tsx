@@ -1,23 +1,30 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Text as RNText } from 'react-native';
-import { TokenSelectorItem } from './TokenSelectorItem';
+import { Text as RNText, View } from 'react-native';
+import { TokenSelectorItem, getSecurityTag } from './TokenSelectorItem';
+import { SecurityDataType } from '../types';
 import { ethers } from 'ethers';
-import { useABTest } from '../../../../hooks';
 import { createMockTokenWithBalance } from '../testUtils/fixtures';
+import {
+  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  TokenSelectorBalanceLayoutVariant,
+} from './TokenSelectorItem.abTestConfig';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../../Tokens/constants';
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => []),
-}));
+jest.mock('../../shared/StockBadge', () => {
+  const { createElement } = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
 
-jest.mock('../../../../hooks', () => ({
-  useABTest: jest.fn(),
-}));
+  return {
+    __esModule: true,
+    default: ({ token }: { token: { symbol: string } }) =>
+      createElement(Text, { testID: `stock-badge-${token.symbol}` }, 'Stock'),
+  };
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -28,8 +35,8 @@ jest.mock('../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../../../../component-library/hooks', () => ({
-  useStyles: () => ({
+jest.mock('../../../../component-library/hooks', () => {
+  const useStyles = jest.fn(() => ({
     styles: {
       container: {},
       tokenInfo: {},
@@ -45,29 +52,54 @@ jest.mock('../../../../component-library/hooks', () => ({
       tokenSymbol: {},
       verifiedIcon: {},
       childrenWrapper: {},
+      pressTargetContent: { flex: 1 },
+      itemWrapperWithChildren: { alignItems: 'center' },
     },
-  }),
-}));
+  }));
 
-jest.mock('../../../../../wdio/utils/generateTestId', () => ({
-  __esModule: true,
-  default: () => ({}),
-}));
+  return {
+    useStyles,
+    __mockUseStyles: useStyles,
+  };
+});
+
+const { __mockUseStyles: mockUseStyles } = jest.requireMock(
+  '../../../../component-library/hooks',
+) as {
+  __mockUseStyles: jest.Mock;
+};
 
 jest.mock(
   '../../../../component-library/components/Badges/BadgeWrapper',
   () => ({
     __esModule: true,
-    default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    default: ({
+      badgeElement,
+      children,
+    }: {
+      badgeElement: React.ReactNode;
+      children: React.ReactNode;
+    }) => (
+      <>
+        {children}
+        {badgeElement}
+      </>
+    ),
     BadgePosition: { BottomRight: 'BottomRight' },
   }),
 );
 
-jest.mock('../../../../component-library/components/Badges/Badge', () => ({
-  __esModule: true,
-  default: () => null,
-  BadgeVariant: { Network: 'Network' },
-}));
+jest.mock('../../../../component-library/components/Badges/Badge', () => {
+  const { createElement } = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    default: ({ name }: { name?: string }) =>
+      createElement(Text, { testID: 'token-selector-network-badge' }, name),
+    BadgeVariant: { Network: 'Network' },
+  };
+});
 
 jest.mock(
   '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
@@ -89,9 +121,32 @@ jest.mock('@metamask/design-system-react-native', () => {
     default: Icon,
     Icon,
     __mockIcon: Icon,
-    IconColor: { InfoDefault: 'InfoDefault' },
-    IconName: { VerifiedFilled: 'VerifiedFilled' },
-    IconSize: { Sm: 'Sm' },
+    IconColor: {
+      InfoDefault: 'InfoDefault',
+      WarningDefault: 'WarningDefault',
+      ErrorDefault: 'ErrorDefault',
+      SuccessDefault: 'SuccessDefault',
+    },
+    IconName: {
+      VerifiedFilled: 'VerifiedFilled',
+      Warning: 'Warning',
+      Danger: 'Danger',
+      Error: 'Error',
+      SecurityTick: 'SecurityTick',
+    },
+    IconAlertSeverity: {
+      Info: 'Info',
+      Success: 'Success',
+      Warning: 'Warning',
+      Error: 'Error',
+    },
+    IconSize: { Sm: 'Sm', Xs: 'Xs' },
+    TextColor: {
+      ErrorDefault: 'ErrorDefault',
+      WarningDefault: 'WarningDefault',
+      SuccessDefault: 'SuccessDefault',
+      TextAlternative: 'TextAlternative',
+    },
   };
 });
 
@@ -103,13 +158,26 @@ const { __mockIcon: mockDSIcon } = jest.requireMock(
 
 jest.mock('../../../../component-library/base-components/TagBase', () => {
   const { createElement } = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
+  const { Text, View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ children }: { children: React.ReactNode }) =>
-      createElement(Text, null, children),
-    TagShape: { Rectangle: 'Rectangle' },
-    TagSeverity: { Info: 'Info' },
+    default: ({
+      children,
+      startAccessory,
+    }: {
+      children: React.ReactNode;
+      startAccessory?: React.ReactNode;
+    }) =>
+      createElement(
+        View,
+        null,
+        startAccessory,
+        typeof children === 'string'
+          ? createElement(Text, null, children)
+          : children,
+      ),
+    TagShape: { Rectangle: 'Rectangle', Pill: 'Pill' },
+    TagSeverity: { Info: 'Info', Warning: 'Warning', Danger: 'Danger' },
   };
 });
 
@@ -124,18 +192,9 @@ jest.mock('../../../../component-library/components/Tags/Tag', () => {
 
 describe('TokenSelectorItem', () => {
   const mockOnPress = jest.fn();
-  const mockUseABTest = jest.mocked(useABTest);
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseABTest.mockReturnValue({
-      variant: {
-        showTokenBalanceFirst: false,
-        removeTickerFromTokenBalance: false,
-      },
-      variantName: 'control',
-      isActive: false,
-    });
   });
 
   describe('rendering', () => {
@@ -197,6 +256,41 @@ describe('TokenSelectorItem', () => {
       );
 
       expect(UNSAFE_root).toBeTruthy();
+    });
+
+    it('applies selected styles when isSelected is true by default', () => {
+      const token = createMockTokenWithBalance();
+
+      render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} isSelected />,
+      );
+
+      expect(mockUseStyles).toHaveBeenCalledWith(expect.any(Function), {
+        isSelected: true,
+      });
+    });
+
+    it('does not apply selected styles when shouldChangeSelectedStyle is false', () => {
+      const token = createMockTokenWithBalance();
+
+      render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          isSelected
+          shouldChangeSelectedStyle={false}
+        />,
+      );
+
+      expect(mockUseStyles).toHaveBeenCalledWith(expect.any(Function), {
+        isSelected: false,
+      });
+      expect(
+        mockUseStyles.mock.calls.some(
+          ([, vars]) =>
+            (vars as { isSelected?: boolean } | undefined)?.isSelected === true,
+        ),
+      ).toBe(false);
     });
 
     it('renders no fee badge when isNoFeeAsset is true', () => {
@@ -271,10 +365,54 @@ describe('TokenSelectorItem', () => {
       expect(UNSAFE_root).toBeTruthy();
     });
 
+    it('routes presses on children through the row press target when shouldIncludeChildrenInPressTarget is true', () => {
+      const token = createMockTokenWithBalance();
+
+      const { getByTestId } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          shouldIncludeChildrenInPressTarget
+          pressTargetAccessibilityLabel="Select TEST"
+        >
+          <View testID="token-row-child" />
+        </TokenSelectorItem>,
+      );
+
+      fireEvent.press(getByTestId('token-row-child'));
+
+      expect(mockOnPress).toHaveBeenCalledWith(token);
+    });
+
+    it('uses checkbox accessibility on the row press target when shouldIncludeChildrenInPressTarget is true', () => {
+      const token = createMockTokenWithBalance();
+
+      const { getByTestId } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          isSelected
+          shouldIncludeChildrenInPressTarget
+          pressTargetAccessibilityLabel="Select TEST"
+        >
+          <View testID="token-row-child" />
+        </TokenSelectorItem>,
+      );
+
+      expect(getByTestId(`asset-${token.chainId}-${token.symbol}`)).toHaveProp(
+        'accessibilityRole',
+        'checkbox',
+      );
+      expect(getByTestId(`asset-${token.chainId}-${token.symbol}`)).toHaveProp(
+        'accessibilityState',
+        expect.objectContaining({ checked: true }),
+      );
+    });
+
     it('renders network badge when networkImageSource is provided', () => {
       const token = createMockTokenWithBalance();
 
-      const { getByText } = render(
+      const { getByTestId, getByText } = render(
         <TokenSelectorItem
           token={token}
           onPress={mockOnPress}
@@ -284,6 +422,23 @@ describe('TokenSelectorItem', () => {
       );
 
       expect(getByText('TEST')).toBeTruthy();
+      expect(getByTestId('token-selector-network-badge')).toBeOnTheScreen();
+    });
+
+    it('hides network badge when shouldShowNetworkIcon is false', () => {
+      const token = createMockTokenWithBalance();
+
+      const { queryByTestId } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          networkName="Ethereum"
+          networkImageSource={{ uri: 'https://example.com/network.png' }}
+          shouldShowNetworkIcon={false}
+        />,
+      );
+
+      expect(queryByTestId('token-selector-network-badge')).toBeNull();
     });
 
     it('renders native token when address is zero address', () => {
@@ -475,6 +630,97 @@ describe('TokenSelectorItem', () => {
     });
   });
 
+  describe('security badges', () => {
+    it.each([SecurityDataType.Warning, SecurityDataType.Spam])(
+      'shows Suspicious badge for %s type',
+      (securityType) => {
+        const token = createMockTokenWithBalance({
+          securityData: { type: securityType },
+        });
+
+        const { getByText } = render(
+          <TokenSelectorItem token={token} onPress={mockOnPress} />,
+        );
+
+        expect(getByText('bridge.token_suspicious')).toBeOnTheScreen();
+      },
+    );
+
+    it('shows Malicious badge for Malicious type', () => {
+      const token = createMockTokenWithBalance({
+        securityData: { type: SecurityDataType.Malicious },
+      });
+
+      const { getByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      expect(getByText('bridge.token_malicious')).toBeOnTheScreen();
+    });
+
+    it.each([
+      SecurityDataType.Info,
+      SecurityDataType.Benign,
+      SecurityDataType.Verified,
+    ])('does not show a security badge for %s type', (securityType) => {
+      const token = createMockTokenWithBalance({
+        securityData: { type: securityType },
+      });
+
+      const { queryByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      expect(queryByText('bridge.token_suspicious')).toBeNull();
+      expect(queryByText('bridge.token_malicious')).toBeNull();
+    });
+
+    it('does not show a security badge when securityData is absent', () => {
+      const token = createMockTokenWithBalance({ securityData: undefined });
+
+      const { queryByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      expect(queryByText('bridge.token_suspicious')).toBeNull();
+      expect(queryByText('bridge.token_malicious')).toBeNull();
+    });
+
+    it('renders Warning icon with WarningDefault color for Suspicious badge', () => {
+      const token = createMockTokenWithBalance({
+        securityData: { type: SecurityDataType.Warning },
+      });
+
+      render(<TokenSelectorItem token={token} onPress={mockOnPress} />);
+
+      expect(mockDSIcon).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Danger',
+          color: 'WarningDefault',
+          size: 'Sm',
+        }),
+        undefined,
+      );
+    });
+
+    it('renders Error icon with ErrorDefault color for Malicious badge', () => {
+      const token = createMockTokenWithBalance({
+        securityData: { type: SecurityDataType.Malicious },
+      });
+
+      render(<TokenSelectorItem token={token} onPress={mockOnPress} />);
+
+      expect(mockDSIcon).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Error',
+          color: 'ErrorDefault',
+          size: 'Sm',
+        }),
+        undefined,
+      );
+    });
+  });
+
   describe('A/B variants', () => {
     it('keeps fiat above token balance in the control layout', () => {
       const token = createMockTokenWithBalance({
@@ -484,7 +730,15 @@ describe('TokenSelectorItem', () => {
       });
 
       const controlRender = render(
-        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          balanceLayoutConfigOverride={
+            TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
+              TokenSelectorBalanceLayoutVariant.Control
+            ]
+          }
+        />,
       );
       expect(controlRender.getByText('50 USDC')).toBeOnTheScreen();
 
@@ -497,15 +751,6 @@ describe('TokenSelectorItem', () => {
     });
 
     it('shows token balance first without the ticker in the treatment layout', () => {
-      mockUseABTest.mockReturnValue({
-        variant: {
-          showTokenBalanceFirst: true,
-          removeTickerFromTokenBalance: true,
-        },
-        variantName: 'treatment',
-        isActive: true,
-      });
-
       const token = createMockTokenWithBalance({
         balance: '50.0',
         balanceFiat: '$500',
@@ -513,7 +758,15 @@ describe('TokenSelectorItem', () => {
       });
 
       const treatmentRender = render(
-        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          balanceLayoutConfigOverride={
+            TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
+              TokenSelectorBalanceLayoutVariant.Treatment
+            ]
+          }
+        />,
       );
       expect(treatmentRender.getByText('50')).toBeOnTheScreen();
       expect(treatmentRender.queryByText('50 USDC')).not.toBeOnTheScreen();
@@ -525,5 +778,46 @@ describe('TokenSelectorItem', () => {
         treatmentTextOrder.indexOf('$500'),
       );
     });
+  });
+});
+
+describe('getSecurityTag', () => {
+  it.each([SecurityDataType.Warning, SecurityDataType.Spam])(
+    'returns Warning severity config for %s type',
+    (securityType) => {
+      const result = getSecurityTag(securityType);
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          severity: 'Warning',
+          iconName: 'Danger',
+          iconColor: 'WarningDefault',
+        }),
+      );
+    },
+  );
+
+  it('returns Danger severity config for Malicious type', () => {
+    const result = getSecurityTag(SecurityDataType.Malicious);
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        severity: 'Danger',
+        iconName: 'Error',
+        iconColor: 'ErrorDefault',
+      }),
+    );
+  });
+
+  it.each([
+    SecurityDataType.Info,
+    SecurityDataType.Benign,
+    SecurityDataType.Verified,
+  ])('returns null for %s type', (securityType) => {
+    expect(getSecurityTag(securityType)).toBeNull();
+  });
+
+  it('returns null when securityType is undefined', () => {
+    expect(getSecurityTag(undefined)).toBeNull();
   });
 });

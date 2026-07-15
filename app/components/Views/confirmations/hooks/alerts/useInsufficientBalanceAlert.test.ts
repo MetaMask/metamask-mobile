@@ -17,7 +17,10 @@ import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
-import { useIsTransactionPayLoading } from '../pay/useTransactionPayData';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayFiatPayment,
+} from '../pay/useTransactionPayData';
 import { Hex } from '@metamask/utils';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -79,6 +82,9 @@ describe('useInsufficientBalanceAlert', () => {
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
+  const useTransactionPayFiatPaymentMock = jest.mocked(
+    useTransactionPayFiatPayment,
+  );
 
   const mockChainId = '0x1' as Hex;
   const mockFromAddress = '0x123';
@@ -130,7 +136,6 @@ describe('useInsufficientBalanceAlert', () => {
       goToBuy: mockGoToBuy,
       goToAggregator: jest.fn(),
       goToSell: jest.fn(),
-      goToDeposit: jest.fn(),
     });
 
     useTransactionPayHasSourceAmountMock.mockReturnValue(false);
@@ -141,6 +146,7 @@ describe('useInsufficientBalanceAlert', () => {
     });
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
   });
 
   it('return empty array when no transaction metadata is available', () => {
@@ -290,8 +296,29 @@ describe('useInsufficientBalanceAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
+  it('returns empty array if transaction type is moneyAccountWithdraw', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...mockTransaction,
+      type: TransactionType.moneyAccountWithdraw,
+    } as unknown as TransactionMeta);
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    expect(result.current).toStrictEqual([]);
+  });
+
   it('returns empty array when using pay source amounts', () => {
     useTransactionPayHasSourceAmountMock.mockReturnValue(true);
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    expect(result.current).toEqual([]);
+  });
+
+  it('returns empty array when fiat payment method is selected', () => {
+    useTransactionPayFiatPaymentMock.mockReturnValue({
+      selectedPaymentMethodId: 'apple-pay-123',
+    } as ReturnType<typeof useTransactionPayFiatPayment>);
 
     const { result } = renderHook(() => useInsufficientBalanceAlert());
 
@@ -352,6 +379,38 @@ describe('useInsufficientBalanceAlert', () => {
 
       const { result } = renderHook(() => useInsufficientBalanceAlert());
       expect(result.current).toEqual([]);
+    });
+
+    it('returns alert when transaction is revoke delegation', () => {
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSmartTransaction: true,
+        isSupported: true,
+        pending: false,
+      });
+      const txWithGasFeeSponsored = {
+        ...mockTransaction,
+        isGasFeeSponsored: true,
+        type: TransactionType.revokeDelegation,
+      };
+      mockUseTransactionMetadataRequest.mockReturnValue(txWithGasFeeSponsored);
+
+      const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+      expect(result.current).toEqual([
+        {
+          action: {
+            label: `Buy ${mockNativeCurrency}`,
+            callback: expect.any(Function),
+          },
+          isBlocking: true,
+          field: RowAlertKey.EstimatedFee,
+          key: AlertKeys.InsufficientBalance,
+          message: `Insufficient ${mockNativeCurrency} balance`,
+          title: 'Insufficient Balance',
+          severity: Severity.Danger,
+          skipConfirmation: true,
+        },
+      ]);
     });
   });
 

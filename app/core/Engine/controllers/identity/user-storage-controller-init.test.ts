@@ -1,15 +1,16 @@
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import {
   getUserStorageControllerMessenger,
   getUserStorageControllerInitMessenger,
 } from '../../messengers/identity/user-storage-controller-messenger';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import { userStorageControllerInit } from './user-storage-controller-init';
 import {
   Controller as UserStorageController,
   UserStorageControllerMessenger,
 } from '@metamask/profile-sync-controller/user-storage';
+import { Env } from '@metamask/profile-sync-controller/sdk';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { buildAndTrackEvent } from '../../utils/analytics';
 import { MetaMetricsEvents } from '../../../Analytics';
@@ -21,7 +22,7 @@ jest.mock('../../utils/analytics');
 jest.mock('../../../../util/analytics/AnalyticsEventBuilder');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     UserStorageControllerMessenger,
     ReturnType<typeof getUserStorageControllerInitMessenger>
   >
@@ -31,7 +32,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getUserStorageControllerMessenger(baseMessenger),
     initMessenger: getUserStorageControllerInitMessenger(baseMessenger),
   };
@@ -50,7 +51,6 @@ describe('UserStorageControllerInit', () => {
         name: 'mock-event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -76,6 +76,7 @@ describe('UserStorageControllerInit', () => {
       nativeScryptCrypto: expect.any(Function),
       trace: expect.any(Function),
       config: {
+        env: Env.PRD,
         contactSyncing: {
           onContactUpdated: expect.any(Function),
           onContactDeleted: expect.any(Function),

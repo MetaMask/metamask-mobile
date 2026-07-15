@@ -22,11 +22,11 @@ describe('InputStepperDescriptionRow', () => {
       },
     };
 
-    const { toJSON } = render(
+    const { getByTestId } = render(
       <InputStepperDescriptionRow description={description} />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId('input-stepper-description-row')).toBeOnTheScreen();
   });
 
   it('renders correct style when type is ERROR', () => {
@@ -41,11 +41,11 @@ describe('InputStepperDescriptionRow', () => {
       },
     };
 
-    const { toJSON } = render(
+    const { getByTestId } = render(
       <InputStepperDescriptionRow description={description} />,
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId('input-stepper-description-row')).toBeOnTheScreen();
   });
 
   it('renders provided message', () => {
@@ -77,13 +77,11 @@ describe('InputStepperDescriptionRow', () => {
       },
     };
 
-    const { toJSON, getByTestId } = render(
+    const { getByTestId } = render(
       <InputStepperDescriptionRow description={description} />,
     );
 
-    const icon = getByTestId('input-stepper-description-icon');
-    expect(icon).toBeTruthy();
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId('input-stepper-description-icon')).toBeOnTheScreen();
   });
 
   it('does not render icon when not provided', () => {
@@ -113,13 +111,11 @@ describe('InputStepperDescriptionRow', () => {
       },
     };
 
-    const { toJSON, getByTestId } = render(
+    const { getByTestId } = render(
       <InputStepperDescriptionRow description={description} />,
     );
 
-    const icon = getByTestId('input-stepper-description-icon');
-    expect(icon).toBeTruthy();
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId('input-stepper-description-icon')).toBeOnTheScreen();
   });
 
   it('renders correct message color based on provided color property', () => {
@@ -135,16 +131,16 @@ describe('InputStepperDescriptionRow', () => {
       color: TextColor.ErrorDefault,
     };
 
-    const { toJSON: warningJSON } = render(
+    const { getByTestId: getWarningById, unmount: unmountWarning } = render(
       <InputStepperDescriptionRow description={warningDescription} />,
     );
+    expect(getWarningById('input-text-description-message')).toBeOnTheScreen();
+    unmountWarning();
 
-    const { toJSON: errorJSON } = render(
+    const { getByTestId: getErrorById } = render(
       <InputStepperDescriptionRow description={errorDescription} />,
     );
-
-    expect(warningJSON()).toMatchSnapshot('warning color');
-    expect(errorJSON()).toMatchSnapshot('error color');
+    expect(getErrorById('input-text-description-message')).toBeOnTheScreen();
   });
 
   it('does not render component if no description prop is provided', () => {
@@ -182,11 +178,13 @@ describe('InputStepperDescriptionRow', () => {
         color: TextColor.WarningDefault,
       };
 
-      const { toJSON } = render(
+      const { getByTestId } = render(
         <InputStepperDescriptionRow description={description} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('input-text-description-message').props.children).toBe(
+        longMessage,
+      );
     });
 
     it('renders warning without icon', () => {
@@ -196,11 +194,11 @@ describe('InputStepperDescriptionRow', () => {
         color: TextColor.WarningDefault,
       };
 
-      const { toJSON } = render(
+      const { getByTestId } = render(
         <InputStepperDescriptionRow description={description} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('input-stepper-description-row')).toBeOnTheScreen();
     });
 
     it('renders error without icon', () => {
@@ -210,11 +208,11 @@ describe('InputStepperDescriptionRow', () => {
         color: TextColor.ErrorDefault,
       };
 
-      const { toJSON } = render(
+      const { getByTestId } = render(
         <InputStepperDescriptionRow description={description} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('input-stepper-description-row')).toBeOnTheScreen();
     });
   });
 
@@ -231,11 +229,11 @@ describe('InputStepperDescriptionRow', () => {
         },
       };
 
-      const { toJSON } = render(
+      const { getByTestId } = render(
         <InputStepperDescriptionRow description={description} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('input-stepper-description-icon')).toBeOnTheScreen();
     });
 
     it('renders with medium icon size', () => {
@@ -250,11 +248,11 @@ describe('InputStepperDescriptionRow', () => {
         },
       };
 
-      const { toJSON } = render(
+      const { getByTestId } = render(
         <InputStepperDescriptionRow description={description} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('input-stepper-description-icon')).toBeOnTheScreen();
     });
 
     it('renders with large icon size', () => {
@@ -269,11 +267,11 @@ describe('InputStepperDescriptionRow', () => {
         },
       };
 
-      const { toJSON } = render(
+      const { getByTestId } = render(
         <InputStepperDescriptionRow description={description} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('input-stepper-description-icon')).toBeOnTheScreen();
     });
 
     it('renders with different icon names', () => {
@@ -288,11 +286,11 @@ describe('InputStepperDescriptionRow', () => {
         },
       };
 
-      const { toJSON } = render(
+      const { getByTestId } = render(
         <InputStepperDescriptionRow description={infoDescription} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('input-stepper-description-icon')).toBeOnTheScreen();
     });
   });
 
@@ -309,18 +307,13 @@ describe('InputStepperDescriptionRow', () => {
         },
       };
 
-      const { getByTestId, toJSON } = render(
+      const { getByTestId } = render(
         <InputStepperDescriptionRow description={description} />,
       );
 
-      const descriptionRow = getByTestId('input-stepper-description-row');
-      const icon = getByTestId('input-stepper-description-icon');
-      const message = getByTestId('input-text-description-message');
-
-      expect(descriptionRow).toBeTruthy();
-      expect(icon).toBeTruthy();
-      expect(message).toBeTruthy();
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('input-stepper-description-row')).toBeOnTheScreen();
+      expect(getByTestId('input-stepper-description-icon')).toBeOnTheScreen();
+      expect(getByTestId('input-text-description-message')).toBeOnTheScreen();
     });
   });
 });

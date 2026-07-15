@@ -45,17 +45,22 @@ export const useBalancesByAssetId = ({
     tokensWithBalance.forEach((token) => {
       const assetId = formatAddressToAssetId(token.address, token.chainId);
       if (assetId && token.balance) {
-        // Normalize assetId because API returns assetId in lowercase for EVM chains
-        const normalizedAssetId = isNonEvmChainId(token.chainId)
-          ? assetId
-          : (assetId.toLowerCase() as CaipAssetType);
-        balancesMap[normalizedAssetId] = {
+        const balanceData = {
           balance: token.balance,
           balanceFiat: token.balanceFiat,
           tokenFiatAmount: token.tokenFiatAmount,
           currencyExchangeRate: token.currencyExchangeRate,
           accountType: token.accountType,
         };
+
+        // Store the canonical bridge-controller key for checksummed lookups for EVM.
+        balancesMap[assetId] = balanceData;
+
+        // Also store the lowercase EVM key
+        const normalizedAssetId = isNonEvmChainId(token.chainId)
+          ? assetId
+          : (assetId.toLowerCase() as CaipAssetType);
+        balancesMap[normalizedAssetId] = balanceData;
       }
     });
 

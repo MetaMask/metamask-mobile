@@ -372,6 +372,18 @@ const extractTrendingProperties = (
 };
 
 /**
+ * Extract properties for WHATS_HAPPENING route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractWhatsHappeningProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // WHATS_HAPPENING route doesn't have sensitive parameters to extract
+};
+
+/**
  * Extract properties for CARD_ONBOARDING route
  * @param urlParams - URL parameters
  * @param sensitiveProps - Object to add properties to
@@ -419,6 +431,14 @@ const extractNftProperties = (
   // NFT route doesn't have sensitive parameters to extract
 };
 
+const extractMmcMwpProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // MMC MWP deeplinks carry their payload in a compressed `p` param;
+  // no route-level sensitive properties to extract here.
+};
+
 /**
  * Extract properties for INVALID route
  * No properties to extract, this function is a placeholder
@@ -441,6 +461,7 @@ const routeExtractors: Record<
   (urlParams: UrlParamValues, sensitiveProps: Record<string, string>) => void
 > = {
   [DeepLinkRoute.SWAP]: extractSwapProperties,
+  [DeepLinkRoute.BATCH_SELL]: extractInvalidProperties,
   [DeepLinkRoute.PERPS]: extractPerpsProperties,
   [DeepLinkRoute.TRANSACTION]: extractTransactionProperties,
   [DeepLinkRoute.BUY]: extractBuyProperties,
@@ -455,10 +476,18 @@ const routeExtractors: Record<
   [DeepLinkRoute.PREDICT]: extractPredictProperties,
   [DeepLinkRoute.SHIELD]: extractShieldProperties,
   [DeepLinkRoute.TRENDING]: extractTrendingProperties,
+  [DeepLinkRoute.WHATS_HAPPENING]: extractWhatsHappeningProperties,
+  [DeepLinkRoute.TOP_TRADERS]: extractInvalidProperties,
+  [DeepLinkRoute.SOCIAL_TRADER_POSITION]: extractInvalidProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
   [DeepLinkRoute.NFT]: extractNftProperties,
+  [DeepLinkRoute.MMC_MWP]: extractMmcMwpProperties,
+  [DeepLinkRoute.AGENTIC_CLI]: extractInvalidProperties,
+  [DeepLinkRoute.SDK_CONNECT]: extractInvalidProperties,
+  [DeepLinkRoute.SDK_MMSDK]: extractInvalidProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
+  [DeepLinkRoute.MONEY]: extractInvalidProperties,
 };
 
 /**
@@ -552,6 +581,8 @@ export const mapSupportedActionToRoute = (
   switch (action) {
     case ACTIONS.SWAP:
       return DeepLinkRoute.SWAP;
+    case ACTIONS.BATCH_SELL:
+      return DeepLinkRoute.BATCH_SELL;
     case ACTIONS.PERPS:
     case ACTIONS.PERPS_MARKETS:
     case ACTIONS.PERPS_ASSET:
@@ -560,6 +591,7 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.TRANSACTION;
     case ACTIONS.BUY:
     case ACTIONS.BUY_CRYPTO:
+    case ACTIONS.ON_RAMP:
       return DeepLinkRoute.BUY;
     case ACTIONS.SELL:
     case ACTIONS.SELL_CRYPTO:
@@ -584,12 +616,33 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SHIELD;
     case ACTIONS.TRENDING:
       return DeepLinkRoute.TRENDING;
+    case ACTIONS.WHATS_HAPPENING:
+      return DeepLinkRoute.WHATS_HAPPENING;
+    case ACTIONS.TOP_TRADERS:
+      return DeepLinkRoute.TOP_TRADERS;
+    case ACTIONS.SOCIAL_TRADER_POSITION:
+      return DeepLinkRoute.SOCIAL_TRADER_POSITION;
     case ACTIONS.CARD_ONBOARDING:
       return DeepLinkRoute.CARD_ONBOARDING;
     case ACTIONS.CARD_HOME:
       return DeepLinkRoute.CARD_HOME;
     case ACTIONS.NFT:
       return DeepLinkRoute.NFT;
+    case ACTIONS.AGENTIC_CLI:
+      return DeepLinkRoute.AGENTIC_CLI;
+    // MetaMask SDK connection deeplinks (`@metamask/sdk` / sdk-communication-
+    // layer, a.k.a. "SDKv1"). `connect` (iOS/universal) and `bind`
+    // (ACTIONS.ANDROID_SDK) are the same connect surface, so both map to
+    // SDK_CONNECT; `mmsdk` is the separate RPC message channel. This is NOT
+    // MetaMask Connect (a.k.a. "SDKv2" / SDKConnectV2): MMC arrives over MWP and
+    // is tracked as MMC_MWP in handleDeeplink.ts, intercepted before this path.
+    case ACTIONS.CONNECT:
+    case ACTIONS.ANDROID_SDK:
+      return DeepLinkRoute.SDK_CONNECT;
+    case ACTIONS.MMSDK:
+      return DeepLinkRoute.SDK_MMSDK;
+    case ACTIONS.MONEY:
+      return DeepLinkRoute.MONEY;
     default:
       return DeepLinkRoute.INVALID;
   }
@@ -608,6 +661,8 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
     switch (route) {
       case 'swap':
         return DeepLinkRoute.SWAP;
+      case 'batch-sell':
+        return DeepLinkRoute.BATCH_SELL;
       case 'perps':
         return DeepLinkRoute.PERPS;
       case 'deposit':
@@ -638,12 +693,22 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.SHIELD;
       case 'trending':
         return DeepLinkRoute.TRENDING;
+      case 'whats-happening':
+        return DeepLinkRoute.WHATS_HAPPENING;
+      case 'top-traders':
+        return DeepLinkRoute.TOP_TRADERS;
+      case 'social-trader-position':
+        return DeepLinkRoute.SOCIAL_TRADER_POSITION;
       case 'card-onboarding':
         return DeepLinkRoute.CARD_ONBOARDING;
       case 'card-home':
         return DeepLinkRoute.CARD_HOME;
       case 'nft':
         return DeepLinkRoute.NFT;
+      case 'agentic-cli':
+        return DeepLinkRoute.AGENTIC_CLI;
+      case 'money':
+        return DeepLinkRoute.MONEY;
       case undefined: // Empty path (no segments after filtering)
         return DeepLinkRoute.HOME;
       default:
@@ -668,8 +733,14 @@ export const createDeepLinkUsedEventBuilder = async (
 ): Promise<ReturnType<typeof AnalyticsEventBuilder.createEventBuilder>> => {
   const { url, route, signatureStatus } = context;
 
+  // Resolve the fire-and-forget Branch fetch lazily here so callers don't
+  // block on it. `branchParams` takes precedence for paths (MWP, push) that
+  // resolve it eagerly.
+  const branchParams: BranchParams | undefined =
+    context.branchParams ?? (await (context.branchParamsPromise ?? undefined));
+
   // Pass branchParams to avoid duplicate fetch
-  const wasAppInstalled = await detectAppInstallation(context.branchParams);
+  const wasAppInstalled = await detectAppInstallation(branchParams);
 
   // Extract sensitive properties
   const sensitiveProperties = extractSensitiveProperties(
@@ -677,8 +748,12 @@ export const createDeepLinkUsedEventBuilder = async (
     context.urlParams,
   );
 
-  // Determine interstitial state
-  const interstitial = determineInterstitialState(context);
+  // Use the resolved branchParams so `determineInterstitialState` sees the
+  // same value it did under the previous eager-fetch implementation.
+  const interstitial = determineInterstitialState({
+    ...context,
+    branchParams,
+  });
 
   // Create the AnalyticsEventBuilder with all deep link properties
   const eventBuilder = AnalyticsEventBuilder.createEventBuilder(

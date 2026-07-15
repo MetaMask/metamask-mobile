@@ -12,7 +12,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import {
   SafeAreaView,
@@ -20,18 +20,28 @@ import {
 } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
+import PredictChipList from '../PredictChipList';
 import PredictGameChart from '../PredictGameChart';
 import { PredictGameDetailsFooter } from '../PredictGameDetailsFooter';
 import PredictGameAboutSheet from '../PredictGameDetailsFooter/PredictGameAboutSheet';
-import PredictPicks from '../PredictPicks/PredictPicks';
 import PredictShareButton from '../PredictShareButton/PredictShareButton';
 import PredictSportScoreboard from '../PredictSportScoreboard';
+import PredictMarketDetailsTabBar from '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar';
+import PredictGameDetailsTabsContent from './PredictGameDetailsTabsContent';
+import PredictRegTimeInfoSheet from './PredictRegTimeInfoSheet';
+import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 
-const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
+const CHIPS_STICKY_INDEX = 2;
+
+const PredictGameDetailsContentComponent: React.FC<
+  PredictGameDetailsContentProps
+> = ({
   market,
   onBack,
   onRefresh,
@@ -41,6 +51,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   claimableAmount = 0,
   isLoading = false,
   isClaimPending = false,
+  nonRegTimeSportsMarketTypes = [],
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -48,15 +59,69 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
 
   const { sheetRef, isVisible, handleSheetClosed, getRefHandlers } =
     usePredictBottomSheet();
+  const {
+    sheetRef: regTimeSheetRef,
+    isVisible: isRegTimeSheetVisible,
+    handleSheetClosed: handleRegTimeSheetClosed,
+    getRefHandlers: getRegTimeRefHandlers,
+  } = usePredictBottomSheet();
 
   const sheetHandlers = useMemo(() => getRefHandlers(), [getRefHandlers]);
+  const regTimeSheetHandlers = useMemo(
+    () => getRegTimeRefHandlers(),
+    [getRegTimeRefHandlers],
+  );
+  const { game } = usePredictGame(market, { live: true });
 
   const handleInfoPress = useCallback(() => {
     sheetHandlers.onOpenBottomSheet();
   }, [sheetHandlers]);
+  const handleRegTimeInfoPress = useCallback(() => {
+    regTimeSheetHandlers.onOpenBottomSheet();
+  }, [regTimeSheetHandlers]);
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
-  const game = market.game;
+
+  const { data: activePositions = [] } = usePredictPositions({
+    marketId: market.id,
+    childMarketIds: market.childMarketIds,
+    claimable: false,
+    livePriceUpdates: true,
+  });
+  const { data: claimablePositions = [] } = usePredictPositions({
+    marketId: market.id,
+    childMarketIds: market.childMarketIds,
+    claimable: true,
+  });
+
+  const {
+    enabled: tabsEnabled,
+    showTabBar,
+    tabs,
+    activeTab,
+    handleTabPress,
+    chips,
+    groupMap,
+    resolvedOutcomeGroups,
+    activeChipKey,
+    handleChipSelect,
+    showChips,
+  } = useGameDetailsTabs({
+    activePositions,
+    claimablePositions,
+    league: game?.league,
+    outcomeGroups: market.outcomeGroups ?? [],
+  });
+
+  const resolvedGroups = resolvedOutcomeGroups ?? [];
+  const showStickyHeader = showTabBar || showChips;
+  const hasOpenExtendedOutcomes = tabsEnabled && groupMap.size > 0;
+  const showFooter =
+    !hasOpenExtendedOutcomes || (claimableAmount > 0 && Boolean(onClaimPress));
+  const stickyHeaderIndices = useMemo(
+    () => (showStickyHeader ? [CHIPS_STICKY_INDEX] : undefined),
+    [showStickyHeader],
+  );
 
   if (!outcome || !game) {
     return null;
@@ -80,6 +145,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityRole="button"
           accessibilityLabel={strings('predict.buttons.back')}
+          testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
         >
           <Icon
             name={IconName.ArrowLeft}
@@ -103,8 +169,10 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
       </Box>
 
       <ScrollView
+        testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.SCROLL_VIEW}
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('pb-4')}
+        stickyHeaderIndices={stickyHeaderIndices}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -128,24 +196,54 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
           />
         </Box>
 
-        <Box twClassName="px-4 py-2">
-          <PredictPicks
-            market={market}
-            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_PICK}
-          />
-        </Box>
+        {showStickyHeader && (
+          <Box twClassName="bg-default">
+            {showTabBar && (
+              <PredictMarketDetailsTabBar
+                tabs={tabs}
+                activeTab={activeTab}
+                onTabPress={handleTabPress}
+              />
+            )}
+            {showChips && (
+              <PredictChipList
+                chips={chips}
+                activeChipKey={activeChipKey}
+                onChipSelect={handleChipSelect}
+              />
+            )}
+          </Box>
+        )}
+
+        <PredictGameDetailsTabsContent
+          market={market}
+          activeTab={activeTab}
+          tabs={tabs}
+          enabled={tabsEnabled}
+          showTabBar={showTabBar}
+          activePositions={activePositions}
+          claimablePositions={claimablePositions}
+          groupMap={groupMap}
+          resolvedOutcomeGroups={resolvedGroups}
+          activeChipKey={activeChipKey}
+          onBetPress={onBetPress}
+          nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
+          onRegTimeInfoPress={handleRegTimeInfoPress}
+        />
       </ScrollView>
 
-      <PredictGameDetailsFooter
-        market={market}
-        outcome={outcome}
-        onBetPress={onBetPress}
-        onClaimPress={onClaimPress}
-        onInfoPress={handleInfoPress}
-        claimableAmount={claimableAmount}
-        isLoading={isLoading}
-        isClaimPending={isClaimPending}
-      />
+      {showFooter && (
+        <PredictGameDetailsFooter
+          market={market}
+          outcome={outcome}
+          onBetPress={onBetPress}
+          onClaimPress={onClaimPress}
+          onInfoPress={handleInfoPress}
+          claimableAmount={claimableAmount}
+          isLoading={isLoading}
+          isClaimPending={isClaimPending}
+        />
+      )}
 
       {isVisible && (
         <PredictGameAboutSheet
@@ -154,8 +252,20 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
           onClose={handleSheetClosed}
         />
       )}
+      {isRegTimeSheetVisible && (
+        <PredictRegTimeInfoSheet
+          ref={regTimeSheetRef}
+          onClose={handleRegTimeSheetClosed}
+        />
+      )}
     </SafeAreaView>
   );
 };
+
+// Memoized so a parent (PredictMarketDetails) re-render driven by its own live
+// subscriptions does not re-render this entire subtree when our props are
+// unchanged. The screen's live odds updates are driven by this component's own
+// hooks instead.
+const PredictGameDetailsContent = memo(PredictGameDetailsContentComponent);
 
 export default PredictGameDetailsContent;

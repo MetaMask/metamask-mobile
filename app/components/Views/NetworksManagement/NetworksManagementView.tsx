@@ -1,15 +1,19 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  HeaderStandard,
   Box,
   Text,
   TextVariant,
   TextColor,
   FontWeight,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
+import { ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -17,12 +21,6 @@ import { formatRpcUrlForDisplay } from './NetworksManagementView.utils';
 import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
 import { PopularList } from '../../../util/networks/customNetworks';
 
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
@@ -121,7 +119,7 @@ const NetworksManagementView = () => {
       style={tw.style('flex-1 bg-background-default')}
       testID={NetworksManagementViewSelectorsIDs.CONTAINER}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('app_settings.networks_title')}
         onBack={handleBack}
         includesTopInset
@@ -216,13 +214,14 @@ const NetworksManagementView = () => {
       {/* Sticky footer — Add network button */}
       <Box twClassName="py-1 px-4">
         <Button
-          variant={ButtonVariants.Secondary}
-          label={strings('app_settings.network_add_network')}
+          variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           onPress={handleAddCustomNetwork}
           testID={NetworksManagementViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON}
-        />
+        >
+          {strings('app_settings.network_add_network')}
+        </Button>
       </Box>
     </SafeAreaView>
   );

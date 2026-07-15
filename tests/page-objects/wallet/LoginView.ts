@@ -1,7 +1,4 @@
-import {
-  LoginViewSelectors,
-  LoginViewSelectorText,
-} from '../../../app/components/Views/Login/LoginView.testIds';
+import { LoginViewSelectors } from '../../../app/components/Views/Login/LoginView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { PlaywrightAssertions } from '../../framework';
@@ -13,6 +10,7 @@ import {
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
+import Utilities from '../../framework/Utilities';
 
 class LoginView {
   get container(): EncapsulatedElementType {
@@ -34,8 +32,8 @@ class LoginView {
         Matchers.getElementByLabel(LoginViewSelectors.PASSWORD_INPUT),
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            LoginViewSelectors.PASSWORD_INPUT,
+          PlaywrightMatchers.getElementByAndroidUIAutomator(
+            `.description("${LoginViewSelectors.PASSWORD_INPUT}")`,
           ),
         ios: () =>
           PlaywrightMatchers.getElementById(LoginViewSelectors.PASSWORD_INPUT, {
@@ -45,11 +43,11 @@ class LoginView {
     });
   }
 
-  get forgotPasswordButton(): DetoxElement {
+  get forgotPasswordButton(): EncapsulatedElementType {
     return Matchers.getElementByID(LoginViewSelectors.RESET_WALLET);
   }
 
-  get rememberMeSwitch(): DetoxElement {
+  get rememberMeSwitch(): EncapsulatedElementType {
     return Matchers.getElementByID(LoginViewSelectors.REMEMBER_ME_SWITCH);
   }
 
@@ -57,9 +55,9 @@ class LoginView {
     return encapsulated({
       detox: () => Matchers.getElementByID(LoginViewSelectors.LOGIN_BUTTON_ID),
       appium: () =>
-        PlaywrightMatchers.getElementByText(
-          LoginViewSelectorText.UNLOCK_BUTTON,
-        ),
+        PlaywrightMatchers.getElementById(LoginViewSelectors.LOGIN_BUTTON_ID, {
+          exact: true,
+        }),
     });
   }
 
@@ -74,8 +72,18 @@ class LoginView {
   }
 
   async enterPassword(password: string): Promise<void> {
-    await UnifiedGestures.typeText(this.passwordInput, password, {
-      description: 'Password Input',
+    await encapsulatedAction({
+      detox: async () => {
+        await UnifiedGestures.typeText(this.passwordInput, password, {
+          description: 'Password Input',
+        });
+      },
+      appium: async () => {
+        await UnifiedGestures.typeText(this.passwordInput, password, {
+          description: 'Password Input',
+          hideKeyboard: false,
+        });
+      },
     });
   }
 
@@ -92,8 +100,23 @@ class LoginView {
   }
 
   async tapLoginButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.loginButton, {
-      description: 'Login Button',
+    await encapsulatedAction({
+      detox: async () => {
+        await UnifiedGestures.waitAndTap(this.loginButton, {
+          description: 'Login Button',
+        });
+      },
+      appium: async () => {
+        await UnifiedGestures.waitAndTap(this.loginButton, {
+          description: 'Login Button',
+          checkForDisplayed: true,
+          checkForEnabled: true,
+          waitForInteractive: true,
+          timeout: 10_000,
+          enabledStableReads: 2,
+          postEnabledSettleMs: 300,
+        });
+      },
     });
   }
 

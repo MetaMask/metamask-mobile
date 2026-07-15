@@ -13,12 +13,13 @@ export const optimismToken1Address =
   '0x0000000000000000000000000000000000000003' as Hex;
 
 export const defaultBridgeControllerState = {
-  quoteRequest: {},
+  quoteRequest: [{}],
   quotes: [],
   quotesInitialLoadTime: null,
   quotesLastFetched: null,
   quotesLoadingStatus: null,
   quoteFetchError: null,
   quotesRefreshCount: 0,
+  inputPrimaryDenomination: 'token_amount' as const,
   tokenWarnings: [],
 };

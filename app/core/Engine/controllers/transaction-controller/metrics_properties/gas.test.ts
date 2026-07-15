@@ -14,10 +14,12 @@ const mockGetNativeTokenAddress = getNativeTokenAddress as jest.MockedFunction<
   typeof getNativeTokenAddress
 >;
 
+const MOCK_CHECKSUMMED_ADDRESS = '0x44934055428d2eF7E3F97D98187f2459007fa49F';
+
 const createMockState = (
   balance: string = '0x100000000000000000',
   chainId: string = '0x1',
-  address: string = '0xuser',
+  address: string = MOCK_CHECKSUMMED_ADDRESS,
 ): RootState =>
   ({
     engine: {
@@ -25,7 +27,7 @@ const createMockState = (
         AccountTrackerController: {
           accountsByChainId: {
             [chainId]: {
-              [address.toLowerCase()]: { balance },
+              [address]: { balance },
             },
           },
         },
@@ -40,7 +42,11 @@ const createMockRequest = (
   eventType: TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
   transactionMeta: {
     chainId: '0x1',
-    txParams: { from: '0xuser', gas: '0x5208', gasPrice: '0x1' },
+    txParams: {
+      from: MOCK_CHECKSUMMED_ADDRESS,
+      gas: '0x5208',
+      gasPrice: '0x1',
+    },
     ...overrides,
   } as TransactionMeta,
   allTransactions: [],
@@ -139,7 +145,7 @@ describe('getGasMetricsProperties', () => {
     const request = createMockRequest(
       {
         txParams: {
-          from: '0xuser',
+          from: MOCK_CHECKSUMMED_ADDRESS,
           gas: '0x5208',
           gasPrice: '0x100000000000000000',
         },
@@ -156,7 +162,11 @@ describe('getGasMetricsProperties', () => {
     const state = createMockState('0x100000000000000000');
     const request = createMockRequest(
       {
-        txParams: { from: '0xuser', gas: '0x1', gasPrice: '0x1' },
+        txParams: {
+          from: MOCK_CHECKSUMMED_ADDRESS,
+          gas: '0x1',
+          gasPrice: '0x1',
+        },
       },
       state,
     );

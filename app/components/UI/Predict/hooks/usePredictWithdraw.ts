@@ -11,6 +11,7 @@ import {
 } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
 import { selectPredictWithdrawTransaction } from '../selectors/predictController';
+import Routes from '../../../../constants/navigation/Routes';
 
 export const usePredictWithdraw = () => {
   const { prepareWithdraw } = usePredictTrading();
@@ -24,6 +25,7 @@ export const usePredictWithdraw = () => {
     try {
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
+        stack: Routes.PREDICT.ROOT,
       });
 
       const response = await prepareWithdraw({});

@@ -24,6 +24,14 @@ export {
 export { formatPerpsFiat }; // re-export via local import (needed by formatPositiveFiat below)
 
 /**
+ * Truncates a number to 2 decimal places without rounding up.
+ * Uses BigNumber to avoid IEEE 754 floating-point errors
+ * (e.g. `Math.floor(10.29 * 100) / 100` = 10.28).
+ */
+export const truncateToTwoDecimals = (value: number): number =>
+  new BigNumber(value).decimalPlaces(2, BigNumber.ROUND_DOWN).toNumber();
+
+/**
  * Formats a fee value as USD currency with appropriate decimal places
  * @param fee - Raw numeric or string fee value (e.g., 1234.56, not token minimal denomination)
  * @returns Formatted currency string with variable decimals based on configured ranges
@@ -324,6 +332,27 @@ export const parseCurrencyString = (formattedValue: string): number => {
   if (isNaN(parsed)) return 0;
 
   return isNegative ? -parsed : parsed;
+};
+
+/**
+ * Formats a perps balance (availableBalance, totalBalance, etc.) as fiat,
+ * truncating down to 2 decimals first so the displayed value never exceeds
+ * the actual withdrawable amount. Use this for any balance that a user might
+ * try to act on (withdraw Max, insufficient-balance comparisons), so the
+ * display matches what the underlying flow can actually transact.
+ *
+ * Accepts raw numeric strings (e.g. "50.389"), formatted strings
+ * (e.g. "$1,232.39"), or numbers. See `parseCurrencyString`.
+ */
+export const formatPerpsBalance = (
+  balance: string | number | null | undefined,
+): string => {
+  if (balance === null || balance === undefined || balance === '') {
+    return formatPerpsFiat(0);
+  }
+  const numeric =
+    typeof balance === 'string' ? parseCurrencyString(balance) : balance;
+  return formatPerpsFiat(truncateToTwoDecimals(numeric));
 };
 
 /**

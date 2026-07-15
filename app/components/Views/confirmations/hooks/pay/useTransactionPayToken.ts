@@ -64,6 +64,7 @@ export function useTransactionPayToken(): {
       // perps deposits only use relay, so doesn't need gasFeeToken update
       const isPredictDepositTransaction = hasTransactionType(transactionMeta, [
         TransactionType.predictDeposit,
+        TransactionType.predictDepositAndOrder,
       ]);
 
       if (isPredictDepositTransaction && transactionMeta) {

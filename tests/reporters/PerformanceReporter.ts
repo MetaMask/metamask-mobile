@@ -13,6 +13,7 @@ import { BrowserStackEnricher } from './providers/browserstack/BrowserStackEnric
 import { HtmlReportGenerator } from './generators/HtmlReportGenerator';
 import { CsvReportGenerator } from './generators/CsvReportGenerator';
 import { JsonReportGenerator } from './generators/JsonReportGenerator';
+import { publishPerformanceScenarioToSentry } from './providers/sentry/PerformanceSentryPublisher';
 import type {
   MetricsEntry,
   SessionData,
@@ -76,9 +77,14 @@ class PerformanceReporter {
     const testId = `${test.title}-${projectName}`;
 
     if (this.processedTests.has(testId)) {
-      logger.warn(
-        `Test already processed, skipping: ${test.title} (${projectName})`,
-      );
+      // If this retry passed, update the existing failed entry to reflect final success
+      if (result.status === 'passed') {
+        this.resolveRetrySuccess(test, projectName);
+      } else {
+        logger.warn(
+          `Test already processed, skipping: ${test.title} (${projectName})`,
+        );
+      }
       return;
     }
     this.processedTests.add(testId);
@@ -125,6 +131,7 @@ class PerformanceReporter {
 
     if (this.sessions.length > 0 && isBrowserStackRun) {
       await this.enrichSessionsWithProviderData();
+      await this.publishAppSizeToSentry();
     }
 
     // Clean up leftover environment variables
@@ -264,6 +271,7 @@ class PerformanceReporter {
           testFilePath,
           tags: testTags,
           ...metrics,
+          projectName,
         };
 
         // Mark actual failures
@@ -305,11 +313,48 @@ class PerformanceReporter {
             logger.info(
               this.qualityGatesReportFormatter.formatConsoleReport(
                 qualityGatesResult,
+                metricsEntry.sessionCreationDurationMs,
               ),
             );
           }
 
-          // Update failed test entry with quality gates info
+          // Quality gates exceeded → always mark the test as failed in the
+          // report, regardless of what Playwright reports as result.status
+          // (fixture teardown errors can surface as 'interrupted' in some
+          // Playwright versions instead of 'failed').
+          if (qualityGatesResult.hasThresholds && !qualityGatesResult.passed) {
+            metricsEntry.testFailed = true;
+            metricsEntry.failureReason = 'quality_gates_exceeded';
+
+            // Ensure the test is tracked in failedTestsByTeam even when
+            // trackFailedTest() was skipped because result.status was not
+            // 'failed' or 'timedOut'.
+            const teamId = teamInfo.teamId;
+            if (!this.failedTestsByTeam[teamId]) {
+              this.failedTestsByTeam[teamId] = { team: teamInfo, tests: [] };
+            }
+            const alreadyTracked = this.failedTestsByTeam[teamId].tests.find(
+              (t) => t.testName === test.title && t.projectName === projectName,
+            );
+            if (!alreadyTracked) {
+              const sessionIdFromAnnotation =
+                result.annotations?.find((a) => a.type === 'sessionId')
+                  ?.description ?? null;
+              this.failedTestsByTeam[teamId].tests.push({
+                testName: test.title,
+                testFilePath,
+                tags: testTags,
+                status: 'failed',
+                duration: result.duration,
+                projectName,
+                sessionId: sessionIdFromAnnotation,
+                qualityGates: qualityGatesResult,
+                failureReason: 'quality_gates_exceeded',
+              });
+            }
+          }
+
+          // Update existing failed test entry with quality gates details
           if (metricsEntry.testFailed) {
             const updates: Record<string, unknown> = {
               qualityGates: qualityGatesResult,
@@ -347,6 +392,7 @@ class PerformanceReporter {
         testName: test.title,
         testFilePath,
         tags: testTags,
+        projectName,
         total: result.duration / 1000,
         device: deviceInfo,
         steps: [],
@@ -439,6 +485,65 @@ class PerformanceReporter {
     }
   }
 
+  /**
+   * After BrowserStack enrichment, publish the installed app size for each
+   * session that has profiling data to Sentry, following the same pattern
+   * as the per-test timing measurements sent from the fixture.
+   */
+  private async publishAppSizeToSentry(): Promise<void> {
+    for (const session of this.sessions) {
+      const appSizeMb = session.profilingSummary?.appSizeMb;
+      if (appSizeMb === undefined) {
+        continue;
+      }
+
+      const metric = this.metrics.find((m) => m.testName === session.testTitle);
+
+      const deviceInfo: DeviceInfo = session.deviceInfo ??
+        metric?.device ?? {
+          name: 'Unknown',
+          osVersion: 'Unknown',
+          provider: 'browserstack',
+        };
+
+      const teamInfo = session.team ?? metric?.team ?? null;
+
+      try {
+        const sentToSentry = await publishPerformanceScenarioToSentry({
+          metrics: {
+            steps: [],
+            timestamp: session.timestamp ?? new Date().toISOString(),
+            thresholdMarginPercent: 0,
+            team: teamInfo,
+            total: 0,
+            totalThreshold: null,
+            hasThresholds: false,
+            totalValidation: null,
+            device: deviceInfo,
+            appSizeMb,
+          },
+          testTitle: session.testTitle,
+          projectName: session.projectName ?? 'unknown',
+          testFilePath: session.testFilePath,
+          videoRecordingUrl: session.videoURL ?? null,
+          tags: session.tags ?? metric?.tags ?? [],
+          status: session.testStatus,
+        });
+
+        if (sentToSentry) {
+          logger.info(
+            `App size (${appSizeMb} MB) for "${session.testTitle}" sent to Sentry`,
+          );
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.warn(
+          `Failed to publish app size for "${session.testTitle}" to Sentry: ${message}`,
+        );
+      }
+    }
+  }
+
   private async generateReports(summary: ReportSummary): Promise<void> {
     const testName = (this.metrics[0]?.testName ?? 'Unknown')
       .replace(/[^a-zA-Z0-9]/g, '_')
@@ -457,6 +562,9 @@ class PerformanceReporter {
 
       // Merge session data into metrics (video URLs, profiling, network logs)
       const metricsWithSession = this.mergeSessionDataIntoMetrics();
+
+      // Publish profiling data (FPS, CPU, memory) to Sentry for enriched metrics
+      await this.publishProfilingDataToSentry(metricsWithSession);
 
       const reportData: ReportData = {
         metrics: metricsWithSession,
@@ -507,6 +615,64 @@ class PerformanceReporter {
     }
   }
 
+  private async publishProfilingDataToSentry(
+    metrics: MetricsEntry[],
+  ): Promise<void> {
+    for (const metric of metrics) {
+      // Skip if no profiling data or if enrichment produced an error object
+      // (BrowserStackEnricher sets profilingSummary to { error: '...' } on failure)
+      if (!metric.profilingSummary || metric.profilingSummary.error) continue;
+
+      // Derive status that matches what the fixture sends: timedOut is a
+      // distinct Sentry status and must not be collapsed to 'failed'.
+      const testStatus = !metric.testFailed
+        ? 'passed'
+        : metric.failureReason === 'timedOut'
+          ? 'timedOut'
+          : 'failed';
+
+      // Anchor Sentry transaction to the actual test end time, not report time.
+      const testEndTimestamp = metric.timestamp
+        ? new Date(metric.timestamp).getTime() / 1000
+        : undefined;
+
+      try {
+        const sent = await publishPerformanceScenarioToSentry({
+          metrics: {
+            steps: metric.steps || [],
+            timestamp: metric.timestamp || new Date().toISOString(),
+            thresholdMarginPercent: metric.thresholdMarginPercent ?? 10,
+            team: metric.team ?? null,
+            total: metric.total || 0,
+            totalThreshold: metric.totalThreshold ?? null,
+            hasThresholds: metric.hasThresholds ?? false,
+            totalValidation: metric.totalValidation ?? null,
+            device: metric.device,
+            ...(metric.sessionCreationDurationMs !== undefined && {
+              sessionCreationDurationMs: metric.sessionCreationDurationMs,
+            }),
+          },
+          testTitle: metric.testName,
+          projectName: metric.projectName || 'unknown',
+          testFilePath: metric.testFilePath,
+          tags: metric.tags || [],
+          status: testStatus,
+          videoRecordingUrl: metric.videoURL ?? null,
+          profilingSummary: metric.profilingSummary,
+          testEndTimestamp,
+        });
+
+        if (sent) {
+          logger.info(`Profiling data for "${metric.testName}" sent to Sentry`);
+        }
+      } catch (error) {
+        logger.error(
+          `Failed to publish profiling data to Sentry for "${metric.testName}": ${error}`,
+        );
+      }
+    }
+  }
+
   private mergeSessionDataIntoMetrics(): MetricsEntry[] {
     return this.metrics.map((metric) => {
       const matchingSession = this.sessions.find(
@@ -534,6 +700,40 @@ class PerformanceReporter {
         apiCallsError,
       };
     });
+  }
+
+  private resolveRetrySuccess(
+    test: PlaywrightTestCase,
+    projectName: string,
+  ): void {
+    const testTags: string[] = Array.isArray(test.tags) ? test.tags : [];
+    const teamInfo: TeamInfo = getTeamInfoFromTags(testTags) as TeamInfo;
+
+    logger.info(
+      `Test passed on retry, updating result: ${test.title} (${projectName})`,
+    );
+
+    // Mark the existing metric entry as passed (scoped to this Playwright project)
+    const metric = this.metrics.find(
+      (m) => m.testName === test.title && m.projectName === projectName,
+    );
+    if (metric) {
+      metric.testFailed = false;
+      metric.failureReason = null;
+    }
+
+    // Remove only this project's failed entry; same title in other projects stays
+    const teamId = teamInfo.teamId;
+    if (this.failedTestsByTeam[teamId]) {
+      this.failedTestsByTeam[teamId].tests = this.failedTestsByTeam[
+        teamId
+      ].tests.filter(
+        (t) => !(t.testName === test.title && t.projectName === projectName),
+      );
+      if (this.failedTestsByTeam[teamId].tests.length === 0) {
+        delete this.failedTestsByTeam[teamId];
+      }
+    }
   }
 }
 

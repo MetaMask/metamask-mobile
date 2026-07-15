@@ -66,6 +66,9 @@ const createInfuraMocks = () => {
     'starknet-sepolia.infura.io',
     'ipfs.infura.io',
     'sei-mainnet.infura.io',
+    'monad-mainnet.infura.io',
+    'megaeth-mainnet.infura.io',
+    'zksync-mainnet.infura.io',
   ];
 
   endpoints.forEach((endpoint) => {
@@ -82,7 +85,8 @@ const createInfuraMocks = () => {
       // Regular Infura endpoints are POST requests with JSON-RPC
       mocks.push({
         urlEndpoint: new RegExp(
-          `^https://${endpoint.replace(/\./g, '\\.')}/v3/[a-zA-Z0-9]*$`,
+          // E2E builds use INFURA_PROJECT_ID fallback "NON_EMPTY" (see network-controller-init).
+          `^https://${endpoint.replace(/\./g, '\\.')}/v3/[a-zA-Z0-9_-]+$`,
         ),
         responseCode: 200,
         response: createJsonRpcResponse(1, '0x0'),

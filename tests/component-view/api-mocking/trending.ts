@@ -3,6 +3,7 @@
  * Intercepts:
  * - GET https://token.api.cx.metamask.io/v3/tokens/trending (trending list)
  * - GET https://token.api.cx.metamask.io/tokens/search (token search from useSearchRequest)
+ * - GET https://token.api.cx.metamask.io/v1/rwas (dedicated RWA tokens endpoint)
  *
  * Search must be mocked when net connect is disabled; otherwise searchTokens can stall
  * until fetch timeout while useTrendingSearch stays loading, and short waitFor timeouts flake.
@@ -14,6 +15,7 @@
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
 import { clearAllNockMocks, disableNetConnect } from './nockHelpers';
+import { clearSitesCache } from '../../../app/components/UI/Sites/hooks/useSiteData/useSitesData';
 
 export interface MockTrendingToken {
   assetId: string;
@@ -88,6 +90,51 @@ export const mockBnbChainToken: MockTrendingToken[] = [
 const TRENDING_ORIGIN = 'https://token.api.cx.metamask.io';
 const TRENDING_PATH = '/v3/tokens/trending';
 const TOKEN_SEARCH_PATH = '/tokens/search';
+const RWA_PATH = '/v1/rwas';
+const NFT_API_ORIGIN = 'https://nft.api.cx.metamask.io';
+const EXPLORE_SITES_PATH = '/explore/sites';
+const FAVICON_HTML =
+  '<html><head><link rel="icon" href="/favicon.ico"></head><body></body></html>';
+
+export interface MockRwaToken {
+  id: string;
+  assetId: string;
+  symbol: string;
+  decimals?: number;
+  name: string;
+  rwaData: {
+    price: string;
+    priceChange: string;
+    marketCap: number;
+    aggregatedUsdVolume: number;
+    active: boolean;
+    ticker: string;
+    instrumentType: string;
+    custodians: string[];
+    industry: string[];
+  };
+}
+
+export const mockRwaTokensData: MockRwaToken[] = [
+  {
+    id: '1',
+    assetId: 'eip155:1/erc20:0x96f6ef951840721adbf46ac996b59e0235cb985c',
+    name: 'Ondo US Dollar Yield',
+    symbol: 'USDY',
+    decimals: 18,
+    rwaData: {
+      price: '1.05',
+      priceChange: '0.12',
+      marketCap: 200000000,
+      aggregatedUsdVolume: 500000,
+      active: true,
+      ticker: 'USDY',
+      instrumentType: 'fund',
+      custodians: ['ondo'],
+      industry: ['finance'],
+    },
+  },
+];
 
 /**
  * Sets up the nock mock for the trending tokens API.
@@ -98,6 +145,7 @@ const TOKEN_SEARCH_PATH = '/tokens/search';
 export function setupTrendingApiFetchMock(
   responseData: MockTrendingToken[] = mockTrendingTokensData,
   customReply?: (uri: string) => MockTrendingToken[],
+  rwaResponseData: MockRwaToken[] = mockRwaTokensData,
 ): void {
   clearAllNockMocks();
   disableNetConnect();
@@ -118,6 +166,39 @@ export function setupTrendingApiFetchMock(
     .query(true)
     .reply(200, { count: 0, data: [] })
     .persist();
+
+  nock(NFT_API_ORIGIN)
+    .get(EXPLORE_SITES_PATH)
+    .query(true)
+    .reply(200, {
+      dapps: [
+        {
+          id: 'uniswap',
+          name: 'Uniswap',
+          website: 'https://uniswap.org',
+          logoSrc: 'https://uniswap.org/favicon.ico',
+          featured: true,
+        },
+      ],
+    })
+    .persist();
+
+  nock('https://portfolio.metamask.io')
+    .get('/')
+    .reply(200, FAVICON_HTML)
+    .persist();
+  nock('https://uniswap.org').get('/').reply(200, FAVICON_HTML).persist();
+
+  nock(TRENDING_ORIGIN)
+    .get(RWA_PATH)
+    .query(true)
+    .reply(200, {
+      data: rwaResponseData,
+      count: rwaResponseData.length,
+      totalCount: rwaResponseData.length,
+      pageInfo: { nextCursor: null, hasNextPage: false },
+    })
+    .persist();
 }
 
 /**
@@ -126,5 +207,6 @@ export function setupTrendingApiFetchMock(
  */
 export function clearTrendingApiMocks(): void {
   jest.clearAllMocks();
+  clearSitesCache();
   clearAllNockMocks();
 }

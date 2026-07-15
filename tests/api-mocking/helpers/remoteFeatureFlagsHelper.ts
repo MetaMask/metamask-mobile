@@ -63,6 +63,16 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
   mobileMinimumVersions: {
     appMinimumBuild: 1,
   },
+  // Production uses a percentage rollout for this A/B test. Pin E2E to control
+  // so homepage section labels do not depend on the generated analytics ID.
+  homeTMCU470AbtestTrendingSections: 'control',
+  // Pin discovery tabs to control so wallet E2E uses the scrollable Homepage
+  // (wallet-scroll-view) instead of HomepageDiscoveryTabs tab swipes.
+  coreMCU589AbtestHubPageDiscoveryTabs: 'control',
+  // Pin onboarding interest questionnaire to control so wallet E2E flows do not
+  // encounter the screen (dismissOnboardingInterestQuestionnaire uses Playwright
+  // APIs that are not available under Detox).
+  tradeTO880AbtestOnboardingInterestQuestion: 'control',
 };
 
 /**
@@ -131,6 +141,7 @@ export const createRemoteFeatureFlagsMock = (
 export const setupRemoteFeatureFlagsMock = async (
   mockServer: Mockttp,
   flagOverrides: Record<string, unknown> = {},
+  priority?: number,
 ): Promise<void> => {
   const environments = ['dev', 'test', 'prod'] as const;
   const distributions = ['main', 'flask'] as const;
@@ -140,12 +151,16 @@ export const setupRemoteFeatureFlagsMock = async (
       const { urlEndpoint, response, responseCode } =
         createRemoteFeatureFlagsMock(flagOverrides, distribution, environment);
 
-      return setupMockRequest(mockServer, {
-        requestMethod: 'GET',
-        url: urlEndpoint,
-        response,
-        responseCode,
-      });
+      return setupMockRequest(
+        mockServer,
+        {
+          requestMethod: 'GET',
+          url: urlEndpoint,
+          response,
+          responseCode,
+        },
+        priority,
+      );
     }),
   );
 

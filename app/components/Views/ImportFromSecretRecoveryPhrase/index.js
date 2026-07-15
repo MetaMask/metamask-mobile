@@ -15,14 +15,13 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import {
   KeyboardAwareScrollView,
-  KeyboardProvider,
   KeyboardStickyView,
   useKeyboardState,
 } from 'react-native-keyboard-controller';
-import { isTest } from '../../../util/test/utils';
+import { isTestEnvironment } from '../../../util/test/utils';
 import AppConstants from '../../../core/AppConstants';
 import {
   failedSeedPhraseRequirements,
@@ -39,12 +38,13 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
+import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import {
   Box,
   BoxAlignItems,
@@ -54,6 +54,8 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  HeaderStandard,
+  IconName as DSIconName,
   Label,
   Text,
   TextColor,
@@ -61,12 +63,15 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Authentication } from '../../../core';
+import Engine from '../../../core/Engine';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { passcodeType } from '../../../util/authentication';
 import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import Checkbox from '../../../component-library/components/Checkbox';
 import OldButton, {
   ButtonVariants,
@@ -96,6 +101,8 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
+import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
+import { selectQrSyncPrimaryMnemonic } from '../../../selectors/qrSyncController';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -112,8 +119,14 @@ const ImportFromSecretRecoveryPhrase = ({
   saveOnboardingEvent,
   route,
 }) => {
+  const isQrSyncImport = Boolean(route?.params?.qrSyncImport);
+  const qrSyncPrimaryMnemonic = useSelector(selectQrSyncPrimaryMnemonic);
+  const walletSetupCompletedAttributionProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
+  );
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
+  const isAddDeviceSyncEnabled = useSelector(selectAddDeviceSyncEnabled);
 
   const confirmPasswordInput = useRef();
 
@@ -158,10 +171,17 @@ const ImportFromSecretRecoveryPhrase = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedPhrase]);
 
+  useEffect(() => {
+    if (isQrSyncImport && qrSyncPrimaryMnemonic) {
+      setSeedPhrase(qrSyncPrimaryMnemonic.split(SPACE_CHAR));
+      setCurrentStep(1);
+    }
+  }, [isQrSyncImport, qrSyncPrimaryMnemonic]);
+
   const { isEnabled: isMetricsEnabled } = useAnalytics();
 
   const track = (event, properties) => {
-    const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
+    const eventBuilder = AnalyticsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
     trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
   };
@@ -195,7 +215,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const animateToStep = useCallback(
     (nextStep) => {
-      if (isTest) {
+      if (isTestEnvironment) {
         setCurrentStep(nextStep);
         return;
       }
@@ -222,57 +242,16 @@ const ImportFromSecretRecoveryPhrase = ({
   );
 
   const onBackPress = () => {
-    if (currentStep === 0) {
+    if (currentStep === 0 || (isQrSyncImport && currentStep === 1)) {
       navigation.goBack();
     } else {
       animateToStep(currentStep - 1);
     }
   };
 
-  const headerLeft = () => (
-    <TouchableOpacity
-      onPress={onBackPress}
-      testID={ImportFromSeedSelectorsIDs.BACK_BUTTON_ID}
-    >
-      <Icon
-        name={IconName.ArrowLeft}
-        size={24}
-        color={colors.text.default}
-        style={tw.style('ml-4')}
-      />
-    </TouchableOpacity>
-  );
-
-  const headerRight = () =>
-    currentStep === 0 ? (
-      <TouchableOpacity
-        onPress={onQrCodePress}
-        testID={ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID}
-      >
-        <Icon
-          name={IconName.Scan}
-          size={24}
-          color={colors.text.default}
-          onPress={onQrCodePress}
-          style={tw.style('mr-4')}
-        />
-      </TouchableOpacity>
-    ) : (
-      <Box />
-    );
-
+  // The header is rendered in-screen via HeaderStandard, so hide the native one.
   const updateNavBar = () => {
-    navigation.setOptions(
-      getOnboardingNavbarOptions(
-        route,
-        {
-          headerLeft,
-          headerRight,
-        },
-        colors,
-        false,
-      ),
-    );
+    navigation.setOptions({ headerShown: false });
   };
 
   useEffect(() => {
@@ -351,7 +330,7 @@ const ImportFromSecretRecoveryPhrase = ({
     }
     animateToStep(currentStep + 1);
     // Start the trace when moving to the password setup step
-    const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+    const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
     if (onboardingTraceCtx) {
       passwordSetupAttemptTraceCtxRef.current = trace({
         name: TraceName.OnboardingPasswordSetupAttempt,
@@ -419,8 +398,8 @@ const ImportFromSecretRecoveryPhrase = ({
     } else {
       try {
         setLoading(true);
-        const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-        const oauthLoginSuccess = route.params?.oauthLoginSuccess || false;
+        const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
+        const oauthLoginSuccess = route?.params?.oauthLoginSuccess || false;
         trace({
           name: TraceName.OnboardingSRPAccountImportTime,
           op: TraceOperation.OnboardingUserJourney,
@@ -451,6 +430,10 @@ const ImportFromSecretRecoveryPhrase = ({
           true,
         );
 
+        if (isQrSyncImport) {
+          Engine.context.QrSyncController.resetState();
+        }
+
         setBiometryType(authData.availableBiometryType);
         setLoading(false);
         passwordSet();
@@ -463,6 +446,7 @@ const ImportFromSecretRecoveryPhrase = ({
           wallet_setup_type: 'import',
           new_wallet: false,
           account_type: AccountType.Imported,
+          ...walletSetupCompletedAttributionProps,
         });
 
         fetchAccountsWithActivity();
@@ -472,7 +456,10 @@ const ImportFromSecretRecoveryPhrase = ({
             {
               name: Routes.ONBOARDING.SUCCESS_FLOW,
               params: {
-                successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+                screen: Routes.ONBOARDING.SUCCESS,
+                params: {
+                  successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+                },
               },
             },
           ],
@@ -485,10 +472,8 @@ const ImportFromSecretRecoveryPhrase = ({
           navigation.dispatch(resetAction);
         } else {
           navigation.navigate('OptinMetrics', {
-            onContinue: () => {
-              navigation.dispatch(resetAction);
-            },
             accountType: AccountType.Imported,
+            successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
           });
         }
       } catch (error) {
@@ -499,7 +484,7 @@ const ImportFromSecretRecoveryPhrase = ({
           error_type: error.toString(),
         });
 
-        const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+        const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
         if (onboardingTraceCtx) {
           trace({
             name: TraceName.OnboardingPasswordSetupError,
@@ -562,7 +547,7 @@ const ImportFromSecretRecoveryPhrase = ({
     navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+        url: RESET_PASSWORD_GUIDE_URL,
         title: 'support.metamask.io',
       },
     });
@@ -570,11 +555,27 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const uniqueId = useMemo(() => uuidv4(), []);
 
-  const content = (
-    <SafeAreaView
-      edges={{ bottom: 'additive' }}
-      style={tw.style('flex-1 bg-default')}
-    >
+  return (
+    <Box twClassName="flex-1 bg-default">
+      <HeaderStandard
+        includesTopInset
+        backButtonProps={{
+          accessibilityLabel: strings('navigation.back'),
+          onPress: onBackPress,
+          testID: ImportFromSeedSelectorsIDs.BACK_BUTTON_ID,
+        }}
+        endButtonIconProps={
+          currentStep === 0
+            ? [
+                {
+                  iconName: DSIconName.Scan,
+                  onPress: onQrCodePress,
+                  testID: ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
+                },
+              ]
+            : undefined
+        }
+      />
       <KeyboardAwareScrollView
         contentContainerStyle={tw.style('flex-grow px-4')}
         testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
@@ -611,19 +612,40 @@ const ImportFromSecretRecoveryPhrase = ({
                     {strings(
                       'import_from_seed.enter_your_secret_recovery_phrase',
                     )}
+                    {isAddDeviceSyncEnabled && (
+                      <>
+                        {' '}
+                        {strings('import_from_seed.or')}{' '}
+                        <Text
+                          variant={TextVariant.BodyMd}
+                          color={TextColor.PrimaryDefault}
+                          onPress={() =>
+                            navigation.navigate(
+                              Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+                            )
+                          }
+                        >
+                          {strings(
+                            'import_from_seed.import_wallet_from_extension',
+                          )}
+                        </Text>
+                      </>
+                    )}
                   </Text>
-                  <TouchableOpacity
-                    onPress={showWhatIsSeedPhrase}
-                    testID={
-                      ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
-                    }
-                  >
-                    <Icon
-                      name={IconName.Info}
-                      size={IconSize.Md}
-                      color={colors.icon.alternative}
-                    />
-                  </TouchableOpacity>
+                  {!isAddDeviceSyncEnabled && (
+                    <TouchableOpacity
+                      onPress={showWhatIsSeedPhrase}
+                      testID={
+                        ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
+                      }
+                    >
+                      <Icon
+                        name={IconName.Info}
+                        size={IconSize.Md}
+                        color={colors.icon.alternative}
+                      />
+                    </TouchableOpacity>
+                  )}
                 </Box>
                 <SrpInputGrid
                   ref={srpInputGridRef}
@@ -803,7 +825,8 @@ const ImportFromSecretRecoveryPhrase = ({
                 />
               </Box>
 
-              <Box
+              <SafeAreaView
+                edges={['bottom']}
                 style={tw.style(
                   'w-full gap-y-4 mt-auto',
                   Platform.OS === 'android' ? 'mb-6' : 'mb-4',
@@ -820,13 +843,16 @@ const ImportFromSecretRecoveryPhrase = ({
                 >
                   {strings('import_from_seed.import_create_password_cta')}
                 </Button>
-              </Box>
+              </SafeAreaView>
             </Box>
           )}
         </Animated.View>
       </KeyboardAwareScrollView>
       {currentStep === 0 && (
-        <Box twClassName="px-4 py-4 bg-default">
+        <SafeAreaView
+          edges={['bottom']}
+          style={tw.style('px-4 py-4 bg-default')}
+        >
           <Button
             variant={ButtonVariant.Primary}
             onPress={handleContinueImportFlow}
@@ -837,7 +863,7 @@ const ImportFromSecretRecoveryPhrase = ({
           >
             {strings('import_from_seed.continue')}
           </Button>
-        </Box>
+        </SafeAreaView>
       )}
       {currentStep === 0 && isKeyboardVisible && (
         <KeyboardStickyView
@@ -853,10 +879,8 @@ const ImportFromSecretRecoveryPhrase = ({
         </KeyboardStickyView>
       )}
       <ScreenshotDeterrent enabled isSRP />
-    </SafeAreaView>
+    </Box>
   );
-
-  return <KeyboardProvider>{content}</KeyboardProvider>;
 };
 
 ImportFromSecretRecoveryPhrase.propTypes = {
@@ -887,9 +911,6 @@ ImportFromSecretRecoveryPhrase.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
-  /**
-   * Action to save onboarding event
-   */
 };
 
 const mapDispatchToProps = (dispatch) => ({

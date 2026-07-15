@@ -31,8 +31,19 @@ export function getCardControllerMessenger(
       'AccountsController:getState',
       'AccountTreeController:getState',
       'RemoteFeatureFlagController:getState',
+      'KeyringController:signPersonalMessage',
+      'NetworkController:findNetworkClientIdByChainId',
+      'TransactionController:addTransaction',
+      'TransactionController:addTransactionBatch',
+      'TransactionController:getState',
     ],
-    events: ['AccountTreeController:stateChange', 'KeyringController:unlock'],
+    events: [
+      'AccountTreeController:stateChange',
+      'RemoteFeatureFlagController:stateChange',
+      'KeyringController:unlock',
+      'TransactionController:transactionConfirmed',
+      'TransactionController:transactionFailed',
+    ],
   });
 
   return messenger;

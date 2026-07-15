@@ -10,6 +10,10 @@
  */
 import type { Hex } from '@metamask/utils';
 import { TokenI } from '../../Tokens/types';
+import {
+  PERPS_ADL_URL,
+  METAMASK_SUPPORT_URL,
+} from '../../../../constants/urls';
 
 /** Address used to represent "Perps balance" as the payment token (synthetic option). */
 export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =
@@ -161,9 +165,9 @@ export const HOME_SCREEN_CONFIG = {
   // Can be controlled via feature flag in the future
   ShowHeaderActionButtons: true,
 
-  // Maximum number of items to show in each carousel
-  PositionsCarouselLimit: 10,
-  OrdersCarouselLimit: 10,
+  // Maximum number of items to show in each carousel.
+  // Note: positions and orders are intentionally uncapped on the home screen —
+  // they render in a vertical ScrollView and must show every open entry.
   TrendingMarketsLimit: 5,
   RecentActivityLimit: 3,
 
@@ -191,7 +195,7 @@ export const LEARN_MORE_CONFIG = {
  * Contact support button configuration (matches Settings behavior)
  */
 export const SUPPORT_CONFIG = {
-  Url: 'https://support.metamask.io',
+  Url: METAMASK_SUPPORT_URL,
   TitleKey: 'perps.support.title',
   DescriptionKey: 'perps.support.description',
 } as const;
@@ -210,8 +214,7 @@ export const FEEDBACK_CONFIG = {
  * Links to specific MetaMask support articles for Perps features
  */
 export const PERPS_SUPPORT_ARTICLES_URLS = {
-  AdlUrl:
-    'https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/#what-is-auto-deleveraging-adl',
+  AdlUrl: PERPS_ADL_URL,
 } as const;
 
 /**
@@ -291,6 +294,13 @@ export function getPerpsProviderChainId(
 ): string | undefined {
   return PERPS_PROVIDER_CHAIN_IDS[provider]?.[network];
 }
+
+// Re-export disk cache constants from controller layer
+export {
+  PERPS_DISK_CACHE_MARKETS,
+  PERPS_DISK_CACHE_USER_DATA,
+  PERPS_DISK_CACHE_THROTTLE_MS,
+} from '@metamask/perps-controller/constants/perpsConfig';
 
 /** Source identifiers for PerpsConnectionManager.connect/ensureConnected/resumeFromForeground calls. */
 export const PERPS_CONNECTION_SOURCE = {

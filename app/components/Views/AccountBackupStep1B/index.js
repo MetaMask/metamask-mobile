@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Image,
   useWindowDimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -29,20 +29,24 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import ActionModal from '../../UI/ActionModal';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
+import METAMASK_NAME from '../../../images/branding/metamask-name.png';
+import { LEARN_MORE_URL } from '../../../constants/urls';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { useTheme } from '../../../util/theme';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
@@ -76,7 +80,6 @@ BulletText.propTypes = {
 };
 
 const AccountBackupStep1B = (props) => {
-  const { navigation, route } = props;
   const [showWhySecureWalletModal, setWhySecureWalletModal] = useState(false);
   const { colors } = useTheme();
   const tw = useTailwind();
@@ -85,24 +88,24 @@ const AccountBackupStep1B = (props) => {
     selectSeedlessOnboardingLoginFlow,
   );
 
-  const headerLeft = useCallback(() => <Box />, []);
+  const metamaskLogoTitle = useMemo(
+    () => (
+      <Image
+        source={METAMASK_NAME}
+        style={tw.style('w-[70px] h-[35px]', {
+          tintColor: colors.text.default,
+        })}
+        resizeMethod="auto"
+      />
+    ),
+    [colors.text.default, tw],
+  );
+
   const track = (event, properties) => {
-    const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
+    const eventBuilder = AnalyticsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
     trackOnboarding(eventBuilder.build(), props.saveOnboardingEvent);
   };
-
-  useEffect(() => {
-    navigation.setOptions(
-      getOnboardingNavbarOptions(
-        route,
-        {
-          headerLeft,
-        },
-        colors,
-      ),
-    );
-  }, [navigation, route, colors, headerLeft]);
 
   const goNext = () => {
     props.navigation.navigate('ManualBackupStep1', {
@@ -117,7 +120,7 @@ const AccountBackupStep1B = (props) => {
     props.navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
+        url: LEARN_MORE_URL,
         title: strings('drawer.metamask_support'),
       },
     });
@@ -141,7 +144,11 @@ const AccountBackupStep1B = (props) => {
   const imgHeight = imgWidth * IMAGE_1_RATIO;
 
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-default')}>
+    <SafeAreaView
+      style={tw.style('flex-1 bg-default')}
+      edges={{ bottom: 'additive' }}
+    >
+      <HeaderStandard includesTopInset title={metamaskLogoTitle} />
       <ScrollView
         contentContainerStyle={tw.style('flex-grow')}
         style={tw.style('flex-1 bg-default')}

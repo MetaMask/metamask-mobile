@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsLiveFills } from './stream';
 import { PERPS_CONSTANTS, type OrderFill } from '@metamask/perps-controller';
+import { mergeOrderFills } from '../utils/transactionTransforms';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
@@ -75,25 +76,30 @@ export const usePerpsMarketFills = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Fetch historical fills via REST API (limited to last 3 months for performance)
-  const fetchRestFills = useCallback(async () => {
+  const fetchRestFills = useCallback(async (isRefresh = false) => {
     const controller = Engine.context.PerpsController;
     if (!controller) {
       return;
     }
 
     try {
-      const provider = controller?.getActiveProviderOrNull();
-      if (!provider) {
+      if (!controller.getActiveProviderOrNull()) {
         return;
       }
 
-      // Use time-filtered API to limit data fetched for active traders
+      // Use time-filtered API to limit data fetched for active traders.
+      // Route through the controller so the MarketDataService request-coalesce
+      // layer absorbs rapid market-switch bursts. Explicit refresh bypasses
+      // the cache so pull-to-refresh hits the network.
       const startTime = Date.now() - PERPS_CONSTANTS.FillsLookbackMs;
 
-      const fills = await provider.getOrderFills({
-        aggregateByTime: false,
-        startTime,
-      });
+      const fills = await controller.getOrderFills(
+        {
+          aggregateByTime: false,
+          startTime,
+        },
+        { forceRefresh: isRefresh },
+      );
       setRestFills(fills);
     } catch (err) {
       // Get the current account for debugging context
@@ -126,41 +132,21 @@ export const usePerpsMarketFills = ({
   const refresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      await fetchRestFills();
+      await fetchRestFills(true);
     } finally {
       setIsRefreshing(false);
     }
   }, [fetchRestFills]);
 
   // Merge REST + WebSocket fills with deduplication, filtered by symbol
-  // Live fills take precedence over REST fills (more up-to-date)
-  const fills = useMemo(() => {
-    // Use Map for efficient deduplication
-    const fillsMap = new Map<string, OrderFill>();
-
-    // Add REST fills first
-    for (const fill of restFills) {
-      // Only add fills for the requested symbol
-      if (fill.symbol === symbol) {
-        const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
-        fillsMap.set(key, fill);
-      }
-    }
-
-    // Add live fills (overwrites duplicates from REST - live data is fresher)
-    for (const fill of liveFills) {
-      // Only add fills for the requested symbol
-      if (fill.symbol === symbol) {
-        const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
-        fillsMap.set(key, fill);
-      }
-    }
-
-    // Convert back to array and sort by timestamp descending (newest first)
-    return Array.from(fillsMap.values()).sort(
-      (a, b) => b.timestamp - a.timestamp,
-    );
-  }, [restFills, liveFills, symbol]);
+  const fills = useMemo(
+    () =>
+      mergeOrderFills(
+        restFills.filter((f) => f.symbol === symbol),
+        liveFills.filter((f) => f.symbol === symbol),
+      ),
+    [restFills, liveFills, symbol],
+  );
 
   return {
     fills,

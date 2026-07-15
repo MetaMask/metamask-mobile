@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
-import { Image, Linking, SafeAreaView } from 'react-native';
+import { Image, Linking } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -19,6 +20,10 @@ import {
 
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import {
+  AccountType,
+  WalletCreationErrorCtaType,
+} from '../../../constants/onboarding';
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -30,9 +35,13 @@ const FOX_LOGO = require('../../../images/branding/fox.png');
 
 interface SocialLoginErrorSheetProps {
   error?: Error;
+  accountType: AccountType;
 }
 
-const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
+const SocialLoginErrorSheet = ({
+  error,
+  accountType,
+}: SocialLoginErrorSheetProps) => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -41,19 +50,22 @@ const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_VIEWED)
         .addProperties({
-          flow_type: 'social_login',
-          error_name: error?.name || 'Unknown',
+          account_type: accountType,
+          error_type: error?.name || 'Unknown',
           error_message: error?.message || 'No message',
         })
         .build(),
     );
-  }, [error, trackEvent, createEventBuilder]);
+  }, [error, trackEvent, createEventBuilder, accountType]);
 
   const handleTryAgain = useCallback(async () => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.WALLET_CREATION_ERROR_RETRY_CLICKED)
+      createEventBuilder(
+        MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
+      )
         .addProperties({
-          flow_type: 'social_login',
+          cta_type: WalletCreationErrorCtaType.Retry,
+          account_type: accountType,
         })
         .build(),
     );
@@ -62,20 +74,21 @@ const SocialLoginErrorSheet = ({ error }: SocialLoginErrorSheetProps) => {
     navigation.reset({
       routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
     });
-  }, [navigation, trackEvent, createEventBuilder]);
+  }, [navigation, trackEvent, createEventBuilder, accountType]);
 
   const handleContactSupport = useCallback(() => {
     trackEvent(
       createEventBuilder(
-        MetaMetricsEvents.WALLET_CREATION_ERROR_SUPPORT_CLICKED,
+        MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
       )
         .addProperties({
-          flow_type: 'social_login',
+          cta_type: WalletCreationErrorCtaType.ContactSupport,
+          account_type: accountType,
         })
         .build(),
     );
     Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, accountType]);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-alternative justify-end')}>

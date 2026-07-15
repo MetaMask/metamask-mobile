@@ -7,7 +7,7 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
 import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
 import { createRampsOrderDetailsNavDetails } from '../../../Views/OrderDetails';
-import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
+import { createDepositOrderDetailsNavDetails } from '../../../Views/OrderDetails/DepositOrderDetails/DepositOrderDetails';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import createStyles from './OrdersList.styles';
 import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
@@ -19,10 +19,10 @@ import {
 import { getOrders } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
-import ButtonFilter from '../../../../../../component-library/components-temp/ButtonFilter';
 import {
   Box,
-  ButtonSize as ButtonBaseSize,
+  ButtonFilter,
+  ButtonBaseSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRampsOrders } from '../../../hooks/useRampsOrders';
@@ -181,7 +181,7 @@ function OrdersList() {
   const allLegacyOrders = useSelector(getOrders);
   const { orders: v2Orders } = useRampsOrders();
   const [currentFilter, setCurrentFilter] = useState<filterType>('ALL');
-  const { goToDeposit } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
   const tw = useTailwind();
 
   const displayOrders = useMemo(
@@ -237,7 +237,7 @@ function OrdersList() {
         order?.state === FIAT_ORDER_STATES.CREATED &&
         order?.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
       ) {
-        goToDeposit();
+        goToBuy();
       } else if (order?.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
         navigation.navigate(
           ...createDepositOrderDetailsNavDetails({
@@ -248,12 +248,7 @@ function OrdersList() {
         handleNavigateToAggregatorTxDetails(orderId);
       }
     },
-    [
-      allLegacyOrders,
-      goToDeposit,
-      handleNavigateToAggregatorTxDetails,
-      navigation,
-    ],
+    [allLegacyOrders, goToBuy, handleNavigateToAggregatorTxDetails, navigation],
   );
 
   const handleItemPress = useCallback(
@@ -309,9 +304,10 @@ function OrdersList() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('flex-row gap-3')}
+            contentContainerStyle={tw.style('flex-row gap-2')}
           >
             <ButtonFilter
+              twClassName="min-w-0"
               onPress={() => setCurrentFilter('ALL')}
               isActive={currentFilter === 'ALL'}
               size={ButtonBaseSize.Md}
@@ -320,6 +316,7 @@ function OrdersList() {
               {strings('fiat_on_ramp_aggregator.All')}
             </ButtonFilter>
             <ButtonFilter
+              twClassName="min-w-0"
               onPress={() => setCurrentFilter('PURCHASE')}
               isActive={currentFilter === 'PURCHASE'}
               size={ButtonBaseSize.Md}
@@ -328,6 +325,7 @@ function OrdersList() {
               {strings('fiat_on_ramp_aggregator.Purchased')}
             </ButtonFilter>
             <ButtonFilter
+              twClassName="min-w-0"
               onPress={() => setCurrentFilter('SELL')}
               isActive={currentFilter === 'SELL'}
               size={ButtonBaseSize.Md}

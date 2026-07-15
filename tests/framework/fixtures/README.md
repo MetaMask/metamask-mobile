@@ -1,5 +1,9 @@
 # WithFixtureOptions Documentation
 
+## Playwright performance fixtures
+
+Performance tests use Playwright `test.extend` fixtures under [`playwright/`](./playwright/README.md) (import `{ test }` from `framework/fixtures/playwright`). `FixtureBuilder` / `withFixtures` (documented below) are shared across Detox and Playwright.
+
 ## Overview
 
 The `withFixtures` function provides a standardized way to set up test fixtures for MetaMask Mobile E2E tests. It handles the creation of fixture data, device configuration, and cleanup after tests.

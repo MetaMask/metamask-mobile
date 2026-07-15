@@ -30,10 +30,12 @@ export function useInsufficientPerpsBalanceAlert({
   const quotes = useTransactionPayQuotes();
   const hasQuotes = Boolean(quotes?.length);
 
-  const availableBalance = useSelector(
+  // `withdrawableBalance` is the Unified-aware value populated by
+  // `addSpotBalanceToAccountState` and matches what `withdraw3` draws from.
+  const withdrawableBalance = useSelector(
     (state: RootState) =>
       state.engine.backgroundState.PerpsController?.accountState
-        ?.availableBalance,
+        ?.withdrawableBalance,
   );
 
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
@@ -46,16 +48,14 @@ export function useInsufficientPerpsBalanceAlert({
     if (!isPerpsWithdraw) return false;
 
     if (
-      availableBalance !== undefined &&
-      availableBalance !== null &&
-      new BigNumber(availableBalance).isLessThan(amountHuman)
+      withdrawableBalance !== undefined &&
+      withdrawableBalance !== null &&
+      new BigNumber(withdrawableBalance).isLessThan(amountHuman)
     ) {
       return true;
     }
 
-    // On the confirmation screen (not while typing), check if fees
-    // exceed the withdraw amount — user would receive nothing.
-    // Skipped during input because totals may be stale.
+    // Skip during input — totals may be stale.
     if (
       !isPendingInput &&
       hasQuotes &&
@@ -70,6 +70,16 @@ export function useInsufficientPerpsBalanceAlert({
       if (totalFees.isGreaterThanOrEqualTo(amountHuman)) {
         return true;
       }
+
+      if (
+        withdrawableBalance !== undefined &&
+        withdrawableBalance !== null &&
+        new BigNumber(amountHuman)
+          .plus(totalFees)
+          .isGreaterThan(withdrawableBalance)
+      ) {
+        return true;
+      }
     }
 
     return false;
@@ -78,7 +88,7 @@ export function useInsufficientPerpsBalanceAlert({
     hasQuotes,
     isPendingInput,
     isPerpsWithdraw,
-    availableBalance,
+    withdrawableBalance,
     totals,
   ]);
 
@@ -91,7 +101,10 @@ export function useInsufficientPerpsBalanceAlert({
       {
         key: AlertKeys.InsufficientPerpsBalance,
         field: RowAlertKey.Amount,
-        message: strings('alert_system.insufficient_pay_token_balance.message'),
+        title: strings('alert_system.insufficient_pay_token_balance.message'),
+        message: strings(
+          'alert_system.insufficient_pay_method_balance.message',
+        ),
         severity: Severity.Danger,
         isBlocking: true,
       },

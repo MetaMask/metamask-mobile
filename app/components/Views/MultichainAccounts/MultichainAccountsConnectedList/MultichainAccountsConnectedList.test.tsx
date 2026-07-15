@@ -4,7 +4,7 @@ import configureStore from 'redux-mock-store';
 import { render, fireEvent } from '@testing-library/react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
-import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
 
 import MultichainAccountsConnectedList from './MultichainAccountsConnectedList';
 import {

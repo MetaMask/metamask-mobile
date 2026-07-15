@@ -1,7 +1,7 @@
 // Third party dependencies
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { fireEvent, waitFor, screen } from '@testing-library/react-native';
 
 // External dependencies
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -308,7 +308,7 @@ const initialState = {
   },
 };
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const createMockRoute = () => ({
   params: {},
@@ -331,14 +331,18 @@ const renderComponent = (state: any = {}) =>
 describe('Network Selector', () => {
   it('renders correctly', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
+    renderComponent(initialState);
+    expect(
+      screen.getByTestId(NetworkListModalSelectorsIDs.TEST_NET_TOGGLE),
+    ).toBeOnTheScreen();
   });
 
   it('renders correctly when network UI redesign is enabled', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
+    renderComponent(initialState);
+    expect(
+      screen.getByTestId(NetworkListModalSelectorsIDs.TEST_NET_TOGGLE),
+    ).toBeOnTheScreen();
   });
 
   it('renders correctly when network UI redesign is enabled and calls setNetworkClientIdForDomain', async () => {
@@ -373,7 +377,7 @@ describe('Network Selector', () => {
     expect(popularNetworksTitle).toBeTruthy();
   });
 
-  it('changes network when another network cell is pressed', async () => {
+  it('changes network when another network cell is pressed', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { getByText } = renderComponent(initialState);
     const polygonCell = getByText('Polygon Mainnet');
@@ -455,10 +459,10 @@ describe('Network Selector', () => {
     );
 
     expect(testNetworksSwitch.props.value).toBeTruthy();
-    expect(testNetworksSwitch.props.disabled).toBeTruthy();
+    expect(testNetworksSwitch).toHaveProp('disabled', true);
   });
 
-  it('changes to non infura network when another network cell is pressed', async () => {
+  it('changes to non infura network when another network cell is pressed', () => {
     const { getByText } = renderComponent(initialState);
     const gnosisCell = getByText('Gnosis Chain');
 
@@ -606,7 +610,7 @@ describe('Network Selector', () => {
 
     // Polygon should appear, but others should not
     expect(queryByText('Polygon Mainnet')).toBeTruthy();
-    expect(queryByText('Avalanche Mainnet C-Chain')).toBeNull();
+    expect(queryByText('Avalanche Mainnet C-Chain')).not.toBeOnTheScreen();
 
     // Clear search and check if all networks appear
     fireEvent.changeText(searchInput, '');
@@ -674,6 +678,15 @@ describe('Network Selector', () => {
       expect(getAllByText('No network fee').length).toBe(1);
     });
 
+    it('renders network name Text with numberOfLines=1 in non-send flow', () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+
+      const { getByText } = renderComponent(initialState);
+
+      const nameText = getByText('Avalanche Mainnet C-Chain');
+      expect(nameText.props.numberOfLines).toBe(1);
+    });
+
     it('renders "No network fee" as tertiary text in send flow', () => {
       (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
       const navModule = jest.requireMock('@react-navigation/native');
@@ -720,10 +733,74 @@ describe('Network Selector', () => {
     });
   });
 
+  describe('renderRpcNetworks - delete guard for non-removable networks', () => {
+    const MENU_BUTTON_TEST_ID = 'button-menu-select-test-id';
+    const MONAD_MAINNET_CHAIN_ID = '0x8f';
+
+    const stateWithOnlyMonadMainnet = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {
+              mainnet: { status: 'available', EIPS: { '1559': true } },
+            },
+            networkConfigurationsByChainId: {
+              '0x1':
+                initialState.engine.backgroundState.NetworkController
+                  .networkConfigurationsByChainId['0x1'],
+              [MONAD_MAINNET_CHAIN_ID]: {
+                blockExplorerUrls: ['https://monadscan.com'],
+                chainId: MONAD_MAINNET_CHAIN_ID,
+                defaultRpcEndpointIndex: 0,
+                name: 'Monad Mainnet',
+                nativeCurrency: 'MON',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'monad-mainnet',
+                    type: 'infura' as const,
+                    url: 'https://monad-mainnet.infura.io/v3/test',
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    it('does not show delete option when 3-dot menu is opened for Monad mainnet', async () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+      const { getAllByTestId, queryByTestId } = renderComponent(
+        stateWithOnlyMonadMainnet,
+      );
+
+      const menuButtons = getAllByTestId(MENU_BUTTON_TEST_ID);
+      fireEvent.press(menuButtons[2]);
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(NetworkListModalSelectorsIDs.DELETE_NETWORK),
+        ).toBeNull();
+      });
+    });
+  });
+
   describe('network switching with connected dapp', () => {
     beforeEach(() => {
-      // Reset the mock before each test
-      jest.clearAllMocks();
+      // Reset only the specific mocks being asserted, not all mocks
+      // (jest.clearAllMocks() would clear Engine mock implementations too)
+      (
+        mockEngine.context.SelectedNetworkController
+          .setNetworkClientIdForDomain as jest.Mock
+      ).mockClear();
+      (
+        mockEngine.context.MultichainNetworkController
+          .setActiveNetwork as jest.Mock
+      ).mockClear();
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
     });
 
     it('should not call setNetworkClientIdForDomain when dapp is not connected', async () => {

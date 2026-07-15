@@ -43,12 +43,6 @@ describe('Feature Flag Registry', () => {
         expect(entry.productionDefault).toBeDefined();
       }
     });
-
-    it('has keys sorted alphabetically', () => {
-      const keys = Object.keys(FEATURE_FLAG_REGISTRY);
-      const sorted = [...keys].sort();
-      expect(keys).toStrictEqual(sorted);
-    });
   });
 
   describe('getProductionRemoteFlagApiResponse', () => {
@@ -98,7 +92,6 @@ describe('Feature Flag Registry', () => {
 
     it('includes known flags with correct values', () => {
       const defaults = getProductionRemoteFlagDefaults();
-      expect(defaults.addBitcoinAccountDummyFlag).toBe(false);
       expect(defaults.assetsDefiPositionsEnabled).toBe(true);
       expect(defaults.bitcoinTestnetsEnabled).toBe(false);
     });

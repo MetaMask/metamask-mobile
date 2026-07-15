@@ -57,10 +57,10 @@ describe('OriginSpamModal', () => {
 
   describe('renders', () => {
     it('spam modal content by default', () => {
-      const { toJSON } = renderWithProvider(<OriginSpamModal />, {
+      const { getByText } = renderWithProvider(<OriginSpamModal />, {
         state: mockInitialState,
       });
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText("We've noticed multiple requests")).toBeOnTheScreen();
     });
 
     it('SiteBlockedContent if user opt in to block dapp', () => {
@@ -68,7 +68,9 @@ describe('OriginSpamModal', () => {
         state: mockInitialState,
       });
       fireEvent.press(wrapper.getByTestId(BLOCK_BUTTON_TEST_ID));
-      expect(wrapper.toJSON()).toMatchSnapshot();
+      expect(
+        wrapper.getByText("You've temporarily blocked this site"),
+      ).toBeOnTheScreen();
     });
   });
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { CAMERA_PERMISSION_STATUS } from '../constants/permissions';
 
 const mockDevice = {
   id: 'back',
@@ -21,7 +22,9 @@ const mockDevice = {
 
 const mockPermission = {
   hasPermission: true,
-  requestPermission: jest.fn().mockResolvedValue('granted'),
+  requestPermission: jest
+    .fn()
+    .mockResolvedValue(CAMERA_PERMISSION_STATUS.granted),
 };
 
 let capturedOnCodeScanned:
@@ -76,8 +79,10 @@ const useCodeScanner = jest.fn((config) => {
 // Static methods on Camera - using Object.assign to avoid TypeScript issues
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (Object as any).assign(Camera, {
-  getCameraPermissionStatus: jest.fn(() => 'granted'),
-  requestCameraPermission: jest.fn().mockResolvedValue('granted'),
+  getCameraPermissionStatus: jest.fn(() => CAMERA_PERMISSION_STATUS.granted),
+  requestCameraPermission: jest
+    .fn()
+    .mockResolvedValue(CAMERA_PERMISSION_STATUS.granted),
 });
 
 export { Camera, useCameraDevice, useCameraPermission, useCodeScanner };

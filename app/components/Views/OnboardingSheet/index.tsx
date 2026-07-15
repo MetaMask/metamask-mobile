@@ -1,13 +1,17 @@
-import React, { useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
+import { useElevatedSurface } from '../../../util/theme/themeUtils';
+
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
 import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import AppConstants from '../../../core/AppConstants';
+import Routes from '../../../constants/navigation/Routes';
+import { colors as commonColors } from '../../../styles/common';
 import {
   Box,
   BoxAlignItems,
@@ -17,6 +21,9 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  Icon,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -30,6 +37,7 @@ export interface OnboardingSheetParams {
   onPressImport?: () => void;
   onPressContinueWithGoogle?: (createWallet: boolean) => void;
   onPressContinueWithApple?: (createWallet: boolean) => void;
+  onPressContinueWithTelegram?: (createWallet: boolean) => void;
   createWallet?: boolean;
 }
 
@@ -47,11 +55,11 @@ const OnboardingSheet = () => {
     onPressImport,
     onPressContinueWithGoogle,
     onPressContinueWithApple,
+    onPressContinueWithTelegram,
     createWallet = false,
   } = params ?? {};
   const { colors } = useTheme();
   const tw = useTailwind();
-
   const onPressCreateAction = () => {
     if (onPressCreate) {
       onPressCreate();
@@ -76,15 +84,21 @@ const OnboardingSheet = () => {
     }
   };
 
-  const goTo = (url: string, title: string) => {
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
+  const onPressContinueWithTelegramAction = () => {
+    if (onPressContinueWithTelegram) {
+      onPressContinueWithTelegram(createWallet);
+    }
+  };
+
+  const goTo = useCallback(
+    (url: string, title: string) => {
+      navigation.navigate(Routes.WEBVIEW.SIMPLE, {
         url,
         title,
-      },
-    });
-  };
+      });
+    },
+    [navigation],
+  );
 
   const onPressTermsOfUse = () => {
     const url = AppConstants.URLS.TERMS_OF_USE_URL;
@@ -97,10 +111,15 @@ const OnboardingSheet = () => {
   };
 
   const { themeAppearance } = useTheme();
+  const surfaceClass = useElevatedSurface();
   const isDark = themeAppearance === AppThemeKey.dark;
 
   return (
-    <BottomSheet goBack={navigation.goBack} ref={sheetRef}>
+    <BottomSheet
+      goBack={navigation.goBack}
+      ref={sheetRef}
+      twClassName={surfaceClass}
+    >
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
@@ -168,6 +187,30 @@ const OnboardingSheet = () => {
               ? strings('onboarding.continue_with_apple')
               : strings('onboarding.sign_in_with_apple')}
           </Button>
+          {onPressContinueWithTelegram ? (
+            <Button
+              variant={ButtonVariant.Secondary}
+              onPress={onPressContinueWithTelegramAction}
+              testID={OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON}
+              startAccessory={
+                <Icon
+                  name={IconName.Telegram}
+                  size={IconSize.Lg}
+                  style={tw.style({ color: commonColors.telegramBlue })}
+                />
+              }
+              isFullWidth
+              size={ButtonSize.Lg}
+              style={tw.style('border border-muted', {
+                backgroundColor: colors.text.default,
+              })}
+              textProps={{ style: { color: colors.background.default } }}
+            >
+              {createWallet
+                ? strings('onboarding.continue_with_telegram')
+                : strings('onboarding.sign_in_with_telegram')}
+            </Button>
+          ) : null}
         </Box>
         <Box
           flexDirection={BoxFlexDirection.Row}

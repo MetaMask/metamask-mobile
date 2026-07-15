@@ -150,7 +150,7 @@ describe('ButtonPrimary', () => {
 
       // Assert
       const buttonElement = getByTestId(BUTTONPRIMARY_TESTID);
-      expect(buttonElement).toHaveProp('disabled', true);
+      expect(buttonElement).toBeDisabled();
     });
 
     it('does not set disabled prop when isDisabled is false', () => {
@@ -167,7 +167,7 @@ describe('ButtonPrimary', () => {
 
       // Assert
       const buttonElement = getByTestId(BUTTONPRIMARY_TESTID);
-      expect(buttonElement).toHaveProp('disabled', false);
+      expect(buttonElement).not.toBeDisabled();
     });
 
     it('triggers onPress when enabled', () => {

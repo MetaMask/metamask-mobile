@@ -1,10 +1,11 @@
 import React, { PureComponent } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { connect } from 'react-redux';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AddressList from '../../confirmations/legacy/components/AddressList';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
@@ -124,7 +125,7 @@ class Contacts extends PureComponent {
         testID={ContactsViewSelectorIDs.CONTAINER}
         edges={{ bottom: 'additive' }}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('app_settings.contacts_title')}
           onBack={() => this.props.navigation.goBack()}
           includesTopInset

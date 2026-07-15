@@ -4,7 +4,6 @@ import { NetworkController } from '@metamask/network-controller';
 import {
   CommunicationLayerMessage,
   MessageType,
-  isAnalyticsTrackedRpcMethod,
   OriginatorInfo,
 } from '@metamask/sdk-communication-layer';
 import Engine from '../../Engine';
@@ -23,18 +22,17 @@ import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { NETWORKS_CHAIN_ID } from '../../../../app/constants/network';
 import { mockNetworkState } from '../../../util/test/network';
-import { analytics } from '@metamask/sdk-analytics';
+import { analytics } from '../../../util/analytics/analytics';
+import { MetaMetricsEvents } from '../../Analytics';
 
-jest.mock('@metamask/sdk-analytics', () => ({
+jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
-    track: jest.fn(),
+    trackEvent: jest.fn(),
   },
 }));
 
 jest.mock('@metamask/sdk-communication-layer', () => ({
   ...jest.requireActual('@metamask/sdk-communication-layer'),
-  isAnalyticsTrackedRpcMethod: jest.fn(),
-  SendAnalytics: jest.fn(),
 }));
 
 jest.mock('../../Engine');
@@ -153,13 +151,9 @@ describe('handleConnectionMessage', () => {
     mockHandleSendMessage.mockResolvedValue();
   });
 
-  describe('Analytics tracking for wallet_action_received', () => {
-    const mockIsAnalyticsTrackedRpcMethod =
-      isAnalyticsTrackedRpcMethod as jest.Mock;
-
+  describe('Analytics tracking for SDK Legacy RPC Request Received', () => {
     beforeEach(() => {
-      mockIsAnalyticsTrackedRpcMethod.mockClear();
-      (analytics.track as jest.Mock).mockClear();
+      (analytics.trackEvent as jest.Mock).mockClear();
 
       connection.originatorInfo = {
         url: 'https://test-dapp.com',
@@ -173,47 +167,46 @@ describe('handleConnectionMessage', () => {
         connector: 'metamask',
         anonId: 'test-anon-id',
       } as OriginatorInfo;
-      message.method = 'eth_requestAccounts';
+      message.method = 'eth_sendTransaction';
       message.id = 'rpc-123';
       message.type = MessageType.JSONRPC;
     });
 
-    it('should track wallet_action_received when anonId is present and method is tracked', async () => {
-      mockIsAnalyticsTrackedRpcMethod.mockReturnValue(true);
-
+    it('should track SDK Legacy RPC Request Received when anonId is present and method is tracked', async () => {
       await handleConnectionMessage({ message, engine: Engine, connection });
 
-      expect(analytics.track).toHaveBeenCalledWith('wallet_action_received', {
-        anon_id: 'test-anon-id',
-      });
-      expect(analytics.track).toHaveBeenCalledTimes(1);
-      expect(mockIsAnalyticsTrackedRpcMethod).toHaveBeenCalledWith(
-        'eth_requestAccounts',
+      expect(analytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SDK_LEGACY_RPC_REQUEST_RECEIVED.category,
+          properties: expect.objectContaining({
+            transport_type: 'socket_relay',
+            rpc_method: 'eth_sendTransaction',
+            remote_session_id: 'test-anon-id',
+          }),
+        }),
       );
+      expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
     });
 
-    it('should not track wallet_action_received if anonId is missing', async () => {
-      mockIsAnalyticsTrackedRpcMethod.mockReturnValue(true);
+    it('should not track SDK Legacy RPC Request Received if anonId is missing', async () => {
       if (connection.originatorInfo) {
         connection.originatorInfo.anonId = undefined;
       }
 
       await handleConnectionMessage({ message, engine: Engine, connection });
 
-      expect(analytics.track).not.toHaveBeenCalled();
+      expect(analytics.trackEvent).not.toHaveBeenCalled();
     });
 
-    it('should not track wallet_action_received if method is not analytics tracked', async () => {
-      mockIsAnalyticsTrackedRpcMethod.mockReturnValue(false);
+    it('should not track SDK Legacy RPC Request Received if method is not analytics tracked', async () => {
+      message.method = 'eth_chainId';
 
       await handleConnectionMessage({ message, engine: Engine, connection });
 
-      expect(analytics.track).not.toHaveBeenCalled();
+      expect(analytics.trackEvent).not.toHaveBeenCalled();
     });
 
-    it('should not track wallet_action_received if message.method is undefined', async () => {
-      mockIsAnalyticsTrackedRpcMethod.mockReturnValue(true);
-
+    it('should not track SDK Legacy RPC Request Received if message.method is undefined', async () => {
       // Create a new message object for this specific test case to avoid type issues
       const messageWithUndefinedMethod: CommunicationLayerMessage = {
         // Explicitly define all required fields of CommunicationLayerMessage
@@ -231,7 +224,7 @@ describe('handleConnectionMessage', () => {
         connection,
       });
 
-      expect(analytics.track).not.toHaveBeenCalled();
+      expect(analytics.trackEvent).not.toHaveBeenCalled();
       // The DevLogger for invalid message should be hit earlier in this case
       expect(mockDevLoggerLog).toHaveBeenCalledWith(
         `Connection::onMessage invalid message`,

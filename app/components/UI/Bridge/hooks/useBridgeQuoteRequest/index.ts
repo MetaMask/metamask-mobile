@@ -24,6 +24,7 @@ import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { useLatestBalance } from '../useLatestBalance';
 import { BigNumber } from 'ethers';
+import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
 
 export const DEBOUNCE_WAIT = 300;
 
@@ -68,7 +69,7 @@ export const useBridgeQuoteRequest = (
   // The full balance check with gas fees is used separately within the BridgeView to block user from executing
   // the swap in insufficient balance.
   // This prevents the infinite loop: quote request → gas data changes → insufficientBal changes → new quote request
-  const insufficientBal = useIsInsufficientBalance({
+  const insufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,
     token: sourceToken,
     latestAtomicBalance: sourceAtomicBalance,
@@ -78,6 +79,16 @@ export const useBridgeQuoteRequest = (
   const { gasIncluded, gasIncluded7702 } = useSelector(
     selectGasIncludedQuoteParams,
   );
+
+  const insufficientNativeReserveError = useInsufficientNativeReserveError({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: sourceAtomicBalance,
+    walletAddress,
+  });
+
+  const insufficientBal =
+    insufficientBalance || Boolean(insufficientNativeReserveError);
 
   /**
    * Updates quote parameters in the bridge controller
@@ -118,6 +129,8 @@ export const useBridgeQuoteRequest = (
     await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
       params,
       context,
+      0,
+      1,
     );
   }, [
     sourceToken,

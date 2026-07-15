@@ -30,10 +30,18 @@ import type { EventPayload } from '../helpers/analytics/helpers.ts';
 import FixtureBuilder from './fixtures/FixtureBuilder.ts';
 import type { Fixture } from './fixtures/types.ts';
 import CommandQueueServer from './fixtures/CommandQueueServer.ts';
+import { CurrentDeviceDetails } from './fixtures/playwright';
+import type { PlatformDeviceCommandHandler } from './services/device-commands/types';
 
 /*
  * WDIO PLAYWRIGHT TESTS
  */
+export enum ProviderName {
+  EMULATOR = 'emulator',
+  SIMULATOR = 'simulator',
+  BROWSERSTACK = 'browserstack',
+}
+
 export enum Platform {
   ANDROID = 'android',
   IOS = 'ios',
@@ -44,8 +52,20 @@ export enum DeviceOrientation {
   LANDSCAPE = 'landscape',
 }
 
+/**
+ * Local emulator / simulator profile for WebDriver.
+ *
+ * **Android:** `name` is usually the AVD name (as returned by
+ * `adb -s <serial> emu avd name`, e.g. `Pixel_5_Pro_API_34`). Omitted
+ * `udid` is resolved to an adb serial such as `emulator-5554` at setup time.
+ * You may set `udid` directly to that serial; if both are set, a mismatch
+ * with the AVD name is warned.
+ *
+ * **iOS:** `name` is the simulator name/identifier used with `xcrun simctl`
+ * (e.g. booted device name or UDID, depending on your environment).
+ */
 export interface EmulatorConfig {
-  provider: 'emulator';
+  provider: ProviderName;
   name?: string;
   osVersion?: string;
   udid?: string;
@@ -53,17 +73,20 @@ export interface EmulatorConfig {
 }
 
 export interface BrowserStackConfig {
-  provider: 'browserstack';
+  provider: ProviderName;
   name: string;
   osVersion: string;
   orientation?: DeviceOrientation;
   enableCameraImageInjection?: boolean;
+  selfHeal?: boolean;
+  otherApps?: string[];
 }
 
 export interface AppConfig {
   appId?: string;
   packageName?: string;
   launchableActivity?: string;
+  buildPath?: string;
 }
 
 export type DeviceConfig = EmulatorConfig | BrowserStackConfig;
@@ -78,7 +101,6 @@ export interface TimeoutOptions {
 export interface WebDriverConfig {
   platform: Platform;
   device: DeviceConfig;
-  buildPath: string;
   appBundleId: string;
   expectTimeout: number;
   app: AppConfig;
@@ -120,7 +142,14 @@ export interface LongPressOptions extends GestureOptions {
 export interface MatcherOptions {
   exact?: boolean;
   lastElement?: boolean;
+  index?: number;
 }
+
+/** Detox scroll-container matcher; undefined when omitted on Appium. */
+export type ScrollViewMatcher = Promise<Detox.NativeMatcher | undefined>;
+
+/** Scroll container for scrollToElement — testID string or Detox matcher promise. */
+export type ScrollContainer = ScrollViewMatcher | string;
 
 /**
  * The options for the scroll gesture.
@@ -259,6 +288,12 @@ export interface LaunchArgs {
   fixtureServerPort: string;
   detoxURLBlacklistRegex: string;
   mockServerPort: string;
+  commandQueueServerPort: string;
+  /** Account-activity WebSocket mock port; launch-arg key matches `launchArgKey` in `tests/websocket/constants.ts`. */
+  accountActivityWsPort: string;
+  /** Appium specific launch args */
+  stop: boolean;
+  wait: boolean;
 }
 
 /**
@@ -292,6 +327,7 @@ export interface TestSuiteParams {
   mockServer: Mockttp;
   localNodes?: LocalNode[];
   commandQueueServer?: CommandQueueServer;
+  deviceCommands?: PlatformDeviceCommandHandler;
 }
 
 /**
@@ -415,6 +451,7 @@ export interface AnalyticsExpectations {
  * @param {Record<string, unknown>} [permissions] - The permissions to set for the device.
  * @param {() => Promise<void>} [endTestfn] - The function to execute after the test is finished.
  * @param {AnalyticsExpectations} [analyticsExpectations] - Optional MetaMetrics assertions run after `endTestfn`, before mock drain.
+ * @param {CurrentDeviceDetails} [currentDeviceDetails] - The current device details to use for the test.
  */
 export interface WithFixturesOptions {
   fixture:
@@ -442,4 +479,6 @@ export interface WithFixturesOptions {
   skipReactNativeReload?: boolean;
   useCommandQueueServer?: boolean;
   analyticsExpectations?: AnalyticsExpectations;
+  currentDeviceDetails?: CurrentDeviceDetails;
+  disableSynchronization?: boolean;
 }

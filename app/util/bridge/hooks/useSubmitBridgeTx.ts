@@ -3,11 +3,16 @@ import type {
   QuoteMetadata,
   QuoteResponse,
 } from '@metamask/bridge-controller';
+import type { BridgeStatusController } from '@metamask/bridge-status-controller';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
-import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
-import { selectAbTestContext } from '../../../core/redux/slices/bridge';
+import {
+  selectAbTestContext,
+  selectBridgeControllerState,
+  selectDestToken,
+  selectIsGasIncludedSTXSendBundleSupported,
+} from '../../../core/redux/slices/bridge';
 import { useABTest } from '../../../hooks';
 import {
   NUMPAD_QUICK_ACTIONS_AB_KEY,
@@ -17,11 +22,39 @@ import {
   TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
   TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
 } from '../../../components/UI/Bridge/components/TokenSelectorItem.abTestConfig';
+import {
+  AMBIENT_PRICE_COLOR_AB_KEY,
+  AMBIENT_PRICE_COLOR_VARIANTS,
+} from '../../../components/UI/TokenDetails/components/abTestConfig';
 import { useMemo } from 'react';
 
+import {
+  type TransactionActiveAbTestEntry,
+  withPendingTransactionActiveAbTests,
+} from '../../transactions/transaction-active-ab-test-attribution-registry';
+import {
+  createActiveABTestAssignment,
+  normalizeActiveABTestAssignments,
+} from '../../analytics/activeABTestAssignments';
+
+function mergeTransactionActiveAbTests(
+  ...groups: (TransactionActiveAbTestEntry[] | undefined)[]
+): TransactionActiveAbTestEntry[] | undefined {
+  const merged: TransactionActiveAbTestEntry[] = [];
+  for (const group of groups) {
+    if (group?.length) {
+      merged.push(...group);
+    }
+  }
+  const normalizedTests = normalizeActiveABTestAssignments(merged);
+  return normalizedTests.length > 0 ? normalizedTests : undefined;
+}
+
 export default function useSubmitBridgeTx() {
-  const stxEnabled = useSelector(selectShouldUseSmartTransaction);
+  const stxEnabled = useSelector(selectIsGasIncludedSTXSendBundleSupported);
   const walletAddress = useSelector(selectSourceWalletAddress);
+  const destToken = useSelector(selectDestToken);
+  const bridgeControllerState = useSelector(selectBridgeControllerState);
   const abTestContext = useSelector(selectAbTestContext);
   const { variantName: numpadVariantName, isActive: isNumpadAbActive } =
     useABTest(NUMPAD_QUICK_ACTIONS_AB_KEY, NUMPAD_QUICK_ACTIONS_VARIANTS);
@@ -32,6 +65,10 @@ export default function useSubmitBridgeTx() {
     TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
     TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
   );
+  const {
+    variantName: ambientColorVariantName,
+    isActive: isAmbientColorAbActive,
+  } = useABTest(AMBIENT_PRICE_COLOR_AB_KEY, AMBIENT_PRICE_COLOR_VARIANTS);
 
   const abTests = abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout
     ? {
@@ -40,20 +77,33 @@ export default function useSubmitBridgeTx() {
       }
     : undefined;
   const activeAbTests = useMemo(() => {
-    const tests: { key: string; value: string }[] = [];
+    const tests: TransactionActiveAbTestEntry[] = [];
 
     if (isNumpadAbActive) {
-      tests.push({
-        key: NUMPAD_QUICK_ACTIONS_AB_KEY,
-        value: numpadVariantName,
-      });
+      tests.push(
+        createActiveABTestAssignment(
+          NUMPAD_QUICK_ACTIONS_AB_KEY,
+          numpadVariantName,
+        ),
+      );
     }
 
     if (isTokenSelectorAbActive) {
-      tests.push({
-        key: TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-        value: tokenSelectorVariantName,
-      });
+      tests.push(
+        createActiveABTestAssignment(
+          TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+          tokenSelectorVariantName,
+        ),
+      );
+    }
+
+    if (isAmbientColorAbActive) {
+      tests.push(
+        createActiveABTestAssignment(
+          AMBIENT_PRICE_COLOR_AB_KEY,
+          ambientColorVariantName,
+        ),
+      );
     }
 
     return tests.length > 0 ? tests : undefined;
@@ -62,41 +112,64 @@ export default function useSubmitBridgeTx() {
     numpadVariantName,
     isTokenSelectorAbActive,
     tokenSelectorVariantName,
+    isAmbientColorAbActive,
+    ambientColorVariantName,
   ]);
 
   const submitBridgeTx = async ({
     quoteResponse,
     location,
+    transactionActiveAbTests: transactionActiveAbTestsFromRoute,
   }: {
     quoteResponse: QuoteResponse & QuoteMetadata;
     /** The entry point from which the user initiated the swap or bridge */
     location?: MetaMetricsSwapsEventSource;
+    /** Route-carried tests (e.g. homepage trending sections) merged at submit time */
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   }) => {
     if (!walletAddress) {
       throw new Error('Wallet address is not set');
     }
 
-    // check whether quoteResponse is an intent transaction
-    if (quoteResponse.quote.intent) {
-      return Engine.context.BridgeStatusController.submitIntent({
-        quoteResponse,
-        accountAddress: walletAddress,
-        location,
-        abTests,
-        activeAbTests,
-      });
-    }
-    return Engine.context.BridgeStatusController.submitTx(
-      walletAddress,
-      {
-        ...quoteResponse,
-        approval: quoteResponse.approval ?? undefined,
-      },
-      stxEnabled,
-      undefined, // quotesReceivedContext
-      location,
-      abTests,
+    const mergedActiveAbTests = mergeTransactionActiveAbTests(
       activeAbTests,
+      transactionActiveAbTestsFromRoute,
+    );
+    const tokenSecurityTypeDestination = destToken?.securityData?.type ?? null;
+    const inputPrimaryDenomination =
+      bridgeControllerState?.inputPrimaryDenomination ?? 'token_amount';
+    return await withPendingTransactionActiveAbTests(
+      mergedActiveAbTests,
+      async () => {
+        if (quoteResponse.quote.intent) {
+          return await Engine.context.BridgeStatusController.submitIntent({
+            quoteResponse: quoteResponse as Parameters<
+              BridgeStatusController['submitIntent']
+            >[0]['quoteResponse'],
+            accountAddress: walletAddress,
+            location,
+            abTests,
+            activeAbTests: mergedActiveAbTests,
+            tokenSecurityTypeDestination,
+            inputPrimaryDenomination,
+          });
+        }
+        return await Engine.context.BridgeStatusController.submitTx(
+          walletAddress,
+          {
+            ...quoteResponse,
+            approval: quoteResponse.approval ?? undefined,
+          } as Parameters<BridgeStatusController['submitTx']>[1],
+          stxEnabled,
+          undefined, // quotesReceivedContext
+          location,
+          abTests,
+          mergedActiveAbTests,
+          tokenSecurityTypeDestination,
+          undefined, // batchSellTrades
+          inputPrimaryDenomination,
+        );
+      },
     );
   };
 

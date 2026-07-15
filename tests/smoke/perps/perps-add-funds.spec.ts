@@ -10,16 +10,18 @@ import {
 } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import Assertions from '../../framework/Assertions';
-import PerpsTabView from '../../page-objects/Perps/PerpsTabView';
+import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import WalletView from '../../page-objects/wallet/WalletView';
 import PerpsDepositView from '../../page-objects/Perps/PerpsDepositView';
+import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
 import ToastModal from '../../page-objects/wallet/ToastModal';
 import Utilities from '../../framework/Utilities';
 import { createLogger, LogLevel } from '../../framework/logger';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { PerpsMarketBalanceActionsSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 
 const logger = createLogger({
   name: 'PerpsAddFundsSpec',
@@ -39,6 +41,7 @@ describe.skip(
           fixture: new FixtureBuilder()
             .withPerpsProfile('no-positions')
             .withPerpsFirstTimeUser(false)
+            .withAccountTreeController()
             .withKeyringControllerOfMultipleAccounts()
             .withNetworkController({
               type: 'rpc',
@@ -72,9 +75,7 @@ describe.skip(
             .build(),
           restartDevice: true,
           testSpecificMock: async (mockServer: Mockttp) => {
-            await setupRemoteFeatureFlagsMock(mockServer, {
-              ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-            });
+            await setupRemoteFeatureFlagsMock(mockServer, {});
             await PERPS_ARBITRUM_MOCKS(mockServer);
             await mockPerpsGeolocation(
               mockServer,
@@ -104,13 +105,62 @@ describe.skip(
 
           // Go to Perps tab
           await WalletView.scrollAndTapPerpsSection();
+          await PerpsHomeView.tapExploreCryptoIfVisible();
+
+          const addFundsButton = Matchers.getElementByID(
+            PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
+          );
+          const balanceValueElement = Matchers.getElementByID(
+            PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
+          );
+
+          // Wait until Perps balance actions are fully rendered (skeleton can persist briefly).
+          await Utilities.executeWithRetry(
+            async () => {
+              const isAddFundsVisible = await Utilities.isElementVisible(
+                addFundsButton,
+                2000,
+              );
+              if (!isAddFundsVisible) {
+                throw new Error('Perps Add funds CTA is not visible yet');
+              }
+            },
+            { interval: 1000, timeout: 20000 },
+          );
 
           // Read initial balance text for later comparison
-          const initialBalance = await PerpsTabView.getBalance();
+          const balanceAttrs = await (
+            (await balanceValueElement) as IndexableNativeElement
+          ).getAttributes();
+          const initialBalanceText =
+            (
+              balanceAttrs as {
+                text?: string;
+                label?: string;
+                value?: string;
+              }
+            ).text || '0';
+          const initialBalance =
+            parseFloat(initialBalanceText.replace(/[^0-9.-]/g, '')) || 0;
 
-          // Open Add Funds from balance menu
-          //await PerpsTabView.tapBalanceButton();
-          await PerpsTabView.tapAddFundsButton();
+          // Open Add Funds from balance menu and verify deposit screen is reached.
+          // In this flow the first tap can happen while Perps is still settling.
+          await Utilities.executeWithRetry(
+            async () => {
+              await Gestures.waitAndTap(addFundsButton, {
+                elemDescription: 'Perps Add Funds Button',
+              });
+              await Assertions.expectElementToBeVisible(
+                PerpsDepositView.amountInput as DetoxElement,
+                {
+                  description:
+                    'Deposit amount input visible after tapping Add funds',
+                  timeout: 5000,
+                },
+              );
+            },
+            { interval: 1000, timeout: 30000 },
+          );
 
           // If a network-added toast appears, wait for it to disappear before interacting
           await Assertions.expectElementToNotBeVisible(
@@ -141,7 +191,19 @@ describe.skip(
           logger.info('🔥 E2E Mock: Deposit applied');
           await Utilities.executeWithRetry(
             async () => {
-              const current = await PerpsTabView.getBalance();
+              const currentAttrs = await (
+                (await balanceValueElement) as IndexableNativeElement
+              ).getAttributes();
+              const currentText =
+                (
+                  currentAttrs as {
+                    text?: string;
+                    label?: string;
+                    value?: string;
+                  }
+                ).text || '0';
+              const current =
+                parseFloat(currentText.replace(/[^0-9.-]/g, '')) || 0;
               await Assertions.checkIfValueIsDefined(
                 current === initialBalance + 80,
               );

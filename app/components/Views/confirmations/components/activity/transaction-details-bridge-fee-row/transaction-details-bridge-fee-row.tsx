@@ -16,8 +16,9 @@ export function TransactionDetailsBridgeFeeRow() {
   const { bridgeFeeFiat } = metamaskPay || {};
 
   const isWithdraw = hasTransactionType(transactionMeta, [
-    TransactionType.predictWithdraw,
+    TransactionType.moneyAccountWithdraw,
     TransactionType.perpsWithdraw,
+    TransactionType.predictWithdraw,
   ]);
 
   const label = isWithdraw

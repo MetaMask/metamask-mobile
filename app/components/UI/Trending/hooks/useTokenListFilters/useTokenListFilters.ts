@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -11,6 +11,7 @@ import {
 import type { TrendingFilterContext } from '../../components/TrendingTokensList/TrendingTokensList';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import { useNetworkName } from '../useNetworkName/useNetworkName';
+import { IconName } from '@metamask/design-system-react-native';
 
 interface UseTokenListFiltersOptions {
   /**
@@ -49,6 +50,7 @@ export interface TokenListFilters {
   ) => void;
   handlePriceChangePress: () => void;
   priceChangeButtonText: string;
+  priceChangeSortDirectionIcon: IconName;
 
   // Time
   selectedTimeOption: TimeOption;
@@ -71,8 +73,7 @@ export const useTokenListFilters = (
 ): TokenListFilters => {
   const { timeOption } = options;
 
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, undefined | object>>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
   const [selectedNetwork, setSelectedNetwork] = useState<CaipChainId[] | null>(
@@ -189,6 +190,14 @@ export const useTokenListFilters = (
     }
   }, [selectedPriceChangeOption]);
 
+  const priceChangeSortDirectionIcon = useMemo(
+    () =>
+      priceChangeSortDirection === SortDirection.Ascending
+        ? IconName.Arrow2Up
+        : IconName.Arrow2Down,
+    [priceChangeSortDirection],
+  );
+
   const filterContext: TrendingFilterContext = useMemo(
     () => ({
       timeFilter: selectedTimeOption,
@@ -226,6 +235,7 @@ export const useTokenListFilters = (
     handlePriceChangeSelect,
     handlePriceChangePress,
     priceChangeButtonText,
+    priceChangeSortDirectionIcon,
     selectedTimeOption,
     setSelectedTimeOption,
     refreshing,

@@ -1,0 +1,26 @@
+import type { ValidateElements } from '../helpers/route-messenger-helpers';
+import { GlobalActions, GlobalEvents } from '../../core/Engine';
+
+/**
+ * Helper function to define the excluded capabilities for a messenger. This is
+ * primarily a type-level helper to ensure that the excluded capabilities are
+ * valid and to get better type inference for the excluded capabilities.
+ *
+ * @param capabilities - The capabilities to exclude, which must be valid action
+ * and event types for the `RootMessenger`.
+ * @param capabilities.actions - The action types to exclude, which must be
+ * valid action types for the `RootMessenger`.
+ * @param capabilities.events - The event types to exclude, which must be valid
+ * event types for the `RootMessenger`.
+ * @returns The given capabilities, typed as the specific action and event types
+ * that were excluded.
+ */
+export function defineExcludedCapabilities<
+  const ActionTypes extends readonly string[],
+  const EventTypes extends readonly string[],
+>(capabilities: {
+  actions: ValidateElements<ActionTypes, GlobalActions['type']>;
+  events: ValidateElements<EventTypes, GlobalEvents['type']>;
+}): { actions: ActionTypes; events: EventTypes } {
+  return capabilities as { actions: ActionTypes; events: EventTypes };
+}

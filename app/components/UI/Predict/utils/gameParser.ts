@@ -10,11 +10,17 @@ import {
   PolymarketApiTeam,
 } from '../providers/polymarket/types';
 
-type SlugTeamOrder = 'away-home' | 'home-away';
+type LeagueTeamOrder = 'away-home' | 'home-away';
+
+const TENNIS_LEAGUES: ReadonlySet<PredictSportsLeague> = new Set([
+  'atp',
+  'wta',
+  'itf',
+]);
 
 interface LeagueSlugConfig {
   pattern: RegExp;
-  teamOrder: SlugTeamOrder;
+  teamOrder: LeagueTeamOrder;
   tagSlug?: string; // if different than league slug
 }
 
@@ -25,6 +31,18 @@ const LEAGUE_SLUG_CONFIGS: Record<PredictSportsLeague, LeagueSlugConfig> = {
   },
   nba: {
     pattern: /^nba-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'away-home',
+  },
+  wnba: {
+    pattern: /^wnba-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'away-home',
+  },
+  mlb: {
+    pattern: /^mlb-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'away-home',
+  },
+  nhl: {
+    pattern: /^nhl-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/,
     teamOrder: 'away-home',
   },
   ucl: {
@@ -207,6 +225,23 @@ const LEAGUE_SLUG_CONFIGS: Record<PredictSportsLeague, LeagueSlugConfig> = {
     teamOrder: 'home-away',
     tagSlug: 'coupe-de-france',
   },
+  fifwc: {
+    pattern: /^fifwc-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+    tagSlug: 'fifa-world-cup',
+  },
+  atp: {
+    pattern: /^atp-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  wta: {
+    pattern: /^wta-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  itf: {
+    pattern: /^itf-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
 };
 
 export type TeamLookup = (
@@ -220,8 +255,24 @@ export interface ParsedGameSlug {
   dateString: string;
 }
 
+const hasTeamsMatchingLeague = (
+  event: PolymarketApiEvent,
+  league: PredictSportsLeague,
+): boolean => {
+  const teams = Array.isArray(event.teams) ? event.teams : [];
+  return teams.length > 0 && teams.every((team) => team.league === league);
+};
+
+const hasSeriesMatchingLeague = (
+  event: PolymarketApiEvent,
+  league: PredictSportsLeague,
+): boolean =>
+  Array.isArray(event.series) &&
+  event.series.some((series) => series.slug === league);
+
 export function getEventLeague(
   event: PolymarketApiEvent,
+  extendedSportsMarketsLeagues: string[] = [],
 ): PredictSportsLeague | null {
   const tags = Array.isArray(event.tags) ? event.tags : [];
   const hasGamesTag = tags.some((tag) => tag.slug === 'games');
@@ -234,8 +285,21 @@ export function getEventLeague(
     const { pattern, tagSlug } = LEAGUE_SLUG_CONFIGS[league];
     const leagueTagSlug = tagSlug ?? league;
     const hasLeagueTag = tags.some((tag) => tag.slug === leagueTagSlug);
+    const hasProviderLeagueMetadata =
+      hasLeagueTag ||
+      hasSeriesMatchingLeague(event, league) ||
+      hasTeamsMatchingLeague(event, league);
     const hasValidSlug = pattern.test(event.slug);
-    if (hasLeagueTag && hasValidSlug) {
+    if (hasProviderLeagueMetadata && hasValidSlug) {
+      return league;
+    }
+
+    const canInferFromTeams =
+      event.slug.startsWith(`${league}-`) &&
+      extendedSportsMarketsLeagues.includes(league) &&
+      hasTeamsMatchingLeague(event, league);
+
+    if (canInferFromTeams) {
       return league;
     }
   }
@@ -246,8 +310,9 @@ export function getEventLeague(
 export function isLiveSportsEvent(
   event: PolymarketApiEvent,
   enabledLeagues: PredictSportsLeague[],
+  extendedSportsMarketsLeagues: string[] = [],
 ): boolean {
-  const league = getEventLeague(event);
+  const league = getEventLeague(event, extendedSportsMarketsLeagues);
   return league !== null && enabledLeagues.includes(league);
 }
 
@@ -263,7 +328,7 @@ export function parseGameSlugTeams(
   if (!match) {
     return null;
   }
-  const isHomeFirst = config.teamOrder === 'home-away';
+  const isHomeFirst = getLeagueTeamOrder(league) === 'home-away';
   return {
     awayAbbreviation: isHomeFirst ? match[2] : match[1],
     homeAbbreviation: isHomeFirst ? match[1] : match[2],
@@ -334,9 +399,95 @@ export function mapApiTeamToPredictTeam(
   };
 }
 
-export function parseScore(scoreString?: string): PredictGameScore | null {
+export function getLeagueTeamOrder(
+  league?: PredictSportsLeague,
+): LeagueTeamOrder {
+  if (!league) {
+    return 'away-home';
+  }
+
+  return LEAGUE_SLUG_CONFIGS[league].teamOrder;
+}
+
+const isTennisGame = (league?: PredictSportsLeague): boolean =>
+  Boolean(league && TENNIS_LEAGUES.has(league));
+
+const parseTennisSetSegment = (
+  segment: string,
+): { first: number; second: number } | null => {
+  const match = segment.trim().match(/^(\d+)-(\d+)(?:\(\d+-\d+\))?$/u);
+  if (!match) {
+    return null;
+  }
+
+  const firstScore = parseInt(match[1], 10);
+  const secondScore = parseInt(match[2], 10);
+
+  if (isNaN(firstScore) || isNaN(secondScore)) {
+    return null;
+  }
+
+  return { first: firstScore, second: secondScore };
+};
+
+const isCompletedTennisSet = (
+  firstScore: number,
+  secondScore: number,
+): boolean => {
+  const maxScore = Math.max(firstScore, secondScore);
+  const minScore = Math.min(firstScore, secondScore);
+  const lead = maxScore - minScore;
+
+  return (maxScore >= 6 && lead >= 2) || (maxScore === 7 && minScore >= 5);
+};
+
+const parseTennisSetsWonScore = (
+  scoreString: string,
+): PredictGameScore | null => {
+  const setSegments = scoreString
+    .split(',')
+    .map((segment) => parseTennisSetSegment(segment))
+    .filter(
+      (segment): segment is { first: number; second: number } =>
+        segment !== null,
+    );
+
+  if (setSegments.length === 0) {
+    return null;
+  }
+
+  let firstSetsWon = 0;
+  let secondSetsWon = 0;
+
+  setSegments.forEach(({ first, second }) => {
+    if (!isCompletedTennisSet(first, second)) {
+      return;
+    }
+
+    if (first > second) {
+      firstSetsWon += 1;
+    } else if (second > first) {
+      secondSetsWon += 1;
+    }
+  });
+
+  return {
+    away: secondSetsWon,
+    home: firstSetsWon,
+    raw: scoreString,
+  };
+};
+
+export function parseScore(
+  scoreString?: string,
+  league?: PredictSportsLeague,
+): PredictGameScore | null {
   if (!scoreString || scoreString === '0-0') {
     return null;
+  }
+
+  if (isTennisGame(league)) {
+    return parseTennisSetsWonScore(scoreString);
   }
 
   const parts = scoreString.split('-');
@@ -344,14 +495,20 @@ export function parseScore(scoreString?: string): PredictGameScore | null {
     return null;
   }
 
-  const away = parseInt(parts[0], 10);
-  const home = parseInt(parts[1], 10);
+  const firstScore = parseInt(parts[0].trim(), 10);
+  const secondScore = parseInt(parts[1].trim(), 10);
 
-  if (isNaN(away) || isNaN(home)) {
+  if (isNaN(firstScore) || isNaN(secondScore)) {
     return null;
   }
 
-  return { away, home, raw: scoreString };
+  const isHomeFirst = getLeagueTeamOrder(league) === 'home-away';
+
+  return {
+    away: isHomeFirst ? secondScore : firstScore,
+    home: isHomeFirst ? firstScore : secondScore,
+    raw: scoreString,
+  };
 }
 
 export function buildGameData(
@@ -375,7 +532,7 @@ export function buildGameData(
     return null;
   }
 
-  return {
+  const gameData = {
     id: String(event.gameId),
     startTime:
       event.startTime ?? event.endDate ?? `${parsedSlug.dateString}T00:00:00Z`,
@@ -384,10 +541,12 @@ export function buildGameData(
     league,
     elapsed: event.elapsed || null,
     period: event.period || null,
-    score: parseScore(event.score),
+    score: parseScore(event.score, league),
     homeTeam,
     awayTeam,
   };
+
+  return gameData;
 }
 
 /**

@@ -14,10 +14,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
+  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -28,13 +25,12 @@ import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { strings } from '../../../../locales/i18n';
 import { seedphraseBackedUp } from '../../../actions/user';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { compareMnemonics } from '../../../util/mnemonic';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useTheme } from '../../../util/theme';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { CommonActions } from '@react-navigation/native';
@@ -55,7 +51,6 @@ const ManualBackupStep2 = ({
   const settingsBackup = route?.params?.settingsBackup;
 
   const tw = useTailwind();
-  const { colors } = useTheme();
   const { width: innerWidth, height: windowHeight } = useWindowDimensions();
 
   const [gridWords, setGridWords] = useState([]);
@@ -64,33 +59,6 @@ const ManualBackupStep2 = ({
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [usedWordIndices, setUsedWordIndices] = useState(new Set());
   const [wordPositionMap, setWordPositionMap] = useState({});
-
-  const headerLeft = useCallback(
-    () => (
-      <TouchableOpacity
-        testID={ManualBackUpStepsSelectorsIDs.BACK_BUTTON}
-        onPress={() => navigation.goBack()}
-      >
-        <Icon
-          name={IconName.ArrowLeft}
-          size={IconSize.Lg}
-          color={IconColor.IconDefault}
-          style={tw.style('ml-4')}
-        />
-      </TouchableOpacity>
-    ),
-    [navigation, tw],
-  );
-
-  const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getOnboardingNavbarOptions(route, { headerLeft }, colors, false),
-    );
-  }, [colors, navigation, route, headerLeft]);
-
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
 
   const validateWords = useCallback(() => {
     const validWords = route.params?.words ?? [];
@@ -147,15 +115,13 @@ const ManualBackupStep2 = ({
           navigation.dispatch(resetAction);
         } else {
           navigation.navigate('OptinMetrics', {
-            onContinue: () => {
-              navigation.dispatch(resetAction);
-            },
+            successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
             accountType: AccountType.Metamask,
           });
         }
       }
       trackOnboarding(
-        MetricsEventBuilder.createEventBuilder(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
         ).build(),
         saveOnboardingEvent,
@@ -415,7 +381,7 @@ const ManualBackupStep2 = ({
     const isSuccess = validateWords();
     if (isSuccess) {
       trackOnboarding(
-        MetricsEventBuilder.createEventBuilder(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.WALLET_SECURITY_COMPLETED,
         ).build(),
         saveOnboardingEvent,
@@ -453,6 +419,13 @@ const ManualBackupStep2 = ({
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
+      <HeaderStandard
+        includesTopInset
+        onBack={() => navigation.goBack()}
+        backButtonProps={{
+          testID: ManualBackUpStepsSelectorsIDs.BACK_BUTTON,
+        }}
+      />
       <Box twClassName="flex-1 px-4">
         <ActionView
           confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}

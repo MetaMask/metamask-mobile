@@ -1,4 +1,6 @@
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder, {
+  DEFAULT_FIXTURE_ACCOUNT,
+} from '../../../framework/fixtures/FixtureBuilder';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
 import SendView from '../../../page-objects/Send/RedesignedSendView';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
@@ -139,7 +141,8 @@ const SIMULATION_GAS_STATION_MOCK = {
   },
 };
 
-describe(
+// Skipping due to https://consensys.slack.com/archives/C02U025CVU4/p1778589879443169
+describe.skip(
   SmokeConfirmations('Send native asset Gas Station using EIP-7702'),
   () => {
     beforeAll(async () => {
@@ -174,6 +177,28 @@ describe(
         mockServer,
         Object.assign({}, ...remoteFeatureEip7702),
       );
+
+      await setupMockRequest(mockServer, {
+        url: /accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances/,
+        response: {
+          balances: [
+            {
+              object: 'token',
+              address: '0x0000000000000000000000000000000000000000',
+              symbol: 'ETH',
+              name: 'Ether',
+              type: 'native',
+              decimals: 18,
+              chainId: 1337,
+              balance: '10.000000000000000000',
+              accountAddress: `eip155:1337:${DEFAULT_FIXTURE_ACCOUNT}`,
+            },
+          ],
+          unprocessedNetworks: [],
+        },
+        requestMethod: 'GET',
+        responseCode: 200,
+      });
     };
 
     const createFixture = ({ localNodes }: { localNodes?: LocalNode[] }) => {

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="24506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
+    <device id="retina4_7" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24504"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="EHf-IW-A2E">
+            <objects>
+                <viewController id="01J-lp-oVM" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="S3Y-Wh-wBE"/>
+                        <viewControllerLayoutGuide type="bottom" id="sKe-nC-zaX"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="fox-splash-screen" translatesAutoresizingMaskIntoConstraints="NO" id="Rmq-1b-Way">
+                                <rect key="frame" x="112.5" y="277.5" width="150" height="112"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="112" id="fox-height-constraint"/>
+                                    <constraint firstAttribute="width" constant="150" id="fox-width-constraint"/>
+                                </constraints>
+                            </imageView>
+                        </subviews>
+                        <color key="backgroundColor" name="splashBackground"/>
+                        <constraints>
+                            <constraint firstItem="Rmq-1b-Way" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="fox-center-x-constraint"/>
+                            <constraint firstItem="Rmq-1b-Way" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="fox-center-y-constraint"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="53" y="375"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="fox-splash-screen" width="1000" height="1000"/>
+    </resources>
+</document>

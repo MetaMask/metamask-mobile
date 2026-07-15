@@ -1,17 +1,13 @@
-import React, { useMemo, useRef, useCallback, useEffect } from 'react';
-import { StyleSheet } from 'react-native';
-
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-
-import { useTheme } from '../../../../util/theme';
+import React, { useMemo, useCallback, useEffect } from 'react';
+import { BottomSheet } from '@metamask/design-system-react-native';
 
 import {
   HardwareWalletType,
   HardwareWalletConnectionState,
   ConnectionStatus,
 } from '@metamask/hw-wallet-sdk';
+import { QrScanRequestType } from '@metamask/eth-qr-keyring';
+import { isQRHardwareScanError } from '../../errors';
 
 import {
   ConnectingContent,
@@ -27,17 +23,13 @@ import DevLogger from '../../../SDKConnect/utils/DevLogger';
 export const HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID =
   'hardware-wallet-bottom-sheet';
 
-const createStyles = (colors: { background: { default: string } }) =>
-  StyleSheet.create({
-    bottomSheet: {
-      backgroundColor: colors.background.default,
-    },
-  });
-
 export interface HardwareWalletBottomSheetProps {
   connectionState: HardwareWalletConnectionState;
   deviceSelection: DeviceSelectionState;
   walletType: HardwareWalletType | null;
+
+  /** When true, the bottom sheet returns null regardless of connection state. */
+  forceHideBottomSheet?: boolean;
 
   retryEnsureDeviceReady: () => Promise<void>;
   selectDevice: (device: DiscoveredDevice) => void;
@@ -54,6 +46,8 @@ export interface HardwareWalletBottomSheetProps {
   onAwaitingConfirmationCancel?: () => void;
   /** Callback fired when the user taps the CTA on an error/recovery screen. */
   onCTAClicked?: () => void;
+  /** Callback when the user retries a QR scan error from the bottom sheet. */
+  onRetryQrScan?: () => void;
 }
 
 /**
@@ -73,6 +67,7 @@ export const HardwareWalletBottomSheet: React.FC<
   connectionState,
   deviceSelection,
   walletType,
+  forceHideBottomSheet,
   retryEnsureDeviceReady,
   selectDevice,
   rescan,
@@ -82,15 +77,14 @@ export const HardwareWalletBottomSheet: React.FC<
   onConnectionSuccess,
   onAwaitingConfirmationCancel,
   onCTAClicked,
+  onRetryQrScan,
 }) => {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const [openQrScannerOnMount, setOpenQrScannerOnMount] = React.useState(false);
 
   const { devices, selectedDevice, isScanning } = deviceSelection;
 
   const shouldShow = useMemo(() => {
+    if (forceHideBottomSheet) return false;
     if (!walletType) return false;
     switch (connectionState.status) {
       case ConnectionStatus.Scanning:
@@ -104,7 +98,7 @@ export const HardwareWalletBottomSheet: React.FC<
       default:
         return false;
     }
-  }, [connectionState.status, walletType]);
+  }, [connectionState.status, walletType, forceHideBottomSheet]);
 
   useEffect(() => {
     DevLogger.log(
@@ -128,8 +122,27 @@ export const HardwareWalletBottomSheet: React.FC<
 
   const handleErrorContinue = useCallback(async () => {
     onCTAClicked?.();
+    if (
+      walletType === HardwareWalletType.Qr &&
+      connectionState.status === ConnectionStatus.ErrorState &&
+      isQRHardwareScanError(connectionState.error)
+    ) {
+      const qrErrorMetadata = connectionState.error.metadata;
+      setOpenQrScannerOnMount(
+        qrErrorMetadata.qrScanPurpose === QrScanRequestType.SIGN,
+      );
+      onRetryQrScan?.();
+      return;
+    }
+    setOpenQrScannerOnMount(false);
     await retryEnsureDeviceReady();
-  }, [retryEnsureDeviceReady, onCTAClicked]);
+  }, [
+    connectionState,
+    onCTAClicked,
+    onRetryQrScan,
+    retryEnsureDeviceReady,
+    walletType,
+  ]);
 
   const handleErrorDismiss = useCallback(() => {
     onCTAClicked?.();
@@ -164,6 +177,10 @@ export const HardwareWalletBottomSheet: React.FC<
   const handleCancelDeviceSelection = useCallback(() => {
     onClose();
   }, [onClose]);
+
+  const handleQrScannerOpened = useCallback(() => {
+    setOpenQrScannerOnMount(false);
+  }, []);
 
   const renderContent = () => {
     if (!walletType) return null;
@@ -210,6 +227,8 @@ export const HardwareWalletBottomSheet: React.FC<
             deviceType={walletType}
             operationType={connectionState.operationType}
             onCancel={handleAwaitingConfirmationCancel}
+            openQrScannerOnMount={openQrScannerOnMount}
+            onQrScannerOpened={handleQrScannerOpened}
           />
         );
 
@@ -234,12 +253,8 @@ export const HardwareWalletBottomSheet: React.FC<
 
   return (
     <BottomSheet
-      ref={bottomSheetRef}
       testID={HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID}
-      isFullscreen={false}
       onClose={handleClose}
-      shouldNavigateBack={false}
-      style={styles.bottomSheet}
     >
       {renderContent()}
     </BottomSheet>

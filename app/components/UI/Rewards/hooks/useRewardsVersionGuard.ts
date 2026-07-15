@@ -8,6 +8,10 @@ import {
   setVersionGuardError,
 } from '../../../../reducers/rewards';
 
+interface UseRewardsVersionGuardOptions {
+  refreshKey?: unknown;
+}
+
 interface UseRewardsVersionGuardReturn {
   fetchVersionRequirements: () => Promise<void>;
 }
@@ -17,7 +21,9 @@ interface UseRewardsVersionGuardReturn {
  * and stores the result + loading/error state in Redux. The actual blocked
  * check is done via the selectIsRewardsVersionBlocked selector.
  */
-const useRewardsVersionGuard = (): UseRewardsVersionGuardReturn => {
+const useRewardsVersionGuard = ({
+  refreshKey,
+}: UseRewardsVersionGuardOptions = {}): UseRewardsVersionGuardReturn => {
   const dispatch = useDispatch();
   const isLoadingRef = useRef(false);
 
@@ -48,8 +54,10 @@ const useRewardsVersionGuard = (): UseRewardsVersionGuardReturn => {
 
   useFocusEffect(
     useCallback(() => {
+      // Refresh when callers pass a new route/page key while this screen is focused.
+      void refreshKey;
       fetchVersionRequirements();
-    }, [fetchVersionRequirements]),
+    }, [fetchVersionRequirements, refreshKey]),
   );
 
   return { fetchVersionRequirements };

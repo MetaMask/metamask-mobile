@@ -6,6 +6,7 @@ import {
   type LivelinePoint,
   type CandlePoint,
   type HoverPoint,
+  type LivelineChartRef,
 } from '../LivelineChart.types';
 
 // Mock the generated asset file — it contains ~200 KB of minified JS strings
@@ -67,6 +68,34 @@ const makeReady = (webView: { props: Record<string, unknown> }) => {
   fireMessage(webView, { type: 'CHART_READY' });
 };
 
+describe('LivelineChartTemplate', () => {
+  it('lets incoming SET_PROPS data replace matching live timestamps', () => {
+    const { createLivelineChartTemplate } = jest.requireActual(
+      '../LivelineChartTemplate',
+    );
+    const theme = {
+      colors: { background: { default: 'white' } },
+    };
+
+    expect(createLivelineChartTemplate(theme, '', '', '')).toContain(
+      'mergeLivelineData(liveData, incoming.data)',
+    );
+  });
+
+  it('does not render appended points before SET_PROPS initializes props', () => {
+    const { createLivelineChartTemplate } = jest.requireActual(
+      '../LivelineChartTemplate',
+    );
+    const theme = {
+      colors: { background: { default: 'white' } },
+    };
+
+    expect(createLivelineChartTemplate(theme, '', '', '')).toContain(
+      'if (!currentProps) {',
+    );
+  });
+});
+
 // ---- component tests ----
 
 describe('LivelineChart', () => {
@@ -99,6 +128,16 @@ describe('LivelineChart', () => {
       makeReady(getByTestId('liveline-chart-webview'));
 
       expect(queryByTestId('liveline-chart-loading')).not.toBeOnTheScreen();
+    });
+
+    it('keeps the native loading overlay while chart data is loading', () => {
+      const { getByTestId } = render(
+        <LivelineChart data={[]} value={0} loading />,
+      );
+
+      makeReady(getByTestId('liveline-chart-webview'));
+
+      expect(getByTestId('liveline-chart-loading')).toBeOnTheScreen();
     });
   });
 
@@ -164,6 +203,32 @@ describe('LivelineChart', () => {
       });
 
       expect(onHover).toHaveBeenCalledWith(null);
+    });
+
+    it('keeps onMessage stable while using the latest callback props', () => {
+      const firstOnHover = jest.fn();
+      const secondOnHover = jest.fn();
+      const { getByTestId, rerender } = render(
+        <LivelineChart data={MOCK_DATA} value={43.1} onHover={firstOnHover} />,
+      );
+      const webView = getByTestId('liveline-chart-webview');
+      const initialOnMessage = webView.props.onMessage;
+
+      rerender(
+        <LivelineChart data={MOCK_DATA} value={43.1} onHover={secondOnHover} />,
+      );
+
+      expect(getByTestId('liveline-chart-webview').props.onMessage).toBe(
+        initialOnMessage,
+      );
+
+      fireMessage(getByTestId('liveline-chart-webview'), {
+        type: 'HOVER',
+        payload: null,
+      });
+
+      expect(firstOnHover).not.toHaveBeenCalled();
+      expect(secondOnHover).toHaveBeenCalledWith(null);
     });
 
     it('calls onWindowChange when WINDOW_CHANGE message arrives', () => {
@@ -399,6 +464,66 @@ describe('LivelineChart', () => {
       expect(onError).not.toHaveBeenCalled();
     });
   });
+
+  describe('imperative messages', () => {
+    it('flushes queued messages before onChartReady messages', () => {
+      const chartRef = React.createRef<LivelineChartRef>();
+      const queuedPoint = { time: 1700000060, value: 44 };
+      const readyPoint = { time: 1700000090, value: 45 };
+      const onChartReady = jest.fn(() => {
+        chartRef.current?.appendPoint(readyPoint, readyPoint.value);
+      });
+      const { getByTestId } = render(
+        <LivelineChart
+          ref={chartRef}
+          data={MOCK_DATA}
+          value={43.1}
+          onChartReady={onChartReady}
+        />,
+      );
+
+      act(() => {
+        chartRef.current?.appendPoint(queuedPoint, queuedPoint.value);
+      });
+      makeReady(getByTestId('liveline-chart-webview'));
+
+      const appendMessages = mockPostMessage.mock.calls
+        .map(([message]) => JSON.parse(message as string))
+        .filter((message) => message.type === 'APPEND_POINT');
+      expect(appendMessages.map((message) => message.payload.point)).toEqual([
+        queuedPoint,
+        readyPoint,
+      ]);
+    });
+
+    it('keeps appendPoint calls after a queued clearData reset', () => {
+      const chartRef = React.createRef<LivelineChartRef>();
+      const stalePoint = { time: 1700000060, value: 44 };
+      const freshPoint = { time: 1700000090, value: 45 };
+      const { getByTestId } = render(
+        <LivelineChart ref={chartRef} data={MOCK_DATA} value={43.1} />,
+      );
+
+      act(() => {
+        chartRef.current?.appendPoint(stalePoint, stalePoint.value);
+        chartRef.current?.clearData();
+        chartRef.current?.appendPoint(freshPoint, freshPoint.value);
+      });
+      makeReady(getByTestId('liveline-chart-webview'));
+
+      const flushedMessages = mockPostMessage.mock.calls
+        .map(([message]) => JSON.parse(message as string))
+        .filter((message) => message.type !== 'SET_PROPS');
+
+      expect(flushedMessages).toEqual([
+        { type: 'CLEAR_DATA' },
+        {
+          type: 'APPEND_POINT',
+          payload: { point: freshPoint, value: freshPoint.value },
+        },
+      ]);
+    });
+  });
 });
 
 // ---- parseWebViewMessage unit tests ----
@@ -491,6 +616,18 @@ describe('parseWebViewMessage', () => {
     expect(result).toEqual({
       type: 'SERIES_TOGGLE',
       payload: { id: 'series-1', visible: false },
+    });
+  });
+
+  it('parses PERF message', () => {
+    const result = parseWebViewMessage({
+      type: 'PERF',
+      payload: { renderMs: 24, points: 10 },
+    });
+
+    expect(result).toEqual({
+      type: 'PERF',
+      payload: { renderMs: 24, points: 10 },
     });
   });
 });

@@ -139,6 +139,10 @@ const mockCreateLoginHandler = jest.fn().mockImplementation(() => ({
       eat: 1745207866,
       exp: 1745207866,
     }),
+  getUserInfo: () => ({
+    userId: 'swnam909@gmail.com',
+    accountName: 'swnam909@gmail.com',
+  }),
 }));
 
 jest.mock('../Engine', () => ({
@@ -148,6 +152,8 @@ jest.mock('../Engine', () => ({
         nodeAuthTokens: [],
         isNewUser: false,
       })),
+      refreshAuthTokens: jest.fn().mockResolvedValue(undefined),
+      getAccessToken: jest.fn(),
       state: {
         accessToken: undefined,
         socialBackupsMetadata: [],
@@ -426,6 +432,119 @@ describe('OAuth login service', () => {
           account_type: AccountType.ImportedGoogle,
           is_rehydration: 'true',
         }),
+      }),
+    );
+  });
+
+  it('tracks SOCIAL_LOGIN_AUTH_BROWSER_DISMISSED when provider login is dismissed', async () => {
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse.mockImplementation(() => {
+      throw new OAuthError('Login dismissed', OAuthErrorType.UserDismissed);
+    });
+
+    await expect(
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
+    ).rejects.toMatchObject({ code: OAuthErrorType.UserDismissed });
+
+    expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Auth Browser Dismissed',
+        properties: expect.objectContaining({
+          auth_connection: AuthConnection.Google,
+          account_type: AccountType.MetamaskGoogle,
+          surface: 'onboarding',
+          elapsed_ms: expect.any(Number),
+        }),
+      }),
+    );
+    expect(analytics.trackEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Failed',
+      }),
+    );
+  });
+
+  it('tracks SOCIAL_LOGIN_AUTH_BROWSER_DISMISSED for native provider cancel', async () => {
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse.mockImplementation(() => {
+      throw new OAuthError('Login cancelled', OAuthErrorType.UserCancelled);
+    });
+
+    await expect(
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
+    ).rejects.toMatchObject({ code: OAuthErrorType.UserCancelled });
+
+    expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Auth Browser Dismissed',
+        properties: expect.objectContaining({
+          auth_connection: AuthConnection.Google,
+          account_type: AccountType.MetamaskGoogle,
+          surface: 'onboarding',
+          elapsed_ms: expect.any(Number),
+        }),
+      }),
+    );
+    expect(analytics.trackEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Failed',
+      }),
+    );
+  });
+
+  it('tracks rehydration surface on SOCIAL_LOGIN_AUTH_BROWSER_DISMISSED when rehydrating', async () => {
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse.mockImplementation(() => {
+      throw new OAuthError('Login cancelled', OAuthErrorType.UserCancelled);
+    });
+
+    await expect(
+      OAuthLoginService.handleOAuthLogin(loginHandler, true),
+    ).rejects.toMatchObject({ code: OAuthErrorType.UserCancelled });
+
+    expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Auth Browser Dismissed',
+        properties: expect.objectContaining({
+          auth_connection: AuthConnection.Google,
+          account_type: AccountType.ImportedGoogle,
+          surface: 'rehydration',
+          elapsed_ms: expect.any(Number),
+        }),
+      }),
+    );
+    expect(analytics.trackEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Failed',
+      }),
+    );
+  });
+
+  it('tracks SOCIAL_LOGIN_AUTH_BROWSER_DISMISSED for provider cancel mapped to AppleLoginError', async () => {
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse.mockImplementation(() => {
+      throw new OAuthError(
+        'Apple login error - The user canceled the authorization attempt',
+        OAuthErrorType.AppleLoginError,
+      );
+    });
+
+    await expect(
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
+    ).rejects.toMatchObject({ code: OAuthErrorType.AppleLoginError });
+
+    expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Auth Browser Dismissed',
+      }),
+    );
+    expect(analytics.trackEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Failed',
       }),
     );
   });
@@ -781,15 +900,25 @@ describe('OAuth login service', () => {
 describe('updateMarketingOptInStatus', () => {
   const mockFetch = jest.fn();
   const originalFetch = global.fetch;
+  const mockGetAccessToken = Engine.context.SeedlessOnboardingController
+    .getAccessToken as jest.Mock;
+  const mockRefreshAuthTokens = Engine.context.SeedlessOnboardingController
+    .refreshAuthTokens as jest.Mock;
 
   beforeEach(() => {
     global.fetch = mockFetch;
     mockFetch.mockClear();
+    mockGetAccessToken.mockClear();
+    mockRefreshAuthTokens.mockClear();
+    mockGetAccessToken.mockImplementation(
+      async () => Engine.context.SeedlessOnboardingController.state.accessToken,
+    );
     // Reset the Engine state to default
     Engine.context.SeedlessOnboardingController.state = {
       accessToken: undefined,
       socialBackupsMetadata: [],
       isSeedlessOnboardingUserAuthenticated: false,
+      migrationVersion: 0,
     };
   });
 
@@ -823,6 +952,8 @@ describe('updateMarketingOptInStatus', () => {
         body: JSON.stringify({ opt_in_status: true }),
       },
     );
+    expect(mockGetAccessToken).toHaveBeenCalled();
+    expect(mockRefreshAuthTokens).not.toHaveBeenCalled();
   });
 
   it('should successfully update marketing opt-in status to false', async () => {
@@ -862,6 +993,8 @@ describe('updateMarketingOptInStatus', () => {
       OAuthLoginService.updateMarketingOptInStatus(true),
     ).rejects.toThrow('No access token found. User must be authenticated.');
 
+    expect(mockGetAccessToken).toHaveBeenCalled();
+    expect(mockRefreshAuthTokens).not.toHaveBeenCalled();
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
@@ -874,6 +1007,8 @@ describe('updateMarketingOptInStatus', () => {
       OAuthLoginService.updateMarketingOptInStatus(true),
     ).rejects.toThrow('No access token found. User must be authenticated.');
 
+    expect(mockGetAccessToken).toHaveBeenCalled();
+    expect(mockRefreshAuthTokens).not.toHaveBeenCalled();
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
@@ -917,6 +1052,10 @@ describe('updateMarketingOptInStatus', () => {
     ).rejects.toThrow(
       'Failed to update marketing opt-in status: 401 - Token expired',
     );
+
+    expect(mockGetAccessToken).toHaveBeenCalledTimes(1);
+    expect(mockRefreshAuthTokens).not.toHaveBeenCalled();
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
   it('should throw error when API request fails with 500 status', async () => {
@@ -1070,14 +1209,24 @@ describe('updateMarketingOptInStatus', () => {
 describe('getMarketingOptInStatus', () => {
   const mockFetch = jest.fn();
   const originalFetch = global.fetch;
+  const mockGetAccessToken = Engine.context.SeedlessOnboardingController
+    .getAccessToken as jest.Mock;
+  const mockRefreshAuthTokens = Engine.context.SeedlessOnboardingController
+    .refreshAuthTokens as jest.Mock;
 
   beforeEach(() => {
     global.fetch = mockFetch;
     mockFetch.mockClear();
+    mockGetAccessToken.mockClear();
+    mockRefreshAuthTokens.mockClear();
+    mockGetAccessToken.mockImplementation(
+      async () => Engine.context.SeedlessOnboardingController.state.accessToken,
+    );
     Engine.context.SeedlessOnboardingController.state = {
       accessToken: undefined,
       socialBackupsMetadata: [],
       isSeedlessOnboardingUserAuthenticated: false,
+      migrationVersion: 0,
     };
   });
 
@@ -1113,6 +1262,8 @@ describe('getMarketingOptInStatus', () => {
       },
     );
     expect(result).toEqual(mockResponse);
+    expect(mockGetAccessToken).toHaveBeenCalled();
+    expect(mockRefreshAuthTokens).not.toHaveBeenCalled();
   });
 
   it('should successfully get marketing opt-in status when user is not opted in', async () => {
@@ -1152,6 +1303,8 @@ describe('getMarketingOptInStatus', () => {
       'No access token found. User must be authenticated.',
     );
 
+    expect(mockGetAccessToken).toHaveBeenCalled();
+    expect(mockRefreshAuthTokens).not.toHaveBeenCalled();
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
@@ -1162,6 +1315,8 @@ describe('getMarketingOptInStatus', () => {
       'No access token found. User must be authenticated.',
     );
 
+    expect(mockGetAccessToken).toHaveBeenCalled();
+    expect(mockRefreshAuthTokens).not.toHaveBeenCalled();
     expect(mockFetch).not.toHaveBeenCalled();
   });
 

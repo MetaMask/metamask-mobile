@@ -4,7 +4,6 @@ export type {
   RewardsDataServiceGetPointsEventsAction,
   RewardsDataServiceLoginAction,
   RewardsDataServiceEstimatePointsAction,
-  RewardsDataServiceGetPerpsDiscountAction,
   RewardsDataServiceMessenger,
   RewardsDataServiceGetSeasonStatusAction,
   RewardsDataServiceGetReferralDetailsAction,
@@ -18,6 +17,15 @@ export type {
   RewardsDataServiceOptOutAction,
   RewardsDataServiceGetUnlockedRewardsAction,
   RewardsDataServiceClaimRewardAction,
+  RewardsDataServiceGetVIPDashboardAction,
+  RewardsDataServiceGetVipRefereeDashboardAction,
+  RewardsDataServiceGetVipFeesAction,
+  RewardsDataServiceGetPredictThePitchLeaderboardAction,
+  RewardsDataServiceGetPredictThePitchLeaderboardPositionAction,
+  RewardsDataServiceGetPredictThePitchPositionsAction,
+  RewardsDataServiceGetPredictThePitchParticipantOutcomeAction,
+  RewardsDataServiceGetPredictThePitchPrizePoolAction,
+  RewardsDataServiceGetFirstPredictOnUsAction,
 } from './rewards-data-service';
 
 export { RewardsDataService } from './rewards-data-service';

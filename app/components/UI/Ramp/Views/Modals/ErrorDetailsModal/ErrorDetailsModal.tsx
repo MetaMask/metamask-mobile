@@ -1,24 +1,23 @@
 import React, { useCallback, useRef } from 'react';
 import { View, ScrollView, useWindowDimensions } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import { useNavigation, type ParamListBase } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
+import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
-  Text,
-  TextVariant,
-  TextColor,
+  BottomSheet,
   Button,
-  ButtonVariant,
   ButtonBaseSize,
+  ButtonVariant,
+  HeaderStandard,
   Icon,
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
+  Text,
+  TextColor,
+  TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../../hooks/useStyles';
 import {
   createNavigationDetails,
@@ -45,7 +44,7 @@ export const createErrorDetailsModalNavDetails =
 
 function ErrorDetailsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
@@ -92,8 +91,8 @@ function ErrorDetailsModal() {
   }, [navigation, amount]);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderCompactStandard
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
+      <HeaderStandard
         onClose={handleClose}
         closeButtonProps={{ testID: 'error-details-close-button' }}
       >
@@ -107,7 +106,7 @@ function ErrorDetailsModal() {
             {strings('deposit.errors.error_details_title')}
           </Text>
         </View>
-      </HeaderCompactStandard>
+      </HeaderStandard>
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.contentContainer}>

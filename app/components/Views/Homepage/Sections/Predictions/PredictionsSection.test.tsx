@@ -4,9 +4,151 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictionsSection from './PredictionsSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PREDICT_CLAIM_BUTTON_TEST_IDS } from '../../../../UI/Predict/components/PredictActionButtons/PredictClaimButton.testIds';
+import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 const mockNavigate = jest.fn();
 const mockClaim = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn((event: unknown) => ({
+  addProperties: (properties: Record<string, unknown>) => ({
+    build: () => ({ event, properties }),
+  }),
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+const PREDICT_EMPTY_STATE_AB_KEY = 'coreMCU747AbtestPredictPositionsEmptyState';
+const predictEmptyStateTreatmentActiveAbTests = [
+  {
+    key: PREDICT_EMPTY_STATE_AB_KEY,
+    value: 'treatment',
+    key_value_pair: `${PREDICT_EMPTY_STATE_AB_KEY}=treatment`,
+  },
+];
+const predictEmptyStateControlActiveAbTests = [
+  {
+    key: PREDICT_EMPTY_STATE_AB_KEY,
+    value: 'control',
+    key_value_pair: `${PREDICT_EMPTY_STATE_AB_KEY}=control`,
+  },
+];
+
+const worldCupHomepageMarketsMock = (
+  marketData: unknown[],
+  opts: { isFetching?: boolean; hasMore?: boolean } = {},
+) => ({
+  marketData,
+  isFetching: opts.isFetching ?? false,
+  isFetchingMore: false,
+  error: null,
+  hasMore: opts.hasMore ?? false,
+  refetch: jest.fn(),
+  fetchMore: jest.fn(),
+});
+
+const worldCupEventCountMock = (
+  eventCount: number | undefined = 510,
+  opts: { isFetching?: boolean } = {},
+) => ({
+  eventCount,
+  isFetching: opts.isFetching ?? false,
+  refetch: jest.fn(),
+});
+
+const HOMEPAGE_DISCOVERY_WINNER_MARKET = {
+  id: 'market-1',
+  title: '2026 FIFA World Cup Winner',
+  slug: '2026-fifa-world-cup-winner',
+  endDate: '2026-06-01',
+  outcomes: [
+    {
+      id: 'outcome-1',
+      title: 'Yes',
+      status: 'open' as const,
+      tokens: [{ title: 'Yes', price: 0.55 }],
+    },
+  ],
+};
+
+const HOMEPAGE_DISCOVERY_LIVE_GAME_MARKET = {
+  id: 'live-market-1',
+  title: 'France vs. Senegal',
+  slug: 'france-vs-senegal',
+  endDate: '2026-06-01',
+  status: 'open' as const,
+  outcomes: [
+    {
+      id: 'outcome-france',
+      title: 'France',
+      status: 'open' as const,
+      groupItemTitle: 'France',
+      tokens: [{ title: 'France', price: 0.67 }],
+    },
+  ],
+  game: {
+    id: 'game-france-senegal',
+    startTime: '2026-06-01T20:00:00.000Z',
+    status: 'ongoing' as const,
+    league: 'fifwc' as const,
+    elapsed: '3:58',
+    period: '1H' as const,
+    score: null,
+    homeTeam: {
+      id: 'france',
+      name: 'France',
+      logo: '',
+      abbreviation: 'FRA',
+      color: '',
+    },
+    awayTeam: {
+      id: 'senegal',
+      name: 'Senegal',
+      logo: '',
+      abbreviation: 'SEN',
+      color: '',
+    },
+  },
+};
+
+const worldCupMarketsWithDiscoveryChampionship = () =>
+  worldCupHomepageMarketsMock([HOMEPAGE_DISCOVERY_WINNER_MARKET]);
+
+const mockUseABTest = jest.fn(
+  (): {
+    variant: { layout: 'carousel' | 'list' };
+    variantName: string;
+    isActive: boolean;
+  } => ({
+    variant: { layout: 'list' },
+    variantName: 'treatment',
+    isActive: true,
+  }),
+);
+
+jest.mock('../../../../../hooks', () => {
+  const actual = jest.requireActual('../../../../../hooks');
+  return {
+    ...actual,
+    useABTest: (...args: unknown[]) =>
+      Reflect.apply(mockUseABTest, undefined, args),
+  };
+});
+
+const mockUseHomepageTrendingTransactionActiveAbTests = jest.fn<
+  { key: string; value: string; key_value_pair?: string }[] | undefined,
+  []
+>(() => undefined);
+
+jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests', () => ({
+  useHomepageTrendingTransactionActiveAbTests: () =>
+    mockUseHomepageTrendingTransactionActiveAbTests(),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -20,7 +162,38 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
+  selectPredictWorldCupScreenEnabledFlag: jest.fn(() => true),
+  selectPredictUpDownEnabledFlag: jest.fn(() => true),
 }));
+
+jest.mock('../../../../UI/Predict/hooks/useLiveCryptoPrices', () => ({
+  useLiveCryptoPrices: jest.fn(() => ({
+    prices: new Map([
+      ['btcusdt', { symbol: 'btcusdt', price: 97000, timestamp: 0 }],
+    ]),
+    getPrice: (symbol: string) =>
+      symbol === 'btcusdt'
+        ? { symbol: 'btcusdt', price: 97000, timestamp: 0 }
+        : undefined,
+    isConnected: true,
+    lastUpdateTime: 0,
+  })),
+}));
+
+jest.mock(
+  '../../../../UI/Predict/hooks/useCurrentCryptoUpDownMarketData',
+  () => ({
+    useCurrentCryptoUpDownMarketData: jest.fn(() => ({
+      marketId: undefined,
+      market: undefined,
+      currentPrice: undefined,
+      priceToBeat: undefined,
+      countdown: '--:--',
+      isLoading: false,
+      isFetching: false,
+    })),
+  }),
+);
 
 jest.mock('../../../../UI/Predict/hooks/usePredictClaim', () => ({
   usePredictClaim: () => ({ claim: mockClaim }),
@@ -50,20 +223,35 @@ jest.mock('@tanstack/react-query', () => {
 });
 
 // Mock the hooks
-jest.mock('./hooks', () => ({
-  usePredictMarketsForHomepage: jest.fn(() => ({
-    markets: [],
-    isLoading: false,
-    error: null,
-    refetch: jest.fn(),
-  })),
-  usePredictPositionsForHomepage: jest.fn(() => ({
-    positions: [],
-    isLoading: false,
-    error: null,
-    refetch: jest.fn(),
-  })),
-}));
+jest.mock('./hooks', () => {
+  const actual = jest.requireActual('./hooks') as Record<string, unknown>;
+  const worldCupMock = jest.fn(() =>
+    worldCupMarketsWithDiscoveryChampionship(),
+  );
+  const liveWorldCupMock = jest.fn(() => worldCupHomepageMarketsMock([]));
+  const worldCupEventCount = jest.fn(() => worldCupEventCountMock());
+  return {
+    ...actual,
+    usePredictMarketsForHomepage: jest.fn(() => ({
+      markets: [],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    })),
+    usePredictPositionsForHomepage: jest.fn(() => ({
+      positions: [],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    })),
+    useHomepagePredictWorldCupMarkets: worldCupMock,
+    useHomepagePredictLiveWorldCupMarkets: liveWorldCupMock,
+    useHomepagePredictWorldCupEventCount: worldCupEventCount,
+    __mockUsePredictWorldCupHomepageMarkets: worldCupMock,
+    __mockUsePredictLiveWorldCupHomepageMarkets: liveWorldCupMock,
+    __mockUsePredictWorldCupEventCount: worldCupEventCount,
+  };
+});
 
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
@@ -84,6 +272,12 @@ const mockUsePredictMarketsForHomepage =
   jest.requireMock('./hooks').usePredictMarketsForHomepage;
 const mockUsePredictPositionsForHomepage =
   jest.requireMock('./hooks').usePredictPositionsForHomepage;
+const mockUsePredictWorldCupHomepageMarkets = jest.requireMock('./hooks')
+  .__mockUsePredictWorldCupHomepageMarkets as jest.Mock;
+const mockUsePredictLiveWorldCupHomepageMarkets = jest.requireMock('./hooks')
+  .__mockUsePredictLiveWorldCupHomepageMarkets as jest.Mock;
+const mockUsePredictWorldCupEventCount = jest.requireMock('./hooks')
+  .__mockUsePredictWorldCupEventCount as jest.Mock;
 const mockSelectPrivacyMode = jest.requireMock(
   '../../../../../selectors/preferencesController',
 ).selectPrivacyMode as jest.Mock;
@@ -158,12 +352,14 @@ const mockMarkets = [
       {
         id: 'outcome-1',
         title: 'Yes',
+        status: 'open' as const,
         image: 'https://example.com/yes.png',
         tokens: [{ title: 'Yes', price: 0.55 }],
       },
       {
         id: 'outcome-2',
         title: 'No',
+        status: 'open' as const,
         image: 'https://example.com/no.png',
         tokens: [{ title: 'No', price: 0.45 }],
       },
@@ -181,7 +377,6 @@ describe('PredictionsSection', () => {
     jest
       .requireMock('../../../../UI/Predict/selectors/featureFlags')
       .selectPredictEnabledFlag.mockReturnValue(true);
-
     // Reset hooks to default state - include a market so the section renders
     mockUsePredictMarketsForHomepage.mockReturnValue({
       markets: [
@@ -203,6 +398,14 @@ describe('PredictionsSection', () => {
       refetch: jest.fn(),
     });
 
+    mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+      worldCupMarketsWithDiscoveryChampionship(),
+    );
+    mockUsePredictLiveWorldCupHomepageMarkets.mockReturnValue(
+      worldCupHomepageMarketsMock([]),
+    );
+    mockUsePredictWorldCupEventCount.mockReturnValue(worldCupEventCountMock());
+
     mockUsePredictPositionsForHomepage.mockImplementation(
       (_options: { maxPositions?: number; claimable?: boolean } = {}) => ({
         positions: [],
@@ -212,6 +415,12 @@ describe('PredictionsSection', () => {
         refetch: jest.fn(),
       }),
     );
+    mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(undefined);
+    mockUseABTest.mockReturnValue({
+      variant: { layout: 'list' as const },
+      variantName: 'treatment',
+      isActive: true,
+    });
   });
 
   it('renders section title when enabled', () => {
@@ -222,7 +431,7 @@ describe('PredictionsSection', () => {
     expect(screen.getByText('Predictions')).toBeOnTheScreen();
   });
 
-  it('navigates to predictions market list on title press', () => {
+  it('navigates with home_section entry_point when trending markets title is pressed', () => {
     renderWithProvider(
       <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
@@ -231,6 +440,37 @@ describe('PredictionsSection', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+        transactionActiveAbTests: predictEmptyStateTreatmentActiveAbTests,
+      },
+    });
+  });
+
+  it('navigates with homepage_positions entry_point when positions section title is pressed', () => {
+    mockUsePredictPositionsForHomepage.mockImplementation(
+      ({
+        claimable = false,
+      }: { maxPositions?: number; claimable?: boolean } = {}) => ({
+        positions: claimable ? [] : mockActivePositions,
+        isLoading: false,
+        error: null,
+        totalClaimableValue: 0,
+        refetch: jest.fn(),
+      }),
+    );
+
+    renderWithProvider(
+      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    fireEvent.press(screen.getByText('Predictions'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+      },
     });
   });
 
@@ -272,6 +512,41 @@ describe('PredictionsSection', () => {
       });
     });
 
+    it('renders the current active position values from the hook data', async () => {
+      mockUsePredictPositionsForHomepage.mockImplementation(
+        ({
+          claimable = false,
+        }: { maxPositions?: number; claimable?: boolean } = {}) => ({
+          positions: claimable
+            ? []
+            : [
+                {
+                  ...mockActivePositions[0],
+                  currentValue: 99,
+                  percentPnl: 890,
+                },
+                mockActivePositions[1],
+              ],
+          isLoading: false,
+          error: null,
+          totalClaimableValue: 0,
+          refetch: jest.fn(),
+        }),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
+      });
+
+      expect(screen.getByText('$99')).toBeOnTheScreen();
+      expect(screen.getByText('890%')).toBeOnTheScreen();
+      expect(screen.queryByText('$12')).not.toBeOnTheScreen();
+    });
+
     it('shows position skeletons when loading positions', () => {
       mockUsePredictPositionsForHomepage.mockImplementation(
         ({
@@ -294,7 +569,7 @@ describe('PredictionsSection', () => {
   });
 
   describe('when user has no positions', () => {
-    const mockMarkets = [
+    const noPositionsTrendingMarkets = [
       {
         id: 'market-1',
         title: 'Will ETH reach $5000?',
@@ -303,12 +578,14 @@ describe('PredictionsSection', () => {
           {
             id: 'outcome-1',
             title: 'Yes',
+            status: 'open' as const,
             image: 'https://example.com/yes.png',
             tokens: [{ title: 'Yes', price: 0.55 }],
           },
           {
             id: 'outcome-2',
             title: 'No',
+            status: 'open' as const,
             image: 'https://example.com/no.png',
             tokens: [{ title: 'No', price: 0.45 }],
           },
@@ -316,20 +593,236 @@ describe('PredictionsSection', () => {
       },
     ];
 
-    it('renders trending markets when user has no positions', async () => {
+    it('does not track Predict empty state exposure while discovery feeds are loading', async () => {
       mockUsePredictMarketsForHomepage.mockReturnValue({
-        markets: mockMarkets,
+        markets: noPositionsTrendingMarkets,
         isLoading: false,
         error: null,
         refetch: jest.fn(),
       });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupHomepageMarketsMock([], { isFetching: true }),
+      );
+      mockUsePredictLiveWorldCupHomepageMarkets.mockReturnValue(
+        worldCupHomepageMarketsMock([], { isFetching: true }),
+      );
 
       renderWithProvider(
         <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Will ETH reach $5000?')).toBeOnTheScreen();
+        expect(screen.getByText('Predictions')).toBeOnTheScreen();
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: MetaMetricsEvents.PREDICT_EMPTY_STATE_VIEWED,
+        }),
+      );
+    });
+
+    it('tracks Predict empty state exposure with active AB assignment', async () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: noPositionsTrendingMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupMarketsWithDiscoveryChampionship(),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith({
+          event: MetaMetricsEvents.PREDICT_EMPTY_STATE_VIEWED,
+          properties: {
+            surface: 'predict',
+            variant: 'treatment',
+            active_ab_tests: predictEmptyStateTreatmentActiveAbTests,
+          },
+        });
+      });
+    });
+
+    it('renders FIFA World Cup winner when user has no positions', async () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: noPositionsTrendingMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupMarketsWithDiscoveryChampionship(),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('2026 FIFA World Cup Winner'),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('does not render the retired NBA Champion row', async () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: noPositionsTrendingMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupMarketsWithDiscoveryChampionship(),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('2026 FIFA World Cup Winner'),
+        ).toBeOnTheScreen();
+      });
+      expect(screen.queryByText('NBA 2026 Champion')).not.toBeOnTheScreen();
+    });
+
+    it('renders a live World Cup game instead of FIFA World Cup winner when a game is ongoing', async () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: noPositionsTrendingMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupHomepageMarketsMock([HOMEPAGE_DISCOVERY_WINNER_MARKET]),
+      );
+      mockUsePredictLiveWorldCupHomepageMarkets.mockReturnValue(
+        worldCupHomepageMarketsMock([HOMEPAGE_DISCOVERY_LIVE_GAME_MARKET]),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('France vs. Senegal')).toBeOnTheScreen();
+      });
+      expect(
+        screen.queryByText('2026 FIFA World Cup Winner'),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByText('03:58')).toBeOnTheScreen();
+    });
+
+    it('navigates to World Cup winner market details from sports list treatment', async () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: noPositionsTrendingMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupMarketsWithDiscoveryChampionship(),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('2026 FIFA World Cup Winner'),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(screen.getByText('2026 FIFA World Cup Winner'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: 'market-1',
+          entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+          title: '2026 FIFA World Cup Winner',
+          image: undefined,
+          transactionActiveAbTests: predictEmptyStateTreatmentActiveAbTests,
+        },
+      });
+    });
+
+    it('tracks treatment CTA clicks for World Cup winner with CTA and category names', async () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: noPositionsTrendingMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupMarketsWithDiscoveryChampionship(),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('2026 FIFA World Cup Winner'),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(screen.getByText('2026 FIFA World Cup Winner'));
+
+      expect(mockTrackEvent).toHaveBeenCalledWith({
+        event: MetaMetricsEvents.PREDICT_EMPTY_STATE_CTA_CLICKED,
+        properties: {
+          cta_name: 'browse_category',
+          category_name: 'world_cup',
+          active_ab_tests: predictEmptyStateTreatmentActiveAbTests,
+        },
+      });
+    });
+
+    it('tracks World Cup discovery CTA with the canonical category name', async () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: noPositionsTrendingMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupMarketsWithDiscoveryChampionship(),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('FIFA World Cup 2026')).toBeOnTheScreen();
+      });
+
+      mockTrackEvent.mockClear();
+
+      expect(screen.queryByText('Group A')).toBeNull();
+      expect(screen.queryByText('Props')).toBeNull();
+
+      fireEvent.press(screen.getByText('FIFA World Cup 2026'));
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({
+        event: MetaMetricsEvents.PREDICT_EMPTY_STATE_CTA_CLICKED,
+        properties: {
+          cta_name: 'browse_category',
+          category_name: 'world_cup',
+          active_ab_tests: predictEmptyStateTreatmentActiveAbTests,
+        },
       });
     });
 
@@ -340,6 +833,9 @@ describe('PredictionsSection', () => {
         error: null,
         refetch: jest.fn(),
       });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupHomepageMarketsMock([], { isFetching: true }),
+      );
 
       renderWithProvider(
         <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
@@ -349,7 +845,74 @@ describe('PredictionsSection', () => {
       expect(screen.getByText('Predictions')).toBeOnTheScreen();
     });
 
-    it('returns null when markets are empty and not loading', () => {
+    it('still renders discovery when homepage trending markets are empty', () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: [],
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupHomepageMarketsMock([]),
+      );
+
+      const { toJSON } = renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      expect(toJSON()).not.toBeNull();
+      expect(screen.getByText('Predictions')).toBeOnTheScreen();
+    });
+
+    it('shows the World Cup API total with a plus sign in the discovery row', () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: [],
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupHomepageMarketsMock([HOMEPAGE_DISCOVERY_WINNER_MARKET]),
+      );
+      mockUsePredictWorldCupEventCount.mockReturnValue(
+        worldCupEventCountMock(48),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      expect(screen.getByText('48+ markets in total')).toBeOnTheScreen();
+    });
+
+    it('still renders treatment discovery when trending markets fail', async () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: [],
+        isLoading: false,
+        error: 'Unable to load trending markets',
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupMarketsWithDiscoveryChampionship(),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('2026 FIFA World Cup Winner'),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('returns null when trending markets empty in AB control (carousel)', () => {
+      mockUseABTest.mockReturnValue({
+        variant: { layout: 'carousel' as const },
+        variantName: 'control',
+        isActive: true,
+      });
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: [],
         isLoading: false,
@@ -363,10 +926,43 @@ describe('PredictionsSection', () => {
 
       expect(toJSON()).toBeNull();
     });
+
+    it('passes empty state AB attribution through control market entry', () => {
+      mockUseABTest.mockReturnValue({
+        variant: { layout: 'carousel' as const },
+        variantName: 'control',
+        isActive: true,
+      });
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: noPositionsTrendingMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      fireEvent.press(screen.getByText('Will ETH reach $5000?'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: 'market-1',
+          transactionActiveAbTests: predictEmptyStateControlActiveAbTests,
+        },
+      });
+    });
   });
 
   describe('error state', () => {
-    it('returns null when markets fail to load', () => {
+    it('returns null when control markets fail to load', () => {
+      mockUseABTest.mockReturnValue({
+        variant: { layout: 'carousel' as const },
+        variantName: 'control',
+        isActive: true,
+      });
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: [],
         isLoading: false,
@@ -512,6 +1108,195 @@ describe('PredictionsSection', () => {
     });
   });
 
+  describe('claimable-only (no active positions)', () => {
+    const setupClaimableOnly = () => {
+      mockUsePredictPositionsForHomepage.mockImplementation(
+        ({
+          claimable = false,
+        }: { maxPositions?: number; claimable?: boolean } = {}) => ({
+          positions: claimable ? mockClaimablePositions : [],
+          isLoading: false,
+          error: null,
+          totalClaimableValue: claimable ? 200 : 0,
+          refetch: jest.fn(),
+        }),
+      );
+    };
+
+    it('renders claim button when only claimable positions exist', async () => {
+      setupClaimableOnly();
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
+      });
+    });
+
+    it('renders trending carousel above claim button when no active positions', async () => {
+      setupClaimableOnly();
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupMarketsWithDiscoveryChampionship(),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
+        expect(
+          screen.getByText('2026 FIFA World Cup Winner'),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('renders only claim button when no active positions and no markets', async () => {
+      setupClaimableOnly();
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: [],
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupHomepageMarketsMock([]),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
+      });
+      expect(screen.queryByText('NBA 2026 Champion')).not.toBeOnTheScreen();
+    });
+
+    it('does not render active position rows in claimable-only state', async () => {
+      setupClaimableOnly();
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
+      });
+      expect(screen.queryByText('Test Position 1')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Test Position 2')).not.toBeOnTheScreen();
+    });
+
+    it('does not duplicate the section header when trending carousel is shown above positions', async () => {
+      setupClaimableOnly();
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupMarketsWithDiscoveryChampionship(),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
+      });
+
+      // Title should appear exactly once — from the discovery list header.
+      // The positions header is gated by showHeader=false in this branch.
+      expect(screen.getAllByText('Predictions')).toHaveLength(1);
+    });
+
+    it('does not show unrealized PnL row when trending carousel is above positions', async () => {
+      setupClaimableOnly();
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupMarketsWithDiscoveryChampionship(),
+      );
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
+      });
+
+      // showHeader=false when discovery list is above positions,
+      // so the unrealized PnL row must not render even if the hook returns data
+      expect(screen.queryByText(/P&L/i)).not.toBeOnTheScreen();
+      expect(screen.queryByText(/PnL/i)).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('positions-only mode with claimable-only', () => {
+    it('renders claim button when only claimable positions exist', async () => {
+      mockUsePredictPositionsForHomepage.mockImplementation(
+        ({
+          claimable = false,
+        }: { maxPositions?: number; claimable?: boolean } = {}) => ({
+          positions: claimable ? mockClaimablePositions : [],
+          isLoading: false,
+          error: null,
+          totalClaimableValue: claimable ? 200 : 0,
+          refetch: jest.fn(),
+        }),
+      );
+
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="positions-only"
+        />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
+      });
+    });
+
+    it('returns null when no active and no claimable positions', () => {
+      mockUsePredictPositionsForHomepage.mockImplementation(
+        (_options: { maxPositions?: number; claimable?: boolean } = {}) => ({
+          positions: [],
+          isLoading: false,
+          error: null,
+          totalClaimableValue: 0,
+          refetch: jest.fn(),
+        }),
+      );
+
+      const { toJSON } = renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="positions-only"
+        />,
+      );
+
+      expect(toJSON()).toBeNull();
+    });
+  });
+
   describe('privacy mode', () => {
     beforeEach(() => {
       mockSelectPrivacyMode.mockReturnValue(true);
@@ -639,6 +1424,32 @@ describe('PredictionsSection', () => {
       expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
     });
 
+    it('navigates with homepage_positions entry_point on title press', () => {
+      mockUsePredictPositionsForHomepage.mockReturnValue({
+        positions: mockActivePositions,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="positions-only"
+        />,
+      );
+
+      fireEvent.press(screen.getByText('Predictions'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        },
+      });
+    });
+
     it('returns null when no positions after loading', () => {
       mockUsePredictPositionsForHomepage.mockReturnValue({
         positions: [],
@@ -693,13 +1504,26 @@ describe('PredictionsSection', () => {
   });
 
   describe('mode="trending-only"', () => {
+    const worldCupHookForTrending = (markets: typeof mockMarkets) =>
+      worldCupHomepageMarketsMock([
+        { ...markets[0], title: '2026 FIFA World Cup Winner', id: 'market-1' },
+      ]);
+
     it('renders markets carousel when markets are available', () => {
+      mockUseABTest.mockReturnValue({
+        variant: { layout: 'carousel' as const },
+        variantName: 'control',
+        isActive: true,
+      });
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: mockMarkets,
         isLoading: false,
         error: null,
         refetch: jest.fn(),
       });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupHookForTrending(mockMarkets),
+      );
 
       renderWithProvider(
         <PredictionsSection
@@ -712,6 +1536,95 @@ describe('PredictionsSection', () => {
       expect(screen.getByText('Will BTC reach 100k?')).toBeOnTheScreen();
     });
 
+    it('navigates to market details with transactionActiveAbTests from carousel (control)', () => {
+      mockUseABTest.mockReturnValue({
+        variant: { layout: 'carousel' as const },
+        variantName: 'control',
+        isActive: true,
+      });
+      const abTests = [
+        {
+          key: 'homeTMCU470AbtestTrendingSections',
+          value: 'trendingSections',
+          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
+        },
+      ];
+      mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(abTests);
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupHookForTrending(mockMarkets),
+      );
+
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+        />,
+      );
+
+      fireEvent.press(screen.getByText('Will BTC reach 100k?'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: 'market-1',
+          transactionActiveAbTests: abTests,
+        },
+      });
+    });
+
+    it('navigates to World Cup winner market details from sports list when treatment', () => {
+      const abTests = [
+        {
+          key: 'homeTMCU470AbtestTrendingSections',
+          value: 'trendingSections',
+          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
+        },
+      ];
+      mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(abTests);
+      mockUseABTest.mockReturnValue({
+        variant: { layout: 'list' as const },
+        variantName: 'treatment',
+        isActive: true,
+      });
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupHookForTrending(mockMarkets),
+      );
+
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+        />,
+      );
+
+      fireEvent.press(screen.getByText('2026 FIFA World Cup Winner'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: 'market-1',
+          entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+          title: '2026 FIFA World Cup Winner',
+          image: undefined,
+          transactionActiveAbTests: abTests,
+        },
+      });
+    });
+
     it('uses titleOverride when provided', () => {
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: mockMarkets,
@@ -719,6 +1632,9 @@ describe('PredictionsSection', () => {
         error: null,
         refetch: jest.fn(),
       });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupHookForTrending(mockMarkets),
+      );
 
       renderWithProvider(
         <PredictionsSection
@@ -732,13 +1648,73 @@ describe('PredictionsSection', () => {
       expect(screen.getByText('Trending predictions')).toBeOnTheScreen();
     });
 
-    it('returns null when no markets after loading', () => {
+    it('navigates with home_section entry_point on title press', () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupHookForTrending(mockMarkets),
+      );
+
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+        />,
+      );
+
+      fireEvent.press(screen.getByText('Predictions'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+        },
+      });
+    });
+
+    it('renders when homepage trending markets are empty (sports discovery)', () => {
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: [],
         isLoading: false,
         error: null,
         refetch: jest.fn(),
       });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupHomepageMarketsMock([]),
+      );
+
+      const { toJSON } = renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+        />,
+      );
+
+      expect(toJSON()).not.toBeNull();
+      expect(screen.getByText('Predictions')).toBeOnTheScreen();
+    });
+
+    it('returns null when homepage trending empty in AB control (carousel)', () => {
+      mockUseABTest.mockReturnValue({
+        variant: { layout: 'carousel' as const },
+        variantName: 'control',
+        isActive: true,
+      });
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: [],
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
+        worldCupHomepageMarketsMock([]),
+      );
 
       const { toJSON } = renderWithProvider(
         <PredictionsSection

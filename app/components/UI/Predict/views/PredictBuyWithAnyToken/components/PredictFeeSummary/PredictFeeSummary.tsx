@@ -17,9 +17,8 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import KeyValueRow from '../../../../../../../component-library/components-temp/KeyValueRow';
-import { TooltipSizes } from '../../../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
 import { IconName as IconNameLegacy } from '../../../../../../../component-library/components/Icons/Icon';
-import Skeleton from '../../../../../../../component-library/components/Skeleton/Skeleton';
+import Skeleton from '../../../../../../../component-library/components-temp/Skeleton/Skeleton';
 import {
   TextColor as LegacyTextColor,
   TextVariant as LegacyTextVariant,
@@ -72,18 +71,15 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
       <Box twClassName="pt-4 px-4 pb-6 flex-col gap-4">
         <Box twClassName="py-1">
           <Box twClassName="flex-row justify-between items-center">
-            <Box twClassName="flex-col">
+            <Box twClassName="flex-row items-center gap-1">
               <Skeleton width={52} height={16} style={tw.style('my-1')} />
-              <Box twClassName="flex-row items-center gap-1">
-                <Skeleton width={96} height={14} style={tw.style('my-1')} />
-                <Skeleton
-                  width={16}
-                  height={16}
-                  style={tw.style('rounded-full')}
-                />
-              </Box>
+              <Skeleton
+                width={16}
+                height={16}
+                style={tw.style('rounded-full')}
+              />
             </Box>
-            <Skeleton width={80} height={24} style={tw.style('my-1')} />
+            <Skeleton width={60} height={16} style={tw.style('my-1')} />
           </Box>
         </Box>
         {shouldRenderRewardsRow && (
@@ -105,31 +101,23 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
           style={tw.style('py-1')}
         >
           <Box twClassName="flex-row justify-between items-center">
-            <Box twClassName="flex-col">
+            <Box twClassName="flex-row items-center gap-1">
               <Text
                 variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Bold}
-                color={TextColor.TextDefault}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
               >
                 {strings('predict.fee_summary.total')}
               </Text>
-              <Box twClassName="flex-row items-center gap-1">
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('predict.fee_summary.total_incl_fees')}
-                </Text>
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                />
-              </Box>
+              <Icon
+                name={IconName.Info}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
             </Box>
             <Text
-              variant={TextVariant.HeadingMd}
-              fontWeight={FontWeight.Bold}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
             >
               {formatPrice(total, { maximumDecimals: 2 })}
@@ -151,7 +139,6 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
                 content: `${strings(
                   'predict.fee_summary.points_tooltip_content_1',
                 )}\n\n${strings('predict.fee_summary.points_tooltip_content_2')}`,
-                size: TooltipSizes.Sm,
                 iconName: IconNameLegacy.Info,
               },
             }}
@@ -183,7 +170,6 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
                 tooltip: {
                   title: strings('predict.fee_summary.points_error'),
                   content: strings('predict.fee_summary.points_error_content'),
-                  size: TooltipSizes.Sm,
                   iconName: IconNameLegacy.Info,
                 },
               }),

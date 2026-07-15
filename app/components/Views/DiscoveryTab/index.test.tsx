@@ -7,7 +7,7 @@ import UrlAutocomplete, {
   UrlAutocompleteCategory,
 } from '../../UI/UrlAutocomplete';
 import { screen, waitFor } from '@testing-library/react-native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 
 const mockNavigation = {
@@ -66,7 +66,7 @@ const mockProps = {
   newTab: jest.fn(),
 };
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 describe('DiscoveryTab', () => {
   it('should render correctly', async () => {

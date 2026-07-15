@@ -148,5 +148,18 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     return false;
   }
 
+  // analytics is purely telemetry — strip it when malformed rather than
+  // rejecting the connection, so a dapp-side bug can't break connectivity.
+  if (metadata.analytics !== undefined) {
+    if (
+      typeof metadata.analytics !== 'object' ||
+      metadata.analytics === null ||
+      typeof metadata.analytics.remote_session_id !== 'string' ||
+      !isUUID(metadata.analytics.remote_session_id)
+    ) {
+      delete (metadata as unknown as Record<string, unknown>).analytics;
+    }
+  }
+
   return true;
 }

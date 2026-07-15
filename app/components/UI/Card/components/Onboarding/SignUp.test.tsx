@@ -5,9 +5,21 @@ import { configureStore } from '@reduxjs/toolkit';
 import { useNavigation } from '@react-navigation/native';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
-import { validateEmail } from '../../../Ramp/Deposit/utils';
+import { validateEmail } from '../../../Ramp/utils/depositUtils';
 import { validatePassword } from '../../util/validatePassword';
 import SignUp from './SignUp';
+import Routes from '../../../../../constants/navigation/Routes';
+import { MONEY_HOME_CARD_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
+
+const mockUseCardPostAuthRedirect = jest.fn();
+
+jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
+  useCardPostAuthRedirect: () => mockUseCardPostAuthRedirect(),
+  MONEY_HOME_CARD_ORIGIN: {
+    screen: 'Money',
+    params: { screen: 'MoneyHome' },
+  },
+}));
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({
@@ -45,7 +57,7 @@ jest.mock('../../hooks/useRegions', () => ({
 jest.mock('../../../../hooks/useDebouncedValue');
 
 // Mock utility functions
-jest.mock('../../../Ramp/Deposit/utils');
+jest.mock('../../../Ramp/utils/depositUtils');
 jest.mock('../../util/validatePassword');
 
 // Mock Engine
@@ -140,12 +152,16 @@ describe('SignUp Component', () => {
   let store: ReturnType<typeof createTestStore>;
   let mockSendEmailVerification: jest.Mock;
   let mockNavigate: jest.Mock;
+  let mockGoBack: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseCardPostAuthRedirect.mockReturnValue(undefined);
     mockNavigate = jest.fn();
+    mockGoBack = jest.fn();
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
+      goBack: mockGoBack,
     } as unknown as ReturnType<typeof useNavigation>);
     mockSendEmailVerification = jest
       .fn()
@@ -196,8 +212,8 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(queryByTestId('signup-email-error-text')).toBeNull();
-      expect(queryByTestId('signup-password-error-text')).toBeNull();
+      expect(queryByTestId('signup-email-error-text')).not.toBeOnTheScreen();
+      expect(queryByTestId('signup-password-error-text')).not.toBeOnTheScreen();
     });
   });
 
@@ -246,7 +262,7 @@ describe('SignUp Component', () => {
       });
 
       await waitFor(() => {
-        expect(queryByTestId('signup-email-error-text')).toBeNull();
+        expect(queryByTestId('signup-email-error-text')).not.toBeOnTheScreen();
       });
     });
   });
@@ -311,7 +327,7 @@ describe('SignUp Component', () => {
       ).toBeTruthy();
 
       // Error should not be visible
-      expect(queryByTestId('signup-password-error-text')).toBeNull();
+      expect(queryByTestId('signup-password-error-text')).not.toBeOnTheScreen();
     });
 
     it('shows error message and hides description when password is invalid', async () => {
@@ -334,7 +350,7 @@ describe('SignUp Component', () => {
       // Description should be hidden when error is shown
       expect(
         queryByText('card.card_onboarding.sign_up.password_description'),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it('shows description again when password becomes valid', async () => {
@@ -363,7 +379,9 @@ describe('SignUp Component', () => {
 
       // Error should be hidden
       await waitFor(() => {
-        expect(queryByTestId('signup-password-error-text')).toBeNull();
+        expect(
+          queryByTestId('signup-password-error-text'),
+        ).not.toBeOnTheScreen();
       });
 
       // Description should be visible again
@@ -466,7 +484,7 @@ describe('SignUp Component', () => {
         getByTestId('signup-country-not-available-text'),
       ).toBeOnTheScreen();
       // Password field hidden in waitlist mode
-      expect(queryByTestId('signup-password-input')).toBeNull();
+      expect(queryByTestId('signup-password-input')).not.toBeOnTheScreen();
       // GB maps to 'international' location
       expect(mockSetUserLocation).toHaveBeenCalledWith('international');
     });
@@ -734,7 +752,7 @@ describe('SignUp Component', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates to authentication screen when "I already have an account" is pressed', () => {
+    it('navigates to authentication when "I already have an account" is pressed (direct card flow)', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <SignUp />
@@ -746,7 +764,25 @@ describe('SignUp Component', () => {
       );
       fireEvent.press(alreadyHaveAccountButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('CardAuthentication');
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION);
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('forwards postAuthRedirect to authentication when opened from Money', () => {
+      mockUseCardPostAuthRedirect.mockReturnValue(MONEY_HOME_CARD_ORIGIN);
+
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fireEvent.press(getByTestId('signup-i-already-have-an-account-text'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
+        postAuthRedirect: MONEY_HOME_CARD_ORIGIN,
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
 });

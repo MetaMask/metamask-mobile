@@ -63,6 +63,7 @@ export interface EarnLendingBalanceProps {
 }
 
 const { selectEarnTokenPair, selectEarnOutputToken } = earnSelectors;
+
 const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
   const { shouldShowAssetOverviewCta } = useMusdCtaVisibility();
   const dispatch = useDispatch();
@@ -219,7 +220,9 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
     }
 
     const shouldRenderLendingEmptyStateCta =
-      !isAssetReceiptToken && !userHasLendingPositions;
+      !isAssetReceiptToken &&
+      !userHasLendingPositions &&
+      earnToken?.experience.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
 
     if (shouldRenderLendingEmptyStateCta) {
       return (

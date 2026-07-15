@@ -17,12 +17,34 @@ import {
   selectAsset,
   selectAssetsByAccountGroupId,
   selectAssetsBySelectedAccountGroup,
+  selectHasEligibleSwapSource,
   selectSortedAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroupForChainIds,
   selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance,
   selectTronSpecialAssetsBySelectedAccountGroup,
 } from './assets-list';
+import {
+  ARC_USDC_TOKEN_ADDRESS,
+  NETWORKS_CHAIN_ID,
+} from '../../constants/network';
+import {
+  AccountGroupAssets,
+  selectAssetsBySelectedAccountGroup as innerSelectAssetsBySelectedAccountGroup,
+} from '@metamask/assets-controllers';
 import I18n from '../../../locales/i18n';
+
+// Wrap the inner assets-controllers selector in a jest.fn so the Arc
+// filtering describe block can override its return value without affecting
+// other tests (which use the real implementation via mockThrough).
+jest.mock('@metamask/assets-controllers', () => {
+  const actual = jest.requireActual('@metamask/assets-controllers');
+  return {
+    ...actual,
+    selectAssetsBySelectedAccountGroup: jest.fn(
+      actual.selectAssetsBySelectedAccountGroup,
+    ),
+  };
+});
 
 jest.mock('../../../locales/i18n', () => ({
   __esModule: true,
@@ -147,12 +169,13 @@ const mockState = ({
             '0x1': {
               '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': [
                 {
-                  address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+                  address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
                   decimals: 18,
                   symbol: 'stETH',
                   name: 'Lido Staked Ether',
+                  aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
                   image:
-                    'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520de3a18e5e111b5eaab095312d7fe84.png',
+                    'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84.png',
                 },
                 {
                   address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
@@ -183,13 +206,13 @@ const mockState = ({
           tokenBalances: {
             '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
               '0x1': {
-                '0xae7ab96520de3a18e5e111b5eaab095312d7fe84':
-                  '0x56BC75E2D63100000', // 100000000000000000000 (100 18 decimals)
+                '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84':
+                  '0x56bc75e2d63100000', // 100000000000000000000 (100 18 decimals)
                 '0x6B175474E89094C44Da98b954EedeAC495271d0F':
-                  '0xAD78EBC5AC6200000', // 200000000000000000000 (200 18 decimals)
+                  '0xad78ebc5ac6200000', // 200000000000000000000 (200 18 decimals)
               },
               '0xa': {
-                '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3B9ACA00', // 1000000000 (1000 6 decimals)
+                '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3b9aca00', // 1000000000 (1000 6 decimals)
               },
             },
           },
@@ -202,8 +225,8 @@ const mockState = ({
                 currency: 'ETH',
                 price: 1,
               },
-              '0xae7ab96520de3a18e5e111b5eaab095312d7fe84': {
-                tokenAddress: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+              '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
+                tokenAddress: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
                 currency: 'ETH',
                 price: 0.00009,
               },
@@ -223,19 +246,6 @@ const mockState = ({
                 tokenAddress: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85',
                 currency: 'ETH',
                 price: 0.005,
-              },
-            },
-          },
-        },
-        TokenListController: {
-          tokensChainsCache: {
-            '0x1': {
-              data: {
-                '0xae7ab96520de3a18e5e111b5eaab095312d7fe84': {
-                  address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
-                  symbol: 'stETH',
-                  aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
-                },
               },
             },
           },
@@ -330,16 +340,144 @@ const mockState = ({
           accountsByChainId: {
             '0x1': {
               '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
-                balance: '0x8AC7230489E80000', // 10000000000000000000 (10 - 18 decimals)
-                stakedBalance: '0x56BC75E2D63100000', // 100000000000000000000 (100 18 decimals)
+                balance: '0x8ac7230489e80000', // 10000000000000000000 (10 - 18 decimals)
+                stakedBalance: '0x56bc75e2d63100000', // 100000000000000000000 (100 18 decimals)
               },
             },
             '0xa': {
               '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
-                balance: '0xDE0B6B3A7640000', // 1000000000000000000 (1 - 18 decimals)
+                balance: '0xde0b6b3a7640000', // 1000000000000000000 (1 - 18 decimals)
               },
             },
           },
+        },
+        AssetsController: {
+          selectedCurrency: 'USD',
+          assetsInfo: {
+            'eip155:1/slip44:60': {
+              type: 'native',
+              symbol: 'ETH',
+              name: 'Ethereum',
+              decimals: 18,
+            },
+            'eip155:10/slip44:60': {
+              type: 'native',
+              symbol: 'ETH',
+              name: 'Ethereum',
+              decimals: 18,
+            },
+            'eip155:1/erc20:0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
+              type: 'erc20',
+              symbol: 'stETH',
+              name: 'Lido Staked Ether',
+              decimals: 18,
+              aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
+              image:
+                'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84.png',
+            },
+            'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+              type: 'erc20',
+              symbol: 'DAI',
+              name: 'Dai Stablecoin',
+              decimals: 18,
+              image:
+                'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6B175474E89094C44Da98b954EedeAC495271d0F.png',
+            },
+            'eip155:10/erc20:0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': {
+              type: 'erc20',
+              symbol: 'USDC',
+              name: 'USDCoin',
+              decimals: 6,
+              image:
+                'https://static.cx.metamask.io/api/v1/tokenIcons/10/0x0b2c639c533813f4aa9d7837caf62653d097ff85.png',
+            },
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+              type: 'native',
+              symbol: 'SOL',
+              name: 'Solana',
+              decimals: 9,
+              image:
+                'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
+            },
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN':
+              {
+                type: 'token',
+                symbol: 'JUP',
+                name: 'Jupiter',
+                decimals: 6,
+                image:
+                  'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN.png',
+              },
+          },
+          assetsBalance: {
+            'd7f11451-9d79-4df4-a012-afd253443639': {
+              'eip155:1/slip44:60': { amount: '10' },
+              'eip155:10/slip44:60': { amount: '1' },
+              'eip155:1/erc20:0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
+                amount: '100',
+              },
+              'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+                amount: '200',
+              },
+              'eip155:10/erc20:0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': {
+                amount: '1000',
+              },
+            },
+            '2d89e6a0-b4e6-45a8-a707-f10cef143b42': {
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+                amount: '10',
+              },
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN':
+                { amount: '200' },
+            },
+          },
+          assetsPrice: {
+            'eip155:1/slip44:60': {
+              assetPriceType: 'fungible',
+              price: 2400,
+              usdPrice: 2400,
+              lastUpdated: 1717334400000,
+            },
+            'eip155:10/slip44:60': {
+              assetPriceType: 'fungible',
+              price: 2400,
+              usdPrice: 2400,
+              lastUpdated: 1717334400000,
+            },
+            'eip155:1/erc20:0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
+              assetPriceType: 'fungible',
+              price: 0.216,
+              usdPrice: 0.216,
+              lastUpdated: 1717334400000,
+            },
+            'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+              assetPriceType: 'fungible',
+              price: 4.8,
+              usdPrice: 4.8,
+              lastUpdated: 1717334400000,
+            },
+            'eip155:10/erc20:0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': {
+              assetPriceType: 'fungible',
+              price: 12,
+              usdPrice: 12,
+              lastUpdated: 1717334400000,
+            },
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+              assetPriceType: 'fungible',
+              price: 163.55,
+              usdPrice: 163.55,
+              lastUpdated: 1717334400000,
+            },
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN':
+              {
+                assetPriceType: 'fungible',
+                price: 0.463731,
+                usdPrice: 0.463731,
+                lastUpdated: 1717334400000,
+              },
+          },
+          customAssets: {},
+          assetPreferences: {},
         },
         NetworkEnablementController: {
           enabledNetworkMap: {
@@ -375,16 +513,16 @@ describe('selectAssetsBySelectedAccountGroup', () => {
       '0x1': [
         {
           accountType: 'eip155:eoa',
-          assetId: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+          assetId: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
           isNative: false,
-          address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+          address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
           image:
-            'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520de3a18e5e111b5eaab095312d7fe84.png',
+            'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84.png',
           name: 'Lido Staked Ether',
           symbol: 'stETH',
           accountId: 'd7f11451-9d79-4df4-a012-afd253443639',
           decimals: 18,
-          rawBalance: '0x56BC75E2D63100000',
+          rawBalance: '0x56bc75e2d63100000',
           balance: '100',
           fiat: {
             balance: 21.6,
@@ -404,7 +542,7 @@ describe('selectAssetsBySelectedAccountGroup', () => {
           symbol: 'DAI',
           accountId: 'd7f11451-9d79-4df4-a012-afd253443639',
           decimals: 18,
-          rawBalance: '0xAD78EBC5AC6200000',
+          rawBalance: '0xad78ebc5ac6200000',
           balance: '200',
           fiat: {
             balance: 960,
@@ -423,7 +561,7 @@ describe('selectAssetsBySelectedAccountGroup', () => {
           symbol: 'ETH',
           accountId: 'd7f11451-9d79-4df4-a012-afd253443639',
           decimals: 18,
-          rawBalance: '0x8AC7230489E80000',
+          rawBalance: '0x8ac7230489e80000',
           balance: '10',
           fiat: {
             balance: 24000,
@@ -445,7 +583,7 @@ describe('selectAssetsBySelectedAccountGroup', () => {
           symbol: 'USDC',
           accountId: 'd7f11451-9d79-4df4-a012-afd253443639',
           decimals: 6,
-          rawBalance: '0x3B9ACA00',
+          rawBalance: '0x3b9aca00',
           balance: '1000',
           fiat: {
             balance: 12000,
@@ -464,7 +602,7 @@ describe('selectAssetsBySelectedAccountGroup', () => {
           symbol: 'ETH',
           accountId: 'd7f11451-9d79-4df4-a012-afd253443639',
           decimals: 18,
-          rawBalance: '0xDE0B6B3A7640000',
+          rawBalance: '0xde0b6b3a7640000',
           balance: '1',
           fiat: {
             balance: 2400,
@@ -562,7 +700,7 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
         isStaked: false,
       },
       {
-        address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+        address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
         chainId: '0x1',
         isStaked: false,
       },
@@ -590,11 +728,170 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
         isStaked: false,
       },
       {
-        address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+        address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
         chainId: '0x1',
         isStaked: false,
       },
     ]);
+  });
+
+  it('includes zero-balance non-native tokens when hideZeroBalanceTokens is false', () => {
+    const state = {
+      ...mockState(),
+      settings: { hideZeroBalanceTokens: false },
+      engine: {
+        ...mockState().engine,
+        backgroundState: {
+          ...mockState().engine.backgroundState,
+          TokenBalancesController: {
+            tokenBalances: {
+              '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
+                '0x1': {
+                  // stETH has zero balance
+                  '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': '0x0',
+                  '0x6B175474E89094C44Da98b954EedeAC495271d0F':
+                    '0xad78ebc5ac6200000',
+                },
+                '0xa': {
+                  '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3b9aca00',
+                },
+              },
+            },
+          },
+          AssetsController: {
+            ...mockState().engine.backgroundState.AssetsController,
+            assetsBalance: {
+              ...mockState().engine.backgroundState.AssetsController
+                .assetsBalance,
+              'd7f11451-9d79-4df4-a012-afd253443639': {
+                ...mockState().engine.backgroundState.AssetsController
+                  .assetsBalance['d7f11451-9d79-4df4-a012-afd253443639'],
+                'eip155:1/erc20:0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
+                  amount: '0',
+                },
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectSortedAssetsBySelectedAccountGroup(state);
+    const addresses = result.map((r) => r.address);
+
+    // stETH zero-balance token should still be present when flag is off
+    expect(addresses).toContain('0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84');
+  });
+
+  it('filters out zero-balance non-native tokens when hideZeroBalanceTokens is true', () => {
+    const state = {
+      ...mockState(),
+      settings: { hideZeroBalanceTokens: true },
+      engine: {
+        ...mockState().engine,
+        backgroundState: {
+          ...mockState().engine.backgroundState,
+          TokenBalancesController: {
+            tokenBalances: {
+              '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
+                '0x1': {
+                  // stETH has zero balance
+                  '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': '0x0',
+                  // DAI has non-zero balance
+                  '0x6B175474E89094C44Da98b954EedeAC495271d0F':
+                    '0xad78ebc5ac6200000',
+                },
+                '0xa': {
+                  '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3b9aca00',
+                },
+              },
+            },
+          },
+          AssetsController: {
+            ...mockState().engine.backgroundState.AssetsController,
+            assetsBalance: {
+              ...mockState().engine.backgroundState.AssetsController
+                .assetsBalance,
+              'd7f11451-9d79-4df4-a012-afd253443639': {
+                ...mockState().engine.backgroundState.AssetsController
+                  .assetsBalance['d7f11451-9d79-4df4-a012-afd253443639'],
+                'eip155:1/erc20:0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
+                  amount: '0',
+                },
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectSortedAssetsBySelectedAccountGroup(state);
+    const addresses = result.map((r) => r.address);
+
+    // stETH (zero balance, non-native) should be filtered out
+    expect(addresses).not.toContain(
+      '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
+    );
+    // DAI (non-zero balance) should remain
+    expect(addresses).toContain('0x6B175474E89094C44Da98b954EedeAC495271d0F');
+    // USDC (non-zero balance) should remain
+    expect(addresses).toContain('0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85');
+  });
+
+  it('keeps native tokens with zero balance when hideZeroBalanceTokens is true', () => {
+    const state = {
+      ...mockState(),
+      settings: { hideZeroBalanceTokens: true },
+      engine: {
+        ...mockState().engine,
+        backgroundState: {
+          ...mockState().engine.backgroundState,
+          AccountTrackerController: {
+            accountsByChainId: {
+              '0x1': {
+                '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
+                  // Native ETH on 0x1 has zero balance
+                  balance: '0x0',
+                  stakedBalance: '0x0',
+                },
+              },
+              '0xa': {
+                '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
+                  balance: '0xde0b6b3a7640000',
+                },
+              },
+            },
+          },
+          AssetsController: {
+            ...mockState().engine.backgroundState.AssetsController,
+            assetsBalance: {
+              ...mockState().engine.backgroundState.AssetsController
+                .assetsBalance,
+              'd7f11451-9d79-4df4-a012-afd253443639': {
+                ...mockState().engine.backgroundState.AssetsController
+                  .assetsBalance['d7f11451-9d79-4df4-a012-afd253443639'],
+                'eip155:1/slip44:60': { amount: '0' },
+                'eip155:1/erc20:0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
+                  amount: '0',
+                },
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectSortedAssetsBySelectedAccountGroup(state);
+
+    // Native ETH on 0x1 must still appear despite zero balance
+    expect(
+      result.find(
+        (r) =>
+          r.address === '0x0000000000000000000000000000000000000000' &&
+          r.chainId === '0x1' &&
+          !r.isStaked,
+      ),
+    ).toBeDefined();
   });
 
   it('filters out Tron special assets from the sorted asset list', () => {
@@ -803,7 +1100,7 @@ describe('createSelectSortedAssetsBySelectedAccountGroup', () => {
           isStaked: false,
         },
         {
-          address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+          address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
           chainId: '0x1',
           isStaked: false,
         },
@@ -1096,14 +1393,14 @@ describe('selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance', () => {
               '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
                 '0x1': {
                   // stETH has zero balance
-                  '0xae7ab96520de3a18e5e111b5eaab095312d7fe84': '0x0',
+                  '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': '0x0',
                   // DAI has non-zero balance
                   '0x6B175474E89094C44Da98b954EedeAC495271d0F':
-                    '0xAD78EBC5AC6200000',
+                    '0xad78ebc5ac6200000',
                 },
                 '0xa': {
                   // USDC has non-zero balance
-                  '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3B9ACA00',
+                  '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3b9aca00',
                 },
               },
             },
@@ -1119,7 +1416,22 @@ describe('selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance', () => {
               },
               '0xa': {
                 '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
-                  balance: '0xDE0B6B3A7640000',
+                  balance: '0xde0b6b3a7640000',
+                },
+              },
+            },
+          },
+          AssetsController: {
+            ...mockState().engine.backgroundState.AssetsController,
+            assetsBalance: {
+              ...mockState().engine.backgroundState.AssetsController
+                .assetsBalance,
+              'd7f11451-9d79-4df4-a012-afd253443639': {
+                ...mockState().engine.backgroundState.AssetsController
+                  .assetsBalance['d7f11451-9d79-4df4-a012-afd253443639'],
+                'eip155:1/slip44:60': { amount: '0' },
+                'eip155:1/erc20:0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
+                  amount: '0',
                 },
               },
             },
@@ -1137,7 +1449,7 @@ describe('selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance', () => {
 
     // stETH (zero balance) should be filtered out
     expect(addresses).not.toContain(
-      '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+      '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
     );
     // ETH on 0x1 (zero balance) should be filtered out
     expect(
@@ -1379,6 +1691,11 @@ describe('selectAsset', () => {
       baseState.engine.backgroundState.TokenBalancesController
         .tokenBalances as Record<string, unknown>
     )[account2AddressLowercased] = {};
+    baseState.engine.backgroundState.AssetsController.assetsBalance[
+      account2Id
+    ] = {
+      'eip155:1/slip44:60': { amount: '1' },
+    };
 
     // Test Group 1: should return account 1 balances
     const stateForGroup1 = withSelectedGroup(baseState, group1Id, account1Id);
@@ -1478,14 +1795,14 @@ describe('selectAsset', () => {
   it('returns asset with aggregators', () => {
     const state = mockState();
     const result = selectAsset(state, {
-      address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+      address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
       chainId: '0x1',
       isStaked: false,
     });
 
     expect(result).toEqual({
       chainId: '0x1',
-      address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+      address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
       symbol: 'stETH',
       ticker: 'stETH',
       name: 'Lido Staked Ether',
@@ -1495,9 +1812,9 @@ describe('selectAsset', () => {
       isETH: false,
       isNative: false,
       isStaked: false,
-      logo: 'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520de3a18e5e111b5eaab095312d7fe84.png',
+      logo: 'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84.png',
       image:
-        'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520de3a18e5e111b5eaab095312d7fe84.png',
+        'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84.png',
       aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
       accountType: EthAccountType.Eoa,
     });
@@ -1979,5 +2296,203 @@ describe('selectAssetsByAccountGroupId', () => {
     );
 
     expect(result).toStrictEqual({});
+  });
+});
+
+describe('selectHasEligibleSwapSource', () => {
+  const innerSelector = jest.mocked(innerSelectAssetsBySelectedAccountGroup);
+
+  const ETH_MAINNET = '0x1';
+  const OPTIMISM = '0xa';
+  const DAI_ADDRESS = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
+  const USDC_ADDRESS = '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85';
+
+  interface AssetFixture {
+    assetId: string;
+    chainId: string;
+    fiat?: { balance: number };
+  }
+
+  // Arrange utilities ----------------------------------------------------
+
+  /** Build a single asset fixture with sensible defaults (positive fiat balance). */
+  const buildAsset = (overrides: Partial<AssetFixture> = {}): AssetFixture => ({
+    assetId: DAI_ADDRESS,
+    chainId: ETH_MAINNET,
+    fiat: { balance: 100 },
+    ...overrides,
+  });
+
+  /** Group a flat list of assets by chainId into the shape produced by selectAssetsBySelectedAccountGroup. */
+  const buildAssetsByChain = (
+    assets: AssetFixture[],
+  ): Record<string, AssetFixture[]> =>
+    assets.reduce<Record<string, AssetFixture[]>>((acc, asset) => {
+      (acc[asset.chainId] ??= []).push(asset);
+      return acc;
+    }, {});
+
+  beforeEach(() => jest.clearAllMocks());
+
+  afterEach(() => {
+    // Restore call-through so other describe blocks use the real implementation.
+    innerSelector.mockImplementation(
+      jest.requireActual('@metamask/assets-controllers')
+        .selectAssetsBySelectedAccountGroup,
+    );
+    selectAssetsBySelectedAccountGroup.memoizedResultFunc.clearCache();
+    selectAssetsBySelectedAccountGroup.clearCache();
+    selectHasEligibleSwapSource.clearCache();
+  });
+
+  /**
+   * Mocks the inner assets-controllers selector and runs the full selector
+   * against a real mockState so each test exercises the whole selector chain.
+   * Caches are cleared before each call so reselect memoization does not mask
+   * the new mock value when mockState() produces the same state shape.
+   */
+  const runSelector = (assets: AssetFixture[]): boolean => {
+    innerSelector.mockReturnValue(
+      buildAssetsByChain(assets) as AccountGroupAssets,
+    );
+    // createDeepEqualSelector keeps a separate memoizedResultFunc cache;
+    // clearCache() alone does not reset it when mockState() is deep-equal
+    // across tests but the inner mock return value changes.
+    selectAssetsBySelectedAccountGroup.memoizedResultFunc.clearCache();
+    selectAssetsBySelectedAccountGroup.clearCache();
+    selectHasEligibleSwapSource.clearCache();
+    return selectHasEligibleSwapSource(mockState());
+  };
+
+  const returnsTrueCases = [
+    {
+      description: 'returns true when any asset has positive fiat balance',
+      getAssets: () => [buildAsset({ fiat: { balance: 50 } })],
+      expected: true,
+    },
+    {
+      description:
+        'returns true when at least one chain holds a positive-fiat asset',
+      getAssets: () => [
+        buildAsset({ chainId: ETH_MAINNET, fiat: { balance: 0 } }),
+        buildAsset({ chainId: OPTIMISM, fiat: { balance: 50 } }),
+      ],
+      expected: true,
+    },
+    {
+      description:
+        'returns true when the only funded asset is the currently-viewed token',
+      getAssets: () => [
+        buildAsset({ assetId: DAI_ADDRESS, fiat: { balance: 100 } }),
+      ],
+      expected: true,
+    },
+  ];
+
+  const returnsFalseCases = [
+    {
+      description: 'returns false when the asset map is empty',
+      getAssets: () => [] as AssetFixture[],
+      expected: false,
+    },
+    {
+      description: 'returns false when every asset has a zero fiat balance',
+      getAssets: () => [
+        buildAsset({ assetId: DAI_ADDRESS, fiat: { balance: 0 } }),
+        buildAsset({ assetId: USDC_ADDRESS, fiat: { balance: 0 } }),
+      ],
+      expected: false,
+    },
+    {
+      description: 'returns false when every asset has a negative fiat balance',
+      getAssets: () => [buildAsset({ fiat: { balance: -1 } })],
+      expected: false,
+    },
+    {
+      description: 'returns false when no asset has a fiat property',
+      getAssets: () => [buildAsset({ fiat: undefined })],
+      expected: false,
+    },
+  ];
+
+  it.each([...returnsTrueCases, ...returnsFalseCases])(
+    '$description',
+    ({ getAssets, expected }) => {
+      expect(runSelector(getAssets())).toBe(expected);
+    },
+  );
+
+  it('returns true for the default mockState since positive-fiat assets exist', () => {
+    expect(selectHasEligibleSwapSource(mockState())).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// filterArcUsdcErc20Token – Arc USDC ERC-20 filtering
+// Tests exercise the private filter through selectAssetsBySelectedAccountGroup
+// by overriding the inner assets-controllers selector for this describe block.
+// ---------------------------------------------------------------------------
+
+describe('selectAssetsBySelectedAccountGroup – Arc USDC ERC-20 filter', () => {
+  const innerSelector = jest.mocked(innerSelectAssetsBySelectedAccountGroup);
+
+  const ARC = NETWORKS_CHAIN_ID.ARC;
+  const ARC_ERC20 = ARC_USDC_TOKEN_ADDRESS;
+  const NATIVE_ADDR = '0x0000000000000000000000000000000000000000';
+  const DAI_ADDR = '0x6b175474e89094c44da98b954eedeac495271d0f';
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const run = () => selectAssetsBySelectedAccountGroup.resultFunc({} as any);
+
+  beforeEach(() => jest.clearAllMocks());
+
+  afterEach(() => {
+    // Restore call-through so other describe blocks use the real implementation.
+    innerSelector.mockImplementation(
+      jest.requireActual('@metamask/assets-controllers')
+        .selectAssetsBySelectedAccountGroup,
+    );
+  });
+
+  it('removes the Arc USDC ERC-20 token from Arc chain assets', () => {
+    innerSelector.mockReturnValue({
+      [ARC]: [
+        { address: ARC_ERC20, symbol: 'USDC' },
+        { address: NATIVE_ADDR, symbol: 'USDC' },
+      ],
+    } as unknown as AccountGroupAssets);
+
+    const result = run();
+
+    expect(result[ARC]).toHaveLength(1);
+    expect((result[ARC][0] as { address: string }).address).toBe(NATIVE_ADDR);
+  });
+
+  it('leaves non-Arc chains untouched', () => {
+    innerSelector.mockReturnValue({
+      '0x1': [
+        { address: ARC_ERC20, symbol: 'USDC' }, // same address on mainnet — must stay
+        { address: DAI_ADDR, symbol: 'DAI' },
+      ],
+      [ARC]: [
+        { address: ARC_ERC20, symbol: 'USDC' }, // must be removed
+        { address: NATIVE_ADDR, symbol: 'USDC' },
+      ],
+    } as unknown as AccountGroupAssets);
+
+    const result = run();
+
+    expect(result['0x1']).toHaveLength(2);
+    expect(result[ARC]).toHaveLength(1);
+    expect((result[ARC][0] as { address: string }).address).toBe(NATIVE_ADDR);
+  });
+
+  it('passes through unchanged when Arc chain is absent', () => {
+    const assets = {
+      '0x1': [{ address: DAI_ADDR, symbol: 'DAI' }],
+    } as unknown as AccountGroupAssets;
+    innerSelector.mockReturnValue(assets);
+
+    expect(run()).toStrictEqual(assets);
   });
 });

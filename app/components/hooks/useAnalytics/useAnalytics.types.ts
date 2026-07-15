@@ -18,7 +18,7 @@ type AnalyticsEventBuilderType = ReturnType<
 >;
 
 /**
- * Source type constants for analytics tracking
+ * Source type constants for analytics tracking (used on Connect Request events).
  */
 export const SourceType = {
   SDK: 'sdk',
@@ -29,6 +29,16 @@ export const SourceType = {
   DAPP_DEEPLINK_URL: 'dapp-deeplink-url',
 } as const;
 
+/**
+ * Transport type constants — identifies the underlying connection transport.
+ * Values align with the segment-schema transport_type enum.
+ */
+export const TransportType = {
+  SOCKET_RELAY: 'socket_relay',
+  MWP: 'mwp',
+  WALLETCONNECT: 'walletconnect',
+} as const;
+
 export interface UseAnalyticsHook {
   isEnabled(): boolean;
   enable(enable?: boolean): Promise<void>;
@@ -36,16 +46,11 @@ export interface UseAnalyticsHook {
    * Associate traits to the current user
    */
   identify(userTraits: AnalyticsUserTraits): Promise<void>;
-  /**
-   * @deprecated Use {@link identify} instead
-   */
-  addTraitsToUser(userTraits: AnalyticsUserTraits): Promise<void>;
-  trackEvent(event: AnalyticsTrackingEvent, saveDataRecording?: boolean): void;
+  trackEvent(event: AnalyticsTrackingEvent): void;
   createDataDeletionTask(): Promise<IDeleteRegulationResponse>;
   checkDataDeleteStatus(): Promise<IDeleteRegulationStatus>;
   getDeleteRegulationCreationDate(): DataDeleteDate;
   getDeleteRegulationId(): string | undefined;
-  isDataRecorded(): boolean;
   getAnalyticsId(): Promise<string | undefined>;
   createEventBuilder(
     event: string | IMetaMetricsEvent | ITrackingEvent | AnalyticsTrackingEvent,

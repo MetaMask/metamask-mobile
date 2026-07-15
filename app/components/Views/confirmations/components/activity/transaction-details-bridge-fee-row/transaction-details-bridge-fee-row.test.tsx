@@ -40,24 +40,14 @@ describe('TransactionDetailsBridgeFeeRow', () => {
     expect(getByText('Bridge fee')).toBeOnTheScreen();
   });
 
-  it('renders "Provider fee" label for predict withdrawals', () => {
+  it.each([
+    ['predict', TransactionType.predictWithdraw],
+    ['perps', TransactionType.perpsWithdraw],
+    ['money account', TransactionType.moneyAccountWithdraw],
+  ])('renders "Provider fee" label for %s withdrawals', (_label, type) => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
-        type: TransactionType.predictWithdraw,
-        metamaskPay: {
-          bridgeFeeFiat: BRIDGE_FEE_FIAT_MOCK,
-        },
-      } as unknown as TransactionMeta,
-    });
-
-    const { getByText } = render();
-    expect(getByText('Provider fee')).toBeOnTheScreen();
-  });
-
-  it('renders "Provider fee" label for perps withdrawals', () => {
-    useTransactionDetailsMock.mockReturnValue({
-      transactionMeta: {
-        type: TransactionType.perpsWithdraw,
+        type,
         metamaskPay: {
           bridgeFeeFiat: BRIDGE_FEE_FIAT_MOCK,
         },

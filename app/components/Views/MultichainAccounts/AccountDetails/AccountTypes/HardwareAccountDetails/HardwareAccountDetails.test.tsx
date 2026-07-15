@@ -5,8 +5,9 @@ import { createMockInternalAccount } from '../../../../../../util/test/accountsC
 import { EthAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../../AccountDetails.testIds';
-import { HEADERBASE_TITLE_TEST_ID } from '../../../../../../component-library/components/HeaderBase/HeaderBase.constants';
-import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar';
+import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
+
+const HEADER_BASE_TITLE_TEST_ID = 'header-title';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -115,7 +116,7 @@ describe('HardwareAccountDetails', () => {
       expect(
         getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
       ).toBeTruthy();
-      expect(getByTestId(HEADERBASE_TITLE_TEST_ID).children).toStrictEqual([
+      expect(getByTestId(HEADER_BASE_TITLE_TEST_ID).children).toStrictEqual([
         name,
       ]);
       expect(getByTestId(AccountDetailsIds.REMOVE_ACCOUNT_BUTTON)).toBeTruthy();

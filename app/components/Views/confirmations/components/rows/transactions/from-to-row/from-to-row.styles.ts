@@ -28,6 +28,12 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 4,
       marginLeft: -8,
     },
+    poisonedBadge: {
+      backgroundColor: theme.colors.error.muted,
+      borderRadius: 8,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+    },
     addressRow: {
       flexDirection: 'row',
       alignItems: 'center',

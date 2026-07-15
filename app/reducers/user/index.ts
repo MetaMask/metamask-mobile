@@ -2,6 +2,7 @@ import { UserAction, UserActionType } from '../../actions/user/types';
 import { AppThemeKey } from '../../util/theme/models';
 import { UserState } from './types';
 import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
+import { DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL } from '../../components/UI/AssetOverview/Price/tokenOverviewChart.constants';
 
 export * from './types';
 
@@ -29,7 +30,12 @@ export const userInitialState: UserState = {
   multichainAccountsIntroModalSeen: false,
   musdConversionEducationSeen: false,
   musdConversionAssetDetailCtasSeen: {},
+  moneyOnboardingSeen: false,
   tokenOverviewChartType: ChartType.Line,
+  tokenOverviewChartInterval: DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL,
+  tokenIndicators: [],
+  onboardingStepperProgress: {},
+  appInstallEventFired: false,
 };
 
 /**
@@ -150,10 +156,43 @@ const userReducer = (
           [action.payload.key]: true,
         },
       };
+    case UserActionType.CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN:
+      return {
+        ...state,
+        musdConversionAssetDetailCtasSeen: {},
+      };
+    case UserActionType.SET_MONEY_ONBOARDING_SEEN:
+      return {
+        ...state,
+        moneyOnboardingSeen: action.payload.seen,
+      };
     case UserActionType.SET_TOKEN_OVERVIEW_CHART_TYPE:
       return {
         ...state,
         tokenOverviewChartType: action.payload.chartType,
+      };
+    case UserActionType.SET_TOKEN_OVERVIEW_CHART_INTERVAL:
+      return {
+        ...state,
+        tokenOverviewChartInterval: action.payload.interval,
+      };
+    case UserActionType.SET_TOKEN_INDICATORS:
+      return {
+        ...state,
+        tokenIndicators: action.payload.indicators,
+      };
+    case UserActionType.SET_ONBOARDING_STEPPER_STEP:
+      return {
+        ...state,
+        onboardingStepperProgress: {
+          ...state.onboardingStepperProgress,
+          [action.payload.stepperId]: action.payload.step,
+        },
+      };
+    case UserActionType.SET_APP_INSTALL_EVENT_FIRED:
+      return {
+        ...state,
+        appInstallEventFired: true,
       };
     default:
       return state;

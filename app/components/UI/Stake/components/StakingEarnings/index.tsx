@@ -18,7 +18,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import EarningsHistoryButton from '../../../Earn/components/Earnings/EarningsHistoryButton/EarningsHistoryButton';
 import EarnMaintenanceBanner from '../../../Earn/components/EarnMaintenanceBanner';
 import useEarnings from '../../../Earn/hooks/useEarnings';
@@ -92,7 +92,7 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
               {strings('stake.annual_rate')}
             </Text>
             <ButtonIcon
-              size={ButtonIconSizes.Sm}
+              size={ButtonIconSizes.Xs}
               iconColor={IconColor.Muted}
               iconName={IconName.Info}
               accessibilityRole="button"

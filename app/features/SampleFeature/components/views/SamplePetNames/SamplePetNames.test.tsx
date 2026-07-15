@@ -37,13 +37,14 @@ jest.mock('../../hooks/useSampleNetwork/useSampleNetwork', () => ({
 }));
 
 describe('SamplePetNames', () => {
-  it('matches rendered snapshot', async () => {
-    const { toJSON } = renderWithProvider(<SamplePetNames />, {
+  it('renders child components', async () => {
+    const { getByTestId } = renderWithProvider(<SamplePetNames />, {
       state: initialRootState,
     });
 
     await waitFor(() => {
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('mocked-sample-pet-names-list')).toBeOnTheScreen();
+      expect(getByTestId('mocked-sample-pet-names-form')).toBeOnTheScreen();
     });
   });
 });

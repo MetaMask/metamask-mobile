@@ -4,6 +4,10 @@ import Engine from '../../../../../core/Engine';
 import { createBridgeTestState } from '../../testUtils';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { RequestStatus } from '@metamask/bridge-controller';
+import {
+  selectBridgeQuotes,
+  selectControllerFields,
+} from '../../../../../core/redux/slices/bridge';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -14,9 +18,34 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../../util/remoteFeatureFlag', () => ({
+  hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+}));
+
 describe('useBridgeQuoteEvents', () => {
+  const expectedQuotesReceivedProperties = {
+    best_quote_provider: 'lifi_jupiter',
+    can_submit: true,
+    feature_id: 'unified_swap_bridge',
+    gas_included: false,
+    gas_included_7702: false,
+    has_sufficient_gas_for_quote: null,
+    price_impact: -0.001991570073761955,
+    provider: 'lifi_jupiter',
+    quoted_time_minutes: 0.08333333333333333,
+    token_symbol_destination: 'USDC',
+    token_symbol_source: 'SOL',
+    usd_balance_source: 0,
+    usd_quoted_gas: 0,
+    usd_quoted_return: 0,
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    selectControllerFields.clearCache();
+    selectControllerFields.memoizedResultFunc.clearCache();
+    selectBridgeQuotes.clearCache();
+    selectBridgeQuotes.memoizedResultFunc.clearCache();
   });
 
   it.each([
@@ -24,7 +53,7 @@ describe('useBridgeQuoteEvents', () => {
     [{ quotesRefreshCount: 0 }],
     [{ quoteFetchError: 'Error fetching quotes' }],
   ])(
-    'should not publish QuotesReceived event when bridge-controller state has %s',
+    'does not publish QuotesReceived event when bridge-controller state has %s',
     async (stateOverrides) => {
       const bridgeControllerOverrides = {
         quotesLoadingStatus: null,
@@ -42,9 +71,11 @@ describe('useBridgeQuoteEvents', () => {
             hasNoQuotesAvailable: false,
             hasInsufficientBalance: false,
             hasInsufficientGas: false,
+            isNetworkFeeUnavailable: false,
             hasTxAlert: false,
             isSubmitDisabled: false,
             isPriceImpactWarningVisible: false,
+            hasInsufficientNativeReserveError: false,
           }),
         { state: testState },
       );
@@ -57,6 +88,11 @@ describe('useBridgeQuoteEvents', () => {
   it.each([
     [{ hasNoQuotesAvailable: true }, ['no_quotes']],
     [{ hasInsufficientGas: true }, ['insufficient_gas_for_selected_quote']],
+    [{ isNetworkFeeUnavailable: true }, ['network_fee_unavailable']],
+    [
+      { hasInsufficientGas: true, isNetworkFeeUnavailable: true },
+      ['network_fee_unavailable'],
+    ],
     [{ hasInsufficientBalance: true }, ['insufficient_balance']],
     [{ hasTxAlert: true }, ['tx_alert']],
     [{ isPriceImpactWarningVisible: true }, ['price_impact']],
@@ -66,7 +102,7 @@ describe('useBridgeQuoteEvents', () => {
     ],
     [{}, []],
   ])(
-    'should publish QuotesReceived event with warnings: %s',
+    'publishes QuotesReceived event with warnings: %s',
     async (hookArgs, warnings) => {
       const bridgeControllerOverrides = {
         quotesLoadingStatus: null,
@@ -83,9 +119,11 @@ describe('useBridgeQuoteEvents', () => {
             hasNoQuotesAvailable: false,
             hasInsufficientBalance: false,
             hasInsufficientGas: false,
+            isNetworkFeeUnavailable: false,
             hasTxAlert: false,
             isSubmitDisabled: false,
             isPriceImpactWarningVisible: false,
+            hasInsufficientNativeReserveError: false,
             ...hookArgs,
           }),
         { state: testState },
@@ -97,16 +135,7 @@ describe('useBridgeQuoteEvents', () => {
       expect(
         Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
       ).toHaveBeenCalledWith('Unified SwapBridge Quotes Received', {
-        best_quote_provider: 'lifi_jupiter',
-        can_submit: true,
-        gas_included: false,
-        gas_included_7702: false,
-        price_impact: -0.001991570073761955,
-        provider: 'lifi_jupiter',
-        quoted_time_minutes: 0.08333333333333333,
-        usd_balance_source: 0,
-        usd_quoted_gas: 0,
-        usd_quoted_return: 0,
+        ...expectedQuotesReceivedProperties,
         warnings,
       });
     },

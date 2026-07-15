@@ -75,6 +75,74 @@ export const selectPerpsOrderBookEnabledFlag = createSelector(
 );
 
 /**
+ * Client-config / Redux key for the Perps advanced chart feature flag.
+ * LaunchDarkly key (kebab-case): `perps-advanced-chart-enabled-v2`
+ */
+export const PERPS_ADVANCED_CHART_ENABLED_FLAG_KEY =
+  'perpsAdvancedChartEnabledV2' as const;
+
+/**
+ * Selector for Perps advanced chart feature flag.
+ * Controls whether market detail and fullscreen charts use the shared AdvancedChart
+ * (TradingView) instead of the Lightweight Charts WebView.
+ *
+ * @returns boolean - true if advanced chart should be shown, false otherwise
+ */
+export const selectPerpsAdvancedChartEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_ADVANCED_CHART_ENABLED_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Client-config / Redux key for the Perps show full asset names feature flag.
+ * LaunchDarkly key (kebab-case): `perps-show-full-asset-names`
+ */
+export const PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY =
+  'perpsShowFullAssetNames' as const;
+
+/**
+ * Selector for showing full asset names in Perps market row lists.
+ * When enabled, vertical market lists display the full asset name (e.g. "Bitcoin")
+ * instead of the ticker symbol (e.g. "BTC").
+ *
+ * @returns boolean - true if full asset names should be shown, false otherwise.
+ */
+export const selectPerpsShowFullAssetNamesFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Selector for Related Markets rail feature flag.
+ * Controls visibility of the discovery rail on Perps market details.
+ *
+ * @returns boolean - true if the related markets rail should be shown.
+ */
+export const selectPerpsRelatedMarketsEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    // Default to false if no flag is set (disabled by default)
+    const localFlag = process.env.MM_PERPS_RELATED_MARKETS_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsRelatedMarkets as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
  * Selector for button color A/B test variant from LaunchDarkly
  * TAT-1937: Tests impact of button colors (green/red vs white/white) on trading behavior
  *
@@ -277,6 +345,106 @@ export function resolvePerpsMyxProviderEnabled(
 export const selectPerpsMYXProviderEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => resolvePerpsMyxProviderEnabled(remoteFeatureFlags),
+);
+
+/**
+ * Selector for Perps Products section feature flag
+ * Controls visibility of the category pills grid on Perps home screen
+ *
+ * @returns boolean - true if Products section should be shown, false otherwise
+ */
+export const selectPerpsProductsEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsProductsEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Selector for Perps Competition Banner feature flag
+ * Controls visibility of the competition promotion banner on Perps home screen
+ *
+ * @returns boolean - true if competition banner should be shown, false otherwise
+ */
+export const selectPerpsCompetitionBannerEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsCompetitionBannerEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Selector for Perps Top Movers feature flag
+ * Controls visibility of the Top Movers (Gainers/Losers) section on the Perps home screen
+ *
+ * @returns boolean - true if Top Movers section should be shown, false otherwise
+ */
+export const selectPerpsTopMoversEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsTopMoversEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Selector for Perps Recently Added feature flag.
+ * Controls visibility of the Recently Added section on the Perps home screen,
+ * independently of the Terminal backend flag that supplies `listedAt` data.
+ *
+ * @returns boolean - true if the Recently Added section should be shown, false otherwise
+ */
+export const selectPerpsRecentlyAddedEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsRecentlyAddedEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Selector for Perps Watchlist redesign feature flag
+ * Controls whether the redesigned Watchlist UI (empty state, suggested markets,
+ * show-more/less, tappable header, animations, 10-asset limit) and the
+ * watchlist filter pill in the markets list are shown.
+ * When disabled, falls back to the pre-redesign plain watchlist list.
+ *
+ * @returns boolean - true if redesigned watchlist should be shown, false otherwise
+ */
+export const selectPerpsWatchlistEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsWatchlistV2Enabled as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Selector for Terminal Backend feature flag.
+ * Controls whether market-data calls route through the MetaMask Terminal API
+ * (with HyperLiquid fallback) or go directly to HyperLiquid.
+ *
+ * @returns boolean - true if Terminal API should be used, false otherwise
+ */
+export const selectPerpsTerminalBackendEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsTerminalBackendEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
 );
 
 /**

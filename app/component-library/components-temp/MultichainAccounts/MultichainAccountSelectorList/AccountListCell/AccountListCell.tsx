@@ -1,12 +1,15 @@
 import React, { memo, useCallback } from 'react';
 import { View } from 'react-native';
+import { Checkbox } from '@metamask/design-system-react-native';
 
 import { useStyles } from '../../../../hooks';
 import AccountCell from '../../AccountCell';
 import createStyles from '../MultichainAccountSelectorList.styles';
 import { AccountListCellProps } from './AccountListCell.types';
-import Checkbox from '../../../../components/Checkbox';
-import { ACCOUNT_LIST_CELL_TEST_IDS } from './AccountListCell.testIds';
+import {
+  ACCOUNT_LIST_CELL_CHECKBOX_ICON_TEST_ID,
+  ACCOUNT_LIST_CELL_TEST_IDS,
+} from './AccountListCell.testIds';
 
 const AccountListCell = memo(
   ({
@@ -32,10 +35,17 @@ const AccountListCell = memo(
           <AccountCell
             startAccessory={
               showCheckbox ? (
-                <View
-                  testID={`${ACCOUNT_LIST_CELL_TEST_IDS.ACCOUNT_LIST_CELL}${accountGroup.id}`}
-                >
-                  <Checkbox isChecked={isSelected} onPress={handlePress} />
+                <View>
+                  <Checkbox
+                    testID={`${ACCOUNT_LIST_CELL_TEST_IDS.ACCOUNT_LIST_CELL}${accountGroup.id}`}
+                    isSelected={isSelected}
+                    onChange={handlePress}
+                    checkedIconProps={
+                      isSelected
+                        ? { testID: ACCOUNT_LIST_CELL_CHECKBOX_ICON_TEST_ID }
+                        : undefined
+                    }
+                  />
                 </View>
               ) : undefined
             }

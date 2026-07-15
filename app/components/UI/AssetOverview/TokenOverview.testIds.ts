@@ -3,6 +3,7 @@ import enContent from '../../../../locales/languages/en.json';
 export const TokenOverviewSelectorsIDs = {
   CONTAINER: 'token-asset-overview',
   TOKEN_PRICE: 'token-price',
+  PRICE_ALERT_BUTTON: 'token-price-alert-button',
   SEND_BUTTON: 'token-send-button',
   RECEIVE_BUTTON: 'token-receive-button',
   BUY_BUTTON: 'token-buy-button',
@@ -16,6 +17,10 @@ export const TokenOverviewSelectorsIDs = {
   LONG_BUTTON: 'token-long-button',
   SHORT_BUTTON: 'token-short-button',
   MORE_BUTTON: 'token-more-button',
+  QUICK_BUY_BUTTON: 'token-quick-buy-button',
+  TODAYS_CHANGE: 'token-todays-change',
+  PRICE_CHART_DOT_END: 'price-chart-end-dot',
+  PRICE_CHART_CONTAINER: 'advanced-chart-touch-container',
 };
 
 export const TokenOverviewSelectorsText = {

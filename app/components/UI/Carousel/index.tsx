@@ -1,15 +1,12 @@
-import React, {
-  useState,
-  useCallback,
-  FC,
-  useMemo,
-  useEffect,
-  useRef,
-} from 'react';
+import React, { useState, useCallback, FC, useMemo, useEffect } from 'react';
 import { Dimensions, Animated, Linking } from 'react-native';
+import Reanimated, {
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { CarouselProps, CarouselSlide, NavigationAction } from './types';
+import { CarouselProps, CarouselSlide } from './types';
 import { dismissBanner } from '../../../reducers/banners';
 import { StackCard } from './StackCard';
 import { StackCardEmpty } from './StackCardEmpty';
@@ -24,15 +21,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { selectDismissedBanners } from '../../../selectors/banner';
-///: BEGIN:ONLY_INCLUDE_IF(solana)
-import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import {
-  selectSelectedInternalAccount,
-  selectLastSelectedSolanaAccount,
-} from '../../../selectors/accountsController';
-import { SolAccountType, SolScope } from '@metamask/keyring-api';
-import Engine from '../../../core/Engine';
-///: END:ONLY_INCLUDE_IF
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
 import {
   fetchCarouselSlidesFromContentful,
@@ -40,8 +28,11 @@ import {
 } from './fetchCarouselSlidesFromContentful';
 import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
-import Routes from '../../../constants/navigation/Routes';
 import { subscribeToContentPreviewToken } from '../../../actions/notification/helpers';
+import {
+  BANNER_EVENT_DISPLAY,
+  BANNER_EVENT_DISMISSED,
+} from '../../../constants/engagement';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import AppConstants from '../../../core/AppConstants';
@@ -52,6 +43,16 @@ const MAX_CAROUSEL_SLIDES = 8;
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BANNER_WIDTH = SCREEN_WIDTH - 32;
 const BANNER_HEIGHT = 100;
+
+function getSlideVariableName(slide: Pick<CarouselSlide, 'variableName'>) {
+  return slide.variableName;
+}
+
+function getSlideAnalyticsName(
+  slide: Pick<CarouselSlide, 'id' | 'variableName'>,
+) {
+  return getSlideVariableName(slide) || slide.id;
+}
 
 function orderByCardPlacement(slides: CarouselSlide[]): CarouselSlide[] {
   const placed: (CarouselSlide | undefined)[] = [];
@@ -130,27 +131,28 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [isCarouselVisible, setIsCarouselVisible] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [isDismissingLastCard, setIsDismissingLastCard] = useState(false);
+  const [emptyCardId] = useState(() => `empty-card-${Date.now()}`);
 
   // Current card animations (exit)
-  const currentCardOpacity = useRef(new Animated.Value(1)).current;
-  const currentCardScale = useRef(new Animated.Value(1)).current;
-  const currentCardTranslateY = useRef(new Animated.Value(0)).current;
+  const [currentCardOpacity] = useState(() => new Animated.Value(1));
+  const [currentCardScale] = useState(() => new Animated.Value(1));
+  const [currentCardTranslateY] = useState(() => new Animated.Value(0));
 
   // Next card animations (enter)
-  const nextCardOpacity = useRef(new Animated.Value(0)).current;
-  const nextCardScale = useRef(new Animated.Value(0.96)).current; // Starts slightly smaller
-  const nextCardTranslateY = useRef(new Animated.Value(8)).current; // Starts slightly lower
-  const nextCardBgOpacity = useRef(new Animated.Value(1)).current; // Background pressed state
+  const [nextCardOpacity] = useState(() => new Animated.Value(0));
+  const [nextCardScale] = useState(() => new Animated.Value(0.96));
+  const [nextCardTranslateY] = useState(() => new Animated.Value(8));
+  const [nextCardBgOpacity] = useState(() => new Animated.Value(1));
 
   // Carousel-level animations for empty state dismissal
-  const carouselOpacity = useRef(new Animated.Value(1)).current;
-  const carouselHeight = useRef(new Animated.Value(BANNER_HEIGHT + 6)).current;
-  const carouselScaleY = useRef(new Animated.Value(1)).current;
-
-  const isAnimating = useRef(false);
-
-  // Ref to track if we're mid-animation on the last card
-  const dismissingLastCardRef = useRef(false);
+  const [carouselOpacity] = useState(() => new Animated.Value(1));
+  const carouselHeight = useSharedValue(BANNER_HEIGHT + 6);
+  const [carouselScaleY] = useState(() => new Animated.Value(1));
+  const carouselContainerStyle = useAnimatedStyle(() => ({
+    height: carouselHeight.value,
+  }));
 
   // Animation hooks
   const transitionToNextCard = useTransitionToNextCard({
@@ -176,19 +178,14 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const { navigate } = useNavigation();
   const tw = useTailwind();
   const dismissedBanners = useSelector(selectDismissedBanners);
-  ///: BEGIN:ONLY_INCLUDE_IF(solana)
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const lastSelectedSolanaAccount = useSelector(
-    selectLastSelectedSolanaAccount,
-  );
-  ///: END:ONLY_INCLUDE_IF
-
   const isZeroBalance = !hasBalance;
 
   const applyLocalNavigation = useCallback(
     (s: CarouselSlide): CarouselSlide => {
+      const variableName = getSlideVariableName(s);
+
       // fund → open buy flow
-      if (s.variableName === 'fund') {
+      if (variableName === 'fund') {
         return {
           ...s,
           navigation: {
@@ -197,28 +194,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
           },
         };
       }
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      // solana → open add-account flow (if we don't already redirect below)
-      if (s.variableName === 'solana') {
-        return {
-          ...s,
-          navigation: {
-            type: 'function',
-            navigate: () =>
-              [
-                Routes.MODAL.ROOT_MODAL_FLOW,
-                {
-                  screen: Routes.SHEET.ADD_ACCOUNT,
-                  params: {
-                    clientType: WalletClientType.Solana,
-                    scope: SolScope.Mainnet,
-                  },
-                },
-              ] as const,
-          },
-        };
-      }
-      ///: END:ONLY_INCLUDE_IF
       return s; // keep Contentful linkUrl for everything else
     },
     [],
@@ -230,7 +205,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     // Get base slides
     const patch = (s: CarouselSlide): CarouselSlide => {
       const withNav = applyLocalNavigation(s);
-      if (withNav.variableName === 'fund' && isZeroBalance) {
+      if (getSlideVariableName(withNav) === 'fund' && isZeroBalance) {
         return { ...withNav, undismissable: withNav.undismissable || true };
       }
       return withNav;
@@ -244,13 +219,14 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     const hasNonDismissedSlides = slides.some(
       (s) => !dismissedBanners.includes(s.id),
     );
-    const shouldAddEmpty =
-      hasNonDismissedSlides || dismissingLastCardRef.current;
+    // Read isDismissingLastCard here but omit from memo deps so setting the flag
+    // does not regenerate emptyCardId mid-transition (Bugbot PR #32611).
+    const shouldAddEmpty = hasNonDismissedSlides || isDismissingLastCard;
 
     // Add empty card only if there are non-dismissed slides or during dismissal animation
     if (shouldAddEmpty && slides.length > 0) {
       const emptyCard: CarouselSlide = {
-        id: `empty-card-${Date.now()}`,
+        id: emptyCardId,
         title: '',
         description: '',
         navigation: {
@@ -264,12 +240,14 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     }
 
     return slides;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- omit isDismissingLastCard; see shouldAddEmpty
   }, [
     applyLocalNavigation,
     isZeroBalance,
     priorityContentfulSlides,
     regularContentfulSlides,
     dismissedBanners,
+    emptyCardId,
   ]);
 
   const visibleSlides = useMemo(() => {
@@ -277,34 +255,21 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       const active = isActive(slide);
       if (!active) return false;
 
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      if (
-        slide.variableName === 'solana' &&
-        selectedAccount?.type === SolAccountType.DataAccount
-      ) {
-        return false;
-      }
-      ///: END:ONLY_INCLUDE_IF
-
       return !dismissedBanners.includes(slide.id);
     });
 
     // If we're in the middle of dismissing the last card,
     // keep the empty card in visibleSlides so the animation completes
-    if (dismissingLastCardRef.current && filtered.length === 0) {
+    if (isDismissingLastCard && filtered.length === 0) {
       // Re-add the empty card so the animation completes
-      const emptyCards = slidesConfig.filter((s) => s.variableName === 'empty');
+      const emptyCards = slidesConfig.filter(
+        (s) => getSlideVariableName(s) === 'empty',
+      );
       return emptyCards.length > 0 ? emptyCards : [];
     }
 
     return filtered.slice(0, MAX_CAROUSEL_SLIDES);
-  }, [
-    slidesConfig,
-    dismissedBanners,
-    ///: BEGIN:ONLY_INCLUDE_IF(solana)
-    selectedAccount,
-    ///: END:ONLY_INCLUDE_IF
-  ]);
+  }, [slidesConfig, dismissedBanners, isDismissingLastCard]);
 
   // Ensure activeSlideIndex is within bounds after filtering
   const safeActiveSlideIndex = Math.min(
@@ -312,6 +277,8 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     visibleSlides.length - 1,
   );
   const currentSlide = visibleSlides[safeActiveSlideIndex];
+  const currentSlideId = currentSlide?.id;
+  const currentSlideVariableName = currentSlide?.variableName;
   const nextSlide = visibleSlides[safeActiveSlideIndex + 1]; // Next card in stack
   const hasNextSlide = !!nextSlide;
 
@@ -324,7 +291,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
   // Reset card animations when slides change (but not during transitions)
   useEffect(() => {
-    if (!isAnimating.current && !isTransitioning) {
+    if (!isAnimating && !isTransitioning) {
       // Use requestAnimationFrame to prevent flash during re-render
       requestAnimationFrame(() => {
         // Reset current card to visible state
@@ -352,6 +319,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     visibleSlides.length,
     hasNextSlide,
     isTransitioning,
+    isAnimating,
     currentCardOpacity,
     currentCardScale,
     currentCardTranslateY,
@@ -387,33 +355,19 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     };
 
   const handleSlideClick = useCallback(
-    (slideId: string, navigation: NavigationAction) => {
-      const extraProperties: Record<string, string> = {};
-
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      const isSolanaBanner = slideId === 'solana';
-      if (isSolanaBanner && lastSelectedSolanaAccount) {
-        extraProperties.action = 'redirect-solana-account';
-      } else if (isSolanaBanner && !lastSelectedSolanaAccount) {
-        extraProperties.action = 'create-solana-account';
-      }
-      ///: END:ONLY_INCLUDE_IF
+    (slide: CarouselSlide) => {
+      const slideName = getSlideAnalyticsName(slide);
+      const { navigation } = slide;
 
       trackEvent(
         createEventBuilder({
           category: 'Banner Select',
-          properties: {
-            name: slideId,
-            ...extraProperties,
-          },
-        }).build(),
+        })
+          .addProperties({
+            name: slideName,
+          })
+          .build(),
       );
-
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      if (isSolanaBanner && lastSelectedSolanaAccount) {
-        return Engine.setSelectedAddress(lastSelectedSolanaAccount.address);
-      }
-      ///: END:ONLY_INCLUDE_IF
 
       if (navigation.type === 'url') {
         return openUrl(navigation.href)();
@@ -427,29 +381,23 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         return navigate(navigation.route);
       }
     },
-    [
-      trackEvent,
-      createEventBuilder,
-      navigate,
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      lastSelectedSolanaAccount,
-      ///: END:ONLY_INCLUDE_IF
-    ],
+    [trackEvent, createEventBuilder, navigate],
   );
 
   const handleTransitionToNextCard = useCallback(
     async (slideId: string) => {
-      if (isAnimating.current) return;
+      if (isAnimating) return;
 
-      isAnimating.current = true;
+      setIsAnimating(true);
       setIsTransitioning(true);
 
       // Check if next card is the empty card (last non-empty slide being dismissed)
-      const isNextCardEmpty = nextSlide?.variableName === 'empty';
+      const isNextCardEmpty =
+        nextSlide && getSlideVariableName(nextSlide) === 'empty';
 
       // Set flag to keep empty card visible during dismissal animation
       if (isNextCardEmpty) {
-        dismissingLastCardRef.current = true;
+        setIsDismissingLastCard(true);
       }
 
       try {
@@ -457,6 +405,23 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
         // After animation, dismiss banner immediately so Redux knows it's gone
         dispatch(dismissBanner(slideId));
+
+        // Track the dismissal so the analytics funnel shows a "Banner Dismissed"
+        // event between two consecutive "Banner Display" events.
+        const dismissedSlide = visibleSlides.find(
+          (slide) => slide.id === slideId,
+        );
+        trackEvent(
+          createEventBuilder({
+            category: BANNER_EVENT_DISMISSED,
+          })
+            .addProperties({
+              name: dismissedSlide
+                ? getSlideAnalyticsName(dismissedSlide)
+                : slideId,
+            })
+            .build(),
+        );
 
         // Set up animations based on what's next
         requestAnimationFrame(() => {
@@ -486,20 +451,22 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
           }
 
           setIsTransitioning(false);
-          isAnimating.current = false;
+          setIsAnimating(false);
         });
       } catch (error) {
         console.error('Transition to next card failed:', error);
-        dismissingLastCardRef.current = false;
+        setIsDismissingLastCard(false);
         setIsTransitioning(false);
-        isAnimating.current = false;
+        setIsAnimating(false);
       }
     },
     [
       transitionToNextCard,
       dispatch,
+      trackEvent,
+      createEventBuilder,
       safeActiveSlideIndex,
-      visibleSlides.length,
+      visibleSlides,
       nextSlide,
       currentCardOpacity,
       currentCardScale,
@@ -508,13 +475,14 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       nextCardOpacity,
       nextCardScale,
       nextCardTranslateY,
+      isAnimating,
     ],
   );
 
   const handleTransitionToEmpty = useCallback(async () => {
-    if (isAnimating.current) return;
+    if (isAnimating) return;
 
-    isAnimating.current = true;
+    setIsAnimating(true);
 
     try {
       // Trigger empty state component (fold-up and remove carousel)
@@ -524,22 +492,22 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         // state are synchronized. If this flag were not reset at this point, future
         // transitions to the empty state would be blocked, causing the carousel to get
         // stuck and preventing further dismissals or animations.
-        dismissingLastCardRef.current = false;
+        setIsDismissingLastCard(false);
         onEmptyState?.();
         setIsCarouselVisible(false);
       });
 
-      isAnimating.current = false;
+      setIsAnimating(false);
     } catch (error) {
       console.error('Transition to empty failed:', error);
-      dismissingLastCardRef.current = false;
-      isAnimating.current = false;
+      setIsDismissingLastCard(false);
+      setIsAnimating(false);
     }
-  }, [transitionToEmpty, onEmptyState]);
+  }, [transitionToEmpty, onEmptyState, isAnimating]);
 
   const renderCard = useCallback(
     (slide: CarouselSlide, isCurrentCard: boolean) => {
-      const isEmptyCard = slide.variableName === 'empty';
+      const isEmptyCard = getSlideVariableName(slide) === 'empty';
 
       if (isEmptyCard) {
         return (
@@ -589,51 +557,36 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     ],
   );
 
-  // Track banner display events when visible slides change
+  // Track a banner display only when a real banner becomes the current card.
   useEffect(() => {
-    visibleSlides.forEach((slide: CarouselSlide) => {
-      trackEvent(
-        createEventBuilder({
-          category: 'Banner Display',
-          properties: {
-            name: slide.variableName ?? slide.id,
-          },
-        }).build(),
-      );
-    });
-  }, [visibleSlides, trackEvent, createEventBuilder]);
-
-  // Track current slide display
-  useEffect(() => {
-    if (currentSlide) {
-      trackEvent(
-        createEventBuilder({
-          category: 'Banner Display',
-          properties: {
-            name: currentSlide.variableName ?? currentSlide.id,
-          },
-        }).build(),
-      );
+    if (!currentSlideId || currentSlideVariableName === 'empty') {
+      return;
     }
-  }, [currentSlide, trackEvent, createEventBuilder]);
 
-  if (
-    !isCarouselVisible ||
-    (visibleSlides.length === 0 && !isAnimating.current)
-  ) {
+    const slideAnalyticsName = currentSlideVariableName || currentSlideId;
+
+    trackEvent(
+      createEventBuilder({
+        category: BANNER_EVENT_DISPLAY,
+      })
+        .addProperties({
+          name: slideAnalyticsName,
+        })
+        .build(),
+    );
+  }, [
+    currentSlideId,
+    currentSlideVariableName,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
+  if (!isCarouselVisible || (visibleSlides.length === 0 && !isAnimating)) {
     return null;
   }
 
   return (
-    <Animated.View
-      style={[
-        tw.style('mx-4'),
-        {
-          height: carouselHeight, // Layout animation (non-native)
-        },
-        style,
-      ]}
-    >
+    <Reanimated.View style={[tw.style('mx-4'), carouselContainerStyle, style]}>
       <Animated.View
         style={{
           opacity: carouselOpacity,
@@ -702,7 +655,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
           </Box>
         </Box>
       </Animated.View>
-    </Animated.View>
+    </Reanimated.View>
   );
 };
 

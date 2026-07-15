@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   getSmartTransactionMetricsProperties,
   SmartTransactionsController,
@@ -10,6 +10,7 @@ import {
 } from '@metamask/smart-transactions-controller';
 import type { SmartTransactionsControllerInitMessenger } from '../messengers/smart-transactions-controller-messenger';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import type { AnalyticsTrackingEvent as PackageAnalyticsTrackingEvent } from '@metamask/analytics-controller';
 import { trace } from '../../../util/trace';
 import { getAllowedSmartTransactionsChainIds } from '../../../constants/smartTransactions';
 import { setSentinelApiAuth } from '../../../util/transactions/sentinel-api';
@@ -21,7 +22,7 @@ import { setSentinelApiAuth } from '../../../util/transactions/sentinel-api';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const smartTransactionsControllerInit: ControllerInitFunction<
+export const smartTransactionsControllerInit: MessengerClientInitFunction<
   SmartTransactionsController,
   SmartTransactionsControllerMessenger,
   SmartTransactionsControllerInitMessenger
@@ -40,7 +41,11 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
         .addSensitiveProperties(params.sensitiveProperties)
         .build();
 
-      initMessenger.call('AnalyticsController:trackEvent', event);
+      // Cast needed until @metamask/analytics-controller removes saveDataRecording from its AnalyticsTrackingEvent
+      initMessenger.call(
+        'AnalyticsController:trackEvent',
+        event as unknown as PackageAnalyticsTrackingEvent,
+      );
     } catch (error) {
       // Analytics tracking failures should not break smart transactions
       // Error is logged but not thrown
@@ -55,7 +60,7 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
   const getBearerToken = async (): Promise<string | undefined> => {
     try {
       return await Promise.resolve(
-        initMessenger.call('AuthenticationController:getBearerToken'),
+        controllerMessenger.call('AuthenticationController:getBearerToken'),
       );
     } catch {
       return undefined;
@@ -74,7 +79,6 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
     // transactions.
     getMetaMetricsProps: () => Promise.resolve({}),
     trackMetaMetricsEvent,
-    getBearerToken,
 
     // @ts-expect-error: Type of `TraceRequest` is different.
     trace,

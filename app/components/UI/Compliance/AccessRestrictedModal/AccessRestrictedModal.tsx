@@ -1,15 +1,15 @@
 import React from 'react';
 import {
+  BottomSheet,
+  BottomSheetHeader,
   Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
   ButtonBase,
   ButtonBaseSize,
-  BottomSheetHeader,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
-import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../locales/i18n';
 import { AccessRestrictedModalProps } from './AccessRestrictedModal.types';
 import { AccessRestrictedModalSelectorsIDs } from './AccessRestrictedModal.testIds';
@@ -23,13 +23,12 @@ const AccessRestrictedModal: React.FC<AccessRestrictedModalProps> = ({
 
   return (
     <BottomSheet
-      shouldNavigateBack={false}
       onClose={onClose}
       testID={AccessRestrictedModalSelectorsIDs.BOTTOM_SHEET}
     >
       <BottomSheetHeader
         onClose={onClose}
-        titleTestID={AccessRestrictedModalSelectorsIDs.TITLE}
+        textProps={{ testID: AccessRestrictedModalSelectorsIDs.TITLE }}
       >
         {strings('access_restricted.title')}
       </BottomSheetHeader>

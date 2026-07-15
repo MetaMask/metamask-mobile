@@ -1,8 +1,10 @@
 import React from 'react';
-import Text, {
-  TextVariant,
+import {
+  FontWeight,
+  Text,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { Linking, Switch, View } from 'react-native';
@@ -14,11 +16,12 @@ import SECURITY_ALERTS_TOGGLE_TEST_ID from '../constants';
 import createStyles from './BlockaidSettings.styles';
 import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { SECURITY_ALERTS_URL } from '../../../../../constants/urls';
 
 const BlockaidSettings = () => {
   const theme = useTheme();
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useAnalytics();
+  const { trackEvent, createEventBuilder, identify } = useAnalytics();
   const styles = createStyles();
   const securityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
 
@@ -38,7 +41,7 @@ const BlockaidSettings = () => {
         .build(),
     );
 
-    addTraitsToUser({
+    identify({
       [UserProfileProperty.SECURITY_PROVIDERS]: newSecurityAlertsEnabledState
         ? 'blockaid'
         : '',
@@ -48,7 +51,11 @@ const BlockaidSettings = () => {
   return (
     <>
       <View style={styles.marginedSwitchElement}>
-        <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+        <Text
+          color={TextColor.TextDefault}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+        >
           {strings('app_settings.security_alerts')}
         </Text>
         <Switch
@@ -66,18 +73,17 @@ const BlockaidSettings = () => {
       </View>
 
       <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
         style={styles.desc}
       >
         {strings('app_settings.blockaid_desc')}{' '}
         <Text
-          color={TextColor.Alternative}
-          onPress={() =>
-            Linking.openURL(
-              'https://support.metamask.io/privacy-and-security/how-to-turn-on-security-alerts/',
-            )
-          }
+          color={TextColor.TextAlternative}
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          onPress={() => Linking.openURL(SECURITY_ALERTS_URL)}
         >
           {strings('app_settings.learn_more')}
         </Text>

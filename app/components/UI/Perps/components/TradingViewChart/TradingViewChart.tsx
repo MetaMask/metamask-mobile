@@ -17,7 +17,7 @@ import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
 import { Platform } from 'react-native';
 import { LIGHTWEIGHT_CHARTS_LIBRARY } from '../../../../../lib/lightweight-charts/LightweightChartsLib';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import { playImpact, ImpactMoment } from '../../../../../util/haptics';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import {
   formatPerpsFiat,
@@ -32,8 +32,11 @@ export interface TPSLLines {
   currentPrice?: string;
 }
 
-export { type TimeDuration } from '@metamask/perps-controller';
-import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
+export type { TimeDuration } from '@metamask/perps-controller';
+import {
+  CANDLE_DATA_SOURCE,
+  PERPS_CHART_CONFIG,
+} from '../../constants/chartConfig';
 
 export interface OhlcData {
   open: string;
@@ -96,10 +99,29 @@ const TradingViewChart = React.forwardRef<
     const [isChartReady, setIsChartReady] = useState(false);
     const [webViewError, setWebViewError] = useState<string | null>(null);
     const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
+    // Bumped on every CHART_READY message (including re-fires after a WebView
+    // reload/remount while isChartReady was already true, e.g. iOS reclaiming
+    // the WKWebView content process in the background). Included in the send-
+    // effect deps below so a reload always triggers a resend of currently-held
+    // candle data instead of leaving the newly-blanked chart stuck empty.
+    const [chartReadyNonce, setChartReadyNonce] = useState(0);
     // Buffer for candle data that arrives before WebView is ready (Android fix)
     const pendingCandleDataRef = useRef<{
       data: CandleData;
       timestamp: number;
+    } | null>(null);
+    // Signature of the last dataset sent to the WebView. Used to route updates:
+    // - SET_CANDLESTICK_DATA (full reload) for initial load, symbol/interval change,
+    //   history prepend, or first send after a WebView remount (null signature).
+    // - UPDATE_LAST_CANDLE (incremental) for live ticks and single-bar appends on
+    //   the same symbol/interval/firstTime. Avoids full-chart resets on every tick
+    //   which caused viewport jumps when revisiting a cached interval.
+    const lastSentSignatureRef = useRef<{
+      symbol: string;
+      interval: string;
+      firstTime: number;
+      count: number;
+      lastTime: number;
     } | null>(null);
 
     // Format OHLC values using the same formatting as the header
@@ -250,7 +272,14 @@ const TradingViewChart = React.forwardRef<
 
           switch (message.type) {
             case 'CHART_READY':
+              // WebView (re)mounted — the chart has no data, so the next send
+              // must be a full reload regardless of prior signature state.
+              lastSentSignatureRef.current = null;
               setIsChartReady(true);
+              // Force the send-effect to re-run even if isChartReady was
+              // already true (e.g. the WebView silently reloaded in the
+              // background and re-fired CHART_READY) so the chart repaints.
+              setChartReadyNonce((n) => n + 1);
               onChartReady?.();
               break;
             case 'PRICE_LINES_UPDATE':
@@ -269,7 +298,7 @@ const TradingViewChart = React.forwardRef<
                   message.data.low !== ohlcData.low ||
                   message.data.close !== ohlcData.close)
               ) {
-                impactAsync(ImpactFeedbackStyle.Light);
+                playImpact(ImpactMoment.ChartCrosshair);
               }
               setOhlcData(message.data);
               break;
@@ -379,8 +408,6 @@ const TradingViewChart = React.forwardRef<
       // Chart is ready - send data
       if (!webViewRef.current) return;
 
-      let dataToSend = null;
-      let dataSource = 'none';
       let dataToUse: CandleData | null = null;
 
       // Check for pending buffered data first (Android case)
@@ -391,8 +418,11 @@ const TradingViewChart = React.forwardRef<
         dataToUse = candleData;
       }
 
-      // If no data available, clear the chart to prevent stale data display
+      // If no data available, clear the chart to prevent stale data display.
+      // Also reset the signature so the next data send is a full reload — the
+      // WebView chart no longer holds any candles to incrementally update.
       if (!dataToUse?.candles?.length) {
+        lastSentSignatureRef.current = null;
         webViewRef.current.postMessage(
           JSON.stringify({
             type: 'CLEAR_DATA',
@@ -411,22 +441,77 @@ const TradingViewChart = React.forwardRef<
           return;
         }
 
-        dataToSend = formatCandleData(dataToUse);
-        dataSource = 'real';
-      }
-
-      if (dataToSend) {
-        const message = {
-          type: 'SET_CANDLESTICK_DATA',
-          data: dataToSend,
-          source: dataSource,
-          visibleCandleCount,
-          interval: dataToUse?.interval, // Pass interval for zoom reset on change
+        // Compute signature for incremental-vs-full routing.
+        // Times are read from the raw CandleData (milliseconds) — only used
+        // for equality checks, so the unit doesn't matter as long as it's stable.
+        const firstCandle = dataToUse.candles[0];
+        const lastCandle = dataToUse.candles[dataToUse.candles.length - 1];
+        const nextSignature = {
+          symbol: dataToUse.symbol,
+          interval: dataToUse.interval,
+          firstTime: firstCandle.time,
+          count: dataToUse.candles.length,
+          lastTime: lastCandle.time,
         };
-        webViewRef.current.postMessage(JSON.stringify(message));
+
+        const prev = lastSentSignatureRef.current;
+
+        // Treat as an incremental (live) update only when:
+        // 1. We have previously sent a full dataset for this chart instance.
+        // 2. Symbol, interval, and firstTime are unchanged (no history prepend
+        //    or dataset swap).
+        // 3. Count is unchanged (tick on current bar) or grew by exactly 1
+        //    (a new bar was appended).
+        // Any other change (history prepend, interval/symbol switch, count
+        // decrease, multi-bar jump) falls through to a full reload.
+        const canIncrementalUpdate =
+          prev !== null &&
+          prev.symbol === nextSignature.symbol &&
+          prev.interval === nextSignature.interval &&
+          prev.firstTime === nextSignature.firstTime &&
+          (nextSignature.count === prev.count ||
+            nextSignature.count === prev.count + 1);
+
+        // Route BEFORE formatting so live ticks only format the 1-2 tail candles
+        // they actually send, instead of re-formatting the entire (up to ~1000)
+        // candle array on every tick.
+        if (canIncrementalUpdate) {
+          const isNewBar = nextSignature.count === prev.count + 1;
+          // Send the last candle for same-count ticks, or the last two candles
+          // for a bar-close transition (previous bar may have been finalized
+          // at a different close than its last streamed value).
+          const sliceSize = isNewBar ? 2 : 1;
+          const incrementalCandles = formatCandleData({
+            ...dataToUse,
+            candles: dataToUse.candles.slice(-sliceSize),
+          });
+          webViewRef.current.postMessage(
+            JSON.stringify({
+              type: 'UPDATE_LAST_CANDLE',
+              candles: incrementalCandles,
+              isNewBar,
+              previousCandleCount: prev.count,
+              nextCandleCount: nextSignature.count,
+              previousLastTime: prev.lastTime,
+              nextLastTime: nextSignature.lastTime,
+            }),
+          );
+        } else {
+          const message = {
+            type: 'SET_CANDLESTICK_DATA',
+            data: formatCandleData(dataToUse),
+            source: CANDLE_DATA_SOURCE,
+            visibleCandleCount,
+            interval: dataToUse.interval, // Pass interval for zoom reset on change
+          };
+          webViewRef.current.postMessage(JSON.stringify(message));
+        }
+
+        lastSentSignatureRef.current = nextSignature;
       }
     }, [
       isChartReady,
+      chartReadyNonce,
       candleDataVersion,
       formatCandleData,
       candleData,

@@ -7,11 +7,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -25,7 +25,11 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOrderFees } from '../../hooks/usePerpsOrderFees';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import { TraceName } from '../../../../../util/trace';
-import { PERPS_CONSTANTS, type Order } from '@metamask/perps-controller';
+import {
+  getPerpsDisplaySymbol,
+  PERPS_CONSTANTS,
+  type Order,
+} from '@metamask/perps-controller';
 import styleSheet from './PerpsOrderDetailsView.styles';
 import { PerpsOrderDetailsViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
@@ -33,6 +37,7 @@ import {
   formatPerpsFiat,
   formatPositionSize,
   formatOrderCardDate,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import {
   formatOrderLabel,
@@ -131,11 +136,15 @@ const PerpsOrderDetailsView: React.FC = () => {
     const priceText =
       isMarketExecution || validOrderPrice === null
         ? strings('perps.order_details.market')
-        : formatPerpsFiat(validOrderPrice);
+        : formatPerpsFiat(validOrderPrice, {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          });
 
     let triggerCondition: string | undefined;
     if (order.isTrigger && validTriggerPrice !== null) {
-      const formattedTriggerPrice = formatPerpsFiat(validTriggerPrice);
+      const formattedTriggerPrice = formatPerpsFiat(validTriggerPrice, {
+        ranges: PRICE_RANGES_UNIVERSAL,
+      });
       const conditionKey = inferTriggerConditionKey({
         detailedOrderType: order.detailedOrderType,
         side: order.side,
@@ -175,10 +184,14 @@ const PerpsOrderDetailsView: React.FC = () => {
         ? strings('perps.order_details.yes')
         : strings('perps.order_details.no'),
       takeProfitPriceText: hasTakeProfitPrice
-        ? formatPerpsFiat(parsedTakeProfitPrice)
+        ? formatPerpsFiat(parsedTakeProfitPrice, {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          })
         : undefined,
       stopLossPriceText: hasStopLossPrice
-        ? formatPerpsFiat(parsedStopLossPrice)
+        ? formatPerpsFiat(parsedStopLossPrice, {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          })
         : undefined,
     };
   }, [order, priceMetrics]);
@@ -242,6 +255,8 @@ const PerpsOrderDetailsView: React.FC = () => {
     return null;
   }
 
+  const displaySymbol = getPerpsDisplaySymbol(order.symbol);
+
   const detailRows: DetailRow[] = [
     {
       key: 'date',
@@ -283,13 +298,13 @@ const PerpsOrderDetailsView: React.FC = () => {
     {
       key: 'size',
       label: strings('perps.order_details.size'),
-      value: `${formatPositionSize(parseFloat(order.size))} ${order.symbol}`,
+      value: `${formatPositionSize(Number.parseFloat(order.size))} ${displaySymbol}`,
     },
     {
       key: 'original-size',
       label: strings('perps.order_details.original_size'),
-      value: `${formatPositionSize(parseFloat(order.originalSize))} ${
-        order.symbol
+      value: `${formatPositionSize(Number.parseFloat(order.originalSize))} ${
+        displaySymbol
       }`,
     },
     {
@@ -341,7 +356,7 @@ const PerpsOrderDetailsView: React.FC = () => {
             <PerpsTokenLogo symbol={order.symbol} size={48} />
           </View>
           <Text variant={TextVariant.HeadingLG} style={styles.assetName}>
-            {order.symbol}
+            {displaySymbol}
           </Text>
         </View>
 
@@ -400,15 +415,16 @@ const PerpsOrderDetailsView: React.FC = () => {
       {canCancel ? (
         <View style={styles.footer}>
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             isDanger
-            label={strings('perps.order_details.cancel_order')}
             onPress={handleCancelOrder}
-            loading={isCanceling}
+            isLoading={isCanceling}
             testID={PerpsOrderDetailsViewSelectorsIDs.CANCEL_BUTTON}
-          />
+          >
+            {strings('perps.order_details.cancel_order')}
+          </Button>
         </View>
       ) : null}
     </SafeAreaView>

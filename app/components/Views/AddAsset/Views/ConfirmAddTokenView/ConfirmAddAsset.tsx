@@ -1,16 +1,10 @@
-import React, { useCallback, useEffect } from 'react';
-import { Platform, SafeAreaView } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import getHeaderCompactStandardNavbarOptions from '../../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import {
   ButtonSize,
   ButtonVariants,
@@ -18,115 +12,90 @@ import {
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
+import ListItem from '../../../../../component-library/components/List/ListItem';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
-import { Hex } from '@metamask/utils';
-import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { FlashList } from '@shopify/flash-list';
 import {
   Box,
-  BoxFlexDirection,
-  BoxAlignItems,
+  HeaderStandard,
   Text,
   TextVariant,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { ImportAsset } from '../../utils/utils';
+import AddAssetTokenRow from '../../components/AddAssetTokenRow/AddAssetTokenRow';
+import Logger from '../../../../../util/Logger';
 
 const ConfirmAddAsset = () => {
   const { selectedAsset, networkName, addTokenList } = useParams<{
     selectedAsset: ImportAsset[];
     networkName: string;
-    addTokenList: () => void;
+    addTokenList: () => Promise<void>;
   }>();
 
   const tw = useTailwind();
   const navigation = useNavigation();
+  const [isImporting, setIsImporting] = useState(false);
 
   /**
    * Go to wallet page
    */
-  const goToWalletPage = () => {
+  const goToWalletPage = useCallback(() => {
     navigation.navigate(Routes.WALLET.HOME, {
       screen: Routes.WALLET.TAB_STACK_FLOW,
       params: {
         screen: Routes.WALLET_VIEW,
       },
     });
-  };
-
-  const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getHeaderCompactStandardNavbarOptions({
-        title: strings(`add_asset.title`),
-        onBack: () => navigation.goBack(),
-        includesTopInset: true,
-      }),
-    );
   }, [navigation]);
 
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
+  const handleImport = useCallback(async () => {
+    if (isImporting) {
+      return;
+    }
+
+    setIsImporting(true);
+
+    try {
+      await addTokenList();
+      goToWalletPage();
+    } catch (error) {
+      Logger.error(error as Error, 'ConfirmAddAsset: failed to import tokens');
+      setIsImporting(false);
+    }
+  }, [addTokenList, goToWalletPage, isImporting]);
 
   return (
     <SafeAreaView
-      style={tw.style('flex-1 py-4 bg-default')}
+      edges={['left', 'right', 'bottom']}
+      style={tw.style('flex-1 bg-default')}
       testID={ImportTokenViewSelectorsIDs.ADD_CONFIRM_CUSTOM_ASSET}
     >
-      <Text variant={TextVariant.BodyMd} style={tw.style('text-center')}>
-        {selectedAsset.length > 1
-          ? strings('wallet.import_tokens')
-          : strings('wallet.import_token')}
-      </Text>
-
-      <FlashList
-        data={selectedAsset}
-        style={tw.style('bg-default p-4')}
-        renderItem={({ item: asset, index }) => (
-          <Box
-            key={index}
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="mr-2.5 gap-5 py-2.5"
-          >
-            <Box>
-              <BadgeWrapper
-                badgePosition={BadgePosition.BottomRight}
-                badgeElement={
-                  <Badge
-                    variant={BadgeVariant.Network}
-                    imageSource={NetworkBadgeSource(asset.chainId as Hex)}
-                    name={networkName}
-                  />
-                }
-              >
-                {asset.image && (
-                  <AvatarToken
-                    name={asset.symbol}
-                    imageSource={{ uri: asset.image }}
-                    size={AvatarSize.Lg}
-                  />
-                )}
-              </BadgeWrapper>
-            </Box>
-
-            <Box>
-              <Text variant={TextVariant.BodyLg}>{asset.name}</Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                style={tw.style('uppercase')}
-              >
-                {asset.symbol}
-              </Text>
-            </Box>
-          </Box>
-        )}
-        keyExtractor={(_, index) => `token-search-row-${index}`}
+      <HeaderStandard
+        title={strings('add_asset.title')}
+        onBack={() => navigation.goBack()}
+        includesTopInset
       />
+
+      <Box twClassName="flex-1 pt-2">
+        <Text variant={TextVariant.BodyMd} style={tw.style('text-center px-4')}>
+          {selectedAsset.length > 1
+            ? strings('wallet.import_tokens')
+            : strings('wallet.import_token')}
+        </Text>
+
+        <FlashList
+          data={selectedAsset}
+          style={tw.style('flex-1 bg-default')}
+          contentContainerStyle={tw.style('pt-6 px-6 pb-4')}
+          renderItem={({ item: asset, index }) => (
+            <ListItem key={index} gap={20} style={tw.style('p-0')}>
+              <AddAssetTokenRow asset={asset} networkName={networkName} />
+            </ListItem>
+          )}
+          keyExtractor={(_, index) => `token-search-row-${index}`}
+        />
+      </Box>
 
       <BottomSheetFooter
         buttonPropsArray={[
@@ -135,19 +104,19 @@ const ConfirmAddAsset = () => {
             label: strings('confirmation_modal.cancel_cta'),
             variant: ButtonVariants.Secondary,
             size: ButtonSize.Lg,
+            isDisabled: isImporting,
           },
           {
-            onPress: async () => {
-              await addTokenList();
-              goToWalletPage();
-            },
+            onPress: handleImport,
             label: strings('swaps.Import'),
             variant: ButtonVariants.Primary,
             size: ButtonSize.Lg,
+            loading: isImporting,
+            isDisabled: isImporting,
           },
         ]}
         buttonsAlignment={ButtonsAlignment.Horizontal}
-        style={tw.style('px-4 pt-6', Platform.OS !== 'android' && 'pb-4')}
+        style={tw.style('px-4 pt-4', Platform.OS !== 'android' && 'pb-4')}
       />
     </SafeAreaView>
   );

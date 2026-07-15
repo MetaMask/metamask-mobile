@@ -8,8 +8,8 @@ import { NetworkDetailsViewSelectorsIDs } from '../NetworkDetailsView.testIds';
 import type { NetworkDetailsStyles } from '../NetworkDetailsView.styles';
 
 interface RpcFormFieldsProps {
-  inputRpcURL: React.RefObject<TextInput>;
-  inputNameRpcURL: React.RefObject<TextInput>;
+  inputRpcURL: React.RefObject<TextInput | null>;
+  inputNameRpcURL: React.RefObject<TextInput | null>;
   rpcUrlForm: string;
   rpcNameForm: string;
   isRpcUrlFieldFocused: boolean;

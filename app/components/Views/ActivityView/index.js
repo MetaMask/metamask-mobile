@@ -1,8 +1,9 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { BackHandler, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { ActivitiesViewSelectorsIDs } from './ActivitiesView.testIds';
 import { strings } from '../../../../locales/i18n';
@@ -10,23 +11,25 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import TextComponent, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { KnownCaipNamespace } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
+import Routes from '../../../constants/navigation/Routes';
 import { useParams } from '../../../util/navigation/navUtils';
 import { getNetworkImageSource } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
 import { TabsList } from '../../../component-library/components-temp/Tabs';
 import { createNetworkManagerNavDetails } from '../../UI/NetworkManager';
+import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import PredictTransactionsView from '../../UI/Predict/views/PredictTransactionsView/PredictTransactionsView';
@@ -37,53 +40,32 @@ import RampOrdersList from '../../UI/Ramp/Aggregator/Views/OrdersList';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import {
   NetworkType,
-  useNetworksByNamespace,
+  useNetworksByCustomNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../hooks/useStyles';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import UnifiedTransactionsView from '../UnifiedTransactionsView/UnifiedTransactionsView';
+import styleSheet from './ActivityView.styles';
+import { selectIsActivityRedesignEnabled } from './selectors/featureFlags';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter enum; route-isolation backlog
+import { ActivityTypeFilter } from '../ActivityScreen/types';
 
-const createStyles = (params) => {
-  const { theme } = params;
-  const { colors } = theme;
-  return StyleSheet.create({
-    tabWrapper: {
-      flex: 1,
-      backgroundColor: colors.background.default,
-    },
-    controlButtonOuterWrapper: {
-      flexDirection: 'row',
-      width: '100%',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginVertical: 8,
-      paddingHorizontal: 16,
-    },
-    controlButton: {
-      backgroundColor: colors.background.default,
-      borderColor: colors.border.muted,
-      borderWidth: 1,
-      borderRadius: 8,
-      maxWidth: '80%',
-      paddingHorizontal: 12,
-    },
-    networkManagerWrapper: {
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
-    titleText: {
-      color: colors.text.default,
-    },
-  });
-};
+// Lazily loaded so the redesigned Activity screen and its dependencies are not
+// evaluated when `tmcuActivityRedesignEnabled` is off, keeping the legacy path
+// fully isolated.
+const ActivityScreen = React.lazy(
+  () =>
+    // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+    import('../ActivityScreen/ActivityScreen'),
+);
 
-const ActivityView = () => {
+const LegacyActivityView = () => {
   const { colors } = useTheme();
   const tw = useTailwind();
 
-  const { styles } = useStyles(createStyles);
+  const { styles } = useStyles(styleSheet, {});
 
   const navigation = useNavigation();
 
@@ -92,17 +74,28 @@ const ActivityView = () => {
   const networkName = useSelector(selectNetworkName);
 
   const { enabledNetworks, getNetworkInfo } = useCurrentNetworkInfo();
-  const { areAllNetworksSelected } = useNetworksByNamespace({
+  const {
+    areAllNetworksSelected: areAllEvmPopularNetworksEnabled,
+    totalEnabledNetworksCount,
+  } = useNetworksByCustomNamespace({
     networkType: NetworkType.Popular,
+    namespace: KnownCaipNamespace.Eip155,
   });
 
+  const displayAllNetworks = totalEnabledNetworksCount > 1;
+  const showNetworkFilterAvatar =
+    !displayAllNetworks && !areAllEvmPopularNetworksEnabled;
+
   const currentNetworkName = getNetworkInfo(0)?.networkName;
+
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
 
   const params = useParams();
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(
-    () => perpsEnabledFlag && isEvmSelected,
-    [perpsEnabledFlag, isEvmSelected],
+    () =>
+      perpsEnabledFlag && (isEvmSelected || areAllEvmPopularNetworksEnabled),
+    [perpsEnabledFlag, isEvmSelected, areAllEvmPopularNetworksEnabled],
   );
   const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
   const isPredictEnabled = useMemo(
@@ -114,18 +107,43 @@ const ActivityView = () => {
     navigation.navigate(...createNetworkManagerNavDetails({}));
   };
 
-  const handleBackPress = useCallback(() => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-    }
+  // Prevent back button returning to confirmation screen in case that users are redirected after a successful transaction.
+  const handleNavigateHome = useCallback(() => {
+    navigation.navigate(Routes.HOME_TABS);
   }, [navigation]);
 
-  const showBackButton = params.showBackButton || false;
+  const handleBackPress = useCallback(() => {
+    if (isMoneyAccountEnabled) {
+      handleNavigateHome();
+    } else if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
+  }, [isMoneyAccountEnabled, navigation, handleNavigateHome]);
+
+  useEffect(() => {
+    if (!isMoneyAccountEnabled) return;
+
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        handleNavigateHome();
+        return true;
+      },
+    );
+
+    return () => subscription.remove();
+  }, [navigation, isMoneyAccountEnabled, handleNavigateHome]);
+
+  const showBackButton = params.showBackButton || isMoneyAccountEnabled;
 
   // Calculate dynamic tab indices based on which tabs are enabled
   // Tab order: Transactions (0), Orders (1), Perps (conditional), Predict (conditional)
   // Perps comes after Transactions (0) and Orders (1)
   const perpsTabIndex = useMemo(() => 2, []);
+  const predictTabIndex = useMemo(
+    () => (isPerpsEnabled ? 3 : 2),
+    [isPerpsEnabled],
+  );
 
   const [initialTabIndex] = useState(() => {
     if (params.redirectToOrders) {
@@ -134,15 +152,15 @@ const ActivityView = () => {
     if (isPerpsEnabled && params.redirectToPerpsTransactions) {
       return perpsTabIndex;
     }
+    if (
+      isPredictEnabled &&
+      params.initialTypeFilter === ActivityTypeFilter.Predictions
+    ) {
+      return predictTabIndex;
+    }
     return 0;
   });
   const [activeTabIndex, setActiveTabIndex] = useState(initialTabIndex);
-
-  // Predict comes after Transactions (0), Orders (1), and optionally Perps
-  const predictTabIndex = useMemo(
-    () => (isPerpsEnabled ? 3 : 2),
-    [isPerpsEnabled],
-  );
 
   const isPerpsTabActive = isPerpsEnabled && activeTabIndex === perpsTabIndex;
   const isPredictTabActive =
@@ -161,6 +179,9 @@ const ActivityView = () => {
       if (params.redirectToPerpsTransactions) {
         nextParams.redirectToPerpsTransactions = false;
       }
+      if (params.initialTypeFilter) {
+        nextParams.initialTypeFilter = undefined;
+      }
       if (Object.keys(nextParams).length > 0) {
         navigation.setParams(nextParams);
       }
@@ -168,6 +189,7 @@ const ActivityView = () => {
       navigation,
       params.redirectToOrders,
       params.redirectToPerpsTransactions,
+      params.initialTypeFilter,
     ]),
   );
 
@@ -180,7 +202,7 @@ const ActivityView = () => {
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
       <SafeAreaView
-        edges={{ top: 'additive' }}
+        edges={['left', 'right', 'bottom']}
         style={[
           tw.style('flex-1'),
           { backgroundColor: colors.background.default },
@@ -188,15 +210,17 @@ const ActivityView = () => {
         testID={ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW}
       >
         {showBackButton ? (
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('activity_view.title')}
             onBack={handleBackPress}
+            includesTopInset
             backButtonProps={{ testID: 'activity-view-back-button' }}
             testID={ActivitiesViewSelectorsIDs.HEADER_COMPACT_STANDARD}
           />
         ) : (
           <HeaderRoot
             title={strings('activity_view.title')}
+            includesTopInset
             testID={ActivitiesViewSelectorsIDs.HEADER_ROOT}
           />
         )}
@@ -219,7 +243,7 @@ const ActivityView = () => {
                   label={
                     <>
                       <View style={styles.networkManagerWrapper}>
-                        {!areAllNetworksSelected && (
+                        {showNetworkFilterAvatar && (
                           <Avatar
                             variant={AvatarVariant.Network}
                             size={AvatarSize.Xs}
@@ -231,7 +255,7 @@ const ActivityView = () => {
                           variant={TextVariant.BodyMDMedium}
                           numberOfLines={1}
                         >
-                          {enabledNetworks.length > 1
+                          {displayAllNetworks
                             ? strings('wallet.popular_networks')
                             : (currentNetworkName ??
                               strings('wallet.current_network'))}
@@ -283,6 +307,20 @@ const ActivityView = () => {
         </Box>
       </SafeAreaView>
     </ErrorBoundary>
+  );
+};
+
+const ActivityView = () => {
+  const isActivityRedesignEnabled = useSelector(
+    selectIsActivityRedesignEnabled,
+  );
+
+  return isActivityRedesignEnabled ? (
+    <React.Suspense fallback={null}>
+      <ActivityScreen />
+    </React.Suspense>
+  ) : (
+    <LegacyActivityView />
   );
 };
 

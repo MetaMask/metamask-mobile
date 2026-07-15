@@ -1,63 +1,76 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   MultichainRoutingService,
   type MultichainRoutingServiceMessenger,
 } from '@metamask/snaps-controllers';
 import { MultichainRoutingServiceInitMessenger } from '../messengers/multichain-routing-service-messenger';
-import { SnapKeyring } from '@metamask/eth-snap-keyring';
-import { KeyringTypes } from '@metamask/keyring-controller';
+import { isSnapKeyring } from '@metamask/eth-snap-keyring/v2';
+import type { Json } from '@metamask/utils';
+
+type WithSnapKeyringFn = ConstructorParameters<
+  typeof MultichainRoutingService
+>[0]['withSnapKeyring'];
+
+/**
+ * Route a request through the Snap keyring that owns the requested account.
+ *
+ * @param initMessenger - The init messenger used to call KeyringController.
+ * @param operation - The operation to run once a keyring is resolved.
+ * @returns The result of the operation.
+ */
+export async function withSnapKeyring(
+  initMessenger: MultichainRoutingServiceInitMessenger,
+  operation: Parameters<WithSnapKeyringFn>[0],
+): ReturnType<WithSnapKeyringFn> {
+  return operation({
+    keyring: {
+      submitRequest: async (request): Promise<Json> =>
+        initMessenger.call(
+          'KeyringController:withKeyringV2',
+          {
+            filter: (keyring) =>
+              isSnapKeyring(keyring) && keyring.hasAccount(request.account),
+          },
+          async ({ keyring }) => {
+            if (!isSnapKeyring(keyring)) {
+              throw new Error('Expected v2 Snap keyring');
+            }
+            return keyring.submitRequest({
+              // NOTE: The `id` field is required but not used in this context. The Snap keyring will
+              // generate its own unique ID for the request.
+              id: '',
+              origin: request.origin,
+              scope: request.scope,
+              account: request.account,
+              request: {
+                method: request.method,
+                params: request.params,
+              },
+            });
+          },
+        ) as Promise<Json>,
+    },
+  });
+}
 
 /**
  * Initialize the multichain routing service.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the controller.
+ * @param request.initMessenger - The init messenger used to look up the
+ * per-snap v2 Snap keyring that owns the request's account.
  * @returns The initialized controller.
  */
-export const multichainRoutingServiceInit: ControllerInitFunction<
+export const multichainRoutingServiceInit: MessengerClientInitFunction<
   MultichainRoutingService,
   MultichainRoutingServiceMessenger,
   MultichainRoutingServiceInitMessenger
 > = ({ controllerMessenger, initMessenger }) => {
-  const getSnapKeyring = async (): Promise<SnapKeyring> => {
-    // TODO: Replace `getKeyringsByType` with `withKeyring`
-    let [snapKeyring] = initMessenger.call(
-      'KeyringController:getKeyringsByType',
-      KeyringTypes.snap,
-    );
-
-    if (!snapKeyring) {
-      await initMessenger.call(
-        'KeyringController:addNewKeyring',
-        KeyringTypes.snap,
-      );
-
-      // TODO: Replace `getKeyringsByType` with `withKeyring`
-      [snapKeyring] = initMessenger.call(
-        'KeyringController:getKeyringsByType',
-        KeyringTypes.snap,
-      );
-    }
-    return snapKeyring as SnapKeyring;
-  };
-
-  // This fixes an issue where `withKeyring` would lock the `KeyringController`
-  // mutex. That meant that if a snap requested a keyring operation (like
-  // requesting entropy) while the `KeyringController` was locked, it would
-  // cause a deadlock. This is a temporary fix until we can refactor how we
-  // handle requests to the Snaps Keyring.
-  const withSnapKeyring = async (
-    operation: ({ keyring }: { keyring: unknown }) => void,
-  ) => {
-    const keyring = await getSnapKeyring();
-    return operation({ keyring });
-  };
-
   const controller = new MultichainRoutingService({
     messenger: controllerMessenger,
-
-    // @ts-expect-error: Type for `withSnapKeyring` is different.
-    withSnapKeyring,
+    withSnapKeyring: <Result>(...args: Parameters<WithSnapKeyringFn>) =>
+      withSnapKeyring(initMessenger, ...args) as Promise<Result>,
   });
 
   return {

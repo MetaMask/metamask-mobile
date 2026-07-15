@@ -19,20 +19,6 @@ const mockUsePerpsOrderFees = jest.fn((_params?: unknown) => ({
 }));
 
 // Mock dependencies
-jest.mock('react-native-safe-area-context', () => {
-  const { View } = jest.requireActual('react-native');
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaView: jest
-      .fn()
-      .mockImplementation(({ children, ...props }) => (
-        <View {...props}>{children}</View>
-      )),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-  };
-});
-
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
@@ -110,6 +96,9 @@ jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn((value) => `$${value.toFixed(2)}`),
   formatPositionSize: jest.fn((value) => value.toFixed(4)),
   formatOrderCardDate: jest.fn(() => 'Nov 25, 2025'),
+  PRICE_RANGES_UNIVERSAL: [
+    { min: 0, max: Infinity, decimals: 2, threshold: 0.000001 },
+  ],
 }));
 
 // Mock component-library Button to be testable
@@ -204,6 +193,30 @@ describe('PerpsOrderDetailsView', () => {
     expect(screen.getByText('BTC')).toBeOnTheScreen();
   });
 
+  it('strips DEX prefix from visible asset symbol while preserving raw symbol for cancellation', async () => {
+    mockRouteParams = {
+      order: {
+        ...mockOrder,
+        symbol: 'xyz:MSTR',
+      },
+    };
+
+    render(<PerpsOrderDetailsView />);
+
+    expect(screen.getByText('MSTR')).toBeOnTheScreen();
+    expect(screen.getAllByText('0.5000 MSTR')).toHaveLength(2);
+    expect(screen.queryByText('xyz:MSTR')).not.toBeOnTheScreen();
+
+    fireEvent.press(screen.getByText('perps.order_details.cancel_order'));
+
+    await waitFor(() => {
+      expect(mockCancelOrder).toHaveBeenCalledWith({
+        orderId: 'order-123',
+        symbol: 'xyz:MSTR',
+      });
+    });
+  });
+
   it('renders error state when no order is provided', () => {
     mockRouteParams = {};
 
@@ -292,6 +305,24 @@ describe('PerpsOrderDetailsView', () => {
     render(<PerpsOrderDetailsView />);
 
     expect(screen.getByText('perps.order_details.price')).toBeOnTheScreen();
+  });
+
+  it('formats order price with adaptive sig-dig ranges', () => {
+    // Arrange
+    const { formatPerpsFiat: mockFormatPerpsFiat } = jest.requireMock(
+      '../../utils/formatUtils',
+    ) as { formatPerpsFiat: jest.Mock };
+
+    // Act
+    render(<PerpsOrderDetailsView />);
+
+    // Assert — the price call (50000) must pass a ranges option
+    const priceCall = mockFormatPerpsFiat.mock.calls.find(
+      (call: unknown[]) => call[0] === 50000,
+    );
+    expect(priceCall).toBeDefined();
+    expect(priceCall[1]).toBeDefined();
+    expect(priceCall[1].ranges).toBeDefined();
   });
 
   it('renders original size, order value and reduce-only rows', () => {

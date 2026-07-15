@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 
@@ -39,15 +39,15 @@ jest.mocked(useAnalytics).mockReturnValue(
   }),
 );
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 describe('ShowNftSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders the sheet title', () => {
+    const { getByText } = renderWithProvider(
       <Stack.Navigator>
         <Stack.Screen name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}>
           {() => <ShowDisplayNFTMediaSheet />}
@@ -58,7 +58,7 @@ describe('ShowNftSheet', () => {
       },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Display NFT media')).toBeOnTheScreen();
   });
 
   it('setDisplayNftMedia to true on confirm', () => {

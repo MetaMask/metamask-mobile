@@ -23,7 +23,7 @@ import TextField from '../../../../../component-library/components/Form/TextFiel
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
-import { validateEmail } from '../../../Ramp/Deposit/utils';
+import { validateEmail } from '../../../Ramp/utils/depositUtils';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import useRegions from '../../hooks/useRegions';
@@ -45,6 +45,7 @@ import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import type { Region } from '../../types';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import { HUBSPOT_WAITLIST_URL } from '../../constants';
+import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 
 const buildWaitlistUrl = (countryName: string, email?: string): string => {
   // country must come first per HubSpot field ordering
@@ -72,6 +73,15 @@ const SignUp = () => {
     isLoading: isLoadingRegistrationSettings,
   } = useRegions();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const postAuthRedirect = useCardPostAuthRedirect();
+
+  const handleAlreadyHaveAccountPress = useCallback(() => {
+    if (postAuthRedirect) {
+      navigation.navigate(Routes.CARD.AUTHENTICATION, { postAuthRedirect });
+      return;
+    }
+    navigation.navigate(Routes.CARD.AUTHENTICATION);
+  }, [navigation, postAuthRedirect]);
 
   useEffect(() => {
     trackEvent(
@@ -396,9 +406,7 @@ const SignUp = () => {
           ? strings('card.card_onboarding.sign_up.join_waitlist')
           : strings('card.card_onboarding.continue_button')}
       </Button>
-      <TouchableOpacity
-        onPress={() => navigation.navigate(Routes.CARD.AUTHENTICATION)}
-      >
+      <TouchableOpacity onPress={handleAlreadyHaveAccountPress}>
         <Text
           testID="signup-i-already-have-an-account-text"
           variant={TextVariant.BodyMd}
@@ -417,6 +425,7 @@ const SignUp = () => {
       description={strings('card.card_onboarding.sign_up.description')}
       formFields={renderFormFields()}
       actions={renderActions()}
+      headerMode="back"
     />
   );
 };

@@ -210,16 +210,10 @@ describe('QuoteSelectorView', () => {
   });
 
   describe('navigation setup', () => {
-    it('sets navigation options on mount', () => {
-      render(<QuoteSelectorView />);
+    it('renders inline header with the screen title', () => {
+      const { getByText } = render(<QuoteSelectorView />);
 
-      expect(mockSetOptions).toHaveBeenCalled();
-    });
-
-    it('calls goBack when back action is triggered', () => {
-      render(<QuoteSelectorView />);
-
-      expect(mockSetOptions).toHaveBeenCalled();
+      expect(getByText(strings('bridge.select_quote'))).toBeTruthy();
     });
   });
 

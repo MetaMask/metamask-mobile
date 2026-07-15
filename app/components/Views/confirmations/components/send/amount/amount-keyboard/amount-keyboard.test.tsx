@@ -19,6 +19,7 @@ import { useParams } from '../../../../../../../util/navigation/navUtils';
 import { useSendActions } from '../../../../hooks/send/useSendActions';
 // eslint-disable-next-line import-x/no-namespace
 import * as AmountValidation from '../../../../hooks/send/useAmountValidation';
+import { useUnreliableNetworkAlert } from '../../../../hooks/send/alerts/useUnreliableNetworkAlert';
 import { getBackgroundColor } from './amount-keyboard.styles';
 import { AmountKeyboard } from './amount-keyboard';
 
@@ -62,6 +63,10 @@ jest.mock('../../../../hooks/send/useSendActions', () => ({
   useSendActions: jest.fn(),
 }));
 
+jest.mock('../../../../hooks/send/alerts/useUnreliableNetworkAlert', () => ({
+  useUnreliableNetworkAlert: jest.fn(),
+}));
+
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -98,6 +103,7 @@ const mockUsePercentageAmount = usePercentageAmount as jest.MockedFunction<
 
 const mockUseParams = jest.mocked(useParams);
 const mockUseSendActions = jest.mocked(useSendActions);
+const mockUseUnreliableNetworkAlert = jest.mocked(useUnreliableNetworkAlert);
 
 const renderComponent = (
   mockState?: ProviderValues['state'],
@@ -140,6 +146,10 @@ describe('Amount', () => {
     mockUseSendActions.mockReturnValue({
       handleSubmitPress: mockHandleSubmitPress,
     } as unknown as ReturnType<typeof useSendActions>);
+    mockUseUnreliableNetworkAlert.mockReturnValue({
+      alert: null,
+      navigateToEditNetwork: jest.fn(),
+    });
   });
 
   it('renders correctly', () => {
@@ -190,6 +200,26 @@ describe('Amount', () => {
     const { getByText } = renderComponent();
     fireEvent.press(getByText('Continue'));
     expect(mockValidateNonEvmAmountAsync).toHaveBeenCalled();
+  });
+
+  it('disables the Continue button when the network is unreliable', () => {
+    mockUseSendContext.mockReturnValue({
+      asset: MOCK_EVM_ASSET,
+      updateAsset: jest.fn(),
+    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseUnreliableNetworkAlert.mockReturnValue({
+      alert: {
+        key: 'unreliableNetwork',
+        title: 'Unavailable network connection',
+        message: 'The connection with Ethereum is unreliable.',
+        acknowledgeButtonLabel: 'Update',
+      },
+      navigateToEditNetwork: jest.fn(),
+    });
+
+    const { getByRole } = renderComponent();
+
+    expect(getByRole('button', { name: 'Continue' })).toBeDisabled();
   });
 
   it('calls updateTo and handleSubmitPress when predefinedRecipient is provided', () => {

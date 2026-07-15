@@ -22,7 +22,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
 jest.mock('../../utils/formatUtils', () => ({
   formatPositionSize: jest.fn((value) => value),
   formatPerpsFiat: jest.fn((value) => `$${value.toFixed(2)}`),
-  PRICE_RANGES_MINIMAL_VIEW: {},
+  PRICE_RANGES_UNIVERSAL: [{ id: 'universal' }],
 }));
 
 jest.mock('@metamask/perps-controller', () => ({
@@ -155,6 +155,17 @@ describe('PerpsCompactOrderRow', () => {
 
     // Should have called formatPerpsFiat with the order price value (50000)
     expect(formatPerpsFiat).toHaveBeenCalledWith(50000, expect.any(Object));
+  });
+
+  it('formats price with PRICE_RANGES_UNIVERSAL for market-appropriate decimals', () => {
+    const { formatPerpsFiat, PRICE_RANGES_UNIVERSAL } = jest.requireMock(
+      '../../utils/formatUtils',
+    );
+    render(<PerpsCompactOrderRow order={mockLimitBuyOrder} />);
+
+    expect(formatPerpsFiat).toHaveBeenCalledWith(50000, {
+      ranges: PRICE_RANGES_UNIVERSAL,
+    });
   });
 
   it('calls onPress when tapped', () => {

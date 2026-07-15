@@ -1,23 +1,39 @@
 /**
- * Performance Test Tags for Appwright tests.
+ * Performance Test Tags for Playwright tests.
  *
  * These tags are area-specific and tool-agnostic, matching the tags defined in e2e/tags.js.
  * Use these tags to categorize and filter performance tests.
  *
  * Usage in tests:
- *   import { PerformanceLogin, PerformanceSwaps } from '../../tags.js';
+ *   import { Performance, System, PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
  *
- *   test.describe(PerformanceLogin, () => {
- *     test('My login test', async ({ device }) => { ... });
- *   });
+ *   // Both perf and system test (most common):
+ *   test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`, () => { ... });
  *
- * Or with multiple tags:
- *   test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => { ... });
+ *   // System-only test (functional verification, no perf measurement):
+ *   test.describe(`${System} ${PerformanceLogin}`, () => { ... });
+ *
+ *   // Perf-only test (not run in system test suite):
+ *   test.describe(`${Performance} ${PerformanceLaunch}`, () => { ... });
  *
  * Running tests with tags:
- *   npx appwright test --grep "@PerformanceLogin"
- *   npx appwright test --grep "@PerformanceSwaps|@PerformanceOnboarding"
+ *   yarn playwright test --grep "@Performance"          # All performance tests
+ *   yarn playwright test --grep "@System"               # All system tests
+ *   yarn playwright test --grep "@PerformanceLogin"     # By area
+ *   yarn playwright test --grep "@PerformanceSwaps|@PerformanceOnboarding"
  */
+
+// ---------- Test type tags ----------
+// Runner-agnostic tags that control which config/runner picks up a test.
+// Used in test.describe() names and filtered via --grep / config grep.
+
+/** Tag for performance tests (measured with TimerHelper, quality gates enforced). */
+export const Performance = '@Performance';
+
+/** Tag for system tests (functional verification, no quality gates or metrics). */
+export const System = '@System';
+
+// ---------- Area tags ----------
 
 export const PerformanceAccountList = '@PerformanceAccountList';
 export const PerformanceOnboarding = '@PerformanceOnboarding';

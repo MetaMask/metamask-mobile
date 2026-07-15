@@ -1,17 +1,59 @@
 import { useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { Hex } from '@metamask/utils';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectDefaultEndpointByChainId } from '../../../../selectors/networkController';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { generateTransferData } from '../../../../util/transactions';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { ARBITRUM_USDC } from '../../../Views/confirmations/constants/perps';
 import { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
+import { ensureError } from '../../../../util/errorUtils';
+import { containsUserRejectedError } from '../../../../util/middlewares';
+import usePerpsToasts from './usePerpsToasts';
+
+interface ErrorLike {
+  code?: unknown;
+  message?: unknown;
+}
+
+function getErrorLike(error: unknown): ErrorLike | undefined {
+  return typeof error === 'object' && error !== null
+    ? (error as ErrorLike)
+    : undefined;
+}
+
+function getErrorCode(error: unknown): number | undefined {
+  const code = getErrorLike(error)?.code;
+
+  if (typeof code === 'number') {
+    return code;
+  }
+
+  if (typeof code === 'string') {
+    const numericCode = Number(code);
+    return Number.isNaN(numericCode) ? undefined : numericCode;
+  }
+
+  return undefined;
+}
+
+function getErrorMessage(error: unknown, fallbackMessage: string): string {
+  const message = getErrorLike(error)?.message;
+  return typeof message === 'string' ? message : fallbackMessage;
+}
+
+function isUserRejectedError(error: unknown, fallbackMessage: string): boolean {
+  return containsUserRejectedError(
+    getErrorMessage(error, fallbackMessage),
+    getErrorCode(error),
+  );
+}
 
 /**
  * Hook that triggers the Perps "withdraw to any token" confirmation flow.
@@ -21,8 +63,14 @@ import Routes from '../../../../constants/navigation/Routes';
  * CustomAmount / MetaMask Pay experience.
  */
 export function usePerpsWithdrawConfirmation() {
-  const selectedAccount = useSelector(selectSelectedInternalAccountAddress);
+  // Perps withdraws settle on Arbitrum, so the batch must originate from the
+  // selected group's EVM account (the globally selected account can be non-EVM).
+  const selectedEvmAccountAddress = useSelector(
+    selectSelectedInternalAccountByScope,
+  )('eip155:0')?.address;
   const { navigateToConfirmation } = useConfirmNavigation();
+  const navigation = useNavigation();
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const { networkClientId } =
     useSelector((state: RootState) =>
@@ -34,29 +82,62 @@ export function usePerpsWithdrawConfirmation() {
     amount: '0x0',
   }) as Hex;
 
-  const withdrawWithConfirmation = useCallback(async () => {
-    navigateToConfirmation({
-      loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.PERPS.ROOT,
-    });
+  const withdrawWithConfirmation = useCallback(
+    async function runWithdrawWithConfirmation() {
+      navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
+        stack: Routes.PERPS.ROOT,
+      });
 
-    await addTransactionBatch({
-      from: selectedAccount as Hex,
-      origin: ORIGIN_METAMASK,
+      try {
+        await addTransactionBatch({
+          from: selectedEvmAccountAddress as Hex,
+          origin: ORIGIN_METAMASK,
+          isInternal: true,
+          networkClientId,
+          disableHook: true,
+          disableSequential: true,
+          transactions: [
+            {
+              params: {
+                to: ARBITRUM_USDC.address,
+                data: transferData,
+              },
+              type: TransactionType.perpsWithdraw,
+            },
+          ],
+        });
+      } catch (error) {
+        const errorObj = ensureError(
+          error,
+          'usePerpsWithdrawConfirmation.withdrawWithConfirmation',
+        );
+
+        if (isUserRejectedError(error, errorObj.message)) {
+          throw errorObj;
+        }
+
+        navigation.goBack();
+        showToast(
+          PerpsToastOptions.accountManagement.withdrawal.withdrawalStartFailed(
+            () => {
+              runWithdrawWithConfirmation().catch(() => undefined);
+            },
+          ),
+        );
+        throw errorObj;
+      }
+    },
+    [
+      navigateToConfirmation,
+      navigation,
       networkClientId,
-      disableHook: true,
-      disableSequential: true,
-      transactions: [
-        {
-          params: {
-            to: ARBITRUM_USDC.address,
-            data: transferData,
-          },
-          type: TransactionType.perpsWithdraw,
-        },
-      ],
-    });
-  }, [navigateToConfirmation, networkClientId, selectedAccount, transferData]);
+      PerpsToastOptions.accountManagement.withdrawal,
+      selectedEvmAccountAddress,
+      showToast,
+      transferData,
+    ],
+  );
 
   return { withdrawWithConfirmation };
 }

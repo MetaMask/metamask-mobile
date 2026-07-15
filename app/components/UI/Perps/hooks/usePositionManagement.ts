@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import type { BottomSheetRef } from '../../../../component-library/components/BottomSheets/BottomSheet';
+import type { BottomSheetRef } from '@metamask/design-system-react-native';
 import { type Position } from '@metamask/perps-controller';
 
 /**
@@ -25,9 +25,9 @@ export interface UsePositionManagementReturn {
   showReversePositionSheet: boolean;
 
   // Bottom sheet refs
-  modifyActionSheetRef: React.RefObject<BottomSheetRef>;
-  adjustMarginActionSheetRef: React.RefObject<BottomSheetRef>;
-  reversePositionSheetRef: React.RefObject<BottomSheetRef>;
+  modifyActionSheetRef: React.RefObject<BottomSheetRef | null>;
+  adjustMarginActionSheetRef: React.RefObject<BottomSheetRef | null>;
+  reversePositionSheetRef: React.RefObject<BottomSheetRef | null>;
 
   // Action handlers
   openModifySheet: () => void;

@@ -54,7 +54,7 @@ class NetworkEducationModal {
     });
   }
 
-  get addToken(): DetoxElement {
+  get addToken(): EncapsulatedElementType {
     return Matchers.getElementByText(
       NetworkEducationModalSelectorsText.ADD_TOKEN,
     );

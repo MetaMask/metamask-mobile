@@ -42,6 +42,9 @@ jest.mock('../../../../../../core/Engine', () => {
       NetworkController: {
         getNetworkConfigurationByNetworkClientId: jest.fn(),
       },
+      PhishingController: {
+        checkAddressPoisoning: jest.fn().mockReturnValue([]),
+      },
       GasFeeController: {
         startPolling: jest.fn(),
         stopPollingByPollingToken: jest.fn(),
@@ -142,6 +145,9 @@ describe('Transfer', () => {
       onReject: mockOnReject,
       addBackButton: true,
       theme: expect.any(Object),
+      mmPayRequestInProgressNavHandler: expect.objectContaining({
+        current: false,
+      }),
     });
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
       properties: {
