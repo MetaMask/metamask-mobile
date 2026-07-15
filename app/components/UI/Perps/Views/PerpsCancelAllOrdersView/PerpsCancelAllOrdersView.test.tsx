@@ -1,11 +1,17 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import PerpsCancelAllOrdersView from './PerpsCancelAllOrdersView';
 import { usePerpsCancelAllOrders, usePerpsLiveOrders } from '../../hooks';
 
+const mockGoBack = jest.fn();
+const mockCapturedBottomSheetProps: {
+  goBack?: () => void;
+  onClose?: () => void;
+} = {};
+
 // Mock all dependencies
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(() => ({ navigate: jest.fn(), goBack: jest.fn() })),
+  useNavigation: jest.fn(() => ({ navigate: jest.fn(), goBack: mockGoBack })),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -48,14 +54,22 @@ jest.mock('@metamask/design-system-react-native', () => {
     (
       {
         children,
+        goBack,
+        onClose,
       }: {
         children: React.ReactNode;
+        goBack?: () => void;
+        onClose?: () => void;
       },
       _ref: React.Ref<{
         onOpenBottomSheet: () => void;
         onCloseBottomSheet: (callback?: () => void) => void;
       }>,
-    ) => <View>{children}</View>,
+    ) => {
+      mockCapturedBottomSheetProps.goBack = goBack;
+      mockCapturedBottomSheetProps.onClose = onClose;
+      return <View>{children}</View>;
+    },
   );
   BottomSheet.displayName = 'BottomSheet';
 
@@ -68,7 +82,7 @@ jest.mock('@metamask/design-system-react-native', () => {
   }) => (
     <View>
       {typeof children === 'string' ? <RNText>{children}</RNText> : children}
-      <Pressable onPress={onClose} />
+      <Pressable testID="header-close" onPress={onClose} />
     </View>
   );
 
@@ -145,7 +159,7 @@ describe('PerpsCancelAllOrdersView', () => {
       filledSize: '0',
       remainingSize: '0.1',
       status: 'open' as const,
-      timestamp: Date.now(),
+      timestamp: 1722470400000,
     },
     {
       orderId: 'order-2',
@@ -158,7 +172,7 @@ describe('PerpsCancelAllOrdersView', () => {
       filledSize: '0',
       remainingSize: '1.0',
       status: 'open' as const,
-      timestamp: Date.now(),
+      timestamp: 1722470400000,
     },
   ];
 
@@ -172,6 +186,8 @@ describe('PerpsCancelAllOrdersView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCapturedBottomSheetProps.goBack = undefined;
+    mockCapturedBottomSheetProps.onClose = undefined;
     mockUsePerpsLiveOrders.mockReturnValue({
       orders: mockOrders,
       isInitialLoading: false,
@@ -247,5 +263,88 @@ describe('PerpsCancelAllOrdersView', () => {
 
     // Assert
     expect(getByText('perps.order.no_orders')).toBeTruthy();
+  });
+
+  it('provides goBack to BottomSheet and navigates back when invoked', () => {
+    // Arrange & Act — with orders
+    render(<PerpsCancelAllOrdersView />);
+
+    // Assert
+    expect(mockCapturedBottomSheetProps.goBack).toBeDefined();
+    expect(mockCapturedBottomSheetProps.onClose).toBeUndefined();
+    mockCapturedBottomSheetProps.goBack?.();
+    expect(mockGoBack).toHaveBeenCalled();
+
+    // Arrange & Act — empty state uses the same goBack wiring
+    mockGoBack.mockClear();
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [],
+      isInitialLoading: false,
+    });
+    mockUsePerpsCancelAllOrders.mockReturnValue({
+      ...mockCancelAllHook,
+      orderCount: 0,
+    });
+    render(<PerpsCancelAllOrdersView />);
+
+    mockCapturedBottomSheetProps.goBack?.();
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('omits goBack and wires onClose when used with an external sheetRef', () => {
+    // Arrange
+    const mockOnClose = jest.fn();
+    const mockOnCloseBottomSheet = jest.fn((callback?: () => void) =>
+      callback?.(),
+    );
+    const mockSheetRef = {
+      current: {
+        onOpenBottomSheet: jest.fn(),
+        onCloseBottomSheet: mockOnCloseBottomSheet,
+      },
+    };
+
+    // Act — with orders
+    const { getByTestId, unmount } = render(
+      <PerpsCancelAllOrdersView
+        sheetRef={mockSheetRef}
+        onClose={mockOnClose}
+      />,
+    );
+
+    // Assert — overlay mode uses onClose instead of navigation goBack
+    expect(mockCapturedBottomSheetProps.goBack).toBeUndefined();
+    expect(mockCapturedBottomSheetProps.onClose).toBe(mockOnClose);
+
+    fireEvent.press(getByTestId('header-close'));
+    expect(mockOnCloseBottomSheet).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+
+    // Act — empty state overlay path
+    unmount();
+    mockOnClose.mockClear();
+    mockOnCloseBottomSheet.mockClear();
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [],
+      isInitialLoading: false,
+    });
+    mockUsePerpsCancelAllOrders.mockReturnValue({
+      ...mockCancelAllHook,
+      orderCount: 0,
+    });
+    const { getByTestId: getEmptyTestId } = render(
+      <PerpsCancelAllOrdersView
+        sheetRef={mockSheetRef}
+        onClose={mockOnClose}
+      />,
+    );
+
+    expect(mockCapturedBottomSheetProps.goBack).toBeUndefined();
+    expect(mockCapturedBottomSheetProps.onClose).toBe(mockOnClose);
+    fireEvent.press(getEmptyTestId('header-close'));
+    expect(mockOnCloseBottomSheet).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 });
