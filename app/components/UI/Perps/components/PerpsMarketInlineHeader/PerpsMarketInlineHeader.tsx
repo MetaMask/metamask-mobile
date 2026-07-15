@@ -1,5 +1,8 @@
 import React, { type ReactNode, useMemo } from 'react';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
   HeaderSubpage,
@@ -10,6 +13,7 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
+import { PERPS_COLLATERAL_SYMBOL } from '../../constants/perpsConfig';
 import { PerpsMarketHeaderSelectorsIDs } from '../../Perps.testIds';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
@@ -22,12 +26,20 @@ export interface PerpsMarketInlineHeaderProps {
   onBackPress?: () => void;
   onMorePress?: () => void;
   onFavoritePress?: () => void;
-  onFullscreenPress?: () => void;
-  onCategorySearchPress?: () => void;
+  /** Opens the market list from the arrow next to the market name. */
+  onMarketListPress?: () => void;
   isFavorite?: boolean;
   testID?: string;
-  fullscreenButtonTestID?: string;
   endAccessory?: ReactNode;
+  /**
+   * When true, renders the redesigned market-detail layout instead of the
+   * compact one: title becomes the full asset name, a leverage pill +
+   * market-list arrow are added on the first row, the description becomes the
+   * static `[Ticker]-[collateral] perp` pair on the second row, and the live
+   * price/24h change are removed from the header (relocated below by the
+   * parent). When false, the compact layout (pair title + live price) renders.
+   */
+  useDetailLayout?: boolean;
 }
 
 export const PerpsMarketInlineHeader = ({
@@ -36,49 +48,75 @@ export const PerpsMarketInlineHeader = ({
   onBackPress,
   onMorePress,
   onFavoritePress,
-  onFullscreenPress,
-  onCategorySearchPress,
+  onMarketListPress,
   isFavorite = false,
   testID,
-  fullscreenButtonTestID,
   endAccessory,
+  useDetailLayout = false,
 }: PerpsMarketInlineHeaderProps) => {
-  const displayTitle = `${getPerpsDisplaySymbol(market.symbol)}-USD`;
+  const displaySymbol = getPerpsDisplaySymbol(market.symbol);
+
+  const displayTitle = useDetailLayout
+    ? market.name || displaySymbol
+    : `${displaySymbol}-${PERPS_COLLATERAL_SYMBOL}`;
 
   const titleEndAccessory = useMemo(() => {
-    if (!market.maxLeverage) {
+    const hasLeverage = Boolean(market.maxLeverage);
+
+    // The market-list arrow is only relevant in the redesigned layout.
+    const showMarketListButton = useDetailLayout && Boolean(onMarketListPress);
+
+    if (!hasLeverage && !showMarketListButton) {
       return undefined;
     }
 
-    return <PerpsLeverage maxLeverage={market.maxLeverage} />;
-  }, [market.maxLeverage]);
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={1}
+      >
+        {hasLeverage ? (
+          <PerpsLeverage maxLeverage={market.maxLeverage} />
+        ) : null}
+        {showMarketListButton ? (
+          <ButtonIcon
+            iconName={IconName.ArrowDown}
+            size={ButtonIconSize.Sm}
+            onPress={onMarketListPress}
+            // Keep the chevron visually small but expand the touch target to
+            // ~44dp so it stays reliably tappable (accessibility).
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            testID={PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON}
+            accessibilityLabel={strings('perps.market_details.market_list')}
+          />
+        ) : null}
+      </Box>
+    );
+  }, [market.maxLeverage, useDetailLayout, onMarketListPress]);
 
-  const description = useMemo(
-    () => (
+  const description = useMemo(() => {
+    // Redesigned layout shows the market pair as a static subtitle. Price and
+    // 24h change move below the header (rendered by the parent view).
+    if (useDetailLayout) {
+      return strings('perps.market_details.perp_pair', {
+        ticker: displaySymbol,
+        collateral: PERPS_COLLATERAL_SYMBOL,
+      });
+    }
+
+    return (
       <LivePriceHeader
         symbol={market.symbol}
         testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
         testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
-        throttleMs={1000}
         currentPrice={currentPrice}
       />
-    ),
-    [market.symbol, currentPrice],
-  );
+    );
+  }, [useDetailLayout, displaySymbol, market.symbol, currentPrice]);
 
   const endButtonIconProps = useMemo(() => {
     const buttons = [];
-
-    if (onFullscreenPress) {
-      buttons.push({
-        iconName: IconName.Expand,
-        onPress: onFullscreenPress,
-        testID:
-          fullscreenButtonTestID ??
-          `${testID ?? 'perps-market-header'}-fullscreen-button`,
-        accessibilityLabel: strings('perps.market_details.fullscreen_chart'),
-      });
-    }
 
     if (onFavoritePress) {
       buttons.push({
@@ -94,25 +132,8 @@ export const PerpsMarketInlineHeader = ({
       });
     }
 
-    if (onCategorySearchPress) {
-      buttons.push({
-        iconName: IconName.Search,
-        onPress: onCategorySearchPress,
-        testID: PerpsMarketHeaderSelectorsIDs.CATEGORY_SEARCH_BUTTON,
-        accessibilityLabel: strings('perps.market_details.category_search'),
-      });
-    }
-
     return buttons.length > 0 ? buttons : undefined;
-  }, [
-    onFullscreenPress,
-    fullscreenButtonTestID,
-    testID,
-    onFavoritePress,
-    isFavorite,
-    onMorePress,
-    onCategorySearchPress,
-  ]);
+  }, [onFavoritePress, isFavorite, onMorePress]);
 
   return (
     <HeaderSubpage
@@ -142,6 +163,11 @@ export const PerpsMarketInlineHeader = ({
       titleProps={{ testID: PerpsMarketHeaderSelectorsIDs.ASSET_NAME }}
       titleEndAccessory={titleEndAccessory}
       description={description}
+      descriptionProps={
+        useDetailLayout
+          ? { testID: PerpsMarketHeaderSelectorsIDs.SUBTITLE }
+          : undefined
+      }
     />
   );
 };
