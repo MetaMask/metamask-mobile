@@ -1,8 +1,10 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { bytesToHex, Hex } from '@metamask/utils';
 import { v4 as uuidv4, parse as uuidParse } from 'uuid';
+import { containsUserRejectedError } from '../../../../util/middlewares';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -17,9 +19,13 @@ import Logger from '../../../../util/Logger';
 import { showDevErrorAlert } from '../utils/devErrorAlert';
 import { isMonadMainnetChainId } from '../../../../util/networks';
 import Engine from '../../../../core/Engine';
+import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { ensureError } from '../../../../util/errorUtils';
+import { getErrorCode, getErrorMessage } from '../utils/errorUtils';
+import useMoneyToasts from './useMoneyToasts';
 
 const LOG_TAG = '[Money Account]';
 
@@ -66,10 +72,26 @@ function waitForNextFrame(): Promise<void> {
   });
 }
 
+function isUserRejectedError(error: unknown, fallbackMessage: string): boolean {
+  return containsUserRejectedError(
+    getErrorMessage(error, fallbackMessage),
+    getErrorCode(error),
+  );
+}
+
+function isMoneyConfirmationActive(): boolean {
+  return (
+    NavigationService.navigation.getCurrentRoute()?.name ===
+    Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
+  );
+}
+
 export function useMoneyAccountDeposit() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const { navigateToConfirmation } = useConfirmNavigation();
+  const navigation = useNavigation();
+  const { showToast, MoneyToastOptions } = useMoneyToasts();
 
   const initiateDeposit = useCallback(
     async (options?: InitiateDepositOptions) => {
@@ -159,14 +181,30 @@ export function useMoneyAccountDeposit() {
           transactions: [approveTx, depositTx],
         });
       } catch (error) {
+        const errorObj = ensureError(error, `${LOG_TAG} Deposit setup failed`);
         depositIntentByBatchId.delete(batchId.toLowerCase());
-        Logger.error(error as Error, `${LOG_TAG} Deposit setup failed`);
-        showDevErrorAlert(`${LOG_TAG} Deposit setup failed`, error as Error);
+        if (!isUserRejectedError(error, errorObj.message)) {
+          if (isMoneyConfirmationActive()) {
+            navigation.goBack();
+          }
+          showToast(
+            MoneyToastOptions.deposit.failed({ intent: options?.intent }),
+          );
+        }
+        Logger.error(errorObj, `${LOG_TAG} Deposit setup failed`);
+        showDevErrorAlert(`${LOG_TAG} Deposit setup failed`, errorObj);
         // Rethrow so the caller can log the failed initiation.
         throw error;
       }
     },
-    [navigateToConfirmation, primaryMoneyAccount, vaultConfig],
+    [
+      MoneyToastOptions.deposit,
+      navigateToConfirmation,
+      navigation,
+      primaryMoneyAccount,
+      showToast,
+      vaultConfig,
+    ],
   );
 
   return { initiateDeposit };
@@ -177,6 +215,8 @@ export function useMoneyAccountWithdrawal() {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const recipient = useSelector(selectEvmAddress);
   const { navigateToConfirmation } = useConfirmNavigation();
+  const navigation = useNavigation();
+  const { showToast, MoneyToastOptions } = useMoneyToasts();
 
   const initiateWithdrawal = useCallback(async () => {
     if (!vaultConfig) {
@@ -235,15 +275,30 @@ export function useMoneyAccountWithdrawal() {
         transactions: [withdrawTx, transferTx],
       });
     } catch (error) {
-      Logger.error(error as Error, `${LOG_TAG} Withdrawal transaction failed`);
-      showDevErrorAlert(
+      const errorObj = ensureError(
+        error,
         `${LOG_TAG} Withdrawal transaction failed`,
-        error as Error,
       );
+      if (!isUserRejectedError(error, errorObj.message)) {
+        if (isMoneyConfirmationActive()) {
+          navigation.goBack();
+        }
+        showToast(MoneyToastOptions.withdraw.failed());
+      }
+      Logger.error(errorObj, `${LOG_TAG} Withdrawal transaction failed`);
+      showDevErrorAlert(`${LOG_TAG} Withdrawal transaction failed`, errorObj);
       // Rethrow so the caller can roll back navigation / surface a toast.
       throw error;
     }
-  }, [navigateToConfirmation, primaryMoneyAccount, recipient, vaultConfig]);
+  }, [
+    MoneyToastOptions.withdraw,
+    navigateToConfirmation,
+    navigation,
+    primaryMoneyAccount,
+    recipient,
+    showToast,
+    vaultConfig,
+  ]);
 
   return { initiateWithdrawal };
 }

@@ -1,4 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
+import { useNavigation } from '@react-navigation/native';
+import { providerErrors } from '@metamask/rpc-errors';
+import { containsUserRejectedError } from '../../../../util/middlewares';
 import { useSelector } from 'react-redux';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
@@ -7,6 +10,7 @@ import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
+import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
@@ -23,8 +27,15 @@ import {
   useMoneyAccountWithdrawal,
 } from './useMoneyAccount';
 import { showDevErrorAlert } from '../utils/devErrorAlert';
+import useMoneyToasts from './useMoneyToasts';
 
 jest.mock('react-redux');
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(),
+}));
+jest.mock('../../../../util/middlewares', () => ({
+  containsUserRejectedError: jest.fn(),
+}));
 jest.mock('../../../../util/transaction-controller');
 jest.mock('../../../../util/notifications/methods/common');
 jest.mock('../../../../util/Logger', () => ({
@@ -37,6 +48,18 @@ jest.mock('../../../../util/Logger', () => ({
 
 jest.mock('../utils/devErrorAlert', () => ({
   showDevErrorAlert: jest.fn(),
+}));
+jest.mock('./useMoneyToasts', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../../../../core/NavigationService/NavigationService', () => ({
+  __esModule: true,
+  default: {
+    navigation: {
+      getCurrentRoute: jest.fn(),
+    },
+  },
 }));
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -74,6 +97,20 @@ const getNavigateToConfirmation = () =>
     .navigateToConfirmation as jest.Mock;
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseNavigation = useNavigation as jest.MockedFunction<
+  typeof useNavigation
+>;
+const mockContainsUserRejectedError =
+  containsUserRejectedError as jest.MockedFunction<
+    typeof containsUserRejectedError
+  >;
+const mockUseMoneyToasts = useMoneyToasts as jest.MockedFunction<
+  typeof useMoneyToasts
+>;
+const mockGetCurrentRoute = NavigationService.navigation
+  .getCurrentRoute as jest.MockedFunction<
+  typeof NavigationService.navigation.getCurrentRoute
+>;
 const mockGetProviderByChainId = getProviderByChainId as jest.MockedFunction<
   typeof getProviderByChainId
 >;
@@ -108,6 +145,12 @@ const MOCK_MONEY_ACCOUNT = {
 const MOCK_RECIPIENT = '0xrecipient';
 
 const MOCK_PROVIDER = {} as ReturnType<typeof getProviderByChainId>;
+const mockGoBack = jest.fn();
+const mockShowToast = jest.fn();
+const mockDepositFailed = jest.fn();
+const mockWithdrawFailed = jest.fn();
+const MOCK_DEPOSIT_FAILED_TOAST = { type: 'deposit-failed' };
+const MOCK_WITHDRAW_FAILED_TOAST = { type: 'withdraw-failed' };
 
 // 'key' in options is used instead of destructuring defaults so that
 // an explicit { vaultConfig: undefined } is treated as "use undefined",
@@ -137,6 +180,34 @@ function setupSelectors(options: SelectorOptions = {}) {
 describe('useMoneyAccountDeposit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockContainsUserRejectedError.mockReturnValue(false);
+    mockUseNavigation.mockReturnValue({ goBack: mockGoBack } as never);
+    mockGetCurrentRoute.mockReturnValue({
+      name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    } as never);
+    mockDepositFailed.mockReturnValue(MOCK_DEPOSIT_FAILED_TOAST);
+    mockWithdrawFailed.mockReturnValue(MOCK_WITHDRAW_FAILED_TOAST);
+    mockUseMoneyToasts.mockReturnValue({
+      showToast: mockShowToast,
+      closeToast: jest.fn(),
+      MoneyToastOptions: {
+        deposit: {
+          inProgress: jest.fn(),
+          success: jest.fn(),
+          failed: mockDepositFailed,
+        },
+        withdraw: {
+          inProgress: jest.fn(),
+          success: jest.fn(),
+          failed: mockWithdrawFailed,
+        },
+        send: {
+          inProgress: jest.fn(),
+          success: jest.fn(),
+          failed: jest.fn(),
+        },
+      },
+    });
     global.requestAnimationFrame = jest.fn((callback) => {
       callback(0);
       return 0;
@@ -344,6 +415,50 @@ describe('useMoneyAccountDeposit', () => {
       '[Money Account] Deposit setup failed',
       txError,
     );
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockDepositFailed).toHaveBeenCalledWith({ intent: undefined });
+    expect(mockShowToast).toHaveBeenCalledWith(MOCK_DEPOSIT_FAILED_TOAST);
+  });
+
+  it('backs out and shows a failure toast when deposit batch building fails', async () => {
+    const buildError = new Error('deposit batch build failed');
+    mockBuildDepositBatch.mockRejectedValue(buildError);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    let caught: Error | undefined;
+    await act(async () => {
+      try {
+        await result.current.initiateDeposit({ intent: 'convert' });
+      } catch (error) {
+        caught = error as Error;
+      }
+    });
+
+    expect(caught).toBe(buildError);
+    expect(mockBuildDepositBatch).toHaveBeenCalledTimes(1);
+    expect(mockAddTransactionBatch).not.toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockDepositFailed).toHaveBeenCalledWith({ intent: 'convert' });
+    expect(mockShowToast).toHaveBeenCalledWith(MOCK_DEPOSIT_FAILED_TOAST);
+  });
+
+  it('does not navigate back when deposit confirmation is rejected', async () => {
+    const rejectionError = providerErrors.userRejectedRequest();
+    mockContainsUserRejectedError.mockReturnValueOnce(true);
+    mockAddTransactionBatch.mockRejectedValue(rejectionError);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await expect(
+      act(async () => {
+        await result.current.initiateDeposit();
+      }),
+    ).rejects.toBe(rejectionError);
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockDepositFailed).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
   it('forwards replaceConfirmation to confirmation navigation', async () => {
@@ -381,6 +496,34 @@ describe('useMoneyAccountDeposit', () => {
 describe('useMoneyAccountWithdrawal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockContainsUserRejectedError.mockReturnValue(false);
+    mockUseNavigation.mockReturnValue({ goBack: mockGoBack } as never);
+    mockGetCurrentRoute.mockReturnValue({
+      name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    } as never);
+    mockDepositFailed.mockReturnValue(MOCK_DEPOSIT_FAILED_TOAST);
+    mockWithdrawFailed.mockReturnValue(MOCK_WITHDRAW_FAILED_TOAST);
+    mockUseMoneyToasts.mockReturnValue({
+      showToast: mockShowToast,
+      closeToast: jest.fn(),
+      MoneyToastOptions: {
+        deposit: {
+          inProgress: jest.fn(),
+          success: jest.fn(),
+          failed: mockDepositFailed,
+        },
+        withdraw: {
+          inProgress: jest.fn(),
+          success: jest.fn(),
+          failed: mockWithdrawFailed,
+        },
+        send: {
+          inProgress: jest.fn(),
+          success: jest.fn(),
+          failed: jest.fn(),
+        },
+      },
+    });
     global.requestAnimationFrame = jest.fn((callback) => {
       callback(0);
       return 0;
@@ -555,6 +698,48 @@ describe('useMoneyAccountWithdrawal', () => {
       '[Money Account] Withdrawal transaction failed',
       txError,
     );
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockWithdrawFailed).toHaveBeenCalledTimes(1);
+    expect(mockShowToast).toHaveBeenCalledWith(MOCK_WITHDRAW_FAILED_TOAST);
+  });
+
+  it('backs out and shows a failure toast when withdrawal batch building fails', async () => {
+    const buildError = new Error('withdrawal batch build failed');
+    mockBuildWithdrawBatch.mockRejectedValue(buildError);
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    let caught: Error | undefined;
+    await act(async () => {
+      try {
+        await result.current.initiateWithdrawal();
+      } catch (error) {
+        caught = error as Error;
+      }
+    });
+
+    expect(caught).toBe(buildError);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockWithdrawFailed).toHaveBeenCalledTimes(1);
+    expect(mockShowToast).toHaveBeenCalledWith(MOCK_WITHDRAW_FAILED_TOAST);
+  });
+
+  it('does not navigate back when withdrawal confirmation is rejected', async () => {
+    const rejectionError = providerErrors.userRejectedRequest();
+    mockContainsUserRejectedError.mockReturnValueOnce(true);
+    mockAddTransactionBatch.mockRejectedValue(rejectionError);
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await expect(
+      act(async () => {
+        await result.current.initiateWithdrawal();
+      }),
+    ).rejects.toBe(rejectionError);
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockWithdrawFailed).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
   it('throws when networkClientId cannot be resolved', async () => {
