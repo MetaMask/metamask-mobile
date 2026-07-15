@@ -69,10 +69,6 @@ const useNetworkConnectionBanner = (): {
 
   const evmEnabledNetworksChainIds = useSelector(selectEVMEnabledNetworks);
 
-  useEffect(() => {
-    Engine.lookupEnabledNetworks();
-  }, []);
-
   function updateRpc(
     rpcUrl: string,
     status: NetworkConnectionBannerStatus,
@@ -152,7 +148,10 @@ const useNetworkConnectionBanner = (): {
 
           totalEnabled += 1;
 
-          if (networkMetadata.status === NetworkStatus.Available) {
+          if (
+            networkMetadata.status === NetworkStatus.Available ||
+            networkMetadata.status === NetworkStatus.Unknown
+          ) {
             continue;
           }
 
