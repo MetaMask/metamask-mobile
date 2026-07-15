@@ -23,7 +23,7 @@ Companion to [PLAN.md](./PLAN.md) (the original Headless Buy plan).
 - [ ] **P2.M2** - Headless deeplink path in `handleRampReturnUrl` + correlation record `{sessionId, walletAddress, chainId}`
 - [ ] **P2.M3** - E1/E2/E3 reconciliation
 - [ ] **P2.M4** - Custom-action (PayPal) support
-- [ ] **P2.M5** - Granular LaunchDarkly provider control (optional allowlist companion flag, per-surface lists)
+- [ ] **P2.M5** - Granular LaunchDarkly provider control (JSON payload on `moneyHeadlessAllProviders`, per-surface lists)
 - [ ] **P2.M6** - Promote the pick to a public shared `getSmartSelectedQuote` (add back the order-history rung; extract `validateBuyAmount`)
 - [ ] **P2.M7** - Typed errors + analytics parity for external-browser
 - [ ] **P2.M8** - Retire Money V0 native-only scaffolding (deprecate/remove `restrictToKnownOrNativeProviders`)
@@ -244,13 +244,14 @@ Tests: a custom-action quote is selectable, continues through the external CTA p
 
 ### P2.M5 - Granular LaunchDarkly provider control
 
-The original milestone here ("widen via the flag's `all` value") is obsolete: there is no `all` value, and the boolean `moneyHeadlessAllProviders` already covers widening (P1.M2). What is missing is a way for QA to force a specific provider mix (for example external-browser-only) without a code change per test configuration. This milestone adds one-time client support for an optional companion flag; after it lands, every test-mix change is a LaunchDarkly dashboard edit only.
+The original milestone here ("widen via the flag's `all` value") is obsolete: there is no `all` value, and the boolean `moneyHeadlessAllProviders` already covers widening (P1.M2). What is missing is a way for QA to force a specific provider mix (for example external-browser-only) without a code change per test configuration. This milestone adds one-time client support for a JSON payload on the existing flag; after it lands, every test-mix change is a LaunchDarkly dashboard edit only. Implemented in core #9524 plus a mobile surface-threading PR.
 
-- **Companion flag, not a JSON evolution of the boolean.** Add `moneyHeadlessProviderAllowlists` (JSON; dashboard key `money-headless-provider-allowlists`) next to the boolean. Keeping the boolean untouched preserves its shipped kill-switch semantics (only the literal `true` enables; everything else fails closed) and keeps test-mix edits from ever touching the production kill switch. Evolving `moneyHeadlessAllProviders` itself into a JSON variation was considered and rejected: shipped clients coerce any non-boolean value to `false`, so the same key cannot serve JSON to new clients without turning widening off for old ones.
-- **Payload shape.** A top-level provider-id allowlist plus optional per-surface lists, keyed by consumer surface (money account, perps, predictions), so each surface's test matrix can be tuned independently:
+- **JSON evolution of the boolean, not a companion flag.** Evolve `moneyHeadlessAllProviders` itself so the one key serves `false`, `true`, or an object payload. An earlier revision of this milestone specified a companion `moneyHeadlessProviderAllowlists` flag, on the grounds that shipped clients coerce any non-boolean value to `false`; that concern is moot because coercing to `false` IS the compatible off state (native-only), every shipped client is default off (production serves `false`), and one flag beats two for what is a QA control. The kill-switch semantics survive inside the payload: `enabled` must be the literal `true`, and everything else still fails closed.
+- **Payload shape.** The boolean forms behave exactly as before. The object form is a top-level provider-id allowlist plus optional per-surface lists, keyed by consumer surface, so each surface's test matrix can be tuned independently:
 
   ```json
   {
+    "enabled": true,
     "providerIds": ["/providers/moonpay", "/providers/coinbasepay"],
     "surfaces": {
       "money": ["/providers/transak"],
@@ -260,11 +261,13 @@ The original milestone here ("widen via the flag's `all` value") is obsolete: th
   }
   ```
 
-- **Semantics.** The boolean stays the gate: flag `false` is native-only regardless of the companion. With the boolean `true`: a companion that is absent, empty, or malformed means no restriction (today's all-providers behavior); a companion that is present means the pick (`#pickWidenedQuote`, later `getSmartSelectedQuote`) drops candidates whose provider id is not listed; a surface entry overrides the top-level list for that surface; unknown keys and non-string entries are ignored (the same defensive coercion style as `isHeadlessAllProvidersEnabled`).
-- **Client support (one-time).** Core: a pure `getHeadlessProviderAllowlist(remoteFeatureFlagState, surface?)` next to `isHeadlessAllProvidersEnabled` in `featureFlags.ts` (merging `localOverrides` the same way), plus an allowlist filter in the widened pick. Mobile: thread an optional surface tag through the headless `getQuotes` params, reusing the `ramp_surface` vocabulary. No other mobile logic.
-- **LD-dashboard-only afterwards.** Once this support ships, an external-browser-only pass is "list only external-browser provider ids for that surface" in the LD dashboard; per-surface matrices are independent LD edits; no client release per configuration.
+- **Semantics.** `false`, missing, garbage, or `{ "enabled": false, ... }` is native-only (listed ids never matter when disabled). `true`, or an enabled payload with no usable list, widens with no restriction (today's flag-`true` behavior). When the enabled payload lists provider ids, the pick (`#pickWidenedQuote`, later `getSmartSelectedQuote`) drops candidates whose provider id is not listed; a surface entry overrides the top-level list for requests tagged with that surface; unknown keys and non-string entries are ignored, and an empty or malformed level falls through to the next (the same defensive coercion style the boolean read established). Ids match in prefixed (`/providers/x`) or bare form, case-insensitively, so LD payload authors can use either.
+- **Surfaces apply only to tagged callers.** A `surfaces` entry is consulted only when the quote request passes a `surface` tag, and today no shipped widened caller does: TPC `getRampsQuote` (the MM Pay path) passes none, so MM Pay money deposits are governed by the top-level `providerIds` list only. Writing `{ "enabled": true, "surfaces": { "money": [...] } }` with no top-level list therefore restricts nothing yet. Threading `surface: 'money'` through TPC is a follow-up to revisit with P2.M6.
+- **Client support (one-time).** Core (#9524): `isHeadlessAllProvidersEnabled` accepts the enabled payload; a pure `getHeadlessProviderAllowlist(remoteFeatureFlagState, surface?)` plus the `HEADLESS_ALLOWLIST_SURFACES` keys land next to it in `featureFlags.ts` (merging `localOverrides` the same way); `getQuotes` gains an optional `surface` option (deliberately not part of the request cache key, so the pick re-applies per call over the cached raw response and an LD edit takes effect without a refetch); the widened pick filters by the allowlist, resolving the enabled bit and the list from a single `RemoteFeatureFlagController:getState` read per call. Mobile: `rampSurface` on the headless `getQuotes` params, mapped from the `ramp_surface` vocabulary onto the payload keys (`money_account` to `money`, `perps` to `perps`, `prediction` to `predictions`). No other mobile logic; the availability gates stay driven by the enabled bit alone.
+- **LD operational note.** A LaunchDarkly flag's variation kind is fixed at creation, so if `money-headless-all-providers` already exists as a boolean-kind flag it must be deleted and recreated with the same key as a JSON-kind flag (variations can then be `false`, `true`, and object payloads). Safe while pre-production (it serves `false` everywhere), but deletion drops the key's targeting history; coordinate with the LD project owner.
+- **LD-dashboard-only afterwards.** Once this support ships, an external-browser-only pass is "serve an enabled payload listing only external-browser provider ids" in the LD dashboard; per-surface matrices are independent LD edits; no client release per configuration.
 
-Tests: no companion means selection identical to today's flag-`true` behavior; a top-level list restricts candidates; a surface list overrides the top-level list for that surface only; malformed payloads are ignored; the boolean `false` stays native-only regardless of the companion.
+Tests: a boolean `true` or an enabled payload without lists selects identically to today's flag-`true` behavior; a top-level list restricts candidates (including custom-action quotes in `success[]`); a surface list overrides the top-level list only for requests tagged with that surface; malformed payloads and levels are ignored; `false` or a disabled payload stays native-only regardless of listed ids; both id forms match; calls differing only in `surface` share one cached fetch but pick per their own lists.
 
 ### P2.M6 - Promote the pick to a public shared `getSmartSelectedQuote`
 
@@ -339,7 +342,7 @@ Beyond P2.M7, the broader provider-code taxonomy stays implement-on-demand. The 
 
 Assumptions:
 
-- Ship behind the boolean `moneyHeadlessAllProviders` remote flag: only the literal `true` widens; `false`, missing, or a non-boolean value keeps native-only working, and the controller's flag read fails closed if `RemoteFeatureFlagController:getState` is not delegated (P1.M2). No new product flag beyond this kill switch unless product asks; the P2.M5 allowlist companion is a QA control, not a product flag.
+- Ship behind the `moneyHeadlessAllProviders` remote flag: only the literal `true` or an enabled JSON payload (P2.M5) widens; `false`, missing, or any other value keeps native-only working, and the controller's flag read fails closed if `RemoteFeatureFlagController:getState` is not delegated (P1.M2). No new product flag beyond this kill switch unless product asks; the P2.M5 allowlist payload is a QA control, not a product flag.
 - Headless consumers still receive only terminal callbacks: `onOrderCreated`, `onError`, `onClose`.
 - System-browser external checkout cannot be observed synchronously; rely on deeplink return for success, `Linking.openURL` rejection for open failure, and the existing focus-dismissal machinery for inferred cancellation (Phase 2).
 - Provider quote failures are surfaced as partial errors, terminal only when every provider fails or no quote can be selected.
