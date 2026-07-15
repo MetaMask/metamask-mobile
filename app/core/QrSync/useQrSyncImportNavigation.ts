@@ -16,7 +16,13 @@ import { navigateToQrSyncImport } from './navigateToQrSyncImport';
 import { showAlreadySyncedSheet } from '../../components/Views/AddDeviceToWallet/showAlreadySyncedSheet';
 import { showImportFailedSheet } from '../../components/Views/AddDeviceToWallet/showImportFailedSheet';
 import type { QrSyncSecretImportEntry } from './types';
-import { reportQrSyncFailure } from './qrSyncTelemetry';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncSyncFlows,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from './qrSyncTelemetry';
 
 interface UseQrSyncImportNavigationOptions {
   enabled: boolean;
@@ -60,9 +66,10 @@ const finishExistingUserSyncWithoutMnemonic = async (
   } catch (error) {
     importFailed = true;
     reportQrSyncFailure(error, {
-      surface: 'import',
-      operation: 'import_remaining_secrets',
-      source: 'finishExistingUserSyncWithoutMnemonic',
+      surface: QrSyncSurfaces.IMPORT,
+      operation: QrSyncOperations.IMPORT_REMAINING_SECRETS,
+      source: QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
+      syncFlow: QrSyncSyncFlows.EXISTING_USER,
     });
   }
 
@@ -131,9 +138,10 @@ export const useQrSyncImportNavigation = ({
             hasHandledImportNavigationRef.current = false;
             Engine.context.QrSyncController.resetState();
             reportQrSyncFailure(error, {
-              surface: 'import',
-              operation: 'existing_user_import_navigation',
-              source: 'useQrSyncImportNavigation',
+              surface: QrSyncSurfaces.IMPORT,
+              operation: QrSyncOperations.EXISTING_USER_IMPORT_NAVIGATION,
+              source: QrSyncTelemetrySources.USE_QR_SYNC_IMPORT_NAVIGATION,
+              syncFlow: QrSyncSyncFlows.EXISTING_USER,
             });
           })
           .finally(() => {

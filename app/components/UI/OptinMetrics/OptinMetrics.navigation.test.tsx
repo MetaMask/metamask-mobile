@@ -511,6 +511,7 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
               surface: 'import',
               operation: 'provision_from_metadata',
               source: 'OptinMetrics',
+              syncFlow: 'new_user',
             }),
           }),
         );

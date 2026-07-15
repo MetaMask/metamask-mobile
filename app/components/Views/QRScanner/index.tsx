@@ -67,7 +67,12 @@ import AddDeviceScannerRecovery, {
   AddDeviceScannerPermissionDenied,
 } from './AddDeviceScannerRecovery';
 import { EXTENSION_ACCOUNT_SYNC_CONNECTION_FAILED_EVENT } from '../../../core/ExtensionAccountSync/types';
-import { reportQrSyncFailure } from '../../../core/QrSync/qrSyncTelemetry';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from '../../../core/QrSync/qrSyncTelemetry';
 
 const sleep = (ms: number) =>
   new Promise<void>((resolve) => {
@@ -259,18 +264,17 @@ const QRScanner = ({
         if (classification !== 'valid') {
           shouldReadBarCodeRef.current = false;
           setIsCameraActive(false);
-          reportQrSyncFailure(
-            new Error(`Add-device QR scan classified as ${classification}`),
-            {
-              surface: 'scanner',
-              operation: 'classify_scan_content',
-              errorCode:
-                classification === 'expired'
-                  ? 'SESSION_EXPIRED'
-                  : 'INVALID_PAYLOAD',
-              source: 'QRScanner.addDevice',
-            },
-          );
+          if (classification === 'invalid') {
+            reportQrSyncFailure(
+              new Error('Add-device QR scan classified as invalid'),
+              {
+                surface: QrSyncSurfaces.SCANNER,
+                operation: QrSyncOperations.CLASSIFY_SCAN_CONTENT,
+                errorCode: 'INVALID_PAYLOAD',
+                source: QrSyncTelemetrySources.QR_SCANNER_ADD_DEVICE,
+              },
+            );
+          }
           trackEvent(
             createEventBuilder(MetaMetricsEvents.QR_SCANNED)
               .addProperties({

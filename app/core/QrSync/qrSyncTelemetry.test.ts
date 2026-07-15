@@ -3,6 +3,9 @@ import { addBreadcrumb } from '@sentry/react-native';
 import Logger from '../../util/Logger';
 import {
   QR_SYNC_SENTRY_FEATURE,
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncTelemetrySources,
   addQrSyncPhaseBreadcrumb,
   buildQrSyncLoggerErrorOptions,
   reportQrSyncFailure,
@@ -40,14 +43,14 @@ describe('qrSyncTelemetry', () => {
         mnemonic: TEST_MNEMONIC,
         privateKey: '0xabc',
         pendingSecretImports: [{ value: TEST_MNEMONIC }],
-        phase: 'displaying_otp',
+        phase: 'displaying-otp',
       }) as Record<string, unknown>;
 
       expect(scrubbed.otp).toBe('[REDACTED]');
       expect(scrubbed.mnemonic).toBe('[REDACTED]');
       expect(scrubbed.privateKey).toBe('[REDACTED]');
       expect(scrubbed.pendingSecretImports).toBe('[REDACTED]');
-      expect(scrubbed.phase).toBe('displaying_otp');
+      expect(scrubbed.phase).toBe('displaying-otp');
     });
 
     it('redacts addresses, mnemonics, and deeplinks in strings', () => {
@@ -63,7 +66,7 @@ describe('qrSyncTelemetry', () => {
 
     it('redacts nested values without dropping safe fields', () => {
       const scrubbed = scrubSensitiveQrSyncData({
-        surface: 'scanner',
+        surface: QrSyncSurfaces.SCANNER,
         extras: {
           content: TEST_MWP_DEEPLINK,
           note: 'ok',
@@ -73,7 +76,7 @@ describe('qrSyncTelemetry', () => {
         extras: { content: string; note: string };
       };
 
-      expect(scrubbed.surface).toBe('scanner');
+      expect(scrubbed.surface).toBe(QrSyncSurfaces.SCANNER);
       expect(scrubbed.extras.note).toBe('ok');
       expect(scrubbed.extras.content).toBe('[REDACTED]');
     });
@@ -101,16 +104,16 @@ describe('qrSyncTelemetry', () => {
       addQrSyncPhaseBreadcrumb({
         from: 'displaying-otp',
         to: 'failed',
-        errorCode: 'GRANT_WAIT_TIMEOUT',
+        errorCode: 'CHANNEL_DISCONNECTED',
       });
 
       expect(addBreadcrumb).toHaveBeenCalledWith(
         expect.objectContaining({
           level: 'error',
           message:
-            'qr_sync.phase displaying-otp->failed code=GRANT_WAIT_TIMEOUT',
+            'qr_sync.phase displaying-otp->failed code=CHANNEL_DISCONNECTED',
           data: expect.objectContaining({
-            errorCode: 'GRANT_WAIT_TIMEOUT',
+            errorCode: 'CHANNEL_DISCONNECTED',
           }),
         }),
       );
@@ -120,12 +123,12 @@ describe('qrSyncTelemetry', () => {
   describe('buildQrSyncLoggerErrorOptions', () => {
     it('sets feature:qr-sync tags and scrubs injected secrets from extras', () => {
       const options = buildQrSyncLoggerErrorOptions({
-        surface: 'import',
-        operation: 'existing_user_import',
+        surface: QrSyncSurfaces.IMPORT,
+        operation: QrSyncOperations.EXISTING_USER_MNEMONIC_IMPORT,
         error: new Error('vault import failed'),
         errorCode: 'SYNC_FAILED',
-        phase: 'reviewing_import',
-        source: 'completeExistingUserQrSyncImport',
+        phase: 'reviewing-import',
+        source: QrSyncTelemetrySources.COMPLETE_EXISTING_USER_IMPORT,
         extras: {
           mnemonic: TEST_MNEMONIC,
           otp: TEST_OTP,
@@ -137,8 +140,8 @@ describe('qrSyncTelemetry', () => {
       expect(options.tags).toEqual(
         expect.objectContaining({
           feature: QR_SYNC_SENTRY_FEATURE,
-          surface: 'import',
-          operation: 'existing_user_import',
+          surface: QrSyncSurfaces.IMPORT,
+          operation: QrSyncOperations.EXISTING_USER_MNEMONIC_IMPORT,
           errorCode: 'SYNC_FAILED',
         }),
       );
@@ -155,9 +158,9 @@ describe('qrSyncTelemetry', () => {
   describe('reportQrSyncFailure', () => {
     it('forwards scrubbed LoggerErrorOptions to Logger.error', () => {
       reportQrSyncFailure(new Error('scan submit failed'), {
-        surface: 'scanner',
-        operation: 'submit_scanned_payload',
-        source: 'AddDeviceToWallet',
+        surface: QrSyncSurfaces.SCANNER,
+        operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
+        source: QrSyncTelemetrySources.ADD_DEVICE_ON_SCAN_SUCCESS,
         extras: { qrPayload: TEST_MWP_DEEPLINK },
       });
 
@@ -167,7 +170,7 @@ describe('qrSyncTelemetry', () => {
         expect.objectContaining({
           tags: expect.objectContaining({
             feature: QR_SYNC_SENTRY_FEATURE,
-            surface: 'scanner',
+            surface: QrSyncSurfaces.SCANNER,
           }),
         }),
       );
@@ -176,8 +179,8 @@ describe('qrSyncTelemetry', () => {
 
     it('wraps non-Error values', () => {
       reportQrSyncFailure('boom', {
-        surface: 'session',
-        operation: 'terminate',
+        surface: QrSyncSurfaces.SESSION,
+        operation: QrSyncOperations.TERMINATE_WITH_ERROR,
       });
 
       expect(Logger.error).toHaveBeenCalledWith(

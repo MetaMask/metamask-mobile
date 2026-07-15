@@ -153,6 +153,7 @@ describe('finalizeOnboardingCompletion', () => {
           surface: 'import',
           operation: 'provision_from_metadata',
           source: 'TestContext',
+          syncFlow: 'new_user',
         }),
       }),
     );

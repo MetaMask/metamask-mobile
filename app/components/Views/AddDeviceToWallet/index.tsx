@@ -29,7 +29,12 @@ import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDevi
 import { useAddDeviceResetToInstructionsListener } from '../../../core/QrSync/useAddDeviceResetToInstructionsListener';
 import { useIsQrTabSwitcherOpen } from '../../../core/QrSync/useIsQrTabSwitcherOpen';
 import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
-import { reportQrSyncFailure } from '../../../core/QrSync/qrSyncTelemetry';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from '../../../core/QrSync/qrSyncTelemetry';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   selectQrSyncError,
@@ -120,9 +125,9 @@ const AddDeviceToWallet = () => {
 
       submitQrPayload(scannedQrPayload).catch((err: unknown) => {
         reportQrSyncFailure(err, {
-          surface: 'scanner',
-          operation: 'submit_scanned_payload',
-          source: 'AddDeviceToWallet.onScanSuccess',
+          surface: QrSyncSurfaces.SCANNER,
+          operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
+          source: QrSyncTelemetrySources.ADD_DEVICE_ON_SCAN_SUCCESS,
         });
       });
     },
@@ -153,9 +158,9 @@ const AddDeviceToWallet = () => {
   const triggerManualQrSubmit = useCallback(() => {
     handleManualQrSubmit().catch((submitError: unknown) => {
       reportQrSyncFailure(submitError, {
-        surface: 'scanner',
-        operation: 'submit_manual_payload',
-        source: 'AddDeviceToWallet.triggerManualQrSubmit',
+        surface: QrSyncSurfaces.SCANNER,
+        operation: QrSyncOperations.SUBMIT_MANUAL_PAYLOAD,
+        source: QrSyncTelemetrySources.ADD_DEVICE_MANUAL_SUBMIT,
       });
     });
   }, [handleManualQrSubmit]);

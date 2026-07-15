@@ -14,7 +14,62 @@ import type { QrSyncErrorCode, QrSyncPhase } from './types';
 export const QR_SYNC_SENTRY_FEATURE = 'qr-sync' as const;
 
 /** UI / protocol surface within the QR sync receive flow. */
-export type QrSyncSurface = 'scanner' | 'grant_wait' | 'import' | 'session';
+export const QrSyncSurfaces = {
+  SCANNER: 'scanner',
+  IMPORT: 'import',
+  SESSION: 'session',
+} as const;
+
+export type QrSyncSurface =
+  (typeof QrSyncSurfaces)[keyof typeof QrSyncSurfaces];
+
+/** Operation identifiers attached to `feature:qr-sync` Sentry events. */
+export const QrSyncOperations = {
+  CLASSIFY_SCAN_CONTENT: 'classify_scan_content',
+  SUBMIT_SCANNED_PAYLOAD: 'submit_scanned_payload',
+  SUBMIT_MANUAL_PAYLOAD: 'submit_manual_payload',
+  EXISTING_USER_MNEMONIC_IMPORT: 'existing_user_mnemonic_import',
+  IMPORT_REMAINING_SECRETS: 'import_remaining_secrets',
+  EXISTING_USER_IMPORT_NAVIGATION: 'existing_user_import_navigation',
+  PROVISION_FROM_METADATA: 'provision_from_metadata',
+  IMPORT_SECRETS_UNKNOWN_TYPE: 'import_secrets_unknown_type',
+  IMPORT_SECRETS_TO_VAULT: 'import_secrets_to_vault',
+  USER_STORAGE_RECONCILIATION: 'user_storage_reconciliation',
+  IMPORT_REMAINING_SECRETS_FINALIZE: 'import_remaining_secrets_finalize',
+  ENRICH_PRIMARY_PROVISIONING_ENTRY: 'enrich_primary_provisioning_entry',
+  TERMINATE_WITH_ERROR: 'terminate_with_error',
+} as const;
+
+export type QrSyncOperation =
+  (typeof QrSyncOperations)[keyof typeof QrSyncOperations];
+
+/** Stable `source` tags for QR sync failure call sites. */
+export const QrSyncTelemetrySources = {
+  QR_SCANNER_ADD_DEVICE: 'QRScanner.addDevice',
+  ADD_DEVICE_ON_SCAN_SUCCESS: 'AddDeviceToWallet.onScanSuccess',
+  ADD_DEVICE_MANUAL_SUBMIT: 'AddDeviceToWallet.triggerManualQrSubmit',
+  COMPLETE_EXISTING_USER_IMPORT: 'completeExistingUserQrSyncImport',
+  FINISH_EXISTING_USER_WITHOUT_MNEMONIC:
+    'finishExistingUserSyncWithoutMnemonic',
+  USE_QR_SYNC_IMPORT_NAVIGATION: 'useQrSyncImportNavigation',
+  PROVISIONING_IMPORT_SECRETS: 'QrSyncProvisioningService.importSecretsToVault',
+  PROVISIONING_RECONCILE: 'QrSyncProvisioningService.reconcileWithUserStorage',
+  CONTROLLER_IMPORT_REMAINING: 'QrSyncController.importRemainingSecrets',
+  CONTROLLER_ENRICH_PRIMARY: 'QrSyncController.enrichPrimaryProvisioningEntry',
+  CONTROLLER: 'QrSyncController',
+} as const;
+
+export type QrSyncTelemetrySource =
+  (typeof QrSyncTelemetrySources)[keyof typeof QrSyncTelemetrySources];
+
+/** Distinguishes new-user vs existing-user QR sync receive paths. */
+export const QrSyncSyncFlows = {
+  NEW_USER: 'new_user',
+  EXISTING_USER: 'existing_user',
+} as const;
+
+export type QrSyncSyncFlow =
+  (typeof QrSyncSyncFlows)[keyof typeof QrSyncSyncFlows];
 
 const SENSITIVE_KEY_PATTERN =
   /^(otp|mnemonic|seed|seedPhrase|privateKey|pendingSecretImports|value|p|payload|scannedQr|qrPayload|sessionRequest)$/i;
@@ -36,10 +91,11 @@ export interface QrSyncPhaseBreadcrumbArgs {
 
 export interface ReportQrSyncFailureOptions {
   surface: QrSyncSurface;
-  operation: string;
+  operation: QrSyncOperation;
   errorCode?: QrSyncErrorCode | string;
   phase?: QrSyncPhase | string;
-  source?: string;
+  source?: QrSyncTelemetrySource | string;
+  syncFlow?: QrSyncSyncFlow;
   /** Extra display-only fields — scrubbed before send. */
   extras?: Record<string, unknown>;
 }
@@ -124,6 +180,7 @@ export function buildQrSyncLoggerErrorOptions({
   errorCode,
   phase,
   source,
+  syncFlow,
   extras,
 }: ReportQrSyncFailureOptions & { error: unknown }): LoggerErrorOptions {
   const errorMessage =
@@ -135,6 +192,7 @@ export function buildQrSyncLoggerErrorOptions({
     ...(errorCode !== undefined && { errorCode }),
     ...(phase !== undefined && { phase }),
     ...(source !== undefined && { source }),
+    ...(syncFlow !== undefined && { syncFlow }),
     ...(extras !== undefined && extras),
   }) as Record<string, unknown>;
 
@@ -146,6 +204,7 @@ export function buildQrSyncLoggerErrorOptions({
       ...(errorCode !== undefined && { errorCode: String(errorCode) }),
       ...(phase !== undefined && { phase: String(phase) }),
       ...(source !== undefined && { source }),
+      ...(syncFlow !== undefined && { syncFlow }),
     },
     context: {
       name: 'qr_sync',
@@ -155,6 +214,7 @@ export function buildQrSyncLoggerErrorOptions({
         ...(errorCode !== undefined && { errorCode }),
         ...(phase !== undefined && { phase }),
         ...(source !== undefined && { source }),
+        ...(syncFlow !== undefined && { syncFlow }),
       }) as Record<string, unknown>,
     },
     extras: scrubbedExtras,

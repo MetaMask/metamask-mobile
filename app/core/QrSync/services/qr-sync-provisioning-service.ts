@@ -49,7 +49,13 @@ import type {
   QrSyncSecretImportEntry,
 } from '../types';
 import { toFormattedAddress } from '../../../util/address';
-import { reportQrSyncFailure } from '../qrSyncTelemetry';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncSyncFlows,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from '../qrSyncTelemetry';
 
 const SERVICE_NAME = 'QrSyncProvisioningService' as const;
 
@@ -147,21 +153,24 @@ export class QrSyncProvisioningService {
             );
           }
         } else {
+          const syncFlow = this.#resolveSyncFlow();
           reportQrSyncFailure(
             new Error('QrSyncProvisioningService: Unknown secret type'),
             {
-              surface: 'import',
-              operation: 'import_secrets_unknown_type',
-              source: 'QrSyncProvisioningService.importSecretsToVault',
+              surface: QrSyncSurfaces.IMPORT,
+              operation: QrSyncOperations.IMPORT_SECRETS_UNKNOWN_TYPE,
+              source: QrSyncTelemetrySources.PROVISIONING_IMPORT_SECRETS,
+              syncFlow,
               extras: { secretType: String(secret.type) },
             },
           );
         }
       } catch (error) {
         reportQrSyncFailure(error, {
-          surface: 'import',
-          operation: 'import_secrets_to_vault',
-          source: 'QrSyncProvisioningService.importSecretsToVault',
+          surface: QrSyncSurfaces.IMPORT,
+          operation: QrSyncOperations.IMPORT_SECRETS_TO_VAULT,
+          source: QrSyncTelemetrySources.PROVISIONING_IMPORT_SECRETS,
+          syncFlow: this.#resolveSyncFlow(),
         });
       }
     }
@@ -433,10 +442,32 @@ export class QrSyncProvisioningService {
       await this.#messenger.call('AccountTreeController:syncWithUserStorage');
     } catch (error) {
       reportQrSyncFailure(error, {
-        surface: 'import',
-        operation: 'user_storage_reconciliation',
-        source: 'QrSyncProvisioningService.reconcileWithUserStorage',
+        surface: QrSyncSurfaces.IMPORT,
+        operation: QrSyncOperations.USER_STORAGE_RECONCILIATION,
+        source: QrSyncTelemetrySources.PROVISIONING_RECONCILE,
+        syncFlow: this.#resolveSyncFlow(),
       });
+    }
+  }
+
+  /**
+   * Best-effort new vs existing-user classification for Sentry tags.
+   * Pending primary mnemonic usually indicates the new-user onboarding path.
+   */
+  #resolveSyncFlow():
+    | typeof QrSyncSyncFlows.NEW_USER
+    | typeof QrSyncSyncFlows.EXISTING_USER {
+    try {
+      const { pendingSecretImports } = this.#getQrSyncControllerState();
+      const hasPrimaryPendingMnemonic = pendingSecretImports?.some(
+        (secret) =>
+          secret.type === QrSyncSecretTypes.MNEMONIC && secret.isPrimary,
+      );
+      return hasPrimaryPendingMnemonic
+        ? QrSyncSyncFlows.NEW_USER
+        : QrSyncSyncFlows.EXISTING_USER;
+    } catch {
+      return QrSyncSyncFlows.EXISTING_USER;
     }
   }
 

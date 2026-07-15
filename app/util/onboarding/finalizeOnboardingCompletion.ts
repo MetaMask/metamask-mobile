@@ -10,7 +10,13 @@ import { getOnboardingCompletedAnalyticsPropsFromSuccessFlow } from '../analytic
 import type { WalletSetupCompletedAttributionAnalyticsPayload } from '../analytics/walletSetupCompletedAttribution';
 import { analytics } from '../analytics/analytics';
 import Logger from '../Logger';
-import { reportQrSyncFailure } from '../../core/QrSync/qrSyncTelemetry';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncSyncFlows,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from '../../core/QrSync/qrSyncTelemetry';
 import { shouldMarkWalletHomeOnboardingStepsEligible } from './walletHomeOnboardingStepsEligibility';
 
 export interface FinalizeOnboardingCompletionParams {
@@ -76,9 +82,10 @@ export function finalizeOnboardingCompletion({
       Engine.context.QrSyncProvisioningService.provisionFromMetadata().catch(
         (error: unknown) => {
           reportQrSyncFailure(error, {
-            surface: 'import',
-            operation: 'provision_from_metadata',
+            surface: QrSyncSurfaces.IMPORT,
+            operation: QrSyncOperations.PROVISION_FROM_METADATA,
             source: discoverAccountsLogContext,
+            syncFlow: QrSyncSyncFlows.NEW_USER,
           });
         },
       );

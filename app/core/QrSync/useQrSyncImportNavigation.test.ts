@@ -78,9 +78,13 @@ jest.mock(
   }),
 );
 
-jest.mock('./qrSyncTelemetry', () => ({
-  reportQrSyncFailure: jest.fn(),
-}));
+jest.mock('./qrSyncTelemetry', () => {
+  const actual = jest.requireActual('./qrSyncTelemetry');
+  return {
+    ...actual,
+    reportQrSyncFailure: jest.fn(),
+  };
+});
 
 import Engine from '../Engine';
 import { reportQrSyncFailure } from './qrSyncTelemetry';
