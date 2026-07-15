@@ -5820,6 +5820,28 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsRecentlyViewedEnabled: {
+    name: 'perpsRecentlyViewedEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.4.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsClosePositionLimitOrderEnabled: {
+    name: 'perpsClosePositionLimitOrderEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.3.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   predictWimbledon: {
     name: 'predictWimbledon',
     type: FeatureFlagType.Remote,
