@@ -54,6 +54,7 @@ describe('useLiveMarketPrices', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   describe('subscription management', () => {
