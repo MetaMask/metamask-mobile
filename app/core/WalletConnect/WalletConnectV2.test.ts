@@ -2018,11 +2018,34 @@ describe('WC2Manager', () => {
       expect(wc2MetadataCalls.length).toBeGreaterThan(0);
 
       const metadata = wc2MetadataCalls[0][0].metadata;
+      expect(metadata.id).toBe('verify-test-pairing');
       expect(metadata.verifyContext).toEqual({
         isScam: true,
         validation: 'INVALID',
         verifiedOrigin: 'https://malicious-site.com',
       });
+    });
+
+    it('stores pairing topic as wc2Metadata id for permission-origin matching', async () => {
+      mockApproveSession.mockResolvedValue({
+        topic: 'pairing-id-topic',
+        pairingTopic: 'verify-test-pairing',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'Verify Test App',
+            icons: [],
+          },
+        },
+      });
+
+      await manager.onSessionProposal(createProposal());
+
+      const metadataCall = dispatchSpy.mock.calls.find(
+        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+      );
+
+      expect(metadataCall?.[0]?.metadata?.id).toBe('verify-test-pairing');
     });
 
     it('dispatches verifyContext with isScam false for verified dapps', async () => {

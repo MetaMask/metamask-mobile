@@ -619,7 +619,13 @@ export class WC2Manager {
 
     // Save connection info to redux store for the approval UI.
     store.dispatch(
-      updateWC2Metadata({ url, name, icon, id: `${id}`, verifyContext }),
+      updateWC2Metadata({
+        url,
+        name,
+        icon,
+        id: channelId,
+        verifyContext,
+      }),
     );
 
     const doesProposalIncludeEip155 = doesProposalOrSessionIncludeNamespace({

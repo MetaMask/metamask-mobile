@@ -42,6 +42,7 @@ import {
 import AppConstants from '../../../../core/AppConstants.ts';
 import SDKConnect from '../../../../core/SDKConnect/SDKConnect.ts';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger.ts';
+import { isWalletConnectPermissionOrigin } from '../../../../core/WalletConnect/wc-utils.ts';
 import { RootState } from '../../../../reducers/index.ts';
 import { trackDappViewedEvent } from '../../../../util/metrics/index.ts';
 import { useTheme } from '../../../../util/theme/index.ts';
@@ -278,7 +279,8 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const isOriginMMSDKRemoteConn = sdkConnection !== undefined;
 
   const isOriginWalletConnect =
-    !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
+    !isOriginMMSDKRemoteConn &&
+    isWalletConnectPermissionOrigin(channelIdOrHostname, wc2Metadata);
 
   const isMaliciousDapp = Boolean(
     isOriginWalletConnect && wc2Metadata?.verifyContext?.isScam,
