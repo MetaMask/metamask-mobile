@@ -18,7 +18,11 @@ import {
   useSubmitPriceAlert,
   useSubmitPercentAlert,
 } from './api';
-import type { Alert, PercentChangeAlert, PriceAlert } from './constants';
+import type {
+  AbsolutePriceAlert,
+  Alert,
+  PercentChangeAlert,
+} from './constants';
 
 // Prevents teardown crashes with unstable_batchedUpdates in Jest
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
@@ -248,7 +252,9 @@ describe('priceAlertsQueryKey', () => {
   });
 });
 
-const makeAlert = (overrides: Partial<PriceAlert> = {}): PriceAlert => ({
+const makeAlert = (
+  overrides: Partial<AbsolutePriceAlert> = {},
+): AbsolutePriceAlert => ({
   id: 'alert-1',
   userId: 'user-1',
   asset: 'eip155:1/slip44:60',

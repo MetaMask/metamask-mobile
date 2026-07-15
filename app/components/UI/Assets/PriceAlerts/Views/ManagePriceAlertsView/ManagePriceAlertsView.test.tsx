@@ -5,9 +5,9 @@ import { notifyManager } from '@tanstack/query-core';
 import ManagePriceAlertsView from './ManagePriceAlertsView';
 import {
   ManagePriceAlertsTestIds,
+  type AbsolutePriceAlert,
   type Alert,
   type PercentChangeAlert,
-  type PriceAlert,
 } from '../../constants';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../../../component-library/components/Toast';
@@ -82,7 +82,9 @@ jest.mock('../../api', () => ({
   priceAlertsQueryKey: (assetId: string) => ['priceAlerts', assetId],
 }));
 
-const makeAlert = (overrides: Partial<PriceAlert> = {}): PriceAlert => ({
+const makeAlert = (
+  overrides: Partial<AbsolutePriceAlert> = {},
+): AbsolutePriceAlert => ({
   id: 'alert-1',
   userId: 'user-1',
   asset: 'eip155:1/slip44:60',

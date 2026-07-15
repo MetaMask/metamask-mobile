@@ -59,14 +59,6 @@ export interface PercentChangeAlert extends BaseAlert {
 /** Any alert returned by the API. Narrow on `type` before reading period/direction. */
 export type Alert = AbsolutePriceAlert | PercentChangeAlert;
 
-/**
- * @deprecated Prefer {@link Alert} (the discriminated union). Kept as an alias
- * to the absolute-price shape so existing absolute-only call sites keep
- * compiling; older API deployments may omit `type` entirely on this shape
- * (see `normalizeAlert` in `api.ts`).
- */
-export type PriceAlert = AbsolutePriceAlert;
-
 export const PRICE_ALERT_QUICK_PERCENTAGES = [-10, -5, 5, 10] as const;
 
 /**

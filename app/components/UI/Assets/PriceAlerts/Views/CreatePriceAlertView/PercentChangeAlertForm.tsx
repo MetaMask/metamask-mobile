@@ -6,6 +6,10 @@ import {
   Button,
   ButtonVariant,
   FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -15,11 +19,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import KeypadComponent, {
   type KeypadChangeData,
 } from '../../../../../Base/Keypad';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
 import AlertAmountInput from '../../components/AlertAmountInput';
 import AlertPeriodToggle from '../../components/AlertPeriodToggle';
 import RecurringToggle from '../../components/RecurringToggle';
@@ -74,7 +73,7 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
 
   const hasInput = percentAmount !== KEYPAD_EMPTY;
   const percentValue = useMemo(() => {
-    const parsed = parseFloat(percentAmount);
+    const parsed = Number.parseFloat(percentAmount);
     return Number.isFinite(parsed) ? parsed : 0;
   }, [percentAmount]);
   const hasValidPercent = percentValue > 0;
@@ -220,7 +219,9 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
       <Icon
         name={direction === 'up' ? IconName.TrendUp : IconName.TrendDown}
         size={IconSize.Md}
-        color={direction === 'up' ? IconColor.Success : IconColor.Error}
+        color={
+          direction === 'up' ? IconColor.SuccessDefault : IconColor.ErrorDefault
+        }
       />
     </TouchableOpacity>
   );

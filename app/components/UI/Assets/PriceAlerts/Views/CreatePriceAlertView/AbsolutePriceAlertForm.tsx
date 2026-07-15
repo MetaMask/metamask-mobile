@@ -64,7 +64,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
 
   const hasInput = targetAmount !== KEYPAD_EMPTY;
   const targetPrice = useMemo(() => {
-    const parsed = parseFloat(targetAmount);
+    const parsed = Number.parseFloat(targetAmount);
     return Number.isFinite(parsed) ? parsed : 0;
   }, [targetAmount]);
   const hasValidTarget = targetPrice > 0;

@@ -5,7 +5,6 @@ import type {
   Alert,
   AbsolutePriceAlert,
   PercentChangeAlert,
-  PriceAlert,
   SaveAlertParams,
   SavePercentAlertParams,
   UpdateAlertParams,
@@ -114,7 +113,7 @@ export const deleteAlertByType = (alert: Alert): Promise<Response> =>
     ? deletePercentAlert(alert.id)
     : deleteAlert(alert.id);
 
-export const useSubmitPriceAlert = (editingAlert?: PriceAlert) => {
+export const useSubmitPriceAlert = (editingAlert?: AbsolutePriceAlert) => {
   const { mutateAsync, isPending } = useMutation<void, Error, SaveAlertParams>({
     mutationFn: async ({ asset, threshold, recurring }) => {
       const response = editingAlert
