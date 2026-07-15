@@ -732,6 +732,10 @@ function startTrace(request: TraceRequest): TraceContext {
 
     const timeoutId = setTimeout(() => {
       log('Trace cleanup due to timeout', name, id);
+      if (span) {
+        span.setStatus({ code: 2, message: 'deadline_exceeded' });
+        span.setAttribute('trace.timed_out', true);
+      }
       end();
       tracesByKey.delete(getTraceKey(request));
     }, TRACES_CLEANUP_INTERVAL);

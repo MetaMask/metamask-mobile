@@ -249,6 +249,38 @@ describe('excludeEvents', () => {
     expect(result.start_timestamp).toBe(1234567890);
   });
 
+  it('drops event when trace.timed_out flag is true', () => {
+    const event = {
+      transaction: 'Onboarding - Overall Journey',
+      contexts: {
+        trace: {
+          data: {
+            'trace.timed_out': true,
+          },
+        },
+      },
+    };
+
+    const result = excludeEvents(event);
+    expect(result).toBeNull();
+  });
+
+  it('keeps event when trace.timed_out flag is absent', () => {
+    const event = {
+      transaction: 'Onboarding - Overall Journey',
+      contexts: {
+        trace: {
+          data: {
+            'some.other.attr': 'value',
+          },
+        },
+      },
+    };
+
+    const result = excludeEvents(event);
+    expect(result).toBe(event);
+  });
+
   it('returns main-exp for experimental environment and main build type', async () => {
     const METAMASK_ENVIRONMENT = 'exp';
     const isDev = false;

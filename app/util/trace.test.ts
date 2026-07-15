@@ -382,7 +382,11 @@ describe('Trace', () => {
       updateCachedConsent(true);
 
       const spanEndMock = jest.fn();
-      const spanMock = { end: spanEndMock } as unknown as Span;
+      const spanMock = {
+        end: spanEndMock,
+        setStatus: jest.fn(),
+        setAttribute: jest.fn(),
+      } as unknown as Span;
 
       startSpanManualMock.mockImplementationOnce((_, fn) =>
         fn(spanMock, () => {
@@ -402,6 +406,41 @@ describe('Trace', () => {
 
       jest.advanceTimersByTime(TRACES_CLEANUP_INTERVAL + 1000);
 
+      expect(spanEndMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('marks span as timed out with deadline_exceeded status when cleanup fires for open span', () => {
+      updateCachedConsent(true);
+
+      const spanEndMock = jest.fn();
+      const setStatusMock = jest.fn();
+      const setAttributeMock = jest.fn();
+      const spanMock = {
+        end: spanEndMock,
+        setStatus: setStatusMock,
+        setAttribute: setAttributeMock,
+      } as unknown as Span;
+
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({
+        name: NAME_MOCK,
+        id: ID_MOCK,
+        tags: TAGS_MOCK,
+        data: DATA_MOCK,
+      });
+
+      jest.advanceTimersByTime(TRACES_CLEANUP_INTERVAL);
+
+      expect(setStatusMock).toHaveBeenCalledWith({
+        code: 2,
+        message: 'deadline_exceeded',
+      });
+      expect(setAttributeMock).toHaveBeenCalledWith('trace.timed_out', true);
       expect(spanEndMock).toHaveBeenCalledTimes(1);
     });
   });
