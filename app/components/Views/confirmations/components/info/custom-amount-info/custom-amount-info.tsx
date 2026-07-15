@@ -447,7 +447,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {(!hasPaymentOption || hasAccountNoFunds) &&
             !hideBuyForNoFunds &&
             !isDepositPrefillEnabled && <BuySection />}
-          {(!isKeyboardVisible || showLoadingReview) && (
+          {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
               disableConfirm={
