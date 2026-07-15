@@ -5135,6 +5135,36 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  homeTMCU1103AbtestActionButtonsGrid: {
+    name: 'homeTMCU1103AbtestActionButtonsGrid',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+      {
+        name: 'row1Top',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+      {
+        name: 'row2Top',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
   homepageRedesignV1: {
     name: 'homepageRedesignV1',
     type: FeatureFlagType.Remote,
