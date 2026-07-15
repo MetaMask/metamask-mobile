@@ -16,6 +16,7 @@ import Logger from '../../../util/Logger';
 import { hasTestOverrides } from '../../../util/test/utils';
 import styleSheet from './FoxLoader.styles';
 import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
+import { brandColor } from '@metamask/design-tokens';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const splashRiveFile = require('../../../animations/splash_screen.riv');
@@ -164,7 +165,9 @@ const FoxLoaderAnimation = ({
         // Fallback to pure black during very-early mount before tokens/theme
         // are available. Once the design-system theme is active, this override
         // is harmless (tokens are also pure black in dark mode).
-        Appearance.getColorScheme() === 'dark' ? { backgroundColor: '#000000' } : undefined,
+        Appearance.getColorScheme() === 'dark'
+          ? { backgroundColor: brandColor.black }
+          : undefined,
       ]}
     >
       <View
