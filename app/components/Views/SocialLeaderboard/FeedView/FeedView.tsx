@@ -250,15 +250,29 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
     [navigation],
   );
 
+  const handlePositionPress = useCallback(
+    (item: FeedItem) => {
+      playSelection().catch(() => undefined);
+      navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
+        positionId: item.tokenAvatar.positionId,
+        traderId: item.traderId,
+        traderAddress: item.traderAddress,
+        source: 'trader_feed',
+      });
+    },
+    [navigation],
+  );
+
   const renderItem = useCallback(
     ({ item }: SectionListRenderItemInfo<FeedItem, FeedSection>) => (
       <FeedItemRow
         item={item}
         onTradePress={handleTradePress}
+        onPositionPress={handlePositionPress}
         onTraderPress={handleTraderPress}
       />
     ),
-    [handleTradePress, handleTraderPress],
+    [handleTradePress, handlePositionPress, handleTraderPress],
   );
 
   const renderSectionHeader = useCallback(
