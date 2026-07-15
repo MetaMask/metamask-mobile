@@ -2454,8 +2454,9 @@
       "referral_code_text": "Use my referral code to earn extra rewards."
     },
     "market_details": {
-      "category_search": "Browse related markets",
-      "fullscreen_chart": "Fullscreen chart"
+      "fullscreen_chart": "Fullscreen chart",
+      "market_list": "Browse markets",
+      "perp_pair": "{{ticker}}-{{collateral}} perp"
     }
   },
   "market_insights": {
