@@ -47,7 +47,7 @@ const HomepageActionButton = ({
       disabled={isDisabled}
       onPress={isDisabled ? undefined : onPress}
       style={tw.style(
-        'w-[79px] items-center',
+        'min-w-0 flex-1 items-center',
         isDisabled ? 'opacity-50' : 'opacity-100',
       )}
       testID={testID}
