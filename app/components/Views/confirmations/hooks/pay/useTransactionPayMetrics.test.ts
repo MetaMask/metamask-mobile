@@ -22,6 +22,8 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import {
+  useIsTransactionPayQuoteLoading,
+  useTransactionPayIsMaxAmount,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPayFiatPayment,
@@ -124,6 +126,12 @@ describe('useTransactionPayMetrics', () => {
   const useFiatPaymentHighlightedActionsMock = jest.mocked(
     useFiatPaymentHighlightedActions,
   );
+  const useIsTransactionPayQuoteLoadingMock = jest.mocked(
+    useIsTransactionPayQuoteLoading,
+  );
+  const useTransactionPayIsMaxAmountMock = jest.mocked(
+    useTransactionPayIsMaxAmount,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -162,6 +170,8 @@ describe('useTransactionPayMetrics', () => {
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
     useFiatPaymentHighlightedActionsMock.mockReturnValue([]);
     useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue(undefined);
+    useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+    useTransactionPayIsMaxAmountMock.mockReturnValue(false);
   });
 
   it('includes available crypto method even before a pay token is selected', async () => {
@@ -1346,6 +1356,178 @@ describe('useTransactionPayMetrics', () => {
       )?.params?.properties;
 
       expect(calledProps).not.toHaveProperty('mm_pay_entry_point');
+    });
+  });
+
+  describe('mm_pay_quote_errors', () => {
+    const lastProps = () =>
+      (
+        updateConfirmationMetricMock.mock.calls.at(-1)?.[0] as {
+          params: { properties: Record<string, unknown> };
+        }
+      )?.params?.properties;
+
+    it('is omitted when no quote errors have occurred', async () => {
+      runHook();
+
+      await act(async () => noop());
+
+      expect(lastProps()).not.toHaveProperty('mm_pay_quote_errors');
+    });
+
+    it('appends one entry when a loading cycle ends with no quotes', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+
+      rerender({});
+
+      await act(async () => noop());
+
+      expect(lastProps()?.mm_pay_quote_errors).toEqual([
+        {
+          pay_token: {
+            symbol: PAY_TOKEN_MOCK.symbol,
+            chainId: PAY_TOKEN_MOCK.chainId,
+            address: PAY_TOKEN_MOCK.address,
+          },
+          amount: Number(TOKEN_AMOUNT_MOCK),
+          percentage_amount: null,
+          percentage_max: null,
+          error_message: 'unknown',
+        },
+      ]);
+    });
+
+    it('does NOT append when a cycle ends WITH quotes', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+      useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
+
+      rerender({});
+
+      await act(async () => noop());
+
+      expect(lastProps()).not.toHaveProperty('mm_pay_quote_errors');
+    });
+
+    it('captures percentage_amount from stored input type', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      mockSelectConfirmationMetricsById.mockReturnValue({
+        properties: { mm_pay_amount_input_type: '50%' },
+      });
+      useTransactionPayIsMaxAmountMock.mockReturnValue(false);
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+
+      rerender({});
+
+      await act(async () => noop());
+
+      const errors = lastProps()?.mm_pay_quote_errors as Array<Record<string, unknown>>;
+      expect(errors?.[0]).toMatchObject({
+        percentage_amount: 50,
+        percentage_max: false,
+      });
+    });
+
+    it('captures percentage_max: true when max is set', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      mockSelectConfirmationMetricsById.mockReturnValue({
+        properties: { mm_pay_amount_input_type: '100%' },
+      });
+      useTransactionPayIsMaxAmountMock.mockReturnValue(true);
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+
+      rerender({});
+
+      await act(async () => noop());
+
+      const errors = lastProps()?.mm_pay_quote_errors as Array<Record<string, unknown>>;
+      expect(errors?.[0]).toMatchObject({
+        percentage_amount: 100,
+        percentage_max: true,
+      });
+    });
+
+    it('accumulates multiple failed cycles oldest-first', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+
+      await act(async () => noop());
+
+      // Cycle 1: loading true
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      rerender({});
+      await act(async () => noop());
+
+      // Cycle 1: loading false (no quotes)
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+      rerender({});
+      await act(async () => noop());
+
+      // Cycle 2: loading true
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      rerender({});
+      await act(async () => noop());
+
+      // Cycle 2: loading false (no quotes)
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+      rerender({});
+      await act(async () => noop());
+
+      const errors = lastProps()?.mm_pay_quote_errors as Array<unknown>;
+      expect(errors).toHaveLength(2);
     });
   });
 });
