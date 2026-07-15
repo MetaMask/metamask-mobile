@@ -1474,7 +1474,7 @@ describe('MoneyHomeView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.HOW_IT_WORKS);
     });
 
-    it('opens the mUSD price URL when the condensed mUSD card is pressed', () => {
+    it('opens the mUSD price URL in the in-app browser when the condensed mUSD card is pressed', () => {
       const mockOpenURL = jest
         .spyOn(Linking, 'openURL')
         .mockResolvedValue(undefined);
@@ -1483,7 +1483,15 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyCondensedInfoCardsTestIds.MUSD_CARD));
 
-      expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MUSD_PRICE);
+      expect(mockOpenURL).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: AppConstants.URLS.MUSD_PRICE,
+          timestamp: expect.any(Number),
+          fromMoney: true,
+        },
+      });
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
         component_name: COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_MUSD,
         redirect_target: MONEY_URLS.MUSD_PRICE,
@@ -1858,7 +1866,7 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('opens the mUSD price URL when the mUSD token row is pressed', () => {
+    it('opens the mUSD price URL in the in-app browser when the mUSD token row is pressed', () => {
       const NavigationService = jest.requireMock(
         '../../../../../core/NavigationService',
       ).default;
@@ -1870,7 +1878,15 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.CONTAINER));
 
-      expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MUSD_PRICE);
+      expect(mockOpenURL).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: AppConstants.URLS.MUSD_PRICE,
+          timestamp: expect.any(Number),
+          fromMoney: true,
+        },
+      });
       expect(NavigationService.navigation.navigate).not.toHaveBeenCalled();
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
         component_name: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,

@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 
+import Routes from '../../constants/navigation/Routes';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import {
   selectQrSyncExistingUserImportMnemonic,
@@ -12,6 +13,8 @@ import Engine from '../Engine';
 import { QrSyncSecretTypes } from './constants';
 import { completeExistingUserQrSyncImport } from './completeExistingUserQrSyncImport';
 import { navigateToQrSyncImport } from './navigateToQrSyncImport';
+import { showAlreadySyncedSheet } from '../../components/Views/AddDeviceToWallet/showAlreadySyncedSheet';
+import { showImportFailedSheet } from '../../components/Views/AddDeviceToWallet/showImportFailedSheet';
 import type { QrSyncSecretImportEntry } from './types';
 import Logger from '../../util/Logger';
 
@@ -44,6 +47,36 @@ const resolveMnemonicFromPendingSecrets = (
       (entry) => entry.type === QrSyncSecretTypes.MNEMONIC,
     )?.value ?? null
   );
+};
+
+const finishExistingUserSyncWithoutMnemonic = async (
+  navigation: AppNavigationProp,
+): Promise<void> => {
+  const accountsBefore = await Engine.context.KeyringController.getAccounts();
+  let importFailed = false;
+
+  try {
+    await Engine.context.QrSyncController.importRemainingSecrets();
+  } catch {
+    importFailed = true;
+  }
+
+  const accountsAfter = await Engine.context.KeyringController.getAccounts();
+  const addedNewAccounts = accountsAfter.length > accountsBefore.length;
+
+  Engine.context.QrSyncController.resetState();
+  navigation.navigate(Routes.WALLET_VIEW);
+
+  // Thrown failures are real import errors. Unchanged account count after a
+  // successful importRemainingSecrets call means the secrets were already here.
+  if (importFailed && !addedNewAccounts) {
+    showImportFailedSheet(navigation);
+    return;
+  }
+
+  if (!addedNewAccounts) {
+    showAlreadySyncedSheet(navigation);
+  }
 };
 
 /**
@@ -82,26 +115,38 @@ export const useQrSyncImportNavigation = ({
         resolveMnemonicFromPendingSecrets(pendingSecretImports) ??
         qrSyncMnemonic;
 
-      if (!mnemonic) {
+      hasHandledImportNavigationRef.current = true;
+
+      if (mnemonic) {
+        inFlightImportNavigation = completeExistingUserQrSyncImport(
+          navigation,
+          mnemonic,
+        )
+          .catch((error: unknown) => {
+            hasHandledImportNavigationRef.current = false;
+            Engine.context.QrSyncController.resetState();
+            Logger.error(
+              error as Error,
+              'useQrSyncImportNavigation: existing-user import failed',
+            );
+          })
+          .finally(() => {
+            inFlightImportNavigation = null;
+          });
         return;
       }
 
-      hasHandledImportNavigationRef.current = true;
-      inFlightImportNavigation = completeExistingUserQrSyncImport(
-        navigation,
-        mnemonic,
-      )
-        .catch((error: unknown) => {
-          hasHandledImportNavigationRef.current = false;
-          Engine.context.QrSyncController.resetState();
-          Logger.error(
-            error as Error,
-            'useQrSyncImportNavigation: existing-user import failed',
-          );
-        })
-        .finally(() => {
+      if (pendingSecretImports?.length) {
+        inFlightImportNavigation = finishExistingUserSyncWithoutMnemonic(
+          navigation,
+        ).finally(() => {
           inFlightImportNavigation = null;
         });
+        return;
+      }
+
+      Engine.context.QrSyncController.resetState();
+      navigation.navigate(Routes.WALLET_VIEW);
       return;
     }
 

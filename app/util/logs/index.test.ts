@@ -785,7 +785,7 @@ describe('logs :: downloadStateLogs', () => {
     expect(Share.open).toHaveBeenCalledWith({
       subject: 'TestApp State logs -  v1.0.0 (100)',
       title: 'TestApp State logs -  v1.0.0 (100)',
-      url: '/mock/path/state-logs-v1.0.0-(100).json',
+      url: 'file:///mock/path/state-logs-v1.0.0-(100).json',
       filename: 'state-logs-v1.0.0-(100).json',
       type: 'application/json',
       failOnCancel: false,
@@ -822,7 +822,7 @@ describe('logs :: downloadStateLogs', () => {
     expect(Share.open).toHaveBeenCalledWith({
       subject: 'TestApp State logs -  v1.0.0 (100)',
       title: 'TestApp State logs -  v1.0.0 (100)',
-      url: '/mock/path/state-logs-v1.0.0-(100).json',
+      url: 'file:///mock/path/state-logs-v1.0.0-(100).json',
       filename: 'state-logs-v1.0.0-(100).json',
       type: 'application/json',
       failOnCancel: false,
