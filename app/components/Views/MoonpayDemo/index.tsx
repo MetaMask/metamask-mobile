@@ -46,7 +46,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../util/theme';
 import ClipboardManager from '../../../core/ClipboardManager';
-import type { IdentityStatus, IdentitySubmission } from './api';
+import type {
+  Disclaimer,
+  IdentitySubmission,
+  KycRequiredResponse,
+} from './api';
 import MoonpayFrame from './MoonpayFrame';
 import useMoonpayReset from './useMoonpayReset';
 import useMoonpayIdentityFlow, {
@@ -63,18 +67,6 @@ import useMoonpayIdentityFlow, {
 
 const TERMS_URL = 'https://www.moonpay.com/legal/terms';
 const PRIVACY_URL = 'https://www.moonpay.com/legal/privacy_policy';
-const DONE_DESCRIPTIONS: Record<IdentityStatus, string> = {
-  created: 'Identity created — keep collecting requirements.',
-  collecting: 'Collection in progress.',
-  verifying: 'Verification in progress.',
-  approved: 'Capability unlocked — proceed to a transaction (Step 8).',
-  rejected:
-    'Terminal — verification failed. Inform the customer that they cannot currently transact.',
-  manualReview:
-    'Held for human review. May transition to approved without further customer action — keep polling.',
-  blocked:
-    'Terminal — cannot proceed (sanctions, duplicate, geo-block, etc.). Do not retry.',
-};
 const SEVERITY_TO_COLOR: Record<DebugSeverity, TextColor> = {
   info: TextColor.TextAlternative,
   success: TextColor.SuccessDefault,
@@ -213,8 +205,19 @@ const TermsPanel: React.FC<{
   email: string;
   onEmailChange: (v: string) => void;
   onAccept: () => void;
+  disclaimers: Disclaimer[];
+  disclaimersError: string | null;
+  disclaimersLoaded: boolean;
   colors: ThemeColors;
-}> = ({ email, onEmailChange, onAccept, colors }) => {
+}> = ({
+  email,
+  onEmailChange,
+  onAccept,
+  disclaimers,
+  disclaimersError,
+  disclaimersLoaded,
+  colors,
+}) => {
   const [emailDropdownOpen, setEmailDropdownOpen] = useState(false);
 
   return (
@@ -263,6 +266,27 @@ const TermsPanel: React.FC<{
           </Text>
           .
         </Text>
+        {disclaimersError && (
+          <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+            {disclaimersError}
+          </Text>
+        )}
+        {!disclaimersError && !disclaimersLoaded && (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            Loading disclaimers…
+          </Text>
+        )}
+        {disclaimersLoaded &&
+          disclaimers.map((disclaimer) => (
+            <Text
+              key={disclaimer.id}
+              variant={TextVariant.BodySm}
+              color={TextColor.PrimaryDefault}
+              onPress={() => Linking.openURL(disclaimer.url)}
+            >
+              {disclaimer.display_name}
+            </Text>
+          ))}
       </View>
 
       <View style={styles.profileSelector}>
@@ -356,16 +380,17 @@ const TermsPanel: React.FC<{
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
         onPress={onAccept}
+        isDisabled={!disclaimersLoaded}
       >
-        Accept terms and start
+        {disclaimersLoaded ? 'Accept terms and start' : 'Loading disclaimers…'}
       </Button>
     </View>
   );
 };
 
 const PROFILE_LABELS: Record<DemoProfile, string> = {
-  US: '🇺🇸  United States — Jane Doe',
-  FR: '🇫🇷  France — Marie Dupont',
+  US: '\u{1F1FA}\u{1F1F8}  United States (USA)',
+  FR: '\u{1F1EB}\u{1F1F7}  France (FRA)',
 };
 const PROFILE_KEYS: DemoProfile[] = ['US', 'FR'];
 
@@ -384,84 +409,17 @@ const SubmissionReviewPanel: React.FC<{
     setDropdownOpen(false);
   };
 
-  const phoneNumber = submission.phoneNumber?.number ?? '';
-  const ssnValue =
-    submission.taxIdentifiers?.find((t) => t.type === 'ssn')?.value ?? '';
-
-  const setPhoneNumber = (number: string) =>
-    onChange({
-      ...submission,
-      phoneNumber: { ...submission.phoneNumber, number },
-    });
-
-  const setSsn = (value: string) => {
-    const existing = submission.taxIdentifiers ?? [];
-    const taxIdentifiers = existing.some((t) => t.type === 'ssn')
-      ? existing.map((t) => (t.type === 'ssn' ? { ...t, value } : t))
-      : [...existing, { type: 'ssn' as const, value }];
-    onChange({ ...submission, taxIdentifiers });
-  };
-
-  const inputStyle = [
-    styles.input,
-    {
-      borderColor: colors.border.muted,
-      backgroundColor: colors.background.alternative,
-    },
-  ];
-
   return (
     <View style={styles.panel}>
-      <Text variant={TextVariant.HeadingSm}>Steps 4-6 — Submit identity</Text>
+      <Text variant={TextVariant.HeadingSm}>Step 4 — Check KYC status</Text>
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        Edit the fields MoonPay validates against (phone must be a real mobile;
-        SSN must pass sandbox validation), then submit.
-      </Text>
-
-      <Text variant={TextVariant.BodySm}>Phone number (E.164, mobile)</Text>
-      <TextInput
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-        autoCapitalize="none"
-        keyboardType="phone-pad"
-        placeholder="+12025550143"
-        style={inputStyle}
-      />
-
-      <Text variant={TextVariant.BodySm}>SSN</Text>
-      <TextInput
-        value={ssnValue}
-        onChangeText={setSsn}
-        autoCapitalize="none"
-        keyboardType="number-pad"
-        placeholder="123-45-6789"
-        style={inputStyle}
-      />
-
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        Full payload:
-      </Text>
-      <View
-        style={[
-          styles.codeBlock,
-          {
-            backgroundColor: colors.background.alternative,
-            borderColor: colors.border.muted,
-          },
-        ]}
-      >
-        <Text variant={TextVariant.BodySm}>
-          {JSON.stringify(submission, null, 2)}
-        </Text>
-      </View>
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        Will POST /identities, PATCH pending requirements, then POST
-        /verifications. If a challenge is required, the Challenge frame will
-        render.
+        Asks the local UKYC service whether KYC is required for the profile
+        below. Only `residentialAddress.country` is sent; the result is shown
+        next.
       </Text>
 
       <View style={styles.profileSelector}>
-        <Text variant={TextVariant.BodySm}>Demo profile preset</Text>
+        <Text variant={TextVariant.BodySm}>Country profile</Text>
         <Pressable
           onPress={() => setDropdownOpen((v) => !v)}
           style={[
@@ -475,7 +433,9 @@ const SubmissionReviewPanel: React.FC<{
           <Text variant={TextVariant.BodySm}>
             {PROFILE_LABELS[selectedProfile]}
           </Text>
-          <Text variant={TextVariant.BodySm}>{dropdownOpen ? '▲' : '▼'}</Text>
+          <Text variant={TextVariant.BodySm}>
+            {dropdownOpen ? '\u25B2' : '\u25BC'}
+          </Text>
         </Pressable>
         {dropdownOpen && (
           <View
@@ -515,7 +475,7 @@ const SubmissionReviewPanel: React.FC<{
                       variant={TextVariant.BodySm}
                       color={TextColor.PrimaryDefault}
                     >
-                      ✓
+                      {'\u2713'}
                     </Text>
                   )}
                 </Pressable>
@@ -530,7 +490,7 @@ const SubmissionReviewPanel: React.FC<{
         size={ButtonSize.Lg}
         onPress={onSubmit}
       >
-        Submit identity
+        Check KYC status
       </Button>
     </View>
   );
@@ -543,9 +503,10 @@ const LoadingPanel: React.FC<{ message: string }> = ({ message }) => (
 );
 
 const DonePanel: React.FC<{
-  status: IdentityStatus;
+  result: KycRequiredResponse;
   colors: ThemeColors;
-}> = ({ status, colors }) => (
+  onLaunchSumSub: () => void;
+}> = ({ result, colors, onLaunchSumSub }) => (
   <View
     style={[
       styles.panel,
@@ -553,10 +514,32 @@ const DonePanel: React.FC<{
       { backgroundColor: colors.background.alternative },
     ]}
   >
-    <Text variant={TextVariant.HeadingSm}>Final status: {status}</Text>
-    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-      {DONE_DESCRIPTIONS[status] ?? ''}
+    <Text variant={TextVariant.HeadingSm}>
+      KYC required: {result.kycRequired ? 'Yes' : 'No'}
     </Text>
+    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+      Full response:
+    </Text>
+    <View
+      style={[
+        styles.codeBlock,
+        {
+          backgroundColor: colors.background.default,
+          borderColor: colors.border.muted,
+        },
+      ]}
+    >
+      <Text variant={TextVariant.BodySm}>
+        {JSON.stringify(result, null, 2)}
+      </Text>
+    </View>
+    <Button
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Lg}
+      onPress={onLaunchSumSub}
+    >
+      Launch SumSub verification
+    </Button>
   </View>
 );
 
@@ -688,7 +671,11 @@ const ErrorPanel: React.FC<{
   </View>
 );
 
-const MoonpayDemo: React.FC = () => {
+interface MoonpayDemoProps {
+  launchSumSubSDK: (moonPayAccessToken: string | null) => Promise<void> | void;
+}
+
+const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ launchSumSubSDK }) => {
   const { colors } = useTheme();
 
   const {
@@ -699,22 +686,25 @@ const MoonpayDemo: React.FC = () => {
     setEmail,
     submission,
     setSubmission,
+    geoCountry,
+    disclaimers,
+    disclaimersError,
+    disclaimersLoaded,
     debugEvents,
     clearDebug,
     showCheckFrame,
     setShowCheckFrame,
-    finalStatus,
+    kycResult,
     checkFrameUrl,
     authFrameUrl,
-    challengeUrl,
     acceptTermsAndCreateSession,
-    submitIdentity,
+    runKycCheck,
+    launchSumSub,
     handleFrameMessage,
-    handleChallengeMessage,
+    handleRawFrameMessage,
     handleCheckFrameError,
     handleAuthFrameError,
-    handleChallengeFrameError,
-  } = useMoonpayIdentityFlow();
+  } = useMoonpayIdentityFlow({ launchSumSubSDK });
 
   const {
     resetState,
@@ -767,26 +757,22 @@ const MoonpayDemo: React.FC = () => {
         </View>
 
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          Country (geolocation): {geoCountry ?? 'Resolving…'}
+        </Text>
+
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           Phase: {phase}
           {statusMessage ? ` — ${statusMessage}` : ''}
         </Text>
-
-        {debugEvents.length > 0 && (
-          <DebugPanel
-            events={debugEvents}
-            onClear={clearDebug}
-            colors={colors}
-            phase={phase}
-            showCheckFrame={showCheckFrame}
-            onToggleCheckFrameVisibility={() => setShowCheckFrame((v) => !v)}
-          />
-        )}
 
         {phase === 'terms' && (
           <TermsPanel
             email={email}
             onEmailChange={setEmail}
             onAccept={acceptTermsAndCreateSession}
+            disclaimers={disclaimers}
+            disclaimersError={disclaimersError}
+            disclaimersLoaded={disclaimersLoaded}
             colors={colors}
           />
         )}
@@ -807,23 +793,34 @@ const MoonpayDemo: React.FC = () => {
           <SubmissionReviewPanel
             submission={submission}
             onChange={setSubmission}
-            onSubmit={submitIdentity}
+            onSubmit={runKycCheck}
             colors={colors}
           />
         )}
 
         {phase === 'submit' && <LoadingPanel message={statusMessage} />}
 
-        {phase === 'verify' && <LoadingPanel message={statusMessage} />}
-
-        {phase === 'poll' && <LoadingPanel message={statusMessage} />}
-
-        {phase === 'done' && finalStatus && (
-          <DonePanel status={finalStatus} colors={colors} />
+        {phase === 'done' && kycResult && (
+          <DonePanel
+            result={kycResult}
+            colors={colors}
+            onLaunchSumSub={launchSumSub}
+          />
         )}
 
         {phase === 'error' && errorMessage && (
           <ErrorPanel message={errorMessage} colors={colors} />
+        )}
+
+        {debugEvents.length > 0 && (
+          <DebugPanel
+            events={debugEvents}
+            onClear={clearDebug}
+            colors={colors}
+            phase={phase}
+            showCheckFrame={showCheckFrame}
+            onToggleCheckFrameVisibility={() => setShowCheckFrame((v) => !v)}
+          />
         )}
       </ScrollView>
 
@@ -832,6 +829,7 @@ const MoonpayDemo: React.FC = () => {
           <MoonpayFrame
             url={checkFrameUrl}
             onMessage={handleFrameMessage}
+            onRawMessage={handleRawFrameMessage}
             onError={handleCheckFrameError}
             invisible={!showCheckFrame}
           />
@@ -843,6 +841,7 @@ const MoonpayDemo: React.FC = () => {
           <MoonpayFrame
             url={authFrameUrl}
             onMessage={handleFrameMessage}
+            onRawMessage={handleRawFrameMessage}
             onError={handleAuthFrameError}
           />
         </View>

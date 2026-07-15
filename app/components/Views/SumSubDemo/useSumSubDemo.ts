@@ -1,12 +1,21 @@
 import { useCallback, useState } from 'react';
 import { NativeModules, Platform } from 'react-native';
 import SNSMobileSDK from '@sumsub/react-native-mobilesdk-module';
+import Engine from '../../../core/Engine';
 
-// Android emulator uses 10.0.2.2 to reach the host machine's localhost
-const UKYC_API_BASE_URL = Platform.select({
-  android: 'http://10.0.2.2:3000',
-  default: 'http://localhost:3000',
-});
+// eslint-disable-next-line import-x/no-restricted-paths
+import { UKYC_API_BASE_URL } from '../MoonpayDemo/api';
+
+async function getBearerToken(): Promise<string> {
+  const bearerToken =
+    await Engine.context.AuthenticationController.getBearerToken();
+  if (!bearerToken) {
+    throw new Error(
+      'Unable to obtain an authentication bearer token — is the wallet signed in?',
+    );
+  }
+  return bearerToken;
+}
 
 interface CreateSessionResponse {
   sessionId: string;
@@ -17,15 +26,23 @@ interface CreateSessionResponse {
 async function createSession(
   jwtToken: string,
   moonPayAccessToken: string,
+  moonPayUserId: string,
 ): Promise<CreateSessionResponse> {
+  const bearerToken = await getBearerToken();
   const response = await fetch(`${UKYC_API_BASE_URL}/sessions`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${bearerToken}`,
+    },
     body: JSON.stringify({
       vendorId: 'moonpay',
       vendorUserId: 'mockedId',
       jwtToken,
-      moonPayAccessToken,
+      vendorMetadata: {
+        moonPayAccessToken,
+        moonPayUserId,
+      },
     }),
   });
 
@@ -48,11 +65,15 @@ async function fetchAccessToken(
   idosSessionId: string,
   jwtToken: string,
 ): Promise<SubmitWrappedKeyResponse> {
+  const bearerToken = await getBearerToken();
   const response = await fetch(
     `${UKYC_API_BASE_URL}/sessions/${sessionId}/wrapped-key`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${bearerToken}`,
+      },
       body: JSON.stringify({ wrappedUserKey, jwtToken, idosSessionId }),
     },
   );
@@ -75,7 +96,7 @@ const useSumSubDemo = () => {
   const [status, setStatus] = useState<string | null>(null);
 
   const launchSumSubSDK = useCallback(
-    async (moonPayAccessToken: string | null) => {
+    async (moonPayAccessToken: string | null, moonPayUserId: string | null) => {
       setIsLoading(true);
       setSdkResult(null);
       setStatus(null);
@@ -92,8 +113,11 @@ const useSumSubDemo = () => {
         if (!moonPayAccessToken) {
           throw new Error('MoonPay access token not provided');
         }
+        if (!moonPayUserId) {
+          throw new Error('Auth customer ID not provided');
+        }
         const { sessionId, idosSessionId, wrappedUserKey } =
-          await createSession(mockJwtToken, moonPayAccessToken);
+          await createSession(mockJwtToken, moonPayAccessToken, moonPayUserId);
 
         setStatus('Fetching access token...');
         const { applicantAccessToken } = await fetchAccessToken(
@@ -142,6 +166,7 @@ const useSumSubDemo = () => {
         setSdkResult(result);
         setStatus('Complete');
       } catch (err) {
+        // eslint-disable-next-line no-console
         console.error('[SumSubDemo] Error:', err);
         setSdkResult({ error: String(err) });
         setStatus('Failed');
