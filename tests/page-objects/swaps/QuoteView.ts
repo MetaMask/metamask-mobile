@@ -104,6 +104,10 @@ class QuoteView {
     return Matchers.getElementByID(QuoteViewSelectorIDs.BACK_BUTTON);
   }
 
+  get moreNetworksButton(): EncapsulatedElementType {
+    return Matchers.getElementByID('network-pills-more-button');
+  }
+
   get networkFeeLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }
@@ -342,6 +346,9 @@ class QuoteView {
         });
       },
       appium: async () => {
+        await PlaywrightGestures.scrollIntoViewFullyVisible(
+          await asPlaywrightElement(this.moreNetworksButton),
+        );
         const networkElement =
           await PlaywrightMatchers.getElementByCatchAll(network);
         await PlaywrightAssertions.expectElementToBeVisible(networkElement, {
