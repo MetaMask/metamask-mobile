@@ -1,6 +1,5 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import type { Json } from '@metamask/utils';
-import { Hex } from '@metamask/utils';
+import { type Json, Hex } from '@metamask/utils';
 import { selectStablecoins, STABLE_TOKENS_FLAG } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
