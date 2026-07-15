@@ -31,8 +31,6 @@ import {
 } from '../../constants';
 import { useSubmitPercentAlert } from '../../api';
 import useAlertSaveFlow from '../../hooks/useAlertSaveFlow';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   KEYPAD_EMPTY,
   PERCENT_KEYPAD_DECIMALS,
@@ -55,7 +53,6 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
   existingPercentAlerts,
 }) => {
   const tw = useTailwind();
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const isEditing = Boolean(editingAlert);
   const [percentAmount, setPercentAmount] = useState(
     editingAlert ? toPercentKeypadString(editingAlert.threshold) : KEYPAD_EMPTY,
@@ -103,12 +100,7 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
     isRecurring === editingAlert?.recurring;
 
   const { submit, isSubmitting } = useSubmitPercentAlert(editingAlert);
-  const {
-    showSuccessToast,
-    showErrorToast,
-    navigateAfterSave,
-    patchAlertCache,
-  } = useAlertSaveFlow({
+  const { saveAlert } = useAlertSaveFlow({
     assetId,
     displayTicker,
     isEditing,
@@ -118,75 +110,35 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
   const handleSave = useCallback(async () => {
     if (!hasValidPercent) return;
 
-    try {
-      await submit({
-        asset: assetId,
-        threshold: percentValue,
-        period,
-        direction,
-        recurring: isRecurring,
-      });
-      if (editingAlert) {
-        patchAlertCache(editingAlert.id, {
+    await saveAlert({
+      submit: () =>
+        submit({
+          asset: assetId,
           threshold: percentValue,
+          period,
+          direction,
           recurring: isRecurring,
-        });
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
-            .addProperties({
-              interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
-              asset_id: assetId,
-              token_symbol: displayTicker,
-              alert_type: PriceAlertAnalytics.TYPE.PERCENT,
-              alert_period: period,
-              alert_direction: direction,
-              alert_value: percentValue,
-              alert_recurring: isRecurring,
-              alert_active: editingAlert.active,
-              prev_alert_value: editingAlert.threshold,
-              prev_alert_recurring: editingAlert.recurring,
-              prev_alert_active: editingAlert.active,
-            })
-            .build(),
-        );
-      } else {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
-            .addProperties({
-              interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.CREATED,
-              asset_id: assetId,
-              token_symbol: displayTicker,
-              alert_type: PriceAlertAnalytics.TYPE.PERCENT,
-              alert_period: period,
-              alert_direction: direction,
-              alert_value: percentValue,
-              alert_recurring: isRecurring,
-              alert_active: true,
-            })
-            .build(),
-        );
-      }
-      showSuccessToast();
-      navigateAfterSave();
-    } catch {
-      showErrorToast();
-    }
+        }),
+      editingAlert,
+      patch: { threshold: percentValue, recurring: isRecurring },
+      analyticsProperties: {
+        alert_type: PriceAlertAnalytics.TYPE.PERCENT,
+        alert_period: period,
+        alert_direction: direction,
+        alert_value: percentValue,
+        alert_recurring: isRecurring,
+      },
+    });
   }, [
     assetId,
-    createEventBuilder,
     direction,
-    displayTicker,
     editingAlert,
     hasValidPercent,
     isRecurring,
-    navigateAfterSave,
-    patchAlertCache,
     percentValue,
     period,
-    showErrorToast,
-    showSuccessToast,
+    saveAlert,
     submit,
-    trackEvent,
   ]);
 
   const handleKeypadChange = useCallback(({ value }: KeypadChangeData) => {

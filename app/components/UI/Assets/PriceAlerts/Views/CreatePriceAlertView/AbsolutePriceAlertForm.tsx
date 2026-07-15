@@ -28,8 +28,6 @@ import {
 } from '../../constants';
 import { useSubmitPriceAlert } from '../../api';
 import useAlertSaveFlow from '../../hooks/useAlertSaveFlow';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { getKeypadDecimalPlaces, KEYPAD_EMPTY, toKeypadString } from './utils';
 
 interface AbsolutePriceAlertFormProps {
@@ -52,7 +50,6 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
   existingThresholds,
 }) => {
   const tw = useTailwind();
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const isEditing = Boolean(editingAlert);
   const [targetAmount, setTargetAmount] = useState(
     editingAlert ? toKeypadString(editingAlert.threshold) : KEYPAD_EMPTY,
@@ -106,12 +103,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
   }, [currentCurrency, currentPrice, hasInput, targetAmount]);
 
   const { submit, isSubmitting } = useSubmitPriceAlert(editingAlert);
-  const {
-    showSuccessToast,
-    showErrorToast,
-    navigateAfterSave,
-    patchAlertCache,
-  } = useAlertSaveFlow({
+  const { saveAlert } = useAlertSaveFlow({
     assetId,
     displayTicker,
     isEditing,
@@ -121,67 +113,29 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
   const handleSave = useCallback(async () => {
     if (!hasValidTarget) return;
 
-    try {
-      await submit({
-        asset: assetId,
-        threshold: targetPrice,
-        recurring: isRecurring,
-      });
-      if (editingAlert) {
-        patchAlertCache(editingAlert.id, {
+    await saveAlert({
+      submit: () =>
+        submit({
+          asset: assetId,
           threshold: targetPrice,
           recurring: isRecurring,
-        });
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
-            .addProperties({
-              interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
-              asset_id: assetId,
-              token_symbol: displayTicker,
-              alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
-              alert_value: targetPrice,
-              alert_recurring: isRecurring,
-              alert_active: editingAlert.active,
-              prev_alert_value: editingAlert.threshold,
-              prev_alert_recurring: editingAlert.recurring,
-              prev_alert_active: editingAlert.active,
-            })
-            .build(),
-        );
-      } else {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
-            .addProperties({
-              interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.CREATED,
-              asset_id: assetId,
-              token_symbol: displayTicker,
-              alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
-              alert_value: targetPrice,
-              alert_recurring: isRecurring,
-              alert_active: true,
-            })
-            .build(),
-        );
-      }
-      showSuccessToast();
-      navigateAfterSave();
-    } catch {
-      showErrorToast();
-    }
+        }),
+      editingAlert,
+      patch: { threshold: targetPrice, recurring: isRecurring },
+      analyticsProperties: {
+        alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
+        alert_value: targetPrice,
+        alert_recurring: isRecurring,
+      },
+    });
   }, [
     assetId,
-    createEventBuilder,
-    displayTicker,
     editingAlert,
     hasValidTarget,
     isRecurring,
-    navigateAfterSave,
-    patchAlertCache,
-    showErrorToast,
-    showSuccessToast,
+    saveAlert,
     submit,
     targetPrice,
-    trackEvent,
   ]);
 
   const handleKeypadChange = useCallback(({ value }: KeypadChangeData) => {

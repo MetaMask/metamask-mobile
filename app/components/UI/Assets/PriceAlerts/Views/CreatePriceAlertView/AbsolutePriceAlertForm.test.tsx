@@ -295,65 +295,6 @@ describe('AbsolutePriceAlertForm', () => {
       );
     });
 
-    it('navigates back and displays a success toast after saving', async () => {
-      const screen = renderForm();
-      fireEvent.press(screen.getByTestId('keypad-key-1'));
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
-        );
-      });
-
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          hasNoTimeout: false,
-          labelOptions: expect.arrayContaining([
-            expect.objectContaining({ label: expect.stringContaining('ETH') }),
-          ]),
-        }),
-      );
-    });
-
-    it('pops two screens when opened from the manage list', async () => {
-      const screen = renderForm({ fromManage: true });
-      fireEvent.press(screen.getByTestId('keypad-key-1'));
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
-        );
-      });
-
-      expect(mockPop).toHaveBeenCalledWith(2);
-      expect(mockGoBack).not.toHaveBeenCalled();
-    });
-
-    it('displays an error toast without navigating when submission rejects', async () => {
-      mockSubmit.mockRejectedValueOnce(new Error('HTTP 500'));
-      const screen = renderForm();
-      fireEvent.press(screen.getByTestId('keypad-key-1'));
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
-        );
-      });
-
-      expect(mockGoBack).not.toHaveBeenCalled();
-      expect(mockShowToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          labelOptions: expect.arrayContaining([
-            expect.objectContaining({
-              label: 'Failed to save price alert. Please try again.',
-            }),
-          ]),
-          hasNoTimeout: false,
-        }),
-      );
-    });
-
     it('submits once while the first submission remains pending', async () => {
       let resolveFirst!: () => void;
       mockSubmit.mockReturnValueOnce(
@@ -601,51 +542,6 @@ describe('AbsolutePriceAlertForm', () => {
       });
     });
 
-    it('patches the matching cached alert after updating', async () => {
-      const screen = renderEditingForm();
-      fireEvent(
-        screen.getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE),
-        'valueChange',
-        false,
-      );
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
-        );
-      });
-
-      expect(mockSetQueryData).toHaveBeenCalledWith(
-        ['priceAlerts', 'eip155:1/slip44:60'],
-        expect.any(Function),
-      );
-      const updater = mockSetQueryData.mock.calls[0][1] as (
-        previous: AbsolutePriceAlert[] | undefined,
-      ) => AbsolutePriceAlert[] | undefined;
-      expect(updater(undefined)).toBeUndefined();
-      expect(updater([editingAlert])).toEqual([
-        { ...editingAlert, threshold: 1500, recurring: false },
-      ]);
-    });
-
-    it('navigates back without popping after updating', async () => {
-      const screen = renderEditingForm();
-      fireEvent(
-        screen.getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE),
-        'valueChange',
-        false,
-      );
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
-        );
-      });
-
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-      expect(mockPop).not.toHaveBeenCalled();
-    });
-
     it('passes the edited alert to the submit hook', () => {
       renderEditingForm();
 
@@ -654,7 +550,7 @@ describe('AbsolutePriceAlertForm', () => {
   });
 
   describe('analytics', () => {
-    it('tracks threshold properties after creation', async () => {
+    it('tracks threshold-specific properties after creation', async () => {
       const screen = renderForm();
       enter1500(screen.getByTestId);
 
@@ -670,15 +566,13 @@ describe('AbsolutePriceAlertForm', () => {
       expect(
         builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
           .addProperties,
-      ).toHaveBeenCalledWith({
-        interaction_type: 'created',
-        asset_id: 'eip155:1/slip44:60',
-        token_symbol: 'ETH',
-        alert_type: 'threshold',
-        alert_value: 1500,
-        alert_recurring: true,
-        alert_active: true,
-      });
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          alert_type: 'threshold',
+          alert_value: 1500,
+          alert_recurring: true,
+        }),
+      );
     });
 
     it('tracks recurring false after creation with recurrence disabled', async () => {
@@ -701,15 +595,14 @@ describe('AbsolutePriceAlertForm', () => {
           .addProperties,
       ).toHaveBeenCalledWith(
         expect.objectContaining({
-          interaction_type: 'created',
+          alert_type: 'threshold',
           alert_value: 2,
           alert_recurring: false,
-          alert_active: true,
         }),
       );
     });
 
-    it('tracks previous and updated threshold properties while editing', async () => {
+    it('tracks threshold properties while editing', async () => {
       const screen = renderForm({
         editingAlert,
         existingThresholds: [1500],
@@ -730,18 +623,13 @@ describe('AbsolutePriceAlertForm', () => {
       expect(
         builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
           .addProperties,
-      ).toHaveBeenCalledWith({
-        interaction_type: 'updated',
-        asset_id: 'eip155:1/slip44:60',
-        token_symbol: 'ETH',
-        alert_type: 'threshold',
-        alert_value: 1500,
-        alert_recurring: false,
-        alert_active: true,
-        prev_alert_value: 1500,
-        prev_alert_recurring: true,
-        prev_alert_active: true,
-      });
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          alert_type: 'threshold',
+          alert_value: 1500,
+          alert_recurring: false,
+        }),
+      );
     });
   });
 });

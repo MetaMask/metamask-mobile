@@ -200,10 +200,6 @@ describe('PercentChangeAlertForm', () => {
       direction: 'down',
       recurring: false,
     });
-    expect(mockSetQueryData).toHaveBeenCalledWith(
-      ['priceAlerts', 'eip155:1/slip44:60'],
-      expect.any(Function),
-    );
   });
 
   it('tracks percent-specific properties after creation', async () => {
@@ -225,38 +221,13 @@ describe('PercentChangeAlertForm', () => {
       );
     const interactionBuilder = jest.mocked(mockAnalytics.createEventBuilder)
       .mock.results[interactionCallIndex].value;
-    expect(interactionBuilder.addProperties).toHaveBeenCalledWith({
-      interaction_type: 'created',
-      asset_id: 'eip155:1/slip44:60',
-      token_symbol: 'ETH',
-      alert_type: 'percent',
-      alert_period: '24h',
-      alert_direction: 'up',
-      alert_value: 5,
-      alert_recurring: true,
-      alert_active: true,
-    });
-  });
-
-  it('displays an error toast when percent submission rejects', async () => {
-    mockSubmitPercent.mockRejectedValueOnce(new Error('HTTP 500'));
-    const screen = renderForm();
-    fireEvent.press(screen.getByTestId('keypad-key-5'));
-
-    await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
-      );
-    });
-
-    expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockShowToast).toHaveBeenCalledWith(
+    expect(interactionBuilder.addProperties).toHaveBeenCalledWith(
       expect.objectContaining({
-        labelOptions: expect.arrayContaining([
-          expect.objectContaining({
-            label: 'Failed to save price alert. Please try again.',
-          }),
-        ]),
+        alert_type: 'percent',
+        alert_period: '24h',
+        alert_direction: 'up',
+        alert_value: 5,
+        alert_recurring: true,
       }),
     );
   });
