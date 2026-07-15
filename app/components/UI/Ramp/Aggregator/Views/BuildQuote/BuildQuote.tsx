@@ -1164,7 +1164,7 @@ const BuildQuote = () => {
             true
           }
         >
-          <Box twClassName="content-end gap-4 pt-4">
+          <Box twClassName="content-end gap-4 pt-4 px-4">
             <QuickAmounts
               isBuy={isBuy}
               onAmountPress={handleQuickAmountPress}
@@ -1182,7 +1182,7 @@ const BuildQuote = () => {
                 isBuy ? currentFiatCurrency?.decimals : selectedAsset?.decimals
               }
             />
-            <Box twClassName="px-4">
+            <Box>
               <Button
                 size={ButtonSize.Lg}
                 onPress={handleKeypadDone}
