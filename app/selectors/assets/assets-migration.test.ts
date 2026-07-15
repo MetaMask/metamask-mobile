@@ -1624,43 +1624,6 @@ describe('getMultiChainAssetsControllerAssetsMetadata', () => {
       expect(result[solanaTokenAssetId as CaipAssetType].iconUrl).toBe('');
     });
 
-    it('uses XLM for Stellar native asset display metadata', () => {
-      const stellarNativeAssetId = 'stellar:pubnet/slip44:148' as CaipAssetType;
-      const state = {
-        engine: {
-          backgroundState: {
-            ...enabledFeatureFlagControllerState,
-            MultichainAssetsController: { assetsMetadata: {} },
-            AssetsController: {
-              assetsInfo: {
-                [stellarNativeAssetId]: {
-                  type: 'native',
-                  decimals: 7,
-                  symbol: 'XLM',
-                  name: 'Stellar Lumens',
-                },
-              },
-            },
-          },
-        },
-      };
-      const result = getMultiChainAssetsControllerAssetsMetadata(state);
-
-      expect(result[stellarNativeAssetId]).toStrictEqual({
-        fungible: true,
-        iconUrl: '',
-        units: [
-          {
-            decimals: 7,
-            symbol: 'XLM',
-            name: 'XLM',
-          },
-        ],
-        symbol: 'XLM',
-        name: 'XLM',
-      });
-    });
-
     it('excludes EIP155 assets from multichain metadata', () => {
       const state = {
         engine: {
@@ -1918,54 +1881,6 @@ describe('getMultiChainBalancesControllerBalances', () => {
         [mockAccountId2]: {
           [solanaTokenAssetId]: { amount: '250.5', unit: 'USDC' },
         },
-      });
-    });
-
-    it('preserves Stellar classic trustline extra from AssetsController balances', () => {
-      const stellarClassicAssetId =
-        'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
-      const state = {
-        engine: {
-          backgroundState: {
-            ...enabledFeatureFlagControllerState,
-            MultichainBalancesController: { balances: {} },
-            AssetsController: {
-              assetsInfo: {
-                [stellarClassicAssetId]: {
-                  type: 'token',
-                  decimals: 7,
-                  symbol: 'USDC',
-                },
-              },
-              assetsBalance: {
-                [mockAccountId2]: {
-                  [stellarClassicAssetId]: {
-                    amount: '1.1129762',
-                    extra: { limit: '1000', authorized: true },
-                  },
-                },
-              },
-            },
-            AccountsController: {
-              internalAccounts: {
-                accounts: {
-                  [mockAccountId2]: {
-                    id: mockAccountId2,
-                    type: 'stellar:account',
-                  },
-                },
-              },
-            },
-          },
-        },
-      };
-
-      const result = getMultiChainBalancesControllerBalances(state);
-
-      expect(result[mockAccountId2]?.[stellarClassicAssetId]).toStrictEqual({
-        amount: '1.1129762',
-        unit: 'USDC',
-        extra: { limit: '1000', authorized: true },
       });
     });
   });

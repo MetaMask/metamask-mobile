@@ -624,19 +624,10 @@ export const getMultiChainBalancesControllerBalances = createDeepEqualSelector(
           continue;
         }
 
-        const rawBalanceRow = balance as {
-          amount: string;
-          accountAssetInfo?: Record<string, unknown>;
-        };
-        const selectorBalanceRow = {
+        result[accountId][assetId] = {
           amount: balance.amount,
           unit: metadata.symbol,
-          ...(rawBalanceRow.accountAssetInfo !== undefined
-            ? { accountAssetInfo: rawBalanceRow.accountAssetInfo }
-            : {}),
         };
-
-        result[accountId][assetId] = selectorBalanceRow;
       }
     }
 
