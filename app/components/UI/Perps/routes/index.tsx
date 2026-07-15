@@ -68,9 +68,12 @@ const styles = StyleSheet.create({
   },
 });
 
-export function getRedesignedConfirmationsHeaderOptions({
-  showPerpsHeader = CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader,
-}: PerpsNavigationParamList['RedesignedConfirmations'] = {}): NativeStackNavigationOptions {
+export function getRedesignedConfirmationsHeaderOptions(
+  params: PerpsNavigationParamList['RedesignedConfirmations'] = {},
+): NativeStackNavigationOptions {
+  const showPerpsHeader =
+    params?.showPerpsHeader ??
+    CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
   if (showPerpsHeader) {
     return {
       ...getEmptyNavHeader(),

@@ -42,29 +42,34 @@ export type PerpsClosePositionModalsNavigationParamList = {
   PerpsTooltip: PerpsTooltipViewRouteParams;
 };
 
+/** Shared order / redesigned-confirmation params for the Perps trade flow. */
+// Object-literal type (not interface) so it retains an implicit index signature
+// and stays assignable to `Record<string, unknown>` (e.g. redirect params).
+export interface PerpsOrderRouteParams {
+  direction: 'long' | 'short';
+  asset: string;
+  defaultSzDecimals?: number;
+  defaultMaxLeverage?: number;
+  leverage?: number;
+  amount?: string;
+  price?: string;
+  orderType?: OrderType;
+  existingPosition?: Position; // Pass existing position for leverage consistency when adding to position
+  hideTPSL?: boolean; // Hide TP/SL row when modifying existing position
+  /** When false, confirmation screen uses header: () => null; when true/undefined uses headerLeft/title options */
+  showPerpsHeader?: boolean;
+  /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
+  source?: string;
+  /** Analytics: chart library active when the order flow started */
+  chartLibrary?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+}
+
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsStackParamList = {
   // Order flow routes
-  PerpsOrder: {
-    direction: 'long' | 'short';
-    asset: string;
-    defaultSzDecimals?: number;
-    defaultMaxLeverage?: number;
-    leverage?: number;
-    amount?: string;
-    price?: string;
-    orderType?: OrderType;
-    existingPosition?: Position; // Pass existing position for leverage consistency when adding to position
-    hideTPSL?: boolean; // Hide TP/SL row when modifying existing position
-    /** When false, confirmation screen uses header: () => null; when true/undefined uses headerLeft/title options */
-    showPerpsHeader?: boolean;
-    /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
-    source?: string;
-    /** Analytics: chart library active when the order flow started */
-    chartLibrary?: string;
-    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  };
+  PerpsOrder: PerpsOrderRouteParams;
 
   PerpsOrderSuccess: {
     orderId: string;
@@ -108,24 +113,27 @@ export type PerpsStackParamList = {
   // Market and position management routes
   PerpsMarketList: undefined;
 
-  PerpsMarketListView: {
-    source?: string;
-    variant?: 'full' | 'minimal';
-    title?: string;
-    showBalanceActions?: boolean;
-    showBottomNav?: boolean;
-    showWatchlistOnly?: boolean;
-    defaultMarketTypeFilter?: MarketTypeFilter;
-    defaultSortOptionId?: SortOptionId;
-    defaultSortDirection?: SortDirection;
-    fromHome?: boolean;
-    button_clicked?: string;
-    button_location?: string;
-    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  };
+  PerpsMarketListView:
+    | {
+        source?: string;
+        variant?: 'full' | 'minimal';
+        title?: string;
+        showBalanceActions?: boolean;
+        showBottomNav?: boolean;
+        showWatchlistOnly?: boolean;
+        defaultMarketTypeFilter?: MarketTypeFilter;
+        defaultSortOptionId?: SortOptionId;
+        defaultSortDirection?: SortDirection;
+        fromHome?: boolean;
+        button_clicked?: string;
+        button_location?: string;
+        transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+      }
+    | undefined;
 
   PerpsMarketDetails: {
-    market: PerpsMarketData;
+    /** Full market when available; Partial is accepted for trade-details deep entries. */
+    market: PerpsMarketData | Partial<PerpsMarketData>;
     initialTab?: 'position' | 'orders' | 'info';
     monitoringIntent?: Partial<DataMonitorParams>;
     source?: string;
@@ -190,16 +198,18 @@ export type PerpsStackParamList = {
     transaction: PerpsTransaction;
   };
 
-  PerpsTutorial: {
-    isFromDeeplink?: boolean;
-    isFromGTMModal?: boolean;
-    /** Analytics: how the user got to the tutorial (e.g. homescreen_tab, main_action_button) */
-    source?: string;
-    /** Screen to navigate to after tutorial completion instead of the default PerpsHome */
-    redirectScreen?: string;
-    /** Params to pass to the redirect screen */
-    redirectParams?: Record<string, unknown>;
-  };
+  PerpsTutorial:
+    | {
+        isFromDeeplink?: boolean;
+        isFromGTMModal?: boolean;
+        /** Analytics: how the user got to the tutorial (e.g. homescreen_tab, main_action_button) */
+        source?: string;
+        /** Screen to navigate to after tutorial completion instead of the default PerpsHome */
+        redirectScreen?: string;
+        /** Params to pass to the redirect screen */
+        redirectParams?: Record<string, unknown>;
+      }
+    | undefined;
 
   // TP/SL screen
   PerpsTPSL: {
@@ -230,6 +240,7 @@ export type PerpsStackParamList = {
   PerpsPnlHeroCard: {
     position: Position;
     marketPrice?: string;
+    source?: string;
   };
 
   // Order Book view - Full depth order book display
@@ -255,10 +266,11 @@ export type PerpsStackParamList = {
     showBackButton?: boolean;
   };
 
-  /** Params for RedesignedConfirmations when shown in Perps stack (header options) */
-  RedesignedConfirmations: {
-    showPerpsHeader?: boolean;
-  };
+  /**
+   * Params for RedesignedConfirmations when opened from Perps order flow.
+   * Partial so header-option helpers can take only `showPerpsHeader`.
+   */
+  RedesignedConfirmations: Partial<PerpsOrderRouteParams> | undefined;
 
   /** Params for PerpsOrderRedirect - handles one-click trade from token details */
   PerpsOrderRedirect: {
@@ -270,21 +282,23 @@ export type PerpsStackParamList = {
   };
 
   // Screen names registered in the Perps stack (may differ from legacy aliases above)
-  PerpsTrendingView: {
-    source?: string;
-    variant?: 'full' | 'minimal';
-    title?: string;
-    showBalanceActions?: boolean;
-    showBottomNav?: boolean;
-    showWatchlistOnly?: boolean;
-    defaultMarketTypeFilter?: MarketTypeFilter;
-    defaultSortOptionId?: SortOptionId;
-    defaultSortDirection?: SortDirection;
-    fromHome?: boolean;
-    button_clicked?: string;
-    button_location?: string;
-    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  };
+  PerpsTrendingView:
+    | {
+        source?: string;
+        variant?: 'full' | 'minimal';
+        title?: string;
+        showBalanceActions?: boolean;
+        showBottomNav?: boolean;
+        showWatchlistOnly?: boolean;
+        defaultMarketTypeFilter?: MarketTypeFilter;
+        defaultSortOptionId?: SortOptionId;
+        defaultSortDirection?: SortDirection;
+        fromHome?: boolean;
+        button_clicked?: string;
+        button_location?: string;
+        transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+      }
+    | undefined;
   PerpsOrderDetailsView: {
     order: Order;
     action?: 'view' | 'edit' | 'cancel';

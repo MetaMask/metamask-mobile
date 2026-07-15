@@ -54,8 +54,10 @@ import type { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher/Q
 // Perps navigation params
 import type {
   PerpsNavigationParamList,
+  PerpsOrderRouteParams,
   PerpsStackParamList,
 } from '../../components/UI/Perps/types/navigation';
+import type { ConfirmationParams } from '../../components/Views/confirmations/components/confirm/confirm-component';
 import type { MoneyNavigationParamList } from '../../components/UI/Money/types/navigation';
 import type {
   CardModalsNavigationParamList,
@@ -872,7 +874,10 @@ export type RootStackParamList = {
   EarnLendingLearnMoreModal: undefined;
 
   // Full screen confirmation routes
-  RedesignedConfirmations: undefined;
+  RedesignedConfirmations:
+    | ConfirmationParams
+    | Partial<PerpsOrderRouteParams>
+    | undefined;
   NoHeaderConfirmations: undefined;
 
   // Identity routes
