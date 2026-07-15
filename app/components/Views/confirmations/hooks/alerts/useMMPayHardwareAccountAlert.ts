@@ -7,12 +7,16 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
-import { hasTransactionType } from '../../utils/transaction';
+import {
+  hasTransactionType,
+  isTransactionPayWithdraw,
+} from '../../utils/transaction';
 import {
   isHardwareAccount,
   isQRHardwareAccount,
 } from '../../../../../util/address';
 import { selectMetaMaskPayHardwareFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 
 export function useMMPayHardwareAccountAlert(): Alert[] {
   const transactionMeta = useTransactionMetadataRequest();
@@ -26,29 +30,31 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
     txParams: { from },
   } = transactionMeta ?? { txParams: {} };
 
+  const isPayTransaction = hasTransactionType(
+    transactionMeta,
+    PAY_TRANSACTION_TYPES,
+  );
+
   const isMusdConversion = hasTransactionType(transactionMeta, [
     TransactionType.musdConversion,
   ]);
 
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
-
-  // Money account deposits are executed by the money account itself, so
-  // txParams.from is never the paying account. The account paying is the
-  // override selected in PayAccountSelector.
-  const payingAccount = isMoneyAccountDeposit ? accountOverride : from;
+  // When set, accountOverride is the account paying for the transaction,
+  // except in withdraw (post-quote) flows where it is only the recipient
+  // and never signs.
+  const payingAccount = isTransactionPayWithdraw(transactionMeta)
+    ? from
+    : (accountOverride ?? from);
 
   const isHardwareWallet = isHardwareAccount(payingAccount ?? '');
   const isQRWallet = isQRHardwareAccount(payingAccount ?? '');
 
-  // Fiat deposits are bought directly into the money account, so the
-  // hardware account never signs.
-  const isFiatMoneyAccountDeposit =
-    isMoneyAccountDeposit && Boolean(fiatPayment?.selectedPaymentMethodId);
+  // Fiat payments are bought directly to the destination, so the paying
+  // account never signs.
+  const isFiatPayment = Boolean(fiatPayment?.selectedPaymentMethodId);
 
   return useMemo(() => {
-    if (!isHardwareWallet || isFiatMoneyAccountDeposit) {
+    if (!isPayTransaction || !isHardwareWallet || isFiatPayment) {
       return [];
     }
 
@@ -66,10 +72,11 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
       },
     ];
   }, [
-    isFiatMoneyAccountDeposit,
+    isFiatPayment,
     isHardwareWallet,
     isHardwarePayEnabled,
     isMusdConversion,
+    isPayTransaction,
     isQRWallet,
   ]);
 }
