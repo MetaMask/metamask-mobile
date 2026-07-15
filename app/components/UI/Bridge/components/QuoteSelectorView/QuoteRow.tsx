@@ -38,30 +38,32 @@ export interface QuoteRowProps {
   receiveAmount?: string;
 }
 
-export const QuoteRow = ({
+export interface QuoteRowViewProps extends QuoteRowProps {
+  formattedReceiveAmountFiat: string;
+  destTokenSymbol?: string;
+}
+
+export const QuoteRowView = ({
   selected,
   provider,
   isLowestCost,
   formattedTotalCost,
+  formattedReceiveAmountFiat,
+  destTokenSymbol,
   onPress,
   quoteRequestId,
   loading,
   receiveAmount,
-}: QuoteRowProps) => {
+}: QuoteRowViewProps) => {
   const theme = useTheme();
-  const destToken = useSelector(selectDestToken);
-  const formattedReceiveAmountFiat = useDisplayCurrencyValue(
-    receiveAmount,
-    destToken,
-  );
   const formattedReceiveAmount = useMemo(
     () =>
-      receiveAmount && receiveAmount !== '0' && destToken
+      receiveAmount && receiveAmount !== '0' && destTokenSymbol
         ? formatAmountWithLocaleSeparators(
             limitToMaximumDecimalPlaces(parseFloat(receiveAmount)),
           )
         : receiveAmount,
-    [receiveAmount, destToken],
+    [receiveAmount, destTokenSymbol],
   );
 
   return (
@@ -127,7 +129,7 @@ export const QuoteRow = ({
         >
           <Skeleton hideChildren={loading}>
             <Text variant={TextVariantDS.BodyMd} fontWeight={FontWeight.Medium}>
-              ~ {formattedReceiveAmount} {destToken?.symbol}
+              ~ {formattedReceiveAmount} {destTokenSymbol}
             </Text>
           </Skeleton>
           <Skeleton hideChildren={loading}>
@@ -141,5 +143,21 @@ export const QuoteRow = ({
         </Box>
       </Box>
     </TouchableOpacity>
+  );
+};
+
+export const QuoteRow = (props: QuoteRowProps) => {
+  const destToken = useSelector(selectDestToken);
+  const formattedReceiveAmountFiat = useDisplayCurrencyValue(
+    props.receiveAmount,
+    destToken,
+  );
+
+  return (
+    <QuoteRowView
+      {...props}
+      formattedReceiveAmountFiat={formattedReceiveAmountFiat}
+      destTokenSymbol={destToken?.symbol}
+    />
   );
 };
