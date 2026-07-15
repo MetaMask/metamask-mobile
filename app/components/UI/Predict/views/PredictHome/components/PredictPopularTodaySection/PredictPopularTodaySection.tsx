@@ -243,7 +243,7 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
                   >
                     <Text
                       variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
+                      color={TextColor.TextDefault}
                       fontWeight={FontWeight.Medium}
                     >
                       {label}
