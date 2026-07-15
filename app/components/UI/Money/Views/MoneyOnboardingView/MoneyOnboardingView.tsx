@@ -355,6 +355,7 @@ const MoneyOnboardingView = () => {
       await initiateDeposit({
         preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
         replaceConfirmation: true,
+        onDepositSetupFailure: navigateToMoneyHome,
       });
     } catch (error) {
       Logger.error(
@@ -370,7 +371,7 @@ const MoneyOnboardingView = () => {
       : SCREEN_NAMES.MONEY_HOME;
 
   const handleClose = useCallback(
-    (stepIndex: number) => {
+    async (stepIndex: number) => {
       playImpact(ImpactMoment.PageNavigation);
       trackOnboardingEvent({
         step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
@@ -381,7 +382,7 @@ const MoneyOnboardingView = () => {
       });
 
       dispatch(setMoneyOnboardingSeen(true));
-      return navigateToPostOnboardingDestination();
+      await navigateToPostOnboardingDestination();
     },
     [
       dispatch,
@@ -406,8 +407,7 @@ const MoneyOnboardingView = () => {
   );
 
   const handleComplete = useCallback(
-    (stepIndex: number) => {
-      dispatch(setMoneyOnboardingSeen(true));
+    async (stepIndex: number) => {
       trackOnboardingEvent({
         step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
         step_title: stepTitlesEnglish[stepIndex],
@@ -416,7 +416,8 @@ const MoneyOnboardingView = () => {
         redirect_target: postOnboardingRedirectTarget,
       });
 
-      return navigateToPostOnboardingDestination();
+      dispatch(setMoneyOnboardingSeen(true));
+      await navigateToPostOnboardingDestination();
     },
     [
       dispatch,

@@ -238,17 +238,23 @@ describe('useMoneyAccountDeposit', () => {
 
   it('throws when vault config is missing', async () => {
     setupSelectors({ vaultConfig: undefined });
+    const onDepositSetupFailure = jest.fn();
 
     const { result } = renderHook(() => useMoneyAccountDeposit());
 
     await expect(
       act(async () => {
-        await result.current.initiateDeposit();
+        await result.current.initiateDeposit({ onDepositSetupFailure });
       }),
     ).rejects.toThrow('Missing vault config');
 
     expect(mockBuildDepositBatch).not.toHaveBeenCalled();
     expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
+    expect(onDepositSetupFailure).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: '[Money Account] Missing vault config',
+      }),
+    );
   });
 
   it('throws when provider is unavailable', async () => {
@@ -422,6 +428,7 @@ describe('useMoneyAccountDeposit', () => {
 
   it('backs out and shows a failure toast when deposit batch building fails', async () => {
     const buildError = new Error('deposit batch build failed');
+    const onDepositSetupFailure = jest.fn();
     mockBuildDepositBatch.mockRejectedValue(buildError);
 
     const { result } = renderHook(() => useMoneyAccountDeposit());
@@ -429,7 +436,10 @@ describe('useMoneyAccountDeposit', () => {
     let caught: Error | undefined;
     await act(async () => {
       try {
-        await result.current.initiateDeposit({ intent: 'convert' });
+        await result.current.initiateDeposit({
+          intent: 'convert',
+          onDepositSetupFailure,
+        });
       } catch (error) {
         caught = error as Error;
       }
@@ -441,6 +451,7 @@ describe('useMoneyAccountDeposit', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockDepositFailed).toHaveBeenCalledWith({ intent: 'convert' });
     expect(mockShowToast).toHaveBeenCalledWith(MOCK_DEPOSIT_FAILED_TOAST);
+    expect(onDepositSetupFailure).not.toHaveBeenCalled();
   });
 
   it('does not navigate back when deposit confirmation is rejected', async () => {

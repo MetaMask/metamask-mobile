@@ -366,6 +366,7 @@ describe('MoneyOnboardingView', () => {
       expect(mockInitiateDeposit).toHaveBeenCalledWith({
         preferredPaymentToken,
         replaceConfirmation: true,
+        onDepositSetupFailure: expect.any(Function),
       });
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
@@ -392,6 +393,28 @@ describe('MoneyOnboardingView', () => {
       expect(Logger.error).toHaveBeenCalledWith(
         error,
         '[Money Account] Failed to initiate deposit after onboarding',
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('marks onboarding seen when post-onboarding deposit fails', async () => {
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+        },
+      };
+      mockInitiateDeposit.mockRejectedValue(new Error('deposit failed'));
+      renderMoneyOnboardingView();
+
+      await act(async () => {
+        mockOnStateChanged('State Machine 1', 'FinalState');
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'SET_MONEY_ONBOARDING_SEEN',
+          payload: { seen: true },
+        }),
       );
     });
 
@@ -432,6 +455,31 @@ describe('MoneyOnboardingView', () => {
       jest.clearAllMocks();
 
       mockTriggerCallbacks.close();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
+    });
+
+    it('navigates to Money home when post-onboarding deposit fails', async () => {
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+        },
+      };
+      mockInitiateDeposit.mockImplementationOnce(
+        async ({ onDepositSetupFailure }) => {
+          const error = new Error('deposit setup failed');
+          onDepositSetupFailure?.(error);
+          throw error;
+        },
+      );
+      renderMoneyOnboardingView();
+
+      await act(async () => {
+        mockTriggerCallbacks.close();
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
         screen: Routes.MONEY.ROOT,

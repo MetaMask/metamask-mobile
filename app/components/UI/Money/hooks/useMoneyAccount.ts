@@ -55,6 +55,7 @@ export interface InitiateDepositOptions {
   intent?: MoneyAccountDepositIntent;
   autoSelectFiatPayment?: boolean;
   replaceConfirmation?: boolean;
+  onDepositSetupFailure?: (error: Error) => void;
 }
 
 function resolveNetworkClientId(chainId: Hex): string {
@@ -96,31 +97,53 @@ export function useMoneyAccountDeposit() {
   const initiateDeposit = useCallback(
     async (options?: InitiateDepositOptions) => {
       const preferredPaymentToken = options?.preferredPaymentToken;
-      if (!vaultConfig) {
-        throw new Error(`${LOG_TAG} Missing vault config`);
-      }
-      if (!primaryMoneyAccount?.address) {
-        throw new Error(`${LOG_TAG} Missing money account address`);
-      }
+      const getDepositSetup = () => {
+        if (!vaultConfig) {
+          throw new Error(`${LOG_TAG} Missing vault config`);
+        }
+        if (!primaryMoneyAccount?.address) {
+          throw new Error(`${LOG_TAG} Missing money account address`);
+        }
+        const moneyAccountAddress = primaryMoneyAccount.address;
 
-      const {
-        chainId,
-        boringVault,
-        tellerAddress,
-        accountantAddress,
-        lensAddress,
-      } = vaultConfig;
+        const {
+          chainId,
+          boringVault,
+          tellerAddress,
+          accountantAddress,
+          lensAddress,
+        } = vaultConfig;
 
-      const chainIdHex = chainId as Hex;
-      const provider = getProviderByChainId(chainIdHex);
-      if (!provider) {
-        throw new Error(
-          `${LOG_TAG} No provider available for chain ${chainId}`,
+        const chainIdHex = chainId as Hex;
+        const provider = getProviderByChainId(chainIdHex);
+        if (!provider) {
+          throw new Error(
+            `${LOG_TAG} No provider available for chain ${chainId}`,
+          );
+        }
+
+        return {
+          chainIdHex,
+          boringVault,
+          tellerAddress,
+          accountantAddress,
+          lensAddress,
+          provider,
+          moneyAccountAddress,
+          networkClientId: resolveNetworkClientId(chainIdHex),
+          isGasFeeSponsored: isMonadMainnetChainId(chainIdHex),
+        };
+      };
+
+      let depositSetup: ReturnType<typeof getDepositSetup>;
+      try {
+        depositSetup = getDepositSetup();
+      } catch (error) {
+        options?.onDepositSetupFailure?.(
+          ensureError(error, `${LOG_TAG} Deposit setup failed`),
         );
+        throw error;
       }
-
-      const networkClientId = resolveNetworkClientId(chainIdHex);
-      const isGasFeeSponsored = isMonadMainnetChainId(chainIdHex);
 
       const batchId = bytesToHex(new Uint8Array(uuidParse(uuidv4())));
       // Only record an explicit funding intent (card / addMusd). Generic deposits
@@ -149,12 +172,12 @@ export function useMoneyAccountDeposit() {
 
         const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
           amount: BigInt(0),
-          chainId: chainIdHex,
-          boringVault,
-          tellerAddress,
-          accountantAddress,
-          lensAddress,
-          provider,
+          chainId: depositSetup.chainIdHex,
+          boringVault: depositSetup.boringVault,
+          tellerAddress: depositSetup.tellerAddress,
+          accountantAddress: depositSetup.accountantAddress,
+          lensAddress: depositSetup.lensAddress,
+          provider: depositSetup.provider,
         });
 
         // We only set the transaction from the money account perspective.
@@ -165,19 +188,21 @@ export function useMoneyAccountDeposit() {
           disableHook: true,
           disableSequential: true,
           disableUpgrade: true,
-          from: primaryMoneyAccount.address as Hex,
-          isGasFeeSponsored,
+          from: depositSetup.moneyAccountAddress as Hex,
+          isGasFeeSponsored: depositSetup.isGasFeeSponsored,
           isInternal: true,
-          networkClientId,
+          networkClientId: depositSetup.networkClientId,
           origin: ORIGIN_METAMASK,
           requiredAssets: [
             {
-              address: getMoneyAccountDepositAssetAddress(chainIdHex),
+              address: getMoneyAccountDepositAssetAddress(
+                depositSetup.chainIdHex,
+              ),
               amount: '0x0' as Hex,
               standard: 'erc20',
             },
           ],
-          skipInitialGasEstimate: isGasFeeSponsored,
+          skipInitialGasEstimate: depositSetup.isGasFeeSponsored,
           transactions: [approveTx, depositTx],
         });
       } catch (error) {
