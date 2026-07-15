@@ -1097,19 +1097,19 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "Weekly Top Traders",
-      "chain_filter": {
-        "all": "All",
-        "tokens": "Tokens",
-        "perps": "Perps"
-      },
+      "title": "Weekly top traders",
       "notifications_banner": {
         "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
         "open_settings": "Open settings"
       }
     },
+    "type_filter": {
+      "all": "All types",
+      "tokens": "Tokens",
+      "perps": "Perps"
+    },
     "feed": {
-      "title": "Top Traders",
+      "title": "Top traders",
       "tabs": {
         "leaderboard": "Leaderboard",
         "feed": "Feed"
@@ -1122,11 +1122,6 @@
         "sold": "sold",
         "opened": "opened",
         "closed": "closed"
-      },
-      "type_filter": {
-        "all": "All types",
-        "tokens": "Tokens",
-        "perps": "Perps"
       },
       "empty_following": {
         "title": "No activity yet",
