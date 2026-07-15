@@ -15,6 +15,7 @@ import {
 import { HomepageActionButtonsGridTestIds } from './HomepageActionButtonsGrid.testIds';
 
 const mockTrackActionButtonClick = jest.fn();
+const mockGoToBuy = jest.fn();
 const mockGoToSell = jest.fn();
 const mockGoToSwaps = jest.fn();
 const mockNavigate = jest.fn();
@@ -51,14 +52,9 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({
+    goToBuy: mockGoToBuy,
     goToSell: mockGoToSell,
-    goToBuy: jest.fn(),
   }),
-}));
-
-jest.mock('../../../../UI/Ramp/hooks/useDepositEnabled', () => ({
-  __esModule: true,
-  default: () => ({ isDepositEnabled: true }),
 }));
 
 jest.mock('../../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({

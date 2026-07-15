@@ -1,10 +1,8 @@
 import React, { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import useDepositEnabled from '../../../../../UI/Ramp/hooks/useDepositEnabled';
+import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigation';
 import {
   ActionButtonType,
   ActionLocation,
@@ -15,10 +13,8 @@ import { HomepageActionButtonsGridTestIds } from '../HomepageActionButtonsGrid.t
 import type { HomepageActionButtonSlotProps } from '../types';
 
 const BuyButton = ({ actionPosition }: HomepageActionButtonSlotProps) => {
-  const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { isDepositEnabled } = useDepositEnabled();
-  const isBuyingAvailable = isDepositEnabled || true;
+  const { goToBuy } = useRampNavigation();
   const label = strings('homepage.action_buttons.buy');
 
   const handlePress = useCallback(() => {
@@ -28,17 +24,12 @@ const BuyButton = ({ actionPosition }: HomepageActionButtonSlotProps) => {
       button_label: label,
       location: ActionLocation.HOME,
     });
-
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.FUND_ACTION_MENU,
-      params: {},
-    });
-  }, [actionPosition, createEventBuilder, label, navigation, trackEvent]);
+    goToBuy();
+  }, [actionPosition, createEventBuilder, goToBuy, label, trackEvent]);
 
   return (
     <HomepageActionButton
       iconName={IconName.Add}
-      isDisabled={!isBuyingAvailable}
       label={label}
       onPress={handlePress}
       testID={HomepageActionButtonsGridTestIds.BUY_BUTTON}
