@@ -54,10 +54,10 @@ jest.mock('../../hooks/stream', () => ({
   usePerpsLivePositions: jest.fn(),
   usePerpsLivePrices: jest.fn(),
   usePerpsTopOfBook: jest.fn(),
-  // PerpsOrderHeader's own candle-derived price source; defaults to
-  // undefined (set in beforeEach) so the header falls back to the `price`
-  // prop derived from usePerpsLivePrices, matching existing expectations.
-  usePerpsLiveHeaderPrice: jest.fn(),
+  // PerpsOrderHeader's own focused-price source; defaults to undefined (set
+  // in beforeEach) so the header falls back to the `price` prop derived from
+  // usePerpsLivePrices, matching existing expectations.
+  usePerpsLiveFocusedPrice: jest.fn(),
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
@@ -143,8 +143,8 @@ describe('PerpsClosePositionView', () => {
   const usePerpsTopOfBookMock = jest.mocked(
     jest.requireMock('../../hooks/stream').usePerpsTopOfBook,
   );
-  const usePerpsLiveHeaderPriceMock = jest.mocked(
-    jest.requireMock('../../hooks/stream').usePerpsLiveHeaderPrice,
+  const usePerpsLiveFocusedPriceMock = jest.mocked(
+    jest.requireMock('../../hooks/stream').usePerpsLiveFocusedPrice,
   );
   const usePerpsOrderFeesMock = jest.mocked(
     jest.requireMock('../../hooks').usePerpsOrderFees,
@@ -193,7 +193,7 @@ describe('PerpsClosePositionView', () => {
     });
     usePerpsLivePricesMock.mockReturnValue(defaultPerpsLivePricesMock);
     usePerpsTopOfBookMock.mockReturnValue(defaultPerpsTopOfBookMock);
-    usePerpsLiveHeaderPriceMock.mockReturnValue({ price: undefined });
+    usePerpsLiveFocusedPriceMock.mockReturnValue(undefined);
     usePerpsOrderFeesMock.mockReturnValue(defaultPerpsOrderFeesMock);
     usePerpsClosePositionValidationMock.mockReturnValue(
       defaultPerpsClosePositionValidationMock,

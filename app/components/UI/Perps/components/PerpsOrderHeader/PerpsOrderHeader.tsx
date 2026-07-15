@@ -12,14 +12,13 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
-import { usePerpsLiveHeaderPrice } from '../../hooks/stream';
+import { usePerpsLiveFocusedPrice } from '../../hooks/stream';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 
 interface PerpsOrderHeaderProps {
   asset: string;
   price: number;
-  priceChange?: number;
   orderType?: OrderType;
   direction?: 'long' | 'short';
   onBack?: () => void;
@@ -40,21 +39,37 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
 }) => {
   const navigation = useNavigation();
 
-  // Use the same candle-derived, unthrottled price (+ 24h change) source
-  // that makes the market details header feel instantaneous (see
-  // usePerpsLiveHeaderPrice), instead of relying solely on the `price` prop.
-  // PerpsOrderView / PerpsClosePositionView recompute fees, margin,
-  // liquidation price, and validation on every allMids price tick, so their
-  // own re-render can lag behind the WebSocket feed, and even the allMids
-  // feed itself updates less frequently than the candle stream a chart would
-  // use. Because this subscription's state lives inside PerpsOrderHeader (a
-  // small, cheap subtree), its updates render independently of that heavier
-  // parent, and price + percent change come from one hook so they update
-  // together. The `price` prop is kept as the value to show until this
-  // subscription delivers its first update.
-  const { price: livePrice, percentChange24h } = usePerpsLiveHeaderPrice(asset);
+  // Fast, single-symbol focused price (~0.5s activeAssetCtx cadence,
+  // TAT-3334) — the same source PerpsOrderView already uses for its own
+  // fee/margin/validation calculations. Subscribing again here (rather than
+  // only reading the `price` prop) puts the resulting setState inside
+  // PerpsOrderHeader's own subtree, so its render is independent of the
+  // parent's heavier recompute cycle.
+  //
+  // FocusedPriceStreamChannel is a shared, reference-counted singleton keyed
+  // by symbol, so this does not open a second WebSocket connection when the
+  // parent (PerpsOrderView) already subscribes to the same symbol — both
+  // subscribers share one connection and both receive every tick.
+  //
+  // price and percentChange24h come from the SAME PriceUpdate object on the
+  // SAME tick, so — unlike two independent subscriptions — they can never
+  // disagree with each other. The `price` prop is kept as the fallback shown
+  // until this subscription delivers its first update for the current
+  // symbol (including right after an asset change, until the channel
+  // resolves the new symbol).
+  const focusedPriceUpdate = usePerpsLiveFocusedPrice({ symbol: asset });
 
-  const displayPrice = livePrice ?? price;
+  const displayPrice = useMemo(() => {
+    const parsed = Number.parseFloat(focusedPriceUpdate?.price ?? '');
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : price;
+  }, [focusedPriceUpdate?.price, price]);
+
+  const percentChange24h = useMemo(() => {
+    const parsed = Number.parseFloat(
+      focusedPriceUpdate?.percentChange24h ?? '',
+    );
+    return Number.isFinite(parsed) ? parsed : null;
+  }, [focusedPriceUpdate]);
 
   const handleBack = useCallback(() => {
     if (onBack) {

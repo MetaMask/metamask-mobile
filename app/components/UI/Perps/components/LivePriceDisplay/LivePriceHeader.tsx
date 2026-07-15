@@ -18,7 +18,12 @@ interface LivePriceHeaderProps {
   testIDPrice?: string;
   testIDChange?: string;
   throttleMs?: number;
-  /** Current price from candle stream - syncs header with chart */
+  /**
+   * Current price to display. Source varies by caller — e.g. the candle
+   * stream for chart-synced screens (PerpsMarketInlineHeader,
+   * PerpsOrderBookView), or the focused-price stream for ticket screens
+   * (PerpsOrderHeader) — this component itself is source-agnostic.
+   */
   currentPrice: number;
   /**
    * Optional 24h percent change override, bypassing this component's own
@@ -43,8 +48,10 @@ const styleSheet = () =>
   });
 
 /**
- * Component that displays live price and change for header
- * Uses currentPrice prop from candle stream, subscribes to price stream for 24h change only
+ * Component that displays live price and change for header.
+ * Renders the `currentPrice` prop as-is (source-agnostic). Subscribes to the
+ * price stream for 24h change only when the caller doesn't supply its own
+ * `percentChange24h` override.
  */
 const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   symbol,

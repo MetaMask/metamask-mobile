@@ -1514,7 +1514,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       <PerpsOrderHeader
         asset={orderForm.asset}
         price={assetData.price}
-        priceChange={assetData.change}
         orderType={orderForm.type}
         direction={orderForm.direction}
         onOrderTypePress={() => setIsOrderTypeVisible(true)}
