@@ -12,6 +12,7 @@ import {
   StyleSheet,
   Switch,
   Text as RNText,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import {
@@ -45,16 +46,30 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../../component-library/components/Toast';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../../component-library/components/Icons/Icon';
+import AlertTypeToggle from '../../components/AlertTypeToggle';
+import AlertPeriodToggle from '../../components/AlertPeriodToggle';
 import {
+  Alert,
+  AlertDirection,
+  AlertPeriod,
+  AlertType,
   CreatePriceAlertRouteParams,
   CreatePriceAlertTestIds,
   CURRENCY_SYMBOLS,
+  PercentChangeAlert,
   PRICE_ALERT_QUICK_PERCENTAGES,
-  PriceAlert,
   PriceAlertAnalytics,
 } from '../../constants';
-import { priceAlertsQueryKey, useSubmitPriceAlert } from '../../api';
+import {
+  priceAlertsQueryKey,
+  useSubmitPercentAlert,
+  useSubmitPriceAlert,
+} from '../../api';
 import { trimTrailingZeros } from '../../../../Bridge/utils/trimTrailingZeros';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -63,6 +78,7 @@ const KEYPAD_EMPTY = '0';
 const MIN_KEYPAD_DECIMALS = 2;
 const MAX_KEYPAD_DECIMALS = 15;
 const SIG_FIGS_FRACTIONAL_OFFSET = 5;
+const PERCENT_KEYPAD_DECIMALS = 2;
 
 /**
  * Max fractional digits the keypad should allow for a given USD price.
@@ -96,6 +112,17 @@ const toKeypadString = (price: number): string => {
   return str || KEYPAD_EMPTY;
 };
 
+/**
+ * Converts a percent threshold into a plain decimal string suitable for the
+ * keypad. Percent thresholds are always positive with at most 2dp, so this is
+ * a straight fixed-precision format (no significant-figure scaling needed).
+ */
+const toPercentKeypadString = (value: number): string => {
+  if (!Number.isFinite(value) || value <= 0) return KEYPAD_EMPTY;
+  const str = trimTrailingZeros(value.toFixed(PERCENT_KEYPAD_DECIMALS));
+  return str || KEYPAD_EMPTY;
+};
+
 const viewStyles = StyleSheet.create({
   priceText: {
     fontSize: 48,
@@ -126,13 +153,30 @@ const CreatePriceAlertView: React.FC = () => {
     assetId,
     fromManage,
     existingThresholds,
+    existingPercentAlerts,
     editingAlert,
+    initialType,
   } = route.params;
 
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const isEditing = Boolean(editingAlert);
   const displayTicker = ticker || symbol;
+
+  const editingPercentAlert: PercentChangeAlert | undefined =
+    editingAlert?.type === 'percent_change' ? editingAlert : undefined;
+  const editingAbsoluteAlert =
+    editingAlert?.type === 'absolute_price' ? editingAlert : undefined;
+
+  const [alertType, setAlertType] = useState<AlertType>(
+    editingAlert?.type ?? initialType ?? 'absolute_price',
+  );
+  const [period, setPeriod] = useState<AlertPeriod>(
+    editingPercentAlert?.period ?? '24h',
+  );
+  const [direction, setDirection] = useState<AlertDirection>(
+    editingPercentAlert?.direction ?? 'up',
+  );
 
   // "Price Alert Creation Initiated" — fired once when the user lands on the
   // Create screen for a *new* alert (not when editing an existing one).
@@ -147,7 +191,9 @@ const CreatePriceAlertView: React.FC = () => {
         .addProperties({
           asset_id: assetId,
           token_symbol: displayTicker,
-          has_existing_alert: (existingThresholds?.length ?? 0) > 0,
+          has_existing_alert:
+            (existingThresholds?.length ?? 0) > 0 ||
+            (existingPercentAlerts?.length ?? 0) > 0,
         })
         .build(),
     );
@@ -155,7 +201,14 @@ const CreatePriceAlertView: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [targetAmount, setTargetAmount] = useState(
-    editingAlert ? toKeypadString(editingAlert.threshold) : KEYPAD_EMPTY,
+    editingAbsoluteAlert
+      ? toKeypadString(editingAbsoluteAlert.threshold)
+      : KEYPAD_EMPTY,
+  );
+  const [percentAmount, setPercentAmount] = useState(
+    editingPercentAlert
+      ? toPercentKeypadString(editingPercentAlert.threshold)
+      : KEYPAD_EMPTY,
   );
   const [isRecurring, setIsRecurring] = useState(
     editingAlert?.recurring ?? true,
@@ -181,31 +234,84 @@ const CreatePriceAlertView: React.FC = () => {
     return () => animation.stop();
   }, [fadeAnim]);
 
+  const isAbsoluteMode = alertType === 'absolute_price';
+  const isPercentMode = alertType === 'percent_change';
+
   const hasInput = targetAmount !== KEYPAD_EMPTY;
+  const hasPercentInput = percentAmount !== KEYPAD_EMPTY;
 
   const targetPrice = useMemo(() => {
     const parsed = parseFloat(targetAmount);
     return Number.isFinite(parsed) ? parsed : 0;
   }, [targetAmount]);
 
+  const percentValue = useMemo(() => {
+    const parsed = parseFloat(percentAmount);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }, [percentAmount]);
+
   const hasValidTarget = targetPrice > 0;
+  const hasValidPercent = percentValue > 0;
 
   const isDuplicateThreshold = useMemo(
     () =>
+      isAbsoluteMode &&
       hasValidTarget &&
       (existingThresholds ?? []).some(
-        (t) => t === targetPrice && t !== editingAlert?.threshold,
+        (t) => t === targetPrice && t !== editingAbsoluteAlert?.threshold,
       ),
-    [hasValidTarget, existingThresholds, targetPrice, editingAlert],
+    [
+      isAbsoluteMode,
+      hasValidTarget,
+      existingThresholds,
+      targetPrice,
+      editingAbsoluteAlert,
+    ],
   );
 
-  const isUnchanged = useMemo(
+  const isDuplicatePercentTuple = useMemo(
     () =>
-      isEditing &&
-      targetPrice === editingAlert?.threshold &&
-      isRecurring === editingAlert?.recurring,
-    [isEditing, editingAlert, targetPrice, isRecurring],
+      isPercentMode &&
+      hasValidPercent &&
+      (existingPercentAlerts ?? []).some(
+        (a) =>
+          a.id !== editingAlert?.id &&
+          a.period === period &&
+          a.direction === direction &&
+          a.threshold === percentValue,
+      ),
+    [
+      isPercentMode,
+      hasValidPercent,
+      existingPercentAlerts,
+      period,
+      direction,
+      percentValue,
+      editingAlert,
+    ],
   );
+
+  const isUnchanged = useMemo(() => {
+    if (!isEditing) return false;
+    if (isPercentMode) {
+      return (
+        percentValue === editingPercentAlert?.threshold &&
+        isRecurring === editingPercentAlert?.recurring
+      );
+    }
+    return (
+      targetPrice === editingAbsoluteAlert?.threshold &&
+      isRecurring === editingAbsoluteAlert?.recurring
+    );
+  }, [
+    isEditing,
+    isPercentMode,
+    percentValue,
+    editingPercentAlert,
+    targetPrice,
+    editingAbsoluteAlert,
+    isRecurring,
+  ]);
 
   const percentDiff = useMemo(() => {
     if (!hasInput || currentPrice <= 0 || targetPrice <= 0) {
@@ -242,7 +348,13 @@ const CreatePriceAlertView: React.FC = () => {
     [currentPrice],
   );
 
-  const { submit, isSubmitting } = useSubmitPriceAlert(editingAlert);
+  const { submit: submitAbsolute, isSubmitting: isSubmittingAbsolute } =
+    useSubmitPriceAlert(editingAbsoluteAlert);
+  const { submit: submitPercent, isSubmitting: isSubmittingPercent } =
+    useSubmitPercentAlert(editingPercentAlert);
+  const isSubmitting = isPercentMode
+    ? isSubmittingPercent
+    : isSubmittingAbsolute;
   const queryClient = useQueryClient();
   const { toastRef } = useContext(ToastContext);
 
@@ -250,22 +362,57 @@ const CreatePriceAlertView: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleSaveAlert = useCallback(async () => {
+  const showSuccessToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Confirmation,
+      iconColor: colors.success.default,
+      labelOptions: [
+        {
+          label: strings('price_alerts.save_success', {
+            ticker: displayTicker,
+          }),
+        },
+      ],
+      hasNoTimeout: false,
+    });
+  }, [toastRef, colors, displayTicker]);
+
+  const showErrorToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Danger,
+      iconColor: colors.error.default,
+      labelOptions: [{ label: strings('price_alerts.save_error') }],
+      hasNoTimeout: false,
+    });
+  }, [toastRef, colors]);
+
+  const navigateAfterSave = useCallback(() => {
+    // Editing always returns to Manage. Creating from Manage pops both screens to land on TokenDetails.
+    if (isEditing || !fromManage) {
+      navigation.goBack();
+    } else {
+      navigation.pop(2);
+    }
+  }, [isEditing, fromManage, navigation]);
+
+  const handleSaveAbsoluteAlert = useCallback(async () => {
     if (!hasValidTarget) {
       return;
     }
     try {
-      await submit({
+      await submitAbsolute({
         asset: assetId,
         threshold: targetPrice,
         recurring: isRecurring,
       });
-      if (isEditing && editingAlert) {
-        queryClient.setQueryData<PriceAlert[]>(
+      if (isEditing && editingAbsoluteAlert) {
+        queryClient.setQueryData<Alert[]>(
           priceAlertsQueryKey(assetId),
           (prev) =>
             prev?.map((a) =>
-              a.id === editingAlert.id
+              a.id === editingAbsoluteAlert.id
                 ? { ...a, threshold: targetPrice, recurring: isRecurring }
                 : a,
             ),
@@ -279,10 +426,10 @@ const CreatePriceAlertView: React.FC = () => {
               alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
               alert_value: targetPrice,
               alert_recurring: isRecurring,
-              alert_active: editingAlert.active,
-              prev_alert_value: editingAlert.threshold,
-              prev_alert_recurring: editingAlert.recurring,
-              prev_alert_active: editingAlert.active,
+              alert_active: editingAbsoluteAlert.active,
+              prev_alert_value: editingAbsoluteAlert.threshold,
+              prev_alert_recurring: editingAbsoluteAlert.recurring,
+              prev_alert_active: editingAbsoluteAlert.active,
             })
             .build(),
         );
@@ -301,55 +448,123 @@ const CreatePriceAlertView: React.FC = () => {
             .build(),
         );
       }
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
-        iconColor: colors.success.default,
-        labelOptions: [
-          {
-            label: strings('price_alerts.save_success', {
-              ticker: displayTicker,
-            }),
-          },
-        ],
-        hasNoTimeout: false,
-      });
-      // Editing always returns to Manage. Creating from Manage pops both screens to land on TokenDetails.
-      if (isEditing || !fromManage) {
-        navigation.goBack();
-      } else {
-        navigation.pop(2);
-      }
+      showSuccessToast();
+      navigateAfterSave();
     } catch {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Danger,
-        iconColor: colors.error.default,
-        labelOptions: [{ label: strings('price_alerts.save_error') }],
-        hasNoTimeout: false,
-      });
+      showErrorToast();
     }
   }, [
-    submit,
+    submitAbsolute,
     assetId,
     targetPrice,
     hasValidTarget,
     isRecurring,
     isEditing,
-    editingAlert,
+    editingAbsoluteAlert,
     queryClient,
-    fromManage,
-    navigation,
-    toastRef,
-    colors,
+    showSuccessToast,
+    showErrorToast,
+    navigateAfterSave,
     displayTicker,
     trackEvent,
     createEventBuilder,
   ]);
 
+  const handleSavePercentAlert = useCallback(async () => {
+    if (!hasValidPercent) {
+      return;
+    }
+    try {
+      await submitPercent({
+        asset: assetId,
+        threshold: percentValue,
+        period,
+        direction,
+        recurring: isRecurring,
+      });
+      if (isEditing && editingPercentAlert) {
+        queryClient.setQueryData<Alert[]>(
+          priceAlertsQueryKey(assetId),
+          (prev) =>
+            prev?.map((a) =>
+              a.id === editingPercentAlert.id
+                ? { ...a, threshold: percentValue, recurring: isRecurring }
+                : a,
+            ),
+        );
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+            .addProperties({
+              interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
+              asset_id: assetId,
+              token_symbol: displayTicker,
+              alert_type: PriceAlertAnalytics.TYPE.PERCENT,
+              period,
+              direction,
+              alert_value: percentValue,
+              alert_recurring: isRecurring,
+              alert_active: editingPercentAlert.active,
+              prev_alert_value: editingPercentAlert.threshold,
+              prev_alert_recurring: editingPercentAlert.recurring,
+              prev_alert_active: editingPercentAlert.active,
+            })
+            .build(),
+        );
+      } else {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+            .addProperties({
+              interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.CREATED,
+              asset_id: assetId,
+              token_symbol: displayTicker,
+              alert_type: PriceAlertAnalytics.TYPE.PERCENT,
+              period,
+              direction,
+              alert_value: percentValue,
+              alert_recurring: isRecurring,
+              alert_active: true,
+            })
+            .build(),
+        );
+      }
+      showSuccessToast();
+      navigateAfterSave();
+    } catch {
+      showErrorToast();
+    }
+  }, [
+    submitPercent,
+    assetId,
+    percentValue,
+    hasValidPercent,
+    period,
+    direction,
+    isRecurring,
+    isEditing,
+    editingPercentAlert,
+    queryClient,
+    showSuccessToast,
+    showErrorToast,
+    navigateAfterSave,
+    displayTicker,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
+  const handleSaveAlert = isPercentMode
+    ? handleSavePercentAlert
+    : handleSaveAbsoluteAlert;
+
   const handleKeypadChange = useCallback(({ value }: KeypadChangeData) => {
     setTargetAmount(value);
   }, []);
+
+  const handlePercentKeypadChange = useCallback(
+    ({ value }: KeypadChangeData) => {
+      setPercentAmount(value);
+    },
+    [],
+  );
 
   const handleQuickPercentagePress = useCallback(
     (percentage: number) => {
@@ -361,6 +576,32 @@ const CreatePriceAlertView: React.FC = () => {
     },
     [currentPrice],
   );
+
+  const handleToggleDirection = useCallback(() => {
+    setDirection((prev) => (prev === 'up' ? 'down' : 'up'));
+  }, []);
+
+  const saveButtonLabel = isPercentMode
+    ? isDuplicatePercentTuple
+      ? strings('price_alerts.percent_duplicate')
+      : strings(
+          isEditing
+            ? 'price_alerts.update_price_alert'
+            : 'price_alerts.set_price_alert',
+        )
+    : isDuplicateThreshold
+      ? strings('price_alerts.duplicate_threshold')
+      : strings(
+          isEditing
+            ? 'price_alerts.update_price_alert'
+            : 'price_alerts.set_price_alert',
+        );
+
+  const isSaveDisabled =
+    isSubmitting ||
+    (isPercentMode
+      ? !hasValidPercent || isDuplicatePercentTuple || isUnchanged
+      : !hasValidTarget || isDuplicateThreshold || isUnchanged);
 
   return (
     <SafeAreaView
@@ -377,82 +618,178 @@ const CreatePriceAlertView: React.FC = () => {
           onBack={handleBack}
         />
 
-        <Box
-          alignItems={BoxAlignItems.Center}
-          twClassName="flex-1 justify-center px-4 pb-4"
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            twClassName="mb-2"
-          >
-            {strings('price_alerts.enter_target_price')}
-          </Text>
+        <AlertTypeToggle
+          value={alertType}
+          onChange={setAlertType}
+          isDisabled={isEditing}
+        />
 
+        {isPercentMode ? (
           <Box
-            flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            twClassName="w-full"
-            testID={CreatePriceAlertTestIds.TARGET_PRICE_INPUT}
+            twClassName="flex-1 justify-center px-4 pb-4"
           >
-            <RNText
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.4}
-              style={[
-                tw.style('font-medium'),
-                viewStyles.priceText,
-                {
-                  color: hasInput
-                    ? colors.text.default
-                    : colors.text.alternative,
-                },
-              ]}
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="mb-2"
             >
-              {displayText}
-            </RNText>
-            <Animated.View
-              style={[
-                tw.style('ml-1 h-10 w-0.5 bg-primary-default'),
-                viewStyles.cursor,
-                { opacity: fadeAnim },
-              ]}
-            />
-          </Box>
+              {strings(
+                direction === 'up'
+                  ? 'price_alerts.moves_up'
+                  : 'price_alerts.moves_down',
+              )}
+            </Text>
 
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            testID={CreatePriceAlertTestIds.PERCENT_DIFF}
-            twClassName="mt-2"
-          >
-            {percentDiff.direction === 'none' ? (
-              strings('price_alerts.approx_percent', { percent: '0' })
-            ) : (
-              <>
-                {'≈ '}
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  color={
-                    percentDiff.direction === 'above'
-                      ? TextColor.SuccessDefault
-                      : TextColor.ErrorDefault
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName="w-full"
+              testID={CreatePriceAlertTestIds.PERCENT_INPUT}
+            >
+              <TouchableOpacity
+                onPress={handleToggleDirection}
+                disabled={isEditing}
+                testID={CreatePriceAlertTestIds.DIRECTION_TOGGLE}
+                style={tw.style(
+                  'mr-2 h-10 w-10 rounded-full bg-muted items-center justify-center',
+                )}
+              >
+                <Icon
+                  name={
+                    direction === 'up' ? IconName.TrendUp : IconName.TrendDown
                   }
+                  size={IconSize.Md}
+                  color={
+                    direction === 'up' ? IconColor.Success : IconColor.Error
+                  }
+                />
+              </TouchableOpacity>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                twClassName="items-baseline max-w-[95%] shrink"
+              >
+                <RNText
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.4}
+                  style={[
+                    tw.style('font-medium'),
+                    viewStyles.priceText,
+                    {
+                      color: hasPercentInput
+                        ? colors.text.default
+                        : colors.text.alternative,
+                    },
+                  ]}
                 >
-                  {`${percentDiff.direction === 'above' ? '+' : '-'}${percentDiff.rounded}%`}
+                  {percentAmount}
+                </RNText>
+                <Animated.View
+                  style={[
+                    tw.style('self-center h-10 w-0.5 bg-primary-default'),
+                    viewStyles.cursor,
+                    { opacity: fadeAnim },
+                  ]}
+                />
+                <Text
+                  variant={TextVariant.HeadingLg}
+                  fontWeight={FontWeight.Bold}
+                  color={TextColor.TextAlternative}
+                  twClassName="ml-[3px]"
+                >
+                  %
                 </Text>
-                {` ${strings(
-                  percentDiff.direction === 'above'
-                    ? 'price_alerts.approx_percent_above'
-                    : 'price_alerts.approx_percent_below',
-                  { ticker: displayTicker },
-                )}`}
-              </>
-            )}
-          </Text>
-        </Box>
+              </Box>
+            </Box>
+
+            <Box twClassName="mt-4 w-full" alignItems={BoxAlignItems.Center}>
+              <AlertPeriodToggle
+                value={period}
+                onChange={setPeriod}
+                isDisabled={isEditing}
+              />
+            </Box>
+          </Box>
+        ) : (
+          <Box
+            alignItems={BoxAlignItems.Center}
+            twClassName="flex-1 justify-center px-4 pb-4"
+          >
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="mb-2"
+            >
+              {strings('price_alerts.enter_target_price')}
+            </Text>
+
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName="w-full"
+              testID={CreatePriceAlertTestIds.TARGET_PRICE_INPUT}
+            >
+              <RNText
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.4}
+                style={[
+                  tw.style('font-medium'),
+                  viewStyles.priceText,
+                  {
+                    color: hasInput
+                      ? colors.text.default
+                      : colors.text.alternative,
+                  },
+                ]}
+              >
+                {displayText}
+              </RNText>
+              <Animated.View
+                style={[
+                  tw.style('ml-1 h-10 w-0.5 bg-primary-default'),
+                  viewStyles.cursor,
+                  { opacity: fadeAnim },
+                ]}
+              />
+            </Box>
+
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              testID={CreatePriceAlertTestIds.PERCENT_DIFF}
+              twClassName="mt-2"
+            >
+              {percentDiff.direction === 'none' ? (
+                strings('price_alerts.approx_percent', { percent: '0' })
+              ) : (
+                <>
+                  {'≈ '}
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={
+                      percentDiff.direction === 'above'
+                        ? TextColor.SuccessDefault
+                        : TextColor.ErrorDefault
+                    }
+                  >
+                    {`${percentDiff.direction === 'above' ? '+' : '-'}${percentDiff.rounded}%`}
+                  </Text>
+                  {` ${strings(
+                    percentDiff.direction === 'above'
+                      ? 'price_alerts.approx_percent_above'
+                      : 'price_alerts.approx_percent_below',
+                    { ticker: displayTicker },
+                  )}`}
+                </>
+              )}
+            </Text>
+          </Box>
+        )}
 
         <View style={tw.style('px-4 pb-2')}>
           {/* Recurring toggle */}
@@ -481,54 +818,54 @@ const CreatePriceAlertView: React.FC = () => {
             />
           </Box>
 
-          {/* Quick-percentage pickers */}
-          <Box flexDirection={BoxFlexDirection.Row} twClassName="mb-3 gap-2">
-            {PRICE_ALERT_QUICK_PERCENTAGES.map((percentage) => (
-              <Button
-                key={percentage}
-                variant={ButtonVariant.Secondary}
-                onPress={() => handleQuickPercentagePress(percentage)}
-                testID={`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-${percentage}`}
-                twClassName="flex-1"
-              >
-                {strings('price_alerts.quick_percentage', {
-                  percentage: percentage > 0 ? `+${percentage}` : percentage,
-                })}
-              </Button>
-            ))}
-          </Box>
+          {/* Quick-percentage pickers — absolute-price mode only */}
+          {isAbsoluteMode && (
+            <Box flexDirection={BoxFlexDirection.Row} twClassName="mb-3 gap-2">
+              {PRICE_ALERT_QUICK_PERCENTAGES.map((percentage) => (
+                <Button
+                  key={percentage}
+                  variant={ButtonVariant.Secondary}
+                  onPress={() => handleQuickPercentagePress(percentage)}
+                  testID={`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-${percentage}`}
+                  twClassName="flex-1"
+                >
+                  {strings('price_alerts.quick_percentage', {
+                    percentage: percentage > 0 ? `+${percentage}` : percentage,
+                  })}
+                </Button>
+              ))}
+            </Box>
+          )}
 
           {/* "price_alert" is intentionally not in the Keypad CURRENCIES map —
               unknown codes fall through to the decimals-aware branch in useCurrency,
               which is the only path that actually enforces the decimals cap. */}
-          <KeypadComponent
-            value={targetAmount}
-            onChange={handleKeypadChange}
-            currency="price_alert"
-            decimals={keypadDecimals}
-          />
+          {isPercentMode ? (
+            <KeypadComponent
+              value={percentAmount}
+              onChange={handlePercentKeypadChange}
+              currency="price_alert"
+              decimals={PERCENT_KEYPAD_DECIMALS}
+            />
+          ) : (
+            <KeypadComponent
+              value={targetAmount}
+              onChange={handleKeypadChange}
+              currency="price_alert"
+              decimals={keypadDecimals}
+            />
+          )}
 
           {/* Save button — sits below the keypad */}
           <Button
             variant={ButtonVariant.Primary}
             onPress={handleSaveAlert}
             isLoading={isSubmitting}
-            isDisabled={
-              isSubmitting ||
-              !hasValidTarget ||
-              isDuplicateThreshold ||
-              isUnchanged
-            }
+            isDisabled={isSaveDisabled}
             testID={CreatePriceAlertTestIds.SET_ALERT_BUTTON}
             twClassName="mt-3 w-full"
           >
-            {isDuplicateThreshold
-              ? strings('price_alerts.duplicate_threshold')
-              : strings(
-                  isEditing
-                    ? 'price_alerts.update_price_alert'
-                    : 'price_alerts.set_price_alert',
-                )}
+            {saveButtonLabel}
           </Button>
         </View>
       </Box>

@@ -12,14 +12,29 @@ export interface PriceAlertRouteParams {
 export interface CreatePriceAlertRouteParams extends PriceAlertRouteParams {
   /** When true the screen was opened from ManagePriceAlertsView; pop 2 on save to return to TokenDetails. */
   fromManage?: boolean;
-  /** Thresholds of existing alerts for this asset, used for duplicate-threshold validation. */
+  /** Thresholds of existing absolute-price alerts for this asset, used for duplicate-threshold validation. */
   existingThresholds?: number[];
+  /** Existing percent-change alerts for this asset, used for duplicate-tuple validation. */
+  existingPercentAlerts?: PercentChangeAlert[];
   /** When present the screen is in edit mode; pre-populates threshold/recurring and calls PATCH on save. */
-  editingAlert?: PriceAlert;
+  editingAlert?: Alert;
+  /** Preselects the type pill when opening a fresh (non-edit) Create screen. */
+  initialType?: AlertType;
 }
 
-/** API response shape for a single price alert. */
-export interface PriceAlert {
+/** Discriminator for the two alert kinds the backend supports. */
+export type AlertType = 'absolute_price' | 'percent_change';
+
+/** Rolling window a percent-change alert watches. */
+export type AlertPeriod = '1h' | '24h';
+
+/** Order per design: 24hr first. */
+export const ALERT_PERIODS = ['24h', '1h'] as const;
+
+/** Direction of the percent-change movement that arms the alert. */
+export type AlertDirection = 'up' | 'down';
+
+interface BaseAlert {
   id: string;
   userId: string;
   asset: string;
@@ -28,6 +43,29 @@ export interface PriceAlert {
   active: boolean;
   createdAt: string;
 }
+
+/** Absolute-price ("Price target") alert — fires when price crosses `threshold` (a USD amount). */
+export interface AbsolutePriceAlert extends BaseAlert {
+  type: 'absolute_price';
+}
+
+/** Percent-change ("Price change") alert — fires when the rolling `period` signal crosses `threshold`%. */
+export interface PercentChangeAlert extends BaseAlert {
+  type: 'percent_change';
+  period: AlertPeriod;
+  direction: AlertDirection;
+}
+
+/** Any alert returned by the API. Narrow on `type` before reading period/direction. */
+export type Alert = AbsolutePriceAlert | PercentChangeAlert;
+
+/**
+ * @deprecated Prefer {@link Alert} (the discriminated union). Kept as an alias
+ * to the absolute-price shape so existing absolute-only call sites keep
+ * compiling; older API deployments may omit `type` entirely on this shape
+ * (see `normalizeAlert` in `api.ts`).
+ */
+export type PriceAlert = AbsolutePriceAlert;
 
 export const PRICE_ALERT_QUICK_PERCENTAGES = [-10, -5, 5, 10] as const;
 
@@ -39,6 +77,7 @@ export const PRICE_ALERT_QUICK_PERCENTAGES = [-10, -5, 5, 10] as const;
 export const PriceAlertAnalytics = {
   TYPE: {
     THRESHOLD: 'threshold',
+    PERCENT: 'percent_change',
   },
   INTERACTION_TYPE: {
     CREATED: 'created',
@@ -56,7 +95,7 @@ export const CURRENCY_SYMBOLS: Record<string, string> = {
   aud: 'A$',
 };
 
-/** Request body for creating a price alert. */
+/** Request body for creating an absolute-price alert. */
 export interface SaveAlertParams {
   /** CAIP-19 asset identifier, e.g. "eip155:1/slip44:60". */
   asset: string;
@@ -64,8 +103,30 @@ export interface SaveAlertParams {
   recurring: boolean;
 }
 
-/** Request body for updating an existing price alert via PATCH. At least one field is required. */
+/** Request body for updating an existing absolute-price alert via PATCH. At least one field is required. */
 export interface UpdateAlertParams {
+  active?: boolean;
+  threshold?: number;
+  recurring?: boolean;
+}
+
+/** Request body for `POST /v1/alerts/percent-change`. */
+export interface SavePercentAlertParams {
+  /** CAIP-19 asset identifier, e.g. "eip155:1/slip44:60". */
+  asset: string;
+  /** Percent magnitude, positive, at most 2 decimal places. */
+  threshold: number;
+  period: AlertPeriod;
+  direction: AlertDirection;
+  recurring: boolean;
+}
+
+/**
+ * Request body for `PATCH /v1/alerts/percent-change/:id`. At least one field
+ * is required. `period`/`direction` are immutable server-side and are
+ * intentionally absent here.
+ */
+export interface UpdatePercentAlertParams {
   active?: boolean;
   threshold?: number;
   recurring?: boolean;
@@ -78,6 +139,14 @@ export const CreatePriceAlertTestIds = {
   RECURRING_TOGGLE: 'create-price-alert-recurring-toggle',
   QUICK_PERCENTAGE_PREFIX: 'create-price-alert-quick-percentage',
   SET_ALERT_BUTTON: 'create-price-alert-set-button',
+  TYPE_SEGMENT: 'create-price-alert-type-segment',
+  TYPE_SEGMENT_TARGET: 'create-price-alert-type-segment-target',
+  TYPE_SEGMENT_CHANGE: 'create-price-alert-type-segment-change',
+  PERIOD_SEGMENT: 'create-price-alert-period-segment',
+  PERIOD_SEGMENT_1H: 'create-price-alert-period-segment-1h',
+  PERIOD_SEGMENT_24H: 'create-price-alert-period-segment-24h',
+  DIRECTION_TOGGLE: 'create-price-alert-direction-toggle',
+  PERCENT_INPUT: 'create-price-alert-percent-input',
 } as const;
 
 export const ManagePriceAlertsTestIds = {

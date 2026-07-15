@@ -4386,7 +4386,7 @@
   "price_alerts": {
     "create_title": "Create {{ticker}} price alert",
     "edit_title": "Edit {{ticker}} price alert",
-    "price_reaches": "Price reaches",
+    "price_target": "Price target",
     "price_change": "Price change",
     "enter_target_price": "Enter target price",
     "approx_percent": "≈ {{percent}}%",
@@ -4394,7 +4394,6 @@
     "approx_percent_below": "below current {{ticker}} price",
     "recurring": "Recurring",
     "quick_percentage": "{{percentage}}%",
-    "price_change_under_development": "This experience is currently under development",
     "set_price_alert": "Set price alert",
     "update_price_alert": "Update price alert",
     "save_success": "Price alert for {{ticker}} saved successfully.",
@@ -4408,7 +4407,16 @@
     "add_alert": "Add alert",
     "reaches_threshold": "Reaches {{threshold}}",
     "once_label": "Once",
-    "no_alerts": "No price alerts set for this asset."
+    "moves_up": "When price moves up",
+    "moves_down": "When price moves down",
+    "period_1h": "1hr",
+    "period_24h": "24hr",
+    "period_1h_short": "1h",
+    "period_24h_short": "24h",
+    "moves_up_summary": "Moves up {{percent}}%",
+    "moves_down_summary": "Moves down {{percent}}%",
+    "period_recurrence": "{{period}} • {{recurrence}}",
+    "percent_duplicate": "An alert with this configuration already exists."
   },
   "asset_overview": {
     "market_closed": "Market closed",

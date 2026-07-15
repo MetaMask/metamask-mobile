@@ -7,11 +7,18 @@ import {
   createAlert,
   deleteAlert,
   updateAlert,
+  createPercentAlert,
+  updatePercentAlert,
+  deletePercentAlert,
+  updateAlertByType,
+  deleteAlertByType,
+  normalizeAlerts,
   fetchSupportedChains,
   priceAlertsQueryKey,
   useSubmitPriceAlert,
+  useSubmitPercentAlert,
 } from './api';
-import type { PriceAlert } from './constants';
+import type { Alert, PercentChangeAlert, PriceAlert } from './constants';
 
 // Prevents teardown crashes with unstable_batchedUpdates in Jest
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
@@ -42,6 +49,7 @@ jest.mock('../../../../core/AppConstants', () => ({
 }));
 
 const ALERTS_URL = 'https://price-alerts.api.cx.metamask.io/v1/alerts';
+const PERCENT_ALERTS_URL = `${ALERTS_URL}/percent-change`;
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
@@ -248,6 +256,7 @@ const makeAlert = (overrides: Partial<PriceAlert> = {}): PriceAlert => ({
   recurring: true,
   active: true,
   createdAt: '2025-01-01T00:00:00.000Z',
+  type: 'absolute_price',
   ...overrides,
 });
 
@@ -439,6 +448,258 @@ describe('useSubmitPriceAlert — edit mode (with editingAlert)', () => {
         result.current.submit({
           asset: 'eip155:1/slip44:60',
           threshold: 2500,
+          recurring: true,
+        }),
+      ).rejects.toThrow('HTTP 404: Not Found');
+    });
+  });
+});
+
+const makePercentAlert = (
+  overrides: Partial<PercentChangeAlert> = {},
+): PercentChangeAlert => ({
+  id: 'percent-1',
+  userId: 'user-1',
+  asset: 'eip155:1/slip44:60',
+  threshold: 10,
+  period: '1h',
+  direction: 'up',
+  recurring: true,
+  active: true,
+  createdAt: '2025-01-01T00:00:00.000Z',
+  type: 'percent_change',
+  ...overrides,
+});
+
+describe('createPercentAlert', () => {
+  it('POSTs to the percent-change endpoint with a JSON-serialised body', async () => {
+    const params = {
+      asset: 'eip155:1/slip44:60',
+      threshold: 10.5,
+      period: '24h' as const,
+      direction: 'down' as const,
+      recurring: false,
+    };
+    await createPercentAlert(params);
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(PERCENT_ALERTS_URL);
+    expect(init.method).toBe('POST');
+    expect(init.body).toBe(JSON.stringify(params));
+    expect((init.headers as Record<string, string>)['Content-Type']).toBe(
+      'application/json',
+    );
+  });
+
+  it('attaches auth headers', async () => {
+    await createPercentAlert({
+      asset: 'eip155:1/slip44:60',
+      threshold: 10,
+      period: '1h',
+      direction: 'up',
+      recurring: true,
+    });
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect((init.headers as Record<string, string>).Authorization).toBe(
+      'Bearer test-bearer-token',
+    );
+  });
+});
+
+describe('updatePercentAlert', () => {
+  it('sends PATCH to /alerts/percent-change/:id with a JSON-serialised body', async () => {
+    const params = { threshold: 15 };
+    await updatePercentAlert('percent-42', params);
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${PERCENT_ALERTS_URL}/percent-42`);
+    expect(init.method).toBe('PATCH');
+    expect(init.body).toBe(JSON.stringify(params));
+  });
+
+  it('does not send period or direction (immutable server-side)', async () => {
+    await updatePercentAlert('percent-42', { active: true });
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(init.body as string);
+    expect(body.period).toBeUndefined();
+    expect(body.direction).toBeUndefined();
+  });
+});
+
+describe('deletePercentAlert', () => {
+  it('sends DELETE to /alerts/percent-change/:id', async () => {
+    await deletePercentAlert('percent-42');
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${PERCENT_ALERTS_URL}/percent-42`);
+    expect(init.method).toBe('DELETE');
+  });
+});
+
+describe('normalizeAlerts', () => {
+  it('treats an alert with no type field as absolute_price (backward compatibility)', () => {
+    const raw = [
+      {
+        id: 'legacy-1',
+        userId: 'user-1',
+        asset: 'eip155:1/slip44:60',
+        threshold: 2000,
+        recurring: false,
+        active: true,
+        createdAt: '2025-01-01T00:00:00.000Z',
+      },
+    ];
+    const [alert] = normalizeAlerts(raw);
+    expect(alert.type).toBe('absolute_price');
+  });
+
+  it('preserves an explicit absolute_price type', () => {
+    const [alert] = normalizeAlerts([makeAlert()]);
+    expect(alert.type).toBe('absolute_price');
+  });
+
+  it('preserves percent_change alerts including period/direction', () => {
+    const percentAlert = makePercentAlert({ period: '24h', direction: 'down' });
+    const [alert] = normalizeAlerts([percentAlert]);
+    expect(alert.type).toBe('percent_change');
+    expect((alert as PercentChangeAlert).period).toBe('24h');
+    expect((alert as PercentChangeAlert).direction).toBe('down');
+  });
+
+  it('normalizes a mixed list in order', () => {
+    const legacy = { ...makeAlert({ id: 'legacy-1' }) } as Record<
+      string,
+      unknown
+    >;
+    delete legacy.type;
+    const percentAlert = makePercentAlert({ id: 'percent-1' });
+    const result = normalizeAlerts([legacy, percentAlert]);
+    expect(result.map((a) => [a.id, a.type])).toEqual([
+      ['legacy-1', 'absolute_price'],
+      ['percent-1', 'percent_change'],
+    ]);
+  });
+});
+
+describe('updateAlertByType', () => {
+  it('routes an absolute_price alert to the base PATCH endpoint', async () => {
+    const alert: Alert = makeAlert({ id: 'abs-1' });
+    await updateAlertByType(alert, { active: false });
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${ALERTS_URL}/abs-1`);
+    expect(init.method).toBe('PATCH');
+  });
+
+  it('routes a percent_change alert to the percent-change PATCH endpoint', async () => {
+    const alert: Alert = makePercentAlert({ id: 'pct-1' });
+    await updateAlertByType(alert, { active: false });
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${PERCENT_ALERTS_URL}/pct-1`);
+    expect(init.method).toBe('PATCH');
+  });
+});
+
+describe('deleteAlertByType', () => {
+  it('routes an absolute_price alert to the base DELETE endpoint', async () => {
+    const alert: Alert = makeAlert({ id: 'abs-1' });
+    await deleteAlertByType(alert);
+    const [url] = mockFetch.mock.calls[0] as [string];
+    expect(url).toBe(`${ALERTS_URL}/abs-1`);
+  });
+
+  it('routes a percent_change alert to the percent-change DELETE endpoint', async () => {
+    const alert: Alert = makePercentAlert({ id: 'pct-1' });
+    await deleteAlertByType(alert);
+    const [url] = mockFetch.mock.calls[0] as [string];
+    expect(url).toBe(`${PERCENT_ALERTS_URL}/pct-1`);
+  });
+});
+
+describe('useSubmitPercentAlert — create mode (no editingAlert)', () => {
+  it('POSTs to createPercentAlert with the full params', async () => {
+    const params = {
+      asset: 'eip155:1/erc20:0xABC',
+      threshold: 12.5,
+      period: '24h' as const,
+      direction: 'down' as const,
+      recurring: false,
+    };
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPercentAlert(), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await result.current.submit(params);
+    });
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(PERCENT_ALERTS_URL);
+    expect(init.method).toBe('POST');
+    expect(init.body).toBe(JSON.stringify(params));
+  });
+
+  it('throws with the HTTP status and body text on a non-ok response', async () => {
+    mockFetch.mockResolvedValueOnce(makeErrorResponse(409, 'Conflict'));
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPercentAlert(), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await expect(
+        result.current.submit({
+          asset: 'eip155:1/slip44:60',
+          threshold: 10,
+          period: '1h',
+          direction: 'up',
+          recurring: true,
+        }),
+      ).rejects.toThrow('HTTP 409: Conflict');
+    });
+  });
+});
+
+describe('useSubmitPercentAlert — edit mode (with editingAlert)', () => {
+  it('PATCHes the correct alert id with only threshold and recurring', async () => {
+    const alert = makePercentAlert({ id: 'percent-42' });
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPercentAlert(alert), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await result.current.submit({
+        asset: 'eip155:1/slip44:60',
+        threshold: 25,
+        period: '1h',
+        direction: 'up',
+        recurring: false,
+      });
+    });
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${PERCENT_ALERTS_URL}/percent-42`);
+    expect(init.method).toBe('PATCH');
+    expect(JSON.parse(init.body as string)).toEqual({
+      threshold: 25,
+      recurring: false,
+    });
+  });
+
+  it('throws with HTTP status on a non-ok PATCH response', async () => {
+    mockFetch.mockResolvedValueOnce(makeErrorResponse(404, 'Not Found'));
+    const alert = makePercentAlert({ id: 'percent-42' });
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPercentAlert(alert), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await expect(
+        result.current.submit({
+          asset: 'eip155:1/slip44:60',
+          threshold: 25,
+          period: '1h',
+          direction: 'up',
           recurring: true,
         }),
       ).rejects.toThrow('HTTP 404: Not Found');

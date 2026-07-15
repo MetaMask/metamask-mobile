@@ -2,12 +2,18 @@ import { useMutation } from '@tanstack/react-query';
 import AppConstants from '../../../../core/AppConstants';
 import Engine from '../../../../core/Engine';
 import type {
+  Alert,
+  AbsolutePriceAlert,
+  PercentChangeAlert,
   PriceAlert,
   SaveAlertParams,
+  SavePercentAlertParams,
   UpdateAlertParams,
+  UpdatePercentAlertParams,
 } from './constants';
 
 const ALERTS_URL = `${AppConstants.PRICE_ALERTS_API.URL}/v1/alerts`;
+const PERCENT_ALERTS_URL = `${ALERTS_URL}/percent-change`;
 
 export const priceAlertsQueryKey = (assetId: string) =>
   ['priceAlerts', assetId] as const;
@@ -30,6 +36,20 @@ async function authenticatedFetch(
 
 export const fetchAlerts = (assetId: string): Promise<Response> =>
   authenticatedFetch(`${ALERTS_URL}?asset=${encodeURIComponent(assetId)}`);
+
+/**
+ * Normalizes a single alert parsed from the list response. Older API
+ * deployments may omit `type` entirely on absolute-price alerts — treat a
+ * missing `type` as `'absolute_price'` (see plan §2.1 migration note).
+ */
+const normalizeAlert = (raw: Record<string, unknown>): Alert =>
+  raw.type === 'percent_change'
+    ? (raw as unknown as PercentChangeAlert)
+    : ({ ...raw, type: 'absolute_price' } as unknown as AbsolutePriceAlert);
+
+/** Normalizes a raw list-response body into the `Alert` union. */
+export const normalizeAlerts = (raw: unknown[]): Alert[] =>
+  raw.map((item) => normalizeAlert(item as Record<string, unknown>));
 
 export const fetchSupportedChains = (): Promise<Response> =>
   fetch(`${ALERTS_URL}/supported-chains`, {
@@ -57,12 +77,74 @@ export const updateAlert = (
     body: JSON.stringify(params),
   });
 
+export const createPercentAlert = (
+  params: SavePercentAlertParams,
+): Promise<Response> =>
+  authenticatedFetch(PERCENT_ALERTS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+
+export const updatePercentAlert = (
+  id: string,
+  params: UpdatePercentAlertParams,
+): Promise<Response> =>
+  authenticatedFetch(`${PERCENT_ALERTS_URL}/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+
+export const deletePercentAlert = (id: string): Promise<Response> =>
+  authenticatedFetch(`${PERCENT_ALERTS_URL}/${id}`, { method: 'DELETE' });
+
+/** Routes a Manage-screen update (toggle `active`, or a threshold/recurring edit) to the type-correct endpoint. */
+export const updateAlertByType = (
+  alert: Alert,
+  params: UpdateAlertParams | UpdatePercentAlertParams,
+): Promise<Response> =>
+  alert.type === 'percent_change'
+    ? updatePercentAlert(alert.id, params)
+    : updateAlert(alert.id, params);
+
+/** Routes a Manage-screen delete to the type-correct endpoint. */
+export const deleteAlertByType = (alert: Alert): Promise<Response> =>
+  alert.type === 'percent_change'
+    ? deletePercentAlert(alert.id)
+    : deleteAlert(alert.id);
+
 export const useSubmitPriceAlert = (editingAlert?: PriceAlert) => {
   const { mutateAsync, isPending } = useMutation<void, Error, SaveAlertParams>({
     mutationFn: async ({ asset, threshold, recurring }) => {
       const response = editingAlert
         ? await updateAlert(editingAlert.id, { threshold, recurring })
         : await createAlert({ asset, threshold, recurring });
+      if (!response.ok) {
+        const body = await response.text().catch(() => '(no body)');
+        throw new Error(`HTTP ${response.status}: ${body}`);
+      }
+    },
+  });
+  return { submit: mutateAsync, isSubmitting: isPending };
+};
+
+export const useSubmitPercentAlert = (editingAlert?: PercentChangeAlert) => {
+  const { mutateAsync, isPending } = useMutation<
+    void,
+    Error,
+    SavePercentAlertParams
+  >({
+    mutationFn: async ({ asset, threshold, period, direction, recurring }) => {
+      const response = editingAlert
+        ? await updatePercentAlert(editingAlert.id, { threshold, recurring })
+        : await createPercentAlert({
+            asset,
+            threshold,
+            period,
+            direction,
+            recurring,
+          });
       if (!response.ok) {
         const body = await response.text().catch(() => '(no body)');
         throw new Error(`HTTP ${response.status}: ${body}`);
