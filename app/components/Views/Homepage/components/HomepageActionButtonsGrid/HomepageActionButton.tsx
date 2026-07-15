@@ -51,7 +51,7 @@ const HomepageActionButton = ({
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="h-14 w-14 rounded-full bg-muted"
+        twClassName="h-14 w-14 rounded-full border border-muted bg-muted"
       >
         <Icon
           color={IconColor.IconAlternative}
