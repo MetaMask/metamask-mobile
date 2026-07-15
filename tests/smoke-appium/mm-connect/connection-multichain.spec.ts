@@ -10,7 +10,6 @@ import {
   DappServer,
   DappVariants,
   TestDapps,
-  sleep,
 } from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
@@ -83,7 +82,6 @@ appiumTest.describe(SmokeMMConnect('Multichain browser connect'), () => {
           });
 
           await switchToMobileBrowser();
-          await sleep(500);
 
           await ChromeCdpHelpers.waitForTestId(
             DAPP_URL,
