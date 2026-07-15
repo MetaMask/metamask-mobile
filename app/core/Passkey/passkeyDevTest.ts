@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import {
   Passkey,
   type PasskeyCreateRequest,
@@ -14,7 +15,18 @@ import { toBase64UrlSafe } from '../OAuthService/OAuthLoginHandlers/utils';
 const PASSKEY_DEV_CREDENTIAL_ID_KEY = 'passkey_dev_test_credential_id';
 const PASSKEY_DEV_USER_ID_KEY = 'passkey_dev_test_user_id';
 
-export const PASSKEY_RP_ID = AppConstants.MM_IO_UNIVERSAL_LINK_HOST;
+// The relying party (rpId) must publish a Digital Asset Links / AASA file that
+// associates this build with the domain. iOS validates `link.metamask.io` via
+// `webcredentials` (Team+Bundle match), but Android's Credential Manager also
+// requires a `delegate_permission/common.get_login_creds` entry, which the
+// production domain does not publish. For dev testing we therefore allow the
+// rpId to be overridden per-platform via env (e.g. a GitHub Pages domain whose
+// assetlinks.json we control).
+export const PASSKEY_RP_ID =
+  (Platform.OS === 'android'
+    ? process.env.PASSKEY_RP_ID_ANDROID
+    : process.env.PASSKEY_RP_ID_IOS
+  )?.trim() || AppConstants.MM_IO_UNIVERSAL_LINK_HOST;
 export const PASSKEY_RP_NAME = 'MetaMask';
 
 function randomBase64Url(byteLength: number): string {

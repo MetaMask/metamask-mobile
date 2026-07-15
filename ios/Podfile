@@ -193,4 +193,19 @@ post_install do |installer|
       end
     end
   end
+
+  # Disable Xcode 16+ "Explicitly Built Modules". The Clang/Swift dependency
+  # scanner expects pod .modulemap files that CocoaPods generates lazily,
+  # causing "module map file ... not found" failures in the Xcode GUI build.
+  projects = installer.aggregate_targets
+    .map { |t| t.user_project }
+    .uniq { |p| p.path }
+    .push(installer.pods_project)
+  projects.each do |project|
+    project.build_configurations.each do |config|
+      config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
+      config.build_settings['CLANG_ENABLE_EXPLICIT_MODULES'] = 'NO'
+    end
+    project.save
+  end
 end
