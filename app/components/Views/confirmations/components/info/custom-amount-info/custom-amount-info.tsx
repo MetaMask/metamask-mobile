@@ -190,6 +190,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(
       !isAddMusdIntent && !isDepositPrefillEnabled,
     );
+    const [isPreparingQuote, setIsPreparingQuote] = useState(false);
+    const isPreparingQuoteRef = useRef(false);
     const wasKeyboardEverVisible = useRef(isKeyboardVisible);
     if (isKeyboardVisible) {
       wasKeyboardEverVisible.current = true;
@@ -219,11 +221,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const { toastRef } = useContext(ToastContext);
 
+    const isTransactionResultReady = useIsResultReady({ isKeyboardVisible });
     const isResultReady =
-      useIsResultReady({ isKeyboardVisible }) ||
+      isPreparingQuote ||
+      isTransactionResultReady ||
       (isAddMusdIntent && !isKeyboardVisible);
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
+    const showLoadingReview = isPreparingQuote || isQuotesLoading;
     const hasSourceAmount = useTransactionPayHasSourceAmount();
     const { alerts } = useAlerts();
     const accountNoFundsAlert = useAccountNoFundsAlert();
@@ -232,7 +237,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       (a) => a.key === AlertKeys.NoPayTokenQuotes,
     );
     const showPaymentDetails =
-      isQuotesLoading ||
+      showLoadingReview ||
       Boolean(quotes?.length) ||
       (!isAddMusdIntent && !hasSourceAmount && !hasNoQuotesAlert);
 
@@ -249,6 +254,16 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     });
 
     const handleDone = useCallback(async () => {
+      if (isPreparingQuoteRef.current) {
+        return;
+      }
+
+      if (isMoneyAccountDeposit) {
+        isPreparingQuoteRef.current = true;
+        setIsPreparingQuote(true);
+        setIsKeyboardVisible(false);
+      }
+
       try {
         await updateTokenAmount();
         if (selectedFiatPaymentMethodId && transactionId) {
@@ -269,6 +284,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             toastRef?.current?.closeToast(),
           ),
         );
+        if (isMoneyAccountDeposit) {
+          isPreparingQuoteRef.current = false;
+          setIsPreparingQuote(false);
+          setIsKeyboardVisible(true);
+        }
         // Keep keyboard visible so the user can retry; do not advance the flow.
         return;
       }
@@ -277,6 +297,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       onAmountSubmit?.();
     }, [
       amountFiat,
+      isMoneyAccountDeposit,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
       toastRef,
@@ -284,6 +305,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       transactionId,
       updateTokenAmount,
     ]);
+
+    useEffect(() => {
+      // Keep the local loading review mounted until controller loading takes over.
+      if (isPreparingQuote && isQuotesLoading) {
+        isPreparingQuoteRef.current = false;
+        setIsPreparingQuote(false);
+      }
+    }, [isPreparingQuote, isQuotesLoading]);
 
     const wasPrefillPending = useRef(isPrefillPending);
     useEffect(() => {
@@ -330,8 +359,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               (isPrefillPending || isDepositPrefillLoading)
             }
             onPress={handleAmountPress}
-            disabled={!hasPaymentOption}
-            showCursor={isKeyboardVisible}
+            disabled={!hasPaymentOption || isPreparingQuote}
+            showCursor={isKeyboardVisible && !isPreparingQuote}
           />
           {!hidePayTokenAmount &&
             disablePay !== true &&
@@ -365,7 +394,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             </>
           )}
           {isResultReady && (
-            <Box>
+            <Box
+              pointerEvents={isPreparingQuote ? 'none' : 'auto'}
+              testID={CustomAmountInfoTestIds.REVIEW_ROWS}
+            >
               {supportAccountSelection &&
                 !selectedFiatPaymentMethodId &&
                 !shouldHideAccountSelector && <PayAccountSelector />}
@@ -375,7 +407,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 <PayWithRow isResultReady />
               )}
               {!hasAccountNoFunds &&
-                (showPaymentDetails && !isAwaitingPrefillResult ? (
+                (isPreparingQuote ? (
+                  <PaymentDetailsSkeleton />
+                ) : showPaymentDetails && !isAwaitingPrefillResult ? (
                   <>
                     <BridgeFeeRow />
                     <BridgeTimeRow />
@@ -387,11 +421,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                   </>
                 ) : (
                   (isAddMusdIntent || isAwaitingPrefillResult) && (
-                    <>
-                      <InfoRowSkeleton />
-                      <InfoRowSkeleton />
-                      <InfoRowSkeleton />
-                    </>
+                    <PaymentDetailsSkeleton />
                   )
                 ))}
               <PercentageRow />
@@ -406,28 +436,30 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {footerText}
             </Text>
           )}
-          {isKeyboardVisible && (hasPaymentOption || hasAccountNoFunds) && (
-            <DepositKeyboard
-              hidePercentageButtons={
-                Boolean(selectedFiatPaymentMethodId) ||
-                shouldHideAccountSelector
-              }
-              alertMessage={alertTitle}
-              value={amountFiat}
-              onChange={updatePendingAmount}
-              onDonePress={handleDone}
-              onPercentagePress={updatePendingAmountPercentage}
-              hasInput={hasInput}
-              hasMax={
-                (hasMax || isMoneyDepositNoFee) &&
-                (isWithdraw || !isNativePayToken)
-              }
-            />
-          )}
+          {isKeyboardVisible &&
+            !isPreparingQuote &&
+            (hasPaymentOption || hasAccountNoFunds) && (
+              <DepositKeyboard
+                hidePercentageButtons={
+                  Boolean(selectedFiatPaymentMethodId) ||
+                  shouldHideAccountSelector
+                }
+                alertMessage={alertTitle}
+                value={amountFiat}
+                onChange={updatePendingAmount}
+                onDonePress={handleDone}
+                onPercentagePress={updatePendingAmountPercentage}
+                hasInput={hasInput}
+                hasMax={
+                  (hasMax || isMoneyDepositNoFee) &&
+                  (isWithdraw || !isNativePayToken)
+                }
+              />
+            )}
           {(!hasPaymentOption || hasAccountNoFunds) &&
             !hideBuyForNoFunds &&
             !isDepositPrefillEnabled && <BuySection />}
-          {!isKeyboardVisible && (
+          {(!isKeyboardVisible || isPreparingQuote) && (
             <ConfirmButton
               alertTitle={alertTitle}
               disableConfirm={
@@ -436,6 +468,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 isPrefillPending ||
                 isAwaitingPrefillResult
               }
+              isPreparingQuote={isPreparingQuote}
               onContinue={trackContinue}
             />
           )}
@@ -541,13 +574,25 @@ function BuySection() {
   );
 }
 
+function PaymentDetailsSkeleton() {
+  return (
+    <>
+      <InfoRowSkeleton testId="bridge-fee-row-skeleton" />
+      <InfoRowSkeleton testId="bridge-time-row-skeleton" />
+      <InfoRowSkeleton testId="total-row-skeleton" />
+    </>
+  );
+}
+
 function ConfirmButton({
   alertTitle,
   disableConfirm,
+  isPreparingQuote,
   onContinue,
 }: Readonly<{
   alertTitle: string | undefined;
   disableConfirm?: boolean;
+  isPreparingQuote?: boolean;
   onContinue?: () => void;
 }>) {
   const { styles } = useStyles(styleSheet, {});
@@ -560,6 +605,7 @@ function ConfirmButton({
     hasBlockingAlerts ||
     isLoading ||
     Boolean(disableConfirm) ||
+    isPreparingQuote ||
     isHeadlessBuyInProgress;
   const buttonLabel = useButtonLabel();
 
@@ -582,7 +628,7 @@ function ConfirmButton({
       variant={ButtonVariant.Primary}
       isFullWidth
       isDisabled={disabled}
-      isLoading={isHeadlessBuyInProgress}
+      isLoading={isPreparingQuote || isHeadlessBuyInProgress}
       loadingText={strings('confirm.preparing_order')}
       onPress={handleConfirm}
       testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
