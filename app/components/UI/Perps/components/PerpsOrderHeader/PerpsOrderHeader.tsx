@@ -76,9 +76,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
     if (focusedPriceUpdate?.symbol !== asset) {
       return null;
     }
-    const parsed = Number.parseFloat(
-      focusedPriceUpdate.percentChange24h ?? '',
-    );
+    const parsed = Number.parseFloat(focusedPriceUpdate.percentChange24h ?? '');
     return Number.isFinite(parsed) ? parsed : null;
   }, [focusedPriceUpdate, asset]);
 

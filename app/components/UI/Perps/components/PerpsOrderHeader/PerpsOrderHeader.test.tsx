@@ -358,7 +358,11 @@ describe('PerpsOrderHeader', () => {
       // ETH price or 24 h change — it must fall back to the price prop and
       // show the "--%"  percent-change placeholder.
       mockUsePerpsLiveFocusedPrice.mockReturnValue(
-        buildPriceUpdate({ symbol: 'ETH', price: '3123.45', percentChange24h: '5.0' }),
+        buildPriceUpdate({
+          symbol: 'ETH',
+          price: '3123.45',
+          percentChange24h: '5.0',
+        }),
       );
 
       const { getByText, queryByText } = renderWithProvider(
