@@ -45,30 +45,6 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
-// Mock MMDS BottomSheetDialog so children render synchronously in tests.
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const MockReact = jest.requireActual('react');
-
-  return {
-    ...actual,
-    BottomSheetDialog: MockReact.forwardRef(
-      (
-        {
-          children,
-          onClose,
-        }: { children: React.ReactNode; onClose?: () => void },
-        dialogRef: React.Ref<{ onCloseDialog: () => void }>,
-      ) => {
-        MockReact.useImperativeHandle(dialogRef, () => ({
-          onCloseDialog: () => onClose?.(),
-        }));
-        return children;
-      },
-    ),
-  };
-});
-
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
 
@@ -872,10 +848,16 @@ describe('BuildQuote View', () => {
 
       fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
       expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
+      ).toBeOnTheScreen();
+      expect(
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
       ).toBeOnTheScreen();
 
       fireEvent.press(getByRoleButton('Done'));
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET),
+      ).not.toBeOnTheScreen();
       expect(
         screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
       ).not.toBeOnTheScreen();

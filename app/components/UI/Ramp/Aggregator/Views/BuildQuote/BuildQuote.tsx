@@ -1154,6 +1154,7 @@ const BuildQuote = () => {
 
       {isKeypadOpen ? (
         <BottomSheetDialog
+          testID={BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET}
           isInteractable={false}
           onClose={handleKeypadClose}
           onStartShouldSetResponder={() =>
@@ -1164,7 +1165,7 @@ const BuildQuote = () => {
             true
           }
         >
-          <Box twClassName="content-end gap-4 pt-4">
+          <Box twClassName="content-end px-4 gap-4 pt-4">
             <QuickAmounts
               isBuy={isBuy}
               onAmountPress={handleQuickAmountPress}
@@ -1182,16 +1183,14 @@ const BuildQuote = () => {
                 isBuy ? currentFiatCurrency?.decimals : selectedAsset?.decimals
               }
             />
-            <Box twClassName="px-4">
-              <Button
-                size={ButtonSize.Lg}
-                onPress={handleKeypadDone}
-                label={strings('fiat_on_ramp_aggregator.done')}
-                variant={ButtonVariants.Primary}
-                width={ButtonWidthTypes.Full}
-                accessibilityRole="button"
-              />
-            </Box>
+            <Button
+              size={ButtonSize.Lg}
+              onPress={handleKeypadDone}
+              label={strings('fiat_on_ramp_aggregator.done')}
+              variant={ButtonVariants.Primary}
+              width={ButtonWidthTypes.Full}
+              accessibilityRole="button"
+            />
           </Box>
         </BottomSheetDialog>
       ) : null}
