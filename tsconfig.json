@@ -29,6 +29,9 @@
       "@metamask/perps-controller/utils/*": [
         "node_modules/@metamask/perps-controller/dist/utils/*.d.cts"
       ],
+      "@metamask/perps-controller/services/*": [
+        "node_modules/@metamask/perps-controller/dist/services/*.d.cts"
+      ],
       "@metamask/json-rpc-engine/v2": [
         "node_modules/@metamask/json-rpc-engine/dist/v2/index.d.cts"
       ],

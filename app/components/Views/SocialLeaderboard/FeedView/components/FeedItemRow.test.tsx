@@ -6,6 +6,7 @@ import type { FeedPerpItem, FeedSpotItem } from '../types';
 import {
   getFeedItemTestId,
   getFeedTradeButtonTestId,
+  getFeedTradeCardTestId,
   getFeedTraderTestId,
 } from '../FeedView.testIds';
 
@@ -142,6 +143,21 @@ describe('FeedItemRow', () => {
     );
 
     fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('spot-1')));
+
+    expect(onTradePress).toHaveBeenCalledWith(spotItem);
+  });
+
+  it('calls onTradePress with the item when the detail card is pressed', () => {
+    const onTradePress = jest.fn();
+    renderWithProvider(
+      <FeedItemRow
+        item={spotItem}
+        onTradePress={onTradePress}
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(getFeedTradeCardTestId('spot-1')));
 
     expect(onTradePress).toHaveBeenCalledWith(spotItem);
   });
