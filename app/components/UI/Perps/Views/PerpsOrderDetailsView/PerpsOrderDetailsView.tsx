@@ -118,12 +118,6 @@ const PerpsOrderDetailsView: React.FC = () => {
 
     const orderTypeLabel = formatOrderLabel(order);
 
-    // Calculate fill percentage
-    const fillPercentage =
-      parseFloat(order.originalSize) > 0
-        ? (parseFloat(order.filledSize) / parseFloat(order.originalSize)) * 100
-        : 0;
-
     const { validOrderPrice, validTriggerPrice, effectivePrice } = priceMetrics;
     const originalSizeUSD =
       effectivePrice !== null
@@ -173,7 +167,6 @@ const PerpsOrderDetailsView: React.FC = () => {
 
     return {
       orderTypeLabel,
-      fillPercentage,
       originalSizeInUSDText:
         originalSizeUSD !== null
           ? formatPerpsFiat(originalSizeUSD)
@@ -383,36 +376,6 @@ const PerpsOrderDetailsView: React.FC = () => {
                 </View>
               </View>
             ))}
-
-            {/* Status */}
-            <View style={styles.detailRow}>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.detailLabel}
-              >
-                {strings('perps.order_details.status')}
-              </Text>
-              <View style={styles.detailValue}>
-                <View style={styles.statusContainer}>
-                  {orderDetails.fillPercentage > 0 && (
-                    <View style={styles.statusFilled}>
-                      <Text
-                        variant={TextVariant.BodySM}
-                        color={TextColor.Success}
-                      >
-                        {Math.round(orderDetails.fillPercentage)}% filled
-                      </Text>
-                    </View>
-                  )}
-                  {orderDetails.fillPercentage === 0 && (
-                    <Text variant={TextVariant.BodyMD}>
-                      {strings('perps.order_details.open')}
-                    </Text>
-                  )}
-                </View>
-              </View>
-            </View>
           </View>
         </View>
       </ScrollView>

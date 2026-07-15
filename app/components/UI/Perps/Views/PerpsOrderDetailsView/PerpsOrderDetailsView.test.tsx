@@ -592,17 +592,19 @@ describe('PerpsOrderDetailsView', () => {
     });
   });
 
-  it('shows fill percentage for partially filled orders', () => {
+  it('does not show the fill percentage status for partially filled orders', () => {
     mockRouteParams = { order: mockPartiallyFilledOrder };
     render(<PerpsOrderDetailsView />);
 
-    expect(screen.getByText('50% filled')).toBeOnTheScreen();
+    expect(screen.queryByText('50% filled')).toBeNull();
+    expect(screen.queryByText('perps.order_details.status')).toBeNull();
   });
 
-  it('shows open status for unfilled orders', () => {
+  it('does not show the open status for unfilled orders', () => {
     render(<PerpsOrderDetailsView />);
 
-    expect(screen.getByText('perps.order_details.open')).toBeOnTheScreen();
+    expect(screen.queryByText('perps.order_details.open')).toBeNull();
+    expect(screen.queryByText('perps.order_details.status')).toBeNull();
   });
 
   it('renders short direction for sell orders', () => {
