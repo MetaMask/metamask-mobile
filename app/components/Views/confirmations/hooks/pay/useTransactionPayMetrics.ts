@@ -126,13 +126,13 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_chain_highest_balance_caip =
       highestBalanceChainId ?? null;
 
-    properties.mm_pay_section_source_presented = source.presented;
-    properties.mm_pay_section_source_selected = source.selected;
-    properties.mm_pay_section_source_switch_count = source.switchCount;
+    properties.mm_pay_account_type_source_presented = source.presented;
+    properties.mm_pay_account_type_source_selected = source.selected;
+    properties.mm_pay_source_mm_account_switch_count = source.switchCount;
 
-    properties.mm_pay_section_recipient_presented = recipient.presented;
-    properties.mm_pay_section_recipient_selected = recipient.selected;
-    properties.mm_pay_section_recipient_switch_count = recipient.switchCount;
+    properties.mm_pay_account_type_recipient_presented = recipient.presented;
+    properties.mm_pay_account_type_recipient_selected = recipient.selected;
+    properties.mm_pay_recipient_mm_account_switch_count = recipient.switchCount;
 
     properties.mm_pay_entry_point = getEntryPoint(transactionMeta) ?? null;
   }

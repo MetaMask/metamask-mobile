@@ -1,4 +1,4 @@
-import { ContractConfig, RoundConfig, TickSize } from './types';
+import { ContractConfig, RoundConfig } from './types';
 
 export const POLYMARKET_PROVIDER_ID = 'polymarket';
 
@@ -46,7 +46,7 @@ export const ClobAuthDomain = {
 export const MSG_TO_SIGN =
   'This message attests that I control the given wallet';
 
-export const ROUNDING_CONFIG: Record<TickSize, RoundConfig> = {
+export const ROUNDING_CONFIG: Record<string, RoundConfig> = {
   '0.1': {
     price: 1,
     size: 2,
@@ -63,6 +63,11 @@ export const ROUNDING_CONFIG: Record<TickSize, RoundConfig> = {
     amount: 5,
   },
   '0.0001': {
+    price: 4,
+    size: 2,
+    amount: 6,
+  },
+  '0.0025': {
     price: 4,
     size: 2,
     amount: 6,
@@ -98,9 +103,8 @@ export const POLYGON_PUSD_CAIP_ASSET_ID =
   `${POLYGON_MAINNET_CAIP_CHAIN_ID}/erc20:${MATIC_CONTRACTS_V2.collateral}` as const;
 
 export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
-  first_half_moneyline: 'first_half',
-  first_half_spreads: 'first_half',
-  first_half_totals: 'first_half',
+  first_half_totals: 'halves',
+  second_half_totals: 'halves',
   team_totals: 'team_totals',
   soccer_team_totals: 'team_totals',
   anytime_touchdowns: 'touchdowns',
@@ -110,9 +114,13 @@ export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
   points: 'points',
   assists: 'assists',
   rebounds: 'rebounds',
+  soccer_player_goals: 'goals',
   soccer_anytime_goalscorer: 'goalscorers',
   soccer_exact_score: 'exact_score',
-  soccer_halftime_result: 'halftime',
+  both_teams_to_score_first_half: 'halves',
+  both_teams_to_score_second_half: 'halves',
+  soccer_halftime_result: 'halves',
+  soccer_second_half_result: 'halves',
   total_corners: 'corners',
   tennis_first_set_winner: 'first_set',
   tennis_first_set_totals: 'first_set',
@@ -123,7 +131,14 @@ export const SUPPORTED_SPORTS_MARKET_TYPES: ReadonlySet<string> = new Set([
   'spreads',
   'totals',
   'both_teams_to_score',
+  'both_teams_to_score_first_half',
+  'both_teams_to_score_second_half',
+  'first_half_totals',
+  'second_half_totals',
   'soccer_first_to_score',
+  'soccer_halftime_result',
+  'soccer_second_half_result',
+  'soccer_player_goals',
   'soccer_team_to_advance',
   'soccer_extra_time',
   'soccer_penalty_shootout',
@@ -135,19 +150,22 @@ export const SUPPORTED_SPORTS_MARKET_TYPES: ReadonlySet<string> = new Set([
 
 export const GROUP_ORDER: string[] = [
   'game_lines',
+  'team_totals',
+  'exact_score',
+  'halves',
+  'corners',
+  'goals',
+  'goalscorers',
   'first_half',
   'first_set',
-  'team_totals',
   'touchdowns',
   'rushing',
   'receiving',
   'points',
   'assists',
+  'shots',
   'rebounds',
-  'goalscorers',
-  'exact_score',
   'halftime',
-  'corners',
 ];
 
 export const DEFAULT_GROUP_KEY = 'game_lines';
@@ -155,9 +173,16 @@ export const DEFAULT_GROUP_KEY = 'game_lines';
 export const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
   soccer_team_to_advance: -1,
   moneyline: 0,
+  soccer_halftime_result: 0,
+  soccer_second_half_result: 0,
   tennis_first_set_winner: 0,
   spreads: 1,
   totals: 2,
+  first_half_totals: 2,
+  second_half_totals: 2,
+  both_teams_to_score: 3,
+  both_teams_to_score_first_half: 3,
+  both_teams_to_score_second_half: 3,
   soccer_first_to_score: 4,
   tennis_set_totals: 2,
   tennis_first_set_totals: 2,

@@ -34,6 +34,7 @@ export function TemplateLoader({
     case 'bridge':
       return <BridgeDetails item={item} />;
     case 'swap':
+    case 'swapIncomplete':
     case 'convert':
     case 'lendingDeposit':
     case 'lendingWithdrawal':
@@ -53,6 +54,7 @@ export function TemplateLoader({
     case 'claimMusdBonus':
       return <ClaimMusdBonusDetails item={item} />;
     case 'claim':
+    case 'stake':
     case 'unstake':
       return <DepositDetails item={item} />;
     case 'smartAccountUpgrade':

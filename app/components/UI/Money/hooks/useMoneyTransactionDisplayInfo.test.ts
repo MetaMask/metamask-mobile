@@ -781,7 +781,7 @@ describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
     expect(result.current.primaryAmount).toContain('mUSD');
   });
 
-  it('converts mUSD to EUR via the peg (ignoring market rate)', () => {
+  it('always shows mUSD in USD via the peg, ignoring preferred currency', () => {
     const state = {
       engine: {
         backgroundState: {
@@ -817,8 +817,7 @@ describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
       { state },
     );
 
-    expect(result.current.fiatAmount).toMatch(/^\+/);
-    expect(result.current.fiatAmount).toMatch(/920/);
+    expect(result.current.fiatAmount).toBe('+$1,000.00');
     expect(result.current.primaryAmount).toMatch(/1,000\.00/);
     expect(result.current.primaryAmount).toContain('mUSD');
   });
@@ -945,14 +944,15 @@ describe('useMoneyTransactionDisplayInfo — per-kind subtitles', () => {
     expect(result.current.description).toBe('mUSD');
   });
 
-  it('sent → "mUSD → USDC" for a withdrawal whose dest token cannot be resolved', () => {
-    // No metamaskPay token → falls back to the known money withdraw token.
+  it('sent → "mUSD" for a withdrawal whose dest token cannot be resolved', () => {
+    // No metamaskPay token → withdrawals pay out the vault asset (mUSD), so
+    // an unresolvable destination is a plain mUSD send, never a token pair.
     const tx = makeTx(TransactionType.moneyAccountWithdraw, {});
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       { state: makeState() },
     );
-    expect(result.current.description).toBe('mUSD → USDC');
+    expect(result.current.description).toBe('mUSD');
   });
 
   it('deposited (fiat on-ramp) → provider name when the payment method is unresolved', () => {

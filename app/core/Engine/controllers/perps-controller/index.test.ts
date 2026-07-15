@@ -124,6 +124,10 @@ describe('perps controller init', () => {
         testnet: [],
         mainnet: [],
       },
+      recentlyViewedMarkets: {
+        testnet: [],
+        mainnet: [],
+      },
       tradeConfigurations: {
         testnet: {},
         mainnet: {},
@@ -194,6 +198,14 @@ function buildSeedPrefs(
         hyperliquid: { testnet: [], mainnet: [] },
         myx: { testnet: [], mainnet: [] },
       },
+    },
+    agenticCli: {
+      inAppNotificationsEnabled: false,
+      pushNotificationsEnabled: false,
+    },
+    priceAlerts: {
+      inAppNotificationsEnabled: false,
+      pushNotificationsEnabled: false,
     },
     socialAI: {
       inAppNotificationsEnabled: false,

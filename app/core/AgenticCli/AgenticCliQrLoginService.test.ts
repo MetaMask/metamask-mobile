@@ -236,7 +236,7 @@ describe('AgenticCliQrLoginService', () => {
     expect(setStage).toHaveBeenCalledWith('send-auth-token-to-cli');
   });
 
-  it('uses dev auth API and test dashboard for main_dev builds', async () => {
+  it('uses dev auth API and develop dashboard for main_dev builds', async () => {
     const { handleAgenticCliQrLogin } = loadAgenticCliQrLogin('main_dev');
     const conn = createMockConnection();
 
@@ -253,12 +253,12 @@ describe('AgenticCliQrLoginService', () => {
       expect.any(Object),
     );
     expect(AgenticCliDashboardWebviewService.open).toHaveBeenCalledWith({
-      dashboardUrl: 'https://test-dashboard.web3auth.io/agentic/login',
+      dashboardUrl: 'https://develop-developer.metamask.io/agentic/login',
       dashboardToken: 'dashboard-token',
     });
   });
 
-  it('uses UAT auth API and UAT dashboard for main_uat builds', async () => {
+  it('uses dev auth API and staging dashboard for main_uat builds', async () => {
     const { handleAgenticCliQrLogin } = loadAgenticCliQrLogin('main_uat');
     const conn = createMockConnection();
 
@@ -275,7 +275,30 @@ describe('AgenticCliQrLoginService', () => {
       expect.any(Object),
     );
     expect(AgenticCliDashboardWebviewService.open).toHaveBeenCalledWith({
-      dashboardUrl: 'https://dev-dashboard.web3auth.io/agentic/login',
+      dashboardUrl: 'https://staging-developer.metamask.io/agentic/login',
+      dashboardToken: 'dashboard-token',
+    });
+  });
+
+  it('uses prod auth API when MM_DEV_API_ENV is prod', async () => {
+    process.env.MM_DEV_API_ENV = 'prod';
+    const { handleAgenticCliQrLogin } = loadAgenticCliQrLogin('main_prod');
+    const conn = createMockConnection();
+
+    await handleAgenticCliQrLogin({
+      connReq: mockConnectionRequest({ name: 'agentic-cli' }),
+      conn,
+      setStage: jest.fn(),
+      cleanupConnection: jest.fn().mockResolvedValue(undefined),
+    });
+
+    expect(mockGetEnvUrls).toHaveBeenCalledWith('prd');
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://authentication.api.cx.metamask.io/api/v2/mm-qr-login/token',
+      expect.any(Object),
+    );
+    expect(AgenticCliDashboardWebviewService.open).toHaveBeenCalledWith({
+      dashboardUrl: 'https://developer.metamask.io/agentic/login',
       dashboardToken: 'dashboard-token',
     });
   });

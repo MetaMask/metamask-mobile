@@ -10,6 +10,7 @@ import {
   selectLastWithdrawTokenByType,
   selectLocalTransactions,
   selectNonReplacedTransactions,
+  selectReplacedLocalTransactions,
   selectRelatedChainIdsByTransactionId,
   selectRequiredTransactionIds,
   selectRequiredTransactionHashes,
@@ -58,6 +59,16 @@ describe('TransactionController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectTransactions(state)).toStrictEqual(transactions);
+    });
+
+    it('returns an empty array if TransactionController state is not initialized', () => {
+      const state = {
+        engine: {
+          backgroundState: {},
+        },
+      } as unknown as RootState;
+
+      expect(selectTransactions(state)).toStrictEqual([]);
     });
   });
 
@@ -115,6 +126,16 @@ describe('TransactionController Selectors', () => {
           },
         },
       } as unknown as RootState;
+      expect(selectSwapsTransactions(state)).toStrictEqual({});
+    });
+
+    it('returns an empty object if TransactionController state is not initialized', () => {
+      const state = {
+        engine: {
+          backgroundState: {},
+        },
+      } as unknown as RootState;
+
       expect(selectSwapsTransactions(state)).toStrictEqual({});
     });
   });
@@ -425,6 +446,101 @@ describe('TransactionController Selectors', () => {
     });
   });
 
+  describe('selectReplacedLocalTransactions', () => {
+    const evmAddress = '0x0000000000000000000000000000000000000001';
+
+    const buildState = (
+      transactions: unknown[],
+      groupEvmAccount = { address: evmAddress },
+    ) =>
+      ({
+        engine: {
+          backgroundState: {
+            TransactionController: { transactions },
+          },
+        },
+        groupEvmAccount,
+        pendingSmartTransactionsForGroup: [],
+      }) as unknown as RootState;
+
+    it('returns only replaced transactions (replacedBy + replacedById + hash) for the active account', () => {
+      const state = buildState([
+        {
+          id: 'replaced',
+          hash: '0xold',
+          chainId: '0x1',
+          replacedBy: '0xnew',
+          replacedById: 'replacement',
+          txParams: { from: evmAddress, nonce: '0x1' },
+        },
+        {
+          id: 'live',
+          hash: '0xnew',
+          chainId: '0x1',
+          txParams: { from: evmAddress, nonce: '0x1' },
+        },
+      ]);
+
+      expect(selectReplacedLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'replaced' }),
+      ]);
+    });
+
+    it('excludes replaced transactions from other accounts', () => {
+      const state = buildState([
+        {
+          id: 'other-account',
+          hash: '0xold',
+          chainId: '0x1',
+          replacedBy: '0xnew',
+          replacedById: 'replacement',
+          txParams: {
+            from: '0x00000000000000000000000000000000000000ff',
+            nonce: '0x1',
+          },
+        },
+      ]);
+
+      expect(selectReplacedLocalTransactions(state)).toStrictEqual([]);
+    });
+
+    it('excludes required (child) transactions even when replaced', () => {
+      const state = buildState([
+        {
+          id: 'child',
+          hash: '0xold',
+          chainId: '0x1',
+          replacedBy: '0xnew',
+          replacedById: 'replacement',
+          txParams: { from: evmAddress, nonce: '0x1' },
+        },
+        {
+          id: 'parent',
+          chainId: '0x1',
+          requiredTransactionIds: ['child'],
+          txParams: { from: evmAddress, nonce: '0x2' },
+        },
+      ]);
+
+      expect(selectReplacedLocalTransactions(state)).toStrictEqual([]);
+    });
+
+    it('excludes a replacement that has not yet acquired a hash', () => {
+      const state = buildState([
+        {
+          id: 'partially-replaced',
+          hash: '0xold',
+          chainId: '0x1',
+          replacedById: 'replacement',
+          // no replacedBy yet (replacement unconfirmed / hashless)
+          txParams: { from: evmAddress, nonce: '0x1' },
+        },
+      ]);
+
+      expect(selectReplacedLocalTransactions(state)).toStrictEqual([]);
+    });
+  });
+
   describe('selectTransactionMetadataById', () => {
     it('returns the transaction matching the given id', () => {
       const transactions = [
@@ -484,6 +600,18 @@ describe('TransactionController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectTransactionBatchMetadataById(state, 'batch-id')).toBe(batch);
+    });
+
+    it('returns undefined if TransactionController state is not initialized', () => {
+      const state = {
+        engine: {
+          backgroundState: {},
+        },
+      } as unknown as RootState;
+
+      expect(
+        selectTransactionBatchMetadataById(state, 'batch-id'),
+      ).toBeUndefined();
     });
   });
 

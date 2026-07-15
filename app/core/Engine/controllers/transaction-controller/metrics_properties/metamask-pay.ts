@@ -10,12 +10,9 @@ import {
   getMetaMaskPayFiatChainTarget,
   normalizeMetaMaskPayPaymentMethod,
 } from '../../../../../components/Views/confirmations/utils/transaction-pay-metrics';
-import {
-  TransactionPayBridgeQuote,
-  TransactionPayQuote,
-  TransactionPayStrategy,
-} from '@metamask/transaction-pay-controller';
+import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { RootState } from '../../../../../reducers';
+import { isNoOpQuote } from '../../../../../selectors/transactionPayController';
 import { selectSingleTokenByAddressAndChainId } from '../../../../../selectors/tokensController';
 import { Hex } from '@metamask/utils';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
@@ -126,18 +123,6 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     const quoteIndex = quoteTransactionIds.indexOf(transactionMeta.id);
     const quote = quotes[quoteIndex];
 
-    if (quote?.strategy === TransactionPayStrategy.Bridge) {
-      const bridgeQuote =
-        quote as TransactionPayQuote<TransactionPayBridgeQuote>;
-
-      const metrics = bridgeQuote.original.metrics;
-
-      properties.mm_pay_quotes_attempts = metrics?.attempts;
-      properties.mm_pay_quotes_buffer_size = metrics?.buffer;
-      properties.mm_pay_quotes_latency = metrics?.latency;
-      properties.mm_pay_bridge_provider = bridgeQuote.original.quote.bridgeId;
-    }
-
     if (quote && quote.request.targetTokenAddress !== NATIVE_TOKEN_ADDRESS) {
       properties.mm_pay_dust_usd = quote.dust.usd;
     }
@@ -231,7 +216,17 @@ function addPayTypeProperties(
     return;
   }
 
-  const { quotes, totals, tokens } = txPayData;
+  const { totals, tokens } = txPayData;
+
+  // No-op quotes mark routes the controller validated as needing no
+  // conversion. They are not executable, so strategy and step totals must
+  // only count real quotes.
+  const quotes = (txPayData.quotes ?? []).filter(
+    (quote) => !isNoOpQuote(quote),
+  );
+  properties.mm_pay_quote_skipped =
+    (txPayData.quotes ?? []).length > quotes.length;
+
   const primaryRequiredToken = tokens?.find(
     (t: { skipIfBalance: boolean }) => !t.skipIfBalance,
   );
@@ -253,17 +248,15 @@ function addPayTypeProperties(
       .toString(10);
   }
 
-  const strategy = quotes?.[0]?.strategy;
+  const strategy = quotes[0]?.strategy;
 
-  if (strategy === TransactionPayStrategy.Bridge) {
-    properties.mm_pay_strategy = 'mm_swaps_bridge';
-  } else if (strategy === TransactionPayStrategy.Relay) {
+  if (strategy === TransactionPayStrategy.Relay) {
     properties.mm_pay_strategy = 'relay';
   } else if (strategy === TransactionPayStrategy.Fiat) {
     properties.mm_pay_strategy = 'fiat';
   }
 
-  properties.mm_pay_transaction_step_total = (quotes?.length ?? 0) + 1;
+  properties.mm_pay_transaction_step_total = quotes.length + 1;
   properties.mm_pay_transaction_step = properties.mm_pay_transaction_step_total;
 
   const fiatPayment = txPayData.fiatPayment;

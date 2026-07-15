@@ -38,6 +38,20 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     clearTrendingApiMocks();
   });
 
+  it('prefills the search input when initialQuery route param is provided', async () => {
+    const { findByTestId, getByDisplayValue } =
+      renderExploreSearchScreenWithRoutes({
+        initialParams: { initialQuery: 'ethereum' },
+      });
+
+    expect(getByDisplayValue('ethereum')).toBeOnTheScreen();
+
+    const allPill = await findByTestId(
+      ExploreSearchScreenSelectorsIDs.PILL_ALL,
+    );
+    expect(allPill).toBeOnTheScreen();
+  });
+
   it('pill row is visible after typing a search query', async () => {
     const { findByTestId, getByTestId } = renderExploreSearchScreenWithRoutes();
 

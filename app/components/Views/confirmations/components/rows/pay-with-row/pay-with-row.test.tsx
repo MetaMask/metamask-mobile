@@ -24,10 +24,12 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccountFlagDefault';
+import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../../util/navigation/navUtils');
 jest.mock('../../../hooks/pay/useIsMoneyAccountFlagDefault');
+jest.mock('../../../hooks/pay/usePayTokenAccountBalance');
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -157,6 +159,10 @@ describe('PayWithRow', () => {
     jest
       .mocked(useTransactionPayAvailableTokens)
       .mockReturnValue({ availableTokens: [], hasTokens: true });
+    jest.mocked(usePayTokenAccountBalance).mockReturnValue({
+      balanceUsd: '0',
+      balanceRaw: '0',
+    });
   });
 
   it('renders selected pay token', async () => {
@@ -228,6 +234,21 @@ describe('PayWithRow', () => {
           mm_pay_token_list_opened: true,
         },
       });
+    });
+  });
+
+  describe('balance formatting', () => {
+    it('truncates balance to 2 decimal places with ROUND_DOWN', () => {
+      jest.mocked(usePayTokenAccountBalance).mockReturnValue({
+        balanceUsd: '1234.999',
+        balanceRaw: '0',
+      });
+
+      const { getByTestId } = render();
+      const balanceEl = getByTestId('pay-with-balance');
+
+      expect(balanceEl).toHaveTextContent('($1,234.99)');
+      expect(balanceEl).not.toHaveTextContent('1,235');
     });
   });
 

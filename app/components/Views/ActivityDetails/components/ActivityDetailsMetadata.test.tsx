@@ -32,14 +32,41 @@ describe('ActivityDetailsMetadata', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows From and To rows for a standard transfer', () => {
+  it('shows From and To rows when a template opts in via addressRows', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
-      <ActivityDetailsMetadata item={makeItem()} />,
+      <ActivityDetailsMetadata
+        item={makeItem()}
+        addressRows={{ from: '0xfrom', to: '0xto' }}
+      />,
     );
 
     expect(getByTestId(ActivityDetailsSelectorsIDs.FROM_ROW)).toBeOnTheScreen();
     expect(getByTestId(ActivityDetailsSelectorsIDs.TO_ROW)).toBeOnTheScreen();
     expect(queryByTestId(ActivityDetailsSelectorsIDs.ADDRESS_ROW)).toBeNull();
+    expect(queryByTestId(ActivityDetailsSelectorsIDs.ACCOUNT_ROW)).toBeNull();
+  });
+
+  it('defaults to a single Account row (no From/To) when addressRows is omitted, e.g. swaps', () => {
+    const item = makeItem({
+      type: 'swap',
+      data: {},
+      raw: {
+        type: 'apiEvmTransaction',
+        // A swap sends to a router but settles back into the same account; the
+        // Account row keys on `from`, not the router `to`.
+        data: { from: '0xacct', to: '0xrouter' },
+      },
+    } as unknown as ActivityListItem);
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <ActivityDetailsMetadata item={item} />,
+    );
+
+    expect(
+      getByTestId(ActivityDetailsSelectorsIDs.ACCOUNT_ROW),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(ActivityDetailsSelectorsIDs.FROM_ROW)).toBeNull();
+    expect(queryByTestId(ActivityDetailsSelectorsIDs.TO_ROW)).toBeNull();
   });
 
   it('shows a single Address row (no From/To) for a smart account upgrade', () => {

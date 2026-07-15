@@ -1,11 +1,13 @@
-import type { ActivityListItem } from './types';
+import type { ActivityListItem, TokenAmount } from './types';
 import {
   activityMatchesAssetId,
+  enrichTokenFromApi,
   formatActivityListDateHeader,
   getActivityFromTo,
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  isSpendingCapWithAmount,
   shouldShowPlusSign,
 } from './activity-list-helpers';
 
@@ -49,6 +51,49 @@ describe('activity list helpers', () => {
     expect(shouldShowPlusSign('increaseSpendingCap')).toBe(false);
     expect(shouldShowPlusSign('revokeSpendingCap')).toBe(false);
     expect(shouldShowPlusSign('receive')).toBe(true);
+  });
+
+  describe('isSpendingCapWithAmount', () => {
+    it('is true for a spending-cap item with an explicit amount', () => {
+      const item = makeItem({
+        type: 'approveSpendingCap',
+        data: { token: { amount: '100000', direction: 'out' } },
+      });
+      expect(isSpendingCapWithAmount(item)).toBe(true);
+    });
+
+    it('is true for an unlimited spending-cap approval', () => {
+      const item = makeItem({
+        type: 'increaseSpendingCap',
+        data: { token: { direction: 'out', isUnlimitedApproval: true } },
+      });
+      expect(isSpendingCapWithAmount(item)).toBe(true);
+    });
+
+    it('is false for a spending-cap item without a cap amount', () => {
+      const item = makeItem({
+        type: 'approveSpendingCap',
+        data: { token: { direction: 'out' } },
+      });
+      expect(isSpendingCapWithAmount(item)).toBe(false);
+    });
+
+    it('is false for a spending-cap item with no token', () => {
+      const item = makeItem({ type: 'revokeSpendingCap', data: {} });
+      expect(isSpendingCapWithAmount(item)).toBe(false);
+    });
+
+    it('is false for a non-spending-cap kind even with an amount', () => {
+      const item = makeItem({
+        type: 'send',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          token: { amount: '100000', direction: 'out' },
+        },
+      });
+      expect(isSpendingCapWithAmount(item)).toBe(false);
+    });
   });
 
   it('matches token, source token, and destination token asset ids case-insensitively', () => {
@@ -273,5 +318,84 @@ describe('activity list helpers', () => {
     expect(
       getGroupedActivityListItemKey({ type: 'item', item: secondItem }, 0),
     ).toBe('eip155:137-contractInteraction-123-0');
+  });
+});
+
+describe('enrichTokenFromApi', () => {
+  const USDT_ASSET_ID =
+    'eip155:42161/erc20:0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9';
+  const apiData = {
+    [USDT_ASSET_ID]: { symbol: 'USDT', decimals: 6 },
+  };
+
+  it('fills missing decimals and symbol from the tokens API', () => {
+    // Raw base-unit amount with no decimals — without enrichment a formatter
+    // would render "10000" instead of 0.01.
+    const token: TokenAmount = {
+      direction: 'out',
+      amount: '10000',
+      assetId: USDT_ASSET_ID,
+    };
+
+    expect(enrichTokenFromApi(token, apiData)).toStrictEqual({
+      direction: 'out',
+      amount: '10000',
+      assetId: USDT_ASSET_ID,
+      symbol: 'USDT',
+      decimals: 6,
+    });
+  });
+
+  it('matches the asset id case-insensitively', () => {
+    const token: TokenAmount = {
+      direction: 'out',
+      amount: '10000',
+      assetId: USDT_ASSET_ID.toUpperCase(),
+    };
+
+    expect(enrichTokenFromApi(token, apiData)?.decimals).toBe(6);
+  });
+
+  it('keeps existing symbol and decimals (adapter values win)', () => {
+    const token: TokenAmount = {
+      direction: 'out',
+      amount: '10000',
+      assetId: USDT_ASSET_ID,
+      symbol: 'aUSDT',
+      decimals: 8,
+    };
+
+    const result = enrichTokenFromApi(token, apiData);
+    expect(result?.symbol).toBe('aUSDT');
+    expect(result?.decimals).toBe(8);
+  });
+
+  it('preserves a zero-decimals value rather than treating it as missing', () => {
+    const token: TokenAmount = {
+      direction: 'out',
+      amount: '5',
+      assetId: USDT_ASSET_ID,
+      decimals: 0,
+    };
+
+    expect(enrichTokenFromApi(token, apiData)?.decimals).toBe(0);
+  });
+
+  it('returns the token unchanged when it has no asset id', () => {
+    const token: TokenAmount = { direction: 'out', amount: '10000' };
+    expect(enrichTokenFromApi(token, apiData)).toBe(token);
+  });
+
+  it('returns the token unchanged when the api has no matching entry', () => {
+    const token: TokenAmount = {
+      direction: 'out',
+      amount: '10000',
+      assetId: 'eip155:1/erc20:0xunknown',
+    };
+    expect(enrichTokenFromApi(token, apiData)).toBe(token);
+  });
+
+  it('returns undefined when given no token', () => {
+    expect(enrichTokenFromApi(undefined, apiData)).toBeUndefined();
   });
 });

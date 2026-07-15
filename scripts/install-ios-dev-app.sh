@@ -23,6 +23,7 @@ readonly REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 readonly BUILD_DIR="$REPO_ROOT/build"
 readonly DOWNLOAD_DIR="$BUILD_DIR/gh-expo-dev-build/ios"
 readonly GHA_LIB="$SCRIPT_DIR/lib/download-gha-expo-dev-build.sh"
+readonly DEVICE_TARGET_LIB="$SCRIPT_DIR/lib/dev-device-target.sh"
 
 if [[ "$(pwd)" != "$REPO_ROOT" ]]; then
   echo -e "${RED}❌ This script must be run from the repository root${NC}"
@@ -34,6 +35,8 @@ fi
 
 # shellcheck source=lib/download-gha-expo-dev-build.sh
 source "$GHA_LIB"
+# shellcheck source=lib/dev-device-target.sh
+source "$DEVICE_TARGET_LIB"
 
 GITHUB_REPO="$(resolve_github_repo)"
 BRANCH="main"
@@ -92,12 +95,15 @@ while [[ $# -gt 0 ]]; do
     *)
       echo -e "${RED}Unknown option: $1${NC}"
       echo "Usage: $0 [--branch main] [--run RUN_ID] [--skip-download] [--skipInstall] [--uninstall]"
+      echo "Targets IOS_SIMULATOR from .js.env (boots if needed); falls back to booted simulator."
       exit 1
       ;;
   esac
 done
 
 download_latest_app() {
+  mkdir -p "$BUILD_DIR"
+
   echo -e "${BLUE}━━━ Step 1: Resolving expo-dev-build run ━━━${NC}"
   require_gh
 
@@ -165,15 +171,11 @@ fi
 
 echo -e "${BLUE}━━━ Step 4: Installing on simulator ━━━${NC}"
 
-BOOTED_DEVICE="$(xcrun simctl list devices | grep "Booted" || true)"
-if [[ -z "$BOOTED_DEVICE" ]]; then
-  echo -e "${RED}❌ No simulator is currently running.${NC}"
-  echo -e "${YELLOW}Boot one (Xcode > Open Developer Tool > Simulator) and re-run.${NC}"
-  exit 1
-fi
-
-echo -e "${GREEN}✓ Simulator is running:${NC}"
-echo "  $BOOTED_DEVICE"
+SIMULATOR_UDID=$(dev_resolve_ios_simulator_udid)
+SIMULATOR_NAME=$(xcrun simctl list devices available -j | jq -r --arg udid "$SIMULATOR_UDID" '
+  [.devices[][] | select(.udid == $udid)] | first | .name // "unknown"
+')
+echo -e "${GREEN}✓ Target simulator:${NC} ${SIMULATOR_NAME} (${SIMULATOR_UDID})"
 
 APP_PATH="$BUILD_DIR/$APP_NAME"
 if [[ ! -d "$APP_PATH" ]]; then
@@ -186,12 +188,12 @@ echo -e "${GREEN}Found app:${NC} $(basename "$APP_PATH")"
 
 if [[ "$UNINSTALL" == true ]]; then
   echo -e "${YELLOW}Uninstalling existing app...${NC}"
-  xcrun simctl uninstall booted "$BUNDLE_ID" 2>/dev/null || {
+  xcrun simctl uninstall "$SIMULATOR_UDID" "$BUNDLE_ID" 2>/dev/null || {
     echo -e "${YELLOW}App was not installed or already uninstalled${NC}"
   }
   echo -e "${GREEN}✓ Uninstall complete${NC}"
 fi
 
 echo -e "${BLUE}Installing app on simulator...${NC}"
-xcrun simctl install booted "$APP_PATH"
+xcrun simctl install "$SIMULATOR_UDID" "$APP_PATH"
 echo -e "${GREEN}✓ Successfully installed app on simulator!${NC}"

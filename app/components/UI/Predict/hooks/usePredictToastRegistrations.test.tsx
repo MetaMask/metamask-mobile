@@ -2,6 +2,8 @@ import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import { act, renderHook } from '@testing-library/react-hooks';
 
 import Routes from '../../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
+import { ActivityTypeFilter } from '../../../Views/ActivityScreen/types';
 
 import { usePredictToastRegistrations } from './usePredictToastRegistrations';
 import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
@@ -42,6 +44,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: () => ({
     colors: {
+      primary: { default: mockTestHexColors.CHART_PRIMARY },
       success: { default: mockTestHexColors.SUCCESS_BRIGHT },
       error: { default: mockTestHexColors.ERROR_BRIGHT },
       accent04: { normal: mockTestHexColors.WHITE_BRIGHT },
@@ -181,9 +184,11 @@ describe('usePredictToastRegistrations', () => {
 
       const onTrack = showToast.mock.calls[0][0].closeButtonOptions.onPress;
       onTrack();
-      jest.advanceTimersByTime(100);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
+        screen: Routes.TRANSACTIONS_VIEW,
+        params: { initialTypeFilter: ActivityTypeFilter.Predictions },
+      });
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
         transactionId: 'tx-1',
       });
@@ -420,6 +425,43 @@ describe('usePredictToastRegistrations', () => {
       expect(mockInvalidateQueries).toHaveBeenCalledWith(
         expect.objectContaining({
           queryKey: ['predict', 'unrealizedPnL'],
+        }),
+      );
+    });
+
+    it('shows redeemed toast on confirmed status when amount is zero', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'claim',
+          status: 'confirmed',
+          amount: 0,
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          iconName: 'Info',
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'predict.claim.toasts.redeemed.title',
+            }),
+            expect.objectContaining({
+              label: 'predict.claim.toasts.redeemed.description',
+            }),
+          ]),
+        }),
+      );
+      expect(showToast).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: expect.stringContaining('$0.00'),
+            }),
+          ]),
         }),
       );
     });

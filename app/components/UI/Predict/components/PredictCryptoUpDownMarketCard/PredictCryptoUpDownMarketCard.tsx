@@ -6,7 +6,8 @@ import React, {
   useRef,
   useSyncExternalStore,
 } from 'react';
-import { Image, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
+import { Image } from 'expo-image';
 import Svg, {
   Circle,
   Defs,
@@ -50,6 +51,7 @@ import {
   type PredictMarket,
   type PredictOutcome,
   type PredictOutcomeToken,
+  type PredictMarketBuyButtonPress,
   type PriceQuery,
 } from '../../types';
 import type {
@@ -174,10 +176,11 @@ interface PredictCryptoUpDownMarketCardProps {
    * output isn't displayed.
    */
   isCarousel?: boolean;
+  cardPressDisabled?: boolean;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
-  onBuyButtonPress?: (marketId: string) => void;
+  onBuyButtonPress?: PredictMarketBuyButtonPress;
   predictFeedTab?: string;
   predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
@@ -858,7 +861,8 @@ const ProgressLogo = React.memo(
             <Image
               source={{ uri: imageUrl }}
               style={tw.style('h-full w-full')}
-              resizeMode="cover"
+              contentFit="cover"
+              recyclingKey={imageUrl}
             />
           ) : (
             <Box twClassName="h-full w-full bg-muted" />
@@ -1097,6 +1101,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   testID,
   entryPoint: propEntryPoint,
   isCarousel = false,
+  cardPressDisabled,
   onCardPress,
   onBuyButtonPress,
   predictFeedTab,
@@ -1228,6 +1233,10 @@ const PredictCryptoUpDownMarketCard: React.FC<
       : undefined;
 
   const handleCardPress = useCallback(() => {
+    if (cardPressDisabled) {
+      return;
+    }
+
     onCardPress?.();
     navigateToMarketDetails(
       {
@@ -1243,6 +1252,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
       { throughRoot: true },
     );
   }, [
+    cardPressDisabled,
     cardTitle,
     imageUrl,
     navigateToMarketDetails,
@@ -1265,7 +1275,16 @@ const PredictCryptoUpDownMarketCard: React.FC<
         return;
       }
 
-      onBuyButtonPress?.(selectedMarket.id);
+      const handledExternally =
+        onBuyButtonPress?.({
+          market: selectedMarket,
+          outcome: selectedOutcome,
+          outcomeToken: token,
+        }) === true;
+      if (handledExternally) {
+        return;
+      }
+
       executeGuardedAction(
         () => {
           openBuySheet({

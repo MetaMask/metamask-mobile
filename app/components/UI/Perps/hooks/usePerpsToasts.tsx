@@ -23,6 +23,12 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
+import { navigateToTransactionDetails } from '../../../../util/navigation/navigateToTransactionDetails';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
+import {
+  ActivityTypeFilter,
+  PerpsActivityFilter,
+} from '../../../Views/ActivityScreen/types';
 import { capitalize } from '../../../../util/general';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import {
@@ -149,6 +155,7 @@ export interface PerpsToastOptionsConfig {
             amount: string,
             assetSymbol: string,
           ) => PerpsToastOptions;
+          fullPositionCloseFailed: PerpsToastOptions;
         };
         partial: {
           partialPositionCloseSubmitted: (
@@ -156,6 +163,7 @@ export interface PerpsToastOptionsConfig {
             amount: string,
             assetSymbol: string,
           ) => PerpsToastOptions;
+          partialPositionCloseFailed: PerpsToastOptions;
           switchToMarketOrderMissingLimitPrice: PerpsToastOptions;
         };
       };
@@ -304,17 +312,16 @@ const usePerpsToasts = (): {
         toastRef?.current?.closeToast();
         navigation.navigate(Routes.PERPS.ROOT);
       },
-      goToActivity: (transactionId: string) => {
+      goToActivity: (
+        transactionId: string,
+        perpsFilter?: PerpsActivityFilter,
+      ) => {
         toastRef?.current?.closeToast();
-        // Navigate to the Transactions tab first
-        navigation.navigate(Routes.TRANSACTIONS_VIEW);
-
-        // Then use a timeout to navigate to the specific transaction details
-        setTimeout(() => {
-          navigation.navigate(Routes.TRANSACTION_DETAILS, {
-            transactionId,
-          });
-        }, 100);
+        navigateToTransactionDetails(navigation, {
+          transactionId,
+          initialTypeFilter: ActivityTypeFilter.Perps,
+          ...(perpsFilter ? { initialPerpsFilter: perpsFilter } : {}),
+        });
       },
       goToPnlHeroCard: (position: Position, marketPrice?: string) => {
         toastRef?.current?.closeToast();
@@ -343,7 +350,11 @@ const usePerpsToasts = (): {
         transactionId: string,
       ): ToastOptions['closeButtonOptions'] => ({
         label: strings('perps.deposit.track'),
-        onPress: () => navigationHandlers.goToActivity(transactionId),
+        onPress: () =>
+          navigationHandlers.goToActivity(
+            transactionId,
+            PerpsActivityFilter.Deposits,
+          ),
         variant: ButtonVariants.Link,
       }),
     }),
@@ -865,7 +876,11 @@ const usePerpsToasts = (): {
                 amount: string,
                 assetSymbol: string,
               ) => ({
-                ...perpsBaseToastOptions.inProgress,
+                // Limit closes rest until filled and get no follow-up toast, so
+                // this is terminal. Use success (green tick) — matching the
+                // partial close and the open limit "Order placed" toast —
+                // instead of an in-progress spinner that never resolves.
+                ...perpsBaseToastOptions.success,
                 labelOptions: getPerpsToastLabels(
                   strings('perps.close_position.position_close_order_placed'),
                   strings('perps.close_position.closing_position_subtitle', {
@@ -875,6 +890,13 @@ const usePerpsToasts = (): {
                   }),
                 ),
               }),
+              fullPositionCloseFailed: {
+                ...perpsBaseToastOptions.error,
+                labelOptions: getPerpsToastLabels(
+                  strings('perps.close_position.failed_to_place_close_order'),
+                  strings('perps.close_position.your_position_is_still_active'),
+                ),
+              },
             },
             partial: {
               partialPositionCloseSubmitted: (
@@ -892,6 +914,15 @@ const usePerpsToasts = (): {
                   }),
                 ),
               }),
+              partialPositionCloseFailed: {
+                ...perpsBaseToastOptions.error,
+                labelOptions: getPerpsToastLabels(
+                  strings(
+                    'perps.close_position.failed_to_place_partial_close_order',
+                  ),
+                  strings('perps.close_position.your_position_is_still_active'),
+                ),
+              },
               switchToMarketOrderMissingLimitPrice: {
                 ...perpsBaseToastOptions.info,
                 labelOptions: getPerpsToastLabels(
@@ -1017,7 +1048,7 @@ const usePerpsToasts = (): {
         limitReached: {
           ...perpsBaseToastOptions.info,
           labelOptions: getPerpsToastLabels(
-            strings('perps.watchlist.limit_reached', { limit: 10 }),
+            strings('perps.watchlist.limit_reached', { limit: 100 }),
           ),
         },
       },

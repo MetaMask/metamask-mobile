@@ -1,4 +1,5 @@
 import React from 'react';
+import { BigNumber } from 'bignumber.js';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyPotentialEarningsView from './MoneyPotentialEarningsView';
@@ -6,6 +7,9 @@ import { MoneyPotentialEarningsViewTestIds } from './MoneyPotentialEarningsView.
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import Routes from '../../../../../constants/navigation/Routes';
+import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { PotentialEarningsTokenRowTestIds } from '../../components/MoneyPotentialEarnings/PotentialEarningsTokenRow.testIds';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -121,6 +125,7 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 jest.mock('@react-native-masked-view/masked-view', () => 'MaskedView');
 jest.mock('../../utils/moneyFormatFiat', () => ({
+  ...jest.requireActual('../../utils/moneyFormatFiat'),
   moneyFormatFiat: jest.fn((value: BigNumber) => `$${value.toFixed(2)}`),
 }));
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
@@ -133,7 +138,13 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   })),
 }));
 
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  selectPrivacyMode: jest.fn(() => false),
+}));
+
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockMoneyFormatFiat = jest.mocked(moneyFormatFiat);
 
 describe('MoneyPotentialEarningsView', () => {
   beforeEach(() => {
@@ -200,6 +211,36 @@ describe('MoneyPotentialEarningsView', () => {
     expect(description).toHaveTextContent(/\+\$/);
   });
 
+  it('formats the headline total using the token fiat currency instead of Money default fiat currency when defined', () => {
+    mockTokens = [
+      {
+        name: 'Euro Coin',
+        symbol: 'EURC',
+        address: '0x0000000000000000000000000000000000000006',
+        chainId: '0x1',
+        decimals: 6,
+        balanceInSelectedCurrency: '€5,000.00',
+        fiat: { balance: 5000, currency: 'eur' },
+      },
+    ];
+
+    renderWithProvider(<MoneyPotentialEarningsView />);
+
+    expect(mockMoneyFormatFiat).toHaveBeenCalledWith(
+      expect.any(BigNumber),
+      'eur',
+    );
+  });
+
+  it('falls back to Money default fiat currency when tokens have no fiat currency', () => {
+    renderWithProvider(<MoneyPotentialEarningsView />);
+
+    expect(mockMoneyFormatFiat).toHaveBeenCalledWith(
+      expect.any(BigNumber),
+      'usd',
+    );
+  });
+
   it('falls back to the generic description when there are no eligible tokens', () => {
     mockTokens = [];
 
@@ -215,15 +256,63 @@ describe('MoneyPotentialEarningsView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the real token row balance when privacy mode is off', () => {
+    jest.mocked(selectPrivacyMode).mockReturnValue(false);
+    const { getAllByTestId } = renderWithProvider(
+      <MoneyPotentialEarningsView />,
+    );
+
+    expect(
+      getAllByTestId(PotentialEarningsTokenRowTestIds.BALANCE)[0],
+    ).toHaveTextContent('$5000.00');
+  });
+
+  it('masks the token row balance when privacy mode is on', () => {
+    jest.mocked(selectPrivacyMode).mockReturnValue(true);
+    const { getAllByTestId } = renderWithProvider(
+      <MoneyPotentialEarningsView />,
+    );
+
+    expect(
+      getAllByTestId(PotentialEarningsTokenRowTestIds.BALANCE)[0],
+    ).toHaveTextContent('•'.repeat(9));
+  });
+
+  it('renders the real headline total and projected amounts when privacy mode is off', () => {
+    jest.mocked(selectPrivacyMode).mockReturnValue(false);
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    // Total of mockDepositTokens fiat balances: 5000+3000+2000+1500+800+400 = 12700
+    expect(
+      getByTestId(MoneyPotentialEarningsViewTestIds.TOTAL),
+    ).toHaveTextContent('$12700.00');
+    // Projected earnings at 4% APY over 1 year: 12700 * 0.04 = 508
+    expect(
+      getByTestId(MoneyPotentialEarningsViewTestIds.PROJECTED),
+    ).toHaveTextContent('+$508.00');
+  });
+
+  it('masks the headline total and projected amounts when privacy mode is on', () => {
+    jest.mocked(selectPrivacyMode).mockReturnValue(true);
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    expect(
+      getByTestId(MoneyPotentialEarningsViewTestIds.TOTAL),
+    ).toHaveTextContent('•'.repeat(9));
+    expect(
+      getByTestId(MoneyPotentialEarningsViewTestIds.PROJECTED),
+    ).toHaveTextContent('•'.repeat(6));
+  });
+
   it('renders ALL eligible tokens, not limited to 5', () => {
     const { getByText } = renderWithProvider(<MoneyPotentialEarningsView />);
 
-    expect(getByText('USDC')).toBeOnTheScreen();
-    expect(getByText('USDT')).toBeOnTheScreen();
-    expect(getByText('DAI')).toBeOnTheScreen();
-    expect(getByText('WETH')).toBeOnTheScreen();
-    expect(getByText('LINK')).toBeOnTheScreen();
-    expect(getByText('UNI')).toBeOnTheScreen();
+    expect(getByText('USD Coin')).toBeOnTheScreen();
+    expect(getByText('Tether')).toBeOnTheScreen();
+    expect(getByText('Dai')).toBeOnTheScreen();
+    expect(getByText('Wrapped Ether')).toBeOnTheScreen();
+    expect(getByText('ChainLink')).toBeOnTheScreen();
+    expect(getByText('Uniswap')).toBeOnTheScreen();
   });
 
   it('renders the view without errors', () => {
