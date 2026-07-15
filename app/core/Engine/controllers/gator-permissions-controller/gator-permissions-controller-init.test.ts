@@ -1,13 +1,11 @@
 import {
   GatorPermissionsController,
+  type GatorPermissionsControllerMessenger,
   type GatorPermissionsControllerState,
 } from '@metamask/gator-permissions-controller';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import type { MessengerClientInitRequest } from '../../types';
-import {
-  getGatorPermissionsControllerMessenger,
-  GatorPermissionsControllerMessenger,
-} from '../../messengers/gator-permissions-controller-messenger/gator-permissions-controller-messenger';
+import { getGatorPermissionsControllerMessenger } from '../../messengers/gator-permissions-controller-messenger/gator-permissions-controller-messenger';
 import { GatorPermissionsControllerInit } from './gator-permissions-controller-init';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
