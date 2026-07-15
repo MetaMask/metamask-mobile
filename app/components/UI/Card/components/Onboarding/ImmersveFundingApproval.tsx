@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   Box,
@@ -9,6 +13,11 @@ import {
   ButtonVariant,
   Text,
   TextVariant,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
+  HeaderStandard,
   AvatarAccount,
   AvatarToken,
   AvatarBaseSize,
@@ -19,6 +28,8 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { useTheme } from '../../../../../util/theme';
+import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { selectImmersveFundingSourceId } from '../../../../../core/redux/slices/card';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
@@ -32,16 +43,26 @@ import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRo
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens } from '../../util/metrics';
-import { KYC_REDIRECT_URL, cardNetworkInfos } from '../../constants';
+import {
+  KYC_REDIRECT_URL,
+  cardNetworkInfos,
+  BASE_USDC_TOKEN_ADDRESS,
+} from '../../constants';
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
-import OnboardingStep from './OnboardingStep';
-import AnimatedSpinner from '../../../AnimatedSpinner';
 
 const BASE_CAIP_CHAIN_ID = cardNetworkInfos.base.caipChainId;
 const BASE_NETWORK_IMAGE = getNetworkImageSource({
   chainId: safeFormatChainIdToHex(BASE_CAIP_CHAIN_ID),
 });
+// Always the real Base-mainnet USDC address, regardless of env — the icon CDN
+// doesn't index per-env testnet token addresses (e.g. Base Sepolia's USDC),
+// and this is display-only (the approve call uses the real API-provided
+// contract address).
+const TOKEN_ICON_URL = buildTokenIconUrl(
+  BASE_CAIP_CHAIN_ID,
+  BASE_USDC_TOKEN_ADDRESS,
+);
 
 const ReadOnlyAccountRow = ({
   selectedAccount,
@@ -81,7 +102,7 @@ const ReadOnlyAccountRow = ({
   </Box>
 );
 
-const ReadOnlyTokenRow = ({ tokenIconUrl }: { tokenIconUrl: string }) => (
+const ReadOnlyTokenRow = () => (
   <Box
     twClassName="flex-row items-center p-4"
     testID="immersve-funding-approval-token-row"
@@ -93,22 +114,18 @@ const ReadOnlyTokenRow = ({ tokenIconUrl }: { tokenIconUrl: string }) => (
       {strings('card.card_spending_limit.token_label')}
     </Text>
     <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
-      {tokenIconUrl && (
-        <BadgeWrapper
-          position={BadgeWrapperPosition.BottomRight}
-          badge={
-            BASE_NETWORK_IMAGE ? (
-              <BadgeNetwork src={BASE_NETWORK_IMAGE} />
-            ) : null
-          }
-        >
-          <AvatarToken
-            name="USDC"
-            src={{ uri: tokenIconUrl }}
-            size={AvatarBaseSize.Sm}
-          />
-        </BadgeWrapper>
-      )}
+      <BadgeWrapper
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
+          BASE_NETWORK_IMAGE ? <BadgeNetwork src={BASE_NETWORK_IMAGE} /> : null
+        }
+      >
+        <AvatarToken
+          name="USDC"
+          src={{ uri: TOKEN_ICON_URL }}
+          size={AvatarBaseSize.Sm}
+        />
+      </BadgeWrapper>
       <Text
         variant={TextVariant.BodyMd}
         twClassName="text-text-default font-medium self-center shrink"
@@ -124,9 +141,14 @@ const ReadOnlyTokenRow = ({ tokenIconUrl }: { tokenIconUrl: string }) => (
  * Approves the Immersve `funding` prerequisite (an on-chain smart-contract
  * write, e.g. an ERC-20 approve on Base USDC) and, once settled, creates the
  * card. Reached only via useImmersveOnboardingRouter's `funding` case.
+ * Mirrors SpendingLimit.tsx's onboarding layout (header copy + read-only
+ * settings card + footer button).
  */
 const ImmersveFundingApproval = () => {
   const navigation = useNavigation();
+  const tw = useTailwind();
+  const theme = useTheme();
+  const headerHandlers = useCardHeaderHandlers('close-direct');
   const { countryKey } = useParams<{ countryKey?: string }>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const fundingSourceId = useSelector(selectImmersveFundingSourceId);
@@ -153,13 +175,6 @@ const ImmersveFundingApproval = () => {
     isLoading: fundingIsLoading,
     error: fundingError,
   } = useImmersveFunding();
-
-  // Retained so the settings card doesn't blank the token row the instant the
-  // prerequisite flips from 'funding' to 'active' (createCard is still in flight).
-  const lastContractAddressRef = useRef<string | null>(null);
-  if (nextAction?.type === 'funding') {
-    lastContractAddressRef.current = nextAction.write.contractAddress;
-  }
 
   useEffect(() => {
     trackEvent(
@@ -247,121 +262,153 @@ const ImmersveFundingApproval = () => {
 
   if (!nextAction && isLoading) {
     return (
-      <OnboardingStep
-        title={strings('card.card_onboarding.immersve_funding_approval.title')}
-        description={strings(
-          'card.card_onboarding.immersve_funding_approval.description',
-        )}
-        formFields={
-          <Box twClassName="flex-1 items-center justify-center">
-            <AnimatedSpinner testID="immersve-funding-approval-spinner" />
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-center text-text-alternative mt-4 px-4"
-            >
-              {strings(
-                'card.card_onboarding.immersve_funding_approval.helper_text',
-              )}
-            </Text>
-          </Box>
-        }
-        actions={null}
-        headerMode="close-direct"
-      />
+      <SafeAreaView
+        style={tw.style('flex-1 bg-background-default')}
+        edges={['bottom']}
+      >
+        <HeaderStandard
+          includesTopInset
+          twClassName="bg-background-default"
+          {...headerHandlers}
+        />
+        <Box twClassName="flex-1 justify-center items-center px-6">
+          <ActivityIndicator
+            testID="immersve-funding-approval-spinner"
+            size="large"
+            color={theme.colors.primary.default}
+          />
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="mt-4 text-text-alternative text-center"
+          >
+            {strings(
+              'card.card_onboarding.immersve_funding_approval.helper_text',
+            )}
+          </Text>
+        </Box>
+      </SafeAreaView>
     );
   }
 
   if (!nextAction && error) {
     return (
-      <OnboardingStep
-        title={strings('card.card_onboarding.immersve_funding_approval.title')}
-        description={strings(
-          'card.card_onboarding.immersve_funding_approval.description',
-        )}
-        formFields={
-          <Box twClassName="flex-1 items-center justify-center">
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-center text-error-default px-4 mb-4"
-              testID="immersve-funding-approval-error"
-            >
-              {error}
-            </Text>
-          </Box>
-        }
-        actions={
+      <SafeAreaView
+        style={tw.style('flex-1 bg-background-default')}
+        edges={['bottom']}
+      >
+        <HeaderStandard
+          includesTopInset
+          twClassName="bg-background-default"
+          {...headerHandlers}
+        />
+        <Box twClassName="flex-1 justify-center items-center px-6">
+          <Icon
+            name={IconName.Danger}
+            size={IconSize.Xl}
+            color={IconColor.ErrorDefault}
+          />
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="mt-4 mb-6 text-text-alternative text-center"
+            testID="immersve-funding-approval-error"
+          >
+            {error}
+          </Text>
           <Button
             variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
+            size={ButtonSize.Md}
             onPress={() => refresh().catch(() => undefined)}
+            isFullWidth
             testID="immersve-funding-approval-retry-button"
           >
             {strings(
               'card.card_onboarding.immersve_funding_approval.retry_button',
             )}
           </Button>
-        }
-        headerMode="close-direct"
-      />
+        </Box>
+      </SafeAreaView>
     );
   }
 
-  const tokenIconUrl = buildTokenIconUrl(
-    BASE_CAIP_CHAIN_ID,
-    lastContractAddressRef.current ?? undefined,
-  );
-
   return (
-    <OnboardingStep
-      title={strings('card.card_onboarding.immersve_funding_approval.title')}
-      description={strings(
-        'card.card_onboarding.immersve_funding_approval.description',
-      )}
-      formFields={
-        <>
-          <Box twClassName="bg-background-muted rounded-2xl overflow-hidden mb-6">
-            <ReadOnlyAccountRow
-              selectedAccount={selectedAccount ?? null}
-              avatarAccountType={avatarAccountType}
-              accountGroupName={accountGroupName}
-            />
-            <ReadOnlyTokenRow tokenIconUrl={tokenIconUrl} />
-          </Box>
-          {displayError && (
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="text-center text-error-default px-4 mb-4"
-              testID="immersve-funding-approval-error"
-            >
-              {displayError}
-            </Text>
-          )}
-        </>
-      }
-      actions={
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          isDisabled={busy}
-          isLoading={busy}
-          onPress={displayError ? handleRetry : handleApprove}
-          testID={
-            displayError
-              ? 'immersve-funding-approval-retry-button'
-              : 'immersve-funding-approval-confirm-button'
-          }
-        >
-          {strings(
-            displayError
-              ? 'card.card_onboarding.immersve_funding_approval.retry_button'
-              : 'card.card_onboarding.immersve_funding_approval.confirm_button',
-          )}
-        </Button>
-      }
-      headerMode="close-direct"
-    />
+    <SafeAreaView
+      style={tw.style('flex-1 bg-background-default')}
+      edges={['bottom']}
+    >
+      <HeaderStandard
+        includesTopInset
+        twClassName="bg-background-default"
+        {...headerHandlers}
+      />
+      <KeyboardAwareScrollView
+        style={tw.style('flex-1 px-4')}
+        showsVerticalScrollIndicator={false}
+        alwaysBounceVertical={false}
+        enableOnAndroid
+        enableAutomaticScroll
+        contentContainerStyle={tw.style('flex-grow pb-4')}
+      >
+        <Box twClassName="mb-6">
+          <Text
+            variant={TextVariant.HeadingLg}
+            twClassName="text-text-default py-4"
+          >
+            {strings('card.card_onboarding.immersve_funding_approval.title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-text-alternative"
+          >
+            {strings(
+              'card.card_onboarding.immersve_funding_approval.description',
+            )}
+          </Text>
+        </Box>
+
+        <Box twClassName="bg-background-muted rounded-2xl overflow-hidden mb-6">
+          <ReadOnlyAccountRow
+            selectedAccount={selectedAccount ?? null}
+            avatarAccountType={avatarAccountType}
+            accountGroupName={accountGroupName}
+          />
+          <ReadOnlyTokenRow />
+        </Box>
+
+        {displayError && (
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-center text-error-default px-4 mb-4"
+            testID="immersve-funding-approval-error"
+          >
+            {displayError}
+          </Text>
+        )}
+
+        <Box twClassName="flex-1" />
+
+        <Box twClassName="gap-3 mt-6">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            isDisabled={busy}
+            isLoading={busy}
+            onPress={displayError ? handleRetry : handleApprove}
+            testID={
+              displayError
+                ? 'immersve-funding-approval-retry-button'
+                : 'immersve-funding-approval-confirm-button'
+            }
+          >
+            {strings(
+              displayError
+                ? 'card.card_onboarding.immersve_funding_approval.retry_button'
+                : 'card.card_onboarding.immersve_funding_approval.confirm_button',
+            )}
+          </Button>
+        </Box>
+      </KeyboardAwareScrollView>
+    </SafeAreaView>
   );
 };
 

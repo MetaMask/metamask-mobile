@@ -64,13 +64,11 @@ const mockRoute = jest.fn();
 const mockExecuteFunding = jest.fn();
 const mockCreateCard = jest.fn();
 
-jest.mock('../../../AnimatedSpinner', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
+jest.mock('../../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../../util/theme');
   return {
-    __esModule: true,
-    default: ({ testID }: { testID?: string }) =>
-      ReactActual.createElement(View, { testID: testID || 'animated-spinner' }),
+    ...actual,
+    useTheme: jest.fn(() => actual.mockTheme),
   };
 });
 
@@ -87,22 +85,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('../../util/metrics', () => ({
   CardScreens: { FUNDING_APPROVAL: 'FUNDING_APPROVAL' },
 }));
-
-jest.mock('./OnboardingStep', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return ({
-    formFields,
-    actions,
-  }: {
-    formFields: React.ReactNode;
-    actions: React.ReactNode;
-  }) =>
-    ReactActual.createElement(View, { testID: 'onboarding-step' }, [
-      ReactActual.createElement(View, { key: 'formFields' }, formFields),
-      ReactActual.createElement(View, { key: 'actions' }, actions),
-    ]);
-});
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -138,16 +120,21 @@ jest.mock('@metamask/design-system-react-native', () => {
     AvatarToken: () => null,
     BadgeWrapper: ({ children }: React.PropsWithChildren<object>) => children,
     BadgeNetwork: () => null,
+    HeaderStandard: () => null,
+    Icon: () => null,
     AvatarAccountVariant: {
       Jazzicon: 'Jazzicon',
       Blockies: 'Blockies',
       Maskicon: 'Maskicon',
     },
     ButtonVariant: { Primary: 'Primary' },
-    ButtonSize: { Lg: 'Lg' },
-    TextVariant: { BodyMd: 'BodyMd' },
+    ButtonSize: { Lg: 'Lg', Md: 'Md' },
+    TextVariant: { BodyMd: 'BodyMd', HeadingLg: 'HeadingLg' },
     AvatarBaseSize: { Sm: 'Sm' },
     BadgeWrapperPosition: { BottomRight: 'BottomRight' },
+    IconName: { Danger: 'Danger' },
+    IconSize: { Xl: 'Xl' },
+    IconColor: { ErrorDefault: 'ErrorDefault' },
   };
 });
 
