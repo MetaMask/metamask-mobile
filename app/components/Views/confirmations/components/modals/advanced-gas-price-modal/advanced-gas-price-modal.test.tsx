@@ -6,7 +6,12 @@ import { simpleSendTransaction } from '../../../__mocks__/controllers/transactio
 import { GasModalType } from '../../../constants/gas';
 import { AdvancedGasPriceModal } from './advanced-gas-price-modal';
 
+const mockPersistGasFeePreference = jest.fn();
+
 jest.mock('../../../../../../util/transaction-controller');
+jest.mock('../../../hooks/gas/usePersistGasFeePreference', () => ({
+  usePersistGasFeePreference: jest.fn(() => mockPersistGasFeePreference),
+}));
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest', () => {
   const { simpleSendTransaction: actualSimpleSendTransaction } =
     jest.requireActual(
@@ -39,7 +44,7 @@ describe('AdvancedGasPriceModal', () => {
     expect(getByTestId('gas-input')).toBeOnTheScreen();
   });
 
-  it('calls updateTransactionGasFees when the save button is pressed', () => {
+  it('does not save when the gas price is missing', () => {
     const mockSetActiveModal = jest.fn();
     const mockHandleCloseModals = jest.fn();
 
@@ -53,14 +58,9 @@ describe('AdvancedGasPriceModal', () => {
     const saveButton = getByTestId('save-gas-price-button');
     fireEvent.press(saveButton);
 
-    expect(mockUpdateTransactionGasFees).toHaveBeenCalledTimes(1);
-    expect(mockUpdateTransactionGasFees).toHaveBeenCalledWith(
-      simpleSendTransaction.id,
-      expect.objectContaining({
-        userFeeLevel: 'custom',
-      }),
-    );
-    expect(mockHandleCloseModals).toHaveBeenCalledTimes(1);
+    expect(mockUpdateTransactionGasFees).not.toHaveBeenCalled();
+    expect(mockPersistGasFeePreference).not.toHaveBeenCalled();
+    expect(mockHandleCloseModals).not.toHaveBeenCalled();
   });
 
   it('calls updateTransactionGasFees with correct values when gas price and gas limit are changed', () => {
@@ -90,6 +90,13 @@ describe('AdvancedGasPriceModal', () => {
         gasPrice: '0x37e11d600',
         userFeeLevel: 'custom',
       }),
+    );
+    expect(mockPersistGasFeePreference).toHaveBeenCalledWith(
+      simpleSendTransaction,
+      {
+        userFeeLevel: 'custom',
+        gasPrice: '0x37e11d600',
+      },
     );
   });
 

@@ -35,7 +35,8 @@ import {
   type InitiateDepositOptions,
 } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
-import { useRegionHasNativeFiatProvider } from '../../hooks/useRegionHasNativeFiatProvider';
+import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
+import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDepositAssetId';
 import { selectTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import MoneySheetOptionsList, {
@@ -70,7 +71,10 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
   const transactions = useSelector(selectTransactions);
-  const regionHasNativeFiatProvider = useRegionHasNativeFiatProvider();
+  // Derive the deposit asset (CAIP-19) from the same vault config the deposit
+  // flow uses, so the entry gate checks the exact asset the deposit targets.
+  const depositAssetId = useMoneyAccountDepositAssetId();
+  const regionHasFiatProvider = useRegionHasFiatProvider(depositAssetId);
   const isFiatDepositEnabled = useMemo(
     () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
     [enabledTransactionTypes],
@@ -209,7 +213,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       disabled: !hasAnyCryptoBalance,
     },
-    ...(isFiatDepositEnabled && regionHasNativeFiatProvider
+    ...(isFiatDepositEnabled && regionHasFiatProvider
       ? [
           {
             label: strings(
