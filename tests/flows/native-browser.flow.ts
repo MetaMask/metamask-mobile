@@ -33,8 +33,8 @@ const dismissChromeAdPrivacyIfPresent = async () => {
   ];
   for (const text of dismissTexts) {
     try {
-      const element = await PlaywrightMatchers.getElementByText(text);
-      await PlaywrightGestures.waitAndTap(element);
+      const dismissControl = await PlaywrightMatchers.getElementByText(text);
+      await PlaywrightGestures.waitAndTap(dismissControl);
       return;
     } catch {
       // This text not found, try next
@@ -48,8 +48,8 @@ const dismissChromeAdPrivacyIfPresent = async () => {
  * @returns void
  */
 const dismissChromeNotificationsIfPresent = async () => {
-  const element = await PlaywrightMatchers.getElementByText('No thanks');
-  await PlaywrightGestures.waitAndTap(element);
+  const noThanks = await PlaywrightMatchers.getElementByText('No thanks');
+  await PlaywrightGestures.waitAndTap(noThanks);
 };
 
 /**
@@ -121,8 +121,8 @@ const waitForChromeNavigationReady = async () => {
         PlaywrightMatchers.getElementByText('Search or type web address', true),
     ]) {
       try {
-        const element = await probe();
-        if (await element.isDisplayed()) {
+        const chromeTarget = await probe();
+        if (await chromeTarget.isDisplayed()) {
           return;
         }
       } catch {
