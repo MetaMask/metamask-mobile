@@ -36386,7 +36386,7 @@ __metadata:
     react-native-tcp-socket: "npm:^6.3.0"
     react-native-url-polyfill: "npm:^1.3.0"
     react-native-vector-icons: "npm:10.2.0"
-    react-native-video: "npm:^6.19.0"
+    react-native-video: "npm:^6.19.2"
     react-native-view-shot: "npm:4.0.3"
     react-native-vision-camera: "npm:^4.7.3"
     react-native-worklets: "patch:react-native-worklets@npm%3A0.7.4#~/.yarn/patches/react-native-worklets-npm-0.7.4-072a5d46f9.patch"
@@ -41353,13 +41353,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-video@npm:^6.19.0":
-  version: 6.19.1
-  resolution: "react-native-video@npm:6.19.1"
+"react-native-video@npm:^6.19.2":
+  version: 6.19.2
+  resolution: "react-native-video@npm:6.19.2"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/9b5fad2d9966d0f9d95bc2232492a7d6741235b008d0ee539c2a3f7363749deb0546c6710bb87ca60a07bdd52460e0544c399f96c4cecec375b9512dec62d45f
+  checksum: 10/c7992bc2d2c2114eb422459d9292626fcbe6f779c695e107b672e51292000d61f45ed4d27b33c34850f10ee8ed3b1684bb6688b2d95afabadeab43f61d1141c0
   languageName: node
   linkType: hard
 
