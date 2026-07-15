@@ -122,7 +122,7 @@ const waitForChromeNavigationReady = async () => {
     ]) {
       try {
         const chromeTarget = await probe();
-        if (await chromeTarget.isDisplayed()) {
+        if (await chromeTarget.isVisible()) {
           return;
         }
       } catch {
