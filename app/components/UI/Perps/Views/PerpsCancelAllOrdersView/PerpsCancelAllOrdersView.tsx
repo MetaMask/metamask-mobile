@@ -1,30 +1,25 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo, useRef } from 'react';
-import { View, ActivityIndicator } from 'react-native';
 import { NotificationMoment } from '../../../../../util/haptics';
 import { strings } from '../../../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import BottomSheetFooter, {
+import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
+  type BottomSheetRef,
+  Box,
+  ButtonSize,
   ButtonsAlignment,
-} from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import Text, {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../../component-library/components/Toast/Toast.types';
 import { usePerpsLiveOrders, usePerpsCancelAllOrders } from '../../hooks';
 import usePerpsToasts, {
   type PerpsToastOptions,
 } from '../../hooks/usePerpsToasts';
-import { createStyles } from './PerpsCancelAllOrdersView.styles';
 import { useTheme } from '../../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -44,7 +39,6 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
   onClose: onExternalClose,
 }) => {
   const theme = useTheme();
-  const styles = createStyles(theme);
   const navigation = useNavigation();
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
@@ -190,27 +184,26 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
     }
   }, [externalSheetRef, handleClose, handleKeepOrders]);
 
-  const footerButtons = useMemo(
-    () => [
-      {
-        label: strings('perps.cancel_all_modal.keep_orders'),
-        onPress: handleKeepButtonPress,
-        variant: ButtonVariants.Secondary,
-        size: ButtonSize.Lg,
-        disabled: isCanceling,
-      },
-      {
-        label: isCanceling
-          ? strings('perps.cancel_all_modal.canceling')
-          : strings('perps.cancel_all_modal.confirm'),
-        onPress: handleCancelAll,
-        variant: ButtonVariants.Primary,
-        size: ButtonSize.Lg,
-        disabled: isCanceling,
-        danger: true,
-      },
-    ],
-    [handleKeepButtonPress, handleCancelAll, isCanceling],
+  const secondaryButtonProps = useMemo(
+    () => ({
+      children: strings('perps.cancel_all_modal.keep_orders'),
+      onPress: handleKeepButtonPress,
+      size: ButtonSize.Lg,
+      isDisabled: isCanceling,
+    }),
+    [handleKeepButtonPress, isCanceling],
+  );
+
+  const primaryButtonProps = useMemo(
+    () => ({
+      children: strings('perps.cancel_all_modal.confirm'),
+      onPress: handleCancelAll,
+      size: ButtonSize.Lg,
+      isDanger: true,
+      isLoading: isCanceling,
+      isDisabled: isCanceling,
+    }),
+    [handleCancelAll, isCanceling],
   );
 
   // Show empty state if no orders (WebSocket data loads instantly, no loading state needed)
@@ -218,19 +211,17 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
     return (
       <BottomSheet
         ref={sheetRef}
-        shouldNavigateBack={!externalSheetRef}
+        goBack={!externalSheetRef ? () => navigation.goBack() : undefined}
         onClose={externalSheetRef ? onExternalClose : undefined}
       >
         <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('perps.cancel_all_modal.title')}
-          </Text>
+          {strings('perps.cancel_all_modal.title')}
         </BottomSheetHeader>
-        <View style={styles.emptyContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Box paddingHorizontal={4}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('perps.order.no_orders')}
           </Text>
-        </View>
+        </Box>
       </BottomSheet>
     );
   }
@@ -238,41 +229,23 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack={!externalSheetRef}
+      goBack={!externalSheetRef ? () => navigation.goBack() : undefined}
       onClose={externalSheetRef ? onExternalClose : undefined}
     >
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.cancel_all_modal.title')}
-        </Text>
+        {strings('perps.cancel_all_modal.title')}
       </BottomSheetHeader>
 
-      <View style={styles.contentContainer}>
-        {isCanceling ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator
-              size="large"
-              color={theme.colors.primary.default}
-            />
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.loadingText}
-            >
-              {strings('perps.cancel_all_modal.canceling')}
-            </Text>
-          </View>
-        ) : (
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('perps.cancel_all_modal.description')}
-          </Text>
-        )}
-      </View>
+      <Box paddingHorizontal={4}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {strings('perps.cancel_all_modal.description')}
+        </Text>
+      </Box>
 
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
-        buttonPropsArray={footerButtons}
-        style={styles.footerContainer}
+        secondaryButtonProps={secondaryButtonProps}
+        primaryButtonProps={primaryButtonProps}
       />
     </BottomSheet>
   );

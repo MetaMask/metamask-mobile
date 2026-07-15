@@ -15,6 +15,7 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import {
+  BottomSheetRef as MmdsBottomSheetRef,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -209,7 +210,7 @@ const PerpsHomeView = ({
   const [showCloseAllSheet, setShowCloseAllSheet] = useState(false);
   const [showCancelAllSheet, setShowCancelAllSheet] = useState(false);
   const closeAllSheetRef = useRef<BottomSheetRef>(null);
-  const cancelAllSheetRef = useRef<BottomSheetRef>(null);
+  const cancelAllSheetRef = useRef<MmdsBottomSheetRef>(null);
 
   // Use hook for eligibility checks and action handlers
   // Pass button location for tracking deposit entry point

@@ -33,56 +33,96 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const mockReact = jest.requireActual<typeof React>('react');
-    return mockReact.forwardRef(
-      (props: { children: React.ReactNode }, _ref) => <>{props.children}</>,
-    );
-  },
-);
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => 'BottomSheetHeader',
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const MockReact = jest.requireActual<typeof React>('react');
+  const { View, Pressable, Text: RNText } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetFooter',
-  () => {
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-
-    return {
-      __esModule: true,
-      default: ({
-        buttonPropsArray,
+  const BottomSheet = MockReact.forwardRef(
+    (
+      {
+        children,
       }: {
-        buttonPropsArray?: {
-          label: string;
-          onPress: () => void;
-          disabled?: boolean;
-        }[];
-      }) => (
-        <View>
-          {buttonPropsArray?.map((buttonProps, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={buttonProps.onPress}
-              disabled={buttonProps.disabled}
-            >
-              <Text>{buttonProps.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      ),
-      ButtonsAlignment: {
-        Horizontal: 'Horizontal',
-        Vertical: 'Vertical',
+        children: React.ReactNode;
       },
+      _ref: React.Ref<{
+        onOpenBottomSheet: () => void;
+        onCloseBottomSheet: (callback?: () => void) => void;
+      }>,
+    ) => <View>{children}</View>,
+  );
+  BottomSheet.displayName = 'BottomSheet';
+
+  const BottomSheetHeader = ({
+    children,
+    onClose,
+  }: {
+    children: React.ReactNode;
+    onClose?: () => void;
+  }) => (
+    <View>
+      {typeof children === 'string' ? <RNText>{children}</RNText> : children}
+      <Pressable onPress={onClose} />
+    </View>
+  );
+
+  const BottomSheetFooter = ({
+    primaryButtonProps,
+    secondaryButtonProps,
+  }: {
+    primaryButtonProps?: {
+      children: React.ReactNode;
+      onPress: () => void;
+      isDisabled?: boolean;
+      isLoading?: boolean;
+      isDanger?: boolean;
     };
-  },
-);
+    secondaryButtonProps?: {
+      children: React.ReactNode;
+      onPress: () => void;
+      isDisabled?: boolean;
+    };
+  }) => (
+    <View>
+      {secondaryButtonProps ? (
+        <Pressable
+          onPress={secondaryButtonProps.onPress}
+          disabled={secondaryButtonProps.isDisabled}
+        >
+          <RNText>{secondaryButtonProps.children}</RNText>
+        </Pressable>
+      ) : null}
+      {primaryButtonProps ? (
+        <Pressable
+          onPress={primaryButtonProps.onPress}
+          disabled={
+            primaryButtonProps.isDisabled || primaryButtonProps.isLoading
+          }
+          accessibilityState={{
+            disabled:
+              primaryButtonProps.isDisabled || primaryButtonProps.isLoading,
+            busy: primaryButtonProps.isLoading,
+          }}
+        >
+          <RNText>{primaryButtonProps.children}</RNText>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+
+  return {
+    ...actual,
+    BottomSheet,
+    BottomSheetHeader,
+    BottomSheetFooter,
+  };
+});
 
 const mockUsePerpsLiveOrders = usePerpsLiveOrders as jest.MockedFunction<
   typeof usePerpsLiveOrders
@@ -166,7 +206,7 @@ describe('PerpsCancelAllOrdersView', () => {
     expect(getByText('perps.order.no_orders')).toBeTruthy();
   });
 
-  it('renders loading state when canceling', () => {
+  it('keeps description and confirm label visible while canceling', () => {
     // Arrange
     mockUsePerpsCancelAllOrders.mockReturnValue({
       ...mockCancelAllHook,
@@ -174,11 +214,12 @@ describe('PerpsCancelAllOrdersView', () => {
     });
 
     // Act
-    const { getAllByText } = render(<PerpsCancelAllOrdersView />);
+    const { getByText, queryByText } = render(<PerpsCancelAllOrdersView />);
 
     // Assert
-    const cancelingElements = getAllByText('perps.cancel_all_modal.canceling');
-    expect(cancelingElements.length).toBeGreaterThan(0);
+    expect(getByText('perps.cancel_all_modal.description')).toBeTruthy();
+    expect(getByText('perps.cancel_all_modal.confirm')).toBeTruthy();
+    expect(queryByText('perps.cancel_all_modal.canceling')).toBeNull();
   });
 
   it('displays footer buttons with correct labels', () => {
@@ -188,21 +229,6 @@ describe('PerpsCancelAllOrdersView', () => {
     // Assert
     expect(getByText('perps.cancel_all_modal.keep_orders')).toBeTruthy();
     expect(getByText('perps.cancel_all_modal.confirm')).toBeTruthy();
-  });
-
-  it('shows canceling label on confirm button when in progress', () => {
-    // Arrange
-    mockUsePerpsCancelAllOrders.mockReturnValue({
-      ...mockCancelAllHook,
-      isCanceling: true,
-    });
-
-    // Act
-    const { getAllByText } = render(<PerpsCancelAllOrdersView />);
-
-    // Assert
-    const cancelingElements = getAllByText('perps.cancel_all_modal.canceling');
-    expect(cancelingElements.length).toBeGreaterThan(0);
   });
 
   it('renders with empty orders gracefully', () => {
