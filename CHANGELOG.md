@@ -119,6 +119,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the Predict deposit "Track" toast opening the Transactions tab instead of the Predict tab (#32730)
 - Fixed a bug where the crash screen Try Again button did nothing in production builds (#31830)
 
+## [8.2.1]
+
+### Fixed
+
+- Fixed live prediction market prices not updating for dynamically subscribed markets (#33289)
+
 ## [8.2.0]
 
 ### Added
@@ -12748,7 +12754,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.3.0...HEAD
-[8.3.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.2.0...v8.3.0
+[8.3.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.2.1...v8.3.0
+[8.2.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.2.0...v8.2.1
 [8.2.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.1.1...v8.2.0
 [8.1.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.1.0...v8.1.1
 [8.1.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.4...v8.1.0
