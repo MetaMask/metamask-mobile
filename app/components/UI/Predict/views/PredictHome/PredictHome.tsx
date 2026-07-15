@@ -160,7 +160,7 @@ const PredictHome: React.FC = () => {
           >
             <Text
               testID={PredictHomeSelectorsIDs.TITLE}
-              variant={TextVariant.DisplayMd}
+              variant={TextVariant.HeadingMd}
             >
               {strings('wallet.predict')}
             </Text>
