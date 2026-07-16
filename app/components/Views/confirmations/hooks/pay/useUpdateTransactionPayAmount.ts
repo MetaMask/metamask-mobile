@@ -16,6 +16,7 @@ import {
   updateAtomicBatchData,
   updateTransaction,
 } from '../../../../../util/transaction-controller';
+import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
 import {
   updateMoneyAccountDepositTokenAmount,
   updateMoneyAccountWithdrawTokenAmount,
@@ -23,7 +24,10 @@ import {
 import { UpdateTransactionPayAmountCall } from '../../types/transactions';
 import { hasTransactionType } from '../../utils/transaction';
 import { prefixError } from '../../../../../util/transactions/error-prefix';
-import { useTransactionPayRequiredTokens } from './useTransactionPayData';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayRequiredTokens,
+} from './useTransactionPayData';
 
 const DEPOSIT_ERROR_PREFIX = 'Money Account Deposit: ';
 const WITHDRAW_ERROR_PREFIX = 'Money Account Withdrawal: ';
@@ -38,6 +42,7 @@ export function useUpdateTransactionPayAmount() {
   const transactionMeta = useTransactionMetadataRequest();
   const { updateTokenAmount } = useUpdateTokenAmount();
   const requiredTokens = useTransactionPayRequiredTokens();
+  const fiatPayment = useTransactionPayFiatPayment();
   const accountOverride = useTransactionAccountOverride();
   const isMoneyAccountDepositQuotePipelineEnabled = useSelector(
     selectMoneyAccountDepositQuotePipelineEnabled,
@@ -93,7 +98,20 @@ export function useUpdateTransactionPayAmount() {
           TransactionType.moneyAccountDeposit,
         ])
       ) {
-        if (isMoneyAccountDepositQuotePipelineEnabled) {
+        const depositIntent = getMoneyAccountDepositIntent(
+          transactionMeta.batchId,
+        );
+        // Initially optimize only generic/convert crypto deposits. addMusd uses
+        // the Relay max/gas-station path and card uses the multi-stage fiat path,
+        // so both retain the existing pipeline until validated separately.
+        const isOptimizedDepositIntent =
+          (depositIntent === undefined || depositIntent === 'convert') &&
+          !fiatPayment?.selectedPaymentMethodId;
+
+        if (
+          isMoneyAccountDepositQuotePipelineEnabled &&
+          isOptimizedDepositIntent
+        ) {
           await Engine.context.TransactionPayController.updateAmount({
             transactionId: transactionMeta.id,
             amountHuman,
@@ -135,6 +153,7 @@ export function useUpdateTransactionPayAmount() {
       applyMoneyAccountAmountUpdates,
       updateTokenAmount,
       requiredTokens,
+      fiatPayment?.selectedPaymentMethodId,
       accountOverride,
       isMoneyAccountDepositQuotePipelineEnabled,
     ],
