@@ -66,3 +66,12 @@
 
 
 -dontwarn com.facebook.react.bridge.JavaOnlyMap$Companion
+
+# Braze owns the sole declared FirebaseMessagingService (see AndroidManifest.xml) and forwards
+# non-Braze FCM messages to RNFB by reflectively loading the classpath string configured in
+# braze.xml (com_braze_fallback_firebase_cloud_messaging_service_classpath). There is no
+# compile-time reference to this class, so without this rule R8 renames/strips it in release
+# builds and Braze's Class.forName() lookup silently fails, dropping all foreground push
+# notifications that aren't Braze's own (background/killed still works because the OS displays
+# `notification`-payload pushes directly, without invoking this service at all).
+-keep class io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService { *; }
