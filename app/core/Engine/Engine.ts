@@ -1449,7 +1449,7 @@ export class Engine {
             const alreadyKnown =
               m?.status !== undefined &&
               m.status !== NetworkStatus.Unknown &&
-              m?.EIPS[1559] !== undefined;
+              m?.EIPS?.[1559] !== undefined;
             return alreadyKnown ? [] : [id];
           } catch {
             return [];
