@@ -99,6 +99,33 @@ function withPrefetchKey(
   return { ...init, headers };
 }
 
+/**
+ * Installs the WHATWG constructor globals (`Headers`, `Request`, `Response`)
+ * using nitro-fetch's implementations, which are the app's canonical WHATWG
+ * classes once `global.fetch` is routed through nitro-fetch.
+ *
+ * Neither `@react-native/js-polyfills` nor Expo's winter runtime provide these
+ * constructors, so without this the identifiers are undefined at runtime. That
+ * makes any `headers instanceof Headers` check (nitro-fetch's request builder
+ * does exactly this) throw `ReferenceError: Can't find variable: Headers`
+ * before a request can be sent, and any `new Headers()` in app/dependency code
+ * throw as well.
+ *
+ * This runs unconditionally — including under test overrides — because the
+ * constructors are an environment invariant, independent of whether the
+ * production fetch swap and startup prefetching are installed.
+ */
+function installFetchGlobals(): void {
+  const _g = globalThis as unknown as {
+    Headers: typeof Headers;
+    Request: typeof Request;
+    Response: typeof Response;
+  };
+  _g.Headers = Headers;
+  _g.Request = Request;
+  _g.Response = Response;
+}
+
 function installProductionNitroFetch(): void {
   // NOTE: nitro-fetch uses a buffered transport by default — the full response
   // body is downloaded natively before the Promise resolves. `response.body.getReader()`
@@ -108,14 +135,6 @@ function installProductionNitroFetch(): void {
   //   - import `fetch` from 'expo/fetch' directly (see bridge-controller-init.ts)
   global.fetch = (input: RequestInfo | URL, init?: RequestInit) =>
     nitroFetch(input, withPrefetchKey(input, init));
-  const _g = globalThis as unknown as {
-    Headers: typeof Headers;
-    Request: typeof Request;
-    Response: typeof Response;
-  };
-  _g.Headers = Headers;
-  _g.Request = Request;
-  _g.Response = Response;
 
   for (const { url, key } of STARTUP_PREFETCHES) {
     // Non-fatal: a registration failure means the cache is cold on next launch,
@@ -123,6 +142,10 @@ function installProductionNitroFetch(): void {
     prefetchOnAppStart(url, { prefetchKey: key }).catch(() => undefined);
   }
 }
+
+// Constructor globals are always required — they must exist even in builds
+// where the production fetch swap is skipped (e.g. test overrides).
+installFetchGlobals();
 
 if (!hasTestOverrides) {
   installProductionNitroFetch();

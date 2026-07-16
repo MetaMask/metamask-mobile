@@ -1,6 +1,9 @@
 import {
   fetch as nitroFetch,
   prefetchOnAppStart,
+  Headers as NitroHeaders,
+  Request as NitroRequest,
+  Response as NitroResponse,
 } from 'react-native-nitro-fetch';
 import {
   C2_DOMAIN_BLOCKLIST_URL,
@@ -89,6 +92,17 @@ describe('NitroFetchSetup', () => {
       });
 
       expect(localPrefetch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('installFetchGlobals — WHATWG constructor globals', () => {
+    it('installs Headers, Request, and Response onto the global object', () => {
+      // NitroFetchSetup is imported at the top of this file, so the constructor
+      // globals must already be present as functional constructors.
+      expect(global.Headers).toBe(NitroHeaders);
+      expect(global.Request).toBe(NitroRequest);
+      expect(global.Response).toBe(NitroResponse);
+      expect(typeof global.Headers).toBe('function');
     });
   });
 
