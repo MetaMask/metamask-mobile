@@ -19,6 +19,9 @@ type RampTypeFunnel =
   | 'UNIFIED_BUY'
   | 'UNIFIED_BUY_2';
 
+/** Buy / deposit / headless paths that share the same mid-funnel ramp_type set. */
+type RampTypeBuyPath = 'DEPOSIT' | 'UNIFIED_BUY_2' | 'HEADLESS';
+
 /**
  * Provider-assigned order identifier (RampsOrder.providerOrderId), the join key
  * from a terminal analytics event back to the underlying provider order
@@ -52,7 +55,7 @@ interface RampsDepositCashButtonClicked {
 
 interface RampsPaymentMethodSelected {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'UNIFIED_BUY_2' | 'HEADLESS';
+  ramp_type: RampTypeBuyPath;
   ramp_surface?: RampSurface;
   user_id?: string;
   region: string;
@@ -200,7 +203,7 @@ interface RampsAddressEntered {
 
 interface RampsTransactionConfirmed extends ProviderOrderId {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'HEADLESS' | 'UNIFIED_BUY_2';
+  ramp_type: RampTypeBuyPath;
   ramp_surface?: RampSurface;
   user_id?: string;
   amount_source: number;
@@ -241,7 +244,7 @@ interface RampsTransactionCompleted extends ProviderOrderId {
 
 interface RampsTransactionFailed extends ProviderOrderId {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'UNIFIED_BUY_2' | 'HEADLESS';
+  ramp_type: RampTypeBuyPath;
   ramp_surface?: RampSurface;
   user_id?: string;
   amount_source: number;
