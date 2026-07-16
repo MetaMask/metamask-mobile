@@ -1,5 +1,12 @@
 import React, { useCallback } from 'react';
-import { Image, Pressable, StyleSheet } from 'react-native';
+import {
+  Image,
+  ImageSourcePropType,
+  ImageStyle,
+  Pressable,
+  StyleProp,
+  StyleSheet,
+} from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   AvatarToken,
@@ -19,6 +26,13 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import moneyEarnBannerArrow from '../../../../../images/money-earn-banner-arrow.png';
 import moneyEarnBannerCoin from '../../../../../images/money-earn-banner-coin.png';
+import moneyEarnBannerMusd from '../../../../../images/money-earn-banner-musd.png';
+import moneyEarnBannerUsdc from '../../../../../images/money-earn-banner-usdc.png';
+import moneyEarnBannerUsdt from '../../../../../images/money-earn-banner-usdt.png';
+import moneyEarnBannerDai from '../../../../../images/money-earn-banner-dai.png';
+import moneyEarnBannerAusdc from '../../../../../images/money-earn-banner-ausdc.png';
+import moneyEarnBannerAusdt from '../../../../../images/money-earn-banner-ausdt.png';
+import moneyEarnBannerAdai from '../../../../../images/money-earn-banner-adai.png';
 import { strings } from '../../../../../../locales/i18n';
 import { setMoneyEarnBannerDismissed } from '../../../../../actions/user';
 import { selectMoneyEarnBannerDismissedTokens } from '../../../../../reducers/user/selectors';
@@ -29,6 +43,7 @@ import { TokenI } from '../../../Tokens/types';
 import {
   MUSD_TOKEN_ADDRESS,
   getTokenDisplaySymbol,
+  isMusdToken,
 } from '../../../Earn/constants/musd';
 import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
 import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
@@ -45,29 +60,101 @@ const MONAD_MUSD_TARGET = {
 
 const styles = StyleSheet.create({
   iconContainer: {
-    width: 56,
-    height: 56,
+    width: 72,
+    height: 72,
+    overflow: 'hidden',
   },
   tokenAvatar: {
     position: 'absolute',
-    top: 0,
+    top: 8,
+    left: 2,
+  },
+  musdImage: {
+    position: 'absolute',
+    top: 2,
+    left: -5,
+    width: 43,
+    height: 43,
+  },
+  usdcImage: {
+    position: 'absolute',
+    top: 6,
     left: 0,
+    width: 37,
+    height: 39,
+  },
+  usdtImage: {
+    position: 'absolute',
+    top: 7,
+    left: 1,
+    width: 34,
+    height: 37,
+  },
+  daiImage: {
+    position: 'absolute',
+    top: 7,
+    left: 0,
+    width: 36,
+    height: 37,
+  },
+  ausdcImage: {
+    position: 'absolute',
+    top: 8,
+    left: 3,
+    width: 34,
+    height: 34,
+  },
+  ausdtImage: {
+    position: 'absolute',
+    top: 8,
+    left: 1,
+    width: 33,
+    height: 33,
+  },
+  adaiImage: {
+    position: 'absolute',
+    top: 8,
+    left: 1,
+    width: 34,
+    height: 34,
   },
   arrowImage: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    top: 4,
+    left: 30,
     width: 32,
     height: 30,
   },
   coinImage: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 26,
-    height: 30,
+    top: 35,
+    left: 40,
+    width: 28,
+    height: 33,
   },
 });
+
+interface SourceTokenImage {
+  source: ImageSourcePropType;
+  style: StyleProp<ImageStyle>;
+}
+
+const SOURCE_TOKEN_IMAGES: Record<string, SourceTokenImage> = {
+  USDC: { source: moneyEarnBannerUsdc, style: styles.usdcImage },
+  USDT: { source: moneyEarnBannerUsdt, style: styles.usdtImage },
+  DAI: { source: moneyEarnBannerDai, style: styles.daiImage },
+  AUSDC: { source: moneyEarnBannerAusdc, style: styles.ausdcImage },
+  AUSDT: { source: moneyEarnBannerAusdt, style: styles.ausdtImage },
+  ADAI: { source: moneyEarnBannerAdai, style: styles.adaiImage },
+  AUSDCN: { source: moneyEarnBannerAusdc, style: styles.ausdcImage },
+};
+
+const getSourceTokenImage = (asset: TokenI): SourceTokenImage | undefined => {
+  if (isMusdToken(asset.address)) {
+    return { source: moneyEarnBannerMusd, style: styles.musdImage };
+  }
+  return SOURCE_TOKEN_IMAGES[asset.symbol?.toUpperCase() ?? ''];
+};
 
 interface MoneyEarnBannerProps {
   asset: TokenI;
@@ -112,6 +199,7 @@ const MoneyEarnBannerContent = ({
     : strings('money.earn_banner.title_no_apy');
   const symbol =
     getTokenDisplaySymbol(asset.address, asset.symbol) ?? asset.symbol;
+  const sourceTokenImage = getSourceTokenImage(asset);
 
   return (
     <Pressable onPress={handlePress} testID={MoneyEarnBannerTestIds.CONTAINER}>
@@ -124,12 +212,20 @@ const MoneyEarnBannerContent = ({
           style={styles.iconContainer}
           testID={MoneyEarnBannerTestIds.TOKEN_ICON}
         >
-          <AvatarToken
-            name={asset.symbol}
-            src={{ uri: asset.image }}
-            size={AvatarTokenSize.Md}
-            style={styles.tokenAvatar}
-          />
+          {sourceTokenImage ? (
+            <Image
+              source={sourceTokenImage.source}
+              style={sourceTokenImage.style}
+              testID={MoneyEarnBannerTestIds.SOURCE_TOKEN_IMAGE}
+            />
+          ) : (
+            <AvatarToken
+              name={asset.symbol}
+              src={{ uri: asset.image }}
+              size={AvatarTokenSize.Md}
+              style={styles.tokenAvatar}
+            />
+          )}
           <Image source={moneyEarnBannerArrow} style={styles.arrowImage} />
           <Image source={moneyEarnBannerCoin} style={styles.coinImage} />
         </Box>
@@ -155,16 +251,14 @@ const MoneyEarnBannerContent = ({
           </Box>
           <Text
             variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
             testID={MoneyEarnBannerTestIds.DESCRIPTION}
           >
             {strings('money.earn_banner.description', { symbol })}
           </Text>
           <Text
-            variant={TextVariant.BodyMd}
+            variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
             color={TextColor.PrimaryDefault}
-            twClassName="mt-1"
             testID={MoneyEarnBannerTestIds.CTA}
           >
             {strings('money.earn_banner.cta', { symbol })}

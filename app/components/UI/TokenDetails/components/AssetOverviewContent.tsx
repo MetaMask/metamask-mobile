@@ -634,6 +634,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             resetNavigationLockRef={resetNavigationLockRef}
             onActionTapped={trackActionTapped}
           />
+          <MoneyEarnBanner asset={token} />
           {shouldShowMarketInsights ? (
             <View style={styles.marketInsightsWrapper}>
               {marketInsightsReport ? (
@@ -671,7 +672,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               location={MONEY_HUB_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_DETAIL}
             />
           )}
-          <MoneyEarnBanner asset={token} />
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             tronNativeToken && (

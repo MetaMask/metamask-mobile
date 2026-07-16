@@ -220,6 +220,38 @@ describe('MoneyEarnBanner', () => {
         strings('money.earn_banner.cta', { symbol: 'mUSD' }),
       );
     });
+
+    it('renders the bundled source image for mUSD', () => {
+      const asset = {
+        ...MOCK_USDC,
+        address: MUSD_TOKEN_ADDRESS,
+        symbol: 'MUSD',
+      } as TokenI;
+
+      const { getByTestId } = render(<MoneyEarnBanner asset={asset} />);
+
+      expect(
+        getByTestId(MoneyEarnBannerTestIds.SOURCE_TOKEN_IMAGE),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the bundled source image for stablecoins with a dedicated asset', () => {
+      const { getByTestId } = render(<MoneyEarnBanner asset={MOCK_USDC} />);
+
+      expect(
+        getByTestId(MoneyEarnBannerTestIds.SOURCE_TOKEN_IMAGE),
+      ).toBeOnTheScreen();
+    });
+
+    it('falls back to the token avatar for supported tokens without a dedicated asset', () => {
+      const asset = { ...MOCK_USDC, symbol: 'EURC' } as TokenI;
+
+      const { queryByTestId } = render(<MoneyEarnBanner asset={asset} />);
+
+      expect(
+        queryByTestId(MoneyEarnBannerTestIds.SOURCE_TOKEN_IMAGE),
+      ).toBeNull();
+    });
   });
 
   describe('interactions', () => {

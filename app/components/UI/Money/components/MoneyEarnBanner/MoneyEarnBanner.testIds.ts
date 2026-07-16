@@ -5,4 +5,5 @@ export const MoneyEarnBannerTestIds = {
   CTA: 'money-earn-banner-cta',
   CLOSE_BUTTON: 'money-earn-banner-close-button',
   TOKEN_ICON: 'money-earn-banner-token-icon',
+  SOURCE_TOKEN_IMAGE: 'money-earn-banner-source-token-image',
 } as const;
