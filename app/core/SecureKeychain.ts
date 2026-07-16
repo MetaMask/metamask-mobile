@@ -39,10 +39,6 @@ enum SecureKeychainTypes {
  * and also adding an extra layer of encryption before writing into
  * the phone's keychain
  */
-// Module-level so the flag stays writable after `Object.freeze(instance)`:
-// prototype accessors route assignments here instead of to a frozen own property.
-let encryptorIsAuthenticating = false;
-
 class SecureKeychainEncryptor {
   private static instance: SecureKeychainEncryptor | null = null;
 
@@ -56,14 +52,6 @@ class SecureKeychainEncryptor {
 
   set isAuthenticating(value: boolean) {
     this.#getPrivateState().isAuthenticating = value;
-  }
-
-  get isAuthenticating(): boolean {
-    return encryptorIsAuthenticating;
-  }
-
-  set isAuthenticating(value: boolean) {
-    encryptorIsAuthenticating = value;
   }
 
   static getInstance(code: string): SecureKeychainEncryptor {
