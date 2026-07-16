@@ -14,6 +14,7 @@ import PerpsView from '../../page-objects/Perps/PerpsView';
 import { createLogger, LogLevel } from '../../framework';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { perpsTradeTransactionExecutedExpectations } from '../../helpers/analytics/expectations/perps-trade-transaction.analytics';
 
 // E2E environment setup - mocks auto-configure via hasTestOverrides flag
 
@@ -29,6 +30,7 @@ describe(SmokePerps('Perps Position'), () => {
         fixture: new FixtureBuilder()
           .withPerpsProfile('no-positions')
           .withPerpsFirstTimeUser(false)
+          .withMetaMetricsOptIn()
           .withAccountTreeController()
           .withNetworkController({
             type: 'rpc',
@@ -57,6 +59,7 @@ describe(SmokePerps('Perps Position'), () => {
             RampsRegions[RampsRegionsEnum.SPAIN],
           );
         },
+        analyticsExpectations: perpsTradeTransactionExecutedExpectations,
       },
       async () => {
         logger.info('💰 Using E2E mock balance - no wallet import needed');
