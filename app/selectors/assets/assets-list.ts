@@ -609,10 +609,7 @@ const oneHundredths = 0.01;
 
 // BIP44 MAINTENANCE: Review what fields are really needed
 function assetToToken(
-  asset: Asset & {
-    isStaked?: boolean;
-    accountAssetInfo?: TokenI['accountAssetInfo'];
-  },
+  asset: Asset & { isStaked?: boolean },
   aggregators?: string[],
   rwaData?: TokenI['rwaData'],
 ): TokenI {
@@ -658,9 +655,6 @@ function assetToToken(
     ticker: asset.symbol,
     accountType: asset.accountType,
     rwaData,
-    ...(asset.accountAssetInfo !== undefined
-      ? { accountAssetInfo: asset.accountAssetInfo }
-      : {}),
   };
 }
 

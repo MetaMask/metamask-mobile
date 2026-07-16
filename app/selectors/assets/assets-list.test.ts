@@ -1836,50 +1836,6 @@ describe('selectAsset', () => {
     expect(result?.isStaked).not.toBeUndefined();
   });
 
-  it('propagates accountAssetInfo from multichain asset into TokenI', () => {
-    const innerSelector = jest.mocked(innerSelectAssetsBySelectedAccountGroup);
-    const stellarAssetId =
-      'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
-    const accountAssetInfo = { limit: '1000', authorized: true };
-
-    innerSelector.mockReturnValue({
-      'stellar:pubnet': [
-        {
-          assetId: stellarAssetId,
-          chainId: 'stellar:pubnet',
-          accountId: 'stellar-account-id',
-          accountType: 'stellar:account',
-          balance: '5',
-          rawBalance: '0x0',
-          decimals: 7,
-          image: '',
-          name: 'USDC',
-          symbol: 'USDC',
-          isNative: false,
-          fiat: undefined,
-          accountAssetInfo,
-        },
-      ],
-    } as AccountGroupAssets);
-
-    selectAssetsBySelectedAccountGroup.memoizedResultFunc.clearCache();
-    selectAssetsBySelectedAccountGroup.clearCache();
-    selectAsset.clearCache();
-
-    const result = selectAsset(mockState(), {
-      address: stellarAssetId,
-      chainId: 'stellar:pubnet',
-      isStaked: false,
-    });
-
-    expect(result?.accountAssetInfo).toStrictEqual(accountAssetInfo);
-
-    innerSelector.mockImplementation(
-      jest.requireActual('@metamask/assets-controllers')
-        .selectAssetsBySelectedAccountGroup,
-    );
-  });
-
   describe('balanceFiat locale formatting', () => {
     beforeEach(() => {
       const actualNumberFormat = Intl.NumberFormat;
