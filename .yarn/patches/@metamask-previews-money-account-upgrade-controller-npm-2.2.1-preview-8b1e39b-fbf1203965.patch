@@ -1,0 +1,218 @@
+diff --git a/dist/MoneyAccountUpgradeController.cjs b/dist/MoneyAccountUpgradeController.cjs
+index 79848364be6c98b4252f9d09294ebc4cda0ddb85..9e53c1d6c327bf225cd9e801f3aa1e8aa524210f 100644
+--- a/dist/MoneyAccountUpgradeController.cjs
++++ b/dist/MoneyAccountUpgradeController.cjs
+@@ -157,20 +157,27 @@ class MoneyAccountUpgradeController extends base_controller_1.BaseController {
+         const configFingerprint = computeConfigFingerprint(config);
+         if (this.state.upgradedAccounts[accountKey]?.configFingerprint ===
+             configFingerprint) {
++            console.log('[MoneyAccountUpgrade] skipping - account recorded as upgraded under active config', accountKey);
+             return;
+         }
++        console.log('[MoneyAccountUpgrade] running upgrade sequence for', accountKey);
+         for (const step of __classPrivateFieldGet(this, _MoneyAccountUpgradeController_steps, "f")) {
+             try {
+-                await step.run({
++                console.log(`[MoneyAccountUpgrade] step "${step.name}" starting`);
++                const stepStartedAt = Date.now();
++                const result = await step.run({
+                     messenger: this.messenger,
+                     address,
+                     ...config,
+                 });
++                console.log(`[MoneyAccountUpgrade] step "${step.name}" -> ${result} (${Date.now() - stepStartedAt}ms)`);
+             }
+             catch (error) {
++                console.log(`[MoneyAccountUpgrade] step "${step.name}" failed:`, error);
+                 throw new errors_1.MoneyAccountUpgradeStepError(step.name, error);
+             }
+         }
++        console.log('[MoneyAccountUpgrade] all steps done - recording upgraded account', accountKey);
+         this.update((state) => {
+             state.upgradedAccounts[accountKey] = {
+                 configFingerprint,
+@@ -197,9 +204,11 @@ class MoneyAccountUpgradeController extends base_controller_1.BaseController {
+     async upgradeAccountWithRetry(address, { signal, maxAttempts = DEFAULT_MAX_RETRY_ATTEMPTS, } = {}) {
+         for (let attempt = 1;; attempt++) {
+             if (signal?.aborted) {
++                console.log(`[MoneyAccountUpgrade] aborted before attempt ${attempt}`);
+                 throw new Error(RETRY_ABORTED_MESSAGE);
+             }
+             try {
++                console.log(`[MoneyAccountUpgrade] attempt ${attempt}/${maxAttempts}`);
+                 await this.upgradeAccount(address);
+                 return;
+             }
+@@ -207,9 +216,15 @@ class MoneyAccountUpgradeController extends base_controller_1.BaseController {
+                 if (attempt >= maxAttempts ||
+                     !(0, errors_1.isMoneyAccountUpgradeStepError)(error) ||
+                     (0, errors_1.isTerminalMoneyAccountUpgradeError)(error)) {
++                    console.log(`[MoneyAccountUpgrade] giving up after attempt ${attempt}`, {
++                        terminal: (0, errors_1.isTerminalMoneyAccountUpgradeError)(error),
++                        stepError: (0, errors_1.isMoneyAccountUpgradeStepError)(error),
++                    });
+                     throw error;
+                 }
+-                await waitUnlessAborted(retryDelayMs(attempt), signal);
++                const delayMs = retryDelayMs(attempt);
++                console.log(`[MoneyAccountUpgrade] attempt ${attempt} failed - retrying in ${delayMs}ms:`, error instanceof Error ? error.message : error);
++                await waitUnlessAborted(delayMs, signal);
+             }
+         }
+     }
+diff --git a/dist/MoneyAccountUpgradeController.mjs b/dist/MoneyAccountUpgradeController.mjs
+index 1c5d1eca65116315e21ec53902a44ab0538fb0e0..9159e4ef84997f4a48ebdf7e2db9dd22c65bdcc4 100644
+--- a/dist/MoneyAccountUpgradeController.mjs
++++ b/dist/MoneyAccountUpgradeController.mjs
+@@ -153,20 +153,27 @@ export class MoneyAccountUpgradeController extends BaseController {
+         const configFingerprint = computeConfigFingerprint(config);
+         if (this.state.upgradedAccounts[accountKey]?.configFingerprint ===
+             configFingerprint) {
++            console.log('[MoneyAccountUpgrade] skipping - account recorded as upgraded under active config', accountKey);
+             return;
+         }
++        console.log('[MoneyAccountUpgrade] running upgrade sequence for', accountKey);
+         for (const step of __classPrivateFieldGet(this, _MoneyAccountUpgradeController_steps, "f")) {
+             try {
+-                await step.run({
++                console.log(`[MoneyAccountUpgrade] step "${step.name}" starting`);
++                const stepStartedAt = Date.now();
++                const result = await step.run({
+                     messenger: this.messenger,
+                     address,
+                     ...config,
+                 });
++                console.log(`[MoneyAccountUpgrade] step "${step.name}" -> ${result} (${Date.now() - stepStartedAt}ms)`);
+             }
+             catch (error) {
++                console.log(`[MoneyAccountUpgrade] step "${step.name}" failed:`, error);
+                 throw new MoneyAccountUpgradeStepError(step.name, error);
+             }
+         }
++        console.log('[MoneyAccountUpgrade] all steps done - recording upgraded account', accountKey);
+         this.update((state) => {
+             state.upgradedAccounts[accountKey] = {
+                 configFingerprint,
+@@ -193,9 +200,11 @@ export class MoneyAccountUpgradeController extends BaseController {
+     async upgradeAccountWithRetry(address, { signal, maxAttempts = DEFAULT_MAX_RETRY_ATTEMPTS, } = {}) {
+         for (let attempt = 1;; attempt++) {
+             if (signal?.aborted) {
++                console.log(`[MoneyAccountUpgrade] aborted before attempt ${attempt}`);
+                 throw new Error(RETRY_ABORTED_MESSAGE);
+             }
+             try {
++                console.log(`[MoneyAccountUpgrade] attempt ${attempt}/${maxAttempts}`);
+                 await this.upgradeAccount(address);
+                 return;
+             }
+@@ -203,9 +212,15 @@ export class MoneyAccountUpgradeController extends BaseController {
+                 if (attempt >= maxAttempts ||
+                     !isMoneyAccountUpgradeStepError(error) ||
+                     isTerminalMoneyAccountUpgradeError(error)) {
++                    console.log(`[MoneyAccountUpgrade] giving up after attempt ${attempt}`, {
++                        terminal: isTerminalMoneyAccountUpgradeError(error),
++                        stepError: isMoneyAccountUpgradeStepError(error),
++                    });
+                     throw error;
+                 }
+-                await waitUnlessAborted(retryDelayMs(attempt), signal);
++                const delayMs = retryDelayMs(attempt);
++                console.log(`[MoneyAccountUpgrade] attempt ${attempt} failed - retrying in ${delayMs}ms:`, error instanceof Error ? error.message : error);
++                await waitUnlessAborted(delayMs, signal);
+             }
+         }
+     }
+diff --git a/dist/steps/associate-address.cjs b/dist/steps/associate-address.cjs
+index 1b793e674365e1e677e052e070cdbd4f1669e30d..fadec17bf0c96b2c973ad3cb4a68623cac6bea94 100644
+--- a/dist/steps/associate-address.cjs
++++ b/dist/steps/associate-address.cjs
+@@ -49,32 +49,41 @@ exports.associateAddressStep = {
+         };
+         try {
+             if (await isAssociated()) {
++                console.log('[MoneyAccountUpgrade] associate-address: GET lookup found existing association');
+                 return 'already-done';
+             }
++            console.log('[MoneyAccountUpgrade] associate-address: GET lookup found no association');
+         }
+-        catch {
++        catch (lookupError) {
+             // The lookup is an optimization — the POST path below is authoritative.
++            console.log('[MoneyAccountUpgrade] associate-address: GET lookup failed, falling through to POST:', lookupError instanceof Error ? lookupError.message : lookupError);
+         }
+         const timestamp = Date.now();
+         const message = `CHOMP Authentication ${timestamp}`;
++        console.log('[MoneyAccountUpgrade] associate-address: signing CHOMP auth message');
+         const signature = (await messenger.call('KeyringController:signPersonalMessage', { data: message, from: address }));
+         try {
+             const response = await messenger.call('ChompApiService:associateAddress', { signature, timestamp, address });
++            console.log(`[MoneyAccountUpgrade] associate-address: POST returned status "${response.status}"`);
+             return response.status === 'active' ? 'already-done' : 'completed';
+         }
+         catch (error) {
+             if (isConflictError(error)) {
++                console.log('[MoneyAccountUpgrade] associate-address: POST 409 conflict, re-fetching associations to disambiguate');
+                 let associated;
+                 try {
+                     associated = await isAssociated();
+                 }
+                 catch {
+                     // Could not disambiguate — surface the original conflict.
++                    console.log('[MoneyAccountUpgrade] associate-address: disambiguating lookup failed, surfacing original conflict');
+                     throw error;
+                 }
+                 if (associated) {
++                    console.log('[MoneyAccountUpgrade] associate-address: conflict was a benign same-profile race');
+                     return 'already-done';
+                 }
++                console.log('[MoneyAccountUpgrade] associate-address: confirmed cross-profile conflict (terminal)');
+                 throw new errors_1.TerminalUpgradeError(`Address ${address} is associated with a different CHOMP profile.`);
+             }
+             throw error;
+diff --git a/dist/steps/associate-address.mjs b/dist/steps/associate-address.mjs
+index cbd873047e271984ca8cd317bde4604031949a9a..58c88c86fbbdb28d394a4198617b2c843e8c8675 100644
+--- a/dist/steps/associate-address.mjs
++++ b/dist/steps/associate-address.mjs
+@@ -46,32 +46,41 @@ export const associateAddressStep = {
+         };
+         try {
+             if (await isAssociated()) {
++                console.log('[MoneyAccountUpgrade] associate-address: GET lookup found existing association');
+                 return 'already-done';
+             }
++            console.log('[MoneyAccountUpgrade] associate-address: GET lookup found no association');
+         }
+-        catch {
++        catch (lookupError) {
+             // The lookup is an optimization — the POST path below is authoritative.
++            console.log('[MoneyAccountUpgrade] associate-address: GET lookup failed, falling through to POST:', lookupError instanceof Error ? lookupError.message : lookupError);
+         }
+         const timestamp = Date.now();
+         const message = `CHOMP Authentication ${timestamp}`;
++        console.log('[MoneyAccountUpgrade] associate-address: signing CHOMP auth message');
+         const signature = (await messenger.call('KeyringController:signPersonalMessage', { data: message, from: address }));
+         try {
+             const response = await messenger.call('ChompApiService:associateAddress', { signature, timestamp, address });
++            console.log(`[MoneyAccountUpgrade] associate-address: POST returned status "${response.status}"`);
+             return response.status === 'active' ? 'already-done' : 'completed';
+         }
+         catch (error) {
+             if (isConflictError(error)) {
++                console.log('[MoneyAccountUpgrade] associate-address: POST 409 conflict, re-fetching associations to disambiguate');
+                 let associated;
+                 try {
+                     associated = await isAssociated();
+                 }
+                 catch {
+                     // Could not disambiguate — surface the original conflict.
++                    console.log('[MoneyAccountUpgrade] associate-address: disambiguating lookup failed, surfacing original conflict');
+                     throw error;
+                 }
+                 if (associated) {
++                    console.log('[MoneyAccountUpgrade] associate-address: conflict was a benign same-profile race');
+                     return 'already-done';
+                 }
++                console.log('[MoneyAccountUpgrade] associate-address: confirmed cross-profile conflict (terminal)');
+                 throw new TerminalUpgradeError(`Address ${address} is associated with a different CHOMP profile.`);
+             }
+             throw error;
