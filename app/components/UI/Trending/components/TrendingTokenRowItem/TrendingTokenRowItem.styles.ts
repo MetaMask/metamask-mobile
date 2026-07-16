@@ -1,20 +1,16 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme; embedded?: boolean }) => {
-  const { theme, embedded = false } = params;
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
   return StyleSheet.create({
     container: {
       display: 'flex',
       flexDirection: 'row',
       alignItems: 'flex-start',
       alignSelf: 'stretch',
-      ...(embedded
-        ? {}
-        : {
-            paddingTop: 8,
-            paddingBottom: 8,
-          }),
+      paddingTop: 8,
+      paddingBottom: 8,
       gap: 16,
     },
     badge: {

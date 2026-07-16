@@ -1,17 +1,11 @@
 import React, { useCallback } from 'react';
-import { LayoutAnimation, Pressable, View } from 'react-native';
+import { LayoutAnimation, View } from 'react-native';
 import type { CaipAssetType } from '@metamask/utils';
 import {
   ButtonIcon,
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
-import { useReorderableDrag } from 'react-native-reorderable-list';
-import Icon, {
-  IconColor,
-  IconName as LocalIconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { useTokenWatchlistRemoveItemMutation } from '../../hooks/useTokenWatchlistMutations';
 import TrendingTokenRowItem from '../../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
@@ -33,7 +27,6 @@ const WatchlistEditableRow = ({
 }: WatchlistEditableRowProps) => {
   const { styles } = useStyles(styleSheet, {});
   const removeMutation = useTokenWatchlistRemoveItemMutation();
-  const drag = useReorderableDrag();
 
   const handleUnwatch = useCallback(() => {
     LayoutAnimation.configureNext(
@@ -52,34 +45,18 @@ const WatchlistEditableRow = ({
       testID={WatchlistFullScreenViewSelectorsIDs.EDITABLE_ROW}
     >
       <View
-        style={isEditMode ? undefined : styles.editControlHidden}
-        pointerEvents={isEditMode ? 'auto' : 'none'}
+        style={styles.editableRowContent}
+        pointerEvents={isEditMode ? 'none' : 'auto'}
       >
-        <Pressable
-          onLongPress={drag}
-          disabled={!isEditMode}
-          testID={WatchlistFullScreenViewSelectorsIDs.DRAG_HANDLE}
-        >
-          <Icon
-            name={LocalIconName.DragGrid}
-            size={IconSize.Lg}
-            color={IconColor.Muted}
-            style={styles.dragGridIcon}
-          />
-        </Pressable>
-      </View>
-
-      <View style={styles.editableRowContent}>
         <TrendingTokenRowItem
           token={token}
           position={position}
-          embedded
           tokenDetailsSource={TokenDetailsSource.WatchlistFullscreen}
         />
       </View>
 
       <View
-        style={isEditMode ? undefined : styles.editControlHidden}
+        style={isEditMode ? styles.unwatchStar : styles.editControlHidden}
         pointerEvents={isEditMode ? 'auto' : 'none'}
       >
         <ButtonIcon

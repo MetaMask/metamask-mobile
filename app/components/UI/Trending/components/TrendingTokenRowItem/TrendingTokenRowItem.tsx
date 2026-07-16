@@ -92,11 +92,6 @@ interface TrendingTokenRowItemProps {
   testIdInstanceKey?: string;
   /** When provided, shows a circular Quick Trade button on the right of the row. */
   onQuickTrade?: (token: TrendingAsset) => void;
-  /**
-   * When true, omits vertical padding so a parent row (e.g. watchlist edit row)
-   * owns spacing via its own layout.
-   */
-  embedded?: boolean;
 }
 
 /**
@@ -150,9 +145,8 @@ const TrendingTokenRowItem = ({
   onCardPress,
   testIdInstanceKey,
   onQuickTrade,
-  embedded = false,
 }: TrendingTokenRowItemProps) => {
-  const { styles } = useStyles(styleSheet, { embedded });
+  const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
 
   const caipChainId = useMemo(
