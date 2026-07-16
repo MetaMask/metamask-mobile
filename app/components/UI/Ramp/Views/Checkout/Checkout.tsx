@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import type { Dispatch, UnknownAction } from 'redux';
+import type { AnyAction, Dispatch } from 'redux';
 import { useDispatch } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { v4 as uuidv4 } from 'uuid';
@@ -112,7 +112,7 @@ interface HandleHeadlessCheckoutCallbackParams {
     walletAddress: string,
   ) => Promise<RampsOrder>;
   addOrder: (order: RampsOrder) => void;
-  dispatch: Dispatch<UnknownAction>;
+  dispatch: Dispatch<AnyAction>;
   dismissActiveHeadlessFlow: () => void;
 }
 
