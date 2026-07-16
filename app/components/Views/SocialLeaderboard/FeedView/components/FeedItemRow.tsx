@@ -23,6 +23,7 @@ import type { FeedItem } from '../types';
 import { formatFeedTimestamp } from '../../utils/formatters';
 import {
   getFeedItemTestId,
+  getFeedNewPositionTestId,
   getFeedTradeButtonTestId,
   getFeedTradeCardTestId,
   getFeedTraderTestId,
@@ -72,6 +73,16 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   const actionLabel = strings(`social_leaderboard.feed.action.${item.action}`);
   const timeLabel = formatFeedTimestamp(item.timestamp);
   const symbol = item.type === 'spot' ? item.tokenSymbol : item.marketSymbol;
+
+  // For open rows whose value/P&L hasn't arrived yet, surface an intentional
+  // "Just bought"/"Just opened" label instead of a blank right column. Only open
+  // actions have a label; closed rows (`sold`/`closed`) stay blank when empty.
+  const newPositionLabelKey =
+    item.action === 'bought'
+      ? 'social_leaderboard.feed.new_position.bought'
+      : item.action === 'opened'
+        ? 'social_leaderboard.feed.new_position.opened'
+        : null;
 
   return (
     <Box twClassName="px-4 py-3 gap-4" testID={getFeedItemTestId(item.id)}>
@@ -181,7 +192,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
             </Text>
           </Box>
 
-          {(item.hasValueData || item.hasPnlData) && (
+          {item.hasValueData || item.hasPnlData ? (
             <Box alignItems={BoxAlignItems.End}>
               {item.hasValueData ? (
                 <Text
@@ -207,7 +218,18 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
                 </Text>
               ) : null}
             </Box>
-          )}
+          ) : newPositionLabelKey ? (
+            <Box alignItems={BoxAlignItems.End}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                numberOfLines={1}
+                testID={getFeedNewPositionTestId(item.id)}
+              >
+                {strings(newPositionLabelKey)}
+              </Text>
+            </Box>
+          ) : null}
         </Box>
       </Pressable>
     </Box>

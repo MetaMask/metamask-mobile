@@ -5,6 +5,7 @@ import FeedItemRow from './FeedItemRow';
 import type { FeedPerpItem, FeedSpotItem } from '../types';
 import {
   getFeedItemTestId,
+  getFeedNewPositionTestId,
   getFeedTradeButtonTestId,
   getFeedTradeCardTestId,
   getFeedTraderTestId,
@@ -218,5 +219,93 @@ describe('FeedItemRow', () => {
     expect(
       screen.queryByTestId('feed-item-perp-badges-perp-1-leverage'),
     ).toBeNull();
+  });
+
+  it('shows the "Just bought" label on an empty open spot row', () => {
+    const item: FeedSpotItem = {
+      ...spotItem,
+      action: 'bought',
+      valueLabel: '',
+      pnlLabel: '',
+      hasValueData: false,
+      hasPnlData: false,
+    };
+
+    renderWithProvider(
+      <FeedItemRow
+        item={item}
+        onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(getFeedNewPositionTestId('spot-1')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('social_leaderboard.feed.new_position.bought'),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the "Just opened" label on an empty open perp row', () => {
+    const item: FeedPerpItem = {
+      ...perpItem,
+      action: 'opened',
+      valueLabel: '',
+      pnlLabel: '',
+      hasValueData: false,
+      hasPnlData: false,
+    };
+
+    renderWithProvider(
+      <FeedItemRow
+        item={item}
+        onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByText('social_leaderboard.feed.new_position.opened'),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not show a new-position label on an empty closed row', () => {
+    const item: FeedPerpItem = {
+      ...perpItem,
+      action: 'closed',
+      valueLabel: '',
+      pnlLabel: '',
+      hasValueData: false,
+      hasPnlData: false,
+    };
+
+    renderWithProvider(
+      <FeedItemRow
+        item={item}
+        onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryByTestId(getFeedNewPositionTestId('perp-1'))).toBeNull();
+  });
+
+  it('shows value/PnL and no new-position label when an open row has data', () => {
+    renderWithProvider(
+      <FeedItemRow
+        item={spotItem}
+        onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('$123,000.5')).toBeOnTheScreen();
+    expect(screen.getByText('+12%')).toBeOnTheScreen();
+    expect(screen.queryByTestId(getFeedNewPositionTestId('spot-1'))).toBeNull();
   });
 });

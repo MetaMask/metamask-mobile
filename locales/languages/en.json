@@ -1123,6 +1123,10 @@
         "opened": "opened",
         "closed": "closed"
       },
+      "new_position": {
+        "bought": "Just bought",
+        "opened": "Just opened"
+      },
       "empty_following": {
         "title": "No activity yet",
         "description": "Follow traders to see their trades show up here."
