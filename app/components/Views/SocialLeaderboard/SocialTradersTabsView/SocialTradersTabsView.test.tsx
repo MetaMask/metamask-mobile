@@ -145,7 +145,7 @@ describe('SocialTradersTabsView', () => {
     ).toBe(true);
   });
 
-  it('tracks tab changes with tap interaction when a different tab is pressed', () => {
+  it('tracks tab changes via Follow Trading Interaction when a different tab is pressed', () => {
     renderWithProvider(<SocialTradersTabsView />);
 
     fireEvent.press(
@@ -153,15 +153,16 @@ describe('SocialTradersTabsView', () => {
     );
 
     expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TAB_CHANGED,
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
       {
+        interaction_type: 'tab_changed',
         tab: 'tab_feed',
-        interaction_type: 'tap',
+        tab_change_method: 'tap',
       },
     );
   });
 
-  it('tracks tab changes with swipe interaction when the pager reports a page change', () => {
+  it('tracks swipe tab changes via Follow Trading Interaction', () => {
     renderWithProvider(<SocialTradersTabsView />);
 
     fireEvent.press(
@@ -175,10 +176,11 @@ describe('SocialTradersTabsView', () => {
     });
 
     expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TAB_CHANGED,
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
       {
+        interaction_type: 'tab_changed',
         tab: 'tab_leaderboard',
-        interaction_type: 'swipe',
+        tab_change_method: 'swipe',
       },
     );
   });
@@ -198,10 +200,11 @@ describe('SocialTradersTabsView', () => {
     });
 
     expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TAB_CHANGED,
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
       {
+        interaction_type: 'tab_changed',
         tab: 'tab_feed',
-        interaction_type: 'swipe',
+        tab_change_method: 'swipe',
       },
     );
   });
