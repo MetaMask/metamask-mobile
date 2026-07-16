@@ -8,7 +8,10 @@ import { AnalyticsEventBuilder } from '../util/analytics/AnalyticsEventBuilder';
 import Device from '../util/device';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
 import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-const privates = new WeakMap();
+const privates = new WeakMap<
+  SecureKeychainEncryptor,
+  { code: string; isAuthenticating: boolean }
+>();
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
 });
@@ -32,11 +35,21 @@ enum SecureKeychainTypes {
  * the phone's keychain
  */
 class SecureKeychainEncryptor {
-  isAuthenticating = false;
   private static instance: SecureKeychainEncryptor | null = null;
 
   private constructor(code: string) {
-    privates.set(this, { code });
+    privates.set(this, { code, isAuthenticating: false });
+  }
+
+  get isAuthenticating(): boolean {
+    return privates.get(this)?.isAuthenticating ?? false;
+  }
+
+  set isAuthenticating(value: boolean) {
+    const state = privates.get(this);
+    if (state) {
+      state.isAuthenticating = value;
+    }
   }
 
   static getInstance(code: string): SecureKeychainEncryptor {
