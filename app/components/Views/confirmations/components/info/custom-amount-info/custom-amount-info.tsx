@@ -45,6 +45,7 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayFiatPayment,
   useTransactionPayQuotes,
+  useTransactionPayQuotesLastUpdated,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
@@ -191,9 +192,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       !isAddMusdIntent && !isDepositPrefillEnabled,
     );
     const [isAmountUpdating, setIsAmountUpdating] = useState(false);
+    const [isAmountUpdateComplete, setIsAmountUpdateComplete] = useState(false);
     // React batches rapid presses before the state update rerenders, so keep a
     // synchronous guard separate from the render state.
     const isAmountUpdateInProgressRef = useRef(false);
+    const quotesLastUpdatedBeforeAmountUpdateRef = useRef<number | undefined>(
+      undefined,
+    );
+    const quotesLastUpdatedRef = useRef<number | undefined>(undefined);
     const wasKeyboardEverVisible = useRef(isKeyboardVisible);
     if (isKeyboardVisible) {
       wasKeyboardEverVisible.current = true;
@@ -225,6 +231,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const isTransactionResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
+    const quotesLastUpdated = useTransactionPayQuotesLastUpdated();
+    quotesLastUpdatedRef.current = quotesLastUpdated;
     const isQuotesLoading = useIsTransactionPayLoading();
     const showLoadingReview = isAmountUpdating || isQuotesLoading;
     const isResultReady =
@@ -261,6 +269,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       }
 
       isAmountUpdateInProgressRef.current = true;
+      setIsAmountUpdateComplete(false);
       setIsAmountUpdating(true);
       setIsKeyboardVisible(false);
 
@@ -277,6 +286,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         // Amount committed (pre-quote) funnel event; only fires once the amount
         // has been successfully applied above (no-op for non-money flows).
         trackAmountCommitted();
+        quotesLastUpdatedBeforeAmountUpdateRef.current =
+          quotesLastUpdatedRef.current;
+        setIsAmountUpdateComplete(true);
       } catch (error) {
         const prefixed = prefixError(error, AMOUNT_UPDATE_ERROR_PREFIX);
         toastRef?.current?.showToast(
@@ -285,11 +297,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           ),
         );
         setIsKeyboardVisible(true);
+        setIsAmountUpdateComplete(false);
+        setIsAmountUpdating(false);
         // Keep keyboard visible so the user can retry; do not advance the flow.
         return;
       } finally {
         isAmountUpdateInProgressRef.current = false;
-        setIsAmountUpdating(false);
       }
       EngineService.flushState();
       setIsKeyboardVisible(false);
@@ -303,6 +316,20 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       transactionId,
       updateTokenAmount,
     ]);
+
+    useEffect(() => {
+      const hasCompletedQuoteRequest =
+        quotesLastUpdated !== undefined &&
+        quotesLastUpdated !== quotesLastUpdatedBeforeAmountUpdateRef.current;
+
+      if (
+        isAmountUpdateComplete &&
+        (isQuotesLoading || hasCompletedQuoteRequest)
+      ) {
+        setIsAmountUpdateComplete(false);
+        setIsAmountUpdating(false);
+      }
+    }, [isAmountUpdateComplete, isQuotesLoading, quotesLastUpdated]);
 
     const wasPrefillPending = useRef(isPrefillPending);
     useEffect(() => {
