@@ -54,7 +54,7 @@ index 81a8a70576a2336fbfce44f429b80acb6bacb2c1..f8916b181efe7ba4ab598d3e6fb11477
      borderTopWidth: 0,
      borderLeftWidth: 0,
 diff --git a/index.js b/index.js
-index dc9d4f4e0bb7b5a165e0bcc89133e4bf6cdfff91..94f7ac60e15478b197aa3f537224745d0d5fecb6 100644
+index dc9d4f4e0bb7b5a165e0bcc89133e4bf6cdfff91..496530970bce3754e76362737be4c3491d159f05 100644
 --- a/index.js
 +++ b/index.js
 @@ -13,17 +13,14 @@ const {
@@ -98,12 +98,3 @@ index dc9d4f4e0bb7b5a165e0bcc89133e4bf6cdfff91..94f7ac60e15478b197aa3f537224745d
          )}
          ref={(scrollView) => { this.scrollView = scrollView; }}
          {...this.props.contentProps}
-@@ -348,7 +342,7 @@ const ScrollableTabView = createReactClass({
-       // Need to call __makeNative manually to avoid a native animated bug. See
-       // https://github.com/facebook/react-native/pull/14435
-       containerWidthAnimatedValue.__makeNative();
--      scrollValue = Animated.divide(this.state.scrollXIOS, containerWidthAnimatedValue);
-+      const scrollValue = Animated.divide(this.state.scrollXIOS, containerWidthAnimatedValue);
-       this.setState({ containerWidth: width, scrollValue, });
-     } else {
-       this.setState({ containerWidth: width, });
