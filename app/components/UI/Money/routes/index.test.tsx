@@ -13,7 +13,7 @@ jest.mock('../hooks/useUpgradeMoneyAccountOnFocus', () => ({
   useUpgradeMoneyAccountOnFocus: jest.fn(),
 }));
 
-const mockUseUpgradeMoneyAccountOnMount = jest.mocked(
+const mockUseUpgradeMoneyAccountOnFocus = jest.mocked(
   useUpgradeMoneyAccountOnFocus,
 );
 
@@ -148,7 +148,7 @@ describe('MoneyTabScreenStack', () => {
       theme: themeWithCustomBackground,
     });
 
-    expect(mockUseUpgradeMoneyAccountOnMount).toHaveBeenCalledTimes(1);
+    expect(mockUseUpgradeMoneyAccountOnFocus).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -193,7 +193,7 @@ describe('MoneyConfirmationScreenStack', () => {
       theme: themeWithCustomBackground,
     });
 
-    expect(mockUseUpgradeMoneyAccountOnMount).toHaveBeenCalledTimes(1);
+    expect(mockUseUpgradeMoneyAccountOnFocus).toHaveBeenCalledTimes(1);
   });
 });
 

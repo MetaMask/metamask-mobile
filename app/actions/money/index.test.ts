@@ -133,17 +133,42 @@ describe('upgradeMoneyAccount', () => {
     );
   });
 
-  it('does not log success when the upgrade fails', async () => {
+  it('reports the failure and does not log success when the upgrade fails', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
     mockUpgradeAccount.mockRejectedValueOnce(new Error('boom'));
 
     upgradeMoneyAccount()(dispatch, getState, undefined);
     await flushPromises();
 
+    expect(mockLogError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'boom' }),
+      expect.objectContaining({
+        tags: expect.objectContaining({ feature: 'money-account-upgrade' }),
+      }),
+    );
     expect(mockLogLog).not.toHaveBeenCalledWith(
       expect.stringContaining('upgradeMoneyAccount'),
       'upgrade succeeded',
       expect.anything(),
+    );
+  });
+
+  it('reports a genuine failure that lands after the signal has aborted', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    const abortController = new AbortController();
+    mockUpgradeAccount.mockImplementationOnce(() => {
+      abortController.abort();
+      return Promise.reject(new Error('terminal boom'));
+    });
+
+    upgradeMoneyAccount(abortController.signal)(dispatch, getState, undefined);
+    await flushPromises();
+
+    expect(mockLogError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'terminal boom' }),
+      expect.objectContaining({
+        tags: expect.objectContaining({ feature: 'money-account-upgrade' }),
+      }),
     );
   });
 
@@ -312,9 +337,84 @@ describe('upgradeMoneyAccount', () => {
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
     expect(mockLogLog).toHaveBeenCalledWith(
       expect.stringContaining('upgradeMoneyAccount'),
-      'upgrade already in flight; skipping',
+      'upgrade already in flight; queued takeover',
       { address: ADDRESS },
     );
+  });
+
+  it('restarts a shadowed upgrade under the takeover signal when the first run is aborted', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    const first = new AbortController();
+    const second = new AbortController();
+    let rejectFirst: (error: Error) => void = () => undefined;
+    mockUpgradeAccount.mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectFirst = reject;
+        }),
+    );
+
+    upgradeMoneyAccount(first.signal)(dispatch, getState, undefined);
+    await flushPromises();
+    // A second screen focuses while the first run is still in flight.
+    upgradeMoneyAccount(second.signal)(dispatch, getState, undefined);
+    expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
+
+    // The first screen blurs: its run aborts and unwinds.
+    first.abort();
+    rejectFirst(new Error('Money Account upgrade retry aborted'));
+    await flushPromises();
+
+    expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
+    expect(mockUpgradeAccount).toHaveBeenNthCalledWith(2, ADDRESS, {
+      signal: second.signal,
+    });
+  });
+
+  it('does not restart when the takeover signal is already aborted', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    const first = new AbortController();
+    const second = new AbortController();
+    let rejectFirst: (error: Error) => void = () => undefined;
+    mockUpgradeAccount.mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectFirst = reject;
+        }),
+    );
+
+    upgradeMoneyAccount(first.signal)(dispatch, getState, undefined);
+    await flushPromises();
+    upgradeMoneyAccount(second.signal)(dispatch, getState, undefined);
+
+    second.abort();
+    first.abort();
+    rejectFirst(new Error('Money Account upgrade retry aborted'));
+    await flushPromises();
+
+    expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not restart when the first run settles without being aborted', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    const first = new AbortController();
+    const second = new AbortController();
+    let resolveFirst: () => void = () => undefined;
+    mockUpgradeAccount.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveFirst = resolve;
+        }),
+    );
+
+    upgradeMoneyAccount(first.signal)(dispatch, getState, undefined);
+    await flushPromises();
+    upgradeMoneyAccount(second.signal)(dispatch, getState, undefined);
+
+    resolveFirst();
+    await flushPromises();
+
+    expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
   });
 
   it('allows a subsequent upgrade after a previous one resolves', async () => {
