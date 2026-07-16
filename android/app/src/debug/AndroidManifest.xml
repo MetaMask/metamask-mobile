@@ -10,6 +10,9 @@
         tools:targetApi="28"
         tools:ignore="GoogleAppIndexingWarning"
         tools:replace="android:usesCleartextTraffic,android:networkSecurityConfig">
+        <meta-data
+            android:name="asset_statements"
+            android:resource="@string/asset_statements" />
         <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" android:exported="false" />
         <meta-data android:name="io.branch.sdk.TestMode" android:value="false" /> <!-- Set to true to use Branch_Test_Key -->
     </application>

@@ -1,0 +1,8 @@
+<resources>
+	<!-- Dev-only: associate debug builds with PASSKEY_RP_ID_ANDROID for passkey testing. -->
+	<string name="asset_statements" translatable="false">
+		[{
+			\"include\": \"https://matthiasgeihs.github.io/.well-known/assetlinks.json\"
+		}]
+	</string>
+</resources>
