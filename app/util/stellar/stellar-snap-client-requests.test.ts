@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import { HandlerType } from '@metamask/snaps-utils';
 import Engine from '../../core/Engine';
 import { handleSnapRequest } from '../../core/Snaps/utils';
@@ -81,4 +80,3 @@ describe('stellar-snap-client-requests', () => {
     );
   });
 });
-///: END:ONLY_INCLUDE_IF

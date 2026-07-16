@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import { act, renderHook } from '@testing-library/react-hooks';
 import { XlmScope } from '@metamask/keyring-api';
 import { errorCodes } from '@metamask/rpc-errors';
@@ -302,4 +301,3 @@ describe('useAssetActivation', () => {
     });
   });
 });
-///: END:ONLY_INCLUDE_IF

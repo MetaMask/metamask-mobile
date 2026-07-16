@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import {
   parseCaipAssetType,
   isCaipAssetType,
@@ -69,4 +68,3 @@ export const useSpendableBalance = ({
     spendableBalance,
   };
 };
-///: END:ONLY_INCLUDE_IF

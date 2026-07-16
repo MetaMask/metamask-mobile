@@ -4,7 +4,6 @@ import {
   SOL_ACCOUNT_PROVIDER_NAME,
   BTC_ACCOUNT_PROVIDER_NAME,
   TRX_ACCOUNT_PROVIDER_NAME,
-  XLM_ACCOUNT_PROVIDER_NAME,
   AccountProviderWrapper,
   XlmAccountProvider,
 } from '@metamask/multichain-account-service';
@@ -51,9 +50,7 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
   const controller = new MultichainAccountService({
     messenger: controllerMessenger,
     providers: [
-      /// BEGIN:ONLY_INCLUDE_IF(stellar)
       xlmProvider
-      /// END:ONLY_INCLUDE_IF
     ],
     providerConfigs: {
       [SOL_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,

@@ -92,12 +92,10 @@ import {
 import TokenListSecurityBadge from '../../components/TokenListSecurityBadge/TokenListSecurityBadge';
 import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys';
 import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
-///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import { AssetInactiveBadge } from '../../../AssetActivation/AssetInactiveBadge';
 import { getStellarTrustlineAssetInfoForAccount } from '../../../../../selectors/stellar/stellar-assets';
 import { isAssetRequireActivate } from '../../../../../util/multichain/trustline';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-///: END:ONLY_INCLUDE_IF
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -190,7 +188,6 @@ export const TokenListItem = React.memo(
       }),
     );
 
-    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
     const selectAccountByScope = useSelector(
       selectSelectedInternalAccountByScope,
     );
@@ -216,7 +213,6 @@ export const TokenListItem = React.memo(
         assetMetadata,
       });
     });
-    ///: END:ONLY_INCLUDE_IF
 
     const { isStockToken } = useRWAToken();
 
@@ -730,9 +726,7 @@ export const TokenListItem = React.memo(
                     />
                   )}
                 {
-                  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
                   isAssetInactive ? <AssetInactiveBadge /> : null
-                  ///: END:ONLY_INCLUDE_IF
                 }
               </View>
 

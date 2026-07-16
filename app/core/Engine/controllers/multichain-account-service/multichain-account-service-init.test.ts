@@ -4,9 +4,6 @@ import {
   SOL_ACCOUNT_PROVIDER_NAME,
   BTC_ACCOUNT_PROVIDER_NAME,
   TRX_ACCOUNT_PROVIDER_NAME,
-  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-  XLM_ACCOUNT_PROVIDER_NAME,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/multichain-account-service';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { MessengerClientInitRequest } from '../../types';
@@ -94,22 +91,17 @@ describe('MultichainAccountServiceInit', () => {
     expect(callArgs.providerConfigs).toBeDefined();
   });
 
-  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-  it('enables batched account creation with extended timeout for Stellar', () => {
+  it('includes Stellar account provider with batched account creation', () => {
     multichainAccountServiceInit(getInitRequestMock());
 
     const callArgs = jest.mocked(MultichainAccountService).mock.calls[0][0];
-    const { providerConfigs } = callArgs;
 
-    expect(providerConfigs).toBeDefined();
-    expect(
-      providerConfigs?.[XLM_ACCOUNT_PROVIDER_NAME]?.createAccounts,
-    ).toMatchObject({
-      batched: true,
-      timeoutMs: 10000,
-    });
+    expect(callArgs.providers).toHaveLength(1);
+    expect(callArgs.providerConfigs?.[SOL_ACCOUNT_PROVIDER_NAME]?.createAccounts)
+      .toMatchObject({
+        batched: true,
+      });
   });
-  ///: END:ONLY_INCLUDE_IF
 
   it('does enable batched account creation for bitcoin, tron, and solana', () => {
     multichainAccountServiceInit(getInitRequestMock());

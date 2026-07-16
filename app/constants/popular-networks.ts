@@ -4,9 +4,7 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxScope,
   ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
   XlmScope,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
 import { PopularList } from '../util/networks/customNetworks';
 import { NETWORKS_CHAIN_ID } from './network';
@@ -20,9 +18,7 @@ export const POPULAR_NETWORK_CHAIN_IDS = new Set([
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxScope.Mainnet,
   ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
   XlmScope.Pubnet,
-  ///: END:ONLY_INCLUDE_IF
 ]);
 
 export const POPULAR_NETWORK_CHAIN_IDS_CAIP = new Set([
@@ -34,7 +30,5 @@ export const POPULAR_NETWORK_CHAIN_IDS_CAIP = new Set([
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxScope.Mainnet,
   ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
   XlmScope.Pubnet,
-  ///: END:ONLY_INCLUDE_IF
 ]);

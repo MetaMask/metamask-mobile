@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import { XlmScope } from '@metamask/keyring-api';
 import type { CaipAssetType } from '@metamask/utils';
 import { renderHook } from '@testing-library/react-hooks';
@@ -98,4 +97,3 @@ describe('useSpendableBalance', () => {
     });
   });
 });
-///: END:ONLY_INCLUDE_IF

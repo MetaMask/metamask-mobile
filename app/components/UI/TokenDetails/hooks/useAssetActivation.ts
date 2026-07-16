@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import { errorCodes } from '@metamask/rpc-errors';
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -213,4 +212,3 @@ export const useAssetActivation = ({
     isDeactivating,
   };
 };
-///: END:ONLY_INCLUDE_IF

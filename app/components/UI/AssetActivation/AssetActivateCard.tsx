@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -97,4 +96,3 @@ export const AssetActivateCard = ({
     </Box>
   );
 };
-///: END:ONLY_INCLUDE_IF

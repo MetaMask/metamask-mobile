@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import { HandlerType } from '@metamask/snaps-utils';
 import type { CaipAssetType, CaipChainId } from '@metamask/utils';
 import Engine from '../../core/Engine';
@@ -48,4 +47,3 @@ export async function requestStellarChangeTrustOptDelete(params: {
     },
   });
 }
-///: END:ONLY_INCLUDE_IF

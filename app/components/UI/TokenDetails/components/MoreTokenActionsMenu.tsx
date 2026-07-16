@@ -34,9 +34,7 @@ import { TokenDetailsAction } from '../constants/constants';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { removeNonEvmToken } from '../../Tokens/util/removeNonEvmToken';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import { useAssetActivation } from '../hooks/useAssetActivation';
-///: END:ONLY_INCLUDE_IF
 
 export interface MoreTokenActionsMenuParams {
   hasPerpsMarket: boolean;
@@ -92,14 +90,12 @@ const MoreTokenActionsMenu = () => {
   );
   const { handleHideToken } = useAssetVisibility(asset);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
   const { deactivateAsset, canDeactivate, isDeactivating } = useAssetActivation(
     {
       assetId: asset.address as CaipAssetType,
       assetSymbol: asset.symbol,
     },
   );
-  ///: END:ONLY_INCLUDE_IF
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -236,7 +232,6 @@ const MoreTokenActionsMenu = () => {
     onActionTapped,
   ]);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
   const handleDeactivateTrustline = useCallback(() => {
     closeBottomSheetAndNavigate(async () => {
       const { success, errorMessage } = await deactivateAsset();
@@ -256,7 +251,6 @@ const MoreTokenActionsMenu = () => {
       }
     });
   }, [closeBottomSheetAndNavigate, deactivateAsset, navigation]);
-  ///: END:ONLY_INCLUDE_IF
 
   const tokenIsInAccount = !!useSelector((state: RootState) =>
     selectAsset(state, {
@@ -318,7 +312,6 @@ const MoreTokenActionsMenu = () => {
       });
     }
 
-    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
     if (canDeactivate) {
       actions.push({
         type: 'stellar-deactivate-trustline',
@@ -330,7 +323,6 @@ const MoreTokenActionsMenu = () => {
         onPress: handleDeactivateTrustline,
       });
     }
-    ///: END:ONLY_INCLUDE_IF
 
     return actions;
   }, [
@@ -348,11 +340,9 @@ const MoreTokenActionsMenu = () => {
     handleBuy,
     handleViewOnBlockExplorer,
     handleRemoveToken,
-    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
     handleDeactivateTrustline,
     canDeactivate,
     isDeactivating,
-    ///: END:ONLY_INCLUDE_IF
   ]);
 
   return (

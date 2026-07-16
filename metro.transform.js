@@ -24,7 +24,6 @@ const availableFeatures = new Set([
   'solana',
   'sample-feature',
   'tron',
-  'stellar',
   'experimental',
 ]);
 
@@ -36,7 +35,6 @@ const mainFeatureSet = new Set([
   'solana',
   'bitcoin',
   'tron',
-  'stellar',
 ]);
 const betaFeatureSet = new Set([
   'beta',
@@ -46,7 +44,6 @@ const betaFeatureSet = new Set([
   'solana',
   'bitcoin',
   'tron',
-  'stellar',
 ]);
 const flaskFeatureSet = new Set([
   'flask',
@@ -56,7 +53,6 @@ const flaskFeatureSet = new Set([
   'bitcoin',
   'solana',
   'tron',
-  'stellar',
 ]);
 const experimentalFeatureSet = new Set([...mainFeatureSet, 'experimental']);
 

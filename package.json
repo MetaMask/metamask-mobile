@@ -237,7 +237,8 @@
     "@metamask/assets-controllers@npm:^109.3.0": "patch:@metamask/assets-controllers@npm%3A109.4.0#~/.yarn/patches/@metamask-assets-controllers-npm-109.4.0-25a362106e.patch",
     "@metamask/assets-controllers@npm:^109.4.0": "patch:@metamask/assets-controllers@npm%3A109.4.0#~/.yarn/patches/@metamask-assets-controllers-npm-109.4.0-25a362106e.patch",
     "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
-    "@metamask/assets-controllers": "npm:@metamask-previews/assets-controllers@109.4.0-preview-2263d69"
+    "@metamask/assets-controllers": "npm:@metamask-previews/assets-controllers@109.4.0-preview-2263d69",
+    "stellar-wallet-snap": "npm:@metamask-previews/stellar-wallet-snap@0.0.1-preview-7cef84e"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -367,7 +368,7 @@
     "@metamask/solana-wallet-snap": "^2.10.0",
     "@metamask/solana-wallet-standard": "^0.6.0",
     "@metamask/stake-sdk": "^3.4.0",
-    "@metamask/stellar-wallet-snap": "patch:@metamask-previews/stellar-wallet-snap@npm%3A0.0.1-preview-a3c0091#~/.yarn/patches/@metamask-previews-stellar-wallet-snap-npm-0.0.1-preview-a3c0091-052886e43f.patch",
+    "@metamask/stellar-wallet-snap": "npm:@metamask-previews/stellar-wallet-snap@npm:0.0.1-preview-7cef84e",
     "@metamask/storage-service": "^1.0.0",
     "@metamask/superstruct": "^3.2.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",

@@ -68,9 +68,7 @@ import ROBINHOOD from './robinhood.png';
 /// BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron-logo.png';
 /// END:ONLY_INCLUDE_IF
-/// BEGIN:ONLY_INCLUDE_IF(stellar)
 import STELLAR from './xlm.png';
-/// END:ONLY_INCLUDE_IF
 
 export default {
   PALM,
@@ -100,10 +98,8 @@ export default {
   TRX: TRON,
   sTRX: TRON,
   ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
   STELLAR,
   XLM: STELLAR,
-  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   'BTC-TESTNET': BTC_TESTNET,
   'BTC-MUTINYNET': BTC_MUTINYNET,

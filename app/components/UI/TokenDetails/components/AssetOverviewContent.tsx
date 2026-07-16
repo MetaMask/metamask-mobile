@@ -88,12 +88,10 @@ import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDe
 import TronAssetOverviewSection from './TronAssetOverviewSection';
 import { isTronNativeToken } from '../utils/isTronNativeToken';
 ///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import { AssetActivateCard } from '../../AssetActivation/AssetActivateCard';
 import { SpendableBalanceSection } from '../../SpendableBalance/SpendableBalanceSection';
 import { useAssetActivation } from '../hooks/useAssetActivation';
 import { isSupportBaseReserve } from '../../../../util/multichain/spendable-balance';
-///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
@@ -264,13 +262,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     severity: securityData?.resultType,
   });
   const tronNativeToken = isTronNativeToken(token) ? token : null;
-  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
   const { requiresActivate: isAssetInactive } = useAssetActivation({
     assetId: token.address,
     assetSymbol: token.symbol,
   });
   const showSpendableBalance = isSupportBaseReserve(token.address);
-  ///: END:ONLY_INCLUDE_IF
 
   const {
     hasPerpsMarket,
@@ -611,11 +607,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             )}
 
           {
-            ///: BEGIN:ONLY_INCLUDE_IF(stellar)
             isAssetInactive ? (
               <AssetActivateCard token={token} chainName="Stellar" />
             ) : null
-            ///: END:ONLY_INCLUDE_IF
           }
 
           <Price
@@ -680,7 +674,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             ///: END:ONLY_INCLUDE_IF
           }
           {
-            ///: BEGIN:ONLY_INCLUDE_IF(stellar)
             balance != null && showSpendableBalance && (
               <SpendableBalanceSection
                 accountId={accountId}
@@ -690,7 +683,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 fiatValue={mainBalance}
               />
             )
-            ///: END:ONLY_INCLUDE_IF
           }
           {balance != null && (
             <Balance

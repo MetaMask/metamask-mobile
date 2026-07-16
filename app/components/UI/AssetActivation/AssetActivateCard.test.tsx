@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import React from 'react';
 import { render, userEvent } from '@testing-library/react-native';
 import type { CaipAssetType } from '@metamask/utils';
@@ -126,4 +125,3 @@ describe('AssetActivateCard', () => {
     expect(NotificationManager.showSimpleNotification).not.toHaveBeenCalled();
   });
 });
-///: END:ONLY_INCLUDE_IF

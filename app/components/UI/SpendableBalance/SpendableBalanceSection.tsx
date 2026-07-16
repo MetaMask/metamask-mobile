@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import React from 'react';
 import {
   Box,
@@ -138,4 +137,3 @@ export const SpendableBalanceSection = ({
     </Box>
   );
 };
-///: END:ONLY_INCLUDE_IF
