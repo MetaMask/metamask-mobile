@@ -87,9 +87,7 @@ export async function unlockIfLockScreenVisible(): Promise<void> {
       if (await waitForLockScreenGone(LOCK_GONE_TIMEOUT_MS)) {
         return;
       }
-      lastError = new Error(
-        'Lock screen still visible after unlock tap',
-      );
+      lastError = new Error('Lock screen still visible after unlock tap');
     } catch (error) {
       lastError = error;
       logger.debug(
