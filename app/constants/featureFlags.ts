@@ -9,6 +9,7 @@ export enum FeatureFlagNames {
   otaUpdatesEnabled = 'otaUpdatesEnabled',
   fullPageAccountList = 'fullPageAccountList',
   assetsDefiPositionsEnabled = 'assetsDefiPositionsEnabled',
+  assetsDefiPositionsV2Enabled = 'assetsDefiPositionsV2Enabled',
   tokenDetailsV2Buttons = 'tokenDetailsV2Buttons',
   tokenDetailsV2ButtonLayout = 'tokenDetailsV2ButtonLayout',
   complianceEnabled = 'complianceEnabled',
@@ -31,6 +32,7 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   Record<FeatureFlagNames, Json>
 > = {
   [FeatureFlagNames.assetsDefiPositionsEnabled]: true,
+  [FeatureFlagNames.assetsDefiPositionsV2Enabled]: false,
   [FeatureFlagNames.tokenDetailsV2Buttons]: false,
   [FeatureFlagNames.tokenDetailsV2ButtonLayout]: false,
   [FeatureFlagNames.tronClaimUnstakedTrxButtonEnabled]: false,

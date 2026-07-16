@@ -90,6 +90,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'PerpsController:stateChange',
   'RewardsController:stateChange',
   'DeFiPositionsController:stateChange',
+  'DeFiPositionsControllerV2:stateChange',
   'SeedlessOnboardingController:stateChange',
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   'SamplePetnamesController:stateChange',
