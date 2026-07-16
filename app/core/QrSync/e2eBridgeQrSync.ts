@@ -64,24 +64,25 @@ function parseApplySyncReadyPayload(
   };
 }
 
-function handleE2EQrSyncUrl(incomingUrl?: string): void {
-  const url = incomingUrl || '';
-  if (!url) {
+function handleE2EQrSyncUrl(incomingUrl = ''): void {
+  if (!incomingUrl) {
     return;
   }
 
-  const isExpoMappedScheme = url.startsWith(E2E_QR_SYNC_METAMASK_SCHEME);
-  const isRawScheme = url.startsWith(E2E_QR_SYNC_RAW_SCHEME);
+  const isExpoMappedScheme = incomingUrl.startsWith(
+    E2E_QR_SYNC_METAMASK_SCHEME,
+  );
+  const isRawScheme = incomingUrl.startsWith(E2E_QR_SYNC_RAW_SCHEME);
   if (!isExpoMappedScheme && !isRawScheme) {
     return;
   }
 
-  if (processedDeepLinks.has(url)) {
+  if (processedDeepLinks.has(incomingUrl)) {
     return;
   }
-  processedDeepLinks.add(url);
+  processedDeepLinks.add(incomingUrl);
 
-  const withoutScheme = stripE2EQrSyncScheme(url);
+  const withoutScheme = stripE2EQrSyncScheme(incomingUrl);
   const [path, queryString = ''] = withoutScheme.split('?');
 
   if (path !== 'apply-sync-ready') {
