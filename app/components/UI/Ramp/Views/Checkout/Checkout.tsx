@@ -120,6 +120,10 @@ const Checkout = () => {
     headlessSessionId,
   } = params ?? {};
 
+  // Resolve the provider's iframe background color for the current theme.
+  // Applied to both the MMDS BottomSheet (via twClassName) and the WebView
+  // (via styles.webview) so the native chrome matches the embedded checkout
+  // seamlessly. Unknown providers fall back to the BottomSheet default surface.
   const isDark = themeAppearance === AppThemeKey.dark;
   const providerBg = getProviderWebviewColors(providerCode, isDark);
   const { styles } = useStyles(styleSheet, { providerBg });

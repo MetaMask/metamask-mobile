@@ -71,6 +71,10 @@ const CheckoutWebView = () => {
 
   const { url: uri, customOrderId, provider } = params;
 
+  // Resolve the provider's iframe background color for the current theme.
+  // Applied to both the component-library BottomSheet (via providerBgStyle) and
+  // the WebView (via styles.webview) so the native chrome matches the embedded
+  // checkout seamlessly. Unknown providers fall back to the BottomSheet default surface.
   const { themeAppearance } = useTheme();
   const isDark = themeAppearance === AppThemeKey.dark;
   const providerBg = getProviderWebviewColors(provider?.id, isDark);
