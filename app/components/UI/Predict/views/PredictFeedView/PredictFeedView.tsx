@@ -251,7 +251,6 @@ const PredictFeedView: React.FC = () => {
       })),
     [filters],
   );
-  const showFilterList = chips.length >= 2;
 
   const handleEndReached = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
