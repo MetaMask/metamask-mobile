@@ -141,14 +141,9 @@ import type {
 
 // Predict params
 import type {
-  PredictMarketListRouteParams,
-  PredictMarketDetailsParams,
-  PredictActivityDetailParams,
-  PredictBuyPreviewParams,
-  PredictSellPreviewParams,
-  PredictFeedRouteParams,
-  PredictWorldCupParams,
-  PredictPositionsParams,
+  PredictStackParamList,
+  PredictModalsNavigationParamList,
+  PredictNavigationParamList,
 } from '../../components/UI/Predict/types/navigation';
 
 // Account status params
@@ -266,7 +261,10 @@ import type {
 
 // Rewards params
 import { BenefitFullViewRouteParams } from '../../components/UI/Rewards/Views/BenefitFullView.types.ts';
-import type { RewardsNavigationParamList } from '../../components/UI/Rewards/types/navigation';
+import type {
+  RewardsNavigationParamList,
+  RewardsStackParamList,
+} from '../../components/UI/Rewards/types/navigation';
 
 // Webview params
 import type {
@@ -485,7 +483,7 @@ export type RootStackParamList = {
   TransactionDetails: TransactionDetailsParams | undefined;
   ActivityDetails: ActivityDetailsParams;
   RewardsView: undefined;
-  RewardsFlow: NestedNavigationParams | undefined;
+  RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
@@ -805,18 +803,20 @@ export type RootStackParamList = {
   PerpsFundingTransaction: PerpsNavigationParamList['PerpsFundingTransaction'];
 
   // Predict routes — `Predict` is a nested stack navigator.
-  Predict: NestedNavigationParams | undefined;
-  PredictMarketList: PredictMarketListRouteParams | undefined;
-  PredictFeed: PredictFeedRouteParams | undefined;
-  PredictMarketDetails: PredictMarketDetailsParams | undefined;
-  PredictPositions: PredictPositionsParams | undefined;
-  PredictWorldCup: PredictWorldCupParams | undefined;
-  PredictActivityDetail: PredictActivityDetailParams;
-  PredictModals: undefined;
-  PredictBuyPreview: PredictBuyPreviewParams;
-  PredictSellPreview: PredictSellPreviewParams;
+  Predict: NavigatorScreenParams<PredictStackParamList> | undefined;
+  PredictMarketList: PredictNavigationParamList['PredictMarketList'];
+  PredictFeed: PredictNavigationParamList['PredictFeed'];
+  PredictMarketDetails: PredictNavigationParamList['PredictMarketDetails'];
+  PredictPositions: PredictNavigationParamList['PredictPositions'];
+  PredictWorldCup: PredictNavigationParamList['PredictWorldCup'];
+  PredictActivityDetail: PredictModalsNavigationParamList['PredictActivityDetail'];
+  PredictModals:
+    | NavigatorScreenParams<PredictModalsNavigationParamList>
+    | undefined;
+  PredictBuyPreview: PredictNavigationParamList['PredictBuyPreview'];
+  PredictSellPreview: PredictNavigationParamList['PredictSellPreview'];
   PredictUnavailable: undefined;
-  PredictAddFundsSheet: undefined;
+  PredictAddFundsSheet: PredictModalsNavigationParamList['PredictAddFundsSheet'];
   PredictGTMModal: undefined;
 
   // Social Leaderboard routes

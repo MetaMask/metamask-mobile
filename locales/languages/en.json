@@ -1181,6 +1181,11 @@
       "traders_you_follow_empty": "You aren't following any traders yet.",
       "error_loading_followed": "Unable to load the traders you follow."
     },
+    "settings": {
+      "section_title": "Top Traders",
+      "show_account_on_leaderboard": "Show account on leaderboard",
+      "show_account_on_leaderboard_description": "Appear on top traders leaderboard when your weekly earnings rank."
+    },
     "follow": "Follow",
     "following": "Following",
     "mute": {
@@ -2454,8 +2459,9 @@
       "referral_code_text": "Use my referral code to earn extra rewards."
     },
     "market_details": {
-      "category_search": "Browse related markets",
-      "fullscreen_chart": "Fullscreen chart"
+      "fullscreen_chart": "Fullscreen chart",
+      "market_list": "Browse markets",
+      "perp_pair": "{{ticker}}-{{collateral}} perp"
     }
   },
   "market_insights": {

@@ -625,9 +625,6 @@ const PerpsClosePositionView: React.FC = () => {
       <PerpsOrderHeader
         asset={position.symbol}
         price={currentPrice}
-        priceChange={parseFloat(
-          priceData[position.symbol]?.percentChange24h ?? '0',
-        )}
         title={strings('perps.close_position.title')}
         isLoading={isClosing}
         orderType={
