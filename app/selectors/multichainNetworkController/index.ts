@@ -164,6 +164,7 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
       ...(isBitcoinTestnetEnabledBoolean
         ? [BtcScope.Testnet, BtcScope.Signet]
         : []),
+      ///: END:ONLY_INCLUDE_IF
       SolScope.Mainnet,
       ...(isSolanaTestnetEnabledBoolean ? [SolScope.Devnet] : []),
       ///: BEGIN:ONLY_INCLUDE_IF(tron)
