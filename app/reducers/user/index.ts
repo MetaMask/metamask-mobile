@@ -175,6 +175,11 @@ const userReducer = (
           [action.payload.key]: true,
         },
       };
+    case UserActionType.CLEAR_MONEY_EARN_BANNER_DISMISSED_TOKENS:
+      return {
+        ...state,
+        moneyEarnBannerDismissedTokens: {},
+      };
     case UserActionType.SET_TOKEN_OVERVIEW_CHART_TYPE:
       return {
         ...state,

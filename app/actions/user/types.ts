@@ -31,6 +31,7 @@ export enum UserActionType {
   CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN = 'CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN',
   SET_MONEY_ONBOARDING_SEEN = 'SET_MONEY_ONBOARDING_SEEN',
   SET_MONEY_EARN_BANNER_DISMISSED = 'SET_MONEY_EARN_BANNER_DISMISSED',
+  CLEAR_MONEY_EARN_BANNER_DISMISSED_TOKENS = 'CLEAR_MONEY_EARN_BANNER_DISMISSED_TOKENS',
   SET_TOKEN_OVERVIEW_CHART_TYPE = 'SET_TOKEN_OVERVIEW_CHART_TYPE',
   SET_TOKEN_OVERVIEW_CHART_INTERVAL = 'SET_TOKEN_OVERVIEW_CHART_INTERVAL',
   SET_TOKEN_INDICATORS = 'SET_TOKEN_INDICATORS',
@@ -129,6 +130,9 @@ export type SetMoneyEarnBannerDismissedAction =
     payload: { key: string };
   };
 
+export type ClearMoneyEarnBannerDismissedTokensAction =
+  Action<UserActionType.CLEAR_MONEY_EARN_BANNER_DISMISSED_TOKENS>;
+
 export type SetTokenOverviewChartTypeAction =
   Action<UserActionType.SET_TOKEN_OVERVIEW_CHART_TYPE> & {
     payload: { chartType: ChartType };
@@ -183,6 +187,7 @@ export type UserAction =
   | ClearMusdConversionAssetDetailCtasSeenAction
   | SetMoneyOnboardingSeenAction
   | SetMoneyEarnBannerDismissedAction
+  | ClearMoneyEarnBannerDismissedTokensAction
   | SetTokenOverviewChartTypeAction
   | SetTokenOverviewChartIntervalAction
   | SetTokenIndicatorsAction

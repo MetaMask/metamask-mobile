@@ -28,6 +28,7 @@ import {
   type ClearMusdConversionAssetDetailCtasSeenAction,
   type SetMoneyOnboardingSeenAction,
   type SetMoneyEarnBannerDismissedAction,
+  type ClearMoneyEarnBannerDismissedTokensAction,
   type SetTokenOverviewChartTypeAction,
   type SetTokenOverviewChartIntervalAction,
   type SetTokenIndicatorsAction,
@@ -250,6 +251,15 @@ export function setMoneyEarnBannerDismissed(
   return {
     type: UserActionType.SET_MONEY_EARN_BANNER_DISMISSED,
     payload: { key },
+  };
+}
+
+/**
+ * Clears persisted Earn banner dismissals (fresh-install behavior for the banner).
+ */
+export function clearMoneyEarnBannerDismissedTokens(): ClearMoneyEarnBannerDismissedTokensAction {
+  return {
+    type: UserActionType.CLEAR_MONEY_EARN_BANNER_DISMISSED_TOKENS,
   };
 }
 
