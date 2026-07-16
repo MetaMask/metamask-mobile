@@ -98,7 +98,7 @@ export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
   Routes.RAMP.CHECKOUT,
 );
 
-type HandleHeadlessCheckoutCallbackParams = {
+interface HandleHeadlessCheckoutCallbackParams {
   sessionId: string;
   session: HeadlessSession;
   providerCode: string;
@@ -114,7 +114,7 @@ type HandleHeadlessCheckoutCallbackParams = {
   addOrder: (order: RampsOrder) => void;
   dispatch: Dispatch<UnknownAction>;
   dismissActiveHeadlessFlow: () => void;
-};
+}
 
 /**
  * Headless checkout callback: fetch order, emit mid/terminal analytics, notify
