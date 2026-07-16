@@ -8,6 +8,7 @@ import {
   DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS,
 } from '../../../Constants';
 import { createLogger, LogLevel } from '../../../logger';
+import { resolveTestMuDeviceCapabilities } from './TestMuDeviceResolver';
 
 const logger = createLogger({
   name: 'TestMuAIConfigBuilder',
@@ -30,6 +31,10 @@ export class TestMuAIConfigBuilder {
     const projectName = path.basename(process.cwd());
     const appUrl = this.project.use.app?.buildPath;
     const device = this.project.use.device as TestMuConfig;
+    const { deviceName, platformVersion } = resolveTestMuDeviceCapabilities(
+      device.name,
+      device.osVersion,
+    );
     const isLocal = process.env.TESTMU_LOCAL?.toLowerCase() === 'true';
     const geoLocation = process.env.TESTMU_GEO_LOCATION || 'SE';
     const tunnelName = process.env.TESTMU_TUNNEL_NAME;
@@ -64,6 +69,9 @@ export class TestMuAIConfigBuilder {
     logger.info(
       `TestMu AI tunnel: ${isLocal}, geoLocation: ${isLocal ? 'disabled for tunnel sessions' : geoLocation}`,
     );
+    logger.info(
+      `TestMu AI device capabilities: ${deviceName} (Android/iOS ${platformVersion}) from matrix device "${device.name}" (${device.osVersion})`,
+    );
 
     return {
       port: 443,
@@ -78,8 +86,8 @@ export class TestMuAIConfigBuilder {
       capabilities: {
         platformName,
         'appium:app': appUrl,
-        'appium:deviceName': device.name,
-        'appium:platformVersion': device.osVersion,
+        'appium:deviceName': deviceName,
+        'appium:platformVersion': platformVersion,
         'appium:automationName':
           platformName === 'android' ? 'UiAutomator2' : 'XCUITest',
         'appium:autoGrantPermissions': true,
@@ -118,9 +126,9 @@ export class TestMuAIConfigBuilder {
         'LT:Options': {
           w3c: true,
           isRealMobile: true,
-          deviceName: device.name,
+          deviceName,
           platformName,
-          platformVersion: device.osVersion,
+          platformVersion,
           deviceOrientation: device.orientation ?? 'portrait',
           project:
             process.env.TESTMU_PROJECT_NAME || `${projectName} ${platformName}`,

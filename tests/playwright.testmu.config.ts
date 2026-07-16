@@ -33,7 +33,7 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.TESTMU,
-          name: process.env.TESTMU_DEVICE || 'Google Pixel 8 Pro',
+          name: process.env.TESTMU_DEVICE || 'Pixel 8 Pro',
           osVersion: process.env.TESTMU_OS_VERSION || '14',
         },
         app: {
@@ -67,7 +67,7 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.TESTMU,
-          name: process.env.TESTMU_DEVICE || 'Samsung Galaxy S25 Ultra',
+          name: process.env.TESTMU_DEVICE || 'Galaxy S25 Ultra',
           osVersion: process.env.TESTMU_OS_VERSION || '15',
         },
         app: {
@@ -106,8 +106,8 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.TESTMU,
-          name: process.env.TESTMU_DEVICE || 'Samsung Galaxy S25 Ultra',
-          osVersion: process.env.TESTMU_OS_VERSION || '15.0',
+          name: process.env.TESTMU_DEVICE || 'Galaxy S25 Ultra',
+          osVersion: process.env.TESTMU_OS_VERSION || '15',
           otherApps: process.env.TESTMU_RN_PLAYGROUND_URL
             ? [process.env.TESTMU_RN_PLAYGROUND_URL]
             : [],
@@ -126,8 +126,8 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.TESTMU,
-          name: process.env.TESTMU_DEVICE || 'Samsung Galaxy S25 Ultra',
-          osVersion: process.env.TESTMU_OS_VERSION || '15.0',
+          name: process.env.TESTMU_DEVICE || 'Galaxy S25 Ultra',
+          osVersion: process.env.TESTMU_OS_VERSION || '15',
         },
         app: {
           packageName: 'io.metamask',
