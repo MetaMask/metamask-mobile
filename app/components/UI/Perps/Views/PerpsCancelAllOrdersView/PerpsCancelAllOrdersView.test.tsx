@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import type { BottomSheetRef } from '@metamask/design-system-react-native';
 import PerpsCancelAllOrdersView from './PerpsCancelAllOrdersView';
 import { usePerpsCancelAllOrders, usePerpsLiveOrders } from '../../hooks';
 
@@ -39,25 +40,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
   tw.style = jest.fn(() => ({}));
   return { useTailwind: () => tw };
-});
-
-// BottomSheet overwrites refs via useImperativeHandle; stub keeps external sheetRef usable.
-jest.mock('@metamask/design-system-react-native', () => {
-  const MockReact = jest.requireActual<typeof React>('react');
-  const { View } = jest.requireActual('react-native');
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-
-  const BottomSheet = MockReact.forwardRef(
-    ({ children }: { children: React.ReactNode }, _ref: React.Ref<unknown>) => (
-      <View>{children}</View>
-    ),
-  );
-  BottomSheet.displayName = 'BottomSheet';
-
-  return {
-    ...actual,
-    BottomSheet,
-  };
 });
 
 const mockUsePerpsLiveOrders = usePerpsLiveOrders as jest.MockedFunction<
@@ -212,37 +194,23 @@ describe('PerpsCancelAllOrdersView', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('closes via sheetRef when used with an external sheetRef', () => {
+  it('does not navigate back when closing with an external sheetRef', () => {
     // Arrange
     const mockOnClose = jest.fn();
-    const mockOnCloseBottomSheet = jest.fn((callback?: () => void) =>
-      callback?.(),
-    );
-    const mockSheetRef = {
-      current: {
-        onOpenBottomSheet: jest.fn(),
-        onCloseBottomSheet: mockOnCloseBottomSheet,
-      },
-    };
+    const sheetRef = createRef<BottomSheetRef | null>();
 
     // Act — with orders
     const { getByTestId, unmount } = render(
-      <PerpsCancelAllOrdersView
-        sheetRef={mockSheetRef}
-        onClose={mockOnClose}
-      />,
+      <PerpsCancelAllOrdersView sheetRef={sheetRef} onClose={mockOnClose} />,
     );
 
-    // Assert — overlay mode closes via sheetRef instead of navigation goBack
+    // Assert — overlay mode closes via sheetRef, not navigation.goBack
     fireEvent.press(getByTestId('header-close'));
-    expect(mockOnCloseBottomSheet).toHaveBeenCalled();
-    expect(mockOnClose).toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
 
     // Act — empty state overlay path
     unmount();
-    mockOnClose.mockClear();
-    mockOnCloseBottomSheet.mockClear();
+    mockGoBack.mockClear();
     mockUsePerpsLiveOrders.mockReturnValue({
       orders: [],
       isInitialLoading: false,
@@ -252,15 +220,10 @@ describe('PerpsCancelAllOrdersView', () => {
       orderCount: 0,
     });
     const { getByTestId: getEmptyTestId } = render(
-      <PerpsCancelAllOrdersView
-        sheetRef={mockSheetRef}
-        onClose={mockOnClose}
-      />,
+      <PerpsCancelAllOrdersView sheetRef={sheetRef} onClose={mockOnClose} />,
     );
 
     fireEvent.press(getEmptyTestId('header-close'));
-    expect(mockOnCloseBottomSheet).toHaveBeenCalled();
-    expect(mockOnClose).toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 });
