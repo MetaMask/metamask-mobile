@@ -79,8 +79,6 @@ function extractPlatformScenarioAndDevice(filePath) {
   const fullPath = filePath.toLowerCase();
   
   // Determine platform and scenario from path patterns
-  const isTestMu = fullPath.includes('testmu-');
-
   if (fullPath.includes('android-imported-wallet-test-results')) {
     platform = 'android';
     platformKey = 'Android';
@@ -134,7 +132,10 @@ function extractPlatformScenarioAndDevice(filePath) {
     const parts = deviceMatch.split('-');
     console.log(`📝 Device parts:`, parts);
 
-    const deviceInfoStart = isTestMu ? 6 : 5;
+    // Pattern: android-imported-wallet-test-results-DeviceName-OSVersion (5 parts)
+    // Pattern: android-onboarding-flow-test-results-DeviceName-OSVersion (5 parts)
+    // Pattern: android-mm-connect-test-results-DeviceName-OSVersion (5 parts)
+    const deviceInfoStart = 5;
     
     if (parts.length >= deviceInfoStart + 1) {
       const deviceInfo = parts.slice(deviceInfoStart).join('-');
@@ -160,8 +161,8 @@ function extractPlatformScenarioAndDevice(filePath) {
     console.log(`🔍 Available parts:`, pathParts);
   }
   
-  console.log(`📊 Final extraction: platform="${platformKey}", scenario="${scenarioKey}", device="${deviceKey}", provider="${isTestMu ? 'testmu' : 'browserstack'}"`);
-  return { platform, platformKey, scenario, scenarioKey, deviceKey, cloudProvider: isTestMu ? 'testmu' : 'browserstack' };
+  console.log(`📊 Final extraction: platform="${platformKey}", scenario="${scenarioKey}", device="${deviceKey}"`);
+  return { platform, platformKey, scenario, scenarioKey, deviceKey };
 }
 
 

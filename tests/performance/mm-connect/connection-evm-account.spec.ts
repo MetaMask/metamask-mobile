@@ -17,7 +17,7 @@ import {
   sleep,
 } from '../../framework';
 import {
-  getMmConnectDappUrl,
+  getDappUrlForBrowser,
   setupAdbReverse,
   cleanupAdbReverse,
   waitForDappServerReady,
@@ -95,7 +95,11 @@ test.describe(Performance, () => {
     driver,
   }) => {
     const platform = currentDeviceDetails.platform;
-    const DAPP_URL = getMmConnectDappUrl(platform, DAPP_PORT);
+    const useBrowserStackLocal =
+      process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+    const DAPP_URL = useBrowserStackLocal
+      ? `http://bs-local.com:${DAPP_PORT}`
+      : getDappUrlForBrowser(platform);
 
     await PlaywrightContextHelpers.withNativeAction(async () => {
       await loginToAppPlaywright();

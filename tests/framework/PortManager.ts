@@ -79,10 +79,7 @@ export default class PortManager {
    * @returns True when BrowserStack local tunnel is enabled
    */
   protected isBrowserStack(): boolean {
-    return (
-      process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true' ||
-      process.env.TESTMU_LOCAL?.toLowerCase() === 'true'
-    );
+    return process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
   }
 
   public static getInstance(): PortManager {

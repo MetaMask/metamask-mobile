@@ -6,9 +6,7 @@ import PlaywrightGestures from './PlaywrightGestures.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 import {
   addOverhead,
-  addOverheadSleep,
   isOverheadTrackingActive,
-  recordFailedPollCommand,
   recordOverheadProbe,
   recordSuccessPollCommand,
   withImplicitWait,
@@ -32,14 +30,9 @@ export interface TextDisplayedOptions extends AssertionOptions {
  *
  * ## How overhead compensation works
  *
- * While `TimerHelper.measure()` is active we accumulate infra cost and
- * subtract it from wall-clock after the assertion:
- *
- * 1. **Element resolution** — initial findElement (`addOverhead`).
- * 2. **Failed poll commands** — `min(duration, rtt + implicitWait)` per miss.
- * 3. **Success poll** — full duration (element already on screen).
- * 4. **Poll sleeps** — intentional intervals between attempts.
- * 5. **Overhead probe** — post-detect `isExisting` (RTT calibration + infra).
+ * While `TimerHelper.measure()` is active we subtract only the post-detect
+ * probe (`isExisting` after the element is visible). That is pure Appium RTT.
+ * Resolution / confirm waits stay in app time so cold start is not under-reported.
  */
 export default class PlaywrightAssertions {
   private static getTimeout(options: AssertionOptions): number {
@@ -51,9 +44,8 @@ export default class PlaywrightAssertions {
    * (`isExisting`). This avoids the multiple internal HTTP round-trips that
    * WebdriverIO's `waitForDisplayed` performs on each iteration.
    *
-   * When `measure()` overhead tracking is active we use a shorter sleep between
-   * attempts so detection lag (screen already up on video, Appium still polling)
-   * stays smaller.
+   * When measuring, only the successful confirm (+ probe) counts as infra.
+   * A shorter poll interval reduces detection lag without zeroing app time.
    */
   private static readonly FINAL_WAIT_RESERVE_MS = 2_000;
   /** Fast implicit wait for poll probes — avoids 3.5s find penalty per attempt. */
@@ -90,27 +82,17 @@ export default class PlaywrightAssertions {
             return;
           }
         }
-        if (tracking) {
-          recordFailedPollCommand(Date.now() - t0);
-        }
       } catch {
-        if (tracking) {
-          recordFailedPollCommand(Date.now() - t0);
-        }
+        // element not ready yet
       }
-      const sleepMs = Math.min(interval, remaining);
-      if (tracking) {
-        addOverheadSleep(sleepMs);
-      }
-      await sleep(sleepMs);
+      await sleep(Math.min(interval, remaining));
     }
     const remainingTimeout = timeout - (Date.now() - start);
-    const t0Final = Date.now();
     await el.waitForDisplayed({
       timeout: Math.max(interval, remainingTimeout),
     });
+    // waitForDisplayed includes app-load time — do not record it as success infra.
     if (isOverheadTrackingActive()) {
-      recordSuccessPollCommand(Date.now() - t0Final);
       await this.probeOverhead(el);
     }
   }
@@ -227,14 +209,8 @@ export default class PlaywrightAssertions {
           }
           return;
         }
-        if (tracking) {
-          recordFailedPollCommand(Date.now() - t0);
-        }
       } catch {
         // element not ready yet
-      }
-      if (tracking) {
-        addOverheadSleep(interval);
       }
       await sleep(interval);
     }

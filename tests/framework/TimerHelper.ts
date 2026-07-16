@@ -151,14 +151,16 @@ class TimerHelper {
       this.stop();
     }
     const wallClockMs = this.getDuration() ?? 0;
-    const infraMs = stopOverheadTracking();
+    const rawInfraMs = stopOverheadTracking();
+    // Never subtract more than wall-clock (avoids false 0ms from over-counting).
+    const infraMs = Math.min(rawInfraMs, wallClockMs);
     if (infraMs > 0) {
       this.subtractOverhead(infraMs);
-      const appMs = this.getDuration() ?? 0;
-      console.log(
-        `⏱️ Timer "${this.id}": wall-clock=${wallClockMs}ms, infra=${Math.round(infraMs)}ms, app=${appMs}ms`,
-      );
     }
+    const appMs = this.getDuration() ?? 0;
+    console.log(
+      `⏱️ Timer "${this.id}": wall-clock=${wallClockMs}ms, infra=${Math.round(infraMs)}ms, app=${appMs}ms`,
+    );
     return this;
   }
 

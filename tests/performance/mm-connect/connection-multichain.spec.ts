@@ -15,7 +15,7 @@ import {
   sleep,
 } from '../../framework';
 import {
-  getMmConnectDappUrl,
+  getDappUrlForBrowser,
   setupAdbReverse,
   cleanupAdbReverse,
   waitForDappServerReady,
@@ -55,10 +55,11 @@ test.describe(Performance, () => {
     currentDeviceDetails,
     driver,
   }) => {
-    const DAPP_URL = getMmConnectDappUrl(
-      currentDeviceDetails.platform,
-      DAPP_PORT,
-    );
+    const useBrowserStackLocal =
+      process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+    const DAPP_URL = useBrowserStackLocal
+      ? `http://bs-local.com:${DAPP_PORT}`
+      : getDappUrlForBrowser(currentDeviceDetails.platform);
 
     //
     // Login and navigate to dapp

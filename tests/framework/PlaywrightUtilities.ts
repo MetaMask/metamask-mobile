@@ -262,14 +262,11 @@ export function boxedStep<This, Args extends unknown[], Return>(
  * Lightweight Appium overhead accumulator for performance measurements.
  *
  * Problem: every WebDriver HTTP call (findElement, isExisting, click …) adds
- * infrastructure latency — on BrowserStack/TestMu this can dominate the timer.
+ * infrastructure latency — on cloud device farms this can dominate the timer.
  *
- * Solution while `TimerHelper.measure()` is active:
- * - Direct overhead (`addOverhead`): pure infra (e.g. initial findElement).
- * - Poll sleeps (`addOverheadSleep`): intentional wait intervals (not app work).
- * - Failed poll commands: `min(duration, rtt + pollImplicitWait)` miss cost.
- * - Success poll: full duration (confirming an already-visible element).
- * - Probe: full duration of a post-detect `isExisting` (calibration + infra).
+ * Conservative model while `TimerHelper.measure()` is active (click stays outside):
+ * - Probe only: post-detect `isExisting` (pure RTT we add after the UI is up).
+ * - Resolution / success confirms are not subtracted — they often include app load and under-reported on-device time when capped as infra.
  *
  * When no `measure()` is active all functions are no-ops.
  */
@@ -299,40 +296,22 @@ function resetOverheadState(): void {
 /**
  * Computes infra ms to subtract from wall-clock.
  *
- * Model (click stays outside measure; align with on-device UI timing):
- * - Resolution / sleeps / probe: full duration (pure framework cost).
- * - Failed polls: `min(duration, rtt + pollImplicitWaitMs)` for Appium miss cost.
- * - Success poll: full duration (element already on screen; confirm is infra).
+ * Only the post-detect probe is subtracted. That call is pure Appium/network
+ * overhead we add after the screen is already visible.
+ *
+ * Resolution and success-confirm durations often include real app load (cold
+ * start findElement / waitForDisplayed). Subtracting them (even capped to RTT)
+ * under-reports app time vs on-device video.
  *
  * Exported for unit tests.
  */
 export function computeAppiumInfraOverheadMs(
   state: OverheadAccumulatorState,
-  pollImplicitWaitMs = 300,
 ): number {
-  const rttMs = state.probeMs;
-
-  let infra = state.directMs + state.sleepMs;
-
-  for (const durationMs of state.failedPollDurationsMs) {
-    if (rttMs != null) {
-      infra += Math.min(durationMs, rttMs + pollImplicitWaitMs);
-    } else {
-      // No probe yet (should be rare): still remove implicit-wait-sized miss cost.
-      infra += Math.min(durationMs, pollImplicitWaitMs);
-    }
+  if (state.probeMs == null || state.probeMs <= 0) {
+    return 0;
   }
-
-  if (state.successPollMs != null) {
-    // Visible already — entire confirm round-trip is infrastructure.
-    infra += state.successPollMs;
-  }
-
-  if (state.probeMs != null) {
-    infra += state.probeMs;
-  }
-
-  return infra;
+  return state.probeMs;
 }
 
 export function startOverheadTracking(): void {

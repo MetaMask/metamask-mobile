@@ -87,22 +87,6 @@ export function getDappUrlForBrowser(
 }
 
 /**
- * Dapp URL for mm-connect when using a cloud tunnel (BrowserStack or TestMu AI).
- */
-export function getMmConnectDappUrl(
-  platform: string,
-  port = DEFAULT_DAPP_PORT,
-): string {
-  if (process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true') {
-    return `http://bs-local.com:${port}`;
-  }
-  if (process.env.TESTMU_LOCAL?.toLowerCase() === 'true') {
-    return `http://localhost.lambdatest.com:${port}`;
-  }
-  return getDappUrlForBrowser(platform, port);
-}
-
-/**
  * Set up ADB reverse port forwarding for Android emulator.
  * This allows the emulator to access localhost:{port} via 10.0.2.2:{port}
  */

@@ -35,14 +35,6 @@ export class DeviceInfoExtractor {
       };
     }
 
-    if (process.env.TESTMU_DEVICE && process.env.TESTMU_OS_VERSION) {
-      return {
-        name: process.env.TESTMU_DEVICE,
-        osVersion: process.env.TESTMU_OS_VERSION,
-        provider: 'testmu',
-      };
-    }
-
     return {
       name: 'Unknown',
       osVersion: 'Unknown',
