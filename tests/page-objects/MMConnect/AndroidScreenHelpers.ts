@@ -3,12 +3,9 @@ import {
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
-import { APP_PACKAGE_IDS } from '../../framework/Constants';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
-import PlaywrightUtilities, {
-  getDriver,
-} from '../../framework/PlaywrightUtilities';
+import PlaywrightUtilities from '../../framework/PlaywrightUtilities';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 
 const logger = createLogger({
@@ -44,9 +41,10 @@ class AndroidScreenHelpers {
 
   /**
    * After a dapp deeplink, select MetaMask from the Android app chooser.
-   * On CI emulators MetaMask is often the only handler, so Android skips the
-   * chooser and opens the app directly — treat that as success. Also collapse
-   * the status bar so Play services heads-up toasts do not block taps.
+   *
+   * Do NOT treat "MetaMask package is foreground" alone as success — CI often
+   * lands on the wallet home screen without a pending connection request.
+   * Success is the connect sheet (`connect-button`) or an explicit chooser tap.
    */
   async tapOpenDeeplinkWithMetaMask(): Promise<void> {
     await encapsulatedAction({
@@ -57,9 +55,9 @@ class AndroidScreenHelpers {
         while (Date.now() < deadline) {
           PlaywrightUtilities.collapseStatusBar();
 
-          if (await this.isMetaMaskForeground()) {
+          if (await this.isConnectSheetVisible()) {
             logger.debug(
-              'MetaMask already foreground after deeplink; skipping chooser',
+              'MetaMask connect sheet already visible; skipping chooser',
             );
             return;
           }
@@ -73,6 +71,14 @@ class AndroidScreenHelpers {
                   delay: 200,
                 });
                 await this.tapJustOnceIfPresent();
+                // Wait briefly for the connect sheet after chooser selection.
+                const sheetDeadline = Date.now() + 10_000;
+                while (Date.now() < sheetDeadline) {
+                  if (await this.isConnectSheetVisible()) {
+                    return;
+                  }
+                  await sleep(POLL_MS);
+                }
                 return;
               }
             } catch {
@@ -84,27 +90,13 @@ class AndroidScreenHelpers {
         }
 
         throw new Error(
-          `Android MetaMask deeplink chooser not shown (and MetaMask not foreground) after ${CHOOSER_TIMEOUT_MS}ms`,
+          `Android MetaMask deeplink chooser / connect sheet not shown after ${CHOOSER_TIMEOUT_MS}ms`,
         );
       },
     });
   }
 
-  private async isMetaMaskForeground(): Promise<boolean> {
-    try {
-      const currentPackage = (await getDriver().execute(
-        'mobile: getCurrentPackage',
-      )) as string;
-      if (
-        currentPackage === APP_PACKAGE_IDS.ANDROID ||
-        currentPackage?.startsWith(`${APP_PACKAGE_IDS.ANDROID}.`)
-      ) {
-        return true;
-      }
-    } catch {
-      // Ignore package probe failures
-    }
-
+  private async isConnectSheetVisible(): Promise<boolean> {
     try {
       const connectButton = await PlaywrightMatchers.getElementById(
         ConnectAccountBottomSheetSelectorsIDs.CONNECT_BUTTON,
