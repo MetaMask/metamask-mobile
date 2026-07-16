@@ -1,6 +1,23 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { Hex } from '@metamask/utils';
 import type { AccountsApiActivity } from './moneyActivity';
 import type { ConfirmationParams } from '../../../Views/confirmations/components/confirm/confirm-component';
+
+export enum MoneyPostOnboardingRedirectType {
+  DEPOSIT = 'deposit',
+}
+
+export interface MoneyPreferredPaymentToken {
+  address: Hex;
+  chainId: Hex;
+}
+
+export interface MoneyOnboardingParams {
+  postOnboardingRedirect?: {
+    type: MoneyPostOnboardingRedirectType;
+    preferredPaymentToken?: MoneyPreferredPaymentToken;
+  };
+}
 
 /**
  * Param list for screens inside the Money tab stack (`MoneyTabScreenStack`).
@@ -50,7 +67,7 @@ export type MoneyModalsNavigationParamList = {
 export type MoneyNavigationParamList = MoneyScreensStackParamList &
   MoneyModalsNavigationParamList &
   MoneyConfirmationsNavigationParamList & {
-    MoneyOnboarding: undefined;
+    MoneyOnboarding: MoneyOnboardingParams | undefined;
     MoneyFirstTimeDeposit: undefined;
     MoneyPotentialEarnings: undefined;
     MoneyTransactionDetails: { transactionId: string };

@@ -103,10 +103,7 @@ import { getMoneyAccountBalanceServiceMessenger } from './money-account-balance-
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
-import {
-  getDelegationControllerInitMessenger,
-  getDelegationControllerMessenger,
-} from './delegation/delegation-controller-messenger';
+import { getDelegationControllerMessenger } from './delegation/delegation-controller-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import {
   getRampsControllerMessenger,
@@ -410,7 +407,7 @@ export const MESSENGER_FACTORIES = {
   },
   DelegationController: {
     getMessenger: getDelegationControllerMessenger,
-    getInitMessenger: getDelegationControllerInitMessenger,
+    getInitMessenger: noop,
   },
   BackendWebSocketService: {
     getMessenger: getBackendWebSocketServiceMessenger,

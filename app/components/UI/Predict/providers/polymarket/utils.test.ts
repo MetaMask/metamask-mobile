@@ -1758,6 +1758,43 @@ describe('polymarket utils', () => {
         normalizeRelatedTagsToFilterOptions([], { source: 'hot-tags' }),
       ).toEqual([]);
     });
+
+    it('skips tags with activeEventsCount of 0 (empty chips like "Other")', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'Other', slug: 'other', activeEventsCount: 0 },
+          { id: '2', label: 'NBA', slug: 'nba', activeEventsCount: 4 },
+        ],
+        { source: 'hot-tags' },
+      );
+
+      expect(result.map((o) => o.id)).toEqual(['nba']);
+    });
+
+    it('keeps tags with a missing activeEventsCount (fail-open)', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'NBA', slug: 'nba' },
+          { id: '2', label: 'NFL', slug: 'nfl', activeEventsCount: 2 },
+        ],
+        { source: 'hot-tags' },
+      );
+
+      expect(result.map((o) => o.id)).toEqual(['nba', 'nfl']);
+    });
+
+    it('does not let empty tags consume a limit slot', () => {
+      const result = normalizeRelatedTagsToFilterOptions(
+        [
+          { id: '1', label: 'Other', slug: 'other', activeEventsCount: 0 },
+          { id: '2', label: 'NBA', slug: 'nba', activeEventsCount: 4 },
+          { id: '3', label: 'NFL', slug: 'nfl', activeEventsCount: 3 },
+        ],
+        { source: 'hot-tags', limit: 2 },
+      );
+
+      expect(result.map((o) => o.id)).toEqual(['nba', 'nfl']);
+    });
   });
 
   it('searches events via public-search endpoint', async () => {
