@@ -58,7 +58,12 @@ import type {
   PerpsStackParamList,
 } from '../../components/UI/Perps/types/navigation';
 import type { ConfirmationParams } from '../../components/Views/confirmations/components/confirm/confirm-component';
-import type { MoneyNavigationParamList } from '../../components/UI/Money/types/navigation';
+import type {
+  MoneyNavigationParamList,
+  MoneyScreensStackParamList,
+  MoneyModalsNavigationParamList,
+  MoneyConfirmationsNavigationParamList,
+} from '../../components/UI/Money/types/navigation';
 import type {
   CardModalsNavigationParamList,
   CardRootParamList,
@@ -88,7 +93,12 @@ import type {
   WebviewModalParams,
   KycWebviewModalParams,
 } from '../../components/UI/Ramp/Aggregator/types/navigation';
-import type { RampNavigationParamList } from '../../components/UI/Ramp/types/navigation';
+import type {
+  RampNavigationParamList,
+  RampModalsNavigationParamList,
+  RampScreensStackParamList,
+  RampTokenListRootParamList,
+} from '../../components/UI/Ramp/types/navigation';
 import type { DepositNavigationParams } from '../../components/UI/Ramp/types/depositNavigationParams';
 
 // Transactions params
@@ -218,13 +228,12 @@ import type {
   LearnMoreModalParams,
   MaxInputModalParams,
   GasImpactModalParams,
-  EarnScreensParams,
-  LendingDepositConfirmationParams,
-  LendingWithdrawalConfirmationParams,
-  LendingMaxWithdrawalModalParams,
 } from '../../components/UI/Earn/Earn.types';
 import type { EarnTokenListViewRouteParams } from '../../components/UI/Earn/components/EarnTokenList';
-import type { EarnMusdConversionEducationViewRouteParams } from '../../components/UI/Earn/Views/EarnMusdConversionEducationView';
+import type {
+  EarnModalsNavigationParamList,
+  EarnScreensStackParamList,
+} from '../../components/UI/Earn/types/navigation';
 
 // Modal params
 import type {
@@ -361,8 +370,12 @@ export type RootStackParamList = {
   Ramp: undefined;
   RampBuy: RampBuySellParams | undefined;
   RampSell: RampBuySellParams | undefined;
-  RampTokenSelection: undefined;
-  RampHeadlessEntry: undefined;
+  RampTokenSelection:
+    | NavigatorScreenParams<RampTokenListRootParamList>
+    | undefined;
+  RampHeadlessEntry:
+    | NavigatorScreenParams<RampTokenListRootParamList>
+    | undefined;
   GetStarted: undefined;
   /**
    * BuildQuote route is shared between:
@@ -381,23 +394,24 @@ export type RootStackParamList = {
   RampSettings: undefined;
   RampActivationKeyForm: undefined;
   RampHeadlessPlayground: undefined;
-  RampAmountInput:
-    | (SimpleRampBuildQuoteParams & { nativeFlowError?: string })
-    | undefined;
-  RampModals: NestedNavigationParams | undefined;
-  RampTokenSelectorModal: undefined;
-  RampFiatSelectorModal: undefined;
-  RampIncompatibleAccountTokenModal: undefined;
-  RampRegionSelectorModal: undefined;
-  RampPhoneCountrySelectorModal: undefined;
-  RampUnsupportedRegionModal: undefined;
-  RampUnsupportedTokenModal: undefined;
-  RampPaymentMethodSelectorModal: undefined;
-  RampSettingsModal: undefined;
-  RampBuildQuoteSettingsModal: undefined;
+  RampAmountInput: RampNavigationParamList['RampAmountInput'];
+
+  RampModals: NavigatorScreenParams<RampModalsNavigationParamList> | undefined;
+  RampTokenSelectorModal: RampModalsNavigationParamList['RampTokenSelectorModal'];
+  RampFiatSelectorModal: RampModalsNavigationParamList['RampFiatSelectorModal'];
+  RampIncompatibleAccountTokenModal: RampModalsNavigationParamList['RampIncompatibleAccountTokenModal'];
+  RampRegionSelectorModal: RampModalsNavigationParamList['RampRegionSelectorModal'];
+  RampPhoneCountrySelectorModal: RampModalsNavigationParamList['RampPhoneCountrySelectorModal'];
+  RampUnsupportedRegionModal: RampModalsNavigationParamList['RampUnsupportedRegionModal'];
+  RampUnsupportedTokenModal: RampModalsNavigationParamList['RampUnsupportedTokenModal'];
+  RampPaymentMethodSelectorModal: RampModalsNavigationParamList['RampPaymentMethodSelectorModal'];
+  RampSettingsModal: RampModalsNavigationParamList['RampSettingsModal'];
+  RampBuildQuoteSettingsModal: RampModalsNavigationParamList['RampBuildQuoteSettingsModal'];
 
   // Ramp native (V2) flow screens + modals — see RampNavigationParamList.
-  RampTokenSelectionRoot: RampNavigationParamList['RampTokenSelectionRoot'];
+  RampTokenSelectionRoot:
+    | NavigatorScreenParams<RampScreensStackParamList>
+    | undefined;
   RampsOrderDetails: RampNavigationParamList['RampsOrderDetails'];
   RampHeadlessHost: RampNavigationParamList['RampHeadlessHost'];
   RampEnterEmail: RampNavigationParamList['RampEnterEmail'];
@@ -676,9 +690,13 @@ export type RootStackParamList = {
 
   // Money routes — `MoneyScreens`/`MoneyModals`/`MoneyConfirmations` are nested
   // navigators; their screens are enumerated in `MoneyNavigationParamList`.
-  MoneyScreens: NestedNavigationParams | undefined;
-  MoneyModals: NestedNavigationParams | undefined;
-  MoneyConfirmations: NestedNavigationParams | undefined;
+  MoneyScreens: NavigatorScreenParams<MoneyScreensStackParamList> | undefined;
+  MoneyModals:
+    | NavigatorScreenParams<MoneyModalsNavigationParamList>
+    | undefined;
+  MoneyConfirmations:
+    | NavigatorScreenParams<MoneyConfirmationsNavigationParamList>
+    | undefined;
   MoneyHome: MoneyNavigationParamList['MoneyHome'];
   MoneyActivity: MoneyNavigationParamList['MoneyActivity'];
   MoneyHowItWorks: MoneyNavigationParamList['MoneyHowItWorks'];
@@ -859,17 +877,13 @@ export type RootStackParamList = {
   EarnTokenList: EarnTokenListViewRouteParams | undefined;
 
   // Earn routes
-  EarnScreens: EarnScreensParams | undefined;
-  EarnLendingDepositConfirmation: LendingDepositConfirmationParams | undefined;
-  EarnLendingWithdrawalConfirmation:
-    | LendingWithdrawalConfirmationParams
-    | undefined;
-  EarnMusdConversionEducation:
-    | EarnMusdConversionEducationViewRouteParams
-    | undefined;
-  EarnModals: NestedNavigationParams | undefined;
-  EarnLendingMaxWithdrawalModal: LendingMaxWithdrawalModalParams | undefined;
-  EarnLendingLearnMoreModal: undefined;
+  EarnScreens: NavigatorScreenParams<EarnScreensStackParamList> | undefined;
+  EarnLendingDepositConfirmation: EarnScreensStackParamList['EarnLendingDepositConfirmation'];
+  EarnLendingWithdrawalConfirmation: EarnScreensStackParamList['EarnLendingWithdrawalConfirmation'];
+  EarnMusdConversionEducation: EarnScreensStackParamList['EarnMusdConversionEducation'];
+  EarnModals: NavigatorScreenParams<EarnModalsNavigationParamList> | undefined;
+  EarnLendingMaxWithdrawalModal: EarnModalsNavigationParamList['EarnLendingMaxWithdrawalModal'];
+  EarnLendingLearnMoreModal: EarnModalsNavigationParamList['EarnLendingLearnMoreModal'];
 
   // Full screen confirmation routes
   RedesignedConfirmations:

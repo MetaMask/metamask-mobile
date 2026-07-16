@@ -17,6 +17,7 @@ import {
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import {
+  BottomSheetRef,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -114,7 +115,7 @@ import {
 } from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { BottomSheetRef as ComponentLibraryBottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import PerpsNavigationCard, {
   NavigationItem,
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
@@ -211,7 +212,7 @@ const PerpsHomeView = ({
   const [showCloseAllSheet, setShowCloseAllSheet] = useState(false);
   const [showCancelAllSheet, setShowCancelAllSheet] = useState(false);
   const closeAllSheetRef = useRef<BottomSheetRef>(null);
-  const cancelAllSheetRef = useRef<BottomSheetRef>(null);
+  const cancelAllSheetRef = useRef<ComponentLibraryBottomSheetRef>(null);
 
   // Use hook for eligibility checks and action handlers
   // Pass button location for tracking deposit entry point
@@ -1019,6 +1020,7 @@ const PerpsHomeView = ({
         <Tag
           severity={TagSeverity.Warning}
           testID={`${homeHeadingTestID}-testnet-badge`}
+          twClassName="self-center"
         >
           Testnet
         </Tag>
@@ -1071,6 +1073,13 @@ const PerpsHomeView = ({
             setTitleSectionHeight(event.nativeEvent.layout.height)
           }
         >
+          {isServiceInterruptionBannerEnabled && (
+            <Box twClassName="px-4 mb-4">
+              <PerpsServiceInterruptionBanner
+                testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+              />
+            </Box>
+          )}
           <TitleHub
             testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
             title={hideHeader ? undefined : perpsScreenTitle}
@@ -1124,11 +1133,6 @@ const PerpsHomeView = ({
         </Box>
 
         <Box paddingBottom={3}>
-          {/* Service Interruption Banner */}
-          <PerpsServiceInterruptionBanner
-            testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
-          />
-
           {/* Balance Actions Component */}
           <PerpsMarketBalanceActions
             showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}

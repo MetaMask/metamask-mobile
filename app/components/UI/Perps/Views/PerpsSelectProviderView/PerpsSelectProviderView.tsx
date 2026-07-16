@@ -94,7 +94,6 @@ const PerpsSelectProviderView: React.FC = () => {
 
   return (
     <PerpsProviderSelectorSheet
-      isVisible
       onClose={handleClose}
       selectedOptionId={selectedOptionId}
       onOptionSelect={handleOptionSelect}
