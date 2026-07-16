@@ -1,5 +1,3 @@
-/* eslint-disable import-x/no-nodejs-modules */
-import { execSync } from 'child_process';
 import LoginView from '../wallet/LoginView';
 import { createLogger, sleep } from '../../framework';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
@@ -15,25 +13,11 @@ const logger = createLogger({
 const UNLOCK_ATTEMPTS = 3;
 const LOCK_GONE_TIMEOUT_MS = 10_000;
 
-let headsUpNotificationsDisabled = false;
-
-/**
- * CI emulators often show a persistent "Enable Google Play services" heads-up
- * that makes the Unlock control report as non-interactive to UiAutomator2.
- */
-function disableHeadsUpNotificationsBestEffort(): void {
-  if (headsUpNotificationsDisabled) {
-    return;
-  }
-  try {
-    execSync('adb shell settings put global heads_up_notifications_enabled 0', {
-      stdio: 'pipe',
-    });
-    headsUpNotificationsDisabled = true;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    logger.debug(`Could not disable heads-up notifications: ${message}`);
-  }
+async function dismissUnlockBlockers(): Promise<void> {
+  // Play services heads-up on google_apis CI emulators covers Unlock and
+  // makes the control non-interactive until the banner is dismissed.
+  PlaywrightUtilities.dismissAndroidHeadsUpNotifications();
+  await dismissAndroidSystemOverlaysPlaywright();
 }
 
 async function isPasswordFieldVisible(): Promise<boolean> {
@@ -67,9 +51,7 @@ async function waitForLockScreenGone(timeoutMs: number): Promise<boolean> {
  * deeplink we expect the permission sheet (not wallet home).
  */
 export async function unlockIfLockScreenVisible(): Promise<void> {
-  PlaywrightUtilities.collapseStatusBar();
-  await dismissAndroidSystemOverlaysPlaywright();
-  disableHeadsUpNotificationsBestEffort();
+  await dismissUnlockBlockers();
 
   if (!(await isPasswordFieldVisible())) {
     return;
@@ -80,8 +62,7 @@ export async function unlockIfLockScreenVisible(): Promise<void> {
 
   let lastError: unknown;
   for (let attempt = 0; attempt < UNLOCK_ATTEMPTS; attempt++) {
-    PlaywrightUtilities.collapseStatusBar();
-    await dismissAndroidSystemOverlaysPlaywright();
+    await dismissUnlockBlockers();
 
     try {
       await LoginView.enterPassword(password);
@@ -93,6 +74,7 @@ export async function unlockIfLockScreenVisible(): Promise<void> {
             tapError instanceof Error ? tapError.message : String(tapError)
           }`,
         );
+        await dismissUnlockBlockers();
         await UnifiedGestures.waitAndTap(LoginView.loginButton, {
           description: 'Login Button (unlock fallback)',
           checkForDisplayed: true,

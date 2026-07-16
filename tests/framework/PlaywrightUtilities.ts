@@ -513,12 +513,36 @@ class PlaywrightUtilities {
    * do not cover Chrome's omnibox on CI emulators.
    */
   static collapseStatusBar(): void {
-    try {
-      execSync('adb shell cmd statusbar collapse', { stdio: 'pipe' });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      logger.warn(`Could not collapse status bar: ${message}`);
-    }
+    PlaywrightUtilities.dismissAndroidHeadsUpNotifications();
+  }
+
+  /**
+   * Dismiss visible heads-up notifications on CI google_apis emulators.
+   * The persistent "Enable Google Play services" banner covers in-app controls
+   * (e.g. Unlock) and makes UiAutomator2 report them as non-interactive.
+   */
+  static dismissAndroidHeadsUpNotifications(): void {
+    const serial = process.env.ANDROID_DEVICE_UDID?.trim();
+    const adb = serial ? `adb -s ${serial}` : 'adb';
+    const run = (shellCommand: string): void => {
+      try {
+        execSync(`${adb} shell ${shellCommand}`, { stdio: 'pipe' });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.debug(
+          `dismissAndroidHeadsUpNotifications (${shellCommand}) best-effort failed: ${message}`,
+        );
+      }
+    };
+
+    run('cmd statusbar collapse');
+    run('settings put global heads_up_notifications_enabled 0');
+    run('am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS');
+    // Cancel any posted notifications (Play services banner may already be showing).
+    run('cmd notification cancel-all');
+    // Swipe the typical heads-up position up to dismiss a visible banner.
+    run('input swipe 540 200 540 40 150');
+    run('cmd statusbar collapse');
   }
 
   /**
