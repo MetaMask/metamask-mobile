@@ -103,6 +103,9 @@ const Checkout = () => {
   const params = useParams<CheckoutParams>();
   const { styles } = useStyles(styleSheet, {});
   const { themeAppearance } = useTheme();
+  // Intentionally overrides the design-system BottomSheet background to match
+  // Transak's iframe, which we cannot style. Keeps the native chrome seamless
+  // with the embedded checkout flow. See colors.transak* in app/styles/common.ts.
   const transakBgClassName =
     themeAppearance === AppThemeKey.dark
       ? `bg-[${colors.transakBackgroundDark}]`
