@@ -14,7 +14,7 @@ import {
   RampsRegion,
 } from '../../framework';
 import { safeGetBodyText } from '../MockServerE2E.ts';
-import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers.ts';
+import { getDecodedProxiedURL } from '../../smoke-appium/notifications/utils/helpers.ts';
 
 const logger = createLogger({
   name: 'PerpsArbitrumMocks',
