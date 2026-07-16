@@ -45,6 +45,7 @@ import PredictSportScoreboard from '../PredictSportScoreboard';
 import { isGameEnded } from '../../utils/scoreboard';
 import { isValidPrice } from '../../utils/prices';
 import { selectPredictSportCardLivePricesEnabledFlag } from '../../selectors/featureFlags';
+import { getLeagueTeamOrder } from '../../utils/gameParser';
 
 interface PredictMarketSportCardProps {
   market: PredictMarketType;
@@ -91,37 +92,42 @@ const buildButtonItems = (
     game,
     showDraw,
   });
+  const isHomeFirst = getLeagueTeamOrder(game.league) === 'home-away';
+
+  const homeItem: SportOutcomeButtonItem | undefined = home
+    ? {
+        key: home.token.id,
+        label: getTeamButtonLabel(game.homeTeam),
+        token: home.token,
+        outcome: home.outcome,
+        teamColor: game.homeTeam.color,
+        variant: 'home',
+      }
+    : undefined;
+  const drawItem: SportOutcomeButtonItem | undefined = draw
+    ? {
+        key: draw.token.id,
+        label: 'Draw',
+        token: draw.token,
+        outcome: draw.outcome,
+        variant: 'draw',
+      }
+    : undefined;
+  const awayItem: SportOutcomeButtonItem | undefined = away
+    ? {
+        key: away.token.id,
+        label: getTeamButtonLabel(game.awayTeam),
+        token: away.token,
+        outcome: away.outcome,
+        teamColor: game.awayTeam.color,
+        variant: 'away',
+      }
+    : undefined;
 
   return compactButtonItems([
-    home
-      ? {
-          key: home.token.id,
-          label: getTeamButtonLabel(game.homeTeam),
-          token: home.token,
-          outcome: home.outcome,
-          teamColor: game.homeTeam.color,
-          variant: 'home',
-        }
-      : undefined,
-    draw
-      ? {
-          key: draw.token.id,
-          label: 'Draw',
-          token: draw.token,
-          outcome: draw.outcome,
-          variant: 'draw',
-        }
-      : undefined,
-    away
-      ? {
-          key: away.token.id,
-          label: getTeamButtonLabel(game.awayTeam),
-          token: away.token,
-          outcome: away.outcome,
-          teamColor: game.awayTeam.color,
-          variant: 'away',
-        }
-      : undefined,
+    isHomeFirst ? homeItem : awayItem,
+    drawItem,
+    isHomeFirst ? awayItem : homeItem,
   ]);
 };
 
@@ -285,7 +291,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
 
   return (
     <TouchableOpacity
-      style={tw.style(isCarousel ? '' : 'my-[8px]')}
+      style={tw.style(isCarousel ? 'h-full' : 'my-[8px]')}
       testID={testID}
       onPress={handleCardPress}
       activeOpacity={0.9}
@@ -306,9 +312,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
           </Box>
         )}
 
-        <Box
-          twClassName={isCompact ? 'flex-1 p-3 justify-between' : 'p-4 gap-4'}
-        >
+        <Box twClassName={isCompact ? 'flex-1 p-3' : 'p-4 gap-4'}>
           <Text
             variant={TextVariant.HeadingSm}
             color={TextColor.TextDefault}
@@ -319,16 +323,18 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
             {market.title}
           </Text>
 
-          <PredictSportScoreboard
-            game={game}
-            compact={isCompact}
-            testID={testID ? `${testID}-scoreboard` : undefined}
-          />
+          <Box twClassName={isCompact ? 'flex-1 mt-3 justify-center' : ''}>
+            <PredictSportScoreboard
+              game={game}
+              compact={isCompact}
+              testID={testID ? `${testID}-scoreboard` : undefined}
+            />
+          </Box>
 
           {showBuyButtons && (
             <Box
               flexDirection={BoxFlexDirection.Row}
-              twClassName="w-full gap-2"
+              twClassName={`w-full gap-2 ${isCompact ? 'mt-1' : ''}`}
             >
               {buttonItems.map((item) => (
                 <Box key={item.key} twClassName="flex-1">

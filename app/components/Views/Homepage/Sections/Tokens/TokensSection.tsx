@@ -42,7 +42,6 @@ import useHomeViewedEvent, {
   type HomeSectionName,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
-import { useMusdCtaVisibility } from '../../../../UI/Earn/hooks/useMusdCtaVisibility';
 import { isMusdToken } from '../../../../UI/Earn/constants/musd';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
@@ -54,6 +53,8 @@ import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
 import { selectMoneyHubEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
+import { useMoneyTokenListCta } from '../../../../UI/Money/hooks/useMoneyTokenListCta';
+import { SCREEN_NAMES } from '../../../../UI/Money/constants/moneyEvents';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -98,7 +99,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       selectAccountGroupBalanceForEmptyState,
     );
     const privacyMode = useSelector(selectPrivacyMode);
-    const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
+    const { tokenListItemCta } = useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME);
     const popularTokensListRef = useRef<SectionRefreshHandle>(null);
     const [hasTokensError, setHasTokensError] = useState(false);
 
@@ -278,7 +279,9 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
                     setShowScamWarningModal={setShowScamWarningModal}
                     privacyMode={privacyMode}
                     showPercentageChange
-                    shouldShowTokenListItemCta={shouldShowTokenListItemCta}
+                    tokenListItemCta={tokenListItemCta}
+                    tokenPositionInList={index + 1}
+                    tokensInList={displayTokenKeys.length}
                   />
                 ))
               )}
