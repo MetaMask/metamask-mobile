@@ -11,7 +11,6 @@ import { colors } from '../../../../styles/common';
  * (e.g. "transak" matches both "transak" and "transak-native").
  *
  * Providers not listed here fall back to the design-system default surface.
- * TODO: verify dark/light values visually in the simulator for each provider below.
  */
 
 export interface ProviderWebviewColors {
@@ -19,13 +18,14 @@ export interface ProviderWebviewColors {
   light: string;
 }
 
+// Intentionally overrides the design-system BottomSheet background to match
+// each provider's iframe, which we cannot style. Keeps the native chrome
+// seamless with the embedded checkout flow. See colors.*CheckoutDark in
+// app/styles/common.ts. Update only if a provider changes their iframe theme.
 const PROVIDER_WEBVIEW_COLORS: Record<string, ProviderWebviewColors> = {
   transak: { dark: colors.transakCheckoutDark, light: brandColor.white },
   moonpay: { dark: colors.moonpayCheckoutDark, light: brandColor.white },
   banxa: { dark: colors.banxaCheckoutDark, light: brandColor.white },
-  // sardine: { dark: '???', light: '???' },
-  // stripe: { dark: '???', light: '???' },
-  // paypal: { dark: '???', light: '???' },
 };
 
 /**
