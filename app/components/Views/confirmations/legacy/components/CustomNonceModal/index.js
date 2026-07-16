@@ -12,10 +12,19 @@ import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { useTheme } from '../../../../../../util/theme';
+import { AppThemeKey } from '../../../../../../util/theme/models';
 import { isNumber } from '../../../../../../util/number';
+import {
+  getElevatedSurfaceColor,
+  isPureBlackEnabled,
+} from '../../../../../../util/theme/themeUtils';
 
-const createStyles = (colors) =>
-  StyleSheet.create({
+// TODO(Pure Black): Remove createStyles export and dedicated styles tests once
+// pure black ships by default or this modal migrates to MMDS BottomSheet.
+export const createStyles = (theme) => {
+  const { colors } = theme;
+
+  return StyleSheet.create({
     bottomModal: {
       justifyContent: 'flex-end',
       margin: 0,
@@ -26,7 +35,15 @@ const createStyles = (colors) =>
     },
     modal: {
       minHeight: 200,
-      backgroundColor: colors.background.default,
+      backgroundColor: getElevatedSurfaceColor(theme),
+      ...(isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark
+        ? {
+            borderTopWidth: 1,
+            borderLeftWidth: 1,
+            borderRightWidth: 1,
+            borderColor: colors.border.muted,
+          }
+        : null),
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
     },
@@ -73,7 +90,7 @@ const createStyles = (colors) =>
     nonceWarning: {
       borderWidth: 1,
       borderColor: colors.warning.default,
-      backgroundColor: colors.warning.muted,
+      ...(isPureBlackEnabled ? {} : { backgroundColor: colors.warning.muted }),
       padding: 16,
       display: 'flex',
       flexDirection: 'row',
@@ -111,11 +128,13 @@ const createStyles = (colors) =>
       color: colors.primary.default,
     },
   });
+};
 
 const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
   const [nonce, onChangeText] = React.useState(nonceValue);
-  const { colors, themeAppearance } = useTheme();
-  const styles = createStyles(colors);
+  const theme = useTheme();
+  const { colors, themeAppearance } = theme;
+  const styles = createStyles(theme);
 
   const incrementDecrementNonce = (isDecrement) => {
     const currentNonce = Number(nonce);
