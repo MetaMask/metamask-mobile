@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux';
 import { useABTest } from './useABTest';
 import { useAnalytics } from '../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../core/Analytics';
+import { selectRemoteFeatureFlags } from '../selectors/featureFlagController';
+import { getDetectedGeolocation } from '../reducers/fiatOrders';
 
 // Mock react-redux
 jest.mock('react-redux', () => ({
@@ -14,6 +16,10 @@ jest.mock('../selectors/featureFlagController', () => ({
   selectRemoteFeatureFlags: jest.fn(
     (state: { featureFlags?: unknown }) => state?.featureFlags,
   ),
+}));
+
+jest.mock('../reducers/fiatOrders', () => ({
+  getDetectedGeolocation: jest.fn(() => undefined),
 }));
 
 jest.mock('../components/hooks/useAnalytics/useAnalytics', () => ({
@@ -609,6 +615,53 @@ describe('useABTest', () => {
       await waitFor(() => expect(mockTrackEvent).toHaveBeenCalledTimes(502), {
         timeout: 4000,
       });
+    });
+
+    it('includes country_code in exposure event when geolocation is available', async () => {
+      const flagKey = `${experimentFlagKey}CountryCode`;
+      const flags = { [flagKey]: { name: 'treatment' } };
+
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectRemoteFeatureFlags) {
+          return flags;
+        }
+        if (selector === getDetectedGeolocation) {
+          return 'JP';
+        }
+        return undefined;
+      });
+
+      renderHook(() => useABTest(flagKey, experimentVariants));
+
+      await waitFor(() => expect(mockTrackEvent).toHaveBeenCalledTimes(1));
+      expect(mockTrackEvent.mock.calls[0][0]).toMatchObject({
+        properties: {
+          experiment_id: flagKey,
+          variation_id: 'treatment',
+          country_code: 'JP',
+        },
+      });
+    });
+
+    it('omits country_code from exposure event when geolocation is undefined', async () => {
+      const flagKey = `${experimentFlagKey}NoCountry`;
+      const flags = { [flagKey]: { name: 'control' } };
+
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectRemoteFeatureFlags) {
+          return flags;
+        }
+        if (selector === getDetectedGeolocation) {
+          return undefined;
+        }
+        return undefined;
+      });
+
+      renderHook(() => useABTest(flagKey, experimentVariants));
+
+      await waitFor(() => expect(mockTrackEvent).toHaveBeenCalledTimes(1));
+      const props = mockTrackEvent.mock.calls[0][0].properties;
+      expect(props).not.toHaveProperty('country_code');
     });
   });
 });

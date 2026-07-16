@@ -22,46 +22,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-const mockOnOpenBottomSheet = jest.fn();
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-
-  const BottomSheet = ReactActual.forwardRef(
-    (
-      {
-        children,
-        onClose,
-      }: {
-        children: React.ReactNode;
-        onClose?: () => void;
-      },
-      ref: React.Ref<{
-        onOpenBottomSheet: () => void;
-        onCloseBottomSheet: (callback?: () => void) => void;
-      }>,
-    ) => {
-      ReactActual.useImperativeHandle(ref, () => ({
-        onOpenBottomSheet: mockOnOpenBottomSheet,
-        onCloseBottomSheet: (callback?: () => void) => {
-          onClose?.();
-          callback?.();
-        },
-      }));
-
-      return <View testID="bottom-sheet">{children}</View>;
-    },
-  );
-  BottomSheet.displayName = 'BottomSheet';
-
-  return {
-    ...actual,
-    BottomSheet,
-  };
-});
-
 jest.mock('./PerpsCustomSlippageBottomSheet', () => {
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
@@ -112,6 +72,9 @@ describe('PerpsSlippageBottomSheet', () => {
   it('renders three preset chips and an edit chip when value matches a preset', () => {
     render(<PerpsSlippageBottomSheet {...defaultProps} />);
 
+    expect(
+      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.BOTTOM_SHEET),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId('perps-slippage-config-preset-0.5'),
     ).toBeOnTheScreen();
@@ -191,28 +154,30 @@ describe('PerpsSlippageBottomSheet', () => {
   it('re-opens the main bottom sheet after custom sheet closes', () => {
     render(<PerpsSlippageBottomSheet {...defaultProps} />);
 
-    expect(mockOnOpenBottomSheet).toHaveBeenCalledTimes(1);
-
     fireEvent.press(
       screen.getByTestId(PerpsSlippageConfigSelectorsIDs.EDIT_CHIP),
     );
     fireEvent.press(screen.getByTestId('mock-custom-cancel'));
 
-    expect(mockOnOpenBottomSheet).toHaveBeenCalledTimes(2);
-    expect(screen.getByTestId('bottom-sheet')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.BOTTOM_SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.EDIT_CHIP),
+    ).toBeOnTheScreen();
   });
 
   it('re-opens the main bottom sheet after custom sheet saves', () => {
     render(<PerpsSlippageBottomSheet {...defaultProps} />);
-
-    expect(mockOnOpenBottomSheet).toHaveBeenCalledTimes(1);
 
     fireEvent.press(
       screen.getByTestId(PerpsSlippageConfigSelectorsIDs.EDIT_CHIP),
     );
     fireEvent.press(screen.getByTestId('mock-custom-save-450'));
 
-    expect(mockOnOpenBottomSheet).toHaveBeenCalledTimes(2);
+    expect(
+      screen.getByTestId(PerpsSlippageConfigSelectorsIDs.BOTTOM_SHEET),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(PerpsSlippageConfigSelectorsIDs.EDIT_CHIP),
     ).toHaveTextContent('4.5%');

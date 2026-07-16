@@ -79,6 +79,7 @@ const MoneyAddMoneySheet: React.FC = () => {
     () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
     [enabledTransactionTypes],
   );
+  const canDepositFiat = isFiatDepositEnabled && regionHasFiatProvider;
 
   const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
@@ -164,7 +165,26 @@ const MoneyAddMoneySheet: React.FC = () => {
     startDeposit({ autoSelectFiatPayment: true, intent: 'card' });
   }, [startDeposit, trackSurfaceClicked]);
 
+  const parsedMusdFiat = Number(fiatBalanceAggregated);
+  const hasParsedFiatBalance =
+    Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
+  const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
+
   const handleMoveMusd = useCallback(() => {
+    // With no mUSD anywhere there is nothing to move, so the row funds the
+    // money account through the MM Pay fiat deposit (debit card / Apple Pay)
+    // instead — the money account is only ever funded via MM Pay, never the
+    // standalone Ramps flow.
+    if (!hasMusdBalance) {
+      trackSurfaceClicked({
+        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_MUSD,
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      });
+
+      startDeposit({ autoSelectFiatPayment: true, intent: 'card' });
+      return;
+    }
+
     let sourceChainId: Hex = MUSD_CONVERSION_DEFAULT_CHAIN_ID;
     let bestBalance = new BigNumber(0);
     for (const [chainId, balance] of Object.entries(
@@ -189,12 +209,7 @@ const MoneyAddMoneySheet: React.FC = () => {
         chainId: sourceChainId,
       },
     });
-  }, [startDeposit, tokenBalanceByChain, trackSurfaceClicked]);
-
-  const parsedMusdFiat = Number(fiatBalanceAggregated);
-  const hasParsedFiatBalance =
-    Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
-  const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
+  }, [hasMusdBalance, startDeposit, tokenBalanceByChain, trackSurfaceClicked]);
 
   const moveMusdAmount = useMemo(
     () => moneyFormatUsd(new BigNumber(tokenBalanceAggregated)),
@@ -213,7 +228,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       disabled: !hasAnyCryptoBalance,
     },
-    ...(isFiatDepositEnabled && regionHasFiatProvider
+    ...(canDepositFiat
       ? [
           {
             label: strings(
@@ -236,7 +251,9 @@ const MoneyAddMoneySheet: React.FC = () => {
       icon: IconName.Add,
       onPress: handleMoveMusd,
       testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
-      disabled: !hasMusdBalance,
+      // Without mUSD the row falls back to the MM Pay fiat deposit, so it is
+      // only actionable when that flow is available.
+      disabled: !hasMusdBalance && !canDepositFiat,
     },
     {
       label: strings('money.add_money_sheet.bank_account'),

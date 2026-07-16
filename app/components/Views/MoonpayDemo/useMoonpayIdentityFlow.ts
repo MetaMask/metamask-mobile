@@ -10,14 +10,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   createSession,
-  createIdentity,
-  patchIdentity,
-  startVerification,
-  pollForOutcome,
-  type Identity,
-  type IdentityStatus,
+  checkKycRequired,
+  fetchDisclaimers,
+  fetchGeolocationCountry,
+  type Disclaimer,
   type IdentitySubmission,
-  type RequirementType,
+  type KycRequiredResponse,
 } from './api';
 import {
   generateKeyPair,
@@ -27,8 +25,6 @@ import {
   type X25519KeyPair,
 } from './crypto';
 import type { MoonpayFrameMessage } from './MoonpayFrame';
-// eslint-disable-next-line import-x/no-restricted-paths
-import useSumSubDemo from '../SumSubDemo/useSumSubDemo';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -41,61 +37,12 @@ const CHANNEL_AUTH = 'ch_2';
 
 const DEMO_EMAIL = 'jiexi.luan@consensys.net';
 
-const INLINE_REQUIREMENT_TYPES: RequirementType[] = [
-  'basicDetails',
-  'residentialAddress',
-  'phoneNumber',
-  'taxIdentifiers',
-];
-
-const REQUIREMENT_FULFILLMENT: Partial<Record<string, string>> = {
-  email: 'pre-completed by the Auth frame',
-  phoneNumber: 'PATCH /identities',
-  basicDetails: 'PATCH /identities',
-  residentialAddress: 'PATCH /identities',
-  taxIdentifiers: 'PATCH /identities',
-  identityDocuments: 'presigned upload (upload-url → PUT → confirm)',
-  proofOfAddress: 'presigned upload (upload-url → PUT → confirm)',
-  selfie: "presigned upload (fileType 'selfie') — not in documented enum",
-  questionnaires: 'undocumented — no API fulfillment path in the preview guide',
-};
-
 const DEMO_SUBMISSION_US: IdentitySubmission = {
-  basicDetails: {
-    firstName: 'Jane',
-    lastName: 'Doe',
-    dateOfBirth: '1990-05-15',
-    nationality: 'USA',
-  },
-  residentialAddress: {
-    country: 'USA',
-    street: '123 Main St',
-    subStreet: 'Apt 4',
-    locality: 'New York',
-    administrativeArea: 'NY',
-    postalCode: '10001',
-  },
-  phoneNumber: { number: '+12025550143' },
-  taxIdentifiers: [{ type: 'ssn', value: '123-45-6789' }],
+  residentialAddress: { country: 'USA' },
 };
 
 const DEMO_SUBMISSION_FR: IdentitySubmission = {
-  basicDetails: {
-    firstName: 'Marie',
-    lastName: 'Dupont',
-    dateOfBirth: '1988-03-22',
-    nationality: 'FRA',
-  },
-  residentialAddress: {
-    country: 'FRA',
-    street: '15 Rue de Rivoli',
-    subStreet: 'Bât A',
-    locality: 'Paris',
-    administrativeArea: 'Île-de-France',
-    postalCode: '75001',
-  },
-  phoneNumber: { number: '+33609965745' },
-  taxIdentifiers: [{ type: 'ssn', value: '288037512345678' }],
+  residentialAddress: { country: 'FRA' },
 };
 
 export type DemoProfile = 'US' | 'FR';
@@ -116,9 +63,6 @@ export type Phase =
   | 'auth'
   | 'form'
   | 'submit'
-  | 'verify'
-  | 'challenge'
-  | 'poll'
   | 'done'
   | 'error';
 
@@ -147,16 +91,6 @@ interface CheckOrAuthCompletePayload {
   };
 }
 
-interface ChallengeEventPayload {
-  type:
-    | 'identity.challenge.completed'
-    | 'identity.challenge.cancelled'
-    | 'identity.challenge.failed';
-  identityId?: string;
-  challengeId?: string;
-  message?: string;
-}
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -164,18 +98,22 @@ interface ChallengeEventPayload {
 const truncate = (s: string, head = 12, tail = 6): string =>
   s.length <= head + tail + 3 ? s : `${s.slice(0, head)}…${s.slice(-tail)}`;
 
-const getIncompleteRequirements = (identity: Identity): RequirementType[] =>
-  (Object.keys(identity.requirements) as RequirementType[]).filter(
-    (type) => identity.requirements[type]?.status === 'incomplete',
-  );
-
 // ---------------------------------------------------------------------------
 // Hook
 // ---------------------------------------------------------------------------
 
-const useMoonpayIdentityFlow = () => {
-  const { launchSumSubSDK } = useSumSubDemo();
+export interface UseMoonpayIdentityFlowOptions {
+  // Launches the SumSub verification flow. Called automatically once the
+  // MoonPay flow reaches the `done` phase with `kycRequired === true`.
+  launchSumSubSDK: (
+    moonPayAccessToken: string | null,
+    moonPayCustomerId: string | null,
+  ) => Promise<void> | void;
+}
 
+const useMoonpayIdentityFlow = ({
+  launchSumSubSDK,
+}: UseMoonpayIdentityFlowOptions) => {
   // ---- Core state ----
   const [phase, setPhase] = useState<Phase>('terms');
   const [statusMessage, setStatusMessage] = useState<string>('');
@@ -187,9 +125,15 @@ const useMoonpayIdentityFlow = () => {
 
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [identity, setIdentity] = useState<Identity | null>(null);
-  const [challengeUrl, setChallengeUrl] = useState<string | null>(null);
-  const [finalStatus, setFinalStatus] = useState<IdentityStatus | null>(null);
+  const [kycResult, setKycResult] = useState<KycRequiredResponse | null>(null);
+
+  // ---- Geolocation country (resolved from the GeolocationController) ----
+  const [geoCountry, setGeoCountry] = useState<string | null>(null);
+
+  // ---- Disclaimers (fetched before showing the terms of service) ----
+  const [disclaimers, setDisclaimers] = useState<Disclaimer[]>([]);
+  const [disclaimersError, setDisclaimersError] = useState<string | null>(null);
+  const [disclaimersLoaded, setDisclaimersLoaded] = useState(false);
 
   // ---- Debug surface ----
   const [debugEvents, setDebugEvents] = useState<DebugEvent[]>([]);
@@ -226,17 +170,13 @@ const useMoonpayIdentityFlow = () => {
     [pushDebug],
   );
 
-  useEffect(() => {
-    if (finalStatus === 'approved') {
-      launchSumSubSDK(accessToken);
-    }
-  }, [finalStatus, launchSumSubSDK, accessToken]);
-
   // ---- Check frame visibility toggle ----
   const [showCheckFrame, setShowCheckFrame] = useState(false);
 
   // ---- Auth frame clientToken ----
   const [authClientToken, setAuthClientToken] = useState<string | null>(null);
+  // ---- Auth frame customer ID ----
+  const [authCustomerId, setAuthCustomerId] = useState<string | null>(null);
 
   // ---- Stable X25519 keypair for Check/Auth frames ----
   const keypairRef = useRef<X25519KeyPair | null>(null);
@@ -245,14 +185,49 @@ const useMoonpayIdentityFlow = () => {
   }
   const keypair = keypairRef.current;
 
-  // ---- Poll abort on unmount ----
-  const pollAbortedRef = useRef(false);
-  useEffect(
-    () => () => {
-      pollAbortedRef.current = true;
-    },
-    [],
-  );
+  // ---------- Step 0: resolve country from geolocation, then fetch
+  // disclaimers before showing the terms ----------
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      let country: string;
+      try {
+        country = await fetchGeolocationCountry();
+        if (cancelled) return;
+        setGeoCountry(country);
+        pushDebug('Step 0 geolocation resolved', { country }, 'success');
+      } catch (err) {
+        if (cancelled) return;
+        setDisclaimersError(`Failed to resolve geolocation: ${err}`);
+        pushDebug(
+          'Step 0 geolocation resolve failed',
+          { error: String(err) },
+          'error',
+        );
+        return;
+      }
+
+      try {
+        const result = await fetchDisclaimers({ country });
+        if (cancelled) return;
+        setDisclaimers(result);
+        setDisclaimersError(null);
+        setDisclaimersLoaded(true);
+        pushDebug('Step 0 disclaimers fetched', result, 'success');
+      } catch (err) {
+        if (cancelled) return;
+        setDisclaimersError(`Failed to load disclaimers: ${err}`);
+        pushDebug(
+          'Step 0 disclaimers fetch failed',
+          { error: String(err) },
+          'error',
+        );
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pushDebug]);
 
   // ---------- Step 1 → Step 2: accept terms, create session ----------
   const acceptTermsAndCreateSession = useCallback(async () => {
@@ -264,6 +239,7 @@ const useMoonpayIdentityFlow = () => {
       const session = await createSession({
         email,
         termsAcceptedAt: acceptedAt,
+        disclaimerIds: disclaimers.map((disclaimer) => disclaimer.id),
       });
       setSessionToken(session.sessionToken);
       setPhase('check');
@@ -272,30 +248,7 @@ const useMoonpayIdentityFlow = () => {
       setErrorMessage(`Step 2 (create session) failed: ${err}`);
       setPhase('error');
     }
-  }, [email]);
-
-  // ---------- Step 7: poll identity status ----------
-  const pollUntilTerminal = useCallback(
-    async (token: string, identityId: string) => {
-      try {
-        const finalIdentity = await pollForOutcome(token, identityId, {
-          shouldAbort: () => pollAbortedRef.current,
-          onTick: (snap) => setStatusMessage(`Status: ${snap.status}...`),
-        });
-        setIdentity(finalIdentity);
-        setFinalStatus(finalIdentity.status);
-        setPhase('done');
-        setStatusMessage(`Final status: ${finalIdentity.status}`);
-        launchSumSubSDK(accessToken);
-      } catch (err) {
-        if (!pollAbortedRef.current) {
-          setErrorMessage(`Polling failed: ${err}`);
-          setPhase('error');
-        }
-      }
-    },
-    [launchSumSubSDK, accessToken],
-  );
+  }, [email, disclaimers]);
 
   // ---------- Step 3a / 3b: Check + Auth frame message handler ----------
   const handleFrameMessage = useCallback(
@@ -321,6 +274,7 @@ const useMoonpayIdentityFlow = () => {
       const channelId = payload.meta?.channelId;
       const status = payload.payload?.status;
       const credsEnvelope = payload.payload?.credentials;
+      setAuthCustomerId(payload.payload?.customer?.id);
 
       pushCheckDebug(
         `complete event — ${channelId ?? '(no channel)'}`,
@@ -422,181 +376,39 @@ const useMoonpayIdentityFlow = () => {
     [keypair.privateKey, pushCheckDebug],
   );
 
-  // ---------- Step 4 / 5: create identity, submit requirements ----------
-  const submitIdentity = useCallback(async () => {
+  // ---------- Step 4: check whether KYC is required ----------
+  const runKycCheck = useCallback(async () => {
     if (!accessToken) {
       setErrorMessage('Missing accessToken — repeat Step 3.');
       setPhase('error');
       return;
     }
     setPhase('submit');
-    setStatusMessage('Creating identity...');
+    setStatusMessage('Checking KYC status...');
     try {
       const country = submission.residentialAddress?.country;
       if (!country) {
         throw new Error('residentialAddress.country is required');
       }
 
-      const created = await createIdentity({ accessToken, country });
-      if (created === null) {
-        setFinalStatus('approved');
-        setPhase('done');
-        setStatusMessage('Identity already complete — skipping to payment.');
-        return;
-      }
-      setIdentity(created);
-
-      pushDebug(
-        `Step 4 required fields (${country})`,
-        {
-          identityStatus: created.status,
-          requirements: created.requirements,
-        },
-        'info',
-      );
-
-      let current: Identity = created;
-      const MAX_ROUNDS = 6;
-      for (let round = 0; round < MAX_ROUNDS; round++) {
-        const pending = getIncompleteRequirements(current);
-        const inlinePending = pending.filter((type) =>
-          INLINE_REQUIREMENT_TYPES.includes(type),
-        );
-
-        pushDebug(
-          `Step 5 round ${round + 1}`,
-          { pending, inlinePending },
-          'info',
-        );
-
-        if (inlinePending.length === 0) break;
-
-        const patchBody: IdentitySubmission = {};
-        for (const type of inlinePending) {
-          switch (type) {
-            case 'basicDetails':
-              patchBody.basicDetails = submission.basicDetails;
-              break;
-            case 'residentialAddress':
-              patchBody.residentialAddress = submission.residentialAddress;
-              break;
-            case 'phoneNumber':
-              patchBody.phoneNumber = submission.phoneNumber;
-              break;
-            case 'taxIdentifiers':
-              patchBody.taxIdentifiers = submission.taxIdentifiers;
-              break;
-            default:
-              break;
-          }
-        }
-
-        setStatusMessage(
-          `Submitting requirements: ${inlinePending.join(', ')}...`,
-        );
-        current = await patchIdentity(accessToken, created.id, patchBody);
-        setIdentity(current);
-      }
-
-      const remaining = getIncompleteRequirements(current);
-
-      if (remaining.length > 0) {
-        pushDebug(
-          'Stopping before POST /verifications — unfulfillable requirements remain',
-          {
-            remaining: remaining.map((type) => ({
-              type,
-              requiredFields: current.requirements[type]?.requiredFields,
-              fulfilledBy: REQUIREMENT_FULFILLMENT[type] ?? 'undocumented',
-            })),
-          },
-          'warn',
-        );
-        setIdentity(current);
-        setFinalStatus(current.status);
-        setPhase('done');
-        setStatusMessage(
-          `Stopped at the documented API boundary. Remaining (out-of-band): ${remaining.join(
-            ', ',
-          )}. See the debug log for how each is fulfilled.`,
-        );
-        return;
-      }
-
-      pushDebug('Step 5 complete — all requirements satisfied', {}, 'success');
-
-      setPhase('verify');
-      setStatusMessage('Triggering verification...');
-      const verification = await startVerification(accessToken, created.id);
-
-      if (
-        verification.status === 'challengeRequired' &&
-        verification.challenge
-      ) {
-        setChallengeUrl(verification.challenge.url);
-        setPhase('challenge');
-        setStatusMessage('Complete the verification challenge.');
-      } else if (verification.status === 'approved') {
-        setFinalStatus('approved');
-        setPhase('done');
-        setStatusMessage('Approved.');
-      } else {
-        setPhase('poll');
-        setStatusMessage('Verification processing — polling for outcome...');
-        pollUntilTerminal(accessToken, created.id);
-      }
+      const result = await checkKycRequired({ accessToken, country });
+      setKycResult(result);
+      setPhase('done');
+      setStatusMessage('KYC check complete.');
+      pushDebug(`Step 4 kyc-required result (${country})`, result, 'success');
     } catch (err) {
-      setErrorMessage(`Identity submission failed: ${err}`);
+      setErrorMessage(`KYC check failed: ${err}`);
       setPhase('error');
     }
-  }, [accessToken, submission, pushDebug, pollUntilTerminal]);
+  }, [accessToken, submission, pushDebug]);
 
-  // ---------- Challenge frame message handler ----------
-  const handleChallengeMessage = useCallback(
-    (msg: MoonpayFrameMessage) => {
-      const data = msg.message as ChallengeEventPayload | undefined;
-      if (!data || !data.type || !identity || !accessToken) return;
-
-      switch (data.type) {
-        case 'identity.challenge.completed':
-          setChallengeUrl(null);
-          setPhase('poll');
-          setStatusMessage('Challenge completed — polling for outcome...');
-          pollUntilTerminal(accessToken, identity.id);
-          break;
-        case 'identity.challenge.cancelled':
-        case 'identity.challenge.failed':
-          setStatusMessage(
-            data.type === 'identity.challenge.failed'
-              ? `Challenge failed (${data.message ?? 'unknown'}) — requesting fresh URL...`
-              : 'Challenge cancelled — requesting fresh URL...',
-          );
-          setChallengeUrl(null);
-          startVerification(accessToken, identity.id)
-            .then((verification) => {
-              if (
-                verification.status === 'challengeRequired' &&
-                verification.challenge
-              ) {
-                setChallengeUrl(verification.challenge.url);
-                setStatusMessage('Resume the verification challenge.');
-              } else if (verification.status === 'processing') {
-                setPhase('poll');
-                pollUntilTerminal(accessToken, identity.id);
-              } else if (verification.status === 'approved') {
-                setFinalStatus('approved');
-                setPhase('done');
-              }
-            })
-            .catch((err) => {
-              setErrorMessage(`Failed to resume verification: ${err}`);
-              setPhase('error');
-            });
-          break;
-      }
-    },
-    [accessToken, identity, pollUntilTerminal],
-  );
+  // ---------- Step 5: hand off to SumSub ----------
+  // Explicitly triggered from the done panel once the customer has seen the
+  // kyc-required result. Passes the MoonPay access token to the SumSub flow.
+  const launchSumSub = useCallback(() => {
+    pushDebug('Step 5 launching SumSub', null, 'info');
+    launchSumSubSDK(accessToken, authCustomerId);
+  }, [accessToken, authCustomerId, launchSumSubSDK, pushDebug]);
 
   // ---------- Frame URLs ----------
   const checkFrameUrl = useMemo(() => {
@@ -639,11 +451,6 @@ const useMoonpayIdentityFlow = () => {
     setPhase('error');
   }, []);
 
-  const handleChallengeFrameError = useCallback((err: string) => {
-    setErrorMessage(`Challenge frame error: ${err}`);
-    setPhase('error');
-  }, []);
-
   return {
     accessToken,
     phase,
@@ -653,21 +460,24 @@ const useMoonpayIdentityFlow = () => {
     setEmail,
     submission,
     setSubmission,
+    geoCountry,
+    disclaimers,
+    disclaimersError,
+    disclaimersLoaded,
     debugEvents,
     clearDebug,
     showCheckFrame,
     setShowCheckFrame,
-    finalStatus,
+    kycResult,
     checkFrameUrl,
+    authCustomerId,
     authFrameUrl,
-    challengeUrl,
     acceptTermsAndCreateSession,
-    submitIdentity,
+    runKycCheck,
+    launchSumSub,
     handleFrameMessage,
-    handleChallengeMessage,
     handleCheckFrameError,
     handleAuthFrameError,
-    handleChallengeFrameError,
   };
 };
 

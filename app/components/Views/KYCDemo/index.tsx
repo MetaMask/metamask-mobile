@@ -37,7 +37,14 @@ const styles = StyleSheet.create({
 const KYCDemo = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const { isLoading: isLoadingSumSubDemo } = useSumSubDemo();
+
+  // Single shared SumSub instance: MoonpayDemo triggers `launchSumSubSDK` once
+  // KYC is required, and SumSubDemo renders that same instance's progress.
+  const { isLoading, launchSumSubSDK, sdkResult, status } = useSumSubDemo();
+
+  // Switch to the SumSub view as soon as it is launched, and keep it visible
+  // through completion (status/result persist after loading finishes).
+  const showSumSubDemo = isLoading || status !== null;
 
   return (
     <SafeAreaView
@@ -53,8 +60,8 @@ const KYCDemo = () => {
           KYC Demo
         </Text>
       </View>
-      {!isLoadingSumSubDemo && <MoonpayDemo />}
-      {isLoadingSumSubDemo && <SumSubDemo />}
+      {!showSumSubDemo && <MoonpayDemo launchSumSubSDK={launchSumSubSDK} />}
+      {showSumSubDemo && <SumSubDemo sdkResult={sdkResult} status={status} />}
     </SafeAreaView>
   );
 };

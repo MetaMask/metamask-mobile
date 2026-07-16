@@ -11,6 +11,8 @@
 		124C1456DB6348928E0536A8 /* Geist-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4BFDB3B860044F1A9CF3CFEB /* Geist-Medium.otf */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		153C1ABB2217BCDC0088EFE0 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */; };
+		153F84CA2319B8FD00C19B63 /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; };
+		153F84CB2319B8FD00C19B63 /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		158B063B211A72F500DF3C74 /* InpageBridgeWeb3.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */; };
 		15AD28A921B7CFD9005DEB23 /* release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD86021B76461006B7C35 /* release.xcconfig */; };
 		15AD28AA21B7CFDC005DEB23 /* debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD82721B7642B006B7C35 /* debug.xcconfig */; };
@@ -21,6 +23,7 @@
 		2EF282612B0FF86900D7B4B1 /* LinkPresentation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F961A36A28105CF9007442B5 /* LinkPresentation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		2EF282622B0FF86900D7B4B1 /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
 		2EF282632B0FF86900D7B4B1 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */; };
+		2EF282652B0FF86900D7B4B1 /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; };
 		2EF2826A2B0FF86900D7B4B1 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2EF2826B2B0FF86900D7B4B1 /* InpageBridgeWeb3.js in Resources */ = {isa = PBXBuildFile; fileRef = 158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */; };
 		2EF2826C2B0FF86900D7B4B1 /* Metamask.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 15D158EC210BD8C8006982B5 /* Metamask.ttf */; };
@@ -28,6 +31,7 @@
 		2EF282712B0FF86900D7B4B1 /* debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD82721B7642B006B7C35 /* debug.xcconfig */; };
 		2EF282762B0FF86900D7B4B1 /* release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD86021B76461006B7C35 /* release.xcconfig */; };
 		2EF2827D2B0FF86900D7B4B1 /* branch.json in Resources */ = {isa = PBXBuildFile; fileRef = FE3C9A2458A1416290DEDAD4 /* branch.json */; };
+		2EF2828C2B0FF86900D7B4B1 /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		2EF2832A2B17EBD600D7B4B1 /* RnTar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF283292B17EBD600D7B4B1 /* RnTar.swift */; };
 		2EF2832C2B17EBD600D7B4B1 /* RnTar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EF283292B17EBD600D7B4B1 /* RnTar.swift */; };
 		2EF283322B17EC1A00D7B4B1 /* RNTar.m in Sources */ = {isa = PBXBuildFile; fileRef = 2EF283312B17EC1A00D7B4B1 /* RNTar.m */; };
@@ -69,6 +73,27 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		153F84C82319B8DB00C19B63 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 153F84C42319B8DA00C19B63 /* BranchSDK.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E298D0521C73D1B800589D22;
+			remoteInfo = Branch;
+		};
+		153F84CC2319B8FD00C19B63 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 153F84C42319B8DA00C19B63 /* BranchSDK.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E298D0511C73D1B800589D22;
+			remoteInfo = Branch;
+		};
+		2EF282562B0FF86900D7B4B1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 153F84C42319B8DA00C19B63 /* BranchSDK.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E298D0511C73D1B800589D22;
+			remoteInfo = Branch;
+		};
 		650F2B9B24DC5FEC00C3B9C4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 650F2B9724DC5FEB00C3B9C4 /* RCTAesForked.xcodeproj */;
@@ -85,6 +110,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				153F84CB2319B8FD00C19B63 /* Branch.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -95,6 +121,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				2EF2828C2B0FF86900D7B4B1 /* Branch.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -110,6 +137,7 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MetaMask/Info.plist; sourceTree = "<group>"; };
 		15205D6221596AD90049EA93 /* MetaMask.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = MetaMask.entitlements; path = MetaMask/MetaMask.entitlements; sourceTree = "<group>"; };
 		153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		153F84C42319B8DA00C19B63 /* BranchSDK.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = BranchSDK.xcodeproj; path = "branch-ios-sdk/carthage-files/BranchSDK.xcodeproj"; sourceTree = "<group>"; };
 		158B0639211A72F500DF3C74 /* InpageBridgeWeb3.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = InpageBridgeWeb3.js; path = ../app/core/InpageBridgeWeb3.js; sourceTree = "<group>"; };
 		159878012231DF67001748EC /* AntDesign.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = AntDesign.ttf; path = "../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf"; sourceTree = "<group>"; };
 		15D158EC210BD8C8006982B5 /* Metamask.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Metamask.ttf; path = ../app/fonts/Metamask.ttf; sourceTree = "<group>"; };
@@ -185,6 +213,7 @@
 				F961A37228105CF9007442B5 /* LinkPresentation.framework in Frameworks */,
 				650F2B9D24DC5FF200C3B9C4 /* libRCTAesForked.a in Frameworks */,
 				153C1ABB2217BCDC0088EFE0 /* JavaScriptCore.framework in Frameworks */,
+				153F84CA2319B8FD00C19B63 /* Branch.framework in Frameworks */,
 				ED2E8FE6D71BE9319F3B27D3 /* libPods-MetaMask.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -196,6 +225,7 @@
 				2EF282612B0FF86900D7B4B1 /* LinkPresentation.framework in Frameworks */,
 				2EF282622B0FF86900D7B4B1 /* libRCTAesForked.a in Frameworks */,
 				2EF282632B0FF86900D7B4B1 /* JavaScriptCore.framework in Frameworks */,
+				2EF282652B0FF86900D7B4B1 /* Branch.framework in Frameworks */,
 				A9AB7F6A09E06325C0A71FA4 /* libPods-MetaMask-Flask.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -248,6 +278,14 @@
 			name = MetaMask;
 			sourceTree = "<group>";
 		};
+		153F84C52319B8DA00C19B63 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				153F84C92319B8DB00C19B63 /* Branch.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		15A2E5EF2100077400A1F331 /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
@@ -256,6 +294,7 @@
 				8E369AC13A2049B6B21E5120 /* libRCTSearchApi.a */,
 				D0CBAE789660472DB719C765 /* libLottie.a */,
 				178440FE3F1C4F4180D14622 /* libTcpSockets.a */,
+				AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -343,6 +382,7 @@
 			isa = PBXGroup;
 			children = (
 				650F2B9724DC5FEB00C3B9C4 /* RCTAesForked.xcodeproj */,
+				153F84C42319B8DA00C19B63 /* BranchSDK.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -443,6 +483,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				153F84CD2319B8FD00C19B63 /* PBXTargetDependency */,
 			);
 			name = MetaMask;
 			productName = "Hello World";
@@ -469,6 +510,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				2EF282552B0FF86900D7B4B1 /* PBXTargetDependency */,
 			);
 			name = "MetaMask-Flask";
 			productName = "Hello World";
@@ -511,6 +553,10 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+					ProductGroup = 153F84C52319B8DA00C19B63 /* Products */;
+					ProjectRef = 153F84C42319B8DA00C19B63 /* BranchSDK.xcodeproj */;
+				},
+				{
 					ProductGroup = 650F2B9824DC5FEB00C3B9C4 /* Products */;
 					ProjectRef = 650F2B9724DC5FEB00C3B9C4 /* RCTAesForked.xcodeproj */;
 				},
@@ -524,6 +570,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		153F84C92319B8DB00C19B63 /* Branch.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Branch.framework;
+			remoteRef = 153F84C82319B8DB00C19B63 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -914,6 +967,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		153F84CD2319B8FD00C19B63 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Branch;
+			targetProxy = 153F84CC2319B8FD00C19B63 /* PBXContainerItemProxy */;
+		};
+		2EF282552B0FF86900D7B4B1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Branch;
+			targetProxy = 2EF282562B0FF86900D7B4B1 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -978,7 +1041,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = MetaMask;
 				PROVISIONING_PROFILE_SPECIFIER = "development-metamask";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "development-metamask";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development io.metamask.MetaMask";
 				SWIFT_OBJC_BRIDGING_HEADER = "MetaMask-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_PRECOMPILE_BRIDGING_HEADER = NO;
@@ -996,6 +1059,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 4823;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -1044,7 +1108,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = MetaMask;
 				PROVISIONING_PROFILE_SPECIFIER = "Bitrise AppStore io.metamask.MetaMask";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Bitrise AppStore io.metamask.MetaMask";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development io.metamask.MetaMask";
 				SWIFT_OBJC_BRIDGING_HEADER = "MetaMask-Bridging-Header.h";
 				SWIFT_PRECOMPILE_BRIDGING_HEADER = NO;
 				SWIFT_VERSION = 5.0;

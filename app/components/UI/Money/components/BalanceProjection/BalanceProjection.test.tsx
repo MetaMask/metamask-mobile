@@ -1,9 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import BigNumber from 'bignumber.js';
 import { BalanceProjection } from './BalanceProjection';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import { strings } from '../../../../../../locales/i18n';
 import {
   MONEY_TOOLTIP_NAMES,
@@ -12,7 +10,6 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useMoneyAccountBalance');
-jest.mock('../../../SimulationDetails/FiatDisplay/useFiatFormatter');
 
 const mockTrackTooltipClicked = jest.fn();
 
@@ -35,7 +32,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const useMoneyAccountBalanceMock = jest.mocked(useMoneyAccountBalance);
-const useFiatFormatterMock = jest.mocked(useFiatFormatter);
 
 const ONE_YEAR_LABEL = strings('confirm.custom_amount.projected_balance', {
   projectedYears: 1,
@@ -58,13 +54,8 @@ function mockBalance({
 }
 
 describe('BalanceProjection', () => {
-  const formatFiat = jest.fn(
-    (value: BigNumber) => `$${value.toFixed(2, BigNumber.ROUND_HALF_UP)}`,
-  );
-
   beforeEach(() => {
     jest.clearAllMocks();
-    useFiatFormatterMock.mockReturnValue(formatFiat);
   });
 
   it('renders label and projected balance for $1,000 at apyDecimal 0.04 over 1 year (~$1,040.00)', () => {
@@ -76,7 +67,7 @@ describe('BalanceProjection', () => {
 
     expect(getByTestId('balance-projection')).toBeOnTheScreen();
     expect(getByText(ONE_YEAR_LABEL, { exact: false })).toBeOnTheScreen();
-    expect(getByText('$1040.00')).toBeOnTheScreen();
+    expect(getByText('$1,040.00')).toBeOnTheScreen();
   });
 
   it('compounds the projection over multiple years', () => {
@@ -86,7 +77,7 @@ describe('BalanceProjection', () => {
       <BalanceProjection amountFiat="1000" projectedYears={5} />,
     );
 
-    expect(getByText('$1216.65')).toBeOnTheScreen();
+    expect(getByText('$1,216.65')).toBeOnTheScreen();
   });
 
   it('renders the APY pitch when amountFiat is "0"', () => {
@@ -303,14 +294,14 @@ describe('BalanceProjection', () => {
     expect(queryByTestId('balance-projection-apy-pitch')).toBeNull();
   });
 
-  it('passes a BigNumber to the fiat formatter when projecting', () => {
-    mockBalance({ apyDecimal: 0.04, apyPercent: 4 });
+  it('renders the projected balance in dollars regardless of the preferred currency', () => {
+    mockBalance({ apyDecimal: 0.05, apyPercent: 5 });
 
-    render(<BalanceProjection amountFiat="1000" projectedYears={1} />);
+    const { getByText, queryByText } = render(
+      <BalanceProjection amountFiat="100" projectedYears={1} />,
+    );
 
-    expect(formatFiat).toHaveBeenCalledTimes(1);
-    const passed = formatFiat.mock.calls[0][0];
-    expect(BigNumber.isBigNumber(passed)).toBe(true);
-    expect(passed.toFixed(2)).toBe('1040.00');
+    expect(getByText('$105.00')).toBeOnTheScreen();
+    expect(queryByText(/€/)).toBeNull();
   });
 });
