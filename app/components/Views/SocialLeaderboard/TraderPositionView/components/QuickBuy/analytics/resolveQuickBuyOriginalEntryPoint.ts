@@ -20,6 +20,7 @@ const POSITION_SOURCE_TO_ENTRY_POINT: Partial<
   deep_link: 'deep_link',
   home_carousel: 'home_carousel',
   profile_position: 'trader_profile',
+  trader_feed: 'trader_feed',
 };
 
 /**
