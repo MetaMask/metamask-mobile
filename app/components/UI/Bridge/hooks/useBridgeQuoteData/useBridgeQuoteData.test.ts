@@ -104,6 +104,10 @@ describe('useBridgeQuoteData', () => {
     mockValidateBridgeTx.mockResolvedValue({ status: 'SUCCESS' });
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('returns quote data when quotes are available', () => {
     // Set up mock for this specific test
     (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({

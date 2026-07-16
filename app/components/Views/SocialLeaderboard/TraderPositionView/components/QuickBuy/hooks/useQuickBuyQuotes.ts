@@ -495,6 +495,10 @@ export function useQuickBuyQuotes({
       previousSlippage === undefined &&
       slippage !== undefined;
     if (isHydrationOnlySlippageChange) {
+      // Quotes were fetched without a slippage param; the hydrated value is
+      // what the backend already used. Align the settled key so the CTA is
+      // not treated as stale against that hydrate-only change.
+      settledRequestParamsKeyRef.current = requestParamsKey;
       return;
     }
 
@@ -502,7 +506,12 @@ export function useQuickBuyQuotes({
     return () => {
       debouncedFetchQuotes.cancel();
     };
-  }, [debouncedFetchQuotes, isSlippageUserOverride, slippage]);
+  }, [
+    debouncedFetchQuotes,
+    isSlippageUserOverride,
+    requestParamsKey,
+    slippage,
+  ]);
 
   // Committed-value paths (e.g. slider release) bump `immediateFetchToken`.
   // The reactive effect above has already scheduled the debounced fetch for the
@@ -664,9 +673,37 @@ export function useQuickBuyQuotes({
   // The displayed quotes were fetched for a settled request; if the current
   // request-only inputs no longer match it, the quotes are stale. Before the
   // first settle (ref null) there is nothing displayed to be stale against.
-  const isQuoteRequestStale =
-    settledRequestParamsKeyRef.current !== null &&
-    settledRequestParamsKeyRef.current !== requestParamsKey;
+  // Backend hydration writes slippage after a null-slippage fetch without
+  // refetching; that alone must not disable the CTA.
+  const isQuoteRequestStale = (() => {
+    const settledKey = settledRequestParamsKeyRef.current;
+    if (settledKey === null || settledKey === requestParamsKey) {
+      return false;
+    }
+    if (!isSlippageUserOverride) {
+      try {
+        const settled = JSON.parse(settledKey) as {
+          slippage: number | null;
+          destAddress: string | null;
+          gasIncluded: boolean;
+          gasIncluded7702: boolean;
+        };
+        const current = JSON.parse(requestParamsKey) as typeof settled;
+        if (
+          settled.slippage === null &&
+          current.slippage !== null &&
+          settled.destAddress === current.destAddress &&
+          settled.gasIncluded === current.gasIncluded &&
+          settled.gasIncluded7702 === current.gasIncluded7702
+        ) {
+          return false;
+        }
+      } catch {
+        // Fall through to stale when the settled key cannot be compared.
+      }
+    }
+    return true;
+  })();
 
   return {
     activeQuote,
