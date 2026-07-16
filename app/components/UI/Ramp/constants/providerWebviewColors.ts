@@ -22,7 +22,7 @@ export interface ProviderWebviewColors {
 const PROVIDER_WEBVIEW_COLORS: Record<string, ProviderWebviewColors> = {
   transak: { dark: colors.transakCheckoutDark, light: brandColor.white },
   moonpay: { dark: colors.moonpayCheckoutDark, light: brandColor.white },
-  // banxa: { dark: '???', light: '???' },
+  banxa: { dark: colors.banxaCheckoutDark, light: brandColor.white },
   // sardine: { dark: '???', light: '???' },
   // stripe: { dark: '???', light: '???' },
   // paypal: { dark: '???', light: '???' },

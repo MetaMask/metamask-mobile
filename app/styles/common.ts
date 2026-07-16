@@ -31,6 +31,7 @@ export const colors = {
   // native chrome feels seamless with the embedded webview.
   transakCheckoutDark: '#1a1a1a',
   moonpayCheckoutDark: '#131416',
+  banxaCheckoutDark: '#0D0D0F',
 };
 
 export const onboardingCarouselColors: Record<
