@@ -307,12 +307,12 @@ describe('MoneyPotentialEarningsView', () => {
   it('renders ALL eligible tokens, not limited to 5', () => {
     const { getByText } = renderWithProvider(<MoneyPotentialEarningsView />);
 
-    expect(getByText('USDC')).toBeOnTheScreen();
-    expect(getByText('USDT')).toBeOnTheScreen();
-    expect(getByText('DAI')).toBeOnTheScreen();
-    expect(getByText('WETH')).toBeOnTheScreen();
-    expect(getByText('LINK')).toBeOnTheScreen();
-    expect(getByText('UNI')).toBeOnTheScreen();
+    expect(getByText('USD Coin')).toBeOnTheScreen();
+    expect(getByText('Tether')).toBeOnTheScreen();
+    expect(getByText('Dai')).toBeOnTheScreen();
+    expect(getByText('Wrapped Ether')).toBeOnTheScreen();
+    expect(getByText('ChainLink')).toBeOnTheScreen();
+    expect(getByText('Uniswap')).toBeOnTheScreen();
   });
 
   it('renders the view without errors', () => {

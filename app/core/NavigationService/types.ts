@@ -2,6 +2,7 @@ import type {
   ParamListBase,
   NavigationProp,
   NavigationState,
+  NavigatorScreenParams,
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
@@ -68,7 +69,10 @@ import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../c
 import type { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher/QRTabSwitcher';
 
 // Perps navigation params
-import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
+import type {
+  PerpsNavigationParamList,
+  PerpsStackParamList,
+} from '../../components/UI/Perps/types/navigation';
 import type { MoneyNavigationParamList } from '../../components/UI/Money/types/navigation';
 import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import type { MarketInsightsRouteParams } from '../../components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView';
@@ -137,14 +141,9 @@ import type {
 
 // Predict params
 import type {
-  PredictMarketListRouteParams,
-  PredictMarketDetailsParams,
-  PredictActivityDetailParams,
-  PredictBuyPreviewParams,
-  PredictSellPreviewParams,
-  PredictFeedRouteParams,
-  PredictWorldCupParams,
-  PredictPositionsParams,
+  PredictStackParamList,
+  PredictModalsNavigationParamList,
+  PredictNavigationParamList,
 } from '../../components/UI/Predict/types/navigation';
 
 // Account status params
@@ -262,7 +261,10 @@ import type {
 
 // Rewards params
 import { BenefitFullViewRouteParams } from '../../components/UI/Rewards/Views/BenefitFullView.types.ts';
-import type { RewardsNavigationParamList } from '../../components/UI/Rewards/types/navigation';
+import type {
+  RewardsNavigationParamList,
+  RewardsStackParamList,
+} from '../../components/UI/Rewards/types/navigation';
 
 // Webview params
 import type {
@@ -317,6 +319,8 @@ type TraderPositionViewParams =
       /** Analytics entry-point that opened the position view. Narrowed at the
        * receiver into the QuickBuy / FollowTradingToken source enums. */
       source?: string;
+      /** Upstream journey attribution for Quick Buy when opened from the trade screen. */
+      originalEntryPoint?: string;
       /** Whether the tapped position came from the closed list. Authoritative
        * closed/open signal (more reliable than re-deriving from fields). */
       isClosed?: boolean;
@@ -338,6 +342,8 @@ type TraderPositionViewParams =
       /** Analytics entry-point that opened the position view. Narrowed at the
        * receiver into the QuickBuy / FollowTradingToken source enums. */
       source?: string;
+      /** Upstream journey attribution for Quick Buy when opened from the trade screen. */
+      originalEntryPoint?: string;
       /** Deep links have no list context; resolved heuristically downstream. */
       isClosed?: never;
       /** Notification subtype forwarded from the social-trader-position
@@ -477,7 +483,7 @@ export type RootStackParamList = {
   TransactionDetails: TransactionDetailsParams | undefined;
   ActivityDetails: ActivityDetailsParams;
   RewardsView: undefined;
-  RewardsFlow: NestedNavigationParams | undefined;
+  RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
@@ -763,7 +769,7 @@ export type RootStackParamList = {
   // The `Perps` root is a nested stack navigator, so it also accepts the
   // `{ screen, params }` form for cross-stack navigation (e.g. from the social
   // leaderboard into PerpsMarketDetails).
-  Perps: NestedNavigationParams | PerpsNavigationParamList['Perps'];
+  Perps: NavigatorScreenParams<PerpsStackParamList> | undefined;
   PerpsTradingView: PerpsNavigationParamList['PerpsTradingView'];
   PerpsOrderRedirect: PerpsNavigationParamList['PerpsOrderRedirect'];
   PerpsWithdraw: PerpsNavigationParamList['PerpsWithdraw'];
@@ -797,18 +803,20 @@ export type RootStackParamList = {
   PerpsFundingTransaction: PerpsNavigationParamList['PerpsFundingTransaction'];
 
   // Predict routes — `Predict` is a nested stack navigator.
-  Predict: NestedNavigationParams | undefined;
-  PredictMarketList: PredictMarketListRouteParams | undefined;
-  PredictFeed: PredictFeedRouteParams | undefined;
-  PredictMarketDetails: PredictMarketDetailsParams | undefined;
-  PredictPositions: PredictPositionsParams | undefined;
-  PredictWorldCup: PredictWorldCupParams | undefined;
-  PredictActivityDetail: PredictActivityDetailParams;
-  PredictModals: undefined;
-  PredictBuyPreview: PredictBuyPreviewParams;
-  PredictSellPreview: PredictSellPreviewParams;
+  Predict: NavigatorScreenParams<PredictStackParamList> | undefined;
+  PredictMarketList: PredictNavigationParamList['PredictMarketList'];
+  PredictFeed: PredictNavigationParamList['PredictFeed'];
+  PredictMarketDetails: PredictNavigationParamList['PredictMarketDetails'];
+  PredictPositions: PredictNavigationParamList['PredictPositions'];
+  PredictWorldCup: PredictNavigationParamList['PredictWorldCup'];
+  PredictActivityDetail: PredictModalsNavigationParamList['PredictActivityDetail'];
+  PredictModals:
+    | NavigatorScreenParams<PredictModalsNavigationParamList>
+    | undefined;
+  PredictBuyPreview: PredictNavigationParamList['PredictBuyPreview'];
+  PredictSellPreview: PredictNavigationParamList['PredictSellPreview'];
   PredictUnavailable: undefined;
-  PredictAddFundsSheet: undefined;
+  PredictAddFundsSheet: PredictModalsNavigationParamList['PredictAddFundsSheet'];
   PredictGTMModal: undefined;
 
   // Social Leaderboard routes
@@ -817,6 +825,10 @@ export type RootStackParamList = {
         /** Analytics entry-point that opened the leaderboard. Narrowed at the
          * receiver to LeaderboardScreenViewedSource. */
         source?: string;
+        /** Set by onboarding when the user tapped "Allow notifications" but the
+         * OS denied permission. Shows a one-shot, auto-dismissing nudge banner
+         * on the leaderboard with a CTA to open device settings. */
+        showNotificationsBanner?: boolean;
       }
     | undefined;
   TraderProfileView: {
@@ -831,6 +843,7 @@ export type RootStackParamList = {
     traderRank?: number;
   };
   TraderPositionView: TraderPositionViewParams;
+  SocialLeaderboardOnboarding: undefined;
   TradingSignalsSetupBottomSheet: TradingSignalsSetupParams | undefined;
 
   // Misc routes

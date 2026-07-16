@@ -24,23 +24,6 @@ permissions:
   id-token: write
 
 jobs:
-  swap-android-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeSwap')
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: swap-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'SmokeSwap'
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      changed_files: ${{ inputs.changed_files }}
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
   stake-android-smoke:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeStake')
     strategy:
@@ -215,7 +198,7 @@ jobs:
     name: Report Android Smoke Tests
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     # Appium migration: skip rollup when every Detox shard is skipped (e.g. AI selects
-    # an Appium-only tag like SmokeAccounts). Non-empty tags still trigger this workflow.
+    # an Appium-only tag like SmokeAccounts / SmokeSwap). Non-empty tags still trigger this workflow.
     if: >-
       ${{
         !cancelled() &&
@@ -225,7 +208,6 @@ jobs:
         )
       }}
     needs:
-      - swap-android-smoke
       - stake-android-smoke
       - perps-android-smoke
       - wallet-platform-android-smoke

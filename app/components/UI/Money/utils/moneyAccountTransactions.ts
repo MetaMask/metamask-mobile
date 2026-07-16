@@ -1,14 +1,16 @@
 import { ethers } from 'ethers';
 import BigNumber from 'bignumber.js';
 import {
+  CHAIN_IDS,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import { UpdateTransactionPayAmountCall } from '../../../Views/confirmations/types/transactions';
 import {
   MUSD_DECIMALS,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../Earn/constants/musd';
 import AppConstants from '../../../../core/AppConstants';
 import ReduxService from '../../../../core/redux/ReduxService';
@@ -135,6 +137,22 @@ export function getMoneyAccountDepositAssetAddress(chainId: Hex): Hex {
     throw new Error(`mUSD not deployed on chain ${chainId}`);
   }
   return musdAddress;
+}
+
+/**
+ * Resolves the CAIP-19 asset id of the Money Account deposit asset (mUSD) for a
+ * given chain. Pure mapping over `MUSD_TOKEN_ASSET_ID_BY_CHAIN`.
+ *
+ * Money Account is Monad-only today, so an unknown or undefined `chainId` falls
+ * back to the Monad mUSD asset id rather than throwing — the entry-point gate
+ * that consumes this should still resolve against the asset the deposit flow
+ * actually targets.
+ * @param chainId - The chain ID to get the deposit asset id for.
+ * @returns The CAIP-19 asset id of the deposit asset for the given chain ID.
+ */
+export function getMoneyAccountDepositAssetId(chainId?: Hex): CaipAssetType {
+  return (MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId as Hex] ??
+    MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD]) as CaipAssetType;
 }
 
 export type MoneyAccountDepositBatchResult = MoneyAccountBatchResult<
