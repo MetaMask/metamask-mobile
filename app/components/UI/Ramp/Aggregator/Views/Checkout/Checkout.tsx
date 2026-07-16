@@ -79,7 +79,7 @@ const CheckoutWebView = () => {
       ? providerColors.dark
       : providerColors.light
     : undefined;
-  const { styles } = useStyles(styleSheet, { providerBg });
+  const { styles } = useStyles(styleSheet, {});
   const providerBgStyle = providerBg
     ? { backgroundColor: providerBg }
     : undefined;
@@ -282,7 +282,6 @@ const CheckoutWebView = () => {
         />
         <WebView
           key={key}
-          style={styles.webview}
           source={{ uri }}
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
