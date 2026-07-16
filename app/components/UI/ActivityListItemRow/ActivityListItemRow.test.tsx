@@ -27,6 +27,7 @@ const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 const LINEA_MUSD_CHECKSUM_ADDRESS =
   '0xacA92E438df0B2401fF60dA7E4337B687a2435DA';
 const OWNED_ACCOUNT_ADDRESS = '0xAa60919dd0d0964B76620dAaF08bF357e1c9DD73';
+const OWNED_SOLANA_ADDRESS = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
 
 const mockState = {
   user: {
@@ -71,6 +72,11 @@ const mockState = {
               address: OWNED_ACCOUNT_ADDRESS,
               metadata: { name: 'Account 2' },
             },
+            'owned-account-solana': {
+              id: 'owned-account-solana',
+              address: OWNED_SOLANA_ADDRESS,
+              metadata: { name: 'Solana Account' },
+            },
           },
         },
       },
@@ -85,6 +91,11 @@ const mockState = {
                   id: 'entropy:wallet-1/1',
                   metadata: { name: 'ETH DeFi' },
                   accounts: ['owned-account-1'],
+                },
+                'entropy:wallet-1/2': {
+                  id: 'entropy:wallet-1/2',
+                  metadata: { name: 'Solana' },
+                  accounts: ['owned-account-solana'],
                 },
               },
             },
@@ -519,6 +530,31 @@ describe('ActivityListItemRow — row content', () => {
     ).toBe('ETH DeFi');
     expect(
       getByTestId('activity-subtitle-account-avatar-0xabc'),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the account name and avatar for a non-EVM (Solana) owned counterparty', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'success',
+      to: OWNED_SOLANA_ADDRESS,
+      token: {
+        amount: '10',
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(
+      getByTestId('activity-subtitle-account-name-0xabc').props.children,
+    ).toBe('Solana');
+    // The non-hex address is passed straight through to the avatar (no
+    // checksumming), so the multichain row renders without error.
+    expect(
+      getByTestId(`avatar-account-${OWNED_SOLANA_ADDRESS}`),
     ).toBeOnTheScreen();
   });
 

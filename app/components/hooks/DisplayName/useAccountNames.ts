@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
 import { selectInternalAccountsById } from '../../../selectors/accountsController';
@@ -8,15 +9,22 @@ export function useAccountNames(requests: UseDisplayNameRequest[]) {
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const accountGroups = useSelector(selectAccountGroups);
 
-  const accountGroupNames = accountGroups.reduce(
-    (acc, group) => {
-      group.accounts.forEach((accountId) => {
-        const account = internalAccountsById[accountId];
-        acc[account.address.toLowerCase()] = group.metadata.name;
-      });
-      return acc;
-    },
-    {} as Record<string, string>,
+  const accountGroupNames = useMemo(
+    () =>
+      accountGroups.reduce(
+        (acc, group) => {
+          group.accounts.forEach((accountId) => {
+            const account = internalAccountsById[accountId];
+            if (!account) {
+              return;
+            }
+            acc[account.address.toLowerCase()] = group.metadata.name;
+          });
+          return acc;
+        },
+        {} as Record<string, string>,
+      ),
+    [accountGroups, internalAccountsById],
   );
 
   return requests.map((request) => {

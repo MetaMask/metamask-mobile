@@ -71,7 +71,7 @@ export function ActivityListItemRowLayout({
     titleText
   );
   const subtitleNode = subtitleParts ? (
-    <View style={[styles.subtitleRow, styles.subtitleRowSpaced]}>
+    <View style={styles.subtitleRow}>
       {subtitleLeadingAccessory}
       <Text
         numberOfLines={1}

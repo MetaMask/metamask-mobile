@@ -150,6 +150,37 @@ describe('useAccountNames', () => {
     expect(result.current).toEqual(['Group 1', undefined, 'Group 2']);
   });
 
+  it('skips group accounts missing from internalAccountsById without throwing', () => {
+    const requests: UseDisplayNameRequest[] = [
+      {
+        type: NameType.EthereumAddress,
+        value: '0x1234567890123456789012345678901234567890',
+        variation: 'normal',
+      },
+    ];
+
+    const groupsWithDanglingAccount = [
+      {
+        metadata: { name: 'Group 1' },
+        accounts: ['ghost', 'account1'],
+      },
+    ];
+
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectInternalAccountsById) {
+        return mockInternalAccountsById;
+      }
+      if (selector === selectAccountGroups) {
+        return groupsWithDanglingAccount;
+      }
+      return undefined;
+    });
+
+    const { result } = renderHook(() => useAccountNames(requests));
+
+    expect(result.current).toEqual(['Group 1']);
+  });
+
   it('handles case-insensitive address matching', () => {
     const requests: UseDisplayNameRequest[] = [
       {
