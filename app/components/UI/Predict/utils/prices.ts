@@ -8,6 +8,23 @@ export const isValidPrice = (price: number | undefined): price is number =>
   typeof price === 'number' && Number.isFinite(price) && price > 0;
 
 /**
+ * Live odds-oriented price from a WS tick.
+ *
+ * Prefer the mid-price (`(bid + ask) / 2`) to mirror implied probability shown
+ * in charts/odds labels. If one side is temporarily missing, fall back to the
+ * trade price field.
+ */
+export const getLiveMidPrice = (
+  livePrice: PriceUpdate | undefined,
+): number | undefined => {
+  if (isValidPrice(livePrice?.bestBid) && isValidPrice(livePrice?.bestAsk)) {
+    return (livePrice.bestBid + livePrice.bestAsk) / 2;
+  }
+
+  return isValidPrice(livePrice?.price) ? livePrice.price : undefined;
+};
+
+/**
  * Price to display on a BUY CTA from an already-priced token: the best ask
  * (`buyPrice`) when present, otherwise the token's mid `price`. Use this for
  * any "what you pay to buy" label so it never falls back to the odds mid on a

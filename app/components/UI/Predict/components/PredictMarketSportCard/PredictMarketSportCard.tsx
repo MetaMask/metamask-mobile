@@ -43,7 +43,7 @@ import {
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import PredictSportScoreboard from '../PredictSportScoreboard';
 import { isGameEnded } from '../../utils/scoreboard';
-import { isValidPrice } from '../../utils/prices';
+import { getLiveMidPrice, isValidPrice } from '../../utils/prices';
 import { selectPredictSportCardLivePricesEnabledFlag } from '../../selectors/featureFlags';
 
 interface PredictMarketSportCardProps {
@@ -259,8 +259,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
         return token.price;
       }
 
-      const liveBestAsk = getPrice(token.id)?.bestAsk;
-      return isValidPrice(liveBestAsk) ? liveBestAsk : token.price;
+      const liveMidPrice = getLiveMidPrice(getPrice(token.id));
+      return isValidPrice(liveMidPrice) ? liveMidPrice : token.price;
     },
     [getPrice, livePricesEnabled],
   );

@@ -40,7 +40,7 @@ import { resolvePredictSportCardButtons } from '../../utils/sports';
 import { selectPredictSportCardLivePricesEnabledFlag } from '../../selectors/featureFlags';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
-import { isValidPrice } from '../../utils/prices';
+import { getLiveMidPrice, isValidPrice } from '../../utils/prices';
 import FeaturedCarouselCardFooter from './FeaturedCarouselCardFooter';
 import FeaturedCarouselPayoutRow from './FeaturedCarouselPayoutRow';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
@@ -136,8 +136,8 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
         return token.price;
       }
 
-      const liveBestAsk = getPrice(token.id)?.bestAsk;
-      return isValidPrice(liveBestAsk) ? liveBestAsk : token.price;
+      const liveMidPrice = getLiveMidPrice(getPrice(token.id));
+      return isValidPrice(liveMidPrice) ? liveMidPrice : token.price;
     },
     [getPrice, livePricesEnabled],
   );
