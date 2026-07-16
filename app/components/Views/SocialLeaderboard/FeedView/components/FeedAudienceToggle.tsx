@@ -164,6 +164,17 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
     opacity: Math.max(0, Math.min(1, slideProgress.value)),
   }));
 
+  // Fade the base (inactive) label out as the active label fades in so the
+  // selected tab shows a single label. Leaving the base at full opacity under
+  // the active overlay double-renders the text (different weight + colour),
+  // which reads as a faint drop shadow / ghosting on the selected side.
+  const followingBaseStyle = useAnimatedStyle(() => ({
+    opacity: Math.max(0, Math.min(1, slideProgress.value)),
+  }));
+  const allBaseStyle = useAnimatedStyle(() => ({
+    opacity: Math.max(0, Math.min(1, 1 - slideProgress.value)),
+  }));
+
   const sliderWidth =
     displayValue === 'following' ? (followingLayout?.width ?? 0) : allWidth;
 
@@ -198,13 +209,15 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
         >
           <Box twClassName="rounded-xl px-4 h-8 items-center justify-center">
             <Box style={styles.labelWrap}>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Regular}
-                color={TextColor.TextAlternative}
-              >
-                {strings('social_leaderboard.feed.following')}
-              </Text>
+              <Animated.View style={followingBaseStyle}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Regular}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('social_leaderboard.feed.following')}
+                </Text>
+              </Animated.View>
               <Animated.View
                 style={[styles.labelActive, followingActiveStyle]}
                 pointerEvents="none"
@@ -234,13 +247,15 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
         >
           <Box twClassName="rounded-xl px-4 h-8 items-center justify-center">
             <Box style={styles.labelWrap}>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Regular}
-                color={TextColor.TextAlternative}
-              >
-                {strings('social_leaderboard.feed.all')}
-              </Text>
+              <Animated.View style={allBaseStyle}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Regular}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('social_leaderboard.feed.all')}
+                </Text>
+              </Animated.View>
               <Animated.View
                 style={[styles.labelActive, allActiveStyle]}
                 pointerEvents="none"

@@ -1,4 +1,5 @@
 import type { CaipChainId } from '@metamask/utils';
+import type { PositionTokenAvatarData } from '../components/PositionTokenAvatar';
 
 /**
  * Feed audience filter. `all` shows every trader's activity; `following` shows
@@ -7,10 +8,11 @@ import type { CaipChainId } from '@metamask/utils';
 export type FeedAudience = 'all' | 'following';
 
 /**
- * Feed type filter. Mirrors the leaderboard chain filters: everything, spot
- * tokens, or perps. Applied client-side over the loaded feed pages.
+ * Feed type filter. Alias of the shared {@link SocialTypeFilter} used across the
+ * leaderboard and feed: everything, spot tokens, or perps. Applied client-side
+ * over the loaded feed pages.
  */
-export type FeedTypeFilter = 'all' | 'tokens' | 'perps';
+export type { SocialTypeFilter as FeedTypeFilter } from '../components/TypeFilter/types';
 
 /** Trade action verb, shown after the trader username. */
 export type FeedAction = 'bought' | 'sold' | 'opened' | 'closed';
@@ -21,6 +23,8 @@ export type FeedPerpDirection = 'long' | 'short';
 interface FeedItemBase {
   /** Stable id for list keying. */
   id: string;
+  /** Clicker profile id (UUID), used to open the trader profile. */
+  traderId: string;
   /** Trader display name. */
   username: string;
   /** Trader address, used for the avatar fallback + profile source. */
@@ -43,6 +47,12 @@ interface FeedItemBase {
   hasPnlData: boolean;
   /** Whether the P&L is positive (green) or negative (red). */
   isPnlPositive: boolean;
+  /**
+   * Token avatar data (image url + address/chain/symbol) consumed by the shared
+   * `PositionTokenAvatar`, which resolves the Clicker URL → MetaMask CDN →
+   * monogram fallback (and the Hyperliquid perp logo) exactly like the profile.
+   */
+  tokenAvatar: PositionTokenAvatarData;
 }
 
 /**

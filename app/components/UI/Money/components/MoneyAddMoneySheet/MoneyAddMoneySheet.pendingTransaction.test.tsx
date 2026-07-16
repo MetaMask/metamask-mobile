@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import {
   TransactionType,
   TransactionStatus,
@@ -14,7 +14,7 @@ import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { addTransactionBatch } from '../../../../../util/transaction-controller';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
-import { useRegionHasNativeFiatProvider } from '../../hooks/useRegionHasNativeFiatProvider';
+import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
@@ -105,6 +105,9 @@ jest.mock('../../utils/moneyAccountTransactions', () => ({
     depositTx: { to: '0xdeposit', data: '0x', value: '0x0' },
   }),
   getMoneyAccountDepositAssetAddress: jest.fn(() => '0xasset'),
+  getMoneyAccountDepositAssetId: jest.fn(
+    () => 'eip155:143/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+  ),
 }));
 
 jest.mock('../../../../../util/notifications/methods/common', () => ({
@@ -156,8 +159,8 @@ jest.mock(
   '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig',
   () => ({ useMMPayFiatConfig: jest.fn() }),
 );
-jest.mock('../../hooks/useRegionHasNativeFiatProvider', () => ({
-  useRegionHasNativeFiatProvider: jest.fn(),
+jest.mock('../../../Ramp/hooks/useRegionHasFiatProvider', () => ({
+  useRegionHasFiatProvider: jest.fn(),
 }));
 jest.mock('../../../../../selectors/tokenBalancesController', () => ({
   ...jest.requireActual('../../../../../selectors/tokenBalancesController'),
@@ -197,12 +200,6 @@ function renderHarness(pendingTransactions: TransactionMeta[]) {
   });
 }
 
-const flushAsync = async () => {
-  await act(async () => {
-    await Promise.resolve();
-  });
-};
-
 /**
  * Regression test for the Money-home "Add funds" bug where tapping "Add"
  * landed the user back on money home, with an empty 'Deposited activity'.
@@ -210,6 +207,12 @@ const flushAsync = async () => {
 describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset the module-level binding so a prior test's setter can't leak in.
+    unmountSheet = () => undefined;
+    global.requestAnimationFrame = jest.fn((callback) => {
+      callback(0);
+      return 0;
+    });
     mockEngineState.TransactionController = { transactions: [] };
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '0',
@@ -225,7 +228,7 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
       true,
     );
-    (useRegionHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
+    (useRegionHasFiatProvider as jest.Mock).mockReturnValue(true);
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: jest.fn(),
       trackSurfaceClicked: jest.fn(),
@@ -243,12 +246,13 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     fireEvent.press(
       getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
     );
-    await flushAsync();
 
     // The pre-existing pending transaction is rejected straight away.
-    expect(
-      jest.mocked(Engine.context.ApprovalController.rejectRequest),
-    ).toHaveBeenCalledWith(PENDING_TX_ID, expect.anything());
+    await waitFor(() =>
+      expect(
+        jest.mocked(Engine.context.ApprovalController.rejectRequest),
+      ).toHaveBeenCalledWith(PENDING_TX_ID, expect.anything()),
+    );
 
     // Closing + navigating is deferred until the rejection clears from state,
     // so the sheet stays mounted: it has not been closed and nothing has
@@ -262,12 +266,10 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     await act(async () => {
       store.dispatch(updateBgState({ key: 'TransactionController' }));
     });
-    await flushAsync();
-
     // Now that nothing is pending, the sheet closes (modal popped) and the
-    // deposit flow runs in one step — the user reaches the Add funds
+    // deposit flow runs in one step, so the user reaches the Add funds
     // confirmation instead of being stranded on Money home.
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
     expect(addTransactionBatch).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MONEY.CONFIRMATIONS_ROOT,
@@ -283,13 +285,11 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     fireEvent.press(
       getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
     );
-    await flushAsync();
-
     // Nothing to reject, so the sheet closes and navigates immediately.
+    await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
     expect(
       jest.mocked(Engine.context.ApprovalController.rejectRequest),
     ).not.toHaveBeenCalled();
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(addTransactionBatch).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MONEY.CONFIRMATIONS_ROOT,
