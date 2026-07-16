@@ -13,9 +13,9 @@
   <!-- Resolved at build time from google-services.json via the com.google.gms.google-services plugin -->
   <string translatable="false" name="com_braze_firebase_cloud_messaging_sender_id">@string/gcm_defaultSenderId</string>
 
-  <!-- Forward non-Braze push notifications to the existing RN Firebase service -->
-  <bool name="com_braze_fallback_firebase_cloud_messaging_service_enabled">true</bool>
-  <string name="com_braze_fallback_firebase_cloud_messaging_service_classpath">io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService</string>
+  <!-- Unused: MetaMaskFirebaseMessagingService now owns FCM delivery and forwards to Braze and
+       RNFB directly via their public APIs, so Braze's reflection-based fallback is never invoked. -->
+  <bool name="com_braze_fallback_firebase_cloud_messaging_service_enabled">false</bool>
 
   <!-- Let Braze open the app and route deep links when a push notification is tapped -->
   <bool name="com_braze_handle_push_deep_links_automatically">true</bool>
