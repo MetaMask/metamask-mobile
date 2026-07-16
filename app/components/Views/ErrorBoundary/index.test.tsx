@@ -94,6 +94,7 @@ describe('ErrorBoundary', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('renders without errors', () => {
@@ -230,11 +231,13 @@ describe('ErrorBoundary', () => {
       fireEvent.press(describeButton);
     });
 
-    const textInput = await waitFor(() =>
-      getByPlaceholderText(
+    const textInput = await waitFor(() => {
+      const input = getByPlaceholderText(
         'Sharing details like how we can reproduce the bug will help us fix the problem.',
-      ),
-    );
+      );
+      expect(input).toBeOnTheScreen();
+      return input;
+    });
 
     await act(async () => {
       fireEvent.changeText(textInput, 'Test feedback');
