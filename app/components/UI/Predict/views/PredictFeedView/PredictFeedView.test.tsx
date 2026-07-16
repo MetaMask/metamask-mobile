@@ -170,6 +170,7 @@ const feedConfigResult = (
     { id: 'tennis', titleKey: 'predict.feed.tabs.tennis' },
   ],
   showTabBar: true,
+  showFilterBar: true,
   activeTabId: 'basketball',
   setActiveTabId: mockSetActiveTabId,
   filters: [
@@ -295,13 +296,14 @@ describe('PredictFeedView', () => {
       expect(screen.getAllByText('Tennis').length).toBeGreaterThan(0);
     });
 
-    it('hides the tab bar for a single-tab feed but still renders filters', () => {
+    it('hides the tab and filter bars for the Live feed', () => {
       mockUsePredictFeedConfig.mockReturnValue(
         feedConfigResult({
           feedId: 'live',
           titleKey: 'predict.feed.live',
           tabs: [{ id: 'live', titleKey: 'predict.feed.live' }],
           showTabBar: false,
+          showFilterBar: false,
           activeTabId: 'live',
           filters: [
             {
@@ -321,8 +323,8 @@ describe('PredictFeedView', () => {
         screen.queryByTestId(PredictFeedViewSelectorsIDs.TABS),
       ).not.toBeOnTheScreen();
       expect(
-        screen.getByTestId(PredictFeedViewSelectorsIDs.FILTERS),
-      ).toBeOnTheScreen();
+        screen.queryByTestId(PredictFeedViewSelectorsIDs.FILTERS),
+      ).not.toBeOnTheScreen();
     });
   });
 

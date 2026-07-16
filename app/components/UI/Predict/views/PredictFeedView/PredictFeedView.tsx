@@ -67,6 +67,7 @@ const PredictFeedView: React.FC = () => {
     header,
     tabs,
     showTabBar,
+    showFilterBar,
     activeTabId,
     setActiveTabId,
     filters,
@@ -391,12 +392,14 @@ const PredictFeedView: React.FC = () => {
           />
         )}
 
-        <PredictChipList
-          chips={chips}
-          activeChipKey={activeFilterId ?? ''}
-          onChipSelect={handleFilterSelect}
-          testID={PredictFeedViewSelectorsIDs.FILTERS}
-        />
+        {showFilterBar && (
+          <PredictChipList
+            chips={chips}
+            activeChipKey={activeFilterId ?? ''}
+            onChipSelect={handleFilterSelect}
+            testID={PredictFeedViewSelectorsIDs.FILTERS}
+          />
+        )}
 
         {renderContent()}
       </Box>

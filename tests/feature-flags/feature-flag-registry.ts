@@ -261,6 +261,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           enabled: false,
           featureVersion: null,
           minimumVersion: null,
+          deprecatedControllers: [],
+        },
+        '8.3.0': {
+          enabled: true,
+          featureVersion: '1',
+          minimumVersion: '8.3.0',
+          deprecatedControllers: [],
         },
       },
     },
@@ -5561,6 +5568,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       'mainnet.base.org',
       'rpc.linea.build',
     ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  'stable-tokens': {
+    name: 'stable-tokens',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {},
     status: FeatureFlagStatus.Active,
   },
 
