@@ -10046,6 +10046,7 @@
     "bandwidth_fee": "Bandwidth",
     "energy_fee": "Energy",
     "bridge_fee": "Bridge fee",
+    "gas_token_fee": "Gas fee",
     "transaction_fee": "Transaction fee",
     "unknown_token": "Unknown",
     "total_amount": "Total amount",
