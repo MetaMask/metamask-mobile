@@ -21,14 +21,7 @@ export function useThrottledFocusEffect(
         return;
       }
       lastRunRef.current = now;
-      const cleanup = callback();
-
-      return () => {
-        // Reset the timestamp so that a blur-triggered abort does not block
-        // the next focus from restarting the work.
-        lastRunRef.current = null;
-        cleanup?.();
-      };
+      return callback();
     }, [callback, throttleMs]),
   );
 }

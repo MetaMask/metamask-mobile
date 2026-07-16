@@ -36,32 +36,43 @@ describe('useThrottledFocusEffect', () => {
     expect(callback).toHaveBeenCalledTimes(1);
   });
 
-  it('skips the callback when the effect re-runs without a blur within the throttle window', () => {
-    // Simulates the inner useCallback being re-registered while the screen
-    // stays focused (e.g. throttleMs changes), causing useFocusEffect to
-    // re-run the effect body without calling cleanup first.
+  it('skips the callback on refocus within the throttle window', () => {
     const callback = jest.fn();
     renderHook(() => useThrottledFocusEffect(callback, THROTTLE_MS));
 
-    focusCallback(); // effect runs — no cleanup called before next run
-    jest.advanceTimersByTime(60_000); // 1 minute later, still within window
-    focusCallback(); // effect re-runs without blur — should be skipped
+    focusCallback();
+    jest.advanceTimersByTime(60_000); // 1 minute — still within window
+    focusCallback();
 
     expect(callback).toHaveBeenCalledTimes(1);
   });
 
-  it('runs the callback again after the throttle window has elapsed (no blur between focuses)', () => {
+  it('skips the callback on refocus within the window even after a blur', () => {
+    // The throttle clock is not reset on blur — blur/refocus from bottom
+    // sheets or tab switches within the window are still throttled.
     const callback = jest.fn();
     renderHook(() => useThrottledFocusEffect(callback, THROTTLE_MS));
 
-    focusCallback(); // first run — no cleanup called before next
-    jest.advanceTimersByTime(THROTTLE_MS); // window expires
-    focusCallback(); // re-runs without blur — window elapsed so should run
+    const cleanup = focusCallback();
+    jest.advanceTimersByTime(60_000);
+    cleanup?.(); // blur
+    focusCallback(); // refocus within window — still skipped
+
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('runs the callback again after the throttle window has elapsed', () => {
+    const callback = jest.fn();
+    renderHook(() => useThrottledFocusEffect(callback, THROTTLE_MS));
+
+    focusCallback();
+    jest.advanceTimersByTime(THROTTLE_MS);
+    focusCallback();
 
     expect(callback).toHaveBeenCalledTimes(2);
   });
 
-  it('returns the cleanup function from the callback', () => {
+  it('passes through the cleanup function returned by the callback', () => {
     const cleanup = jest.fn();
     const callback = jest.fn().mockReturnValue(cleanup);
     renderHook(() => useThrottledFocusEffect(callback, THROTTLE_MS));
@@ -77,24 +88,12 @@ describe('useThrottledFocusEffect', () => {
     const callback = jest.fn().mockReturnValue(cleanup);
     renderHook(() => useThrottledFocusEffect(callback, THROTTLE_MS));
 
-    focusCallback(); // runs
+    focusCallback();
     jest.advanceTimersByTime(60_000);
     const returnedCleanup = focusCallback(); // skipped
 
     expect(returnedCleanup).toBeUndefined();
     expect(cleanup).not.toHaveBeenCalled();
-  });
-
-  it('restarts after blur even within the throttle window', () => {
-    const callback = jest.fn();
-    renderHook(() => useThrottledFocusEffect(callback, THROTTLE_MS));
-
-    const cleanup = focusCallback(); // focus — runs
-    jest.advanceTimersByTime(60_000);
-    cleanup?.(); // blur — resets throttle
-    focusCallback(); // refocus within window — should run again
-
-    expect(callback).toHaveBeenCalledTimes(2);
   });
 
   it('respects a custom throttle window', () => {
@@ -106,7 +105,7 @@ describe('useThrottledFocusEffect', () => {
     focusCallback();
     expect(callback).toHaveBeenCalledTimes(1);
 
-    jest.advanceTimersByTime(5_000); // now at 10s, window elapsed
+    jest.advanceTimersByTime(5_000); // now at 10s — window elapsed
     focusCallback();
     expect(callback).toHaveBeenCalledTimes(2);
   });
