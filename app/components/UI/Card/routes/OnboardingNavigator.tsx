@@ -19,6 +19,7 @@ import { useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import { ActivityIndicator } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
@@ -48,7 +49,7 @@ const OnboardingNavigator: React.FC = () => {
   const [isFetchingUserData, setIsFetchingUserData] = useState(
     () => !!onboardingId && !user,
   );
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
       RouteProp<

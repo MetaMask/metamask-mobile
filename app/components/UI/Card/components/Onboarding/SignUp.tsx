@@ -6,6 +6,8 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import {
   Box,
   FontWeight,
@@ -55,7 +57,7 @@ const buildWaitlistUrl = (countryName: string, email?: string): string => {
 };
 
 const SignUp = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [isEmailError, setIsEmailError] = useState(false);
@@ -259,8 +261,9 @@ const SignUp = () => {
       );
     });
 
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createRegionSelectorModalNavigationDetails({
         regions: allRegions,
         selectedRegionKey: selectedCountry?.key ?? null,
       }),
