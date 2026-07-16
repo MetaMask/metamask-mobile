@@ -245,6 +245,20 @@ describe('TrendingTokensData', () => {
       elemsRendered: [TEST_IDS.watchlistEmptyState],
     },
     {
+      testName:
+        'watchlist tokens when watchlist filter is active and trending results are empty',
+      overrideProps: {
+        isWatchlistFilterActive: true,
+        search: { searchResults: [], searchQuery: '' },
+      },
+      elemsRendered: [TEST_IDS.tokensList],
+      actAssert: async (testUtils) => {
+        const { getByText, queryByTestId } = testUtils;
+        expect(getByText('Token 1')).toBeOnTheScreen();
+        expect(queryByTestId(TEST_IDS.emptyErrorState)).not.toBeOnTheScreen();
+      },
+    },
+    {
       testName: 'empty error state when there is an error on main token view',
       overrideProps: {
         trendingTokens: [],
@@ -812,6 +826,43 @@ describe('TrendingTokensFullView', () => {
 
       expect(getByTestId('trending-tokens-list')).toBeOnTheScreen();
       expect(getByText('Ethereum')).toBeOnTheScreen();
+    });
+
+    it('shows watchlist tokens and enables price filter when trending results are empty', async () => {
+      mockIsWatchlistEnabled = true;
+      const mocks = arrangeMocks();
+      mocks.setTrendingSearchMock({ data: [] });
+      mocks.setTrendingRequestMock({ results: [] });
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [
+          {
+            assetId: 'eip155:1/slip44:60',
+            name: 'Ethereum',
+            symbol: 'ETH',
+            decimals: 18,
+            marketData: {
+              price: 2170.28,
+              marketCap: 260_000_000_000,
+              totalVolume: 15_000_000_000,
+              pricePercentChange24h: 0.2,
+            },
+          },
+        ],
+        isLoading: false,
+        refetch: mockRefetchWatchlist,
+      });
+
+      const { getByTestId, getByText, queryByTestId } =
+        renderTrendingFullView();
+
+      await userEvent.press(getByTestId(TEST_IDS.watchlistFilter));
+
+      expect(getByTestId('trending-tokens-list')).toBeOnTheScreen();
+      expect(getByText('Ethereum')).toBeOnTheScreen();
+      expect(queryByTestId(TEST_IDS.emptyErrorState)).not.toBeOnTheScreen();
+      expect(
+        getByTestId('price-change-button').props.accessibilityState?.disabled,
+      ).toBe(false);
     });
 
     it('passes explore_watchlist_filter source when watchlist filter is active', async () => {

@@ -128,7 +128,7 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
     );
   }
 
-  if (!isSearching && !hasSearchResults) {
+  if (!isSearching && trendingTokens.length === 0) {
     return <EmptyErrorTrendingState onRetry={handleRefresh} />;
   }
 
