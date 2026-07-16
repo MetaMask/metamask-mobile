@@ -8,6 +8,7 @@ import {
 } from '@metamask/perps-controller';
 import BigNumber from 'bignumber.js';
 import { Position } from '../hooks';
+import { resolveOrderDirection, isClosingOrder } from './orderDirection';
 
 /**
  * Optional debug logger for order utility functions.
@@ -534,15 +535,8 @@ export const willFlipPosition = (
  * @param order - The order object
  * @returns The position direction the order corresponds to
  */
-export const getOrderPositionDirection = (order: Order): OrderDirection => {
-  const isClosing = Boolean(order.reduceOnly || order.isTrigger);
-
-  if (isClosing) {
-    return order.side === 'sell' ? 'long' : 'short';
-  }
-
-  return order.side === 'buy' ? 'long' : 'short';
-};
+export const getOrderPositionDirection = (order: Order): OrderDirection =>
+  resolveOrderDirection(order.side, isClosingOrder(order));
 
 /**
  * Format an order label following the pattern: [Type] [Close?] [Direction]
@@ -559,13 +553,10 @@ export const getOrderPositionDirection = (order: Order): OrderDirection => {
  * @returns Formatted order label string
  */
 export const formatOrderLabel = (order: Order): string => {
-  const { detailedOrderType, orderType, reduceOnly, isTrigger } = order;
+  const { side, detailedOrderType, orderType } = order;
 
-  // Determine if this is a closing order
-  const isClosing = Boolean(reduceOnly || isTrigger);
-
-  // Single source of truth for side -> position direction mapping
-  const direction = getOrderPositionDirection(order);
+  const isClosing = isClosingOrder(order);
+  const direction = resolveOrderDirection(side, isClosing);
 
   // Get the order type string
   // Use detailedOrderType if available (e.g., "Stop Market", "Take Profit Limit")
@@ -589,11 +580,8 @@ export const formatOrderLabel = (order: Order): string => {
  * @returns Direction string ("long" or "short" for opening, "Close Long" or "Close Short" for closing)
  */
 export const getOrderLabelDirection = (order: Order): string => {
-  // Determine if this is a closing order
-  const isClosing = Boolean(order.reduceOnly || order.isTrigger);
-
-  // Single source of truth for side -> position direction mapping
-  const direction = getOrderPositionDirection(order);
+  const isClosing = isClosingOrder(order);
+  const direction = resolveOrderDirection(order.side, isClosing);
 
   if (isClosing) {
     return direction === 'long' ? 'Close Long' : 'Close Short';
