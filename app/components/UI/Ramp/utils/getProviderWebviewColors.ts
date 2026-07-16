@@ -1,4 +1,4 @@
-import { brandColor } from '@metamask/design-tokens';
+import { brandColor, darkTheme, lightTheme } from '@metamask/design-tokens';
 import { colors } from '../../../../styles/common';
 
 /**
@@ -10,7 +10,8 @@ import { colors } from '../../../../styles/common';
  * Keys are lowercase substrings of the provider ID returned by the ramps controller
  * (e.g. "transak" matches both "transak" and "transak-native").
  *
- * Providers not listed here fall back to the design-system default surface.
+ * The "default" entry mirrors the MMDS BottomSheet surface colors and is used
+ * when no provider-specific color is known.
  */
 
 export interface ProviderWebviewColors {
@@ -23,22 +24,28 @@ export interface ProviderWebviewColors {
 // seamless with the embedded checkout flow. See colors.*CheckoutDark in
 // app/styles/common.ts. Update only if a provider changes their iframe theme.
 const PROVIDER_WEBVIEW_COLORS: Record<string, ProviderWebviewColors> = {
+  // Defaults to MMDS BottomSheet surface colors when no provider-specific
+  // color is known, ensuring the WebView background always matches the sheet.
+  default: {
+    dark: darkTheme.colors.background.alternative,
+    light: lightTheme.colors.background.default,
+  },
   transak: { dark: colors.transakCheckoutDark, light: brandColor.white },
   moonpay: { dark: colors.moonpayCheckoutDark, light: brandColor.white },
   banxa: { dark: colors.banxaCheckoutDark, light: brandColor.white },
 };
 
 /**
- * Returns the provider's iframe background colors for the given provider ID,
- * or undefined if unknown (caller should fall back to the design-system surface).
+ * Returns the provider's iframe background colors for the given provider ID.
+ * Falls back to the MMDS BottomSheet default surface for unknown providers.
  */
 export function getProviderWebviewColors(
   providerCode: string | undefined,
-): ProviderWebviewColors | undefined {
-  if (!providerCode) return undefined;
+): ProviderWebviewColors {
+  if (!providerCode) return PROVIDER_WEBVIEW_COLORS.default;
   const lower = providerCode.toLowerCase();
-  const key = Object.keys(PROVIDER_WEBVIEW_COLORS).find((k) =>
-    lower.includes(k),
+  const key = Object.keys(PROVIDER_WEBVIEW_COLORS).find(
+    (k) => k !== 'default' && lower.includes(k),
   );
-  return key ? PROVIDER_WEBVIEW_COLORS[key] : undefined;
+  return PROVIDER_WEBVIEW_COLORS[key ?? 'default'];
 }

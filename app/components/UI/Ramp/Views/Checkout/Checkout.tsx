@@ -120,19 +120,12 @@ const Checkout = () => {
     headlessSessionId,
   } = params ?? {};
 
-  const providerColors = getProviderWebviewColors(providerCode);
+  const { dark: providerBgDark, light: providerBgLight } =
+    getProviderWebviewColors(providerCode);
   const isDark = themeAppearance === AppThemeKey.dark;
-  const providerBg = providerColors
-    ? isDark
-      ? providerColors.dark
-      : providerColors.light
-    : undefined;
+  const providerBg = isDark ? providerBgDark : providerBgLight;
   const { styles } = useStyles(styleSheet, { providerBg });
-  // Only override the BottomSheet for known providers — background.alternative
-  // is already the MMDS BottomSheet default, so no twClassName needed for unknowns.
-  const providerBgTwClassName = providerColors
-    ? `bg-[${providerBg}]`
-    : undefined;
+  const providerBgTwClassName = `bg-[${providerBg}]`;
 
   const effectiveOrderId = (orderIdParam ?? customOrderId)?.trim() || null;
 

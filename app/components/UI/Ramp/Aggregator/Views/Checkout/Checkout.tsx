@@ -72,19 +72,12 @@ const CheckoutWebView = () => {
   const { url: uri, customOrderId, provider } = params;
 
   const { themeAppearance } = useTheme();
-  const providerColors = getProviderWebviewColors(provider?.id);
+  const { dark: providerBgDark, light: providerBgLight } =
+    getProviderWebviewColors(provider?.id);
   const isDark = themeAppearance === AppThemeKey.dark;
-  const providerBg = providerColors
-    ? isDark
-      ? providerColors.dark
-      : providerColors.light
-    : undefined;
+  const providerBg = isDark ? providerBgDark : providerBgLight;
   const { styles } = useStyles(styleSheet, { providerBg });
-  // Only override the BottomSheet for known providers — background.alternative
-  // is already the component-library BottomSheet default, so no style needed for unknowns.
-  const providerBgStyle = providerColors
-    ? { backgroundColor: providerBg }
-    : undefined;
+  const providerBgStyle = { backgroundColor: providerBg };
 
   const handleCancelPress = useCallback(() => {
     const chainId = selectedAsset?.network?.chainId || '';
