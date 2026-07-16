@@ -1,17 +1,23 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import MoneyEarnBanner from './MoneyEarnBanner';
 import { MoneyEarnBannerTestIds } from './MoneyEarnBanner.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { setMoneyEarnBannerDismissed } from '../../../../../actions/user';
-import { selectMoneyEarnBannerDismissedTokens } from '../../../../../reducers/user/selectors';
-import { selectRelayFixedSpread } from '../../../../../selectors/featureFlagController/confirmations';
-import { isSubsidizedRoute } from '../../../../Views/confirmations/utils/relayFixedSpread';
+import {
+  selectMoneyEarnBannerDismissedTokens,
+  selectMoneyOnboardingSeen,
+} from '../../../../../reducers/user/selectors';
+import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import Logger from '../../../../../util/Logger';
 import { MUSD_TOKEN_ADDRESS } from '../../../Earn/constants/musd';
-import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
+import { WildcardTokenList } from '../../../Earn/utils/wildcardTokenList';
+import {
+  selectMoneyEarnBannerTokens,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../../selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 import { TokenI } from '../../../Tokens/types';
 
@@ -27,6 +33,12 @@ const mockUseDispatch = useDispatch as jest.Mock;
 const mockDispatch = jest.fn();
 const mockInitiateDeposit = jest.fn();
 const mockUseMoneyAccountBalance = jest.fn();
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
   useMoneyAccountDeposit: () => ({
@@ -39,21 +51,14 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   default: () => mockUseMoneyAccountBalance(),
 }));
 
-jest.mock('../../../../Views/confirmations/utils/relayFixedSpread', () => ({
-  ...jest.requireActual(
-    '../../../../Views/confirmations/utils/relayFixedSpread',
-  ),
-  isSubsidizedRoute: jest.fn(),
-}));
-
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
 }));
 
-const mockIsSubsidizedRoute = isSubsidizedRoute as jest.Mock;
-
-const MOCK_RELAY_CONFIG = { routes: [] };
+const MOCK_EARN_BANNER_TOKENS: WildcardTokenList = {
+  '0x1': ['USDC', 'mUSD', 'EURC'],
+};
 
 const MOCK_USDC = {
   name: 'USD Coin',
@@ -68,24 +73,34 @@ const MOCK_USDC_TOKEN_KEY = '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 interface SetupOptions {
   isMoneyAccountEnabled?: boolean;
   isGeoEligible?: boolean;
+  earnBannerTokens?: WildcardTokenList;
   dismissedTokens?: Record<string, boolean>;
   apyPercent?: number;
+  hasSeenOnboarding?: boolean;
+  isOnboardingEnabled?: boolean;
 }
 
 const setupDefaultMocks = ({
   isMoneyAccountEnabled = true,
   isGeoEligible = true,
+  earnBannerTokens = MOCK_EARN_BANNER_TOKENS,
   dismissedTokens = {},
   apyPercent,
+  hasSeenOnboarding = true,
+  isOnboardingEnabled = true,
 }: SetupOptions = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectMoneyEnableMoneyAccountFlag) {
       return isMoneyAccountEnabled;
     }
     if (selector === selectIsMoneyAccountGeoEligible) return isGeoEligible;
-    if (selector === selectRelayFixedSpread) return MOCK_RELAY_CONFIG;
+    if (selector === selectMoneyEarnBannerTokens) return earnBannerTokens;
     if (selector === selectMoneyEarnBannerDismissedTokens) {
       return dismissedTokens;
+    }
+    if (selector === selectMoneyOnboardingSeen) return hasSeenOnboarding;
+    if (selector === selectMoneyOnboardingStepperAnimationEnabled) {
+      return isOnboardingEnabled;
     }
     return undefined;
   });
@@ -96,7 +111,6 @@ describe('MoneyEarnBanner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseDispatch.mockReturnValue(mockDispatch);
-    mockIsSubsidizedRoute.mockReturnValue(true);
     mockInitiateDeposit.mockResolvedValue(undefined);
     setupDefaultMocks();
   });
@@ -109,14 +123,20 @@ describe('MoneyEarnBanner', () => {
       expect(getByTestId(MoneyEarnBannerTestIds.TOKEN_ICON)).toBeOnTheScreen();
     });
 
-    it('checks the relay route from the asset to mUSD on Monad', () => {
-      render(<MoneyEarnBanner asset={MOCK_USDC} />);
+    it('renders nothing when the token is only listed on another chain', () => {
+      setupDefaultMocks({ earnBannerTokens: { '0x2105': ['USDC'] } });
 
-      expect(mockIsSubsidizedRoute).toHaveBeenCalledWith(
-        MOCK_RELAY_CONFIG,
-        { address: MOCK_USDC.address, chainId: '0x1' },
-        { address: MUSD_TOKEN_ADDRESS, chainId: CHAIN_IDS.MONAD },
-      );
+      const { toJSON } = render(<MoneyEarnBanner asset={MOCK_USDC} />);
+
+      expect(toJSON()).toBeNull();
+    });
+
+    it('renders the banner for a token matched via chain wildcard', () => {
+      setupDefaultMocks({ earnBannerTokens: { '*': ['USDC'] } });
+
+      const { getByTestId } = render(<MoneyEarnBanner asset={MOCK_USDC} />);
+
+      expect(getByTestId(MoneyEarnBannerTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
     it('renders nothing when the money account flag is disabled', () => {
@@ -135,8 +155,8 @@ describe('MoneyEarnBanner', () => {
       expect(toJSON()).toBeNull();
     });
 
-    it('renders nothing when the token is not a supported deposit source', () => {
-      mockIsSubsidizedRoute.mockReturnValue(false);
+    it('renders nothing when the token is not in the earn banner token list', () => {
+      setupDefaultMocks({ earnBannerTokens: { '0x1': ['USDT'] } });
 
       const { toJSON } = render(<MoneyEarnBanner asset={MOCK_USDC} />);
 
@@ -267,6 +287,31 @@ describe('MoneyEarnBanner', () => {
           chainId: '0x1',
         },
       });
+    });
+
+    it('redirects first-time users to Money onboarding instead of the deposit flow', () => {
+      setupDefaultMocks({ hasSeenOnboarding: false });
+
+      const { getByTestId } = render(<MoneyEarnBanner asset={MOCK_USDC} />);
+
+      fireEvent.press(getByTestId(MoneyEarnBannerTestIds.CONTAINER));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING);
+      expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    });
+
+    it('initiates a deposit for first-time users when onboarding is disabled', () => {
+      setupDefaultMocks({
+        hasSeenOnboarding: false,
+        isOnboardingEnabled: false,
+      });
+
+      const { getByTestId } = render(<MoneyEarnBanner asset={MOCK_USDC} />);
+
+      fireEvent.press(getByTestId(MoneyEarnBannerTestIds.CONTAINER));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockInitiateDeposit).toHaveBeenCalledTimes(1);
     });
 
     it('logs an error when initiating the deposit fails', async () => {

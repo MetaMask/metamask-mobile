@@ -9,6 +9,11 @@ import {
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  NavigationProp,
+  ParamListBase,
+  useNavigation,
+} from '@react-navigation/native';
+import {
   AvatarToken,
   AvatarTokenSize,
   Box,
@@ -22,7 +27,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import moneyEarnBannerArrow from '../../../../../images/money-earn-banner-arrow.png';
 import moneyEarnBannerCoin from '../../../../../images/money-earn-banner-coin.png';
@@ -34,29 +38,30 @@ import moneyEarnBannerAusdc from '../../../../../images/money-earn-banner-ausdc.
 import moneyEarnBannerAusdt from '../../../../../images/money-earn-banner-ausdt.png';
 import moneyEarnBannerAdai from '../../../../../images/money-earn-banner-adai.png';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { setMoneyEarnBannerDismissed } from '../../../../../actions/user';
-import { selectMoneyEarnBannerDismissedTokens } from '../../../../../reducers/user/selectors';
-import { selectRelayFixedSpread } from '../../../../../selectors/featureFlagController/confirmations';
-import { isSubsidizedRoute } from '../../../../Views/confirmations/utils/relayFixedSpread';
+import {
+  selectMoneyEarnBannerDismissedTokens,
+  selectMoneyOnboardingSeen,
+} from '../../../../../reducers/user/selectors';
+import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import Logger from '../../../../../util/Logger';
 import { TokenI } from '../../../Tokens/types';
 import {
-  MUSD_TOKEN_ADDRESS,
   getTokenDisplaySymbol,
   isMusdToken,
 } from '../../../Earn/constants/musd';
+import { isTokenInWildcardList } from '../../../Earn/utils/wildcardTokenList';
 import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
-import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
+import {
+  selectMoneyEarnBannerTokens,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../../selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { isPositiveNumber } from '../../utils/number';
 import { MoneyEarnBannerTestIds } from './MoneyEarnBanner.testIds';
-
-const MONAD_MUSD_TARGET = {
-  address: MUSD_TOKEN_ADDRESS,
-  chainId: CHAIN_IDS.MONAD,
-};
 
 const styles = StyleSheet.create({
   iconContainer: {
@@ -170,10 +175,20 @@ const MoneyEarnBannerContent = ({
   tokenKey,
 }: MoneyEarnBannerContentProps) => {
   const dispatch = useDispatch();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const { apyPercent } = useMoneyAccountBalance();
   const { initiateDeposit } = useMoneyAccountDeposit();
+  const hasSeenOnboarding = useSelector(selectMoneyOnboardingSeen);
+  const isOnboardingEnabled = useSelector(
+    selectMoneyOnboardingStepperAnimationEnabled,
+  );
 
   const handlePress = useCallback(async () => {
+    if (!hasSeenOnboarding && isOnboardingEnabled) {
+      navigation.navigate(Routes.MONEY.ONBOARDING);
+      return;
+    }
+
     try {
       await initiateDeposit({
         preferredPaymentToken: {
@@ -187,7 +202,14 @@ const MoneyEarnBannerContent = ({
         '[MoneyEarnBanner] Failed to initiate Money account deposit',
       );
     }
-  }, [asset.address, asset.chainId, initiateDeposit]);
+  }, [
+    asset.address,
+    asset.chainId,
+    hasSeenOnboarding,
+    initiateDeposit,
+    isOnboardingEnabled,
+    navigation,
+  ]);
 
   const handleDismiss = useCallback(() => {
     dispatch(setMoneyEarnBannerDismissed(tokenKey));
@@ -272,7 +294,7 @@ const MoneyEarnBannerContent = ({
 const MoneyEarnBanner = ({ asset }: MoneyEarnBannerProps) => {
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isGeoEligible = useSelector(selectIsMoneyAccountGeoEligible);
-  const relayFixedSpread = useSelector(selectRelayFixedSpread);
+  const earnBannerTokens = useSelector(selectMoneyEarnBannerTokens);
   const dismissedTokens = useSelector(selectMoneyEarnBannerDismissedTokens);
 
   if (!isMoneyAccountEnabled || !isGeoEligible) {
@@ -284,15 +306,12 @@ const MoneyEarnBanner = ({ asset }: MoneyEarnBannerProps) => {
   }
 
   const chainIdHex = safeFormatChainIdToHex(asset.chainId);
-  const isSupportedDepositSource = isSubsidizedRoute(
-    relayFixedSpread,
-    {
-      address: asset.address,
-      chainId: chainIdHex,
-    },
-    MONAD_MUSD_TARGET,
+  const isSupportedToken = isTokenInWildcardList(
+    asset.symbol,
+    earnBannerTokens,
+    chainIdHex,
   );
-  if (!isSupportedDepositSource) {
+  if (!isSupportedToken) {
     return null;
   }
 
