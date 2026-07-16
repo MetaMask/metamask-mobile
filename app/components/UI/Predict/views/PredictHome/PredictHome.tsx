@@ -94,7 +94,7 @@ const PredictHome: React.FC = () => {
 
   return (
     <SafeAreaView
-      edges={{ bottom: 'additive' }}
+      edges={{ bottom: 'off' }}
       style={tw.style('flex-1 bg-default')}
     >
       <Box
@@ -124,19 +124,21 @@ const PredictHome: React.FC = () => {
           >
             <Text
               testID={PredictHomeSelectorsIDs.TITLE}
-              variant={TextVariant.DisplayMd}
+              variant={TextVariant.HeadingMd}
             >
               {strings('wallet.predict')}
             </Text>
           </Box>
 
-          <PredictPortfolioModule
-            onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
-          />
-          <PredictLiveNowSection />
-          <PredictCategoriesSection />
-          <PredictPopularTodaySection />
-          <PredictTrendingSection />
+          <Box twClassName="gap-6">
+            <PredictPortfolioModule
+              onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
+            />
+            <PredictLiveNowSection />
+            <PredictCategoriesSection />
+            <PredictPopularTodaySection />
+            <PredictTrendingSection />
+          </Box>
         </Animated.ScrollView>
 
         <PredictSearchOverlay

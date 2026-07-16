@@ -64,7 +64,7 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
   );
 
   return (
-    <Box testID={testID} twClassName="my-2">
+    <Box testID={testID}>
       <SectionHeader
         testID={PREDICT_CATEGORIES_SECTION_TEST_IDS.HEADER}
         title={strings('predict.home.categories_title')}

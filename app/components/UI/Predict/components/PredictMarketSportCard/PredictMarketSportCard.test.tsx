@@ -416,7 +416,7 @@ describe('PredictMarketSportCard', () => {
       { state: initialState },
     );
 
-    expect(getByText('Live')).toBeOnTheScreen();
+    expect(getByText('LIVE')).toBeOnTheScreen();
     expect(getByText('75’')).toBeOnTheScreen();
     expect(getByText('0')).toBeOnTheScreen();
     expect(getByText('1')).toBeOnTheScreen();
