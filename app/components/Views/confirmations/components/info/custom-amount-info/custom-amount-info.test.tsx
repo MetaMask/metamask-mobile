@@ -30,6 +30,7 @@ import {
   useTransactionPayRequiredTokens,
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
+  useTransactionPayQuotesLastUpdated,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
 import { strings } from '../../../../../../../locales/i18n';
@@ -289,6 +290,9 @@ describe('CustomAmountInfo', () => {
   );
 
   const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
+  const useTransactionPayQuotesLastUpdatedMock = jest.mocked(
+    useTransactionPayQuotesLastUpdated,
+  );
 
   const useTransactionPayHasSourceAmountMock = jest.mocked(
     useTransactionPayHasSourceAmount,
@@ -416,6 +420,7 @@ describe('CustomAmountInfo', () => {
     });
     useIsTransactionPayLoadingMock.mockReturnValue(false);
     useTransactionPayQuotesMock.mockReturnValue([]);
+    useTransactionPayQuotesLastUpdatedMock.mockReturnValue(undefined);
     useTransactionPayHasSourceAmountMock.mockReturnValue(false);
     useTokenFiatRatesMock.mockReturnValue([1, 1]);
     useTransactionMetadataRequestMock.mockReturnValue({
@@ -755,18 +760,29 @@ describe('CustomAmountInfo', () => {
       ).toBeUndefined();
     });
 
-    it('clears local preparation when the amount update resolves', async () => {
+    it('keeps the loading review through the handoff to controller loading', async () => {
       const { deferred } = arrangePendingPreparation();
       const view = render({
         transactionType: TransactionType.moneyAccountDeposit,
       });
       fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
 
-      useIsTransactionPayLoadingMock.mockReturnValue(true);
       await act(async () => {
         deferred.resolve();
         await deferred.promise;
       });
+
+      expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+      expect(
+        view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).toBeDisabled();
+
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
 
       expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
 
@@ -781,6 +797,67 @@ describe('CustomAmountInfo', () => {
       expect(
         view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
       ).not.toBeDisabled();
+    });
+
+    it('releases the loading review when a fast quote completes between renders', async () => {
+      const { deferred } = arrangePendingPreparation();
+      const view = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+      fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
+
+      await act(async () => {
+        deferred.resolve();
+        await deferred.promise;
+      });
+
+      expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+
+      useTransactionPayQuotesLastUpdatedMock.mockReturnValue(123);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
+
+      expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
+      expect(
+        view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).not.toBeDisabled();
+    });
+
+    it('ignores stale quote updates while the amount is still committing', async () => {
+      useTransactionPayQuotesLastUpdatedMock.mockReturnValue(1);
+      const { deferred } = arrangePendingPreparation();
+      const view = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+      fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
+
+      useTransactionPayQuotesLastUpdatedMock.mockReturnValue(2);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
+
+      expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+
+      await act(async () => {
+        deferred.resolve();
+        await deferred.promise;
+      });
+
+      expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
+
+      useTransactionPayQuotesLastUpdatedMock.mockReturnValue(3);
+      view.rerender(
+        createCustomAmountInfo({
+          transactionType: TransactionType.moneyAccountDeposit,
+        }),
+      );
+
+      expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
     });
 
     it('keeps preparation active while the amount update is pending', async () => {
@@ -925,14 +1002,21 @@ describe('CustomAmountInfo', () => {
       onReject: jest.fn(),
     });
 
-    const { getByText } = render();
+    const view = render();
 
     await act(async () => {
-      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      fireEvent.press(view.getByText(strings('confirm.edit_amount_done')));
     });
 
+    useIsTransactionPayLoadingMock.mockReturnValue(true);
+    view.rerender(createCustomAmountInfo());
+    useIsTransactionPayLoadingMock.mockReturnValue(false);
+    view.rerender(createCustomAmountInfo());
+
     await act(async () => {
-      fireEvent.press(getByText(strings('confirm.deposit_edit_amount_done')));
+      fireEvent.press(
+        view.getByText(strings('confirm.deposit_edit_amount_done')),
+      );
     });
 
     expect(setIsConfirmationSubmittingMock).toHaveBeenCalledWith(true);
@@ -1425,22 +1509,25 @@ describe('CustomAmountInfo', () => {
   });
 
   describe('showPaymentDetails', () => {
-    async function pressDone(
-      getByText: ReturnType<typeof render>['getByText'],
-    ) {
+    async function pressDone(view: ReturnType<typeof render>) {
       await act(async () => {
-        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+        fireEvent.press(view.getByText(strings('confirm.edit_amount_done')));
       });
+
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
+      view.rerender(createCustomAmountInfo());
+      useIsTransactionPayLoadingMock.mockReturnValue(false);
+      view.rerender(createCustomAmountInfo());
     }
 
     it('shows fee rows for same-chain payment without quotes', async () => {
       useTransactionPayHasSourceAmountMock.mockReturnValue(false);
       useTransactionPayQuotesMock.mockReturnValue([]);
 
-      const { getByText, getByTestId } = render();
-      await pressDone(getByText);
+      const view = render();
+      await pressDone(view);
 
-      expect(getByTestId('bridge-fee-row')).toBeOnTheScreen();
+      expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
     });
 
     it('hides fee rows when no-quotes alert is present', async () => {
@@ -1458,20 +1545,20 @@ describe('CustomAmountInfo', () => {
         fieldAlerts: [] as Alert[],
       } as AlertsContextParams);
 
-      const { getByText, queryByTestId } = render();
-      await pressDone(getByText);
+      const view = render();
+      await pressDone(view);
 
-      expect(queryByTestId('bridge-fee-row')).toBeNull();
+      expect(view.queryByTestId('bridge-fee-row')).toBeNull();
     });
 
     it('shows fee rows when quotes exist regardless of source amount', async () => {
       useTransactionPayHasSourceAmountMock.mockReturnValue(true);
       useTransactionPayQuotesMock.mockReturnValue([{} as never]);
 
-      const { getByText, getByTestId } = render();
-      await pressDone(getByText);
+      const view = render();
+      await pressDone(view);
 
-      expect(getByTestId('bridge-fee-row')).toBeOnTheScreen();
+      expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
     });
   });
 
