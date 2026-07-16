@@ -9,6 +9,7 @@ import {
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
+import { SolScope } from '@metamask/keyring-api';
 import type { ActivityListItem, Status } from '../../../util/activity-adapters';
 import { ActivityListItemRow } from './ActivityListItemRow';
 import { ActivityListItemRowPendingActions } from './ActivityListItemRowPendingActions';
@@ -541,7 +542,7 @@ describe('ActivityListItemRow — row content', () => {
     );
   });
 
-  it('renders swap title, protocol subtitle, primary and secondary amounts', () => {
+  it('renders swap title, token pair subtitle, primary and secondary amounts', () => {
     const item = makeItem({
       type: 'swap',
       status: 'success',
@@ -561,10 +562,10 @@ describe('ActivityListItemRow — row content', () => {
       <ActivityListItemRow item={item} index={0} />,
     );
 
-    expect(getByTestId('activity-title-0xabc').props.children).toBe(
-      'Swapped ETH to USDT',
+    expect(getByTestId('activity-title-0xabc').props.children).toBe('Swapped');
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'ETH → USDT',
     );
-    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe('Curve');
     expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
       '+300 USDT',
     );
@@ -573,6 +574,27 @@ describe('ActivityListItemRow — row content', () => {
     );
     expect(getByTestId('avatar-token-ETH')).toBeOnTheScreen();
     expect(getByTestId('avatar-token-USDT')).toBeOnTheScreen();
+  });
+
+  it('falls back to the protocol subtitle for a swap missing one token symbol', () => {
+    const item = makeItem({
+      type: 'swap',
+      status: 'success',
+      transactionProtocol: 'ACROSS',
+      destinationToken: {
+        amount: '0.0002',
+        symbol: 'ETH',
+        direction: 'in',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe('Swapped');
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'Across',
+    );
   });
 
   it('renders perps deposits with Perps balance subtitle, fiat primary, and token secondary', () => {
@@ -1273,7 +1295,10 @@ describe('ActivityListItemRow — row content', () => {
     );
   });
 
-  it('renders cross-token bridge as swapped with token pair subtitle', () => {
+  it('renders a cross-token bridge as bridged on the destination token, not swapped', () => {
+    // A bridge that also changes the token (e.g. ETH → USDT) is still a bridge,
+    // never "Swapped". Without bridge history the route is unknown, so the
+    // subtitle falls back to the token pair.
     const item = makeItem({
       type: 'bridge',
       status: 'success',
@@ -1292,7 +1317,9 @@ describe('ActivityListItemRow — row content', () => {
       <ActivityListItemRow item={item} index={0} />,
     );
 
-    expect(getByTestId('activity-title-0xabc').props.children).toBe('Swapped');
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Bridged USDT',
+    );
     expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
       'ETH → USDT',
     );
@@ -1351,6 +1378,52 @@ describe('ActivityListItemRow — row content', () => {
     expect(getAllByTestId('avatar-token-USDC')).toHaveLength(1);
   });
 
+  it('renders a non-EVM cross-chain bridge as bridged with the network route', () => {
+    const item = makeItem({
+      type: 'bridge',
+      status: 'success',
+      sourceToken: {
+        amount: '9912000',
+        decimals: 9,
+        symbol: 'SOL',
+        direction: 'out',
+      },
+    });
+    const bridgeHistoryItem = {
+      quote: {
+        srcChainId: SolScope.Mainnet,
+        destChainId: 1,
+        srcTokenAmount: '9912000',
+        srcAsset: {
+          assetId: `${SolScope.Mainnet}/slip44:501`,
+          decimals: 9,
+          symbol: 'SOL',
+        },
+        destTokenAmount: '368300000000000',
+        destAsset: {
+          assetId: 'eip155:1/slip44:60',
+          decimals: 18,
+          symbol: 'ETH',
+        },
+      },
+    };
+
+    const { getByTestId } = render(
+      <ActivityListItemRow
+        bridgeHistoryItem={bridgeHistoryItem as never}
+        item={item}
+        index={0}
+      />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Bridged ETH',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'Solana → Ethereum',
+    );
+  });
+
   it('renders source-only API bridge rows as sends when bridge history is unavailable', () => {
     const item = makeItem({
       type: 'bridge',
@@ -1378,17 +1451,12 @@ describe('ActivityListItemRow — row content', () => {
 
   it('does not render technical protocol values as subtitles', () => {
     const item = makeItem({
-      type: 'swap',
+      type: 'deposit',
       status: 'success',
       transactionProtocol: 'GNOSIS_SAFE',
-      sourceToken: {
+      token: {
         amount: '1',
         symbol: 'USDC',
-        direction: 'out',
-      },
-      destinationToken: {
-        amount: '1',
-        symbol: 'mUSD',
         direction: 'in',
       },
     });
@@ -1835,7 +1903,7 @@ const ALL_KINDS: ActivityListItem['type'][] = [
 const EXPECTED_TITLES = {
   send: strings('transactions.sent'),
   receive: strings('transactions.received'),
-  swap: strings('transactions.swaps_transaction'),
+  swap: 'Swapped',
   swapIncomplete: 'Swapped',
   bridge: 'Bridged',
   buy: 'Bought',

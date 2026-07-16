@@ -1251,16 +1251,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
       const { item } = groupedItem;
 
-      // All items (API EVM confirmed, completed local EVM, non-EVM) render from
-      // the shared ActivityListItem shape.
-      //
-      // Preserve the legacy Activity title for swap/bridge rows (e.g.
-      // "Swap ETH to USDC", "Bridge to Optimism") by deriving it from bridge
-      // history. Falls back to the kind-based title.
       const bridgeHistoryItem = getBridgeHistoryItemByHash(item.hash);
-      const title = bridgeHistoryItem
-        ? getSwapBridgeTxActivityTitle(bridgeHistoryItem)
-        : undefined;
 
       return (
         <ActivityListItemRow
@@ -1268,7 +1259,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           item={item}
           index={index}
           onPress={handleActivityItemPress}
-          title={title}
           isQRHardwareAccount={isQRHardwareAccount}
           isLedgerAccount={isLedgerAccount}
           onSpeedUpAction={onSpeedUpAction}

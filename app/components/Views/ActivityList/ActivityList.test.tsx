@@ -1918,7 +1918,7 @@ describe('ActivityList', () => {
     });
   });
 
-  it('renders non-EVM swap/bridge rows through ActivityListItemRow with the bridge-history title', () => {
+  it('renders non-EVM swap/bridge rows through ActivityListItemRow', () => {
     selectorValues.enabledEvm = [];
     selectorValues.enabledNonEvm = ['solana:mainnet'];
     selectorValues.nonEvmState = {
@@ -1942,7 +1942,6 @@ describe('ActivityList', () => {
     render(<ActivityList chainId="solana:mainnet" />);
 
     expect(screen.getByTestId('row-solanaBridge')).toBeOnTheScreen();
-    expect(screen.getByText('Bridge title')).toBeOnTheScreen();
     fireEvent.press(screen.getByTestId('non-evm-footer'));
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       params: { url: 'https://solana.explorer/address/sol' },

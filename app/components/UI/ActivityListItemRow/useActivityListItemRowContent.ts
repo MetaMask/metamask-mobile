@@ -133,7 +133,7 @@ function normalizeBridgeQuoteChainId(
     return `0x${Number.parseInt(chainId, 10).toString(16)}`;
   }
 
-  return chainId.toLowerCase();
+  return chainId.startsWith('0x') ? chainId.toLowerCase() : chainId;
 }
 
 function getBridgeQuoteNetworkName(
@@ -497,22 +497,16 @@ function resolveCoreContent(
     }
     case 'swap': {
       const { sourceToken, destinationToken } = item.data;
-      const sourceSymbol = sourceToken?.symbol ?? '';
-      const destinationSymbol = destinationToken?.symbol ?? '';
 
       return {
         title: statusTitle(item, {
-          success:
-            sourceSymbol && destinationSymbol
-              ? `Swapped ${sourceSymbol} to ${destinationSymbol}`
-              : strings('transactions.swaps_transaction'),
-          pending:
-            sourceSymbol && destinationSymbol
-              ? `Swapping ${sourceSymbol} to ${destinationSymbol}`
-              : strings('transactions.swap'),
+          success: 'Swapped',
+          pending: 'Swapping',
           failed: 'Swap failed',
         }),
-        subtitle: protocolSubtitle(item),
+        subtitle:
+          tokenPairSubtitle(sourceToken, destinationToken) ??
+          protocolSubtitle(item),
         primaryToken: destinationToken,
         secondaryToken: sourceToken,
       };
@@ -573,24 +567,15 @@ function resolveCoreContent(
       const destinationSymbol = destinationToken?.symbol;
       const isSourceOnlyApiBridge =
         !bridgeHistoryItem && sourceToken && !destinationToken;
-      const isCrossTokenBridge =
-        sourceSymbol && destinationSymbol && sourceSymbol !== destinationSymbol;
       const subtitle =
         bridgeRouteSubtitle(bridgeHistoryItem) ??
-        (isCrossTokenBridge
-          ? tokenPairSubtitle(sourceToken, destinationToken)
-          : undefined);
+        tokenPairSubtitle(sourceToken, destinationToken);
 
       return {
         title: statusTitle(item, {
           success: isSourceOnlyApiBridge
             ? withOptionalSymbol('Sent', sourceSymbol)
-            : isCrossTokenBridge
-              ? 'Swapped'
-              : withOptionalSymbol(
-                  'Bridged',
-                  destinationSymbol ?? sourceSymbol,
-                ),
+            : withOptionalSymbol('Bridged', destinationSymbol ?? sourceSymbol),
           pending: isSourceOnlyApiBridge
             ? withOptionalSymbol('Sending', sourceSymbol)
             : withOptionalSymbol('Bridging', destinationSymbol ?? sourceSymbol),
