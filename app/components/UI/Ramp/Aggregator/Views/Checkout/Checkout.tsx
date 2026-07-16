@@ -38,6 +38,9 @@ import {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
+import { useTheme } from '../../../../../../util/theme';
+import { AppThemeKey } from '../../../../../../util/theme/models';
+import { colors } from '../../../../../../styles/common';
 import Device from '../../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../../util/browser';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
@@ -67,6 +70,16 @@ const CheckoutWebView = () => {
   const handleSuccessfulOrder = useHandleSuccessfulOrder();
 
   const { styles } = useStyles(styleSheet, {});
+  const { themeAppearance } = useTheme();
+  // Intentionally overrides the design-system BottomSheet background to match
+  // Transak's iframe, which we cannot style. Keeps the native chrome seamless
+  // with the embedded checkout flow. See colors.transak* in app/styles/common.ts.
+  const transakBgStyle = {
+    backgroundColor:
+      themeAppearance === AppThemeKey.dark
+        ? colors.transakBackgroundDark
+        : colors.transakBackgroundLight,
+  };
 
   const { url: uri, customOrderId, provider } = params;
 
@@ -252,6 +265,7 @@ const CheckoutWebView = () => {
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
+        style={transakBgStyle}
       >
         <BottomSheetHeader
           endAccessory={

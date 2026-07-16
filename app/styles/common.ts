@@ -27,6 +27,11 @@ export const colors = {
   gettingStartedPageBackgroundColor: '#EAC2FF',
   gettingStartedTextColor: '#3D065F',
   gettingStartedPageBackgroundColorLightMode: '#FFF2EB',
+  // Transak's iframe renders these background colors — values are set by Transak
+  // and outside our control. Used to match the BottomSheet surface so the
+  // checkout feels seamless. Update only if Transak changes their theme colors.
+  transakBackgroundDark: '#1a1a1a',
+  transakBackgroundLight: '#ffffff',
 };
 
 export const onboardingCarouselColors: Record<
