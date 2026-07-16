@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   Box,
@@ -28,6 +29,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   createNavigationDetails,
   useParams,
+  resetWithRoutes,
 } from '../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
@@ -80,7 +82,7 @@ const OrderDetails = () => {
   const [error, setError] = useState<string | null>(null);
   const theme = useTheme();
   const { colors } = theme;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -101,7 +103,7 @@ const OrderDetails = () => {
           walletAddress,
         );
         if (!fetchedOrder || isBailedOrderStatus(fetchedOrder.status)) {
-          navigation.reset({
+          resetWithRoutes(navigation, {
             index: 0,
             routes: getNavigateAfterExternalBrowserRoutes({
               returnDestination: 'buildQuote',

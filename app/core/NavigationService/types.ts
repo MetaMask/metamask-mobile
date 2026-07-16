@@ -356,11 +356,11 @@ export type RootStackParamList = {
   DeprecatedNetworkDetails: undefined;
 
   // Ramp routes
-  Ramp: undefined;
-  RampBuy: RampBuySellParams | undefined;
-  RampSell: RampBuySellParams | undefined;
-  RampTokenSelection: undefined;
-  RampHeadlessEntry: undefined;
+  Ramp: NestedNavigationParams | undefined;
+  RampBuy: RampBuySellParams | NestedNavigationParams | undefined;
+  RampSell: RampBuySellParams | NestedNavigationParams | undefined;
+  RampTokenSelection: NestedNavigationParams | undefined;
+  RampHeadlessEntry: NestedNavigationParams | undefined;
   GetStarted: undefined;
   /**
    * BuildQuote route is shared between:
@@ -375,7 +375,8 @@ export type RootStackParamList = {
   Quotes: undefined;
   Checkout: undefined;
   OrderDetails: RampOrderDetailsParams | undefined;
-  SendTransaction: undefined;
+  /** Aggregator sell flow — send crypto for an off-ramp order. */
+  SendTransaction: { orderId?: string } | undefined;
   RampSettings: undefined;
   RampActivationKeyForm: undefined;
   RampHeadlessPlayground: undefined;
@@ -460,7 +461,11 @@ export type RootStackParamList = {
   // Misc top-level routes
   OptionsSheet: OptionsSheetParams | undefined;
   QRScanner: QRScannerParams;
-  TransactionsView: TransactionsViewParams | undefined;
+  /**
+   * Flat params (`redirectToOrders`, etc.) or nested navigator params when
+   * opened as the activity / orders stack (e.g. Ramp → OrderDetails).
+   */
+  TransactionsView: TransactionsViewParams | NestedNavigationParams | undefined;
   TransactionDetails: TransactionDetailsParams | undefined;
   ActivityDetails: ActivityDetailsParams;
   RewardsView: undefined;
