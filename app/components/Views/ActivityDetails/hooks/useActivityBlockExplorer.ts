@@ -1,3 +1,4 @@
+import { CaipChainId } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { RPC } from '../../../../constants/network';
 import {
@@ -48,6 +49,6 @@ export function useActivityBlockExplorer(
     return url ? { url, title } : undefined;
   }
 
-  const url = getNonEvmTransactionUrl(hash, chainId);
+  const url = getNonEvmTransactionUrl(hash, chainId as CaipChainId);
   return url ? { url, title: hostnameOf(url) } : undefined;
 }
