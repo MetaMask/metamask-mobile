@@ -42,6 +42,7 @@ const styles = StyleSheet.create({
 export interface FeedItemRowProps {
   item: FeedItem;
   onTradePress: (item: FeedItem) => void;
+  onPositionPress: (item: FeedItem) => void;
   onTraderPress: (item: FeedItem) => void;
 }
 
@@ -53,11 +54,16 @@ export interface FeedItemRowProps {
 const FeedItemRow: React.FC<FeedItemRowProps> = ({
   item,
   onTradePress,
+  onPositionPress,
   onTraderPress,
 }) => {
   const handleTradePress = useCallback(() => {
     onTradePress(item);
   }, [item, onTradePress]);
+
+  const handlePositionPress = useCallback(() => {
+    onPositionPress(item);
+  }, [item, onPositionPress]);
 
   const handleTraderPress = useCallback(() => {
     onTraderPress(item);
@@ -125,9 +131,9 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
       </Box>
 
       <Pressable
-        onPress={handleTradePress}
+        onPress={handlePositionPress}
         accessibilityRole="button"
-        accessibilityLabel={`${strings('social_leaderboard.feed.trade')} ${symbol}`}
+        accessibilityLabel={symbol}
         testID={getFeedTradeCardTestId(item.id)}
         style={({ pressed }) => (pressed ? { opacity: 0.6 } : undefined)}
       >
