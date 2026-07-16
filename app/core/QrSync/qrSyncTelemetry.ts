@@ -127,7 +127,11 @@ export function scrubSensitiveQrSyncData(value: unknown): unknown {
     return result;
   }
 
-  return String(value);
+  if (typeof value === 'bigint' || typeof value === 'symbol') {
+    return value.toString();
+  }
+
+  return '[unsupported]';
 }
 
 function scrubSensitiveString(raw: string): string {
@@ -136,6 +140,34 @@ function scrubSensitiveString(raw: string): string {
     .replace(E2E_QR_SYNC_DEEPLINK_PATTERN, REDACTED)
     .replace(ETH_ADDRESS_PATTERN, REDACTED)
     .replace(MNEMONIC_BLOB_PATTERN, REDACTED);
+}
+
+/**
+ * Convert unknown failure values into a safe display string without
+ * falling back to Object's default `[object Object]` stringification.
+ */
+function toSafeDisplayString(value: unknown): string {
+  if (value instanceof Error) {
+    return value.message;
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (
+    typeof value === 'number' ||
+    typeof value === 'boolean' ||
+    typeof value === 'bigint'
+  ) {
+    return value.toString();
+  }
+  if (value === null || value === undefined) {
+    return '';
+  }
+  try {
+    return JSON.stringify(value) ?? '';
+  } catch {
+    return Object.prototype.toString.call(value);
+  }
 }
 
 /**
@@ -179,8 +211,7 @@ export function buildQrSyncLoggerErrorOptions({
   syncFlow,
   extras,
 }: ReportQrSyncFailureOptions & { error: unknown }): LoggerErrorOptions {
-  const errorMessage =
-    error instanceof Error ? error.message : String(error ?? '');
+  const errorMessage = toSafeDisplayString(error);
 
   const scrubbedExtras = scrubSensitiveQrSyncData({
     message: `qr-sync ${surface}.${operation}`,
@@ -224,7 +255,8 @@ export function reportQrSyncFailure(
   error: unknown,
   options: ReportQrSyncFailureOptions,
 ): void {
-  const err = error instanceof Error ? error : new Error(String(error ?? ''));
+  const err =
+    error instanceof Error ? error : new Error(toSafeDisplayString(error));
   Logger.error(
     err,
     buildQrSyncLoggerErrorOptions({

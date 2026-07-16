@@ -192,5 +192,22 @@ describe('qrSyncTelemetry', () => {
         }),
       );
     });
+
+    it('stringifies plain object failures without [object Object]', () => {
+      reportQrSyncFailure(
+        { code: 'SYNC_FAILED', detail: 'vault' },
+        {
+          surface: QrSyncSurfaces.SESSION,
+          operation: QrSyncOperations.TERMINATE_WITH_ERROR,
+        },
+      );
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: '{"code":"SYNC_FAILED","detail":"vault"}',
+        }),
+        expect.any(Object),
+      );
+    });
   });
 });
