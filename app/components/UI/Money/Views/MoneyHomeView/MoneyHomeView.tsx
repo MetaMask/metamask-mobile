@@ -37,7 +37,7 @@ import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
-import { useMoneyEarnableTokens } from '../../hooks/useMoneyEarnableTokens';
+import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
@@ -162,7 +162,7 @@ const MoneyHomeView = () => {
     [musdTokenBalanceAggregated],
   );
 
-  const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens({
+  const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens({
     overrideToUsd: true,
   });
   const { initiateDeposit } = useMoneyAccountDeposit();
