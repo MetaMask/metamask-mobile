@@ -81,7 +81,9 @@ class AndroidScreenHelpers {
                   }
                   await sleep(POLL_MS);
                 }
-                return;
+                throw new Error(
+                  'Tapped MetaMask in Android deeplink chooser, but connect sheet did not appear within 20s',
+                );
               }
             } catch {
               // Try next selector
