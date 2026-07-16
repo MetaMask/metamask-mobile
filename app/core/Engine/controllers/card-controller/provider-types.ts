@@ -386,6 +386,12 @@ export type CardPrerequisiteStatus =
   | 'blocked'
   | 'kyc_check_failed';
 
+export type CardKycCtaHint =
+  | 'KYC_NOT_STARTED'
+  | 'KYC_NOT_COMPLETED'
+  | 'KYC_INFORMATION_NEEDED'
+  | 'KYC_EXPIRING';
+
 export interface CardSmartContractWriteParams {
   abi: unknown[];
   contractAddress: string;
@@ -398,6 +404,7 @@ export interface CardSpendingPrerequisite {
   status: CardPrerequisiteStatus;
   actionType?: string;
   type?: string;
+  ctaHint?: CardKycCtaHint;
   params?: Record<string, unknown>;
 }
 

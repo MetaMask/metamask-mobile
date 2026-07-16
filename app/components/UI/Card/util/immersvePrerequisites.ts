@@ -1,11 +1,12 @@
 import type {
   CardSpendingPrerequisite,
   CardSmartContractWriteParams,
+  CardKycCtaHint,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
 export type ImmersveNextAction =
   | { type: 'contact'; needsEmail: boolean; needsPhone: boolean }
-  | { type: 'kyc'; url?: string }
+  | { type: 'kyc'; url?: string; ctaHint?: CardKycCtaHint }
   | { type: 'expected_spend' }
   | { type: 'funding'; write: CardSmartContractWriteParams }
   | { type: 'rejected'; retryUrl?: string }
@@ -36,7 +37,13 @@ export function deriveNextImmersveAction(
   const kyc = findActionRequired(prerequisites, 'follow_kyc_url');
   if (kyc) {
     const url = (kyc.params as { kycUrl?: string } | undefined)?.kycUrl;
-    return { type: 'kyc', url };
+    const ctaHint =
+      kyc.ctaHint ??
+      (kyc.params as { ctaHint?: CardKycCtaHint } | undefined)?.ctaHint;
+    if (ctaHint === 'KYC_NOT_STARTED') {
+      return { type: 'pending' };
+    }
+    return { type: 'kyc', url, ctaHint };
   }
 
   if (findActionRequired(prerequisites, 'set_expected_spend_amount')) {

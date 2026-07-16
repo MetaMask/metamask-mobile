@@ -63,6 +63,7 @@ describe('useImmersveSpendingPrerequisites', () => {
     expect(result.current.nextAction).toStrictEqual({
       type: 'kyc',
       url: 'https://verify.immersve.com',
+      ctaHint: undefined,
     });
   });
 

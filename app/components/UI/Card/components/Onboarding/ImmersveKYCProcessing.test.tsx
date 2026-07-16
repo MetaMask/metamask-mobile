@@ -67,9 +67,30 @@ jest.mock('../../util/metrics', () => ({
 
 jest.mock('./OnboardingStep', () => {
   const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return ({ formFields }: { formFields: React.ReactNode }) =>
-    ReactActual.createElement(View, { testID: 'onboarding-step' }, formFields);
+  const { View, Text } = jest.requireActual('react-native');
+  return ({
+    title,
+    description,
+    formFields,
+    actions,
+  }: {
+    title?: string;
+    description?: string;
+    formFields: React.ReactNode;
+    actions: React.ReactNode;
+  }) =>
+    ReactActual.createElement(
+      View,
+      { testID: 'onboarding-step' },
+      ReactActual.createElement(Text, { testID: 'onboarding-title' }, title),
+      ReactActual.createElement(
+        Text,
+        { testID: 'onboarding-description' },
+        description,
+      ),
+      formFields,
+      actions,
+    );
 });
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -292,5 +313,66 @@ describe('ImmersveKYCProcessing', () => {
     expect(queryByTestId('immersve-kyc-processing-spinner')).toBeNull();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockReset).not.toHaveBeenCalled();
+  });
+
+  it('polls every 2s', () => {
+    render(<ImmersveKYCProcessing />);
+    expect(useImmersveSpendingPrerequisites).toHaveBeenCalledWith(
+      expect.objectContaining({ pollIntervalMs: 2000 }),
+    );
+  });
+
+  it('prompts (with the illustration) instead of auto-opening for KYC_NOT_COMPLETED', () => {
+    setNextAction({
+      type: 'kyc',
+      url: 'https://verify.immersve.com/abc',
+      ctaHint: 'KYC_NOT_COMPLETED',
+    });
+    const { getByTestId } = render(<ImmersveKYCProcessing />);
+
+    // Backend told us the user bailed → prompt, never silently reopen.
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(getByTestId('immersve-kyc-processing-illustration')).toBeTruthy();
+    expect(getByTestId('immersve-kyc-processing-reopen-button')).toBeTruthy();
+    expect(getByTestId('onboarding-title').props.children).toBe(
+      'card.card_onboarding.immersve_kyc_processing.incomplete_title',
+    );
+  });
+
+  it('shows the info-needed copy for KYC_INFORMATION_NEEDED', () => {
+    setNextAction({
+      type: 'kyc',
+      url: 'https://verify.immersve.com/abc',
+      ctaHint: 'KYC_INFORMATION_NEEDED',
+    });
+    const { getByTestId } = render(<ImmersveKYCProcessing />);
+
+    expect(getByTestId('onboarding-title').props.children).toBe(
+      'card.card_onboarding.immersve_kyc_processing.info_needed_title',
+    );
+    const buttonLabel = ([] as unknown[])
+      .concat(
+        getByTestId('immersve-kyc-processing-reopen-button').props.children,
+      )
+      .filter(Boolean)
+      .join('');
+    expect(buttonLabel).toBe(
+      'card.card_onboarding.immersve_kyc_processing.info_needed_button',
+    );
+  });
+
+  it('treats KYC_EXPIRING as an error with no reopen button', () => {
+    setNextAction({
+      type: 'kyc',
+      url: 'https://verify.immersve.com/abc',
+      ctaHint: 'KYC_EXPIRING',
+    });
+    const { getByTestId, queryByTestId } = render(<ImmersveKYCProcessing />);
+
+    expect(getByTestId('immersve-kyc-processing-error').props.children).toBe(
+      'card.card_onboarding.immersve_kyc_processing.expiring_error',
+    );
+    expect(queryByTestId('immersve-kyc-processing-reopen-button')).toBeNull();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
