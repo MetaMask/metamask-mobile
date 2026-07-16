@@ -15,12 +15,14 @@ const logger = createLogger({
   name: 'AndroidScreenHelpers',
 });
 
-/** Exact MetaMask label outside Chrome WebView (Android app chooser). */
+/** MetaMask label in Android app chooser (CI often shows lowercase "metamask"). */
 const CHOOSER_METAMASK_XPATHS = [
-  '//android.widget.TextView[@text="MetaMask" and not(ancestor::android.webkit.WebView)]',
-  '//*[@resource-id="android:id/text1" and @text="MetaMask"]',
-  '//android.widget.Button[@text="MetaMask"]',
-  '//*[@content-desc="MetaMask"]',
+  `//android.widget.TextView[translate(@text, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')='metamask' and not(ancestor::android.webkit.WebView)]`,
+  `//*[@resource-id="android:id/text1" and translate(@text, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')='metamask']`,
+  `//android.widget.Button[translate(@text, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')='metamask']`,
+  `//*[translate(@content-desc, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')='metamask']`,
+  // Resolve-info row: text may be nested under list item
+  `//*[@resource-id="android:id/list"]//*[translate(@text, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')='metamask']`,
 ];
 
 const JUST_ONCE_XPATHS = [
