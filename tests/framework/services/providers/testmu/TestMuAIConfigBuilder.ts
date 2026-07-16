@@ -30,10 +30,10 @@ export class TestMuAIConfigBuilder {
     const platformName = this.project.use.platform;
     const projectName = path.basename(process.cwd());
     const appUrl = this.project.use.app?.buildPath;
-    const device = this.project.use.device as TestMuConfig;
+    const testMuDevice = this.project.use.device as TestMuConfig;
     const { deviceName, platformVersion } = resolveTestMuDeviceCapabilities(
-      device.name,
-      device.osVersion,
+      testMuDevice.name,
+      testMuDevice.osVersion,
     );
     const isLocal = process.env.TESTMU_LOCAL?.toLowerCase() === 'true';
     const geoLocation = process.env.TESTMU_GEO_LOCATION || 'SE';
@@ -70,8 +70,39 @@ export class TestMuAIConfigBuilder {
       `TestMu AI tunnel: ${isLocal}, geoLocation: ${isLocal ? 'disabled for tunnel sessions' : geoLocation}`,
     );
     logger.info(
-      `TestMu AI device capabilities: ${deviceName} (Android/iOS ${platformVersion}) from matrix device "${device.name}" (${device.osVersion})`,
+      `TestMu AI device capabilities: platformName=${platformName}, deviceName=${deviceName}, platformVersion=${platformVersion}, isRealMobile=true`,
     );
+
+    const ltOptions = {
+      w3c: true,
+      platformName,
+      deviceName,
+      platformVersion,
+      isRealMobile: true,
+      app: appUrl,
+      deviceOrientation: testMuDevice.orientation ?? 'portrait',
+      project:
+        process.env.TESTMU_PROJECT_NAME || `${projectName} ${platformName}`,
+      build: process.env.TESTMU_BUILD_NAME || `${projectName} ${platformName}`,
+      name: `${projectName} ${platformName} test`,
+      idleTimeout: DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
+      queueTimeout: 600,
+      video: true,
+      devicelog: true,
+      network: true,
+      appProfiling: true,
+      ...(platformName === 'android' ? { autoGrantPermissions: true } : {}),
+      ...(!isLocal ? { geoLocation } : {}),
+      ...(isLocal
+        ? {
+            tunnel: true,
+            ...(tunnelName ? { tunnelName } : {}),
+          }
+        : {}),
+      ...(testMuDevice.enableCameraImageInjection
+        ? { enableImageInjection: true }
+        : {}),
+    };
 
     return {
       port: 443,
@@ -84,6 +115,7 @@ export class TestMuAIConfigBuilder {
       connectionRetryTimeout,
       connectionRetryCount: 3,
       capabilities: {
+        // Keep top-level caps W3C/Appium-compliant; vendor-specific keys go in LT:Options.
         platformName,
         'appium:app': appUrl,
         'appium:deviceName': deviceName,
@@ -108,8 +140,8 @@ export class TestMuAIConfigBuilder {
         'appium:waitForIdleTimeout': 0,
         'appium:disableWindowAnimation': true,
         'appium:skipDeviceInitialization': true,
-        ...(device.otherApps && device.otherApps.length > 0
-          ? { 'appium:otherApps': device.otherApps as string[] }
+        ...(testMuDevice.otherApps && testMuDevice.otherApps.length > 0
+          ? { 'appium:otherApps': testMuDevice.otherApps as string[] }
           : {}),
         ...(platformName === 'android'
           ? {
@@ -123,35 +155,7 @@ export class TestMuAIConfigBuilder {
               'appium:elementResponseAttributes':
                 'name,label,value,type,enabled,visible,rect',
             }),
-        'LT:Options': {
-          w3c: true,
-          isRealMobile: true,
-          deviceName,
-          platformName,
-          platformVersion,
-          deviceOrientation: device.orientation ?? 'portrait',
-          project:
-            process.env.TESTMU_PROJECT_NAME || `${projectName} ${platformName}`,
-          build:
-            process.env.TESTMU_BUILD_NAME || `${projectName} ${platformName}`,
-          name: `${projectName} ${platformName} test`,
-          idleTimeout: DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
-          queueTimeout: 600,
-          video: true,
-          devicelog: true,
-          network: true,
-          appProfiling: true,
-          ...(!isLocal ? { geoLocation } : {}),
-          ...(isLocal
-            ? {
-                tunnel: true,
-                ...(tunnelName ? { tunnelName } : {}),
-              }
-            : {}),
-          ...(device.enableCameraImageInjection
-            ? { enableImageInjection: true }
-            : {}),
-        },
+        'LT:Options': ltOptions,
       },
     };
   }
