@@ -41,6 +41,7 @@ import { CardActions, CardScreens } from '../../util/metrics';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
 import SelectField from '../../components/Onboarding/SelectField';
 import NavigationService from '../../../../../core/NavigationService';
+import Engine from '../../../../../core/Engine';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
@@ -223,6 +224,9 @@ const CardAuthentication = () => {
 
       try {
         if (!isOtpStep) {
+          // US/International are Baanx; a prior UK (Immersve) selection persists
+          // activeProviderId, so re-resolve it before initiating this Baanx login.
+          Engine.context.CardController.setSelectedCountry(selectedLocation);
           await initiate.mutateAsync(selectedLocation);
         }
         const result = await submit.mutateAsync({

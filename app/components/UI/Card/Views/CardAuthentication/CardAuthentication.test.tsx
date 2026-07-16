@@ -19,6 +19,7 @@ jest.mock('../../../../../core/Engine', () => ({
     context: {
       CardController: {
         setUserLocation: jest.fn(),
+        setSelectedCountry: jest.fn(),
       },
     },
   },
@@ -442,6 +443,26 @@ describe('CardAuthentication Component', () => {
       fireEvent.press(loginButton);
 
       await waitFor(() => {
+        expect(mockInitiateMutateAsync).toHaveBeenCalledWith('us');
+      });
+    });
+
+    it('re-resolves the provider to Baanx before initiating a Baanx login', async () => {
+      render('us');
+      const EngineModule = jest.requireMock(
+        '../../../../../core/Engine',
+      ).default;
+
+      fireEvent.changeText(screen.getByTestId('email-field'), 'a@b.com');
+      fireEvent.changeText(screen.getByTestId('password-field'), 'password123');
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          EngineModule.context.CardController.setSelectedCountry,
+        ).toHaveBeenCalledWith('us');
         expect(mockInitiateMutateAsync).toHaveBeenCalledWith('us');
       });
     });
