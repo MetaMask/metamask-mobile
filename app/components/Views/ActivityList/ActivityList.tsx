@@ -469,7 +469,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           maliciousTokenKeys,
         );
 
-      const nonEvmItems = mapNonEvmTransactions(filteredNonEvmForMalicious);
+      const nonEvmItems = mapNonEvmTransactions(
+        filteredNonEvmForMalicious,
+        getBridgeHistoryItemByHash,
+      );
 
       // Drop confirmed copies whose local copy won above, so the winning local
       // copy isn't rendered alongside a duplicate confirmed row.
@@ -493,6 +496,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       configuredEVMChainIds,
       configuredNonEVMChainIds,
       bridgeHistory,
+      getBridgeHistoryItemByHash,
       relatedChainIdsByTransactionId,
       maliciousTokenKeys,
     ]);
