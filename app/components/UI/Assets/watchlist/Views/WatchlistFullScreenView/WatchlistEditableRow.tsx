@@ -52,7 +52,7 @@ const WatchlistEditableRow = ({
       testID={WatchlistFullScreenViewSelectorsIDs.EDITABLE_ROW}
     >
       <View
-        style={isEditMode ? styles.dragHandle : styles.editControlHidden}
+        style={isEditMode ? undefined : styles.editControlHidden}
         pointerEvents={isEditMode ? 'auto' : 'none'}
       >
         <Pressable
@@ -62,8 +62,9 @@ const WatchlistEditableRow = ({
         >
           <Icon
             name={LocalIconName.DragGrid}
-            size={IconSize.Md}
+            size={IconSize.Lg}
             color={IconColor.Muted}
+            style={styles.dragGridIcon}
           />
         </Pressable>
       </View>
@@ -72,12 +73,13 @@ const WatchlistEditableRow = ({
         <TrendingTokenRowItem
           token={token}
           position={position}
+          embedded
           tokenDetailsSource={TokenDetailsSource.WatchlistFullscreen}
         />
       </View>
 
       <View
-        style={isEditMode ? styles.unwatchStar : styles.editControlHidden}
+        style={isEditMode ? undefined : styles.editControlHidden}
         pointerEvents={isEditMode ? 'auto' : 'none'}
       >
         <ButtonIcon

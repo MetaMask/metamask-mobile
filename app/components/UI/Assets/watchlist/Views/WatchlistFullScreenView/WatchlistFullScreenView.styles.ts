@@ -23,17 +23,22 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
     },
     editableRow: {
+      flex: 1,
+      flexShrink: 0,
+      flexBasis: 0,
       flexDirection: 'row',
       alignItems: 'center',
+      gap: 16,
+      paddingVertical: 8,
     },
-    dragHandle: {
-      paddingRight: 8,
-    },
-    unwatchStar: {
-      paddingLeft: 8,
+    dragGridIcon: {
+      width: 10,
+      height: 24,
     },
     editableRowContent: {
       flex: 1,
+      flexShrink: 1,
+      minWidth: 0,
     },
     editControlHidden: {
       width: 0,
