@@ -8,7 +8,7 @@ import {
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-import { NativeModules, Platform } from 'react-native';
+import { DeviceEventEmitter, NativeModules, Platform } from 'react-native';
 import Logger from '../../../util/Logger';
 import { logPushEvent } from '../pushDebugLog';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -289,11 +289,15 @@ class FCMService {
     }
 
     if (this.#hasRegisteredForeground) {
+      logPushEvent(
+        'FCM_LISTENER_REUSED',
+        'Existing foreground message listener reused',
+      );
       return;
     }
 
     try {
-      this.#hasRegisteredForeground = messaging().onMessage(async (payload) => {
+      const unsubscribeOnMessage = messaging().onMessage(async (payload) => {
         logPushEvent(
           'FCM_FOREGROUND_RECEIVED',
           'onMessage fired (app in foreground)',
@@ -305,8 +309,68 @@ class FCMService {
         );
         processAndHandleNotification(payload, handler, platformHandler);
       });
-    } catch {
-      // Do nothing
+
+      // DIAGNOSTIC: bypasses RNFB's own onMessage/SharedEventEmitter abstraction entirely and
+      // listens for the raw native-emitted event directly, to isolate whether the native->JS
+      // bridge itself is delivering the event, independent of RNFB's internal re-emit logic.
+      let rawEventSubscription: ReturnType<
+        typeof DeviceEventEmitter.addListener
+      > | null = null;
+      try {
+        rawEventSubscription = DeviceEventEmitter.addListener(
+          'rnfb_messaging_message_received',
+          (payload) => {
+            logPushEvent(
+              'RAW_RNFB_EVENT_RECEIVED',
+              'raw rnfb_messaging_message_received received via DeviceEventEmitter',
+              { hasPayload: Boolean(payload) },
+            );
+          },
+        );
+      } catch (error) {
+        logPushEvent(
+          'RAW_RNFB_LISTENER_ERROR',
+          'Failed to register raw RNFirebase diagnostic listener',
+          { error: String(error) },
+        );
+      }
+
+      const unsubscribeForegroundMessages = () => {
+        logPushEvent(
+          'FCM_LISTENER_UNSUBSCRIBE',
+          'Foreground message listener unsubscribe requested',
+        );
+        try {
+          unsubscribeOnMessage();
+        } finally {
+          try {
+            rawEventSubscription?.remove();
+          } finally {
+            if (
+              this.#hasRegisteredForeground === unsubscribeForegroundMessages
+            ) {
+              this.#hasRegisteredForeground = null;
+              logPushEvent(
+                'FCM_LISTENER_CLEARED',
+                'Cached foreground message listener cleared',
+              );
+            }
+          }
+        }
+      };
+
+      this.#hasRegisteredForeground = unsubscribeForegroundMessages;
+      logPushEvent(
+        'FCM_LISTENER_REGISTERED',
+        'Foreground message listener registered',
+        { hasRawDiagnosticListener: Boolean(rawEventSubscription) },
+      );
+    } catch (error) {
+      logPushEvent(
+        'FCM_FOREGROUND_ERROR',
+        'Failed to register foreground message listener',
+        { error: String(error) },
+      );
     }
   };
 
