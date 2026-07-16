@@ -483,7 +483,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       pricePercentChange: percentChange,
       token,
       source: 'token_details',
-      isPricePositive: isPricePositive ?? undefined,
       useAmbientColor,
     });
   }, [
@@ -493,10 +492,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     token,
     marketInsightsCaip19Id,
     marketInsightsReport,
+    useAmbientColor,
     priceDiff,
     comparePrice,
-    useAmbientColor,
-    isPricePositive,
   ]);
 
   const handlePerpsDiscoveryPress = useCallback(() => {
@@ -720,7 +718,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   securityData={securityData ?? null}
                   isLoading={isSecurityDataLoading}
                   token={token as TokenDetailsRouteParams}
-                  isPricePositive={isPricePositive ?? undefined}
                   useAmbientColor={useAmbientColor}
                 />
               </View>

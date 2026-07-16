@@ -8,13 +8,13 @@ import {
 } from '../../../../util/remoteFeatureFlag';
 import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
 import {
-  WildcardTokenList,
-  getWildcardTokenListFromConfig,
-} from '../../Earn/utils/wildcardTokenList';
-import {
   MUSD_TOKEN_ADDRESS,
   getTokenDisplaySymbol,
 } from '../../Earn/constants/musd';
+import {
+  getWildcardTokenListFromConfig,
+  WildcardTokenList,
+} from '../../Earn/utils/wildcardTokenList';
 import {
   MONEY_NO_FEE_TOKENS_FALLBACK,
   ensureMonadMusdListed,
@@ -105,6 +105,41 @@ export const selectMoneyActivityMockDataEnabledFlag = createSelector(
 export const selectMoneyEnableMoneyAccountFlag = createSelector(
   selectRemoteFeatureFlags,
   isMoneyAccountEnabled,
+);
+
+/**
+ * Selects whether Money account deposit CTAs can be displayed in token-list
+ * rows. The Money account feature must be enabled before this CTA can appear.
+ */
+export const selectIsMoneyTokenListItemCtaEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectMoneyEnableMoneyAccountFlag,
+  (remoteFeatureFlags, isMoneyAccountFeatureEnabled) => {
+    if (!isMoneyAccountFeatureEnabled) {
+      return false;
+    }
+
+    const localFlag = process.env.MM_MONEY_TOKEN_LIST_ITEM_CTA === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyTokenListItemCtaEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects stablecoins that can display the Money account deposit CTA.
+ * Remote config takes precedence over the local environment override.
+ */
+export const selectMoneyDepositCtaTokens = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): WildcardTokenList =>
+    getWildcardTokenListFromConfig(
+      remoteFeatureFlags?.earnMoneyDepositCtaTokens,
+      'earnMoneyDepositCtaTokens',
+      process.env.MM_MONEY_DEPOSIT_CTA_TOKENS,
+      'MM_MONEY_DEPOSIT_CTA_TOKENS',
+    ),
 );
 
 export const selectMoneyHubEnabledFlag = createSelector(
