@@ -72,7 +72,7 @@ export const SocialLeaderboardEventValues = {
     BACK: 'back',
     CONTINUE: 'continue',
     DISMISSED: 'dismissed',
-    FOLLOW_TOP_THREE: 'follow_top_three',
+    FOLLOW_TOP_TEN: 'follow_top_ten',
     GOT_IT: 'got_it',
     MAYBE_LATER: 'maybe_later',
   },

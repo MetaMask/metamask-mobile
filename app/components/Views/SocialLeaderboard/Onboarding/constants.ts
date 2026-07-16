@@ -4,8 +4,9 @@
  * The motion team ships a single text-baked artboard: Rive renders all visuals,
  * copy, trader cards and buttons, and owns step navigation via its state
  * machine. React Native's role is the "hybrid" half — it pushes localized
- * strings + live trader data in through these data bindings, streams the top-3
- * avatars in via `referencedAssets`, and observes the state-machine triggers to
+ * strings + live trader data in through these data bindings, streams the
+ * displayed traders' avatars in via `referencedAssets`, and observes the
+ * state-machine triggers to
  * run the follow / notification / analytics / persistence logic. Mirrors the
  * Money onboarding pattern (`MoneyOnboardingView`).
  *
@@ -85,11 +86,11 @@ export type OnboardingSlideId = 'trade' | 'follow' | 'notify';
  * Analytics slide reported for each RN `stepIndex`:
  * - 0 Trade  (step 1)
  * - 1 Follow (step 2)
- * - 2 Notify (step 3 — reached via "Follow the top three")
+ * - 2 Notify (step 3 — reached via "Follow the top ten")
  * - 3 Notify (step 3.1 — reached via "Maybe later"; same `notify` screen)
  *
  * The Notify step is terminal: "Allow notifications"/"Got it" complete the flow.
- * Step 2's "Follow the top three"/"Maybe later" only advance to Notify, so they
+ * Step 2's "Follow the top ten"/"Maybe later" only advance to Notify, so they
  * are NOT terminal.
  */
 export const SLIDE_BY_STEP_INDEX: readonly OnboardingSlideId[] = [
@@ -126,9 +127,10 @@ export const riveTraderBinding = (rank: number, field: TraderField): string =>
 
 /**
  * Referenced-asset keys for the trader avatars (marked "Referenced", not
- * "Embedded", in the Rive editor). Order matches the top-3 trader ranks. RN
- * fills these slots at runtime with dynamic HTTPS avatar URLs (or a bundled
- * placeholder) via the `<Rive referencedAssets={...} />` prop.
+ * "Embedded", in the Rive editor). Order matches the displayed trader ranks
+ * (see `ONBOARDING_DISPLAY_TRADERS`). RN fills these slots at runtime with
+ * dynamic HTTPS avatar URLs (or a bundled placeholder) via the
+ * `<Rive referencedAssets={...} />` prop.
  */
 export const RIVE_AVATAR_ASSET_KEYS = [
   'leaderboard_card_1_avatar',
@@ -170,8 +172,20 @@ export const RIVE_TOKEN_ASSET_SOURCES: Readonly<Record<string, number>> = {
   punch: require('../../../../images/punch-6223749.png'),
 };
 
-/** Number of top traders surfaced on the "Follow the best" step. */
-export const ONBOARDING_TOP_TRADERS_LIMIT = 3;
+/**
+ * How many top traders to fetch and follow when the user taps "Follow the top
+ * ten" on the "Follow the best" step. The follow action follows every
+ * not-yet-followed trader in this set.
+ */
+export const ONBOARDING_FETCH_LIMIT = 10;
+
+/**
+ * How many trader cards the Rive artboard actually renders on the Follow step
+ * (bindings `traderTop1..3`, one avatar slot per `RIVE_AVATAR_ASSET_KEYS`).
+ * Decoupled from `ONBOARDING_FETCH_LIMIT` so we can follow the top ten while the
+ * animation keeps showing the top three cards.
+ */
+export const ONBOARDING_DISPLAY_TRADERS = RIVE_AVATAR_ASSET_KEYS.length;
 
 /**
  * Pure safety net for the rare case the artboard is mounted before the

@@ -69,7 +69,8 @@ import createStyles, {
 import { SocialLeaderboardOnboardingSelectorsIDs } from './SocialLeaderboardOnboarding.testIds';
 import {
   NOTIFY_STEP_INDEX,
-  ONBOARDING_TOP_TRADERS_LIMIT,
+  ONBOARDING_DISPLAY_TRADERS,
+  ONBOARDING_FETCH_LIMIT,
   REFERENCED_ASSETS_TIMEOUT_MS,
   RIVE_ARTBOARD_NAME,
   RIVE_AVATAR_ASSET_KEYS,
@@ -231,12 +232,12 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     toggleFollow,
     isLoading: isLoadingTraders,
   } = useTopTraders({
-    limit: ONBOARDING_TOP_TRADERS_LIMIT,
+    limit: ONBOARDING_FETCH_LIMIT,
     chains,
   });
 
   const topTraders = useMemo(
-    () => traders.slice(0, ONBOARDING_TOP_TRADERS_LIMIT),
+    () => traders.slice(0, ONBOARDING_FETCH_LIMIT),
     [traders],
   );
 
@@ -365,7 +366,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
         slot: 2,
         buttons: {
           primaryButton: strings(
-            'social_leaderboard.onboarding.follow_top_three',
+            'social_leaderboard.onboarding.follow_top_ten',
           ),
           secondaryButton: strings('social_leaderboard.onboarding.maybe_later'),
         },
@@ -378,7 +379,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   // Live trader card text (avatars handled separately via referencedAssets).
   const traderCards = useMemo(
     () =>
-      Array.from({ length: ONBOARDING_TOP_TRADERS_LIMIT }, (_, index) => {
+      Array.from({ length: ONBOARDING_DISPLAY_TRADERS }, (_, index) => {
         const trader = topTraders[index];
         return {
           rank: index + 1,
@@ -577,7 +578,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   // Trade -> Follow only. On the Follow slide a forward tap is intentionally a
   // no-op: the v6 artboard does not transition Follow on `next`, so advancing
   // the RN overlay here would desync the copy from the slide Rive keeps showing.
-  // The user must choose "Follow the top three" or "Maybe later" to move on.
+  // The user must choose "Follow the top ten" or "Maybe later" to move on.
   const handleNext = useCallback(() => {
     if (stepIndexRef.current === 0) {
       trackInteraction(SocialLeaderboardEventValues.INTERACTION_TYPE.CONTINUE);
@@ -593,9 +594,9 @@ const SocialLeaderboardOnboarding: React.FC = () => {
 
   // Follow step (not terminal): advance to the post-follow Notify copy, then
   // follow the not-yet-followed top traders.
-  const handleFollowTopThree = useCallback(async () => {
+  const handleFollowTopTraders = useCallback(async () => {
     trackInteraction(
-      SocialLeaderboardEventValues.INTERACTION_TYPE.FOLLOW_TOP_THREE,
+      SocialLeaderboardEventValues.INTERACTION_TYPE.FOLLOW_TOP_TEN,
     );
     const toFollow = topTraders.filter((trader) => !trader.isFollowing);
     tradersFollowedCountRef.current = toFollow.length;
@@ -728,7 +729,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   useRiveTrigger(
     riveRef,
     RIVE_TRIGGERS.FOLLOW_TOP_TRADERS,
-    handleFollowTopThree,
+    handleFollowTopTraders,
   );
   useRiveTrigger(riveRef, RIVE_TRIGGERS.MAYBE_LATER, handleMaybeLater);
   useRiveTrigger(
