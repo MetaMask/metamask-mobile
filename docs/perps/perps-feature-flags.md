@@ -176,6 +176,7 @@ Follow existing test patterns covering:
 | `perpsCompetitionBannerEnabled`                    | `perps-competition-banner-enabled`                       | —                                              | false   | Competition promotion banner on perps home (remote only)                                                 |
 | `perpsDefaultPayTokenWhenNoBalanceEnabled`         | `perps-default-pay-token-when-no-balance-enabled`        | —                                              | true    | Default pay token when no perps balance + Add funds CTA on market details (remote only)                  |
 | `vipProgramEnabled`                                | `vip-program-enabled`                                    | —                                              | false   | Gates VIP fee discount in perps (UI preview and order execution)                                         |
+| `perpsClosePositionLimitOrderEnabled`              | `perps-close-position-limit-order-enabled`               | —                                              | false   | Market/Limit order-type selector on the close position screen (limit close orders, remote only)          |
 
 ### A/B Test Flags
 

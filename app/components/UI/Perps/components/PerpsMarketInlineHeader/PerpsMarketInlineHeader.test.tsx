@@ -77,14 +77,12 @@ describe('PerpsMarketInlineHeader', () => {
     expect(onMorePress).toHaveBeenCalled();
   });
 
-  it('handles favorite and search button presses', () => {
+  it('handles favorite button press', () => {
     const onFavoritePress = jest.fn();
-    const onCategorySearchPress = jest.fn();
     const { getByTestId } = renderWithProvider(
       <PerpsMarketInlineHeader
         market={mockMarket}
         onFavoritePress={onFavoritePress}
-        onCategorySearchPress={onCategorySearchPress}
         isFavorite
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
         currentPrice={45000}
@@ -93,12 +91,106 @@ describe('PerpsMarketInlineHeader', () => {
     );
 
     fireEvent.press(getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON));
-    fireEvent.press(
-      getByTestId(PerpsMarketHeaderSelectorsIDs.CATEGORY_SEARCH_BUTTON),
-    );
 
     expect(onFavoritePress).toHaveBeenCalled();
-    expect(onCategorySearchPress).toHaveBeenCalled();
+  });
+
+  describe('useDetailLayout layout', () => {
+    it('renders the full asset name as title and the market pair subtitle', () => {
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <PerpsMarketInlineHeader
+          market={mockMarket}
+          useDetailLayout
+          testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+          currentPrice={45000}
+        />,
+        { state: initialState },
+      );
+
+      // Title shows the full asset name, subtitle shows the [ticker]-[collateral] perp pair
+      expect(getByText('Bitcoin')).toBeTruthy();
+      expect(getByTestId(PerpsMarketHeaderSelectorsIDs.SUBTITLE)).toBeTruthy();
+      expect(getByText('BTC-USD perp')).toBeTruthy();
+
+      // Price/24h change are not rendered inside the header in this layout
+      expect(queryByTestId(PerpsMarketHeaderSelectorsIDs.PRICE)).toBeNull();
+      expect(
+        queryByTestId(PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE),
+      ).toBeNull();
+    });
+
+    it('falls back to the ticker when the market has no name', () => {
+      const marketWithoutName = {
+        ...mockMarket,
+        name: '',
+      } as unknown as PerpsMarketData;
+
+      const { getByText } = renderWithProvider(
+        <PerpsMarketInlineHeader
+          market={marketWithoutName}
+          useDetailLayout
+          testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+          currentPrice={45000}
+        />,
+        { state: initialState },
+      );
+
+      expect(getByText('BTC')).toBeTruthy();
+    });
+
+    it('handles the market list button press', () => {
+      const onMarketListPress = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketInlineHeader
+          market={mockMarket}
+          useDetailLayout
+          onMarketListPress={onMarketListPress}
+          testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+          currentPrice={45000}
+        />,
+        { state: initialState },
+      );
+
+      fireEvent.press(
+        getByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON),
+      );
+
+      expect(onMarketListPress).toHaveBeenCalled();
+    });
+
+    it('expands the market list button touch target with hitSlop', () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketInlineHeader
+          market={mockMarket}
+          useDetailLayout
+          onMarketListPress={jest.fn()}
+          testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+          currentPrice={45000}
+        />,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON).props
+          .hitSlop,
+      ).toEqual({ top: 10, bottom: 10, left: 10, right: 10 });
+    });
+
+    it('does not render the market list button without a handler', () => {
+      const { queryByTestId } = renderWithProvider(
+        <PerpsMarketInlineHeader
+          market={mockMarket}
+          useDetailLayout
+          testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+          currentPrice={45000}
+        />,
+        { state: initialState },
+      );
+
+      expect(
+        queryByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON),
+      ).toBeNull();
+    });
   });
 
   it('renders endAccessory when provided', () => {
