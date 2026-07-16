@@ -10,6 +10,7 @@ import {
 } from '../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../util/test/network';
 import { Hex, KnownCaipNamespace } from '@metamask/utils';
+import { NetworkStatus } from '@metamask/network-controller';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
 import { ConnectivityController } from '@metamask/connectivity-controller';
@@ -1268,6 +1269,96 @@ describe('Engine', () => {
 
       expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(3);
       expect(lookupNetworkSpy).toHaveBeenCalledTimes(3);
+    });
+
+    it('should skip networks whose findNetworkClientIdByChainId throws', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const mockNetworkClientId = 'network-client-valid';
+
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: {
+            [KnownCaipNamespace.Eip155]: {
+              '0x531': true, // e.g. Sei — enabled but has no NetworkController client
+              '0x1': true,
+            },
+          },
+          nativeAssetIdentifiers: {},
+        });
+
+      const findNetworkClientIdByChainIdSpy = jest
+        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
+        .mockImplementation((chainId) => {
+          if (chainId === '0x531') throw new Error('No client for chain');
+          return mockNetworkClientId;
+        });
+
+      const lookupNetworkSpy = jest
+        .spyOn(engine.context.NetworkController, 'lookupNetwork')
+        .mockImplementation(() => Promise.resolve());
+
+      jest
+        .spyOn(engine.context.NetworkController, 'state', 'get')
+        .mockReturnValue({ networksMetadata: {} } as never);
+
+      await engine.lookupEnabledNetworks();
+
+      // 0x531 threw, so only 0x1 should reach lookupNetwork
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x531');
+      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x1');
+      expect(lookupNetworkSpy).toHaveBeenCalledWith(mockNetworkClientId);
+      expect(lookupNetworkSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should skip networks whose metadata is already known and not re-probe them', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const knownClientId = 'network-client-known';
+      const unknownClientId = 'network-client-unknown';
+
+      jest
+        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
+        .mockReturnValue({
+          enabledNetworkMap: {
+            [KnownCaipNamespace.Eip155]: {
+              '0x1': true, // already known — should be skipped
+              '0x89': true, // status Unknown — should be probed
+            },
+          },
+          nativeAssetIdentifiers: {},
+        });
+
+      jest
+        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
+        .mockImplementation((chainId) =>
+          chainId === '0x1' ? knownClientId : unknownClientId,
+        );
+
+      jest
+        .spyOn(engine.context.NetworkController, 'state', 'get')
+        .mockReturnValue({
+          networksMetadata: {
+            [knownClientId]: {
+              status: NetworkStatus.Available,
+              EIPS: { 1559: true },
+            },
+            [unknownClientId]: {
+              status: NetworkStatus.Unknown,
+              EIPS: {},
+            },
+          },
+        } as never);
+
+      const lookupNetworkSpy = jest
+        .spyOn(engine.context.NetworkController, 'lookupNetwork')
+        .mockImplementation(() => Promise.resolve());
+
+      await engine.lookupEnabledNetworks();
+
+      // knownClientId already has status + EIP-1559, so only unknownClientId is probed
+      expect(lookupNetworkSpy).not.toHaveBeenCalledWith(knownClientId);
+      expect(lookupNetworkSpy).toHaveBeenCalledWith(unknownClientId);
+      expect(lookupNetworkSpy).toHaveBeenCalledTimes(1);
     });
   });
 
