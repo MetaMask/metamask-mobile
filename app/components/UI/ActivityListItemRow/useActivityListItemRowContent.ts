@@ -29,8 +29,10 @@ import {
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
   isFailedOrCancelledTransfer,
+  isPerpsOrderKind,
   isUnlimitedApprovalAmount,
   shouldShowPlusSign,
+  type Status,
   type TokenAmount,
   toMarketRateLookupToken,
 } from '../../../util/activity-adapters';
@@ -46,6 +48,7 @@ import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
 import {
   ACTIVITY_FALLBACK_TITLE_RESOLVERS,
+  resolvePerpsOrderStatusLabel,
   TOKEN_ACTION_LABELS,
 } from './titleLabels';
 
@@ -70,12 +73,7 @@ function isPerpsPnlKind(type: ActivityKind): boolean {
 }
 
 function isPerpsTradeKind(type: ActivityKind): boolean {
-  return (
-    isPerpsPnlKind(type) ||
-    type.startsWith('market') ||
-    type.startsWith('limit') ||
-    type.startsWith('stopMarket')
-  );
+  return isPerpsPnlKind(type) || isPerpsOrderKind(type);
 }
 
 function isPerpsMarketAvatarKind(type: ActivityKind): boolean {
@@ -302,6 +300,10 @@ function resolveFallbackTitle(item: ActivityListItem): string {
   const base =
     ACTIVITY_FALLBACK_TITLE_RESOLVERS[item.type]?.() ??
     strings('transactions.interaction');
+
+  if (isPerpsOrderKind(item.type)) {
+    return base;
+  }
   return withDomainStatusSuffix(base, item.status);
 }
 
@@ -1258,6 +1260,8 @@ export function useActivityListItemRowContent(
       })
     : undefined;
 
+  const isOrderRow = isPerpsOrderKind(item.type);
+
   const rawPrimaryAmount =
     domainFiatAmount ?? resolveAmount(primaryToken, item.type);
 
@@ -1277,10 +1281,22 @@ export function useActivityListItemRowContent(
   // so every consumer of this resolver (the list row and the details amount
   // header) stays consistent.
   const suppressTransferAmount = isFailedOrCancelledTransfer(item);
-  const primaryAmount = suppressTransferAmount ? undefined : rawPrimaryAmount;
-  const secondaryAmount = suppressTransferAmount
-    ? undefined
-    : resolveRawSecondaryAmount();
+
+  // Order rows show their lifecycle status (muted, in the primary slot) instead
+  // of a notional amount — see isPerpsOrderKind. Orders aren't transfers, so the
+  // failed/cancelled-transfer suppression never applies to them.
+  let primaryAmount: string | undefined;
+  let secondaryAmount: string | undefined;
+  if (isOrderRow) {
+    primaryAmount = resolvePerpsOrderStatusLabel(item.status);
+    secondaryAmount = undefined;
+  } else if (suppressTransferAmount) {
+    primaryAmount = undefined;
+    secondaryAmount = undefined;
+  } else {
+    primaryAmount = rawPrimaryAmount;
+    secondaryAmount = resolveRawSecondaryAmount();
+  }
 
   const perpsMarketSymbol = isPerpsMarketAvatarKind(item.type)
     ? 'sourceToken' in item.data
@@ -1310,5 +1326,6 @@ export function useActivityListItemRowContent(
     primaryAmount,
     secondaryAmount,
     isPnlAmount: isPerpsPnlKind(item.type),
+    isMutedAmount: isOrderRow,
   };
 }

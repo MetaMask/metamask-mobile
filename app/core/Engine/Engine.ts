@@ -130,7 +130,6 @@ import { bridgeControllerInit } from './controllers/bridge-controller/bridge-con
 import { bridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
-import { TransactionControllerInit } from './controllers/transaction-controller';
 import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
@@ -328,7 +327,6 @@ export class Engine {
         GasFeeController: GasFeeControllerInit,
         GatorPermissionsController: GatorPermissionsControllerInit,
         SmartTransactionsController: smartTransactionsControllerInit,
-        TransactionController: TransactionControllerInit,
         TransactionPayController: TransactionPayControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
@@ -434,7 +432,9 @@ export class Engine {
     const signatureController = messengerClientsByName.SignatureController;
     const smartTransactionsController =
       messengerClientsByName.SmartTransactionsController;
-    const transactionController = messengerClientsByName.TransactionController;
+    const transactionController = this.#wallet.getInstance(
+      'TransactionController',
+    );
     const seedlessOnboardingController =
       messengerClientsByName.SeedlessOnboardingController;
     const geolocationController = messengerClientsByName.GeolocationController;

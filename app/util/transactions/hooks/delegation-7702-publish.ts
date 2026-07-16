@@ -32,7 +32,7 @@ import {
   Delegation,
   encodeRedeemDelegations,
 } from '../../../core/Delegation/delegation';
-import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
+import { TransactionControllerInitMessenger } from '../../../core/Engine/wallet-init/messengers/transaction-controller-messenger';
 import {
   RelaySubmitRequest,
   submitRelayTransaction,

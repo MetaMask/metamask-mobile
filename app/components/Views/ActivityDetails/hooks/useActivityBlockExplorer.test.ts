@@ -69,7 +69,7 @@ describe('useActivityBlockExplorer', () => {
   });
 
   // it is a never case
-  it('return undefined for url and title when it cannot be parsed', () => {
+  it('returns undefined for unsupported non-EVM chain ids', () => {
     expect(resolve('unknown-non-evm:abc', '0xhash')).toBeUndefined();
   });
 });

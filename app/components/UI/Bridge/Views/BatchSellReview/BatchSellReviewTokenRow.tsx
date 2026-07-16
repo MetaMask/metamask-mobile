@@ -14,6 +14,7 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Slider,
   Text,
   TextColor,
   TextVariant,
@@ -21,10 +22,10 @@ import {
 
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { formatTokenBalance } from '../../utils';
 import { BridgeToken } from '../../types';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
-import { BatchSellPercentageSlider } from './BatchSellPercentageSlider';
 import { getBatchSellSourceTokenAmount } from '../../hooks/useBatchSellQuoteRequest';
 
 interface BatchSellReviewTokenRowProps {
@@ -92,6 +93,14 @@ export function BatchSellReviewTokenRow({
     },
     [onPercentChange, tokenKey],
   );
+
+  const handleSliderGrip = useCallback(() => {
+    playImpact(ImpactMoment.SliderGrip);
+  }, []);
+
+  const handleSliderTick = useCallback(() => {
+    playImpact(ImpactMoment.SliderTick);
+  }, []);
 
   const handleRemovePress = useCallback(() => {
     if (isRemoveTokenDisabled) return;
@@ -222,10 +231,13 @@ export function BatchSellReviewTokenRow({
           />
         </Box>
       </Box>
-      <BatchSellPercentageSlider
+      <Slider
         value={displayPercent}
         onValueChange={handleSliderValueChange}
         onDragEnd={handleSliderDragEnd}
+        showRangeDots
+        onGrip={handleSliderGrip}
+        onTick={handleSliderTick}
         testID={`${BatchSellReviewSelectorsIDs.TOKEN_SLIDER}-${tokenKey}`}
       />
     </Box>

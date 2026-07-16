@@ -1097,19 +1097,19 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "Weekly Top Traders",
-      "chain_filter": {
-        "all": "All",
-        "tokens": "Tokens",
-        "perps": "Perps"
-      },
+      "title": "Weekly top traders",
       "notifications_banner": {
         "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
         "open_settings": "Open settings"
       }
     },
+    "type_filter": {
+      "all": "All types",
+      "tokens": "Tokens",
+      "perps": "Perps"
+    },
     "feed": {
-      "title": "Top Traders",
+      "title": "Top traders",
       "tabs": {
         "leaderboard": "Leaderboard",
         "feed": "Feed"
@@ -1122,11 +1122,6 @@
         "sold": "sold",
         "opened": "opened",
         "closed": "closed"
-      },
-      "type_filter": {
-        "all": "All types",
-        "tokens": "Tokens",
-        "perps": "Perps"
       },
       "empty_following": {
         "title": "No activity yet",
@@ -1180,6 +1175,11 @@
       "traders_you_follow_desc": "Choose who you get notifications about",
       "traders_you_follow_empty": "You aren't following any traders yet.",
       "error_loading_followed": "Unable to load the traders you follow."
+    },
+    "settings": {
+      "section_title": "Top Traders",
+      "show_account_on_leaderboard": "Show account on leaderboard",
+      "show_account_on_leaderboard_description": "Appear on top traders leaderboard when your weekly earnings rank."
     },
     "follow": "Follow",
     "following": "Following",
@@ -1485,6 +1485,7 @@
       "title": "New order",
       "leverage": "Leverage",
       "limit_price": "Limit price",
+      "set_price": "Set price",
       "market_price": "Market price",
       "enter_price": "Enter price",
       "trigger_price": "Trigger price",
@@ -1572,7 +1573,8 @@
         "bid_price": "Bid",
         "difference_from_market": "Difference from market:",
         "limit_price_above": "Limit price is above current price",
-        "limit_price_below": "Limit price is below current price"
+        "limit_price_below": "Limit price is below current price",
+        "limit_price_too_far": "Price can't be more than 95% away from the market price"
       },
       "leverage_modal": {
         "title": "Leverage",
@@ -1715,6 +1717,8 @@
       "funds_are_available_to_trade": "Funds are available to trade",
       "failed_to_close_position": "Failed to close position",
       "failed_to_partially_close_position": "Failed to partially close position",
+      "failed_to_place_close_order": "Failed to place close order",
+      "failed_to_place_partial_close_order": "Failed to place partial close order",
       "your_position_is_still_active": "Your position is still active",
       "fox_points_earned": "{{points}} Fox Points earned!",
       "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
@@ -1777,8 +1781,6 @@
       "loss_percent_placeholder": "Loss",
       "profit_roe_placeholder": "% Profit",
       "loss_roe_placeholder": "% Loss",
-      "toggle_take_profit_sign": "Toggle take profit return sign",
-      "toggle_stop_loss_sign": "Toggle stop loss return sign",
       "usd_label": "$",
       "take_profit_invalid_price": "Take profit must be {{direction}} {{priceType}} price",
       "stop_loss_invalid_price": "Stop loss must be {{direction}} {{priceType}} price",
@@ -2450,8 +2452,9 @@
       "referral_code_text": "Use my referral code to earn extra rewards."
     },
     "market_details": {
-      "category_search": "Browse related markets",
-      "fullscreen_chart": "Fullscreen chart"
+      "fullscreen_chart": "Fullscreen chart",
+      "market_list": "Browse markets",
+      "perp_pair": "{{ticker}}-{{collateral}} perp"
     }
   },
   "market_insights": {
@@ -5034,7 +5037,16 @@
     "activity_stop_market_close_short": "Stop market — close short",
     "activity_market_close_short": "Market — close short",
     "activity_limit_short": "Limit short",
-    "activity_limit_close_short": "Limit—close short",
+    "activity_limit_close_short": "Limit — close short",
+    "activity_market_long": "Market long",
+    "activity_stop_market_close_long": "Stop market — close long",
+    "activity_market_close_long": "Market — close long",
+    "activity_limit_long": "Limit long",
+    "activity_limit_close_long": "Limit — close long",
+    "activity_order_status_filled": "Filled",
+    "activity_order_status_canceled": "Canceled",
+    "activity_order_status_rejected": "Rejected",
+    "activity_order_status_open": "Open",
     "activity_trustline_activated": "Trustline activated",
     "activity_trustline_activating": "Activating trustline",
     "activity_trustline_activation_failed":  "Activate trustline failed",

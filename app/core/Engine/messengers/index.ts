@@ -39,10 +39,6 @@ import {
   getStellarAssetsControllerMessenger,
 } from './stellar-assets-controller-messenger/stellar-assets-controller-messenger';
 ///: END:ONLY_INCLUDE_IF
-import {
-  getTransactionControllerInitMessenger,
-  getTransactionControllerMessenger,
-} from './transaction-controller-messenger';
 import { getNotificationServicesControllerMessenger } from './notifications/notification-services-controller-messenger';
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
 import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas-fee-controller-messenger';
@@ -111,10 +107,7 @@ import { getMoneyAccountBalanceServiceMessenger } from './money-account-balance-
 import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
 import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
-import {
-  getDelegationControllerInitMessenger,
-  getDelegationControllerMessenger,
-} from './delegation/delegation-controller-messenger';
+import { getDelegationControllerMessenger } from './delegation/delegation-controller-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import {
   getRampsControllerMessenger,
@@ -209,10 +202,6 @@ export const MESSENGER_FACTORIES = {
   TokensController: {
     getMessenger: getTokensControllerMessenger,
     getInitMessenger: getTokensControllerInitMessenger,
-  },
-  TransactionController: {
-    getMessenger: getTransactionControllerMessenger,
-    getInitMessenger: getTransactionControllerInitMessenger,
   },
   TransactionPayController: {
     getMessenger: getTransactionPayControllerMessenger,
@@ -426,7 +415,7 @@ export const MESSENGER_FACTORIES = {
   },
   DelegationController: {
     getMessenger: getDelegationControllerMessenger,
-    getInitMessenger: getDelegationControllerInitMessenger,
+    getInitMessenger: noop,
   },
   BackendWebSocketService: {
     getMessenger: getBackendWebSocketServiceMessenger,
