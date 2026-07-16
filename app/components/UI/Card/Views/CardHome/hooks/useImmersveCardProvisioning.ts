@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useIsFocused } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
@@ -40,16 +41,20 @@ export function useImmersveCardProvisioning(
   const route = useImmersveOnboardingRouter();
   const dispatch = useDispatch();
   const handled = useRef(false);
+  // The reconcile below can redirect a mid-onboarding user off Card Home while
+  // it stays mounted underneath; gate the poll on focus so it doesn't keep
+  // hitting /cards from the background.
+  const isFocused = useIsFocused();
 
   useEffect(() => {
-    if (!isProvisioning) return undefined;
+    if (!isProvisioning || !isFocused) return undefined;
 
     const interval = setInterval(() => {
       Engine.context.CardController.fetchCardHomeData().catch(() => undefined);
     }, POLL_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [isProvisioning]);
+  }, [isProvisioning, isFocused]);
 
   useEffect(() => {
     if (!isProvisioning || handled.current) {

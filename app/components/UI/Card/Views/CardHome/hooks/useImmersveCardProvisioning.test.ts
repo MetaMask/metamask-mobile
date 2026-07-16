@@ -11,7 +11,12 @@ let mockProviderId: string | null = 'immersve';
 let mockReduxFundingSourceId: string | null = 'fs-1';
 let mockSelectedCountry: string | null = 'GB';
 let mockFundingChannelId: string | undefined = 'base-channel';
+let mockIsFocused = true;
 const mockDispatch = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  useIsFocused: () => mockIsFocused,
+}));
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector(undefined),
@@ -80,6 +85,7 @@ describe('useImmersveCardProvisioning', () => {
     mockReduxFundingSourceId = 'fs-1';
     mockSelectedCountry = 'GB';
     mockFundingChannelId = 'base-channel';
+    mockIsFocused = true;
     mockResolve.mockImplementation(
       async ({ existingId }: { existingId?: string | null }) =>
         existingId ?? 'fs-resolved',
@@ -118,6 +124,15 @@ describe('useImmersveCardProvisioning', () => {
 
     it('does not poll when there is no provisioning alert', () => {
       renderHook(() => useImmersveCardProvisioning({ alerts: [] } as never));
+
+      jest.advanceTimersByTime(10000);
+      expect(controller.fetchCardHomeData).not.toHaveBeenCalled();
+    });
+
+    it('does not poll while Card Home is not focused', () => {
+      mockIsFocused = false;
+
+      renderHook(() => useImmersveCardProvisioning(provisioningData));
 
       jest.advanceTimersByTime(10000);
       expect(controller.fetchCardHomeData).not.toHaveBeenCalled();
