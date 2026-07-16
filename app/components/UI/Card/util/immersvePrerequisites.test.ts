@@ -105,13 +105,6 @@ describe('deriveNextImmersveAction', () => {
     });
   });
 
-  it('funnels KYC_NOT_STARTED into the pending poll path', () => {
-    expect(
-      deriveNextImmersveAction([{ ...kycUrl, ctaHint: 'KYC_NOT_STARTED' }])
-        .type,
-    ).toBe('pending');
-  });
-
   it('returns expected_spend before funding', () => {
     expect(deriveNextImmersveAction([funding, expectedSpend]).type).toBe(
       'expected_spend',

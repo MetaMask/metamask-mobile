@@ -40,9 +40,7 @@ export function deriveNextImmersveAction(
     const ctaHint =
       kyc.ctaHint ??
       (kyc.params as { ctaHint?: CardKycCtaHint } | undefined)?.ctaHint;
-    if (ctaHint === 'KYC_NOT_STARTED') {
-      return { type: 'pending' };
-    }
+
     return { type: 'kyc', url, ctaHint };
   }
 
