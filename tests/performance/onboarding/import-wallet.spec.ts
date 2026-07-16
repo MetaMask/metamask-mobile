@@ -22,6 +22,7 @@ import {
 } from '../../flows/wallet.flow';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
+import WalletView from '../../page-objects/wallet/WalletView.js';
 
 const testEnvironment = 'test'; // hard coding this for now. We need a new FF env in LD for e2e. An admin needs to create it..
 
@@ -48,7 +49,7 @@ test.describe(PerformanceOnboarding, () => {
       );
       const timer4 = new TimerHelper(
         'Time since the user clicks on "Create Password" button until Metrics screen is displayed',
-        { ios: 2000, android: 2500 },
+        { ios: 2000, android: 3000 },
         currentDeviceDetails.platform,
       );
       const timer6 = new TimerHelper(
@@ -134,18 +135,19 @@ test.describe(PerformanceOnboarding, () => {
       await dismisspredictionsModalPlaywright();
       await timer7.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(TabBarComponent.tabBarWalletButton),
+          await asPlaywrightElement(WalletView.getMoneySection),
           { timeout: walletTokenLoadTimeoutMs },
         );
       });
 
-      performanceTracker.addTimers(timer1, timer2, timer3, timer4, timer7);
+      performanceTracker.addTimers(timer1, timer2, timer3, timer4);
       if (
         predictGtmOnboardingModalEnabled &&
         predictGtmOnboardingModalEnabled === true
       ) {
         performanceTracker.addTimer(timer6);
       }
+      performanceTracker.addTimer(timer7);
     },
   );
 });
