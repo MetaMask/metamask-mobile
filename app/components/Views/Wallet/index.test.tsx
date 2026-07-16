@@ -101,9 +101,9 @@ jest.mock('../../UI/Money/components/MoneyBalanceCard', () => {
 });
 
 // Mock NetworkConnectionBanner so the Wallet view's render does not depend on
-// Engine.lookupEnabledNetworks / NetworkController / controllerMessenger APIs.
-// Without this, the banner hook throws during render and the ErrorBoundary
-// swallows the failure, making negative-assert tests pass for the wrong reason.
+// NetworkController / controllerMessenger APIs. Without this, the banner hook
+// throws during render and the ErrorBoundary swallows the failure, making
+// negative-assert tests pass for the wrong reason.
 jest.mock('../../UI/NetworkConnectionBanner', () => () => null);
 
 // Control discovery tabs AB test variant per test (default control so existing tests are unaffected)
@@ -331,7 +331,6 @@ jest.mock('../../../core/Engine', () => {
         '0x0': { amount: '1', unit: 'ETH' },
       },
     }),
-    lookupEnabledNetworks: jest.fn(),
     controllerMessenger: {
       subscribe: jest.fn(),
       unsubscribe: jest.fn(),
