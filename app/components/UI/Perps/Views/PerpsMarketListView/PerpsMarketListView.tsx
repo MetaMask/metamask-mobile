@@ -12,7 +12,13 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  type LayoutChangeEvent,
 } from 'react-native';
+import Reanimated, {
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
@@ -178,6 +184,51 @@ const PerpsMarketListView = ({
   const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
 
   const trimmedSearchQuery = searchQuery.trim().toLowerCase();
+
+  // Recently Viewed rail scrolls with the list; count/sort pins via a
+  // Reanimated overlay (UI-thread) so it doesn't lag the way FlashList's
+  // stickyHeaderIndices does. Only shown when the rail has content to show.
+  const showRecentlyViewedRail =
+    isRecentlyViewedEnabled &&
+    !searchQuery.trim() &&
+    recentlyViewedMarketObjects.length > 0;
+
+  const scrollY = useSharedValue(0);
+  const railHeightSV = useSharedValue(0);
+  const [sortBarHeight, setSortBarHeight] = useState(0);
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  const stickySortBarStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        // At rest the bar sits below the rail; once the rail scrolls off it
+        // clamps at 0 (stuck under the fixed category badges).
+        translateY: Math.max(railHeightSV.value - scrollY.value, 0),
+      },
+    ],
+  }));
+
+  const handleRailLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      railHeightSV.value = event.nativeEvent.layout.height;
+    },
+    [railHeightSV],
+  );
+
+  const handleSortBarLayout = useCallback((event: LayoutChangeEvent) => {
+    setSortBarHeight(event.nativeEvent.layout.height);
+  }, []);
+
+  useEffect(() => {
+    if (!showRecentlyViewedRail) {
+      railHeightSV.value = 0;
+    }
+  }, [showRecentlyViewedRail, railHeightSV]);
 
   // Watchlist rows visible in watchlist mode, filtered by the active search
   // query — mirrors the filtering PerpsWatchlistMarketsV2 applies to its
@@ -770,20 +821,65 @@ const PerpsMarketListView = ({
       );
     }
 
-    // Use reusable PerpsMarketList component
+    // List header = scrolling rail (optional) + spacer matching the sticky
+    // count/sort bar height. The real count/sort bar is the absolute overlay
+    // below, translated on the UI thread so it tracks under the rail then pins.
+    const listHeader = (
+      <>
+        {showRecentlyViewedRail ? (
+          <View
+            style={styles.fullBleedListHeader}
+            onLayout={handleRailLayout}
+          >
+            <PerpsRecentlyViewedRail
+              markets={recentlyViewedMarketObjects}
+              onMarketPress={(market) =>
+                handleMarketPress(market, RECENTLY_VIEWED_SOURCE_SECTION)
+              }
+            />
+          </View>
+        ) : null}
+        <View style={{ height: sortBarHeight }} />
+      </>
+    );
+
+    const countSortBar = (
+      <PerpsMarketFiltersBar
+        selectedOptionId={selectedOptionId}
+        onSortPress={() => setIsSortFieldSheetVisible(true)}
+        marketTypeFilter={marketTypeFilter}
+        onCategorySelect={handleCategorySelect}
+        marketCount={filteredMarkets.length}
+        isWatchlistSelected={showFavoritesOnly}
+        showCategoryRow={false}
+        testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`}
+      />
+    );
+
     return (
       <Animated.View
         style={[styles.animatedListContainer, { opacity: fadeAnimation }]}
       >
-        <PerpsMarketList
-          markets={filteredMarkets}
-          onMarketPress={handleMarketPress}
-          sortBy={sortBy}
-          showBadge={false}
-          filterKey={marketTypeFilter}
-          contentContainerStyle={listContentContainerStyle}
-          testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
-        />
+        <View style={styles.listWithStickySort}>
+          <PerpsMarketList
+            markets={filteredMarkets}
+            onMarketPress={handleMarketPress}
+            sortBy={sortBy}
+            showBadge={false}
+            filterKey={marketTypeFilter}
+            contentContainerStyle={listContentContainerStyle}
+            ListHeaderComponent={listHeader}
+            onScroll={scrollHandler as never}
+            scrollEventThrottle={16}
+            testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
+          />
+          <Reanimated.View
+            style={[styles.stickySortBar, stickySortBarStyle]}
+            onLayout={handleSortBarLayout}
+          >
+            {countSortBar}
+          </Reanimated.View>
+        </View>
       </Animated.View>
     );
   };
@@ -834,32 +930,6 @@ const PerpsMarketListView = ({
           onWatchlistToggle={handleWatchlistToggle}
           showSortRow={false}
           testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
-        />
-      )}
-
-      {isRecentlyViewedEnabled &&
-        !isLoadingMarkets &&
-        !error &&
-        !searchQuery.trim() &&
-        !(isWatchlistEnabled && showFavoritesOnly) && (
-          <PerpsRecentlyViewedRail
-            markets={recentlyViewedMarketObjects}
-            onMarketPress={(market) =>
-              handleMarketPress(market, RECENTLY_VIEWED_SOURCE_SECTION)
-            }
-          />
-        )}
-
-      {!isLoadingMarkets && !error && (
-        <PerpsMarketFiltersBar
-          selectedOptionId={selectedOptionId}
-          onSortPress={() => setIsSortFieldSheetVisible(true)}
-          marketTypeFilter={marketTypeFilter}
-          onCategorySelect={handleCategorySelect}
-          marketCount={filteredMarkets.length}
-          isWatchlistSelected={showFavoritesOnly}
-          showCategoryRow={false}
-          testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`}
         />
       )}
 

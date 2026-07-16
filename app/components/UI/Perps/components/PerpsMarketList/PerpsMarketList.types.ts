@@ -2,7 +2,12 @@ import {
   type PerpsMarketData,
   type SortField,
 } from '@metamask/perps-controller';
-import type { StyleProp, ViewStyle } from 'react-native';
+import type {
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 
 /**
  * Props for PerpsMarketList component
@@ -58,4 +63,15 @@ export interface PerpsMarketListProps {
    * Test ID for E2E testing
    */
   testID?: string;
+  /**
+   * Optional scroll handler forwarded to the underlying Animated FlashList.
+   * Accepts either a React Native scroll handler or a Reanimated
+   * `useAnimatedScrollHandler` result (cast at the call site if needed).
+   */
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  /**
+   * Throttle (ms) for onScroll callbacks, forwarded to the FlashList.
+   * @default 16
+   */
+  scrollEventThrottle?: number;
 }

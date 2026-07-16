@@ -2,6 +2,7 @@ import {
   MarketCategory,
   MARKET_CATEGORIES,
   type MarketTypeFilter,
+  type PerpsMarketData,
 } from '@metamask/perps-controller';
 
 /**
@@ -44,4 +45,32 @@ export function isHip3Filter(
  */
 export function normalizeFilterKey(filter: string): string {
   return filter.replace(/-/g, '_');
+}
+
+/**
+ * Filters markets by the active product category filter.
+ *
+ * - `'all'`: no filtering.
+ * - `'crypto'`: non-HIP3 markets (main DEX).
+ * - `'new'`: uncategorized HIP-3 markets flagged as new.
+ * - Any other {@link MarketTypeFilter}: HIP-3 markets whose `marketType`
+ *   matches the filter exactly.
+ */
+export function filterMarketsByCategory<T extends Pick<
+  PerpsMarketData,
+  'isHip3' | 'isNewMarket' | 'marketType'
+>>(markets: T[], filter: MarketTypeFilter): T[] {
+  if (filter === 'all') {
+    return markets;
+  }
+
+  if (filter === 'crypto') {
+    return markets.filter((market) => !market.isHip3);
+  }
+
+  if (filter === 'new') {
+    return markets.filter((market) => market.isNewMarket);
+  }
+
+  return markets.filter((market) => market.marketType === filter);
 }

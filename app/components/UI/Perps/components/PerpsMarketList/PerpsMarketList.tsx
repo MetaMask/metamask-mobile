@@ -1,6 +1,11 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
+import {
+  FlashList,
+  type FlashListProps,
+  type FlashListRef,
+} from '@shopify/flash-list';
+import Animated from 'react-native-reanimated';
 import Text, {
   TextVariant,
   TextColor,
@@ -14,6 +19,19 @@ import styleSheet from './PerpsMarketList.styles';
 import type { PerpsMarketListProps } from './PerpsMarketList.types';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 
+type PerpsFlashListProps = FlashListProps<PerpsMarketData> & {
+  ref?: React.Ref<FlashListRef<PerpsMarketData>>;
+};
+
+/**
+ * Reanimated-wrapped FlashList so callers can drive UI-thread sticky overlays
+ * (etc.) via `useAnimatedScrollHandler` without FlashList's laggy JS sticky
+ * headers. Cast matches the PredictFeed pattern.
+ */
+const AnimatedFlashList = Animated.createAnimatedComponent(
+  FlashList as unknown as React.ComponentType<PerpsFlashListProps>,
+) as unknown as React.ComponentType<PerpsFlashListProps>;
+
 /**
  * PerpsMarketList Component
  *
@@ -26,6 +44,7 @@ import { type PerpsMarketData } from '@metamask/perps-controller';
  * - Empty state handling
  * - Auto-updating via WebSocket (no manual refresh needed)
  * - Optional header component
+ * - Reanimated-compatible onScroll for UI-thread sticky overlays
  *
  * @example
  * ```tsx
@@ -47,6 +66,8 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   contentContainerStyle,
   filterKey,
   testID = 'perps-market-list',
+  onScroll,
+  scrollEventThrottle = 16,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -82,7 +103,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   }
 
   return (
-    <FlashList
+    <AnimatedFlashList
       data={markets}
       extraData={filterKey}
       renderItem={renderItem}
@@ -93,6 +114,8 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       drawDistance={PERPS_MARKET_LIST_CONSTANTS.FLASH_LIST_DRAW_DISTANCE}
       removeClippedSubviews
       showsVerticalScrollIndicator={false}
+      onScroll={onScroll}
+      scrollEventThrottle={scrollEventThrottle}
       testID={testID}
     />
   );

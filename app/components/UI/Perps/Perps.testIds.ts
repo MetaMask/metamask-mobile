@@ -155,6 +155,8 @@ export const PerpsMarketListViewSelectorsIDs = {
   WATCHLIST_TOGGLE: 'perps-market-list-watchlist-toggle',
   /** Star badge in the category row that filters to watchlisted markets */
   WATCHLIST_FILTER_BADGE: 'perps-market-list-sort-filters-categories-watchlist',
+  /** Wrapper around the Recently Viewed rail that collapses on scroll */
+  RECENTLY_VIEWED_RAIL_CONTAINER: 'perps-market-list-recently-viewed-container',
 };
 
 // ========================================
