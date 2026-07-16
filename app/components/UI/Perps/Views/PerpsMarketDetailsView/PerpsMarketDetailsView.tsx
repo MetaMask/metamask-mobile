@@ -1555,35 +1555,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
       />
 
-      {/* Below header: live price + 24h change and fullscreen chart button */}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        gap={2}
-        twClassName="px-4 pb-2"
-        testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_SUMMARY}
-      >
-        {/* Flexible wrapper lets the price shrink; the button stays fixed. */}
-        <Box twClassName="flex-1">
-          <LivePriceHeader
-            symbol={market.symbol}
-            testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
-            testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
-            currentPrice={syncedChartCurrentPrice}
-            size="large"
-          />
-        </Box>
-        <ButtonIcon
-          iconName={IconName.Expand}
-          size={ButtonIconSize.Md}
-          onPress={handleFullscreenChartOpen}
-          style={styles.marketSummaryFullscreenButton}
-          testID={PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON}
-          accessibilityLabel={strings('perps.market_details.fullscreen_chart')}
-        />
-      </Box>
-
       <View style={styles.scrollableContentContainer}>
         <ScrollView
           ref={scrollViewRef}
@@ -1595,6 +1566,41 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
         >
+          {/* Below header: live price + 24h change and fullscreen chart button.
+              Rendered inside the ScrollView (not the header) so it scrolls with
+              the content instead of staying sticky. */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+            gap={2}
+            twClassName="px-4 pb-2"
+            testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_SUMMARY}
+          >
+            {/* Flexible wrapper lets the price shrink; the button stays fixed. */}
+            <Box twClassName="flex-1">
+              <LivePriceHeader
+                symbol={market.symbol}
+                testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
+                testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
+                currentPrice={syncedChartCurrentPrice}
+                size="large"
+              />
+            </Box>
+            <ButtonIcon
+              iconName={IconName.Expand}
+              size={ButtonIconSize.Md}
+              onPress={handleFullscreenChartOpen}
+              style={styles.marketSummaryFullscreenButton}
+              testID={
+                PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON
+              }
+              accessibilityLabel={strings(
+                'perps.market_details.fullscreen_chart',
+              )}
+            />
+          </Box>
+
           {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
             <ComponentErrorBoundary
