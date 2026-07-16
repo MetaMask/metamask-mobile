@@ -13,7 +13,8 @@ const logger = createPlaywrightLogger('ChromeCdpHelpers');
 const CDP_FORWARD_PORT = 9222;
 const CDP_READY_TIMEOUT_MS = 20_000;
 const DAPP_PAGE_TIMEOUT_MS = 30_000;
-const DEEPLINK_CAPTURE_TIMEOUT_MS = 8_000;
+/** SDK opens metamask:// only after transport `session_request` (can take several seconds). */
+const DEEPLINK_CAPTURE_TIMEOUT_MS = 30_000;
 const POLL_MS = 500;
 
 interface ChromeContextInfo {
@@ -43,10 +44,7 @@ interface CdpEvaluateResult {
   exceptionDetails?: { text?: string; exception?: { description?: string } };
 }
 
-interface ElementCenter {
-  x: number;
-  y: number;
-}
+type CdpEventHandler = (params: Record<string, unknown>) => void;
 
 class CdpSession {
   private readonly ws: WsClient;
@@ -55,6 +53,7 @@ class CdpSession {
     number,
     { resolve: (value: unknown) => void; reject: (error: Error) => void }
   >();
+  private readonly eventHandlers = new Map<string, Set<CdpEventHandler>>();
 
   private constructor(ws: WsClient) {
     this.ws = ws;
@@ -62,9 +61,20 @@ class CdpSession {
       try {
         const msg = JSON.parse(String(data)) as {
           id?: number;
+          method?: string;
+          params?: Record<string, unknown>;
           result?: unknown;
           error?: { message?: string };
         };
+        if (msg.method) {
+          const handlers = this.eventHandlers.get(msg.method);
+          if (handlers) {
+            for (const handler of handlers) {
+              handler(msg.params ?? {});
+            }
+          }
+          return;
+        }
         if (msg.id == null) return;
         const waiter = this.pending.get(msg.id);
         if (!waiter) return;
@@ -87,6 +97,15 @@ class CdpSession {
       ws.once('open', () => resolve(session));
       ws.once('error', (err) => reject(err));
     });
+  }
+
+  on(method: string, handler: CdpEventHandler): void {
+    let handlers = this.eventHandlers.get(method);
+    if (!handlers) {
+      handlers = new Set();
+      this.eventHandlers.set(method, handlers);
+    }
+    handlers.add(handler);
   }
 
   async send(
@@ -140,6 +159,7 @@ class CdpSession {
       waiter.reject(new Error('CDP session closed'));
     }
     this.pending.clear();
+    this.eventHandlers.clear();
     this.ws.close();
   }
 }
@@ -227,9 +247,12 @@ export default class ChromeCdpHelpers {
   /**
    * Click a connect control that should open MetaMask via deeplink.
    *
-   * Captures the SDK's `metamask://` / app-link URL (navigation is often blocked
-   * without lasting user activation after `setTimeout`) and opens it with
-   * Appium `mobile: deepLink` scoped to the MetaMask package.
+   * The Multichain SDK emits `display_uri` / builds `metamask://connect/mwp?…`
+   * only after transport `session_request` — not synchronously on click. Chrome
+   * often seals `Location.prototype`, so we capture via:
+   * - CDP Page navigation events
+   * - reconstructing the URL when the SDK JSON.stringifies the session request
+   * then open it with Appium `mobile: deepLink`.
    */
   static async waitAndClickTestIdOpeningMetaMask(
     dappUrl: string,
@@ -238,10 +261,31 @@ export default class ChromeCdpHelpers {
   ): Promise<void> {
     await this.waitForTestId(dappUrl, testId, timeoutMs);
     await this.withCdpSession(dappUrl, async (session) => {
+      const captured: string[] = [];
+      const remember = (url: unknown) => {
+        if (url == null) return;
+        const value = String(url);
+        if (!value || value === 'about:blank') return;
+        if (!captured.includes(value)) {
+          captured.push(value);
+        }
+      };
+
+      await session.send('Page.enable');
+      session.on('Page.frameRequestedNavigation', (params) => {
+        remember(params.url);
+      });
+      session.on('Page.windowOpen', (params) => {
+        remember(params.url);
+      });
+      session.on('Page.navigatedWithinDocument', (params) => {
+        remember(params.url);
+      });
+
       await this.installDeeplinkCapture(session);
       await this.dispatchTrustedClick(session, testId);
 
-      const deeplink = await this.waitForCapturedDeeplink(session);
+      const deeplink = await this.waitForCapturedDeeplink(session, captured);
       logger.debug(
         `Opening captured MM Connect deeplink via Appium: ${deeplink}`,
       );
@@ -254,20 +298,46 @@ export default class ChromeCdpHelpers {
   private static async installDeeplinkCapture(
     session: CdpSession,
   ): Promise<void> {
+    // Capture URL when the SDK builds it (createConnectionDeeplink), which
+    // happens on session_request — before (and even if) location.href is blocked.
     await session.evaluate(`(() => {
       const w = window;
-      if (w.__mmCdpDeeplinkHookInstalled) {
-        w.__mmCdpDeeplinks = [];
-        return true;
-      }
       w.__mmCdpDeeplinks = [];
-      w.__mmCdpDeeplinkHookInstalled = true;
       const push = (url) => {
         if (url == null) return;
         const value = String(url);
         if (!value || value === 'about:blank') return;
-        w.__mmCdpDeeplinks.push(value);
+        if (!w.__mmCdpDeeplinks.includes(value)) {
+          w.__mmCdpDeeplinks.push(value);
+        }
       };
+
+      const toMwpUrl = (scheme, payloadJson) => {
+        const bytes = new TextEncoder().encode(payloadJson);
+        let binary = '';
+        bytes.forEach((b) => { binary += String.fromCharCode(b); });
+        const b64 = btoa(binary);
+        return scheme + '/mwp?p=' + encodeURIComponent(b64) + '&c=1';
+      };
+
+      const origStringify = JSON.stringify.bind(JSON);
+      JSON.stringify = (value, ...args) => {
+        const out = origStringify(value, ...args);
+        try {
+          if (
+            value &&
+            typeof value === 'object' &&
+            value.sessionRequest &&
+            value.metadata &&
+            value.metadata.dapp
+          ) {
+            push(toMwpUrl('metamask://connect', out));
+            push(toMwpUrl('https://metamask.app.link/connect', out));
+          }
+        } catch (_) {}
+        return out;
+      };
+
       try {
         const desc = Object.getOwnPropertyDescriptor(Location.prototype, 'href');
         if (desc && desc.set && desc.get) {
@@ -281,62 +351,56 @@ export default class ChromeCdpHelpers {
             },
           });
         }
-      } catch (_) {
-        // Location.prototype may be non-configurable on some Chromium builds.
-      }
-      try {
-        const loc = window.location;
-        const origAssign = loc.assign.bind(loc);
-        loc.assign = (url) => {
-          push(url);
-          return origAssign(url);
-        };
-        const origReplace = loc.replace.bind(loc);
-        loc.replace = (url) => {
-          push(url);
-          return origReplace(url);
-        };
-      } catch (_) {
-        // location.assign/replace may be non-writable.
-      }
+      } catch (_) {}
+
       try {
         const origOpen = window.open.bind(window);
         window.open = (url, ...args) => {
           push(url);
           return origOpen(url, ...args);
         };
-      } catch (_) {
-        // ignore
-      }
+      } catch (_) {}
+
       try {
         const origClick = HTMLAnchorElement.prototype.click;
         HTMLAnchorElement.prototype.click = function (...args) {
           push(this.href);
           return origClick.apply(this, args);
         };
-      } catch (_) {
-        // ignore
-      }
+      } catch (_) {}
+
       return true;
     })()`);
   }
 
   private static async waitForCapturedDeeplink(
     session: CdpSession,
+    cdpCaptured: string[],
   ): Promise<string> {
     const deadline = Date.now() + DEEPLINK_CAPTURE_TIMEOUT_MS;
     while (Date.now() < deadline) {
-      const urls = await session.evaluate<string[]>(
+      const pageUrls = await session.evaluate<string[]>(
         `Array.isArray(window.__mmCdpDeeplinks) ? window.__mmCdpDeeplinks.slice() : []`,
       );
-      const match = urls.find((url) => this.isMetaMaskConnectUrl(url));
+      const all = [...cdpCaptured, ...pageUrls];
+      // Prefer native scheme for Appium deepLink package scoping.
+      const native = all.find((url) => url.startsWith('metamask://'));
+      if (native) {
+        return native;
+      }
+      const match = all.find((url) => this.isMetaMaskConnectUrl(url));
       if (match) {
         return match;
       }
       await new Promise((r) => setTimeout(r, POLL_MS));
     }
+
+    const pageUrls = await session.evaluate<string[]>(
+      `Array.isArray(window.__mmCdpDeeplinks) ? window.__mmCdpDeeplinks.slice() : []`,
+    );
     throw new Error(
-      `CDP: MetaMask connect deeplink was not captured within ${DEEPLINK_CAPTURE_TIMEOUT_MS}ms`,
+      `CDP: MetaMask connect deeplink was not captured within ${DEEPLINK_CAPTURE_TIMEOUT_MS}ms` +
+        ` (cdp=${JSON.stringify(cdpCaptured)}; page=${JSON.stringify(pageUrls)})`,
     );
   }
 
@@ -359,43 +423,21 @@ export default class ChromeCdpHelpers {
     session: CdpSession,
     testId: string,
   ): Promise<void> {
-    const center = await session.evaluate<ElementCenter | null>(
+    // Single activation only — a second click while CONNECTING fails the dapp.
+    // userGesture:true matches the path that previously reached CONNECTING in CI.
+    const clicked = await session.evaluate<boolean>(
       `(() => {
         const el = document.querySelector('[data-testid=${JSON.stringify(testId)}]');
-        if (!el) return null;
+        if (!el || typeof el.click !== 'function') return false;
         el.scrollIntoView({ block: 'center', inline: 'center' });
-        const rect = el.getBoundingClientRect();
-        if (rect.width <= 0 || rect.height <= 0) return null;
-        return {
-          x: rect.left + rect.width / 2,
-          y: rect.top + rect.height / 2,
-        };
+        el.click();
+        return true;
       })()`,
+      { userGesture: true },
     );
-    if (!center) {
-      throw new Error(
-        `CDP: could not resolve click target for [data-testid="${testId}"]`,
-      );
+    if (!clicked) {
+      throw new Error(`CDP: could not click [data-testid="${testId}"]`);
     }
-
-    // Real input events preserve transient user activation across the SDK's
-    // setTimeout(..., 10) before window.location.href = metamask://...
-    await session.send('Input.dispatchMouseEvent', {
-      type: 'mousePressed',
-      x: center.x,
-      y: center.y,
-      button: 'left',
-      buttons: 1,
-      clickCount: 1,
-    });
-    await session.send('Input.dispatchMouseEvent', {
-      type: 'mouseReleased',
-      x: center.x,
-      y: center.y,
-      button: 'left',
-      buttons: 0,
-      clickCount: 1,
-    });
   }
 
   private static async withCdpSession<T>(
