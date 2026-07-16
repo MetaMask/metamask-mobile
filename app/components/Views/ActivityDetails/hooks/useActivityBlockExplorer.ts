@@ -5,6 +5,7 @@ import {
   getBlockExplorerTxUrl,
 } from '../../../../util/networks';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { getTransactionUrl as getNonEvmTransactionUrl } from '../../../../core/Multichain/utils';
 
 export interface ActivityExplorerLink {
   url: string;
@@ -13,14 +14,6 @@ export interface ActivityExplorerLink {
 
 function isEvmChainId(chainId: string): boolean {
   return chainId.startsWith('eip155:') || chainId.startsWith('0x');
-}
-
-/** Builds a non-EVM explorer tx url from its (possibly templated) base url. */
-function buildNonEvmTxUrl(base: string, hash: string): string {
-  if (/\{.*?\}/u.test(base)) {
-    return base.replace(/\{.*?\}/u, hash);
-  }
-  return `${base.replace(/\/$/u, '')}/tx/${hash}`;
 }
 
 function hostnameOf(url: string): string {
@@ -46,16 +39,15 @@ export function useActivityBlockExplorer(
     return undefined;
   }
 
-  const base = findBlockExplorerUrlForChain(chainId, networkConfigurations);
-  if (!base) {
-    return undefined;
-  }
-
   if (isEvmChainId(chainId)) {
+    const base = findBlockExplorerUrlForChain(chainId, networkConfigurations);
+    if (!base) {
+      return undefined;
+    }
     const { url, title } = getBlockExplorerTxUrl(RPC, hash, base);
     return url ? { url, title } : undefined;
   }
 
-  const url = buildNonEvmTxUrl(base, hash);
-  return { url, title: hostnameOf(url) };
+  const url = getNonEvmTransactionUrl(hash, chainId);
+  return url ? { url, title: hostnameOf(url) } : undefined;
 }
