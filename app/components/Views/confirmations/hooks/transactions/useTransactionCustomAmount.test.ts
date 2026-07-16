@@ -41,6 +41,7 @@ import {
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 import Engine from '../../../../../core/Engine';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
+import { isRouteToken } from '../../utils/relayFixedSpread';
 
 jest.mock('../../../../UI/Money/hooks/useMoneyAccount', () => ({
   ...jest.requireActual('../../../../UI/Money/hooks/useMoneyAccount'),
@@ -64,6 +65,10 @@ jest.mock('../../../../../core/Engine', () => ({
       setTransactionConfig: jest.fn(),
     },
   },
+}));
+jest.mock('../../utils/relayFixedSpread', () => ({
+  ...jest.requireActual('../../utils/relayFixedSpread'),
+  isRouteToken: jest.fn(),
 }));
 
 jest.useFakeTimers();
@@ -192,6 +197,7 @@ describe('useTransactionCustomAmount', () => {
       amountLimitError: null,
       currency: 'usd',
     } as ReturnType<typeof useRampsBuyLimits>);
+    (isRouteToken as unknown as jest.Mock).mockReturnValue(false);
   });
 
   it('returns pending amount provided by updatePendingAmount', async () => {
