@@ -796,19 +796,15 @@ describe('ActivityListItemRow — row content', () => {
       />,
     ).getByTestId('activity-title-0xfail');
 
-    // Cancelled → same neutral color as an ordinary row; the spaced " — Canceled"
-    // suffix still conveys the status. Failed → a distinct (error) color.
     expect(flattenColor(cancelled)).toBe(flattenColor(neutral));
     expect(flattenColor(failed)).not.toBe(flattenColor(neutral));
     expect(cancelled.props.children).toBe(
-      `${strings('transactions.activity_limit_short')} — ${strings(
-        'transaction.canceled',
-      )}`,
+      strings('transactions.activity_limit_short'),
     );
   });
 
-  it('renders limit orders with the market logo, no network badge, and a $ amount', () => {
-    const { getByTestId } = render(
+  it('renders limit orders with the market logo, no network badge, and a status label (not a notional amount)', () => {
+    const { getByTestId, queryByTestId } = render(
       <ActivityListItemRow
         item={makeLimitOrder('cancelled', '0xlimit')}
         index={0}
@@ -820,13 +816,88 @@ describe('ActivityListItemRow — row content', () => {
     expect(logo.props.symbol).toBe('BTC');
     // Perps is single-network (Arbitrum) → no network badge is resolved.
     expect(getNetworkImageSource).not.toHaveBeenCalled();
-    // Fiat-style amount ("$"), not the "<amount> USD" token suffix.
-    const primary = getByTestId('activity-primary-amount-0xlimit').props
-      .children as string;
-    expect(primary).toContain('$');
-    expect(primary).not.toContain('USD');
-    expect(primary.startsWith('-')).toBe(true);
+
+    expect(queryByTestId('activity-secondary-amount-0xlimit')).toBeNull();
+    expect(getByTestId('activity-primary-amount-0xlimit').props.children).toBe(
+      strings('transactions.activity_order_status_canceled'),
+    );
   });
+
+  it.each([
+    ['success', 'activity_order_status_filled'],
+    ['cancelled', 'activity_order_status_canceled'],
+    ['failed', 'activity_order_status_rejected'],
+    ['pending', 'activity_order_status_open'],
+  ] as const)(
+    'shows the order status label "%s" in the right column instead of an amount',
+    (status, i18nKey) => {
+      const { getByTestId, queryByTestId } = render(
+        <ActivityListItemRow
+          item={makeLimitOrder(status, `0x${status}`)}
+          index={0}
+        />,
+      );
+
+      expect(queryByTestId(`activity-secondary-amount-0x${status}`)).toBeNull();
+      expect(
+        getByTestId(`activity-primary-amount-0x${status}`).props.children,
+      ).toBe(strings(`transactions.${i18nKey}`));
+    },
+  );
+
+  it('renders the order status muted (matches the extension TextMuted), distinct from a normal amount color', () => {
+    const orderStatus = flattenColor(
+      render(
+        <ActivityListItemRow
+          item={makeLimitOrder('success', '0xmuted')}
+          index={0}
+        />,
+      ).getByTestId('activity-primary-amount-0xmuted'),
+    );
+    const normalAmount = flattenColor(
+      render(
+        <ActivityListItemRow
+          item={makeItem({
+            type: 'send',
+            status: 'success',
+            token: { amount: '1', symbol: 'ETH', direction: 'out' },
+          })}
+          index={1}
+        />,
+      ).getByTestId('activity-primary-amount-0xabc'),
+    );
+
+    // Muted status color is applied and differs from the default amount color.
+    expect(orderStatus).not.toBe(normalAmount);
+  });
+
+  it.each([
+    ['cancelled', 'transaction.canceled'],
+    ['failed', 'transaction.failed'],
+  ] as const)(
+    'keeps the "— status" suffix on non-order domain rows (%s deposit)',
+    (status, i18nKey) => {
+      const { getByTestId } = render(
+        <ActivityListItemRow
+          item={makeItem({
+            type: 'perpsAddFunds',
+            status,
+            hash: `0xfunds-${status}`,
+          })}
+          index={0}
+        />,
+      );
+
+      // Unlike orders, funds/predict rows still carry the status in the title.
+      expect(
+        getByTestId(`activity-title-0xfunds-${status}`).props.children,
+      ).toBe(
+        `${strings('transactions.activity_perps_account_funded')} — ${strings(
+          i18nKey,
+        )}`,
+      );
+    },
+  );
 
   it('colors a perps trade loss with the error color and a gain with the incoming color', () => {
     const makeClose = (
@@ -851,16 +922,9 @@ describe('ActivityListItemRow — row content', () => {
     const gain = render(
       <ActivityListItemRow item={makeClose('in', '0xgain')} index={1} />,
     ).getByTestId('activity-primary-amount-0xgain');
-    // An order amount (notional, not PnL) stays neutral even though outgoing.
-    const order = render(
-      <ActivityListItemRow
-        item={makeLimitOrder('cancelled', '0xorder')}
-        index={2}
-      />,
-    ).getByTestId('activity-primary-amount-0xorder');
 
     // Loss shares the error color used for a failed title; gain shares the green
-    // used for an incoming receive amount; the order amount matches neither.
+    // used for an incoming receive amount.
     const errorColor = flattenColor(
       render(
         <ActivityListItemRow
@@ -884,8 +948,6 @@ describe('ActivityListItemRow — row content', () => {
 
     expect(flattenColor(loss)).toBe(errorColor);
     expect(flattenColor(gain)).toBe(incomingColor);
-    expect(flattenColor(order)).not.toBe(errorColor);
-    expect(flattenColor(order)).not.toBe(incomingColor);
   });
 
   it('strips the HyperLiquid builder prefix from the trade subtitle', () => {
@@ -1763,6 +1825,11 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'marketCloseShort',
   'limitShort',
   'limitCloseShort',
+  'marketLong',
+  'stopMarketCloseLong',
+  'marketCloseLong',
+  'limitLong',
+  'limitCloseLong',
 ];
 
 const EXPECTED_TITLES = {
@@ -1838,6 +1905,11 @@ const EXPECTED_TITLES = {
   marketCloseShort: strings('transactions.activity_market_close_short'),
   limitShort: strings('transactions.activity_limit_short'),
   limitCloseShort: strings('transactions.activity_limit_close_short'),
+  marketLong: strings('transactions.activity_market_long'),
+  stopMarketCloseLong: strings('transactions.activity_stop_market_close_long'),
+  marketCloseLong: strings('transactions.activity_market_close_long'),
+  limitLong: strings('transactions.activity_limit_long'),
+  limitCloseLong: strings('transactions.activity_limit_close_long'),
 } satisfies Record<ActivityListItem['type'], string>;
 
 describe('ActivityListItemRow — title display for all ActivityKind values', () => {
