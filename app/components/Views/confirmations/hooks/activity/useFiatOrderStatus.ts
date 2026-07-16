@@ -1,18 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { TransactionStatus } from '@metamask/transaction-controller';
-import { RampsOrderStatus } from '@metamask/ramps-controller';
+import { RampsOrderStatus, isTerminalOrderStatus } from '@metamask/ramps-controller';
 
 import Engine from '../../../../../core/Engine';
 import type { Severity } from '../../components/status-icon';
 
 const POLL_INTERVAL_MS = 5000;
-
-const TERMINAL_STATUSES = new Set([
-  RampsOrderStatus.Completed,
-  RampsOrderStatus.Failed,
-  RampsOrderStatus.Cancelled,
-  RampsOrderStatus.IdExpired,
-]);
 
 export interface FiatOrderStatusResult {
   severity: Severity;
@@ -52,7 +45,7 @@ export function useFiatOrderStatus(
           setCryptoSymbol(order.cryptoCurrency?.symbol);
           setPaymentMethodName(order.paymentMethod?.name);
 
-          if (TERMINAL_STATUSES.has(order.status)) {
+          if (isTerminalOrderStatus(order.status)) {
             clearInterval(intervalRef.current);
           }
         })

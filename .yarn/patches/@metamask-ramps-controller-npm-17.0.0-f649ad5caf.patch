@@ -1,0 +1,112 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index 40aae3dc544edbdbf492eaf3b513eb21c2919ab2..1aee8cdb6e1a4990feeaa18957dd6f7bf5b0e31e 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -49,4 +49,7 @@ Object.defineProperty(exports, "TransakOrderIdTransformer", { enumerable: true,
+ var transakApiErrorUtils_1 = require("./transakApiErrorUtils.cjs");
+ Object.defineProperty(exports, "getTransakApiMessage", { enumerable: true, get: function () { return transakApiErrorUtils_1.getTransakApiMessage; } });
+ Object.defineProperty(exports, "isTransakPhoneRegisteredError", { enumerable: true, get: function () { return transakApiErrorUtils_1.isTransakPhoneRegisteredError; } });
++var orderStatus_1 = require("./orderStatus.cjs");
++Object.defineProperty(exports, "TERMINAL_ORDER_STATUSES", { enumerable: true, get: function () { return orderStatus_1.TERMINAL_ORDER_STATUSES; } });
++Object.defineProperty(exports, "isTerminalOrderStatus", { enumerable: true, get: function () { return orderStatus_1.isTerminalOrderStatus; } });
+ //# sourceMappingURL=index.cjs.map
+\ No newline at end of file
+diff --git a/dist/index.d.cts b/dist/index.d.cts
+index 965895c55dad8fc609ae5eb84df09cc22f6b5057..032116e5d0e923e621bec8f89092c9ebb2c290b7 100644
+--- a/dist/index.d.cts
++++ b/dist/index.d.cts
+@@ -19,5 +19,6 @@ export { getErrorMessage, extractExplicitTypedError, normalizeToTypedError, } fr
+ export type { TransakServiceActions, TransakServiceEvents, TransakServiceMessenger, TransakAccessToken, TransakUserDetails, TransakUserDetailsAddress, TransakUserDetailsKycDetails, TransakBuyQuote, TransakKycRequirement, TransakAdditionalRequirement, TransakAdditionalRequirementsResponse, TransakOttResponse, TransakOrderPaymentMethod, TransakDepositOrder, TransakDepositNetwork, TransakDepositCryptoCurrency, TransakDepositPaymentMethod, TransakDepositRegion, TransakOrder, TransakQuoteTranslation, TransakTranslationRequest, TransakUserLimits, TransakIdProofStatus, PatchUserRequestBody as TransakPatchUserRequestBody, } from "./TransakService.cjs";
+ export { TransakApiError, TransakService, TransakEnvironment, TransakOrderIdTransformer, } from "./TransakService.cjs";
+ export { getTransakApiMessage, isTransakPhoneRegisteredError, } from "./transakApiErrorUtils.cjs";
++export { TERMINAL_ORDER_STATUSES, isTerminalOrderStatus, } from "./orderStatus.cjs";
+ export type { TransakServiceMethodActions, TransakServiceSendUserOtpAction, TransakServiceVerifyUserOtpAction, TransakServiceGetUserDetailsAction, TransakServiceGetBuyQuoteAction, TransakServiceGetKycRequirementAction, TransakServiceCreateOrderAction, TransakServiceGetOrderAction, TransakServiceRequestOttAction, TransakServiceGeneratePaymentWidgetUrlAction, } from "./TransakService-method-action-types.cjs";
+ //# sourceMappingURL=index.d.cts.map
+\ No newline at end of file
+diff --git a/dist/index.d.mts b/dist/index.d.mts
+index ccb7079fb66a3a2c5c02d70c2d9e781ed8f0c7a8..e462cb8b6570e98c8524a68f99613f912b1592e2 100644
+--- a/dist/index.d.mts
++++ b/dist/index.d.mts
+@@ -19,5 +19,6 @@ export { getErrorMessage, extractExplicitTypedError, normalizeToTypedError, } fr
+ export type { TransakServiceActions, TransakServiceEvents, TransakServiceMessenger, TransakAccessToken, TransakUserDetails, TransakUserDetailsAddress, TransakUserDetailsKycDetails, TransakBuyQuote, TransakKycRequirement, TransakAdditionalRequirement, TransakAdditionalRequirementsResponse, TransakOttResponse, TransakOrderPaymentMethod, TransakDepositOrder, TransakDepositNetwork, TransakDepositCryptoCurrency, TransakDepositPaymentMethod, TransakDepositRegion, TransakOrder, TransakQuoteTranslation, TransakTranslationRequest, TransakUserLimits, TransakIdProofStatus, PatchUserRequestBody as TransakPatchUserRequestBody, } from "./TransakService.mjs";
+ export { TransakApiError, TransakService, TransakEnvironment, TransakOrderIdTransformer, } from "./TransakService.mjs";
+ export { getTransakApiMessage, isTransakPhoneRegisteredError, } from "./transakApiErrorUtils.mjs";
++export { TERMINAL_ORDER_STATUSES, isTerminalOrderStatus, } from "./orderStatus.mjs";
+ export type { TransakServiceMethodActions, TransakServiceSendUserOtpAction, TransakServiceVerifyUserOtpAction, TransakServiceGetUserDetailsAction, TransakServiceGetBuyQuoteAction, TransakServiceGetKycRequirementAction, TransakServiceCreateOrderAction, TransakServiceGetOrderAction, TransakServiceRequestOttAction, TransakServiceGeneratePaymentWidgetUrlAction, } from "./TransakService-method-action-types.mjs";
+ //# sourceMappingURL=index.d.mts.map
+\ No newline at end of file
+diff --git a/dist/index.mjs b/dist/index.mjs
+index 8c74256d67dee57e5bcea0857f9aa1924a1907a6..f15dce8e89377d849e8816afabf3018eb20253eb 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -9,4 +9,5 @@ export { isExternalBrowserQuote, isCustomActionQuote, isInAppOnlyQuote } from ".
+ export { getErrorMessage, extractExplicitTypedError, normalizeToTypedError } from "./errorNormalization.mjs";
+ export { TransakApiError, TransakService, TransakEnvironment, TransakOrderIdTransformer } from "./TransakService.mjs";
+ export { getTransakApiMessage, isTransakPhoneRegisteredError } from "./transakApiErrorUtils.mjs";
++export { TERMINAL_ORDER_STATUSES, isTerminalOrderStatus } from "./orderStatus.mjs";
+ //# sourceMappingURL=index.mjs.map
+\ No newline at end of file
+diff --git a/dist/orderStatus.cjs b/dist/orderStatus.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..72d0819672e92fe9e4934fe63644e7b179a7e643
+--- /dev/null
++++ b/dist/orderStatus.cjs
+@@ -0,0 +1,14 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.isTerminalOrderStatus = exports.TERMINAL_ORDER_STATUSES = void 0;
++const RampsService_1 = require("./RampsService.cjs");
++exports.TERMINAL_ORDER_STATUSES = new Set([
++    RampsService_1.RampsOrderStatus.Completed,
++    RampsService_1.RampsOrderStatus.Failed,
++    RampsService_1.RampsOrderStatus.Cancelled,
++    RampsService_1.RampsOrderStatus.IdExpired,
++]);
++function isTerminalOrderStatus(status) {
++    return exports.TERMINAL_ORDER_STATUSES.has(status);
++}
++exports.isTerminalOrderStatus = isTerminalOrderStatus;
+diff --git a/dist/orderStatus.d.cts b/dist/orderStatus.d.cts
+new file mode 100644
+index 0000000000000000000000000000000000000000..167fa02f3f9dd1fc464e3b2ba507e210a970117b
+--- /dev/null
++++ b/dist/orderStatus.d.cts
+@@ -0,0 +1,7 @@
++import type { RampsOrderStatus } from "./RampsService.cjs";
++
++export declare const TERMINAL_ORDER_STATUSES: ReadonlySet<RampsOrderStatus>;
++
++export declare function isTerminalOrderStatus(
++  status: RampsOrderStatus,
++): boolean;
+diff --git a/dist/orderStatus.d.mts b/dist/orderStatus.d.mts
+new file mode 100644
+index 0000000000000000000000000000000000000000..1db214f23ff516d326b6e0d40099c03c72435951
+--- /dev/null
++++ b/dist/orderStatus.d.mts
+@@ -0,0 +1,7 @@
++import type { RampsOrderStatus } from "./RampsService.mjs";
++
++export declare const TERMINAL_ORDER_STATUSES: ReadonlySet<RampsOrderStatus>;
++
++export declare function isTerminalOrderStatus(
++  status: RampsOrderStatus,
++): boolean;
+diff --git a/dist/orderStatus.mjs b/dist/orderStatus.mjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..b70f2eeeb3542573642f090e3a01f246bc0bda72
+--- /dev/null
++++ b/dist/orderStatus.mjs
+@@ -0,0 +1,12 @@
++import { RampsOrderStatus } from "./RampsService.mjs";
++
++export const TERMINAL_ORDER_STATUSES = new Set([
++    RampsOrderStatus.Completed,
++    RampsOrderStatus.Failed,
++    RampsOrderStatus.Cancelled,
++    RampsOrderStatus.IdExpired,
++]);
++
++export function isTerminalOrderStatus(status) {
++    return TERMINAL_ORDER_STATUSES.has(status);
++}

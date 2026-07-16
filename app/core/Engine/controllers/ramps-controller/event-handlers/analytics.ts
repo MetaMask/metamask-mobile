@@ -2,6 +2,7 @@ import {
   type RampsOrder,
   type RampsOrderStatus,
   RampsOrderStatus as Status,
+  isTerminalOrderStatus,
 } from '@metamask/ramps-controller';
 import { MetaMetricsEvents } from '../../../../Analytics';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
@@ -20,18 +21,6 @@ import {
 // Type-only import so `react` is not pulled into core; mirrors the emission in
 // `useAnalytics` without importing the hook.
 import type { AnalyticsEvents } from '../../../../../components/UI/Ramp/types/depositAnalytics';
-
-/**
- * Terminal order statuses. `@metamask/ramps-controller` keeps its
- * `TERMINAL_ORDER_STATUSES` internal, so mirror it here from the exported
- * `RampsOrderStatus` enum. Kept in lockstep with the controller's set.
- */
-const TERMINAL_ORDER_STATUSES = new Set<RampsOrderStatus>([
-  Status.Completed,
-  Status.Failed,
-  Status.Cancelled,
-  Status.IdExpired,
-]);
 
 /**
  * Builds the `RAMPS_TRANSACTION_FAILED` payload for a headless order. Mirrors
@@ -191,7 +180,7 @@ export function handleOrderStatusChangedForMetrics({
   // subscription and the direct callback emit (`emitTerminalOrderAnalyticsFromCallback`),
   // so the two paths cannot double-emit regardless of arrival order.
   if (
-    TERMINAL_ORDER_STATUSES.has(order.status) &&
+    isTerminalOrderStatus(order.status) &&
     hasEmittedTerminalOrderAnalytics(order)
   ) {
     return;
@@ -293,7 +282,7 @@ export function handleOrderStatusChangedForMetrics({
 export function emitTerminalOrderAnalyticsFromCallback(
   order: RampsOrder,
 ): void {
-  if (!TERMINAL_ORDER_STATUSES.has(order.status)) {
+  if (!isTerminalOrderStatus(order.status)) {
     return;
   }
   try {

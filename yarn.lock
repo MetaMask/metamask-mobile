@@ -9961,7 +9961,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^17.0.0":
+"@metamask/ramps-controller@npm:17.0.0":
   version: 17.0.0
   resolution: "@metamask/ramps-controller@npm:17.0.0"
   dependencies:
@@ -9971,6 +9971,19 @@ __metadata:
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
   checksum: 10/45980e93d79bf72c00edc44e2cd075a738c44a1c0b3dd695a7bce688f7954f80f28988b56c7a5774b1747e335b66c16f6a7d36833030bf116cefafc7b2e5f223
+  languageName: node
+  linkType: hard
+
+"@metamask/ramps-controller@patch:@metamask/ramps-controller@npm%3A17.0.0#~/.yarn/patches/@metamask-ramps-controller-npm-17.0.0-f649ad5caf.patch":
+  version: 17.0.0
+  resolution: "@metamask/ramps-controller@patch:@metamask/ramps-controller@npm%3A17.0.0#~/.yarn/patches/@metamask-ramps-controller-npm-17.0.0-f649ad5caf.patch::version=17.0.0&hash=bb4e84"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/messenger": "npm:^2.0.0"
+    "@metamask/profile-sync-controller": "npm:^28.3.0"
+    "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
+  checksum: 10/ae12485de77ea07ee43db87254b11783e53db9e342386dfbff0b4db4423381bf9e3c8b9a54b382edca1fa9f591252b554155bcb7e7aaa3e9efceedec063870be
   languageName: node
   linkType: hard
 
@@ -35971,7 +35984,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^4.0.1"
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^17.0.0"
+    "@metamask/ramps-controller": "patch:@metamask/ramps-controller@npm%3A17.0.0#~/.yarn/patches/@metamask-ramps-controller-npm-17.0.0-f649ad5caf.patch"
     "@metamask/react-data-query": "npm:^0.2.0"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
