@@ -14,6 +14,8 @@ import {
   selectMoneyFirstTimeDepositAnimationEnabledFlag,
   selectMoneyParallaxAnimationEnabledFlag,
   selectMoneyVaultApyRemoteConfig,
+  selectIsMoneyTokenListItemCtaEnabledFlag,
+  selectMoneyDepositCtaTokens,
 } from './featureFlags';
 import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
 
@@ -207,6 +209,91 @@ describe('selectMoneyEnableMoneyAccountFlag', () => {
 
     expect(mockedIsMoneyAccountEnabled).toHaveBeenCalledWith({});
     expect(result).toBe(true);
+  });
+});
+
+describe('selectIsMoneyTokenListItemCtaEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns false when Money account feature is disabled', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(false);
+    mockedValidate.mockReturnValue(true);
+    const state = createState({
+      earnMoneyTokenListItemCtaEnabled: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    const result = selectIsMoneyTokenListItemCtaEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns remote version-gated CTA flag when Money account feature is enabled', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(true);
+    const state = createState({
+      earnMoneyTokenListItemCtaEnabled: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    const result = selectIsMoneyTokenListItemCtaEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('falls back to local CTA flag when remote flag is unavailable', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_TOKEN_LIST_ITEM_CTA = 'true';
+    const state = createState({ _unique: 'token-list-cta-local-flag' });
+
+    const result = selectIsMoneyTokenListItemCtaEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+});
+
+describe('selectMoneyDepositCtaTokens', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('uses remote configured wildcard token list', () => {
+    const state = createState({
+      earnMoneyDepositCtaTokens: { '*': ['USDC'] },
+    });
+
+    const result = selectMoneyDepositCtaTokens(state as never);
+
+    expect(result).toEqual({ '*': ['USDC'] });
+  });
+
+  it('falls back to local wildcard token list when remote config is absent', () => {
+    process.env.MM_MONEY_DEPOSIT_CTA_TOKENS = '{"0x1":["DAI"]}';
+    const state = createState({ _unique: 'token-list-cta-local-tokens' });
+
+    const result = selectMoneyDepositCtaTokens(state as never);
+
+    expect(result).toEqual({ '0x1': ['DAI'] });
   });
 });
 

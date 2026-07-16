@@ -1123,6 +1123,10 @@
         "opened": "opened",
         "closed": "closed"
       },
+      "new_position": {
+        "bought": "Holding",
+        "opened": "Open"
+      },
       "empty_following": {
         "title": "No activity yet",
         "description": "Follow traders to see their trades show up here."
@@ -1154,7 +1158,7 @@
       },
       "slide_follow": {
         "title": "Follow the best",
-        "description": "Tap to follow the top three traders who are up big this week."
+        "description": "Tap to follow the top ten traders who are up big this week."
       },
       "slide_notify": {
         "title": "Never miss a move",
@@ -1162,7 +1166,7 @@
         "description_default": "When you're ready, follow a trader to get notified the moment they make a move."
       },
       "next": "Next",
-      "follow_top_three": "Follow the top three",
+      "follow_top_ten": "Follow the top ten",
       "maybe_later": "Maybe later",
       "got_it": "Got it",
       "allow_notifications": "Allow notifications"
@@ -7395,6 +7399,9 @@
       "transfer": "Send",
       "card": "Card"
     },
+    "token_list_cta": {
+      "get_apy": "Get {{apy}}% APY"
+    },
     "earnings": {
       "title": "Estimated earnings",
       "estimated_monthly": "Monthly",
@@ -10077,6 +10084,7 @@
     "bandwidth_fee": "Bandwidth",
     "energy_fee": "Energy",
     "bridge_fee": "Bridge fee",
+    "gas_token_fee": "Gas fee",
     "transaction_fee": "Transaction fee",
     "unknown_token": "Unknown",
     "total_amount": "Total amount",
