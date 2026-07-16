@@ -27,6 +27,10 @@ export const colors = {
   gettingStartedPageBackgroundColor: '#EAC2FF',
   gettingStartedTextColor: '#3D065F',
   gettingStartedPageBackgroundColorLightMode: '#FFF2EB',
+  // Provider iframe backgrounds — matched in the checkout BottomSheet so the
+  // native chrome feels seamless with the embedded webview.
+  transakCheckoutDark: '#1a1a1a',
+  moonpayCheckoutDark: '#131416',
 };
 
 export const onboardingCarouselColors: Record<

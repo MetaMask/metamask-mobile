@@ -1,4 +1,5 @@
-/* eslint-disable @metamask/design-tokens/color-no-hex */
+import { brandColor } from '@metamask/design-tokens';
+import { colors } from '../../../../styles/common';
 
 /**
  * Background colors used by each provider's iframe/webview in dark and light mode.
@@ -9,7 +10,7 @@
  * Keys are lowercase substrings of the provider ID returned by the ramps controller
  * (e.g. "transak" matches both "transak" and "transak-native").
  *
- * Use undefined colors to fall back to the design-system default surface.
+ * Providers not listed here fall back to the design-system default surface.
  * TODO: verify dark/light values visually in the simulator for each provider below.
  */
 
@@ -19,8 +20,8 @@ export interface ProviderWebviewColors {
 }
 
 const PROVIDER_WEBVIEW_COLORS: Record<string, ProviderWebviewColors> = {
-  transak: { dark: '#1a1a1a', light: '#ffffff' },
-  // moonpay: { dark: '???', light: '???' },
+  transak: { dark: colors.transakCheckoutDark, light: brandColor.white },
+  moonpay: { dark: colors.moonpayCheckoutDark, light: brandColor.white },
   // banxa: { dark: '???', light: '???' },
   // sardine: { dark: '???', light: '???' },
   // stripe: { dark: '???', light: '???' },
