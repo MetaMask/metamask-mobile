@@ -59,7 +59,7 @@ export interface PredictMarketListRouteParams {
  * Generic Predict feed route parameters.
  *
  * Consumed by the config-driven `PredictFeedView` (powers Sports / Politics /
- * Crypto / Live / Trending / Popular Today). Carries stable IDs only — the
+ * Crypto / Live / Trending). Carries stable IDs only — the
  * view resolves them into a render-ready config via `usePredictFeedConfig`.
  * The route registration + deeplink parsing that populates these params lands
  * separately (route + deeplinks ticket); the view reads them via `useRoute`.
