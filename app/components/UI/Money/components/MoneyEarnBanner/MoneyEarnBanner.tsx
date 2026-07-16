@@ -176,10 +176,11 @@ const MoneyEarnBannerContent = ({
   const { apyPercent } = useMoneyAccountBalance();
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
-  const { trackButtonClicked, trackSurfaceClicked } = useMoneyAnalytics({
-    screen_name: SCREEN_NAMES.ASSET_DETAIL,
-    component_name: COMPONENT_NAMES.MONEY_EARN_BANNER,
-  });
+  const { trackTokenButtonClicked, trackTokenSurfaceClicked } =
+    useMoneyAnalytics({
+      screen_name: SCREEN_NAMES.ASSET_DETAIL,
+      component_name: COMPONENT_NAMES.MONEY_EARN_BANNER,
+    });
 
   const symbol =
     getTokenDisplaySymbol(asset.address, asset.symbol) ?? asset.symbol;
@@ -218,17 +219,21 @@ const MoneyEarnBannerContent = ({
   const handleBannerPress = useCallback(() => {
     const redirectedToOnboarding = beginAddFunds();
 
-    trackSurfaceClicked({
+    trackTokenSurfaceClicked({
       redirect_target: redirectedToOnboarding
         ? SCREEN_NAMES.MONEY_ONBOARDING
         : SCREEN_NAMES.MONEY_DEPOSIT,
+      token_symbol: asset.symbol,
+      token_position_in_list: 1,
+      token_chain_id: asset.chainId ?? '',
+      tokens_in_list: 1,
     });
-  }, [beginAddFunds, trackSurfaceClicked]);
+  }, [asset.chainId, asset.symbol, beginAddFunds, trackTokenSurfaceClicked]);
 
   const handleCtaPress = useCallback(() => {
     const redirectedToOnboarding = beginAddFunds();
 
-    trackButtonClicked({
+    trackTokenButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: redirectedToOnboarding
         ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
@@ -238,16 +243,36 @@ const MoneyEarnBannerContent = ({
       redirect_target: redirectedToOnboarding
         ? SCREEN_NAMES.MONEY_ONBOARDING
         : SCREEN_NAMES.MONEY_DEPOSIT,
+      token_symbol: asset.symbol,
+      token_position_in_list: 1,
+      token_chain_id: asset.chainId ?? '',
+      tokens_in_list: 1,
     });
-  }, [beginAddFunds, ctaLabel, trackButtonClicked]);
+  }, [
+    asset.chainId,
+    asset.symbol,
+    beginAddFunds,
+    ctaLabel,
+    trackTokenButtonClicked,
+  ]);
 
   const handleDismiss = useCallback(() => {
-    trackButtonClicked({
+    trackTokenButtonClicked({
       button_type: MONEY_BUTTON_TYPES.ICON,
       button_intent: MONEY_BUTTON_INTENTS.DISMISS,
+      token_symbol: asset.symbol,
+      token_position_in_list: 1,
+      token_chain_id: asset.chainId ?? '',
+      tokens_in_list: 1,
     });
     dispatch(setMoneyEarnBannerDismissed(tokenKey));
-  }, [dispatch, tokenKey, trackButtonClicked]);
+  }, [
+    asset.chainId,
+    asset.symbol,
+    dispatch,
+    tokenKey,
+    trackTokenButtonClicked,
+  ]);
 
   const showApy = isPositiveNumber(apyPercent);
   const title = showApy

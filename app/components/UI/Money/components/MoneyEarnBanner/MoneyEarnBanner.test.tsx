@@ -29,8 +29,8 @@ const mockInitiateDeposit = jest.fn();
 const mockUseMoneyAccountBalance = jest.fn();
 const mockRedirectToOnboardingIfNeeded = jest.fn();
 const mockShouldShowMoneyEarnBanner = jest.fn();
-const mockTrackButtonClicked = jest.fn();
-const mockTrackSurfaceClicked = jest.fn();
+const mockTrackTokenButtonClicked = jest.fn();
+const mockTrackTokenSurfaceClicked = jest.fn();
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
   useMoneyAccountDeposit: () => ({
@@ -83,8 +83,8 @@ describe('MoneyEarnBanner', () => {
     mockShouldShowMoneyEarnBanner.mockReturnValue(true);
     mockUseMoneyAccountBalance.mockReturnValue({ apyPercent: undefined });
     mockUseMoneyAnalytics.mockReturnValue({
-      trackButtonClicked: mockTrackButtonClicked,
-      trackSurfaceClicked: mockTrackSurfaceClicked,
+      trackTokenButtonClicked: mockTrackTokenButtonClicked,
+      trackTokenSurfaceClicked: mockTrackTokenSurfaceClicked,
     } as unknown as ReturnType<typeof useMoneyAnalytics>);
     mockUseMoneyCtaVisibility.mockReturnValue({
       shouldShowMoneyTokenListItemCta: jest.fn(),
@@ -238,8 +238,12 @@ describe('MoneyEarnBanner', () => {
       expect(mockInitiateDeposit).toHaveBeenCalledWith({
         preferredPaymentToken: MOCK_PREFERRED_PAYMENT_TOKEN,
       });
-      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+      expect(mockTrackTokenSurfaceClicked).toHaveBeenCalledWith({
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        token_symbol: MOCK_USDC.symbol,
+        token_position_in_list: 1,
+        token_chain_id: MOCK_USDC.chainId,
+        tokens_in_list: 1,
       });
     });
 
@@ -251,8 +255,12 @@ describe('MoneyEarnBanner', () => {
       fireEvent.press(getByTestId(MoneyEarnBannerTestIds.CONTAINER));
 
       expect(mockInitiateDeposit).not.toHaveBeenCalled();
-      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+      expect(mockTrackTokenSurfaceClicked).toHaveBeenCalledWith({
         redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+        token_symbol: MOCK_USDC.symbol,
+        token_position_in_list: 1,
+        token_chain_id: MOCK_USDC.chainId,
+        tokens_in_list: 1,
       });
     });
 
@@ -283,12 +291,16 @@ describe('MoneyEarnBanner', () => {
       expect(mockInitiateDeposit).toHaveBeenCalledWith({
         preferredPaymentToken: MOCK_PREFERRED_PAYMENT_TOKEN,
       });
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+      expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith({
         button_type: MONEY_BUTTON_TYPES.TEXT,
         button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
         label_en: ctaLabel,
         label_localized: ctaLabel,
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        token_symbol: MOCK_USDC.symbol,
+        token_position_in_list: 1,
+        token_chain_id: MOCK_USDC.chainId,
+        tokens_in_list: 1,
       });
     });
 
@@ -301,12 +313,16 @@ describe('MoneyEarnBanner', () => {
       fireEvent.press(getByTestId(MoneyEarnBannerTestIds.CTA));
 
       expect(mockInitiateDeposit).not.toHaveBeenCalled();
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+      expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith({
         button_type: MONEY_BUTTON_TYPES.TEXT,
         button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
         label_en: ctaLabel,
         label_localized: ctaLabel,
         redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+        token_symbol: MOCK_USDC.symbol,
+        token_position_in_list: 1,
+        token_chain_id: MOCK_USDC.chainId,
+        tokens_in_list: 1,
       });
     });
   });
@@ -317,9 +333,13 @@ describe('MoneyEarnBanner', () => {
 
       fireEvent.press(getByTestId(MoneyEarnBannerTestIds.CLOSE_BUTTON));
 
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+      expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith({
         button_type: MONEY_BUTTON_TYPES.ICON,
         button_intent: MONEY_BUTTON_INTENTS.DISMISS,
+        token_symbol: MOCK_USDC.symbol,
+        token_position_in_list: 1,
+        token_chain_id: MOCK_USDC.chainId,
+        tokens_in_list: 1,
       });
       expect(mockDispatch).toHaveBeenCalledWith(
         setMoneyEarnBannerDismissed(MOCK_USDC_TOKEN_KEY),
@@ -332,7 +352,7 @@ describe('MoneyEarnBanner', () => {
       fireEvent.press(getByTestId(MoneyEarnBannerTestIds.CLOSE_BUTTON));
 
       expect(mockInitiateDeposit).not.toHaveBeenCalled();
-      expect(mockTrackSurfaceClicked).not.toHaveBeenCalled();
+      expect(mockTrackTokenSurfaceClicked).not.toHaveBeenCalled();
     });
   });
 });
