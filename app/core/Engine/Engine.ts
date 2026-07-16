@@ -1430,6 +1430,7 @@ export class Engine {
    */
   async lookupEnabledNetworks(): Promise<void> {
     const { NetworkController, NetworkEnablementController } = this.context;
+    const { networksMetadata } = NetworkController.state;
 
     const chainIds = Object.entries(
       NetworkEnablementController.state?.enabledNetworkMap?.[
@@ -1441,10 +1442,19 @@ export class Engine {
 
     await Promise.allSettled(
       chainIds
-        .map((chainId) =>
-          NetworkController.findNetworkClientIdByChainId(chainId as Hex),
-        )
-        .filter((id): id is string => !!id)
+        .flatMap((chainId) => {
+          try {
+            const id = NetworkController.findNetworkClientIdByChainId(chainId);
+            const m = networksMetadata[id];
+            const alreadyKnown =
+              m?.status !== undefined &&
+              m.status !== NetworkStatus.Unknown &&
+              m?.EIPS[1559] !== undefined;
+            return alreadyKnown ? [] : [id];
+          } catch {
+            return [];
+          }
+        })
         .map((id) => NetworkController.lookupNetwork(id)),
     );
   }

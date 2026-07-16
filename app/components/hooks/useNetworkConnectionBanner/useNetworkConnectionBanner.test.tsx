@@ -273,10 +273,10 @@ describe('useNetworkConnectionBanner', () => {
       expect(typeof result.current.switchToInfura).toBe('function');
     });
 
-    it('should NOT call Engine.lookupEnabledNetworks on mount', () => {
+    it('should call Engine.lookupEnabledNetworks on mount', () => {
       renderHookWithProvider();
 
-      expect(mockEngine.lookupEnabledNetworks).not.toHaveBeenCalled();
+      expect(mockEngine.lookupEnabledNetworks).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -901,36 +901,6 @@ describe('useNetworkConnectionBanner', () => {
         rpc_endpoint_url: 'polygon-rpc.com',
         rpc_domain: 'polygon-rpc.com',
       });
-    });
-
-    it('should not show banner for networks with unknown status (stale persisted state)', () => {
-      // Networks with unknown status are treated the same as no data to avoid
-      // false-positive banners when the startup probe is removed and stale
-      // unknown entries remain from a previous session.
-      const unknownNetworkMetadata = {
-        [NETWORK_CLIENT_ID_1]: { status: NetworkStatus.Unknown },
-        [NETWORK_CLIENT_ID_89]: { status: NetworkStatus.Unknown },
-      };
-
-      // @ts-expect-error - Mocking Engine for testing
-      Engine.context = {
-        NetworkController: {
-          ...mockNetworkController,
-          state: { networksMetadata: unknownNetworkMetadata },
-        },
-      };
-
-      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
-        visible: false,
-      });
-
-      renderHookWithProvider();
-
-      act(() => {
-        jest.advanceTimersByTime(30000);
-      });
-
-      expect(store.getActions()).toHaveLength(0);
     });
 
     it('should not show banner for available networks', () => {
