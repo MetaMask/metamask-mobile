@@ -11,48 +11,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-
-  const MockBottomSheet = ReactActual.forwardRef(
-    (
-      {
-        children,
-        testID,
-        goBack,
-      }: {
-        children?: React.ReactNode;
-        testID?: string;
-        goBack?: () => void;
-      },
-      ref: React.Ref<{
-        onCloseBottomSheet: (callback?: () => void) => void;
-        onOpenBottomSheet: (callback?: () => void) => void;
-      }>,
-    ) => {
-      ReactActual.useImperativeHandle(ref, () => ({
-        onCloseBottomSheet: (callback?: () => void) => {
-          callback?.();
-          goBack?.();
-        },
-        onOpenBottomSheet: (callback?: () => void) => {
-          callback?.();
-        },
-      }));
-
-      return <View testID={testID}>{children}</View>;
-    },
-  );
-  MockBottomSheet.displayName = 'BottomSheet';
-
-  return {
-    ...actual,
-    BottomSheet: MockBottomSheet,
-  };
-});
-
 const mockUsePerpsProvider = usePerpsProvider as jest.Mock;
 
 const defaultProps = {
