@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  useNavigation,
-  type NavigationProp,
-  type ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { AccountGroupObject } from '@metamask/account-tree-controller';
 import type { BottomSheetRef } from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
@@ -15,7 +12,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
 
 export const useOndoAccountPicker = (campaignId: string | undefined) => {
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const [pendingPicker, setPendingPicker] =
     useState<AccountPickerConfig | null>(null);
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -42,6 +39,10 @@ export const useOndoAccountPicker = (campaignId: string | undefined) => {
           .build(),
       );
       const { row, tokenDecimals } = pendingPicker;
+      if (!campaignId) {
+        setPendingPicker(null);
+        return;
+      }
       const afterClose = () => {
         setPendingPicker(null);
         navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR, {
