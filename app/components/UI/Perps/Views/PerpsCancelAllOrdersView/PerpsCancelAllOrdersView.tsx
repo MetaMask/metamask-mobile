@@ -214,7 +214,10 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
         goBack={!externalSheetRef ? () => navigation.goBack() : undefined}
         onClose={externalSheetRef ? onExternalClose : undefined}
       >
-        <BottomSheetHeader onClose={handleClose}>
+        <BottomSheetHeader
+          onClose={handleClose}
+          closeButtonProps={{ testID: 'header-close' }}
+        >
           {strings('perps.cancel_all_modal.title')}
         </BottomSheetHeader>
         <Box paddingHorizontal={4}>
@@ -232,7 +235,10 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
       goBack={!externalSheetRef ? () => navigation.goBack() : undefined}
       onClose={externalSheetRef ? onExternalClose : undefined}
     >
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeader
+        onClose={handleClose}
+        closeButtonProps={{ testID: 'header-close' }}
+      >
         {strings('perps.cancel_all_modal.title')}
       </BottomSheetHeader>
 

@@ -4,10 +4,6 @@ import PerpsCancelAllOrdersView from './PerpsCancelAllOrdersView';
 import { usePerpsCancelAllOrders, usePerpsLiveOrders } from '../../hooks';
 
 const mockGoBack = jest.fn();
-const mockCapturedBottomSheetProps: {
-  goBack?: () => void;
-  onClose?: () => void;
-} = {};
 
 // Mock all dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -45,96 +41,22 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   return { useTailwind: () => tw };
 });
 
+// BottomSheet overwrites refs via useImperativeHandle; stub keeps external sheetRef usable.
 jest.mock('@metamask/design-system-react-native', () => {
   const MockReact = jest.requireActual<typeof React>('react');
-  const { View, Pressable, Text: RNText } = jest.requireActual('react-native');
+  const { View } = jest.requireActual('react-native');
   const actual = jest.requireActual('@metamask/design-system-react-native');
 
   const BottomSheet = MockReact.forwardRef(
-    (
-      {
-        children,
-        goBack,
-        onClose,
-      }: {
-        children: React.ReactNode;
-        goBack?: () => void;
-        onClose?: () => void;
-      },
-      _ref: React.Ref<{
-        onOpenBottomSheet: () => void;
-        onCloseBottomSheet: (callback?: () => void) => void;
-      }>,
-    ) => {
-      mockCapturedBottomSheetProps.goBack = goBack;
-      mockCapturedBottomSheetProps.onClose = onClose;
-      return <View>{children}</View>;
-    },
+    ({ children }: { children: React.ReactNode }, _ref: React.Ref<unknown>) => (
+      <View>{children}</View>
+    ),
   );
   BottomSheet.displayName = 'BottomSheet';
-
-  const BottomSheetHeader = ({
-    children,
-    onClose,
-  }: {
-    children: React.ReactNode;
-    onClose?: () => void;
-  }) => (
-    <View>
-      {typeof children === 'string' ? <RNText>{children}</RNText> : children}
-      <Pressable testID="header-close" onPress={onClose} />
-    </View>
-  );
-
-  const BottomSheetFooter = ({
-    primaryButtonProps,
-    secondaryButtonProps,
-  }: {
-    primaryButtonProps?: {
-      children: React.ReactNode;
-      onPress: () => void;
-      isDisabled?: boolean;
-      isLoading?: boolean;
-      isDanger?: boolean;
-    };
-    secondaryButtonProps?: {
-      children: React.ReactNode;
-      onPress: () => void;
-      isDisabled?: boolean;
-    };
-  }) => (
-    <View>
-      {secondaryButtonProps ? (
-        <Pressable
-          onPress={secondaryButtonProps.onPress}
-          disabled={secondaryButtonProps.isDisabled}
-        >
-          <RNText>{secondaryButtonProps.children}</RNText>
-        </Pressable>
-      ) : null}
-      {primaryButtonProps ? (
-        <Pressable
-          onPress={primaryButtonProps.onPress}
-          disabled={
-            primaryButtonProps.isDisabled || primaryButtonProps.isLoading
-          }
-          accessibilityState={{
-            disabled:
-              primaryButtonProps.isDisabled || primaryButtonProps.isLoading,
-            busy: primaryButtonProps.isLoading,
-          }}
-        >
-          <RNText>{primaryButtonProps.children}</RNText>
-        </Pressable>
-      ) : null}
-    </View>
-  );
 
   return {
     ...actual,
     BottomSheet,
-    BottomSheetHeader,
-    BottomSheetFooter,
   };
 });
 
@@ -186,8 +108,6 @@ describe('PerpsCancelAllOrdersView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCapturedBottomSheetProps.goBack = undefined;
-    mockCapturedBottomSheetProps.onClose = undefined;
     mockUsePerpsLiveOrders.mockReturnValue({
       orders: mockOrders,
       isInitialLoading: false,
@@ -200,8 +120,8 @@ describe('PerpsCancelAllOrdersView', () => {
     const { getByText } = render(<PerpsCancelAllOrdersView />);
 
     // Assert
-    expect(getByText('perps.cancel_all_modal.title')).toBeTruthy();
-    expect(getByText('perps.cancel_all_modal.description')).toBeTruthy();
+    expect(getByText('perps.cancel_all_modal.title')).toBeOnTheScreen();
+    expect(getByText('perps.cancel_all_modal.description')).toBeOnTheScreen();
   });
 
   it('renders empty state when no orders', () => {
@@ -219,7 +139,7 @@ describe('PerpsCancelAllOrdersView', () => {
     const { getByText } = render(<PerpsCancelAllOrdersView />);
 
     // Assert
-    expect(getByText('perps.order.no_orders')).toBeTruthy();
+    expect(getByText('perps.order.no_orders')).toBeOnTheScreen();
   });
 
   it('keeps description and confirm label visible while canceling', () => {
@@ -233,8 +153,8 @@ describe('PerpsCancelAllOrdersView', () => {
     const { getByText, queryByText } = render(<PerpsCancelAllOrdersView />);
 
     // Assert
-    expect(getByText('perps.cancel_all_modal.description')).toBeTruthy();
-    expect(getByText('perps.cancel_all_modal.confirm')).toBeTruthy();
+    expect(getByText('perps.cancel_all_modal.description')).toBeOnTheScreen();
+    expect(getByText('perps.cancel_all_modal.confirm')).toBeOnTheScreen();
     expect(queryByText('perps.cancel_all_modal.canceling')).toBeNull();
   });
 
@@ -243,8 +163,8 @@ describe('PerpsCancelAllOrdersView', () => {
     const { getByText } = render(<PerpsCancelAllOrdersView />);
 
     // Assert
-    expect(getByText('perps.cancel_all_modal.keep_orders')).toBeTruthy();
-    expect(getByText('perps.cancel_all_modal.confirm')).toBeTruthy();
+    expect(getByText('perps.cancel_all_modal.keep_orders')).toBeOnTheScreen();
+    expect(getByText('perps.cancel_all_modal.confirm')).toBeOnTheScreen();
   });
 
   it('renders with empty orders gracefully', () => {
@@ -262,20 +182,19 @@ describe('PerpsCancelAllOrdersView', () => {
     const { getByText } = render(<PerpsCancelAllOrdersView />);
 
     // Assert
-    expect(getByText('perps.order.no_orders')).toBeTruthy();
+    expect(getByText('perps.order.no_orders')).toBeOnTheScreen();
   });
 
-  it('provides goBack to BottomSheet and navigates back when invoked', () => {
+  it('navigates back when header close is pressed', () => {
     // Arrange & Act — with orders
-    render(<PerpsCancelAllOrdersView />);
+    const { getByTestId, unmount } = render(<PerpsCancelAllOrdersView />);
 
     // Assert
-    expect(mockCapturedBottomSheetProps.goBack).toBeDefined();
-    expect(mockCapturedBottomSheetProps.onClose).toBeUndefined();
-    mockCapturedBottomSheetProps.goBack?.();
+    fireEvent.press(getByTestId('header-close'));
     expect(mockGoBack).toHaveBeenCalled();
 
-    // Arrange & Act — empty state uses the same goBack wiring
+    // Arrange & Act — empty state uses the same close wiring
+    unmount();
     mockGoBack.mockClear();
     mockUsePerpsLiveOrders.mockReturnValue({
       orders: [],
@@ -285,13 +204,15 @@ describe('PerpsCancelAllOrdersView', () => {
       ...mockCancelAllHook,
       orderCount: 0,
     });
-    render(<PerpsCancelAllOrdersView />);
+    const { getByTestId: getEmptyTestId } = render(
+      <PerpsCancelAllOrdersView />,
+    );
 
-    mockCapturedBottomSheetProps.goBack?.();
+    fireEvent.press(getEmptyTestId('header-close'));
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('omits goBack and wires onClose when used with an external sheetRef', () => {
+  it('closes via sheetRef when used with an external sheetRef', () => {
     // Arrange
     const mockOnClose = jest.fn();
     const mockOnCloseBottomSheet = jest.fn((callback?: () => void) =>
@@ -312,10 +233,7 @@ describe('PerpsCancelAllOrdersView', () => {
       />,
     );
 
-    // Assert — overlay mode uses onClose instead of navigation goBack
-    expect(mockCapturedBottomSheetProps.goBack).toBeUndefined();
-    expect(mockCapturedBottomSheetProps.onClose).toBe(mockOnClose);
-
+    // Assert — overlay mode closes via sheetRef instead of navigation goBack
     fireEvent.press(getByTestId('header-close'));
     expect(mockOnCloseBottomSheet).toHaveBeenCalled();
     expect(mockOnClose).toHaveBeenCalled();
@@ -340,8 +258,6 @@ describe('PerpsCancelAllOrdersView', () => {
       />,
     );
 
-    expect(mockCapturedBottomSheetProps.goBack).toBeUndefined();
-    expect(mockCapturedBottomSheetProps.onClose).toBe(mockOnClose);
     fireEvent.press(getEmptyTestId('header-close'));
     expect(mockOnCloseBottomSheet).toHaveBeenCalled();
     expect(mockOnClose).toHaveBeenCalled();
