@@ -85,6 +85,7 @@ jest.mock('../../../images/branding/metamask-name.png', () => 'metamask-name');
 jest.mock('../../../util/trace', () => ({
   trace: jest.fn((_config, fn) => (fn ? fn() : Promise.resolve())),
   endTrace: jest.fn(),
+  getTraceContext: jest.fn(),
   TraceName: {
     LoginUserInteraction: 'LoginUserInteraction',
     AuthenticateUser: 'AuthenticateUser',
@@ -103,6 +104,7 @@ jest.mock('../../../util/trace', () => ({
 import {
   trace as traceMock,
   endTrace as endTraceMock,
+  getTraceContext as getTraceContextMock,
 } from '../../../util/trace';
 
 jest.mock('../../../util/analytics/vaultCorruptionTracking', () => ({
@@ -241,6 +243,7 @@ describe('OAuthRehydration', () => {
       (_config: unknown, fn?: () => Promise<void>) =>
         fn ? fn() : Promise.resolve(),
     );
+    (getTraceContextMock as jest.Mock).mockReturnValue(undefined);
   });
 
   describe('Successful login flow', () => {
@@ -1170,35 +1173,115 @@ describe('OAuthRehydration', () => {
   });
 
   describe('Tracing', () => {
-    it('starts onboarding password login attempt trace when onboardingTraceCtx is provided', () => {
-      const traceCtx = { traceId: 'test-trace-id' };
+    it('does not start password login attempt on mount', () => {
+      const journeyCtx = { traceId: 'journey' };
       mockRoute.mockReturnValue({
         params: {
           locked: false,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: traceCtx,
+          onboardingTraceCtx: journeyCtx,
         },
       });
 
       renderWithProvider(<OAuthRehydration />);
 
-      expect(traceMock).toHaveBeenCalledWith(
+      expect(traceMock).not.toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'OnboardingPasswordLoginAttempt',
-          parentContext: traceCtx,
         }),
       );
     });
 
-    it('traces login error with error message when onboardingTraceCtx is provided', async () => {
-      const traceCtx = { traceId: 'test-trace-id' };
+    it('starts password login attempt on submit nested under Existing Social Login', async () => {
+      const journeyCtx = { traceId: 'journey' };
+      const existingSocialCtx = { traceId: 'existing-social' };
+      const passwordAttemptCtx = { traceId: 'password-attempt' };
       mockRoute.mockReturnValue({
         params: {
           locked: false,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: traceCtx,
+          onboardingTraceCtx: journeyCtx,
         },
       });
+      (getTraceContextMock as jest.Mock).mockReturnValue(existingSocialCtx);
+      (traceMock as jest.Mock).mockImplementation(
+        (config: { name?: string }, fn?: () => Promise<void>) => {
+          if (fn) {
+            return fn();
+          }
+          if (config?.name === 'OnboardingPasswordLoginAttempt') {
+            return passwordAttemptCtx;
+          }
+          return undefined;
+        },
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId);
+
+      await waitFor(() => {
+        expect(getTraceContextMock).toHaveBeenCalledWith({
+          name: 'OnboardingExistingSocialLogin',
+        });
+        expect(traceMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'OnboardingPasswordLoginAttempt',
+            parentContext: existingSocialCtx,
+          }),
+        );
+        expect(mockUnlockWallet).toHaveBeenCalledWith(
+          expect.objectContaining({
+            parentContext: passwordAttemptCtx,
+          }),
+        );
+      });
+    });
+
+    it('falls back to journey context when Existing Social Login span is not open', async () => {
+      const journeyCtx = { traceId: 'journey' };
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: journeyCtx,
+        },
+      });
+      (getTraceContextMock as jest.Mock).mockReturnValue(undefined);
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId);
+
+      await waitFor(() => {
+        expect(traceMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'OnboardingPasswordLoginAttempt',
+            parentContext: journeyCtx,
+          }),
+        );
+      });
+    });
+
+    it('traces login error under password login attempt when onboardingTraceCtx is provided', async () => {
+      const journeyCtx = { traceId: 'journey' };
+      const passwordAttemptCtx = { traceId: 'password-attempt' };
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: journeyCtx,
+        },
+      });
+      (traceMock as jest.Mock).mockImplementation(
+        (config: { name?: string }, fn?: () => Promise<void>) => {
+          if (fn) {
+            return fn();
+          }
+          if (config?.name === 'OnboardingPasswordLoginAttempt') {
+            return passwordAttemptCtx;
+          }
+          return undefined;
+        },
+      );
       mockUnlockWallet.mockRejectedValue(new Error('Some login error'));
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       await enterPasswordAndSubmit(getByTestId, 'password123');
@@ -1210,16 +1293,36 @@ describe('OAuthRehydration', () => {
             tags: expect.objectContaining({
               errorMessage: 'Some login error',
             }),
+            parentContext: passwordAttemptCtx,
+          }),
+        );
+        expect(endTraceMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'OnboardingPasswordLoginAttempt',
+            data: { success: false },
           }),
         );
       });
     });
 
     it('ends onboarding traces on successful login', async () => {
+      const journeyCtx = { traceId: 'journey' };
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+          onboardingTraceCtx: journeyCtx,
+        },
+      });
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       await enterPasswordAndSubmit(getByTestId);
 
       await waitFor(() => {
+        expect(endTraceMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'OnboardingPasswordLoginAttempt',
+          }),
+        );
         expect(endTraceMock).toHaveBeenCalledWith(
           expect.objectContaining({
             name: 'OnboardingExistingSocialLogin',
