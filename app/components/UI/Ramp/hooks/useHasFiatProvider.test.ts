@@ -1,12 +1,12 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { useHasNativeFiatProvider } from './useHasNativeFiatProvider';
+import { useHasFiatProvider } from './useHasFiatProvider';
 import { useRampsProviders } from './useRampsProviders';
 import { useHeadlessAllProvidersEnabled } from './useHeadlessAllProvidersEnabled';
 
 jest.mock('./useRampsProviders');
 jest.mock('./useHeadlessAllProvidersEnabled');
 
-describe('useHasNativeFiatProvider', () => {
+describe('useHasFiatProvider', () => {
   const useRampsProvidersMock = jest.mocked(useRampsProviders);
   const useHeadlessAllProvidersEnabledMock = jest.mocked(
     useHeadlessAllProvidersEnabled,
@@ -32,7 +32,7 @@ describe('useHasNativeFiatProvider', () => {
   describe('flag disabled (native-only)', () => {
     it('returns true when the selected (preferred) provider is native', () => {
       mockSelection({ id: '/providers/transak-native', type: 'native' });
-      const { result } = renderHook(() => useHasNativeFiatProvider());
+      const { result } = renderHook(() => useHasFiatProvider());
       expect(result.current).toBe(true);
     });
 
@@ -41,7 +41,7 @@ describe('useHasNativeFiatProvider', () => {
         { id: '/providers/transak', type: 'aggregator' },
         { id: '/providers/transak-native', type: 'native' },
       ]);
-      const { result } = renderHook(() => useHasNativeFiatProvider());
+      const { result } = renderHook(() => useHasFiatProvider());
       expect(result.current).toBe(false);
     });
 
@@ -49,13 +49,13 @@ describe('useHasNativeFiatProvider', () => {
       mockSelection(null, [
         { id: '/providers/transak-native', type: 'native' },
       ]);
-      const { result } = renderHook(() => useHasNativeFiatProvider());
+      const { result } = renderHook(() => useHasFiatProvider());
       expect(result.current).toBe(false);
     });
 
     it('returns false when the selected provider has no type (pre-v2 catalog)', () => {
       mockSelection({ id: '/providers/transak' });
-      const { result } = renderHook(() => useHasNativeFiatProvider());
+      const { result } = renderHook(() => useHasFiatProvider());
       expect(result.current).toBe(false);
     });
   });
@@ -67,7 +67,7 @@ describe('useHasNativeFiatProvider', () => {
 
     it('returns true for a native selected provider', () => {
       mockSelection({ id: '/providers/transak-native', type: 'native' });
-      const { result } = renderHook(() => useHasNativeFiatProvider());
+      const { result } = renderHook(() => useHasFiatProvider());
       expect(result.current).toBe(true);
     });
 
@@ -75,19 +75,19 @@ describe('useHasNativeFiatProvider', () => {
       mockSelection({ id: '/providers/moonpay', type: 'aggregator' }, [
         { id: '/providers/moonpay', type: 'aggregator' },
       ]);
-      const { result } = renderHook(() => useHasNativeFiatProvider());
+      const { result } = renderHook(() => useHasFiatProvider());
       expect(result.current).toBe(true);
     });
 
     it('returns true when no provider is selected but the region has providers', () => {
       mockSelection(null, [{ id: '/providers/moonpay', type: 'aggregator' }]);
-      const { result } = renderHook(() => useHasNativeFiatProvider());
+      const { result } = renderHook(() => useHasFiatProvider());
       expect(result.current).toBe(true);
     });
 
     it('returns false when the region has no providers', () => {
       mockSelection(null, []);
-      const { result } = renderHook(() => useHasNativeFiatProvider());
+      const { result } = renderHook(() => useHasFiatProvider());
       expect(result.current).toBe(false);
     });
   });

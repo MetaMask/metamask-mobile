@@ -14,7 +14,7 @@ import { useFormatters } from '../../../hooks/useFormatters';
  *
  * Assumes the native-gated fiat flow, where `providers.selected` is the
  * provider quotes are requested with: the flow only renders when the selected
- * provider is native (see `useHasNativeFiatProvider`), and
+ * provider is native (see `useHasFiatProvider`), and
  * `RampsController.getQuotes` resolves the selected provider first. If fiat
  * deposit opens up to non-native providers, limit lookup must use the same
  * provider resolution as `getQuotes` (needs a public accessor in core).
