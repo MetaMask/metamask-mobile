@@ -44,6 +44,9 @@ import {
 } from '../../headless/headlessEntryNavigation';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './Checkout.styles';
+import { useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
+import { getProviderWebviewColors } from '../../constants/providerWebviewColors';
 import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
@@ -98,7 +101,7 @@ const Checkout = () => {
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
   const params = useParams<CheckoutParams>();
-  const { styles } = useStyles(styleSheet, {});
+  const { themeAppearance } = useTheme();
   const { addOrder, addPrecreatedOrder, getOrderFromCallback } =
     useRampsOrders();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -116,6 +119,19 @@ const Checkout = () => {
     cryptocurrency,
     headlessSessionId,
   } = params ?? {};
+
+  const providerColors = getProviderWebviewColors(providerCode);
+  const isDark = themeAppearance === AppThemeKey.dark;
+  const providerBg = providerColors
+    ? isDark
+      ? providerColors.dark
+      : providerColors.light
+    : undefined;
+  const { styles } = useStyles(styleSheet, { providerBg });
+  // Tailwind arbitrary-value class for the MMDS BottomSheet — only set when
+  // we know the provider's color so unknown providers keep the design-system default.
+  const providerBgTwClassName = providerBg ? `bg-[${providerBg}]` : undefined;
+
   const effectiveOrderId = (orderIdParam ?? customOrderId)?.trim() || null;
 
   // Headless deposit (TRAM-3623): when a headless session drives this Checkout,
@@ -695,6 +711,7 @@ const Checkout = () => {
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
+        twClassName={providerBgTwClassName}
       >
         {sharedHeader}
         <WebView

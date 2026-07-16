@@ -38,6 +38,9 @@ import {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
+import { useTheme } from '../../../../../../util/theme';
+import { AppThemeKey } from '../../../../../../util/theme/models';
+import { getProviderWebviewColors } from '../../../constants/providerWebviewColors';
 import Device from '../../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../../util/browser';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
@@ -66,9 +69,20 @@ const CheckoutWebView = () => {
   const params = useParams<CheckoutParams>();
   const handleSuccessfulOrder = useHandleSuccessfulOrder();
 
-  const { styles } = useStyles(styleSheet, {});
-
   const { url: uri, customOrderId, provider } = params;
+
+  const { themeAppearance } = useTheme();
+  const providerColors = getProviderWebviewColors(provider?.id);
+  const isDark = themeAppearance === AppThemeKey.dark;
+  const providerBg = providerColors
+    ? isDark
+      ? providerColors.dark
+      : providerColors.light
+    : undefined;
+  const { styles } = useStyles(styleSheet, { providerBg });
+  const providerBgStyle = providerBg
+    ? { backgroundColor: providerBg }
+    : undefined;
 
   const handleCancelPress = useCallback(() => {
     const chainId = selectedAsset?.network?.chainId || '';
@@ -252,6 +266,7 @@ const CheckoutWebView = () => {
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
+        style={providerBgStyle}
       >
         <BottomSheetHeader
           endAccessory={
