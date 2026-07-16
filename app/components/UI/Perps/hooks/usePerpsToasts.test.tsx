@@ -716,6 +716,23 @@ describe('usePerpsToasts', () => {
         });
       });
 
+      it('returns cancel all failed configuration with default error message', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancelAllFailed();
+
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to cancel orders', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Unknown error', isBold: false },
+        ]);
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationMoment.Error,
+        });
+      });
+
       it('strips hip3 prefix from asset symbol in cancellation in progress', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =
