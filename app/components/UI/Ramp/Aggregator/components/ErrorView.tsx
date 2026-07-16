@@ -28,7 +28,6 @@ const createStyles = (
       flex: options?.asScreen ? 1 : undefined,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: colors.background.default,
     },
     content: {
       width: '100%',
