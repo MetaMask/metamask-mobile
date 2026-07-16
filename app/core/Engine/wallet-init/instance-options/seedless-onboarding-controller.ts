@@ -117,6 +117,9 @@ export function getSeedlessOnboardingControllerInstanceOptions(): SeedlessOnboar
     );
   }
 
+  // Wallet types seedless encryptor as GenericEncryptor (cipher-shaped mobile
+  // result). SeedlessOnboardingController expects browser-passworder `data`
+  // results, which this adapter produces — cast through unknown intentionally.
   return {
     encryptor: seedlessOnboardingEncryptorAdapter,
     network: web3AuthNetwork as Web3AuthNetwork,
@@ -124,5 +127,5 @@ export function getSeedlessOnboardingControllerInstanceOptions(): SeedlessOnboar
     refreshJWTToken: AuthTokenHandler.refreshJWTToken,
     renewRefreshToken: AuthTokenHandler.renewRefreshToken,
     revokeRefreshToken: AuthTokenHandler.revokeRefreshToken,
-  } as SeedlessOnboardingControllerOptions;
+  } as unknown as SeedlessOnboardingControllerOptions;
 }

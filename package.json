@@ -2,16 +2,6 @@
   "name": "metamask",
   "version": "8.4.0",
   "private": true,
-  "previewBuilds": {
-    "@metamask/wallet": {
-      "type": "breaking",
-      "previewVersion": "7.0.1-preview-b867f452d"
-    },
-    "@metamask/seedless-onboarding-controller": {
-      "type": "non-breaking",
-      "previewVersion": "10.0.3-preview-b867f452d"
-    }
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/MetaMask/metamask-mobile.git"
@@ -246,7 +236,8 @@
     "@metamask/assets-controllers@npm:^109.2.1": "patch:@metamask/assets-controllers@npm%3A109.4.0#~/.yarn/patches/@metamask-assets-controllers-npm-109.4.0-25a362106e.patch",
     "@metamask/assets-controllers@npm:^109.3.0": "patch:@metamask/assets-controllers@npm%3A109.4.0#~/.yarn/patches/@metamask-assets-controllers-npm-109.4.0-25a362106e.patch",
     "@metamask/assets-controllers@npm:^109.4.0": "patch:@metamask/assets-controllers@npm%3A109.4.0#~/.yarn/patches/@metamask-assets-controllers-npm-109.4.0-25a362106e.patch",
-    "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch"
+    "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
+    "@metamask/seedless-onboarding-controller@npm:^10.0.3": "npm:@metamask-previews/seedless-onboarding-controller@10.0.3-preview-b867f452d"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -361,7 +352,7 @@
     "@metamask/sample-controllers": "^3.0.0",
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "0.33.1",
-    "@metamask/seedless-onboarding-controller": "^10.0.3",
+    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@10.0.3-preview-b867f452d",
     "@metamask/selected-network-controller": "^26.1.4",
     "@metamask/signature-controller": "^39.2.0",
     "@metamask/slip44": "^4.2.0",
@@ -383,7 +374,7 @@
     "@metamask/transaction-pay-controller": "^25.0.0",
     "@metamask/tron-wallet-snap": "^1.31.0",
     "@metamask/utils": "^11.11.0",
-    "@metamask/wallet": "^7.0.1",
+    "@metamask/wallet": "npm:@metamask-previews/wallet@7.0.1-preview-b867f452d",
     "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.33.1",

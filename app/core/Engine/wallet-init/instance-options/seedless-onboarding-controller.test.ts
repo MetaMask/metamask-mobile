@@ -1,5 +1,6 @@
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 
+import type { EncryptionKey } from '../../../Encryptor/types';
 import AuthTokenHandler from '../../../OAuthService/AuthTokenHandler';
 import { web3AuthNetwork } from '../../../OAuthService/OAuthLoginHandlers/constants';
 import {
@@ -12,6 +13,13 @@ const mockEncryptResult = {
   iv: 'mock-iv',
   salt: 'mock-salt',
   lib: 'mock-lib',
+  keyMetadata: { algorithm: 'PBKDF2' as const, params: { iterations: 600000 } },
+};
+
+const mockEncryptionKey: EncryptionKey = {
+  key: 'test-key',
+  lib: 'test-lib',
+  exportable: true,
   keyMetadata: { algorithm: 'PBKDF2', params: { iterations: 600000 } },
 };
 
@@ -133,20 +141,17 @@ describe('seedlessOnboardingEncryptorAdapter', () => {
 
   it('encryptWithKey maps cipher to data field', async () => {
     const { mockEncryptWithKey } = getEncryptorMocks();
-    const mockKey = {
-      key: 'test-key',
-      lib: 'test-lib',
-      exportable: true,
-      keyMetadata: { algorithm: 'PBKDF2', params: { iterations: 600000 } },
-    };
     const testData = { test: 'data' };
 
     const result = await seedlessOnboardingEncryptorAdapter.encryptWithKey(
-      mockKey,
+      mockEncryptionKey,
       testData,
     );
 
-    expect(mockEncryptWithKey).toHaveBeenCalledWith(mockKey, testData);
+    expect(mockEncryptWithKey).toHaveBeenCalledWith(
+      mockEncryptionKey,
+      testData,
+    );
     expect(result).toHaveProperty('data', mockEncryptResult.cipher);
     expect(result).toHaveProperty('iv', mockEncryptResult.iv);
     expect(result).toHaveProperty('salt', mockEncryptResult.salt);
@@ -154,26 +159,23 @@ describe('seedlessOnboardingEncryptorAdapter', () => {
 
   it('decryptWithKey maps data to cipher field', async () => {
     const { mockDecryptWithKey } = getEncryptorMocks();
-    const mockKey = {
-      key: 'test-key',
-      lib: 'test-lib',
-      exportable: true,
-      keyMetadata: { algorithm: 'PBKDF2', params: { iterations: 600000 } },
-    };
     const encryptedObject = {
       data: 'encrypted-data',
       iv: 'test-iv',
       salt: 'test-salt',
       lib: 'test-lib',
-      keyMetadata: { algorithm: 'PBKDF2', params: { iterations: 600000 } },
+      keyMetadata: {
+        algorithm: 'PBKDF2' as const,
+        params: { iterations: 600000 },
+      },
     };
 
     const decrypted = await seedlessOnboardingEncryptorAdapter.decryptWithKey(
-      mockKey,
+      mockEncryptionKey,
       encryptedObject,
     );
 
-    expect(mockDecryptWithKey).toHaveBeenCalledWith(mockKey, {
+    expect(mockDecryptWithKey).toHaveBeenCalledWith(mockEncryptionKey, {
       cipher: encryptedObject.data,
       iv: encryptedObject.iv,
       salt: encryptedObject.salt,
@@ -185,7 +187,6 @@ describe('seedlessOnboardingEncryptorAdapter', () => {
 
   it('decryptWithKey falls back to cipher field for pre-adapter vaults', async () => {
     const { mockDecryptWithKey } = getEncryptorMocks();
-    const mockKey = { key: 'test-key', lib: 'test-lib', exportable: true };
     const legacyEncryptedObject = {
       cipher: 'legacy-cipher-data',
       iv: 'test-iv',
@@ -193,11 +194,11 @@ describe('seedlessOnboardingEncryptorAdapter', () => {
     };
 
     await seedlessOnboardingEncryptorAdapter.decryptWithKey(
-      mockKey,
+      mockEncryptionKey,
       legacyEncryptedObject as never,
     );
 
-    expect(mockDecryptWithKey).toHaveBeenCalledWith(mockKey, {
+    expect(mockDecryptWithKey).toHaveBeenCalledWith(mockEncryptionKey, {
       cipher: 'legacy-cipher-data',
       iv: 'test-iv',
       salt: 'test-salt',
@@ -207,12 +208,11 @@ describe('seedlessOnboardingEncryptorAdapter', () => {
   });
 
   it('decryptWithKey throws when both data and cipher are absent', async () => {
-    const mockKey = { key: 'test-key', lib: 'test-lib', exportable: true };
     const malformedObject = { iv: 'test-iv', salt: 'test-salt' };
 
     await expect(
       seedlessOnboardingEncryptorAdapter.decryptWithKey(
-        mockKey,
+        mockEncryptionKey,
         malformedObject as never,
       ),
     ).rejects.toThrow(
@@ -304,17 +304,14 @@ describe('seedlessOnboardingEncryptorAdapter', () => {
 
   it('decrypt can read a vault written by encryptWithKey (data-format vault)', async () => {
     const { mockDecrypt } = getEncryptorMocks();
-    const mockKey = {
-      key: 'test-key',
-      lib: 'test-lib',
-      exportable: true,
-      keyMetadata: { algorithm: 'PBKDF2', params: { iterations: 600000 } },
-    };
 
     const encryptedVault =
-      await seedlessOnboardingEncryptorAdapter.encryptWithKey(mockKey, {
-        secret: 'seed-phrase',
-      });
+      await seedlessOnboardingEncryptorAdapter.encryptWithKey(
+        mockEncryptionKey,
+        {
+          secret: 'seed-phrase',
+        },
+      );
     expect(encryptedVault).toHaveProperty('data');
     expect(encryptedVault).not.toHaveProperty('cipher');
 
@@ -336,17 +333,14 @@ describe('seedlessOnboardingEncryptorAdapter', () => {
 
   it('decryptWithDetail can read a vault written by encryptWithKey (data-format vault)', async () => {
     const { mockDecryptWithDetail } = getEncryptorMocks();
-    const mockKey = {
-      key: 'test-key',
-      lib: 'test-lib',
-      exportable: true,
-      keyMetadata: { algorithm: 'PBKDF2', params: { iterations: 600000 } },
-    };
 
     const encryptedVault =
-      await seedlessOnboardingEncryptorAdapter.encryptWithKey(mockKey, {
-        secret: 'seed-phrase',
-      });
+      await seedlessOnboardingEncryptorAdapter.encryptWithKey(
+        mockEncryptionKey,
+        {
+          secret: 'seed-phrase',
+        },
+      );
     const persistedVaultString = JSON.stringify(encryptedVault);
 
     await seedlessOnboardingEncryptorAdapter.decryptWithDetail(
