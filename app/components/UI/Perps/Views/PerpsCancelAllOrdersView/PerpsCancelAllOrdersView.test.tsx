@@ -22,7 +22,30 @@ jest.mock('../../hooks', () => ({
 
 jest.mock('../../hooks/usePerpsToasts', () => ({
   __esModule: true,
-  default: jest.fn(() => ({ showToast: jest.fn() })),
+  default: jest.fn(() => ({
+    showToast: jest.fn(),
+    PerpsToastOptions: {
+      orderManagement: {
+        shared: {
+          cancelAllSuccess: jest.fn((count: number) => ({
+            type: 'cancelAllSuccess',
+            count,
+          })),
+          cancelAllPartialSuccess: jest.fn(
+            (successCount: number, totalCount: number) => ({
+              type: 'cancelAllPartialSuccess',
+              successCount,
+              totalCount,
+            }),
+          ),
+          cancelAllFailed: jest.fn((error?: string) => ({
+            type: 'cancelAllFailed',
+            error,
+          })),
+        },
+      },
+    },
+  })),
 }));
 
 jest.mock('../../../../../util/theme', () => {
