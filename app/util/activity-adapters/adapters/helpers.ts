@@ -73,6 +73,87 @@ export function getLocalTransactionFees(
   ];
 }
 
+/**
+ * Fee paid with a selected gas fee token (ERC-20). Shown on the primary
+ * Activity row so STX `gas_payment` siblings can be hidden (TMCU-1064).
+ *
+ * Skips the native sentinel (`0x000…000`) — confirmations may select it for
+ * STX while gas is still paid in native — and skips terminal-fail statuses so
+ * quoted unpaid gas is not shown on dropped/rejected/failed sends.
+ */
+export function getLocalGasTokenFee(
+  transaction: TransactionGroup['primaryTransaction'],
+  environment: ActivityAdapterEnvironment = mobileActivityAdapterEnvironment,
+): ActivityFee | undefined {
+  const { selectedGasFeeToken, gasFeeTokens, chainId, status } = transaction;
+  if (!selectedGasFeeToken || !gasFeeTokens?.length) {
+    return undefined;
+  }
+
+  if (
+    environment.equalsIgnoreCase(
+      selectedGasFeeToken,
+      environment.nativeTokenAddress,
+    )
+  ) {
+    return undefined;
+  }
+
+  if (
+    status === TransactionStatus.failed ||
+    status === TransactionStatus.dropped ||
+    status === TransactionStatus.rejected ||
+    status === TransactionStatus.cancelled
+  ) {
+    return undefined;
+  }
+
+  const gasFeeToken = gasFeeTokens.find((token) =>
+    environment.equalsIgnoreCase(token.tokenAddress, selectedGasFeeToken),
+  );
+  if (!gasFeeToken?.amount) {
+    return undefined;
+  }
+
+  let amount: string;
+  try {
+    amount = BigInt(gasFeeToken.amount).toString(10);
+  } catch {
+    return undefined;
+  }
+
+  const assetId = environment.toAssetId(gasFeeToken.tokenAddress, chainId);
+
+  return {
+    type: 'gasToken',
+    amount,
+    decimals: gasFeeToken.decimals,
+    ...(gasFeeToken.symbol ? { symbol: gasFeeToken.symbol } : {}),
+    ...(assetId ? { assetId } : {}),
+  };
+}
+
+/**
+ * Fees for local Activity rows. When a gas fee token is selected, only that
+ * fee is shown (native base is omitted — the user paid with the token).
+ * Otherwise returns the native network fee.
+ */
+export function getLocalActivityFees(
+  transactionGroup: Pick<TransactionGroup, 'primaryTransaction'>,
+  nativeAsset: ActivityTokenMetadata | undefined,
+  nativeSymbol: string | undefined,
+  environment: ActivityAdapterEnvironment = mobileActivityAdapterEnvironment,
+): ActivityFee[] | undefined {
+  const gasTokenFee = getLocalGasTokenFee(
+    transactionGroup.primaryTransaction,
+    environment,
+  );
+  if (gasTokenFee) {
+    return [gasTokenFee];
+  }
+  return getLocalTransactionFees(transactionGroup, nativeAsset, nativeSymbol);
+}
+
 export function getApiTransactionFees(
   transaction: V1TransactionByHashResponse,
   nativeAsset: ActivityTokenMetadata | undefined,

@@ -14,25 +14,26 @@ import {
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import type { FeedTypeFilter } from '../types';
-import { FeedViewSelectorsIDs } from '../FeedView.testIds';
-import { FEED_TYPE_LABEL_KEY } from './feedTypeOptions';
+import type { SocialTypeFilter } from './types';
+import { TypeFilterSelectorsIDs } from './TypeFilter.testIds';
+import { TYPE_FILTER_LABEL_KEY } from './typeFilterOptions';
 
-export interface FeedTypeSelectorProps {
-  value: FeedTypeFilter;
+export interface TypeFilterSelectorProps {
+  value: SocialTypeFilter;
   onPress: () => void;
   testID?: string;
 }
 
 /**
- * "All types" pill that opens the feed type bottom sheet. The sheet itself is
- * rendered by `FeedView` (see `FeedTypeSheet`) so it anchors to the screen
- * bottom rather than to this row.
+ * "All types" pill that opens the {@link TypeFilterSheet} bottom sheet. Shared
+ * by the leaderboard (`TopTradersView`) and the feed (`FeedView`); the sheet is
+ * rendered by the host screen so it anchors to the screen bottom rather than to
+ * this row.
  */
-const FeedTypeSelector: React.FC<FeedTypeSelectorProps> = ({
+const TypeFilterSelector: React.FC<TypeFilterSelectorProps> = ({
   value,
   onPress,
-  testID = FeedViewSelectorsIDs.TYPE_SELECTOR,
+  testID = TypeFilterSelectorsIDs.SELECTOR,
 }) => (
   <TouchableOpacity
     onPress={onPress}
@@ -50,7 +51,7 @@ const FeedTypeSelector: React.FC<FeedTypeSelectorProps> = ({
         fontWeight={FontWeight.Medium}
         color={TextColor.TextDefault}
       >
-        {strings(FEED_TYPE_LABEL_KEY[value])}
+        {strings(TYPE_FILTER_LABEL_KEY[value])}
       </Text>
       <Icon
         name={IconName.ArrowDown}
@@ -61,4 +62,4 @@ const FeedTypeSelector: React.FC<FeedTypeSelectorProps> = ({
   </TouchableOpacity>
 );
 
-export default FeedTypeSelector;
+export default TypeFilterSelector;
