@@ -66,6 +66,10 @@ jest.mock('../../../../../core/Engine', () => ({
     },
   },
 }));
+jest.mock('../../utils/relayFixedSpread', () => ({
+  ...jest.requireActual('../../utils/relayFixedSpread'),
+  isRouteToken: jest.fn(),
+}));
 
 jest.useFakeTimers();
 
