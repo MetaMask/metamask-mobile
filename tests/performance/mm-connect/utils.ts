@@ -13,6 +13,7 @@ import {
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
 import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants';
 import type { CurrentDeviceDetails } from '../../framework/fixtures/playwright';
+import { loginToAppPlaywright } from '../../flows/wallet.flow';
 
 export { unlockIfLockScreenVisible } from '../../page-objects/MMConnect/unlockHelpers';
 
