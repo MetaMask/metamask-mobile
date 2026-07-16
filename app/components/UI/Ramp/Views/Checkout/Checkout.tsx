@@ -671,26 +671,22 @@ const Checkout = () => {
         keyboardAvoidingViewEnabled={false}
       >
         {sharedHeader}
-        <ScreenLayout>
-          <ScreenLayout.Body>
-            <ErrorView
-              description={error}
-              ctaOnPress={() => {
-                setKey((prevKey) => prevKey + 1);
-                setError('');
-                isRedirectionHandledRef.current = false;
-                lastLoadCompleteUrlRef.current = null;
-                loadUrlErrorsRef.current.clear();
-                loadStartTimeRef.current = null;
-                closeSourceRef.current = null;
-                urlHistoryRef.current = { current: null, previous: null };
-                stepIndexRef.current = 0;
-                previousNavStateUrlRef.current = null;
-              }}
-              location="Provider Webview"
-            />
-          </ScreenLayout.Body>
-        </ScreenLayout>
+        <ErrorView
+          description={error}
+          ctaOnPress={() => {
+            setKey((prevKey) => prevKey + 1);
+            setError('');
+            isRedirectionHandledRef.current = false;
+            lastLoadCompleteUrlRef.current = null;
+            loadUrlErrorsRef.current.clear();
+            loadStartTimeRef.current = null;
+            closeSourceRef.current = null;
+            urlHistoryRef.current = { current: null, previous: null };
+            stepIndexRef.current = 0;
+            previousNavStateUrlRef.current = null;
+          }}
+          location="Provider Webview"
+        />
       </BottomSheet>
     );
   }
