@@ -187,7 +187,6 @@ describe('usePredictFeedConfig', () => {
       ['crypto', 'crypto'],
       ['sports', 'sports'],
       ['trending', 'all'],
-      ['popular-today', 'all'],
     ])(
       'passes baseTagSlug "%s" -> "%s" to usePredictFilterOptions',
       (feedId, expectedSlug) => {

@@ -27,17 +27,16 @@ import type {
 import { PredictHomeSelectorsIDs } from '../../../../Predict.testIds';
 
 /**
- * Max number of filter chips rendered on the home section. The full
- * `popular-today` feed shows the complete list; the home rail shows a compact
- * prefix of the same ordered list.
+ * Max number of filter chips rendered on the home section. The home rail shows
+ * a compact prefix of the same ordered list as the Trending feed.
  */
 const POPULAR_TODAY_FILTER_LIMIT = 10;
 const SKELETON_COUNT = 8;
 const DEFAULT_CHIP_ROW_COUNT = 2;
 
 /**
- * Derive the section's filter-options params from the canonical `popular-today`
- * feed registry so there is a single source of truth. Crucially, we do NOT pass
+ * Derive the section's filter-options params from the canonical `trending` feed
+ * registry so there is a single source of truth. Crucially, we do NOT pass
  * a top-level `limit` here: that keeps the React Query cache key identical to
  * the full feed's `usePredictFilterOptions` call (which omits `limit`), so the
  * home section and the feed share the same cached related-tags request instead
@@ -45,7 +44,7 @@ const DEFAULT_CHIP_ROW_COUNT = 2;
  * `POPULAR_TODAY_FILTER_LIMIT` when slicing the returned options.
  */
 const POPULAR_TODAY_FILTER_PARAMS: PredictFilterOptionsParams = (() => {
-  const dynamicConfig = resolvePredictFeedDynamicFilterConfig('popular-today');
+  const dynamicConfig = resolvePredictFeedDynamicFilterConfig('trending');
 
   return {
     source: dynamicConfig?.source ?? 'related-tags',
@@ -99,9 +98,9 @@ interface PredictPopularTodaySectionProps {
 /**
  * Predict home "Popular today" tag rail (PRED-917).
  *
- * Uses the same related-tag source as the full `popular-today` feed. The header
- * opens the all-up Popular Today feed, while each chip opens that feed with the
- * selected related-tag filter preselected.
+ * Uses the same related-tag source as the Trending feed. The header opens the
+ * all-up Trending feed, while each chip opens that feed with the selected
+ * related-tag filter preselected.
  */
 const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
   testID = PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.SECTION,
@@ -136,10 +135,10 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
     [rowCount],
   );
 
-  const navigateToPopularToday = useCallback(
+  const navigateToTrending = useCallback(
     (initialFilterId?: string) => {
       const params: PredictFeedRouteParams = {
-        feedId: 'popular-today',
+        feedId: 'trending',
         entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
         ...(initialFilterId ? { initialFilterId } : {}),
       };
@@ -153,14 +152,14 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
   );
 
   const handleSeeAll = useCallback(() => {
-    navigateToPopularToday();
-  }, [navigateToPopularToday]);
+    navigateToTrending();
+  }, [navigateToTrending]);
 
   const handleChipPress = useCallback(
     (option: PredictFilterOption) => {
-      navigateToPopularToday(option.id);
+      navigateToTrending(option.id);
     },
-    [navigateToPopularToday],
+    [navigateToTrending],
   );
 
   if (!isLoading && chips.length === 0) {

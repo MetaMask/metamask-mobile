@@ -179,7 +179,7 @@ describe('PredictPopularTodaySection', () => {
     ).toBeNull();
   });
 
-  it('navigates to the Popular Today feed when the header is pressed', () => {
+  it('navigates to the Trending feed when the header is pressed', () => {
     setFilterOptions({
       filterOptions: [createFilterOption('elections', 'Elections')],
     });
@@ -191,13 +191,13 @@ describe('PredictPopularTodaySection', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.FEED,
       params: {
-        feedId: 'popular-today',
+        feedId: 'trending',
         entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
       },
     });
   });
 
-  it('navigates to the Popular Today feed with the selected filter when a chip is pressed', () => {
+  it('navigates to the Trending feed with the selected filter when a chip is pressed', () => {
     setFilterOptions({
       filterOptions: [createFilterOption('elections', 'Elections')],
     });
@@ -213,7 +213,7 @@ describe('PredictPopularTodaySection', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.FEED,
       params: {
-        feedId: 'popular-today',
+        feedId: 'trending',
         initialFilterId: 'elections',
         entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
       },
