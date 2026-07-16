@@ -9415,7 +9415,7 @@ __metadata:
 
 "@metamask/money-account-upgrade-controller@patch:@metamask-previews/money-account-upgrade-controller@npm%3A2.2.1-preview-8b1e39b#~/.yarn/patches/@metamask-previews-money-account-upgrade-controller-npm-2.2.1-preview-8b1e39b-fbf1203965.patch":
   version: 2.2.1-preview-8b1e39b
-  resolution: "@metamask/money-account-upgrade-controller@patch:@metamask-previews/money-account-upgrade-controller@npm%3A2.2.1-preview-8b1e39b#~/.yarn/patches/@metamask-previews-money-account-upgrade-controller-npm-2.2.1-preview-8b1e39b-fbf1203965.patch::version=2.2.1-preview-8b1e39b&hash=55e60f"
+  resolution: "@metamask/money-account-upgrade-controller@patch:@metamask-previews/money-account-upgrade-controller@npm%3A2.2.1-preview-8b1e39b#~/.yarn/patches/@metamask-previews-money-account-upgrade-controller-npm-2.2.1-preview-8b1e39b-fbf1203965.patch::version=2.2.1-preview-8b1e39b&hash=e0f933"
   dependencies:
     "@metamask/authenticated-user-storage": "npm:^3.0.1"
     "@metamask/base-controller": "npm:^9.1.0"
@@ -9427,7 +9427,7 @@ __metadata:
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/network-controller": "npm:^34.0.0"
     "@metamask/utils": "npm:^11.11.0"
-  checksum: 10/346bf615738ea7c0ecf5c1f33c95545fcb95f8391c1d8f8f48ec2b5593484a7a2256404a0d2e00dbce02abd3815aa089b60d4a9cc252ee9bf3d361cbd430b18a
+  checksum: 10/087f9215d14a5a544f6981d854f38d4548fbb3733cd4a99ef0381d61548488fc0d15559a115fe2fb59aaf889953c7597e24a2383e2af74f756a4874681df1d99
   languageName: node
   linkType: hard
 
