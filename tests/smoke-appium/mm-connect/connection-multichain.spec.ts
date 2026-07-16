@@ -6,6 +6,7 @@ import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelp
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
 import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
 import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers.js';
+import PlaywrightUtilities from '../../framework/PlaywrightUtilities.js';
 import { DappServer, DappVariants, TestDapps } from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
@@ -66,6 +67,7 @@ appiumTest.describe(SmokeMMConnect('Multichain browser connect'), () => {
 
           // Emulator Chrome 113: Appium WEBVIEW_chrome switch hangs in Chromedriver
           // session creation. Drive the dapp via CDP instead.
+          PlaywrightUtilities.collapseStatusBar();
           await ChromeCdpHelpers.waitAndClickTestId(
             DAPP_URL,
             MMConnectDappTestIds.CONNECT_BUTTON,

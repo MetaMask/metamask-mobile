@@ -185,7 +185,14 @@ export default class ChromeCdpHelpers {
           const el = document.querySelector('[data-testid=${JSON.stringify(testId)}]');
           if (!el) return false;
           el.scrollIntoView({ block: 'center', inline: 'center' });
-          el.click();
+          // Prefer a trusted-style activation path for deeplink buttons.
+          if (typeof el.focus === 'function') el.focus();
+          el.dispatchEvent(new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+          }));
+          if (typeof el.click === 'function') el.click();
           return true;
         })()`,
       );
