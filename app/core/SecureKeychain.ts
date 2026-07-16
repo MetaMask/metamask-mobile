@@ -8,9 +8,14 @@ import { AnalyticsEventBuilder } from '../util/analytics/AnalyticsEventBuilder';
 import Device from '../util/device';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
 import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+interface SecureKeychainPrivateState {
+  code: string;
+  isAuthenticating: boolean;
+}
+
 const privates = new WeakMap<
   SecureKeychainEncryptor,
-  { code: string; isAuthenticating: boolean }
+  SecureKeychainPrivateState
 >();
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
@@ -42,14 +47,11 @@ class SecureKeychainEncryptor {
   }
 
   get isAuthenticating(): boolean {
-    return privates.get(this)?.isAuthenticating ?? false;
+    return this.#getPrivateState().isAuthenticating;
   }
 
   set isAuthenticating(value: boolean) {
-    const state = privates.get(this);
-    if (state) {
-      state.isAuthenticating = value;
-    }
+    this.#getPrivateState().isAuthenticating = value;
   }
 
   static getInstance(code: string): SecureKeychainEncryptor {
@@ -58,15 +60,23 @@ class SecureKeychainEncryptor {
   }
 
   encryptPassword(password: string) {
-    return encryptor.encrypt(privates.get(this).code, { password });
+    return encryptor.encrypt(this.#getPrivateState().code, { password });
   }
 
   decryptPassword(data: string): Promise<{
     password: string;
   }> {
-    return encryptor.decrypt(privates.get(this).code, data) as Promise<{
+    return encryptor.decrypt(this.#getPrivateState().code, data) as Promise<{
       password: string;
     }>;
+  }
+
+  #getPrivateState(): SecureKeychainPrivateState {
+    const state = privates.get(this);
+    if (!state) {
+      throw new Error('SecureKeychainEncryptor private state is missing');
+    }
+    return state;
   }
 }
 
