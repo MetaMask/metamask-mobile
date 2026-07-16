@@ -45,7 +45,7 @@ import {
   selectMetaMaskPayFlags,
   selectDepositLimits,
 } from '../../../../../selectors/featureFlagController/confirmations';
-import { isStablecoin } from '../../utils/token';
+import { isRouteToken } from '../../utils/relayFixedSpread';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
 
 jest.mock(
@@ -58,9 +58,9 @@ jest.mock(
     selectDepositLimits: jest.fn(),
   }),
 );
-jest.mock('../../utils/token', () => ({
-  ...jest.requireActual('../../utils/token'),
-  isStablecoin: jest.fn(),
+jest.mock('../../utils/relayFixedSpread', () => ({
+  ...jest.requireActual('../../utils/relayFixedSpread'),
+  isRouteToken: jest.fn(),
 }));
 jest.mock('../../../../UI/Money/hooks/useMoneyAccount', () => ({
   ...jest.requireActual('../../../../UI/Money/hooks/useMoneyAccount'),
@@ -221,7 +221,7 @@ describe('useTransactionCustomAmount', () => {
       },
     });
     (selectDepositLimits as unknown as jest.Mock).mockReturnValue({});
-    (isStablecoin as unknown as jest.Mock).mockReturnValue(false);
+    (isRouteToken as unknown as jest.Mock).mockReturnValue(false);
   });
 
   it('returns pending amount provided by updatePendingAmount', async () => {
@@ -1451,7 +1451,7 @@ describe('useTransactionCustomAmount', () => {
     });
 
     it('prefills stablecoin with 100% of balance', async () => {
-      (isStablecoin as unknown as jest.Mock).mockReturnValue(true);
+      (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           address: TOKEN_ADDRESS_MOCK,
@@ -1472,7 +1472,7 @@ describe('useTransactionCustomAmount', () => {
     });
 
     it('prefills non-stablecoin with 50% of balance', async () => {
-      (isStablecoin as unknown as jest.Mock).mockReturnValue(false);
+      (isRouteToken as unknown as jest.Mock).mockReturnValue(false);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           address: TOKEN_ADDRESS_MOCK,
@@ -1493,7 +1493,7 @@ describe('useTransactionCustomAmount', () => {
     });
 
     it('caps at deposit limit when balance exceeds it', async () => {
-      (isStablecoin as unknown as jest.Mock).mockReturnValue(true);
+      (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           address: TOKEN_ADDRESS_MOCK,
@@ -1533,7 +1533,7 @@ describe('useTransactionCustomAmount', () => {
     });
 
     it('resets amountFiat to zero when switching to zero-balance token', async () => {
-      (isStablecoin as unknown as jest.Mock).mockReturnValue(true);
+      (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           address: TOKEN_ADDRESS_MOCK,
@@ -1569,7 +1569,7 @@ describe('useTransactionCustomAmount', () => {
     });
 
     it('only prefills once even if balance changes', async () => {
-      (isStablecoin as unknown as jest.Mock).mockReturnValue(true);
+      (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           address: TOKEN_ADDRESS_MOCK,
