@@ -859,5 +859,11 @@
       }
     },
     "version": "v0.3.0"
+  },
+  "previewBuilds": {
+    "@metamask/react-data-query": {
+      "previewVersion": "0.2.2-preview-789f7f935",
+      "type": "breaking"
+    }
   }
 }
