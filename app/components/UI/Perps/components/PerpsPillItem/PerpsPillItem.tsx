@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import {
   PERPS_EVENT_VALUE,
@@ -11,6 +12,7 @@ import { formatPercentChange } from '../../../Trending/utils/formatPercentChange
 import { ExplorePill } from '../../../Trending/components/ExplorePill';
 import type { PerpsFeedItem } from '../../types/perpsFeedTypes';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { selectPerpsShowFullAssetNamesFlag } from '../../selectors/featureFlags';
 
 const LOGO_SIZE = 24;
 
@@ -49,10 +51,18 @@ const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { market } = item;
 
+  const showFullAssetNames = useSelector(selectPerpsShowFullAssetNamesFlag);
+
   const { changeLabel, changeTextColor } = useMemo(
     () => formatPercentChange(market.change24hPercent),
     [market.change24hPercent],
   );
+
+  const title = useMemo(() => {
+    const label =
+      showFullAssetNames && market.name ? market.name : market.symbol;
+    return getPerpsDisplaySymbol(label);
+  }, [showFullAssetNames, market.name, market.symbol]);
 
   const onPress = () => {
     onCardPress?.();
@@ -86,7 +96,7 @@ const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
           recyclingKey={market.symbol}
         />
       }
-      title={getPerpsDisplaySymbol(market.symbol)}
+      title={title}
       changeLabel={changeLabel}
       changeTextColor={changeTextColor}
     />

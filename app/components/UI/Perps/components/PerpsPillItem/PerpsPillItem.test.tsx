@@ -12,9 +12,36 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPerpsShowFullAssetNamesFlag: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+const { selectPerpsShowFullAssetNamesFlag } = jest.requireMock(
+  '../../selectors/featureFlags',
+);
+const { useSelector } = jest.requireMock('react-redux');
+const mockUseSelector = useSelector as jest.MockedFunction<
+  (selector: unknown) => unknown
+>;
+
+// Returns the feature-flag value only for the full asset names selector,
+// and false for every other selector.
+const mockSelectors = (showFullAssetNames: boolean) => {
+  mockUseSelector.mockImplementation((selector) =>
+    selector === selectPerpsShowFullAssetNamesFlag ? showFullAssetNames : false,
+  );
+};
+
 describe('PerpsPillItem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default to the production default (flag off) so tickers are shown.
+    mockSelectors(false);
   });
 
   const buildItem = (
@@ -131,5 +158,47 @@ describe('PerpsPillItem', () => {
 
     rerender(<PerpsPillItem item={buildItem('-0.5')} />);
     expect(getByText('-0.50%')).toBeTruthy();
+  });
+
+  describe('full asset name feature flag', () => {
+    const buildNamedItem = (): PerpsFeedItem =>
+      ({
+        market: {
+          symbol: 'ETH',
+          name: 'Ethereum',
+          change24hPercent: '1.5',
+        },
+        isWatchlisted: false,
+      }) as PerpsFeedItem;
+
+    it('shows the ticker symbol when the flag is off', () => {
+      mockSelectors(false);
+
+      const { getByText, queryByText } = render(
+        <PerpsPillItem item={buildNamedItem()} />,
+      );
+
+      expect(getByText('ETH')).toBeTruthy();
+      expect(queryByText('Ethereum')).toBeNull();
+    });
+
+    it('shows the full asset name when the flag is on', () => {
+      mockSelectors(true);
+
+      const { getByText, queryByText } = render(
+        <PerpsPillItem item={buildNamedItem()} />,
+      );
+
+      expect(getByText('Ethereum')).toBeTruthy();
+      expect(queryByText('ETH')).toBeNull();
+    });
+
+    it('falls back to the ticker symbol when the flag is on but no name exists', () => {
+      mockSelectors(true);
+
+      const { getByText } = render(<PerpsPillItem item={buildItem('1.5')} />);
+
+      expect(getByText('ETH')).toBeTruthy();
+    });
   });
 });
