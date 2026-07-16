@@ -8,9 +8,13 @@ import {
   FeedViewSelectorsIDs,
   getFeedAudienceOptionTestId,
   getFeedTradeButtonTestId,
+  getFeedTradeCardTestId,
   getFeedTraderTestId,
-  getFeedTypeOptionTestId,
 } from './FeedView.testIds';
+import {
+  TypeFilterSelectorsIDs,
+  getTypeFilterOptionTestId,
+} from '../components/TypeFilter';
 import type { FeedItem, FeedSection, FeedTypeFilter } from './types';
 import type { UseTraderFeedResult } from './hooks/useTraderFeed';
 
@@ -151,12 +155,17 @@ jest.mock('../TraderPositionView/components/QuickBuy', () => {
 
 let handleTypeFilterChange: ((value: FeedTypeFilter) => void) | undefined;
 
-jest.mock('./components/FeedTypeSheet', () => {
+jest.mock('../components/TypeFilter', () => {
   const ReactActual = jest.requireActual('react');
-  const Actual = jest.requireActual('./components/FeedTypeSheet').default;
-  return (props: React.ComponentProps<typeof Actual>) => {
-    handleTypeFilterChange = props.onChange;
-    return ReactActual.createElement(Actual, props);
+  const Actual = jest.requireActual('../components/TypeFilter');
+  return {
+    ...Actual,
+    TypeFilterSheet: (
+      props: React.ComponentProps<typeof Actual.TypeFilterSheet>,
+    ) => {
+      handleTypeFilterChange = props.onChange;
+      return ReactActual.createElement(Actual.TypeFilterSheet, props);
+    },
   };
 });
 
@@ -172,7 +181,7 @@ describe('FeedView', () => {
     renderWithProvider(<FeedView />);
 
     expect(
-      screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR),
+      screen.getByTestId(TypeFilterSelectorsIDs.SELECTOR),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(FeedViewSelectorsIDs.AUDIENCE_TOGGLE),
@@ -287,8 +296,8 @@ describe('FeedView', () => {
   it('tracks type filter changes via Trader Feed Interaction', () => {
     renderWithProvider(<FeedView />);
 
-    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
-    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('tokens')));
+    fireEvent.press(screen.getByTestId(TypeFilterSelectorsIDs.SELECTOR));
+    fireEvent.press(screen.getByTestId(getTypeFilterOptionTestId('tokens')));
 
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_TRADER_FEED_INTERACTION,
@@ -314,6 +323,42 @@ describe('FeedView', () => {
         source: 'trader_feed',
       }),
     );
+  });
+
+  it('navigates to TraderPositionView when a spot position card is pressed', () => {
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedTradeCardTestId('feed-1')));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.POSITION,
+      {
+        positionId: 'pos-feed-1',
+        traderId: 'trader-1',
+        traderAddress: '0x1111111111111111111111111111111111111111',
+        source: 'trader_feed',
+        originalEntryPoint: 'trader_feed',
+      },
+    );
+    expect(mockTrack).not.toHaveBeenCalled();
+  });
+
+  it('navigates to TraderPositionView when a perps position card is pressed', () => {
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedTradeCardTestId('feed-2')));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.POSITION,
+      {
+        positionId: 'pos-feed-2',
+        traderId: 'trader-2',
+        traderAddress: '0x2222222222222222222222222222222222222222',
+        source: 'trader_feed',
+        originalEntryPoint: 'trader_feed',
+      },
+    );
+    expect(mockTrack).not.toHaveBeenCalled();
   });
 
   it('tracks chained type filter changes with the correct previous value', () => {
@@ -397,8 +442,8 @@ describe('FeedView', () => {
 
     renderWithProvider(<FeedView />);
 
-    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
-    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('tokens')));
+    fireEvent.press(screen.getByTestId(TypeFilterSelectorsIDs.SELECTOR));
+    fireEvent.press(screen.getByTestId(getTypeFilterOptionTestId('tokens')));
 
     expect(
       screen.getByTestId(FeedViewSelectorsIDs.TYPE_EMPTY_STATE),
@@ -422,8 +467,8 @@ describe('FeedView', () => {
 
     renderWithProvider(<FeedView />);
 
-    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
-    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('perps')));
+    fireEvent.press(screen.getByTestId(TypeFilterSelectorsIDs.SELECTOR));
+    fireEvent.press(screen.getByTestId(getTypeFilterOptionTestId('perps')));
 
     expect(
       screen.getByTestId(FeedViewSelectorsIDs.TYPE_EMPTY_STATE),
@@ -443,8 +488,8 @@ describe('FeedView', () => {
 
     renderWithProvider(<FeedView />);
 
-    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
-    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('perps')));
+    fireEvent.press(screen.getByTestId(TypeFilterSelectorsIDs.SELECTOR));
+    fireEvent.press(screen.getByTestId(getTypeFilterOptionTestId('perps')));
 
     expect(
       screen.getByTestId(FeedViewSelectorsIDs.TYPE_EMPTY_STATE),

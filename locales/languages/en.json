@@ -1097,19 +1097,19 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "Weekly Top Traders",
-      "chain_filter": {
-        "all": "All",
-        "tokens": "Tokens",
-        "perps": "Perps"
-      },
+      "title": "Weekly top traders",
       "notifications_banner": {
         "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
         "open_settings": "Open settings"
       }
     },
+    "type_filter": {
+      "all": "All types",
+      "tokens": "Tokens",
+      "perps": "Perps"
+    },
     "feed": {
-      "title": "Top Traders",
+      "title": "Top traders",
       "tabs": {
         "leaderboard": "Leaderboard",
         "feed": "Feed"
@@ -1122,11 +1122,6 @@
         "sold": "sold",
         "opened": "opened",
         "closed": "closed"
-      },
-      "type_filter": {
-        "all": "All types",
-        "tokens": "Tokens",
-        "perps": "Perps"
       },
       "empty_following": {
         "title": "No activity yet",
@@ -1786,8 +1781,6 @@
       "loss_percent_placeholder": "Loss",
       "profit_roe_placeholder": "% Profit",
       "loss_roe_placeholder": "% Loss",
-      "toggle_take_profit_sign": "Toggle take profit return sign",
-      "toggle_stop_loss_sign": "Toggle stop loss return sign",
       "usd_label": "$",
       "take_profit_invalid_price": "Take profit must be {{direction}} {{priceType}} price",
       "stop_loss_invalid_price": "Stop loss must be {{direction}} {{priceType}} price",
@@ -5043,6 +5036,15 @@
     "activity_market_close_short": "Market — close short",
     "activity_limit_short": "Limit short",
     "activity_limit_close_short": "Limit — close short",
+    "activity_market_long": "Market long",
+    "activity_stop_market_close_long": "Stop market — close long",
+    "activity_market_close_long": "Market — close long",
+    "activity_limit_long": "Limit long",
+    "activity_limit_close_long": "Limit — close long",
+    "activity_order_status_filled": "Filled",
+    "activity_order_status_canceled": "Canceled",
+    "activity_order_status_rejected": "Rejected",
+    "activity_order_status_open": "Open",
     "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
