@@ -10,6 +10,7 @@ import {
 } from '../../Earn/constants/musd';
 import {
   applySlippage,
+  applyWithdrawalSlippage,
   getSharesForWithdrawal,
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdrawBatch,
@@ -26,6 +27,8 @@ import { getProviderByChainId } from '../../../../util/notifications/methods/com
 import {
   type MoneyAccountVaultConfig,
   selectMoneyAccountVaultConfig,
+  selectMoneyAccountWithdrawalSlippageBps,
+  DEFAULT_WITHDRAWAL_SLIPPAGE_BPS,
 } from '../../../../selectors/featureFlagController/moneyAccount';
 
 jest.mock('../../Earn/constants/musd', () => ({
@@ -53,6 +56,8 @@ jest.mock('../../../../core/redux/ReduxService', () => ({
 
 jest.mock('../../../../selectors/featureFlagController/moneyAccount', () => ({
   selectMoneyAccountVaultConfig: jest.fn(),
+  selectMoneyAccountWithdrawalSlippageBps: jest.fn(),
+  DEFAULT_WITHDRAWAL_SLIPPAGE_BPS: 0,
 }));
 
 jest.mock('../../../../selectors/moneyAccountController', () => ({
@@ -99,6 +104,9 @@ const mockGetProviderByChainId = jest.mocked(getProviderByChainId);
 const mockSelectMoneyAccountVaultConfig = jest.mocked(
   selectMoneyAccountVaultConfig,
 );
+const mockSelectWithdrawalSlippageBps = jest.mocked(
+  selectMoneyAccountWithdrawalSlippageBps,
+);
 
 const MOCK_CHAIN_ID = '0x8f' as Hex;
 const MOCK_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
@@ -142,6 +150,50 @@ describe('moneyAccountTransactions', () => {
 
     it('returns 0 for 0 input', () => {
       expect(applySlippage(BigInt(0))).toBe(BigInt(0));
+    });
+  });
+
+  describe('applyWithdrawalSlippage', () => {
+    it('applies 20 bps (0.2%) slippage', () => {
+      // 1_000_000 * (10_000 - 20) / 10_000 = 1_000_000 * 9980 / 10000 = 998_000
+      expect(applyWithdrawalSlippage(BigInt(1_000_000), 20)).toBe(
+        BigInt(998_000),
+      );
+    });
+
+    it('applies 50 bps (0.5%) slippage', () => {
+      // 1_000_000 * 9950 / 10000 = 995_000
+      expect(applyWithdrawalSlippage(BigInt(1_000_000), 50)).toBe(
+        BigInt(995_000),
+      );
+    });
+
+    it('applies 100 bps (1.0%) slippage', () => {
+      expect(applyWithdrawalSlippage(BigInt(1_000_000), 100)).toBe(
+        BigInt(990_000),
+      );
+    });
+
+    it('returns 0n for 0n input regardless of bps', () => {
+      expect(applyWithdrawalSlippage(0n, 20)).toBe(0n);
+      expect(applyWithdrawalSlippage(0n, 500)).toBe(0n);
+    });
+
+    it('rounds non-integer bps to nearest integer', () => {
+      // 2.5 rounds to 3 bps: 1_000_000 * 9997 / 10000 = 999_700
+      expect(applyWithdrawalSlippage(BigInt(1_000_000), 2.5)).toBe(
+        BigInt(999_700),
+      );
+    });
+
+    it('never returns negative', () => {
+      // Even with 10000 bps (100%), result should be 0
+      expect(applyWithdrawalSlippage(BigInt(1_000_000), 10_000)).toBe(0n);
+    });
+
+    it('handles small amounts correctly', () => {
+      // $0.01 = 10_000 base units, 20 bps → 10_000 * 9980 / 10_000 = 9_980
+      expect(applyWithdrawalSlippage(BigInt(10_000), 20)).toBe(BigInt(9_980));
     });
   });
 
@@ -420,15 +472,10 @@ describe('moneyAccountTransactions', () => {
       selectPrimaryMoneyAccount,
     );
     const mockSelectEvmAddress = jest.mocked(selectEvmAddress);
-    const mockGetProviderByChainId = jest.mocked(getProviderByChainId);
+    const mockSlippageBps = jest.mocked(
+      selectMoneyAccountWithdrawalSlippageBps,
+    );
 
-    const MOCK_VAULT_CONFIG = {
-      chainId: MOCK_CHAIN_ID,
-      boringVault: MOCK_BORING_VAULT,
-      tellerAddress: MOCK_TELLER,
-      accountantAddress: MOCK_ACCOUNTANT,
-      lensAddress: MOCK_LENS,
-    };
     const MOCK_MONEY_ACCOUNT_ADDRESS =
       '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as Hex;
     const MOCK_RECIPIENT = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex;
@@ -445,6 +492,7 @@ describe('moneyAccountTransactions', () => {
         address: MOCK_MONEY_ACCOUNT_ADDRESS,
       } as ReturnType<typeof selectPrimaryMoneyAccount>);
       mockSelectEvmAddress.mockReturnValue(MOCK_RECIPIENT);
+      mockSlippageBps.mockReturnValue(DEFAULT_WITHDRAWAL_SLIPPAGE_BPS);
       mockGetProviderByChainId.mockReturnValue(
         MOCK_PROVIDER as ReturnType<typeof getProviderByChainId>,
       );
@@ -574,6 +622,7 @@ describe('moneyAccountTransactions', () => {
         moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
         recipient: MOCK_RECIPIENT_ADDRESS,
         provider: MOCK_PROVIDER,
+        withdrawalSlippageBps: DEFAULT_WITHDRAWAL_SLIPPAGE_BPS,
       });
 
       expect(result.withdrawTx.type).toBe(TransactionType.moneyAccountWithdraw);
@@ -595,6 +644,7 @@ describe('moneyAccountTransactions', () => {
         moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
         recipient: MOCK_RECIPIENT_ADDRESS,
         provider: MOCK_PROVIDER,
+        withdrawalSlippageBps: DEFAULT_WITHDRAWAL_SLIPPAGE_BPS,
       });
 
       // transferTx.to is the ERC-20 token contract (USDC), not the recipient
@@ -613,6 +663,7 @@ describe('moneyAccountTransactions', () => {
         moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
         recipient: MOCK_RECIPIENT_ADDRESS,
         provider: MOCK_PROVIDER,
+        withdrawalSlippageBps: DEFAULT_WITHDRAWAL_SLIPPAGE_BPS,
       });
 
       expect(result.withdrawTx.params.data).toBeDefined();
@@ -633,6 +684,7 @@ describe('moneyAccountTransactions', () => {
         moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
         recipient: MOCK_RECIPIENT_ADDRESS,
         provider: MOCK_PROVIDER,
+        withdrawalSlippageBps: DEFAULT_WITHDRAWAL_SLIPPAGE_BPS,
       });
 
       expect(mockGetRate).toHaveBeenCalledTimes(1);
@@ -647,6 +699,7 @@ describe('moneyAccountTransactions', () => {
         moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
         recipient: MOCK_RECIPIENT_ADDRESS,
         provider: MOCK_PROVIDER,
+        withdrawalSlippageBps: DEFAULT_WITHDRAWAL_SLIPPAGE_BPS,
       });
 
       expect(mockGetRate).not.toHaveBeenCalled();
@@ -665,6 +718,7 @@ describe('moneyAccountTransactions', () => {
         moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
         recipient: MOCK_RECIPIENT_ADDRESS,
         provider: MOCK_PROVIDER,
+        withdrawalSlippageBps: DEFAULT_WITHDRAWAL_SLIPPAGE_BPS,
       });
 
       // The recipient address (lowercased, without 0x prefix) should appear in the calldata
@@ -673,7 +727,7 @@ describe('moneyAccountTransactions', () => {
       );
     });
 
-    it('encodes minimumAssets as amount - 1 for defense-in-depth', async () => {
+    it('encodes minimumAssets as amount - 1 when slippage is 0 (default)', async () => {
       mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
 
       const amount = BigInt(1_960_000);
@@ -685,9 +739,9 @@ describe('moneyAccountTransactions', () => {
         moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
         recipient: MOCK_RECIPIENT_ADDRESS,
         provider: MOCK_PROVIDER,
+        withdrawalSlippageBps: 0,
       });
 
-      // Decode withdraw calldata to verify minimumAssets = amount - 1
       const iface = new ethers.utils.Interface([
         'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
       ]);
@@ -699,6 +753,60 @@ describe('moneyAccountTransactions', () => {
       expect(encodedMinimumAssets).toBe(amount - 1n);
     });
 
+    it('encodes minimumAssets with percentage slippage when bps > 0 (20 bps)', async () => {
+      mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
+
+      const amount = BigInt(1_960_000);
+      const result = await buildMoneyAccountWithdrawBatch({
+        amount,
+        chainId: MOCK_CHAIN_ID,
+        tellerAddress: MOCK_TELLER,
+        accountantAddress: MOCK_ACCOUNTANT,
+        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
+        recipient: MOCK_RECIPIENT_ADDRESS,
+        provider: MOCK_PROVIDER,
+        withdrawalSlippageBps: 20,
+      });
+
+      // 20 bps on 1_960_000 → 1_960_000 * 9980 / 10000 = 1_956_080
+      const iface = new ethers.utils.Interface([
+        'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
+      ]);
+      const decoded = iface.decodeFunctionData(
+        'withdraw',
+        result.withdrawTx.params.data,
+      );
+      const encodedMinimumAssets = BigInt(decoded.minimumAssets.toString());
+      expect(encodedMinimumAssets).toBe(BigInt(1_956_080));
+    });
+
+    it('encodes minimumAssets with custom slippage (50 bps)', async () => {
+      mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
+
+      const amount = BigInt(1_960_000);
+      const result = await buildMoneyAccountWithdrawBatch({
+        amount,
+        chainId: MOCK_CHAIN_ID,
+        tellerAddress: MOCK_TELLER,
+        accountantAddress: MOCK_ACCOUNTANT,
+        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
+        recipient: MOCK_RECIPIENT_ADDRESS,
+        provider: MOCK_PROVIDER,
+        withdrawalSlippageBps: 50,
+      });
+
+      // 50 bps on 1_960_000 → 1_960_000 * 9950 / 10000 = 1_950_200
+      const iface = new ethers.utils.Interface([
+        'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
+      ]);
+      const decoded = iface.decodeFunctionData(
+        'withdraw',
+        result.withdrawTx.params.data,
+      );
+      const encodedMinimumAssets = BigInt(decoded.minimumAssets.toString());
+      expect(encodedMinimumAssets).toBe(BigInt(1_950_200));
+    });
+
     it('encodes minimumAssets as 0 when amount is 0 (placeholder batch)', async () => {
       const result = await buildMoneyAccountWithdrawBatch({
         amount: BigInt(0),
@@ -708,6 +816,7 @@ describe('moneyAccountTransactions', () => {
         moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
         recipient: MOCK_RECIPIENT_ADDRESS,
         provider: MOCK_PROVIDER,
+        withdrawalSlippageBps: DEFAULT_WITHDRAWAL_SLIPPAGE_BPS,
       });
 
       const iface = new ethers.utils.Interface([
@@ -733,6 +842,7 @@ describe('moneyAccountTransactions', () => {
         moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
         recipient: MOCK_RECIPIENT_ADDRESS,
         provider: MOCK_PROVIDER,
+        withdrawalSlippageBps: DEFAULT_WITHDRAWAL_SLIPPAGE_BPS,
       });
 
       const iface = new ethers.utils.Interface([
@@ -836,6 +946,9 @@ describe('moneyAccountTransactions', () => {
       selectPrimaryMoneyAccount,
     );
     const mockGetProvider = jest.mocked(getProviderByChainId);
+    const mockSlippageBps = jest.mocked(
+      selectMoneyAccountWithdrawalSlippageBps,
+    );
 
     const MOCK_MONEY_ACCOUNT_ADDRESS =
       '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as Hex;
@@ -847,6 +960,7 @@ describe('moneyAccountTransactions', () => {
       mockSelectPrimaryMoneyAccount.mockReturnValue({
         address: MOCK_MONEY_ACCOUNT_ADDRESS,
       } as ReturnType<typeof selectPrimaryMoneyAccount>);
+      mockSlippageBps.mockReturnValue(DEFAULT_WITHDRAWAL_SLIPPAGE_BPS);
       mockGetProvider.mockReturnValue(
         MOCK_PROVIDER as ReturnType<typeof getProviderByChainId>,
       );

@@ -4,7 +4,10 @@ import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { bytesToHex, Hex } from '@metamask/utils';
 import { v4 as uuidv4, parse as uuidParse } from 'uuid';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
-import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import {
+  selectMoneyAccountVaultConfig,
+  selectMoneyAccountWithdrawalSlippageBps,
+} from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
 import {
@@ -164,6 +167,9 @@ export function useMoneyAccountWithdrawal() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const recipient = useSelector(selectEvmAddress);
+  const withdrawalSlippageBps = useSelector(
+    selectMoneyAccountWithdrawalSlippageBps,
+  );
   const { navigateToConfirmation } = useConfirmNavigation();
 
   const initiateWithdrawal = useCallback(async () => {
@@ -198,6 +204,7 @@ export function useMoneyAccountWithdrawal() {
       moneyAccountAddress: primaryMoneyAccount.address as Hex,
       recipient: recipient as Hex,
       provider,
+      withdrawalSlippageBps,
     });
 
     // Navigate early for better UX; recover on failure below.
@@ -228,7 +235,13 @@ export function useMoneyAccountWithdrawal() {
       // Rethrow so the caller can roll back navigation / surface a toast.
       throw error;
     }
-  }, [navigateToConfirmation, primaryMoneyAccount, recipient, vaultConfig]);
+  }, [
+    navigateToConfirmation,
+    primaryMoneyAccount,
+    recipient,
+    vaultConfig,
+    withdrawalSlippageBps,
+  ]);
 
   return { initiateWithdrawal };
 }

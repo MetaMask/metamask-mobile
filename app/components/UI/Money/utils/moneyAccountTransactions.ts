@@ -15,7 +15,10 @@ import {
 import AppConstants from '../../../../core/AppConstants';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { RootState } from '../../../../reducers';
-import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import {
+  selectMoneyAccountVaultConfig,
+  selectMoneyAccountWithdrawalSlippageBps,
+} from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
@@ -41,13 +44,35 @@ const ERC20_ABI = [
 
 const SLIPPAGE_NUMERATOR = BigInt(998);
 const SLIPPAGE_DENOMINATOR = BigInt(1000);
+const BPS_DENOMINATOR = BigInt(10_000);
 
 /**
- * Applies a 0.2% slippage tolerance to a bigint value.
+ * Applies a 0.2% slippage tolerance to a bigint value (used for deposits).
  * If this sanity-check causes a revert, no funds are lost — retry with a fresh quote.
  */
 export function applySlippage(value: bigint): bigint {
   return (value * SLIPPAGE_NUMERATOR) / SLIPPAGE_DENOMINATOR;
+}
+
+/**
+ * Applies a configurable slippage tolerance to a withdrawal amount to derive
+ * `minimumAssets`. The slippage is expressed in basis points (bps),
+ * e.g. 20 bps = 0.2%, 50 bps = 0.5%, 100 bps = 1.0%.
+ *
+ * For withdrawals the tolerance absorbs both rounding errors (from ceiling
+ * division + contract mulDivDown) and any vault rate movement between the
+ * client encoding the transaction and on-chain execution.
+ *
+ * Returns `0n` when the input is `0n`.
+ */
+export function applyWithdrawalSlippage(
+  amount: bigint,
+  slippageBps: number,
+): bigint {
+  if (amount === 0n) return 0n;
+  const bps = BigInt(Math.round(slippageBps));
+  const result = (amount * (BPS_DENOMINATOR - bps)) / BPS_DENOMINATOR;
+  return result > 0n ? result : 0n;
 }
 
 // -- Shared types ----------------------------------------------------------
@@ -287,6 +312,7 @@ export async function updateMoneyAccountWithdrawTokenAmount(
   const vaultConfig = selectMoneyAccountVaultConfig(state);
   const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
   const recipient = recipientOverride ?? selectEvmAddress(state);
+  const withdrawalSlippageBps = selectMoneyAccountWithdrawalSlippageBps(state);
   if (!vaultConfig || !primaryMoneyAccount?.address || !recipient) return [];
 
   const chainIdHex = transactionMeta.chainId as Hex;
@@ -307,6 +333,7 @@ export async function updateMoneyAccountWithdrawTokenAmount(
     moneyAccountAddress: primaryMoneyAccount.address as Hex,
     recipient: recipient as Hex,
     provider,
+    withdrawalSlippageBps,
   });
 
   return [
@@ -371,6 +398,7 @@ export async function getMoneyAccountWithdrawTransactionsData(
   const vaultConfig = selectMoneyAccountVaultConfig(state);
   const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
   const recipient = recipientOverride ?? selectEvmAddress(state);
+  const withdrawalSlippageBps = selectMoneyAccountWithdrawalSlippageBps(state);
   if (!vaultConfig || !primaryMoneyAccount?.address) return [];
 
   const provider = getProviderByChainId(chainId);
@@ -390,6 +418,7 @@ export async function getMoneyAccountWithdrawTransactionsData(
     moneyAccountAddress: primaryMoneyAccount.address as Hex,
     recipient: recipient as Hex,
     provider,
+    withdrawalSlippageBps,
   });
 
   return [withdrawTx.params, transferTx.params];
@@ -451,9 +480,17 @@ export type MoneyAccountWithdrawBatchResult = MoneyAccountBatchResult<
  * Builds the two-transaction withdrawal batch for a Money Account withdrawal.
  *
  * 1. Calls `getRate` on the accountant contract to get the current vault rate.
- * 2. Converts the asset amount to vault shares.
+ * 2. Converts the asset amount to vault shares (ceiling division).
  * 3. Encodes `withdraw(mUSD, shareAmount, minimumAssets, moneyAccountAddress)` on the teller contract — USDC lands on the money account.
  * 4. Encodes `transfer(recipient, amount)` on the USDC contract — moves the exact requested USDC from the money account to the user's selected EVM account.
+ *
+ * `withdrawalSlippageBps` controls how much `minimumAssets` is reduced below
+ * `amount` to absorb rate movement between encoding and on-chain execution.
+ * Controlled via the `moneyAccountWithdrawalSlippageTolerance` LaunchDarkly
+ * flag (default 20 bps = 0.2%). The subsequent ERC-20 transfer still uses
+ * the original `amount`, so the user receives the full requested value when
+ * the withdrawal succeeds — the slippage only prevents a spurious revert
+ * from the teller's `MinimumAssetsNotMet` check.
  *
  * When `amount === 0n` the rate fetch is skipped: the caller is encoding a
  * placeholder batch that MM Pay will re-encode via
@@ -467,6 +504,7 @@ export async function buildMoneyAccountWithdrawBatch({
   moneyAccountAddress,
   recipient,
   provider,
+  withdrawalSlippageBps,
 }: {
   amount: bigint;
   chainId: Hex;
@@ -477,6 +515,8 @@ export async function buildMoneyAccountWithdrawBatch({
   /** Address of the user's selected EVM account — receives the USDC transfer. */
   recipient: Hex;
   provider: ethers.providers.Provider;
+  /** Slippage tolerance in basis points for minimumAssets. */
+  withdrawalSlippageBps: number;
 }): Promise<MoneyAccountWithdrawBatchResult> {
   const musdAddress = getMoneyAccountDepositAssetAddress(chainId);
 
@@ -487,16 +527,16 @@ export async function buildMoneyAccountWithdrawBatch({
           amount,
           await getVaultRate({ accountantAddress, provider }),
         );
-  // Allow 1-unit slippage on minimumAssets as defense-in-depth against
-  // rounding: the contract's mulDivDown can truncate assetsOut by up to
-  // 1 unit relative to the requested amount. This tolerance is safe
-  // because ceiling division in getSharesForWithdrawal already guarantees
-  // assetsOut >= amount; the 1-unit slack here is a second line of
-  // defense, not a standalone fix. The subsequent ERC-20 transfer uses
-  // the original `amount`, so the tolerance does not affect how much the
-  // user receives — it only prevents a spurious revert from the teller's
-  // MinimumAssetsNotMet check.
-  const minimumAssets = amount > 0n ? amount - 1n : 0n;
+  // When withdrawalSlippageBps is 0 (default), use a fixed 1-unit tolerance
+  // that covers rounding from ceiling division + contract mulDivDown.
+  // When non-zero, apply percentage-based slippage to also absorb vault rate
+  // movement between encoding and on-chain execution.
+  const minimumAssets =
+    withdrawalSlippageBps > 0
+      ? applyWithdrawalSlippage(amount, withdrawalSlippageBps)
+      : amount > 0n
+        ? amount - 1n
+        : 0n;
   const withdrawData = buildWithdrawData(
     musdAddress,
     shareAmount,

@@ -20,7 +20,10 @@ import { MUSD_DECIMALS } from '../../../../components/UI/Earn/constants/musd';
 import Engine from '../../../../core/Engine';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { RootState } from '../../../../reducers';
-import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import {
+  selectMoneyAccountVaultConfig,
+  selectMoneyAccountWithdrawalSlippageBps,
+} from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import { calcTokenValue } from '../../../../util/transactions';
@@ -53,6 +56,10 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
       .toFixed(0),
   );
 
+  const withdrawalSlippageBps = selectMoneyAccountWithdrawalSlippageBps(
+    ReduxService.store.getState() as RootState,
+  );
+
   const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
     amount,
     chainId,
@@ -61,6 +68,7 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
     moneyAccountAddress,
     recipient,
     provider,
+    withdrawalSlippageBps,
   });
 
   const { NetworkController } = Engine.context;

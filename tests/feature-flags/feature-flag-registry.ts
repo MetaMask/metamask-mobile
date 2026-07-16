@@ -3741,6 +3741,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyAccountWithdrawalSlippageTolerance: {
+    name: 'moneyAccountWithdrawalSlippageTolerance',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: { slippageBps: 0 },
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyActivityMockDataEnabled: {
     name: 'moneyActivityMockDataEnabled',
     type: FeatureFlagType.Remote,

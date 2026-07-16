@@ -3,7 +3,9 @@ import {
   selectMoneyAccountWithdrawEnabledFlag,
   selectMoneyAccountVaultConfig,
   selectMoneyOnboardingStepperAnimationEnabled,
+  selectMoneyAccountWithdrawalSlippageBps,
   MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY,
+  DEFAULT_WITHDRAWAL_SLIPPAGE_BPS,
   DEV_VAULT_CONFIG,
 } from './index';
 
@@ -139,6 +141,86 @@ describe('Money Account feature flag selectors', () => {
       );
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectMoneyAccountWithdrawalSlippageBps', () => {
+    it('returns slippageBps when it is a positive number', () => {
+      const result = selectMoneyAccountWithdrawalSlippageBps.resultFunc({
+        moneyAccountWithdrawalSlippageTolerance: { slippageBps: 50 },
+      });
+      expect(result).toBe(50);
+    });
+
+    it('returns default when the flag is absent', () => {
+      const result = selectMoneyAccountWithdrawalSlippageBps.resultFunc({});
+      expect(result).toBe(DEFAULT_WITHDRAWAL_SLIPPAGE_BPS);
+    });
+
+    it('returns default when the flag is null', () => {
+      const result = selectMoneyAccountWithdrawalSlippageBps.resultFunc({
+        moneyAccountWithdrawalSlippageTolerance: null,
+      });
+      expect(result).toBe(DEFAULT_WITHDRAWAL_SLIPPAGE_BPS);
+    });
+
+    it('returns default when slippageBps is zero', () => {
+      const result = selectMoneyAccountWithdrawalSlippageBps.resultFunc({
+        moneyAccountWithdrawalSlippageTolerance: { slippageBps: 0 },
+      });
+      expect(result).toBe(DEFAULT_WITHDRAWAL_SLIPPAGE_BPS);
+    });
+
+    it('returns default when slippageBps is negative', () => {
+      const result = selectMoneyAccountWithdrawalSlippageBps.resultFunc({
+        moneyAccountWithdrawalSlippageTolerance: { slippageBps: -10 },
+      });
+      expect(result).toBe(DEFAULT_WITHDRAWAL_SLIPPAGE_BPS);
+    });
+
+    it('returns default when the flag is a raw number (wrong shape)', () => {
+      const result = selectMoneyAccountWithdrawalSlippageBps.resultFunc({
+        moneyAccountWithdrawalSlippageTolerance: 50,
+      });
+      expect(result).toBe(DEFAULT_WITHDRAWAL_SLIPPAGE_BPS);
+    });
+
+    it('returns default when the flag is a string (wrong shape)', () => {
+      const result = selectMoneyAccountWithdrawalSlippageBps.resultFunc({
+        moneyAccountWithdrawalSlippageTolerance: '50',
+      });
+      expect(result).toBe(DEFAULT_WITHDRAWAL_SLIPPAGE_BPS);
+    });
+
+    it('returns default when the flag is an array (wrong shape)', () => {
+      const result = selectMoneyAccountWithdrawalSlippageBps.resultFunc({
+        moneyAccountWithdrawalSlippageTolerance: [50],
+      });
+      expect(result).toBe(DEFAULT_WITHDRAWAL_SLIPPAGE_BPS);
+    });
+
+    it('returns default when slippageBps key is missing from object', () => {
+      const result = selectMoneyAccountWithdrawalSlippageBps.resultFunc({
+        moneyAccountWithdrawalSlippageTolerance: { someOtherKey: 42 },
+      });
+      expect(result).toBe(DEFAULT_WITHDRAWAL_SLIPPAGE_BPS);
+    });
+
+    it('tolerates additional keys alongside slippageBps', () => {
+      const result = selectMoneyAccountWithdrawalSlippageBps.resultFunc({
+        moneyAccountWithdrawalSlippageTolerance: {
+          slippageBps: 20,
+          futureKey: true,
+        },
+      });
+      expect(result).toBe(20);
+    });
+
+    it('accepts non-integer slippageBps values (e.g. 2.5 bps)', () => {
+      const result = selectMoneyAccountWithdrawalSlippageBps.resultFunc({
+        moneyAccountWithdrawalSlippageTolerance: { slippageBps: 2.5 },
+      });
+      expect(result).toBe(2.5);
     });
   });
 

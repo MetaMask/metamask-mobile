@@ -72,3 +72,45 @@ export const selectMoneyAccountVaultConfig = createSelector(
   selectRemoteFeatureFlags,
   getMoneyAccountVaultConfig,
 );
+
+/**
+ * Default withdrawal slippage tolerance in basis points (bps).
+ * 0 means no percentage-based slippage — falls back to a fixed 1-unit
+ * tolerance in the withdrawal builder. Set to e.g. 20 (0.2%) via the
+ * `moneyAccountWithdrawalSlippageTolerance` LaunchDarkly flag to absorb
+ * rate movement between encoding and on-chain execution.
+ */
+export const DEFAULT_WITHDRAWAL_SLIPPAGE_BPS = 0;
+
+/**
+ * Shape of the `moneyAccountWithdrawalSlippageTolerance` remote feature flag.
+ * Using an object so we can add keys later without breaking existing deploys.
+ * Validation is tolerant of additional/unknown keys.
+ */
+interface WithdrawalSlippageToleranceFlag {
+  slippageBps?: number;
+}
+
+/**
+ * Returns the withdrawal slippage tolerance in basis points from the
+ * `moneyAccountWithdrawalSlippageTolerance` remote feature flag.
+ *
+ * The flag value is a JSON object, e.g. `{ slippageBps: 20 }` for 0.2%.
+ * Falls back to {@link DEFAULT_WITHDRAWAL_SLIPPAGE_BPS} (0) when absent,
+ * malformed, or when `slippageBps` is not a positive number. A value of 0
+ * tells the withdrawal builder to use fixed 1-unit tolerance instead of
+ * percentage-based slippage.
+ */
+export const selectMoneyAccountWithdrawalSlippageBps = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): number => {
+    const raw = remoteFeatureFlags?.moneyAccountWithdrawalSlippageTolerance;
+    if (raw != null && typeof raw === 'object' && !Array.isArray(raw)) {
+      const { slippageBps } = raw as WithdrawalSlippageToleranceFlag;
+      if (typeof slippageBps === 'number' && slippageBps > 0) {
+        return slippageBps;
+      }
+    }
+    return DEFAULT_WITHDRAWAL_SLIPPAGE_BPS;
+  },
+);
