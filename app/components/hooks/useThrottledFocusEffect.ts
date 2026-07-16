@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 
 /**
@@ -11,12 +11,24 @@ export function useThrottledFocusEffect(
 ): void {
   const lastRunRef = useRef<number | null>(null);
 
-  useFocusEffect(() => {
-    const now = Date.now();
-    if (lastRunRef.current !== null && now - lastRunRef.current < throttleMs) {
-      return;
-    }
-    lastRunRef.current = now;
-    return callback();
-  });
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      if (
+        lastRunRef.current !== null &&
+        now - lastRunRef.current < throttleMs
+      ) {
+        return;
+      }
+      lastRunRef.current = now;
+      const cleanup = callback();
+
+      return () => {
+        // Reset the timestamp so that a blur-triggered abort does not block
+        // the next focus from restarting the work.
+        lastRunRef.current = null;
+        cleanup?.();
+      };
+    }, [callback, throttleMs]),
+  );
 }
