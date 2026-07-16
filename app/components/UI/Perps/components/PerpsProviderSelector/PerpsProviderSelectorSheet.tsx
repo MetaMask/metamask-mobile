@@ -51,7 +51,12 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
 
   return (
     <BottomSheet ref={bottomSheetRef} goBack={onClose} testID={testID}>
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeader
+        onClose={handleClose}
+        closeButtonProps={{
+          testID: testID ? `${testID}-close-button` : undefined,
+        }}
+      >
         {strings('perps.provider_selector.title')}
       </BottomSheetHeader>
       {filteredOptions.map((option) => {
@@ -68,6 +73,9 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
                   option.isTestnet ? TagSeverity.Warning : TagSeverity.Neutral
                 }
                 twClassName="self-center"
+                testID={
+                  testID ? `${testID}-option-${option.id}-tag` : undefined
+                }
               >
                 {option.network}
               </Tag>

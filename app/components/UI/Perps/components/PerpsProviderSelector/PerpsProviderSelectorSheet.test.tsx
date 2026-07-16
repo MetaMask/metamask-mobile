@@ -12,8 +12,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactActual = jest.requireActual('react');
-  const { View, Text, Pressable } = jest.requireActual('react-native');
+  const { View } = jest.requireActual('react-native');
 
   const MockBottomSheet = ReactActual.forwardRef(
     (
@@ -47,61 +48,8 @@ jest.mock('@metamask/design-system-react-native', () => {
   MockBottomSheet.displayName = 'BottomSheet';
 
   return {
+    ...actual,
     BottomSheet: MockBottomSheet,
-    BottomSheetHeader: ({
-      children,
-      onClose,
-    }: {
-      children?: React.ReactNode;
-      onClose?: () => void;
-    }) => (
-      <View>
-        <Text>{children}</Text>
-        <Pressable testID="header-close" onPress={onClose} />
-      </View>
-    ),
-    ListItemSelect: ({
-      title,
-      description,
-      titleEndAccessory,
-      onPress,
-      testID,
-      isSelected,
-      accessibilityRole,
-      accessibilityState,
-    }: {
-      title?: string;
-      description?: string;
-      titleEndAccessory?: React.ReactNode;
-      onPress?: () => void;
-      testID?: string;
-      isSelected?: boolean;
-      accessibilityRole?: string;
-      accessibilityState?: { selected?: boolean };
-    }) => (
-      <Pressable
-        testID={testID}
-        onPress={onPress}
-        accessibilityRole={accessibilityRole}
-        accessibilityState={accessibilityState}
-      >
-        <Text>{title}</Text>
-        {titleEndAccessory}
-        <Text>{description}</Text>
-        {isSelected ? <View testID={`${testID}-selected`} /> : null}
-      </Pressable>
-    ),
-    Tag: ({
-      children,
-      severity,
-    }: {
-      children?: React.ReactNode;
-      severity?: string;
-    }) => <Text testID={`tag-${severity}`}>{children}</Text>,
-    TagSeverity: {
-      Warning: 'Warning',
-      Neutral: 'Neutral',
-    },
   };
 });
 
@@ -142,12 +90,18 @@ describe('PerpsProviderSelectorSheet', () => {
       availableProviders: ['hyperliquid'],
     });
 
-    const { getAllByText, queryByText } = render(
+    const { getByTestId, queryByTestId } = render(
       <PerpsProviderSelectorSheet {...defaultProps} />,
     );
 
-    expect(getAllByText('HyperLiquid').length).toBeGreaterThan(0);
-    expect(queryByText('MYX')).toBeNull();
+    expect(
+      getByTestId('provider-sheet-option-hyperliquid-mainnet'),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('provider-sheet-option-hyperliquid-testnet'),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('provider-sheet-option-myx-mainnet')).toBeNull();
+    expect(queryByTestId('provider-sheet-option-myx-testnet')).toBeNull();
   });
 
   it('renders all matching options when all providers available', () => {
@@ -155,12 +109,18 @@ describe('PerpsProviderSelectorSheet', () => {
       availableProviders: ['hyperliquid', 'myx'],
     });
 
-    const { getAllByText } = render(
+    const { getByTestId } = render(
       <PerpsProviderSelectorSheet {...defaultProps} />,
     );
 
-    expect(getAllByText('HyperLiquid').length).toBeGreaterThan(0);
-    expect(getAllByText('MYX').length).toBeGreaterThan(0);
+    expect(
+      getByTestId('provider-sheet-option-hyperliquid-mainnet'),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('provider-sheet-option-hyperliquid-testnet'),
+    ).toBeOnTheScreen();
+    expect(getByTestId('provider-sheet-option-myx-mainnet')).toBeOnTheScreen();
+    expect(getByTestId('provider-sheet-option-myx-testnet')).toBeOnTheScreen();
   });
 
   it('calls onOptionSelect when an option is pressed', async () => {
@@ -194,19 +154,22 @@ describe('PerpsProviderSelectorSheet', () => {
     );
 
     expect(
-      getByTestId('provider-sheet-option-hyperliquid-mainnet-selected'),
-    ).toBeOnTheScreen();
+      getByTestId('provider-sheet-option-hyperliquid-mainnet').props
+        .accessibilityState?.selected,
+    ).toBe(true);
   });
 
   it('renders Mainnet and Testnet tags', () => {
-    const { getAllByText, getAllByTestId } = render(
+    const { getByTestId } = render(
       <PerpsProviderSelectorSheet {...defaultProps} />,
     );
 
-    expect(getAllByText('Testnet').length).toBeGreaterThan(0);
-    expect(getAllByText('Mainnet').length).toBeGreaterThan(0);
-    expect(getAllByTestId('tag-Warning').length).toBeGreaterThan(0);
-    expect(getAllByTestId('tag-Neutral').length).toBeGreaterThan(0);
+    expect(
+      getByTestId('provider-sheet-option-hyperliquid-mainnet-tag'),
+    ).toHaveTextContent('Mainnet');
+    expect(
+      getByTestId('provider-sheet-option-hyperliquid-testnet-tag'),
+    ).toHaveTextContent('Testnet');
   });
 
   it('closes the sheet when header close is pressed', () => {
@@ -215,7 +178,7 @@ describe('PerpsProviderSelectorSheet', () => {
       <PerpsProviderSelectorSheet {...defaultProps} onClose={onClose} />,
     );
 
-    fireEvent.press(getByTestId('header-close'));
+    fireEvent.press(getByTestId('provider-sheet-close-button'));
 
     expect(onClose).toHaveBeenCalled();
   });
