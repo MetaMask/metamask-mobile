@@ -17,6 +17,7 @@ import {
   formatSignedUsd,
   formatUsd,
 } from '../../utils/formatters';
+import type { PositionTokenAvatarData } from '../../components/PositionTokenAvatar';
 import type {
   FeedAction,
   FeedItem,
@@ -67,20 +68,32 @@ function findTriggeringTrade(
 }
 
 /**
- * Resolves the action verb for a feed row. Perp fills read as "opened"/"closed",
- * spot as "bought"/"sold" (mirrors `TradeRow`). When the position has no trade
- * to key off, falls back to the position's open/closed state.
+ * Feed rows are keyed off a triggering trade when one exists, and the trade's
+ * intent is authoritative in both directions: an `exit` fill reads as closed
+ * (even when {@link isClosedPosition} misclassifies a perp that still carries
+ * stale non-zero margin in the Clicker payload), and an `enter` fill reads as
+ * open (even when the position snapshot looks closed). We only fall back to the
+ * {@link isClosedPosition} snapshot heuristic when there is no triggering trade.
  */
-function resolveAction(
+function isFeedItemClosed(
+  coreItem: CoreFeedItem,
   trade: Trade | undefined,
-  isPerp: boolean,
-  isClosed: boolean,
-): FeedAction {
-  const isExit = trade ? trade.intent === 'exit' : isClosed;
-  if (isPerp) {
-    return isExit ? 'closed' : 'opened';
+): boolean {
+  if (trade) {
+    return trade.intent === 'exit';
   }
-  return isExit ? 'sold' : 'bought';
+  return isClosedPosition(coreItem);
+}
+
+/**
+ * Resolves the action verb for a feed row. Perp fills read as "opened"/"closed",
+ * spot as "bought"/"sold" (mirrors `TradeRow`).
+ */
+function resolveAction(isPerp: boolean, isClosed: boolean): FeedAction {
+  if (isPerp) {
+    return isClosed ? 'closed' : 'opened';
+  }
+  return isClosed ? 'sold' : 'bought';
 }
 
 /**
@@ -116,31 +129,23 @@ function realizedPnlPercent(
 
 function resolvePnlValue(
   coreItem: CoreFeedItem,
-  isPerp: boolean,
   isClosed: boolean,
 ): number | null | undefined {
-  if (isPerp) {
-    return coreItem.pnlValueUsd ?? coreItem.realizedPnl;
-  }
   if (isClosed) {
-    return coreItem.realizedPnl;
+    return coreItem.pnlValueUsd ?? coreItem.realizedPnl;
   }
   return coreItem.pnlValueUsd;
 }
 
 function resolvePnlPercent(
   coreItem: CoreFeedItem,
-  isPerp: boolean,
   isClosed: boolean,
 ): number | null {
-  if (isPerp) {
+  if (isClosed) {
     return (
       coreItem.pnlPercent ??
       realizedPnlPercent(coreItem.realizedPnl, coreItem.boughtUsd)
     );
-  }
-  if (isClosed) {
-    return realizedPnlPercent(coreItem.realizedPnl, coreItem.boughtUsd);
   }
   return coreItem.pnlPercent ?? null;
 }
@@ -165,11 +170,10 @@ function resolveValueLabel(
 
 function buildFeedItemPresentation(
   coreItem: CoreFeedItem,
-  isPerp: boolean,
   isClosed: boolean,
 ): FeedItemPresentation {
-  const pnlValue = resolvePnlValue(coreItem, isPerp, isClosed);
-  const pnlPercent = resolvePnlPercent(coreItem, isPerp, isClosed);
+  const pnlValue = resolvePnlValue(coreItem, isClosed);
+  const pnlPercent = resolvePnlPercent(coreItem, isClosed);
   const hasValueData = isClosed
     ? isPresentNumber(pnlValue)
     : isPresentNumber(coreItem.currentValueUSD);
@@ -196,6 +200,23 @@ function buildFeedItemPresentation(
   };
 }
 
+/**
+ * Builds the token avatar payload for the shared `PositionTokenAvatar`, which
+ * resolves the icon via the Clicker URL → MetaMask CDN → monogram fallback
+ * (and the Hyperliquid perp logo when `chain` is `hyperliquid`). Keeps the raw
+ * social-api `chain` name and `tokenSymbol` so that resolution matches the
+ * trader-profile position list exactly.
+ */
+function buildTokenAvatar(coreItem: CoreFeedItem): PositionTokenAvatarData {
+  return {
+    positionId: coreItem.positionId,
+    chain: coreItem.chain,
+    tokenAddress: coreItem.tokenAddress,
+    tokenImageUrl: coreItem.tokenImageUrl ?? null,
+    tokenSymbol: coreItem.tokenSymbol,
+  };
+}
+
 function mapPerpFeedItem(
   coreItem: CoreFeedItem,
   trade: Trade | undefined,
@@ -211,6 +232,7 @@ function mapPerpFeedItem(
 
   return {
     id: `${coreItem.positionId}-${coreItem.timestamp}`,
+    traderId: coreItem.actor.profileId,
     username: coreItem.actor.name,
     traderAddress: coreItem.actor.address,
     avatarUri: coreItem.actor.imageUrl ?? undefined,
@@ -218,6 +240,7 @@ function mapPerpFeedItem(
     timestamp: timestampMs,
     subHeader,
     ...presentation,
+    tokenAvatar: buildTokenAvatar(coreItem),
     type: 'perps',
     marketSymbol: displaySymbol,
     marketName: displaySymbol,
@@ -244,6 +267,7 @@ function mapSpotFeedItem(
 
   return {
     id: `${coreItem.positionId}-${coreItem.timestamp}`,
+    traderId: coreItem.actor.profileId,
     username: coreItem.actor.name,
     traderAddress: coreItem.actor.address,
     avatarUri: coreItem.actor.imageUrl ?? undefined,
@@ -251,6 +275,7 @@ function mapSpotFeedItem(
     timestamp: timestampMs,
     subHeader,
     ...presentation,
+    tokenAvatar: buildTokenAvatar(coreItem),
     type: 'spot',
     tokenSymbol: coreItem.tokenSymbol,
     tokenName: coreItem.tokenName,
@@ -273,11 +298,11 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
 
   const timestampMs = toMs(timestamp);
   const isPerp = isPerpPosition(coreItem);
-  const isClosed = isClosedPosition(coreItem);
   const trade = findTriggeringTrade(trades ?? [], timestampMs);
-  const action = resolveAction(trade, isPerp, isClosed);
+  const isClosed = isFeedItemClosed(coreItem, trade);
+  const action = resolveAction(isPerp, isClosed);
   const subHeader = buildSubHeader(trade);
-  const presentation = buildFeedItemPresentation(coreItem, isPerp, isClosed);
+  const presentation = buildFeedItemPresentation(coreItem, isClosed);
 
   if (isPerp) {
     return mapPerpFeedItem(

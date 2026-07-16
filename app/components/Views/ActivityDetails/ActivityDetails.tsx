@@ -1,8 +1,8 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -20,7 +20,10 @@ import { resolveActivityListItemTitle } from '../../UI/ActivityListItemRow/Activ
 import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
 /* eslint-disable import-x/no-restricted-paths -- transient row hand-off + shared pending-action logic from the activity list; route-isolation backlog */
 import { getPreloadedActivityItem } from '../ActivityList/preloadedActivityItemStore';
-import { useUnifiedTxActions } from '../ActivityList/useUnifiedTxActions';
+import {
+  useUnifiedTxActions,
+  type SpeedUpCancelParams,
+} from '../ActivityList/useUnifiedTxActions';
 /* eslint-enable import-x/no-restricted-paths */
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import type { ActivityDetailsParams } from './ActivityDetails.types';
@@ -38,6 +41,7 @@ import { TemplateLoader } from './templates/TemplateLoader';
 const ActivityDetails = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const { chainId, txIdentifier, preloadKey } =
     useParams<ActivityDetailsParams>();
   // Provider-backed rows (Perps / Predict) are handed off via a transient store
@@ -93,6 +97,35 @@ const ActivityDetails = () => {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const actionInitiatedRef = useRef(false);
+  const wasResolvedRef = useRef(false);
+
+  const handleSpeedUpCancelConfirm = useCallback(
+    (params?: SpeedUpCancelParams) => {
+      actionInitiatedRef.current = true;
+      return (cancelIsOpen ? cancelTransaction : speedUpTransaction)(params);
+    },
+    [cancelIsOpen, cancelTransaction, speedUpTransaction],
+  );
+
+  useEffect(() => {
+    const isResolved = Boolean(item);
+    // The viewed tx disappeared right after the user confirmed a speed-up/cancel
+    // on this screen — i.e. its replacement committed and dropped the original.
+    const viewedTxWasReplaced =
+      wasResolvedRef.current && !isResolved && actionInitiatedRef.current;
+    // Only dismiss while this screen is on top: a background re-render (the user
+    // pushed another screen after confirming) must not pop the wrong screen, and
+    // `isFocused` also excludes disappearances from navigating away (e.g. an
+    // account switch) that would otherwise fire the stale arm.
+    if (viewedTxWasReplaced && !isQRHardwareAccount && isFocused) {
+      // Disarm so a later resolved→unresolved transition can't dismiss again.
+      actionInitiatedRef.current = false;
+      navigation.goBack();
+    }
+    wasResolvedRef.current = isResolved;
+  }, [item, isQRHardwareAccount, navigation, isFocused]);
 
   return (
     <SafeAreaView
@@ -153,7 +186,7 @@ const ActivityDetails = () => {
             isVisible={speedUpIsOpen || cancelIsOpen}
             isCancel={cancelIsOpen}
             tx={existingTx}
-            onConfirm={cancelIsOpen ? cancelTransaction : speedUpTransaction}
+            onConfirm={handleSpeedUpCancelConfirm}
             onClose={onSpeedUpCancelCompleted}
             confirmDisabled={confirmDisabled}
           />
