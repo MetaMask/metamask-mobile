@@ -8,6 +8,7 @@ import {
 } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { usePayTokenAccountBalance } from '../pay/usePayTokenAccountBalance';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
 import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -277,7 +278,7 @@ export function useTransactionCustomAmount({
         percentage === 100 &&
         !isPerpsWithdraw &&
         !isMoneyAccountWithdraw &&
-        (!isMoneyAccountDeposit || isAddMusdFlow);
+        !isMoneyAccountDeposit;
 
       if (shouldSetMax) {
         setIsMax(true);
@@ -285,10 +286,6 @@ export function useTransactionCustomAmount({
         setIsMax(false);
       }
 
-      // For money account deposit max, store the full-precision human amount
-      // derived directly from the raw token balance. This bypasses the lossy
-      // fiat roundtrip (ROUND_DOWN → ÷ rate → × 10^decimals → ROUND_UP) that
-      // can inflate the required amount past the actual balance.
       if (percentage === 100 && isMoneyAccountDeposit && payToken?.balanceRaw) {
         depositMaxHumanRef.current = new BigNumber(payToken.balanceRaw)
           .shiftedBy(-(payToken.decimals ?? 6))
@@ -305,7 +302,6 @@ export function useTransactionCustomAmount({
       isPerpsWithdraw,
       isMoneyAccountWithdraw,
       isMoneyAccountDeposit,
-      isAddMusdFlow,
       payToken?.balanceRaw,
       payToken?.decimals,
       setIsMax,
@@ -370,10 +366,7 @@ function useTokenBalance(tokenUsdRate: number) {
   const transactionId = transactionMeta?.id ?? '';
 
   const { payToken } = useTransactionPayToken();
-
-  const payTokenBalanceUsd = new BigNumber(
-    payToken?.balanceUsd ?? 0,
-  ).toNumber();
+  const { balanceUsd: accountBalanceUsd } = usePayTokenAccountBalance();
 
   const { data: predictBalanceHuman = 0 } = usePredictBalance();
 
@@ -412,5 +405,7 @@ function useTokenBalance(tokenUsdRate: number) {
     return withdrawableFiatRaw ? parseFloat(withdrawableFiatRaw) : 0;
   }
 
-  return payTokenBalanceUsd;
+  // Use the reactive account balance so the prefill stays consistent with
+  // the insufficient-funds check in useInsufficientPayTokenBalanceAlert.
+  return new BigNumber(accountBalanceUsd).toNumber();
 }
