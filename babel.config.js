@@ -77,10 +77,6 @@ module.exports = {
         /\/ses\.cjs$/.test(f) ||
         /\/ses-hermes\.cjs$/.test(f) ||
         /\/react-native-lockdown\/src\/repair\.js$/.test(f) ||
-        // promise-with-resolvers.js is a Metro polyfill — no require() at that
-        // stage, and Babel/preset-expo must not inject core-js/@babel/runtime
-        // into it (which is exactly the crash this polyfill exists to prevent).
-        /\/polyfills\/promise-with-resolvers\.js$/.test(f) ||
         // expo/virtual/streams.js is a Metro polyfill — no require() available at that stage
         // Babel must not transform it or it injects require("@babel/runtime/helpers/...")
         /\/expo\/virtual\/streams\.js$/.test(f)
@@ -96,19 +92,7 @@ module.exports = {
     // `process.env.JEST_WORKER_ID` runtime guard (e.g. the xhr2-based test-only
     // XMLHttpRequest shim), crashing the app. Excluding it keeps the lookup at
     // runtime: undefined in the app, set under Jest.
-    // `EXPO_OS` / `EXPO_SERVER` / `EXPO_BASE_URL` are NOT real environment
-    // variables — `babel-preset-expo`'s define-plugin substitutes them (e.g.
-    // `process.env.EXPO_OS` -> "ios") using the babel caller. Babel runs plugins
-    // BEFORE preset plugins, so if we don't exclude them here this plugin inlines
-    // them to `undefined` first, producing the runtime error
-    // "The global process.env.EXPO_OS is not defined". Excluding them lets
-    // babel-preset-expo define them correctly.
-    [
-      'transform-inline-environment-variables',
-      {
-        exclude: ['JEST_WORKER_ID', 'EXPO_OS', 'EXPO_SERVER', 'EXPO_BASE_URL'],
-      },
-    ],
+    ['transform-inline-environment-variables', { exclude: ['JEST_WORKER_ID'] }],
     dynamicImportToRequire,
     // NOTE: react-native-reanimated/plugin must be listed LAST.
     // Required by reanimated v3 to compile `'worklet'` directives; without it,
