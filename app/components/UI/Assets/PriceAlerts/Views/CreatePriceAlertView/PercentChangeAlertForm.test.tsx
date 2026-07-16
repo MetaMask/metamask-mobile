@@ -133,6 +133,40 @@ describe('PercentChangeAlertForm', () => {
     });
   });
 
+  it('disables saving when a down alert exceeds 100%', () => {
+    const screen = renderForm();
+    fireEvent.press(
+      screen.getByTestId(CreatePriceAlertTestIds.DIRECTION_TOGGLE),
+    );
+    fireEvent.press(screen.getByTestId('keypad-key-1'));
+    fireEvent.press(screen.getByTestId('keypad-key-0'));
+    fireEvent.press(screen.getByTestId('keypad-key-1'));
+
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('allows saving an up alert above 100%', async () => {
+    const screen = renderForm();
+    fireEvent.press(screen.getByTestId('keypad-key-1'));
+    fireEvent.press(screen.getByTestId('keypad-key-0'));
+    fireEvent.press(screen.getByTestId('keypad-key-1'));
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+      );
+    });
+
+    expect(mockSubmitPercent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        threshold: 101,
+        direction: 'up',
+      }),
+    );
+  });
+
   it('disables saving when the tuple matches another alert', () => {
     const screen = renderForm({
       existingPercentAlerts: [

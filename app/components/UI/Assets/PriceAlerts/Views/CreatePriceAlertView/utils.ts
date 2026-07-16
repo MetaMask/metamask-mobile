@@ -5,6 +5,11 @@ export const MIN_KEYPAD_DECIMALS = 2;
 export const MAX_KEYPAD_DECIMALS = 15;
 export const SIG_FIGS_FRACTIONAL_OFFSET = 5;
 export const PERCENT_KEYPAD_DECIMALS = 2;
+/**
+ * Maximum percent-change threshold allowed when direction is `down`.
+ * A spot price cannot fall by more than 100%.
+ */
+export const MAX_DOWN_PERCENT_THRESHOLD = 100;
 
 /**
  * Max fractional digits the keypad should allow for a given USD price.

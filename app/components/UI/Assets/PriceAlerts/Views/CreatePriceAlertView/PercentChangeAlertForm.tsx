@@ -29,6 +29,7 @@ import { useSubmitPercentAlert } from '../../api';
 import useAlertSaveFlow from '../../hooks/useAlertSaveFlow';
 import {
   KEYPAD_EMPTY,
+  MAX_DOWN_PERCENT_THRESHOLD,
   PERCENT_KEYPAD_DECIMALS,
   toPercentKeypadString,
 } from './utils';
@@ -68,7 +69,9 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
     const parsed = Number.parseFloat(percentAmount);
     return Number.isFinite(parsed) ? parsed : 0;
   }, [percentAmount]);
-  const hasValidPercent = percentValue > 0;
+  const hasValidPercent =
+    percentValue > 0 &&
+    (direction !== 'down' || percentValue <= MAX_DOWN_PERCENT_THRESHOLD);
 
   const isDuplicatePercentTuple = useMemo(
     () =>
