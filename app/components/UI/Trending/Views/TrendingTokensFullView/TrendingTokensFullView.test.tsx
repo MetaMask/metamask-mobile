@@ -438,7 +438,7 @@ describe('TrendingTokensFullView', () => {
     });
   });
 
-  it('calls refetch when pull-to-refresh is triggered', () => {
+  it('calls refetch when pull-to-refresh is triggered', async () => {
     const mockTokens = [
       createMockToken({ name: 'Token 1', assetId: 'eip155:1/erc20:0x123' }),
     ];
@@ -452,7 +452,9 @@ describe('TrendingTokensFullView', () => {
     expect(getByTestId('trending-tokens-list')).toBeOnTheScreen();
     const { RefreshControl } = jest.requireActual('react-native');
     const refreshControl = UNSAFE_getByType(RefreshControl);
-    fireEvent(refreshControl, 'refresh');
+    await act(async () => {
+      fireEvent(refreshControl, 'refresh');
+    });
 
     expect(mocks.mockRefetch).toHaveBeenCalledTimes(1);
   });
@@ -869,7 +871,9 @@ describe('TrendingTokensFullView', () => {
 
       const { RefreshControl } = jest.requireActual('react-native');
       const refreshControl = UNSAFE_getByType(RefreshControl);
-      fireEvent(refreshControl, 'refresh');
+      await act(async () => {
+        fireEvent(refreshControl, 'refresh');
+      });
 
       expect(mockRefetchWatchlist).toHaveBeenCalledTimes(1);
     });
