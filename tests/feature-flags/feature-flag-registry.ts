@@ -261,6 +261,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           enabled: false,
           featureVersion: null,
           minimumVersion: null,
+          deprecatedControllers: [],
+        },
+        '8.3.0': {
+          enabled: true,
+          featureVersion: '1',
+          minimumVersion: '8.3.0',
+          deprecatedControllers: [],
         },
       },
     },
