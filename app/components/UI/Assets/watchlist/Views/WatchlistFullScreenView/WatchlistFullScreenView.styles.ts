@@ -35,6 +35,10 @@ const styleSheet = (params: { theme: Theme }) => {
     editableRowContent: {
       flex: 1,
     },
+    editControlHidden: {
+      width: 0,
+      overflow: 'hidden',
+    },
   });
 };
 

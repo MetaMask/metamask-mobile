@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, FlatList, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
+import ReorderableList, {
+  reorderItems,
+  type ReorderableListReorderEvent,
+} from 'react-native-reorderable-list';
 import { useNavigation } from '@react-navigation/native';
+import type { CaipAssetType } from '@metamask/utils';
 import {
   Button,
   ButtonVariant,
@@ -13,10 +18,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { useTokenWatchlistQuery } from '../../hooks/useTokenWatchlistQuery';
+import { useTokenWatchlistUpdateListMutation } from '../../hooks/useTokenWatchlistMutations';
 import { mapWatchlistTokenToTrendingAsset } from '../../../../../Views/Homepage/Sections/Watchlist/utils/mapWatchlistTokenToTrendingAsset';
-import TrendingTokenRowItem from '../../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../../Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
-import { TokenDetailsSource } from '../../../../TokenDetails/constants/constants';
 import { strings } from '../../../../../../../locales/i18n';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
 import WatchlistEditableRow from './WatchlistEditableRow';
@@ -30,13 +34,20 @@ const WatchlistFullScreenView = () => {
   const navigation = useNavigation();
   const { data, isLoading } = useTokenWatchlistQuery();
   const [isEditMode, setIsEditMode] = useState(false);
+  const [localTokens, setLocalTokens] = useState<TrendingAsset[]>([]);
+  const updateListMutation = useTokenWatchlistUpdateListMutation();
 
-  const displayTokens = useMemo(
+  const queryTokens = useMemo(
     () => (data ?? []).slice().reverse().map(mapWatchlistTokenToTrendingAsset),
     [data],
   );
 
+  const displayTokens = localTokens.length > 0 ? localTokens : queryTokens;
   const hasItems = displayTokens.length > 0;
+
+  useEffect(() => {
+    setLocalTokens((prev) => (prev.length > 0 ? [] : prev));
+  }, [data]);
 
   useEffect(() => {
     if (isEditMode && !hasItems) {
@@ -53,8 +64,25 @@ const WatchlistFullScreenView = () => {
   // TODO(ASSETS-XXXX): wire up search functionality in a follow-up ticket
   const handleSearchPress = useCallback(() => undefined, []);
 
-  const handleEditPress = useCallback(() => setIsEditMode(true), []);
-  const handleDonePress = useCallback(() => setIsEditMode(false), []);
+  const handleEditPress = useCallback(() => {
+    setLocalTokens(displayTokens);
+    setIsEditMode(true);
+  }, [displayTokens]);
+
+  const handleDonePress = useCallback(() => {
+    if (localTokens.length > 0) {
+      const storageOrder = localTokens.map((t) => t.assetId).reverse();
+      updateListMutation.mutate(storageOrder as CaipAssetType[]);
+    }
+    setIsEditMode(false);
+  }, [updateListMutation, localTokens]);
+
+  const handleReorder = useCallback(
+    ({ from, to }: ReorderableListReorderEvent) => {
+      setLocalTokens((prev) => reorderItems(prev, from, to));
+    },
+    [],
+  );
 
   const endButtonIconProps = useMemo(() => {
     if (isEditMode) {
@@ -101,18 +129,13 @@ const WatchlistFullScreenView = () => {
   }, [isEditMode, handleDonePress]);
 
   const renderItem = useCallback(
-    ({ item, index }: { item: TrendingAsset; index: number }) => {
-      if (isEditMode) {
-        return <WatchlistEditableRow token={item} position={index} />;
-      }
-      return (
-        <TrendingTokenRowItem
-          token={item}
-          position={index}
-          tokenDetailsSource={TokenDetailsSource.WatchlistFullscreen}
-        />
-      );
-    },
+    ({ item, index }: { item: TrendingAsset; index: number }) => (
+      <WatchlistEditableRow
+        token={item}
+        position={index}
+        isEditMode={isEditMode}
+      />
+    ),
     [isEditMode],
   );
 
@@ -168,10 +191,12 @@ const WatchlistFullScreenView = () => {
           ))}
         </View>
       ) : hasItems ? (
-        <FlatList
+        <ReorderableList
           data={displayTokens}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
+          onReorder={handleReorder}
+          dragEnabled={isEditMode}
           style={styles.listContainer}
           showsVerticalScrollIndicator={false}
           testID={WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST}

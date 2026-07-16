@@ -1,11 +1,12 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { LayoutAnimation, Pressable, View } from 'react-native';
 import type { CaipAssetType } from '@metamask/utils';
 import {
   ButtonIcon,
   ButtonIconSize,
   IconName,
 } from '@metamask/design-system-react-native';
+import { useReorderableDrag } from 'react-native-reorderable-list';
 import Icon, {
   IconColor,
   IconName as LocalIconName,
@@ -22,16 +23,26 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 interface WatchlistEditableRowProps {
   token: TrendingAsset;
   position: number;
+  isEditMode: boolean;
 }
 
 const WatchlistEditableRow = ({
   token,
   position,
+  isEditMode,
 }: WatchlistEditableRowProps) => {
   const { styles } = useStyles(styleSheet, {});
   const removeMutation = useTokenWatchlistRemoveItemMutation();
+  const drag = useReorderableDrag();
 
   const handleUnwatch = useCallback(() => {
+    LayoutAnimation.configureNext(
+      LayoutAnimation.create(
+        200,
+        LayoutAnimation.Types.easeInEaseOut,
+        LayoutAnimation.Properties.opacity,
+      ),
+    );
     removeMutation.mutate(token.assetId as CaipAssetType);
   }, [removeMutation, token.assetId]);
 
@@ -41,17 +52,23 @@ const WatchlistEditableRow = ({
       testID={WatchlistFullScreenViewSelectorsIDs.EDITABLE_ROW}
     >
       <View
-        style={styles.dragHandle}
-        testID={WatchlistFullScreenViewSelectorsIDs.DRAG_HANDLE}
+        style={isEditMode ? styles.dragHandle : styles.editControlHidden}
+        pointerEvents={isEditMode ? 'auto' : 'none'}
       >
-        <Icon
-          name={LocalIconName.DragGrid}
-          size={IconSize.Md}
-          color={IconColor.Muted}
-        />
+        <Pressable
+          onLongPress={drag}
+          disabled={!isEditMode}
+          testID={WatchlistFullScreenViewSelectorsIDs.DRAG_HANDLE}
+        >
+          <Icon
+            name={LocalIconName.DragGrid}
+            size={IconSize.Md}
+            color={IconColor.Muted}
+          />
+        </Pressable>
       </View>
 
-      <View style={styles.editableRowContent} pointerEvents="none">
+      <View style={styles.editableRowContent}>
         <TrendingTokenRowItem
           token={token}
           position={position}
@@ -59,7 +76,10 @@ const WatchlistEditableRow = ({
         />
       </View>
 
-      <View style={styles.unwatchStar}>
+      <View
+        style={isEditMode ? styles.unwatchStar : styles.editControlHidden}
+        pointerEvents={isEditMode ? 'auto' : 'none'}
+      >
         <ButtonIcon
           iconName={IconName.StarFilled}
           size={ButtonIconSize.Md}
