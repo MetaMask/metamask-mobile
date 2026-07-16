@@ -20,7 +20,6 @@ import { alpha2ToAlpha3 } from './countryCodes';
 // Endpoint configuration
 // ---------------------------------------------------------------------------
 
-// Android emulator uses 10.0.2.2 to reach the host machine's localhost.
 export const UKYC_API_BASE_URL =
   process.env.UKYC_API_BASE_URL ||
   (Platform.select({
