@@ -293,6 +293,76 @@ export const selectMoneyNoFeeDepositTokens = createSelector(
   },
 );
 
+/**
+ * Selects whether the "Earn with Money account" banner can be displayed on
+ * token detail pages. The Money account feature must be enabled before the
+ * banner can appear.
+ */
+export const selectIsMoneyEarnBannerEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectMoneyEnableMoneyAccountFlag,
+  (remoteFeatureFlags, isMoneyAccountFeatureEnabled) => {
+    if (!isMoneyAccountFeatureEnabled) {
+      return false;
+    }
+
+    const localFlag = process.env.MM_MONEY_EARN_BANNER_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyEarnBannerEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Default tokens whose token detail page shows the "Earn with Money account"
+ * banner when the remote flag is not configured (the MUSD-1177 token list).
+ */
+export const MONEY_EARN_BANNER_TOKENS_FALLBACK: WildcardTokenList = {
+  [CHAIN_IDS.MAINNET]: [
+    'USDC',
+    'USDT',
+    'DAI',
+    'mUSD',
+    'aUSDC',
+    'aUSDT',
+    'aDAI',
+  ],
+  [CHAIN_IDS.LINEA_MAINNET]: ['mUSD'],
+  [CHAIN_IDS.ARBITRUM]: ['USDC', 'aUSDC', 'aUSDCN'],
+  [CHAIN_IDS.BASE]: ['USDC', 'aUSDC'],
+  [CHAIN_IDS.BSC]: ['USDC', 'USDT', 'aUSDC', 'aUSDT'],
+  [CHAIN_IDS.MONAD]: ['USDC'],
+};
+
+/**
+ * Selects the tokens whose token detail page shows the "Earn with Money
+ * account" banner, as a wildcard list mapping hex chain IDs (or "*") to token
+ * symbols (or ["*"]).
+ *
+ * Owned by the Earn team and deliberately decoupled from the
+ * confirmations-owned relay fixed-spread flag, so route changes there never
+ * silently change this surface.
+ *
+ * Remote flag takes precedence over the local env var; when neither is
+ * configured, MONEY_EARN_BANNER_TOKENS_FALLBACK applies. Remote kill switch:
+ * {"*":[]}.
+ */
+export const selectMoneyEarnBannerTokens = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): WildcardTokenList => {
+    const configured = getWildcardTokenListFromConfig(
+      remoteFeatureFlags?.earnMoneyEarnBannerTokens,
+      'earnMoneyEarnBannerTokens',
+      process.env.MM_MONEY_EARN_BANNER_TOKENS,
+      'MM_MONEY_EARN_BANNER_TOKENS',
+    );
+    return Object.keys(configured).length > 0
+      ? configured
+      : MONEY_EARN_BANNER_TOKENS_FALLBACK;
+  },
+);
+
 /** Default blocked countries for Money account when no remote flag is configured. */
 export const DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES = ['GB'];
 

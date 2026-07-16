@@ -3372,6 +3372,25 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyEarnBannerEnabled: {
+    name: 'earnMoneyEarnBannerEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyEarnBannerTokens: {
+    name: 'earnMoneyEarnBannerTokens',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {},
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyTokenListItemCtaEnabled: {
     name: 'earnMoneyTokenListItemCtaEnabled',
     type: FeatureFlagType.Remote,

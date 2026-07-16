@@ -38,6 +38,8 @@ export enum TokenDetailsSource {
   PriceAlertNotification = 'price_alert_notification',
   /** Watchlist section on the homepage */
   WatchlistHomepage = 'watchlist_homepage',
+  /** Explore Trending Tokens — watchlist filter pill active */
+  ExploreWatchlistFilter = 'explore_watchlist_filter',
   /** Fallback when source cannot be determined */
   Unknown = 'unknown',
 }
@@ -49,6 +51,7 @@ const EXPLORE_TOKEN_DETAILS_SOURCES = new Set<TokenDetailsSource>([
   TokenDetailsSource.ExploreRwasStocks,
   TokenDetailsSource.ExploreSearch,
   TokenDetailsSource.Trending,
+  TokenDetailsSource.ExploreWatchlistFilter,
 ]);
 
 /**
