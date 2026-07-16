@@ -72,12 +72,12 @@ export const applyQrSyncSrpReadyPayload = async ({
         accountName,
       },
     });
-    // App polls /queue.json every ~2s; give one poll window headroom.
+    // App polls /queue.json every ~2s
     await sleep(2_500);
     return;
   }
 
-  // Prefer encodeURIComponent over URLSearchParams (`+` for spaces) so Android
+  // Prefer encodeURIComponent over URLSearchParams so Android
   // Intent / Appium mobile:deepLink deliver a stable query string.
   const query = [
     `mnemonic=${encodeURIComponent(mnemonic)}`,
@@ -153,8 +153,7 @@ export const completeNewUserQrSyncSrp = async ({
   if (optInToMetrics) {
     await dismissOnboardingInterestQuestionnaire();
 
-    // Mirror seedless Appium onboarding: optional success/marketing sheets, then
-    // iOS-safe wallet readiness (wallet-screen can exist with displayed=false).
+    // Mirror seedless Appium onboarding: optional success/marketing sheets.
     try {
       await ExperienceEnhancerBottomSheet.tapIAgree();
     } catch {
@@ -183,8 +182,6 @@ export const completeNewUserQrSyncSrp = async ({
  * Existing-user path: login → Add Wallet → Link extension → inject sync-ready
  * → wallet home with one additional SRP imported.
  *
- * Uses SRP #2 by default so it does not collide with the fixture primary wallet.
- * Layout/Phase C is not asserted — existing-user path is still partial.
  */
 export const completeExistingUserQrSyncSrp = async ({
   mnemonic = IDENTITY_TEAM_SEED_PHRASE_2,
@@ -219,7 +216,6 @@ export const completeExistingUserQrSyncSrp = async ({
     commandQueueServer,
   });
 
-  // Import navigates home; same iOS displayed=false pitfall as login/onboarding.
   await dismissPushNotificationExistingUserSheet();
   await dismissExperienceEnhancerModal();
   await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(60_000));
