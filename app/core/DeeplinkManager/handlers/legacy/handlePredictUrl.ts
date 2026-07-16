@@ -236,7 +236,7 @@ const marketTarget = (
  * - https://link.metamask.io/predict?feed=world-cup&tab=live
  * - https://link.metamask.io/predict?feed=sports
  * - https://link.metamask.io/predict?feed=sports&tab=all&filter=live
- * - https://link.metamask.io/predict?feed=popular-today&filter=elections
+ * - https://link.metamask.io/predict?feed=popular-today&filter=elections (redirects to Trending)
  * - https://link.metamask.io/predict?feed=trending&q=bitcoin
  *
  * Origin/EntryPoint handling:
@@ -248,7 +248,8 @@ const marketTarget = (
  * - No market param: Navigate to market list
  * - market=X or marketId=X: Navigate directly to market details for market X
  * - feed=world-cup: Navigate to the dedicated World Cup feed when enabled
- * - feed=<known generic id> (sports/politics/crypto/live/trending/popular-today): Navigate to the generic PredictFeedView when the predictHomeRedesign flag is enabled (tab -> initialTabId, filter -> initialFilterId)
+ * - feed=<known generic id> (sports/politics/crypto/live/trending): Navigate to the generic PredictFeedView when the predictHomeRedesign flag is enabled (tab -> initialTabId, filter -> initialFilterId)
+ * - feed=popular-today: Redirect to the Trending feed while preserving its filter
  * - Unknown feed (or flag disabled): Fall back to the Predict market list
  * - Optional tab param when no market: Open feed on a specific tab
  * - query=X or q=X: Open feed with search overlay showing results for X
@@ -260,6 +261,8 @@ const resolvePredictTarget = ({
   // Parse navigation parameters from URL
   const navParams = parsePredictNavigationParams(predictPath);
   DevLogger.log('[handlePredictUrl] Parsed navigation parameters:', navParams);
+  const genericFeed =
+    navParams.feed === 'popular-today' ? 'trending' : navParams.feed;
 
   // Determine entry point:
   // - Base is origin if provided, otherwise 'deeplink'
@@ -281,12 +284,9 @@ const resolvePredictTarget = ({
       requestedTab: navParams.worldCupTab,
       entryPoint,
     });
-  } else if (
-    isPredictFeedId(navParams.feed) &&
-    getPredictHomeRedesignEnabled()
-  ) {
+  } else if (isPredictFeedId(genericFeed) && getPredictHomeRedesignEnabled()) {
     return genericFeedTarget({
-      feedId: navParams.feed,
+      feedId: genericFeed,
       // worldCupTab holds the raw (unvalidated) tab value; the generic feed's
       // sub-tab ids (e.g. basketball/all/live) are resolved by the view.
       initialTabId: navParams.worldCupTab,

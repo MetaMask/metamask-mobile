@@ -1,4 +1,5 @@
 import React from 'react';
+import type { SharedValue } from 'react-native-reanimated';
 import {
   fireEvent,
   render,
@@ -7,6 +8,7 @@ import {
 } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { TransactionType } from '@metamask/transaction-controller';
 import ActivityList, { type ActivityListHandle } from './ActivityList';
 import { ActivityListSelectorsIDs } from './ActivityList.testIds';
 import { getPreloadedActivityItem } from './preloadedActivityItemStore';
@@ -781,6 +783,157 @@ describe('ActivityList', () => {
     );
   });
 
+  // TMCU-1066: a perps deposit/withdrawal is a real Arbitrum USDC tx, so it also
+  // lands in the generic EVM stream. The perps source already surfaces it, so
+  // the generic copy is dropped to stop it double-rendering across filters.
+  const makePerpsLocalTx = (
+    txType: TransactionType,
+    options: {
+      nestedTxTypes?: TransactionType[];
+      originalType?: TransactionType;
+      initialTransactionType?: TransactionType;
+    } = {},
+  ) => ({
+    type: 'contractInteraction' as const,
+    chainId: 'eip155:1',
+    status: 'pending' as const,
+    timestamp: 9,
+    hash: '0xperpsdep',
+    data: { from: '0xevm', to: '0xusdc' },
+    raw: {
+      type: 'localTransaction',
+      data: {
+        primaryTransaction: {
+          chainId: '0x1',
+          hash: '0xperpsdep',
+          id: 'perps-dep-id',
+          type: txType,
+          ...(options.originalType
+            ? { originalType: options.originalType }
+            : {}),
+          ...(options.nestedTxTypes
+            ? {
+                nestedTransactions: options.nestedTxTypes.map((type) => ({
+                  type,
+                })),
+              }
+            : {}),
+          txParams: { from: '0xevm', nonce: '0x1' },
+        },
+        ...(options.initialTransactionType
+          ? {
+              initialTransaction: {
+                chainId: '0x1',
+                hash: '0xperpsdep-initial',
+                id: 'perps-dep-id-initial',
+                type: options.initialTransactionType,
+                txParams: { from: '0xevm', nonce: '0x1' },
+              },
+            }
+          : {}),
+      },
+    },
+  });
+
+  it.each([
+    ['perpsDeposit', TransactionType.perpsDeposit],
+    ['perpsDepositAndOrder', TransactionType.perpsDepositAndOrder],
+    ['perpsWithdraw', TransactionType.perpsWithdraw],
+  ])(
+    'suppresses the generic EVM copy of a %s tx when perps is enabled',
+    (_label, txType) => {
+      selectorValues.perpsEnabled = true;
+      (useLocalActivityItems as jest.Mock).mockReturnValue([
+        makePerpsLocalTx(txType),
+      ]);
+      (useTransactionsQuery as jest.Mock).mockReturnValue({
+        data: { pages: [{ data: [] }] },
+        fetchNextPage: mockFetchNextPage,
+        hasNextPage: false,
+        isFetchingNextPage: false,
+        isInitialLoading: false,
+        refetch: mockRefetch,
+      });
+
+      render(<ActivityList header={<></>} />);
+
+      expect(screen.queryByTestId('row-0xperpsdep')).toBeNull();
+    },
+  );
+
+  it('suppresses the generic EVM copy of a batch-wrapped perps withdraw when perps is enabled', () => {
+    selectorValues.perpsEnabled = true;
+    (useLocalActivityItems as jest.Mock).mockReturnValue([
+      makePerpsLocalTx(TransactionType.batch, {
+        nestedTxTypes: [TransactionType.perpsWithdraw],
+      }),
+    ]);
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+
+    render(<ActivityList header={<></>} />);
+
+    expect(screen.queryByTestId('row-0xperpsdep')).toBeNull();
+  });
+
+  // After a speed-up/cancel the group's primaryTransaction is the replacement
+  // meta ('retry'/'cancel'); the perps type survives only on originalType and
+  // on the group's initialTransaction.
+  it.each([
+    ['sped-up (retry)', TransactionType.retry],
+    ['cancelled', TransactionType.cancel],
+  ])(
+    'suppresses the generic EVM copy of a %s perps deposit when perps is enabled',
+    (_label, replacementType) => {
+      selectorValues.perpsEnabled = true;
+      (useLocalActivityItems as jest.Mock).mockReturnValue([
+        makePerpsLocalTx(replacementType, {
+          originalType: TransactionType.perpsDeposit,
+          initialTransactionType: TransactionType.perpsDeposit,
+        }),
+      ]);
+      (useTransactionsQuery as jest.Mock).mockReturnValue({
+        data: { pages: [{ data: [] }] },
+        fetchNextPage: mockFetchNextPage,
+        hasNextPage: false,
+        isFetchingNextPage: false,
+        isInitialLoading: false,
+        refetch: mockRefetch,
+      });
+
+      render(<ActivityList header={<></>} />);
+
+      expect(screen.queryByTestId('row-0xperpsdep')).toBeNull();
+    },
+  );
+
+  it('keeps the generic EVM copy of a perps deposit when perps is disabled', () => {
+    selectorValues.perpsEnabled = false;
+    (useLocalActivityItems as jest.Mock).mockReturnValue([
+      makePerpsLocalTx(TransactionType.perpsDeposit),
+    ]);
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+
+    render(<ActivityList header={<></>} />);
+
+    // Perps off → the perps source emits nothing, so the generic copy is the
+    // only representation and must remain.
+    expect(screen.getByTestId('row-0xperpsdep')).toBeOnTheScreen();
+  });
+
   it('keeps the typed local smart-account-upgrade row over the generic confirmed copy', () => {
     const upgradeHash = '0xupgrade';
     const localUpgrade = {
@@ -1264,6 +1417,34 @@ describe('ActivityList', () => {
       offset: 0,
       animated: false,
     });
+  });
+
+  it('resets scrollY to 0 when the type filter changes so the pinned filter bar unpins', () => {
+    // The programmatic scroll-to-offset above doesn't emit `onScroll`, so
+    // without this reset `scrollY` keeps its pre-switch value and the parent
+    // keeps a duplicate (pinned) filter bar rendered over the reset header.
+    const scrollY = { value: 500 };
+
+    const { rerender } = render(
+      <ActivityList
+        header={<></>}
+        typeFilter={ActivityTypeFilter.Transactions}
+        scrollY={scrollY as unknown as SharedValue<number>}
+      />,
+    );
+
+    // Untouched on initial render.
+    expect(scrollY.value).toBe(500);
+
+    rerender(
+      <ActivityList
+        header={<></>}
+        typeFilter={ActivityTypeFilter.Perps}
+        scrollY={scrollY as unknown as SharedValue<number>}
+      />,
+    );
+
+    expect(scrollY.value).toBe(0);
   });
 
   it('hides rows whose kind does not match the type filter', () => {

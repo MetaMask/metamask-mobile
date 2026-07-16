@@ -80,6 +80,7 @@ describe('FeedItemRow', () => {
       <FeedItemRow
         item={spotItem}
         onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
         onTraderPress={jest.fn()}
       />,
     );
@@ -104,6 +105,7 @@ describe('FeedItemRow', () => {
       <FeedItemRow
         item={item}
         onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
         onTraderPress={jest.fn()}
       />,
     );
@@ -124,6 +126,7 @@ describe('FeedItemRow', () => {
       <FeedItemRow
         item={item}
         onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
         onTraderPress={jest.fn()}
       />,
     );
@@ -138,6 +141,7 @@ describe('FeedItemRow', () => {
       <FeedItemRow
         item={spotItem}
         onTradePress={onTradePress}
+        onPositionPress={jest.fn()}
         onTraderPress={jest.fn()}
       />,
     );
@@ -147,19 +151,20 @@ describe('FeedItemRow', () => {
     expect(onTradePress).toHaveBeenCalledWith(spotItem);
   });
 
-  it('calls onTradePress with the item when the detail card is pressed', () => {
-    const onTradePress = jest.fn();
+  it('calls onPositionPress with the item when the detail card is pressed', () => {
+    const onPositionPress = jest.fn();
     renderWithProvider(
       <FeedItemRow
         item={spotItem}
-        onTradePress={onTradePress}
+        onTradePress={jest.fn()}
+        onPositionPress={onPositionPress}
         onTraderPress={jest.fn()}
       />,
     );
 
     fireEvent.press(screen.getByTestId(getFeedTradeCardTestId('spot-1')));
 
-    expect(onTradePress).toHaveBeenCalledWith(spotItem);
+    expect(onPositionPress).toHaveBeenCalledWith(spotItem);
   });
 
   it('calls onTraderPress with the item when the trader identity is pressed', () => {
@@ -168,6 +173,7 @@ describe('FeedItemRow', () => {
       <FeedItemRow
         item={spotItem}
         onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
         onTraderPress={onTraderPress}
       />,
     );
@@ -182,6 +188,7 @@ describe('FeedItemRow', () => {
       <FeedItemRow
         item={perpItem}
         onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
         onTraderPress={jest.fn()}
       />,
     );
@@ -200,6 +207,7 @@ describe('FeedItemRow', () => {
       <FeedItemRow
         item={{ ...perpItem, leverage: null }}
         onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
         onTraderPress={jest.fn()}
       />,
     );

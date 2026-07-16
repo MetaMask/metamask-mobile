@@ -80,6 +80,8 @@ import MultichainTransactionsFooter from '../MultichainTransactionsView/Multicha
 import { getAddressUrl } from '../../../core/Multichain/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { hasTransactionType } from '../confirmations/utils/transaction';
 import styleSheet from './ActivityList.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { useTransactionAutoScroll } from './useTransactionAutoScroll';
@@ -98,9 +100,11 @@ import {
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
-  isSpendingCapWithAmount,
+  isFailedOrCancelledTransfer,
+  preferLocalOrApiActivityItem,
   type ActivityKind,
   type GroupedActivityListItem,
+  type TransactionGroup,
 } from '../../../util/activity-adapters';
 import {
   isBridgeHistoryForEvmTransaction,
@@ -159,6 +163,20 @@ const generateGroupedKey = (
 ): string => getGroupedActivityListItemKey(item, index);
 
 const noop = () => undefined;
+
+const PERPS_WALLET_TX_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
+];
+
+const isPerpsWalletTransactionGroup = (group: TransactionGroup): boolean =>
+  [group.primaryTransaction, group.initialTransaction].some(
+    (meta) =>
+      hasTransactionType(meta, PERPS_WALLET_TX_TYPES) ||
+      (meta?.originalType !== undefined &&
+        PERPS_WALLET_TX_TYPES.includes(meta.originalType)),
+  );
 
 const getBlockExplorerTrackingText = (url: string, fallbackName?: string) => {
   const blockExplorerName = getBlockExplorerName(url) ?? fallbackName;
@@ -375,18 +393,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         if (!hash) continue;
         const confirmed = confirmedItemByHash.get(hash);
         if (!confirmed) continue;
-        const localOutCategorizesConfirmed =
-          confirmed.type !== localItem.type &&
-          localItem.type !== 'contractInteraction' &&
-          localItem.type !== 'swapIncomplete';
-        // Same-kind spending caps: the accounts API returns no calldata for an
-        // approve, so its confirmed copy has no cap amount. Prefer the local
-        // copy, which decodes the amount from calldata.
-        const localHasRicherSpendingCap =
-          confirmed.type === localItem.type &&
-          isSpendingCapWithAmount(localItem) &&
-          !isSpendingCapWithAmount(confirmed);
-        if (localOutCategorizesConfirmed || localHasRicherSpendingCap) {
+        if (preferLocalOrApiActivityItem(localItem, confirmed) === localItem) {
           localWinsHashes.add(hash);
         }
       }
@@ -397,6 +404,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         const raw = item.raw;
         if (raw?.type !== 'localTransaction') return true;
         const tx = raw.data.primaryTransaction;
+
+        if (isPerpsEnabled && isPerpsWalletTransactionGroup(raw.data)) {
+          return false;
+        }
 
         const txChainId = tx.chainId?.toLowerCase() ?? '';
         const relatedChainIds = relatedChainIdsByTransactionId.get(tx.id) ?? [
@@ -499,6 +510,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       getBridgeHistoryItemByHash,
       relatedChainIdsByTransactionId,
       maliciousTokenKeys,
+      isPerpsEnabled,
     ]);
 
     const data = useMemo<ActivityListItem[]>(() => {
@@ -1156,7 +1168,11 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         return;
       }
       listRef.current?.scrollToOffset({ offset: 0, animated: false });
-    }, [typeFilter, networkFilter, subFilterKinds]);
+
+      if (scrollY) {
+        scrollY.value = 0;
+      }
+    }, [typeFilter, networkFilter, subFilterKinds, scrollY]);
 
     const runAutoScroll = useCallback(() => {
       handleScroll();
