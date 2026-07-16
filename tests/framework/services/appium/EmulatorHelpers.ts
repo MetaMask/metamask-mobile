@@ -254,6 +254,9 @@ async function trimAndroidSystemForE2e(serial: string): Promise<void> {
     'settings put global device_provisioned 1',
     'settings put secure user_setup_complete 1',
     'settings put global setup_wizard_has_run 1',
+    // Disabling GMS (below) posts a persistent "Enable Google Play services"
+    // heads-up that blocks UiAutomator taps (e.g. MetaMask Unlock).
+    'settings put global heads_up_notifications_enabled 0',
   ];
   for (const command of setupWizardSettings) {
     await runAdbShell(serial, command);

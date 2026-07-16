@@ -41,6 +41,20 @@ async function waitForLockScreenGone(timeoutMs: number): Promise<boolean> {
 }
 
 /**
+ * Tap Unlock without waiting for UiAutomator2 "interactive" — heads-up banners
+ * make that check fail for ~10s even when a plain tap would succeed.
+ */
+async function tapUnlockWithoutInteractiveWait(): Promise<void> {
+  await UnifiedGestures.waitAndTap(LoginView.loginButton, {
+    description: 'Login Button (MM Connect unlock)',
+    checkForDisplayed: true,
+    checkForEnabled: true,
+    waitForInteractive: false,
+    timeout: 10_000,
+  });
+}
+
+/**
  * If MetaMask's lock / login screen is showing, unlock with the e2e password.
  *
  * Prefer the password field over the outer login container — after a deeplink
@@ -66,23 +80,8 @@ export async function unlockIfLockScreenVisible(): Promise<void> {
 
     try {
       await LoginView.enterPassword(password);
-      try {
-        await LoginView.tapLoginButton();
-      } catch (tapError) {
-        logger.debug(
-          `Unlock interactive tap failed (attempt ${attempt + 1}); plain tap fallback: ${
-            tapError instanceof Error ? tapError.message : String(tapError)
-          }`,
-        );
-        await dismissUnlockBlockers();
-        await UnifiedGestures.waitAndTap(LoginView.loginButton, {
-          description: 'Login Button (unlock fallback)',
-          checkForDisplayed: true,
-          checkForEnabled: true,
-          waitForInteractive: false,
-          timeout: 10_000,
-        });
-      }
+      await dismissUnlockBlockers();
+      await tapUnlockWithoutInteractiveWait();
 
       if (await waitForLockScreenGone(LOCK_GONE_TIMEOUT_MS)) {
         return;
