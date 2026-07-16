@@ -8,7 +8,7 @@
 import { addBreadcrumb } from '@sentry/react-native';
 
 import Logger, { type LoggerErrorOptions } from '../../util/Logger';
-import { QrSyncSyncFlows, type QrSyncSyncFlow } from './constants';
+import type { QrSyncSyncFlow } from './constants';
 import type { QrSyncErrorCode, QrSyncPhase } from './types';
 
 /** Sentry tag value for QR sync errors. Query: `feature:qr-sync`. */
@@ -58,12 +58,11 @@ export const QrSyncTelemetrySources = {
   CONTROLLER_IMPORT_REMAINING: 'QrSyncController.importRemainingSecrets',
   CONTROLLER_ENRICH_PRIMARY: 'QrSyncController.enrichPrimaryProvisioningEntry',
   CONTROLLER: 'QrSyncController',
+  FINALIZE_ONBOARDING: 'finalizeOnboardingCompletion',
 } as const;
 
 export type QrSyncTelemetrySource =
   (typeof QrSyncTelemetrySources)[keyof typeof QrSyncTelemetrySources];
-
-export { QrSyncSyncFlows, type QrSyncSyncFlow };
 
 const SENSITIVE_KEY_PATTERN =
   /^(otp|mnemonic|seed|seedPhrase|privateKey|pendingSecretImports|value|p|payload|scannedQr|qrPayload|sessionRequest)$/i;
@@ -88,7 +87,7 @@ export interface ReportQrSyncFailureOptions {
   operation: QrSyncOperation;
   errorCode?: QrSyncErrorCode;
   phase?: QrSyncPhase;
-  source?: QrSyncTelemetrySource | string;
+  source?: QrSyncTelemetrySource;
   syncFlow?: QrSyncSyncFlow;
   /** Extra display-only fields — scrubbed before send. */
   extras?: Record<string, unknown>;

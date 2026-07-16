@@ -10,7 +10,7 @@ import {
 } from '../../selectors/qrSyncController';
 import type { AppNavigationProp } from '../NavigationService/types';
 import Engine from '../Engine';
-import { QrSyncSecretTypes } from './constants';
+import { QrSyncSecretTypes, QrSyncSyncFlows } from './constants';
 import { completeExistingUserQrSyncImport } from './completeExistingUserQrSyncImport';
 import { navigateToQrSyncImport } from './navigateToQrSyncImport';
 import { showAlreadySyncedSheet } from '../../components/Views/AddDeviceToWallet/showAlreadySyncedSheet';
@@ -19,7 +19,6 @@ import type { QrSyncSecretImportEntry } from './types';
 import {
   QrSyncOperations,
   QrSyncSurfaces,
-  QrSyncSyncFlows,
   QrSyncTelemetrySources,
   reportQrSyncFailure,
 } from './qrSyncTelemetry';

@@ -5,10 +5,10 @@ import { showImportFailedSheet } from '../../components/Views/AddDeviceToWallet/
 import Engine from '../Engine';
 import type { AppNavigationProp } from '../NavigationService/types';
 import { isDuplicateMnemonicError } from './duplicateMnemonicError';
+import { QrSyncSyncFlows } from './constants';
 import {
   QrSyncOperations,
   QrSyncSurfaces,
-  QrSyncSyncFlows,
   QrSyncTelemetrySources,
   reportQrSyncFailure,
 } from './qrSyncTelemetry';

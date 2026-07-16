@@ -152,7 +152,7 @@ describe('finalizeOnboardingCompletion', () => {
           feature: 'qr-sync',
           surface: 'import',
           operation: 'provision_from_metadata',
-          source: 'TestContext',
+          source: 'finalizeOnboardingCompletion',
           syncFlow: 'new_user',
         }),
       }),

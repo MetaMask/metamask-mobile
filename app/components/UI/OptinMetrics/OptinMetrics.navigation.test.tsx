@@ -510,7 +510,7 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
               feature: 'qr-sync',
               surface: 'import',
               operation: 'provision_from_metadata',
-              source: 'OptinMetrics',
+              source: 'finalizeOnboardingCompletion',
               syncFlow: 'new_user',
             }),
           }),

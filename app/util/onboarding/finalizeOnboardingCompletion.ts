@@ -10,10 +10,10 @@ import { getOnboardingCompletedAnalyticsPropsFromSuccessFlow } from '../analytic
 import type { WalletSetupCompletedAttributionAnalyticsPayload } from '../analytics/walletSetupCompletedAttribution';
 import { analytics } from '../analytics/analytics';
 import Logger from '../Logger';
+import { QrSyncSyncFlows } from '../../core/QrSync/constants';
 import {
   QrSyncOperations,
   QrSyncSurfaces,
-  QrSyncSyncFlows,
   QrSyncTelemetrySources,
   reportQrSyncFailure,
 } from '../../core/QrSync/qrSyncTelemetry';
@@ -84,7 +84,7 @@ export function finalizeOnboardingCompletion({
           reportQrSyncFailure(error, {
             surface: QrSyncSurfaces.IMPORT,
             operation: QrSyncOperations.PROVISION_FROM_METADATA,
-            source: discoverAccountsLogContext,
+            source: QrSyncTelemetrySources.FINALIZE_ONBOARDING,
             syncFlow: QrSyncSyncFlows.NEW_USER,
           });
         },
