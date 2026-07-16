@@ -269,6 +269,10 @@ export class ImmersveProvider implements ICardProvider {
     );
   }
 
+  private get appUrl(): string {
+    return this.programConfig.appUrl || this.config.appUrl;
+  }
+
   private requireProgramValue(
     key: 'cardProgramId' | 'fundingChannelId',
   ): string {
@@ -303,7 +307,7 @@ export class ImmersveProvider implements ICardProvider {
           clientApplicationId: this.clientApplicationId,
           scopes: ['cardholder-partner'],
           address,
-          url: this.config.appUrl,
+          url: this.appUrl,
           autoSignup: true,
         },
       );
@@ -382,7 +386,7 @@ export class ImmersveProvider implements ICardProvider {
           clientApplicationId: this.clientApplicationId,
         },
         undefined,
-        { origin: this.config.appUrl },
+        { origin: this.appUrl },
       );
     } catch (error) {
       if (

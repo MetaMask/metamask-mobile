@@ -135,6 +135,24 @@ describe('ImmersveProvider', () => {
         expect.objectContaining({ clientApplicationId: 'flag-app' }),
       );
     });
+
+    it('prefers the feature-flag appUrl over the env config', async () => {
+      const { provider, service } = createProvider({
+        immersve: { ...FEATURE_FLAG.immersve, appUrl: 'https://flag.app' },
+        immersveCountries: ['GB'],
+      });
+      service.post.mockResolvedValue({
+        id: 'login-req-1',
+        signingChallenge: { message: 'sign in' },
+      });
+
+      await provider.initiateAuth('GB', { address: '0xabc' });
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/auth/login-init',
+        expect.objectContaining({ url: 'https://flag.app' }),
+      );
+    });
   });
 
   describe('submitCredentials', () => {
