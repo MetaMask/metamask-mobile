@@ -162,7 +162,8 @@ describe('AssetDetailsActivityListItem', () => {
       Routes.ACTIVITY_DETAILS,
       expect.objectContaining({
         chainId: 'eip155:1',
-        txIdentifier: '0xabc',
+        txIdentifier: 'tx-1',
+        preloadKey: expect.any(String),
       }),
     );
   });
