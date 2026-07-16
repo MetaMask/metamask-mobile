@@ -25,6 +25,7 @@ export type {
 } from './storageAccessToken';
 export { buildWrappedRelayPayload } from './wrappedRelayPayload';
 export type { UkycWrappedRelayPayload } from './wrappedRelayPayload';
+export { wrapUserKey } from './wrapUserKey';
 export { toBase64Url } from './encoding';
 export {
   UKYC_LOCAL_USER_SECRET_PATH,

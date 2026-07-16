@@ -2,6 +2,11 @@ import { useCallback, useState } from 'react';
 import { NativeModules, Platform } from 'react-native';
 import SNSMobileSDK from '@sumsub/react-native-mobilesdk-module';
 import Engine from '../../../core/Engine';
+import {
+  getOrCreateLocalUserSecret,
+  deriveClientMaterial,
+  wrapUserKey,
+} from '../../../core/UKYC';
 
 // eslint-disable-next-line import-x/no-restricted-paths
 import { UKYC_API_BASE_URL } from '../MoonpayDemo/api';
@@ -19,7 +24,9 @@ async function getBearerToken(): Promise<string> {
 
 interface CreateSessionResponse {
   sessionId: string;
-  wrappedUserKey: string;
+  // X25519 public key the client uses to wrap (encrypt) its
+  // data_encryption_key before sending it back as wrappedUserKey.
+  wrappingPublicKey: string;
   idosSessionId: string;
 }
 
@@ -116,8 +123,18 @@ const useSumSubDemo = () => {
         if (!moonPayUserId) {
           throw new Error('Auth customer ID not provided');
         }
-        const { sessionId, idosSessionId, wrappedUserKey } =
+        const { sessionId, idosSessionId, wrappingPublicKey } =
           await createSession(mockJwtToken, moonPayAccessToken, moonPayUserId);
+
+        setStatus('Wrapping user key...');
+        // Derive the data_encryption_key from the local_user_secret and wrap it
+        // for the idOS Relay using the session's X25519 wrappingPublicKey. Only
+        // the wrapped (encrypted) key ever leaves the device.
+        const localUserSecret = await getOrCreateLocalUserSecret();
+        const { dataEncryptionKey } = deriveClientMaterial(localUserSecret);
+        const wrappedUserKey = wrapUserKey(wrappingPublicKey, dataEncryptionKey);
+
+        console.log('[SumSubDemo] wrappedUserKey', wrappedUserKey);
 
         setStatus('Fetching access token...');
         const { applicantAccessToken } = await fetchAccessToken(
