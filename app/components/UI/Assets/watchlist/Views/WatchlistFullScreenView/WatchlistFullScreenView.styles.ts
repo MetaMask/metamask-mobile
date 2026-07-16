@@ -30,6 +30,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     unwatchStar: {
       paddingLeft: 16,
+      zIndex: 1,
     },
     editableRowContent: {
       flex: 1,

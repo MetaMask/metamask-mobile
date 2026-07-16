@@ -15,6 +15,7 @@ import {
   writeToTokenWatchList,
 } from '../storage';
 import { tokenWatchlistQueryKeys } from './watchlist-query-keys';
+import type { WatchlistTokenMetadata } from '../utils/getTokens';
 import {
   tokenWatchlistBatcher,
   useTokenWatchlistAddItemMutation,
@@ -61,6 +62,17 @@ const ASSET_A = 'eip155:1/erc20:0xaaa' as CaipAssetType;
 const ASSET_B = 'eip155:1/erc20:0xbbb' as CaipAssetType;
 const ASSET_C = 'eip155:1/erc20:0xccc' as CaipAssetType;
 
+const tokenFor = (assetId: CaipAssetType): WatchlistTokenMetadata => ({
+  assetId,
+  symbol: assetId.slice(-3).toUpperCase(),
+  name: `Token ${assetId.slice(-3)}`,
+  decimals: 18,
+});
+
+const hydratedFor = (
+  assetIds: readonly CaipAssetType[],
+): WatchlistTokenMetadata[] => assetIds.map(tokenFor);
+
 let activeQueryClient: QueryClient | null = null;
 
 const createWrapper = () => {
@@ -80,8 +92,22 @@ const createWrapper = () => {
 const seedCache = (queryClient: QueryClient, blob: WatchlistBlob) =>
   queryClient.setQueryData<WatchlistBlob>(tokenWatchlistQueryKeys.blob, blob);
 
+const seedHydratedCache = (
+  queryClient: QueryClient,
+  tokens: WatchlistTokenMetadata[],
+) =>
+  queryClient.setQueryData<WatchlistTokenMetadata[]>(
+    tokenWatchlistQueryKeys.hydrated,
+    tokens,
+  );
+
 const readCache = (queryClient: QueryClient) =>
   queryClient.getQueryData<WatchlistBlob>(tokenWatchlistQueryKeys.blob);
+
+const readHydratedCache = (queryClient: QueryClient) =>
+  queryClient.getQueryData<WatchlistTokenMetadata[]>(
+    tokenWatchlistQueryKeys.hydrated,
+  );
 
 const baseBeforeEach = (initialStorage: WatchlistBlob = EMPTY_BLOB) => {
   jest.clearAllMocks();
@@ -106,10 +132,18 @@ interface MutationScenario<TInput> {
   name: string;
   useHook: () => UseMutationResult<void, Error, TInput, unknown>;
   initialCache: WatchlistBlob;
+  initialHydrated: WatchlistTokenMetadata[];
   initialStorage: WatchlistBlob;
   input: TInput;
   expectedOptimisticAssets: string[];
+  expectedOptimisticHydrated: WatchlistTokenMetadata[];
   expectedWrittenAssets: string[];
+  expectedInvalidateOnSettled: InvalidateOnSettledOptions;
+}
+
+interface InvalidateOnSettledOptions {
+  blob?: boolean;
+  hydrated?: boolean;
 }
 
 const scenarios: MutationScenario<unknown>[] = [
@@ -117,28 +151,37 @@ const scenarios: MutationScenario<unknown>[] = [
     name: 'add',
     useHook: useTokenWatchlistAddItemMutation,
     initialCache: { assets: [ASSET_A], version: 1 },
+    initialHydrated: hydratedFor([ASSET_A]),
     initialStorage: { assets: [ASSET_A], version: 1 },
     input: ASSET_B,
     expectedOptimisticAssets: [ASSET_A, ASSET_B],
+    expectedOptimisticHydrated: hydratedFor([ASSET_A]),
     expectedWrittenAssets: [ASSET_A, ASSET_B],
+    expectedInvalidateOnSettled: { blob: false, hydrated: true },
   } as MutationScenario<unknown>,
   {
     name: 'remove',
     useHook: useTokenWatchlistRemoveItemMutation,
     initialCache: { assets: [ASSET_A, ASSET_B, ASSET_C], version: 1 },
+    initialHydrated: hydratedFor([ASSET_A, ASSET_B, ASSET_C]),
     initialStorage: { assets: [ASSET_A, ASSET_B, ASSET_C], version: 1 },
     input: ASSET_B,
     expectedOptimisticAssets: [ASSET_A, ASSET_C],
+    expectedOptimisticHydrated: hydratedFor([ASSET_A, ASSET_C]),
     expectedWrittenAssets: [ASSET_A, ASSET_C],
+    expectedInvalidateOnSettled: { blob: false, hydrated: false },
   } as MutationScenario<unknown>,
   {
     name: 'update',
     useHook: useTokenWatchlistUpdateListMutation,
     initialCache: { assets: [ASSET_A, ASSET_B, ASSET_C], version: 1 },
+    initialHydrated: hydratedFor([ASSET_A, ASSET_B, ASSET_C]),
     initialStorage: { assets: [ASSET_A, ASSET_B, ASSET_C], version: 1 },
     input: [ASSET_C, ASSET_A, ASSET_B],
     expectedOptimisticAssets: [ASSET_C, ASSET_A, ASSET_B],
+    expectedOptimisticHydrated: hydratedFor([ASSET_C, ASSET_A, ASSET_B]),
     expectedWrittenAssets: [ASSET_C, ASSET_A, ASSET_B],
+    expectedInvalidateOnSettled: { blob: false, hydrated: false },
   } as MutationScenario<unknown>,
 ];
 
@@ -149,6 +192,7 @@ describe.each(scenarios)('useTokenWatchlist $name mutation', (scenario) => {
   it('writes the expected blob to storage', async () => {
     const { Wrapper, queryClient } = createWrapper();
     seedCache(queryClient, scenario.initialCache);
+    seedHydratedCache(queryClient, scenario.initialHydrated);
 
     const { result } = renderHook(() => scenario.useHook(), {
       wrapper: Wrapper,
@@ -178,6 +222,7 @@ describe.each(scenarios)('useTokenWatchlist $name mutation', (scenario) => {
 
     const { Wrapper, queryClient } = createWrapper();
     seedCache(queryClient, scenario.initialCache);
+    seedHydratedCache(queryClient, scenario.initialHydrated);
 
     const { result } = renderHook(() => scenario.useHook(), {
       wrapper: Wrapper,
@@ -192,6 +237,11 @@ describe.each(scenarios)('useTokenWatchlist $name mutation', (scenario) => {
         assets: scenario.expectedOptimisticAssets,
         version: 1,
       }),
+    );
+    await waitFor(() =>
+      expect(readHydratedCache(queryClient)).toStrictEqual(
+        scenario.expectedOptimisticHydrated,
+      ),
     );
     expect(mockedWrite).not.toHaveBeenCalled();
 
@@ -212,6 +262,7 @@ describe.each(scenarios)('useTokenWatchlist $name mutation', (scenario) => {
 
     const { Wrapper, queryClient } = createWrapper();
     seedCache(queryClient, scenario.initialCache);
+    seedHydratedCache(queryClient, scenario.initialHydrated);
 
     const { result } = renderHook(() => scenario.useHook(), {
       wrapper: Wrapper,
@@ -224,11 +275,15 @@ describe.each(scenarios)('useTokenWatchlist $name mutation', (scenario) => {
     });
 
     expect(readCache(queryClient)).toStrictEqual(scenario.initialCache);
+    expect(readHydratedCache(queryClient)).toStrictEqual(
+      scenario.initialHydrated,
+    );
   });
 
-  it('invalidates the watchlist blob query once the batcher drains', async () => {
+  it('invalidates the expected watchlist queries once the batcher drains', async () => {
     const { Wrapper, queryClient } = createWrapper();
     seedCache(queryClient, scenario.initialCache);
+    seedHydratedCache(queryClient, scenario.initialHydrated);
     const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
 
     const { result } = renderHook(() => scenario.useHook(), {
@@ -241,9 +296,27 @@ describe.each(scenarios)('useTokenWatchlist $name mutation', (scenario) => {
       await pending;
     });
 
-    expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: tokenWatchlistQueryKeys.blob,
-    });
+    const { expectedInvalidateOnSettled } = scenario;
+
+    if (expectedInvalidateOnSettled.blob !== false) {
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: tokenWatchlistQueryKeys.blob,
+      });
+    } else {
+      expect(invalidateSpy).not.toHaveBeenCalledWith({
+        queryKey: tokenWatchlistQueryKeys.blob,
+      });
+    }
+
+    if (expectedInvalidateOnSettled.hydrated !== false) {
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: tokenWatchlistQueryKeys.hydrated,
+      });
+    } else {
+      expect(invalidateSpy).not.toHaveBeenCalledWith({
+        queryKey: tokenWatchlistQueryKeys.hydrated,
+      });
+    }
   });
 });
 
@@ -317,6 +390,62 @@ describe('useTokenWatchlistRemoveItemMutation (specifics)', () => {
     });
 
     expect(mockedWrite).toHaveBeenCalledWith(initial);
+  });
+
+  it('optimistically removes ids case-insensitively from the hydrated cache', async () => {
+    const mixedCaseAsset = 'eip155:1/ERC20:0xbbb' as CaipAssetType;
+    const { Wrapper, queryClient } = createWrapper();
+    seedCache(queryClient, {
+      assets: [ASSET_A, mixedCaseAsset, ASSET_C],
+      version: 1,
+    });
+    seedHydratedCache(
+      queryClient,
+      hydratedFor([ASSET_A, mixedCaseAsset, ASSET_C]),
+    );
+
+    const { result } = renderHook(() => useTokenWatchlistRemoveItemMutation(), {
+      wrapper: Wrapper,
+    });
+
+    act(() => {
+      result.current.mutate(ASSET_B);
+    });
+
+    await waitFor(() =>
+      expect(readHydratedCache(queryClient)).toStrictEqual(
+        hydratedFor([ASSET_A, ASSET_C]),
+      ),
+    );
+  });
+
+  it('removes ids case-insensitively against the persisted blob', async () => {
+    mockedRead.mockResolvedValue({
+      assets: ['eip155:1/ERC20:0xbbb'],
+      version: 1,
+    });
+    const { Wrapper, queryClient } = createWrapper();
+    seedCache(queryClient, {
+      assets: ['eip155:1/ERC20:0xbbb'],
+      version: 1,
+    });
+
+    const { result } = renderHook(() => useTokenWatchlistRemoveItemMutation(), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      const pending = result.current.mutateAsync(
+        'eip155:1/erc20:0xbbb' as CaipAssetType,
+      );
+      await drainBatcher();
+      await pending;
+    });
+
+    expect(mockedWrite).toHaveBeenCalledWith({
+      assets: [],
+      version: 1,
+    });
   });
 });
 

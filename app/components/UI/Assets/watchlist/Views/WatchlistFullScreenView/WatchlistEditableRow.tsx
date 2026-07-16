@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { LayoutAnimation, View } from 'react-native';
+import { View } from 'react-native';
 import type { CaipAssetType } from '@metamask/utils';
 import {
   ButtonIcon,
@@ -29,13 +29,6 @@ const WatchlistEditableRow = ({
   const removeMutation = useTokenWatchlistRemoveItemMutation();
 
   const handleUnwatch = useCallback(() => {
-    LayoutAnimation.configureNext(
-      LayoutAnimation.create(
-        200,
-        LayoutAnimation.Types.easeInEaseOut,
-        LayoutAnimation.Properties.opacity,
-      ),
-    );
     removeMutation.mutate(token.assetId as CaipAssetType);
   }, [removeMutation, token.assetId]);
 

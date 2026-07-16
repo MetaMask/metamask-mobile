@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, FlatList, TouchableOpacity } from 'react-native';
+import { ScrollView, View, TouchableOpacity } from 'react-native';
+import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import {
   Button,
@@ -22,6 +23,7 @@ import styleSheet from './WatchlistFullScreenView.styles';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 
 const SKELETON_COUNT = 5;
+const ANIMATION_DURATION = 250;
 
 const WatchlistFullScreenView = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -98,19 +100,6 @@ const WatchlistFullScreenView = () => {
     );
   }, [isEditMode, handleDonePress]);
 
-  const renderItem = useCallback(
-    ({ item, index }: { item: TrendingAsset; index: number }) => (
-      <WatchlistEditableRow
-        token={item}
-        position={index}
-        isEditMode={isEditMode}
-      />
-    ),
-    [isEditMode],
-  );
-
-  const keyExtractor = useCallback((item: TrendingAsset) => item.assetId, []);
-
   return (
     <View
       style={styles.container}
@@ -161,14 +150,27 @@ const WatchlistFullScreenView = () => {
           ))}
         </View>
       ) : hasItems ? (
-        <FlatList
-          data={displayTokens}
-          renderItem={renderItem}
-          keyExtractor={keyExtractor}
+        <ScrollView
           style={styles.listContainer}
           showsVerticalScrollIndicator={false}
           testID={WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST}
-        />
+        >
+          <Animated.View layout={LinearTransition.duration(ANIMATION_DURATION)}>
+            {displayTokens.map((token, index) => (
+              <Animated.View
+                key={token.assetId}
+                exiting={FadeOut.duration(ANIMATION_DURATION)}
+                layout={LinearTransition.duration(ANIMATION_DURATION)}
+              >
+                <WatchlistEditableRow
+                  token={token}
+                  position={index}
+                  isEditMode={isEditMode}
+                />
+              </Animated.View>
+            ))}
+          </Animated.View>
+        </ScrollView>
       ) : null}
     </View>
   );
