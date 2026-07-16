@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
+import { fireEvent } from '@testing-library/react-native';
 import PerpsMarketBalanceActions from './PerpsMarketBalanceActions';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsLiveAccount } from '../../hooks/stream';
@@ -721,6 +722,43 @@ describe('PerpsMarketBalanceActions', () => {
       expect(
         queryByTestId(PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE),
       ).toBeNull();
+    });
+
+    it('reports title-section layout including progress and status above children', () => {
+      mockUsePerpsDepositProgress.mockReturnValue({
+        isDepositInProgress: true,
+      });
+      const onTitleSectionLayout = jest.fn();
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsMarketBalanceActions
+          hideBalanceSection
+          onTitleSectionLayout={onTitleSectionLayout}
+        >
+          <View testID="title-hub-slot" />
+        </PerpsMarketBalanceActions>,
+        { state: createMockState() },
+        false,
+      );
+
+      expect(getByTestId('title-hub-slot')).toBeOnTheScreen();
+      expect(getByText('perps.deposit_in_progress')).toBeOnTheScreen();
+
+      fireEvent(
+        getByTestId(PerpsMarketBalanceActionsSelectorsIDs.TITLE_SECTION),
+        'layout',
+        {
+          nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 156 } },
+        },
+      );
+
+      expect(onTitleSectionLayout).toHaveBeenCalledWith(
+        expect.objectContaining({
+          nativeEvent: expect.objectContaining({
+            layout: expect.objectContaining({ height: 156 }),
+          }),
+        }),
+      );
     });
   });
 

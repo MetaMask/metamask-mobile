@@ -1068,70 +1068,65 @@ const PerpsHomeView = ({
           <PerpsMarketBalanceActions
             showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
             hideBalanceSection
+            onTitleSectionLayout={(event) =>
+              setTitleSectionHeight(event.nativeEvent.layout.height)
+            }
           >
-            <Box
-              onLayout={(event) =>
-                setTitleSectionHeight(event.nativeEvent.layout.height)
+            <TitleHub
+              testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
+              title={hideHeader ? undefined : perpsScreenTitle}
+              titleEndAccessory={hideHeader ? undefined : titleEndAccessory}
+              titleProps={
+                hideHeader
+                  ? undefined
+                  : {
+                      testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
+                    }
               }
-            >
-              <TitleHub
-                testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
-                title={hideHeader ? undefined : perpsScreenTitle}
-                titleEndAccessory={hideHeader ? undefined : titleEndAccessory}
-                titleProps={
-                  hideHeader
-                    ? undefined
-                    : {
-                        testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
-                      }
-                }
-                amount={
-                  !isBalanceEmpty ? (
+              amount={
+                !isBalanceEmpty ? (
+                  <SensitiveText
+                    variant={TextVariant.DisplayLg}
+                    color={TextColor.TextDefault}
+                    testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
+                    isHidden={privacyMode}
+                    length={SensitiveTextLength.Medium}
+                  >
+                    {formatPerpsBalance(totalBalance)}
+                  </SensitiveText>
+                ) : undefined
+              }
+              bottomLabel={
+                !isBalanceEmpty ? (
+                  <Box flexDirection={BoxFlexDirection.Row}>
                     <SensitiveText
-                      variant={TextVariant.DisplayLg}
-                      color={TextColor.TextDefault}
-                      testID={
-                        PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE
-                      }
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
                       isHidden={privacyMode}
-                      length={SensitiveTextLength.Medium}
+                      length={SensitiveTextLength.Short}
+                      testID={
+                        PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
+                      }
                     >
-                      {formatPerpsBalance(totalBalance)}
+                      {formatPerpsBalance(spendableBalance)}
                     </SensitiveText>
-                  ) : undefined
-                }
-                bottomLabel={
-                  !isBalanceEmpty ? (
-                    <Box flexDirection={BoxFlexDirection.Row}>
-                      <SensitiveText
-                        variant={TextVariant.BodySm}
-                        color={TextColor.TextAlternative}
-                        isHidden={privacyMode}
-                        length={SensitiveTextLength.Short}
-                        testID={
-                          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
-                        }
-                      >
-                        {formatPerpsBalance(spendableBalance)}
-                      </SensitiveText>
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.TextAlternative}
-                      >
-                        {' '}
-                        {strings('perps.available')}
-                      </Text>
-                    </Box>
-                  ) : undefined
-                }
-                twClassName="px-4 pb-3"
-              />
-            </Box>
-
-            <PerpsServiceInterruptionBanner
-              testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                    >
+                      {' '}
+                      {strings('perps.available')}
+                    </Text>
+                  </Box>
+                ) : undefined
+              }
+              twClassName="px-4 pb-3"
             />
           </PerpsMarketBalanceActions>
+
+          <PerpsServiceInterruptionBanner
+            testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+          />
 
           <PerpsCompetitionBanner
             testID={PerpsHomeViewSelectorsIDs.COMPETITION_BANNER}

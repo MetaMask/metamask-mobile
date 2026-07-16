@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { Animated, Modal, View } from 'react-native';
+import { Animated, LayoutChangeEvent, Modal, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -44,6 +44,7 @@ import { selectWithdrawalRequestsBySelectedAccount } from '../../../../../select
 interface PerpsMarketBalanceActionsProps {
   showActionButtons?: boolean;
   hideBalanceSection?: boolean;
+  onTitleSectionLayout?: (event: LayoutChangeEvent) => void;
   children?: React.ReactNode;
 }
 
@@ -70,6 +71,7 @@ const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
 const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   showActionButtons = true,
   hideBalanceSection = false,
+  onTitleSectionLayout,
   children,
 }) => {
   const tw = useTailwind();
@@ -214,36 +216,41 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
         twClassName={isBalanceEmpty ? 'mb-4 rounded-xl' : undefined}
       >
-        <PerpsProgressBar
-          progressAmount={INITIAL_AMOUNT_UI_PROGRESS}
-          height={4}
-          onTransactionAmountChange={setTransactionAmountWei}
-        />
-        {isAnyTransactionInProgress && (
-          <>
-            <Box twClassName="px-4">
-              <KeyValueRow
-                variant={KeyValueRowVariant.Summary}
-                keyLabel={statusText}
-                twClassName="mt-3 h-6"
-                value={
-                  transactionAmountDisplay ? (
-                    <SensitiveText
-                      variant={TextVariant.BodySMMedium}
-                      color={TextColor.Default}
-                      isHidden={privacyMode}
-                      length={SensitiveTextLength.Short}
-                    >
-                      {transactionAmountDisplay}
-                    </SensitiveText>
-                  ) : undefined
-                }
-              />
-            </Box>
-            <SectionDivider marginVertical={3} />
-          </>
-        )}
-        {children}
+        <Box
+          onLayout={onTitleSectionLayout}
+          testID={PerpsMarketBalanceActionsSelectorsIDs.TITLE_SECTION}
+        >
+          <PerpsProgressBar
+            progressAmount={INITIAL_AMOUNT_UI_PROGRESS}
+            height={4}
+            onTransactionAmountChange={setTransactionAmountWei}
+          />
+          {isAnyTransactionInProgress && (
+            <>
+              <Box twClassName="px-4">
+                <KeyValueRow
+                  variant={KeyValueRowVariant.Summary}
+                  keyLabel={statusText}
+                  twClassName="mt-3 h-6"
+                  value={
+                    transactionAmountDisplay ? (
+                      <SensitiveText
+                        variant={TextVariant.BodySMMedium}
+                        color={TextColor.Default}
+                        isHidden={privacyMode}
+                        length={SensitiveTextLength.Short}
+                      >
+                        {transactionAmountDisplay}
+                      </SensitiveText>
+                    ) : undefined
+                  }
+                />
+              </Box>
+              <SectionDivider marginVertical={3} />
+            </>
+          )}
+          {children}
+        </Box>
         {/* Balance Section — defer until account data lands when balance is in TitleHub */}
         {!isInitialLoading &&
           (isBalanceEmpty ? (
