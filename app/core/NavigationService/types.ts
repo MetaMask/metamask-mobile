@@ -216,13 +216,12 @@ import type {
   LearnMoreModalParams,
   MaxInputModalParams,
   GasImpactModalParams,
-  EarnScreensParams,
-  LendingDepositConfirmationParams,
-  LendingWithdrawalConfirmationParams,
-  LendingMaxWithdrawalModalParams,
 } from '../../components/UI/Earn/Earn.types';
 import type { EarnTokenListViewRouteParams } from '../../components/UI/Earn/components/EarnTokenList';
-import type { EarnMusdConversionEducationViewRouteParams } from '../../components/UI/Earn/Views/EarnMusdConversionEducationView';
+import type {
+  EarnModalsNavigationParamList,
+  EarnScreensStackParamList,
+} from '../../components/UI/Earn/types/navigation';
 
 // Modal params
 import type {
@@ -857,17 +856,13 @@ export type RootStackParamList = {
   EarnTokenList: EarnTokenListViewRouteParams | undefined;
 
   // Earn routes
-  EarnScreens: EarnScreensParams | undefined;
-  EarnLendingDepositConfirmation: LendingDepositConfirmationParams | undefined;
-  EarnLendingWithdrawalConfirmation:
-    | LendingWithdrawalConfirmationParams
-    | undefined;
-  EarnMusdConversionEducation:
-    | EarnMusdConversionEducationViewRouteParams
-    | undefined;
-  EarnModals: NestedNavigationParams | undefined;
-  EarnLendingMaxWithdrawalModal: LendingMaxWithdrawalModalParams | undefined;
-  EarnLendingLearnMoreModal: undefined;
+  EarnScreens: NavigatorScreenParams<EarnScreensStackParamList> | undefined;
+  EarnLendingDepositConfirmation: EarnScreensStackParamList['EarnLendingDepositConfirmation'];
+  EarnLendingWithdrawalConfirmation: EarnScreensStackParamList['EarnLendingWithdrawalConfirmation'];
+  EarnMusdConversionEducation: EarnScreensStackParamList['EarnMusdConversionEducation'];
+  EarnModals: NavigatorScreenParams<EarnModalsNavigationParamList> | undefined;
+  EarnLendingMaxWithdrawalModal: EarnModalsNavigationParamList['EarnLendingMaxWithdrawalModal'];
+  EarnLendingLearnMoreModal: EarnModalsNavigationParamList['EarnLendingLearnMoreModal'];
 
   // Full screen confirmation routes
   RedesignedConfirmations: undefined;
