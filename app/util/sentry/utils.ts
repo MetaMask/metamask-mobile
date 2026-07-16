@@ -604,7 +604,14 @@ export function setEASUpdateContext(): void {
  * Used to avoid calling Sentry.init again mid-flow (which orphans in-flight transactions).
  */
 export function isSentryEnabled(): boolean {
-  return Boolean(Sentry.getClient()?.getOptions()?.enabled);
+  const client = Sentry.getClient();
+
+  if (!client) {
+    return false;
+  }
+
+  // The SDK defaults to enabled without adding `enabled` to its options.
+  return client.getOptions().enabled !== false;
 }
 
 // Setup sentry remote error reporting

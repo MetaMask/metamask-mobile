@@ -786,14 +786,9 @@ class AuthenticationService {
         if (passwordToUse) {
           // Password available. Use password to unlock wallet.
           if (authPreference?.oauth2Login) {
-            // if seedless flow - rehydrate. Forward the onboarding trace context (when supplied)
-            // so OnboardingFetchSrps nests under the journey rather than being a root span, while
-            // preserving the existing one-argument call for ordinary callers.
-            if (parentContext !== undefined) {
-              await this.rehydrateSeedPhrase(passwordToUse, parentContext);
-            } else {
-              await this.rehydrateSeedPhrase(passwordToUse);
-            }
+            // If seedless flow, rehydrate and nest OnboardingFetchSrps under
+            // the onboarding journey when a parent context is supplied.
+            await this.rehydrateSeedPhrase(passwordToUse, parentContext);
             fallbackToPassword = true;
           } else if (
             await this.checkIsSeedlessPasswordOutdated({

@@ -2046,7 +2046,7 @@ describe('Authentication', () => {
       rehydrateSpy.mockRestore();
     });
 
-    it('preserves the one-argument rehydrateSeedPhrase call for ordinary unlockWallet callers', async () => {
+    it('passes an undefined parent context for ordinary unlockWallet callers', async () => {
       const rehydrateSpy = jest
         .spyOn(Authentication, 'rehydrateSeedPhrase')
         .mockResolvedValueOnce(undefined);
@@ -2056,8 +2056,7 @@ describe('Authentication', () => {
         authPreference: mockAuthData,
       });
 
-      // Strict arity: no parentContext argument is passed when none was supplied.
-      expect(rehydrateSpy).toHaveBeenCalledWith(mockPassword);
+      expect(rehydrateSpy).toHaveBeenCalledWith(mockPassword, undefined);
 
       rehydrateSpy.mockRestore();
     });
@@ -5565,7 +5564,10 @@ describe('Authentication', () => {
         });
 
         // Verify that the rehydrateSeedPhrase is called.
-        expect(rehydrateSeedPhraseSpy).toHaveBeenCalledWith(passwordToUse);
+        expect(rehydrateSeedPhraseSpy).toHaveBeenCalledWith(
+          passwordToUse,
+          undefined,
+        );
       });
 
       it('syncs password and unlocks wallet when seedless password is outdated', async () => {

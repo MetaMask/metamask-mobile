@@ -154,6 +154,10 @@ interface OnboardingRouteParams {
   showErrorReportSentToast?: boolean;
 }
 
+// Production p95 is spent in the external browser. After foregrounding, the
+// redirect and token exchange should finish within this grace period.
+export const OAUTH_TRACE_ABANDONMENT_GRACE_MS = 25_000;
+
 const Onboarding = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const onboardingVersion = useMemo(
@@ -1264,10 +1268,6 @@ const Onboarding = () => {
   // result arrived. socialLoginTraceCtx.current is set while an attempt is in flight and cleared
   // by endSocialLoginAttemptTrace on success/failure, so "still set" == "no result yet".
   useEffect(() => {
-    // Grace window after foreground return: the legit long tail (p95 ~87s) is spent in the
-    // browser BEFORE returning; post-foreground completion (redirect -> token exchange -> end)
-    // is fast, so this lets a pending OAuth callback resolve before we declare abandonment.
-    const OAUTH_ABANDONMENT_GRACE_MS = 25_000;
     const subscription = AppState.addEventListener('change', (nextState) => {
       // Arm ONLY when the app leaves while a social-login attempt is genuinely in flight.
       if (
@@ -1275,6 +1275,12 @@ const Onboarding = () => {
         socialLoginTraceCtx.current
       ) {
         appBackgroundedDuringSocialLoginRef.current = true;
+        // Returning to the external browser means the login is still active.
+        // Cancel any grace countdown started by a brief foreground transition.
+        if (abandonmentTimerRef.current) {
+          clearTimeout(abandonmentTimerRef.current);
+          abandonmentTimerRef.current = null;
+        }
         return;
       }
       // Foreground return after such a background: wait the grace window, then if the attempt
@@ -1294,7 +1300,7 @@ const Onboarding = () => {
             finalizeInFlightOAuthTraces();
             endSocialLoginAttemptTrace(false);
           }
-        }, OAUTH_ABANDONMENT_GRACE_MS);
+        }, OAUTH_TRACE_ABANDONMENT_GRACE_MS);
       }
     });
     return () => {

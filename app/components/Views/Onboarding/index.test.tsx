@@ -62,7 +62,7 @@ import {
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import Onboarding from './';
+import Onboarding, { OAUTH_TRACE_ABANDONMENT_GRACE_MS } from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Device from '../../../util/device';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
@@ -3742,6 +3742,45 @@ describe('Onboarding', () => {
         name: TraceName.OnboardingSocialLoginAttempt,
         data: { success: false },
       });
+    });
+
+    it('cancels the abandonment countdown when OAuth returns to the background', async () => {
+      mockOAuthService.handleOAuthLogin.mockReturnValue(
+        new Promise(() => {
+          // Never settles while the user continues login in the external browser.
+        }),
+      );
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+      await act(async () => {
+        void googleLogin(true);
+      });
+      await waitFor(() => {
+        expect(mockTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.OnboardingSocialLoginAttempt,
+          }),
+        );
+      });
+      jest.useFakeTimers();
+      mockEndTrace.mockClear();
+
+      dispatchAppStateChange('background');
+      dispatchAppStateChange('active');
+      dispatchAppStateChange('background');
+      act(() => {
+        jest.advanceTimersByTime(OAUTH_TRACE_ABANDONMENT_GRACE_MS);
+      });
+
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingSocialLoginAttempt,
+        }),
+      );
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ abandoned: true }),
+        }),
+      );
     });
 
     it('clears AppState listeners and timers on unmount and finalizes an in-flight attempt', async () => {

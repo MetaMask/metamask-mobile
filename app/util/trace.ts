@@ -795,19 +795,10 @@ function startTrace(request: TraceRequest): TraceContext {
       finishPendingTrace(key, previousTrace);
     }
 
-    const pendingTrace: PendingTrace = {
-      end,
-      request,
-      startTime,
-      // Placeholder, reassigned below once the cleanup timer is registered.
-      timeoutId: undefined as unknown as NodeJS.Timeout,
-      span,
-    };
-
-    pendingTrace.timeoutId = setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       // Defensive identity check: a stale timer must never touch a newer
       // trace registered under the same key.
-      if (tracesByKey.get(key) !== pendingTrace) {
+      if (tracesByKey.get(key)?.end !== end) {
         return;
       }
 
@@ -819,6 +810,14 @@ function startTrace(request: TraceRequest): TraceContext {
       end(startTime + TRACES_CLEANUP_INTERVAL);
       tracesByKey.delete(key);
     }, TRACES_CLEANUP_INTERVAL);
+
+    const pendingTrace: PendingTrace = {
+      end,
+      request,
+      startTime,
+      timeoutId,
+      span,
+    };
 
     tracesByKey.set(key, pendingTrace);
 

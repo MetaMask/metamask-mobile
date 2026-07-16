@@ -3,6 +3,7 @@ import {
   Scope,
   UserFeedback,
   captureUserFeedback,
+  getClient,
   getGlobalScope,
 } from '@sentry/react-native';
 import {
@@ -15,6 +16,7 @@ import {
   rewriteReport,
   rewriteBreadcrumb,
   setEASUpdateContext,
+  isSentryEnabled,
 } from './utils';
 import { DeepPartial } from '../test/renderWithProvider';
 import { RootState } from '../../reducers';
@@ -29,6 +31,7 @@ import { getTraceTags } from './tags';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
 import { OTA_VERSION } from '../../constants/ota';
 const mockedCaptureUserFeedback = jest.mocked(captureUserFeedback);
+const mockedGetClient = jest.mocked(getClient);
 const mockedGetGlobalScope = jest.mocked(getGlobalScope);
 
 jest.mock('../../store', () => ({
@@ -185,6 +188,40 @@ describe('deriveSentryEnvironment', () => {
 
     const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT, 'main');
     expect(env).toBe('main-beta');
+  });
+});
+
+describe('isSentryEnabled', () => {
+  beforeEach(() => {
+    mockedGetClient.mockReset();
+  });
+
+  it('returns false when no Sentry client exists', () => {
+    mockedGetClient.mockReturnValue(undefined);
+
+    const result = isSentryEnabled();
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when the Sentry client is explicitly disabled', () => {
+    mockedGetClient.mockReturnValue({
+      getOptions: () => ({ enabled: false }),
+    } as ReturnType<typeof getClient>);
+
+    const result = isSentryEnabled();
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true when the Sentry client uses the default enabled option', () => {
+    mockedGetClient.mockReturnValue({
+      getOptions: () => ({}),
+    } as ReturnType<typeof getClient>);
+
+    const result = isSentryEnabled();
+
+    expect(result).toBe(true);
   });
 });
 
