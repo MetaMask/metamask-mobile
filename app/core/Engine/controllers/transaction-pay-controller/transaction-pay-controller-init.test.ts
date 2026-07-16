@@ -11,6 +11,7 @@ import { TransactionPayControllerInit } from './transaction-pay-controller-init'
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
 import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
+import { prepareTransactionAmount } from './amount-preparation-callback';
 
 jest.mock('@metamask/transaction-pay-controller');
 jest.mock('./polymarket-callbacks');
@@ -94,6 +95,12 @@ describe('Transaction Pay Controller Init', () => {
     });
 
     expect(state).toBe(MOCK_TRANSACTION_PAY_CONTROLLER_STATE);
+  });
+
+  it('wires the explicit amount preparation callback', () => {
+    const callback = testConstructorOption('prepareTransactionAmount');
+
+    expect(callback).toBe(prepareTransactionAmount);
   });
 
   it('does not override strategy selection in mobile init', () => {
