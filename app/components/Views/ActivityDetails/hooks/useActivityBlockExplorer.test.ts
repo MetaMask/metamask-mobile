@@ -64,7 +64,7 @@ describe('useActivityBlockExplorer', () => {
   ])('builds a non-EVM templated explorer link', (chainId, url, title) => {
     expect(resolve(chainId, '0xhash')).toEqual({
       url: `${url}0xhash`,
-      title: title,
+      title,
     });
   });
 
