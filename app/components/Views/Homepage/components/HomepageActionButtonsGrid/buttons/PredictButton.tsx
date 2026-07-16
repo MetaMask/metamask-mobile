@@ -47,7 +47,7 @@ const PredictButton = ({
   return (
     <HomepageActionButton
       allowTwoLineLabel={allowTwoLineLabel}
-      iconName={IconName.Sparkle}
+      iconName={IconName.Predictions}
       isDisabled={isDisabled}
       label={label}
       onPress={handlePress}
