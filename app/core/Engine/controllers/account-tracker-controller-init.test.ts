@@ -27,7 +27,9 @@ jest.mock('../../../selectors/settings', () => ({
 }));
 
 jest.mock('../../../selectors/featureFlagController/assetsUnifyState', () => ({
-  selectIsControllerDeprecated: jest.fn().mockReturnValue(() => false),
+  selectIsControllerDeprecated: jest
+    .fn()
+    .mockReturnValue(jest.fn().mockReturnValue(false)),
 }));
 
 jest.mock('../../../store', () => ({
@@ -126,7 +128,13 @@ describe('accountTrackerControllerInit', () => {
 
   describe('isDeprecated', () => {
     it('returns false when AccountTrackerController is not deprecated', () => {
-      jest.mocked(selectIsControllerDeprecated).mockReturnValue(() => false);
+      jest
+        .mocked(selectIsControllerDeprecated)
+        .mockReturnValue(
+          jest.fn().mockReturnValue(false) as unknown as ReturnType<
+            typeof selectIsControllerDeprecated
+          >,
+        );
 
       accountTrackerControllerInit(getInitRequestMock());
 
@@ -142,7 +150,13 @@ describe('accountTrackerControllerInit', () => {
     });
 
     it('returns true when AccountTrackerController is deprecated', () => {
-      jest.mocked(selectIsControllerDeprecated).mockReturnValue(() => true);
+      jest
+        .mocked(selectIsControllerDeprecated)
+        .mockReturnValue(
+          jest.fn().mockReturnValue(true) as unknown as ReturnType<
+            typeof selectIsControllerDeprecated
+          >,
+        );
 
       accountTrackerControllerInit(getInitRequestMock());
 
