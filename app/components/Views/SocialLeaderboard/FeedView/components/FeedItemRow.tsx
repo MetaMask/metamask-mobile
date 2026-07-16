@@ -19,7 +19,7 @@ import { strings } from '../../../../../../locales/i18n';
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 import PerpBadges from '../../components/PerpBadges';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
-import type { FeedItem } from '../types';
+import type { FeedAction, FeedItem } from '../types';
 import { formatFeedTimestamp } from '../../utils/formatters';
 import {
   getFeedItemTestId,
@@ -30,6 +30,14 @@ import {
 } from '../FeedView.testIds';
 
 const AVATAR_SIZE = 24;
+
+// Open actions map to an intentional state label shown when the right column
+// would otherwise be blank. Closed actions (`sold`/`closed`) have no entry, so
+// their empty rows stay blank.
+const NEW_POSITION_LABEL_KEYS: Partial<Record<FeedAction, string>> = {
+  bought: 'social_leaderboard.feed.new_position.bought',
+  opened: 'social_leaderboard.feed.new_position.opened',
+};
 
 const styles = StyleSheet.create({
   // Keep the tappable trader identity flexible so the Trade button retains its
@@ -77,14 +85,8 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   // For open rows whose value/P&L hasn't arrived yet, surface an intentional
   // state label ("Holding" for spot, "Open" for perps) instead of a blank right
   // column. The row is an entry that hasn't been exited, so there's no realized
-  // P&L to show yet. Only open actions have a label; closed rows (`sold`/`closed`)
-  // stay blank when empty.
-  const newPositionLabelKey =
-    item.action === 'bought'
-      ? 'social_leaderboard.feed.new_position.bought'
-      : item.action === 'opened'
-        ? 'social_leaderboard.feed.new_position.opened'
-        : null;
+  // P&L to show yet.
+  const newPositionLabelKey = NEW_POSITION_LABEL_KEYS[item.action] ?? null;
 
   return (
     <Box twClassName="px-4 py-3 gap-4" testID={getFeedItemTestId(item.id)}>
