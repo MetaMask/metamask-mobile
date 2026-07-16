@@ -12,7 +12,6 @@ import {
 } from '../../../../../components/Views/confirmations/utils/transaction-pay-metrics';
 import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { RootState } from '../../../../../reducers';
-import { isNoOpQuote } from '../../../../../selectors/transactionPayController';
 import { selectSingleTokenByAddressAndChainId } from '../../../../../selectors/tokensController';
 import { Hex } from '@metamask/utils';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
@@ -216,17 +215,7 @@ function addPayTypeProperties(
     return;
   }
 
-  const { totals, tokens } = txPayData;
-
-  // No-op quotes mark routes the controller validated as needing no
-  // conversion. They are not executable, so strategy and step totals must
-  // only count real quotes.
-  const quotes = (txPayData.quotes ?? []).filter(
-    (quote) => !isNoOpQuote(quote),
-  );
-  properties.mm_pay_quote_skipped =
-    (txPayData.quotes ?? []).length > quotes.length;
-
+  const { quotes, totals, tokens } = txPayData;
   const primaryRequiredToken = tokens?.find(
     (t: { skipIfBalance: boolean }) => !t.skipIfBalance,
   );
@@ -248,7 +237,7 @@ function addPayTypeProperties(
       .toString(10);
   }
 
-  const strategy = quotes[0]?.strategy;
+  const strategy = quotes?.[0]?.strategy;
 
   if (strategy === TransactionPayStrategy.Relay) {
     properties.mm_pay_strategy = 'relay';
@@ -256,7 +245,7 @@ function addPayTypeProperties(
     properties.mm_pay_strategy = 'fiat';
   }
 
-  properties.mm_pay_transaction_step_total = quotes.length + 1;
+  properties.mm_pay_transaction_step_total = (quotes?.length ?? 0) + 1;
   properties.mm_pay_transaction_step = properties.mm_pay_transaction_step_total;
 
   const fiatPayment = txPayData.fiatPayment;

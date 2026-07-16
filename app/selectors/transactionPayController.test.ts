@@ -136,7 +136,7 @@ describe('transactionPayController selectors', () => {
         TRANSACTION_ID_MOCK,
       );
 
-      expect(result).toStrictEqual(quotes);
+      expect(result).toBe(quotes);
     });
   });
 

@@ -11,7 +11,6 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import {
-  type TransactionData,
   TransactionPayControllerMessenger,
   TransactionPayPublishHook,
 } from '@metamask/transaction-pay-controller';
@@ -22,11 +21,7 @@ import {
   getSmartTransactionsFeatureFlagsForChain,
   selectShouldUseSmartTransaction,
 } from '../../../selectors/smartTransactionsController';
-import { isNoOpQuote } from '../../../selectors/transactionPayController';
-import {
-  selectMetaMaskPayFlags,
-  selectPayQuoteConfig,
-} from '../../../selectors/featureFlagController/confirmations';
+import { selectMetaMaskPayFlags } from '../../../selectors/featureFlagController/confirmations';
 import { store } from '../../../store';
 import type { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
 import { updateConfirmationMetric } from '../../../core/redux/slices/confirmationMetrics';
@@ -39,14 +34,8 @@ import { getTransactionById } from '..';
 import { accountSupports7702 } from '../account-supports-7702';
 import { isSendBundleSupported } from '../sentinel-api';
 import { Delegation7702PublishHook } from './delegation-7702-publish';
-import {
-  PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
-  QUOTE_REQUIRED_TRANSACTION_TYPES,
-} from '../../../components/Views/confirmations/constants/confirmations';
-import {
-  getPostQuoteTransactionType,
-  hasTransactionType,
-} from '../../../components/Views/confirmations/utils/transaction';
+import { QUOTE_REQUIRED_TRANSACTION_TYPES } from '../../../components/Views/confirmations/constants/confirmations';
+import { hasTransactionType } from '../../../components/Views/confirmations/utils/transaction';
 
 const TRANSACTION_SUBMISSION_METHOD_METRIC_NAME =
   'transaction_submission_method';
@@ -138,7 +127,7 @@ function publishHook({
       return payResult;
     }
 
-    validateRequiredQuote(transactionMeta, initMessenger, state);
+    validateRequiredQuote(transactionMeta, initMessenger);
 
     const { isExternalSign } = transactionMeta;
     const isRevokeDelegation =
@@ -234,25 +223,8 @@ function publishHook({
 function validateRequiredQuote(
   transactionMeta: TransactionMeta,
   messenger: TransactionControllerInitMessenger,
-  state: RootState,
 ) {
-  const isQuoteRequiredType = hasTransactionType(
-    transactionMeta,
-    QUOTE_REQUIRED_TRANSACTION_TYPES,
-  );
-
-  const isPayTokenRequiredType = hasTransactionType(
-    transactionMeta,
-    PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
-  );
-
-  const postQuoteType = getPostQuoteTransactionType(transactionMeta);
-
-  const isPostQuoteWithdraw =
-    Boolean(postQuoteType) &&
-    selectPayQuoteConfig(state, postQuoteType).enabled === true;
-
-  if (!isQuoteRequiredType && !isPostQuoteWithdraw && !isPayTokenRequiredType) {
+  if (!hasTransactionType(transactionMeta, QUOTE_REQUIRED_TRANSACTION_TYPES)) {
     return;
   }
 
@@ -260,101 +232,11 @@ function validateRequiredQuote(
     'TransactionPayController:getState',
   );
 
-  const data = transactionData?.[transactionMeta.id];
-  const quotes = data?.quotes ?? [];
+  const quotes = transactionData?.[transactionMeta.id]?.quotes ?? [];
 
-  // No-op quotes mark a direct route but cannot be executed, so they are not
-  // sufficient on their own. Ignoring them keeps this guard consistent with
-  // the confirmation alerts, which read quotes through the same filter, and
-  // lets the direct-route checks below decide instead.
-  const executableQuotes = quotes.filter((quote) => !isNoOpQuote(quote));
-
-  if (executableQuotes.length) {
-    return;
-  }
-
-  if (isPayTokenRequiredType) {
-    if (isValidatedDirectDeposit(data) || isValidatedFiatDeposit(data)) {
-      return;
-    }
-
+  if (!quotes.length) {
     throw new Error('MetaMask Pay: Cannot submit without quote');
   }
-
-  // Quotes can be empty for a direct route in the window before the
-  // controller stores the no-op quote. Allow that only when the pay config
-  // is set and no conversion is pending. A destination token is not
-  // required: withdraws with no preferred or last-used token intentionally
-  // leave paymentToken unset and default to a direct, same-token transfer
-  // (see getBestToken in useAutomaticTransactionPayToken), which never
-  // populates sourceAmounts either. A withdraw that lost its quotes or
-  // never initialised isPostQuote still cannot submit without the
-  // conversion.
-  const isValidatedDirectRoute =
-    !isQuoteRequiredType &&
-    data?.isPostQuote === true &&
-    !data.sourceAmounts?.length;
-
-  if (isValidatedDirectRoute) {
-    return;
-  }
-
-  throw new Error('MetaMask Pay: Cannot submit without quote');
-}
-
-/**
- * A pay-type deposit or conversion may submit without quotes only when the
- * user pays with the required token itself and the controller recorded no
- * pending conversion. Anything else (payment token missing or different, or
- * a required conversion without a quote) means the transaction would land
- * without funds, so it must not submit.
- *
- * @param data - Pay state for the transaction.
- * @returns Whether direct submission is safe.
- */
-function isValidatedDirectDeposit(data: TransactionData | undefined): boolean {
-  const paymentToken = data?.paymentToken;
-
-  if (!paymentToken) {
-    return false;
-  }
-
-  const tokens = data?.tokens ?? [];
-  const requiredToken = tokens.find((token) => !token.skipIfBalance);
-
-  const isPayingWithRequiredToken =
-    Boolean(requiredToken) &&
-    requiredToken?.chainId === paymentToken.chainId &&
-    requiredToken?.address.toLowerCase() === paymentToken.address.toLowerCase();
-
-  if (!isPayingWithRequiredToken) {
-    return false;
-  }
-
-  const hasRequiredConversion = (data?.sourceAmounts ?? []).some(
-    (sourceAmount) =>
-      !tokens.find(
-        (token) =>
-          token.address.toLowerCase() ===
-          sourceAmount.targetTokenAddress.toLowerCase(),
-      )?.skipIfBalance,
-  );
-
-  return !hasRequiredConversion;
-}
-
-/**
- * A fiat-funded deposit submits without a pay quote because the on-ramp
- * order itself is the funding source; the flow is validated at confirmation
- * time by the fiat no-quotes alert (see useNoPayTokenQuotesAlert), and the
- * auto-fiat-submission hook publishes as soon as the order is created,
- * before any pay token is ever selected on the controller.
- *
- * @param data - Pay state for the transaction.
- * @returns Whether the fiat-funded submission is safe.
- */
-function isValidatedFiatDeposit(data: TransactionData | undefined): boolean {
-  return Boolean(data?.fiatPayment?.orderId);
 }
 
 function getSmartTransactionCommonParams(state: RootState, chainId: Hex) {

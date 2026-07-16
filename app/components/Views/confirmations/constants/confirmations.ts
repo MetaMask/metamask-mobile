@@ -143,17 +143,3 @@ export const MM_PAY_TRANSACTION_TYPES = [
 export const QUOTE_REQUIRED_TRANSACTION_TYPES = [
   TransactionType.moneyAccountDeposit,
 ] as const;
-
-/**
- * MetaMask Pay transaction types that cannot work without a payment token
- * (unless paying with fiat). Confirmation is blocked and publish throws when
- * no payment token is set. Claims and withdraws are excluded because they can
- * legitimately submit without engaging MetaMask Pay.
- */
-export const PAY_TOKEN_REQUIRED_TRANSACTION_TYPES = [
-  TransactionType.musdConversion,
-  TransactionType.perpsDeposit,
-  TransactionType.perpsDepositAndOrder,
-  TransactionType.predictDeposit,
-  TransactionType.predictDepositAndOrder,
-] as const;
