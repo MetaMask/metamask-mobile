@@ -23644,7 +23644,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"base-64@npm:0.1.0, base-64@npm:^0.1.0":
+"base-64@npm:1.0.0":
+  version: 1.0.0
+  resolution: "base-64@npm:1.0.0"
+  checksum: 10/d10b64a1fc9b2c5a5f39f1ce1e6c9d1c5b249222bbfa3a0604c592d90623caf74419983feadd8a170f27dc0c3389704f72faafa3e645aeb56bfc030c93ff074a
+  languageName: node
+  linkType: hard
+
+"base-64@npm:^0.1.0":
   version: 0.1.0
   resolution: "base-64@npm:0.1.0"
   checksum: 10/5a42938f82372ab5392cbacc85a5a78115cbbd9dbef9f7540fa47d78763a3a8bd7d598475f0d92341f66285afd377509851a9bb5c67bbecb89686e9255d5b3eb
@@ -31398,6 +31405,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"glob@npm:13.0.6, glob@npm:^13.0.0":
+  version: 13.0.6
+  resolution: "glob@npm:13.0.6"
+  dependencies:
+    minimatch: "npm:^10.2.2"
+    minipass: "npm:^7.1.3"
+    path-scurry: "npm:^2.0.2"
+  checksum: 10/201ad69e5f0aa74e1d8c00a481581f8b8c804b6a4fbfabeeb8541f5d756932800331daeba99b58fb9e4cd67e12ba5a7eba5b82fb476691588418060b84353214
+  languageName: node
+  linkType: hard
+
 "glob@npm:7.1.6":
   version: 7.1.6
   resolution: "glob@npm:7.1.6"
@@ -31409,17 +31427,6 @@ __metadata:
     once: "npm:^1.3.0"
     path-is-absolute: "npm:^1.0.0"
   checksum: 10/7d6ec98bc746980d5fe4d764b9c7ada727e3fbd2a7d85cd96dd95fb18638c9c54a70c692fd2ab5d68a186dc8cd9d6a4192d3df220beed891f687db179c430237
-  languageName: node
-  linkType: hard
-
-"glob@npm:^13.0.0":
-  version: 13.0.6
-  resolution: "glob@npm:13.0.6"
-  dependencies:
-    minimatch: "npm:^10.2.2"
-    minipass: "npm:^7.1.3"
-    path-scurry: "npm:^2.0.2"
-  checksum: 10/201ad69e5f0aa74e1d8c00a481581f8b8c804b6a4fbfabeeb8541f5d756932800331daeba99b58fb9e4cd67e12ba5a7eba5b82fb476691588418060b84353214
   languageName: node
   linkType: hard
 
@@ -36302,7 +36309,7 @@ __metadata:
     react-native-animatable: "npm:^1.3.3"
     react-native-background-timer: "npm:2.1.1"
     react-native-ble-plx: "patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch"
-    react-native-blob-util: "npm:^0.19.9"
+    react-native-blob-util: "npm:^0.24.10"
     react-native-branch: "npm:^5.6.2"
     react-native-browser-polyfill: "npm:0.1.2"
     react-native-confetti: "npm:^0.1.0"
@@ -40452,16 +40459,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-blob-util@npm:^0.19.9":
-  version: 0.19.9
-  resolution: "react-native-blob-util@npm:0.19.9"
+"react-native-blob-util@npm:^0.24.10":
+  version: 0.24.10
+  resolution: "react-native-blob-util@npm:0.24.10"
   dependencies:
-    base-64: "npm:0.1.0"
-    glob: "npm:^10.3.10"
+    base-64: "npm:1.0.0"
+    glob: "npm:13.0.6"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/b2e412cec8d620d5b42ccc4a8401a71ddb85623bfc9731111ebbc880dbd96d2fa0469b318249cc20887a2a142a38d2457c716c91ef6289d44f3ee37068566291
+  checksum: 10/3999fbe4c856fd45f09248a80c324c5cd464d9774c705138e864e06d8dab826d2be1ccba25beea09ce1352b66922094eef35435612d5b5e9bde5443803f0269a
   languageName: node
   linkType: hard
 
