@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Animated, Platform, Dimensions, Appearance } from 'react-native';
+import { View, Animated, Platform, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Rive, {
   Fit,
@@ -16,7 +16,6 @@ import Logger from '../../../util/Logger';
 import { hasTestOverrides } from '../../../util/test/utils';
 import styleSheet from './FoxLoader.styles';
 import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
-import { brandColor } from '@metamask/design-tokens';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const splashRiveFile = require('../../../animations/splash_screen.riv');
@@ -160,15 +159,7 @@ const FoxLoaderAnimation = ({
   return (
     <SafeAreaView
       testID={FoxLoaderSelectorsIDs.CONTAINER}
-      style={[
-        styles.container,
-        // Fallback to pure black during very-early mount before tokens/theme
-        // are available. Once the design-system theme is active, this override
-        // is harmless (tokens are also pure black in dark mode).
-        Appearance.getColorScheme() === 'dark'
-          ? { backgroundColor: brandColor.black }
-          : undefined,
-      ]}
+      style={styles.container}
     >
       <View
         testID={FoxLoaderSelectorsIDs.ANIMATION_WRAPPER}
