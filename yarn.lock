@@ -11174,12 +11174,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@notifee/react-native@npm:^9.0.0":
-  version: 9.0.2
-  resolution: "@notifee/react-native@npm:9.0.2"
+"@notifee/react-native@npm:^9.1.8":
+  version: 9.1.8
+  resolution: "@notifee/react-native@npm:9.1.8"
   peerDependencies:
     react-native: "*"
-  checksum: 10/e6d3b902f26c63e665699f48e4d9303e46b4f93de1a0267f3ac6fb44627d622f88ad390ea1c0d5e3261947374df2e24036264503d2239c4a55cd0df17075f24c
+  checksum: 10/7c5237fba99906d8da02146afbfe8ff6de9f4047eecd806dea889bfd76b1cfe7ad3c181881bf2729aa348b83e035f4d02cfc3ac8eb8c4ba3a4415b445b439c38
   languageName: node
   linkType: hard
 
@@ -36044,7 +36044,7 @@ __metadata:
     "@nktkas/hyperliquid": "npm:^0.33.1"
     "@noble/curves": "npm:1.9.6"
     "@noble/hashes": "npm:1.8.0"
-    "@notifee/react-native": "npm:^9.0.0"
+    "@notifee/react-native": "npm:^9.1.8"
     "@octokit/rest": "npm:^21.0.0"
     "@open-rpc/mock-server": "npm:^1.7.5"
     "@open-rpc/schema-utils-js": "npm:^1.16.2"
