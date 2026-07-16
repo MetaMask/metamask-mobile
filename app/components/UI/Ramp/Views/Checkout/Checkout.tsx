@@ -127,7 +127,7 @@ const Checkout = () => {
       ? providerColors.dark
       : providerColors.light
     : undefined;
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { providerBg });
   // Tailwind arbitrary-value class for the MMDS BottomSheet — only set when
   // we know the provider's color so unknown providers keep the design-system default.
   const providerBgTwClassName = providerBg ? `bg-[${providerBg}]` : undefined;
@@ -716,6 +716,7 @@ const Checkout = () => {
         {sharedHeader}
         <WebView
           key={key}
+          style={styles.webview}
           source={{ uri }}
           userAgent={userAgent ?? undefined}
           onHttpError={(syntheticEvent) => {
