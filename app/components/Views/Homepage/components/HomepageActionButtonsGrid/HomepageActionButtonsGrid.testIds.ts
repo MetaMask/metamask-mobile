@@ -7,5 +7,6 @@ export const HomepageActionButtonsGridTestIds = {
   SWAP_BUTTON: 'homepage-action-buttons-grid-swap',
   PERPS_BUTTON: 'homepage-action-buttons-grid-perps',
   PREDICT_BUTTON: 'homepage-action-buttons-grid-predict',
+  BATCH_SWAP_BUTTON: 'homepage-action-buttons-grid-batch-swap',
   TRADERS_BUTTON: 'homepage-action-buttons-grid-traders',
 } as const;

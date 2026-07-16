@@ -10346,6 +10346,7 @@
       "swap": "Swap",
       "perps": "Perps",
       "predict": "Predict",
+      "batch_swap": "Batch Swap",
       "traders": "Traders"
     },
     "sections": {

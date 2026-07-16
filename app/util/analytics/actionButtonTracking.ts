@@ -17,6 +17,7 @@ export enum ActionButtonType {
   SELL = 'sell',
   PERPS = 'perps',
   PREDICT = 'predict',
+  BATCH_SWAP = 'batch_swap',
   TRADERS = 'traders',
 }
 
