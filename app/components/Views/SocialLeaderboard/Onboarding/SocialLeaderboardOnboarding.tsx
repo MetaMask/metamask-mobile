@@ -596,7 +596,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   // follow the not-yet-followed top traders.
   const handleFollowTopTraders = useCallback(async () => {
     trackInteraction(
-      SocialLeaderboardEventValues.INTERACTION_TYPE.FOLLOW_TOP_TEN,
+      SocialLeaderboardEventValues.INTERACTION_TYPE.FOLLOW_TOP_TRADERS,
     );
     const toFollow = topTraders.filter((trader) => !trader.isFollowing);
     tradersFollowedCountRef.current = toFollow.length;

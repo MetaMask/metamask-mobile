@@ -699,7 +699,7 @@ describe('SocialLeaderboardOnboarding', () => {
     );
   });
 
-  it('tracks follow_top_ten interaction with the count of traders followed', async () => {
+  it('tracks follow_top_traders interaction with the count of traders followed', async () => {
     mockTraders[1] = makeTrader({
       id: 'b',
       username: 'raggedand',
@@ -717,7 +717,7 @@ describe('SocialLeaderboardOnboarding', () => {
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_INTERACTION,
       expect.objectContaining({
-        interaction_type: 'follow_top_ten',
+        interaction_type: 'follow_top_traders',
         nux_step: 'step_2',
         source: 'nux',
       }),
