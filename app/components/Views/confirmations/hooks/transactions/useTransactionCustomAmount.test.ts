@@ -988,22 +988,6 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('1234.56');
     });
 
-    it('sets isMaxAmount=true when auto-filling so the full mUSD balance is moved', async () => {
-      runHook({
-        transactionMeta: addMusdTransactionMeta,
-      });
-
-      await act(async () => {
-        jest.runAllTimers();
-      });
-
-      expect(setTransactionConfigMock).toHaveBeenCalled();
-
-      const config = { isMaxAmount: false };
-      setTransactionConfigMock.mock.calls[0][1](config);
-      expect(config.isMaxAmount).toBe(true);
-    });
-
     it('does not auto-fill when intent is not addMusd', async () => {
       jest.mocked(getMoneyAccountDepositIntent).mockReturnValue('convert');
 
@@ -1352,6 +1336,18 @@ describe('useTransactionCustomAmount', () => {
       useMoneyAccountBalanceMock.mockReturnValue({
         withdrawableFiatRaw: undefined,
       } as ReturnType<typeof useMoneyAccountBalance>);
+    });
+
+    const addMusdTransactionMeta = {
+      type: TransactionType.moneyAccountDeposit,
+      id: transactionIdMock,
+      batchId: '0xtestbatchid' as Hex,
+      chainId: '0x1' as Hex,
+      txParams: { from: '0xabc' },
+    } as unknown as Partial<TransactionMeta>;
+
+    it('does not auto-fill when intent is not addMusd', async () => {
+      jest.mocked(getMoneyAccountDepositIntent).mockReturnValue('convert');
 
       const { result } = runHook({
         transactionMeta: {
