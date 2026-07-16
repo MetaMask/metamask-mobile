@@ -7623,6 +7623,12 @@
       "swap": "Swap",
       "buy": "Buy"
     },
+    "earn_banner": {
+      "title": "Earn up to {{apy}}% APY",
+      "title_no_apy": "Earn with your Money account",
+      "description": "Add {{symbol}} to your Money account—no lockups or minimums.",
+      "cta": "Add {{symbol}}"
+    },
     "how_it_works_page": {
       "header_title": "Money",
       "section_title": "How it works",

@@ -27,6 +27,7 @@ import {
   type SetMusdConversionAssetDetailCtaSeenAction,
   type ClearMusdConversionAssetDetailCtasSeenAction,
   type SetMoneyOnboardingSeenAction,
+  type SetMoneyEarnBannerDismissedAction,
   type SetTokenOverviewChartTypeAction,
   type SetTokenOverviewChartIntervalAction,
   type SetTokenIndicatorsAction,
@@ -240,6 +241,15 @@ export function setMoneyOnboardingSeen(
   return {
     type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
     payload: { seen },
+  };
+}
+
+export function setMoneyEarnBannerDismissed(
+  key: string,
+): SetMoneyEarnBannerDismissedAction {
+  return {
+    type: UserActionType.SET_MONEY_EARN_BANNER_DISMISSED,
+    payload: { key },
   };
 }
 
