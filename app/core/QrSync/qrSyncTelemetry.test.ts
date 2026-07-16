@@ -80,6 +80,37 @@ describe('qrSyncTelemetry', () => {
       expect(scrubbed.extras.note).toBe('ok');
       expect(scrubbed.extras.content).toBe('[REDACTED]');
     });
+
+    it('preserves null, undefined, numbers, booleans, and arrays', () => {
+      expect(scrubSensitiveQrSyncData(null)).toBeNull();
+      expect(scrubSensitiveQrSyncData(undefined)).toBeUndefined();
+      expect(scrubSensitiveQrSyncData(42)).toBe(42);
+      expect(scrubSensitiveQrSyncData(true)).toBe(true);
+      expect(scrubSensitiveQrSyncData([TEST_ADDRESS, 'safe'])).toEqual([
+        '[REDACTED]',
+        'safe',
+      ]);
+    });
+
+    it('stringifies bigint and symbol values', () => {
+      expect(scrubSensitiveQrSyncData(10n)).toBe('10');
+      expect(scrubSensitiveQrSyncData(Symbol.for('qr-sync'))).toBe(
+        'Symbol(qr-sync)',
+      );
+    });
+
+    it('redacts e2e qr-sync deeplinks', () => {
+      const scrubbed = scrubSensitiveQrSyncData(
+        'open metamask://e2e/qr-sync/payload?token=abc and e2e://qr-sync/x',
+      ) as string;
+
+      expect(scrubbed).not.toContain('e2e/qr-sync');
+      expect(scrubbed).toContain('[REDACTED]');
+    });
+
+    it('marks unsupported value types', () => {
+      expect(scrubSensitiveQrSyncData(() => undefined)).toBe('[unsupported]');
+    });
   });
 
   describe('addQrSyncPhaseBreadcrumb', () => {
@@ -205,6 +236,63 @@ describe('qrSyncTelemetry', () => {
       expect(Logger.error).toHaveBeenCalledWith(
         expect.objectContaining({
           message: '{"code":"SYNC_FAILED","detail":"vault"}',
+        }),
+        expect.any(Object),
+      );
+    });
+
+    it('stringifies primitive non-Error failures', () => {
+      reportQrSyncFailure(404, {
+        surface: QrSyncSurfaces.SESSION,
+        operation: QrSyncOperations.TERMINATE_WITH_ERROR,
+      });
+      reportQrSyncFailure(true, {
+        surface: QrSyncSurfaces.SESSION,
+        operation: QrSyncOperations.TERMINATE_WITH_ERROR,
+      });
+      reportQrSyncFailure(7n, {
+        surface: QrSyncSurfaces.SESSION,
+        operation: QrSyncOperations.TERMINATE_WITH_ERROR,
+      });
+      reportQrSyncFailure(null, {
+        surface: QrSyncSurfaces.SESSION,
+        operation: QrSyncOperations.TERMINATE_WITH_ERROR,
+      });
+
+      expect(Logger.error).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ message: '404' }),
+        expect.any(Object),
+      );
+      expect(Logger.error).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ message: 'true' }),
+        expect.any(Object),
+      );
+      expect(Logger.error).toHaveBeenNthCalledWith(
+        3,
+        expect.objectContaining({ message: '7' }),
+        expect.any(Object),
+      );
+      expect(Logger.error).toHaveBeenNthCalledWith(
+        4,
+        expect.objectContaining({ message: '' }),
+        expect.any(Object),
+      );
+    });
+
+    it('falls back when JSON.stringify cannot serialize the failure', () => {
+      const circular: Record<string, unknown> = {};
+      circular.self = circular;
+
+      reportQrSyncFailure(circular, {
+        surface: QrSyncSurfaces.SESSION,
+        operation: QrSyncOperations.TERMINATE_WITH_ERROR,
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: '[object Object]',
         }),
         expect.any(Object),
       );
