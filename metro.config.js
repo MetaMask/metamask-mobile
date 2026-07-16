@@ -76,7 +76,7 @@ module.exports = function (baseConfig) {
 
       /**
        * E2E Metro redirects under tests/module-mocking.
-       * Enables both: seedless-onboarding-controller + OAuthLoginHandlers mocks.
+       * Enables both: @metamask/seedless-onboarding-controller + OAuthLoginHandlers mocks.
        * True when HAS_TEST_OVERRIDES OR E2E_MOCK_OAUTH.
        * Performance builds set E2E_MOCK_OAUTH=true to keep this mock active
        * even though hasTestOverrides is false (preventing real OAuth calls to production).
@@ -221,21 +221,29 @@ module.exports = function (baseConfig) {
                 }
               }
               if (e2eAllowsSeedlessOAuthMetroMocks) {
-                if (
-                  moduleName.endsWith(
-                    'controllers/seedless-onboarding-controller',
-                  ) ||
-                  moduleName.endsWith(
-                    'controllers/seedless-onboarding-controller/index',
-                  ) ||
-                  moduleName === './seedless-onboarding-controller' ||
-                  moduleName === '../seedless-onboarding-controller'
-                ) {
+                // Wallet owns SeedlessOnboardingController construction, so E2E
+                // replaces the package class. Importers under
+                // tests/module-mocking/seedless still resolve the real package
+                // to avoid a circular mock.
+                if (moduleName === '@metamask/seedless-onboarding-controller') {
+                  const originModulePath = context.originModulePath || '';
+                  if (
+                    originModulePath.includes(
+                      `${path.sep}tests${path.sep}module-mocking${path.sep}seedless${path.sep}`,
+                    )
+                  ) {
+                    return {
+                      type: 'sourceFile',
+                      filePath: require.resolve(
+                        '@metamask/seedless-onboarding-controller',
+                      ),
+                    };
+                  }
                   return {
                     type: 'sourceFile',
                     filePath: path.resolve(
                       __dirname,
-                      'tests/module-mocking/seedless/index.ts',
+                      'tests/module-mocking/seedless/package.ts',
                     ),
                   };
                 }

@@ -13,6 +13,7 @@ import {
   getTransactionControllerInstanceOptions,
   setupTransactionControllerListeners,
 } from './instance-options/transaction-controller';
+import { getSeedlessOnboardingControllerInstanceOptions } from './instance-options/seedless-onboarding-controller';
 import { getTransactionControllerInitMessenger } from './messengers/transaction-controller-messenger';
 
 /**
@@ -47,6 +48,8 @@ export function initializeWallet({
           messenger,
           state,
         }),
+      seedlessOnboardingController:
+        getSeedlessOnboardingControllerInstanceOptions(),
       storageService: getStorageServiceInstanceOptions(),
       transactionController: getTransactionControllerInstanceOptions({
         initMessenger: transactionControllerInitMessenger,

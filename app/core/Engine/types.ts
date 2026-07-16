@@ -1035,7 +1035,6 @@ export type MessengerClientsToInitialize =
   | 'NftDetectionController'
   | 'PhishingController'
   | 'SignatureController'
-  | 'SeedlessOnboardingController'
   | 'SmartTransactionsController'
   | 'TokenBalancesController'
   | 'TokenDetectionController'

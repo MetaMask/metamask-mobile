@@ -2,6 +2,16 @@
   "name": "metamask",
   "version": "8.4.0",
   "private": true,
+  "previewBuilds": {
+    "@metamask/wallet": {
+      "type": "breaking",
+      "previewVersion": "7.0.1-preview-b867f452d"
+    },
+    "@metamask/seedless-onboarding-controller": {
+      "type": "non-breaking",
+      "previewVersion": "10.0.3-preview-b867f452d"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/MetaMask/metamask-mobile.git"
