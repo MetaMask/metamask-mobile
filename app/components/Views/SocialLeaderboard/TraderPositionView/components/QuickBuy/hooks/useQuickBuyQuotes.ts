@@ -3,6 +3,7 @@ import { useSelector, shallowEqual } from 'react-redux';
 import { debounce } from 'lodash';
 import {
   formatAddressToCaipReference,
+  formatChainIdToCaip,
   isNonEvmChainId,
   selectBridgeQuotes as selectBridgeQuotesBase,
   SortOrder,
@@ -24,6 +25,7 @@ import { selectSocialAIQuickBuyStreamQuotesEnabled } from '../../../../../../../
 import {
   selectBridgeFeatureFlags,
   selectDestAddress,
+  selectIsSlippageUserOverride,
   selectSlippage,
 } from '../../../../../../../core/redux/slices/bridge';
 import {
@@ -187,6 +189,7 @@ export function useQuickBuyQuotes({
   immediateFetchToken,
 }: UseQuickBuyQuotesParams): UseQuickBuyQuotesResult {
   const slippage = useSelector(selectSlippage);
+  const isSlippageUserOverride = useSelector(selectIsSlippageUserOverride);
   const destAddress = useSelector(selectDestAddress);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const { gasIncluded, gasIncluded7702 } = useSelector(
@@ -481,12 +484,25 @@ export function useQuickBuyQuotes({
     [fetchQuotes],
   );
 
+  const previousSlippageRef = useRef(slippage);
   useEffect(() => {
+    const previousSlippage = previousSlippageRef.current;
+    previousSlippageRef.current = slippage;
+
+    // Backend hydration alone must not abort/refetch the quote stream.
+    const isHydrationOnlySlippageChange =
+      !isSlippageUserOverride &&
+      previousSlippage === undefined &&
+      slippage !== undefined;
+    if (isHydrationOnlySlippageChange) {
+      return;
+    }
+
     debouncedFetchQuotes();
     return () => {
       debouncedFetchQuotes.cancel();
     };
-  }, [debouncedFetchQuotes]);
+  }, [debouncedFetchQuotes, isSlippageUserOverride, slippage]);
 
   // Committed-value paths (e.g. slider release) bump `immediateFetchToken`.
   // The reactive effect above has already scheduled the debounced fetch for the
@@ -618,7 +634,7 @@ export function useQuickBuyQuotes({
       return false;
     }
 
-    const { srcAsset, destAsset } = activeQuote.quote;
+    const { srcAsset, destAsset, srcChainId, destChainId } = activeQuote.quote;
 
     const quoteSourceAddress = isNonEvmChainId(sourceToken.chainId)
       ? (srcAsset.assetId ?? srcAsset.address)
@@ -628,6 +644,10 @@ export function useQuickBuyQuotes({
       : destAsset.address;
 
     return (
+      formatChainIdToCaip(srcChainId) ===
+        formatChainIdToCaip(sourceToken.chainId) &&
+      formatChainIdToCaip(destChainId) ===
+        formatChainIdToCaip(destToken.chainId) &&
       areAddressesEqual(quoteSourceAddress, sourceToken.address) &&
       areAddressesEqual(quoteDestAddress, destToken.address)
     );

@@ -14,6 +14,7 @@ import {
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import {
   selectDestAddress,
+  selectIsSlippageUserOverride,
   selectSlippage,
 } from '../../../../../../core/redux/slices/bridge';
 import {
@@ -65,6 +66,7 @@ jest.mock(
 
 jest.mock('../../../../../../core/redux/slices/bridge', () => ({
   selectDestAddress: jest.fn(),
+  selectIsSlippageUserOverride: jest.fn(() => false),
   selectSlippage: jest.fn(),
   selectBridgeFeatureFlags: jest.fn(() => ({
     maxRefreshCount: 5,
