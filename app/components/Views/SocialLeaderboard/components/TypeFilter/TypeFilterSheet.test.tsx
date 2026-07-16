@@ -1,11 +1,11 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import FeedTypeSheet from './FeedTypeSheet';
+import TypeFilterSheet from './TypeFilterSheet';
 import {
-  FeedViewSelectorsIDs,
-  getFeedTypeOptionTestId,
-} from '../FeedView.testIds';
+  TypeFilterSelectorsIDs,
+  getTypeFilterOptionTestId,
+} from './TypeFilter.testIds';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 
@@ -17,14 +17,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-describe('FeedTypeSheet', () => {
+describe('TypeFilterSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders nothing when closed', () => {
     renderWithProvider(
-      <FeedTypeSheet
+      <TypeFilterSheet
         isOpen={false}
         value="all"
         onChange={jest.fn()}
@@ -33,7 +33,7 @@ describe('FeedTypeSheet', () => {
     );
 
     expect(
-      screen.queryByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR_SHEET),
+      screen.queryByTestId(TypeFilterSelectorsIDs.SHEET),
     ).not.toBeOnTheScreen();
   });
 
@@ -41,7 +41,7 @@ describe('FeedTypeSheet', () => {
     const onChange = jest.fn();
     const onClose = jest.fn();
     renderWithProvider(
-      <FeedTypeSheet
+      <TypeFilterSheet
         isOpen
         value="all"
         onChange={onChange}
@@ -49,7 +49,7 @@ describe('FeedTypeSheet', () => {
       />,
     );
 
-    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('perps')));
+    fireEvent.press(screen.getByTestId(getTypeFilterOptionTestId('perps')));
 
     expect(onChange).toHaveBeenCalledWith('perps');
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
@@ -60,7 +60,7 @@ describe('FeedTypeSheet', () => {
     const onChange = jest.fn();
     const onClose = jest.fn();
     renderWithProvider(
-      <FeedTypeSheet
+      <TypeFilterSheet
         isOpen
         value="all"
         onChange={onChange}
@@ -68,10 +68,26 @@ describe('FeedTypeSheet', () => {
       />,
     );
 
-    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('all')));
+    fireEvent.press(screen.getByTestId(getTypeFilterOptionTestId('all')));
 
     expect(onChange).not.toHaveBeenCalled();
     expect(mockPlaySelection).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('uses custom testIDs when provided', () => {
+    renderWithProvider(
+      <TypeFilterSheet
+        isOpen
+        value="all"
+        onChange={jest.fn()}
+        onClose={jest.fn()}
+        sheetTestID="custom-sheet"
+        getOptionTestID={(v) => `custom-option-${v}`}
+      />,
+    );
+
+    expect(screen.getByTestId('custom-sheet')).toBeOnTheScreen();
+    expect(screen.getByTestId('custom-option-perps')).toBeOnTheScreen();
   });
 });

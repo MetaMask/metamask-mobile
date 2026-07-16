@@ -578,6 +578,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       navigateToClosePosition(
         existingPosition,
         PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK,
+        {
+          buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
+          buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK,
+        },
       );
     });
   }, [existingPosition, gate, navigateToClosePosition, isEligible, track]);

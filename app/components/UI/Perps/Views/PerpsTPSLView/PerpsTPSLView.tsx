@@ -49,6 +49,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
+import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
 
 const PerpsTPSLView: React.FC = () => {
@@ -396,11 +397,13 @@ const PerpsTPSLView: React.FC = () => {
       // Use appropriate source based on context:
       // - POSITION_SCREEN when editing TP/SL on an existing position
       // - TRADE_SCREEN when setting TP/SL for a new order
+      const riskSource = isEditingExistingPosition
+        ? PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
+        : PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN;
       const trackingData = {
         direction: actualDirection,
-        source: isEditingExistingPosition
-          ? PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
-          : PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
+        source: riskSource,
+        ...toPerpsEntryAttribution({ source: riskSource }),
         positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
         takeProfitPercentage: formattedTakeProfitPercentage
           ? parseFloat(formattedTakeProfitPercentage.replace('%', ''))

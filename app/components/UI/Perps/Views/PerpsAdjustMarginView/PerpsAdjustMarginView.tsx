@@ -15,7 +15,13 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { type Position, PERPS_CONSTANTS } from '@metamask/perps-controller';
+import {
+  type Position,
+  PERPS_CONSTANTS,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import styleSheet from './PerpsAdjustMarginView.styles';
 import { useTheme } from '../../../../../util/theme';
 import Icon, {
@@ -28,6 +34,7 @@ import ButtonIcon, {
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { PerpsAdjustMarginViewSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsMarginAdjustment } from '../../hooks/usePerpsMarginAdjustment';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
 import { TraceName } from '../../../../../util/trace';
@@ -119,6 +126,17 @@ const PerpsAdjustMarginView: React.FC = () => {
     traceName: TraceName.PerpsAdjustMarginView,
     conditions: [!isAdjusting, !!position],
     debugContext: { mode },
+  });
+
+  usePerpsEventTracking({
+    eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    resetKey: mode,
+    properties: {
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: isAddMode
+        ? PERPS_EVENT_VALUE.SCREEN_TYPE.ADD_MARGIN
+        : PERPS_EVENT_VALUE.SCREEN_TYPE.REMOVE_MARGIN,
+      [PERPS_EVENT_PROPERTY.ASSET]: routePosition?.symbol,
+    },
   });
 
   const handleSliderChange = useCallback((value: number) => {

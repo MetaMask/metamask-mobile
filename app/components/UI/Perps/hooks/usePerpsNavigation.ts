@@ -50,7 +50,11 @@ export interface PerpsNavigationHandlers {
     params?: PerpsNavigationParamList['PerpsTutorial'],
   ) => void;
   navigateToAdjustMargin: (position: Position, mode: 'add' | 'remove') => void;
-  navigateToClosePosition: (position: Position, source?: string) => void;
+  navigateToClosePosition: (
+    position: Position,
+    source?: string,
+    entry?: { buttonClicked?: string; buttonLocation?: string },
+  ) => void;
   navigateToOrderDetails: (order: Order) => void;
 
   // Utility navigation
@@ -225,8 +229,17 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
   );
 
   const navigateToClosePosition = useCallback(
-    (position: Position, source?: string) => {
-      navigation.navigate(Routes.PERPS.CLOSE_POSITION, { position, source });
+    (
+      position: Position,
+      source?: string,
+      entry?: { buttonClicked?: string; buttonLocation?: string },
+    ) => {
+      navigation.navigate(Routes.PERPS.CLOSE_POSITION, {
+        position,
+        source,
+        buttonClicked: entry?.buttonClicked,
+        buttonLocation: entry?.buttonLocation,
+      });
     },
     [navigation],
   );

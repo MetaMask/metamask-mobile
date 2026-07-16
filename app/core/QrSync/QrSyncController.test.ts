@@ -12,6 +12,7 @@ import {
   QrSyncPhases,
   QrSyncProvisioningStatuses,
   QrSyncSecretTypes,
+  QrSyncSyncFlows,
 } from './constants';
 import {
   QR_SYNC_CONTROLLER_NAME,
@@ -24,8 +25,20 @@ import {
 import { createQrSyncWalletClient } from './services/create-qr-sync-wallet-client';
 import { QR_SYNC_MWP_DEEPLINK_PREFIX } from './services/qr-sync-validation';
 import type { QrSyncSyncReadyMessage } from './types';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from './qrSyncTelemetry';
 
 jest.mock('./services/create-qr-sync-wallet-client');
+jest.mock('./qrSyncTelemetry', () => ({
+  ...jest.requireActual('./qrSyncTelemetry'),
+  reportQrSyncFailure: jest.fn(),
+}));
+
+const mockReportQrSyncFailure = jest.mocked(reportQrSyncFailure);
 
 const mockCreateQrSyncWalletClient =
   createQrSyncWalletClient as jest.MockedFunction<
@@ -239,6 +252,24 @@ describe('QrSyncController', () => {
       expect(walletClient.client.sendResponse).toHaveBeenCalledTimes(1);
       expect(controller.state.phase).toBe(QrSyncPhases.AWAITING_SYNC_READY);
       expect(controller.state.connectionStatus).toBe('connected');
+      expect(controller.state.syncFlow).toBe(QrSyncSyncFlows.EXISTING_USER);
+    });
+
+    it('captures NEW_USER syncFlow when onboarding is incomplete', async () => {
+      const controller = buildController({
+        getIsOnboardingCompleted: () => false,
+      });
+      const walletClient = buildMockWalletClient();
+
+      mockCreateQrSyncWalletClient.mockResolvedValue({
+        sessionId: VALID_SESSION_ID,
+        client: walletClient.client,
+      });
+
+      await controller.handleScannedQrPayload(buildValidScanPayload());
+      await flushPromises();
+
+      expect(controller.state.syncFlow).toBe(QrSyncSyncFlows.NEW_USER);
     });
 
     it('throws when the scan payload cannot be parsed', async () => {
@@ -688,6 +719,82 @@ describe('QrSyncController', () => {
       await idleController.importRemainingSecrets();
 
       expect(callSpy).not.toHaveBeenCalled();
+    });
+
+    it('reports finalize failures when provisioning metadata is missing', async () => {
+      const messenger = buildMessenger();
+      jest.spyOn(messenger, 'call').mockResolvedValue(undefined);
+
+      const orchestratingController = new QrSyncController({
+        messenger,
+        keyManager: {} as IKeyManager,
+        relayUrl: TEST_RELAY_URL,
+        getIsOnboardingCompleted: () => false,
+      });
+      const walletClient = buildMockWalletClient();
+
+      await startSession(orchestratingController, walletClient);
+      walletClient.emit('message', createSyncReadyWireMessage());
+      await flushPromises();
+
+      (
+        orchestratingController as unknown as {
+          update: (
+            fn: (state: typeof orchestratingController.state) => void,
+          ) => void;
+        }
+      ).update((state) => {
+        state.provisioningMetadata = null;
+      });
+
+      await orchestratingController.importRemainingSecrets();
+
+      expect(mockReportQrSyncFailure).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'QR sync finalize requires provisioning metadata',
+        }),
+        expect.objectContaining({
+          surface: QrSyncSurfaces.IMPORT,
+          operation: QrSyncOperations.IMPORT_REMAINING_SECRETS_FINALIZE,
+          source: QrSyncTelemetrySources.CONTROLLER_IMPORT_REMAINING,
+        }),
+      );
+    });
+
+    it('reports enrich-primary failures without throwing', async () => {
+      const messenger = buildMessenger();
+      const orchestratingController = new QrSyncController({
+        messenger,
+        keyManager: {} as IKeyManager,
+        relayUrl: TEST_RELAY_URL,
+        getIsOnboardingCompleted: () => false,
+      });
+      const walletClient = buildMockWalletClient();
+
+      await startSession(orchestratingController, walletClient);
+      walletClient.emit('message', createSyncReadyWireMessage());
+      await flushPromises();
+
+      jest
+        .spyOn(orchestratingController, 'enrichProvisioningEntry')
+        .mockImplementation(() => {
+          throw new Error('enrich failed');
+        });
+
+      expect(() =>
+        orchestratingController.enrichPrimaryProvisioningEntry(
+          'primary-entropy' as EntropySourceId,
+        ),
+      ).not.toThrow();
+
+      expect(mockReportQrSyncFailure).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          surface: QrSyncSurfaces.IMPORT,
+          operation: QrSyncOperations.ENRICH_PRIMARY_PROVISIONING_ENTRY,
+          source: QrSyncTelemetrySources.CONTROLLER_ENRICH_PRIMARY,
+        }),
+      );
     });
   });
 });
