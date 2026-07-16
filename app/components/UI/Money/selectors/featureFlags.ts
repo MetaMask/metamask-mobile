@@ -294,6 +294,27 @@ export const selectMoneyNoFeeDepositTokens = createSelector(
 );
 
 /**
+ * Selects whether the "Earn with Money account" banner can be displayed on
+ * token detail pages. The Money account feature must be enabled before the
+ * banner can appear.
+ */
+export const selectIsMoneyEarnBannerEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectMoneyEnableMoneyAccountFlag,
+  (remoteFeatureFlags, isMoneyAccountFeatureEnabled) => {
+    if (!isMoneyAccountFeatureEnabled) {
+      return false;
+    }
+
+    const localFlag = process.env.MM_MONEY_EARN_BANNER_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyEarnBannerEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
  * Default tokens whose token detail page shows the "Earn with Money account"
  * banner when the remote flag is not configured (the MUSD-1177 token list).
  */

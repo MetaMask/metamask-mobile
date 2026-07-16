@@ -16,6 +16,7 @@ import {
   selectMoneyVaultApyRemoteConfig,
   selectMoneyEarnBannerTokens,
   MONEY_EARN_BANNER_TOKENS_FALLBACK,
+  selectIsMoneyEarnBannerEnabledFlag,
   selectIsMoneyTokenListItemCtaEnabledFlag,
   selectMoneyDepositCtaTokens,
 } from './featureFlags';
@@ -265,6 +266,86 @@ describe('selectIsMoneyTokenListItemCtaEnabledFlag', () => {
     const result = selectIsMoneyTokenListItemCtaEnabledFlag(state as never);
 
     expect(result).toBe(true);
+  });
+});
+
+describe('selectIsMoneyEarnBannerEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns false when Money account feature is disabled', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(false);
+    mockedValidate.mockReturnValue(true);
+    const state = createState({
+      earnMoneyEarnBannerEnabled: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    const result = selectIsMoneyEarnBannerEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns remote version-gated banner flag when Money account feature is enabled', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(true);
+    const state = createState({
+      earnMoneyEarnBannerEnabled: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    const result = selectIsMoneyEarnBannerEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote banner flag is disabled', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(false);
+    const state = createState({
+      earnMoneyEarnBannerEnabled: {
+        enabled: false,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    const result = selectIsMoneyEarnBannerEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('falls back to local banner flag when remote flag is unavailable', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_EARN_BANNER_ENABLED = 'true';
+    const state = createState({ _unique: 'earn-banner-local-flag' });
+
+    const result = selectIsMoneyEarnBannerEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is unavailable and local flag is unset', () => {
+    mockedIsMoneyAccountEnabled.mockReturnValue(true);
+    mockedValidate.mockReturnValue(undefined);
+    delete process.env.MM_MONEY_EARN_BANNER_ENABLED;
+    const state = createState({ _unique: 'earn-banner-no-local-flag' });
+
+    const result = selectIsMoneyEarnBannerEnabledFlag(state as never);
+
+    expect(result).toBe(false);
   });
 });
 

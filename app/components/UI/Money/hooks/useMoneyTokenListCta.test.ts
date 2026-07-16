@@ -69,6 +69,7 @@ describe('useMoneyTokenListCta', () => {
     } as unknown as ReturnType<typeof useMoneyAnalytics>);
     mockUseMoneyCtaVisibility.mockReturnValue({
       shouldShowMoneyTokenListItemCta: mockShouldShowMoneyTokenListItemCta,
+      shouldShowMoneyEarnBanner: jest.fn(),
     });
     mockUseMoneyOnboardingNavigation.mockReturnValue({
       redirectToOnboardingIfNeeded: mockRedirectToOnboardingIfNeeded,

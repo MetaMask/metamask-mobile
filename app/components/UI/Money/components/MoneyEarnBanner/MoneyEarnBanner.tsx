@@ -6,13 +6,10 @@ import {
   Pressable,
   StyleProp,
   StyleSheet,
+  TouchableOpacity,
+  ViewStyle,
 } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  NavigationProp,
-  ParamListBase,
-  useNavigation,
-} from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
 import {
   AvatarToken,
   AvatarTokenSize,
@@ -38,28 +35,25 @@ import moneyEarnBannerAusdc from '../../../../../images/money-earn-banner-ausdc.
 import moneyEarnBannerAusdt from '../../../../../images/money-earn-banner-ausdt.png';
 import moneyEarnBannerAdai from '../../../../../images/money-earn-banner-adai.png';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 import { setMoneyEarnBannerDismissed } from '../../../../../actions/user';
-import {
-  selectMoneyEarnBannerDismissedTokens,
-  selectMoneyOnboardingSeen,
-} from '../../../../../reducers/user/selectors';
-import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import Logger from '../../../../../util/Logger';
 import { TokenI } from '../../../Tokens/types';
 import {
   getTokenDisplaySymbol,
   isMusdToken,
 } from '../../../Earn/constants/musd';
-import { isTokenInWildcardList } from '../../../Earn/utils/wildcardTokenList';
 import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
 import {
-  selectMoneyEarnBannerTokens,
-  selectMoneyEnableMoneyAccountFlag,
-} from '../../selectors/featureFlags';
-import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
+  COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { useMoneyCtaVisibility } from '../../hooks/useMoneyCtaVisibility';
+import { useMoneyOnboardingNavigation } from '../../hooks/useMoneyNavigation';
 import { isPositiveNumber } from '../../utils/number';
 import { MoneyEarnBannerTestIds } from './MoneyEarnBanner.testIds';
 
@@ -137,6 +131,9 @@ const styles = StyleSheet.create({
     width: 28,
     height: 33,
   },
+  ctaButton: {
+    alignSelf: 'flex-start',
+  } as ViewStyle,
 });
 
 interface SourceTokenImage {
@@ -175,56 +172,89 @@ const MoneyEarnBannerContent = ({
   tokenKey,
 }: MoneyEarnBannerContentProps) => {
   const dispatch = useDispatch();
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const { apyPercent } = useMoneyAccountBalance();
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const hasSeenOnboarding = useSelector(selectMoneyOnboardingSeen);
-  const isOnboardingEnabled = useSelector(
-    selectMoneyOnboardingStepperAnimationEnabled,
-  );
+  const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
+  const { trackButtonClicked, trackSurfaceClicked } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.ASSET_DETAIL,
+    component_name: COMPONENT_NAMES.MONEY_EARN_BANNER,
+  });
 
-  const handlePress = useCallback(async () => {
-    if (!hasSeenOnboarding && isOnboardingEnabled) {
-      navigation.navigate(Routes.MONEY.ONBOARDING);
-      return;
-    }
+  const symbol =
+    getTokenDisplaySymbol(asset.address, asset.symbol) ?? asset.symbol;
+  const ctaLabel = strings('money.earn_banner.cta', { symbol });
 
-    try {
-      await initiateDeposit({
-        preferredPaymentToken: {
-          address: asset.address as Hex,
-          chainId: safeFormatChainIdToHex(asset.chainId as string) as Hex,
-        },
+  const beginAddFunds = useCallback((): boolean => {
+    const preferredPaymentToken = {
+      address: asset.address as Hex,
+      chainId: safeFormatChainIdToHex(asset.chainId as string) as Hex,
+    };
+
+    const redirectedToOnboarding = redirectToOnboardingIfNeeded({
+      preferredPaymentToken,
+    });
+    if (!redirectedToOnboarding) {
+      initiateDeposit({ preferredPaymentToken }).catch((error) => {
+        Logger.error(
+          error as Error,
+          '[MoneyEarnBanner] Failed to initiate Money account deposit',
+        );
       });
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        '[MoneyEarnBanner] Failed to initiate Money account deposit',
-      );
     }
+
+    return redirectedToOnboarding;
   }, [
     asset.address,
     asset.chainId,
-    hasSeenOnboarding,
     initiateDeposit,
-    isOnboardingEnabled,
-    navigation,
+    redirectToOnboardingIfNeeded,
   ]);
 
+  const handleBannerPress = useCallback(() => {
+    const redirectedToOnboarding = beginAddFunds();
+
+    trackSurfaceClicked({
+      redirect_target: redirectedToOnboarding
+        ? SCREEN_NAMES.MONEY_ONBOARDING
+        : SCREEN_NAMES.MONEY_DEPOSIT,
+    });
+  }, [beginAddFunds, trackSurfaceClicked]);
+
+  const handleCtaPress = useCallback(() => {
+    const redirectedToOnboarding = beginAddFunds();
+
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: redirectedToOnboarding
+        ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
+        : MONEY_BUTTON_INTENTS.ADD_MONEY,
+      label_en: ctaLabel,
+      label_localized: ctaLabel,
+      redirect_target: redirectedToOnboarding
+        ? SCREEN_NAMES.MONEY_ONBOARDING
+        : SCREEN_NAMES.MONEY_DEPOSIT,
+    });
+  }, [beginAddFunds, ctaLabel, trackButtonClicked]);
+
   const handleDismiss = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.ICON,
+      button_intent: MONEY_BUTTON_INTENTS.DISMISS,
+    });
     dispatch(setMoneyEarnBannerDismissed(tokenKey));
-  }, [dispatch, tokenKey]);
+  }, [dispatch, tokenKey, trackButtonClicked]);
 
   const showApy = isPositiveNumber(apyPercent);
   const title = showApy
     ? strings('money.earn_banner.title', { apy: apyPercent })
     : strings('money.earn_banner.title_no_apy');
-  const symbol =
-    getTokenDisplaySymbol(asset.address, asset.symbol) ?? asset.symbol;
   const sourceTokenImage = getSourceTokenImage(asset);
 
   return (
-    <Pressable onPress={handlePress} testID={MoneyEarnBannerTestIds.CONTAINER}>
+    <Pressable
+      onPress={handleBannerPress}
+      testID={MoneyEarnBannerTestIds.CONTAINER}
+    >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -277,14 +307,19 @@ const MoneyEarnBannerContent = ({
           >
             {strings('money.earn_banner.description', { symbol })}
           </Text>
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.PrimaryDefault}
+          <TouchableOpacity
+            onPress={handleCtaPress}
+            style={styles.ctaButton}
             testID={MoneyEarnBannerTestIds.CTA}
           >
-            {strings('money.earn_banner.cta', { symbol })}
-          </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.PrimaryDefault}
+            >
+              {ctaLabel}
+            </Text>
+          </TouchableOpacity>
         </Box>
       </Box>
     </Pressable>
@@ -292,34 +327,13 @@ const MoneyEarnBannerContent = ({
 };
 
 const MoneyEarnBanner = ({ asset }: MoneyEarnBannerProps) => {
-  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
-  const isGeoEligible = useSelector(selectIsMoneyAccountGeoEligible);
-  const earnBannerTokens = useSelector(selectMoneyEarnBannerTokens);
-  const dismissedTokens = useSelector(selectMoneyEarnBannerDismissedTokens);
+  const { shouldShowMoneyEarnBanner } = useMoneyCtaVisibility();
 
-  if (!isMoneyAccountEnabled || !isGeoEligible) {
+  if (!asset.address || !asset.chainId || !shouldShowMoneyEarnBanner(asset)) {
     return null;
   }
 
-  if (!asset.address || !asset.chainId) {
-    return null;
-  }
-
-  const chainIdHex = safeFormatChainIdToHex(asset.chainId);
-  const isSupportedToken = isTokenInWildcardList(
-    asset.symbol,
-    earnBannerTokens,
-    chainIdHex,
-  );
-  if (!isSupportedToken) {
-    return null;
-  }
-
-  const tokenKey = `${chainIdHex}-${asset.address.toLowerCase()}`;
-  if (dismissedTokens[tokenKey]) {
-    return null;
-  }
-
+  const tokenKey = `${safeFormatChainIdToHex(asset.chainId)}-${asset.address.toLowerCase()}`;
   return <MoneyEarnBannerContent asset={asset} tokenKey={tokenKey} />;
 };
 
