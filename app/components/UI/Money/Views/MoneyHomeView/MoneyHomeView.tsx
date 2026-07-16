@@ -660,17 +660,22 @@ const MoneyHomeView = () => {
 
   const { primaryToken: cardPrimaryToken } = useCardHomeData();
   const currencyRates = useSelector(selectCurrencyRates);
-  // The Card pipeline reports balanceFiat in the user's selected currency, but
-  // we want to show USD fiat values in this view.
+  // Money Account entries are already valued in USD. Other Card tokens report
+  // their fiat value in the user's selected currency.
   const cardBalanceUsd = useMemo(() => {
-    const usd = convertSelectedFiatToUsd(
-      cardPrimaryToken?.rawFiatNumber,
-      currencyRates,
-    );
+    const rawFiat = cardPrimaryToken?.rawFiatNumber;
+    const usd = cardPrimaryToken?.isMoneyAccountEntry
+      ? rawFiat
+      : convertSelectedFiatToUsd(rawFiat, currencyRates);
     return usd === undefined
       ? formattedZero
       : moneyFormatUsd(new BigNumber(usd));
-  }, [cardPrimaryToken?.rawFiatNumber, currencyRates, formattedZero]);
+  }, [
+    cardPrimaryToken?.isMoneyAccountEntry,
+    cardPrimaryToken?.rawFiatNumber,
+    currencyRates,
+    formattedZero,
+  ]);
 
   const cardState = deriveCardState({
     isCardholder,

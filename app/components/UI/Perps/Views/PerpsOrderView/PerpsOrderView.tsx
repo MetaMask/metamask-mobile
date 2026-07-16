@@ -88,7 +88,6 @@ import {
   type OrderParams,
   type OrderType,
   type Position,
-  type TPSLTrackingData,
   ORDER_SLIPPAGE_CONFIG,
 } from '@metamask/perps-controller';
 import {
@@ -199,9 +198,6 @@ interface PerpsOrderViewContentProps {
   defaultSzDecimals?: number;
   defaultMaxLeverage?: number;
 }
-
-const flipDirection = (direction: 'long' | 'short'): 'long' | 'short' =>
-  direction === 'long' ? 'short' : 'long';
 
 /**
  * PerpsOrderViewContentBase
@@ -400,14 +396,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [isSlippageVisible, setIsSlippageVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
-
-  // The Auto Close sheet renders the RoE sign on a badge and persists only the
-  // trigger price — not the sign. Track the chosen sign here so order-view
-  // validation can accept a signed trigger (a negative take profit or a
-  // gain-side stop loss) instead of rejecting it with the classic
-  // long/short side rules. Defaults match the sheet (+ TP / - SL).
-  const [takeProfitSign, setTakeProfitSign] = useState<'+' | '-'>('+');
-  const [stopLossSign, setStopLossSign] = useState<'+' | '-'>('-');
 
   // Max slippage from persisted controller state via hook so the component
   // never reaches into PerpsController directly (perps anti-pattern rule).
@@ -947,7 +935,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         _position?: Position,
         takeProfitPrice?: string,
         stopLossPrice?: string,
-        trackingData?: TPSLTrackingData,
       ) => {
         // Order flow: no position; just persist TP/SL in form state
         const tpToSet = takeProfitPrice || undefined;
@@ -955,17 +942,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         setTakeProfitPrice(tpToSet);
         setStopLossPrice(slToSet);
-
-        // Recover the RoE sign from the signed percentage the sheet reports so
-        // validation accepts a signed trigger. A negative TP percentage is a
-        // gain-side flip (-); a positive SL percentage is a gain-side flip (+).
-        // Absent/zero percentage falls back to the natural sign.
-        setTakeProfitSign(
-          (trackingData?.takeProfitPercentage ?? 0) < 0 ? '-' : '+',
-        );
-        setStopLossSign(
-          (trackingData?.stopLossPercentage ?? 0) > 0 ? '+' : '-',
-        );
       },
     });
   }, [
@@ -1467,26 +1443,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const tpslPriceType = isLimitWithPrice ? 'entry' : 'current';
 
-  // The RoE sign decides which side of the reference price the trigger must
-  // sit on, mirroring usePerpsTPSLForm: a + take profit / - stop loss keep the
-  // natural side, while a signed flip (- TP / + SL) accepts the opposite side.
-  // Passing the effective direction lets the existing price-side checks respect
-  // the sign without changing their logic, so a signed trigger isn't rejected.
-  const takeProfitEffectiveDirection =
-    takeProfitSign === '+'
-      ? orderForm.direction
-      : flipDirection(orderForm.direction);
-  const stopLossEffectiveDirection =
-    stopLossSign === '-'
-      ? orderForm.direction
-      : flipDirection(orderForm.direction);
-
   const isTakeProfitPriceInvalid = Boolean(
     orderForm.takeProfitPrice?.trim() &&
       validationReferencePrice > 0 &&
       !isValidTakeProfitPrice(orderForm.takeProfitPrice, {
         currentPrice: validationReferencePrice,
-        direction: takeProfitEffectiveDirection,
+        direction: orderForm.direction,
       }),
   );
 
@@ -1495,7 +1457,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       validationReferencePrice > 0 &&
       !isValidStopLossPrice(orderForm.stopLossPrice, {
         currentPrice: validationReferencePrice,
-        direction: stopLossEffectiveDirection,
+        direction: orderForm.direction,
       }),
   );
 
@@ -1514,7 +1476,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       <PerpsOrderHeader
         asset={orderForm.asset}
         price={assetData.price}
-        priceChange={assetData.change}
         orderType={orderForm.type}
         direction={orderForm.direction}
         onOrderTypePress={() => setIsOrderTypeVisible(true)}
@@ -1596,7 +1557,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         ? formatPerpsFiat(orderForm.limitPrice, {
                             ranges: PRICE_RANGES_UNIVERSAL,
                           })
-                        : 'Set price'
+                        : strings('perps.order.set_price')
                     }
                   />
                 </TouchableOpacity>

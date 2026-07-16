@@ -8,10 +8,11 @@ import type { PositionTokenAvatarData } from '../components/PositionTokenAvatar'
 export type FeedAudience = 'all' | 'following';
 
 /**
- * Feed type filter. Mirrors the leaderboard chain filters: everything, spot
- * tokens, or perps. Applied client-side over the loaded feed pages.
+ * Feed type filter. Alias of the shared {@link SocialTypeFilter} used across the
+ * leaderboard and feed: everything, spot tokens, or perps. Applied client-side
+ * over the loaded feed pages.
  */
-export type FeedTypeFilter = 'all' | 'tokens' | 'perps';
+export type { SocialTypeFilter as FeedTypeFilter } from '../components/TypeFilter/types';
 
 /** Trade action verb, shown after the trader username. */
 export type FeedAction = 'bought' | 'sold' | 'opened' | 'closed';
