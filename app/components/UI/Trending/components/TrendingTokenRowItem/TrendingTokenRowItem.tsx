@@ -22,7 +22,7 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import { isCaipChainId } from '@metamask/utils';
+import { isCaipAssetType, isCaipChainId } from '@metamask/utils';
 import { getResultTypeConfig } from '../../../SecurityTrust/utils/securityUtils';
 import {
   caipChainIdToHex,
@@ -129,6 +129,7 @@ export const getAssetNavigationParams = (
     source,
     rwaData: token.rwaData,
     securityData: token.securityData,
+    ...(isCaipAssetType(token.assetId) && { caipAssetId: token.assetId }),
     ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
   };
 };

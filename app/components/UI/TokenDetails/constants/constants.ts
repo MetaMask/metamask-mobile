@@ -1,6 +1,7 @@
 import type { TokenI } from '../../Tokens/types';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { CaipAssetType } from '@metamask/utils';
 
 /**
  * Source of navigation to Token Details page
@@ -80,6 +81,8 @@ export enum TokenDetailsAction {
 export interface TokenDetailsRouteParams extends TokenI {
   source?: TokenDetailsSource;
   securityData?: TokenSecurityData;
+  /** CAIP-19 asset id when known at navigation time (e.g. watchlist / trending rows). */
+  caipAssetId?: CaipAssetType;
   /** Carried into swap / perps / predict flows for tx-scoped `active_ab_tests` */
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
