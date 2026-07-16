@@ -178,10 +178,10 @@ describe('HomepageActionButtonsGrid', () => {
   it('renders all eight buttons for row1Top order', () => {
     const { getByTestId } = render(
       <HomepageActionButtonsGrid
-          onSend={mockOnSend}
-          onReceive={mockOnReceive}
-          rowOrder="row1Top"
-        />,
+        onSend={mockOnSend}
+        onReceive={mockOnReceive}
+        rowOrder="row1Top"
+      />,
     );
 
     expect(
@@ -220,10 +220,10 @@ describe('HomepageActionButtonsGrid', () => {
   it('tracks sell tap with sixth position for row2Top', () => {
     const { getByTestId } = render(
       <HomepageActionButtonsGrid
-          onSend={mockOnSend}
-          onReceive={mockOnReceive}
-          rowOrder="row2Top"
-        />,
+        onSend={mockOnSend}
+        onReceive={mockOnReceive}
+        rowOrder="row2Top"
+      />,
     );
 
     fireEvent.press(getByTestId(HomepageActionButtonsGridTestIds.SELL_BUTTON));
@@ -242,10 +242,10 @@ describe('HomepageActionButtonsGrid', () => {
   it('calls onSend when send is pressed', () => {
     const { getByTestId } = render(
       <HomepageActionButtonsGrid
-          onSend={mockOnSend}
-          onReceive={mockOnReceive}
-          rowOrder="row1Top"
-        />,
+        onSend={mockOnSend}
+        onReceive={mockOnReceive}
+        rowOrder="row1Top"
+      />,
     );
 
     fireEvent.press(getByTestId(HomepageActionButtonsGridTestIds.SEND_BUTTON));
