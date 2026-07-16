@@ -1520,6 +1520,22 @@ describe('CustomAmountInfo', () => {
       view.rerender(createCustomAmountInfo());
     }
 
+    it('clears the handoff for synchronous updates without quote signals', async () => {
+      const view = render();
+
+      await act(async () => {
+        fireEvent.press(view.getByText(strings('confirm.edit_amount_done')));
+      });
+      await act(async () => {
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
+      expect(
+        view.getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      ).not.toBeDisabled();
+    });
+
     it('shows fee rows for same-chain payment without quotes', async () => {
       useTransactionPayHasSourceAmountMock.mockReturnValue(false);
       useTransactionPayQuotesMock.mockReturnValue([]);

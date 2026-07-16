@@ -346,7 +346,19 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       ) {
         setIsAmountUpdateComplete(false);
         setIsAmountUpdating(false);
+        return;
       }
+
+      if (!isAmountUpdateComplete) {
+        return;
+      }
+
+      const handoffTimeout = setTimeout(() => {
+        setIsAmountUpdateComplete(false);
+        setIsAmountUpdating(false);
+      }, 0);
+
+      return () => clearTimeout(handoffTimeout);
     }, [isAmountUpdateComplete, isQuotesLoading, quotesLastUpdated]);
 
     const wasPrefillPending = useRef(isPrefillPending);
