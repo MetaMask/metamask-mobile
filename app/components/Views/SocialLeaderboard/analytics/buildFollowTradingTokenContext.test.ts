@@ -56,7 +56,7 @@ describe('buildFollowTradingTokenContext', () => {
     expect(context).toEqual({
       trader_address: '0xtrader',
       asset_name: 'PEPE',
-      chain: 'base',
+      chain_name: 'base',
       caip19: 'eip155:8453/erc20:0x1234567890123456789012345678901234567890',
     });
   });
@@ -79,7 +79,7 @@ describe('buildFollowTradingTokenContext', () => {
     expect(context).toEqual({
       trader_address: '0xtrader',
       asset_name: 'ETH',
-      chain: 'hyperliquid',
+      chain_name: 'hyperliquid',
       perps_market: 'ETH',
     });
     expect(context).not.toHaveProperty('caip19');
@@ -94,7 +94,7 @@ describe('buildFollowTradingTokenContext', () => {
     expect(context).toEqual({
       trader_address: '0xtrader',
       asset_name: 'cash:SPCX',
-      chain: 'hyperliquid',
+      chain_name: 'hyperliquid',
       perps_market: 'xyz:SPCX',
     });
   });
@@ -112,7 +112,7 @@ describe('pickFollowTradingDismissedProperties', () => {
 
     expect(pickFollowTradingDismissedProperties(context)).toEqual({
       trader_address: '0xtrader',
-      chain: 'base',
+      chain_name: 'base',
       caip19: 'eip155:8453/erc20:0x1234567890123456789012345678901234567890',
     });
   });
@@ -128,7 +128,7 @@ describe('pickFollowTradingDismissedProperties', () => {
 
     expect(pickFollowTradingDismissedProperties(context)).toEqual({
       trader_address: '0xtrader',
-      chain: 'hyperliquid',
+      chain_name: 'hyperliquid',
       perps_market: 'ETH',
     });
     expect(pickFollowTradingDismissedProperties(context)).not.toHaveProperty(

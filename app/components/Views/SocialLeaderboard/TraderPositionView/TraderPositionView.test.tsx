@@ -449,7 +449,7 @@ describe('TraderPositionView', () => {
       expect.objectContaining({
         trader_address: '0xabc',
         asset_name: 'PEPE',
-        chain: 'base',
+        chain_name: 'base',
         caip19: expect.stringContaining('eip155:8453/erc20:'),
         cta_type: 'buy',
       }),
@@ -505,7 +505,7 @@ describe('TraderPositionView', () => {
         expect.objectContaining({
           trader_address: '0xabc',
           asset_name: 'ETH',
-          chain: 'hyperliquid',
+          chain_name: 'hyperliquid',
           perps_market: 'ETH',
           source: 'trader_profile',
         }),
@@ -524,7 +524,7 @@ describe('TraderPositionView', () => {
         expect.objectContaining({
           trader_address: '0xabc',
           asset_name: 'ETH',
-          chain: 'hyperliquid',
+          chain_name: 'hyperliquid',
           perps_market: 'ETH',
           cta_type: 'trade',
         }),
@@ -542,7 +542,7 @@ describe('TraderPositionView', () => {
         MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_DISMISSED,
         {
           trader_address: '0xabc',
-          chain: 'hyperliquid',
+          chain_name: 'hyperliquid',
           perps_market: 'ETH',
         },
       );

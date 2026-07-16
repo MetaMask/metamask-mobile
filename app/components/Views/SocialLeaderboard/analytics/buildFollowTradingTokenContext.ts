@@ -7,7 +7,7 @@ import { SocialLeaderboardEventProperties } from './socialLeaderboardEvents';
 export type FollowTradingTokenContext = {
   [SocialLeaderboardEventProperties.TRADER_ADDRESS]: string;
   [SocialLeaderboardEventProperties.ASSET_NAME]: string;
-  [SocialLeaderboardEventProperties.CHAIN]: string;
+  [SocialLeaderboardEventProperties.CHAIN_NAME]: string;
 } & (
   | {
       [SocialLeaderboardEventProperties.CAIP19]: string;
@@ -37,7 +37,7 @@ export function buildFollowTradingTokenContext(
   const base = {
     [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
     [SocialLeaderboardEventProperties.ASSET_NAME]: position.tokenSymbol,
-    [SocialLeaderboardEventProperties.CHAIN]: position.chain.toLowerCase(),
+    [SocialLeaderboardEventProperties.CHAIN_NAME]: position.chain.toLowerCase(),
   };
 
   if (isPerpPosition(position)) {
@@ -69,14 +69,14 @@ export function buildFollowTradingTokenContext(
 
 /**
  * Picks only the global identifier fields from a follow-trading context for
- * dismissed events (trader_address + chain + caip19 or perps_market).
+ * dismissed events (trader_address + chain_name + caip19 or perps_market).
  */
 export function pickFollowTradingDismissedProperties(
   context: FollowTradingTokenContext,
 ): Pick<
   FollowTradingTokenContext,
   | typeof SocialLeaderboardEventProperties.TRADER_ADDRESS
-  | typeof SocialLeaderboardEventProperties.CHAIN
+  | typeof SocialLeaderboardEventProperties.CHAIN_NAME
   | typeof SocialLeaderboardEventProperties.CAIP19
   | typeof SocialLeaderboardEventProperties.PERPS_MARKET
 > {
@@ -84,8 +84,8 @@ export function pickFollowTradingDismissedProperties(
     return {
       [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
         context[SocialLeaderboardEventProperties.TRADER_ADDRESS],
-      [SocialLeaderboardEventProperties.CHAIN]:
-        context[SocialLeaderboardEventProperties.CHAIN],
+      [SocialLeaderboardEventProperties.CHAIN_NAME]:
+        context[SocialLeaderboardEventProperties.CHAIN_NAME],
       [SocialLeaderboardEventProperties.PERPS_MARKET]:
         context[SocialLeaderboardEventProperties.PERPS_MARKET],
     };
@@ -94,8 +94,8 @@ export function pickFollowTradingDismissedProperties(
   return {
     [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
       context[SocialLeaderboardEventProperties.TRADER_ADDRESS],
-    [SocialLeaderboardEventProperties.CHAIN]:
-      context[SocialLeaderboardEventProperties.CHAIN],
+    [SocialLeaderboardEventProperties.CHAIN_NAME]:
+      context[SocialLeaderboardEventProperties.CHAIN_NAME],
     [SocialLeaderboardEventProperties.CAIP19]:
       context[SocialLeaderboardEventProperties.CAIP19],
   };
