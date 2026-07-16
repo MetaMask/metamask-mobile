@@ -701,7 +701,6 @@ const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ launchSumSubSDK }) => {
     runKycCheck,
     launchSumSub,
     handleFrameMessage,
-    handleRawFrameMessage,
     handleCheckFrameError,
     handleAuthFrameError,
   } = useMoonpayIdentityFlow({ launchSumSubSDK });
@@ -829,7 +828,6 @@ const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ launchSumSubSDK }) => {
           <MoonpayFrame
             url={checkFrameUrl}
             onMessage={handleFrameMessage}
-            onRawMessage={handleRawFrameMessage}
             onError={handleCheckFrameError}
             invisible={!showCheckFrame}
           />
@@ -841,7 +839,6 @@ const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ launchSumSubSDK }) => {
           <MoonpayFrame
             url={authFrameUrl}
             onMessage={handleFrameMessage}
-            onRawMessage={handleRawFrameMessage}
             onError={handleAuthFrameError}
           />
         </View>

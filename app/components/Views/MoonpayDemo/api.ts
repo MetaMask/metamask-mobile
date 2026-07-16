@@ -20,13 +20,12 @@ import { alpha2ToAlpha3 } from './countryCodes';
 // Endpoint configuration
 // ---------------------------------------------------------------------------
 
-export const UKYC_API_BASE_URL = 'https://kyc-api.dev-api.cx.metamask.io';
-// export const UKYC_API_BASE_URL =
-//   process.env.UKYC_API_BASE_URL ||
-//   (Platform.select({
-//     android: 'http://10.0.2.2:3000',
-//     default: 'http://localhost:3000',
-//   }) as string);
+export const UKYC_API_BASE_URL =
+  process.env.UKYC_API_BASE_URL ||
+  (Platform.select({
+    android: 'http://10.0.2.2:3000',
+    default: 'http://localhost:3000',
+  }) as string);
 
 // ---------------------------------------------------------------------------
 // Auth helper
