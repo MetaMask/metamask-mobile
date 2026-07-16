@@ -44,6 +44,27 @@ on:
         required: false
         type: string
         default: ''
+      enable_testmu_benchmark:
+        description: 'Run parallel TestMu AI benchmark alongside BrowserStack'
+        required: false
+        type: boolean
+        default: true
+      testmu_username:
+        description: 'TestMu AI username (Account Settings → Access Key). Required for TestMu jobs if LT_USERNAME secret is not configured.'
+        required: false
+        type: string
+      testmu_access_key:
+        description: 'TestMu AI access key. Required for TestMu jobs if LT_ACCESS_KEY secret is not configured.'
+        required: false
+        type: string
+      testmu_app_url_android_onboarding:
+        description: 'TestMu AI Android Onboarding App URL (lt://...). Optional — leave blank to build and upload automatically.'
+        required: false
+        type: string
+      testmu_app_url_android_imported_wallet:
+        description: 'TestMu AI Android Imported Wallet App URL (lt://...). Optional — leave blank to build and upload automatically.'
+        required: false
+        type: string
   workflow_call:
     inputs:
       description:
@@ -96,6 +117,11 @@ on:
         required: false
         type: string
         default: ''
+      enable_testmu_benchmark:
+        description: 'Run parallel TestMu AI benchmark alongside BrowserStack (requires LT_USERNAME/LT_ACCESS_KEY secrets)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -123,6 +149,37 @@ env:
   DISABLE_VIDEO_DOWNLOAD: true
 
 jobs:
+  check-testmu-credentials:
+    name: Resolve TestMu AI Credentials
+    runs-on: ubuntu-latest
+    outputs:
+      testmu_ready: ${{ steps.resolve.outputs.testmu_ready }}
+      lt_username: ${{ steps.resolve.outputs.lt_username }}
+      lt_access_key: ${{ steps.resolve.outputs.lt_access_key }}
+    steps:
+      - name: Resolve credentials from workflow inputs or secrets
+        id: resolve
+        env:
+          INPUT_USER: ${{ inputs.testmu_username }}
+          INPUT_KEY: ${{ inputs.testmu_access_key }}
+          SECRET_USER: ${{ secrets.LT_USERNAME }}
+          SECRET_KEY: ${{ secrets.LT_ACCESS_KEY }}
+        run: |
+          if [ -n "$INPUT_USER" ] && [ -n "$INPUT_KEY" ]; then
+            echo "Using TestMu AI credentials from workflow inputs"
+            echo "lt_username=$INPUT_USER" >> "$GITHUB_OUTPUT"
+            echo "lt_access_key=$INPUT_KEY" >> "$GITHUB_OUTPUT"
+            echo "testmu_ready=true" >> "$GITHUB_OUTPUT"
+          elif [ -n "$SECRET_USER" ] && [ -n "$SECRET_KEY" ]; then
+            echo "Using TestMu AI credentials from repository secrets"
+            echo "lt_username=$SECRET_USER" >> "$GITHUB_OUTPUT"
+            echo "lt_access_key=$SECRET_KEY" >> "$GITHUB_OUTPUT"
+            echo "testmu_ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "TestMu AI credentials not available (provide testmu_username + testmu_access_key on manual dispatch, or configure LT_USERNAME/LT_ACCESS_KEY secrets)"
+            echo "testmu_ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
   determine-branch-name:
     name: Determine Branch Name
     runs-on: ubuntu-latest
@@ -219,6 +276,8 @@ jobs:
     outputs:
       android_build_name: ${{ steps.set-builds.outputs.android_build_name }}
       ios_build_name: ${{ steps.set-builds.outputs.ios_build_name }}
+      testmu_android_build_name: ${{ steps.set-builds.outputs.testmu_android_build_name }}
+      testmu_ios_build_name: ${{ steps.set-builds.outputs.testmu_ios_build_name }}
     steps:
       - name: Set unified build names
         id: set-builds
@@ -226,6 +285,8 @@ jobs:
           BRANCH_NAME="${{ needs.determine-branch-name.outputs.branch_name }}"
           echo "android_build_name=Android-Performance-$BRANCH_NAME-Branch" >> "$GITHUB_OUTPUT"
           echo "ios_build_name=iOS-Performance-$BRANCH_NAME-Branch" >> "$GITHUB_OUTPUT"
+          echo "testmu_android_build_name=TestMu-Android-Performance-$BRANCH_NAME-Branch" >> "$GITHUB_OUTPUT"
+          echo "testmu_ios_build_name=TestMu-iOS-Performance-$BRANCH_NAME-Branch" >> "$GITHUB_OUTPUT"
           echo "Set unified build names:"
           echo "  Android: Android-Performance-$BRANCH_NAME-Branch"
           echo "  iOS: iOS-Performance-$BRANCH_NAME-Branch"
@@ -282,11 +343,18 @@ jobs:
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
-    needs: [determine-branch-name]
-    if: (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
+    needs: [determine-branch-name, check-testmu-credentials]
+    if: >-
+      (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet) ||
+      (inputs.enable_testmu_benchmark != false &&
+       needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
+       !inputs.testmu_app_url_android_onboarding &&
+       !inputs.testmu_app_url_android_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
+      lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
+      lt_access_key: ${{ needs.check-testmu-credentials.outputs.lt_access_key }}
     secrets: inherit
 
   trigger-ios-dual-versions:
@@ -329,6 +397,38 @@ jobs:
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
+  # =============================================================================
+  # TESTMU AI BENCHMARK (parallel to BrowserStack — same tests, different provider)
+  # =============================================================================
+
+  run-android-onboarding-tests-testmu:
+    name: '[TestMu] Run Android Onboarding Tests'
+    uses: ./.github/workflows/performance-test-runner-testmu.yml
+    needs:
+      [
+        read-device-matrix,
+        trigger-android-dual-versions,
+        set-build-names,
+        determine-branch-name,
+        compute-test-selection,
+        check-testmu-credentials,
+      ]
+    if: always() && !failure() && !cancelled() && inputs.enable_testmu_benchmark != false && needs.check-testmu-credentials.outputs.testmu_ready == 'true' && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.testmu_app_url_android_onboarding != '' || needs.trigger-android-dual-versions.outputs.without-srp-testmu-url != '')
+    with:
+      platform: android
+      build_type: onboarding
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      testmu_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-testmu-url || inputs.testmu_app_url_android_onboarding }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-testmu-version || 'Manual-Input' }}
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      testmu_build_name: ${{ needs.set-build-names.outputs.testmu_android_build_name }}
+      lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
+      lt_access_key: ${{ needs.check-testmu-credentials.outputs.lt_access_key }}
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
+    secrets: inherit
+
   run-ios-onboarding-tests:
     name: Run iOS Onboarding Tests
     uses: ./.github/workflows/performance-test-runner.yml
@@ -361,7 +461,12 @@ jobs:
   wait-for-onboarding-completion:
     name: Wait for Onboarding Completion
     runs-on: ubuntu-latest
-    needs: [run-android-onboarding-tests, run-ios-onboarding-tests]
+    needs:
+      [
+        run-android-onboarding-tests,
+        run-ios-onboarding-tests,
+        run-android-onboarding-tests-testmu,
+      ]
     if: always()
     steps:
       - name: Wait for onboarding tests to complete
@@ -484,6 +589,105 @@ jobs:
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
+  run-android-imported-wallet-tests-testmu:
+    name: '[TestMu] Run Android Imported Wallet Tests'
+    uses: ./.github/workflows/performance-test-runner-testmu.yml
+    needs:
+      [
+        read-device-matrix,
+        trigger-android-dual-versions,
+        wait-for-onboarding-completion,
+        set-build-names,
+        determine-branch-name,
+        compute-test-selection,
+        check-testmu-credentials,
+      ]
+    if: always() && !cancelled() && inputs.enable_testmu_benchmark != false && needs.check-testmu-credentials.outputs.testmu_ready == 'true' && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.testmu_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-testmu-url != '')
+    with:
+      platform: android
+      build_type: imported-wallet
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
+      testmu_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-testmu-url || inputs.testmu_app_url_android_imported_wallet }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-testmu-version || 'Manual-Input' }}
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      testmu_build_name: ${{ needs.set-build-names.outputs.testmu_android_build_name }}
+      lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
+      lt_access_key: ${{ needs.check-testmu-credentials.outputs.lt_access_key }}
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
+    secrets: inherit
+
+  fetch-rn-playground-apk-upload-to-testmu:
+    name: Fetch RN Playground APK and Upload to TestMu AI
+    runs-on: ubuntu-latest
+    needs: [wait-for-onboarding-completion, check-testmu-credentials]
+    if: always() && !cancelled() && inputs.enable_testmu_benchmark != false && needs.check-testmu-credentials.outputs.testmu_ready == 'true'
+    continue-on-error: true
+    outputs:
+      testmu-playground-url: ${{ steps.upload-playground-testmu.outputs.testmu-url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Fetch playground APK from GitHub Releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RN_PLAYGROUND_APK_VERSION: ${{ vars.RN_PLAYGROUND_APK_VERSION || '' }}
+        run: ./tests/scripts/fetch-rn-playground-apk.sh --output ./tmp/rn-playground.apk
+
+      - name: Upload playground APK to TestMu AI
+        id: upload-playground-testmu
+        env:
+          LT_USERNAME: ${{ needs.check-testmu-credentials.outputs.lt_username }}
+          LT_ACCESS_KEY: ${{ needs.check-testmu-credentials.outputs.lt_access_key }}
+        run: |
+          echo "Uploading RN Playground APK to TestMu AI..."
+          RESPONSE=$(curl -u "$LT_USERNAME:$LT_ACCESS_KEY" \
+            -X POST "https://manual-api.lambdatest.com/app/upload/realDevice" \
+            -F "file=@./tmp/rn-playground.apk" \
+            -F "name=RN-Playground-TestMu-${{ github.run_id }}")
+
+          APP_URL=$(echo "$RESPONSE" | jq -r '.app_url // .appUrl // empty')
+          if [ -z "$APP_URL" ] || [ "$APP_URL" = "null" ]; then
+            echo "Error: Failed to upload playground APK to TestMu AI"
+            echo "Response: $RESPONSE"
+            exit 1
+          fi
+
+          echo "testmu-url=$APP_URL" >> "$GITHUB_OUTPUT"
+          echo "Playground APK uploaded to TestMu AI: $APP_URL"
+
+  run-android-mm-connect-tests-testmu:
+    name: '[TestMu] Run Android MM-Connect Tests'
+    uses: ./.github/workflows/performance-test-runner-testmu.yml
+    needs:
+      [
+        read-device-matrix,
+        trigger-android-dual-versions,
+        fetch-rn-playground-apk-upload-to-testmu,
+        set-build-names,
+        determine-branch-name,
+        compute-test-selection,
+        check-testmu-credentials,
+      ]
+    if: always() && !cancelled() && inputs.enable_testmu_benchmark != false && needs.check-testmu-credentials.outputs.testmu_ready == 'true' && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.testmu_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-testmu-url != '') && needs.fetch-rn-playground-apk-upload-to-testmu.outputs.testmu-playground-url != ''
+    with:
+      platform: android
+      build_type: mm-connect
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
+      device_matrix: ${{ needs.read-device-matrix.outputs.android_mm_connect_matrix }}
+      testmu_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-testmu-url || inputs.testmu_app_url_android_imported_wallet }}
+      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-testmu-version || 'Manual-Input' }}
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      testmu_build_name: ${{ needs.set-build-names.outputs.testmu_android_build_name }}
+      testmu_playground_url: ${{ needs.fetch-rn-playground-apk-upload-to-testmu.outputs.testmu-playground-url }}
+      lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
+      lt_access_key: ${{ needs.check-testmu-credentials.outputs.lt_access_key }}
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
+    secrets: inherit
+
   aggregate-results:
     name: Aggregate All Test Results
     runs-on: ubuntu-latest
@@ -494,6 +698,9 @@ jobs:
         run-android-mm-connect-tests,
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
+        run-android-onboarding-tests-testmu,
+        run-android-imported-wallet-tests-testmu,
+        run-android-mm-connect-tests-testmu,
         wait-for-onboarding-completion,
         determine-branch-name,
       ]
@@ -591,6 +798,9 @@ jobs:
         run-android-mm-connect-tests,
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
+        run-android-onboarding-tests-testmu,
+        run-android-imported-wallet-tests-testmu,
+        run-android-mm-connect-tests-testmu,
         aggregate-results,
         determine-branch-name,
       ]

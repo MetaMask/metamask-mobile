@@ -10,6 +10,8 @@ import {
 import { getTeamInfoFromTags } from '../framework/utils/teams';
 import { DeviceInfoExtractor } from './utils/DeviceInfoExtractor';
 import { BrowserStackEnricher } from './providers/browserstack/BrowserStackEnricher';
+import { TestMuAIEnricher } from './providers/testmu/TestMuAIEnricher';
+import type { ISessionDataEnricher } from './providers/SessionDataEnricher';
 import { HtmlReportGenerator } from './generators/HtmlReportGenerator';
 import { CsvReportGenerator } from './generators/CsvReportGenerator';
 import { JsonReportGenerator } from './generators/JsonReportGenerator';
@@ -127,10 +129,10 @@ class PerformanceReporter {
     logger.info(`Generating reports for ${this.metrics.length} tests`);
 
     const summary = this.calculateSummary();
-    const isBrowserStackRun = this.detectBrowserStackRun();
+    const cloudProvider = this.detectCloudProvider();
 
-    if (this.sessions.length > 0 && isBrowserStackRun) {
-      await this.enrichSessionsWithProviderData();
+    if (this.sessions.length > 0 && cloudProvider) {
+      await this.enrichSessionsWithProviderData(cloudProvider);
       await this.publishAppSizeToSentry();
     }
 
@@ -442,10 +444,14 @@ class PerformanceReporter {
     };
   }
 
-  private detectBrowserStackRun(): boolean {
+  private detectCloudProvider(): 'browserstack' | 'testmu' | null {
     const projectNames = this.sessions
       .map((s) => s.projectName)
       .filter(Boolean);
+
+    const isTestMuProject = (name: string): boolean =>
+      name.toLowerCase().includes('testmu');
+
     const isBrowserStackProject = (name: string): boolean => {
       const normalizedName = name.toLowerCase();
       return (
@@ -454,27 +460,45 @@ class PerformanceReporter {
         normalizedName === 'ios-onboarding'
       );
     };
+
+    if (
+      this.sessions.length > 0 &&
+      projectNames.some((name) => isTestMuProject(name ?? ''))
+    ) {
+      logger.info(
+        `[Pipeline] Detected TestMu AI cloud run (projects: ${projectNames.join(', ')})`,
+      );
+      return 'testmu';
+    }
+
     const isBrowserStackRun =
       this.sessions.length > 0 &&
       projectNames.some((name) => isBrowserStackProject(name ?? ''));
 
     logger.info(
-      `[Pipeline] Sessions: ${this.sessions.length}, projectNames: [${projectNames.join(', ') || 'none'}], isBrowserStackRun: ${isBrowserStackRun}`,
+      `[Pipeline] Sessions: ${this.sessions.length}, projectNames: [${projectNames.join(', ') || 'none'}], cloudProvider: ${isBrowserStackRun ? 'browserstack' : 'none'}`,
     );
-    if (this.sessions.length > 0 && !isBrowserStackRun) {
-      logger.info(
-        '[Pipeline] Skipping BrowserStack fetch (video/profiling/network logs): project is not recognized as BrowserStack-backed',
-      );
-    }
-    return isBrowserStackRun;
+
+    return isBrowserStackRun ? 'browserstack' : null;
   }
 
-  private async enrichSessionsWithProviderData(): Promise<void> {
+  private getEnricher(
+    cloudProvider: 'browserstack' | 'testmu',
+  ): ISessionDataEnricher {
+    if (cloudProvider === 'testmu') {
+      return new TestMuAIEnricher();
+    }
+    return new BrowserStackEnricher();
+  }
+
+  private async enrichSessionsWithProviderData(
+    cloudProvider: 'browserstack' | 'testmu',
+  ): Promise<void> {
     logger.info(
-      `Fetching video URLs, profiling and network logs for ${this.sessions.length} sessions`,
+      `Fetching ${cloudProvider} session data for ${this.sessions.length} sessions`,
     );
 
-    const enricher = new BrowserStackEnricher();
+    const enricher = this.getEnricher(cloudProvider);
 
     for (const session of this.sessions) {
       try {
