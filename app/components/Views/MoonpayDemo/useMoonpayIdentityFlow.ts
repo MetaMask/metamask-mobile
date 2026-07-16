@@ -436,14 +436,6 @@ const useMoonpayIdentityFlow = ({
     return url.toString();
   }, [authClientToken, keypair.publicKeyHex]);
 
-  // ---------- Raw frame traffic (diagnostic) ----------
-  const handleRawFrameMessage = useCallback(
-    (raw: string) => {
-      pushDebug('raw frame message', { raw: raw.slice(0, 800) });
-    },
-    [pushDebug],
-  );
-
   // ---------- Error handlers for frames ----------
   const handleCheckFrameError = useCallback(
     (err: string) => {
@@ -484,7 +476,6 @@ const useMoonpayIdentityFlow = ({
     runKycCheck,
     launchSumSub,
     handleFrameMessage,
-    handleRawFrameMessage,
     handleCheckFrameError,
     handleAuthFrameError,
   };

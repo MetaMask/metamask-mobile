@@ -30,6 +30,10 @@ export const POSTMESSAGE_BRIDGE = `
     }
   }
 
+  // MoonPay's messaging transport talks to React Native directly via
+  // window.ReactNativeWebView.postMessage, so the frame's outbound messages
+  // (handshake, etc.) reach us without any parent shim. We still expose a proxy
+  // window.parent so any code path that does use it degrades gracefully.
   try {
     var parentProxy = new Proxy({}, {
       get: function(_, prop) {
@@ -50,26 +54,6 @@ export const POSTMESSAGE_BRIDGE = `
     forward(message, targetOrigin);
     return originalPostMessage(message, targetOrigin, transfer);
   };
-
-  // Diagnostic: report every 'message' event the frame's window actually
-  // receives, so we can confirm injected replies (e.g. the handshake ack)
-  // are delivered and inspect how source/origin look to the frame.
-  window.addEventListener('message', function(event) {
-    try {
-      var received = {
-        __moonpayReceived: true,
-        origin: event.origin,
-        hasSource: !!event.source,
-        sourceIsParent: event.source === window.parent,
-        sourceIsWindow: event.source === window,
-        dataType: typeof event.data,
-        data: typeof event.data === 'string'
-          ? event.data
-          : JSON.stringify(event.data),
-      };
-      window.ReactNativeWebView.postMessage(JSON.stringify(received));
-    } catch (e) {}
-  });
 })();
 true;
 `;
@@ -118,19 +102,22 @@ const useMoonpayFrame = ({
       typeof message === 'string' ? message : JSON.stringify(message);
     const js = `(function () {
       try {
+        // Deliver the ack the way MoonPay's PostMessenger expects. Its
+        // ReactNative transport only calls handleMessage when
+        // event.source === null && typeof event.data === 'string', and it
+        // registers its listener on 'window' under WKWebView (iOS) but on
+        // 'document' under the Android System WebView. So we dispatch a
+        // string-payload MessageEvent with a null source on BOTH targets.
         var data = ${JSON.stringify(serialized)};
-        var init = { data: data, origin: ${JSON.stringify(
-          MOONPAY_FRAMES_ORIGIN,
-        )} };
-        try { init.source = window.parent; } catch (e) {}
-        var ev;
-        try {
-          ev = new MessageEvent('message', init);
-        } catch (e) {
-          delete init.source;
-          ev = new MessageEvent('message', init);
+        function makeEvent() {
+          try {
+            return new MessageEvent('message', { data: data, source: null });
+          } catch (e) {
+            return new MessageEvent('message', { data: data });
+          }
         }
-        window.dispatchEvent(ev);
+        try { document.dispatchEvent(makeEvent()); } catch (e) {}
+        try { window.dispatchEvent(makeEvent()); } catch (e) {}
       } catch (e) {}
       true;
     })();
@@ -145,7 +132,6 @@ const useMoonpayFrame = ({
 
       let envelope: {
         __moonpayBridge?: boolean;
-        __moonpayReceived?: boolean;
         origin?: string;
         targetOrigin?: string | null;
         message?: string;
@@ -155,12 +141,6 @@ const useMoonpayFrame = ({
         envelope = JSON.parse(raw);
       } catch (err) {
         onError?.(`Non-JSON message from frame: ${raw.slice(0, 80)}`);
-        return;
-      }
-
-      // Diagnostic frames the WebView bridge received (already surfaced via
-      // onRawMessage above) — do not route as real frame messages.
-      if (envelope.__moonpayReceived) {
         return;
       }
 
