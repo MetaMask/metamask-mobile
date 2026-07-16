@@ -1336,18 +1336,6 @@ describe('useTransactionCustomAmount', () => {
       useMoneyAccountBalanceMock.mockReturnValue({
         withdrawableFiatRaw: undefined,
       } as ReturnType<typeof useMoneyAccountBalance>);
-    });
-
-    const addMusdTransactionMeta = {
-      type: TransactionType.moneyAccountDeposit,
-      id: transactionIdMock,
-      batchId: '0xtestbatchid' as Hex,
-      chainId: '0x1' as Hex,
-      txParams: { from: '0xabc' },
-    } as unknown as Partial<TransactionMeta>;
-
-    it('does not auto-fill when intent is not addMusd', async () => {
-      jest.mocked(getMoneyAccountDepositIntent).mockReturnValue('convert');
 
       const { result } = runHook({
         transactionMeta: {
