@@ -40,8 +40,6 @@ export const TokenDetailsInlineHeader = ({
   onSharePress,
   starButton,
   onCopyAddress,
-  iconColor,
-  useAmbientColor = false,
 }: {
   token: TokenDetailsRouteParams;
   securityData: TokenSecurityData | null | undefined;
@@ -51,9 +49,6 @@ export const TokenDetailsInlineHeader = ({
   /** Self-contained watchlist star button ReactNode (e.g. WatchlistStarButton). */
   starButton?: ReactNode;
   onCopyAddress?: () => void;
-  /** Hex color string for the back button icon (A/B test). */
-  iconColor?: string;
-  useAmbientColor?: boolean;
 }) => {
   const tw = useTailwind();
   const { isStockToken } = useRWAToken();
@@ -71,15 +66,6 @@ export const TokenDetailsInlineHeader = ({
     contractAddress,
     onCopyAddress,
   );
-
-  const shouldShowEndButtons = !useAmbientColor || iconColor !== undefined;
-
-  const backButtonIconProps = useMemo(() => {
-    if (useAmbientColor && iconColor) {
-      return { twClassName: `text-[${iconColor}]` };
-    }
-    return undefined;
-  }, [useAmbientColor, iconColor]);
 
   const networkBadgeSource = token.chainId
     ? NetworkBadgeSource(token.chainId as Hex)
@@ -139,7 +125,7 @@ export const TokenDetailsInlineHeader = ({
     if (starButton) {
       buttons.push(<React.Fragment key="star">{starButton}</React.Fragment>);
     }
-    if (shouldShowEndButtons && onSharePress) {
+    if (onSharePress) {
       buttons.push(
         <ButtonIcon
           key="share"
@@ -151,7 +137,7 @@ export const TokenDetailsInlineHeader = ({
         />,
       );
     }
-    if (shouldShowEndButtons && onPriceAlertPress) {
+    if (onPriceAlertPress) {
       buttons.push(
         <ButtonIcon
           key="alert"
@@ -165,13 +151,12 @@ export const TokenDetailsInlineHeader = ({
     }
 
     if (buttons.length === 0) return undefined;
-    if (buttons.length === 1) return buttons[0];
     return (
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
         {buttons}
       </Box>
     );
-  }, [starButton, shouldShowEndButtons, onSharePress, onPriceAlertPress]);
+  }, [starButton, onSharePress, onPriceAlertPress]);
 
   const descriptionEndAccessory = useMemo(() => {
     if (!contractAddress) {
@@ -199,7 +184,6 @@ export const TokenDetailsInlineHeader = ({
           iconName={IconName.ArrowLeft}
           size={ButtonIconSize.Md}
           onPress={onBackPress}
-          iconProps={backButtonIconProps}
           testID="back-arrow-button"
         />
       }

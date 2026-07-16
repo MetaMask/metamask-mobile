@@ -38,6 +38,7 @@ import {
 } from './abTestConfig';
 import { useOwnedNfts } from './Sections/NFTs/hooks';
 import { useNftDetection } from '../../hooks/useNftDetection';
+import { useThrottledFocusEffect } from '../../hooks/useThrottledFocusEffect';
 import { strings } from '../../../../locales/i18n';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
@@ -127,9 +128,10 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       }, [areAllPopularNetworksEnabled, enableAllPopularNetworks]),
     );
 
-    useFocusEffect(
+    // TODO(ASSETS-3660): Replace with a proper polling mechanism in NftDetectionController.
+    useThrottledFocusEffect(
       useCallback(() => {
-        detectNfts().catch(() => {
+        detectNfts(true, false).catch(() => {
           // AbortError is expected when detection is cancelled on blur
         });
 
@@ -137,6 +139,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           abortDetection();
         };
       }, [detectNfts, abortDetection]),
+      300_000, // 5 minutes
     );
 
     /**

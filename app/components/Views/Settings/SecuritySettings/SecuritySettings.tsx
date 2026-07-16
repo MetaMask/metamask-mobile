@@ -51,6 +51,7 @@ import { TextVariant as LibraryTextVariant } from '../../../../component-library
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import Routes from '../../../../constants/navigation/Routes';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
+import TopTradersSection from './Sections/TopTradersSection';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { RootState } from '../../../../reducers';
@@ -411,6 +412,7 @@ const Settings: React.FC = () => {
           <MetaMetricsAndDataCollectionSection />
           <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
           <DeleteWalletData />
+          <TopTradersSection />
           {renderHint()}
         </View>
       </ScrollView>
