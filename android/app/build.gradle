@@ -421,6 +421,12 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
     implementation 'org.apache.commons:commons-compress:1.22'
+    // firebase-messaging is only linked into @react-native-firebase/messaging's own module via
+    // `implementation` (not `api`), so it isn't visible for compiling MetaMaskFirebaseMessagingService.
+    // compileOnly is enough: the real implementation is already on the runtime classpath
+    // transitively via that module, so this doesn't add a second copy or a version conflict.
+    compileOnly platform("com.google.firebase:firebase-bom:33.1.2")
+    compileOnly "com.google.firebase:firebase-messaging"
     androidTestImplementation 'androidx.test:core:1.5.0'
     androidTestImplementation 'androidx.test:core-ktx:1.5.0'
 
