@@ -110,6 +110,7 @@ describe('LedgerBluetoothAdapter', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useRealTimers();
 
     onDisconnect = jest.fn();
     onDeviceEvent = jest.fn();
@@ -128,6 +129,7 @@ describe('LedgerBluetoothAdapter', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     adapter.destroy();
   });
 
@@ -1205,6 +1207,7 @@ describe('LedgerBluetoothAdapter', () => {
 
     afterEach(() => {
       Platform.OS = originalOS;
+      jest.restoreAllMocks();
     });
 
     it('returns true on iOS without requesting permissions', async () => {

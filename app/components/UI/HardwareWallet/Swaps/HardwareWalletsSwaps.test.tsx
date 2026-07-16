@@ -260,12 +260,6 @@ function getBridgeStatus(store: any) {
   return store.getState().bridge.hardwareWalletsSwaps.status;
 }
 
-async function flushPromises() {
-  await act(async () => {
-    await Promise.resolve();
-  });
-}
-
 const STATUS_RENDERING_CASES = [
   {
     name: 'submitted',
@@ -405,6 +399,7 @@ describe('HardwareWalletsSwaps', () => {
     __clearLastMockedMethods();
     mockHardwareWalletState.walletType = null;
     mockHardwareWalletState.pendingScanRequest = null;
+    mockApprovalRequestValue = MOCK_APPROVAL_REQUEST;
     jest.mocked(selectSourceWalletAddress).mockReturnValue(WALLET_ADDRESS);
     mockRouteSubmissionParams();
     mockEnsureDeviceReady.mockResolvedValue(true);
@@ -744,9 +739,15 @@ describe('HardwareWalletsSwaps', () => {
     it('retries in place on try again after rejection dispatch', async () => {
       const { getByTestId, store } = renderScreen({});
 
-      await flushPromises();
+      await waitFor(() => {
+        expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
+      });
       dispatchRejection(store);
-      await flushPromises();
+      await waitFor(() => {
+        expect(getBridgeStatus(store)).toBe(
+          HardwareWalletsSwapsStatus.Rejected,
+        );
+      });
 
       await act(async () => {
         fireEvent.press(
@@ -766,7 +767,11 @@ describe('HardwareWalletsSwaps', () => {
       });
 
       dispatchRejection(store);
-      await flushPromises();
+      await waitFor(() => {
+        expect(getBridgeStatus(store)).toBe(
+          HardwareWalletsSwapsStatus.Rejected,
+        );
+      });
 
       mockEnsureDeviceReady.mockClear();
       mockSubmitBridgeTx.mockClear();
@@ -795,7 +800,11 @@ describe('HardwareWalletsSwaps', () => {
       });
 
       dispatchRejection(store);
-      await flushPromises();
+      await waitFor(() => {
+        expect(getBridgeStatus(store)).toBe(
+          HardwareWalletsSwapsStatus.Rejected,
+        );
+      });
 
       mockEnsureDeviceReady.mockResolvedValue(false);
       mockSubmitBridgeTx.mockClear();
@@ -885,7 +894,9 @@ describe('HardwareWalletsSwaps', () => {
       });
 
       mockSubmitBridgeTx.mockClear();
-      await flushPromises();
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
@@ -922,8 +933,12 @@ describe('HardwareWalletsSwaps', () => {
         steps: [rejectedApprovalStep, defaultSteps[1]],
       });
 
-      await flushPromises();
+      // Initial submit only runs from Waiting — Rejected skips mount submit.
+      await act(async () => {
+        await Promise.resolve();
+      });
 
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
       expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Rejected);
     });
   });
@@ -932,19 +947,27 @@ describe('HardwareWalletsSwaps', () => {
     it('auto-navigates to transactions when Submitted and submission completes', async () => {
       const { store } = renderScreen({});
 
-      await flushPromises();
+      await waitFor(() => {
+        expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
+      });
       signAllSteps(store);
-      await flushPromises();
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      });
     });
 
     it('navigates to transactions after retry flow signs all txs', async () => {
       const { getByTestId, store } = renderScreen({});
 
-      await flushPromises();
+      await waitFor(() => {
+        expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
+      });
       dispatchRejection(store);
-      await flushPromises();
+      await waitFor(() => {
+        expect(getBridgeStatus(store)).toBe(
+          HardwareWalletsSwapsStatus.Rejected,
+        );
+      });
 
       await act(async () => {
         fireEvent.press(

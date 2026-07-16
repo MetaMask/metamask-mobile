@@ -348,6 +348,10 @@ describe('SwapsConfirmButton', () => {
     });
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('Button Label', () => {
     it('displays "Confirm swap" label by default', () => {
       const { getByText } = renderWithProvider(
@@ -1263,8 +1267,6 @@ describe('SwapsConfirmButton', () => {
           );
         });
       });
-
-      consoleSpy.mockRestore();
     });
 
     it('does not submit when activeQuote is null', async () => {

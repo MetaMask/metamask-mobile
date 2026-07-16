@@ -433,6 +433,10 @@ describe('useBridgeConfirm', () => {
       mockSubmitBridgeTx.mockRejectedValue(new Error('Network error'));
     });
 
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
     it('logs the error', async () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       const { result } = renderHook();
@@ -445,8 +449,6 @@ describe('useBridgeConfirm', () => {
         'Error submitting bridge tx',
         expect.any(Error),
       );
-
-      consoleSpy.mockRestore();
     });
 
     it('opens the post-trade bottom sheet in failed state after the error', async () => {
