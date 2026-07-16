@@ -1,5 +1,7 @@
 package io.metamask
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.braze.push.BrazeFirebaseMessagingService
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -43,10 +45,18 @@ class MetaMaskFirebaseMessagingService : FirebaseMessagingService() {
       return
     }
 
+    val emitter = ReactNativeFirebaseEventEmitter.getSharedInstance()
+    Log.d(TAG, "Emitter listeners before send: ${emitter.listenersMap}")
+
     Log.d(TAG, "Forwarding message to RNFB via ReactNativeFirebaseEventEmitter")
-    ReactNativeFirebaseEventEmitter.getSharedInstance()
-      .sendEvent(ReactNativeFirebaseMessagingSerializer.remoteMessageToEvent(remoteMessage, false))
+    emitter.sendEvent(ReactNativeFirebaseMessagingSerializer.remoteMessageToEvent(remoteMessage, false))
     Log.d(TAG, "sendEvent called")
+
+    // sendEvent() posts its real work (checking listeners, emit()) to the main-thread handler
+    // asynchronously, so check listener/queue state slightly after rather than synchronously here.
+    Handler(Looper.getMainLooper()).postDelayed({
+      Log.d(TAG, "Emitter listeners 1s after send: ${emitter.listenersMap}")
+    }, 1000)
   }
 
   override fun onNewToken(token: String) {
