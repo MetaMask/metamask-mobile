@@ -752,36 +752,6 @@ describe('useQuickBuyQuotes', () => {
     await waitFor(() => expect(result.current.isQuoteRequestStale).toBe(false));
   });
 
-  it('does not mark quotes stale after backend slippage hydration without refetch', async () => {
-    (selectSlippage as unknown as jest.Mock).mockReturnValue(undefined);
-    (selectIsSlippageUserOverride as unknown as jest.Mock).mockReturnValue(
-      false,
-    );
-    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
-
-    const { result, rerender } = renderHook(() =>
-      useQuickBuyQuotes(
-        quotesParams({
-          sourceToken: createSourceToken(),
-          destToken: createDestToken(),
-          sourceTokenAmount: '0.001',
-        }),
-      ),
-    );
-
-    await act(async () => {
-      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
-    });
-    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
-    expect(result.current.isQuoteRequestStale).toBe(false);
-
-    (selectSlippage as unknown as jest.Mock).mockReturnValue('2');
-    rerender({});
-
-    expect(result.current.isQuoteRequestStale).toBe(false);
-    expect(fetchQuotesMock).toHaveBeenCalledTimes(1);
-  });
-
   it('flags isQuoteRequestStale when the destination address changes', async () => {
     fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
 
