@@ -262,19 +262,78 @@ export function boxedStep<This, Args extends unknown[], Return>(
  * Lightweight Appium overhead accumulator for performance measurements.
  *
  * Problem: every WebDriver HTTP call (findElement, isExisting, click …) adds
- * infrastructure latency — on BrowserStack this can be 3-18 s per command.
- * Without compensation a 3 s app-load would be reported as 20+ s.
+ * infrastructure latency — on BrowserStack/TestMu this can dominate the timer.
  *
- * Solution: framework methods call `addOverhead(ms)` for operations whose
- * duration is *pure infra cost* (element resolution, post-detection probes).
- * `TimerHelper.measure()` activates tracking before the action and subtracts
- * the accumulated value after the timer stops.
+ * Solution while `TimerHelper.measure()` is active:
+ * - Direct overhead (`addOverhead`): pure infra (e.g. initial findElement).
+ * - Poll sleeps (`addOverheadSleep`): intentional wait intervals (not app work).
+ * - Failed poll commands: `min(duration, rtt + pollImplicitWait)` miss cost.
+ * - Success poll: full duration (confirming an already-visible element).
+ * - Probe: full duration of a post-detect `isExisting` (calibration + infra).
  *
- * When no `measure()` is active (`_tracking === false`) all functions are
- * no-ops, so regular (non-performance) tests pay zero cost.
+ * When no `measure()` is active all functions are no-ops.
  */
-let _overheadMs = 0;
+export interface OverheadAccumulatorState {
+  directMs: number;
+  sleepMs: number;
+  failedPollDurationsMs: number[];
+  successPollMs: number | null;
+  probeMs: number | null;
+}
+
 let _tracking = false;
+let _directMs = 0;
+let _sleepMs = 0;
+let _failedPollDurationsMs: number[] = [];
+let _successPollMs: number | null = null;
+let _probeMs: number | null = null;
+
+function resetOverheadState(): void {
+  _directMs = 0;
+  _sleepMs = 0;
+  _failedPollDurationsMs = [];
+  _successPollMs = null;
+  _probeMs = null;
+}
+
+/**
+ * Computes infra ms to subtract from wall-clock.
+ *
+ * Model (click stays outside measure; align with on-device UI timing):
+ * - Resolution / sleeps / probe: full duration (pure framework cost).
+ * - Failed polls: `min(duration, rtt + pollImplicitWaitMs)` for Appium miss cost.
+ * - Success poll: full duration (element already on screen; confirm is infra).
+ *
+ * Exported for unit tests.
+ */
+export function computeAppiumInfraOverheadMs(
+  state: OverheadAccumulatorState,
+  pollImplicitWaitMs = 300,
+): number {
+  const rttMs = state.probeMs;
+
+  let infra = state.directMs + state.sleepMs;
+
+  for (const durationMs of state.failedPollDurationsMs) {
+    if (rttMs != null) {
+      infra += Math.min(durationMs, rttMs + pollImplicitWaitMs);
+    } else {
+      // No probe yet (should be rare): still remove implicit-wait-sized miss cost.
+      infra += Math.min(durationMs, pollImplicitWaitMs);
+    }
+  }
+
+  if (state.successPollMs != null) {
+    // Visible already — entire confirm round-trip is infrastructure.
+    infra += state.successPollMs;
+  }
+
+  if (state.probeMs != null) {
+    infra += state.probeMs;
+  }
+
+  return infra;
+}
 
 export function startOverheadTracking(): void {
   if (_tracking) {
@@ -283,18 +342,46 @@ export function startOverheadTracking(): void {
     );
     return;
   }
-  _overheadMs = 0;
+  resetOverheadState();
   _tracking = true;
 }
 
 export function addOverhead(ms: number): void {
-  if (_tracking) _overheadMs += ms;
+  if (_tracking) _directMs += ms;
+}
+
+export function addOverheadSleep(ms: number): void {
+  if (_tracking && ms > 0) _sleepMs += ms;
+}
+
+export function recordFailedPollCommand(durationMs: number): void {
+  if (_tracking && durationMs >= 0) {
+    _failedPollDurationsMs.push(durationMs);
+  }
+}
+
+export function recordSuccessPollCommand(durationMs: number): void {
+  if (_tracking && durationMs >= 0) {
+    _successPollMs = durationMs;
+  }
+}
+
+export function recordOverheadProbe(durationMs: number): void {
+  if (_tracking && durationMs >= 0) {
+    _probeMs = durationMs;
+  }
 }
 
 export function stopOverheadTracking(): number {
   _tracking = false;
-  const result = _overheadMs;
-  _overheadMs = 0;
+  const result = computeAppiumInfraOverheadMs({
+    directMs: _directMs,
+    sleepMs: _sleepMs,
+    failedPollDurationsMs: _failedPollDurationsMs,
+    successPollMs: _successPollMs,
+    probeMs: _probeMs,
+  });
+  resetOverheadState();
   return result;
 }
 

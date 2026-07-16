@@ -6,7 +6,11 @@ import PlaywrightGestures from './PlaywrightGestures.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 import {
   addOverhead,
+  addOverheadSleep,
   isOverheadTrackingActive,
+  recordFailedPollCommand,
+  recordOverheadProbe,
+  recordSuccessPollCommand,
   withImplicitWait,
 } from './PlaywrightUtilities.ts';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
@@ -28,23 +32,14 @@ export interface TextDisplayedOptions extends AssertionOptions {
  *
  * ## How overhead compensation works
  *
- * Every Appium WebDriver command (findElement, isExisting, etc.) carries a
- * round-trip cost that on BrowserStack can be 3-18 s per call.  When a
- * `measure()` block wraps an assertion the raw wall-clock duration would be
- * dominated by that infrastructure latency, not by the app.
+ * While `TimerHelper.measure()` is active we accumulate infra cost and
+ * subtract it from wall-clock after the assertion:
  *
- * To compensate we track two kinds of overhead:
- *
- * 1. **Element resolution** — the initial `$('~id')` HTTP call that locates
- * the element selector. Tracked in `expectElementToBeVisible`.
- *
- * 2. **Overhead probe** — after the element is confirmed visible we
- * immediately call `isExisting()` once more. Because the element is
- * already on-screen the entire call duration is pure Appium/network
- * overhead. This is the best single-call estimate we can get.
- *
- * `addOverhead()` is a no-op when no `measure()` is active, so these calls
- * are zero-cost for tests that don't use TimerHelper.
+ * 1. **Element resolution** — initial findElement (`addOverhead`).
+ * 2. **Failed poll commands** — `min(duration, rtt + implicitWait)` per miss.
+ * 3. **Success poll** — full duration (element already on screen).
+ * 4. **Poll sleeps** — intentional intervals between attempts.
+ * 5. **Overhead probe** — post-detect `isExisting` (RTT calibration + infra).
  */
 export default class PlaywrightAssertions {
   private static getTimeout(options: AssertionOptions): number {
@@ -53,84 +48,88 @@ export default class PlaywrightAssertions {
 
   /**
    * Polls for element existence using a single WebDriver command per attempt
-   * (`isExisting`).  This avoids the multiple internal HTTP round-trips that
+   * (`isExisting`). This avoids the multiple internal HTTP round-trips that
    * WebdriverIO's `waitForDisplayed` performs on each iteration.
    *
-   * Overhead tracking logic:
-   * - If the **first** `isExisting()` already returns `true`, the element
-   * was visible before or during the network round-trip. The entire call
-   * duration is infra overhead (BrowserStack latency, WDA snapshot) so
-   * it is registered via `addOverhead`.
-   * - Subsequent failed calls (element not yet visible) are NOT overhead
-   * — the app is genuinely still loading during those calls.
-   * - After detection a {@link probeOverhead} call measures the pure
-   * per-command cost and registers it for subtraction.
+   * When `measure()` overhead tracking is active we use a shorter sleep between
+   * attempts so detection lag (screen already up on video, Appium still polling)
+   * stays smaller.
    */
   private static readonly FINAL_WAIT_RESERVE_MS = 2_000;
   /** Fast implicit wait for poll probes — avoids 3.5s find penalty per attempt. */
   private static readonly POLL_IMPLICIT_WAIT_MS = 300;
+  private static readonly POLL_INTERVAL_MS = 300;
+  private static readonly POLL_INTERVAL_WHILE_MEASURING_MS = 50;
 
   private static async pollUntilVisible(
     el: PlaywrightElement,
     timeout: number,
   ): Promise<void> {
-    const interval = 300;
+    const tracking = isOverheadTrackingActive();
+    const interval = tracking
+      ? this.POLL_INTERVAL_WHILE_MEASURING_MS
+      : this.POLL_INTERVAL_MS;
     const start = Date.now();
-    let attempt = 0;
     while (Date.now() - start < timeout - this.FINAL_WAIT_RESERVE_MS) {
       const remaining = timeout - (Date.now() - start);
       if (remaining <= 0) {
         break;
       }
+      const t0 = Date.now();
       try {
-        attempt++;
-        const t0 = Date.now();
         const exists = await withImplicitWait(this.POLL_IMPLICIT_WAIT_MS, () =>
           el.unwrap().isExisting(),
         );
         if (exists) {
           const displayed = await el.isVisible();
           if (displayed) {
-            if (isOverheadTrackingActive()) {
-              addOverhead(Date.now() - t0);
+            if (tracking) {
+              recordSuccessPollCommand(Date.now() - t0);
+              await this.probeOverhead(el);
             }
             return;
           }
         }
+        if (tracking) {
+          recordFailedPollCommand(Date.now() - t0);
+        }
       } catch {
-        // element not ready yet
+        if (tracking) {
+          recordFailedPollCommand(Date.now() - t0);
+        }
       }
-      await sleep(Math.min(interval, remaining));
+      const sleepMs = Math.min(interval, remaining);
+      if (tracking) {
+        addOverheadSleep(sleepMs);
+      }
+      await sleep(sleepMs);
     }
     const remainingTimeout = timeout - (Date.now() - start);
+    const t0Final = Date.now();
     await el.waitForDisplayed({
       timeout: Math.max(interval, remainingTimeout),
     });
     if (isOverheadTrackingActive()) {
+      recordSuccessPollCommand(Date.now() - t0Final);
       await this.probeOverhead(el);
     }
   }
 
   /**
    * Measures pure Appium/network overhead by running `isExisting()` on an
-   * element that is already visible.  The entire call duration is infra cost
-   * (network round-trip + WDA snapshot) with no app-loading component.
+   * element that is already visible. Used as RTT calibration and infra cost.
    */
   private static async probeOverhead(el: PlaywrightElement): Promise<void> {
     const t0 = Date.now();
     await el.unwrap().isExisting();
-    addOverhead(Date.now() - t0);
+    recordOverheadProbe(Date.now() - t0);
   }
 
   /**
    * Asserts that a target element eventually becomes visible.
    *
-   * When called inside a `TimerHelper.measure()` block two overhead sources
-   * are automatically tracked and later subtracted:
-   * - Element resolution (`await targetElement`) — the initial WebDriver
-   * `findElement` call that resolves the selector.
-   * - Post-detection probe — one extra `isExisting()` call after the element
-   * is confirmed visible (see {@link probeOverhead}).
+   * When called inside a `TimerHelper.measure()` block, Appium infra overhead
+   * (resolution, poll commands, sleeps, probe) is tracked and subtracted.
    */
   static async expectElementToBeVisible(
     targetElement: PlaywrightElement | Promise<PlaywrightElement>,
@@ -199,10 +198,8 @@ export default class PlaywrightAssertions {
   /**
    * Polls until an element's text content matches the expected value.
    *
-   * Overhead tracking follows the same pattern as {@link pollUntilVisible}:
-   * if the text already matches on the first attempt the entire call
-   * duration is registered as infra overhead; a post-match probe captures
-   * the per-command cost.
+   * Overhead tracking mirrors {@link pollUntilVisible}: failed/success poll
+   * commands, sleeps, and a post-match probe for RTT calibration.
    */
   static async expectElementText(
     targetElement: PlaywrightElement | Promise<PlaywrightElement>,
@@ -216,25 +213,28 @@ export default class PlaywrightAssertions {
     }
 
     const timeout = this.getTimeout(options);
-    const interval = 300;
+    const tracking = isOverheadTrackingActive();
+    const interval = tracking ? 50 : 300;
     const start = Date.now();
-    let attempt = 0;
     while (Date.now() - start < timeout) {
       try {
-        attempt++;
         const t0 = Date.now();
         const text = await el.textContent();
         if (text === expected) {
-          if (attempt === 1) {
-            addOverhead(Date.now() - t0);
-          }
-          if (isOverheadTrackingActive()) {
+          if (tracking) {
+            recordSuccessPollCommand(Date.now() - t0);
             await this.probeOverhead(el);
           }
           return;
         }
+        if (tracking) {
+          recordFailedPollCommand(Date.now() - t0);
+        }
       } catch {
         // element not ready yet
+      }
+      if (tracking) {
+        addOverheadSleep(interval);
       }
       await sleep(interval);
     }

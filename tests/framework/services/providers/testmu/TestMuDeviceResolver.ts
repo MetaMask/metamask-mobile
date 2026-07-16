@@ -11,8 +11,10 @@ const BROWSERSTACK_TO_TESTMU_DEVICE: Record<
   string,
   { name: string; osVersion?: string }
 > = {
-  'Google Pixel 8 Pro': { name: 'Pixel 8 Pro' },
-  'Samsung Galaxy S25 Ultra': { name: 'Galaxy S25 Ultra' },
+  'Google Pixel 8 Pro': { name: 'Pixel 8 Pro', osVersion: '14' },
+  'Pixel 8 Pro': { name: 'Pixel 8 Pro', osVersion: '14' },
+  'Samsung Galaxy S25 Ultra': { name: 'Galaxy S25 Ultra', osVersion: '15' },
+  'Galaxy S25 Ultra': { name: 'Galaxy S25 Ultra', osVersion: '15' },
   'iPhone 16 Pro Max': { name: 'iPhone 16 Pro Max' },
   'iPhone 12': { name: 'iPhone 12' },
 };
