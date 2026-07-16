@@ -1,7 +1,10 @@
 import { merge } from 'lodash';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useUpdateTransactionPayAmount } from './useUpdateTransactionPayAmount';
-import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
+import {
+  simpleSendTransactionControllerMock,
+  transactionIdMock,
+} from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import {
@@ -22,7 +25,22 @@ import { useTransactionAccountOverride } from '../transactions/useTransactionAcc
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
+import Engine from '../../../../../core/Engine';
+import { getVersion } from 'react-native-device-info';
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('99.0.0'),
+}));
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      TransactionPayController: {
+        updateAmount: jest.fn(),
+      },
+    },
+  },
+}));
 jest.mock('../../../../../util/transaction-controller');
 jest.mock('../../../../UI/Money/utils/moneyAccountTransactions');
 jest.mock('../transactions/useUpdateTokenAmount');
@@ -40,8 +58,10 @@ const moneyAccountWithdrawMeta: Partial<TransactionMeta> = {
 
 function runHook({
   transactionMeta,
+  quotePipelineEnabled = false,
 }: {
   transactionMeta?: Partial<TransactionMeta>;
+  quotePipelineEnabled?: boolean;
 } = {}) {
   return renderHookWithProvider(useUpdateTransactionPayAmount, {
     state: merge(
@@ -49,6 +69,20 @@ function runHook({
       simpleSendTransactionControllerMock,
       transactionApprovalControllerMock,
       otherControllersMock,
+      {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                moneyAccountDepositQuotePipeline: {
+                  enabled: quotePipelineEnabled,
+                  minimumVersion: '0.0.0',
+                },
+              },
+            },
+          },
+        },
+      },
       transactionMeta
         ? {
             engine: {
@@ -80,10 +114,15 @@ describe('useUpdateTransactionPayAmount', () => {
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
+  const updateAmountMock = jest.mocked(
+    Engine.context.TransactionPayController.updateAmount,
+  );
   const updateTokenAmountMock = jest.fn();
   beforeEach(() => {
     jest.resetAllMocks();
+    jest.mocked(getVersion).mockReturnValue('99.0.0');
     updateAtomicBatchDataMock.mockResolvedValue('0x0');
+    updateAmountMock.mockResolvedValue(true);
     useUpdateTokenAmountMock.mockReturnValue({
       updateTokenAmount: updateTokenAmountMock,
     });
@@ -126,6 +165,40 @@ describe('useUpdateTransactionPayAmount', () => {
       transactionData: '0xbbbb',
     });
     expect(updateTokenAmountMock).not.toHaveBeenCalled();
+    expect(updateAmountMock).not.toHaveBeenCalled();
+  });
+
+  it('uses only the explicit quote pipeline for enabled Money Account deposits', async () => {
+    const { result } = runHook({
+      transactionMeta: moneyAccountDepositMeta,
+      quotePipelineEnabled: true,
+    });
+
+    await result.current.updateTransactionPayAmount('1.23');
+
+    expect(updateAmountMock).toHaveBeenCalledTimes(1);
+    expect(updateAmountMock).toHaveBeenCalledWith({
+      transactionId: transactionIdMock,
+      amountHuman: '1.23',
+    });
+    expect(updateTransactionMock).not.toHaveBeenCalled();
+    expect(updateMoneyAccountDepositTokenAmountMock).not.toHaveBeenCalled();
+    expect(updateMoneyAccountWithdrawTokenAmountMock).not.toHaveBeenCalled();
+    expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
+    expect(updateTokenAmountMock).not.toHaveBeenCalled();
+  });
+
+  it('does not use the explicit quote pipeline for withdrawals', async () => {
+    updateMoneyAccountWithdrawTokenAmountMock.mockResolvedValue([]);
+    const { result } = runHook({
+      transactionMeta: moneyAccountWithdrawMeta,
+      quotePipelineEnabled: true,
+    });
+
+    await result.current.updateTransactionPayAmount('4.56');
+
+    expect(updateAmountMock).not.toHaveBeenCalled();
+    expect(updateMoneyAccountWithdrawTokenAmountMock).toHaveBeenCalledTimes(1);
   });
 
   it('does not call updateAtomicBatchData when no updates are returned', async () => {

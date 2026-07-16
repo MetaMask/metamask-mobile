@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { toHex } from '@metamask/controller-utils';
 import {
@@ -6,6 +7,8 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import Engine from '../../../../../core/Engine';
+import { selectMoneyAccountDepositQuotePipelineEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
@@ -36,6 +39,9 @@ export function useUpdateTransactionPayAmount() {
   const { updateTokenAmount } = useUpdateTokenAmount();
   const requiredTokens = useTransactionPayRequiredTokens();
   const accountOverride = useTransactionAccountOverride();
+  const isMoneyAccountDepositQuotePipelineEnabled = useSelector(
+    selectMoneyAccountDepositQuotePipelineEnabled,
+  );
 
   const applyMoneyAccountAmountUpdates = useCallback(
     async (
@@ -87,6 +93,14 @@ export function useUpdateTransactionPayAmount() {
           TransactionType.moneyAccountDeposit,
         ])
       ) {
+        if (isMoneyAccountDepositQuotePipelineEnabled) {
+          await Engine.context.TransactionPayController.updateAmount({
+            transactionId: transactionMeta.id,
+            amountHuman,
+          });
+          return;
+        }
+
         syncMoneyAccountDepositRequiredAssets(
           transactionMeta,
           amountHuman,
@@ -122,6 +136,7 @@ export function useUpdateTransactionPayAmount() {
       updateTokenAmount,
       requiredTokens,
       accountOverride,
+      isMoneyAccountDepositQuotePipelineEnabled,
     ],
   );
 
