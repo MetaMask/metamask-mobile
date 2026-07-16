@@ -68,6 +68,10 @@ describe('accountTrackerControllerInit', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
   it('passes the proper arguments to the controller including isHomepageSectionsV1Enabled', () => {
     accountTrackerControllerInit(getInitRequestMock());
 
