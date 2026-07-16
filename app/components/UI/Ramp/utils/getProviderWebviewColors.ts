@@ -14,7 +14,7 @@ import { colors } from '../../../../styles/common';
  * when no provider-specific color is known.
  */
 
-export interface ProviderWebviewColors {
+interface ProviderWebviewColors {
   dark: string;
   light: string;
 }
@@ -36,16 +36,18 @@ const PROVIDER_WEBVIEW_COLORS: Record<string, ProviderWebviewColors> = {
 };
 
 /**
- * Returns the provider's iframe background colors for the given provider ID.
+ * Returns the provider's iframe background color for the current theme.
  * Falls back to the MMDS BottomSheet default surface for unknown providers.
  */
 export function getProviderWebviewColors(
   providerCode: string | undefined,
-): ProviderWebviewColors {
-  if (!providerCode) return PROVIDER_WEBVIEW_COLORS.default;
-  const lower = providerCode.toLowerCase();
-  const key = Object.keys(PROVIDER_WEBVIEW_COLORS).find(
-    (k) => k !== 'default' && lower.includes(k),
-  );
-  return PROVIDER_WEBVIEW_COLORS[key ?? 'default'];
+  isDark: boolean,
+): string {
+  const key =
+    providerCode &&
+    Object.keys(PROVIDER_WEBVIEW_COLORS).find(
+      (k) => k !== 'default' && providerCode.toLowerCase().includes(k),
+    );
+  const entry = PROVIDER_WEBVIEW_COLORS[key || 'default'];
+  return isDark ? entry.dark : entry.light;
 }

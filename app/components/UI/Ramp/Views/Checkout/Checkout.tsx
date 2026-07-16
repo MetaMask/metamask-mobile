@@ -120,10 +120,8 @@ const Checkout = () => {
     headlessSessionId,
   } = params ?? {};
 
-  const { dark: providerBgDark, light: providerBgLight } =
-    getProviderWebviewColors(providerCode);
   const isDark = themeAppearance === AppThemeKey.dark;
-  const providerBg = isDark ? providerBgDark : providerBgLight;
+  const providerBg = getProviderWebviewColors(providerCode, isDark);
   const { styles } = useStyles(styleSheet, { providerBg });
   const providerBgTwClassName = `bg-[${providerBg}]`;
 

@@ -72,10 +72,8 @@ const CheckoutWebView = () => {
   const { url: uri, customOrderId, provider } = params;
 
   const { themeAppearance } = useTheme();
-  const { dark: providerBgDark, light: providerBgLight } =
-    getProviderWebviewColors(provider?.id);
   const isDark = themeAppearance === AppThemeKey.dark;
-  const providerBg = isDark ? providerBgDark : providerBgLight;
+  const providerBg = getProviderWebviewColors(provider?.id, isDark);
   const { styles } = useStyles(styleSheet, { providerBg });
   const providerBgStyle = { backgroundColor: providerBg };
 
