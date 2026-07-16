@@ -337,6 +337,7 @@ describe('ImmersveProvider', () => {
           network: 'base-sepolia',
           balance: '1000000',
           balanceCurrency: 'USDC',
+          fundingChannelId: 'base-channel',
         },
       ]);
     });
@@ -467,7 +468,7 @@ describe('ImmersveProvider', () => {
     };
 
   describe('getCardHomeData', () => {
-    it('creates a card and returns a provisioning alert when the account has none', async () => {
+    it('returns a provisioning alert without creating a card when the account has none', async () => {
       const { provider, service } = createProvider();
       service.get.mockImplementation(
         routeGet({
@@ -475,13 +476,14 @@ describe('ImmersveProvider', () => {
           fundingSources: { items: [fundingSourceDetail] },
         }),
       );
-      service.post.mockResolvedValue({ cardId: 'card-1' });
 
       const data = await provider.getCardHomeData('0xabc', TOKENS);
 
-      expect(service.post).toHaveBeenCalledWith(
-        '/api/cards',
-        { cardProgramId: 'program-1', fundingSourceId: 'fs-1' },
+      // Card creation is not a read-path side effect (gated ImmersveFundingApproval owns it).
+      expect(service.post).not.toHaveBeenCalled();
+      // No funding-sources lookup either — the read path stays pure.
+      expect(service.get).not.toHaveBeenCalledWith(
+        '/api/accounts/cardholder-1/funding-sources',
         TOKENS,
       );
       expect(data.card).toBeNull();

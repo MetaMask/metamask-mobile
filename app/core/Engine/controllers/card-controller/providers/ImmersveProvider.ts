@@ -495,6 +495,7 @@ export class ImmersveProvider implements ICardProvider {
         network: item.network,
         balance: item.balance,
         balanceCurrency: item.balanceCurrency,
+        fundingChannelId: item.fundingChannelId,
       }));
     } catch (error) {
       throw mapApiError(error, 'getFundingSources');
@@ -624,15 +625,6 @@ export class ImmersveProvider implements ICardProvider {
       const card = await this.resolveCurrentCard(tokens);
 
       if (!card) {
-        const fundingSources = await this.getFundingSources(tokens);
-        const fundingSourceId = fundingSources[0]?.id;
-        if (!fundingSourceId) {
-          throw new CardProviderError(
-            CardProviderErrorCode.Unknown,
-            'getCardHomeData: no funding source available to create a card',
-          );
-        }
-        await this.createCard(fundingSourceId, tokens);
         return this.provisioningHomeData();
       }
 

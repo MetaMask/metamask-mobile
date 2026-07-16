@@ -100,6 +100,7 @@ import {
   selectCardUserLocation,
   selectCardHomeDataStatus,
   selectMoneyAccountVedaTokenConfig,
+  selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -770,6 +771,7 @@ function setupMockSelectors(
       address: string;
       decimals: number;
     } | null;
+    activeProviderId: string;
   }>,
 ) {
   const defaults = {
@@ -786,6 +788,7 @@ function setupMockSelectors(
     cardHomeDataStatus: 'success' as const,
     primaryMoneyAccount: { address: mockCurrentAddress },
     vedaConfig: null,
+    activeProviderId: 'baanx',
   };
 
   const config = { ...defaults, ...overrides };
@@ -802,6 +805,7 @@ function setupMockSelectors(
     if (selector === selectCardLastUnauthenticatedReason)
       return config.lastUnauthenticatedReason;
     if (selector === selectCardUserLocation) return config.userLocation;
+    if (selector === selectCardActiveProviderId) return config.activeProviderId;
     if (selector === selectCardHomeDataStatus) return config.cardHomeDataStatus;
     if (selector === selectPrimaryMoneyAccount)
       return config.primaryMoneyAccount;
@@ -1878,6 +1882,32 @@ describe('CardHome Component', () => {
     await waitFor(() => {
       expect(Linking.openURL).toHaveBeenCalledWith(
         `mailto:${CARD_SUPPORT_EMAIL}`,
+      );
+    });
+  });
+
+  it('uses the Immersve terms URL for the Immersve provider', () => {
+    setupMockSelectors({ activeProviderId: 'immersve' });
+
+    render();
+
+    expect(mockUseNavigateToCardPage).toHaveBeenCalledWith(
+      expect.any(Object),
+      'https://immersve.com/terms-and-conditions/uk/general-terms-of-use',
+    );
+  });
+
+  it('opens the Immersve support email for the Immersve provider', async () => {
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({ isAuthenticated: true });
+
+    render();
+
+    fireEvent.press(screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM));
+
+    await waitFor(() => {
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'mailto:support@metamask.io',
       );
     });
   });

@@ -375,6 +375,7 @@ export interface CardFundingSourceResult {
   network?: string;
   balance?: string;
   balanceCurrency?: string;
+  fundingChannelId?: string;
 }
 
 export type CardPrerequisiteStage = 'funding' | 'kyc' | 'aml';

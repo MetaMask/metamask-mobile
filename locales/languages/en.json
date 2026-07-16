@@ -9229,9 +9229,11 @@
       "auth_prompt_info": "Log in to your card account to access this feature.",
       "location_button_text": "International",
       "location_button_text_us": "United States",
+      "location_button_text_uk": "United Kingdom",
       "email_label": "Email",
       "password_label": "Password",
       "login_button": "Log in",
+      "uk_login_button": "Sign in with this account",
       "signup_button": "Sign up",
       "forgot_password_button": "Forgot password?",
       "errors": {
