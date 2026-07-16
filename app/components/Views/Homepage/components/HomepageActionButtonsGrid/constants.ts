@@ -2,17 +2,17 @@ import { ActionPosition } from '../../../../../util/analytics/actionButtonTracki
 import type { HomepageActionButtonsGridRowOrder } from '../../abTestConfig';
 
 /**
- * Row 1 (Figma Treatment 4): Buy, Sell, Swap, Send
- * Row 2: Perps, Predict, Batch Swap, Traders
+ * Row 1 (Figma Treatment 4): Buy, Sell, Send, Receive
+ * Row 2: Swap, Perps, Predict, Traders
  */
 export const HOMEPAGE_ACTION_BUTTON_IDS = [
   'buy',
   'sell',
-  'swap',
   'send',
+  'receive',
+  'swap',
   'perps',
   'predict',
-  'batch_swap',
   'traders',
 ] as const;
 
@@ -22,14 +22,14 @@ export type HomepageActionButtonId =
 export const ROW1_BUTTON_IDS: HomepageActionButtonId[] = [
   'buy',
   'sell',
-  'swap',
   'send',
+  'receive',
 ];
 
 export const ROW2_BUTTON_IDS: HomepageActionButtonId[] = [
+  'swap',
   'perps',
   'predict',
-  'batch_swap',
   'traders',
 ];
 

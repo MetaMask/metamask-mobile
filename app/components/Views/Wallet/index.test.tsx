@@ -181,6 +181,7 @@ jest.mock('../Homepage/components/HomepageActionButtonsGrid', () => {
     HomepageActionButtonsGrid: (props: {
       rowOrder: string;
       onSend: () => void;
+      onReceive: () => void;
     }) => {
       mockHomepageActionButtonsGrid(props);
       return React.createElement(View, {
@@ -1927,7 +1928,11 @@ describe('HomepageActionButtonsGrid AB test', () => {
     );
 
     expect(mockHomepageActionButtonsGrid).toHaveBeenCalledWith(
-      expect.objectContaining({ rowOrder: 'row1Top' }),
+      expect.objectContaining({
+        rowOrder: 'row1Top',
+        onSend: expect.any(Function),
+        onReceive: expect.any(Function),
+      }),
     );
   });
 

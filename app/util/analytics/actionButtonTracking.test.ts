@@ -60,7 +60,6 @@ describe('actionButtonTracking', () => {
       expect(ActionButtonType.SELL).toBe('sell');
       expect(ActionButtonType.PERPS).toBe('perps');
       expect(ActionButtonType.PREDICT).toBe('predict');
-      expect(ActionButtonType.BATCH_SWAP).toBe('batch_swap');
       expect(ActionButtonType.TRADERS).toBe('traders');
     });
 
@@ -74,7 +73,6 @@ describe('actionButtonTracking', () => {
         'sell',
         'perps',
         'predict',
-        'batch_swap',
         'traders',
       ];
 
@@ -83,7 +81,7 @@ describe('actionButtonTracking', () => {
 
       // Then: should match expected types
       expect(actualTypes).toEqual(expect.arrayContaining(expectedTypes));
-      expect(actualTypes).toHaveLength(9);
+      expect(actualTypes).toHaveLength(8);
     });
   });
 

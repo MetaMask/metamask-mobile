@@ -10341,11 +10341,11 @@
     "action_buttons": {
       "buy": "Buy",
       "sell": "Sell",
-      "swap": "Swap",
       "send": "Send",
+      "receive": "Receive",
+      "swap": "Swap",
       "perps": "Perps",
       "predict": "Predict",
-      "batch_swap": "Batch Swap",
       "traders": "Traders"
     },
     "sections": {

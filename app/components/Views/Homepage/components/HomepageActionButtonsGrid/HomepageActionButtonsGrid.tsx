@@ -6,11 +6,11 @@ import {
 } from '@metamask/design-system-react-native';
 import BuyButton from './buttons/BuyButton';
 import SellButton from './buttons/SellButton';
-import SwapButton from './buttons/SwapButton';
 import SendButton from './buttons/SendButton';
+import ReceiveButton from './buttons/ReceiveButton';
+import SwapButton from './buttons/SwapButton';
 import PerpsButton from './buttons/PerpsButton';
 import PredictButton from './buttons/PredictButton';
-import BatchSwapButton from './buttons/BatchSwapButton';
 import TradersButton from './buttons/TradersButton';
 import {
   ACTION_POSITION_BY_INDEX,
@@ -24,6 +24,7 @@ const renderButton = (
   id: HomepageActionButtonId,
   actionPosition: (typeof ACTION_POSITION_BY_INDEX)[number],
   onSend: () => void,
+  onReceive: () => void,
   allowTwoLineLabel: boolean,
 ) => {
   const slotProps = { actionPosition, allowTwoLineLabel };
@@ -32,16 +33,16 @@ const renderButton = (
       return <BuyButton {...slotProps} />;
     case 'sell':
       return <SellButton {...slotProps} />;
-    case 'swap':
-      return <SwapButton {...slotProps} />;
     case 'send':
       return <SendButton {...slotProps} onSend={onSend} />;
+    case 'receive':
+      return <ReceiveButton {...slotProps} onReceive={onReceive} />;
+    case 'swap':
+      return <SwapButton {...slotProps} />;
     case 'perps':
       return <PerpsButton {...slotProps} />;
     case 'predict':
       return <PredictButton {...slotProps} />;
-    case 'batch_swap':
-      return <BatchSwapButton {...slotProps} />;
     case 'traders':
       return <TradersButton {...slotProps} />;
     default: {
@@ -58,6 +59,7 @@ const renderButton = (
 const HomepageActionButtonsGrid = ({
   rowOrder,
   onSend,
+  onReceive,
   allowTwoLineLabel = false,
 }: HomepageActionButtonsGridProps) => {
   const rows = getOrderedButtonRows(rowOrder);
@@ -79,7 +81,13 @@ const HomepageActionButtonsGrid = ({
               ACTION_POSITION_BY_INDEX[rowIndex * 4 + colIndex];
             return (
               <React.Fragment key={id}>
-                {renderButton(id, actionPosition, onSend, allowTwoLineLabel)}
+                {renderButton(
+                  id,
+                  actionPosition,
+                  onSend,
+                  onReceive,
+                  allowTwoLineLabel,
+                )}
               </React.Fragment>
             );
           })}

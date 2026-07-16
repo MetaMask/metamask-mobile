@@ -484,14 +484,8 @@ const Wallet = ({
     walletHomePostOnboardingExitInProgressRef.current = false;
   }, [dispatch]);
 
-  const onReceive = useCallback(() => {
-    trackActionButtonClick(trackEvent, createEventBuilder, {
-      action_name: ActionButtonType.RECEIVE,
-      action_position: ActionPosition.FOURTH_POSITION,
-      button_label: strings('asset_overview.receive_button'),
-      location: ActionLocation.HOME,
-    });
-
+  /** Navigation-only receive for AB treatment buttons (they own ACTION_BUTTON_CLICKED). */
+  const onReceiveWithoutTracking = useCallback(() => {
     if (selectedAccountGroupId) {
       navigate(
         ...createAddressListNavigationDetails({
@@ -507,7 +501,18 @@ const Wallet = ({
         new Error('Wallet::onReceive - Missing selectedAccountGroupId'),
       );
     }
-  }, [trackEvent, createEventBuilder, navigate, selectedAccountGroupId]);
+  }, [navigate, selectedAccountGroupId]);
+
+  const onReceive = useCallback(() => {
+    trackActionButtonClick(trackEvent, createEventBuilder, {
+      action_name: ActionButtonType.RECEIVE,
+      action_position: ActionPosition.FOURTH_POSITION,
+      button_label: strings('asset_overview.receive_button'),
+      location: ActionLocation.HOME,
+    });
+
+    onReceiveWithoutTracking();
+  }, [trackEvent, createEventBuilder, onReceiveWithoutTracking]);
 
   const onSend = useCallback(async () => {
     try {
@@ -1059,6 +1064,7 @@ const Wallet = ({
     actionButtonsGridVariant.layout === 'eightCircular' ? (
       <HomepageActionButtonsGrid
         onSend={onSendWithoutTracking}
+        onReceive={onReceiveWithoutTracking}
         rowOrder={actionButtonsGridVariant.rowOrder}
       />
     ) : (

@@ -15,7 +15,11 @@ export interface HomepageActionButtonsGridProps {
    */
   onSend: () => void;
   /**
-   * When true, action labels wrap to 2 lines before ellipsizing (e.g. "Batch Swap").
+   * Receive handler owned by Wallet (navigates to the receiving address list).
+   */
+  onReceive: () => void;
+  /**
+   * When true, action labels wrap to 2 lines before ellipsizing.
    * @default false
    */
   allowTwoLineLabel?: boolean;

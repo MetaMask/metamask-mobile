@@ -2,7 +2,6 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { selectCanSignTransactions } from '../../../../../selectors/accountsController';
 import { selectIsSwapsEnabled } from '../../../../../core/redux/slices/bridge';
-import { selectBatchSellEnabled } from '../../../../../selectors/featureFlagController/batchSell';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps';
 import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
@@ -20,6 +19,7 @@ const mockGoToSell = jest.fn();
 const mockGoToSwaps = jest.fn();
 const mockNavigate = jest.fn();
 const mockOnSend = jest.fn();
+const mockOnReceive = jest.fn();
 const mockNavigateToSocialLeaderboard = jest.fn();
 
 jest.mock('../../../../../util/analytics/actionButtonTracking', () => {
@@ -83,7 +83,6 @@ import HomepageActionButtonsGrid from './HomepageActionButtonsGrid';
 interface SelectorOverrides {
   canSignTransactions?: boolean;
   isSwapsEnabled?: boolean;
-  isBatchSellEnabled?: boolean;
   isSocialLeaderboardEnabled?: boolean;
   isPerpsEnabled?: boolean;
   isPredictEnabled?: boolean;
@@ -94,7 +93,6 @@ const mockSelectorState = (overrides: SelectorOverrides = {}) => {
   const {
     canSignTransactions = true,
     isSwapsEnabled = true,
-    isBatchSellEnabled = true,
     isSocialLeaderboardEnabled = true,
     isPerpsEnabled = true,
     isPredictEnabled = true,
@@ -108,9 +106,6 @@ const mockSelectorState = (overrides: SelectorOverrides = {}) => {
     if (selector === selectIsSwapsEnabled) {
       return isSwapsEnabled;
     }
-    if (selector === selectBatchSellEnabled) {
-      return isBatchSellEnabled;
-    }
     if (selector === selectSocialLeaderboardEnabled) {
       return isSocialLeaderboardEnabled;
     }
@@ -123,7 +118,7 @@ const mockSelectorState = (overrides: SelectorOverrides = {}) => {
     if (selector === selectPredictEnabledFlag) {
       return isPredictEnabled;
     }
-    // Swap / Batch Swap wrap selectIsSwapsEnabled in an arrow selector.
+    // Swap wraps selectIsSwapsEnabled in an arrow selector.
     if (typeof selector === 'function') {
       return isSwapsEnabled;
     }
@@ -143,28 +138,28 @@ const ROW1_TOP_BUTTON_CASES = [
     actionPosition: ActionPosition.SECOND_POSITION,
   },
   {
-    testId: HomepageActionButtonsGridTestIds.SWAP_BUTTON,
-    actionName: ActionButtonType.SWAP,
+    testId: HomepageActionButtonsGridTestIds.SEND_BUTTON,
+    actionName: ActionButtonType.SEND,
     actionPosition: ActionPosition.THIRD_POSITION,
   },
   {
-    testId: HomepageActionButtonsGridTestIds.SEND_BUTTON,
-    actionName: ActionButtonType.SEND,
+    testId: HomepageActionButtonsGridTestIds.RECEIVE_BUTTON,
+    actionName: ActionButtonType.RECEIVE,
     actionPosition: ActionPosition.FOURTH_POSITION,
+  },
+  {
+    testId: HomepageActionButtonsGridTestIds.SWAP_BUTTON,
+    actionName: ActionButtonType.SWAP,
+    actionPosition: ActionPosition.FIFTH_POSITION,
   },
   {
     testId: HomepageActionButtonsGridTestIds.PERPS_BUTTON,
     actionName: ActionButtonType.PERPS,
-    actionPosition: ActionPosition.FIFTH_POSITION,
+    actionPosition: ActionPosition.SIXTH_POSITION,
   },
   {
     testId: HomepageActionButtonsGridTestIds.PREDICT_BUTTON,
     actionName: ActionButtonType.PREDICT,
-    actionPosition: ActionPosition.SIXTH_POSITION,
-  },
-  {
-    testId: HomepageActionButtonsGridTestIds.BATCH_SWAP_BUTTON,
-    actionName: ActionButtonType.BATCH_SWAP,
     actionPosition: ActionPosition.SEVENTH_POSITION,
   },
   {
@@ -182,7 +177,11 @@ describe('HomepageActionButtonsGrid', () => {
 
   it('renders all eight buttons for row1Top order', () => {
     const { getByTestId } = render(
-      <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
+      <HomepageActionButtonsGrid
+          onSend={mockOnSend}
+          onReceive={mockOnReceive}
+          rowOrder="row1Top"
+        />,
     );
 
     expect(
@@ -197,7 +196,11 @@ describe('HomepageActionButtonsGrid', () => {
     'tracks $actionName tap with position $actionPosition for row1Top',
     ({ testId, actionName, actionPosition }) => {
       const { getByTestId } = render(
-        <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
+        <HomepageActionButtonsGrid
+          onSend={mockOnSend}
+          onReceive={mockOnReceive}
+          rowOrder="row1Top"
+        />,
       );
 
       fireEvent.press(getByTestId(testId));
@@ -216,7 +219,11 @@ describe('HomepageActionButtonsGrid', () => {
 
   it('tracks sell tap with sixth position for row2Top', () => {
     const { getByTestId } = render(
-      <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row2Top" />,
+      <HomepageActionButtonsGrid
+          onSend={mockOnSend}
+          onReceive={mockOnReceive}
+          rowOrder="row2Top"
+        />,
     );
 
     fireEvent.press(getByTestId(HomepageActionButtonsGridTestIds.SELL_BUTTON));
@@ -234,7 +241,11 @@ describe('HomepageActionButtonsGrid', () => {
 
   it('calls onSend when send is pressed', () => {
     const { getByTestId } = render(
-      <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
+      <HomepageActionButtonsGrid
+          onSend={mockOnSend}
+          onReceive={mockOnReceive}
+          rowOrder="row1Top"
+        />,
     );
 
     fireEvent.press(getByTestId(HomepageActionButtonsGridTestIds.SEND_BUTTON));
@@ -242,12 +253,32 @@ describe('HomepageActionButtonsGrid', () => {
     expect(mockOnSend).toHaveBeenCalledTimes(1);
   });
 
+  it('calls onReceive when receive is pressed', () => {
+    const { getByTestId } = render(
+      <HomepageActionButtonsGrid
+        onSend={mockOnSend}
+        onReceive={mockOnReceive}
+        rowOrder="row1Top"
+      />,
+    );
+
+    fireEvent.press(
+      getByTestId(HomepageActionButtonsGridTestIds.RECEIVE_BUTTON),
+    );
+
+    expect(mockOnReceive).toHaveBeenCalledTimes(1);
+  });
+
   describe('grey-out when product flags are off', () => {
     it('disables buy and sell when account cannot sign', () => {
       mockSelectorState({ canSignTransactions: false });
 
       const { getByTestId } = render(
-        <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
+        <HomepageActionButtonsGrid
+          onSend={mockOnSend}
+          onReceive={mockOnReceive}
+          rowOrder="row1Top"
+        />,
       );
 
       expect(
@@ -262,13 +293,22 @@ describe('HomepageActionButtonsGrid', () => {
         getByTestId(HomepageActionButtonsGridTestIds.SEND_BUTTON).props
           .accessibilityState,
       ).toMatchObject({ disabled: true });
+      // Receive needs no signing capability and stays enabled.
+      expect(
+        getByTestId(HomepageActionButtonsGridTestIds.RECEIVE_BUTTON).props
+          .accessibilityState,
+      ).toMatchObject({ disabled: false });
     });
 
     it('disables swap when swaps are disabled', () => {
       mockSelectorState({ isSwapsEnabled: false });
 
       const { getByTestId } = render(
-        <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
+        <HomepageActionButtonsGrid
+          onSend={mockOnSend}
+          onReceive={mockOnReceive}
+          rowOrder="row1Top"
+        />,
       );
 
       expect(
@@ -281,7 +321,11 @@ describe('HomepageActionButtonsGrid', () => {
       mockSelectorState({ isPerpsEnabled: false });
 
       const { getByTestId } = render(
-        <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
+        <HomepageActionButtonsGrid
+          onSend={mockOnSend}
+          onReceive={mockOnReceive}
+          rowOrder="row1Top"
+        />,
       );
 
       expect(
@@ -294,7 +338,11 @@ describe('HomepageActionButtonsGrid', () => {
       mockSelectorState({ isPredictEnabled: false });
 
       const { getByTestId } = render(
-        <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
+        <HomepageActionButtonsGrid
+          onSend={mockOnSend}
+          onReceive={mockOnReceive}
+          rowOrder="row1Top"
+        />,
       );
 
       expect(
@@ -303,24 +351,15 @@ describe('HomepageActionButtonsGrid', () => {
       ).toMatchObject({ disabled: true });
     });
 
-    it('disables batch swap when batch sell flag is off', () => {
-      mockSelectorState({ isBatchSellEnabled: false });
-
-      const { getByTestId } = render(
-        <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
-      );
-
-      expect(
-        getByTestId(HomepageActionButtonsGridTestIds.BATCH_SWAP_BUTTON).props
-          .accessibilityState,
-      ).toMatchObject({ disabled: true });
-    });
-
     it('disables traders when social leaderboard flag is off', () => {
       mockSelectorState({ isSocialLeaderboardEnabled: false });
 
       const { getByTestId } = render(
-        <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
+        <HomepageActionButtonsGrid
+          onSend={mockOnSend}
+          onReceive={mockOnReceive}
+          rowOrder="row1Top"
+        />,
       );
 
       expect(
@@ -333,7 +372,11 @@ describe('HomepageActionButtonsGrid', () => {
       mockSelectorState({ isPerpsEnabled: false });
 
       const { getByTestId } = render(
-        <HomepageActionButtonsGrid onSend={mockOnSend} rowOrder="row1Top" />,
+        <HomepageActionButtonsGrid
+          onSend={mockOnSend}
+          onReceive={mockOnReceive}
+          rowOrder="row1Top"
+        />,
       );
 
       fireEvent.press(
