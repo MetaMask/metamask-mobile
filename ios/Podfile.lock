@@ -2619,7 +2619,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-blob-util (0.19.9):
+  - react-native-blob-util (0.24.10):
     - boost
     - DoubleConversion
     - fast_float
@@ -5150,7 +5150,7 @@ SPEC CHECKSUMS:
   react-native-aes: e8b2e113d532b0efb6449754492aee9c218dd502
   react-native-background-timer: 007ff829f79644caf2ed013e22f0563560336f86
   react-native-ble-plx: e9494861c0f5d1dbc6d8185f9f125404e2f907c1
-  react-native-blob-util: 28d6e8639bee1c948466e83dd6857e1c01c8f053
+  react-native-blob-util: 597cb703d6dee59abec9754daf3d7951512bb132
   react-native-branch: 76e1f947b40597727e6faa5cba5824d7ecf6c6b0
   react-native-compat: 1d99f40b51a8c8efcd57a921d5ab3b1ab5608736
   react-native-cookies: d648ab7025833b977c0b19e142503034f5f29411
