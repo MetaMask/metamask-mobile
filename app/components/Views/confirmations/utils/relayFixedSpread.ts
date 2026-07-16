@@ -244,6 +244,23 @@ export const isSubsidizedSource = (
  * Reserved for callsites that know the destination of the transaction being
  * built; not yet wired in to the MM Pay picker.
  */
+/**
+ * Returns true when the given token appears in any route as either source or
+ * target. Used to decide whether a pay token is a stablecoin for prefill
+ * percentage logic.
+ */
+export const isRouteToken = (
+  config: RelayFixedSpreadConfig,
+  endpoint: RouteEndpoint,
+): boolean =>
+  config.routes.some(
+    (route) =>
+      (addressesEqual(route.sourceChain, endpoint.chainId) &&
+        addressesEqual(route.sourceToken, endpoint.address)) ||
+      (addressesEqual(route.targetChain, endpoint.chainId) &&
+        addressesEqual(route.targetToken, endpoint.address)),
+  );
+
 export const isSubsidizedRoute = (
   config: RelayFixedSpreadConfig,
   source: RouteEndpoint,

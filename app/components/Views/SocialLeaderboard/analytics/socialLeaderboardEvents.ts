@@ -13,6 +13,7 @@ export const SocialLeaderboardEventProperties = {
   ASSET_NAME: 'asset_name',
   CAIP19: 'caip19',
   PERPS_MARKET: 'perps_market',
+  CHAIN_NAME: 'chain_name',
   CHAIN_FILTER: 'chain_filter',
   CTA_TYPE: 'cta_type',
   FEED_ACTION: 'feed_action',
