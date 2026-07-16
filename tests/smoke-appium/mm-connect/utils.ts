@@ -1,33 +1,15 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { execSync } from 'child_process';
-import LoginView from '../../page-objects/wallet/LoginView';
-import { PlaywrightAssertions, sleep, createLogger } from '../../framework';
-import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
-import { loginToAppPlaywright } from '../../flows/wallet.flow';
+import { sleep, createLogger } from '../../framework';
+
+export { unlockIfLockScreenVisible } from '../../page-objects/MMConnect/unlockHelpers';
 
 const logger = createLogger({
   name: 'MMConnectUtils',
 });
 
 const DEFAULT_DAPP_PORT = 8090;
-const UNLOCK_WAIT_MS = 5000;
 const DAPP_READY_POLL_MS = 500;
-
-/**
- * If the app auto-locked and the unlock/login screen is displayed, unlock with
- * the standard e2e fixture password.
- */
-export async function unlockIfLockScreenVisible(): Promise<void> {
-  try {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      asPlaywrightElement(LoginView.container),
-      { timeout: UNLOCK_WAIT_MS },
-    );
-    await loginToAppPlaywright({ scenarioType: 'e2e' });
-  } catch {
-    // Unlock screen not shown within timeout; continue
-  }
-}
 
 /**
  * Wait for the dapp server to be listening on the given port.

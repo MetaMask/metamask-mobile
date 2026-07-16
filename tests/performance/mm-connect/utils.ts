@@ -2,7 +2,6 @@
 import { execSync } from 'child_process';
 import path from 'path';
 import fs from 'fs';
-import LoginView from '../../page-objects/wallet/LoginView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
 import {
@@ -12,9 +11,10 @@ import {
   createLogger,
 } from '../../framework';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
-import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants';
 import type { CurrentDeviceDetails } from '../../framework/fixtures/playwright';
+
+export { unlockIfLockScreenVisible } from '../../page-objects/MMConnect/unlockHelpers';
 
 const logger = createLogger({
   name: 'MMConnectUtils',
@@ -22,25 +22,6 @@ const logger = createLogger({
 
 // Default port for the browser playground dapp server
 const DEFAULT_DAPP_PORT = 8090;
-
-const UNLOCK_WAIT_MS = 5000;
-
-/**
- * If the app auto-locked and the unlock/login screen is displayed, enter password and unlock.
- * Waits no more than 3 seconds for the unlock screen; if not visible, returns without action.
- * Call from native context before interacting with connection/sign modals.
- */
-export async function unlockIfLockScreenVisible(): Promise<void> {
-  try {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      asPlaywrightElement(LoginView.container),
-      { timeout: UNLOCK_WAIT_MS },
-    );
-    await loginToAppPlaywright();
-  } catch {
-    // Unlock screen not shown within timeout; continue
-  }
-}
 
 const DAPP_READY_POLL_MS = 500;
 

@@ -7,6 +7,7 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import PlaywrightUtilities from '../../framework/PlaywrightUtilities';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
+import { unlockIfLockScreenVisible } from './unlockHelpers';
 
 const logger = createLogger({
   name: 'AndroidScreenHelpers',
@@ -28,7 +29,7 @@ const JUST_ONCE_XPATHS = [
   '//*[@text="Just once"]',
 ];
 
-const CHOOSER_TIMEOUT_MS = 20_000;
+const CHOOSER_TIMEOUT_MS = 45_000;
 const POLL_MS = 500;
 
 class AndroidScreenHelpers {
@@ -40,11 +41,9 @@ class AndroidScreenHelpers {
   }
 
   /**
-   * After a dapp deeplink, select MetaMask from the Android app chooser.
-   *
-   * Do NOT treat "MetaMask package is foreground" alone as success — CI often
-   * lands on the wallet home screen without a pending connection request.
-   * Success is the connect sheet (`connect-button`) or an explicit chooser tap.
+   * After a dapp deeplink, select MetaMask from the Android app chooser (if
+   * shown) and wait for the connect sheet. Auto-lock often appears instead of
+   * the sheet — unlock when the password screen is visible, then keep waiting.
    */
   async tapOpenDeeplinkWithMetaMask(): Promise<void> {
     await encapsulatedAction({
@@ -54,6 +53,8 @@ class AndroidScreenHelpers {
         const deadline = Date.now() + CHOOSER_TIMEOUT_MS;
         while (Date.now() < deadline) {
           PlaywrightUtilities.collapseStatusBar();
+
+          await unlockIfLockScreenVisible();
 
           if (await this.isConnectSheetVisible()) {
             logger.debug(
@@ -71,9 +72,10 @@ class AndroidScreenHelpers {
                   delay: 200,
                 });
                 await this.tapJustOnceIfPresent();
-                // Wait briefly for the connect sheet after chooser selection.
-                const sheetDeadline = Date.now() + 10_000;
+                // After chooser, lock screen or connect sheet may appear.
+                const sheetDeadline = Date.now() + 20_000;
                 while (Date.now() < sheetDeadline) {
+                  await unlockIfLockScreenVisible();
                   if (await this.isConnectSheetVisible()) {
                     return;
                   }

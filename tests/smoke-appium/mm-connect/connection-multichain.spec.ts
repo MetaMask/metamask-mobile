@@ -76,6 +76,9 @@ appiumTest.describe(SmokeMMConnect('Multichain browser connect'), () => {
           );
 
           await PlaywrightContextHelpers.withNativeAction(async () => {
+            // Auto-lock often appears immediately after deeplink/chooser — unlock
+            // before (and while) waiting for the connect sheet.
+            await unlockIfLockScreenVisible();
             await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
             await unlockIfLockScreenVisible();
             await DappConnectionModal.tapConnectButton({
