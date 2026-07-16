@@ -1,7 +1,7 @@
 # MetaMask Connect Appium Smoke (`SmokeMMConnect`)
 
-Thin-slice Appium smoke coverage for MetaMask Connect. Specs run on PR CI via
-`appium-mmconnect-android-smoke` and locally with:
+Appium smoke coverage for the active MMConnect multichain browser connect test.
+Specs run on PR CI via `appium-mmconnect-android-smoke` and locally with:
 
 ```bash
 yarn appium-smoke:mmconnect:android
