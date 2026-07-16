@@ -22,6 +22,23 @@ jest.mock('../../../selectors/defiPositionsController', () => ({
   selectDefiPositionsByEnabledNetworks: jest.fn(),
 }));
 
+jest.mock('../../../selectors/deFiPositionsV2SectionEnabled', () => ({
+  selectDeFiPositionsV2SectionEnabled: jest.fn(() => false),
+}));
+
+jest.mock(
+  '../../Views/Homepage/Sections/DeFi/hooks/useDeFiPositionsV2',
+  () => ({
+    useDeFiPositionsV2: jest.fn(() => ({
+      positions: [],
+      isLoading: false,
+      isError: false,
+      hasFetched: false,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    })),
+  }),
+);
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -31,6 +48,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockDeFiExecutePoll = jest.fn().mockResolvedValue(undefined);
+const mockFetchDeFiPositions = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -45,6 +63,10 @@ jest.mock('../../../core/Engine', () => ({
     },
     DeFiPositionsController: {
       _executePoll: (...args: unknown[]) => mockDeFiExecutePoll(...args),
+    },
+    DeFiPositionsControllerV2: {
+      fetchDeFiPositions: (...args: unknown[]) =>
+        mockFetchDeFiPositions(...args),
     },
   },
 }));

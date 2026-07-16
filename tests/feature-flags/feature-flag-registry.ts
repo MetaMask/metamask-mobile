@@ -219,11 +219,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  assetsDefiPositionsEnabled: {
-    name: 'assetsDefiPositionsEnabled',
+  assetsDefiPositionsV2Enabled: {
+    name: 'assetsDefiPositionsV2Enabled',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: true,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 

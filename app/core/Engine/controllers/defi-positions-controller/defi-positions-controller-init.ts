@@ -6,15 +6,15 @@ import type { MessengerClientInitFunction } from '../../types';
 import { DeFiPositionsControllerInitMessenger } from '../../messengers/defi-positions-controller-messenger/defi-positions-controller-messenger';
 import { store } from '../../../../store';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { selectAssetsDefiPositionsV2Enabled } from '../../../../selectors/featureFlagController/assetsDefiPositionsV2';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import type { AnalyticsTrackingEvent as PackageAnalyticsTrackingEvent } from '@metamask/analytics-controller';
-import {
-  DEFAULT_FEATURE_FLAG_VALUES,
-  FeatureFlagNames,
-} from '../../../../constants/featureFlags';
 
 /**
- * Initialize the DeFiPositionsController.
+ * Initialize the DeFiPositionsController (V1).
+ *
+ * Enabled only when V2 is off: the two controllers are mutually exclusive via
+ * {@link selectAssetsDefiPositionsV2Enabled}.
  *
  * @param request - The request object.
  * @returns The DeFiPositionsController.
@@ -32,16 +32,9 @@ export const defiPositionsControllerInit: MessengerClientInitFunction<
       const isBasicFunctionalityToggleEnabled = selectBasicFunctionalityEnabled(
         store.getState(),
       );
+      const isV2Enabled = selectAssetsDefiPositionsV2Enabled(store.getState());
 
-      const assetsDefiPositionsEnabled = Boolean(
-        initMessenger.call('RemoteFeatureFlagController:getState')
-          ?.remoteFeatureFlags?.[FeatureFlagNames.assetsDefiPositionsEnabled] ??
-          DEFAULT_FEATURE_FLAG_VALUES[
-            FeatureFlagNames.assetsDefiPositionsEnabled
-          ],
-      );
-
-      return isBasicFunctionalityToggleEnabled && assetsDefiPositionsEnabled;
+      return isBasicFunctionalityToggleEnabled && !isV2Enabled;
     },
     trackEvent: (params: {
       event: string;
