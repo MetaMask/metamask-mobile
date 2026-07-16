@@ -8,16 +8,17 @@ import {
   verifyDevPasskey,
 } from './passkeyDevTest';
 
-jest.mock('react-native-quick-crypto', () => ({
-  getRandomValues: (array: Uint8Array) => {
-    array.fill(1);
-    return array;
+// `crypto.getRandomValues` and `Buffer` are polyfilled globally in the app via
+// `shim.js`; stub the global here so the util does not depend on native modules.
+Object.defineProperty(globalThis, 'crypto', {
+  value: {
+    getRandomValues: (array: Uint8Array) => {
+      array.fill(1);
+      return array;
+    },
   },
-}));
-
-jest.mock('react-native-quick-base64', () => ({
-  fromByteArray: () => 'AQIDBA',
-}));
+  configurable: true,
+});
 
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn(),

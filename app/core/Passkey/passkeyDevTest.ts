@@ -7,8 +7,6 @@ import {
   type PasskeyGetRequest,
   type PasskeyGetResult,
 } from 'react-native-passkey';
-import { fromByteArray } from 'react-native-quick-base64';
-import QuickCrypto from 'react-native-quick-crypto';
 import AppConstants from '../AppConstants';
 import { toBase64UrlSafe } from '../OAuthService/OAuthLoginHandlers/utils';
 
@@ -30,8 +28,13 @@ export const PASSKEY_RP_ID =
 export const PASSKEY_RP_NAME = 'MetaMask';
 
 function randomBase64Url(byteLength: number): string {
-  const bytes = QuickCrypto.getRandomValues(new Uint8Array(byteLength));
-  return toBase64UrlSafe(fromByteArray(bytes));
+  // `crypto.getRandomValues` and `Buffer` are polyfilled globally in `shim.js`
+  // (react-native-get-random-values + @craftzdog/react-native-buffer), so we
+  // avoid pulling in native crypto modules that may not be initialized this
+  // early in the onboarding flow.
+  const bytes = new Uint8Array(byteLength);
+  crypto.getRandomValues(bytes);
+  return toBase64UrlSafe(Buffer.from(bytes).toString('base64'));
 }
 
 async function getOrCreateDevUserId(): Promise<string> {
