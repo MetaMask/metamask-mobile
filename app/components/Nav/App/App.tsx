@@ -154,6 +154,7 @@ import MultichainAccountsIntroModal from '../../Views/MultichainAccounts/IntroMo
 import LearnMoreBottomSheet from '../../Views/MultichainAccounts/IntroModal/LearnMoreBottomSheet';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
 import Pna25BottomSheet from '../../Views/Pna25BottomSheet';
+import SupportConsentSheet from '../../UI/SupportConsentSheet';
 import { AddressList as MultichainAccountAddressList } from '../../Views/MultichainAccounts/AddressList';
 import { PrivateKeyList as MultichainAccountPrivateKeyList } from '../../Views/MultichainAccounts/PrivateKeyList';
 import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
@@ -706,6 +707,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.MODAL.PNA25_NOTICE_BOTTOM_SHEET}
       component={Pna25BottomSheet}
+    />
+    <NativeStack.Screen
+      name={Routes.MODAL.SUPPORT_CONSENT_SHEET}
+      component={SupportConsentSheet}
+      options={{ headerShown: false }}
     />
     <NativeStack.Screen
       name={Routes.SDK.RETURN_TO_DAPP_NOTIFICATION}

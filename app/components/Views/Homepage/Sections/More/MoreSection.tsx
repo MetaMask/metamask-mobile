@@ -24,6 +24,7 @@ import { ActionLocation } from '../../../../../util/analytics/actionButtonTracki
 import { getDecimalChainId } from '../../../../../util/networks';
 import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import { HomepageMoreSelectorsIDs } from '../../Homepage.testIds';
 import styles from './MoreSection.styles';
 
@@ -76,6 +77,7 @@ const MoreSection = () => {
   const navigation = useNavigation();
   const currentChainId = useSelector(selectEvmChainId);
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openSupportWithConsent } = useSupportConsent();
 
   const handleImportToken = useCallback(() => {
     navigation.navigate('AddAsset', { assetType: 'token' });
@@ -104,13 +106,15 @@ const MoreSection = () => {
   }, [createEventBuilder, navigation, trackEvent]);
 
   const handleContactSupport = useCallback(() => {
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: METAMASK_SUPPORT_URL,
-        title: strings('app_settings.contact_support'),
-      },
-    });
+    openSupportWithConsent((url) => {
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: {
+          url,
+          title: strings('app_settings.contact_support'),
+        },
+      });
+    }, METAMASK_SUPPORT_URL);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP)
         .addProperties({
@@ -120,7 +124,7 @@ const MoreSection = () => {
         })
         .build(),
     );
-  }, [createEventBuilder, navigation, trackEvent]);
+  }, [createEventBuilder, navigation, trackEvent, openSupportWithConsent]);
 
   return (
     <View testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_SECTION}>

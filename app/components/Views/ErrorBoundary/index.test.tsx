@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Alert } from 'react-native';
+import { View, Alert, Linking } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ErrorBoundary, { Fallback } from './';
@@ -11,6 +11,19 @@ import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import { analytics } from '../../../util/analytics/analytics';
 import { reloadAppAsync } from 'expo';
+import { useSupportConsent } from '../../hooks/useSupportConsent';
+import AppConstants from '../../../core/AppConstants';
+import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import { navigateToSupportConsent } from '../../../util/support';
+
+const mockOpenSupportWithConsent = jest.fn();
+jest.mock('../../hooks/useSupportConsent', () => ({
+  useSupportConsent: jest.fn(),
+}));
+
+jest.mock('../../../util/support', () => ({
+  navigateToSupportConsent: jest.fn(),
+}));
 
 jest.mock('expo', () => ({
   reloadAppAsync: jest.fn().mockResolvedValue(undefined),
@@ -74,6 +87,9 @@ describe('ErrorBoundary', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useSupportConsent).mockReturnValue({
+      openSupportWithConsent: mockOpenSupportWithConsent,
+    });
   });
 
   afterEach(() => {
@@ -237,6 +253,65 @@ describe('ErrorBoundary', () => {
     expect(spyAlert).toHaveBeenCalledWith(
       'Thanks! We\u2019ll take a look soon.',
     );
+  });
+
+  it('opens support with consent when Contact support is pressed', async () => {
+    const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
+      state: initialState,
+    });
+
+    const contactSupportButton = getByText(
+      strings('error_screen.contact_support'),
+    );
+    await act(async () => {
+      fireEvent.press(contactSupportButton);
+    });
+
+    expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      AppConstants.REVIEW_PROMPT.SUPPORT,
+    );
+
+    const [open] = mockOpenSupportWithConsent.mock.calls[0];
+    const spyOpenURL = jest.spyOn(Linking, 'openURL');
+    open('https://support.metamask.io/?customer_service_token=jwt-token');
+    expect(spyOpenURL).toHaveBeenCalledWith(
+      'https://support.metamask.io/?customer_service_token=jwt-token',
+    );
+  });
+
+  describe('openTicket (class component)', () => {
+    it('shows the consent sheet via navigateToSupportConsent when navigation is available', () => {
+      const instance = new ErrorBoundary({
+        view: 'Test',
+        navigation: mockNavigation,
+      });
+
+      instance.openTicket();
+
+      expect(navigateToSupportConsent).toHaveBeenCalledWith(
+        mockNavigation,
+        expect.any(Function),
+        METAMASK_SUPPORT_URL,
+      );
+
+      const [, open] = jest.mocked(navigateToSupportConsent).mock.calls[0];
+      const spyOpenURL = jest.spyOn(Linking, 'openURL');
+      open('https://support.metamask.io/?customer_service_token=jwt-token');
+      expect(spyOpenURL).toHaveBeenCalledWith(
+        'https://support.metamask.io/?customer_service_token=jwt-token',
+      );
+    });
+
+    it('opens the plain support URL via Linking when no navigation is available', () => {
+      const instance = new ErrorBoundary({ view: 'Test' });
+      const spyOpenURL = jest.spyOn(Linking, 'openURL');
+
+      instance.openTicket();
+
+      expect(spyOpenURL).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
+      expect(navigateToSupportConsent).not.toHaveBeenCalled();
+    });
   });
 
   describe('Onboarding Error Handling', () => {

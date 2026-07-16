@@ -101,7 +101,7 @@ describe('MoreSection', () => {
     );
   });
 
-  it('opens support and tracks location', () => {
+  it('opens the support consent sheet and tracks location', () => {
     renderSection();
 
     fireEvent.press(
@@ -110,11 +110,11 @@ describe('MoreSection', () => {
       ),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.SUPPORT_CONSENT_SHEET,
       params: {
-        url: METAMASK_SUPPORT_URL,
-        title: 'Contact support',
+        onConfirm: expect.any(Function),
+        onReject: expect.any(Function),
       },
     });
     expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -127,5 +127,25 @@ describe('MoreSection', () => {
         }),
       }),
     );
+  });
+
+  it('opens the webview with the plain support URL when consent is rejected', () => {
+    renderSection();
+
+    fireEvent.press(
+      screen.getByTestId(
+        HomepageMoreSelectorsIDs.HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON,
+      ),
+    );
+    const { onReject } = mockNavigate.mock.calls[0][1].params;
+    onReject();
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: expect.stringContaining(METAMASK_SUPPORT_URL),
+        title: 'Contact support',
+      },
+    });
   });
 });

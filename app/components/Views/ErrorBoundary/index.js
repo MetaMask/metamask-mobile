@@ -39,8 +39,10 @@ import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import AppConstants from '../../../core/AppConstants';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import { navigateToSupportConsent } from '../../../util/support';
 import { useSelector } from 'react-redux';
 import { isTestEnvironment } from '../../../util/test/utils';
+import { useSupportConsent } from '../../hooks/useSupportConsent';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -145,13 +147,17 @@ export const Fallback = (props) => {
   );
   const dataCollectionForMarketing =
     isDataCollectionForMarketingEnabled && !isOnboardingError;
+  const { openSupportWithConsent } = useSupportConsent();
 
   const toggleModal = () => {
     setModalVisible((visible) => !visible);
     setFeedback('');
   };
   const handleContactSupport = () =>
-    Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
+    openSupportWithConsent(
+      (url) => Linking.openURL(url),
+      AppConstants.REVIEW_PROMPT.SUPPORT,
+    );
 
   const handleTryAgain = () => {
     reloadAppAsync('Error boundary Try again').catch((error) => {
@@ -477,8 +483,17 @@ class ErrorBoundary extends Component {
   };
 
   openTicket = () => {
-    const url = METAMASK_SUPPORT_URL;
-    Linking.openURL(url);
+    const navigation = this.props.navigation;
+    if (!navigation) {
+      Linking.openURL(METAMASK_SUPPORT_URL);
+      return;
+    }
+
+    navigateToSupportConsent(
+      navigation,
+      (url) => Linking.openURL(url),
+      METAMASK_SUPPORT_URL,
+    );
   };
 
   renderWithSafeArea = (children) => {
