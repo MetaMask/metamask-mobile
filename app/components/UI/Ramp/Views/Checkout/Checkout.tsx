@@ -128,9 +128,11 @@ const Checkout = () => {
       : providerColors.light
     : undefined;
   const { styles } = useStyles(styleSheet, { providerBg });
-  // Tailwind arbitrary-value class for the MMDS BottomSheet — only set when
-  // we know the provider's color so unknown providers keep the design-system default.
-  const providerBgTwClassName = providerBg ? `bg-[${providerBg}]` : undefined;
+  // Only override the BottomSheet for known providers — background.alternative
+  // is already the MMDS BottomSheet default, so no twClassName needed for unknowns.
+  const providerBgTwClassName = providerColors
+    ? `bg-[${providerBg}]`
+    : undefined;
 
   const effectiveOrderId = (orderIdParam ?? customOrderId)?.trim() || null;
 

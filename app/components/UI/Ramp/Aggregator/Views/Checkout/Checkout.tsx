@@ -80,7 +80,9 @@ const CheckoutWebView = () => {
       : providerColors.light
     : undefined;
   const { styles } = useStyles(styleSheet, { providerBg });
-  const providerBgStyle = providerBg
+  // Only override the BottomSheet for known providers — background.alternative
+  // is already the component-library BottomSheet default, so no style needed for unknowns.
+  const providerBgStyle = providerColors
     ? { backgroundColor: providerBg }
     : undefined;
 
