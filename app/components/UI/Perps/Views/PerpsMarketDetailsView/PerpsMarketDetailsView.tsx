@@ -1544,12 +1544,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       edges={['bottom', 'left', 'right']}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
+      {/* Only the market identity (icon + name + ticker + leverage) is a tap
+          target that opens the market list; it renders as a content-hugging
+          box inside the header. */}
       <PerpsMarketInlineHeader
         market={market}
         currentPrice={syncedChartCurrentPrice}
         onBackPress={handleBackPress}
         onFavoritePress={handleWatchlistPress}
-        onMarketListPress={handleMarketListPress}
+        onIdentityPress={handleMarketListPress}
         isFavorite={isWatchlist}
         useDetailLayout
         testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
