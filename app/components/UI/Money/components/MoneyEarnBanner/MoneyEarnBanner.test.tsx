@@ -17,6 +17,7 @@ import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { useMoneyCtaVisibility } from '../../hooks/useMoneyCtaVisibility';
 import { useMoneyOnboardingNavigation } from '../../hooks/useMoneyNavigation';
 import { TokenI } from '../../../Tokens/types';
+import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -228,7 +229,10 @@ describe('MoneyEarnBanner', () => {
       fireEvent.press(getByTestId(MoneyEarnBannerTestIds.CONTAINER));
 
       expect(mockRedirectToOnboardingIfNeeded).toHaveBeenCalledWith({
-        preferredPaymentToken: MOCK_PREFERRED_PAYMENT_TOKEN,
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+          preferredPaymentToken: MOCK_PREFERRED_PAYMENT_TOKEN,
+        },
       });
       expect(mockInitiateDeposit).toHaveBeenCalledTimes(1);
       expect(mockInitiateDeposit).toHaveBeenCalledWith({

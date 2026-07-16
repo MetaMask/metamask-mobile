@@ -56,6 +56,7 @@ import { useMoneyCtaVisibility } from '../../hooks/useMoneyCtaVisibility';
 import { useMoneyOnboardingNavigation } from '../../hooks/useMoneyNavigation';
 import { isPositiveNumber } from '../../utils/number';
 import { MoneyEarnBannerTestIds } from './MoneyEarnBanner.testIds';
+import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 
 const styles = StyleSheet.create({
   iconContainer: {
@@ -191,8 +192,12 @@ const MoneyEarnBannerContent = ({
     };
 
     const redirectedToOnboarding = redirectToOnboardingIfNeeded({
-      preferredPaymentToken,
+      postOnboardingRedirect: {
+        type: MoneyPostOnboardingRedirectType.DEPOSIT,
+        preferredPaymentToken,
+      },
     });
+
     if (!redirectedToOnboarding) {
       initiateDeposit({ preferredPaymentToken }).catch((error) => {
         Logger.error(
