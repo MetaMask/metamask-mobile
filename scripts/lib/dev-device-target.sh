@@ -3,6 +3,9 @@
 # Shared device targeting for expo dev-app install scripts.
 # Reads slot-specific targets from .js.env (same as scripts/build.sh):
 #   IOS_SIMULATOR  — simulator name (e.g. mm-1); boots if needed
+#   IOS_DEVICE     — physical iPhone name or UDID; used by install:ios:dev:device
+#   METRO_HOST     — override the auto-detected LAN IP used to connect a physical
+#                    device to Metro (e.g. when on a VPN); used by install:ios:dev:device
 #   ADB_SERIAL     — adb serial (e.g. emulator-5554); takes precedence on Android
 #   ANDROID_DEVICE — AVD name or emulator serial when ADB_SERIAL is unset
 
@@ -91,6 +94,117 @@ dev_resolve_ios_simulator_udid() {
   ')
   echo -e "${YELLOW}IOS_SIMULATOR not set in .js.env — using booted simulator: ${booted_name} (${booted_udid})${NC}" >&2
   echo "$booted_udid"
+}
+
+dev_require_devicectl() {
+  if ! xcrun devicectl --version &> /dev/null 2>&1; then
+    echo -e "${RED}❌ xcrun devicectl not found. Xcode 15 or later is required.${NC}" >&2
+    exit 1
+  fi
+}
+
+# Prints a JSON array of connected physical devices to stdout using devicectl.
+# Requires a temp file because devicectl only writes JSON to a file, not stdout.
+_dev_list_physical_devices_json() {
+  local tmpfile
+  tmpfile="$(mktemp /tmp/devicectl-devices.XXXXXX.json)"
+  xcrun devicectl list devices --json-output "$tmpfile" > /dev/null 2>&1 || true
+  # Filter to devices that are connected (connectionProperties.transportType present)
+  jq '[.result.devices[] |
+    select(.connectionProperties.transportType != null) |
+    { udid: .hardwareProperties.udid, name: .deviceProperties.name }
+  ]' "$tmpfile" 2>/dev/null || echo "[]"
+  rm -f "$tmpfile"
+}
+
+# Prints the target physical device UDID to stdout.
+# Reads IOS_DEVICE from .js.env (name or UDID); falls back to single connected device.
+dev_resolve_ios_physical_device_udid() {
+  dev_load_js_env
+  dev_require_jq
+  dev_require_devicectl
+
+  local devices_json
+  devices_json="$(_dev_list_physical_devices_json)"
+
+  if [[ -n "${IOS_DEVICE:-}" ]]; then
+    echo -e "${BLUE}Using IOS_DEVICE from .js.env: ${IOS_DEVICE}${NC}" >&2
+
+    local matched_udid
+    # Try matching by UDID first, then by name
+    matched_udid="$(echo "$devices_json" | jq -r \
+      --arg val "$IOS_DEVICE" \
+      '[.[] | select(.udid == $val or .name == $val)] | first | .udid // empty')"
+
+    if [[ -z "$matched_udid" ]]; then
+      echo -e "${RED}❌ Physical device \"${IOS_DEVICE}\" is not connected.${NC}" >&2
+      echo -e "${YELLOW}Connected devices:${NC}" >&2
+      echo "$devices_json" | jq -r '.[] | "  \(.name) (\(.udid))"' >&2 || \
+        echo -e "${YELLOW}  (none detected)${NC}" >&2
+      echo -e "${YELLOW}Update IOS_DEVICE in .js.env or connect the device.${NC}" >&2
+      exit 1
+    fi
+
+    echo "$matched_udid"
+    return 0
+  fi
+
+  local device_count
+  device_count="$(echo "$devices_json" | jq 'length')"
+
+  if [[ "$device_count" -eq 0 ]]; then
+    echo -e "${RED}❌ No physical iOS device detected.${NC}" >&2
+    echo -e "${YELLOW}Connect an iPhone via USB (or Wi-Fi pairing), unlock it, and trust this Mac.${NC}" >&2
+    echo -e "${YELLOW}Or set IOS_DEVICE in .js.env to a device name or UDID.${NC}" >&2
+    exit 1
+  fi
+
+  if [[ "$device_count" -gt 1 ]]; then
+    echo -e "${RED}❌ Multiple physical devices connected. Set IOS_DEVICE in .js.env to pick one:${NC}" >&2
+    echo "$devices_json" | jq -r '.[] | "  \(.name) (\(.udid))"' >&2
+    exit 1
+  fi
+
+  local udid name
+  udid="$(echo "$devices_json" | jq -r '.[0].udid')"
+  name="$(echo "$devices_json" | jq -r '.[0].name')"
+  echo -e "${YELLOW}IOS_DEVICE not set in .js.env — using single connected device: ${name} (${udid})${NC}" >&2
+  echo "$udid"
+}
+
+# Prints this Mac's LAN IP address to stdout, for a physical device to reach Metro over Wi-Fi.
+# Reads METRO_HOST from .js.env as an override; otherwise auto-detects via the default route
+# interface (falls back to en0/en1 directly if that lookup fails).
+dev_resolve_metro_host() {
+  dev_load_js_env
+
+  if [[ -n "${METRO_HOST:-}" ]]; then
+    echo -e "${BLUE}Using METRO_HOST from .js.env: ${METRO_HOST}${NC}" >&2
+    echo "$METRO_HOST"
+    return 0
+  fi
+
+  local iface ip
+  iface="$(route get default 2>/dev/null | awk '/interface: /{print $2}')"
+  if [[ -n "$iface" ]]; then
+    ip="$(ipconfig getifaddr "$iface" 2>/dev/null || true)"
+  fi
+
+  if [[ -z "${ip:-}" ]]; then
+    for iface in en0 en1; do
+      ip="$(ipconfig getifaddr "$iface" 2>/dev/null || true)"
+      [[ -n "$ip" ]] && break
+    done
+  fi
+
+  if [[ -z "${ip:-}" ]]; then
+    echo -e "${RED}❌ Could not auto-detect this Mac's LAN IP address.${NC}" >&2
+    echo -e "${YELLOW}Ensure Wi-Fi is connected, or set METRO_HOST in .js.env (e.g. METRO_HOST=192.168.1.12).${NC}" >&2
+    exit 1
+  fi
+
+  echo -e "${YELLOW}METRO_HOST not set in .js.env — auto-detected LAN IP: ${ip} (interface ${iface:-unknown})${NC}" >&2
+  echo "$ip"
 }
 
 dev_android_serial_is_ready() {
