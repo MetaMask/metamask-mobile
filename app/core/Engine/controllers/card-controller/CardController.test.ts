@@ -2329,6 +2329,8 @@ describe('CardController — getCapabilities', () => {
     supportsPinView: false,
     supportsCashback: true,
     supportsCredit: true,
+    supportsSensitiveDetailsView: false,
+    supportsTravel: true,
   };
 
   it('returns base capabilities', () => {
@@ -2442,6 +2444,42 @@ describe('CardController — data pass-throughs', () => {
       await expect(
         controller.getCardPinView({ customCss: {} }),
       ).rejects.toThrow('Card PIN view not supported');
+    });
+  });
+
+  describe('getCardSensitiveDetails', () => {
+    it('delegates to provider.getCardSensitiveDetails', async () => {
+      const mockGetCardSensitiveDetails = jest.fn().mockResolvedValue({
+        pan: '1234123412345678',
+        cvv2: '123',
+        expiry: '202501',
+        embossedName: 'DOE/JOHN',
+      });
+      const provider = buildMockProvider({
+        getCardSensitiveDetails: mockGetCardSensitiveDetails,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      const result = await controller.getCardSensitiveDetails();
+
+      expect(mockGetCardSensitiveDetails).toHaveBeenCalled();
+      expect(result).toStrictEqual({
+        pan: '1234123412345678',
+        cvv2: '123',
+        expiry: '202501',
+        embossedName: 'DOE/JOHN',
+      });
+    });
+
+    it('throws when provider does not support getCardSensitiveDetails', async () => {
+      const provider = buildMockProvider({
+        getCardSensitiveDetails: undefined,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(controller.getCardSensitiveDetails()).rejects.toThrow(
+        'Card sensitive details not supported',
+      );
     });
   });
 

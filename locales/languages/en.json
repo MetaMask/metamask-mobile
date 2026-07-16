@@ -9005,6 +9005,13 @@
       "view_card_details_error": "Unable to load card details. Please try again.",
       "biometric_verification_required": "Authentication required to view card details.",
       "unfreeze_auth_required": "Authentication required to resume spending on your card.",
+      "card_details": {
+        "card_number_label": "Card number",
+        "expiry_label": "Expiry",
+        "cvv_label": "CVV",
+        "name_label": "Name",
+        "copied": "Copied to clipboard"
+      },
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",

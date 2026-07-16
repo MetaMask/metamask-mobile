@@ -4783,6 +4783,30 @@ describe('CardHome Component', () => {
       });
     });
 
+    describe('Blocked card', () => {
+      it('shows the blocked warning banner and hides manage options', () => {
+        setupMockSelectors({ isAuthenticated: true });
+        setupLoadCardDataMock({
+          isAuthenticated: true,
+          cardDetails: {
+            ...freezableCardDetails,
+            status: CardStatus.BLOCKED,
+          },
+          isLoading: false,
+          kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+        });
+
+        render();
+
+        expect(
+          screen.getByText(strings('card.card_home.warnings.blocked.title')),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+        ).toBeNull();
+      });
+    });
+
     describe('Freeze action (card is active)', () => {
       it('calls toggleFreeze directly without reauthentication', async () => {
         setupMockSelectors({ isAuthenticated: true });

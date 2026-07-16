@@ -247,6 +247,8 @@ export class BaanxProvider implements ICardProvider {
     supportsPinView: true,
     supportsCashback: true,
     supportsCredit: true,
+    supportsSensitiveDetailsView: false,
+    supportsTravel: true,
   };
   private readonly service: BaanxService;
   private readonly getCardFeatureFlag: () => CardFeatureFlag | null;

@@ -5,9 +5,13 @@ import type { CardFeatureFlag } from '../../../../../selectors/featureFlagContro
 import {
   CardProviderError,
   CardProviderErrorCode,
+  CardStatus,
+  CardType,
+  FundingAssetStatus,
   type CardAuthSession,
   type CardAuthTokens,
 } from '../provider-types';
+import { BASE_SEPOLIA_USDC_TOKEN_ADDRESS } from '../../../../../components/UI/Card/constants';
 import { ImmersveProvider } from './ImmersveProvider';
 
 jest.mock('../../../../../util/Logger');
@@ -405,19 +409,297 @@ describe('ImmersveProvider', () => {
     });
   });
 
-  describe('unimplemented card-read methods', () => {
-    it('getCardHomeData returns empty data', async () => {
+  describe('capabilities (card-read)', () => {
+    it('reveals sensitive details inline and hides funding limits', () => {
       const { provider } = createProvider();
+      expect(provider.capabilities.supportsSensitiveDetailsView).toBe(true);
+      expect(provider.capabilities.supportsFundingLimits).toBe(false);
+      expect(provider.capabilities.supportsPinView).toBe(false);
+      expect(provider.capabilities.supportsTravel).toBe(false);
+    });
+  });
+
+  const activeCard = {
+    id: 'card-1',
+    accountId: 'cardholder-1',
+    type: 'virtual',
+    createdAt: '2024-01-02T00:00:00.000Z',
+    modifiedAt: '2024-01-02T00:00:00.000Z',
+    expiresAt: '2029-01-01T00:00:00.000Z',
+    isBlocked: false,
+    status: 'active',
+    fundingSourceIds: ['fs-1'],
+    panLast4: '1234',
+  };
+
+  const activeCardDetail = {
+    ...activeCard,
+    cardholderName: 'John Doe',
+    unfreezeAllowed: false,
+  };
+
+  const fundingSourceDetail = {
+    id: 'fs-1',
+    accountId: 'cardholder-1',
+    balance: '1000000',
+    balanceCurrency: 'USDC',
+    network: 'base-sepolia',
+    externalId: '0xwallet',
+    purpose: 'card-funding',
+  };
+
+  const routeGet =
+    (responses: {
+      cards?: unknown;
+      cardDetail?: unknown;
+      fundingSource?: unknown;
+      fundingSources?: unknown;
+    }) =>
+    (path: string) => {
+      if (path.includes('/cards?')) return Promise.resolve(responses.cards);
+      if (path.includes('/funding-source/'))
+        return Promise.resolve(responses.fundingSource);
+      if (path.includes('/funding-sources'))
+        return Promise.resolve(responses.fundingSources);
+      if (path.startsWith('/api/cards/'))
+        return Promise.resolve(responses.cardDetail);
+      return Promise.resolve({});
+    };
+
+  describe('getCardHomeData', () => {
+    it('creates a card and returns a provisioning alert when the account has none', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [] },
+          fundingSources: { items: [fundingSourceDetail] },
+        }),
+      );
+      service.post.mockResolvedValue({ cardId: 'card-1' });
+
       const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/cards',
+        { cardProgramId: 'program-1', fundingSourceId: 'fs-1' },
+        TOKENS,
+      );
+      expect(data.card).toBeNull();
+      expect(data.alerts).toStrictEqual([
+        { type: 'card_provisioning', dismissable: false },
+      ]);
+    });
+
+    it('returns a provisioning alert for a card that is still being created', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [{ ...activeCard, status: 'created' }] },
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(service.post).not.toHaveBeenCalled();
+      expect(data.card).toBeNull();
+      expect(data.alerts).toStrictEqual([
+        { type: 'card_provisioning', dismissable: false },
+      ]);
+    });
+
+    it('maps an active card with its funding asset and an add_funds action', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.card).toStrictEqual({
+        id: 'card-1',
+        status: CardStatus.ACTIVE,
+        type: CardType.VIRTUAL,
+        lastFour: '1234',
+        holderName: 'John Doe',
+        isFreezable: true,
+      });
+      expect(data.primaryFundingAsset).toStrictEqual({
+        symbol: 'USDC',
+        name: 'USDC',
+        address: BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
+        walletAddress: '0xabc',
+        decimals: 6,
+        chainId: 'eip155:84532',
+        spendableBalance: '',
+        spendingCap: '',
+        priority: 0,
+        status: FundingAssetStatus.Active,
+        assumeUsdParity: true,
+      });
+      expect(data.actions).toStrictEqual([
+        { type: 'add_funds', enabled: true },
+      ]);
+    });
+
+    it('swallows non-auth errors and returns empty data', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockRejectedValue(
+        new CardApiError(500, '/api/accounts/cardholder-1/cards', 'boom'),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
       expect(data.card).toBeNull();
       expect(data.fundingAssets).toStrictEqual([]);
     });
+  });
 
-    it('getCardDetails throws until implemented', async () => {
-      const { provider } = createProvider();
-      await expect(provider.getCardDetails(TOKENS)).rejects.toBeInstanceOf(
-        CardProviderError,
+  describe('getCardDetails', () => {
+    it('throws NoCard when the account has no card', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
+
+      await expect(provider.getCardDetails(TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.NoCard,
+      });
+    });
+
+    it('maps isBlocked + unfreezeAllowed to FROZEN', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: {
+            ...activeCardDetail,
+            isBlocked: true,
+            unfreezeAllowed: true,
+          },
+        }),
       );
+
+      const card = await provider.getCardDetails(TOKENS);
+      expect(card.status).toBe(CardStatus.FROZEN);
+      expect(card.isFreezable).toBe(true);
+    });
+
+    it('maps isBlocked without unfreezeAllowed to BLOCKED', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: {
+            ...activeCardDetail,
+            isBlocked: true,
+            unfreezeAllowed: false,
+          },
+        }),
+      );
+
+      const card = await provider.getCardDetails(TOKENS);
+      expect(card.status).toBe(CardStatus.BLOCKED);
+      expect(card.isFreezable).toBe(false);
+    });
+  });
+
+  describe('resolveCurrentCard selection', () => {
+    it('prefers an active card over a created one and skips cancelled cards', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: {
+            items: [
+              { ...activeCard, id: 'cancelled', status: 'cancelled' },
+              { ...activeCard, id: 'created', status: 'created' },
+              { ...activeCard, id: 'active', status: 'active' },
+            ],
+          },
+          cardDetail: { ...activeCardDetail, id: 'active' },
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(service.get).toHaveBeenCalledWith('/api/cards/active', TOKENS);
+    });
+  });
+
+  describe('freezeCard / unfreezeCard', () => {
+    it('freezeCard posts to the freeze endpoint', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({});
+
+      await provider.freezeCard('card-1', TOKENS);
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/cards/card-1/freeze',
+        {},
+        TOKENS,
+      );
+    });
+
+    it('unfreezeCard posts to the unfreeze endpoint', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({});
+
+      await provider.unfreezeCard('card-1', TOKENS);
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/cards/card-1/unfreeze',
+        {},
+        TOKENS,
+      );
+    });
+  });
+
+  describe('getCardSensitiveDetails', () => {
+    it('exchanges a pan-token and fetches the callback URL without a bearer token', async () => {
+      const { provider, service } = createProvider();
+      const callbackUrl =
+        'https://api-sec.immersve.com/api/cards/secure?tokenId=abc';
+      service.get.mockImplementation((path: string) => {
+        if (path.includes('/cards?')) {
+          return Promise.resolve({ items: [activeCard] });
+        }
+        return Promise.resolve({
+          pan: '1234123412345678',
+          cvv2: '123',
+          expiry: '202501',
+          embossedName: 'DOE/JOHN',
+        });
+      });
+      service.post.mockResolvedValue({
+        tokenId: 'token-1',
+        callbackUrl,
+      });
+
+      const details = await provider.getCardSensitiveDetails(TOKENS);
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/cards/card-1/pan-token',
+        {},
+        TOKENS,
+      );
+      expect(service.get).toHaveBeenLastCalledWith(callbackUrl);
+      expect(details).toStrictEqual({
+        pan: '1234123412345678',
+        cvv2: '123',
+        expiry: '202501',
+        embossedName: 'DOE/JOHN',
+      });
+    });
+
+    it('throws NoCard when there is no card', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
+
+      await expect(
+        provider.getCardSensitiveDetails(TOKENS),
+      ).rejects.toMatchObject({ code: CardProviderErrorCode.NoCard });
     });
   });
 });

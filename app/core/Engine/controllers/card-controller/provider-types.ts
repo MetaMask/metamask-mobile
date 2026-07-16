@@ -130,6 +130,8 @@ export interface CardProviderCapabilities {
   supportsPinView: boolean;
   supportsCashback: boolean;
   supportsCredit: boolean;
+  supportsSensitiveDetailsView: boolean;
+  supportsTravel: boolean;
 }
 
 // -- Funding Asset (provider-agnostic) --
@@ -155,6 +157,7 @@ export interface CardFundingAsset {
   stagingTokenAddress?: string;
   externalId?: number;
   delegationContract?: string;
+  assumeUsdParity?: boolean;
 }
 
 // -- Card Details --
@@ -175,6 +178,13 @@ export interface CardSecureViewParams {
 export interface CardSecureView {
   url: string;
   token: string;
+}
+
+export interface CardSensitiveDetails {
+  pan: string;
+  cvv2: string;
+  expiry: string;
+  embossedName: string;
 }
 
 // -- Account --
@@ -437,6 +447,9 @@ export interface ICardProvider {
     tokens: CardAuthTokens,
     params: CardSecureViewParams,
   ): Promise<CardSecureView>;
+  getCardSensitiveDetails?(
+    tokens: CardAuthTokens,
+  ): Promise<CardSensitiveDetails>;
 
   updateAssetPriority?(
     asset: CardFundingAsset,
