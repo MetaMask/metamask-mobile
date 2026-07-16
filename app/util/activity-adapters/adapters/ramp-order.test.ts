@@ -99,6 +99,12 @@ describe('mapRampOrder', () => {
     expect(mapRampOrder({ order })?.hash).toBe('order-1');
   });
 
+  it('falls back to order id when txHash is a placeholder dummy value', () => {
+    const order = { ...baseOrder, txHash: 'DUMMY_TX_ID' };
+
+    expect(mapRampOrder({ order })?.hash).toBe('order-1');
+  });
+
   it('returns null for excluded orders', () => {
     expect(
       mapRampOrder({
