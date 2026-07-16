@@ -23,6 +23,12 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
+  navigateWithDetails: jest.fn(
+    (
+      navigation: { navigate: (...args: unknown[]) => void },
+      details: readonly [string] | readonly [string, object | undefined],
+    ) => navigation.navigate(...details),
+  ),
 }));
 
 // Mock i18n
