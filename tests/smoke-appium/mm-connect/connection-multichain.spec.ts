@@ -66,9 +66,11 @@ appiumTest.describe(SmokeMMConnect('Multichain browser connect'), () => {
           });
 
           // Emulator Chrome 113: Appium WEBVIEW_chrome switch hangs in Chromedriver
-          // session creation. Drive the dapp via CDP instead.
+          // session creation. Drive the dapp via CDP instead. Connect also
+          // captures the SDK metamask:// URL and opens it via mobile: deepLink
+          // (Chrome blocks deferred location.href without lasting activation).
           PlaywrightUtilities.collapseStatusBar();
-          await ChromeCdpHelpers.waitAndClickTestId(
+          await ChromeCdpHelpers.waitAndClickTestIdOpeningMetaMask(
             DAPP_URL,
             MMConnectDappTestIds.CONNECT_BUTTON,
           );
