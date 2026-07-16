@@ -55,6 +55,7 @@ describe('dispatchQrSyncCommand', () => {
     dispatchQrSyncCommand({
       type: E2ECommandTypes.applyQrSyncSyncReady,
       args: {
+        mnemonic: { not: 'a-string' },
         isPrimary: false,
         walletName: 123,
         accountName: null,
