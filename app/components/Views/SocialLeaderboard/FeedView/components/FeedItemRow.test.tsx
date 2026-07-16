@@ -221,7 +221,7 @@ describe('FeedItemRow', () => {
     ).toBeNull();
   });
 
-  it('shows the "Just bought" label on an empty open spot row', () => {
+  it('shows the "Holding" label on an empty open spot row', () => {
     const item: FeedSpotItem = {
       ...spotItem,
       action: 'bought',
@@ -248,7 +248,7 @@ describe('FeedItemRow', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the "Just opened" label on an empty open perp row', () => {
+  it('shows the "Open" label on an empty open perp row', () => {
     const item: FeedPerpItem = {
       ...perpItem,
       action: 'opened',

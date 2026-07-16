@@ -75,8 +75,10 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   const symbol = item.type === 'spot' ? item.tokenSymbol : item.marketSymbol;
 
   // For open rows whose value/P&L hasn't arrived yet, surface an intentional
-  // "Just bought"/"Just opened" label instead of a blank right column. Only open
-  // actions have a label; closed rows (`sold`/`closed`) stay blank when empty.
+  // state label ("Holding" for spot, "Open" for perps) instead of a blank right
+  // column. The row is an entry that hasn't been exited, so there's no realized
+  // P&L to show yet. Only open actions have a label; closed rows (`sold`/`closed`)
+  // stay blank when empty.
   const newPositionLabelKey =
     item.action === 'bought'
       ? 'social_leaderboard.feed.new_position.bought'

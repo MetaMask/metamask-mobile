@@ -1124,8 +1124,8 @@
         "closed": "closed"
       },
       "new_position": {
-        "bought": "Just bought",
-        "opened": "Just opened"
+        "bought": "Holding",
+        "opened": "Open"
       },
       "empty_following": {
         "title": "No activity yet",
