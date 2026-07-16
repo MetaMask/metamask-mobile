@@ -109,6 +109,7 @@ jest.mock('../../UI/NetworkConnectionBanner', () => () => null);
 // Control discovery tabs AB test variant per test (default control so existing tests are unaffected)
 let mockDiscoveryTabsVariantName = 'control';
 let mockDiscoveryPillsVariantName = 'control';
+let mockActionButtonsGridVariantName = 'control';
 jest.mock('../../../hooks', () => ({
   ...jest.requireActual('../../../hooks'),
   useABTest: jest.fn((flagKey: string) => {
@@ -127,6 +128,28 @@ jest.mock('../../../hooks', () => ({
       };
     }
 
+    if (flagKey === 'homeTMCU1103AbtestActionButtonsGrid') {
+      if (mockActionButtonsGridVariantName === 'row1Top') {
+        return {
+          variantName: 'row1Top',
+          variant: { layout: 'eightCircular', rowOrder: 'row1Top' },
+          isActive: true,
+        };
+      }
+      if (mockActionButtonsGridVariantName === 'row2Top') {
+        return {
+          variantName: 'row2Top',
+          variant: { layout: 'eightCircular', rowOrder: 'row2Top' },
+          isActive: true,
+        };
+      }
+      return {
+        variantName: 'control',
+        variant: { layout: 'fourSquare' },
+        isActive: true,
+      };
+    }
+
     return {
       variantName: mockDiscoveryTabsVariantName,
       variant: {
@@ -138,6 +161,7 @@ jest.mock('../../../hooks', () => ({
 }));
 
 const mockHomepageDiscoveryPills = jest.fn();
+const mockHomepageActionButtonsGrid = jest.fn();
 jest.mock('../Homepage/components/HomepageDiscoveryPills', () => {
   const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -146,6 +170,22 @@ jest.mock('../Homepage/components/HomepageDiscoveryPills', () => {
       mockHomepageDiscoveryPills(props);
       return React.createElement(View, {
         testID: 'homepage-discovery-pills-mock',
+      });
+    },
+  };
+});
+jest.mock('../Homepage/components/HomepageActionButtonsGrid', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    HomepageActionButtonsGrid: (props: {
+      rowOrder: string;
+      onSend: () => void;
+      onReceive: () => void;
+    }) => {
+      mockHomepageActionButtonsGrid(props);
+      return React.createElement(View, {
+        testID: 'homepage-action-buttons-grid-mock',
       });
     },
   };
@@ -1787,6 +1827,7 @@ describe('HomepageDiscoveryPills AB test', () => {
   afterEach(() => {
     mockDiscoveryTabsVariantName = 'control';
     mockDiscoveryPillsVariantName = 'control';
+    mockActionButtonsGridVariantName = 'control';
     jest.clearAllMocks();
   });
 
@@ -1833,6 +1874,95 @@ describe('HomepageDiscoveryPills AB test', () => {
     );
 
     expect(mockHomepageDiscoveryPills).not.toHaveBeenCalled();
+  });
+});
+
+describe('HomepageActionButtonsGrid AB test', () => {
+  let mockNavigation: NavigationProp<ParamListBase>;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDiscoveryTabsVariantName = 'control';
+    mockDiscoveryPillsVariantName = 'control';
+    mockActionButtonsGridVariantName = 'control';
+    mockHomepageActionButtonsGrid.mockClear();
+
+    mockNavigation = {
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(() => jest.fn()),
+      isFocused: jest.fn(() => false),
+      dangerouslyGetParent: jest.fn(() => ({
+        dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+        addListener: jest.fn(() => jest.fn()),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => undefined),
+        })),
+      })),
+    } as unknown as NavigationProp<ParamListBase>;
+
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback(mockInitialState),
+      );
+  });
+
+  afterEach(() => {
+    mockActionButtonsGridVariantName = 'control';
+    jest.clearAllMocks();
+  });
+
+  it('renders action buttons grid when row1Top variant is active', () => {
+    mockActionButtonsGridVariantName = 'row1Top';
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(mockHomepageActionButtonsGrid).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rowOrder: 'row1Top',
+        onSend: expect.any(Function),
+        onReceive: expect.any(Function),
+      }),
+    );
+  });
+
+  it('renders action buttons grid when row2Top variant is active', () => {
+    mockActionButtonsGridVariantName = 'row2Top';
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(mockHomepageActionButtonsGrid).toHaveBeenCalledWith(
+      expect.objectContaining({ rowOrder: 'row2Top' }),
+    );
+  });
+
+  it('does not render action buttons grid when control variant is active', () => {
+    mockActionButtonsGridVariantName = 'control';
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(mockHomepageActionButtonsGrid).not.toHaveBeenCalled();
   });
 });
 
