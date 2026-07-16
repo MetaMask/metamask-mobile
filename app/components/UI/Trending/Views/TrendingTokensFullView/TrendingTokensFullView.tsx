@@ -180,6 +180,11 @@ const TrendingTokensFullView = () => {
       : strings('trending.trending_tokens');
   const filters = useTokenListFilters({ timeOption: initialTimeOption });
 
+  const isSearchActive =
+    filters.isSearchVisible || Boolean(filters.searchQuery?.trim());
+  /** Watchlist list mode: star selected and user is not searching trending tokens. */
+  const isWatchlistListMode = isWatchlistFilterActive && !isSearchActive;
+
   const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(
     initialTimeOption ? mapTimeOptionToSortBy(initialTimeOption) : undefined,
   );
@@ -205,20 +210,11 @@ const TrendingTokensFullView = () => {
   } = useTokenWatchlistQuery();
 
   const watchlistTokens = useMemo(() => {
-    if (!isWatchlistFilterActive) {
+    if (!isWatchlistListMode) {
       return [];
     }
 
     let tokens = (watchlistData ?? []).map(mapWatchlistTokenToTrendingAsset);
-
-    const searchQuery = filters.searchQuery?.trim().toLowerCase();
-    if (searchQuery) {
-      tokens = tokens.filter(
-        (token) =>
-          token.name?.toLowerCase().includes(searchQuery) ||
-          token.symbol?.toLowerCase().includes(searchQuery),
-      );
-    }
 
     if (filters.selectedNetwork && filters.selectedNetwork.length > 0) {
       const selectedChainId = filters.selectedNetwork[0];
@@ -227,7 +223,7 @@ const TrendingTokensFullView = () => {
       );
     }
 
-    if (!filters.searchQuery?.trim() && filters.selectedPriceChangeOption) {
+    if (filters.selectedPriceChangeOption) {
       tokens = sortTrendingTokens(
         tokens,
         filters.selectedPriceChangeOption,
@@ -238,9 +234,8 @@ const TrendingTokensFullView = () => {
 
     return tokens;
   }, [
-    isWatchlistFilterActive,
+    isWatchlistListMode,
     watchlistData,
-    filters.searchQuery,
     filters.selectedNetwork,
     filters.selectedPriceChangeOption,
     filters.priceChangeSortDirection,
@@ -248,7 +243,7 @@ const TrendingTokensFullView = () => {
   ]);
 
   const trendingTokens = useMemo(() => {
-    if (isWatchlistFilterActive) {
+    if (isWatchlistListMode) {
       return watchlistTokens;
     }
 
@@ -271,7 +266,7 @@ const TrendingTokensFullView = () => {
       filters.selectedTimeOption,
     );
   }, [
-    isWatchlistFilterActive,
+    isWatchlistListMode,
     watchlistTokens,
     searchResults,
     filters.searchQuery,
@@ -280,13 +275,9 @@ const TrendingTokensFullView = () => {
     filters.selectedTimeOption,
   ]);
 
-  const isLoading = isWatchlistFilterActive
+  const isLoading = isWatchlistListMode
     ? isWatchlistLoading
     : isTrendingLoading;
-
-  const displaySearchResults = isWatchlistFilterActive
-    ? watchlistTokens
-    : searchResults;
 
   useSearchTracking({
     searchQuery: filters.searchQuery,
@@ -347,7 +338,7 @@ const TrendingTokensFullView = () => {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      if (isWatchlistFilterActive) {
+      if (isWatchlistListMode) {
         await refetchWatchlist();
       } else {
         refetchTokensSection?.();
@@ -358,7 +349,7 @@ const TrendingTokensFullView = () => {
       setRefreshing(false);
     }
   }, [
-    isWatchlistFilterActive,
+    isWatchlistListMode,
     refetchWatchlist,
     refetchTokensSection,
     setRefreshing,
@@ -386,7 +377,7 @@ const TrendingTokensFullView = () => {
     setShowWatchlistOnly((prev) => !prev);
   }, []);
 
-  const tokenDetailsSource = isWatchlistFilterActive
+  const tokenDetailsSource = isWatchlistListMode
     ? TokenDetailsSource.ExploreWatchlistFilter
     : TokenDetailsSource.Trending;
 
@@ -396,7 +387,7 @@ const TrendingTokensFullView = () => {
       testID="trending-tokens-header"
       filters={filters}
       tokens={trendingTokens}
-      searchResults={displaySearchResults}
+      searchResults={searchResults}
       isLoading={isLoading}
       onRefresh={handleRefresh}
       allowedNetworks={TRENDING_NETWORKS_LIST}
@@ -404,9 +395,10 @@ const TrendingTokensFullView = () => {
       onWatchlistFilterPress={handleWatchlistFilterPress}
       extraFilters={timeFilterButton}
       isWatchlistFilterActive={isWatchlistFilterActive}
+      isWatchlistListMode={isWatchlistListMode}
       tokenDetailsSource={tokenDetailsSource}
-      onLoadMore={isWatchlistFilterActive ? undefined : loadMore}
-      isLoadingMore={isWatchlistFilterActive ? false : isLoadingMore}
+      onLoadMore={isWatchlistListMode ? undefined : loadMore}
+      isLoadingMore={isWatchlistListMode ? false : isLoadingMore}
       extraBottomSheets={
         <TrendingTokenTimeBottomSheet
           isVisible={showTimeBottomSheet}

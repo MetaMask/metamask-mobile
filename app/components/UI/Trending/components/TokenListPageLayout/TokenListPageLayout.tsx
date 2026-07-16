@@ -39,8 +39,10 @@ export interface TokenListPageLayoutProps {
   extraFilters?: React.ReactNode;
   /** When true, shows the watchlist star filter in the filter bar. */
   showWatchlistFilter?: boolean;
-  /** Whether the watchlist filter is active (drives empty-state behavior). */
+  /** Whether the watchlist filter is currently active (star pill selected). */
   isWatchlistFilterActive?: boolean;
+  /** When true, list data comes from watchlist (not trending search). */
+  isWatchlistListMode?: boolean;
   /** Called when the watchlist star filter is toggled. */
   onWatchlistFilterPress?: () => void;
   /** Token Details analytics source passed through to list rows. */
@@ -77,6 +79,7 @@ const TokenListPageLayout: React.FC<TokenListPageLayoutProps> = ({
   extraFilters,
   showWatchlistFilter,
   isWatchlistFilterActive,
+  isWatchlistListMode = false,
   onWatchlistFilterPress,
   tokenDetailsSource,
   extraBottomSheets,
@@ -135,7 +138,7 @@ const TokenListPageLayout: React.FC<TokenListPageLayoutProps> = ({
         onLoadMore={onLoadMore}
         isLoadingMore={isLoadingMore}
         onQuickTrade={onQuickTrade}
-        isWatchlistFilterActive={isWatchlistFilterActive}
+        isWatchlistFilterActive={isWatchlistListMode}
         tokenDetailsSource={tokenDetailsSource}
       />
 
