@@ -16,7 +16,17 @@ set -euo pipefail
 
 TUNNEL_DIR="${TUNNEL_DIR:-./tmp/testmu-tunnel}"
 TUNNEL_WAIT_SEC="${TUNNEL_WAIT_SEC:-60}"
-LT_ZIP_URL="https://downloads.lambdatest.com/tunnel/v3/linux/64bit/LT_linux.zip"
+
+# Prefer the direct binary URL (docs: downloads.lambdatest.com/tunnel/v3/<os>/<arch>/LT).
+# The old zip path used a wrong filename case (`LT_linux.zip` → 403).
+# Fallback zip uses the official casing: LT_Linux.zip
+ARCH="$(uname -m)"
+case "$ARCH" in
+  aarch64|arm64) LT_ARCH="arm64" ;;
+  *) LT_ARCH="amd64" ;;
+esac
+LT_BINARY_URL="https://downloads.lambdatest.com/tunnel/v3/linux/${LT_ARCH}/LT"
+LT_ZIP_URL="https://downloads.lambdatest.com/tunnel/v3/linux/64bit/LT_Linux.zip"
 
 if [[ -z "${LT_USERNAME:-}" || -z "${LT_ACCESS_KEY:-}" || -z "${TUNNEL_NAME:-}" ]]; then
   echo "❌ LT_USERNAME, LT_ACCESS_KEY, and TUNNEL_NAME are required" >&2
@@ -26,9 +36,12 @@ fi
 mkdir -p "$TUNNEL_DIR"
 
 if [[ ! -x "$TUNNEL_DIR/LT" ]]; then
-  echo "Downloading TestMu AI tunnel binary..."
-  curl -fsSL -o "$TUNNEL_DIR/LT_linux.zip" "$LT_ZIP_URL"
-  unzip -o "$TUNNEL_DIR/LT_linux.zip" -d "$TUNNEL_DIR"
+  echo "Downloading TestMu AI tunnel binary (${LT_ARCH})..."
+  if ! curl -fsSL -o "$TUNNEL_DIR/LT" "$LT_BINARY_URL"; then
+    echo "Direct binary download failed; trying ZIP fallback..."
+    curl -fsSL -o "$TUNNEL_DIR/LT_Linux.zip" "$LT_ZIP_URL"
+    unzip -o "$TUNNEL_DIR/LT_Linux.zip" -d "$TUNNEL_DIR"
+  fi
   chmod +x "$TUNNEL_DIR/LT"
 fi
 
