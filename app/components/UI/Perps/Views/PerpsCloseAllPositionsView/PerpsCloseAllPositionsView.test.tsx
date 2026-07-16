@@ -8,6 +8,7 @@ import {
   usePerpsRewardAccountOptedIn,
 } from '../../hooks';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { PerpsCloseAllPositionsViewSelectorsIDs } from '../../Perps.testIds';
 
 // Mock all dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -44,88 +45,6 @@ jest.mock('../../../../../util/theme', () => {
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const MockReact = jest.requireActual('react');
-  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-
-  const BottomSheet = MockReact.forwardRef(
-    (
-      {
-        children,
-      }: {
-        children: React.ReactNode;
-      },
-      ref: React.Ref<{
-        onOpenBottomSheet: () => void;
-        onCloseBottomSheet: (callback?: () => void) => void;
-      }>,
-    ) => {
-      MockReact.useImperativeHandle(ref, () => ({
-        onOpenBottomSheet: jest.fn(),
-        onCloseBottomSheet: (callback?: () => void) => {
-          callback?.();
-        },
-      }));
-
-      return <View>{children}</View>;
-    },
-  );
-  BottomSheet.displayName = 'BottomSheet';
-
-  const BottomSheetHeader = ({ children }: { children: React.ReactNode }) => (
-    <View>
-      {typeof children === 'string' ? <Text>{children}</Text> : children}
-    </View>
-  );
-
-  const BottomSheetFooter = ({
-    primaryButtonProps,
-    secondaryButtonProps,
-  }: {
-    primaryButtonProps?: {
-      children?: React.ReactNode;
-      onPress?: () => void;
-      isDisabled?: boolean;
-    };
-    secondaryButtonProps?: {
-      children?: React.ReactNode;
-      onPress?: () => void;
-      isDisabled?: boolean;
-    };
-  }) => (
-    <View>
-      {secondaryButtonProps && (
-        <TouchableOpacity
-          onPress={secondaryButtonProps.onPress}
-          disabled={secondaryButtonProps.isDisabled}
-        >
-          <Text>{secondaryButtonProps.children}</Text>
-        </TouchableOpacity>
-      )}
-      {primaryButtonProps && (
-        <TouchableOpacity
-          onPress={primaryButtonProps.onPress}
-          disabled={primaryButtonProps.isDisabled}
-        >
-          <Text>{primaryButtonProps.children}</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-
-  return {
-    ...actual,
-    BottomSheet,
-    BottomSheetHeader,
-    BottomSheetFooter,
-    ButtonsAlignment: {
-      Horizontal: 'Horizontal',
-      Vertical: 'Vertical',
-    },
-  };
-});
 
 jest.mock('../../components/PerpsCloseSummary', () => 'PerpsCloseSummary');
 
@@ -235,10 +154,12 @@ describe('PerpsCloseAllPositionsView', () => {
     });
 
     // Act
-    const { getByText } = render(<PerpsCloseAllPositionsView />);
+    const { getByTestId } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(getByText('perps.close_all_modal.title')).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.TITLE),
+    ).toBeOnTheScreen();
   });
 
   it('renders empty state when no positions', () => {
@@ -249,19 +170,25 @@ describe('PerpsCloseAllPositionsView', () => {
     });
 
     // Act
-    const { getByText } = render(<PerpsCloseAllPositionsView />);
+    const { getByTestId } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(getByText('perps.position.no_positions')).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.EMPTY_STATE),
+    ).toBeOnTheScreen();
   });
 
   it('renders close all positions view with positions', () => {
     // Arrange & Act
-    const { getByText } = render(<PerpsCloseAllPositionsView />);
+    const { getByTestId } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(getByText('perps.close_all_modal.title')).toBeOnTheScreen();
-    expect(getByText('perps.close_all_modal.description')).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.TITLE),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION),
+    ).toBeOnTheScreen();
   });
 
   it('renders loading state when closing', () => {
@@ -272,20 +199,25 @@ describe('PerpsCloseAllPositionsView', () => {
     });
 
     // Act
-    const { getAllByText } = render(<PerpsCloseAllPositionsView />);
+    const { getByTestId } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    const closingElements = getAllByText('perps.close_all_modal.closing');
-    expect(closingElements.length).toBeGreaterThan(0);
+    expect(
+      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.CLOSING_STATE),
+    ).toBeOnTheScreen();
   });
 
   it('displays footer buttons with correct labels', () => {
     // Arrange & Act
-    const { getByText } = render(<PerpsCloseAllPositionsView />);
+    const { getByTestId } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(getByText('perps.close_all_modal.keep_positions')).toBeOnTheScreen();
-    expect(getByText('perps.close_all_modal.close_all')).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.KEEP_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.CLOSE_ALL_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('shows closing label on close button when in progress', () => {
@@ -296,11 +228,15 @@ describe('PerpsCloseAllPositionsView', () => {
     });
 
     // Act
-    const { getAllByText } = render(<PerpsCloseAllPositionsView />);
+    const { getByTestId } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    const closingElements = getAllByText('perps.close_all_modal.closing');
-    expect(closingElements.length).toBeGreaterThan(0);
+    expect(
+      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.CLOSE_ALL_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.CLOSING_STATE),
+    ).toBeOnTheScreen();
   });
 
   it('renders with empty positions gracefully', () => {
@@ -311,18 +247,22 @@ describe('PerpsCloseAllPositionsView', () => {
     });
 
     // Act
-    const { getByText } = render(<PerpsCloseAllPositionsView />);
+    const { getByTestId } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(getByText('perps.position.no_positions')).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.EMPTY_STATE),
+    ).toBeOnTheScreen();
   });
 
   it('renders PerpsCloseSummary when not closing', () => {
     // Arrange & Act
-    const { getByText } = render(<PerpsCloseAllPositionsView />);
+    const { getByTestId } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(getByText('perps.close_all_modal.description')).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION),
+    ).toBeOnTheScreen();
   });
 
   it('calls usePerpsRewardAccountOptedIn with totalEstimatedPoints', () => {
@@ -368,10 +308,12 @@ describe('PerpsCloseAllPositionsView', () => {
     });
 
     // Act
-    const { getByText } = render(<PerpsCloseAllPositionsView />);
+    const { getByTestId } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(getByText('perps.close_all_modal.description')).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION),
+    ).toBeOnTheScreen();
     expect(mockUsePerpsRewardAccountOptedIn).toHaveBeenCalled();
   });
 
@@ -383,10 +325,12 @@ describe('PerpsCloseAllPositionsView', () => {
     });
 
     // Act
-    const { getByText } = render(<PerpsCloseAllPositionsView />);
+    const { getByTestId } = render(<PerpsCloseAllPositionsView />);
 
     // Assert
-    expect(getByText('perps.close_all_modal.description')).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION),
+    ).toBeOnTheScreen();
     expect(mockUsePerpsRewardAccountOptedIn).toHaveBeenCalled();
   });
 });

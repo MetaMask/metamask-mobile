@@ -37,6 +37,7 @@ import {
   PERPS_EVENT_VALUE,
   type ClosePositionsResult,
 } from '@metamask/perps-controller';
+import { PerpsCloseAllPositionsViewSelectorsIDs } from '../../Perps.testIds';
 
 interface PerpsCloseAllPositionsViewProps {
   sheetRef?: React.RefObject<BottomSheetRef | null>;
@@ -225,6 +226,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
       onPress: handleKeepButtonPress,
       size: ButtonSize.Lg,
       isDisabled: isClosing,
+      testID: PerpsCloseAllPositionsViewSelectorsIDs.KEEP_BUTTON,
     }),
     [handleKeepButtonPress, isClosing],
   );
@@ -238,6 +240,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
       size: ButtonSize.Lg,
       isDisabled: isClosing,
       isDanger: true,
+      testID: PerpsCloseAllPositionsViewSelectorsIDs.CLOSE_ALL_BUTTON,
     }),
     [handleCloseAll, isClosing],
   );
@@ -248,8 +251,16 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   // Show loading state while fetching positions
   if (isInitialLoading) {
     return (
-      <BottomSheet ref={sheetRef} goBack={goBack} onClose={onClose}>
-        <BottomSheetHeader onClose={handleClose}>
+      <BottomSheet
+        ref={sheetRef}
+        goBack={goBack}
+        onClose={onClose}
+        testID={PerpsCloseAllPositionsViewSelectorsIDs.SHEET}
+      >
+        <BottomSheetHeader
+          onClose={handleClose}
+          testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
+        >
           {strings('perps.close_all_modal.title')}
         </BottomSheetHeader>
         <Box paddingHorizontal={4}>
@@ -267,8 +278,16 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   // Show empty state if no positions
   if (!positions || positions.length === 0) {
     return (
-      <BottomSheet ref={sheetRef} goBack={goBack} onClose={onClose}>
-        <BottomSheetHeader onClose={handleClose}>
+      <BottomSheet
+        ref={sheetRef}
+        goBack={goBack}
+        onClose={onClose}
+        testID={PerpsCloseAllPositionsViewSelectorsIDs.SHEET}
+      >
+        <BottomSheetHeader
+          onClose={handleClose}
+          testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
+        >
           {strings('perps.close_all_modal.title')}
         </BottomSheetHeader>
         <Box paddingHorizontal={4}>
@@ -276,6 +295,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
+              testID={PerpsCloseAllPositionsViewSelectorsIDs.EMPTY_STATE}
             >
               {strings('perps.position.no_positions')}
             </Text>
@@ -286,8 +306,16 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   }
 
   return (
-    <BottomSheet ref={sheetRef} goBack={goBack} onClose={onClose}>
-      <BottomSheetHeader onClose={handleClose}>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={goBack}
+      onClose={onClose}
+      testID={PerpsCloseAllPositionsViewSelectorsIDs.SHEET}
+    >
+      <BottomSheetHeader
+        onClose={handleClose}
+        testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
+      >
         {strings('perps.close_all_modal.title')}
       </BottomSheetHeader>
 
@@ -296,12 +324,16 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           style={styles.description}
+          testID={PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION}
         >
           {strings('perps.close_all_modal.description')}
         </Text>
 
         {isClosing ? (
-          <View style={styles.loadingContainer}>
+          <View
+            style={styles.loadingContainer}
+            testID={PerpsCloseAllPositionsViewSelectorsIDs.CLOSING_STATE}
+          >
             <ActivityIndicator
               size="large"
               color={theme.colors.primary.default}
