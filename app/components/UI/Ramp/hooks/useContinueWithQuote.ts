@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import type { CaipChainId } from '@metamask/utils';
+
 import { strings } from '../../../../../locales/i18n';
 import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
 import { selectHasAgreedTransakNativePolicy } from '../../../../reducers/fiatOrders';

@@ -233,6 +233,12 @@ export function TransactionDetailsHero() {
     const isMusdWithdrawSingleRow =
       isMoneyContext && isSingleRowMusdMoneyWithdraw(transactionMeta);
 
+    // Same-token flows produce no MM Pay quotes, so the controller writes a
+    // literal '0' targetFiat — fall back to the decoded token amount.
+    const payTargetFiat = transactionMeta.metamaskPay?.targetFiat;
+    const heroAmount =
+      payTargetFiat && payTargetFiat !== '0' ? payTargetFiat : tokenMeta.amount;
+
     const icon = isMusdToken(tokenMeta.contractAddress) ? (
       <Image
         source={MoneyIcon}
@@ -262,11 +268,7 @@ export function TransactionDetailsHero() {
           color={showDepositPrefix ? TextColor.Success : undefined}
         >
           {showDepositPrefix ? '+' : isMusdWithdrawSingleRow ? '-' : ''}
-          {formatFiatPay(
-            new BigNumber(
-              transactionMeta.metamaskPay?.targetFiat ?? tokenMeta.amount,
-            ),
-          )}
+          {formatFiatPay(new BigNumber(heroAmount))}
         </Text>
       </Box>
     );

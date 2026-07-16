@@ -64,8 +64,8 @@ const US_REGION = {
   regionCode: 'us-ca',
 };
 
-const buildQuote = (paymentMethodId: string, id: string) => ({
-  provider: 'transak',
+const buildQuote = (provider: string, paymentMethodId: string, id: string) => ({
+  provider,
   id,
   inputAmount: 100,
   inputCurrency: 'USD',
@@ -77,10 +77,20 @@ const buildQuote = (paymentMethodId: string, id: string) => ({
   },
 });
 
-const DEBIT_CARD_QUOTE = buildQuote(DEBIT_CARD_PAYMENT_METHOD.id, 'quote-card');
+const DEBIT_CARD_QUOTE = buildQuote(
+  'transak',
+  DEBIT_CARD_PAYMENT_METHOD.id,
+  'quote-card',
+);
 const APPLE_PAY_QUOTE = buildQuote(
+  'transak',
   APPLE_PAY_PAYMENT_METHOD.id,
   'quote-applepay',
+);
+const MOONPAY_DEBIT_CARD_QUOTE = buildQuote(
+  'moonpay',
+  DEBIT_CARD_PAYMENT_METHOD.id,
+  'quote-moonpay-card',
 );
 
 type ProviderRecord = typeof TRANSAK_PROVIDER;
@@ -195,10 +205,21 @@ function setupV2Hooks(
     });
 
   const getQuotesMock = Engine.context.RampsController.getQuotes as jest.Mock;
-  getQuotesMock.mockReset().mockResolvedValue({
-    success: [DEBIT_CARD_QUOTE, APPLE_PAY_QUOTE],
-    error: [],
-  });
+  getQuotesMock
+    .mockReset()
+    .mockImplementation((params?: { providers?: string[] }) => {
+      const providerId = params?.providers?.[0] ?? 'transak';
+      if (providerId === 'moonpay') {
+        return Promise.resolve({
+          success: [MOONPAY_DEBIT_CARD_QUOTE],
+          error: [],
+        });
+      }
+      return Promise.resolve({
+        success: [DEBIT_CARD_QUOTE, APPLE_PAY_QUOTE],
+        error: [],
+      });
+    });
 
   const stateOverrides = buildV2RampsState({ providers, selectedProvider });
   return { getQuotesMock, stateOverrides };
@@ -310,7 +331,8 @@ describe('V2 unified-buy BuildQuote', () => {
     });
     wireRampsControllerForStore(result.store);
 
-    const { findByText, getByTestId } = result;
+    const { findByText, findByTestId, getByTestId, getByText, queryByText } =
+      result;
 
     expect(await findByText('Powered by Transak')).toBeOnTheScreen();
 
@@ -327,7 +349,17 @@ describe('V2 unified-buy BuildQuote', () => {
 
     fireEvent.press(await findByText('MoonPay'));
 
-    expect(await findByText(/Buying via MoonPay/)).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(queryByText('Providers')).not.toBeOnTheScreen();
+      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
+    });
+
+    const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+    expect(
+      (amountInput.props.children as unknown[])
+        .filter((child) => typeof child === 'string')
+        .join(''),
+    ).toContain('100');
   });
 
   it('updates the displayed amount when a quick-amount chip is tapped', async () => {

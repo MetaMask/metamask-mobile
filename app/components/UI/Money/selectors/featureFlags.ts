@@ -7,8 +7,14 @@ import {
   VersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
-import { WildcardTokenList } from '../../Earn/utils/wildcardTokenList';
-import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
+import {
+  MUSD_TOKEN_ADDRESS,
+  getTokenDisplaySymbol,
+} from '../../Earn/constants/musd';
+import {
+  getWildcardTokenListFromConfig,
+  WildcardTokenList,
+} from '../../Earn/utils/wildcardTokenList';
 import {
   MONEY_NO_FEE_TOKENS_FALLBACK,
   ensureMonadMusdListed,
@@ -101,6 +107,41 @@ export const selectMoneyEnableMoneyAccountFlag = createSelector(
   isMoneyAccountEnabled,
 );
 
+/**
+ * Selects whether Money account deposit CTAs can be displayed in token-list
+ * rows. The Money account feature must be enabled before this CTA can appear.
+ */
+export const selectIsMoneyTokenListItemCtaEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  selectMoneyEnableMoneyAccountFlag,
+  (remoteFeatureFlags, isMoneyAccountFeatureEnabled) => {
+    if (!isMoneyAccountFeatureEnabled) {
+      return false;
+    }
+
+    const localFlag = process.env.MM_MONEY_TOKEN_LIST_ITEM_CTA === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyTokenListItemCtaEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects stablecoins that can display the Money account deposit CTA.
+ * Remote config takes precedence over the local environment override.
+ */
+export const selectMoneyDepositCtaTokens = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): WildcardTokenList =>
+    getWildcardTokenListFromConfig(
+      remoteFeatureFlags?.earnMoneyDepositCtaTokens,
+      'earnMoneyDepositCtaTokens',
+      process.env.MM_MONEY_DEPOSIT_CTA_TOKENS,
+      'MM_MONEY_DEPOSIT_CTA_TOKENS',
+    ),
+);
+
 export const selectMoneyHubEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
@@ -182,6 +223,9 @@ const AAVE_TOKEN_ALIASES = new Set(['ausdc', 'ausdt', 'adai', 'ausdcn']);
  * - Strip the chain prefix ("eth_usdc" → "usdc")
  * - Known aave tokens (see AAVE_TOKEN_ALIASES): "ausdc" → "aUSDC"
  * - All others: full uppercase ("usdc" → "USDC")
+ *
+ * mUSD casing is handled by address via getTokenDisplaySymbol at the call
+ * site, not by alias here.
  */
 const normalizeTokenSymbol = (tokenAlias: string): string => {
   const underscoreIdx = tokenAlias.indexOf('_');
@@ -232,7 +276,9 @@ export const selectMoneyNoFeeDepositTokens = createSelector(
       }
 
       const srcChainHex = route.sourceChain.toLowerCase();
-      const symbol = normalizeTokenSymbol(route.sourceTokenAlias);
+      const normalized = normalizeTokenSymbol(route.sourceTokenAlias);
+      const symbol =
+        getTokenDisplaySymbol(route.sourceToken, normalized) ?? normalized;
 
       if (!catalog[srcChainHex]) catalog[srcChainHex] = [];
       if (!catalog[srcChainHex].includes(symbol)) {

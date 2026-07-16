@@ -96,7 +96,7 @@ jest.mock('./useRampsOrders', () => ({
 }));
 
 const MOCK_SELECTED_PROVIDER = {
-  id: '/providers/transak-native-staging',
+  id: 'transak-native-staging',
   name: 'Transak',
 };
 
