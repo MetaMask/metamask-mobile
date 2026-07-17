@@ -76,8 +76,7 @@ const isMonadMusd = (address: string, chainId: string) =>
   address?.toLowerCase() === MONAD_MUSD_TARGET.address.toLowerCase();
 
 /**
- * Returns tokens the user holds that are eligible for Money account deposits
- * ("Earn on your crypto").
+ * Returns tokens the user holds that are eligible for Money account deposits.
  *
  * Filtering pipeline:
  * 1. useAccountTokens({ includeNoBalance: false }) — zero-balance tokens excluded
@@ -95,7 +94,7 @@ const isMonadMusd = (address: string, chainId: string) =>
  * @param options.overrideToUsd - When true, converts each returned token's
  * `fiat.balance` to USD. Defaults to false.
  */
-export const useMoneyEarnableTokens = ({
+export const useMoneyDepositTokens = ({
   overrideToUsd = false,
 }: { overrideToUsd?: boolean } = {}) => {
   const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);

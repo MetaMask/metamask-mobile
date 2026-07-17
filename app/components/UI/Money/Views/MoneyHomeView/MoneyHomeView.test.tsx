@@ -97,13 +97,13 @@ const mockDepositTokens = [
   },
 ];
 
-const mockUseMoneyEarnableTokens = jest.fn(() => ({
+const mockUseMoneyDepositTokens = jest.fn(() => ({
   tokens: mockDepositTokens as ReturnType<typeof Array.from>,
   isNoFeeToken: jest.fn(() => false),
 }));
 
-jest.mock('../../hooks/useMoneyEarnableTokens', () => ({
-  useMoneyEarnableTokens: () => mockUseMoneyEarnableTokens(),
+jest.mock('../../hooks/useMoneyDepositTokens', () => ({
+  useMoneyDepositTokens: () => mockUseMoneyDepositTokens(),
 }));
 
 // Animated Rive graphic pulls in device sensors; not exercised by these tests.
@@ -1258,7 +1258,7 @@ describe('MoneyHomeView', () => {
   });
 
   it('navigates to potential earnings screen when View potential earnings is pressed', () => {
-    mockUseMoneyEarnableTokens.mockReturnValueOnce({
+    mockUseMoneyDepositTokens.mockReturnValueOnce({
       tokens: Array.from({ length: 6 }, (_, i) => ({
         ...mockDepositTokens[0],
         address:
@@ -2132,7 +2132,7 @@ describe('MoneyHomeView', () => {
 
   describe('navigation handlers', () => {
     it('navigates to Potential Earnings when View all is pressed on potential earnings section', () => {
-      mockUseMoneyEarnableTokens.mockReturnValueOnce({
+      mockUseMoneyDepositTokens.mockReturnValueOnce({
         tokens: Array.from({ length: 6 }, (_, i) => ({
           ...mockDepositTokens[0],
           address:

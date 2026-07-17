@@ -45,7 +45,10 @@ export {
   getGroupedActivityListItemKey,
   groupActivityListItems,
   isFailedOrCancelledTransfer,
+  isGasTokenFeeWithAmount,
   isSpendingCapWithAmount,
+  preferLocalOrApiActivityItem,
+  shouldPreferLocalActivityItem,
   shouldShowPlusSign,
   type GroupedActivityListItem,
 } from './activity-list-helpers';

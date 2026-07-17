@@ -8333,7 +8333,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-data-service@npm:^0.1.0, @metamask/base-data-service@npm:^0.1.2, @metamask/base-data-service@npm:^0.1.3":
+"@metamask/base-data-service@npm:^0.1.2, @metamask/base-data-service@npm:^0.1.3":
   version: 0.1.3
   resolution: "@metamask/base-data-service@npm:0.1.3"
   dependencies:
@@ -8399,9 +8399,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-status-controller@npm:^74.2.0":
-  version: 74.2.0
-  resolution: "@metamask/bridge-status-controller@npm:74.2.0"
+"@metamask/bridge-status-controller@npm:^74.3.0":
+  version: 74.3.0
+  resolution: "@metamask/bridge-status-controller@npm:74.3.0"
   dependencies:
     "@metamask/accounts-controller": "npm:^39.0.5"
     "@metamask/base-controller": "npm:^9.1.0"
@@ -8419,7 +8419,7 @@ __metadata:
     "@metamask/utils": "npm:^11.11.0"
     bignumber.js: "npm:^9.1.2"
     uuid: "npm:^8.3.2"
-  checksum: 10/e0b2109e6164541790a14982a610c763cdb08602ee4060d13961b8c47615dfcc9f4a98cb13820b923ca408b3d6489a945843e897891a815078705d9064192adf
+  checksum: 10/d189a8598f70d39ea384e184dceb9ff1c6859fe6aab1570f7379b76d601da88fab6f4899f9d8f11c2a68f960964dfb8c9b6f1a6e498df6f20113022fdec3d9ca
   languageName: node
   linkType: hard
 
@@ -8616,19 +8616,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/delegation-controller@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "@metamask/delegation-controller@npm:2.0.2"
-  dependencies:
-    "@metamask/accounts-controller": "npm:^37.0.0"
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/keyring-controller": "npm:^25.1.0"
-    "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/a5bfece3aadbfd2a4b079dc5672b75ef7acbe71e8af92e1c533884d59eadaf4d56cfa89641212cff0776f91964eb2e71d55d45fa0f813dfd9610fd6c0fdff05d
-  languageName: node
-  linkType: hard
-
 "@metamask/delegation-controller@npm:^3.0.2":
   version: 3.0.2
   resolution: "@metamask/delegation-controller@npm:3.0.2"
@@ -8677,14 +8664,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.35.0":
-  version: 0.35.0
-  resolution: "@metamask/design-system-react-native@npm:0.35.0"
+"@metamask/design-system-react-native@npm:^0.36.0":
+  version: 0.36.0
+  resolution: "@metamask/design-system-react-native@npm:0.36.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.29.0"
+    "@metamask/design-system-shared": "npm:^0.30.0"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
-    "@metamask/design-system-twrnc-preset": ^0.7.0
+    "@metamask/design-system-twrnc-preset": ^0.8.0
     "@metamask/design-tokens": ^8.2.0
     "@metamask/utils": ^11.11.0
     lodash: ^4.17.21
@@ -8694,30 +8681,30 @@ __metadata:
     react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
-  checksum: 10/be185dd814064829e7ee382f804960a619b1d59b9a3c8b1952e9f3b07167820c3dd70e6106861060bb77c26f1832843f254ed4665e043fe94c4bd350fe87c26c
+  checksum: 10/22347d4047bc856c654a19ed2925eb037ba7c9bba96111ebe0b69137e735f9798416b8de845611493f4bee42e159bc0f5c3dcedfd67369904ebc6f64c5ffef44
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.29.0":
-  version: 0.29.0
-  resolution: "@metamask/design-system-shared@npm:0.29.0"
+"@metamask/design-system-shared@npm:^0.30.0":
+  version: 0.30.0
+  resolution: "@metamask/design-system-shared@npm:0.30.0"
   dependencies:
     "@metamask/utils": "npm:^11.11.0"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/01d579341e7700d000e406535ff18a2185c69f96cfa0677acf362d42160fc89adec5dc956bde983153380d8c5e07da2f0c97557a80940cde50b7d3396e0e7721
+  checksum: 10/8ca5d92e6f54d23517d4df01da5286e6fa30a5e9ec8339c60f62746bd25a4f6b7c5908f4f0eb3d2cd1a53fea6343cb86ed93749feb5775acd4989db0209da454
   languageName: node
   linkType: hard
 
-"@metamask/design-system-twrnc-preset@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "@metamask/design-system-twrnc-preset@npm:0.7.0"
+"@metamask/design-system-twrnc-preset@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@metamask/design-system-twrnc-preset@npm:0.8.0"
   dependencies:
     twrnc: "npm:^4.5.1"
   peerDependencies:
     "@metamask/design-tokens": ^8.0.0
     react: ">=18.2.0"
-  checksum: 10/34a337b676e9ea679c63162f317c5c6c6f3d2a4e4262c4c0d6c075fdb87aa624295f02c4343e835876dd8c8f6773b41a37650f3666bb0da9450ca8eeee58da2e
+  checksum: 10/51b13c5c501bb34692e8ee67a72c6fb28afbb0723ca8e51ce6f3689f90497ed5c6b2e359c7d756cb92fcfbfd09a88468ca14b33559faf7499cb5bf25677d944b
   languageName: node
   linkType: hard
 
@@ -10086,19 +10073,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/react-data-query@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@metamask/react-data-query@npm:0.2.0"
+"@metamask/react-data-query@npm:^0.2.2":
+  version: 0.2.2
+  resolution: "@metamask/react-data-query@npm:0.2.2"
   dependencies:
-    "@metamask/base-data-service": "npm:^0.1.0"
-    "@metamask/utils": "npm:^11.9.0"
+    "@metamask/base-data-service": "npm:^0.1.3"
+    "@metamask/utils": "npm:^11.11.0"
     "@tanstack/query-core": "npm:^4.43.0"
     "@tanstack/react-query": "npm:^4.43.0"
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
     react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
     react-native: "*"
-  checksum: 10/c54a9943bb68ad46ad9964864d4ee81604e61216ebed00026a1a4681a1e1091b6e413b9812d25e38d028493f3c75e91c8102b9d1c0232f409cd6f1dd4d22b211
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+  checksum: 10/43f4f647e717de073bfc8b2177b328b3ae1ff95e25ab33f3a1aa0965060ea5d5317c9451387c5943ad8e43644bc46e27395561ca7813b5bb8f42a5121dd23e02
   languageName: node
   linkType: hard
 
@@ -13408,6 +13400,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native/jest-preset@npm:0.85.3":
+  version: 0.85.3
+  resolution: "@react-native/jest-preset@npm:0.85.3"
+  dependencies:
+    "@jest/create-cache-key-function": "npm:^29.7.0"
+    "@react-native/js-polyfills": "npm:0.85.3"
+    babel-jest: "npm:^29.7.0"
+    jest-environment-node: "npm:^29.7.0"
+    regenerator-runtime: "npm:^0.13.2"
+  peerDependencies:
+    react: ^19.2.3
+  checksum: 10/663cfa48b0a9b18d965d6d107cb9a799262326ab7b17bb508ba27f98be23e01301f02cce290256ca2c3e844da752bfdb8f485c94821f96ac1ec59486c9dbb4ef
+  languageName: node
+  linkType: hard
+
 "@react-native/js-polyfills@npm:0.83.0":
   version: 0.83.0
   resolution: "@react-native/js-polyfills@npm:0.83.0"
@@ -13419,6 +13426,13 @@ __metadata:
   version: 0.83.6
   resolution: "@react-native/js-polyfills@npm:0.83.6"
   checksum: 10/455dd7f69ec7b187790c3a2db1bc128199cf340ea36702ebaaee87d37c20dbbcbf75c69c0c91e82f4b320af9bb7a70fe537b0842454f2add2040902edfdaf164
+  languageName: node
+  linkType: hard
+
+"@react-native/js-polyfills@npm:0.85.3":
+  version: 0.85.3
+  resolution: "@react-native/js-polyfills@npm:0.85.3"
+  checksum: 10/17eedd2497c128f5c575f3804e2f23c441285e88a64522d740809588d93d11aade5069b3f20edec43715a8aecc3b90e816847e3ff91565bd35a9b692701265a1
   languageName: node
   linkType: hard
 
@@ -35961,7 +35975,7 @@ __metadata:
     "@metamask/bitcoin-wallet-snap": "npm:^1.14.2"
     "@metamask/bitcoin-wallet-standard": "npm:^1.0.0"
     "@metamask/bridge-controller": "npm:^77.5.0"
-    "@metamask/bridge-status-controller": "npm:^74.2.0"
+    "@metamask/bridge-status-controller": "npm:^74.3.0"
     "@metamask/browser-passworder": "npm:^5.0.0"
     "@metamask/browser-playground": "npm:0.3.0"
     "@metamask/build-utils": "npm:^3.0.0"
@@ -35973,10 +35987,10 @@ __metadata:
     "@metamask/connectivity-controller": "npm:^0.3.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/core-backend": "npm:^6.3.0"
-    "@metamask/delegation-controller": "npm:^2.0.2"
+    "@metamask/delegation-controller": "npm:^3.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
-    "@metamask/design-system-react-native": "npm:^0.35.0"
-    "@metamask/design-system-twrnc-preset": "npm:^0.7.0"
+    "@metamask/design-system-react-native": "npm:^0.36.0"
+    "@metamask/design-system-twrnc-preset": "npm:^0.8.0"
     "@metamask/design-tokens": "npm:^8.7.0"
     "@metamask/earn-controller": "npm:^12.1.0"
     "@metamask/eip-5792-middleware": "npm:^3.0.4"
@@ -36042,7 +36056,7 @@ __metadata:
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/ramps-controller": "npm:^17.0.0"
-    "@metamask/react-data-query": "npm:^0.2.0"
+    "@metamask/react-data-query": "npm:^0.2.2"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "patch:@metamask/react-native-button@npm%3A3.0.0#~/.yarn/patches/@metamask-react-native-button-npm-3.0.0-05f357e85a.patch"
@@ -36109,6 +36123,7 @@ __metadata:
     "@react-native-masked-view/masked-view": "npm:^0.3.1"
     "@react-native/babel-preset": "npm:0.83.0"
     "@react-native/eslint-config": "npm:0.83.0"
+    "@react-native/jest-preset": "npm:0.85.3"
     "@react-native/metro-config": "npm:0.83.0"
     "@react-native/typescript-config": "npm:0.83.0"
     "@react-navigation/bottom-tabs": "npm:^6.5.0"
@@ -36324,7 +36339,7 @@ __metadata:
     react-native-fast-crypto: "patch:react-native-fast-crypto@npm%3A2.2.0#~/.yarn/patches/react-native-fast-crypto-npm-2.2.0-57b8a8a01a.patch"
     react-native-fs: "npm:^2.20.0"
     react-native-gesture-handler: "npm:~2.30.0"
-    react-native-get-random-values: "npm:^1.8.0"
+    react-native-get-random-values: "npm:^2.0.0"
     react-native-gzip: "patch:react-native-gzip@npm%3A1.1.0#~/.yarn/patches/react-native-gzip-npm-1.1.0.patch"
     react-native-i18n: "patch:react-native-i18n@npm%3A2.0.15#~/.yarn/patches/react-native-i18n-npm-2.0.15-7f3cf7cee6.patch"
     react-native-in-app-review: "npm:^4.3.3"
@@ -36339,7 +36354,7 @@ __metadata:
     react-native-material-textfield: "npm:0.16.1"
     react-native-mmkv: "npm:^3.2.0"
     react-native-modal: "npm:^14.0.0-rc.1"
-    react-native-nitro-fetch: "npm:1.3.3"
+    react-native-nitro-fetch: "patch:react-native-nitro-fetch@npm%3A1.3.3#~/.yarn/patches/react-native-nitro-fetch-npm-1.3.3-b43385194a.patch"
     react-native-nitro-modules: "npm:0.35.5"
     react-native-nitro-text-decoder: "npm:^0.2.0"
     react-native-nitro-websockets: "npm:^1.0.3"
@@ -36356,14 +36371,14 @@ __metadata:
     react-native-release-profiler: "npm:^0.4.4"
     react-native-render-html: "npm:^6.3.4"
     react-native-safe-area-context: "npm:~5.6.0"
-    react-native-screens: "npm:~4.23.0"
+    react-native-screens: "npm:~4.25.2"
     react-native-sensors: "patch:react-native-sensors@npm%3A5.3.0#~/.yarn/patches/react-native-sensors-npm-5.3.0-318d1d324d.patch"
     react-native-share: "patch:react-native-share@npm%3A7.3.7#~/.yarn/patches/react-native-share-npm-7.3.7-5b491ea831.patch"
     react-native-size-matters: "npm:0.4.0"
     react-native-skeleton-placeholder: "npm:^5.0.0"
     react-native-step-indicator: "npm:^1.0.3"
     react-native-storybook-loader: "npm:^2.0.4"
-    react-native-svg: "npm:15.15.3"
+    react-native-svg: "npm:15.15.5"
     react-native-svg-asset-plugin: "npm:^0.5.0"
     react-native-svg-charts: "npm:^5.4.0"
     react-native-svg-transformer: "npm:^1.0.0"
@@ -40628,14 +40643,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-get-random-values@npm:1.x, react-native-get-random-values@npm:^1.8.0":
-  version: 1.11.0
-  resolution: "react-native-get-random-values@npm:1.11.0"
+"react-native-get-random-values@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "react-native-get-random-values@npm:2.0.0"
   dependencies:
     fast-base64-decode: "npm:^1.0.0"
   peerDependencies:
-    react-native: ">=0.56"
-  checksum: 10/eb04833ce2b66309d737f1447ab01ad32aca00a8d1cc4de7b4e751c23f4d9f8059a2643bb16e0b6f3e6b074a9e57e769bb2bf2afc50a912c5661d80a6ce4de34
+    react-native: ">=0.81"
+  checksum: 10/f55218ac9710f9d329f0cfb1d8dce9765b4d06fdd2b9f966ed0476298f8373875679caf68b44f4e3b363abe81d1cb6f4c47b45f58b87eae63bd54776beeded46
   languageName: node
   linkType: hard
 
@@ -40865,6 +40880,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-nitro-fetch@patch:react-native-nitro-fetch@npm%3A1.3.3#~/.yarn/patches/react-native-nitro-fetch-npm-1.3.3-b43385194a.patch":
+  version: 1.3.3
+  resolution: "react-native-nitro-fetch@patch:react-native-nitro-fetch@npm%3A1.3.3#~/.yarn/patches/react-native-nitro-fetch-npm-1.3.3-b43385194a.patch::version=1.3.3&hash=3bc776"
+  dependencies:
+    web-streams-polyfill: "npm:^4.2.0"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-nitro-modules: ^0.35.2
+    react-native-worklets: ^0.8.0
+  peerDependenciesMeta:
+    react-native-worklets:
+      optional: true
+  checksum: 10/1e6c3f1567cca3899884161fd0f62e4881af624cfa5556e50e7693b2d216baa74ea95c65b13614d9856a68ba800640593730af0722780a97e3ea3068d5360d89
+  languageName: node
+  linkType: hard
+
 "react-native-nitro-modules@npm:0.35.5":
   version: 0.35.5
   resolution: "react-native-nitro-modules@npm:0.35.5"
@@ -41091,16 +41123,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-screens@npm:~4.23.0":
-  version: 4.23.0
-  resolution: "react-native-screens@npm:4.23.0"
+"react-native-screens@npm:~4.25.2":
+  version: 4.25.2
+  resolution: "react-native-screens@npm:4.25.2"
   dependencies:
     react-freeze: "npm:^1.0.0"
     warn-once: "npm:^0.1.0"
   peerDependencies:
     react: "*"
-    react-native: "*"
-  checksum: 10/cb8cc1c18c8d340f53a34a15e84ad6a3bd0ee43384d712a9e4c2a8257428c129c9bae0900ab86f64a4ebdc27684e6b12be9064a410e8f54c7a649534f12a9d76
+    react-native: ">=0.82.0"
+  checksum: 10/b0fca70d7aafbd8ff993c0e0329ee78fe453391eaff9556e87fb619d0d58b93b497e47ff5477a1028ecad35d4165f47c833ccb22049e59c5d55a1c55a13029b0
   languageName: node
   linkType: hard
 
@@ -41230,17 +41262,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-svg@npm:15.15.3":
-  version: 15.15.3
-  resolution: "react-native-svg@npm:15.15.3"
+"react-native-svg@npm:15.15.5":
+  version: 15.15.5
+  resolution: "react-native-svg@npm:15.15.5"
   dependencies:
     css-select: "npm:^5.1.0"
     css-tree: "npm:^1.1.3"
-    warn-once: "npm:0.1.1"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/32254d53ac6d43af1e38011e899ae23ee8a272f1bd8e24fb34f355326cace369cd260331e58a53af3aec67ec8ec40ce6a60e57655259ebd0c32fb156649a4a23
+  checksum: 10/d5ffbb55506a668cc93d34363720aa054e7dba415fc81b5f76d1fb21191d6e8b279a2eabf0238af4323c99c3c7699a4c493bc587c2d1d20ec0aa6c141070ba6b
   languageName: node
   linkType: hard
 
@@ -47054,7 +47085,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"warn-once@npm:0.1.1, warn-once@npm:^0.1.0":
+"warn-once@npm:^0.1.0":
   version: 0.1.1
   resolution: "warn-once@npm:0.1.1"
   checksum: 10/e6a5a1f5a8dba7744399743d3cfb571db4c3947897875d4962a7c5b1bf2195ab4518c838cb4cea652e71729f21bba2e98dc75686f5fccde0fabbd894e2ed0c0d

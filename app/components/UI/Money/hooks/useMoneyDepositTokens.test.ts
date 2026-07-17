@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
-import { useMoneyEarnableTokens } from './useMoneyEarnableTokens';
+import { useMoneyDepositTokens } from './useMoneyDepositTokens';
 import {
   selectMetaMaskPayTokensFlags,
   selectRelayFixedSpread,
@@ -156,7 +156,7 @@ const ETH_DAI = makeToken({
   fiat: { balance: 200, currency: 'usd', conversionRate: 1 },
 });
 
-describe('useMoneyEarnableTokens', () => {
+describe('useMoneyDepositTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -184,7 +184,7 @@ describe('useMoneyEarnableTokens', () => {
 
   describe('return shape', () => {
     it('returns tokens array and isNoFeeToken function', () => {
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(Array.isArray(result.current.tokens)).toBe(true);
       expect(typeof result.current.isNoFeeToken).toBe('function');
@@ -193,7 +193,7 @@ describe('useMoneyEarnableTokens', () => {
 
   describe('tokens — useAccountTokens options', () => {
     it('calls useAccountTokens with includeNoBalance false', () => {
-      renderHook(() => useMoneyEarnableTokens());
+      renderHook(() => useMoneyDepositTokens());
 
       expect(mockUseAccountTokens).toHaveBeenCalledWith({
         includeNoBalance: false,
@@ -203,7 +203,7 @@ describe('useMoneyEarnableTokens', () => {
 
   describe('tokens — blocklist', () => {
     it('scopes blocklist lookup to moneyAccountDeposit transaction type', () => {
-      renderHook(() => useMoneyEarnableTokens());
+      renderHook(() => useMoneyDepositTokens());
 
       expect(mockGetBlockedTokensForTransactionType).toHaveBeenCalledWith(
         DEFAULT_PAY_FLAGS.blockedTokens,
@@ -214,7 +214,7 @@ describe('useMoneyEarnableTokens', () => {
     it('includes tokens that pass the MM Pay blocklist', () => {
       mockUseAccountTokens.mockReturnValue([ETH_USDC]);
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.tokens).toContainEqual(ETH_USDC);
     });
@@ -225,7 +225,7 @@ describe('useMoneyEarnableTokens', () => {
         (token: { address: string }) => token.address === ETH_USDC.address,
       );
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.tokens).not.toContainEqual(ETH_USDC);
       expect(result.current.tokens).toContainEqual(ETH_USDT);
@@ -235,7 +235,7 @@ describe('useMoneyEarnableTokens', () => {
       mockUseAccountTokens.mockReturnValue([ETH_USDC]);
       mockIsTokenBlocked.mockReturnValue(true);
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.tokens).toEqual([]);
     });
@@ -252,7 +252,7 @@ describe('useMoneyEarnableTokens', () => {
       });
       mockUseAccountTokens.mockReturnValue([solanaToken, ETH_USDC]);
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.tokens).not.toContainEqual(solanaToken);
       expect(result.current.tokens).toContainEqual(ETH_USDC);
@@ -268,7 +268,7 @@ describe('useMoneyEarnableTokens', () => {
       });
       mockUseAccountTokens.mockReturnValue([solanaToken]);
 
-      renderHook(() => useMoneyEarnableTokens());
+      renderHook(() => useMoneyDepositTokens());
 
       expect(mockIsTokenBlocked).not.toHaveBeenCalledWith(
         solanaToken,
@@ -285,7 +285,7 @@ describe('useMoneyEarnableTokens', () => {
       });
       mockUseAccountTokens.mockReturnValue([dustToken, ETH_USDC]);
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.tokens).not.toContainEqual(dustToken);
       expect(result.current.tokens).toContainEqual(ETH_USDC);
@@ -295,7 +295,7 @@ describe('useMoneyEarnableTokens', () => {
       const noFiat = makeToken({ fiat: undefined });
       mockUseAccountTokens.mockReturnValue([noFiat, ETH_USDC]);
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.tokens).not.toContainEqual(noFiat);
     });
@@ -310,7 +310,7 @@ describe('useMoneyEarnableTokens', () => {
       });
       mockUseAccountTokens.mockReturnValue([nullFiat, ETH_USDC]);
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.tokens).not.toContainEqual(nullFiat);
     });
@@ -322,7 +322,7 @@ describe('useMoneyEarnableTokens', () => {
       });
       mockUseAccountTokens.mockReturnValue([atThreshold]);
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.tokens).toContainEqual(atThreshold);
     });
@@ -330,7 +330,7 @@ describe('useMoneyEarnableTokens', () => {
     it('returns empty array when useAccountTokens returns empty list', () => {
       mockUseAccountTokens.mockReturnValue([]);
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.tokens).toEqual([]);
     });
@@ -340,7 +340,7 @@ describe('useMoneyEarnableTokens', () => {
     it('orders eligible tokens highest-to-lowest fiat balance', () => {
       mockUseAccountTokens.mockReturnValue([ETH_DAI, ETH_USDC, ETH_USDT]);
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.tokens.map((t) => t.symbol)).toEqual([
         'USDC',
@@ -361,7 +361,7 @@ describe('useMoneyEarnableTokens', () => {
       });
       mockUseAccountTokens.mockReturnValue([ETH_USDC]);
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.isNoFeeToken(ETH_USDC)).toBe(true);
     });
@@ -382,7 +382,7 @@ describe('useMoneyEarnableTokens', () => {
       });
       mockUseAccountTokens.mockReturnValue([ethMusd]);
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.isNoFeeToken(ethMusd)).toBe(true);
     });
@@ -403,7 +403,7 @@ describe('useMoneyEarnableTokens', () => {
       });
       mockUseAccountTokens.mockReturnValue([monadMusd]);
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.isNoFeeToken(monadMusd)).toBe(true);
     });
@@ -424,7 +424,7 @@ describe('useMoneyEarnableTokens', () => {
       });
       mockUseAccountTokens.mockReturnValue([lineaUsdc]);
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.isNoFeeToken(lineaUsdc)).toBe(false);
     });
@@ -438,7 +438,7 @@ describe('useMoneyEarnableTokens', () => {
       });
       mockUseAccountTokens.mockReturnValue([ETH_USDC]);
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.isNoFeeToken(ETH_USDC)).toBe(false);
     });
@@ -457,7 +457,7 @@ describe('useMoneyEarnableTokens', () => {
         chainId: undefined,
       } as unknown as AssetType;
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.isNoFeeToken(noChain)).toBe(false);
     });
@@ -479,7 +479,7 @@ describe('useMoneyEarnableTokens', () => {
       });
       mockUseAccountTokens.mockReturnValue([arbitrumUsdc]);
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.isNoFeeToken(arbitrumUsdc)).toBe(false);
     });
@@ -489,7 +489,7 @@ describe('useMoneyEarnableTokens', () => {
     it('leaves fiat balance untouched when overrideToUsd is not passed', () => {
       mockUseAccountTokens.mockReturnValue([ETH_USDC]);
 
-      const { result } = renderHook(() => useMoneyEarnableTokens());
+      const { result } = renderHook(() => useMoneyDepositTokens());
 
       expect(result.current.tokens).toContainEqual(ETH_USDC);
       expect(mockCalcUsdAmountFromFiat).not.toHaveBeenCalled();
@@ -499,7 +499,7 @@ describe('useMoneyEarnableTokens', () => {
       mockUseAccountTokens.mockReturnValue([ETH_USDC]);
 
       const { result } = renderHook(() =>
-        useMoneyEarnableTokens({ overrideToUsd: false }),
+        useMoneyDepositTokens({ overrideToUsd: false }),
       );
 
       expect(result.current.tokens).toContainEqual(ETH_USDC);
@@ -511,7 +511,7 @@ describe('useMoneyEarnableTokens', () => {
       mockCalcUsdAmountFromFiat.mockReturnValue(450);
 
       const { result } = renderHook(() =>
-        useMoneyEarnableTokens({ overrideToUsd: true }),
+        useMoneyDepositTokens({ overrideToUsd: true }),
       );
 
       expect(result.current.tokens[0].fiat).toEqual({
@@ -525,7 +525,7 @@ describe('useMoneyEarnableTokens', () => {
       mockUseAccountTokens.mockReturnValue([ETH_USDC]);
       mockCalcUsdAmountFromFiat.mockReturnValue(450);
 
-      renderHook(() => useMoneyEarnableTokens({ overrideToUsd: true }));
+      renderHook(() => useMoneyDepositTokens({ overrideToUsd: true }));
 
       expect(mockCalcUsdAmountFromFiat).toHaveBeenCalledWith({
         tokenFiatValue: ETH_USDC.fiat?.balance,
@@ -540,7 +540,7 @@ describe('useMoneyEarnableTokens', () => {
       mockUseAccountTokens.mockReturnValue([noFiat]);
 
       const { result } = renderHook(() =>
-        useMoneyEarnableTokens({ overrideToUsd: true }),
+        useMoneyDepositTokens({ overrideToUsd: true }),
       );
 
       expect(result.current.tokens).toEqual([]);
@@ -552,7 +552,7 @@ describe('useMoneyEarnableTokens', () => {
       mockCalcUsdAmountFromFiat.mockReturnValue(undefined);
 
       const { result } = renderHook(() =>
-        useMoneyEarnableTokens({ overrideToUsd: true }),
+        useMoneyDepositTokens({ overrideToUsd: true }),
       );
 
       expect(result.current.tokens[0].fiat).toBeUndefined();
@@ -565,7 +565,7 @@ describe('useMoneyEarnableTokens', () => {
       );
 
       const { result } = renderHook(() =>
-        useMoneyEarnableTokens({ overrideToUsd: true }),
+        useMoneyDepositTokens({ overrideToUsd: true }),
       );
 
       expect(result.current.tokens.map((token) => token.fiat?.balance)).toEqual(
