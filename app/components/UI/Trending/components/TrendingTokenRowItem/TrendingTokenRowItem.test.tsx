@@ -2,7 +2,9 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import TrendingTokenRowItem from './TrendingTokenRowItem';
+import TrendingTokenRowItem, {
+  getAssetNavigationParams,
+} from './TrendingTokenRowItem';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
@@ -799,21 +801,10 @@ describe('TrendingTokenRowItem', () => {
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push('Asset', {
-          chainId: '0x1',
-          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          symbol: 'USDC',
-          name: 'USD Coin',
-          decimals: 6,
-          image:
-            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
-          pricePercentChange1d: 3.44,
-          isNative: false,
-          isETH: false,
-          isFromTrending: true,
-          rwaData: undefined,
-          source: 'trending',
-        }),
+        StackActions.push(
+          'Asset',
+          getAssetNavigationParams(token, TokenDetailsSource.Trending),
+        ),
       );
     });
 
@@ -864,21 +855,10 @@ describe('TrendingTokenRowItem', () => {
       fireEvent.press(tokenRow);
 
       expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push('Asset', {
-          chainId: '0x1',
-          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          symbol: 'USDC',
-          name: 'USD Coin',
-          decimals: 6,
-          image:
-            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
-          pricePercentChange1d: 3.44,
-          isNative: false,
-          isETH: false,
-          isFromTrending: true,
-          rwaData: undefined,
-          source: 'trending-swaps',
-        }),
+        StackActions.push(
+          'Asset',
+          getAssetNavigationParams(token, TokenDetailsSource.TrendingSwaps),
+        ),
       );
     });
 
@@ -927,21 +907,10 @@ describe('TrendingTokenRowItem', () => {
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push('Asset', {
-          chainId: '0x1',
-          address: '0x0000000000000000000000000000000000000000',
-          symbol: 'ETH',
-          name: 'Ethereum',
-          decimals: 18,
-          image:
-            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-          pricePercentChange1d: 3.44,
-          isNative: true,
-          isETH: true,
-          isFromTrending: true,
-          rwaData: undefined,
-          source: 'trending',
-        }),
+        StackActions.push(
+          'Asset',
+          getAssetNavigationParams(token, TokenDetailsSource.Trending),
+        ),
       );
     });
 
@@ -990,21 +959,10 @@ describe('TrendingTokenRowItem', () => {
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push('Asset', {
-          chainId: '0x89',
-          address: '0x0000000000000000000000000000000000000000',
-          symbol: 'MATIC',
-          name: 'Polygon',
-          decimals: 18,
-          image:
-            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/137/slip44/966.png',
-          pricePercentChange1d: 3.44,
-          isNative: true,
-          isETH: false,
-          isFromTrending: true,
-          rwaData: undefined,
-          source: 'trending',
-        }),
+        StackActions.push(
+          'Asset',
+          getAssetNavigationParams(token, TokenDetailsSource.Trending),
+        ),
       );
     });
 
@@ -1070,7 +1028,10 @@ describe('TrendingTokenRowItem', () => {
       await waitFor(() => {
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(mockDispatch).toHaveBeenCalledWith(
-          StackActions.push('Asset', expect.any(Object)),
+          StackActions.push(
+            'Asset',
+            getAssetNavigationParams(token, TokenDetailsSource.Trending),
+          ),
         );
       });
     });
@@ -1206,21 +1167,10 @@ describe('TrendingTokenRowItem', () => {
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push('Asset', {
-          chainId: 'bip122:000000000019d6689c085ae165831e93',
-          address: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
-          symbol: 'BTC',
-          name: 'Bitcoin',
-          decimals: 8,
-          image:
-            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/bip122/000000000019d6689c085ae165831e93/slip44/0.png',
-          pricePercentChange1d: 3.44,
-          isNative: true,
-          isETH: false,
-          isFromTrending: true,
-          rwaData: undefined,
-          source: 'trending',
-        }),
+        StackActions.push(
+          'Asset',
+          getAssetNavigationParams(token, TokenDetailsSource.Trending),
+        ),
       );
     });
 
@@ -1275,21 +1225,10 @@ describe('TrendingTokenRowItem', () => {
       expect(queryByTestId('network-modal')).toBeNull();
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.push('Asset', {
-          chainId: '0x3e7',
-          address: '0x123',
-          symbol: 'TEST',
-          name: 'Test Token',
-          decimals: 18,
-          image:
-            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/999/erc20/0x123.png',
-          pricePercentChange1d: 3.44,
-          isNative: false,
-          isETH: false,
-          isFromTrending: true,
-          rwaData: undefined,
-          source: 'trending',
-        }),
+        StackActions.push(
+          'Asset',
+          getAssetNavigationParams(token, TokenDetailsSource.Trending),
+        ),
       );
     });
   });
