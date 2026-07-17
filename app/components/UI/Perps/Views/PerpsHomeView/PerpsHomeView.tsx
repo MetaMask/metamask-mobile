@@ -698,7 +698,7 @@ const PerpsHomeView = ({
             onActionPress={handleCloseAllPress}
             renderSkeleton={() => <PerpsRowSkeleton count={2} />}
           >
-            <View style={styles.positionsOrdersContainer}>
+            <View>
               {positions.map((position, index) => (
                 <PerpsCard
                   key={`${position.symbol}-${index}`}
@@ -725,7 +725,7 @@ const PerpsHomeView = ({
             onActionPress={handleCancelAllPress}
             renderSkeleton={() => <PerpsRowSkeleton count={2} />}
           >
-            <View style={styles.positionsOrdersContainer}>
+            <View>
               {orders.map((order, index) => (
                 <PerpsCard
                   key={order.orderId}
@@ -911,7 +911,6 @@ const PerpsHomeView = ({
       positionsSubtitleSuffix,
       handleCloseAllPress,
       handleCancelAllPress,
-      styles.positionsOrdersContainer,
       isWhatsHappeningVisible,
       whatsHappeningFeed,
       handleWhatsHappeningHeaderPress,

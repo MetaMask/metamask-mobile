@@ -44,8 +44,34 @@ jest.mock('../../../../../component-library/hooks', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string) => {
+    if (key === 'perps.order.long_label' || key === 'perps.market.long') {
+      return 'Long';
+    }
+    if (key === 'perps.order.short_label' || key === 'perps.market.short') {
+      return 'Short';
+    }
+    if (key === 'perps.market.long_lowercase') {
+      return 'long';
+    }
+    if (key === 'perps.market.short_lowercase') {
+      return 'short';
+    }
+    return key;
+  },
 }));
+
+jest.mock('../PerpsLeverage/PerpsLeverage', () => {
+  const ReactActual = jest.requireActual('react') as typeof import('react');
+  const { Text } = jest.requireActual(
+    'react-native',
+  ) as typeof import('react-native');
+  return {
+    __esModule: true,
+    default: ({ maxLeverage }: { maxLeverage: string }) =>
+      ReactActual.createElement(Text, null, maxLeverage),
+  };
+});
 
 jest.mock('../../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: jest.fn(),
@@ -211,7 +237,8 @@ describe('PerpsCard', () => {
       );
 
       // Assert
-      expect(getByText('ETH 3x long')).toBeDefined();
+      expect(getByText('Long ETH')).toBeDefined();
+      expect(getByText('3X long')).toBeDefined();
       expect(getByText('1.5 ETH')).toBeDefined();
     });
 
@@ -285,7 +312,8 @@ describe('PerpsCard', () => {
       );
 
       // Assert
-      expect(getByText('ETH 3x short')).toBeDefined();
+      expect(getByText('Short ETH')).toBeDefined();
+      expect(getByText('3X short')).toBeDefined();
       expect(getByText('1.5 ETH')).toBeDefined();
     });
 
@@ -464,13 +492,14 @@ describe('PerpsCard', () => {
       (useSelector as jest.Mock).mockReturnValue(true);
 
       // Act
-      const { getByText } = render(
+      const { getByText, queryByText } = render(
         <PerpsCard position={mockPosition} testID="test-card" />,
       );
 
-      // Assert - left-side non-financial content is unaffected
-      expect(getByText('ETH 3x long')).toBeOnTheScreen();
-      expect(getByText('1.5 ETH')).toBeOnTheScreen();
+      // Assert - title/leverage stay visible; size is treated as sensitive
+      expect(getByText('Long ETH')).toBeOnTheScreen();
+      expect(getByText('3X long')).toBeOnTheScreen();
+      expect(queryByText('1.5 ETH')).toBeNull();
     });
   });
 });
