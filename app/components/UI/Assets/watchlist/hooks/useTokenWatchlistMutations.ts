@@ -51,6 +51,24 @@ const filterAssets = (
 };
 
 /**
+ * Blob cache is only populated when `useTokenWatchlist` is mounted (e.g. TDP
+ * star). List surfaces use the hydrated query alone, so fall back to hydrated
+ * asset IDs when the blob cache has never been read.
+ */
+const resolveOptimisticBaseAssets = (
+  prevBlob: WatchlistBlob | undefined,
+  prevHydrated: WatchlistTokenMetadata[] | undefined,
+): readonly string[] => {
+  if (prevBlob !== undefined) {
+    return prevBlob.assets;
+  }
+  if (prevHydrated !== undefined && prevHydrated.length > 0) {
+    return prevHydrated.map((token) => String(token.assetId));
+  }
+  return EMPTY_BLOB.assets;
+};
+
+/**
  * Reconcile the hydrated token list against the optimistically updated blob
  * IDs. Removes dropped IDs immediately and reorders survivors to match the
  * blob. IDs not yet present in the hydrated cache (e.g. a freshly added
@@ -135,7 +153,7 @@ const useWatchlistMutation = <TInput>({
         tokenWatchlistQueryKeys.hydrated,
       );
       const nextAssets = applyOptimistic(
-        (prevBlob ?? EMPTY_BLOB).assets,
+        resolveOptimisticBaseAssets(prevBlob, prevHydrated),
         input,
       );
 
