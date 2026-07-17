@@ -843,6 +843,9 @@ export async function withFixtures(
             [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
               ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
               : `${accountActivityWsServer.getServerPort()}`,
+            [SOLANA_INFURA_WS.launchArgKey]: isAndroid
+              ? `${SOLANA_INFURA_WS.fallbackPort}`
+              : `${solanaInfuraWsServer.getServerPort()}`,
             ...(launchArgs || {}),
           },
           languageAndLocale,
