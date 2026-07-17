@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useActivityBlockExplorer } from './useActivityBlockExplorer';
+import { SolScope, TrxScope } from '@metamask/keyring-api';
 import {
   findBlockExplorerUrlForChain,
   getBlockExplorerTxUrl,
@@ -57,27 +58,18 @@ describe('useActivityBlockExplorer', () => {
     expect(resolve('eip155:1', '0x1')).toBeUndefined();
   });
 
-  it('builds a non-EVM templated explorer link', () => {
-    findBase.mockReturnValue('https://explorer.solana.com/tx/{txId}');
-    expect(resolve('solana:abc', '0xhash')).toEqual({
-      url: 'https://explorer.solana.com/tx/0xhash',
-      title: 'explorer.solana.com',
+  it.each([
+    [SolScope.Mainnet, 'https://solscan.io/tx/', 'solscan.io'],
+    [TrxScope.Mainnet, 'https://tronscan.org/#/transaction/', 'tronscan.org'],
+  ])('builds a non-EVM templated explorer link', (chainId, url, title) => {
+    expect(resolve(chainId, '0xhash')).toEqual({
+      url: `${url}0xhash`,
+      title,
     });
   });
 
-  it('builds a non-EVM /tx/ link and strips the trailing slash', () => {
-    findBase.mockReturnValue('https://solscan.io/');
-    expect(resolve('solana:abc', '0xhash')).toEqual({
-      url: 'https://solscan.io/tx/0xhash',
-      title: 'solscan.io',
-    });
-  });
-
-  it('falls back to the raw url for the title when it cannot be parsed', () => {
-    findBase.mockReturnValue('not-a-valid-base');
-    expect(resolve('solana:abc', '0xhash')).toEqual({
-      url: 'not-a-valid-base/tx/0xhash',
-      title: 'not-a-valid-base/tx/0xhash',
-    });
+  // it is a never case
+  it('returns undefined for unsupported non-EVM chain ids', () => {
+    expect(resolve('unknown-non-evm:abc', '0xhash')).toBeUndefined();
   });
 });
