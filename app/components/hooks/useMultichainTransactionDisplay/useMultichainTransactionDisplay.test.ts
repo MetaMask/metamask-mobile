@@ -11,7 +11,7 @@ import {
 
 jest.mock('../../../../locales/i18n', () => ({
   __esModule: true,
-  default: { locale: 'en-US' },
+  default: { locale: 'en' },
   strings: (key: string) => key,
 }));
 
@@ -80,9 +80,12 @@ const baseTransaction: Transaction = {
 };
 
 describe('useMultichainTransactionDisplay', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   describe('Trustline transactions', () => {
-    it('uses trustline approve title and hides amount for trustline transactions', () => {
+    it('uses trustline approve title for trustline transactions', () => {
       const transaction: Transaction = {
         ...baseTransaction,
         details: {
@@ -98,7 +101,6 @@ describe('useMultichainTransactionDisplay', () => {
       expect(displayData.title).toBe(
         'transactions.activity_trustline_activated USDC',
       );
-      expect(displayData.shouldShowAmountOrUnit).toBe(false);
     });
 
     it('uses trustline disapprove title without unit when from movement is empty', () => {
@@ -116,10 +118,9 @@ describe('useMultichainTransactionDisplay', () => {
       );
 
       expect(displayData.title).toBe('transactions.activity_trustline_deactivated');
-      expect(displayData.shouldShowAmountOrUnit).toBe(false);
     });
 
-    it('shows amount for generic token approve transactions without trustline typeLabel', () => {
+    it('uses approve title for generic token approve transactions without trustline typeLabel', () => {
       const transaction: Transaction = {
         ...baseTransaction,
         type: TransactionType.TokenApprove,
@@ -131,10 +132,9 @@ describe('useMultichainTransactionDisplay', () => {
       );
 
       expect(displayData.title).toBe('transactions.tx_review_approve USDC');
-      expect(displayData.shouldShowAmountOrUnit).toBe(true);
     });
 
-    it('shows amount for non-trustline transactions', () => {
+    it('formats amount for non-trustline transactions', () => {
       const transaction: Transaction = {
         ...baseTransaction,
         type: TransactionType.Send,
@@ -156,7 +156,6 @@ describe('useMultichainTransactionDisplay', () => {
         'stellar:pubnet',
       );
 
-      expect(displayData.shouldShowAmountOrUnit).toBe(true);
       expect(displayData.to?.amount).toBe('-1');
     });
   });

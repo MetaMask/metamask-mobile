@@ -37,7 +37,6 @@ import {
   toMarketRateLookupToken,
 } from '../../../util/activity-adapters';
 import type { MarketRateLookupToken } from '../../../util/activity-adapters/fiat';
-import { getLabelKeys } from '../../../util/activity-adapters/label-keys';
 import {
   addCurrencySymbol,
   balanceToFiatNumber,

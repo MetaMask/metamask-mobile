@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   RefreshControl,
@@ -138,7 +138,6 @@ const MultichainTransactionsView = ({
   const shouldUseActivityRedesign =
     isActivityRedesignEnabled &&
     location === TransactionDetailLocation.AssetDetails;
-
   const activityListData = useMemo(
     () =>
       shouldUseActivityRedesign

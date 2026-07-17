@@ -10,7 +10,6 @@ import { isTransactionIncomplete } from '../../../util/transactions';
 import {
   isTrustlineApproveTransaction,
   isTrustlineDisapproveTransaction,
-  isTrustlineTransaction,
   resolveAssetActivationActivityTitleFromTransaction,
 } from '../../../util/activity-adapters/trustline';
 
@@ -53,7 +52,6 @@ export interface MultichainTransactionDisplayData {
   baseFee?: AggregatedMovementDisplayData;
   priorityFee?: AggregatedMovementDisplayData;
   isRedeposit: boolean;
-  shouldShowAmountOrUnit: boolean;
   isUnlimitedApproval: boolean;
 }
 
@@ -127,7 +125,6 @@ export function useMultichainTransactionDisplay(
   };
 
   const typeLabel = transaction.details?.typeLabel;
-  const isTrustlineType = isTrustlineTransaction(transaction);
 
   let title = isRedeposit
     ? strings('transactions.redeposit')
@@ -173,7 +170,6 @@ export function useMultichainTransactionDisplay(
     baseFee,
     priorityFee,
     isRedeposit,
-    shouldShowAmountOrUnit: !isTrustlineType,
     isUnlimitedApproval,
   };
 }
