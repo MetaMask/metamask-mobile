@@ -443,56 +443,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add missing Component View Tests on Price Alerts (#32301)
-- Added interactive price charts to the Social Trading trader position view — buy/sell trade markers on the price line, (#32293)
-  tap-to-focus between the chart and the trades list, and a day-grouped
-  trades list with a sticky date header.
-- AdvancedChart now supports trade markers on the price line, focus-time/pulse animations, and a marker-tap event. (#32292)
-- Added "$75K up for grabs" Predict the Pitch campaign banner to the World Cup Hub screen, gated behind the (#32360)
-  `predictWorldCup.showHubBanner` feature flag.
-- Added a redesigned World Cup hub with Games and Props tabs, knockout-stage section headers, and a "Who will win the World (#32269)
-  Cup?" winner-prediction chip carousel.
-- Added MetaMask CLI notification preferences to Settings so users can control push and in-app alerts for CLI connection requests, (#31882)
-  approvals, and session updates.
+- Added interactive price charts to the Social Trading trader position view — buy/sell trade markers on the price line, tap-to-focus between the chart and the trades list, and a day-grouped trades list with a sticky date header (#32293)
+- AdvancedChart now supports trade markers on the price line, focus-time/pulse animations, and a marker-tap event (#32292)
+- Added "$75K up for grabs" Predict the Pitch campaign banner to the World Cup Hub screen, gated behind the `predictWorldCup.showHubBanner` feature flag (#32360)
+- Added a redesigned World Cup hub with Games and Props tabs, knockout-stage section headers, and a "Who will win the World Cup?" winner-prediction chip carousel (#32269)
+- Added MetaMask CLI notification preferences to Settings so users can control push and in-app alerts for CLI connection requests, approvals, and session updates (#31882)
 - Add Arc network support (#31187)
-- Added a "Forgot password?" option to the card login screen that lets users reset their card password. (#32276)
+- Added a "Forgot password?" option to the card login screen that lets users reset their card password (#32276)
 - Add proof of ownership to profile metrics (#32165)
 - Add Crypto Movers Quick Buy and search keyboard coordination (#32273)
 - Added Perps and Predict activity to the redesigned Activity list (#31772)
-- Added a migration to restore wiped token metadata for custom tokens on niche EVM chains that cannot auto-detect. (#32222)
+- Added a migration to restore wiped token metadata for custom tokens on niche EVM chains that cannot auto-detect (#32222)
 - Added the KONET mainnet icon for custom network display in MetaMask Mobile (#32235)
-- Added "Add device to wallet" flow (behind feature flag) allowing users to sync their MetaMask Mobile wallet with a MetaMask (#29229)
-  browser extension via QR code
+- Added "Add device to wallet" flow (behind feature flag) allowing users to sync their MetaMask Mobile wallet with a MetaMask browser extension via QR code (#29229)
 - Add share button and share sheet to Token Details page (#31868)
 - Support editing price alerts (#32137)
 - Add Quick Trade button to each crypto token row on explore search (#31805)
 - Added animated compact headers to trader profile and position views in Social Leaderboard (#32122)
-- Added technical indicators (MACD, RSI, Bollinger Bands, Moving Averages, Volume) to the Token Details candlestick chart with (#31386)
-  interval picker and MA selector, gated behind feature flag
+- Added technical indicators (MACD, RSI, Bollinger Bands, Moving Averages, Volume) to the Token Details candlestick chart with interval picker and MA selector, gated behind feature flag (#31386)
 - Added check for price alerts supported networks (#32010)
 
 ### Changed
 
-- Revert "feat(networking): integrate nitro-fetch with startup prefetching" (#31206)
 - Improved QuickBuy and Weekly Top Traders interactions (#32392)
-- chore: migrate StackNavigationProp types to native-stack equivalents (#32119)
-- Updated the Follow / Following button and row spacing on the Top Traders leaderboard to match the latest design. (#32367)
-- Use built-ins for token details advanced charts and allow for better config options for other consumers. (#32322)
-- Improved Token Details advanced chart layout when RSI or MACD indicators are enabled, with more space reserved for the price (#32236)
-  chart.
+- Updated the Follow / Following button and row spacing on the Top Traders leaderboard to match the latest design (#32367)
+- Use built-ins for token details advanced charts and allow for better config options for other consumers (#32322)
+- Improved Token Details advanced chart layout when RSI or MACD indicators are enabled, with more space reserved for the price chart (#32236)
 - Prepare price alerts for prod (#32298)
 - Updates space between interval bar and chart (#32256)
 - Redesign price alerts UI (#32247)
-- Improved Token Details advanced chart interval switching to keep the chart visible while new data loads instead of (#32190)
-  showing loading skeletons on every tap
-- Graduated the wallet home post-onboarding checklist so eligible new users always see the guided checklist on first (#31823)
-  empty-balance wallet home visit.
-- Moved Batch Sell minimum received to being a subtext under Total received for better visual hierarchy. (#31744)
-- Replaced global.fetch with react-native-nitro-fetch (Cronet on Android, URLSession on iOS) and added startup prefetching for (#31206)
-  feature flags and phishing lists
-- Gated the Card "Forgot password" option behind the cardForgotPasswordFeature remote feature flag. (#32341)
-- Improved Predict game details by grouping resolved markets in a Results dropdown. (#32181)
-- Changed the default Closed positions sort on a trader profile to sort by value, and added a Recent sort option to the Open (#32175)
-  positions tab.
+- Improved Token Details advanced chart interval switching to keep the chart visible while new data loads instead of showing loading skeletons on every tap (#32190)
+- Graduated the wallet home post-onboarding checklist so eligible new users always see the guided checklist on first empty-balance wallet home visit (#31823)
+- Moved Batch Sell minimum received to being a subtext under Total received for better visual hierarchy (#31744)
+- Replaced global.fetch with react-native-nitro-fetch (Cronet on Android, URLSession on iOS) and added startup prefetching for feature flags and phishing lists (#31206)
+- Gated the Card "Forgot password" option behind the cardForgotPasswordFeature remote feature flag (#32341)
+- Improved Predict game details by grouping resolved markets in a Results dropdown (#32181)
+- Changed the default Closed positions sort on a trader profile to sort by value, and added a Recent sort option to the Open positions tab (#32175)
 - Whitelist asset universal links from interstitial modal (#32316)
 - Improve wallet-connect types (#31615)
 - Updated MetaMask Card legal and support links to use provider registration settings when available (#32248)
@@ -501,69 +487,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved Weekly Top Traders carousel so trader profiles open faster when tapped (#32125)
 - Improved batch sell transaction details and activity list display for EIP-7702 transactions (#31948)
 - Remove CTA button under notification (#32012)
-- Updated Money account copy and UI polish (Next Best Action APY copy, "Money account benefits" section, abbreviated activity (#32396)
-  dates, "Transaction fees" labels, and a bolder "Paid by MetaMask"
-  check).
+- Updated Money account copy and UI polish (Next Best Action APY copy, "Money account benefits" section, abbreviated activity dates, "Transaction fees" labels, and a bolder "Paid by MetaMask" check) (#32396)
 - Force-hide MAX button for Arc USDC swap/bridge (#32135)
 
 ### Fixed
 
-- Fixed moving average indicators rendering at incorrect positions on the token details chart after navigating back to the same (#32275)
-  token.
-- Fixed an issue where a Predict bet paid with another token could be submitted with no available swap route, causing the (#32032)
-  deposit to revert on-chain.
-- Fixed incorrect odds shown on Predict outcome cards for markets with a wide bid/ask spread. (#32197)
+- Fixed moving average indicators rendering at incorrect positions on the token details chart after navigating back to the same token (#32275)
+- Fixed an issue where a Predict bet paid with another token could be submitted with no available swap route, causing the deposit to revert on-chain (#32032)
+- Fixed incorrect odds shown on Predict outcome cards for markets with a wide bid/ask spread (#32197)
 - Fixed the Address List screen transition speed to match other wallet detail screens (#32207)
-- Fixed a bug that showed the delete option for Polygon network. (#32228)
+- Fixed a bug that showed the delete option for Polygon network (#32228)
 - Fixed missing spacing above Perps cards on the wallet homepage (#32211)
 - Fixed a bug that showed contacts saved on deleted networks as Ethereum (#32154)
 - Fixed token chart candle interval resetting when revisiting token details with technical indicators enabled (#32150)
 - Fixed display approved transactions for Non-EVM networks (#31838)
-- Fixed odds/prices being truncated on Predict bet buttons so the full price is always readable. (#31953)
-- Fixed the MetaMask Card section on the Money screen so the "Link card" option and funding token placeholders are only shown (#31611)
-  when the card spending token is enabled in the card feature
-  configuration.
-- Fixed confirmations to show "Paid by MetaMask" and a $0 fee for all sponsored Money Account transactions, including pre-quote (#32172)
-  and withdrawals.
+- Fixed odds/prices being truncated on Predict bet buttons so the full price is always readable (#31953)
+- Fixed the MetaMask Card section on the Money screen so the "Link card" option and funding token placeholders are only shown when the card spending token is enabled in the card feature configuration (#31611)
+- Fixed confirmations to show "Paid by MetaMask" and a $0 fee for all sponsored Money Account transactions, including pre-quote and withdrawals (#32172)
 - Fixed an intermittent error when tapping Withdraw on Perps that could prevent the withdrawal flow from starting (#32001)
-- Fixed VIP dashboard last-updated timestamp alignment and rewards settings section divider spacing. (#32271)
-- Fixed Rewards navigation errors when opening campaign outcome details, exiting VIP flows, and transitioning to the dashboard (#32265)
-  after opt-in.
-- Fixed onboarding interest questionnaire grid layout for languages with longer option labels. (#32243)
+- Fixed VIP dashboard last-updated timestamp alignment and rewards settings section divider spacing (#32271)
+- Fixed Rewards navigation errors when opening campaign outcome details, exiting VIP flows, and transitioning to the dashboardafter opt-in (#32265)
+- Fixed onboarding interest questionnaire grid layout for languages with longer option labels (#32243)
 - Fixed contract interactions in the redesigned Activity list not showing the token amount (#32194)
-- Fixed the Add funds sheet to show "Debit card" instead of "Debit card or Apple Pay" on Android, where Apple Pay is not (#32208)
-  available.
+- Fixed the Add funds sheet to show "Debit card" instead of "Debit card or Apple Pay" on Android, where Apple Pay is notavailable (#32208)
 - Fixed an issue where MetaMask would not fail over to another RPC URL when Infura is down (#31983)
 - Fixed Android soft keyboard obscuring text inputs in Rewards onboarding, claim rewards, and settings flows (#32186)
 - Fixed a crash when turning off Basic Functionality from Security & Privacy settings (#32189)
 - Fixed VIP splash screen layout on smaller devices (#32187)
-- Fixed an Android crash and frozen UI after dismissing the share sheet on the Rewards referral screen. (#32183)
-- Fixed a bug on Android where opening a dapp deep link while the app was in the background opened the dapp in two browser tabs. (#29475)
-- Fixed token details advanced chart dashed last-price line not matching ambient price color when price is negative. (#32164)
-- Fixed token details advanced chart to fall back to the legacy price chart when the TradingView library fails to load, instead (#32066)
-  of showing a broken chart error state.
+- Fixed an Android crash and frozen UI after dismissing the share sheet on the Rewards referral screen (#32183)
+- Fixed a bug on Android where opening a dapp deep link while the app was in the background opened the dapp in two browser tabs (#29475)
+- Fixed token details advanced chart dashed last-price line not matching ambient price color when price is negative (#32164)
+- Fixed token details advanced chart to fall back to the legacy price chart when the TradingView library fails to load, instead of showing a broken chart error state (#32066)
 - Fixed the Weekly Top Traders homepage carousel to show the same All-chain leaderboard as the full Top Traders view (#32127)
 - Fixed empty bottom spacing in Social Leaderboard and QuickBuy scroll views (#32124)
 - Fixed homepage Weekly Top Traders cards so tapping anywhere on the card opens the trader profile (#32123)
 - Price alerts should only work in USD (#32051)
 - fix: rebase before push in OTA release PR workflow to avoid push race (#31919)
-- Fixed trader avatars in Trading Signals notification preferences to show address-derived Maskicon fallback instead of a (#32046)
-  monogram when no profile image is available.
-- Fixed Hyperliquid HIP-3 perp markets showing their provider prefix (e.g. `cash:`) in the social leaderboard, and disabled (#32008)
-  the Trade button for assets without a supported xyz market.
+- Fixed trader avatars in Trading Signals notification preferences to show address-derived Maskicon fallback instead of a monogram when no profile image is available (#32046)
+- Fixed Hyperliquid HIP-3 perp markets showing their provider prefix (e.g. `cash:`) in the social leaderboard, and disabled the Trade button for assets without a supported xyz market (#32008)
 - fix: show correct decimal places when managing price alerts (#31986)
 
 ## [8.0.4]
 
 ### Fixed
 
-- Fixed missing English translations in the 8.0.x OTA release. (#32750)
+- Fixed missing English translations in the 8.0.x OTA release (#32750)
 
 ## [8.0.3]
 
 ### Changed
 
-- Reverted money.onboarding.step_1 copy to 8.0.0 state; apy variable is not used. (#32739)
+- Reverted money.onboarding.step_1 copy to 8.0.0 state; apy variable is not used (#32739)
 
 ### Fixed
 
@@ -573,29 +547,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added World Cup "Extra Time?" and "Penalty Shootout?" markets to the game details page. (#32609)
-- Added a Regulation Time tag and contextual info for applicable World Cup prediction markets. (#32610)
-- Added World Cup-specific market labels and tooltip info for Predict moneyline and team-to-advance markets. (#32573)
+- Added World Cup "Extra Time?" and "Penalty Shootout?" markets to the game details page (#32609)
+- Added a Regulation Time tag and contextual info for applicable World Cup prediction markets (#32610)
+- Added World Cup-specific market labels and tooltip info for Predict moneyline and team-to-advance markets (#32573)
 
 ### Changed
 
-- Removed World Cup shortcut pills from the Predict empty state. (#32600)
-- Improved Money account deeplink handling to surface accurate unavailability messages for maintenance, gradual rollout exclusion, and version-gate states. (#32622)
+- Removed World Cup shortcut pills from the Predict empty state (#32600)
+- Improved Money account deeplink handling to surface accurate unavailability messages for maintenance, gradual rollout exclusion, and version-gate states (#32622)
 
 ### Fixed
 
-- Fixed a bug that could show flipped odds chart labels. (#32597)
-- Fixed Predict deposit-wallet address resolution for new Polymarket BeaconProxy wallets while preserving existing wallets. (#32614)
+- Fixed a bug that could show flipped odds chart labels (#32597)
+- Fixed Predict deposit-wallet address resolution for new Polymarket BeaconProxy wallets while preserving existing wallets (#32614)
 
 ## [8.0.1]
 
 ### Added
 
-- Added a Wimbledon tab to Predict and fixed sports home/away ordering consistency in scoreboards. (#32546)
+- Added a Wimbledon tab to Predict and fixed sports home/away ordering consistency in scoreboards (#32546)
 
 ### Changed
 
-- Replaced faulty money first time deposit animation and removed parallax effect. (#32535)
+- Replaced faulty money first time deposit animation and removed parallax effect (#32535)
 
 ## [8.0.0]
 
