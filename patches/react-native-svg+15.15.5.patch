@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-svg/src/utils/fetchData.ts b/node_modules/react-native-svg/src/utils/fetchData.ts
-index d141be3..4da0fba 100644
+index afbe59fd8a..76da4398e1 100644
 --- a/node_modules/react-native-svg/src/utils/fetchData.ts
 +++ b/node_modules/react-native-svg/src/utils/fetchData.ts
-@@ -34,6 +34,16 @@ function dataUriToXml(uri: string): string | null {
+@@ -32,6 +32,16 @@ function dataUriToXml(uri: string): string | null {
  
  async function fetchUriData(uri: string) {
    const response = await fetch(uri);
@@ -20,7 +20,7 @@ index d141be3..4da0fba 100644
      return await response.text();
    }
 diff --git a/node_modules/react-native-svg/src/xml.tsx b/node_modules/react-native-svg/src/xml.tsx
-index edfaa9b..4f1ce1d 100644
+index 0fbe0ec88a..a2965c7b8c 100644
 --- a/node_modules/react-native-svg/src/xml.tsx
 +++ b/node_modules/react-native-svg/src/xml.tsx
 @@ -257,7 +257,11 @@ const quotemarks = /['"]/;
