@@ -9,7 +9,10 @@ import { selectAccountsByChainId } from '../../../../../../../selectors/accountT
 import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
 import { selectTokensBalances } from '../../../../../../../selectors/tokenBalancesController';
 import { selectTokenMarketData } from '../../../../../../../selectors/tokenRatesController';
-import { selectCurrencyRates } from '../../../../../../../selectors/currencyRateController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../../../../selectors/currencyRateController';
 import {
   selectMultichainBalances,
   selectMultichainAssetsRates,
@@ -24,29 +27,34 @@ import { RECEIVE_STABLECOIN_CANDIDATES } from './receiveStablecoinCandidates';
 import { useNetworkEnabledPredicate } from './useNetworkEnabledPredicate';
 
 /**
- * Static stablecoin candidates for the Sell "Receive" picker (EVM + Solana).
+ * Static stablecoin candidates for the Sell "Receive" picker (EVM, Solana,
+ * Tron).
  *
- * `DefaultSwapDestTokens` carries a single default destination stablecoin per chain (which sets the
- * per-chain default selection — e.g. mUSD on mainnet/Linea, USDC on Solana), so
- * we keep those as the leading entries and then append the canonical USDC/USDT
- * set from `RECEIVE_STABLECOIN_CANDIDATES`. The append guarantees both major
- * stablecoins show on every supported chain (previously USDT was missing on
- * Optimism, USDC on Polygon, etc.) without disturbing the existing default
- * ordering. Duplicates are removed by stable token identity (`address:chainId`).
+ * `DefaultSwapDestTokens` carries a single stablecoin per chain (which sets the
+ * per-chain default selection — e.g. mUSD on mainnet/Linea, USDC on Solana,
+ * USDT on Tron), so we keep those as the leading entries and then append the
+ * canonical USDC/USDT set from `RECEIVE_STABLECOIN_CANDIDATES`. The append
+ * guarantees both major stablecoins show on every supported EVM chain
+ * (previously USDT was missing on Optimism, USDC on Polygon, etc.) without
+ * disturbing the existing default ordering. Duplicates are removed by stable
+ * token identity (`address:chainId`).
  *
  * Stablecoin candidates are limited to the chains whose token addresses
- * QuickBuy can actually resolve as destinations: EVM (hex chain ids) and
- * Solana. `useAssetMetadata` only resolves Solana base58 / EVM hex token
- * addresses, so non-native tokens on other non-EVM chains (e.g. TRC-20 USDT on
- * Tron) cannot be quoted and are excluded — those chains are offered as
- * native-only via `NATIVE_ONLY_NON_EVM_CHAINS` instead.
+ * QuickBuy can actually resolve and quote as destinations: EVM (hex chain ids),
+ * Solana, and Tron. Their destination addresses come straight from the static
+ * `DefaultSwapDestTokens` map (CAIP-encoded for non-EVM) and flow into the
+ * bridge quote request unchanged — no `useAssetMetadata` lookup is involved on
+ * the receive path. Other non-EVM chains without a curated stablecoin (e.g.
+ * Bitcoin) are offered as native-only via `NATIVE_ONLY_NON_EVM_CHAINS` instead.
  */
 const STABLECOIN_CANDIDATES: BridgeToken[] = (() => {
   const primaries = getAllChainDefaultDestTokens().filter(
     (token) =>
       isStablecoinSymbol(token.symbol) &&
       typeof token.chainId === 'string' &&
-      (token.chainId.startsWith('0x') || isSolanaChainId(token.chainId)),
+      (token.chainId.startsWith('0x') ||
+        isSolanaChainId(token.chainId) ||
+        token.chainId === TrxScope.Mainnet),
   );
   const seen = new Set(primaries.map(getTokenKey));
   const extras = RECEIVE_STABLECOIN_CANDIDATES.filter(
@@ -56,15 +64,14 @@ const STABLECOIN_CANDIDATES: BridgeToken[] = (() => {
 })();
 
 /**
- * Non-EVM chains offered as native-asset-only receive candidates (TRX, BTC).
- * Their native assets resolve through the bridge native-asset registry
- * (`getNativeSourceToken`), unlike their non-native tokens which
- * `useAssetMetadata` cannot resolve (see `STABLECOIN_CANDIDATES`).
+ * Non-EVM chains offered as native-asset-only receive candidates (BTC). Their
+ * native assets resolve through the bridge native-asset registry
+ * (`getNativeSourceToken`). Bitcoin has no curated stablecoin destination, so
+ * only its native asset is offered. (Tron is no longer native-only: its USDT
+ * destination is admitted via `STABLECOIN_CANDIDATES`, and native TRX is still
+ * generated because Tron's chain id appears among the stablecoin chains below.)
  */
-const NATIVE_ONLY_NON_EVM_CHAINS: CaipChainId[] = [
-  TrxScope.Mainnet,
-  BtcScope.Mainnet,
-];
+const NATIVE_ONLY_NON_EVM_CHAINS: CaipChainId[] = [BtcScope.Mainnet];
 
 /**
  * Native token candidates for the Sell "Receive" picker: one per chain already
@@ -164,6 +171,7 @@ export const useReceiveTokens = (
   const tokenBalances = useSelector(selectTokensBalances);
   const tokenMarketData = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const multichainBalances = useSelector(selectMultichainBalances);
   const multichainRates = useSelector(selectMultichainAssetsRates);
   const allNetworkConfigs = useSelector(
@@ -183,6 +191,7 @@ export const useReceiveTokens = (
             tokenBalances,
             tokenMarketData,
             currencyRates,
+            currentCurrency,
             allNetworkConfigs,
             solanaAccount: solanaAccount ?? undefined,
             tronAccount: tronAccount ?? undefined,
@@ -206,6 +215,7 @@ export const useReceiveTokens = (
       tokenBalances,
       tokenMarketData,
       currencyRates,
+      currentCurrency,
       allNetworkConfigs,
       solanaAccount,
       tronAccount,

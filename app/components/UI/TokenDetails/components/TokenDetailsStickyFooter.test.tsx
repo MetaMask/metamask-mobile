@@ -2,10 +2,10 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
-import { AMBIENT_NEGATIVE_COLOR } from './abTestConfig';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
+import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -34,6 +34,17 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(() => undefined),
+}));
+
+jest.mock('../../AssetOverview/Price/hooks/useTokenChartPreferences', () => ({
+  useTokenChartPreferences: () => ({
+    chartType: 'line',
+    chartInterval: '15m',
+    indicators: [],
+    setChartType: jest.fn(),
+    setChartInterval: jest.fn(),
+    setIndicators: jest.fn(),
+  }),
 }));
 
 jest.mock('../../../../reducers/fiatOrders', () => ({
@@ -116,12 +127,22 @@ const defaultProps = {
   balanceFiatUsd: 50,
 };
 
+const setupSelectorMock = (geolocation?: string) => {
+  (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+    if (selector === getDetectedGeolocation) {
+      return geolocation;
+    }
+    return undefined;
+  });
+};
+
 describe('TokenDetailsStickyFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsBuyable.mockReturnValue(true);
     mockIsTokenTradingOpen.mockReturnValue(true);
     mockHasEligibleSwapTokens = true;
+    setupSelectorMock();
   });
 
   describe('button visibility', () => {
@@ -288,6 +309,7 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: 50,
         tokenAddress: '0x123',
         chainId: '0x1',
+        indicatorsActive: [],
       });
     });
 
@@ -303,6 +325,7 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: 50,
         tokenAddress: '0x123',
         chainId: '0x1',
+        indicatorsActive: [],
       });
     });
 
@@ -318,6 +341,7 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: 150,
         tokenAddress: '0x123',
         chainId: '0x1',
+        indicatorsActive: [],
       });
     });
 
@@ -337,86 +361,101 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: undefined,
         tokenAddress: '0x123',
         chainId: '0x1',
+        indicatorsActive: [],
       });
     });
   });
 
-  describe('ambient price color A/B test', () => {
-    const ambientProps = {
+  describe('geo-based button colors', () => {
+    const geoProps = {
       ...defaultProps,
       swapTestID: 'swap-btn',
       buyTestID: 'buy-btn',
     };
 
     const defaultSuccessBg = `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`;
-    const defaultSuccessBorder = `border-[${LIGHT_MODE_SUCCESS_GREEN}]`;
 
-    it('uses default success styles when useAmbientColor is false', () => {
+    it('uses success (green) styles for non-Asia users', () => {
+      setupSelectorMock('US');
       const { getByTestId } = render(
-        <TokenDetailsStickyFooter
-          {...ambientProps}
-          useAmbientColor={false}
-          isPricePositive={false}
-          balanceFiatUsd={50}
-        />,
+        <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
       );
 
       const buyBtn = getByTestId('buy-btn');
       expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
     });
 
-    it('uses error accent on success button when useAmbientColor + negative price', () => {
+    it('uses error-default (red) styles for Asian users when useAmbientColor is true (JP)', () => {
+      setupSelectorMock('JP');
       const { getByTestId } = render(
         <TokenDetailsStickyFooter
-          {...ambientProps}
-          useAmbientColor
-          isPricePositive={false}
+          {...geoProps}
           balanceFiatUsd={50}
+          useAmbientColor
         />,
       );
 
       const buyBtn = getByTestId('buy-btn');
-      expect(buyBtn.props.twClassName).toBe(`bg-[${AMBIENT_NEGATIVE_COLOR}]`);
+      expect(buyBtn.props.twClassName).toBe('bg-error-default');
     });
 
-    it('uses error accent on secondary button border when useAmbientColor + negative price', () => {
+    it('uses error-default border on secondary button for Asian users when useAmbientColor is true (KR)', () => {
+      setupSelectorMock('KR');
       const { getByTestId } = render(
         <TokenDetailsStickyFooter
-          {...ambientProps}
-          useAmbientColor
-          isPricePositive={false}
+          {...geoProps}
           balanceFiatUsd={50}
+          useAmbientColor
         />,
       );
 
       const swapBtn = getByTestId('swap-btn');
       expect(swapBtn.props.twClassName).toBe(
-        `bg-transparent border-[${AMBIENT_NEGATIVE_COLOR}]`,
+        'bg-transparent border-error-default',
       );
     });
 
-    it('uses default success styles when useAmbientColor + positive price', () => {
+    it.each(['TW', 'CN', 'HK'])(
+      'uses error-default for %s country code when useAmbientColor is true',
+      (code) => {
+        setupSelectorMock(code);
+        const { getByTestId } = render(
+          <TokenDetailsStickyFooter
+            {...geoProps}
+            balanceFiatUsd={50}
+            useAmbientColor
+          />,
+        );
+
+        const buyBtn = getByTestId('buy-btn');
+        expect(buyBtn.props.twClassName).toBe('bg-error-default');
+      },
+    );
+
+    it('uses success (green) for Asian users when useAmbientColor is false (control)', () => {
+      setupSelectorMock('JP');
       const { getByTestId } = render(
-        <TokenDetailsStickyFooter
-          {...ambientProps}
-          useAmbientColor
-          isPricePositive
-          balanceFiatUsd={50}
-        />,
+        <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
       );
 
       const buyBtn = getByTestId('buy-btn');
       expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
     });
 
-    it('uses default success styles when isPricePositive is null (not yet resolved)', () => {
+    it('uses success (green) styles when geolocation is undefined', () => {
+      setupSelectorMock(undefined);
       const { getByTestId } = render(
-        <TokenDetailsStickyFooter
-          {...ambientProps}
-          useAmbientColor
-          isPricePositive={null}
-          balanceFiatUsd={50}
-        />,
+        <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
+      );
+
+      const buyBtn = getByTestId('buy-btn');
+      expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
+    });
+
+    it('uses success (green) styles for non-Asia country (GB)', () => {
+      setupSelectorMock('GB');
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
       );
 
       const buyBtn = getByTestId('buy-btn');
@@ -488,7 +527,7 @@ describe('TokenDetailsStickyFooter', () => {
   describe('RWA geo-restriction', () => {
     it('blocks the buy action when token is a geo-restricted stock', () => {
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('US');
+      setupSelectorMock('US');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
@@ -501,7 +540,7 @@ describe('TokenDetailsStickyFooter', () => {
 
     it('blocks the swap action when token is a geo-restricted stock', () => {
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('GB');
+      setupSelectorMock('GB');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
@@ -514,7 +553,7 @@ describe('TokenDetailsStickyFooter', () => {
 
     it('proceeds normally for a stock token in a non-restricted country', () => {
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('AR');
+      setupSelectorMock('AR');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
@@ -527,7 +566,7 @@ describe('TokenDetailsStickyFooter', () => {
 
     it('proceeds normally for a non-stock token even if in a restricted country', () => {
       mockIsStockToken.mockReturnValue(false);
-      (useSelector as jest.Mock).mockReturnValue('US');
+      setupSelectorMock('US');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
@@ -560,7 +599,7 @@ describe('TokenDetailsStickyFooter', () => {
     it('does not call onSwapPress when geo-restricted', () => {
       const onSwapPress = jest.fn();
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('US');
+      setupSelectorMock('US');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter
@@ -592,7 +631,7 @@ describe('TokenDetailsStickyFooter', () => {
     it('does not call onBuyPress when geo-restricted', () => {
       const onBuyPress = jest.fn();
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('GB');
+      setupSelectorMock('GB');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} onBuyPress={onBuyPress} />,
@@ -727,12 +766,13 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: 50,
         tokenAddress: '0x123',
         chainId: '0x1',
+        indicatorsActive: [],
       });
     });
 
     it('blocks quick buy when token is a geo-restricted stock', () => {
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('US');
+      setupSelectorMock('US');
       const onQuickBuyPress = jest.fn();
       const { getByTestId } = render(
         <TokenDetailsStickyFooter

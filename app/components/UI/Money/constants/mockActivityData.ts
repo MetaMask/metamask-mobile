@@ -7,7 +7,7 @@ import {
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import { MUSD_TOKEN, MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
-import type { CardTransaction } from '../types/moneyActivity';
+import type { AccountsApiActivity } from '../types/moneyActivity';
 
 export type MoneyActivityFilterType = 'deposit' | 'transfer';
 
@@ -15,6 +15,7 @@ export enum MoneyActivityFilter {
   All = 'all',
   Deposits = 'deposits',
   Transfers = 'transfers',
+  Purchases = 'purchases',
 }
 
 /**
@@ -165,6 +166,15 @@ const MOCK_MONEY_TRANSACTIONS: MoneyActivityTransactionMeta[] = [
     moneySubtitle: 'Transak',
     moneyActivityTitleKey: 'deposited',
   }),
+  // Apple Pay funded deposit; renders an "Apple Pay" subtitle in the list.
+  makeMoneyTx({
+    id: 'money-tx-deposited-apple-pay',
+    timestampSec: 1747004100,
+    type: TransactionType.moneyAccountDeposit,
+    amount: '1000000000',
+    moneySubtitle: 'Apple Pay',
+    moneyActivityTitleKey: 'deposited',
+  }),
   makeMoneyTx({
     id: 'money-tx-deposited-musd',
     timestampSec: 1747000800,
@@ -194,12 +204,15 @@ const MOCK_MONEY_TRANSACTIONS: MoneyActivityTransactionMeta[] = [
 export default MOCK_MONEY_TRANSACTIONS;
 
 /**
- * Mock card spend for QA. Card rows come from the Accounts API (a separate
- * source from on-chain txns), so they aren't part of MOCK_MONEY_TRANSACTIONS —
- * MoneyActivityView merges these in when mock data is enabled.
+ * Mock Accounts-API activity for QA: a card spend (outflow, under Transfers) and
+ * a cashback reward (inflow, under Deposits). These come from the Accounts API,
+ * a separate source from on-chain txns, so they aren't part of
+ * MOCK_MONEY_TRANSACTIONS — MoneyActivityView merges them in when mock data is
+ * enabled.
  */
-export const MOCK_CARD_TRANSACTIONS: CardTransaction[] = [
+export const MOCK_API_ACTIVITY: AccountsApiActivity[] = [
   {
+    kind: 'card',
     hash: '0xca5d000000000000000000000000000000000000000000000000000000000001',
     time: 1747005600 * 1000,
     chainId: MOCK_CHAIN_ID,
@@ -209,7 +222,33 @@ export const MOCK_CARD_TRANSACTIONS: CardTransaction[] = [
       decimals: MUSD_TOKEN.decimals,
     },
     amount: '10000000', // 10.00 mUSD → "-10.00 mUSD"
-    to: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
+    paidTo: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
+  },
+  {
+    kind: 'cashback',
+    hash: '0xca5b000000000000000000000000000000000000000000000000000000000001',
+    time: 1747002000 * 1000,
+    chainId: MOCK_CHAIN_ID,
+    token: {
+      address: MUSD_TOKEN_ADDRESS,
+      symbol: MUSD_TOKEN.symbol,
+      decimals: MUSD_TOKEN.decimals,
+    },
+    amount: '300000', // 0.30 mUSD → "+0.30 mUSD"
+    receivedFrom: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
+  },
+  {
+    kind: 'refund',
+    hash: '0xca5f000000000000000000000000000000000000000000000000000000000001',
+    time: 1746813600 * 1000,
+    chainId: MOCK_CHAIN_ID,
+    token: {
+      address: MUSD_TOKEN_ADDRESS,
+      symbol: MUSD_TOKEN.symbol,
+      decimals: MUSD_TOKEN.decimals,
+    },
+    amount: '10000000', // 10.00 mUSD → "+10.00 mUSD"
+    receivedFrom: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
   },
 ];
 

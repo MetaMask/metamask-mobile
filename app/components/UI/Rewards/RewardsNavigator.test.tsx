@@ -2,7 +2,7 @@ import React from 'react';
 import { act, render, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { configureStore } from '@reduxjs/toolkit';
 import RewardsNavigator from './RewardsNavigator';
 import Routes from '../../../constants/navigation/Routes';
@@ -374,7 +374,7 @@ const mockUseRewardsVersionGuard =
 
 describe('RewardsNavigator', () => {
   let store: ReturnType<typeof configureStore>;
-  const Stack = createStackNavigator();
+  const Stack = createNativeStackNavigator();
 
   beforeEach(() => {
     jest.clearAllMocks();

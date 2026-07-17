@@ -21,6 +21,9 @@ import { useConfirmationContext } from '../../context/confirmation-context';
 import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
 import { Severity } from '../../types/alerts';
 import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
+import { useSecurityAlertResponse } from '../../hooks/alerts/useSecurityAlertResponse';
+import { ResultType } from '../../constants/signatures';
+import { AlertKeys } from '../../constants/alerts';
 import { merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
@@ -61,6 +64,12 @@ jest.mock('../../../../hooks/useAlertsConfirmed', () => ({
 
 jest.mock('../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: jest.fn(),
+}));
+
+jest.mock('../../hooks/alerts/useSecurityAlertResponse', () => ({
+  useSecurityAlertResponse: jest.fn(() => ({
+    securityAlertResponse: undefined,
+  })),
 }));
 
 jest.mock('../../hooks/pay/useTransactionPayData');
@@ -106,6 +115,7 @@ describe('Footer', () => {
     jest.clearAllMocks();
 
     mockUseConfirmationContext.mockReturnValue({
+      mmPayRequestInProgressNavHandler: { current: false },
       headlessBuyError: undefined,
       isFooterVisible: true,
       isConfirmationSubmitting: false,
@@ -124,6 +134,7 @@ describe('Footer', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       fieldAlerts: [],
       hasDangerAlerts: false,
+      setAlertConfirmed: jest.fn(),
     });
 
     (useAlertsConfirmed as jest.Mock).mockReturnValue({
@@ -223,6 +234,7 @@ describe('Footer', () => {
 
   it('disables confirm button if isTransactionValueUpdating', () => {
     mockUseConfirmationContext.mockReturnValue({
+      mmPayRequestInProgressNavHandler: { current: false },
       headlessBuyError: undefined,
       isFooterVisible: true,
       isConfirmationSubmitting: false,
@@ -289,6 +301,7 @@ describe('Footer', () => {
 
   it('hides footer by default for moneyAccountDeposit transaction type', () => {
     mockUseConfirmationContext.mockReturnValue({
+      mmPayRequestInProgressNavHandler: { current: false },
       headlessBuyError: undefined,
       isFooterVisible: undefined,
       isConfirmationSubmitting: false,
@@ -328,6 +341,7 @@ describe('Footer', () => {
 
   it('hides footer by default for moneyAccountWithdraw transaction type', () => {
     mockUseConfirmationContext.mockReturnValue({
+      mmPayRequestInProgressNavHandler: { current: false },
       headlessBuyError: undefined,
       isFooterVisible: undefined,
       isConfirmationSubmitting: false,
@@ -367,6 +381,7 @@ describe('Footer', () => {
 
   it('hides footer when isFooterVisible is false', () => {
     mockUseConfirmationContext.mockReturnValue({
+      mmPayRequestInProgressNavHandler: { current: false },
       headlessBuyError: undefined,
       isFooterVisible: false,
       isConfirmationSubmitting: false,
@@ -525,6 +540,166 @@ describe('Footer', () => {
       });
 
       expect(getByText('Confirm')).toBeDefined();
+    });
+  });
+
+  describe('Scam Questionnaire branch', () => {
+    const useSecurityAlertResponseMock = jest.mocked(useSecurityAlertResponse);
+
+    const sendTxState = () =>
+      merge(
+        {},
+        simpleSendTransactionControllerMock,
+        transactionApprovalControllerMock,
+        emptySignatureControllerMock,
+        { securityAlerts: { alerts: {} } },
+      );
+
+    beforeEach(() => {
+      (useAlerts as jest.Mock).mockReturnValue({
+        fieldAlerts: [],
+        hasDangerAlerts: false,
+      });
+    });
+
+    it('renders the questionnaire instead of ConfirmAlertModal when isMMSendReq + Malicious are both true', async () => {
+      useSecurityAlertResponseMock.mockReturnValue({
+        securityAlertResponse: { result_type: ResultType.Malicious } as never,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(<Footer />, {
+        state: sendTxState(),
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+        );
+      });
+
+      expect(getByTestId('scam-questionnaire-modal')).toBeDefined();
+      expect(queryByTestId('confirm-alert-modal')).toBeNull();
+      expect(mockConfirmSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not render the questionnaire when the PPOM verdict is not Malicious', async () => {
+      useSecurityAlertResponseMock.mockReturnValue({
+        securityAlertResponse: { result_type: ResultType.Warning } as never,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(<Footer />, {
+        state: sendTxState(),
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+        );
+      });
+
+      expect(queryByTestId('scam-questionnaire-modal')).toBeNull();
+      expect(mockConfirmSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render the questionnaire when the transaction is not a user-initiated send', async () => {
+      useSecurityAlertResponseMock.mockReturnValue({
+        securityAlertResponse: { result_type: ResultType.Malicious } as never,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(<Footer />, {
+        // personalSignatureConfirmationState is not a simpleSend, so isMMSendReq is false
+        state: personalSignatureConfirmationState,
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+        );
+      });
+
+      expect(queryByTestId('scam-questionnaire-modal')).toBeNull();
+    });
+
+    it('returns the user to the confirm screen without submitting when the questionnaire is passed cleanly', async () => {
+      const setAlertConfirmed = jest.fn();
+      (useAlerts as jest.Mock).mockReturnValue({
+        fieldAlerts: [],
+        hasDangerAlerts: true,
+        hasUnconfirmedDangerAlerts: true,
+        setAlertConfirmed,
+      });
+      useSecurityAlertResponseMock.mockReturnValue({
+        securityAlertResponse: { result_type: ResultType.Malicious } as never,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(<Footer />, {
+        state: sendTxState(),
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+        );
+      });
+
+      // Answer all three questions with non-red-flag options → clean pass.
+      fireEvent.press(getByTestId('scam-questionnaire-option-q1_no'));
+      fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      fireEvent.press(getByTestId('scam-questionnaire-option-q2_goods'));
+      fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      fireEvent.press(getByTestId('scam-questionnaire-option-q3_no'));
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      });
+
+      // Questionnaire closes, the blockaid alert is acknowledged, and the tx is
+      // NOT submitted — the user is back on the confirm screen.
+      expect(queryByTestId('scam-questionnaire-modal')).toBeNull();
+      expect(setAlertConfirmed).toHaveBeenCalledWith(AlertKeys.Blockaid, true);
+      expect(mockConfirmSpy).not.toHaveBeenCalled();
+    });
+
+    it('skips the danger-alert checkbox modal and submits on the next confirm after the questionnaire is completed', async () => {
+      (useAlerts as jest.Mock).mockReturnValue({
+        fieldAlerts: [],
+        hasDangerAlerts: true,
+        hasUnconfirmedDangerAlerts: true,
+        setAlertConfirmed: jest.fn(),
+      });
+      useSecurityAlertResponseMock.mockReturnValue({
+        securityAlertResponse: { result_type: ResultType.Malicious } as never,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(<Footer />, {
+        state: sendTxState(),
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+        );
+      });
+
+      fireEvent.press(getByTestId('scam-questionnaire-option-q1_no'));
+      fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      fireEvent.press(getByTestId('scam-questionnaire-option-q2_goods'));
+      fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      fireEvent.press(getByTestId('scam-questionnaire-option-q3_no'));
+      await act(async () => {
+        fireEvent.press(getByTestId('scam-questionnaire-continue'));
+      });
+
+      // Second confirm tap: questionnaire already done, so neither it nor the
+      // checkbox modal should reappear — the tx submits directly.
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+        );
+      });
+
+      expect(queryByTestId('scam-questionnaire-modal')).toBeNull();
+      expect(queryByTestId('confirm-alert-modal')).toBeNull();
+      expect(mockConfirmSpy).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -1,18 +1,18 @@
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { useCallback, useEffect, useRef } from 'react';
 import { BackHandler } from 'react-native';
 import Device from '../../../../../util/device';
 import { useConfirmActions } from '../useConfirmActions';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
-import type { RootStackParamList } from '../../../../../core/NavigationService/types';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useConfirmationContext } from '../../context/confirmation-context';
 
 const useClearConfirmationOnBackSwipe = () => {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { onReject } = useConfirmActions();
-  const { isConfirmationSubmittingRef } = useConfirmationContext();
+  const { mmPayRequestInProgressNavHandler, isConfirmationSubmittingRef } =
+    useConfirmationContext();
   const hasRejectedRef = useRef(false);
 
   const rejectConfirmation = useCallback(
@@ -32,19 +32,31 @@ const useClearConfirmationOnBackSwipe = () => {
       return;
     }
 
-    const unsubscribe = navigation.addListener('beforeRemove', () => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (mmPayRequestInProgressNavHandler.current) {
+        e.preventDefault();
+        mmPayRequestInProgressNavHandler.current();
+        return;
+      }
       rejectConfirmation(true);
     });
 
     return () => unsubscribe?.();
-  }, [isFullScreenConfirmation, navigation, rejectConfirmation]);
+  }, [
+    mmPayRequestInProgressNavHandler,
+    isFullScreenConfirmation,
+    navigation,
+    rejectConfirmation,
+  ]);
 
   useEffect(() => {
     if (isFullScreenConfirmation && Device.isAndroid()) {
       const backHandlerSubscription = BackHandler.addEventListener(
         'hardwareBackPress',
         () => {
-          rejectConfirmation();
+          if (!mmPayRequestInProgressNavHandler.current) {
+            rejectConfirmation();
+          }
           return true;
         },
       );
@@ -53,7 +65,11 @@ const useClearConfirmationOnBackSwipe = () => {
         backHandlerSubscription.remove();
       };
     }
-  }, [isFullScreenConfirmation, rejectConfirmation]);
+  }, [
+    mmPayRequestInProgressNavHandler,
+    isFullScreenConfirmation,
+    rejectConfirmation,
+  ]);
 
   return rejectConfirmation;
 };

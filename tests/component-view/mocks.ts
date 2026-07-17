@@ -111,6 +111,7 @@ jest.mock('../../app/core/Engine', () => {
           onboarding: { requiresEmail: true },
           supportsPinView: true,
           supportsCashback: true,
+          supportsCredit: true,
         }),
       },
       PhishingController: {
@@ -197,6 +198,17 @@ jest.mock('../../app/core/Engine', () => {
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
       },
+      GeolocationController: {
+        state: {
+          location: 'US',
+        },
+        refreshGeolocation: jest.fn().mockResolvedValue('US'),
+      },
+      SeedlessOnboardingController: {
+        state: {
+          accessToken: undefined,
+        },
+      },
       // Notifications: stubbed so notification view + settings flows can call
       // controller methods (enable / disable / toggleFeatureAnnouncements /
       // markMetamaskNotificationsAsRead / fetchAndUpdateMetamaskNotifications
@@ -268,6 +280,7 @@ jest.mock('../../app/core/Engine', () => {
         addTransaction: jest.fn().mockResolvedValue({}),
         getTransactions: jest.fn().mockReturnValue([]),
         updateEditableParams: jest.fn(),
+        updateIncomingTransactions: jest.fn().mockResolvedValue(undefined),
         getNonceLock: jest
           .fn()
           .mockResolvedValue({ nextNonce: 0, releaseLock: jest.fn() }),
@@ -326,6 +339,7 @@ jest.mock('../../app/core/Engine', () => {
         resetState: jest.fn(),
         stopAllPolling: jest.fn(),
         setLocation: jest.fn(),
+        setInputPrimaryDenomination: jest.fn(),
         trackUnifiedSwapBridgeEvent: jest.fn(),
       },
       PredictController: {
@@ -355,7 +369,11 @@ jest.mock('../../app/core/Engine', () => {
         getCryptoTargetPrice: jest.fn().mockResolvedValue(69000),
         subscribeToMarketPrices: jest.fn(() => () => undefined),
         subscribeToCryptoPrices: jest.fn(() => () => undefined),
-        getConnectionStatus: jest.fn(() => ({ marketConnected: false })),
+        subscribeToGameUpdates: jest.fn(() => () => undefined),
+        getConnectionStatus: jest.fn(() => ({
+          marketConnected: false,
+          sportsConnected: false,
+        })),
         trackFeedViewed: jest.fn(),
         trackTabChanged: jest.fn(),
         trackBannerAction: jest.fn(),
@@ -363,6 +381,10 @@ jest.mock('../../app/core/Engine', () => {
         trackGeoBlockTriggered: jest.fn(),
         trackActivityViewed: jest.fn(),
         trackSearchInteracted: jest.fn(),
+        trackHomeViewed: jest.fn(),
+        trackHomeSectionInteraction: jest.fn(),
+        trackFeedTabChanged: jest.fn(),
+        trackFeedFilterChanged: jest.fn(),
         trackPortfolioPositionsButtonTapped: jest.fn(),
         trackPortfolioTransactionInitiated: jest.fn(),
         trackPositionsScreenViewed: jest.fn(),
@@ -401,6 +423,7 @@ jest.mock('../../app/core/Engine', () => {
             change24h: '$0',
             change24hPercent: '0%',
             volume: '$1M',
+            openInterest: '$500K',
             szDecimals: 2,
           },
           {
@@ -411,6 +434,7 @@ jest.mock('../../app/core/Engine', () => {
             change24h: '$0',
             change24hPercent: '0%',
             volume: '$1M',
+            openInterest: '$500K',
           },
         ]),
         getOrders: jest.fn().mockResolvedValue([]),
@@ -467,6 +491,7 @@ jest.mock('../../app/core/Engine', () => {
         markTutorialCompleted: jest.fn(),
         resetFirstTimeUserState: jest.fn(),
         clearPendingTransactionRequests: jest.fn(),
+        recordMarketViewed: jest.fn(),
       },
     },
     controllerMessenger: {
@@ -534,8 +559,25 @@ jest.mock('../../app/core/Engine/Engine.ts', () => {
 // Native deterministic version for gating logic
 jest.mock('react-native-device-info', () => ({
   __esModule: true,
-  getVersion: () => '99.0.0',
+  getVersion: jest.fn(() => '99.0.0'),
+  getBuildNumber: jest.fn(() => '999'),
+  getBrand: jest.fn(() => 'Apple'),
+  getApplicationName: jest.fn(() => Promise.resolve('MetaMask')),
 }));
+
+jest.mock(
+  '../../app/util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
+  () => ({
+    __esModule: true,
+    default: jest.fn(() => ({
+      platform: 'ios',
+      currentBuildNumber: '999',
+      applicationVersion: '99.0.0',
+      operatingSystemVersion: '17.0',
+      deviceBrand: 'Apple',
+    })),
+  }),
+);
 
 // Mock Animated Easing to avoid importing heavy bezier implementation during tests
 // and to prevent late imports after Jest environment teardown.

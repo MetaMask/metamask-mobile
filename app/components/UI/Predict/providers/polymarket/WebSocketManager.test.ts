@@ -549,6 +549,23 @@ describe('WebSocketManager', () => {
       );
     });
 
+    it('sends dynamic subscription message for tokens added to an open connection', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      const market = mockWebSocketInstances[0];
+      market.simulateOpen();
+      market.send.mockClear();
+
+      manager.subscribeToMarketPrices(['token2'], jest.fn());
+
+      expect(market.send).toHaveBeenCalledWith(
+        JSON.stringify({
+          operation: 'subscribe',
+          assets_ids: ['token2'],
+        }),
+      );
+    });
+
     it('calls callback with price updates for subscribed tokens', () => {
       const manager = WebSocketManager.getInstance();
       const callback = jest.fn();
@@ -799,6 +816,23 @@ describe('WebSocketManager', () => {
         JSON.stringify({
           type: 'market',
           assets_ids: ['token1'],
+        }),
+      );
+    });
+
+    it('sends dynamic subscription message for an orderbook added to an open connection', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      const market = getMarketInstance();
+      market.simulateOpen();
+      market.send.mockClear();
+
+      manager.subscribeToOrderbook('token2', jest.fn());
+
+      expect(market.send).toHaveBeenCalledWith(
+        JSON.stringify({
+          operation: 'subscribe',
+          assets_ids: ['token2'],
         }),
       );
     });
@@ -2335,6 +2369,9 @@ describe('WebSocketManager', () => {
         ],
         timestamp: '2025-01-12T12:00:01Z',
       });
+      // Price emission is throttled: the first message flushes immediately
+      // (leading edge) and the second is coalesced into the trailing flush.
+      jest.advanceTimersByTime(250);
 
       expect(throwingCallback).toHaveBeenCalledTimes(2);
       expect(healthyCallback).toHaveBeenCalledTimes(2);
@@ -2378,7 +2415,7 @@ describe('WebSocketManager', () => {
         context: {
           name: 'WebSocketManager',
           data: {
-            method: 'handleMarketMessage',
+            method: 'flushMarketPriceUpdates',
             subscriptionKey: 'token1',
           },
         },

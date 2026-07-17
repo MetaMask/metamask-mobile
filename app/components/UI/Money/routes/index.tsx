@@ -9,7 +9,6 @@ import { useTheme } from '../../../../util/theme';
 import MoneyHomeView from '../Views/MoneyHomeView';
 import MoneyActivityView from '../Views/MoneyActivityView';
 import MoneyHowItWorksView from '../Views/MoneyHowItWorksView';
-import MoneyPotentialEarningsView from '../Views/MoneyPotentialEarningsView';
 import MoneyAddMoneySheet from '../components/MoneyAddMoneySheet';
 import MoneyMoreSheet from '../components/MoneyMoreSheet';
 import MoneyTransferSheet from '../components/MoneyTransferSheet';
@@ -18,13 +17,20 @@ import MoneyEarningsInfoSheet from '../components/MoneyEarningsInfoSheet';
 import MoneyBalanceInfoSheet from '../components/MoneyBalanceInfoSheet';
 import MoneyLinkCardSheet from '../components/MoneyLinkCardSheet';
 import MoneyEarnCryptoInfoSheet from '../components/MoneyEarnCryptoInfoSheet';
-import MoneyCardTransactionDetailsSheet from '../components/MoneyCardTransactionDetailsSheet/MoneyCardTransactionDetailsSheet';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { useUpgradeMoneyAccountOnMount } from '../hooks/useUpgradeMoneyAccountOnMount';
+import MoneyGeoBlockSheet from '../components/MoneyGeoBlockSheet/MoneyGeoBlockSheet';
+import type {
+  MoneyConfirmationsNavigationParamList,
+  MoneyModalsNavigationParamList,
+  MoneyScreensStackParamList,
+} from '../types/navigation';
 
-const Stack = createNativeStackNavigator();
-const ModalStack = createNativeStackNavigator();
+const TabStack = createNativeStackNavigator<MoneyScreensStackParamList>();
+const ConfirmationStack =
+  createNativeStackNavigator<MoneyConfirmationsNavigationParamList>();
+const ModalStack = createNativeStackNavigator<MoneyModalsNavigationParamList>();
 
 // For Money screens that require bottom navbar.
 const MoneyTabScreenStack = () => {
@@ -33,27 +39,23 @@ const MoneyTabScreenStack = () => {
   useUpgradeMoneyAccountOnMount();
 
   return (
-    <Stack.Navigator
+    <TabStack.Navigator
       initialRouteName={Routes.MONEY.HOME}
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen name={Routes.MONEY.HOME} component={MoneyHomeView} />
-      <Stack.Screen
+      <TabStack.Screen name={Routes.MONEY.HOME} component={MoneyHomeView} />
+      <TabStack.Screen
         name={Routes.MONEY.ACTIVITY}
         component={MoneyActivityView}
       />
-      <Stack.Screen
+      <TabStack.Screen
         name={Routes.MONEY.HOW_IT_WORKS}
         component={MoneyHowItWorksView}
       />
-      <Stack.Screen
-        name={Routes.MONEY.POTENTIAL_EARNINGS}
-        component={MoneyPotentialEarningsView}
-      />
-    </Stack.Navigator>
+    </TabStack.Navigator>
   );
 };
 
@@ -66,7 +68,7 @@ const MoneyConfirmationScreenStack = () => {
   useUpgradeMoneyAccountOnMount();
 
   return (
-    <Stack.Navigator
+    <ConfirmationStack.Navigator
       initialRouteName={
         Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
       }
@@ -75,12 +77,12 @@ const MoneyConfirmationScreenStack = () => {
         contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen
+      <ConfirmationStack.Screen
         name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
         options={emptyNavHeaderOptions}
         component={Confirm}
       />
-    </Stack.Navigator>
+    </ConfirmationStack.Navigator>
   );
 };
 
@@ -132,8 +134,8 @@ const MoneyModalStack = () => (
       options={{ headerShown: false }}
     />
     <ModalStack.Screen
-      name={Routes.MONEY.MODALS.CARD_TRANSACTION_DETAILS_SHEET}
-      component={MoneyCardTransactionDetailsSheet}
+      name={Routes.MONEY.MODALS.GEO_BLOCK_SHEET}
+      component={MoneyGeoBlockSheet}
       options={{ headerShown: false }}
     />
   </ModalStack.Navigator>

@@ -22,7 +22,7 @@ import {
   toHex,
 } from '@metamask/controller-utils';
 import { toLowerCaseEquals } from '../general';
-import { fastSplit } from '../number';
+import { fastSplit } from '../number/bigint';
 import { regex } from '../../../app/util/regex';
 import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../../app/core/Multichain/constants';
 import {
@@ -244,6 +244,9 @@ export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
 export const isLineaMainnetChainId = (chainId) =>
   chainId === CHAIN_IDS.LINEA_MAINNET;
 
+export const isPolygonMainnetChainId = (chainId) =>
+  chainId === NETWORKS_CHAIN_ID.POLYGON;
+
 export const isMonadMainnetChainId = (chainId) => chainId === CHAIN_IDS.MONAD;
 
 export const isSolanaMainnet = (chainId) => chainId === SolScope.Mainnet;
@@ -348,7 +351,7 @@ export const isTestNet = (chainId) => TESTNET_CHAIN_IDS.includes(chainId);
 
 /**
  * Returns whether the network can be deleted by the user.
- * Aligns with NetworkSelector: mainnet, Linea mainnet, and testnets cannot be removed.
+ * Aligns with NetworkSelector: default networks and testnets cannot be removed.
  *
  * @param {string} chainId - The chain ID to check (e.g. '0x1', '0x89').
  * @returns {boolean} True if the network can be deleted, false otherwise.
@@ -359,6 +362,7 @@ export const canDeleteNetwork = (chainId) =>
       !isTestNet(chainId) &&
       !isMainNet(chainId) &&
       !isLineaMainnetChainId(chainId) &&
+      !isPolygonMainnetChainId(chainId) &&
       !isMonadMainnetChainId(chainId),
   );
 

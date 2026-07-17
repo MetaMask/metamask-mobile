@@ -488,6 +488,11 @@ describe('deepLinkAnalytics', () => {
       const result = mapSupportedActionToRoute(ACTIONS.ANDROID_SDK);
       expect(result).toBe(DeepLinkRoute.SDK_CONNECT);
     });
+
+    it('maps MONEY action to MONEY route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.MONEY);
+      expect(result).toBe(DeepLinkRoute.MONEY);
+    });
   });
 
   describe('extractRouteFromUrl', () => {
@@ -578,6 +583,11 @@ describe('deepLinkAnalytics', () => {
     it('extract home route for home path', () => {
       const result = extractRouteFromUrl('https://link.metamask.io/home');
       expect(result).toBe(DeepLinkRoute.HOME);
+    });
+
+    it('extract money route', () => {
+      const result = extractRouteFromUrl('https://link.metamask.io/money');
+      expect(result).toBe(DeepLinkRoute.MONEY);
     });
 
     it('return INVALID for unknown routes', () => {

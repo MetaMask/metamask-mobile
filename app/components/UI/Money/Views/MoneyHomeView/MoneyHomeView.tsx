@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Linking, RefreshControl, ScrollView } from 'react-native';
+import { RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -16,6 +16,8 @@ import {
   BannerAlertSeverity,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Engine from '../../../../../core/Engine';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
@@ -28,21 +30,25 @@ import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
 import MoneyMetaMaskCard from '../../components/MoneyMetaMaskCard';
 import MoneyWhatYouGet from '../../components/MoneyWhatYouGet';
-import MoneyActivityList from '../../components/MoneyActivityList';
+import MoneyActivityList, {
+  MAX_PREVIEW_ITEMS as MONEY_HOME_ACTIVITY_PREVIEW_COUNT,
+} from '../../components/MoneyActivityList';
 import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
-import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
-import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
-import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
+import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
+import { MoneyActivityFilter } from '../../constants/mockActivityData';
+import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
+import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import { moneyFormatFiat, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
+import { moneyFormatUsd, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
+import { convertSelectedFiatToUsd } from '../../utils/moneyActivityFiat';
+import { selectCurrencyRates } from '../../../../../selectors/currencyRateController';
 import { calculateProjectedEarnings } from '../../utils/projections';
 import AppConstants from '../../../../../core/AppConstants';
 import {
@@ -50,6 +56,8 @@ import {
   selectHasMetalCard,
   selectIsCardholder,
 } from '../../../../../selectors/cardController';
+import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
+import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
@@ -68,8 +76,13 @@ import {
   deriveCardState,
 } from '../../../Card/util/metrics';
 
+import { TraceName } from '../../../../../util/trace';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import {
+  useMoneyHomePerformance,
+  type MoneyHomeSegment,
+} from '../../hooks/useMoneyHomePerformance';
 import useMountEffect from '../../hooks/useMountEffect';
 import {
   COMPONENT_NAMES,
@@ -82,8 +95,9 @@ import {
   MONEY_BUTTON_TYPES,
 } from '../../constants/moneyEvents';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 
-const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
+const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
 const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
 
@@ -91,10 +105,11 @@ const MoneyHomeView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
-  const currentCurrency = useSelector(selectCurrentCurrency);
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedCardActionRowViewRef = useRef(false);
+  const { PreferencesController } = Engine.context;
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const {
     trackButtonClicked,
@@ -116,7 +131,10 @@ const MoneyHomeView = () => {
     lastKnownTotalFiatFormatted,
     refetchBalance,
     apyPercent,
+    apyDecimal,
   } = useMoneyAccountBalance();
+
+  const refreshMusdFiatRate = useRefreshMusdFiatRate();
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
@@ -126,39 +144,59 @@ const MoneyHomeView = () => {
   const handlePullRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await refetchBalance();
+      await Promise.all([refetchBalance(), refreshMusdFiatRate()]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
     } finally {
       setRefreshing(false);
     }
-  }, [refetchBalance]);
+  }, [refetchBalance, refreshMusdFiatRate]);
 
   const { hasMoneyAccount } = useMoneyAccountInfo();
-  const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
+  // mUSD is USD-pegged 1:1, so show the token balance as dollars — consistent
+  // with the account balance and projected earnings above, which also use USD.
+  const { tokenBalanceAggregated: musdTokenBalanceAggregated } =
     useMusdBalance();
-
-  const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
-  const { initiateDeposit } = useMoneyAccountDeposit();
-  const { allTransactions, moneyAddress, mockDataEnabled } =
-    useMoneyAccountTransactions();
-  const { cardTransactions, isLoading: isCardActivityLoading } =
-    useMoneyAccountCardTransactions();
-  // Mock mode shows curated demo data only — never merge real card spends (or
-  // their loading state) into it.
-  const showCardActivityLoading = isCardActivityLoading && !mockDataEnabled;
-  const activityItems = useMemo(
-    () =>
-      mergeMoneyActivity(
-        allTransactions,
-        mockDataEnabled ? [] : cardTransactions,
-      ),
-    [allTransactions, cardTransactions, mockDataEnabled],
+  const musdFiatFormatted = useMemo(
+    () => moneyFormatUsd(new BigNumber(musdTokenBalanceAggregated)),
+    [musdTokenBalanceAggregated],
   );
+
+  const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens({
+    overrideToUsd: true,
+  });
+  const { initiateDeposit } = useMoneyAccountDeposit();
+  // Share the single merge/bucket path with the full activity view so the home
+  // preview and that view never diverge (notably in mock mode). The home
+  // preview shows the "All" bucket; `isLoading` is already mock-aware.
+  const {
+    buckets,
+    hasMore: hasMoreActivity,
+    // Still settling while the initial query loads or the auto-fill may yet
+    // deliver a first preview row — the hook derives this from the same
+    // predicate that drives its fetch loop, so the skeleton can neither
+    // vanish mid-fill nor outlive a fill that stopped (budget spent, error).
+    isSettling: isActivitySettling,
+    error: activityError,
+    moneyAddress,
+    mockDataEnabled,
+  } = useMoneyActivityItems({
+    fill: {
+      bucket: MoneyActivityFilter.All,
+      count: MONEY_HOME_ACTIVITY_PREVIEW_COUNT,
+    },
+  });
+  const activityItems = buckets[MoneyActivityFilter.All];
 
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const hasMetalCard = useSelector(selectHasMetalCard);
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyAccountGeoEligible = useSelector(
+    selectIsMoneyAccountGeoEligible,
+  );
+  const isMoneyAccountVisible =
+    isMoneyAccountEnabled && isMoneyAccountGeoEligible;
   const {
     startLinkFlow,
     isCardAuthenticated,
@@ -166,7 +204,20 @@ const MoneyHomeView = () => {
     isCardLinkedToMoneyAccount,
     isLinking,
     hasMoneyAccountRequirements,
+    hasMoneyAccountBaseRequirements,
+    isResidencyBlocked,
   } = useMoneyAccountCardLinkage();
+
+  const metamaskCardMode = deriveMoneyMetaMaskCardMode({
+    isCardLinkedToMoneyAccount,
+    isCardholder,
+    isCardAuthenticated,
+    isCardVerified,
+    isResidencyBlocked,
+    isMoneyAccountVisible,
+    hasMoneyAccountBaseRequirements,
+    hasMoneyAccountRequirements,
+  });
 
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
@@ -195,38 +246,67 @@ const MoneyHomeView = () => {
   const isFunded = hasSpendableBalance || activityItems.length > 0;
   const isEmptyState = hasBalanceValue && !isFunded;
 
-  const formattedZero = useMemo(
-    () => moneyFormatFiat(new BigNumber(0), currentCurrency),
-    [currentCurrency],
-  );
+  // Report time-to-content separately for the balance and the activity list, so
+  // their load times can be compared, plus a combined "fully usable" span.
+  const balanceReady = !isBalanceLoading;
+  // Only ready once the preview is no longer settling, so the time-to-content
+  // trace can't close before auto-fill rows are actually on screen. A failed
+  // fetch ends the span as a failure rather than a (fast) success.
+  const activityReady = !isActivitySettling;
+  // Each segment carries its own content_state so it is sampled from data
+  // that segment has actually settled — the combined span may only read
+  // `isFunded` because it waits for both. Rebuilt every render; the hook ends
+  // each span at most once, so no memoisation is needed.
+  const moneyHomePerformanceSegments: MoneyHomeSegment[] = [
+    {
+      name: TraceName.MoneyHomeBalanceTimeToContent,
+      ready: balanceReady,
+      contentState: hasSpendableBalance ? 'filled' : 'empty',
+    },
+    {
+      name: TraceName.MoneyHomeActivityTimeToContent,
+      ready: activityReady,
+      failed: activityError,
+      contentState: activityItems.length > 0 ? 'filled' : 'empty',
+    },
+    {
+      name: TraceName.MoneyHomeTimeToContent,
+      ready: balanceReady && activityReady,
+      failed: activityError,
+      contentState: isFunded ? 'filled' : 'empty',
+    },
+  ];
+  useMoneyHomePerformance({ segments: moneyHomePerformanceSegments });
+
+  const formattedZero = useMemo(() => moneyFormatUsd(new BigNumber(0)), []);
 
   const monthlyEarnings = useMemo(() => {
-    if (!totalFiatRaw || !apyPercent) return formattedZero;
+    if (!totalFiatRaw || !apyDecimal) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
     const earnings = calculateProjectedEarnings(
       balance.toNumber(),
-      apyPercent,
+      apyDecimal,
       1 / 12,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
-    const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+    const formatted = moneyFormatUsd(new BigNumber(earnings));
     return formatted === formattedZero ? formatted : `+${formatted}`;
-  }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
+  }, [totalFiatRaw, apyDecimal, formattedZero]);
 
   const yearlyEarnings = useMemo(() => {
-    if (!totalFiatRaw || !apyPercent) return formattedZero;
+    if (!totalFiatRaw || !apyDecimal) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
     const earnings = calculateProjectedEarnings(
       balance.toNumber(),
-      apyPercent,
+      apyDecimal,
       1,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
-    const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+    const formatted = moneyFormatUsd(new BigNumber(earnings));
     return formatted === formattedZero ? formatted : `+${formatted}`;
-  }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
+  }, [totalFiatRaw, apyDecimal, formattedZero]);
 
   const handleMenuPress = useCallback(() => {
     trackButtonClicked({
@@ -312,11 +392,14 @@ const MoneyHomeView = () => {
   }, [navigation, trackButtonClicked]);
 
   const navigateToCardHome = useCallback(() => {
+    const isUpsell = metamaskCardMode === 'upsell';
+
     navigation.navigate(Routes.CARD.ROOT, {
       screen: Routes.CARD.HOME,
       params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      ...(isUpsell ? { animation: 'slide_from_bottom' } : {}),
     });
-  }, [navigation]);
+  }, [navigation, metamaskCardMode]);
 
   const handleCardHeaderPress = useCallback(() => {
     trackSurfaceClicked({
@@ -353,8 +436,7 @@ const MoneyHomeView = () => {
 
   const handleLinkCardPress = useCallback(() => {
     startLinkFlow({
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
+      ...MONEY_HOME_CARD_ORIGIN,
       entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
     });
   }, [startLinkFlow]);
@@ -386,6 +468,10 @@ const MoneyHomeView = () => {
     });
   }, [trackTooltipClicked, navigation, apyPercent]);
 
+  const handleBalancePress = useCallback(() => {
+    PreferencesController.setPrivacyMode(!privacyMode);
+  }, [PreferencesController, privacyMode]);
+
   const handleEarningsInfoPress = useCallback(() => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.ESTIMATED_EARNINGS,
@@ -416,11 +502,9 @@ const MoneyHomeView = () => {
         redirect_target: MONEY_URLS.MUSD_PRICE,
       });
 
-      Linking.openURL(AppConstants.URLS.MUSD_PRICE).catch((error: Error) => {
-        Logger.error(error, '[MoneyHomeView] Failed to open mUSD price page');
-      });
+      openInAppBrowser(navigation, AppConstants.URLS.MUSD_PRICE);
     },
-    [trackSurfaceClicked],
+    [navigation, trackSurfaceClicked],
   );
 
   const handleTokenButtonPress = useCallback(
@@ -511,10 +595,8 @@ const MoneyHomeView = () => {
       redirect_target: MONEY_URLS.MONEY_LANDING,
     });
 
-    Linking.openURL(AppConstants.URLS.MONEY_LANDING).catch((error: Error) => {
-      Logger.error(error, '[MoneyHomeView] Failed to open Money landing page');
-    });
-  }, [trackSurfaceClicked]);
+    openInAppBrowser(navigation, AppConstants.URLS.MONEY_LANDING);
+  }, [navigation, trackSurfaceClicked]);
 
   const handleLearnMorePress = useCallback(() => {
     trackButtonClicked({
@@ -525,10 +607,8 @@ const MoneyHomeView = () => {
       redirect_target: MONEY_URLS.MONEY_LANDING,
     });
 
-    Linking.openURL(AppConstants.URLS.MONEY_LANDING).catch((error: Error) => {
-      Logger.error(error, '[MoneyHomeView] Failed to open Money landing page');
-    });
-  }, [trackButtonClicked]);
+    openInAppBrowser(navigation, AppConstants.URLS.MONEY_LANDING);
+  }, [navigation, trackButtonClicked]);
 
   const handleHowItWorksPress = useCallback(
     ({ componentName }: { componentName: COMPONENT_NAMES }) => {
@@ -578,26 +658,189 @@ const MoneyHomeView = () => {
     [navigation, trackActivitySurfaceClicked],
   );
 
-  let metamaskCardMode: 'upsell' | 'link' | 'manage' | null;
-  if (isCardLinkedToMoneyAccount) {
-    metamaskCardMode = 'manage';
-  } else if (isCardholder || (isCardAuthenticated && isCardVerified)) {
-    metamaskCardMode = hasMoneyAccountRequirements ? 'link' : null;
-  } else if (isCardAuthenticated) {
-    metamaskCardMode = null;
-  } else {
-    metamaskCardMode = 'upsell';
-  }
-
   const { primaryToken: cardPrimaryToken } = useCardHomeData();
-  const cardBalance = cardPrimaryToken?.balanceFiat ?? formattedZero;
+  const currencyRates = useSelector(selectCurrencyRates);
+  // Money Account entries are already valued in USD. Other Card tokens report
+  // their fiat value in the user's selected currency.
+  const cardBalanceUsd = useMemo(() => {
+    const rawFiat = cardPrimaryToken?.rawFiatNumber;
+    const usd = cardPrimaryToken?.isMoneyAccountEntry
+      ? rawFiat
+      : convertSelectedFiatToUsd(rawFiat, currencyRates);
+    return usd === undefined
+      ? formattedZero
+      : moneyFormatUsd(new BigNumber(usd));
+  }, [
+    cardPrimaryToken?.isMoneyAccountEntry,
+    cardPrimaryToken?.rawFiatNumber,
+    currencyRates,
+    formattedZero,
+  ]);
+
   const cardState = deriveCardState({
     isCardholder,
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
   });
+
   const isCardAnalyticsReady =
     cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
+
+  const metamaskCardSection = metamaskCardMode
+    ? {
+        key: 'metamask-card',
+        node: (
+          <MoneyMetaMaskCard
+            mode={metamaskCardMode}
+            onGetNowPress={navigateToCardHome}
+            onHeaderPress={handleCardHeaderPress}
+            onLinkPress={handleLinkCardPress}
+            onManagePress={navigateToCardHome}
+            showMetalCard={hasMetalCard}
+            isLinkDisabled={isLinking}
+            cardBalance={cardBalanceUsd}
+            isBalanceStale={showBalanceUnavailableBanner}
+            privacyMode={privacyMode}
+            apy={apyPercent}
+            analyticsScreen={CardScreens.MONEY_HOME}
+            analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
+            analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
+            analyticsCardState={cardState}
+            analyticsReady={isCardAnalyticsReady}
+          />
+        ),
+      }
+    : null;
+
+  const shouldShowMetaMaskCardEarly =
+    metamaskCardMode !== null && metamaskCardMode !== 'upsell';
+
+  const contentSections: { key: string; node: React.ReactNode }[] = [];
+
+  if (hasBalanceValue && isFunded) {
+    contentSections.push({
+      key: 'earnings',
+      node: (
+        <MoneyEarnings
+          monthlyEarnings={monthlyEarnings}
+          yearlyEarnings={yearlyEarnings}
+          isLoading={vaultApyQuery.isLoading || isBalanceLoading}
+          onInfoPress={handleEarningsInfoPress}
+          privacyMode={privacyMode}
+        />
+      ),
+    });
+  }
+
+  if (isEmptyState) {
+    contentSections.push({
+      key: 'how-it-works',
+      node: (
+        <>
+          <MoneyHowItWorks
+            apy={apyPercent}
+            onHeaderPress={() =>
+              handleHowItWorksPress({
+                componentName:
+                  COMPONENT_NAMES.MONEY_HOW_IT_WORKS_SECTION_HEADER,
+              })
+            }
+            isLoading={vaultApyQuery.isLoading}
+          />
+          <MoneyMusdTokenRow
+            onPress={() =>
+              handleMusdRowPress({
+                componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
+              })
+            }
+            onAddPress={handleMusdRowAddPress}
+            balance={musdFiatFormatted}
+            privacyMode={privacyMode}
+          />
+        </>
+      ),
+    });
+  }
+
+  if (shouldShowMetaMaskCardEarly && metamaskCardSection) {
+    contentSections.push(metamaskCardSection);
+  }
+
+  if (isActivitySettling || activityItems.length >= 1) {
+    contentSections.push({
+      key: 'activity',
+      node: isActivitySettling ? (
+        <MoneyActivityLoading />
+      ) : (
+        <MoneyActivityList
+          items={activityItems}
+          moneyAddress={moneyAddress}
+          hasMore={hasMoreActivity}
+          onViewAllPress={handleViewAllActivityPress}
+          onHeaderPress={handleActivityHeaderPress}
+          onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}
+          privacyMode={privacyMode}
+        />
+      ),
+    });
+  }
+
+  if (depositTokens.length > 0) {
+    contentSections.push({
+      key: 'potential-earnings',
+      node: (
+        <MoneyPotentialEarnings
+          tokens={depositTokens}
+          apyDecimal={apyDecimal}
+          isNoFeeToken={isNoFeeToken}
+          onTokenCardPress={handleTokenCardPress}
+          onTokenButtonPress={handleTokenButtonPress}
+          onViewAllPress={handleMoneyPotentialEarningsViewAllPressed}
+          onHeaderPress={handlePotentialEarningsHeaderPress}
+          onInfoPress={handleEarnCryptoInfoPress}
+          privacyMode={privacyMode}
+        />
+      ),
+    });
+  }
+
+  if (!shouldShowMetaMaskCardEarly && metamaskCardSection) {
+    contentSections.push(metamaskCardSection);
+  }
+
+  if (isFunded) {
+    contentSections.push({
+      key: 'condensed-info',
+      node: (
+        <MoneyCondensedInfoCards
+          onHowItWorksPress={() =>
+            handleHowItWorksPress({
+              componentName:
+                COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_HOW_IT_WORKS,
+            })
+          }
+          onMusdPress={() =>
+            handleMusdRowPress({
+              componentName: COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_MUSD,
+            })
+          }
+          onWhatYouGetPress={handleWhatYouGetPress}
+        />
+      ),
+    });
+  }
+
+  if (isEmptyState) {
+    contentSections.push({
+      key: 'what-you-get',
+      node: (
+        <MoneyWhatYouGet
+          apy={apyPercent}
+          onLearnMorePress={handleLearnMorePress}
+        />
+      ),
+    });
+  }
 
   return (
     <Box
@@ -636,6 +879,8 @@ const MoneyHomeView = () => {
           apy={apyPercent}
           displayState={displayState}
           onApyInfoPress={handleApyInfoPress}
+          privacyMode={privacyMode}
+          onBalancePress={handleBalancePress}
         />
         <MoneyActionButtonRow
           add={{
@@ -654,121 +899,13 @@ const MoneyHomeView = () => {
           card={{ onPress: handleActionButtonCardPress }}
         />
         <MoneyOnboardingCard />
-        {hasBalanceValue && isFunded && (
-          <>
-            <MoneyEarnings
-              monthlyEarnings={monthlyEarnings}
-              yearlyEarnings={yearlyEarnings}
-              isLoading={vaultApyQuery.isLoading || isBalanceLoading}
-              onInfoPress={handleEarningsInfoPress}
-            />
-            <Divider />
-          </>
-        )}
-        {isEmptyState && (
-          <>
-            <MoneyHowItWorks
-              apy={apyPercent}
-              onHeaderPress={() =>
-                handleHowItWorksPress({
-                  componentName:
-                    COMPONENT_NAMES.MONEY_HOW_IT_WORKS_SECTION_HEADER,
-                })
-              }
-              isLoading={vaultApyQuery.isLoading}
-            />
-            <MoneyMusdTokenRow
-              onPress={() =>
-                handleMusdRowPress({
-                  componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
-                })
-              }
-              onAddPress={handleMusdRowAddPress}
-              balance={musdFiatFormatted}
-            />
-            <MoneyFooter onAddMoneyPress={handleFooterAddMoneyPress} />
-          </>
-        )}
-        {(showCardActivityLoading || activityItems.length >= 1) && (
-          <>
-            {showCardActivityLoading ? (
-              <MoneyActivityLoading />
-            ) : (
-              <MoneyActivityList
-                items={activityItems}
-                moneyAddress={moneyAddress}
-                onViewAllPress={handleViewAllActivityPress}
-                onHeaderPress={handleActivityHeaderPress}
-                onItemPress={
-                  mockDataEnabled ? undefined : handleActivityItemPress
-                }
-              />
-            )}
-            <Divider />
-          </>
-        )}
-        {depositTokens.length > 0 && (
-          <>
-            <MoneyPotentialEarnings
-              tokens={depositTokens}
-              apy={apyPercent}
-              isNoFeeToken={isNoFeeToken}
-              onTokenCardPress={handleTokenCardPress}
-              onTokenButtonPress={handleTokenButtonPress}
-              onViewAllPress={handleMoneyPotentialEarningsViewAllPressed}
-              onHeaderPress={handlePotentialEarningsHeaderPress}
-              onInfoPress={handleEarnCryptoInfoPress}
-            />
-            <Divider />
-          </>
-        )}
-        {metamaskCardMode && (
-          <>
-            <MoneyMetaMaskCard
-              mode={metamaskCardMode}
-              onGetNowPress={navigateToCardHome}
-              onHeaderPress={handleCardHeaderPress}
-              onLinkPress={handleLinkCardPress}
-              onManagePress={navigateToCardHome}
-              showMetalCard={hasMetalCard}
-              isLinkDisabled={isLinking}
-              cardBalance={cardBalance}
-              isBalanceStale={showBalanceUnavailableBanner}
-              apy={apyPercent}
-              analyticsScreen={CardScreens.MONEY_HOME}
-              analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
-              analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
-              analyticsCardState={cardState}
-              analyticsReady={isCardAnalyticsReady}
-            />
-            <Divider />
-          </>
-        )}
-        {isFunded && (
-          <MoneyCondensedInfoCards
-            onHowItWorksPress={() =>
-              handleHowItWorksPress({
-                componentName:
-                  COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_HOW_IT_WORKS,
-              })
-            }
-            onMusdPress={() =>
-              handleMusdRowPress({
-                componentName: COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_MUSD,
-              })
-            }
-            onWhatYouGetPress={handleWhatYouGetPress}
-          />
-        )}
-        {isEmptyState && (
-          <MoneyWhatYouGet
-            apy={apyPercent}
-            onLearnMorePress={handleLearnMorePress}
-          />
-        )}
-        {!isEmptyState && (
-          <MoneyFooter onAddMoneyPress={handleFooterAddMoneyPress} />
-        )}
+        {contentSections.map((section, index) => (
+          <React.Fragment key={section.key}>
+            {index > 0 && <Divider />}
+            {section.node}
+          </React.Fragment>
+        ))}
+        <MoneyFooter onAddMoneyPress={handleFooterAddMoneyPress} />
       </ScrollView>
     </Box>
   );

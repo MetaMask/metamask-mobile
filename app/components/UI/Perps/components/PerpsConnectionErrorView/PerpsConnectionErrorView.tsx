@@ -3,14 +3,13 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   Button,
-  ButtonVariant,
   ButtonSize,
-} from '@metamask/design-system-react-native';
-import Icon, {
+  ButtonVariant,
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -76,7 +75,7 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
       <View style={styles.errorContainer}>
         <Icon
           name={IconName.Warning}
-          color={IconColor.Muted}
+          color={IconColor.IconMuted}
           size={IconSize.Xl}
           style={styles.errorIcon}
         />

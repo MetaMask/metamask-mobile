@@ -47,12 +47,11 @@ import { navigateToRewardsRoute } from '../utils';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
-import { Image, Pressable, ScrollView } from 'react-native';
+import { Pressable, ScrollView } from 'react-native';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
 import VipIcon from '../../../../images/rewards/vip.svg';
-import VipRefereeFoxIcon from '../../../../images/rewards/vip_splash.png';
 import Engine from '../../../../core/Engine';
 
 const VIP_UNLOCK_TAP_COUNT = 5;
@@ -379,12 +378,7 @@ const RewardsDashboard: React.FC = () => {
                   style={tw.style('h-8 w-8 items-center justify-center')}
                   testID={REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON}
                 >
-                  <Image
-                    source={VipRefereeFoxIcon}
-                    style={tw.style('h-6 w-6')}
-                    width={24}
-                    height={24}
-                  />
+                  <VipIcon width={24} height={24} name="VipIcon" />
                 </Pressable>
               )}
               {isVipProgramEnabled && isVipEnabled && (

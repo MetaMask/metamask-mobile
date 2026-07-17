@@ -2,18 +2,17 @@ import React, { useMemo, useState, useCallback, useRef } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
 import {
   Button,
-  ButtonVariant,
   ButtonSize,
+  ButtonVariant,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -40,11 +39,8 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import {
-  MetaMetricsEvents,
-  mergeAssetViewedProperties,
-} from '../../../../../core/Analytics';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 
 /**
  * PerpsOpenOrderCard Component
@@ -84,7 +80,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   isCancelling = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { track } = usePerpsEventTracking();
 
   // Used to prevent rapid clicks on the cancel button before it has time to re-render.
   const isLocallyCancellingRef = useRef(false);
@@ -146,24 +142,14 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
     }
 
     if (!isEligible) {
-      // Track geo-block screen viewed
-      const geoBlockProperties = {
+      // Track geo-block screen viewed. Routed through usePerpsEventTracking so
+      // UTM attribution is merged and the companion Asset Viewed is emitted
+      // consistently with every other Perps screen-view.
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
         [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
           PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
         [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.CANCEL_ORDER,
-      };
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_SCREEN_VIEWED)
-          .addProperties(geoBlockProperties)
-          .build(),
-      );
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
-          .addProperties(
-            mergeAssetViewedProperties('Perps', geoBlockProperties),
-          )
-          .build(),
-      );
+      });
       setIsEligibilityModalVisible(true);
       return;
     }
@@ -176,7 +162,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
     });
 
     onCancel?.(order);
-  }, [isEligible, onCancel, order, trackEvent, createEventBuilder]);
+  }, [isEligible, onCancel, order, track]);
 
   const handleCardPress = useCallback(() => {
     if (onSelect) {
@@ -248,8 +234,8 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                 <View style={styles.fillBadge}>
                   <Icon
                     name={IconName.Loading}
-                    size={IconSize.Xss}
-                    color={IconColor.Alternative}
+                    size={IconSize.Xs}
+                    color={IconColor.IconAlternative}
                     style={styles.fillBadgeIcon}
                   />
                   <Text

@@ -3,6 +3,10 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { isMusdOnMoneyAccountChain } from '../../Earn/constants/musd';
+import {
+  isPerpsPredictMoneyDeposit,
+  isPerpsPredictMoneyWithdraw,
+} from '../utils/moneyTransactionGuards';
 
 const ERC20_TRANSFER_TYPES: TransactionType[] = [
   TransactionType.tokenMethodTransfer,
@@ -32,10 +36,12 @@ export function isMoneyActivityDeposit(tx: TransactionMeta): boolean {
   if (
     t === TransactionType.incoming ||
     t === TransactionType.moneyAccountDeposit ||
-    isMusdErc20Transfer(tx)
+    isMusdErc20Transfer(tx) ||
+    isPerpsPredictMoneyWithdraw(tx)
   ) {
     return true;
   }
+
   // EIP-7702 batch deposits: moneyAccountDeposit sits in nestedTransactions
   return (
     tx.nestedTransactions?.some(
@@ -48,7 +54,8 @@ export function isMoneyActivityTransfer(tx: TransactionMeta): boolean {
   const t = tx.type;
   if (
     t === TransactionType.moneyAccountWithdraw ||
-    t === TransactionType.simpleSend
+    t === TransactionType.simpleSend ||
+    isPerpsPredictMoneyDeposit(tx)
   ) {
     return true;
   }

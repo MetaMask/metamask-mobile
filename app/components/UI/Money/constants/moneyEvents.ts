@@ -6,6 +6,8 @@ import AppConstants from '../../../../core/AppConstants';
  */
 export enum SCREEN_NAMES {
   WALLET_HOME = 'wallet_home',
+  TOKENS_SECTION_FULL_VIEW = 'tokens_section_full_view',
+  ASSET_DETAIL = 'asset_detail',
   MONEY_HOME = 'money_home',
   MONEY_ONBOARDING = 'money_onboarding',
   CARD_HOME = 'card_home',
@@ -16,6 +18,7 @@ export enum SCREEN_NAMES {
   MONEY_ACTIVITY = 'money_activity',
   MONEY_ACTIVITY_DETAILS = 'money_activity_details',
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
+  MONEY_FIRST_TIME_DEPOSIT = 'money_first_time_deposit',
 }
 
 export enum BOTTOM_SHEET_NAMES {
@@ -28,6 +31,8 @@ export enum BOTTOM_SHEET_NAMES {
   MONEY_EARN_CRYPTO_INFO_SHEET = 'money_earn_crypto_info_sheet',
   MONEY_MORE_SHEET = 'money_more_sheet',
   MONEY_BALANCE_INFO_SHEET = 'money_balance_info_sheet',
+  MONEY_GEO_BLOCK_SHEET = 'money_geo_block_sheet',
+  MONEY_DEEPLINK_MODAL = 'money_deeplink_modal',
 }
 
 export enum REDIRECT_TARGETS_TYPES {
@@ -41,6 +46,7 @@ export const MONEY_URLS = {
   MONEY_LANDING: AppConstants.URLS.MONEY_LANDING,
   MUSD_PRICE: AppConstants.URLS.MUSD_PRICE,
   METAMASK_SUPPORT: METAMASK_SUPPORT_URL,
+  CARD_FEES: AppConstants.CARD.CARD_FEES_URL,
 } as const;
 
 export type MONEY_URLS = (typeof MONEY_URLS)[keyof typeof MONEY_URLS];
@@ -77,6 +83,7 @@ export enum COMPONENT_NAMES {
   MONEY_ACTIVITY_FILTER_ALL = 'money_activity_filter_all',
   MONEY_ACTIVITY_FILTER_DEPOSITS = 'money_activity_filter_deposits',
   MONEY_ACTIVITY_FILTER_TRANSFERS = 'money_activity_filter_transfers',
+  MONEY_ACTIVITY_FILTER_PURCHASES = 'money_activity_filter_purchases',
 
   // — Condensed Info Cards —
   MONEY_CONDENSED_INFO_CARDS_HOW_IT_WORKS = 'money_condensed_info_cards_how_it_works',
@@ -107,7 +114,12 @@ export enum COMPONENT_NAMES {
   MONEY_ACTION_BUTTON_ROW = 'money_action_button_row',
   MONEY_FOOTER = 'money_footer',
   MONEY_CONVERT_CRYPTO_BUTTON = 'money_convert_crypto_button',
+  MONEY_TOKEN_LIST_ITEM_CTA = 'money_token_list_item_cta',
+  MONEY_EARN_BANNER = 'money_earn_banner',
   MONEY_MORE = 'money_more',
+
+  // — How It Works / FAQ —
+  FAQ_ITEM = 'money_faq_item',
 }
 
 /**
@@ -116,6 +128,7 @@ export enum COMPONENT_NAMES {
  */
 export enum MONEY_BUTTON_INTENTS {
   ADD_MONEY = 'add_money',
+  DISMISS = 'dismiss',
   GET_STARTED = 'get_started',
   GO_TO_MONEY_HOME = 'go_to_money_home',
   GO_TO_MONEY_ONBOARDING = 'go_to_money_onboarding',
@@ -125,6 +138,7 @@ export enum MONEY_BUTTON_INTENTS {
   VIEW_ALL = 'view_all',
   FILTER = 'filter',
   CARD_HOME = 'card_home',
+  CARD_FEES = 'card_fees',
 }
 
 export enum MONEY_BUTTON_TYPES {

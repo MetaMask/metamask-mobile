@@ -12,6 +12,7 @@ flowchart TD
     L2 -->|ignorable-only changes| NoBlock[No merge block]
     L2 -->|non-ignorable changes| Skip2[⛔️ Merge blocked]
     GR -->|PR ignorable-only changes| Ignorable[No E2E]
+    GR -->|PR test-only changes| TestOnly[E2E + Smart selection, reuse main builds]
     GR -->|PR has Android-only changes| Android[Android Build + Tests needed]
     GR -->|PR has iOS-only changes| iOS[iOS Build + Test needed]
     GR -->|PR other files changed| Both[Both Build + Tests needed]
@@ -24,6 +25,18 @@ flowchart TD
     CONF -->|yes| SelectedTags[Run selected E2E suites]
     CONF -->|no| AllTagsFallback[Run all E2E needed]
 ```
+
+## Test-only PR changes
+
+When a PR only changes E2E/performance test files (and other ignorable files), CI still runs Smart E2E Selection and the selected E2E/performance suites, but **does not compile fresh iOS/Android native builds**. Instead, it reuses the latest matching artifacts from `main`.
+
+The native build fingerprint for test-only PRs is computed from **`main` HEAD** (not the PR merge tree) so the lookup key matches completed `ci.yml` runs on `main`. Reuse tries GitHub Actions artifacts first, then the Cirrus `main` APK cache on Android.
+
+If `main` has new native-changing commits but its CI build has not finished yet, reuse lookup may miss — CI logs a warning and **falls back to a fresh native build** instead of failing the workflow. Performance E2E on test-only PRs resolves BrowserStack apps via stable main `custom_id`s (`MetaMask-Android-*-main`) first, then legacy `…-main-<run_id>` IDs; if none are found it **falls back to a fresh dual Android upload** instead of failing.
+
+This applies when all changed files match `e2e_test_files` or `e2e_ignorable` filters in `.github/rules/filter-rules.yml`, with at least one E2E test file changed, and no E2E-relevant workflow files were modified.
+
+Use the `force-builds` label or `[force-builds]` commit tag to override reuse and compile fresh builds — including on test-only PRs that would otherwise require main-branch artifacts.
 
 ## E2E tests skipped by default on new PRs
 
@@ -45,6 +58,10 @@ Runs only when all of the following are true:
 
 - Label `skip-e2e` can be added to the PR to skip E2E tests (and builds) in case of infra issues.
 - Using this label should be exceptional in case of CI friction and urgencies. Verify new changes and regressions manually before merging.
+
+## (Exceptional) force Appium iOS smoke tests on PRs
+
+Appium iOS smoke tests are skipped on PRs by default (they still run on every `main` push/schedule). To also run them on a PR, add the `run-appium-ios-tests` label. Smart E2E Selection still controls which suites run. CI re-runs automatically when the label is added or removed.
 
 ## E2E flakiness detection in PRs
 

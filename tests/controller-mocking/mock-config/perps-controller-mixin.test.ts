@@ -1,3 +1,4 @@
+import { parseVolume } from '@metamask/perps-controller';
 import { createE2EMockStreamManager } from './perps-controller-mixin';
 
 /**
@@ -14,6 +15,7 @@ const EXPECTED_E2E_STREAM_ROOT_KEYS = [
   'account',
   'candles',
   'fills',
+  'focusedPrice',
   'marketData',
   'oiCaps',
   'orders',
@@ -35,11 +37,15 @@ const CHANNELS_REQUIRING_GET_SNAPSHOT = [
 ] as const;
 
 describe('createE2EMockStreamManager', () => {
-  const mockConsoleLog = jest
-    .spyOn(console, 'log')
-    .mockImplementation(() => undefined);
+  let mockConsoleLog: jest.SpyInstance;
 
-  afterAll(() => {
+  beforeEach(() => {
+    mockConsoleLog = jest
+      .spyOn(console, 'log')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
     mockConsoleLog.mockRestore();
   });
 
@@ -76,5 +82,24 @@ describe('createE2EMockStreamManager', () => {
     };
 
     expect(typeof manager.marketData.refresh).toBe('function');
+  });
+
+  it('provides market data with open interest so production E2E builds do not filter every market out', () => {
+    const manager = createE2EMockStreamManager() as {
+      marketData: { getSnapshot: () => { openInterest?: string }[] };
+    };
+
+    const markets = manager.marketData.getSnapshot();
+
+    expect(markets.length).toBeGreaterThan(0);
+    expect(
+      markets.every((market) => {
+        if (!market.openInterest) {
+          return false;
+        }
+
+        return parseVolume(market.openInterest) > 0;
+      }),
+    ).toBe(true);
   });
 });

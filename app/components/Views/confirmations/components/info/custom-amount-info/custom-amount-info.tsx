@@ -1,4 +1,13 @@
-import React, { ReactNode, memo, useCallback, useRef, useState } from 'react';
+import React, {
+  ReactNode,
+  memo,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import { View } from 'react-native';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
@@ -18,6 +27,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
+import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import {
   SetPayTokenRequest,
@@ -38,6 +48,7 @@ import {
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
+import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import Text, {
@@ -52,6 +63,11 @@ import {
   hasTransactionType,
   isTransactionPayWithdraw,
 } from '../../../utils/transaction';
+import { useParams } from '../../../../../../util/navigation/navUtils';
+import {
+  ConfirmationParams,
+  PayWithOption,
+} from '../../confirm/confirm-component';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
   Button,
@@ -64,16 +80,25 @@ import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsA
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
-import Logger from '../../../../../../util/Logger';
+import { getAmountUpdateErrorToastOptions } from '../../../../../../util/confirmation/transactions';
+import { ToastContext } from '../../../../../../component-library/components/Toast';
+import { prefixError } from '../../../../../../util/transactions/error-prefix';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
+import { AccountSelectorSkeleton } from '../../AccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
 import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
+import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
+import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
+import { InfoRowSkeleton } from '../../UI/info-row/info-row';
+
+const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
 
 export interface CustomAmountInfoProps {
   autoSelectFiatPayment?: boolean;
@@ -121,6 +146,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
+    const isAddMusdIntent =
+      isMoneyAccountDeposit &&
+      getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
 
     useClearConfirmationOnBackSwipe();
 
@@ -134,15 +162,51 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     useTransactionPayMetrics();
     useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
 
+    // TRAM-3623 headless ramps funnel. The adapter owns screen-viewed tracking
+    // and derives ramp_surface from the tx type, so non-money flows stay inert.
+    const { trackAmountCommitted, trackContinue } =
+      useFiatFunnelMetricsAdapter();
+
     const { isNative: isNativePayToken } = useTransactionPayToken();
+    const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
     const { styles } = useStyles(styleSheet, {});
-    const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
+
+    const {
+      amountFiat,
+      amountFiatDebounced,
+      amountHuman,
+      amountHumanDebounced,
+      hasInput,
+      isDepositPrefillEnabled,
+      isDepositPrefilled,
+      isDepositPrefillLoading,
+      isInputChanged,
+      isPrefillPending,
+      updatePendingAmount,
+      updatePendingAmountPercentage,
+      updateTokenAmount,
+    } = useTransactionCustomAmount({ currency });
+
+    const [isKeyboardVisible, setIsKeyboardVisible] = useState(
+      !isAddMusdIntent && !isDepositPrefillEnabled,
+    );
+    const wasKeyboardEverVisible = useRef(isKeyboardVisible);
+    if (isKeyboardVisible) {
+      wasKeyboardEverVisible.current = true;
+    }
+    useMMPayNavigation(
+      isKeyboardVisible,
+      setIsKeyboardVisible,
+      wasKeyboardEverVisible,
+    );
     const { hasTokens: hasAvailableTokens } =
       useTransactionPayAvailableTokens();
     const fiatPayment = useTransactionPayFiatPayment();
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const isFiatAvailable = useIsFiatPaymentAvailable();
-    const hasPaymentOption = hasAvailableTokens || isFiatAvailable;
+    const moneyAccountSection = usePayWithMoneyAccountSection();
+    const hasPaymentOption =
+      hasAvailableTokens || isFiatAvailable || moneyAccountSection !== null;
     const fiatEverSelectedRef = useRef(false);
     if (selectedFiatPaymentMethodId) {
       fiatEverSelectedRef.current = true;
@@ -153,7 +217,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const accountOverride = useTransactionAccountOverride();
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
-    const isResultReady = useIsResultReady({ isKeyboardVisible });
+    const { toastRef } = useContext(ToastContext);
+
+    const isResultReady =
+      useIsResultReady({ isKeyboardVisible }) ||
+      (isAddMusdIntent && !isKeyboardVisible);
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
     const hasSourceAmount = useTransactionPayHasSourceAmount();
@@ -166,19 +234,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const showPaymentDetails =
       isQuotesLoading ||
       Boolean(quotes?.length) ||
-      (!hasSourceAmount && !hasNoQuotesAlert);
+      (!isAddMusdIntent && !hasSourceAmount && !hasNoQuotesAlert);
 
-    const {
-      amountFiat,
-      amountFiatDebounced,
-      amountHuman,
-      amountHumanDebounced,
-      hasInput,
-      isInputChanged,
-      updatePendingAmount,
-      updatePendingAmountPercentage,
-      updateTokenAmount,
-    } = useTransactionCustomAmount({ currency });
+    const isAwaitingPrefillResult =
+      !hasAccountNoFunds &&
+      (isDepositPrefillLoading ||
+        (isDepositPrefilled && !hasSourceAmount && !isKeyboardVisible));
 
     const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
       isInputChanged,
@@ -189,6 +250,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const handleDone = useCallback(async () => {
       try {
+        await updateTokenAmount();
         if (selectedFiatPaymentMethodId && transactionId) {
           Engine.context.TransactionPayController.updateFiatPayment({
             transactionId,
@@ -196,41 +258,66 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               fp.amountFiat = amountFiat;
             },
           });
-
-          // Fiat deposits need nested calldata (approve + deposit) populated
-          // with approximate amounts now so the transaction is valid at submit
-          // time. Core will re-encode with exact amounts after settlement.
-          if (isMoneyAccountDeposit) {
-            await updateTokenAmount();
-          }
-        } else {
-          await updateTokenAmount();
         }
+        // Amount committed (pre-quote) funnel event; only fires once the amount
+        // has been successfully applied above (no-op for non-money flows).
+        trackAmountCommitted();
       } catch (error) {
-        Logger.error(
-          error as Error,
-          'Failed to apply custom amount on Done press',
+        const prefixed = prefixError(error, AMOUNT_UPDATE_ERROR_PREFIX);
+        toastRef?.current?.showToast(
+          getAmountUpdateErrorToastOptions(prefixed, () =>
+            toastRef?.current?.closeToast(),
+          ),
         );
-      } finally {
-        EngineService.flushState();
-        setIsKeyboardVisible(false);
-        onAmountSubmit?.();
+        // Keep keyboard visible so the user can retry; do not advance the flow.
+        return;
       }
+      EngineService.flushState();
+      setIsKeyboardVisible(false);
+      onAmountSubmit?.();
     }, [
       amountFiat,
-      isMoneyAccountDeposit,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
+      toastRef,
+      trackAmountCommitted,
       transactionId,
       updateTokenAmount,
     ]);
 
+    const wasPrefillPending = useRef(isPrefillPending);
+    useEffect(() => {
+      if (wasPrefillPending.current && !isPrefillPending) {
+        handleDone();
+      }
+      wasPrefillPending.current = isPrefillPending;
+    }, [isPrefillPending, handleDone]);
+
+    const hasAutoSubmittedPrefill = useRef(false);
+    useEffect(() => {
+      // Reset when prefill drops (e.g. pay token changed) so handleDone
+      // re-fires once the new prefill amount is ready.
+      if (!isDepositPrefilled) {
+        hasAutoSubmittedPrefill.current = false;
+        return;
+      }
+
+      if (!hasAutoSubmittedPrefill.current && amountFiat !== '0') {
+        hasAutoSubmittedPrefill.current = true;
+        handleDone();
+      }
+    }, [isDepositPrefilled, amountFiat, handleDone]);
+
     const handleAmountPress = useCallback(() => {
+      wasKeyboardEverVisible.current = true;
       setIsKeyboardVisible(true);
     }, []);
 
     const isAccountSelectionNeeded =
       supportAccountSelection && !accountOverride;
+    const hideDetailsForNoFunds = hasAccountNoFunds && Boolean(accountOverride);
+    const hideBuyForNoFunds =
+      Boolean(accountOverride) && (hasAccountNoFunds || isQuotesLoading);
 
     const { headlessBuyError } = useConfirmationContext();
 
@@ -241,8 +328,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             amountFiat={amountFiat}
             currency={currency}
             hasAlert={Boolean(alertMessage)}
+            isLoading={
+              !hasAccountNoFunds &&
+              (isPrefillPending || isDepositPrefillLoading)
+            }
             onPress={handleAmountPress}
             disabled={!hasPaymentOption}
+            showCursor={isKeyboardVisible}
           />
           {!hidePayTokenAmount &&
             disablePay !== true &&
@@ -262,7 +354,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           style={styles.bottomBlock}
         >
           <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
-          {!isResultReady && (
+          {!isResultReady && !(isKeyboardVisible && isAddMusdIntent) && (
             <>
               {supportAccountSelection &&
                 !selectedFiatPaymentMethodId &&
@@ -285,17 +377,26 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}
-              {showPaymentDetails && (
-                <>
-                  <BridgeFeeRow />
-                  <BridgeTimeRow />
-                  {canSelectWithdrawToken ? (
-                    <ReceiveRow inputAmountUsd={amountFiat} />
-                  ) : (
-                    <TotalRow />
-                  )}
-                </>
-              )}
+              {!hasAccountNoFunds &&
+                (showPaymentDetails && !isAwaitingPrefillResult ? (
+                  <>
+                    <BridgeFeeRow />
+                    <BridgeTimeRow />
+                    {canSelectWithdrawToken ? (
+                      <ReceiveRow inputAmountUsd={amountFiat} />
+                    ) : (
+                      <TotalRow />
+                    )}
+                  </>
+                ) : (
+                  (isAddMusdIntent || isAwaitingPrefillResult) && (
+                    <>
+                      <InfoRowSkeleton />
+                      <InfoRowSkeleton />
+                      <InfoRowSkeleton />
+                    </>
+                  )
+                ))}
               <PercentageRow />
             </Box>
           )}
@@ -320,14 +421,25 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               onDonePress={handleDone}
               onPercentagePress={updatePendingAmountPercentage}
               hasInput={hasInput}
-              hasMax={hasMax && (isWithdraw || !isNativePayToken)}
+              hasMax={
+                (hasMax || isMoneyDepositNoFee) &&
+                (isWithdraw || !isNativePayToken)
+              }
             />
           )}
-          {!hasPaymentOption && !hasAccountNoFunds && <BuySection />}
+          {(!hasPaymentOption || hasAccountNoFunds) &&
+            !hideBuyForNoFunds &&
+            !isDepositPrefillEnabled && <BuySection />}
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
-              disableConfirm={disableConfirm || isAccountSelectionNeeded}
+              disableConfirm={
+                disableConfirm ||
+                isAccountSelectionNeeded ||
+                isPrefillPending ||
+                isAwaitingPrefillResult
+              }
+              onContinue={trackContinue}
             />
           )}
         </Box>
@@ -350,6 +462,35 @@ export function CustomAmountInfoSkeleton() {
         <DepositKeyboardSkeleton />
       </Box>
     </Box>
+  );
+}
+
+export function AdvancedCustomAmountInfoSkeleton() {
+  const { styles } = useStyles(styleSheet, {});
+  const params = useParams<ConfirmationParams>();
+  // Fiat flows never render the account selector or pay-with rows while the
+  // keyboard is up, so their skeletons would cause a layout shift on load.
+  const hideAccountRows = Boolean(params?.autoSelectFiatPayment);
+
+  return (
+    <View
+      style={styles.container}
+      testID="advanced-custom-amount-info-skeleton"
+    >
+      <View style={styles.inputContainer}>
+        <CustomAmountSkeleton />
+        <PayTokenAmountSkeleton />
+      </View>
+      <View>
+        {!hideAccountRows && (
+          <>
+            <AccountSelectorSkeleton />
+            <PayWithRowSkeleton />
+          </>
+        )}
+        <DepositKeyboardSkeleton />
+      </View>
+    </View>
   );
 }
 
@@ -414,7 +555,12 @@ function BuySection() {
 function ConfirmButton({
   alertTitle,
   disableConfirm,
-}: Readonly<{ alertTitle: string | undefined; disableConfirm?: boolean }>) {
+  onContinue,
+}: Readonly<{
+  alertTitle: string | undefined;
+  disableConfirm?: boolean;
+  onContinue?: () => void;
+}>) {
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
   const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
@@ -430,13 +576,15 @@ function ConfirmButton({
 
   const handleConfirm = useCallback(async () => {
     setIsConfirmationSubmitting(true);
+    // Continue / Add Funds CTA funnel event; no-op for non-money flows.
+    onContinue?.();
     try {
       await onConfirm();
     } catch (error) {
       setIsConfirmationSubmitting(false);
       throw error;
     }
-  }, [onConfirm, setIsConfirmationSubmitting]);
+  }, [onConfirm, onContinue, setIsConfirmationSubmitting]);
 
   return (
     <Button
@@ -472,12 +620,16 @@ function useIsResultReady({
 
 function useButtonLabel() {
   const transaction = useTransactionMetadataRequest();
+  const { payWithOption } = useParams<ConfirmationParams>({});
+
+  if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {
+    return strings('confirm.deposit_edit_amount_money_account_send');
+  }
 
   if (
     hasTransactionType(transaction, [
       TransactionType.predictWithdraw,
       TransactionType.perpsWithdraw,
-      TransactionType.moneyAccountWithdraw,
     ])
   ) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
@@ -485,6 +637,16 @@ function useButtonLabel() {
 
   if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
     return strings('earn.musd_conversion.confirm');
+  }
+
+  if (
+    payWithOption === PayWithOption.MoneyAccount &&
+    hasTransactionType(transaction, [
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+    ])
+  ) {
+    return strings('confirm.deposit_edit_amount_money_account_send');
   }
 
   return strings('confirm.deposit_edit_amount_done');

@@ -6,6 +6,8 @@ import ManagePriceAlertsView from './ManagePriceAlertsView';
 import { ManagePriceAlertsTestIds, type PriceAlert } from '../../constants';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../../../component-library/components/Toast';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 // Prevents act() warnings caused by useQuery's internal batched updates
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
@@ -71,6 +73,7 @@ jest.mock('../../api', () => ({
   fetchAlerts: (...args: unknown[]) => mockFetchAlerts(...args),
   deleteAlert: (...args: unknown[]) => mockDeleteAlert(...args),
   updateAlert: (...args: unknown[]) => mockUpdateAlert(...args),
+  priceAlertsQueryKey: (assetId: string) => ['priceAlerts', assetId],
 }));
 
 const makeAlert = (overrides: Partial<PriceAlert> = {}): PriceAlert => ({
@@ -202,6 +205,21 @@ describe('ManagePriceAlertsView', () => {
       expect(screen.getByText('Reaches $0.0₁₃105')).toBeOnTheScreen();
     });
 
+    it('preserves full precision for sub-cent thresholds', async () => {
+      mockFetchAlerts.mockResolvedValue(
+        makeFetchResponse([
+          makeAlert({ id: 'alert-a', threshold: 0.00181069 }),
+          makeAlert({ id: 'alert-b', threshold: 0.00182069 }),
+        ]),
+      );
+
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      expect(screen.getByText('Reaches $0.00181069')).toBeOnTheScreen();
+      expect(screen.getByText('Reaches $0.00182069')).toBeOnTheScreen();
+    });
+
     it('shows "Recurring" for recurring alerts and "Once" for one-shot alerts', async () => {
       const screen = renderView();
       await waitForLoaded(screen);
@@ -271,6 +289,125 @@ describe('ManagePriceAlertsView', () => {
         }),
       );
     });
+
+    it('does not pass editingAlert when "Add alert" is pressed', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(ManagePriceAlertsTestIds.ADD_ALERT_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CREATE_PRICE_ALERT,
+        expect.not.objectContaining({ editingAlert: expect.anything() }),
+      );
+    });
+  });
+
+  describe('edit alert', () => {
+    const twoAlerts = [
+      makeAlert({ id: 'alert-1', threshold: 3000, recurring: true }),
+      makeAlert({
+        id: 'alert-2',
+        threshold: 1500,
+        recurring: false,
+        active: false,
+      }),
+    ];
+
+    beforeEach(() => {
+      mockFetchAlerts.mockResolvedValue(makeFetchResponse(twoAlerts));
+    });
+
+    it('navigates to CreatePriceAlert with editingAlert when a row is tapped', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_EDIT_PREFIX}-alert-1`,
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CREATE_PRICE_ALERT,
+        expect.objectContaining({
+          editingAlert: expect.objectContaining({ id: 'alert-1' }),
+          fromManage: true,
+        }),
+      );
+    });
+
+    it('passes the correct alert data for the tapped row', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_EDIT_PREFIX}-alert-2`,
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CREATE_PRICE_ALERT,
+        expect.objectContaining({
+          editingAlert: expect.objectContaining({
+            id: 'alert-2',
+            threshold: 1500,
+            recurring: false,
+          }),
+        }),
+      );
+    });
+
+    it('passes existingThresholds of all current alerts when editing', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_EDIT_PREFIX}-alert-1`,
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CREATE_PRICE_ALERT,
+        expect.objectContaining({
+          existingThresholds: expect.arrayContaining([3000, 1500]),
+        }),
+      );
+    });
+
+    it('does not navigate when the row tap is disabled during a delete', async () => {
+      let resolveDelete!: (value: unknown) => void;
+      mockDeleteAlert.mockReturnValueOnce(
+        new Promise((r) => {
+          resolveDelete = r;
+        }),
+      );
+
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      // Trigger delete — row tap is now disabled
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      );
+
+      // The delete button is replaced by a spinner, so the tap target is gone
+      expect(
+        screen.queryByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      ).toBeNull();
+
+      await act(async () => {
+        resolveDelete(makeOkResponse(204));
+      });
+    });
   });
 
   describe('delete alert', () => {
@@ -283,7 +420,40 @@ describe('ManagePriceAlertsView', () => {
       );
     });
 
-    it('removes the row optimistically when delete is pressed', async () => {
+    it('shows a spinner in place of the delete button while the request is in-flight', async () => {
+      let resolveDelete!: (value: unknown) => void;
+      mockDeleteAlert.mockReturnValueOnce(
+        new Promise((r) => {
+          resolveDelete = r;
+        }),
+      );
+
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      );
+
+      expect(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_SPINNER_PREFIX}-alert-1`,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      ).toBeNull();
+
+      await act(async () => {
+        resolveDelete(makeOkResponse(204));
+      });
+    });
+
+    it('removes the row after a successful delete', async () => {
       const screen = renderView();
       await waitForLoaded(screen);
 
@@ -369,7 +539,7 @@ describe('ManagePriceAlertsView', () => {
       expect(mockReplace).not.toHaveBeenCalled();
     });
 
-    it('restores the row when deleteAlert returns a non-ok response', async () => {
+    it('restores the row and delete button when deleteAlert returns a non-ok response', async () => {
       mockDeleteAlert.mockResolvedValueOnce(makeErrorResponse(500));
       mockFetchAlerts
         .mockResolvedValueOnce(
@@ -401,6 +571,46 @@ describe('ManagePriceAlertsView', () => {
           ),
         ).toBeOnTheScreen();
       });
+
+      // Spinner should be gone and delete button restored after failure
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('ignores a second press on the delete button while the first request is in-flight', async () => {
+      let resolveDelete!: (value: unknown) => void;
+      mockDeleteAlert.mockReturnValueOnce(
+        new Promise((r) => {
+          resolveDelete = r;
+        }),
+      );
+
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      );
+
+      // Button is replaced by spinner — a second press is impossible
+      expect(
+        screen.queryByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      ).toBeNull();
+
+      expect(mockDeleteAlert).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        resolveDelete(makeOkResponse(204));
+      });
     });
   });
 
@@ -427,6 +637,66 @@ describe('ManagePriceAlertsView', () => {
         expect(mockUpdateAlert).toHaveBeenCalledWith('alert-1', {
           active: false,
         });
+      });
+    });
+
+    it('disables the switch while the update request is in-flight', async () => {
+      let resolveUpdate!: (value: unknown) => void;
+      mockUpdateAlert.mockReturnValueOnce(
+        new Promise((r) => {
+          resolveUpdate = r;
+        }),
+      );
+
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+        ),
+        'valueChange',
+        false,
+      );
+
+      expect(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+        ),
+      ).toHaveProp('disabled', true);
+
+      await act(async () => {
+        resolveUpdate(makeOkResponse(200));
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+          ),
+        ).toHaveProp('disabled', false);
+      });
+    });
+
+    it('re-enables the switch after a failed update', async () => {
+      mockUpdateAlert.mockResolvedValueOnce(makeErrorResponse(500));
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+        ),
+        'valueChange',
+        false,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+          ),
+        ).toHaveProp('disabled', false);
       });
     });
 
@@ -467,27 +737,266 @@ describe('ManagePriceAlertsView', () => {
       expect(mockReplace.mock.calls[0][1].fromManage).toBeUndefined();
     });
 
-    it('replaces the screen on a non-ok HTTP response', async () => {
+    it('calls goBack (not replace) on a non-ok HTTP response', async () => {
       mockFetchAlerts.mockResolvedValue(makeFetchResponse([], false));
       renderView();
 
-      await waitFor(() => expect(mockReplace).toHaveBeenCalled());
+      await waitFor(() => expect(mockGoBack).toHaveBeenCalled());
 
-      expect(mockReplace).toHaveBeenCalledWith(
-        Routes.CREATE_PRICE_ALERT,
-        expect.objectContaining({ assetId: 'eip155:1/slip44:60' }),
+      expect(mockReplace).not.toHaveBeenCalled();
+    });
+
+    it('shows a fetch error toast on a non-ok HTTP response', async () => {
+      mockFetchAlerts.mockResolvedValue(makeFetchResponse([], false));
+      renderView();
+
+      await waitFor(() =>
+        expect(mockShowToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            labelOptions: expect.arrayContaining([
+              expect.objectContaining({
+                label: 'Failed to load price alerts. Please try again.',
+              }),
+            ]),
+            hasNoTimeout: false,
+          }),
+        ),
       );
     });
 
-    it('replaces the screen when the fetch rejects entirely', async () => {
+    it('calls goBack (not replace) when the fetch rejects entirely', async () => {
       mockFetchAlerts.mockRejectedValue(new Error('Network failure'));
       renderView();
 
-      await waitFor(() => expect(mockReplace).toHaveBeenCalled());
+      await waitFor(() => expect(mockGoBack).toHaveBeenCalled());
 
-      expect(mockReplace).toHaveBeenCalledWith(
-        Routes.CREATE_PRICE_ALERT,
-        expect.objectContaining({ assetId: 'eip155:1/slip44:60' }),
+      expect(mockReplace).not.toHaveBeenCalled();
+    });
+
+    it('shows a fetch error toast when the fetch rejects entirely', async () => {
+      mockFetchAlerts.mockRejectedValue(new Error('Network failure'));
+      renderView();
+
+      await waitFor(() =>
+        expect(mockShowToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            labelOptions: expect.arrayContaining([
+              expect.objectContaining({
+                label: 'Failed to load price alerts. Please try again.',
+              }),
+            ]),
+            hasNoTimeout: false,
+          }),
+        ),
+      );
+    });
+  });
+
+  describe('error toasts', () => {
+    beforeEach(() => {
+      mockFetchAlerts.mockResolvedValue(
+        makeFetchResponse([
+          makeAlert({ id: 'alert-1', threshold: 3000 }),
+          makeAlert({ id: 'alert-2', threshold: 1500 }),
+        ]),
+      );
+    });
+
+    it('shows a delete error toast when deleteAlert returns a non-ok response', async () => {
+      mockDeleteAlert.mockResolvedValueOnce(makeErrorResponse(500));
+      mockFetchAlerts.mockResolvedValue(
+        makeFetchResponse([
+          makeAlert({ id: 'alert-1', threshold: 3000 }),
+          makeAlert({ id: 'alert-2', threshold: 1500 }),
+        ]),
+      );
+
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      );
+
+      await waitFor(() =>
+        expect(mockShowToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            labelOptions: expect.arrayContaining([
+              expect.objectContaining({
+                label: 'Failed to delete price alert. Please try again.',
+              }),
+            ]),
+            hasNoTimeout: false,
+          }),
+        ),
+      );
+    });
+
+    it('shows a toggle error toast when updateAlert returns a non-ok response', async () => {
+      mockUpdateAlert.mockResolvedValueOnce(makeErrorResponse(500));
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+        ),
+        'valueChange',
+        false,
+      );
+
+      await waitFor(() =>
+        expect(mockShowToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            labelOptions: expect.arrayContaining([
+              expect.objectContaining({
+                label: 'Failed to update price alert. Please try again.',
+              }),
+            ]),
+            hasNoTimeout: false,
+          }),
+        ),
+      );
+    });
+  });
+
+  describe('analytics', () => {
+    const mockAnalytics = jest.mocked(useAnalytics)();
+
+    const builderForEvent = (event: unknown) => {
+      const calls = jest.mocked(mockAnalytics.createEventBuilder).mock.calls;
+      const idx = calls.findIndex((c) => c[0] === event);
+      return jest.mocked(mockAnalytics.createEventBuilder).mock.results[idx]
+        .value;
+    };
+
+    it('tracks Price Alert Creation Interaction (deleted) on success', async () => {
+      mockFetchAlerts.mockResolvedValue(
+        makeFetchResponse([
+          makeAlert({ id: 'alert-1', threshold: 3000 }),
+          makeAlert({ id: 'alert-2', threshold: 1500 }),
+        ]),
+      );
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      );
+
+      await waitFor(() => {
+        expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
+        );
+      });
+      expect(
+        builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+          .addProperties,
+      ).toHaveBeenCalledWith({
+        interaction_type: 'deleted',
+        asset_id: 'eip155:1/slip44:60',
+        token_symbol: 'ETH',
+        alert_type: 'threshold',
+        alert_value: 3000,
+        alert_recurring: true,
+        alert_active: true,
+      });
+    });
+
+    it('does not track Price Alert Creation Interaction when delete fails', async () => {
+      mockDeleteAlert.mockResolvedValueOnce(makeErrorResponse(500));
+      mockFetchAlerts.mockResolvedValue(
+        makeFetchResponse([
+          makeAlert({ id: 'alert-1', threshold: 3000 }),
+          makeAlert({ id: 'alert-2', threshold: 1500 }),
+        ]),
+      );
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      );
+
+      await waitFor(() => {
+        expect(mockShowToast).toHaveBeenCalled();
+      });
+      expect(mockAnalytics.createEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
+      );
+    });
+
+    it('tracks Price Alert Creation Interaction (updated) when toggling active', async () => {
+      mockFetchAlerts.mockResolvedValue(
+        makeFetchResponse([
+          makeAlert({
+            id: 'alert-1',
+            threshold: 3000,
+            recurring: true,
+            active: true,
+          }),
+        ]),
+      );
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+        ),
+        'valueChange',
+        false,
+      );
+
+      await waitFor(() => {
+        expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
+        );
+      });
+      expect(
+        builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+          .addProperties,
+      ).toHaveBeenCalledWith({
+        interaction_type: 'updated',
+        asset_id: 'eip155:1/slip44:60',
+        token_symbol: 'ETH',
+        alert_type: 'threshold',
+        alert_value: 3000,
+        alert_recurring: true,
+        alert_active: false,
+        prev_alert_value: 3000,
+        prev_alert_recurring: true,
+        prev_alert_active: true,
+      });
+    });
+
+    it('does not track Price Alert Creation Interaction when toggle fails', async () => {
+      mockUpdateAlert.mockResolvedValueOnce(makeErrorResponse(500));
+      mockFetchAlerts.mockResolvedValue(
+        makeFetchResponse([makeAlert({ id: 'alert-1', active: true })]),
+      );
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+        ),
+        'valueChange',
+        false,
+      );
+
+      await waitFor(() => {
+        expect(mockShowToast).toHaveBeenCalled();
+      });
+      expect(mockAnalytics.createEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
       );
     });
   });

@@ -10,7 +10,10 @@ import {
   getPredictFeedSelector,
   getPredictFeedMockSelector,
 } from '../../Predict.testIds';
-import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../constants/flags';
+import {
+  DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+} from '../../constants/flags';
 import { buildPredictWorldCupAllQuery } from '../../utils/worldCup';
 
 jest.mock('react-native-reanimated', () => {
@@ -94,7 +97,10 @@ jest.mock('../../hooks/usePredictSearchMarketData', () => ({
   usePredictSearchMarketData: jest.fn(),
 }));
 
-import { usePredictMarketData } from '../../hooks/usePredictMarketData';
+import {
+  usePredictMarketData,
+  type UsePredictMarketDataOptions,
+} from '../../hooks/usePredictMarketData';
 import { usePredictSearchMarketData } from '../../hooks/usePredictSearchMarketData';
 
 const mockUsePredictMarketData = usePredictMarketData as jest.Mock;
@@ -107,6 +113,11 @@ const mockHotTabFlag: { enabled: boolean; queryParams?: string } = {
 };
 let mockIsWorldCupMainFeedTabEnabled = false;
 let mockWorldCupConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
+let mockWimbledonTabFlag = {
+  enabled: false,
+  queryParams: PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+  minimumVersion: '',
+};
 let mockIsFeaturedCarouselEnabled = false;
 let mockIsUpDownEnabled = false;
 let mockIsPredictPortfolioEnabled = false;
@@ -125,6 +136,7 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectPredictHotTabFlag: 'selectPredictHotTabFlag',
   selectPredictPortfolioEnabledFlag: 'selectPredictPortfolioEnabledFlag',
   selectPredictUpDownEnabledFlag: 'selectPredictUpDownEnabledFlag',
+  selectPredictWimbledonTabFlag: 'selectPredictWimbledonTabFlag',
   selectPredictWorldCupConfig: 'selectPredictWorldCupConfig',
   selectPredictWorldCupMainFeedTabEnabledFlag:
     'selectPredictWorldCupMainFeedTabEnabledFlag',
@@ -328,6 +340,11 @@ describe('PredictFeed', () => {
     mockHotTabFlag.queryParams = undefined;
     mockIsWorldCupMainFeedTabEnabled = false;
     mockWorldCupConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
+    mockWimbledonTabFlag = {
+      enabled: false,
+      queryParams: PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+      minimumVersion: '',
+    };
     mockIsFeaturedCarouselEnabled = false;
     mockIsUpDownEnabled = false;
     mockIsPredictPortfolioEnabled = false;
@@ -341,6 +358,8 @@ describe('PredictFeed', () => {
           return mockIsPredictPortfolioEnabled;
         case 'selectPredictUpDownEnabledFlag':
           return mockIsUpDownEnabled;
+        case 'selectPredictWimbledonTabFlag':
+          return mockWimbledonTabFlag;
         case 'selectPredictWorldCupConfig':
           return mockWorldCupConfig;
         case 'selectPredictWorldCupMainFeedTabEnabledFlag':
@@ -1348,6 +1367,121 @@ describe('PredictFeed', () => {
       expect(mockUseFeedScrollManager).toHaveBeenCalledWith(
         expect.objectContaining({ onHeaderHiddenChange: undefined }),
       );
+    });
+  });
+
+  describe('lazy tab data fetching (enabled gate)', () => {
+    // PagerView mounts every PredictTabContent at once, so usePredictMarketData
+    // is called for every tab on every render. Only the active tab (and tabs the
+    // user has already visited) should pass `enabled: true` so that just the
+    // visible tab fires a getMarkets request on mount.
+    const getEnabledForCategory = (category: string): boolean | undefined => {
+      const calls = (
+        mockUsePredictMarketData.mock.calls as [UsePredictMarketDataOptions][]
+      ).filter((call) => call[0]?.category === category);
+      return calls[calls.length - 1]?.[0]?.enabled;
+    };
+
+    const wireTabSwitchToActiveIndex = () => {
+      mockUseFeedScrollManager.mockImplementation(
+        ({ setActiveIndex }: { setActiveIndex: (index: number) => void }) => ({
+          headerTranslateY: { value: 0 },
+          headerHidden: false,
+          headerHeight: 100,
+          tabBarHeight: 48,
+          layoutReady: true,
+          onTabSwitch: setActiveIndex,
+          scrollHandler: jest.fn(),
+          onHeaderLayout: jest.fn(),
+          onTabBarLayout: jest.fn(),
+        }),
+      );
+    };
+
+    it('enables only the active tab and disables the rest on mount', () => {
+      render(<PredictFeed />);
+
+      // Default active tab is the first base tab ("trending").
+      expect(getEnabledForCategory('trending')).toBe(true);
+      expect(getEnabledForCategory('ending-soon')).toBe(false);
+      expect(getEnabledForCategory('new')).toBe(false);
+      expect(getEnabledForCategory('sports')).toBe(false);
+      expect(getEnabledForCategory('crypto')).toBe(false);
+      expect(getEnabledForCategory('politics')).toBe(false);
+    });
+
+    it('enables the deep-linked tab and disables the others on mount', () => {
+      mockUseRoute.mockReturnValue({
+        params: { entryPoint: 'deeplink', tab: 'new' },
+      });
+
+      render(<PredictFeed />);
+
+      expect(getEnabledForCategory('new')).toBe(true);
+      expect(getEnabledForCategory('trending')).toBe(false);
+      expect(getEnabledForCategory('sports')).toBe(false);
+    });
+
+    it('enables a tab once the user switches to it', () => {
+      wireTabSwitchToActiveIndex();
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getEnabledForCategory('new')).toBe(false);
+
+      fireEvent.press(getByTestId(getPredictFeedMockSelector.tabKey('new')));
+
+      expect(getEnabledForCategory('new')).toBe(true);
+    });
+
+    it('keeps a previously-visited tab enabled when switching back (warm cache)', () => {
+      wireTabSwitchToActiveIndex();
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      // Visit "new", then return to "trending".
+      fireEvent.press(getByTestId(getPredictFeedMockSelector.tabKey('new')));
+      expect(getEnabledForCategory('new')).toBe(true);
+
+      fireEvent.press(
+        getByTestId(getPredictFeedMockSelector.tabKey('trending')),
+      );
+
+      // "new" stays warm (enabled never flips back to false) so it never refetches.
+      expect(getEnabledForCategory('new')).toBe(true);
+      expect(getEnabledForCategory('trending')).toBe(true);
+    });
+
+    it('resets the fetch gate on remount for tabs inactive at that point', () => {
+      wireTabSwitchToActiveIndex();
+
+      const { getByTestId, unmount } = render(<PredictFeed />);
+
+      // Warm up "new" so it has fetched at least once.
+      fireEvent.press(getByTestId(getPredictFeedMockSelector.tabKey('new')));
+      expect(getEnabledForCategory('new')).toBe(true);
+
+      unmount();
+      mockUsePredictMarketData.mock.calls.length = 0;
+
+      // On remount "new" is inactive again, so useState(isActive) re-initializes
+      // hasEverBeenActive to false and the tab does not fetch until re-visited.
+      render(<PredictFeed />);
+
+      expect(getEnabledForCategory('trending')).toBe(true);
+      expect(getEnabledForCategory('new')).toBe(false);
+    });
+
+    it('enables only the active optional feature-flag tab on mount', () => {
+      // Hot tab is rendered first, making it the initial active tab.
+      mockHotTabFlag.enabled = true;
+      mockHotTabFlag.queryParams = 'tag_id=149';
+
+      render(<PredictFeed />);
+
+      expect(getEnabledForCategory('hot')).toBe(true);
+      expect(getEnabledForCategory('trending')).toBe(false);
+      expect(getEnabledForCategory('new')).toBe(false);
     });
   });
 });

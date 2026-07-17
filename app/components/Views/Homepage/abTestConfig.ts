@@ -86,37 +86,6 @@ export const HOMEPAGE_TRENDING_SECTIONS_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyti
     eventNames: [EVENT_NAME.HOME_VIEWED],
   };
 
-// ─── Wallet home post-onboarding steps (empty-balance checklist) ────────────
-
-/**
- * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
- * sync with the flag in LD (team `home`, ticket TMCU-610).
- */
-export const WALLET_HOME_POST_ONBOARDING_AB_KEY =
-  'homeTMCU610AbtestWalletHomePostOnboardingSteps';
-
-export enum WalletHomePostOnboardingVariant {
-  Control = 'control',
-  PostOnboardingSteps = 'postOnboardingSteps',
-}
-
-export const WALLET_HOME_POST_ONBOARDING_VARIANTS: Record<
-  WalletHomePostOnboardingVariant,
-  { stepsEnabled: boolean }
-> = {
-  [WalletHomePostOnboardingVariant.Control]: { stepsEnabled: false },
-  [WalletHomePostOnboardingVariant.PostOnboardingSteps]: {
-    stepsEnabled: true,
-  },
-};
-
-export const WALLET_HOME_POST_ONBOARDING_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
-  {
-    flagKey: WALLET_HOME_POST_ONBOARDING_AB_KEY,
-    validVariants: Object.values(WalletHomePostOnboardingVariant),
-    eventNames: [EVENT_NAME.HOME_VIEWED],
-  };
-
 // ─── Homepage Perps empty state — Explore-style pills (TMCU-725) ─────────────
 
 /**
@@ -241,3 +210,132 @@ export const PREDICT_HOMEPAGE_DISCOVERY_AB_KEY =
   PREDICT_POSITIONS_EMPTY_STATE_AB_KEY;
 export const PREDICT_HOMEPAGE_DISCOVERY_VARIANTS =
   PREDICT_POSITIONS_EMPTY_STATE_VARIANTS;
+
+// ─── Homepage discovery pills (TMCU-926) ─────────────────────────────────────
+
+/**
+ * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
+ * sync with the flag in LD (team `home`, ticket TMCU-926).
+ */
+export const HOMEPAGE_DISCOVERY_PILLS_AB_KEY =
+  'homeTMCU926AbtestDiscoveryPills';
+
+export enum HomepageDiscoveryPillsVariant {
+  Control = 'control',
+  GrayIcons = 'grayIcons',
+  ColorIcons = 'colorIcons',
+}
+
+export type HomepageDiscoveryPillIconStyle = 'gray' | 'color';
+
+interface HomepageDiscoveryPillsVariantConfig {
+  showPills: boolean;
+  iconStyle: HomepageDiscoveryPillIconStyle | null;
+}
+
+export const HOMEPAGE_DISCOVERY_PILLS_VARIANTS: Record<
+  HomepageDiscoveryPillsVariant,
+  HomepageDiscoveryPillsVariantConfig
+> = {
+  [HomepageDiscoveryPillsVariant.Control]: {
+    showPills: false,
+    iconStyle: null,
+  },
+  [HomepageDiscoveryPillsVariant.GrayIcons]: {
+    showPills: true,
+    iconStyle: 'gray',
+  },
+  [HomepageDiscoveryPillsVariant.ColorIcons]: {
+    showPills: true,
+    iconStyle: 'color',
+  },
+};
+
+export const HOMEPAGE_DISCOVERY_PILLS_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Homepage discovery pills',
+  variationNames: {
+    control: 'Current homepage without discovery pills',
+    grayIcons: 'Discovery pills with gray icons',
+    colorIcons: 'Discovery pills with color icons',
+  },
+} as const;
+
+export const HOMEPAGE_DISCOVERY_PILLS_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: HOMEPAGE_DISCOVERY_PILLS_AB_KEY,
+    validVariants: Object.values(HomepageDiscoveryPillsVariant),
+    eventNames: [EVENT_NAME.HOME_VIEWED],
+  };
+
+/**
+ * Builds `active_ab_tests` entries for swap / perps / predict transaction flows
+ * when the homepage discovery-pills experiment assignment is active.
+ */
+export function getHomepageDiscoveryPillsTransactionActiveAbTests(
+  isAssignmentActive: boolean,
+  variantName: string,
+): TransactionActiveAbTestEntry[] | undefined {
+  if (!isAssignmentActive) {
+    return undefined;
+  }
+  return [
+    createActiveABTestAssignment(HOMEPAGE_DISCOVERY_PILLS_AB_KEY, variantName),
+  ];
+}
+
+// ─── Homepage action buttons 2×4 grid (TMCU-1103) ────────────────────────────
+
+/**
+ * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
+ * sync with the flag in LD (team `home`, ticket TMCU-1103).
+ */
+export const HOMEPAGE_ACTION_BUTTONS_GRID_AB_KEY =
+  'homeTMCU1103AbtestActionButtonsGrid';
+
+export enum HomepageActionButtonsGridVariant {
+  Control = 'control',
+  Row1Top = 'row1Top',
+  Row2Top = 'row2Top',
+}
+
+export type HomepageActionButtonsGridRowOrder = 'row1Top' | 'row2Top';
+
+type HomepageActionButtonsGridVariantConfig =
+  | { layout: 'fourSquare' }
+  | {
+      layout: 'eightCircular';
+      rowOrder: HomepageActionButtonsGridRowOrder;
+    };
+
+export const HOMEPAGE_ACTION_BUTTONS_GRID_VARIANTS: Record<
+  HomepageActionButtonsGridVariant,
+  HomepageActionButtonsGridVariantConfig
+> = {
+  [HomepageActionButtonsGridVariant.Control]: {
+    layout: 'fourSquare',
+  },
+  [HomepageActionButtonsGridVariant.Row1Top]: {
+    layout: 'eightCircular',
+    rowOrder: 'row1Top',
+  },
+  [HomepageActionButtonsGridVariant.Row2Top]: {
+    layout: 'eightCircular',
+    rowOrder: 'row2Top',
+  },
+};
+
+export const HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Homepage action buttons 2x4 grid',
+  variationNames: {
+    control: '4 square action buttons',
+    row1Top: '8 circular buttons, Row 1 top',
+    row2Top: '8 circular buttons, Row 2 top',
+  },
+} as const;
+
+export const HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: HOMEPAGE_ACTION_BUTTONS_GRID_AB_KEY,
+    validVariants: Object.values(HomepageActionButtonsGridVariant),
+    eventNames: [EVENT_NAME.HOME_VIEWED, EVENT_NAME.ACTION_BUTTON_CLICKED],
+  };

@@ -2,6 +2,7 @@ import type { RootExtendedMessenger } from '../../core/Engine/types';
 import type {
   AnalyticsEventProperties,
   AnalyticsUserTraits,
+  AnalyticsTrackingEvent as PackageAnalyticsTrackingEvent,
 } from '@metamask/analytics-controller';
 import type { AnalyticsTrackingEvent } from './AnalyticsEventBuilder';
 import Logger from '../Logger';
@@ -125,7 +126,11 @@ const executeQueuedOperation = (
   switch (action) {
     case 'trackEvent': {
       const [event] = args as [AnalyticsTrackingEvent];
-      messengerInstance.call('AnalyticsController:trackEvent', event);
+      // Cast needed until @metamask/analytics-controller removes saveDataRecording from its AnalyticsTrackingEvent
+      messengerInstance.call(
+        'AnalyticsController:trackEvent',
+        event as unknown as PackageAnalyticsTrackingEvent,
+      );
       break;
     }
     case 'trackView': {

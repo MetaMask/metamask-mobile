@@ -163,7 +163,7 @@ Unlike iOS (which needs the SocketRocket Podfile patch), Android requires **no n
 - Live-forwarded (unmocked) responses preserve upstream headers minus hop-by-hop/encoding ones — WebView fetches are CORS-bound, so `Access-Control-Allow-*` headers must survive the proxy or every preflighted request fails. Network-level forward failures (DNS `ENOTFOUND`, `ECONNREFUSED`) close the connection instead of synthesizing an HTTP 500, preserving the client's network-error semantics (e.g. the in-app browser's error screen for invalid hosts).
 - Third-party native module audit: `@react-native-firebase/messaging`, `@sentry/react-native`, and `react-native-branch` do not construct their own `OkHttpClient` — no known bypass gaps. Modules added later should be re-audited.
 
-The exit-gate evidence for N2 is `tests/smoke/account-activity/web-socket-connection.spec.ts`, re-enabled on Android (it was quarantined in #30951; it stays skipped on iOS until the Detox iOS proxy launch arg is activated).
+The exit-gate evidence for N2 is `tests/smoke-appium/account-activity/web-socket-connection.spec.ts` (migrated from Detox in #33196 / MMQA-1987). The Appium path exercises the device proxy on both platforms; the WS local-bridge in `withFixtures` is what makes those subscriptions succeed under the proxy.
 
 Useful Android log markers:
 

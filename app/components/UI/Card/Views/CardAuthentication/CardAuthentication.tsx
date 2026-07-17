@@ -32,6 +32,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useDispatch, useSelector } from 'react-redux';
 import { setOnboardingId } from '../../../../../core/redux/slices/card';
 import { selectCardUserLocation } from '../../../../../selectors/cardController';
+import { selectCardForgotPasswordFeatureEnabled } from '../../../../../selectors/featureFlagController/card';
 import { CardMessageBoxType, type CardLocation } from '../../types';
 import { CardActions, CardScreens } from '../../util/metrics';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
@@ -67,6 +68,9 @@ const CardAuthentication = () => {
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const persistedLocation = useSelector(selectCardUserLocation);
+  const isForgotPasswordEnabled = useSelector(
+    selectCardForgotPasswordFeatureEnabled,
+  );
   const [selectedLocation, setSelectedLocation] = useState<CardLocation>(
     persistedLocation ?? 'international',
   );
@@ -294,6 +298,20 @@ const CardAuthentication = () => {
     resetToLogin();
   }, [resetToLogin]);
 
+  const handleForgotPassword = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.AUTHENTICATION_FORGOT_PASSWORD,
+        })
+        .build(),
+    );
+    navigation.navigate(Routes.CARD.MODALS.ID, {
+      screen: Routes.CARD.MODALS.FORGOT_PASSWORD,
+      params: { location: selectedLocation },
+    });
+  }, [navigation, trackEvent, createEventBuilder, selectedLocation]);
+
   const title = useMemo(
     () =>
       isOtpStep
@@ -486,6 +504,21 @@ const CardAuthentication = () => {
                 testID: CardAuthenticationSelectors.PASSWORD_FIELD,
               }}
             />
+            {isForgotPasswordEnabled && (
+              <TouchableOpacity
+                onPress={handleForgotPassword}
+                testID={CardAuthenticationSelectors.FORGOT_PASSWORD_BUTTON}
+                style={tw.style('self-end mt-2')}
+              >
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  twClassName="text-default"
+                >
+                  {strings('card.card_authentication.forgot_password_button')}
+                </Text>
+              </TouchableOpacity>
+            )}
           </Box>
         </>
       ),
@@ -494,9 +527,11 @@ const CardAuthentication = () => {
       email,
       error,
       handleEmailChange,
+      handleForgotPassword,
       handleOtpValueChange,
       handlePasswordChange,
       handleResendOtp,
+      isForgotPasswordEnabled,
       isPasswordVisible,
       isOtpStep,
       otpError,

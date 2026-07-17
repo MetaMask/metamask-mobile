@@ -370,6 +370,93 @@ describe('PerformanceSentryPublisher', () => {
     expect(longTimerKeys.every((key: string) => key.length <= 64)).toBe(true);
   });
 
+  it('sends app_size_mb measurement with megabyte unit when appSizeMb is set', async () => {
+    process.env.E2E_PERFORMANCE_SENTRY_DSN =
+      'https://publicKey@o123.ingest.sentry.io/4567';
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+    } as Response);
+
+    const sent = await publishPerformanceScenarioToSentry({
+      metrics: createMetrics({ appSizeMb: 291.62 }),
+      testTitle: 'Import wallet flow',
+      projectName: 'browserstack-android',
+      testFilePath: 'tests/performance/onboarding/import-wallet.spec.js',
+      tags: ['@PerformanceOnboarding'],
+      status: 'passed',
+      retry: 0,
+      workerIndex: 0,
+    });
+
+    expect(sent).toBe(true);
+    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+    expect(requestInit).toBeDefined();
+    if (!requestInit) {
+      throw new Error('Expected request init payload for Sentry request');
+    }
+
+    const body = requestInit.body as string;
+    const [, , payloadLine] = body.split('\n');
+    const payload = JSON.parse(payloadLine);
+
+    expect(payload.measurements.app_size_mb).toEqual({
+      value: 291.62,
+      unit: 'megabyte',
+    });
+  });
+
+  it('sends when only appSizeMb is set and steps is empty', async () => {
+    process.env.E2E_PERFORMANCE_SENTRY_DSN =
+      'https://publicKey@o123.ingest.sentry.io/4567';
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+    } as Response);
+
+    const sent = await publishPerformanceScenarioToSentry({
+      metrics: createMetrics({ steps: [], appSizeMb: 289.75 }),
+      testTitle: 'Send ETH flow',
+      projectName: 'browserstack-android',
+      testFilePath: 'tests/performance/login/send-eth.spec.ts',
+      tags: ['@PerformanceLogin'],
+      status: 'passed',
+      retry: 0,
+      workerIndex: 0,
+    });
+
+    expect(sent).toBe(true);
+    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+    const body = requestInit?.body as string;
+    const [, , payloadLine] = body.split('\n');
+    const payload = JSON.parse(payloadLine);
+
+    expect(payload.measurements.app_size_mb).toEqual({
+      value: 289.75,
+      unit: 'megabyte',
+    });
+    expect(payload.spans).toHaveLength(0);
+  });
+
+  it('does not send when steps is empty and appSizeMb is not set', async () => {
+    process.env.E2E_PERFORMANCE_SENTRY_DSN =
+      'https://publicKey@o123.ingest.sentry.io/4567';
+
+    const sent = await publishPerformanceScenarioToSentry({
+      metrics: createMetrics({ steps: [] }),
+      testTitle: 'Import wallet flow',
+      projectName: 'browserstack-android',
+      testFilePath: 'tests/performance/onboarding/import-wallet.spec.js',
+      tags: ['@PerformanceOnboarding'],
+      status: 'passed',
+      retry: 0,
+      workerIndex: 0,
+    });
+
+    expect(sent).toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('includes profiling measurements when profilingSummary is provided', async () => {
     process.env.E2E_PERFORMANCE_SENTRY_DSN =
       'https://publicKey@o123.ingest.sentry.io/4567';

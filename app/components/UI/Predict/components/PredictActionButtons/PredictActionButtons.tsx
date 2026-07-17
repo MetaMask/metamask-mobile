@@ -13,10 +13,8 @@ import {
   PredictOutcomeToken,
 } from '../../types';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
-import {
-  getPrimaryMoneylineOutcomes,
-  isDrawCapableLeague,
-} from '../../constants/sports';
+import { isDrawCapableLeague } from '../../constants/sports';
+import { getPrimaryMoneylineOutcomes } from '../../utils/sports';
 import {
   BASE_PREDICT_ACTION_BUTTONS_TEST_IDS,
   PREDICT_ACTION_BUTTONS_TEST_IDS,

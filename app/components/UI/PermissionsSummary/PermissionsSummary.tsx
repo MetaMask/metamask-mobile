@@ -62,7 +62,7 @@ import AvatarFavicon from '../../../component-library/components/Avatars/Avatar/
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import AccountConnectCreateInitialAccount from '../../Views/MultichainAccounts/shared/AccountConnectCreateInitialAccount';
 import { SolScope } from '@metamask/keyring-api';
-import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { WalletClientType } from '../../../core/SnapKeyring/types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import {
   Text as TextComponent,

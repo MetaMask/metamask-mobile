@@ -22,6 +22,8 @@ import {
 } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { TokenWarningModal } from './components/TokenWarningModal';
 import { MissingPriceModal } from './components/MissingPriceModal';
+import { HardwareWalletsSwaps } from '../HardwareWallet/Swaps/HardwareWalletsSwaps';
+import { HwQrScanner } from '../HardwareWallet/Swaps/HwQrScanner';
 import { HighRateAlertModal } from './components/HighRateAlertModal';
 import { PostTradeBottomSheet } from './components/PostTradeBottomSheet';
 import { BatchSellDestinationTokenSelectorModal } from './components/BatchSellDestinationTokenSelectorModal';
@@ -30,11 +32,15 @@ import { BatchSellFinalReviewModal } from './components/BatchSellFinalReviewModa
 import { BatchSellNetworkFeeInfoModal } from './components/BatchSellNetworkFeeInfoModal';
 import { BatchSellMinimumReceivedInfoModal } from './components/BatchSellMinimumReceivedInfoModal';
 import { BatchSellPriceImpactInfoModal } from './components/BatchSellPriceImpactInfoModal';
+import type {
+  BridgeModalsNavigationParamList,
+  BridgeScreensStackParamList,
+} from './types/navigation';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<BridgeScreensStackParamList>();
 export const BridgeScreenStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name={Routes.BRIDGE.BRIDGE_VIEW} component={BridgeView} />
@@ -56,10 +62,21 @@ export const BridgeScreenStack = () => (
       name={Routes.BRIDGE.QUOTE_SELECTOR_VIEW}
       component={QuoteSelectorView}
     />
+    <Stack.Screen
+      name={Routes.BRIDGE.HARDWARE_WALLETS_SWAPS}
+      component={HardwareWalletsSwaps}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.BRIDGE.HW_QR_SCANNER}
+      component={HwQrScanner}
+      options={{ headerShown: false }}
+    />
   </Stack.Navigator>
 );
 
-const ModalStack = createNativeStackNavigator();
+const ModalStack =
+  createNativeStackNavigator<BridgeModalsNavigationParamList>();
 export const BridgeModalStack = () => (
   <ModalStack.Navigator
     screenOptions={{

@@ -180,4 +180,20 @@ describe('useFiatBuyLimitAlert', () => {
 
     expect(result.current).toStrictEqual([]);
   });
+
+  it('returns empty array when selectedPaymentMethodId is cleared for money account', () => {
+    useTransactionPayFiatPaymentMock.mockReturnValue({
+      selectedPaymentMethodId: undefined,
+      amountFiat: '0.05',
+    });
+
+    useRampsBuyLimitsMock.mockReturnValue({
+      amountLimitError: 'Minimum purchase is $5.00',
+      currency: 'USD',
+    });
+
+    const { result } = runHook({ pendingAmount: '0.05' });
+
+    expect(result.current).toStrictEqual([]);
+  });
 });

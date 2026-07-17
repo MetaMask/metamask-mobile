@@ -125,6 +125,14 @@ describe('MoneyApyInfoSheet', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders paragraph_4', () => {
+    const { getByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+    expect(
+      getByText(strings('money.apy_tooltip.paragraph_4')),
+    ).toBeOnTheScreen();
+  });
+
   it('does not render a Learn More footer button', () => {
     const { queryByTestId } = renderWithProvider(<MoneyApyInfoSheet />);
 
@@ -172,6 +180,12 @@ describe('MoneyApyInfoSheet', () => {
       const { queryByText } = renderWithProvider(<MoneyApyInfoSheet />);
 
       expect(queryByText(strings('money.apy_tooltip.paragraph_3'))).toBeNull();
+    });
+
+    it('does not render paragraph_4', () => {
+      const { queryByText } = renderWithProvider(<MoneyApyInfoSheet />);
+
+      expect(queryByText(strings('money.apy_tooltip.paragraph_4'))).toBeNull();
     });
 
     it('renders the sheet title', () => {

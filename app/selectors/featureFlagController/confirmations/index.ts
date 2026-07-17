@@ -3,6 +3,10 @@ import { selectRemoteFeatureFlags } from '..';
 import { Hex, Json } from '@metamask/utils';
 import { RootState } from '../../../reducers';
 import { TransactionType } from '@metamask/transaction-controller';
+import {
+  getRelayFixedSpreadFromConfig,
+  RelayFixedSpreadConfig,
+} from '../../../components/Views/confirmations/utils/relayFixedSpread';
 
 export const ATTEMPTS_MAX_DEFAULT = 2;
 export const BUFFER_INITIAL_DEFAULT = 0.025;
@@ -12,12 +16,18 @@ export const PAY_FIAT_ENABLED_TRANSACTION_TYPES = [];
 export const PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS = 10;
 export const PAY_HARDWARE_ENABLED_DEFAULT = false;
 export const PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT = false;
-export const PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT = false;
-export const PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT = false;
-export const PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT = false;
-export const PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT = false;
-export const PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT: string | undefined =
-  undefined;
+export const PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT: Record<
+  string,
+  boolean
+> = {};
+export const PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT:
+  | Record<string, string>
+  | undefined = undefined;
+export const PAY_DEPOSIT_LIMITS_DEFAULT: Record<string, number> = {};
+export const PAY_PREFILLED_AMOUNT_DEFAULT: PrefilledAmountFlags = {
+  default: { enabled: false },
+  overrides: {},
+};
 export const SLIPPAGE_DEFAULT = 0.005;
 export const STX_DISABLED_DEFAULT = false;
 
@@ -56,13 +66,20 @@ export interface MetaMaskPayFlags {
   stxDisabled: boolean;
 }
 
+export interface PrefilledAmountConfig {
+  enabled: boolean;
+}
+
+export interface PrefilledAmountFlags {
+  default: PrefilledAmountConfig;
+  overrides: Record<string, PrefilledAmountConfig>;
+}
+
 export interface MetaMaskPayExtendedFlags {
   enableDepositWalletWithdraw: boolean;
-  enablePerpsMoneyAccountTransactions: boolean;
-  enablePredictMoneyAccountTransactions: boolean;
-  enableMoneyHomePagePerpsTransaction: boolean;
-  enableMoneyHomePagePredictTransaction: boolean;
-  defaultPaySelectedSection?: string;
+  enableMoneyAccountTransactions: Record<string, boolean>;
+  defaultPaySelectedSection?: Record<string, string>;
+  prefilledAmount: PrefilledAmountFlags;
 }
 
 export interface MetaMaskPayTokensFlags {
@@ -79,18 +96,6 @@ export interface PayPostQuoteConfig {
 export interface PayPostQuoteFlags {
   default: PayPostQuoteConfig;
   overrides?: Record<string, PayPostQuoteConfig>;
-}
-
-export interface GasFeeTokenFlags {
-  gasFeeTokens: {
-    [chainId: Hex]: {
-      name: string;
-      tokens: {
-        name: string;
-        address: Hex;
-      }[];
-    };
-  };
 }
 
 export interface MetaMaskPayFiatFlags {
@@ -136,25 +141,30 @@ export const selectMetaMaskPayFlags = createSelector(
       (metaMaskPayExtendedFlags?.enableDepositWalletWithdraw as boolean) ??
       PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT;
 
-    const enablePerpsMoneyAccountTransactions =
-      (metaMaskPayExtendedFlags?.enablePerpsMoneyAccountTransactions as boolean) ??
-      PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT;
-
-    const enablePredictMoneyAccountTransactions =
-      (metaMaskPayExtendedFlags?.enablePredictMoneyAccountTransactions as boolean) ??
-      PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT;
-
-    const enableMoneyHomePagePerpsTransaction =
-      (metaMaskPayExtendedFlags?.enablePerpsMoneyAccountTransactions as boolean) ??
-      PAY_ENABLE_MONEY_HOME_PAGE_PERPS_TRANSACTION_DEFAULT;
-
-    const enableMoneyHomePagePredictTransaction =
-      (metaMaskPayExtendedFlags?.enablePredictMoneyAccountTransactions as boolean) ??
-      PAY_ENABLE_MONEY_HOME_PAGE_PREDICT_TRANSACTION_DEFAULT;
+    const enableMoneyAccountTransactions =
+      (metaMaskPayExtendedFlags?.enableMoneyAccountTransactions as Record<
+        string,
+        boolean
+      >) ?? PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT;
 
     const defaultPaySelectedSection =
-      (metaMaskPayExtendedFlags?.defaultPaySelectedSection as string) ??
-      PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT;
+      (metaMaskPayExtendedFlags?.defaultPaySelectedSection as Record<
+        string,
+        string
+      >) ?? PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT;
+
+    const rawPrefill = metaMaskPayExtendedFlags?.prefilledAmount as
+      | {
+          default?: PrefilledAmountConfig;
+          overrides?: Record<string, PrefilledAmountConfig>;
+        }
+      | undefined;
+
+    const prefilledAmount: PrefilledAmountFlags = {
+      default: rawPrefill?.default ?? PAY_PREFILLED_AMOUNT_DEFAULT.default,
+      overrides:
+        rawPrefill?.overrides ?? PAY_PREFILLED_AMOUNT_DEFAULT.overrides,
+    };
 
     return {
       attemptsMax,
@@ -164,14 +174,49 @@ export const selectMetaMaskPayFlags = createSelector(
       slippage,
       stxDisabled,
       enableDepositWalletWithdraw,
-      enablePerpsMoneyAccountTransactions,
-      enablePredictMoneyAccountTransactions,
-      enableMoneyHomePagePerpsTransaction,
-      enableMoneyHomePagePredictTransaction,
+      enableMoneyAccountTransactions,
       defaultPaySelectedSection,
+      prefilledAmount,
     };
   },
 );
+
+/**
+ * Resolves the effective prefilledAmount config for a given transaction type.
+ * Override entries take precedence over default.
+ */
+export function selectPrefilledAmountConfig(
+  state: RootState,
+  transactionType?: string,
+): PrefilledAmountConfig {
+  const flags = selectMetaMaskPayFlags(state);
+  const { prefilledAmount } = flags;
+
+  const override = transactionType
+    ? prefilledAmount.overrides?.[transactionType]
+    : undefined;
+
+  if (override) {
+    return {
+      enabled: override.enabled ?? prefilledAmount.default.enabled,
+    };
+  }
+
+  return prefilledAmount.default;
+}
+
+export function selectDepositLimits(state: RootState): Record<string, number> {
+  const featureFlags = selectRemoteFeatureFlags(state);
+
+  const metaMaskPayExtendedFlags = featureFlags?.confirmations_pay_extended as
+    | Record<string, Json>
+    | undefined;
+
+  return (
+    (metaMaskPayExtendedFlags?.depositLimit as Record<string, number>) ??
+    PAY_DEPOSIT_LIMITS_DEFAULT
+  );
+}
 
 export const selectMetaMaskPayTokensFlags = createSelector(
   selectRemoteFeatureFlags,
@@ -278,25 +323,6 @@ export const selectNonZeroUnusedApprovalsAllowList = createSelector(
     remoteFeatureFlags?.nonZeroUnusedApprovals ?? [],
 );
 
-export const selectGasFeeTokenFlags = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): GasFeeTokenFlags => {
-    const gasFeeTokenFlags =
-      remoteFeatureFlags?.confirmations_gas_fee_tokens as
-        | Record<string, Json>
-        | undefined;
-
-    const gasFeeTokens =
-      (gasFeeTokenFlags?.gasFeeTokens as
-        | GasFeeTokenFlags['gasFeeTokens']
-        | undefined) ?? {};
-
-    return {
-      gasFeeTokens,
-    };
-  },
-);
-
 export const selectMetaMaskPayFiatFlags = createSelector(
   selectRemoteFeatureFlags,
   (featureFlags): MetaMaskPayFiatFlags => {
@@ -326,4 +352,13 @@ export const selectMetaMaskPayHardwareFlags = createSelector(
       enabled: (raw?.enabled as boolean) ?? PAY_HARDWARE_ENABLED_DEFAULT,
     };
   },
+);
+
+export const selectRelayFixedSpread = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags): RelayFixedSpreadConfig =>
+    getRelayFixedSpreadFromConfig(
+      featureFlags?.confirmations_relay_fixed_spread,
+      'confirmations_relay_fixed_spread',
+    ),
 );

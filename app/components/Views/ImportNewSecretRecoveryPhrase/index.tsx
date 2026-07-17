@@ -7,12 +7,11 @@ import React, {
   useRef,
 } from 'react';
 import { Alert, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   KeyboardAwareScrollView,
-  KeyboardProvider,
   KeyboardStickyView,
   useKeyboardState,
 } from 'react-native-keyboard-controller';
@@ -35,6 +34,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { ImportSRPIDs } from './SRPImport.testIds';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
+import { DUPLICATE_MNEMONIC_ERROR_MESSAGES } from '../../../core/QrSync/duplicateMnemonicError';
 import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
 import TitleStandard from '../../../component-library/components-temp/TitleStandard';
 import {
@@ -69,6 +69,11 @@ import {
 const ImportNewSecretRecoveryPhrase = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const insets = useSafeAreaInsets();
+  const footerStyle = useMemo(
+    () => tw.style('px-4 py-4 bg-default', { marginBottom: insets.bottom }),
+    [insets, tw],
+  );
   const { toastRef } = useContext(ToastContext);
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
 
@@ -214,8 +219,10 @@ const ImportNewSecretRecoveryPhrase = () => {
 
       navigation.navigate('WalletView');
     } catch (e) {
-      switch ((e as Error)?.message) {
-        case 'This mnemonic has already been imported.':
+      const errorMessage = (e as Error)?.message;
+      switch (errorMessage) {
+        case DUPLICATE_MNEMONIC_ERROR_MESSAGES[0]:
+        case DUPLICATE_MNEMONIC_ERROR_MESSAGES[1]:
           Alert.alert(
             strings('import_new_secret_recovery_phrase.error_duplicate_srp'),
           );
@@ -237,11 +244,8 @@ const ImportNewSecretRecoveryPhrase = () => {
     }
   };
 
-  const content = (
-    <SafeAreaView
-      edges={{ bottom: 'additive' }}
-      style={tw.style('flex-1 bg-default')}
-    >
+  return (
+    <Box twClassName="flex-1 bg-default">
       <HeaderStandard
         includesTopInset
         backButtonProps={{
@@ -311,7 +315,7 @@ const ImportNewSecretRecoveryPhrase = () => {
           />
         </Box>
       </KeyboardAwareScrollView>
-      <Box twClassName="px-4 py-4 bg-default">
+      <Box style={footerStyle}>
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
@@ -338,10 +342,8 @@ const ImportNewSecretRecoveryPhrase = () => {
         </KeyboardStickyView>
       )}
       <ScreenshotDeterrent enabled isSRP />
-    </SafeAreaView>
+    </Box>
   );
-
-  return <KeyboardProvider>{content}</KeyboardProvider>;
 };
 
 export default ImportNewSecretRecoveryPhrase;

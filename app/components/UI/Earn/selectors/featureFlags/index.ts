@@ -2,6 +2,7 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 import {
   validatedVersionGatedFeatureFlag,
+  parseBlockedCountriesEnv,
   VersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
 import {
@@ -243,23 +244,6 @@ export const selectIsMusdConversionRewardsUiEnabledFlag = createSelector(
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
-
-/**
- * Parses a comma-separated string of country codes into an array.
- * Returns empty array if input is undefined/empty.
- *
- * @param envValue - Comma-separated country codes (e.g., "GB,US,FR")
- * @returns Array of country codes
- */
-export const parseBlockedCountriesEnv = (envValue?: string): string[] => {
-  if (!envValue || envValue.trim() === '') {
-    return [];
-  }
-  return envValue
-    .split(',')
-    .map((code) => code.trim().toUpperCase())
-    .filter((code) => code.length > 0);
-};
 
 /**
  * Selects the geo-blocked countries for mUSD conversion from remote config or local fallback.

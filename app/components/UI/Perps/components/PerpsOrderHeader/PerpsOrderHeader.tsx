@@ -1,38 +1,24 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../../util/theme';
 import {
-  PERPS_CONSTANTS,
+  HeaderSubpage,
+  SelectButton,
+  SelectButtonSize,
+  SelectButtonVariant,
+} from '@metamask/design-system-react-native';
+import React, { useCallback, useMemo } from 'react';
+import {
   getPerpsDisplaySymbol,
   type OrderType,
 } from '@metamask/perps-controller';
-import {
-  formatPercentage,
-  formatPerpsFiat,
-  PRICE_RANGES_UNIVERSAL,
-} from '../../utils/formatUtils';
-import { createStyles } from './PerpsOrderHeader.styles';
 import { strings } from '../../../../../../locales/i18n';
+import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
+import { usePerpsLiveFocusedPrice } from '../../hooks/stream';
+import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
+import PerpsTokenLogo from '../PerpsTokenLogo';
 
 interface PerpsOrderHeaderProps {
   asset: string;
   price: number;
-  priceChange: number;
   orderType?: OrderType;
   direction?: 'long' | 'short';
   onBack?: () => void;
@@ -44,7 +30,6 @@ interface PerpsOrderHeaderProps {
 const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   asset,
   price,
-  priceChange,
   orderType,
   direction = 'long',
   onBack,
@@ -52,10 +37,48 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   title,
   isLoading,
 }) => {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation();
-  const { top: topInset } = useSafeAreaInsets();
+
+  // Fast, single-symbol focused price (~0.5s activeAssetCtx cadence,
+  // TAT-3334) — the same source PerpsOrderView already uses for its own
+  // fee/margin/validation calculations. Subscribing again here (rather than
+  // only reading the `price` prop) puts the resulting setState inside
+  // PerpsOrderHeader's own subtree, so its render is independent of the
+  // parent's heavier recompute cycle.
+  //
+  // FocusedPriceStreamChannel is a shared, reference-counted singleton keyed
+  // by symbol, so this does not open a second WebSocket connection when the
+  // parent (PerpsOrderView) already subscribes to the same symbol — both
+  // subscribers share one connection and both receive every tick.
+  //
+  // price and percentChange24h come from the SAME PriceUpdate object on the
+  // SAME tick, so — unlike two independent subscriptions — they can never
+  // disagree with each other. The `price` prop is kept as the fallback shown
+  // until this subscription delivers its first update for the current
+  // symbol (including right after an asset change, until the channel
+  // resolves the new symbol).
+  const focusedPriceUpdate = usePerpsLiveFocusedPrice({ symbol: asset });
+
+  const displayPrice = useMemo(() => {
+    // Guard against stale PriceUpdate from a prior symbol: the focused-price
+    // channel clears state in a useEffect (async w.r.t. render), so on the
+    // first render after an asset change the cached update may still carry
+    // the old symbol. Fall back to the parent `price` prop in that case.
+    if (focusedPriceUpdate?.symbol !== asset) {
+      return price;
+    }
+    const parsed = Number.parseFloat(focusedPriceUpdate.price ?? '');
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : price;
+  }, [focusedPriceUpdate, asset, price]);
+
+  const percentChange24h = useMemo(() => {
+    // Same symbol guard: do not show another market's 24 h change.
+    if (focusedPriceUpdate?.symbol !== asset) {
+      return null;
+    }
+    const parsed = Number.parseFloat(focusedPriceUpdate.percentChange24h ?? '');
+    return Number.isFinite(parsed) ? parsed : null;
+  }, [focusedPriceUpdate, asset]);
 
   const handleBack = useCallback(() => {
     if (onBack) {
@@ -66,103 +89,74 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   }, [navigation, onBack]);
 
   const handleOrderTypePress = useCallback(() => {
-    if (onOrderTypePress) {
-      onOrderTypePress();
-    }
-    // Note: onOrderTypePress callback is now required
+    onOrderTypePress?.();
   }, [onOrderTypePress]);
 
-  // Format price display with edge case handling
-  const formattedPrice = useMemo(() => {
-    // Handle invalid or edge case values
-    if (!price || price <= 0 || !Number.isFinite(price)) {
-      return PERPS_CONSTANTS.FallbackPriceDisplay;
-    }
-
-    try {
-      return formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
-    } catch {
-      // Fallback if formatPerpsFiat throws
-      return PERPS_CONSTANTS.FallbackPriceDisplay;
-    }
-  }, [price]);
-
-  const formattedChange = useMemo(() => {
-    if (!price || price <= 0 || !Number.isFinite(price)) {
-      return PERPS_CONSTANTS.FallbackPercentageDisplay;
-    }
-    try {
-      return formatPercentage(priceChange.toString());
-    } catch {
-      return PERPS_CONSTANTS.FallbackPercentageDisplay;
-    }
-  }, [priceChange, price]);
-
-  const headerStyle = useMemo(
-    () => [
-      styles.header,
-      topInset > 0 ? { paddingTop: 16 + topInset } : undefined,
-    ],
-    [styles.header, topInset],
+  const displayTitle = useMemo(
+    () =>
+      title ||
+      `${
+        direction === 'long'
+          ? strings('perps.market.long')
+          : strings('perps.market.short')
+      } ${getPerpsDisplaySymbol(asset)}`,
+    [asset, direction, title],
   );
 
-  return (
-    <View style={headerStyle} testID={PerpsOrderHeaderSelectorsIDs.HEADER}>
-      <ButtonIcon
-        testID={PerpsOrderHeaderSelectorsIDs.BACK_BUTTON}
-        iconName={IconName.ArrowLeft}
-        onPress={handleBack}
-        iconColor={IconColor.Default}
-        size={ButtonIconSizes.Md}
+  const orderTypeLabel = useMemo(() => {
+    if (!orderType) {
+      return undefined;
+    }
+
+    return orderType === 'market'
+      ? strings('perps.order.market')
+      : strings('perps.order.limit');
+  }, [orderType]);
+
+  const description = useMemo(
+    () => (
+      <LivePriceHeader
+        symbol={asset}
+        currentPrice={displayPrice}
+        percentChange24h={percentChange24h}
       />
-      <View style={styles.headerLeft}>
-        <Text
-          variant={TextVariant.HeadingMD}
-          style={styles.headerTitle}
-          testID={PerpsOrderHeaderSelectorsIDs.ASSET_TITLE}
-        >
-          {title ||
-            `${
-              direction === 'long'
-                ? strings('perps.market.long')
-                : strings('perps.market.short')
-            } ${getPerpsDisplaySymbol(asset)}`}
-        </Text>
-        <View style={styles.priceRow}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {formattedPrice}
-          </Text>
-          {price > 0 && (
-            <Text
-              variant={TextVariant.BodyMD}
-              color={priceChange >= 0 ? TextColor.Success : TextColor.Error}
-            >
-              {formattedChange}
-            </Text>
-          )}
-        </View>
-      </View>
-      {Boolean(orderType) && (
-        <TouchableOpacity
-          onPress={handleOrderTypePress}
-          style={styles.marketButton}
-          testID={PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON}
-          disabled={isLoading}
-        >
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {orderType === 'market'
-              ? strings('perps.order.market')
-              : strings('perps.order.limit')}
-          </Text>
-          <Icon
-            name={IconName.ArrowDown}
-            size={IconSize.Xs}
-            color={IconColor.Default}
-            style={styles.marketButtonIcon}
-          />
-        </TouchableOpacity>
-      )}
-    </View>
+    ),
+    [asset, displayPrice, percentChange24h],
+  );
+
+  const endAccessory = useMemo(() => {
+    if (!orderType || !orderTypeLabel) {
+      return undefined;
+    }
+
+    return (
+      <SelectButton
+        testID={PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON}
+        variant={SelectButtonVariant.Primary}
+        size={SelectButtonSize.Md}
+        placeholder={orderTypeLabel}
+        value={orderTypeLabel}
+        onPress={handleOrderTypePress}
+        isDisabled={isLoading}
+      />
+    );
+  }, [handleOrderTypePress, isLoading, orderType, orderTypeLabel]);
+
+  return (
+    <HeaderSubpage
+      includesTopInset
+      twClassName="min-h-14 h-auto bg-default justify-center pr-4"
+      testID={PerpsOrderHeaderSelectorsIDs.HEADER}
+      onBack={handleBack}
+      backButtonProps={{
+        testID: PerpsOrderHeaderSelectorsIDs.BACK_BUTTON,
+      }}
+      avatar={<PerpsTokenLogo symbol={asset} size={40} />}
+      title={displayTitle}
+      titleProps={{ testID: PerpsOrderHeaderSelectorsIDs.ASSET_TITLE }}
+      description={description}
+      endAccessory={endAccessory}
+    />
   );
 };
 

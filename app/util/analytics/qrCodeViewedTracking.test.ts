@@ -48,7 +48,6 @@ describe('qrCodeViewedTracking', () => {
       name: 'QR Code Viewed',
       properties: mockProperties,
       sensitiveProperties: {},
-      saveDataRecording: false,
       isAnonymous: false,
       hasProperties: true,
     } as ITrackingEvent);

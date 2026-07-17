@@ -5,12 +5,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Image,
-  RefreshControl,
-  ScrollView,
-  useWindowDimensions,
-} from 'react-native';
+import { RefreshControl, ScrollView, useWindowDimensions } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -283,10 +279,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   }, [currentSeriesMarkets, market.series, selectedMarket]);
   const isSelectedMarketLive = liveMarketForChart.id === selectedMarket.id;
 
-  const {
-    openOutcomes: selectedOpenOutcomes,
-    yesPercentage: selectedYesPercentage,
-  } = useOpenOutcomes({
+  const { openOutcomes: selectedOpenOutcomes } = useOpenOutcomes({
     market: selectedMarket,
   });
   const canClaim = Boolean(onClaimPress && hasPositivePnl);
@@ -514,7 +507,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
                   <Image
                     source={{ uri: selectedMarket.image }}
                     style={tw.style('w-full h-full')}
-                    resizeMode="cover"
+                    contentFit="cover"
                   />
                 ) : (
                   <Box twClassName="w-full h-full bg-muted" />
@@ -646,7 +639,6 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
             isMarketLoading={isMarketLoading}
             market={selectedMarket}
             openOutcomes={selectedOpenOutcomes}
-            yesPercentage={selectedYesPercentage}
             onClaimPress={onClaimPress ?? NOOP}
             onBuyPress={handleBuyPress}
             isClaimPending={isClaimPending}

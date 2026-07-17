@@ -1,6 +1,8 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { type TransactionMeta } from '@metamask/transaction-controller';
 import { useMoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
+import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import ActivityRowView from './ActivityRowView';
 
 export interface MoneyActivityItemProps {
@@ -9,6 +11,8 @@ export interface MoneyActivityItemProps {
   onPress?: (transaction: TransactionMeta) => void;
   /** When true, shows the chain network badge on the icon avatar. Defaults to false. */
   showNetworkBadge?: boolean;
+  /** Whether the crypto/fiat amounts should be masked. */
+  privacyMode?: boolean;
 }
 
 const MoneyActivityItem = ({
@@ -16,16 +20,21 @@ const MoneyActivityItem = ({
   moneyAddress,
   onPress,
   showNetworkBadge = false,
+  privacyMode = false,
 }: MoneyActivityItemProps) => {
   const display = useMoneyTransactionDisplayInfo(tx, moneyAddress);
+  const activityDetailsEnabled = useSelector(
+    selectMoneyEnableActivityDetailsFlag,
+  );
 
   return (
     <ActivityRowView
       id={tx.id}
       display={display}
       chainId={tx.chainId}
-      onPress={() => onPress?.(tx)}
+      onPress={activityDetailsEnabled ? () => onPress?.(tx) : undefined}
       showNetworkBadge={showNetworkBadge}
+      privacyMode={privacyMode}
     />
   );
 };

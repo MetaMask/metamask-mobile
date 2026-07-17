@@ -58,21 +58,20 @@ export class EmulatorConfigBuilder {
       process.env.USE_PREBUILT_WDA === 'true' &&
       !usePreinstalledWda;
 
+    const androidAdbExecTimeoutMs = 120_000;
+    const androidTimeout = androidAdbExecTimeoutMs + 30_000;
+    const iosTimeout = usePreinstalledWda
+      ? 3 * 60 * 1000
+      : usePrebuiltWda
+        ? 5 * 60 * 1000
+        : 12 * 60 * 1000;
+    const connectionRetryTimeout =
+      platformName === Platform.ANDROID ? androidTimeout : iosTimeout;
+
     return {
       hostname: getAppiumHost(),
       port: getAppiumPort(),
-      // XCUITest driver must build and install WDA on first run (3-4 min on
-      // local, up to 10 min on CI). Raise the WebDriverIO HTTP timeout so the
-      // session-creation POST doesn't time out before Appium responds.
-      // connectionRetryCount: 0 — no retries on session creation; a timeout
-      // here is not a transient error and retrying just doubles the wait.
-      // Preinstalled WDA: prepare-ios-appium-runner already launched WDA on CI.
-      // Prebuilt/cold paths still need minutes for xcodebuild or first launch.
-      connectionRetryTimeout: usePreinstalledWda
-        ? 90 * 1000
-        : usePrebuiltWda
-          ? 5 * 60 * 1000
-          : 12 * 60 * 1000,
+      connectionRetryTimeout,
       connectionRetryCount: 0,
       capabilities: {
         'appium:deviceName': emulatorDevice.name,
@@ -84,9 +83,9 @@ export class EmulatorConfigBuilder {
           ? {
               'appium:appPackage': this.project.use.app?.packageName,
               'appium:appActivity': this.project.use.app?.launchableActivity,
-              // Release E2E launches with many intent extras; default 20s adbExecTimeout
-              // is too low on CI after a prior test (see appium-accounts-android-smoke).
-              'appium:adbExecTimeout': 120_000,
+              'appium:adbExecTimeout': androidAdbExecTimeoutMs,
+              // Fail Chromedriver attach faster than the default when WebView is stuck.
+              'appium:androidWebviewConnectTimeout': 60_000,
             }
           : {
               'appium:bundleId': this.project.use.app?.appId,
@@ -115,17 +114,19 @@ export class EmulatorConfigBuilder {
               'appium:updatedWDABundleId':
                 process.env.IOS_WDA_BUNDLE_ID?.trim() ||
                 'com.facebook.WebDriverAgentRunner',
-              'appium:wdaLaunchTimeout': 60_000,
-              'appium:wdaConnectionTimeout': 10_000,
-              'appium:simulatorStartupTimeout': 120_000,
+              // CI evidence shows intermittent WDA launch/proxy timeouts at 60s/10s.
+              // Give the preinstalled path more room on loaded runners.
+              'appium:wdaLaunchTimeout': 120_000,
+              'appium:wdaConnectionTimeout': 30_000,
+              'appium:simulatorStartupTimeout': 180_000,
             }
           : usePrebuiltWda
             ? {
                 // Prebuilt WDA on CI: xcodebuild test-without-building (~minutes).
-                'appium:wdaLaunchTimeout': 60_000,
-                'appium:wdaConnectionTimeout': 10_000,
+                'appium:wdaLaunchTimeout': 120_000,
+                'appium:wdaConnectionTimeout': 30_000,
                 // Sim is booted in getDriver(); this covers XCUITest attach on loaded CI hosts.
-                'appium:simulatorStartupTimeout': 180_000,
+                'appium:simulatorStartupTimeout': 240_000,
               }
             : {
                 // Cold WDA build (local dev / cache miss): allow up to 10 min.

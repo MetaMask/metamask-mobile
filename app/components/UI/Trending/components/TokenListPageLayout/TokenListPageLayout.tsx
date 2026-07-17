@@ -16,6 +16,7 @@ import { TrendingTokensData } from '../../Views/TrendingTokensFullView/TrendingT
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import type { TokenListFilters } from '../../hooks/useTokenListFilters/useTokenListFilters';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 export interface TokenListPageLayoutProps {
   /** Page title displayed in the header */
@@ -36,12 +37,26 @@ export interface TokenListPageLayoutProps {
   allowedNetworks: ProcessedNetwork[];
   /** Optional extra filter buttons (e.g., time filter) */
   extraFilters?: React.ReactNode;
+  /** When true, shows the watchlist star filter in the filter bar. */
+  showWatchlistFilter?: boolean;
+  /** Whether the watchlist filter is currently active (star pill selected). */
+  isWatchlistFilterActive?: boolean;
+  /** When true, list data comes from watchlist (not trending search). */
+  isWatchlistListMode?: boolean;
+  /** Called when the watchlist star filter is toggled. */
+  onWatchlistFilterPress?: () => void;
+  /** Token Details analytics source passed through to list rows. */
+  tokenDetailsSource?: TokenDetailsSource;
   /** Optional extra bottom sheets rendered at the end */
   extraBottomSheets?: React.ReactNode;
   /** Called when the user scrolls near the end of the list to fetch the next page. */
   onLoadMore?: () => void;
   /** Whether a pagination request is in flight. */
   isLoadingMore?: boolean;
+  /** When provided, shows a Quick Trade flash button on each token row. */
+  onQuickTrade?: (token: TrendingAsset) => void;
+  /** Overlay node (e.g. TrendingQuickBuy sheet) rendered outside the scroll area. */
+  quickBuyNode?: React.ReactNode;
 }
 
 /**
@@ -62,9 +77,16 @@ const TokenListPageLayout: React.FC<TokenListPageLayoutProps> = ({
   onRefresh,
   allowedNetworks,
   extraFilters,
+  showWatchlistFilter,
+  isWatchlistFilterActive,
+  isWatchlistListMode = false,
+  onWatchlistFilterPress,
+  tokenDetailsSource,
   extraBottomSheets,
   onLoadMore,
   isLoadingMore,
+  onQuickTrade,
+  quickBuyNode,
 }) => {
   const tw = useTailwind();
   const theme = useAppThemeFromContext();
@@ -93,10 +115,13 @@ const TokenListPageLayout: React.FC<TokenListPageLayoutProps> = ({
         <FilterBar
           priceChangeButtonText={filters.priceChangeButtonText}
           onPriceChangePress={filters.handlePriceChangePress}
-          isPriceChangeDisabled={searchResults.length === 0}
+          isPriceChangeDisabled={tokens.length === 0}
           priceChangeIconName={filters.priceChangeSortDirectionIcon}
           networkName={filters.selectedNetworkName}
           onNetworkPress={filters.handleAllNetworksPress}
+          showWatchlistFilter={showWatchlistFilter}
+          isWatchlistFilterActive={isWatchlistFilterActive}
+          onWatchlistFilterPress={onWatchlistFilterPress}
           extraFilters={extraFilters}
         />
       ) : null}
@@ -112,6 +137,9 @@ const TokenListPageLayout: React.FC<TokenListPageLayoutProps> = ({
         theme={theme}
         onLoadMore={onLoadMore}
         isLoadingMore={isLoadingMore}
+        onQuickTrade={onQuickTrade}
+        isWatchlistFilterActive={isWatchlistListMode}
+        tokenDetailsSource={tokenDetailsSource}
       />
 
       <TrendingTokenNetworkBottomSheet
@@ -129,6 +157,7 @@ const TokenListPageLayout: React.FC<TokenListPageLayoutProps> = ({
         sortDirection={filters.priceChangeSortDirection}
       />
       {extraBottomSheets}
+      {quickBuyNode}
     </SafeAreaView>
   );
 };

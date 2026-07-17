@@ -30,6 +30,7 @@ import PredictThePitchCampaignDetailsView from './Views/PredictThePitchCampaignD
 import PredictThePitchCampaignWinningView from './Views/PredictThePitchCampaignWinningView';
 import PredictThePitchCampaignLeaderboardView from './Views/PredictThePitchCampaignLeaderboardView';
 import PredictThePitchCampaignPortfolioView from './Views/PredictThePitchCampaignPortfolioView';
+import PredictThePitchCampaignStatsView from './Views/PredictThePitchCampaignStatsView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
@@ -41,9 +42,10 @@ import useRewardsToast from './hooks/useRewardsToast';
 import { strings } from '../../../../locales/i18n';
 import PerpsTradingCampaignWinningView from './Views/PerpsTradingCampaignWinningView';
 import { getActiveRouteNameFromNavigationState } from './utils';
+import type { RewardsStackParamList } from './types/navigation';
 
 let sessionNotificationsNudgeShown = false;
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RewardsStackParamList>();
 
 const RewardsNavigator: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
@@ -275,6 +277,11 @@ const RewardsNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_LEADERBOARD}
         component={PredictThePitchCampaignLeaderboardView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_STATS}
+        component={PredictThePitchCampaignStatsView}
         options={{ headerShown: false }}
       />
       <Stack.Screen

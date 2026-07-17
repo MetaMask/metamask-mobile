@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import GeneralSettings, {
+  GENERAL_SETTINGS_CURRENCY_SELECTOR,
   updateUserTraitsWithCurrentCurrency,
   updateUserTraitsWithCurrencyType,
 } from './';
@@ -13,6 +14,22 @@ import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyt
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { analytics } from '../../../../util/analytics/analytics';
+
+const mockSetCurrentCurrency = jest.fn();
+const mockSetSelectedCurrency = jest.fn();
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    CurrencyRateController: {
+      setCurrentCurrency: (...args: unknown[]) =>
+        mockSetCurrentCurrency(...args),
+    },
+    AssetsController: {
+      setSelectedCurrency: (...args: unknown[]) =>
+        mockSetSelectedCurrency(...args),
+    },
+  },
+}));
 
 jest.mock('../../../../core/Analytics');
 
@@ -99,6 +116,27 @@ describe('GeneralSettings', () => {
     fireEvent.press(backButton);
 
     expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('GeneralSettings currency selection', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('updates both CurrencyRateController and AssetsController when a currency is selected', () => {
+    const { getByTestId, getByText } = renderComponent();
+
+    fireEvent.press(getByTestId(GENERAL_SETTINGS_CURRENCY_SELECTOR));
+    fireEvent.press(getByText('EUR - Euro'));
+
+    expect(mockSetCurrentCurrency).toHaveBeenCalledWith('eur');
+    expect(mockSetSelectedCurrency).toHaveBeenCalledWith('eur');
   });
 });
 
