@@ -1,0 +1,134 @@
+diff --git a/dist/utils/formatStateForTransactionPay.cjs b/dist/utils/formatStateForTransactionPay.cjs
+index 441dd463f07040fc989af125262d226b2c7c4a0c..763f648bfbebeaec5669ca79b723d4f1c4ef92dd 100644
+--- a/dist/utils/formatStateForTransactionPay.cjs
++++ b/dist/utils/formatStateForTransactionPay.cjs
+@@ -30,7 +30,62 @@ function getAmountFromBalance(balance) {
+  * @param params.networkConfigurationsByChainId - Optional chain ID to network config (for native symbol).
+  * @returns Legacy-compatible state for transaction-pay-controller.
+  */
++function areAccountsEqual(a, b) {
++    if (a === b) {
++        return true;
++    }
++    if (a.length !== b.length) {
++        return false;
++    }
++    for (let i = 0; i < a.length; i++) {
++        if (a[i].id !== b[i].id || a[i].address !== b[i].address) {
++            return false;
++        }
++    }
++    return true;
++}
++function areRecordsShallowEqual(a, b) {
++    if (a === b) {
++        return true;
++    }
++    if (!a || !b) {
++        return false;
++    }
++    const aKeys = Object.keys(a);
++    const bKeys = Object.keys(b);
++    if (aKeys.length !== bKeys.length) {
++        return false;
++    }
++    for (const key of aKeys) {
++        if (a[key] !== b[key]) {
++            return false;
++        }
++    }
++    return true;
++}
++// This function is invoked (via AssetsController:getStateForTransactionPay) on
++// every TransactionController:stateChange, but its inputs only change when the
++// assets pipeline updates. Recomputing runs keccak256 (toChecksumAddress) per
++// asset per call, which dominates CPU profiles during transaction approval, so
++// the last result is memoized on input identity.
++let lastCall = null;
+ function formatStateForTransactionPay(params) {
++    if (lastCall &&
++        lastCall.params.assetsBalance === params.assetsBalance &&
++        lastCall.params.assetsInfo === params.assetsInfo &&
++        lastCall.params.assetsPrice === params.assetsPrice &&
++        lastCall.params.selectedCurrency === params.selectedCurrency &&
++        lastCall.params.networkConfigurationsByChainId ===
++            params.networkConfigurationsByChainId &&
++        areAccountsEqual(lastCall.params.accounts, params.accounts) &&
++        areRecordsShallowEqual(lastCall.params.nativeAssetIdentifiers, params.nativeAssetIdentifiers)) {
++        return lastCall.result;
++    }
++    const result = computeStateForTransactionPay(params);
++    lastCall = { params, result };
++    return result;
++}
++function computeStateForTransactionPay(params) {
+     var _a, _b;
+     const { assetsBalance, assetsInfo, assetsPrice, selectedCurrency, accounts, nativeAssetIdentifiers, networkConfigurationsByChainId = {}, } = params;
+     const tokenBalances = {};
+diff --git a/dist/utils/formatStateForTransactionPay.mjs b/dist/utils/formatStateForTransactionPay.mjs
+index ce8029dd048919468e1829e37c4897c7c6203d50..fbb1140f54a6a1eaef56804f85283841560c1dd0 100644
+--- a/dist/utils/formatStateForTransactionPay.mjs
++++ b/dist/utils/formatStateForTransactionPay.mjs
+@@ -27,7 +27,62 @@ function getAmountFromBalance(balance) {
+  * @param params.networkConfigurationsByChainId - Optional chain ID to network config (for native symbol).
+  * @returns Legacy-compatible state for transaction-pay-controller.
+  */
++function areAccountsEqual(a, b) {
++    if (a === b) {
++        return true;
++    }
++    if (a.length !== b.length) {
++        return false;
++    }
++    for (let i = 0; i < a.length; i++) {
++        if (a[i].id !== b[i].id || a[i].address !== b[i].address) {
++            return false;
++        }
++    }
++    return true;
++}
++function areRecordsShallowEqual(a, b) {
++    if (a === b) {
++        return true;
++    }
++    if (!a || !b) {
++        return false;
++    }
++    const aKeys = Object.keys(a);
++    const bKeys = Object.keys(b);
++    if (aKeys.length !== bKeys.length) {
++        return false;
++    }
++    for (const key of aKeys) {
++        if (a[key] !== b[key]) {
++            return false;
++        }
++    }
++    return true;
++}
++// This function is invoked (via AssetsController:getStateForTransactionPay) on
++// every TransactionController:stateChange, but its inputs only change when the
++// assets pipeline updates. Recomputing runs keccak256 (toChecksumAddress) per
++// asset per call, which dominates CPU profiles during transaction approval, so
++// the last result is memoized on input identity.
++let lastCall = null;
+ export function formatStateForTransactionPay(params) {
++    if (lastCall &&
++        lastCall.params.assetsBalance === params.assetsBalance &&
++        lastCall.params.assetsInfo === params.assetsInfo &&
++        lastCall.params.assetsPrice === params.assetsPrice &&
++        lastCall.params.selectedCurrency === params.selectedCurrency &&
++        lastCall.params.networkConfigurationsByChainId ===
++            params.networkConfigurationsByChainId &&
++        areAccountsEqual(lastCall.params.accounts, params.accounts) &&
++        areRecordsShallowEqual(lastCall.params.nativeAssetIdentifiers, params.nativeAssetIdentifiers)) {
++        return lastCall.result;
++    }
++    const result = computeStateForTransactionPay(params);
++    lastCall = { params, result };
++    return result;
++}
++function computeStateForTransactionPay(params) {
+     var _a, _b;
+     const { assetsBalance, assetsInfo, assetsPrice, selectedCurrency, accounts, nativeAssetIdentifiers, networkConfigurationsByChainId = {}, } = params;
+     const tokenBalances = {};
