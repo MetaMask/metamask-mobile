@@ -1,3 +1,5 @@
+import { StatusTypes } from '@metamask/bridge-controller';
+import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import {
   TransactionStatus,
   TransactionType,
@@ -352,5 +354,150 @@ describe('mapKeyringTransaction', () => {
         }),
       }),
     );
+  });
+
+  describe('bridge-history enrichment', () => {
+    const EVM_CHAIN_ID = '0x1';
+
+    const makeKeyringTx = (overrides: Partial<Transaction> = {}): Transaction =>
+      ({
+        id: 'bridge-id',
+        chain: SOLANA_CHAIN_ID,
+        account: '00000000-0000-4000-8000-000000000000',
+        status: TransactionStatus.Confirmed,
+        timestamp: 1716367781,
+        type: TransactionType.Send,
+        from: [{ address: 'from-address', asset: null }],
+        to: [],
+        fees: [],
+        events: [],
+        ...overrides,
+      }) as Transaction;
+
+    const makeBridgeHistory = ({
+      destChainId = EVM_CHAIN_ID,
+      bridgeStatus = StatusTypes.PENDING,
+      destChainAmount,
+    }: {
+      destChainId?: string | number;
+      bridgeStatus?: StatusTypes;
+      destChainAmount?: string;
+    } = {}): BridgeHistoryItem =>
+      ({
+        quote: {
+          srcChainId: SOLANA_CHAIN_ID,
+          destChainId,
+          srcAsset: {
+            assetId: `${SOLANA_CHAIN_ID}/slip44:501`,
+            decimals: 9,
+            symbol: 'SOL',
+          },
+          srcTokenAmount: '1000000000',
+          destAsset: {
+            assetId: 'eip155:1/slip44:60',
+            decimals: 18,
+            symbol: 'ETH',
+          },
+          destTokenAmount: '5000000000000000',
+        },
+        status: {
+          status: bridgeStatus,
+          srcChain: { txHash: 'bridge-id' },
+          ...(destChainAmount
+            ? { destChain: { txHash: '0xdest', amount: destChainAmount } }
+            : {}),
+        },
+      }) as unknown as BridgeHistoryItem;
+
+    it('maps a cross-chain bridge to a pending bridge item with quote-derived tokens', () => {
+      const item = mapKeyringTransaction({
+        transaction: makeKeyringTx(),
+        bridgeHistory: makeBridgeHistory(),
+      });
+
+      expect(item).toStrictEqual(
+        expect.objectContaining({
+          type: 'bridge',
+          chainId: SOLANA_CHAIN_ID,
+          // The confirmed source leg must not read as a completed bridge while
+          // the destination leg is still in flight.
+          status: 'pending',
+          hash: 'bridge-id',
+          data: {
+            sourceToken: {
+              amount: '1000000000',
+              assetId: `${SOLANA_CHAIN_ID}/slip44:501`,
+              decimals: 9,
+              direction: 'out',
+              symbol: 'SOL',
+            },
+            destinationToken: {
+              amount: '5000000000000000',
+              assetId: 'eip155:1/slip44:60',
+              decimals: 18,
+              direction: 'in',
+              symbol: 'ETH',
+            },
+          },
+        }),
+      );
+    });
+
+    it('marks the bridge successful and prefers the received amount once the destination leg lands', () => {
+      const item = mapKeyringTransaction({
+        // Snaps report bridge sources through several keyring types; swap-typed
+        // txs must enrich the same way send-typed ones do.
+        transaction: makeKeyringTx({ type: TransactionType.Swap }),
+        bridgeHistory: makeBridgeHistory({
+          bridgeStatus: StatusTypes.COMPLETE,
+          destChainAmount: '4990000000000000',
+        }),
+      });
+
+      expect(item).toStrictEqual(
+        expect.objectContaining({
+          type: 'bridge',
+          status: 'success',
+          data: expect.objectContaining({
+            destinationToken: expect.objectContaining({
+              amount: '4990000000000000',
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('maps a failed bridge status to a failed item', () => {
+      const item = mapKeyringTransaction({
+        transaction: makeKeyringTx(),
+        bridgeHistory: makeBridgeHistory({ bridgeStatus: StatusTypes.FAILED }),
+      });
+
+      expect(item).toStrictEqual(
+        expect.objectContaining({ type: 'bridge', status: 'failed' }),
+      );
+    });
+
+    it('reads a failed source tx as failed before the bridge status catches up', () => {
+      const item = mapKeyringTransaction({
+        transaction: makeKeyringTx({ status: TransactionStatus.Failed }),
+        bridgeHistory: makeBridgeHistory({ bridgeStatus: StatusTypes.PENDING }),
+      });
+
+      expect(item).toStrictEqual(
+        expect.objectContaining({ type: 'bridge', status: 'failed' }),
+      );
+    });
+
+    it('leaves same-chain swaps with bridge history on the regular keyring mapping', () => {
+      const item = mapKeyringTransaction({
+        transaction: makeKeyringTx({ type: TransactionType.Swap }),
+        bridgeHistory: makeBridgeHistory({ destChainId: SOLANA_CHAIN_ID }),
+      });
+
+      expect(item).toStrictEqual(
+        expect.objectContaining({ type: 'swap', status: 'success' }),
+      );
+    });
   });
 });

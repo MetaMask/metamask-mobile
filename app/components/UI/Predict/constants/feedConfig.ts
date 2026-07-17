@@ -9,7 +9,6 @@ export const PREDICT_FEED_IDS = [
   'crypto',
   'live',
   'trending',
-  'popular-today',
 ] as const;
 
 export type PredictFeedId = (typeof PREDICT_FEED_IDS)[number];
@@ -44,6 +43,8 @@ export interface PredictFeedTabConfig {
 export interface PredictFeedConfig {
   id: PredictFeedId;
   titleKey: string;
+  /** Whether the feed exposes user-selectable filter chips. Defaults to true. */
+  showFilterBar?: boolean;
   header: {
     showBackButton: boolean;
     showSearchButton: boolean;
@@ -189,6 +190,7 @@ export const PREDICT_FEED_REGISTRY: Record<PredictFeedId, PredictFeedConfig> = {
   live: {
     id: 'live',
     titleKey: 'predict.feed.live',
+    showFilterBar: false,
     header: {
       showBackButton: true,
       showSearchButton: true,
@@ -240,39 +242,6 @@ export const PREDICT_FEED_REGISTRY: Record<PredictFeedId, PredictFeedConfig> = {
               status: 'open',
               order: 'volume24hr',
               limit: 10,
-            },
-          },
-        },
-      },
-    ],
-  },
-  'popular-today': {
-    id: 'popular-today',
-    titleKey: 'predict.feed.popular_today',
-    header: {
-      showBackButton: true,
-      showSearchButton: true,
-    },
-    tabs: [
-      {
-        id: 'all',
-        titleKey: 'predict.feed.popular_today',
-        defaultFilterId: 'all',
-        filters: {
-          static: [
-            createAllFilter({
-              status: 'open',
-              order: 'volume24hr',
-              limit: 12,
-            }),
-          ],
-          dynamic: {
-            source: 'related-tags',
-            baseTagSlug: 'all',
-            baseParams: {
-              status: 'open',
-              order: 'volume24hr',
-              limit: 12,
             },
           },
         },

@@ -48,6 +48,7 @@ import TokenDetails from '../../AssetOverview/TokenDetails';
 import { TokenDetailsActions } from './TokenDetailsActions';
 import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
 import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
+import MoneyEarnBanner from '../../Money/components/MoneyEarnBanner';
 import { MONEY_HUB_EVENTS_CONSTANTS } from '../../Money/constants/moneyHubEvents';
 import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { isMusdToken } from '../../Earn/constants/musd';
@@ -494,7 +495,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       pricePercentChange: percentChange,
       token,
       source: 'token_details',
-      isPricePositive: isPricePositive ?? undefined,
       useAmbientColor,
     });
   }, [
@@ -504,10 +504,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     token,
     marketInsightsCaip19Id,
     marketInsightsReport,
+    useAmbientColor,
     priceDiff,
     comparePrice,
-    useAmbientColor,
-    isPricePositive,
   ]);
 
   const handlePerpsDiscoveryPress = useCallback(() => {
@@ -651,6 +650,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             resetNavigationLockRef={resetNavigationLockRef}
             onActionTapped={trackActionTapped}
           />
+          <MoneyEarnBanner asset={token} />
           {shouldShowMarketInsights ? (
             <View style={styles.marketInsightsWrapper}>
               {marketInsightsReport ? (
@@ -747,7 +747,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   securityData={securityData ?? null}
                   isLoading={isSecurityDataLoading}
                   token={token as TokenDetailsRouteParams}
-                  isPricePositive={isPricePositive ?? undefined}
                   useAmbientColor={useAmbientColor}
                 />
               </View>

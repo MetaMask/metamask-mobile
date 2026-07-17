@@ -65,13 +65,7 @@ import {
 import { assetsControllerInit } from './controllers/assets-controller/assets-controller-init';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
 import { backupVault } from '../BackupVault';
-import {
-  CaipAssetType,
-  Hex,
-  Json,
-  KnownCaipNamespace,
-  parseCaipAssetType,
-} from '@metamask/utils';
+import { CaipAssetType, Hex, Json, parseCaipAssetType } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 import { captureException } from '@sentry/react-native';
 
@@ -1429,30 +1423,6 @@ export class Engine {
     }
     AccountsController.setAccountName(accountToBeNamed.id, label);
   }
-
-  /**
-   * Gathers metadata (primarily connectivity status) about the enabled networks and persists it to state.
-   */
-  async lookupEnabledNetworks(): Promise<void> {
-    const { NetworkController, NetworkEnablementController } = this.context;
-
-    const chainIds = Object.entries(
-      NetworkEnablementController.state?.enabledNetworkMap?.[
-        KnownCaipNamespace.Eip155
-      ] ?? {},
-    )
-      .filter(([, isEnabled]) => isEnabled)
-      .map(([networkChainId]) => networkChainId as Hex);
-
-    await Promise.allSettled(
-      chainIds
-        .map((chainId) =>
-          NetworkController.findNetworkClientIdByChainId(chainId as Hex),
-        )
-        .filter((id): id is string => !!id)
-        .map((id) => NetworkController.lookupNetwork(id)),
-    );
-  }
 }
 
 /**
@@ -1694,11 +1664,6 @@ export default {
 
   // TODO: Use the KeyringController to find the appropriate QR keyring bridge instead of using a global.
   getQrKeyringScanner: () => qrKeyringBridge,
-
-  lookupEnabledNetworks: () => {
-    assertEngineExists(instance);
-    instance.lookupEnabledNetworks();
-  },
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   removeAccount: async (address: string) => {
