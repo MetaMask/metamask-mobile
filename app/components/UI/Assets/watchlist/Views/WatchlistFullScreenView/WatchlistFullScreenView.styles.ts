@@ -39,6 +39,11 @@ const styleSheet = (params: { theme: Theme }) => {
       width: 0,
       overflow: 'hidden',
     },
+    headerEndActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+    },
   });
 };
 

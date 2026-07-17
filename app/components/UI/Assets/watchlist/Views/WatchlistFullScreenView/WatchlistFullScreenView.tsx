@@ -4,6 +4,8 @@ import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import {
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonVariant,
   ButtonSize,
   HeaderStandard,
@@ -56,49 +58,53 @@ const WatchlistFullScreenView = () => {
   const handleEditPress = useCallback(() => setIsEditMode(true), []);
   const handleDonePress = useCallback(() => setIsEditMode(false), []);
 
-  const endButtonIconProps = useMemo(() => {
-    if (isEditMode) {
-      return [];
-    }
-
-    const buttons = [];
-
-    if (hasItems) {
-      buttons.push({
-        iconName: IconName.Edit,
-        onPress: handleEditPress,
-        accessibilityLabel: 'Edit',
-        testID: WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON,
-      });
-    }
-
-    buttons.push({
-      iconName: IconName.Search,
-      onPress: handleSearchPress,
-      accessibilityLabel: 'Search',
-      testID: WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON,
-    });
-
-    return buttons;
-  }, [isEditMode, hasItems, handleSearchPress, handleEditPress]);
-
   const endAccessory = useMemo(() => {
-    if (!isEditMode) {
-      return undefined;
+    if (isEditMode) {
+      return (
+        <TouchableOpacity
+          onPress={handleDonePress}
+          testID={WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON}
+          accessibilityRole="button"
+          accessibilityLabel={strings('token_watchlist.done')}
+        >
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {strings('token_watchlist.done')}
+          </Text>
+        </TouchableOpacity>
+      );
     }
+
     return (
-      <TouchableOpacity
-        onPress={handleDonePress}
-        testID={WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON}
-        accessibilityRole="button"
-        accessibilityLabel={strings('token_watchlist.done')}
-      >
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {strings('token_watchlist.done')}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.headerEndActions}>
+        <ButtonIcon
+          iconName={IconName.Search}
+          size={ButtonIconSize.Md}
+          onPress={handleSearchPress}
+          testID={WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON}
+          accessibilityLabel="Search"
+        />
+        {hasItems ? (
+          <TouchableOpacity
+            onPress={handleEditPress}
+            testID={WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON}
+            accessibilityRole="button"
+            accessibilityLabel={strings('token_watchlist.edit')}
+          >
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {strings('token_watchlist.edit')}
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
     );
-  }, [isEditMode, handleDonePress]);
+  }, [
+    isEditMode,
+    hasItems,
+    handleDonePress,
+    handleEditPress,
+    handleSearchPress,
+    styles.headerEndActions,
+  ]);
 
   return (
     <View
@@ -116,7 +122,6 @@ const WatchlistFullScreenView = () => {
                 testID: WatchlistFullScreenViewSelectorsIDs.BACK_BUTTON,
               }
         }
-        endButtonIconProps={endButtonIconProps}
         endAccessory={endAccessory}
         testID={WatchlistFullScreenViewSelectorsIDs.HEADER}
       />
