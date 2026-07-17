@@ -31,7 +31,7 @@ process.env.MM_CARD_BAANX_API_CLIENT_KEY = 'test-api-key';
 const isReassureRun = process.env.REASSURE === 'true';
 
 const config = {
-  preset: 'react-native',
+  preset: '@react-native/jest-preset',
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   testEnvironment: 'jest-environment-node',
   transformIgnorePatterns: [

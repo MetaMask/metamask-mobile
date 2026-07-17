@@ -21,7 +21,7 @@ react {
     // cliFile = file("../node_modules/react-native/cli.js")
     /* Variants */
     //   The list of variants to that are debuggable. For those we're going to
-    //   skip the bundling of the JS bundle and the assets. By default is just 'debug'.
+    //   skip the bundling of the JS bundle and the assets. Default is "debug", "debugOptimized".
     //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
     debuggableVariants = ["prodDebug", "flaskDebug"]
     /* Bundling */
