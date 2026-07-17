@@ -4,6 +4,16 @@ import WatchlistSection from './WatchlistSection';
 
 let mockIsWatchlistEnabled = true;
 
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+    }),
+  };
+});
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (selector: (state: unknown) => unknown) => {
