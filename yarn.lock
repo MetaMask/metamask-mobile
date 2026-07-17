@@ -36348,7 +36348,7 @@ __metadata:
     react-native-release-profiler: "npm:^0.4.4"
     react-native-render-html: "npm:^6.3.4"
     react-native-safe-area-context: "npm:~5.6.0"
-    react-native-screens: "npm:~4.23.0"
+    react-native-screens: "npm:~4.25.2"
     react-native-sensors: "patch:react-native-sensors@npm%3A5.3.0#~/.yarn/patches/react-native-sensors-npm-5.3.0-318d1d324d.patch"
     react-native-share: "patch:react-native-share@npm%3A7.3.7#~/.yarn/patches/react-native-share-npm-7.3.7-5b491ea831.patch"
     react-native-size-matters: "npm:0.4.0"
@@ -41100,16 +41100,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-screens@npm:~4.23.0":
-  version: 4.23.0
-  resolution: "react-native-screens@npm:4.23.0"
+"react-native-screens@npm:~4.25.2":
+  version: 4.25.2
+  resolution: "react-native-screens@npm:4.25.2"
   dependencies:
     react-freeze: "npm:^1.0.0"
     warn-once: "npm:^0.1.0"
   peerDependencies:
     react: "*"
-    react-native: "*"
-  checksum: 10/cb8cc1c18c8d340f53a34a15e84ad6a3bd0ee43384d712a9e4c2a8257428c129c9bae0900ab86f64a4ebdc27684e6b12be9064a410e8f54c7a649534f12a9d76
+    react-native: ">=0.82.0"
+  checksum: 10/b0fca70d7aafbd8ff993c0e0329ee78fe453391eaff9556e87fb619d0d58b93b497e47ff5477a1028ecad35d4165f47c833ccb22049e59c5d55a1c55a13029b0
   languageName: node
   linkType: hard
 
