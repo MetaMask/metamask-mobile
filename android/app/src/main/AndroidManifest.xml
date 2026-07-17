@@ -193,14 +193,8 @@
 			android:value="barcode_ui,face"
 			tools:replace="android:value" />
 
-		<!-- Only one service can own com.google.firebase.MESSAGING_EVENT. RNFB's own service is a
-		     documented no-op ("handled in receiver" - see ReactNativeFirebaseMessagingReceiver,
-		     which listens for a legacy broadcast modern FCM delivery never sends), and Braze's
-		     reflection-based fallback into it does not work either. MetaMaskFirebaseMessagingService
-		     owns delivery instead and forwards to each SDK's real public API directly. -->
-		<service android:name="io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService"
-			tools:node="remove" />
-		<service android:name="io.metamask.MetaMaskFirebaseMessagingService"
+		<!-- Braze push: primary FCM handler, forwards non-Braze messages via fallback in braze.xml -->
+		<service android:name="com.braze.push.BrazeFirebaseMessagingService"
 			android:exported="false">
 			<intent-filter>
 				<action android:name="com.google.firebase.MESSAGING_EVENT" />
