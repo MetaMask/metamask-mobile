@@ -36,8 +36,6 @@ import {
 } from '../../../../selectors/networkController';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
-import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
-import { AppThemeKey } from '../../../../util/theme/models';
 import { TraceName, endTrace } from '../../../../util/trace';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../hooks/useStyles';
@@ -49,7 +47,6 @@ import { selectPerpsEnabledFlag } from '../../Perps';
 import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
 import Transactions from '../../Transactions';
 import {
-  AMBIENT_NEGATIVE_COLOR,
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
 } from '../components/abTestConfig';
@@ -72,12 +69,7 @@ import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
-import { selectTokenWatchlistEnabled } from '../../Assets/selectors/featureFlags';
-import { useTokenWatchlist } from '../../Assets/watchlist/hooks/useTokenWatchlist';
-import ToastService from '../../../../core/ToastService/ToastService';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { strings } from '../../../../../locales/i18n';
+import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStarButton';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -180,8 +172,6 @@ const TokenDetails: React.FC<{
   onCtaClicked,
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
-  const { themeAppearance } = useTheme();
-  const isLightMode = themeAppearance === AppThemeKey.light;
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
@@ -218,10 +208,6 @@ const TokenDetails: React.FC<{
   }, [token.address, token.chainId]);
 
   const isPriceAlertsFeatureEnabled = useSelector(selectPriceAlertsEnabled);
-  const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
-  const { isWatched, toggle: toggleWatchlist } =
-    useTokenWatchlist(caip19AssetId);
-
   const handleShare = useCallback(() => {
     if (!caip19AssetId) {
       return;
@@ -320,21 +306,6 @@ const TokenDetails: React.FC<{
   const handlePriceDirectionChange = useCallback((isPositive: boolean) => {
     setChartPricePositive(isPositive);
   }, []);
-
-  const ambientIconColor = useMemo(() => {
-    if (!useAmbientColor || chartPricePositive === null) return undefined;
-
-    const successColor = isLightMode
-      ? LIGHT_MODE_SUCCESS_GREEN
-      : theme.colors.success.default;
-
-    return chartPricePositive ? successColor : AMBIENT_NEGATIVE_COLOR;
-  }, [
-    useAmbientColor,
-    chartPricePositive,
-    isLightMode,
-    theme.colors.success.default,
-  ]);
 
   const {
     balance,
@@ -451,49 +422,6 @@ const TokenDetails: React.FC<{
 
   const isNativeToken = Boolean(token.isETH || token.isNative);
 
-  const handleStarToggle = useCallback(() => {
-    const wasWatched = isWatched;
-    toggleWatchlist();
-
-    ToastService.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.Confirmation,
-      iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.background.section,
-      labelOptions: [
-        {
-          label: wasWatched
-            ? strings('token_watchlist.removed_from_watchlist')
-            : strings('token_watchlist.added_to_watchlist'),
-        },
-      ],
-      hasNoTimeout: false,
-    });
-
-    const eventName = wasWatched
-      ? MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED
-      : MetaMetricsEvents.WATCHLIST_TOKEN_ADDED;
-
-    trackEvent(
-      createEventBuilder(eventName)
-        .addProperties({
-          source: 'token_details',
-          asset_type: isNativeToken ? 'native' : 'erc20',
-          ...(wasWatched ? {} : { has_balance: hasBalanceValue }),
-        })
-        .build(),
-    );
-  }, [
-    isWatched,
-    toggleWatchlist,
-    trackEvent,
-    createEventBuilder,
-    isNativeToken,
-    hasBalanceValue,
-    theme.colors.success.default,
-    theme.colors.background.section,
-  ]);
-
   const renderLoader = () => (
     <View style={styles.loader}>
       <ActivityIndicator style={styles.loader} size="small" />
@@ -506,10 +434,14 @@ const TokenDetails: React.FC<{
         securityData={securityData}
         onBackPress={() => navigation.goBack()}
         onSharePress={handleShare}
-        onStarPress={
-          isWatchlistEnabled && caip19AssetId ? handleStarToggle : undefined
+        starButton={
+          <WatchlistStarButton
+            assetId={caip19AssetId}
+            assetType={isNativeToken ? 'native' : 'erc20'}
+            hasBalance={hasBalanceValue}
+            source="token_details"
+          />
         }
-        isWatched={isWatched}
         onPriceAlertPress={
           isPriceAlertsFeatureEnabled &&
           isPriceAlertsChainSupported &&
@@ -518,8 +450,6 @@ const TokenDetails: React.FC<{
             ? handlePriceAlertPress
             : undefined
         }
-        iconColor={ambientIconColor}
-        useAmbientColor={useAmbientColor}
         onCopyAddress={() =>
           trackActionTapped(TokenDetailsAction.CopyTokenAddress)
         }
@@ -558,7 +488,7 @@ const TokenDetails: React.FC<{
           location={TransactionDetailLocation.AssetDetails}
         />
       )}
-      {!txLoading && !(useAmbientColor && chartPricePositive === null) && (
+      {!txLoading && (
         <TokenDetailsStickyFooter
           token={token}
           securityData={securityData}
@@ -567,7 +497,6 @@ const TokenDetails: React.FC<{
           currentTokenBalance={balance}
           onStickyButtonsResolved={onStickyButtonsResolved}
           sourcePage="TokenDetailsView"
-          isPricePositive={chartPricePositive}
           useAmbientColor={useAmbientColor}
           onSwapPress={onCtaClicked}
           onBuyPress={onCtaClicked}

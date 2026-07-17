@@ -14,6 +14,8 @@ import { updateTransactionGasFees } from '../../../../../util/transaction-contro
 import { useGasFeeEstimateLevelOptions } from './useGasFeeEstimateLevelOptions';
 import '../../utils/time';
 
+const mockPersistGasFeePreference = jest.fn();
+
 jest.mock('../../../../../util/transaction-controller');
 jest.mock('../../utils/time', () => ({
   toHumanEstimatedTimeRange: jest.fn().mockReturnValue('~1 min'),
@@ -21,6 +23,9 @@ jest.mock('../../utils/time', () => ({
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('./useFeeCalculations');
 jest.mock('./useGasFeeEstimates');
+jest.mock('./usePersistGasFeePreference', () => ({
+  usePersistGasFeePreference: jest.fn(() => mockPersistGasFeePreference),
+}));
 
 describe('useGasFeeEstimateLevelOptions', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
@@ -425,6 +430,12 @@ describe('useGasFeeEstimateLevelOptions', () => {
     expect(mockUpdateTransactionGasFees).toHaveBeenCalledWith('test-id', {
       userFeeLevel: 'low',
     });
+    expect(mockPersistGasFeePreference).toHaveBeenCalledWith(
+      transactionWithLegacyEstimates,
+      {
+        userFeeLevel: 'low',
+      },
+    );
     expect(mockHandleCloseModals).toHaveBeenCalled();
   });
 
@@ -499,6 +510,12 @@ describe('useGasFeeEstimateLevelOptions', () => {
     expect(mockUpdateTransactionGasFees).toHaveBeenCalledWith('test-id', {
       userFeeLevel: 'high',
     });
+    expect(mockPersistGasFeePreference).toHaveBeenCalledWith(
+      transactionWithFeeMarketEstimates,
+      {
+        userFeeLevel: 'high',
+      },
+    );
     expect(mockHandleCloseModals).toHaveBeenCalled();
   });
 

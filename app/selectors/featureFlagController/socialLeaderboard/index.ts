@@ -15,11 +15,31 @@ export const selectSocialLeaderboardEnabled = createSelector(
   },
 );
 
+export const selectSocialLeaderboardOptFlowEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.aiSocialLeaderboardOptFlowEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
 export const selectSocialLeaderboardPerpsEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.aiSocialLeaderboardPerpsEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+export const selectSocialFeedEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.aiSocialFeedEnabled as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
@@ -31,7 +51,7 @@ export const selectAiSocialLeaderboardOnboardingEnabled = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.aiSocialLeaderboardOnboardingEnabled as unknown as VersionGatedFeatureFlag;
 
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
 

@@ -2,6 +2,8 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
   FontWeight,
   Icon,
   IconColor,
@@ -14,11 +16,9 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import MaskedView from '@react-native-masked-view/masked-view';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View, Pressable } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { strings } from '../../../../../../locales/i18n';
-import AiSVG from '../../../../../component-library/components/Icons/Icon/assets/ai.svg';
-import ArrowRightSVG from '../../../../../component-library/components/Icons/Icon/assets/arrow-right.svg';
 import {
   EVENT_NAME,
   generateOpt,
@@ -53,6 +53,18 @@ const styles = StyleSheet.create({
   sparkleGradient: {
     width: SPARKLE_SIZE,
     height: SPARKLE_SIZE,
+  },
+  sparkleMask: {
+    width: SPARKLE_SIZE,
+    height: SPARKLE_SIZE,
+  },
+  arrowMask: {
+    width: ARROW_ICON_SIZE,
+    height: ARROW_ICON_SIZE,
+  },
+  arrowGradient: {
+    width: ARROW_ICON_SIZE,
+    height: ARROW_ICON_SIZE,
   },
 });
 
@@ -97,15 +109,15 @@ const GradientText: React.FC<GradientTextProps> = ({
   </MaskedView>
 );
 
-/** Renders the AI sparkle SVG with a left-to-right gradient fill using MaskedView. */
+/** Renders the AI sparkle icon with a left-to-right gradient fill using MaskedView. */
 const GradientSparkleIcon: React.FC = () => (
   <MaskedView
+    style={styles.sparkleMask}
     maskElement={
-      <AiSVG
-        name="ai"
-        width={SPARKLE_SIZE}
-        height={SPARKLE_SIZE}
-        fill="black"
+      <Icon
+        name={IconName.Ai}
+        size={IconSize.Md}
+        color={IconColor.IconDefault}
       />
     }
   >
@@ -114,6 +126,27 @@ const GradientSparkleIcon: React.FC = () => (
       start={CHROME_GRADIENT_LINEAR_START}
       end={CHROME_GRADIENT_LINEAR_END}
       style={styles.sparkleGradient}
+    />
+  </MaskedView>
+);
+
+/** Renders the arrow icon with a left-to-right gradient fill using MaskedView. */
+const GradientArrowIcon: React.FC = () => (
+  <MaskedView
+    style={styles.arrowMask}
+    maskElement={
+      <Icon
+        name={IconName.ArrowRight}
+        size={IconSize.Sm}
+        color={IconColor.IconDefault}
+      />
+    }
+  >
+    <LinearGradient
+      colors={[CHROME_GRADIENT_HEAD, CHROME_GRADIENT_TAIL]}
+      start={CHROME_GRADIENT_LINEAR_START}
+      end={CHROME_GRADIENT_LINEAR_END}
+      style={styles.arrowGradient}
     />
   </MaskedView>
 );
@@ -215,10 +248,11 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
 
   return (
     <>
-      <TouchableOpacity
-        activeOpacity={0.7}
+      <Pressable
         onPress={onPress}
-        style={tw.style('px-4 mt-2 mb-3')}
+        style={({ pressed }) =>
+          tw.style('px-4 mt-2 mb-4', pressed && 'opacity-70')
+        }
         testID={testID}
       >
         <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>
@@ -245,12 +279,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
               >
                 {strings('market_insights.title')}
               </GradientText>
-              <ArrowRightSVG
-                name="arrow-right"
-                width={ARROW_ICON_SIZE}
-                height={ARROW_ICON_SIZE}
-                fill={CHROME_GRADIENT_TAIL}
-              />
+              <GradientArrowIcon />
             </Box>
 
             {/* Body text: rotating trend descriptions */}
@@ -276,21 +305,17 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
                 {' • '}
                 {timeAgo}
               </Text>
-              <Pressable
-                testID="market-insights-info-button"
+              <ButtonIcon
+                iconName={IconName.Info}
+                size={ButtonIconSize.Xs}
+                iconProps={{ color: IconColor.IconAlternative }}
                 onPress={onDisclaimerPress}
-                hitSlop={8}
-              >
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                />
-              </Pressable>
+                testID="market-insights-info-button"
+              />
             </Box>
           </Box>
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </>
   );
 };

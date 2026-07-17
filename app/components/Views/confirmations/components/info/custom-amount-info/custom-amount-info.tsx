@@ -295,11 +295,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const hasAutoSubmittedPrefill = useRef(false);
     useEffect(() => {
-      if (
-        !hasAutoSubmittedPrefill.current &&
-        isDepositPrefilled &&
-        amountFiat !== '0'
-      ) {
+      // Reset when prefill drops (e.g. pay token changed) so handleDone
+      // re-fires once the new prefill amount is ready.
+      if (!isDepositPrefilled) {
+        hasAutoSubmittedPrefill.current = false;
+        return;
+      }
+
+      if (!hasAutoSubmittedPrefill.current && amountFiat !== '0') {
         hasAutoSubmittedPrefill.current = true;
         handleDone();
       }
@@ -464,6 +467,10 @@ export function CustomAmountInfoSkeleton() {
 
 export function AdvancedCustomAmountInfoSkeleton() {
   const { styles } = useStyles(styleSheet, {});
+  const params = useParams<ConfirmationParams>();
+  // Fiat flows never render the account selector or pay-with rows while the
+  // keyboard is up, so their skeletons would cause a layout shift on load.
+  const hideAccountRows = Boolean(params?.autoSelectFiatPayment);
 
   return (
     <View
@@ -475,8 +482,12 @@ export function AdvancedCustomAmountInfoSkeleton() {
         <PayTokenAmountSkeleton />
       </View>
       <View>
-        <AccountSelectorSkeleton />
-        <PayWithRowSkeleton />
+        {!hideAccountRows && (
+          <>
+            <AccountSelectorSkeleton />
+            <PayWithRowSkeleton />
+          </>
+        )}
         <DepositKeyboardSkeleton />
       </View>
     </View>

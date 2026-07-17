@@ -47,20 +47,4 @@ describe('PerpsMoreSection', () => {
     expect(mockOnPressSupport).toHaveBeenCalledTimes(1);
     expect(mockOnPressLearn).toHaveBeenCalledTimes(1);
   });
-
-  it('renders end icon when provided', () => {
-    const itemsWithEndIcon: PerpsMoreItem[] = [
-      {
-        label: 'Contact support',
-        startIconName: IconName.Sms,
-        endIconName: IconName.Export,
-        onPress: mockOnPressSupport,
-        testID: 'perps-more-support-button',
-      },
-    ];
-
-    render(<PerpsMoreSection items={itemsWithEndIcon} />);
-
-    expect(screen.getByText('Contact support')).toBeOnTheScreen();
-  });
 });
