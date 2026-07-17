@@ -2,7 +2,6 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import PerpsMoreSection, { type PerpsMoreItem } from './PerpsMoreSection';
-import { PerpsMoreSectionTestIds } from './PerpsMoreSection.testIds';
 
 describe('PerpsMoreSection', () => {
   const mockOnPressSupport = jest.fn();
@@ -33,9 +32,7 @@ describe('PerpsMoreSection', () => {
     expect(screen.getByText('More')).toBeOnTheScreen();
     expect(screen.getByText('Contact support')).toBeOnTheScreen();
     expect(screen.getByText('Learn the basics of perps')).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(PerpsMoreSectionTestIds.SECTION),
-    ).toBeOnTheScreen();
+    expect(screen.getByTestId('perps-more-section')).toBeOnTheScreen();
   });
 
   it('calls onPress when an item is pressed', () => {

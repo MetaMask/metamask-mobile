@@ -8,7 +8,6 @@ import {
   SectionHeader,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { PerpsMoreSectionTestIds } from './PerpsMoreSection.testIds';
 
 export interface PerpsMoreItem {
   label: string;
@@ -24,7 +23,7 @@ interface PerpsMoreSectionProps {
 
 const PerpsMoreSection = ({
   items,
-  testID = PerpsMoreSectionTestIds.SECTION,
+  testID = 'perps-more-section',
 }: PerpsMoreSectionProps) => (
   <View testID={testID}>
     <SectionHeader title={strings('homepage.sections.more.title')} />
