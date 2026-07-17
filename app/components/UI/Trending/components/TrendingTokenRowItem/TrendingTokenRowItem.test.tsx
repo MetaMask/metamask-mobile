@@ -1096,7 +1096,7 @@ describe('TrendingTokenRowItem', () => {
       consoleErrorSpy.mockRestore();
     });
 
-    it('does not navigate when assetParams is null', () => {
+    it('does not navigate when assetParams is undefined', () => {
       mockIsCaipChainId.mockReturnValue(false);
 
       const token = createMockToken({
