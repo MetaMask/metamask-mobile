@@ -20,7 +20,6 @@ import {
 } from '@metamask/design-system-react-native';
 
 import DisabledNotifications from './DisabledNotifications';
-import PushDebugPanel from './PushDebugPanel';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -137,7 +136,6 @@ const NotificationsView = ({
           },
         ]}
       />
-      <PushDebugPanel />
       <View
         style={styles.wrapper}
         testID={NotificationsViewSelectorsIDs.NOTIFICATIONS_CONTAINER}

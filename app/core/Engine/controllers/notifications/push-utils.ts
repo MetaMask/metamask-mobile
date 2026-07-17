@@ -2,7 +2,6 @@ import FCMService from '../../../../util/notifications/services/FCMService';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { PressActionId } from '../../../../util/notifications';
 import { createNotificationMessage } from './create-push-message';
-import { logPushEvent } from '../../../../util/notifications/pushDebugLog';
 
 export const createRegToken = FCMService.createRegToken;
 export const deleteRegToken = FCMService.deleteRegToken;
@@ -28,16 +27,7 @@ export const createSubscribeToPushNotifications = () => async () =>
       // notification title/body that Firebase would normally show in background/killed.
       const title = rawPayload.notification?.title;
       const body = rawPayload.notification?.body;
-      logPushEvent(
-        'FCM_PLATFORM_HANDLER_CALLED',
-        `Platform handler invoked — title: "${title ?? '(none)'}"`,
-        { title, body, dataKeys: Object.keys(rawPayload.data ?? {}) },
-      );
       if (!title) {
-        logPushEvent(
-          'FCM_PLATFORM_HANDLER_NO_TITLE',
-          'No title in notification payload — skipped',
-        );
         return;
       }
       await NotificationsService.displayNotification({
@@ -46,10 +36,6 @@ export const createSubscribeToPushNotifications = () => async () =>
         body,
         data: rawPayload.data,
       });
-      logPushEvent(
-        'FCM_PLATFORM_HANDLER_DISPLAYED',
-        `Platform notification displayed: "${title}"`,
-      );
     },
   );
 
