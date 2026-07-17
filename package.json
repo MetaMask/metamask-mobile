@@ -615,7 +615,7 @@
     "@react-native/jest-preset": "0.85.3",
     "@react-native/metro-config": "0.83.0",
     "@storybook/addon-controls": "^7.5.1",
-    "@storybook/addon-ondevice-controls": "^6.5.6",
+    "@storybook/addon-ondevice-controls": "^10.5.0",
     "@storybook/builder-webpack5": "^7.5.1",
     "@storybook/react-native": "^6.5.6",
     "@tanstack/query-core": "4.43.0",
