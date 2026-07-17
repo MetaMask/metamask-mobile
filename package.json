@@ -612,6 +612,7 @@
     "@open-rpc/schema-utils-js": "^1.16.2",
     "@open-rpc/test-coverage": "^2.2.2",
     "@playwright/test": "^1.57.0",
+    "@react-native/jest-preset": "0.85.3",
     "@react-native/metro-config": "0.83.0",
     "@storybook/addon-controls": "^7.5.1",
     "@storybook/addon-ondevice-controls": "^6.5.6",
