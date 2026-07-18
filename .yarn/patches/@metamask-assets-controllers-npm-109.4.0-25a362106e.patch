@@ -314,3 +314,27 @@ index a3d48673471625b1ce0d8357c67ccff22c701ca1..66df4f927740c7cec1f785810394a4ac
      const response = await queryApi(tokenURL, abortSignal, timeout);
      if (response) {
          const result = await parseJsonResponse(response);
+diff --git a/dist/constants.cjs b/dist/constants.cjs
+index 22d39c1fc6a9c921910841ec3bb90ce853f6c82b..57c56dfd88fb51fdee243469316fe9fdcafcbf4a 100644
+--- a/dist/constants.cjs
++++ b/dist/constants.cjs
+@@ -22,6 +22,7 @@ exports.SUPPORTED_NETWORKS_ACCOUNTS_API_V4 = [
+     '0x8f', // 143
+     '0x3e7', // 999 HyperEVM
+     '0x13b2', // 5042 Arc
++    '0x1237', // 4663 Robinhood
+ ];
+ /** Lowercase ERC-20 address for MetaMask USD (mUSD), same contract on listed chains. */
+ exports.MUSD_ERC20_ADDRESS_LOWER = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+diff --git a/dist/constants.mjs b/dist/constants.mjs
+index 2be6f4b8339b1102e9ed3c4685f4935293d6fa27..7e3b1d69b826f2cc35aa803936b59bee0c8d7a80 100644
+--- a/dist/constants.mjs
++++ b/dist/constants.mjs
+@@ -19,6 +19,7 @@ export const SUPPORTED_NETWORKS_ACCOUNTS_API_V4 = [
+     '0x8f', // 143
+     '0x3e7', // 999 HyperEVM
+     '0x13b2', // 5042 Arc
++    '0x1237', // 4663 Robinhood
+ ];
+ /** Lowercase ERC-20 address for MetaMask USD (mUSD), same contract on listed chains. */
+ export const MUSD_ERC20_ADDRESS_LOWER = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
