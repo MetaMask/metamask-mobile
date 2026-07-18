@@ -24,10 +24,9 @@ const ASSETS_CONTROLLER_DELEGATED_ACTIONS = [
 
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'AccountTreeController:selectedAccountGroupChange',
-  'AccountTreeController:stateChanged',
-  'NetworkEnablementController:stateChanged',
+  'AccountTreeController:stateChange',
   'NetworkEnablementController:stateChange',
-  'ClientController:stateChanged',
+  'ClientController:stateChange',
   'KeyringController:lock',
   'KeyringController:unlock',
   'NetworkController:networkDidChange',
@@ -114,8 +113,9 @@ describe('getAssetsControllerMessenger', () => {
       expect.objectContaining({
         events: expect.arrayContaining([
           'AccountTreeController:selectedAccountGroupChange',
-          'AccountTreeController:stateChanged',
-          'NetworkEnablementController:stateChanged',
+          'AccountTreeController:stateChange',
+          'NetworkEnablementController:stateChange',
+          'ClientController:stateChange',
         ]),
       }),
     );

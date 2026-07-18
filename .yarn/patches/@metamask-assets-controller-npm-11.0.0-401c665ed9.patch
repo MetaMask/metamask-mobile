@@ -1,5 +1,5 @@
 diff --git a/dist/data-sources/TokenDataSource.cjs b/dist/data-sources/TokenDataSource.cjs
-index e3db944242bcb8957a71a4064ab1e97e0984f381..b7825e81a88e9c8dedde24d14f0e466e5e979fdd 100644
+index e3db944242bcb8957a71a4064ab1e97e0984f381..e23bb8668a5cd1daabe661e9a309a5a0591e6e1c 100644
 --- a/dist/data-sources/TokenDataSource.cjs
 +++ b/dist/data-sources/TokenDataSource.cjs
 @@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -59,8 +59,30 @@ index e3db944242bcb8957a71a4064ab1e97e0984f381..b7825e81a88e9c8dedde24d14f0e466e
   * - Merges fetched metadata into the response
   *
   * Pass the same {@link AssetsControllerMessenger} as other data sources for Blockaid
-@@ -172,8 +192,12 @@ class TokenDataSource {
+@@ -169,11 +189,34 @@ class TokenDataSource {
+                     }
+                 }
+             }
++
++            // Also fetch metadata for balances that are missing it
++            if (response.assetsBalance) {
++                for (const accountBalances of Object.values(response.assetsBalance)) {
++                    for (const assetId of Object.keys(accountBalances)) {
++                        if (response.assetsInfo?.[assetId]?.image) {
++                            continue;
++                        }
++                        if (stateMetadata[assetId]?.image) {
++                            continue;
++                        }
++                        if ((0, evm_rpc_services_1.isStakingContractAssetId)(assetId)) {
++                            continue;
++                        }
++                        assetIdsNeedingMetadata.add(assetId);
++                    }
++                }
++            }
              if (assetIdsNeedingMetadata.size === 0) {
++
                  return next(ctx);
              }
 -            // Filter asset IDs to only include supported networks
@@ -74,7 +96,7 @@ index e3db944242bcb8957a71a4064ab1e97e0984f381..b7825e81a88e9c8dedde24d14f0e466e
              const supportedAssetIds = __classPrivateFieldGet(this, _TokenDataSource_instances, "m", _TokenDataSource_filterAssetsByNetwork).call(this, [...assetIdsNeedingMetadata], supportedNetworks);
              if (supportedAssetIds.length === 0) {
                  return next(ctx);
-@@ -216,14 +240,16 @@ class TokenDataSource {
+@@ -216,37 +259,17 @@ class TokenDataSource {
                          nonEvmTokenIds.push(assetId);
                      }
                  }
@@ -94,9 +116,32 @@ index e3db944242bcb8957a71a4064ab1e97e0984f381..b7825e81a88e9c8dedde24d14f0e466e
 +                    (occurrencesByAssetId.get(id) ?? 0) >=
 +                        getOccurrenceFloorForAsset(id, suggestedOccurrenceFloors) ||
                      id.includes(`/erc20:${MUSD_ADDRESS_LOWERCASE}`)));
-                 // Non-EVM: Blockaid bulk scan.
-                 // Custom assets (user-imported) bypass Blockaid filtering.
-@@ -300,6 +326,23 @@ async function _TokenDataSource_getSupportedNetworks() {
+-                // Non-EVM: Blockaid bulk scan.
+-                // Custom assets (user-imported) bypass Blockaid filtering.
+-                const nonEvmToScan = nonEvmTokenIds.filter((id) => !customAssetIds.has(id.toLowerCase()));
+-                const allowedNonEvmIds = new Set([
+-                    ...nonEvmTokenIds.filter((id) => customAssetIds.has(id.toLowerCase())),
+-                    ...(await __classPrivateFieldGet(this, _TokenDataSource_instances, "m", _TokenDataSource_filterBlockaidSpamTokens).call(this, nonEvmToScan)),
+-                ]);
+-                // Start with every asset the API returned; only remove those that
+-                // fail their respective filter (EVM occurrences / non-EVM Blockaid).
+-                // Native (slip44) and unrecognised namespaces are kept (fail open).
+-                const allowedAssetIds = new Set(metadataResponse.map((a) => a.assetId));
+-                for (const id of evmErc20Ids) {
+-                    if (!allowedEvmIds.has(id)) {
+-                        allowedAssetIds.delete(id);
+-                    }
+-                }
+-                for (const id of nonEvmTokenIds) {
+-                    if (!allowedNonEvmIds.has(id)) {
+-                        allowedAssetIds.delete(id);
+-                    }
+-                }
+-                response.assetsInfo ?? (response.assetsInfo = {});
+                 const filteredOutAssets = new Set();
+                 for (const assetData of metadataResponse) {
+                     if (!allowedAssetIds.has(assetData.assetId)) {
+@@ -300,6 +323,23 @@ async function _TokenDataSource_getSupportedNetworks() {
          log('Failed to fetch supported networks', { error });
          return new Set();
      }
@@ -147,7 +192,7 @@ index f785d61b324fe44ce1251fbdc8c3737c814a2d21..71bbc034d92ccf4b8a6e95ebc1619e8b
   *
   * Pass the same {@link AssetsControllerMessenger} as other data sources for Blockaid
 diff --git a/dist/data-sources/TokenDataSource.mjs b/dist/data-sources/TokenDataSource.mjs
-index 0f0e8529c6159c531c3bb92a678a9df1fdfd9a4c..dde9f1a9eed548313576e9a612e46e5a76c84d06 100644
+index 0f0e8529c6159c531c3bb92a678a9df1fdfd9a4c..8e8b7b4a1367ea7c63f3b41de076e30d992f9841 100644
 --- a/dist/data-sources/TokenDataSource.mjs
 +++ b/dist/data-sources/TokenDataSource.mjs
 @@ -9,7 +9,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -207,8 +252,30 @@ index 0f0e8529c6159c531c3bb92a678a9df1fdfd9a4c..dde9f1a9eed548313576e9a612e46e5a
   * - Merges fetched metadata into the response
   *
   * Pass the same {@link AssetsControllerMessenger} as other data sources for Blockaid
-@@ -169,8 +189,12 @@ export class TokenDataSource {
+@@ -166,11 +186,34 @@ export class TokenDataSource {
+                     }
+                 }
+             }
++
++            // Also fetch metadata for balances that are missing it
++            if (response.assetsBalance) {
++                for (const accountBalances of Object.values(response.assetsBalance)) {
++                    for (const assetId of Object.keys(accountBalances)) {
++                        if (response.assetsInfo?.[assetId]?.image) {
++                            continue;
++                        }
++                        if (stateMetadata[assetId]?.image) {
++                            continue;
++                        }
++                        if (isStakingContractAssetId(assetId)) {
++                            continue;
++                        }
++                        assetIdsNeedingMetadata.add(assetId);
++                    }
++                }
++            }
              if (assetIdsNeedingMetadata.size === 0) {
++
                  return next(ctx);
              }
 -            // Filter asset IDs to only include supported networks
@@ -222,7 +289,7 @@ index 0f0e8529c6159c531c3bb92a678a9df1fdfd9a4c..dde9f1a9eed548313576e9a612e46e5a
              const supportedAssetIds = __classPrivateFieldGet(this, _TokenDataSource_instances, "m", _TokenDataSource_filterAssetsByNetwork).call(this, [...assetIdsNeedingMetadata], supportedNetworks);
              if (supportedAssetIds.length === 0) {
                  return next(ctx);
-@@ -213,14 +237,16 @@ export class TokenDataSource {
+@@ -213,37 +256,17 @@ export class TokenDataSource {
                          nonEvmTokenIds.push(assetId);
                      }
                  }
@@ -242,9 +309,32 @@ index 0f0e8529c6159c531c3bb92a678a9df1fdfd9a4c..dde9f1a9eed548313576e9a612e46e5a
 +                    (occurrencesByAssetId.get(id) ?? 0) >=
 +                        getOccurrenceFloorForAsset(id, suggestedOccurrenceFloors) ||
                      id.includes(`/erc20:${MUSD_ADDRESS_LOWERCASE}`)));
-                 // Non-EVM: Blockaid bulk scan.
-                 // Custom assets (user-imported) bypass Blockaid filtering.
-@@ -296,6 +322,23 @@ async function _TokenDataSource_getSupportedNetworks() {
+-                // Non-EVM: Blockaid bulk scan.
+-                // Custom assets (user-imported) bypass Blockaid filtering.
+-                const nonEvmToScan = nonEvmTokenIds.filter((id) => !customAssetIds.has(id.toLowerCase()));
+-                const allowedNonEvmIds = new Set([
+-                    ...nonEvmTokenIds.filter((id) => customAssetIds.has(id.toLowerCase())),
+-                    ...(await __classPrivateFieldGet(this, _TokenDataSource_instances, "m", _TokenDataSource_filterBlockaidSpamTokens).call(this, nonEvmToScan)),
+-                ]);
+-                // Start with every asset the API returned; only remove those that
+-                // fail their respective filter (EVM occurrences / non-EVM Blockaid).
+-                // Native (slip44) and unrecognised namespaces are kept (fail open).
+-                const allowedAssetIds = new Set(metadataResponse.map((a) => a.assetId));
+-                for (const id of evmErc20Ids) {
+-                    if (!allowedEvmIds.has(id)) {
+-                        allowedAssetIds.delete(id);
+-                    }
+-                }
+-                for (const id of nonEvmTokenIds) {
+-                    if (!allowedNonEvmIds.has(id)) {
+-                        allowedAssetIds.delete(id);
+-                    }
+-                }
+-                response.assetsInfo ?? (response.assetsInfo = {});
+                 const filteredOutAssets = new Set();
+                 for (const assetData of metadataResponse) {
+                     if (!allowedAssetIds.has(assetData.assetId)) {
+@@ -296,6 +319,23 @@ async function _TokenDataSource_getSupportedNetworks() {
          log('Failed to fetch supported networks', { error });
          return new Set();
      }
