@@ -3,7 +3,7 @@ import { handleFetch } from '@metamask/controller-utils';
 import {
   GET_TOKENS_BATCH_SIZE,
   getTokens,
-  TOKEN_API_V3_BASE_URL,
+  TOKEN_API_BASE_URL,
 } from './getTokens';
 
 jest.mock('@metamask/controller-utils', () => ({
@@ -33,33 +33,50 @@ describe('getTokens', () => {
 
     expect(mockedHandleFetch).toHaveBeenCalledTimes(1);
     const calledWith = mockedHandleFetch.mock.calls[0][0] as string;
-    expect(calledWith.startsWith(`${TOKEN_API_V3_BASE_URL}/assets?`)).toBe(
-      true,
-    );
+    expect(calledWith.startsWith(`${TOKEN_API_BASE_URL}/assets?`)).toBe(true);
     expect(calledWith).toContain(
       'assetIds=eip155%3A1%2Fslip44%3A60%2Ceip155%3A1%2Ferc20%3A0xabc',
     );
-    expect(calledWith).toContain('includeIconUrl=true');
     expect(calledWith).toContain('includeMarketData=true');
-    expect(calledWith).toContain('includeRwaData=true');
-    expect(calledWith).toContain('includeTokenSecurityData=true');
   });
 
-  it('returns the array response from the Token API verbatim', async () => {
+  it('normalises the token.api response into WatchlistTokenMetadata shape', async () => {
     const apiResponse = [
       {
         assetId: 'eip155:1/slip44:60',
         symbol: 'ETH',
         name: 'Ethereum',
         decimals: 18,
-        iconUrl: 'https://example.com/eth.png',
+        marketData: {
+          price: '1769.65',
+          pricePercentChange1d: '-1.90',
+          marketCap: 213_000_000_000,
+          totalVolume: 9_800_000_000,
+        },
       },
     ];
     mockedHandleFetch.mockResolvedValue(apiResponse);
 
     const result = await getTokens(['eip155:1/slip44:60']);
 
-    expect(result).toStrictEqual(apiResponse);
+    expect(result).toStrictEqual([
+      {
+        assetId: 'eip155:1/slip44:60',
+        symbol: 'ETH',
+        name: 'Ethereum',
+        decimals: 18,
+        iconUrl: undefined,
+        marketData: {
+          price: 1769.65,
+          pricePercentChange24h: -1.9,
+          pricePercentChange1h: undefined,
+          pricePercentChange7d: undefined,
+          marketCap: 213_000_000_000,
+          totalVolume: 9_800_000_000,
+          volume24h: undefined,
+        },
+      },
+    ]);
   });
 
   it('returns an empty array when the Token API returns a non-array payload', async () => {
@@ -68,6 +85,21 @@ describe('getTokens', () => {
     const result = await getTokens(['eip155:1/slip44:60']);
 
     expect(result).toStrictEqual([]);
+  });
+
+  it('re-sorts results to match the caller-supplied assetIds order', async () => {
+    const apiResponse = [
+      { assetId: 'eip155:1/erc20:0xbbb', symbol: 'B', name: 'B', decimals: 1 },
+      { assetId: 'eip155:1/erc20:0xaaa', symbol: 'A', name: 'A', decimals: 1 },
+    ];
+    mockedHandleFetch.mockResolvedValue(apiResponse);
+
+    const result = await getTokens([
+      'eip155:1/erc20:0xaaa',
+      'eip155:1/erc20:0xbbb',
+    ]);
+
+    expect(result.map((t) => t.symbol)).toStrictEqual(['A', 'B']);
   });
 
   it('propagates network errors so the calling query can react', async () => {

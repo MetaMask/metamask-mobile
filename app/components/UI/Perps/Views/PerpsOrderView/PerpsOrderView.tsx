@@ -79,8 +79,6 @@ import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
 import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
   getPerpsDisplaySymbol,
@@ -92,6 +90,10 @@ import {
   type Position,
   ORDER_SLIPPAGE_CONFIG,
 } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller/constants';
 import { bpsToPercent } from '../../constants/slippageConfig';
 import {
   PerpsOrderProvider,
@@ -113,6 +115,7 @@ import {
 } from '../../hooks';
 import {
   usePerpsLiveAccount,
+  usePerpsLiveFocusedPrice,
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../hooks/stream';
@@ -128,6 +131,7 @@ import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import {
+  selectPerpsAdvancedChartEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsTradeWithAnyTokenEnabledFlag,
 } from '../../selectors/featureFlags';
@@ -178,9 +182,16 @@ interface OrderRouteParams {
   fromTokenDetails?: boolean;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
   source?: string;
+  /** Analytics: chart library active when the order flow started */
+  chartLibrary?: string;
   defaultSzDecimals?: number;
   defaultMaxLeverage?: number;
 }
+
+const getChartLibrary = (isAdvancedChartEnabled: boolean) =>
+  isAdvancedChartEnabled
+    ? PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED
+    : PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
 
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
@@ -212,6 +223,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     (TrendingFeedSessionManager.getInstance().isFromTrending
       ? 'trending'
       : undefined);
+  const isAdvancedChartEnabled = useSelector(
+    selectPerpsAdvancedChartEnabledFlag,
+  );
+  const chartLibrary =
+    route.params?.chartLibrary ?? getChartLibrary(isAdvancedChartEnabled);
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -410,6 +426,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         : PERPS_EVENT_VALUE.DIRECTION.SHORT,
     [PERPS_EVENT_PROPERTY.SOURCE]:
       source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: chartLibrary,
+    [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
     [PERPS_EVENT_PROPERTY.OPEN_POSITION]: currentMarketPosition ? 1 : 0,
     [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
       isServiceInterruptionBannerEnabled,
@@ -446,13 +464,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return unsubscribe;
   }, [isDataReady, isInitialized, orderForm.asset, subscribeToPrices]);
 
-  // Get real-time price data using new stream architecture (deferred)
-  // Uses single WebSocket subscription with component-level debouncing
+  // Fast focused price via activeAssetCtx projection (~0.5 s, TAT-3334)
+  const focusedPriceUpdate = usePerpsLiveFocusedPrice({
+    symbol: isDataReady ? orderForm.asset : '',
+    enabled: isDataReady,
+  });
+
+  // allMids baseline as first-render fallback (~2 s)
   const prices = usePerpsLivePrices({
-    symbols: isDataReady ? [orderForm.asset] : [], // Defer subscription
+    symbols: isDataReady ? [orderForm.asset] : [],
     throttleMs: !isDataReady ? 0 : 1000,
   });
-  const currentPrice = prices[orderForm.asset];
+
+  // Prefer fast focused price; fall back to allMids baseline
+  const currentPrice = focusedPriceUpdate ?? prices[orderForm.asset];
 
   // Get top of book data for maker/taker fee determination (deferred)
   const currentTopOfBook = usePerpsTopOfBook({
@@ -1204,6 +1229,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             estimatedPoints: feeResults.estimatedPoints,
             inputMethod: inputMethodRef.current,
             source,
+            chartLibrary,
             tradeAction: currentMarketPosition
               ? 'increase_exposure'
               : 'create_position',
@@ -1301,6 +1327,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       feeResults.feeDiscountPercentage,
       feeResults.estimatedPoints,
       source,
+      chartLibrary,
       isButtonColorTestEnabled,
       isTradeWithAnyTokenEnabled,
       depositAmount,
@@ -1449,7 +1476,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       <PerpsOrderHeader
         asset={orderForm.asset}
         price={assetData.price}
-        priceChange={assetData.change}
         orderType={orderForm.type}
         direction={orderForm.direction}
         onOrderTypePress={() => setIsOrderTypeVisible(true)}
@@ -1531,7 +1557,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         ? formatPerpsFiat(orderForm.limitPrice, {
                             ranges: PRICE_RANGES_UNIVERSAL,
                           })
-                        : 'Set price'
+                        : strings('perps.order.set_price')
                     }
                   />
                 </TouchableOpacity>

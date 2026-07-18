@@ -60,9 +60,7 @@
       }
     }
   },
-  "DelegationController": {
-    "delegations": {}
-  },
+  "DelegationController": {},
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",
     "networksMetadata": {
@@ -313,6 +311,7 @@
     "whitelistPaths": {}
   },
   "PreferencesController": {
+    "advancedGasFee": {},
     "featureFlags": {},
     "ipfsGateway": "https://dweb.link/ipfs/",
     "useTokenDetection": true,
@@ -532,6 +531,10 @@
     },
     "hip3ConfigVersion": 0,
     "perpsBalances": {},
+    "recentlyViewedMarkets": {
+      "mainnet": [],
+      "testnet": []
+    },
     "selectedPaymentToken": null,
     "cachedMarketDataByProvider": {},
     "cachedUserDataByProvider": {}
@@ -856,9 +859,11 @@
   "QrSyncController": {
     "phase": "idle",
     "connectionStatus": "disconnected",
+    "pendingSecretImports": null,
+    "provisioningMetadata": null,
+    "provisioningStatus": null,
     "otp": null,
-    "error": null,
-    "importPlan": null
+    "error": null
   },
   "AiDigestController": {
     "marketInsights": {},

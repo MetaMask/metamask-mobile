@@ -12,6 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import Engine from '../../../../../../../core/Engine';
 import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import { PredictEventValues } from '../../../../constants/eventNames';
 import { resolvePredictFeedDynamicFilterConfig } from '../../../../constants/feedConfig';
@@ -153,11 +154,25 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
   );
 
   const handleSeeAll = useCallback(() => {
+    Engine.context.PredictController.trackHomeSectionInteraction({
+      sectionId: PredictEventValues.SECTION_ID.POPULAR_TODAY,
+      actionType: PredictEventValues.ACTION_TYPE.SEE_ALL,
+      entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+    });
     navigateToPopularToday();
   }, [navigateToPopularToday]);
 
   const handleChipPress = useCallback(
     (option: PredictFilterOption) => {
+      Engine.context.PredictController.trackHomeSectionInteraction({
+        sectionId: PredictEventValues.SECTION_ID.POPULAR_TODAY,
+        actionType: PredictEventValues.ACTION_TYPE.CLICKED,
+        // All Popular Today chips come from usePredictFilterOptions (related-tags
+        // API), which are dynamic by definition — there are no static variants.
+        filterId: option.id,
+        isDynamicFilter: true,
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
       navigateToPopularToday(option.id);
     },
     [navigateToPopularToday],
@@ -168,7 +183,7 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
   }
 
   return (
-    <Box testID={testID} twClassName="my-2">
+    <Box testID={testID}>
       <SectionHeader
         testID={PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.HEADER}
         title={strings('predict.feed.popular_today')}
@@ -228,7 +243,7 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
                   >
                     <Text
                       variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
+                      color={TextColor.TextDefault}
                       fontWeight={FontWeight.Medium}
                     >
                       {label}

@@ -69,6 +69,7 @@ export type QuickBuySheetSource =
   | 'notification'
   | 'profile_position'
   | 'leaderboard'
+  | 'trader_feed'
   | 'asset_details'
   | 'market_insights'
   | 'security_trust'
@@ -88,4 +89,5 @@ export type QuickBuyOriginalEntryPoint =
   | 'trader_profile'
   | 'notification'
   | 'deep_link'
-  | 'home_carousel';
+  | 'home_carousel'
+  | 'trader_feed';
