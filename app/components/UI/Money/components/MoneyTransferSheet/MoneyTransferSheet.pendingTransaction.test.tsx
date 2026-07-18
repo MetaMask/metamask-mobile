@@ -210,6 +210,10 @@ const flushAsync = async () => {
 describe('MoneyTransferSheet — Between accounts with a pending transaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    global.requestAnimationFrame = jest.fn((callback) => {
+      callback(0);
+      return 0;
+    });
     mockEngineState.TransactionController = { transactions: [] };
     (useMoneyPerpsDeposit as jest.Mock).mockReturnValue({
       isEnabled: false,

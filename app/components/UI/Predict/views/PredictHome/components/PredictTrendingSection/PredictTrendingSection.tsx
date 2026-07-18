@@ -57,7 +57,7 @@ const PredictTrendingSection: React.FC<PredictTrendingSectionProps> = ({
   }, [navigation]);
 
   return (
-    <Box testID={testID} twClassName="my-2">
+    <Box testID={testID}>
       {/* "See all" navigates to the generic PredictFeedView (feedId 'trending').
           Passing `onPress` is what renders the chevron + touchable. */}
       <SectionHeader
@@ -90,7 +90,7 @@ const PredictTrendingSection: React.FC<PredictTrendingSectionProps> = ({
           </Text>
         </Box>
       ) : (
-        <Box twClassName="gap-3">
+        <Box twClassName="gap-1">
           {markets.map((market) => (
             <PredictMarket
               key={market.id}
