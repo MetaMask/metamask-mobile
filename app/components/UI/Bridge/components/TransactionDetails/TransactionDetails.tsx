@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   HeaderStandard,
   Button,
@@ -7,6 +8,7 @@ import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
+  SectionDivider,
   Text,
   TextColor,
   TextVariant,
@@ -33,14 +35,39 @@ import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './BridgeStepList';
 import Routes from '../../../../../constants/navigation/Routes';
-import { BridgeToken } from '../../types';
+import { BridgeToken, BridgeViewMode } from '../../types';
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
   isNonEvmChainId,
   StatusTypes,
   AllowedBridgeChainIds,
+  MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
+import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
+import { selectIsTransactionsRedesignEnabled } from '../../../../../selectors/featureFlagController/activityRedesign';
+/* eslint-disable import-x/no-restricted-paths -- reuse the redesigned Activity-details row components instead of duplicating them; route-isolation backlog */
+import {
+  ActivityDetailsDualAmountHeader,
+  ActivityDetailsBridgeMetadata,
+  ActivityDetailsBridgeExplorerButtons,
+  ActivityDetailsDoItAgainButton,
+  ActivityDetailsFooter,
+} from '../../../../Views/ActivityDetails/components';
+import {
+  ActivityDetailRow,
+  ActivityDetailSection,
+} from '../../../../Views/ActivityDetails/components/ActivityDetailsLayout';
+import {
+  getBridgeDestinationCaipChainId,
+  getBridgeDestinationTxHash,
+} from '../../../../Views/ActivityDetails/templates/bridgeDetailsUtils';
+/* eslint-enable import-x/no-restricted-paths */
+import type {
+  ActivityListItem,
+  Status,
+  TokenAmount,
+} from '../../../../../util/activity-adapters';
 import { Transaction } from '@metamask/keyring-api';
 import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionDisplay/useMultichainTransactionDisplay';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
@@ -49,7 +76,6 @@ import { toDateFormat } from '../../../../../util/date';
 import TagColored, {
   TagColor,
 } from '../../../../../component-library/components-temp/TagColored';
-// import { renderShortAddress } from '../../../../../util/address';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
@@ -83,6 +109,11 @@ const styles = StyleSheet.create({
     width: '90%',
     alignSelf: 'center',
     marginTop: 12,
+  },
+  redesignFooter: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    gap: 12,
   },
   textTransform: {
     textTransform: 'capitalize',
@@ -194,7 +225,11 @@ export const BridgeTransactionDetails = (
   props: BridgeTransactionDetailsProps,
 ) => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  // Gate the redesigned layout behind the transactions-details redesign flag;
+  // flag off renders the legacy layout untouched.
+  const isRedesign = useSelector(selectIsTransactionsRedesignEnabled);
 
   const evmTxMeta = props.route.params.evmTxMeta;
   const multiChainTx = props.route.params.multiChainTx;
@@ -316,6 +351,11 @@ export const BridgeTransactionDetails = (
     : null;
 
   let multiChainTotalGasFee;
+  // For non-EVM (e.g. Solana) the fee carries its own asset unit ("SOL"); the
+  // source chain's configured nativeCurrency is a raw CAIP asset id there, so
+  // using it as the symbol produces a long string that breaks the row layout.
+  // Prefer the fee asset's unit and fall back to nativeCurrencySymbol.
+  let multiChainGasFeeSymbol = nativeCurrencySymbol;
   if (multiChainTx) {
     const multichainTxFees = getMultichainTxFees(multiChainTx);
     const baseFeeIsFungible = multichainTxFees?.baseFee?.asset.fungible;
@@ -332,6 +372,12 @@ export const BridgeTransactionDetails = (
       multiChainTotalGasFee = (Number(baseFee) + Number(priorityFee)).toFixed(
         5,
       );
+      const feeAsset = baseFeeIsFungible
+        ? multichainTxFees?.baseFee?.asset
+        : multichainTxFees?.priorityFee?.asset;
+      if (feeAsset?.fungible) {
+        multiChainGasFeeSymbol = feeAsset.unit;
+      }
     }
   }
 
@@ -340,6 +386,224 @@ export const BridgeTransactionDetails = (
     status = bridgeStatus.status;
   } else {
     status = evmTxMeta?.status || multiChainTx?.status;
+  }
+
+  if (isRedesign) {
+    const isGasSponsored =
+      isTransactionMarkedAsGasFeeSponsored(evmTxMeta) && !isHardwareWallet;
+    const gasFeeAmount = evmTotalGasFee ?? multiChainTotalGasFee ?? null;
+    const gasFeeSymbol = evmTotalGasFee
+      ? nativeCurrencySymbol
+      : multiChainGasFeeSymbol;
+    const transactionId =
+      evmTxMeta?.hash ?? bridgeStatus.srcChain?.txHash ?? multiChainTx?.id;
+    // Mirrors the activity row's own titles (which use these literals): a swap
+    // reads "Swapped"; a bridge reads "Bridged {destinationSymbol}".
+    const redesignTitle = isSwap
+      ? 'Swapped'
+      : destinationToken.symbol
+        ? `Bridged ${destinationToken.symbol}`
+        : 'Bridged';
+    // Bridge quotes store fiat in USD; display-currency conversion is a
+    // follow-up. Total = amount sent + network fee.
+    const pricing = bridgeTxHistoryItem.pricingData;
+    const totalAmountUsd =
+      pricing?.amountSentInUsd !== undefined
+        ? Number(pricing.amountSentInUsd) + Number(pricing.quotedGasInUsd ?? 0)
+        : undefined;
+    const totalAmountText =
+      totalAmountUsd !== undefined && Number.isFinite(totalAmountUsd)
+        ? `$${totalAmountUsd.toFixed(2)}`
+        : undefined;
+
+    // Map the bridge/swap onto the shared ActivityListItem shape so the
+    // redesigned Activity detail row components render it directly (no
+    // duplicate row components). Token amounts stay in smallest units +
+    // decimals, matching what the row components expect.
+    const activityStatus: Status = isBridge
+      ? bridgeStatus.status === StatusTypes.COMPLETE
+        ? 'success'
+        : bridgeStatus.status === StatusTypes.FAILED ||
+            bridgeStatus.status === StatusTypes.UNKNOWN
+          ? 'failed'
+          : 'pending'
+      : status === TransactionStatus.confirmed || status === 'confirmed'
+        ? 'success'
+        : status === TransactionStatus.failed ||
+            status === TransactionStatus.dropped ||
+            status === TransactionStatus.rejected ||
+            status === 'failed'
+          ? 'failed'
+          : 'pending';
+    const sourceTokenModel: TokenAmount = {
+      amount: quote.srcTokenAmount,
+      decimals: quote.srcAsset.decimals,
+      symbol: quote.srcAsset.symbol,
+      direction: 'out',
+      ...(quote.srcAsset.assetId ? { assetId: quote.srcAsset.assetId } : {}),
+    };
+    const destinationTokenModel: TokenAmount = {
+      amount: quote.destTokenAmount,
+      decimals: quote.destAsset.decimals,
+      symbol: quote.destAsset.symbol,
+      direction: 'in',
+      ...(quote.destAsset.assetId ? { assetId: quote.destAsset.assetId } : {}),
+    };
+    const bridgeItem: Extract<ActivityListItem, { type: 'bridge' }> = {
+      type: 'bridge',
+      chainId: formatChainIdToCaip(quote.srcChainId),
+      status: activityStatus,
+      timestamp: startTime ?? 0,
+      ...(transactionId ? { hash: transactionId } : {}),
+      data: {
+        sourceToken: sourceTokenModel,
+        destinationToken: destinationTokenModel,
+      },
+    };
+    const activityDestinationChainId = getBridgeDestinationCaipChainId(
+      destinationTokenModel,
+    );
+    const destinationHash = getBridgeDestinationTxHash(bridgeTxHistoryItem);
+
+    const handleBridgeAgain = () => {
+      dispatch(setSourceAmount(undefined));
+      navigation.navigate(Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.BRIDGE_VIEW,
+        params: {
+          sourcePage: 'BridgeTransactionDetails',
+          bridgeViewMode: isBridge
+            ? BridgeViewMode.Bridge
+            : BridgeViewMode.Swap,
+          sourceToken,
+          destToken: destinationToken,
+          location: MetaMetricsSwapsEventSource.MainView,
+          scrollToTopOnNav: true,
+        },
+      });
+    };
+
+    return (
+      <ScreenView>
+        <HeaderStandard
+          title={redesignTitle}
+          onBack={handleHeaderBack}
+          backButtonProps={{
+            testID: 'bridge-transaction-details-back-button',
+          }}
+          includesTopInset
+        />
+        <Box style={styles.transactionContainer}>
+          {is7702Batch && batchSellHistoryItems?.length ? (
+            <Box style={styles.transactionAssetsContainer}>
+              <BatchSell7702TransactionAssets
+                batchSellHistoryItems={batchSellHistoryItems}
+              />
+            </Box>
+          ) : (
+            <ActivityDetailsDualAmountHeader
+              sentToken={sourceTokenModel}
+              receivedToken={destinationTokenModel}
+            />
+          )}
+
+          <SectionDivider marginVertical={3} />
+
+          <ActivityDetailsBridgeMetadata
+            item={bridgeItem}
+            bridgeHistoryItem={bridgeTxHistoryItem}
+            destinationChainId={activityDestinationChainId}
+          />
+
+          {isBridge &&
+            bridgeStatus.status === StatusTypes.PENDING &&
+            estimatedCompletionString && (
+              <Box style={styles.detailRow}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings(
+                    'bridge_transaction_details.estimated_completion',
+                  )}{' '}
+                </Text>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  gap={1}
+                  alignItems={BoxAlignItems.Center}
+                >
+                  <Text variant={TextVariant.BodyMd}>
+                    {estimatedCompletionString}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setIsStepListExpanded(!isStepListExpanded)}
+                  >
+                    <Icon
+                      name={
+                        isStepListExpanded
+                          ? IconName.ArrowUp
+                          : IconName.ArrowDown
+                      }
+                      color={IconColor.Muted}
+                      size={IconSize.Sm}
+                    />
+                  </TouchableOpacity>
+                </Box>
+              </Box>
+            )}
+          {bridgeStatus.status !== StatusTypes.COMPLETE &&
+            isStepListExpanded && (
+              <Box style={styles.detailRow}>
+                <BridgeStepList
+                  bridgeHistoryItem={bridgeTxHistoryItem}
+                  srcChainTxMeta={evmTxMeta}
+                />
+              </Box>
+            )}
+
+          <SectionDivider marginVertical={3} />
+
+          <ActivityDetailSection>
+            <ActivityDetailRow
+              label={strings('activity_details.network_fee')}
+              value={
+                isGasSponsored ? (
+                  <PaidByMetaMask />
+                ) : gasFeeAmount ? (
+                  `${gasFeeAmount} ${gasFeeSymbol}`
+                ) : undefined
+              }
+            />
+            {totalAmountText ? (
+              <ActivityDetailRow
+                label={strings('activity_details.total_amount')}
+                value={totalAmountText}
+              />
+            ) : null}
+          </ActivityDetailSection>
+        </Box>
+
+        <Box style={styles.redesignFooter}>
+          {isIntentNotCompletedItem || (
+            <ActivityDetailsFooter>
+              <ActivityDetailsBridgeExplorerButtons
+                sourceChainId={bridgeItem.chainId}
+                sourceHash={transactionId}
+                destChainId={activityDestinationChainId}
+                destHash={destinationHash}
+              />
+              <ActivityDetailsDoItAgainButton
+                label={
+                  isSwap
+                    ? strings('activity_details.swap_again')
+                    : strings('activity_details.bridge_again')
+                }
+                onPress={handleBridgeAgain}
+              />
+            </ActivityDetailsFooter>
+          )}
+        </Box>
+      </ScreenView>
+    );
   }
 
   return (

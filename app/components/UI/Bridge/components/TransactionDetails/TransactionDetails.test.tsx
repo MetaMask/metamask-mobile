@@ -471,4 +471,63 @@ describe('BridgeTransactionDetails', () => {
     expect(getByText('Network')).toBeOnTheScreen();
     expect(getByText('Arbitrum')).toBeOnTheScreen();
   });
+
+  describe('with the transactions redesign flag enabled', () => {
+    const remoteFeatureFlags =
+      initialState.engine.backgroundState.RemoteFeatureFlagController
+        .remoteFeatureFlags;
+    const redesignState = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            ...initialState.engine.backgroundState.RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              ...remoteFeatureFlags,
+              tmcuActivityRedesignEnabled: true,
+              tmcuTransactionsRedesignEnabled: true,
+            },
+          },
+        },
+      },
+    };
+
+    it('renders the redesigned layout (You sent/received, Transaction ID, explorer)', () => {
+      const { getByText } = renderScreen(
+        () => (
+          <BridgeTransactionDetails
+            route={{ params: { evmTxMeta: mockEVMTx } }}
+          />
+        ),
+        { name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS },
+        { state: redesignState },
+      );
+
+      expect(getByText('You sent')).toBeOnTheScreen();
+      expect(getByText('You received')).toBeOnTheScreen();
+      expect(getByText('Transaction ID')).toBeOnTheScreen();
+      expect(getByText('View on block explorer')).toBeOnTheScreen();
+      // The legacy header title must not render under the redesign.
+      expect(() => getByText('Transaction details')).toThrow();
+    });
+
+    it('copies the transaction id via the shared copy control', () => {
+      const { getByTestId } = renderScreen(
+        () => (
+          <BridgeTransactionDetails
+            route={{ params: { evmTxMeta: mockEVMTx } }}
+          />
+        ),
+        { name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS },
+        { state: redesignState },
+      );
+
+      // Reuses the redesign's shared ActivityDetailsTransactionId copy control.
+      const copyControl = getByTestId('activity-details-transaction-id-copy');
+      expect(copyControl).toBeOnTheScreen();
+      fireEvent.press(copyControl);
+    });
+  });
 });
