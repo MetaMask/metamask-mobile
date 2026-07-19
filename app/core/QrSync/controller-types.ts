@@ -15,6 +15,7 @@ import type {
   QrSyncOtpDisplay,
   QrSyncPhase,
 } from './types';
+import type { QrSyncSyncFlow } from './constants';
 import { QrSyncProvisioningServiceImportSecretsToVaultAction } from './services/qr-sync-provisioning-service';
 
 /** Runtime IDs written to persisted metadata after vault import (Phase B). */
@@ -29,6 +30,7 @@ export const QR_SYNC_CONTROLLER_NAME = 'QrSyncController';
 export type QrSyncControllerState = {
   phase: QrSyncPhase;
   connectionStatus: QrSyncConnectionStatus;
+  syncFlow: QrSyncSyncFlow | null;
   /** Ephemeral secrets until password import. Never persisted. */
   pendingSecretImports: QrSyncSecretImportEntry[] | null;
   /** Persisted provisioning plan (no secret material). */

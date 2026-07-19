@@ -286,18 +286,6 @@ jobs:
             echo "   Reasoning: $REASONING"
           fi
 
-  trigger-android-dual-versions:
-    name: Trigger Android Dual Versions and Extract BrowserStack URLs
-    uses: ./.github/workflows/build-android-upload-to-browserstack.yml
-    needs: [determine-branch-name]
-    if: >-
-      !inputs.reuse_main_builds &&
-      (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
-    with:
-      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
-      build_variant: ${{ inputs.build_variant || 'e2e' }}
-    secrets: inherit
-
   resolve-main-browserstack-urls:
     name: Resolve main-branch BrowserStack Android apps
     runs-on: ubuntu-latest
@@ -306,6 +294,7 @@ jobs:
       !inputs.browserstack_app_url_android_onboarding &&
       !inputs.browserstack_app_url_android_imported_wallet
     outputs:
+      found: ${{ steps.resolve.outputs.found }}
       with-srp-browserstack-url: ${{ steps.resolve.outputs.with-srp-browserstack-url }}
       without-srp-browserstack-url: ${{ steps.resolve.outputs.without-srp-browserstack-url }}
       with-srp-version: ${{ steps.resolve.outputs.with-srp-version }}
@@ -325,6 +314,25 @@ jobs:
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+
+  trigger-android-dual-versions:
+    name: Trigger Android Dual Versions and Extract BrowserStack URLs
+    uses: ./.github/workflows/build-android-upload-to-browserstack.yml
+    needs: [determine-branch-name, resolve-main-browserstack-urls]
+    # Build/upload when not reusing main, or when main reuse lookup found nothing.
+    if: >-
+      always() &&
+      !cancelled() &&
+      (needs.resolve-main-browserstack-urls.result == 'skipped' || needs.resolve-main-browserstack-urls.result == 'success') &&
+      (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet) &&
+      (
+        !inputs.reuse_main_builds ||
+        needs.resolve-main-browserstack-urls.outputs.found != 'true'
+      )
+    with:
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      build_variant: ${{ inputs.build_variant || 'e2e' }}
+    secrets: inherit
 
   trigger-ios-dual-versions:
     name: Trigger iOS Dual Versions and Extract BrowserStack URLs

@@ -10,7 +10,10 @@ import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import type { TokenPrice } from '../../../../components/hooks/useTokenHistoricalPrices';
 import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
-import { CHART_DATA_THRESHOLD } from './tokenOverviewChart.constants';
+import {
+  CHART_DATA_THRESHOLD,
+  TIME_PERIOD_MS,
+} from './tokenOverviewChart.constants';
 
 const mockSelectTechnicalIndicatorsEnabled = jest.fn(() => false);
 
@@ -193,6 +196,28 @@ describe('PriceLegacy', () => {
       undefined,
     );
     expect(getByTestId('price-chart-insufficient-data')).toBeOnTheScreen();
+  });
+
+  describe('timePeriodMs pass-through', () => {
+    it('passes the correct timePeriodMs for a known time period', () => {
+      renderWithProvider(<PriceLegacy {...baseProps} timePeriod="1d" />);
+      expect(PriceChart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          timePeriodMs: TIME_PERIOD_MS['1d'],
+        }),
+        undefined,
+      );
+    });
+
+    it('passes undefined timePeriodMs for the "all" time period', () => {
+      renderWithProvider(<PriceLegacy {...baseProps} timePeriod="all" />);
+      expect(PriceChart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          timePeriodMs: undefined,
+        }),
+        undefined,
+      );
+    });
   });
 
   describe('chart navigation buttons', () => {

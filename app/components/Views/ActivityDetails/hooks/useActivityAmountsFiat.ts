@@ -127,7 +127,29 @@ function tokenToFiatNumber(
 function feeToFiatNumber(
   fee: ActivityFee,
   conversionRate: number | null | undefined,
+  hexChainId: Hex | undefined,
+  contractExchangeRates:
+    | Record<string, { price?: number | null } | undefined>
+    | undefined,
+  multichainAssetRates: MultichainAssetRates | undefined,
 ): number | undefined {
+  // ERC-20 gas payment: price via token market rates (same path as send amount).
+  if (fee.type === 'gasToken') {
+    return tokenToFiatNumber(
+      {
+        amount: fee.amount,
+        decimals: fee.decimals,
+        direction: 'out',
+        ...(fee.assetId ? { assetId: fee.assetId } : {}),
+        ...(fee.symbol ? { symbol: fee.symbol } : {}),
+      },
+      conversionRate,
+      hexChainId,
+      contractExchangeRates,
+      multichainAssetRates,
+    );
+  }
+
   if (!conversionRate || fee.amount === undefined) {
     return undefined;
   }
@@ -186,8 +208,12 @@ const RESOURCE_FEE_LABEL_BY_SYMBOL: Record<string, string> = {
  * in a recognized resource (Bandwidth/Energy) or, more generally, in a
  * non-native asset. Such fees get a distinct label so they don't duplicate the
  * native "Network fee" row, and are kept out of native-rate fiat conversion.
+ * ERC-20 `gasToken` fees are not resources — they use token market rates.
  */
 function isResourceFee(fee: ActivityFee): boolean {
+  if (fee.type === 'gasToken') {
+    return false;
+  }
   if (fee.symbol && fee.symbol.toUpperCase() in RESOURCE_FEE_LABEL_BY_SYMBOL) {
     return true;
   }
@@ -214,6 +240,8 @@ function getFeeLabel(fee: ActivityFee): string {
       return strings('activity_details.network_fee');
     case 'bridge':
       return strings('activity_details.bridge_fee');
+    case 'gasToken':
+      return strings('activity_details.gas_token_fee');
     default:
       return strings('activity_details.transaction_fee');
   }
@@ -269,7 +297,13 @@ export function useActivityAmountsFiat(
   let hasFee = false;
 
   for (const fee of fees) {
-    const feeFiat = feeToFiatNumber(fee, conversionRate);
+    const feeFiat = feeToFiatNumber(
+      fee,
+      conversionRate,
+      hexChainId,
+      contractExchangeRates,
+      multichainAssetRates,
+    );
     if (feeFiat !== undefined && currentCurrency) {
       hasFee = true;
       feeFiatTotal += feeFiat;
