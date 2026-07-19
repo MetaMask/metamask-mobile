@@ -2,8 +2,6 @@
 
 ignores:
   - '@metamask/browser-playground'
-  # Imported as type only from transitive dep of @metamask/transaction-pay-controller
-  - '@metamask/sentinel-api-service'
   - '@metamask/oss-attribution-generator'
   - '@metamask/test-dapp-multichain'
   - 'webpack-cli'
