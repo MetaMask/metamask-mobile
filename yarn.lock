@@ -35585,9 +35585,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lottie-react-native@npm:~7.3.1":
-  version: 7.3.6
-  resolution: "lottie-react-native@npm:7.3.6"
+"lottie-react-native@npm:~7.3.8":
+  version: 7.3.8
+  resolution: "lottie-react-native@npm:7.3.8"
   peerDependencies:
     "@lottiefiles/dotlottie-react": ^0.13.5
     react: "*"
@@ -35598,7 +35598,7 @@ __metadata:
       optional: true
     react-native-windows:
       optional: true
-  checksum: 10/8d22f2883d9ddcd6fa0c8e45e0c2b174f44c2bd6efc661cb291e5b20026c8faf2275793125bce2dd743f2db680c27edd8f57248c6014a760b707c2ddf7a9c656
+  checksum: 10/050154a675de4aeff10d629ca48743806818ebe4c79d041e0983ff278a59e2d59f4e88b559a6d681e49d7d82b253ad969909d9cde9a887bc22c8a2ebf05c2538
   languageName: node
   linkType: hard
 
@@ -36291,7 +36291,7 @@ __metadata:
     listr2: "npm:^8.0.2"
     liveline: "npm:0.0.7"
     lodash: "npm:4.18.1"
-    lottie-react-native: "npm:~7.3.1"
+    lottie-react-native: "npm:~7.3.8"
     luxon: "npm:^3.5.0"
     metro-react-native-babel-preset: "npm:~0.76.9"
     metro-react-native-babel-transformer: "npm:~0.76.9"
