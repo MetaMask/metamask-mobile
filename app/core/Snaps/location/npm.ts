@@ -31,7 +31,7 @@ const readAndParseAt = async (path: string) => {
 };
 
 export class NpmLocation extends BaseNpmLocation {
-  #blobFetch: ReactNativeBlobUtil['fetch'];
+  #blobFetch: typeof ReactNativeBlobUtil.fetch;
 
   constructor(url: URL, opts: DetectSnapLocationOptions = {}) {
     super(url, opts);
