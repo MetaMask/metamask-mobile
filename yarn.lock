@@ -13054,10 +13054,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-community/slider@npm:5.1.2":
-  version: 5.1.2
-  resolution: "@react-native-community/slider@npm:5.1.2"
-  checksum: 10/465e42b05cf47ac590ea66c8b1bb29dc1d0925ab1a8c41c8c9fce28e464bef02c629ca9eceece63f1128132f11877800e59e918d040c1ad15ea03c58ec23b5b9
+"@react-native-community/slider@npm:5.2.0":
+  version: 5.2.0
+  resolution: "@react-native-community/slider@npm:5.2.0"
+  checksum: 10/81078cef11297f3d4f49ecf0871a5479ca91ca78229556bff49c75c449bd00b853b552d32324230f70840b8a9004e898085a1a793ec0da64f3145d6247ea150f
   languageName: node
   linkType: hard
 
@@ -36116,7 +36116,7 @@ __metadata:
     "@react-native-community/cli-server-api": "npm:^17.0.0"
     "@react-native-community/datetimepicker": "npm:^8.5.1"
     "@react-native-community/netinfo": "npm:11.5.2"
-    "@react-native-community/slider": "npm:5.1.2"
+    "@react-native-community/slider": "npm:5.2.0"
     "@react-native-cookies/cookies": "npm:^6.2.1"
     "@react-native-firebase/app": "npm:^20.5.0"
     "@react-native-firebase/messaging": "npm:^20.5.0"
