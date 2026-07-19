@@ -2,7 +2,7 @@ import { cloneDeep, merge } from 'lodash';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
-import { Severity } from '../../types/alerts';
+import { Alert, Severity } from '../../types/alerts';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { RootState } from '../../../../../reducers';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
@@ -125,7 +125,7 @@ describe('useNoPayTokenQuotesAlert', () => {
     const { result } = runHook();
 
     expect(result.current).toHaveLength(1);
-    const resultAlert = result.current[0] as any;
+    const resultAlert = result.current[0] as Alert;
     expect(resultAlert.key).toBe(AlertKeys.NoPayTokenQuotes);
     expect(resultAlert.field).toBe(RowAlertKey.PayWith);
     expect(resultAlert.content).toBeDefined();
