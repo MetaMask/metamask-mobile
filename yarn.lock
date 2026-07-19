@@ -10322,6 +10322,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/sentinel-api-service@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/sentinel-api-service@npm:1.0.0"
+  dependencies:
+    "@metamask/base-data-service": "npm:^0.1.3"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/messenger": "npm:^2.0.0"
+    "@metamask/superstruct": "npm:^3.1.0"
+    "@metamask/utils": "npm:^11.11.0"
+    "@tanstack/query-core": "npm:^4.43.0"
+  checksum: 10/4c56a05eb998705be78469dcda737805a059bee144e01a8f225db83045b8b3048c9382526294b3a6d2f084ff3db4b17dbfba3bda8ca085a7689b8554ee520f7e
+  languageName: node
+  linkType: hard
+
 "@metamask/signature-controller@npm:^39.2.0":
   version: 39.2.0
   resolution: "@metamask/signature-controller@npm:39.2.0"
@@ -10796,9 +10810,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^25.0.0":
-  version: 25.0.0
-  resolution: "@metamask/transaction-pay-controller@npm:25.0.0"
+"@metamask/transaction-pay-controller@npm:@metamask-previews/transaction-pay-controller@25.0.0-preview-5cac90a":
+  version: 25.0.0-preview-5cac90a
+  resolution: "@metamask-previews/transaction-pay-controller@npm:25.0.0-preview-5cac90a"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10814,13 +10828,14 @@ __metadata:
     "@metamask/network-controller": "npm:^34.0.0"
     "@metamask/ramps-controller": "npm:^17.0.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
+    "@metamask/sentinel-api-service": "npm:^1.0.0"
     "@metamask/transaction-controller": "npm:^69.0.0"
     "@metamask/utils": "npm:^11.11.0"
     bignumber.js: "npm:^9.1.2"
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/450fcfbe831d10104bc9bc5db539eb46ecece84551edd6a05c9a34c4d93c4535ef0ffc56be4f2d684f89da94fb0c7a9cc908d06f8d7263680c268600ac96fccc
+  checksum: 10/9ecc0c2da00f8038a12f17c94a2701f8b327e712fda6d95732e616a1427e48a840b440bd112335517903626bf3ed813c255d3745fe44f8bcf87de53422855d3c
   languageName: node
   linkType: hard
 
