@@ -48,6 +48,10 @@ const getRootMessenger = () =>
     namespace: MOCK_ANY_NAMESPACE,
   });
 
+afterEach(() => {
+  jest.restoreAllMocks();
+});
+
 describe('getAssetsControllerMessenger', () => {
   it('returns a messenger instance', () => {
     const rootMessenger = getRootMessenger();
