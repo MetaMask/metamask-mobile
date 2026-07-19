@@ -129,7 +129,7 @@ describe('useNoPayTokenQuotesAlert', () => {
     expect(resultAlert.key).toBe(AlertKeys.NoPayTokenQuotes);
     expect(resultAlert.field).toBe(RowAlertKey.PayWith);
     expect(resultAlert.content).toBeDefined();
-    expect(resultAlert.message).toBeUndefined();
+    expect(resultAlert.message).toBe('Insufficient balance');
     expect(resultAlert.title).toBe('No valid quotes');
     expect(resultAlert.severity).toBe(Severity.Danger);
     expect(resultAlert.isBlocking).toBe(true);

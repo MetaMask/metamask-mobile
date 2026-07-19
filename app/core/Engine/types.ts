@@ -453,6 +453,7 @@ import {
   TransactionPayControllerEvents,
   TransactionPayControllerState,
 } from '@metamask/transaction-pay-controller';
+import type { SentinelApiServiceActions } from '@metamask/sentinel-api-service';
 import {
   AiDigestController,
   AiDigestControllerActions,
@@ -640,7 +641,8 @@ export type GlobalActions =
   | ConfigRegistryControllerActions
   | ConfigRegistryApiServiceActions
   | ChompApiServiceActions
-  | MoneyAccountUpgradeControllerActions;
+  | MoneyAccountUpgradeControllerActions
+  | SentinelApiServiceActions;
 
 export type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)

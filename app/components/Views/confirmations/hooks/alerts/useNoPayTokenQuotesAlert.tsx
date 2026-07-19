@@ -153,6 +153,7 @@ export function useNoPayTokenQuotesAlert() {
               content: (
                 <QuoteValidationAlertContent error={quoteValidationError} />
               ),
+              message: quoteValidationError.message,
             }
           : { message: strings('alert_system.no_pay_token_quotes.message') }),
         title,
