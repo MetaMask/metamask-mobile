@@ -5,13 +5,13 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import type { QuoteValidationErrorInfo } from '@metamask/transaction-pay-controller';
+import type { QuoteErrorInfo } from '@metamask/transaction-pay-controller';
 
 const TAPS_TO_EXPAND = 5;
 const DETAILS_BACKGROUND = 'rgba(128, 128, 128, 0.25)';
 
 interface Props {
-  error: QuoteValidationErrorInfo;
+  error: QuoteErrorInfo;
 }
 
 export function QuoteValidationAlertContent({ error }: Props) {

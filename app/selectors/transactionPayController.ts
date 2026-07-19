@@ -98,5 +98,5 @@ export const selectPaymentOverrideByTransactionId = createSelector(
 export const selectTransactionPayQuoteValidationErrorByTransactionId =
   createSelector(
     selectTransactionDataByTransactionId,
-    (transactionData) => transactionData?.quoteValidationError,
+    (transactionData) => transactionData?.quoteError,
   );

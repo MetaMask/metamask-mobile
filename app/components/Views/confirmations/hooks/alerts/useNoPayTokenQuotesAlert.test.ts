@@ -125,7 +125,7 @@ describe('useNoPayTokenQuotesAlert', () => {
     const { result } = runHook();
 
     expect(result.current).toHaveLength(1);
-    const resultAlert = result.current[0];
+    const resultAlert = result.current[0] as any;
     expect(resultAlert.key).toBe(AlertKeys.NoPayTokenQuotes);
     expect(resultAlert.field).toBe(RowAlertKey.PayWith);
     expect(resultAlert.content).toBeDefined();

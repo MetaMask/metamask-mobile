@@ -85,7 +85,7 @@ export function useNoPayTokenQuotesAlert() {
     isPostQuote &&
     Boolean(payToken) &&
     !isQuotesLoading &&
-    sourceAmounts?.length &&
+    !canSelectWithdrawToken &&
     !quotes?.length &&
     hasPositiveRequiredAmount;
 
@@ -141,7 +141,7 @@ export function useNoPayTokenQuotesAlert() {
     }
 
     const title = quoteValidationError
-      ? 'No valid quotes'
+      ? strings('alert_system.pay_quote_validation_alert_title')
       : strings('alert_system.no_pay_token_quotes.title');
 
     return [
