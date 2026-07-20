@@ -4021,7 +4021,7 @@ PODS:
     - Yoga
   - RNI18n (2.0.15):
     - React
-  - RNInAppBrowser (3.7.0):
+  - RNInAppBrowser (3.7.1):
     - React-Core
   - RNKeychain (9.2.3):
     - boost
@@ -5251,7 +5251,7 @@ SPEC CHECKSUMS:
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGestureHandler: b407c25a3f51d22dd7430e6b530f753f112b7e77
   RNI18n: 11ec5086508673ef71b5b567da3e8bcca8a926e1
-  RNInAppBrowser: 6d3eb68d471b9834335c664704719b8be1bfdb20
+  RNInAppBrowser: 904d24dc75e8e6c6c98a3160329192608946f9df
   RNKeychain: 483402cf2b90647eb0cf569cebbc069d32addea4
   RNNotifee: 5165d37aaf980031837be3caece2eae5a6d73ae8
   RNOS: d07e5090b5060c6f2b83116d740a32cfdb33afe3

@@ -513,7 +513,7 @@
     "react-native-gzip": "patch:react-native-gzip@npm%3A1.1.0#~/.yarn/patches/react-native-gzip-npm-1.1.0.patch",
     "react-native-i18n": "patch:react-native-i18n@npm%3A2.0.15#~/.yarn/patches/react-native-i18n-npm-2.0.15-7f3cf7cee6.patch",
     "react-native-in-app-review": "^4.3.3",
-    "react-native-inappbrowser-reborn": "^3.7.0",
+    "react-native-inappbrowser-reborn": "^3.7.1",
     "react-native-jazzicon": "^0.1.2",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-keyboard-controller": "1.20.7",

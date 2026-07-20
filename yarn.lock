@@ -36343,7 +36343,7 @@ __metadata:
     react-native-gzip: "patch:react-native-gzip@npm%3A1.1.0#~/.yarn/patches/react-native-gzip-npm-1.1.0.patch"
     react-native-i18n: "patch:react-native-i18n@npm%3A2.0.15#~/.yarn/patches/react-native-i18n-npm-2.0.15-7f3cf7cee6.patch"
     react-native-in-app-review: "npm:^4.3.3"
-    react-native-inappbrowser-reborn: "npm:^3.7.0"
+    react-native-inappbrowser-reborn: "npm:^3.7.1"
     react-native-jazzicon: "npm:^0.1.2"
     react-native-keyboard-aware-scroll-view: "npm:^0.9.5"
     react-native-keyboard-controller: "npm:1.20.7"
@@ -40699,15 +40699,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-inappbrowser-reborn@npm:^3.7.0":
-  version: 3.7.0
-  resolution: "react-native-inappbrowser-reborn@npm:3.7.0"
+"react-native-inappbrowser-reborn@npm:^3.7.1":
+  version: 3.7.1
+  resolution: "react-native-inappbrowser-reborn@npm:3.7.1"
   dependencies:
     invariant: "npm:^2.2.4"
     opencollective-postinstall: "npm:^2.0.3"
   peerDependencies:
     react-native: ">=0.56"
-  checksum: 10/f7ecb7a2474d19aeb453958b334c5fb5e06bb27a45b42596bfe48f61c66518c91c186c3c1805011ae28bc247caf41ac5a004befa581acd13ef4066d436085aaf
+  checksum: 10/c1f8e149000779208c82385ffee80ffdd415aeacc25556eef25d9bcdaa4c12ea9b679d22b95210add645a68ddc296bacd14f22366f1757d528391ddc9e1f974e
   languageName: node
   linkType: hard
 
