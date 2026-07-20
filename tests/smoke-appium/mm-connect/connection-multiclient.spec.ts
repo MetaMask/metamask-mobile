@@ -1,5 +1,5 @@
-import { test } from '../../framework/fixtures/playwright';
-import { Performance } from '../../tags.performance.js';
+import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
+import { SmokeMMConnect } from '../../tags.js';
 
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp';
@@ -23,7 +23,7 @@ import {
   ensureAccountGroupsFinishedLoading,
   waitForDappServerReady,
   unlockIfLockScreenVisible,
-} from './utils';
+} from './utils.js';
 import {
   launchMobileBrowser,
   navigateToDapp,
@@ -48,9 +48,9 @@ const playgroundServer = new DappServer({
   dappVariant: DappVariants.BROWSER_PLAYGROUND,
 });
 
-test.describe(Performance, () => {
+appiumTest.describe(SmokeMMConnect('Multiclient connect'), () => {
   // Start local playground server before all tests
-  test.beforeAll(async () => {
+  appiumTest.beforeAll(async () => {
     // Set port and start the server directly (bypassing Detox-specific utilities)
     playgroundServer.setServerPort(DAPP_PORT);
     await playgroundServer.start();
@@ -61,7 +61,7 @@ test.describe(Performance, () => {
   });
 
   // Stop local playground server after all tests
-  test.afterAll(async () => {
+  appiumTest.afterAll(async () => {
     cleanupAdbReverse(DAPP_PORT);
     await playgroundServer.stop();
   });
@@ -92,7 +92,7 @@ test.describe(Performance, () => {
   //    - Assert: Solana scope still visible, Solana still connected
   //    - Solana sign message -> confirm -> assert correct signed result
   // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
-  test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple clients via Multichain API to Local Browser Playground', async ({
+  appiumTest.skip('@metamask/connect-multichain (multiple clients) - Connect multiple clients via Multichain API to Local Browser Playground', async ({
     currentDeviceDetails,
   }) => {
     // Get platform-specific URL

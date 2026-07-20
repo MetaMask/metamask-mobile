@@ -1,5 +1,5 @@
-import { test } from '../../framework/fixtures/playwright';
-import { Performance } from '../../tags.performance.js';
+import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
+import { SmokeMMConnect } from '../../tags.js';
 
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp';
@@ -21,7 +21,7 @@ import {
   waitForDappServerReady,
   unlockIfLockScreenVisible,
   ensureAccountGroupsFinishedLoading,
-} from './utils';
+} from './utils.js';
 import {
   launchMobileBrowser,
   navigateToDapp,
@@ -42,9 +42,9 @@ const playgroundServer = new DappServer({
   dappVariant: DappVariants.BROWSER_PLAYGROUND,
 });
 
-test.describe(Performance, () => {
+appiumTest.describe(SmokeMMConnect('Wagmi session'), () => {
   // Start local playground server before all tests
-  test.beforeAll(async () => {
+  appiumTest.beforeAll(async () => {
     playgroundServer.setServerPort(DAPP_PORT);
     await playgroundServer.start();
     await waitForDappServerReady(DAPP_PORT);
@@ -52,7 +52,7 @@ test.describe(Performance, () => {
   });
 
   // Stop local playground server after all tests
-  test.afterAll(async () => {
+  appiumTest.afterAll(async () => {
     cleanupAdbReverse(DAPP_PORT);
     await playgroundServer.stop();
   });
@@ -95,7 +95,7 @@ test.describe(Performance, () => {
   //    - Tap disconnect to clean up
 
   // This test is currently failing. See 250.
-  test.skip('@metamask/connect-evm (wagmi) - Session stability via Wagmi', async ({
+  appiumTest.skip('@metamask/connect-evm (wagmi) - Session stability via Wagmi', async ({
     currentDeviceDetails,
     driver,
   }) => {

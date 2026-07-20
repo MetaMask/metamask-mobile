@@ -1,5 +1,5 @@
-import { test } from '../../framework/fixtures/playwright';
-import { Performance } from '../../tags.performance.js';
+import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
+import { SmokeMMConnect } from '../../tags.js';
 
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
@@ -25,7 +25,7 @@ import {
   waitForDappServerReady,
   unlockIfLockScreenVisible,
   ensureAccountGroupsFinishedLoading,
-} from './utils';
+} from './utils.js';
 import {
   launchMobileBrowser,
   navigateToDapp,
@@ -46,9 +46,9 @@ const playgroundServer = new DappServer({
   dappVariant: DappVariants.BROWSER_PLAYGROUND,
 });
 
-test.describe(Performance, () => {
+appiumTest.describe(SmokeMMConnect('Wagmi chain switching'), () => {
   // Start local playground server before all tests
-  test.beforeAll(async () => {
+  appiumTest.beforeAll(async () => {
     playgroundServer.setServerPort(DAPP_PORT);
     await playgroundServer.start();
     await waitForDappServerReady(DAPP_PORT);
@@ -56,7 +56,7 @@ test.describe(Performance, () => {
   });
 
   // Stop local playground server after all tests
-  test.afterAll(async () => {
+  appiumTest.afterAll(async () => {
     cleanupAdbReverse(DAPP_PORT);
     await playgroundServer.stop();
   });
@@ -95,7 +95,7 @@ test.describe(Performance, () => {
   //    - Tap disconnect to clean up
   //
   // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
-  test.skip('@metamask/connect-evm (wagmi) - Chain switching via Wagmi', async ({
+  appiumTest.skip('@metamask/connect-evm (wagmi) - Chain switching via Wagmi', async ({
     currentDeviceDetails,
     driver,
   }) => {

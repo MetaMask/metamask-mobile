@@ -1,14 +1,11 @@
-import { test } from '../../framework/fixtures/playwright';
-import { Performance } from '../../tags.performance.js';
+import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
+import { SmokeMMConnect } from '../../tags.js';
 
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import WalletView from '../../page-objects/wallet/WalletView';
 import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp';
 import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
-import SignModal from '../../page-objects/MMConnect/SignModal';
 import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
-import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
 import {
   DappServer,
   DappVariants,
@@ -23,20 +20,15 @@ import {
   waitForDappServerReady,
   unlockIfLockScreenVisible,
   ensureAccountGroupsFinishedLoading,
-} from './utils';
+} from './utils.js';
 import {
   launchMobileBrowser,
   navigateToDapp,
   refreshMobileBrowser,
   switchToMobileBrowser,
 } from '../../flows/native-browser.flow';
-import PlaywrightUtilities from '../../framework/PlaywrightUtilities';
 
 const DAPP_PORT = 8090;
-
-// NOTE: This test requires the testing SRP to be used
-const ACCOUNT_1_ADDRESS = '0x19a7Ad8256ab119655f1D758348501d598fC1C94';
-const ACCOUNT_3_ADDRESS = '0xE2bEca5CaDC60b61368987728b4229822e6CDa83';
 
 const playgroundServer = new DappServer({
   dappCounter: 0,
@@ -44,15 +36,15 @@ const playgroundServer = new DappServer({
   dappVariant: DappVariants.BROWSER_PLAYGROUND,
 });
 
-test.describe(Performance, () => {
-  test.beforeAll(async () => {
+appiumTest.describe(SmokeMMConnect('EVM session timeout'), () => {
+  appiumTest.beforeAll(async () => {
     playgroundServer.setServerPort(DAPP_PORT);
     await playgroundServer.start();
     await waitForDappServerReady(DAPP_PORT);
     setupAdbReverse(DAPP_PORT);
   });
 
-  test.afterAll(async () => {
+  appiumTest.afterAll(async () => {
     cleanupAdbReverse(DAPP_PORT);
     await playgroundServer.stop();
   });
@@ -63,34 +55,35 @@ test.describe(Performance, () => {
   //    - Login to app, ensure account groups finished loading
   //    - Launch mobile browser and navigate to the playground dapp
   //
-  // 2. CONNECT VIA LEGACY EVM (WITH ACCOUNT 3 ADDED)
+  // 2. CONNECT VIA LEGACY EVM
   //    - Tap Connect (Legacy)
-  //    - In MetaMask: tap Edit Accounts, add Account 3, tap Update, tap Connect (cooldown 2s)
-  //      Account 3 must be authorized so MetaMask can switch to it later
-  //    - Assert: connected true, chainId '0x1', active account is Account 1
-  //      (0x19a7Ad8256ab119655f1D758348501d598fC1C94)
+  //    - In MetaMask: tap Connect (cooldown 2s)
+  //    - Assert: connected true, chainId '0x1'
   //
-  // 3. SWITCH TO ACCOUNT 3 IN METAMASK
-  //    - In MetaMask: tap identicon → select Account 3 from the account list
-  //    - Assert: dapp reflects Account 3 as the active account
-  //      (0xE2bEca5CaDC60b61368987728b4229822e6CDa83)
+  // 3. INCOMPLETE SESSION — NOT INTERACTING WITH MODAL
+  //    - Tap disconnect, then tap Connect (Legacy) again
+  //    - In MetaMask: open approval modal but purposely do NOT interact (sleep 2s)
+  //    - Switch to browser (sleep 2s), refresh mobile browser, wait 2s
+  //    - Assert: connected false (incomplete session started timing out)
+  //    - Sleep 10s to let session fully time out
+  //    - Assert: still connected false
   //
-  // 4. REFRESH BROWSER AND VERIFY ACCOUNT PERSISTS
-  //    - Refresh mobile browser (native action)
-  //    - Assert: connected true, chainId '0x1', active account is still Account 3
-  //      (0xE2bEca5CaDC60b61368987728b4229822e6CDa83)
+  // 4. RECONNECT AFTER SESSION TIMEOUT
+  //    - Tap Connect (Legacy)
+  //    - In MetaMask: tap Connect (cooldown 2s)
+  //    - Assert: connected true, chainId '0x1'
   //
-  // 5. PERSONAL SIGN TO VERIFY WALLET-SIDE ACCOUNT
-  //    - Tap personal sign
-  //    - In MetaMask: tap Cancel (cooldown 2s)
-  //      Canceling verifies Account 3 appears as the signer in the modal (wallet-side check)
-  //    - Assert: response value 'rejected'
+  // 5. READ-ONLY METHOD WITH APP TERMINATED
+  //    - Terminate the MetaMask app (PlaywrightGestures.terminateApp)
+  //    - Tap getBalance in the dapp; sleep 10s for RPC response
+  //    - Assert: response value contains 'Balance:' prefix
+  //      (confirms read-only calls go directly to the RPC endpoint, not the wallet)
   //
   // 6. CLEANUP
   //    - Tap disconnect to reset dapp state
 
-  // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
-  test.skip('@metamask/connect-evm - Account switching and wallet-side verification', async ({
+  // This test is currently being skipped as the mobile app displays a double prompt.
+  appiumTest.skip('@metamask/connect-evm - Incomplete session timeout and read-only methods', async ({
     currentDeviceDetails,
     driver,
   }) => {
@@ -116,9 +109,6 @@ test.describe(Performance, () => {
     await PlaywrightContextHelpers.withNativeAction(async () => {
       await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
       await unlockIfLockScreenVisible();
-      await DappConnectionModal.tapEditAccountsButton();
-      await DappConnectionModal.tapAccountButton('Account 3');
-      await DappConnectionModal.tapUpdateAccountsButton();
       await DappConnectionModal.tapConnectButton({
         shouldCooldown: true,
         timeToCooldown: 2000,
@@ -132,29 +122,23 @@ test.describe(Performance, () => {
     await PlaywrightContextHelpers.withWebAction(async () => {
       await BrowserPlaygroundDapp.assertConnected(true);
       await BrowserPlaygroundDapp.assertChainIdValue('0x1');
-      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_ADDRESS);
+    }, DAPP_URL);
+
+    await PlaywrightContextHelpers.withWebAction(async () => {
+      await BrowserPlaygroundDapp.tapDisconnect();
+      await BrowserPlaygroundDapp.tapConnectLegacy();
     }, DAPP_URL);
 
     await PlaywrightContextHelpers.withNativeAction(async () => {
-      // Wait here to make sure UI is visible before attempted interaction
-      await sleep(1000);
-      // We're only using Android for now
-      await PlaywrightGestures.activateApp(currentDeviceDetails);
-      await unlockIfLockScreenVisible();
-
-      // Change selected account to Account 3 in MetaMask
-      await WalletView.tapIdenticon();
-      await AccountListBottomSheet.tapAccountByName('Account 3');
+      await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+      // Purposely not interacting with the approval but we still spend some time
+      // on the app
+      await sleep(2000);
     });
 
-    await sleep(1000);
+    await sleep(2000);
     await switchToMobileBrowser();
     await sleep(1000);
-
-    await PlaywrightContextHelpers.withWebAction(async () => {
-      // Verify account changed to Account 3
-      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
-    }, DAPP_URL);
 
     await PlaywrightContextHelpers.withNativeAction(async () => {
       await refreshMobileBrowser();
@@ -162,15 +146,19 @@ test.describe(Performance, () => {
     await sleep(2000);
 
     await PlaywrightContextHelpers.withWebAction(async () => {
-      await BrowserPlaygroundDapp.assertConnected(true);
-      await BrowserPlaygroundDapp.assertChainIdValue('0x1');
-      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
-      await BrowserPlaygroundDapp.tapPersonalSign();
+      await BrowserPlaygroundDapp.assertConnected(false);
+    }, DAPP_URL);
+
+    await sleep(10000);
+
+    await PlaywrightContextHelpers.withWebAction(async () => {
+      await BrowserPlaygroundDapp.assertConnected(false);
+      await BrowserPlaygroundDapp.tapConnectLegacy();
     }, DAPP_URL);
 
     await PlaywrightContextHelpers.withNativeAction(async () => {
       await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-      await SignModal.tapCancelButton({
+      await DappConnectionModal.tapConnectButton({
         shouldCooldown: true,
         timeToCooldown: 2000,
       });
@@ -181,7 +169,19 @@ test.describe(Performance, () => {
     await sleep(1000);
 
     await PlaywrightContextHelpers.withWebAction(async () => {
-      await BrowserPlaygroundDapp.assertResponseValue('rejected');
+      await BrowserPlaygroundDapp.assertConnected(true);
+      await BrowserPlaygroundDapp.assertChainIdValue('0x1');
+    }, DAPP_URL);
+
+    //
+    // Read-only method should hit rpc endpoint instead of wallet
+    //
+    await PlaywrightGestures.terminateApp(currentDeviceDetails);
+    await PlaywrightContextHelpers.withWebAction(async () => {
+      await BrowserPlaygroundDapp.tapGetBalance();
+      await sleep(10000);
+      // Balance response should contain "Balance:" prefix
+      await BrowserPlaygroundDapp.assertResponseValue('Balance:');
     }, DAPP_URL);
 
     //

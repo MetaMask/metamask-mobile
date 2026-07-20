@@ -1,5 +1,5 @@
-import { test } from '../../framework/fixtures/playwright';
-import { Performance } from '../../tags.performance.js';
+import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
+import { SmokeMMConnect } from '../../tags.js';
 
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import RNPlaygroundDapp from '../../page-objects/MMConnect/RNPlaygroundDapp';
@@ -9,7 +9,7 @@ import {
   unlockIfLockScreenVisible,
   ensurePlaygroundInstalled,
   ensureAccountGroupsFinishedLoading,
-} from './utils';
+} from './utils.js';
 import {
   PlaywrightGestures,
   PlaywrightAssertions,
@@ -66,14 +66,14 @@ async function returnToPlayground() {
 //    - Assert session is disconnected
 //    - Switch to MetaMask and unlock if needed to confirm no active session
 
-test.describe(Performance, () => {
+appiumTest.describe(SmokeMMConnect('Multichain RN Solana'), () => {
   // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
-  test.skip('@metamask/connect-multichain-rn-solana - Connect with Solana, invoke signMessage, and disconnect', async ({
+  appiumTest.skip('@metamask/connect-multichain-rn-solana - Connect with Solana, invoke signMessage, and disconnect', async ({
     currentDeviceDetails,
     driver,
   }) => {
     // When running on BrowserStack we skip the test if the RN playground is not installed
-    test.skip(
+    appiumTest.skip(
       currentDeviceDetails.isBrowserstack &&
         !process.env.BROWSERSTACK_RN_PLAYGROUND_URL,
       'Skipped: BROWSERSTACK_RN_PLAYGROUND_URL is not set',
