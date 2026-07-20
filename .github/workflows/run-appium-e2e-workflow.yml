@@ -390,3 +390,14 @@ jobs:
           fail-on-error: false
           list-suites: all
           list-tests: failed
+
+      - name: Upload fixture validation reports
+        if: ${{ always() && inputs.test_suite_tag == 'FixtureValidation' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: fixture-validation-results-${{ inputs.test-suite-name }}
+          path: |
+            tests/reports/fixture-validation-result.json
+            tests/reports/fixture-validation-diff.txt
+          if-no-files-found: ignore
+          retention-days: 7

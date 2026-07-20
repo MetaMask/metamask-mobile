@@ -561,20 +561,31 @@ export const CreateNewWallet = async ({
   }
 
   await MetaMetricsOptInView.tapAgreeButton();
-  await device.disableSynchronization(); // Detox is hanging after wallet creation
+  // Detox hangs after wallet creation without disabling sync; Appium has no equivalent.
+  if (FrameworkDetector.isDetox()) {
+    await device.disableSynchronization();
+  }
 
   if (optInToMetrics) {
     await dismissOnboardingInterestQuestionnaire();
-    await Assertions.expectElementToBeVisible(WalletView.container, {
-      description: 'Wallet home should be visible after onboarding completion',
-      timeout: 15000,
-    });
+    // iOS Appium: wallet-screen can exist with displayed=false; use readiness helper.
+    if (FrameworkDetector.isAppium()) {
+      await waitForWalletHomePlaywright(15_000);
+    } else {
+      await Assertions.expectElementToBeVisible(WalletView.container, {
+        description:
+          'Wallet home should be visible after onboarding completion',
+        timeout: 15000,
+      });
+    }
   }
 
   await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
-  await device.enableSynchronization();
+  if (FrameworkDetector.isDetox()) {
+    await device.enableSynchronization();
+  }
 };
 
 /**

@@ -180,15 +180,17 @@ jobs:
     name: Export & update fixtures
     needs: [is-fork-pull-request, prepare]
     if: ${{ needs.prepare.result == 'success' && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
+    # Appium fixture update uses Cirrus macOS (current), same as appium-smoke-tests-ios.
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-e2e' || (startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe", "low-priority"]')) }}
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     env:
-      METAMASK_ENVIRONMENT: qa
+      METAMASK_ENVIRONMENT: e2e
       METAMASK_BUILD_TYPE: main
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PLATFORM: ios
       GITHUB_CI: 'true'
+      CI: 'true'
       MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
       RAMP_INTERNAL_BUILD: 'true'
       MM_SECURITY_ALERTS_API_ENABLED: 'true'
@@ -223,23 +225,23 @@ jobs:
         uses: ./.github/actions/setup-e2e-env
         with:
           platform: ios
-          setup-simulator: true
-          configure-keystores: false
-
-      - name: Build Detox framework cache
-        run: |
-          yarn detox clean-framework-cache
-          yarn detox build-framework-cache
+          setup-simulator: 'false'
+          configure-keystores: 'false'
+          install-foundry: 'true'
+          skip-pod-install: 'true'
+          install-applesimutils: 'false'
+          runner_provider: current
 
       - name: Download iOS app artifact from CI
         run: |
           RUN_ID="${{ needs.prepare.outputs.RUN_ID }}"
           ARTIFACT_NAME="main-e2e-MetaMask.app"
+          APP_PATH="artifacts/${ARTIFACT_NAME}"
           echo "Downloading iOS artifact from CI run ${RUN_ID}..."
 
           # gh run download uses the ListArtifacts API, which includes artifacts from all
           # attempts of a run — including earlier attempts when only failed jobs were re-run.
-          if ! gh run download "${RUN_ID}" -n "${ARTIFACT_NAME}" -D "artifacts/${ARTIFACT_NAME}"; then
+          if ! gh run download "${RUN_ID}" -n "${ARTIFACT_NAME}" -D "${APP_PATH}"; then
             echo "::error title=iOS artifact not found::The iOS build was skipped in CI run ${RUN_ID} — no iOS-impacting changes were detected, so no artifact was produced.%0A%0AIf you need to force fixture regeneration, add the 'skip-smart-e2e-selection' label to your PR and re-run CI, then retry this command.%0A%0ACI run: https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
             exit 1
           fi
@@ -247,20 +249,123 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run fixture validation spec
-        timeout-minutes: 30
-        run: |
-          HAS_TEST_OVERRIDES='true' NODE_OPTIONS='--experimental-vm-modules' \
-            yarn detox test -c ios.sim.main.ci --headless \
-            tests/smoke/fixtures/fixture-validation.spec.ts
+      - name: Restore iOS bundle executable permissions
         env:
-          PREBUILT_IOS_APP_PATH: artifacts/main-e2e-MetaMask.app
+          APP_PATH: artifacts/main-e2e-MetaMask.app
+        run: |
+          BUNDLE_EXEC=$(/usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP_PATH/Info.plist" 2>/dev/null)
+          if [ -z "$BUNDLE_EXEC" ]; then
+            echo "Could not read CFBundleExecutable from Info.plist"
+            exit 1
+          fi
+
+          ACTUAL_PATH=$(find "$APP_PATH" -maxdepth 1 -iname "$BUNDLE_EXEC" -type f | head -1)
+          if [ -z "$ACTUAL_PATH" ]; then
+            echo "Bundle executable not found: $BUNDLE_EXEC"
+            exit 1
+          fi
+
+          if [ "$(basename "$ACTUAL_PATH")" != "$BUNDLE_EXEC" ]; then
+            mv "$ACTUAL_PATH" "$APP_PATH/${BUNDLE_EXEC}_fix"
+            mv "$APP_PATH/${BUNDLE_EXEC}_fix" "$APP_PATH/$BUNDLE_EXEC"
+          fi
+
+          chmod +x "$APP_PATH/$BUNDLE_EXEC"
+
+          if [ -d "$APP_PATH/Frameworks" ]; then
+            find "$APP_PATH/Frameworks" -type d -name "*.framework" | while IFS= read -r fw; do
+              binary="$fw/$(basename "$fw" .framework)"
+              if [ -f "$binary" ]; then
+                chmod +x "$binary"
+              fi
+            done
+            find "$APP_PATH/Frameworks" -type f -name "*.dylib" -exec chmod +x {} \;
+          fi
+          echo "Restored execute permissions on main binary and all framework binaries"
+        shell: bash
+
+      - name: Resolve XCUITest driver version for WDA cache key
+        id: xcuitest-version
+        run: echo "version=$(node scripts/e2e/resolve-xcuitest-driver-version.mjs)" >> "$GITHUB_OUTPUT"
+
+      - name: Get Xcode version for WDA cache key
+        id: xcode-version
+        run: echo "version=$(xcodebuild -version 2>/dev/null | head -1 | tr ' ' '-')" >> "$GITHUB_OUTPUT"
+
+      - name: Restore WDA DerivedData cache
+        uses: actions/cache@v4
+        with:
+          path: ~/appium-wda
+          key: wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
+          restore-keys: |
+            wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-
+
+      - name: Check if WDA is prebuilt
+        id: wda-prebuilt
+        run: |
+          WDA_APP=$(find ~/appium-wda/Build/Products -name 'WebDriverAgentRunner-Runner.app' -type d 2>/dev/null | head -1 || true)
+          XCTESTRUN=$(find ~/appium-wda/Build/Products -name '*.xctestrun' 2>/dev/null | head -1 || true)
+          if [ -n "$WDA_APP" ] && [ -n "$XCTESTRUN" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "WDA prebuilt artifacts found"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "WDA cache miss — prepare-ios-appium-runner will prebuild after sim boot"
+          fi
+        shell: bash
+
+      - name: Prepare iOS Appium runner
+        id: prepare-ios-appium
+        timeout-minutes: 30
+        run: node scripts/e2e/prepare-ios-appium-runner.mjs
+        env:
+          IOS_SIMULATOR_NAME: iPhone 16 Pro
+          IOS_APP_PATH: artifacts/main-e2e-MetaMask.app
+          IOS_BUNDLE_ID: io.metamask.MetaMask
+          SKIP_WDA_PREBUILD: ${{ steps.wda-prebuilt.outputs.ready == 'true' && 'true' || 'false' }}
+          IOS_SIMULATOR_POST_BOOT_SETTLE_MS: '30000'
+          IOS_APP_WARM_LAUNCH_SETTLE_MS: '15000'
+
+      - name: Run fixture validation spec (Appium)
+        id: run-fixture-validation
+        # Spec throws after writing an updated fixture when structural changes exist.
+        # Continue so we can cache/commit the written file.
+        continue-on-error: true
+        timeout-minutes: 45
+        run: >-
+          yarn playwright test
+          --config tests/playwright.smoke-appium.config.ts
+          --project ios-smoke
+          --grep FixtureValidation
+          tests/smoke-appium/fixtures/fixture-validation.spec.ts
+        env:
+          HAS_TEST_OVERRIDES: 'true'
+          GITHUB_CI: 'true'
+          CI: 'true'
+          IOS_APP_PATH: artifacts/main-e2e-MetaMask.app
+          IOS_SIMULATOR_NAME: iPhone 16 Pro
+          IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
+          IOS_WDA_PREINSTALLED: ${{ steps.prepare-ios-appium.outputs.ios-wda-preinstalled }}
+          IOS_WDA_BUNDLE_ID: ${{ steps.prepare-ios-appium.outputs.ios-wda-bundle-id }}
+          SKIP_DEVICE_BOOT: 'true'
+          SKIP_APP_REINSTALL: 'true'
+          USE_PREBUILT_WDA: 'true'
 
       - name: Cache updated fixture
+        if: always()
         uses: actions/cache/save@v4
         with:
           path: tests/framework/fixtures/json/default-fixture.json
           key: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
+
+      - name: Fail if validation errored without fixture updates
+        if: steps.run-fixture-validation.outcome == 'failure'
+        run: |
+          if git diff --quiet tests/framework/fixtures/json/default-fixture.json; then
+            echo "::error::Fixture validation failed and no updated fixture was produced."
+            exit 1
+          fi
+          echo "Fixture validation failed as expected after writing structural updates; continuing to commit."
 
   commit-updated-fixtures:
     name: Commit the updated fixtures
