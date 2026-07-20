@@ -119,7 +119,8 @@ export function useTransactionCustomAmount({
     setIsMaxDeposit(false);
   }, [payToken?.address, payToken?.chainId, setIsMaxDeposit]);
 
-  const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
+  const { isAmountUpdateQuotePipelineEnabled, updateTransactionPayAmount } =
+    useUpdateTransactionPayAmount();
 
   const depositPrefill = useDepositPrefillAmount();
 
@@ -194,6 +195,8 @@ export function useTransactionCustomAmount({
     if (amountFiat === '0' || amountFiat === '') {
       debounceSetAmountDelayed.flush();
     }
+
+    return () => debounceSetAmountDelayed.cancel();
   }, [amountHuman, amountFiat, debounceSetAmountDelayed]);
 
   useEffect(() => {
@@ -205,6 +208,24 @@ export function useTransactionCustomAmount({
       Boolean(amountHumanDebounced?.length) && amountHumanDebounced !== '0',
     );
   }, [amountHumanDebounced]);
+
+  useEffect(() => {
+    if (!isAmountUpdateQuotePipelineEnabled || amountHumanDebounced === '0') {
+      return;
+    }
+
+    const effectiveHuman = depositMaxHumanRef.current ?? amountHumanDebounced;
+    // Prefetch failures stay speculative. Continue retries the cleared request
+    // and uses the existing toast path if the committed update also fails.
+    updateTransactionPayAmount(effectiveHuman).then(
+      () => undefined,
+      () => undefined,
+    );
+  }, [
+    amountHumanDebounced,
+    isAmountUpdateQuotePipelineEnabled,
+    updateTransactionPayAmount,
+  ]);
 
   const setIsMax = useCallback(
     (value: boolean) => {
