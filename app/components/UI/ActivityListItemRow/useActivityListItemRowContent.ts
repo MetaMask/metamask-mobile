@@ -749,6 +749,42 @@ function resolveCoreContent(
         }),
         primaryToken: item.data.token,
       };
+    case 'assetActivation': {
+      const token = item.data.token;
+      return {
+        title: statusTitle(item, {
+          success: withOptionalSymbol(
+            strings('transactions.activity_trustline_activated'),
+            item.data.token?.symbol,
+          ),
+          pending: withOptionalSymbol(
+            strings('transactions.activity_trustline_activating'),
+            item.data.token?.symbol,
+          ),
+          failed: strings('transactions.activity_trustline_activation_failed'),
+        }),
+        primaryToken: token,
+      };
+    }
+    case 'assetDeactivation': {
+      const token = item.data.token;
+      return {
+        title: statusTitle(item, {
+          success: withOptionalSymbol(
+            strings('transactions.activity_trustline_deactivated'),
+            item.data.token?.symbol,
+          ),
+          pending: withOptionalSymbol(
+            strings('transactions.activity_trustline_deactivating'),
+            item.data.token?.symbol,
+          ),
+          failed: strings(
+            'transactions.activity_trustline_deactivation_failed',
+          ),
+        }),
+        primaryToken: token,
+      };
+    }
     case 'contractInteraction':
       return {
         title: statusTitle(item, {

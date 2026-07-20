@@ -22,6 +22,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: () => ({}),
   }),
+  useTheme: () => 'light',
+  usePureBlack: () => false,
+  getThemeColors: () => ({
+    'icon-default': 'rgb(0, 0, 0)',
+    'icon-alternative': 'rgb(102, 102, 102)',
+  }),
 }));
 
 jest.mock('../../../../../util/haptics', () => ({
@@ -248,7 +254,7 @@ describe('BatchSellReviewTokenRow', () => {
       />,
     );
 
-    UNSAFE_getByType(Slider).props.onTick();
+    UNSAFE_getByType(Slider).props.onMark();
 
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.SliderTick);
   });
