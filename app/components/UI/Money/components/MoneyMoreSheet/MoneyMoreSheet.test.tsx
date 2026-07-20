@@ -141,17 +141,33 @@ describe('MoneyMoreSheet', () => {
     });
   });
 
-  it('opens the MetaMask support URL in the in-app browser when "Contact support" is pressed', () => {
+  it('opens the support consent sheet when "Contact support" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
     fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(Linking.openURL).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.SUPPORT_CONSENT_SHEET,
+      params: {
+        onConfirm: expect.any(Function),
+        onReject: expect.any(Function),
+      },
+    });
+  });
+
+  it('opens the MetaMask support URL in the in-app browser when consent is rejected', () => {
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
+    const { onReject } = mockNavigate.mock.calls[0][1].params;
+    onReject();
+
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
       screen: Routes.BROWSER.VIEW,
       params: {
-        newTabUrl: METAMASK_SUPPORT_URL,
+        newTabUrl: expect.stringContaining(METAMASK_SUPPORT_URL),
         timestamp: expect.any(Number),
         fromMoney: true,
       },
