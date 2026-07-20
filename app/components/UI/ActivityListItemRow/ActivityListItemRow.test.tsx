@@ -1687,6 +1687,28 @@ describe('ActivityListItemRow — amount display', () => {
     expect(getByText('+$1')).toBeOnTheScreen();
   });
 
+  it('renders ramp buy mUSD amounts as already-human values (no decimal re-scale)', () => {
+    // FiatOrder.cryptoAmount is human-readable ("30"). Injecting mUSD decimals
+    // would scale 30 → 0.00003 via formatUnits.
+    const item = makeItem({
+      type: 'buy',
+      status: 'success',
+      token: {
+        amount: '30',
+        symbol: 'mUSD',
+        assetId: `eip155:1/erc20:${LINEA_MUSD_ADDRESS}`,
+        direction: 'in',
+      },
+    });
+
+    const { getByText, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByText('+30 mUSD')).toBeOnTheScreen();
+    expect(queryByText('+0.00003 mUSD')).toBeNull();
+  });
+
   it('does not render fiat when token market data is unavailable', () => {
     const item = makeItem({
       status: 'success',
