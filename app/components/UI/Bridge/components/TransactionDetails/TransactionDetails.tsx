@@ -624,14 +624,16 @@ export const BridgeTransactionDetails = (
                     >
                       {strings('activity_details.view_on_block_explorer')}
                     </Button>
-                    <ActivityDetailsDoItAgainButton
-                      label={
-                        isSwap
-                          ? strings('activity_details.swap_again')
-                          : strings('activity_details.bridge_again')
-                      }
-                      onPress={handleBridgeAgain}
-                    />
+                    {!is7702Batch && (
+                      <ActivityDetailsDoItAgainButton
+                        label={
+                          isSwap
+                            ? strings('activity_details.swap_again')
+                            : strings('activity_details.bridge_again')
+                        }
+                        onPress={handleBridgeAgain}
+                      />
+                    )}
                   </>
                 )
               }

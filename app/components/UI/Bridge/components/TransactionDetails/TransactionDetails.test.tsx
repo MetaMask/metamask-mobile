@@ -610,5 +610,126 @@ describe('BridgeTransactionDetails', () => {
       expect(copyControl).toBeOnTheScreen();
       fireEvent.press(copyControl);
     });
+
+    it('hides the do-it-again CTA for a 7702 batch sell', () => {
+      const batchTxHash = '0xbatchsellhash';
+      const batchTxId = 'batch-sell-tx-id';
+      const batchId = '0xbatch123';
+      const batchSellRedesignState = {
+        ...redesignState,
+        engine: {
+          ...redesignState.engine,
+          backgroundState: {
+            ...redesignState.engine.backgroundState,
+            BridgeStatusController: {
+              txHistory: {
+                [batchTxId]: {
+                  txMetaId: batchTxId,
+                  account: evmAccountAddress,
+                  featureId: FeatureId.BATCH_SELL,
+                  batchId,
+                  quote: {
+                    requestId: 'batch-request-id',
+                    srcChainId: 42161,
+                    destChainId: 42161,
+                    srcAsset: {
+                      chainId: 42161,
+                      address: '0xf97f4df75117a78c1a5a0dbb814af92458539fb4',
+                      decimals: 18,
+                      symbol: 'LINK',
+                      name: 'Chainlink',
+                    },
+                    destAsset: {
+                      chainId: 42161,
+                      address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+                      decimals: 6,
+                      symbol: 'USDC',
+                      name: 'USDC',
+                    },
+                    srcTokenAmount: '1000000000000000000',
+                    destTokenAmount: '5000000',
+                  },
+                  status: {
+                    status: StatusTypes.COMPLETE,
+                    srcChain: { txHash: batchTxHash },
+                    destChain: { txHash: '0xdest' },
+                  },
+                  startTime: Date.now(),
+                  estimatedProcessingTimeInSeconds: 0,
+                },
+                'batch-sell-item-2': {
+                  txMetaId: 'batch-sell-item-2',
+                  account: evmAccountAddress,
+                  featureId: FeatureId.BATCH_SELL,
+                  batchId,
+                  quote: {
+                    requestId: 'batch-request-id-2',
+                    srcChainId: 42161,
+                    destChainId: 42161,
+                    srcAsset: {
+                      chainId: 42161,
+                      address: '0xddb46999f8891663a8f2828d25298f70416d7610',
+                      decimals: 18,
+                      symbol: 'ARB',
+                      name: 'Arbitrum',
+                    },
+                    destAsset: {
+                      chainId: 42161,
+                      address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+                      decimals: 6,
+                      symbol: 'USDC',
+                      name: 'USDC',
+                    },
+                    srcTokenAmount: '1000000000000000000',
+                    destTokenAmount: '3000000',
+                  },
+                  status: {
+                    status: StatusTypes.COMPLETE,
+                    srcChain: { txHash: '0xotherhash' },
+                    destChain: { txHash: '0xdest2' },
+                  },
+                  startTime: Date.now(),
+                  estimatedProcessingTimeInSeconds: 0,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const batchSellTx = {
+        id: batchTxId,
+        hash: batchTxHash,
+        status: TransactionStatus.confirmed,
+        chainId: '0xa4b1',
+        networkClientId: 'arbitrum',
+        time: Date.now(),
+        nestedTransactions: [
+          { type: TransactionType.swap },
+          { type: TransactionType.swapApproval },
+        ],
+        txParams: {
+          to: '0x123',
+          from: evmAccountAddress,
+          value: '0x0',
+          data: '0x',
+        },
+      } as TransactionMeta;
+
+      const { getByText, queryByTestId } = renderScreen(
+        () => (
+          <BridgeTransactionDetails
+            route={{ params: { evmTxMeta: batchSellTx } }}
+          />
+        ),
+        { name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS },
+        { state: batchSellRedesignState },
+      );
+
+      // Batch hero still renders under the redesign...
+      expect(getByText('You swapped')).toBeOnTheScreen();
+      // ...but the single-leg "do it again" CTA is suppressed.
+      expect(queryByTestId('activity-details-do-it-again-button')).toBeNull();
+    });
   });
 });
