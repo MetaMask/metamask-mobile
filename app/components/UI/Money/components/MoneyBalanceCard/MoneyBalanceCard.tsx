@@ -291,7 +291,7 @@ const MoneyBalanceCard = () => {
         ),
       ]}
     >
-      <Box twClassName="flex-1 gap-1 pr-3">
+      <Box twClassName="min-w-0 flex-1 gap-1 pr-3">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
