@@ -969,7 +969,18 @@ export class CardController extends BaseController<
         provider.getCardHomeData(address, validTokens),
       );
     }
-    return provider.getOnChainAssets?.(address) ?? emptyCardHomeData();
+
+    // Unauthenticated path: prefer the active provider's on-chain assets.
+    // Providers without getOnChainAssets (e.g. Immersve) fall back to Baanx so
+    // existing cardholders still see Linea funding assets + balances.
+    const onChainProvider =
+      provider.getOnChainAssets != null
+        ? provider
+        : this.providers[DEFAULT_CARD_PROVIDER_ID];
+    return (
+      (await onChainProvider?.getOnChainAssets?.(address)) ??
+      emptyCardHomeData()
+    );
   }
 
   #restoreCardHomeDataAfterOptimisticFailure(

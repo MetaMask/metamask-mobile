@@ -23,6 +23,7 @@ import {
   ARBITRARY_ALLOWANCE,
   BALANCE_SCANNER_ABI,
   SUPPORTED_ASSET_NETWORKS,
+  LINEA_PUBLIC_RPC_URL,
   cardNetworkInfos,
   caipChainIdToNetwork,
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
@@ -893,8 +894,71 @@ export class BaanxProvider implements ICardProvider {
       };
     } catch (error) {
       Logger.error(error as Error, getErrorContext('getOnChainAssets'));
-      return fallback;
+      // When Linea RPC is unreachable, still surface feature-flag Linea tokens so
+      // CardHome can render the asset; useAssetBalances fills wallet balances.
+      return this.#buildLineaAssetsFromFeatureFlag(address) ?? fallback;
     }
+  }
+
+  /**
+   * Builds Inactive Linea funding rows from the card feature flag when on-chain
+   * allowance scanning is unavailable. Empty spendableBalance lets
+   * useAssetBalances fall back to MultichainBalances wallet balances.
+   */
+  #buildLineaAssetsFromFeatureFlag(address: string): CardHomeData | null {
+    const lineaChainId = 'eip155:59144';
+    const lineaChain = this.cardFeatureFlag?.chains?.[lineaChainId];
+    if (!lineaChain?.tokens?.length) return null;
+
+    const fundingAssets = lineaChain.tokens
+      .filter(
+        (t): t is SupportedToken & { address: string } =>
+          !!t && typeof t.address === 'string' && t.enabled !== false,
+      )
+      .map(
+        (t): CardFundingAsset => ({
+          symbol: t.symbol ?? '',
+          name: t.name ?? t.symbol ?? '',
+          address: t.address,
+          walletAddress: address,
+          decimals: t.decimals ?? 6,
+          chainId: lineaChainId,
+          spendableBalance: '',
+          spendingCap: '0',
+          priority: 0,
+          status: FundingAssetStatus.Inactive,
+        }),
+      )
+      .filter((asset) => asset.symbol !== '');
+
+    if (fundingAssets.length === 0) return null;
+
+    return {
+      primaryFundingAsset: fundingAssets[0],
+      fundingAssets,
+      availableFundingAssets: fundingAssets,
+      card: null,
+      account: null,
+      alerts: [],
+      actions: [{ type: 'add_funds', enabled: true }],
+      delegationSettings: null,
+    };
+  }
+
+  #createLineaProvider(rpcUrl: string): ethers.providers.JsonRpcProvider {
+    // StaticJsonRpcProvider skips ethers' auto network detection.
+    // skipFetchSetup is required in React Native — without it ethers mutates
+    // fetch headers/body and Linea RPCs respond with "Invalid JSON" / noNetwork.
+    return new ethers.providers.StaticJsonRpcProvider(
+      {
+        url: rpcUrl,
+        skipFetchSetup: true,
+      },
+      {
+        name: 'linea',
+        chainId: 59144,
+      },
+    );
   }
 
   // -- On-Chain private helpers --
@@ -912,10 +976,36 @@ export class BaanxProvider implements ICardProvider {
       walletBalance: ethers.BigNumber;
     }[]
   > {
-    const rpcUrl = cardNetworkInfos.linea?.rpcUrl;
-    if (!rpcUrl) throw new Error('Linea RPC URL not configured');
+    const primaryRpcUrl = cardNetworkInfos.linea?.rpcUrl;
+    if (!primaryRpcUrl) throw new Error('Linea RPC URL not configured');
 
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+    const rpcCandidates = Array.from(
+      new Set(
+        [primaryRpcUrl, LINEA_PUBLIC_RPC_URL].filter(
+          (url): url is string => typeof url === 'string' && url.length > 0,
+        ),
+      ),
+    );
+
+    let provider: ethers.providers.JsonRpcProvider | undefined;
+    let lastError: unknown;
+    for (const rpcUrl of rpcCandidates) {
+      try {
+        const candidate = this.#createLineaProvider(rpcUrl);
+        // Force a cheap RPC round-trip so we fail over before scanner calls.
+        await candidate.getBlockNumber();
+        provider = candidate;
+        break;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    if (!provider) {
+      throw lastError instanceof Error
+        ? lastError
+        : new Error('Linea RPC unreachable');
+    }
+
     const scanner = new ethers.Contract(
       scannerAddress,
       BALANCE_SCANNER_ABI,
