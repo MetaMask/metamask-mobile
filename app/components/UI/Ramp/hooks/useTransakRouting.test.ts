@@ -177,9 +177,9 @@ jest.mock('./useRampsPaymentMethods', () => ({
 }));
 
 jest.mock(
-  '../../../../core/Engine/controllers/ramps-controller/transak-service-init',
+  '../../../../core/Engine/controllers/ramps-controller/ramps-service-init',
   () => ({
-    getTransakEnvironment: () => 'STAGING',
+    getRampsEnvironment: () => 'STAGING',
   }),
 );
 
@@ -251,6 +251,14 @@ jest.mock('../../../../util/Logger', () => ({
 }));
 
 jest.mock('@metamask/ramps-controller', () => ({
+  RampsEnvironment: {
+    Production: 'PRODUCTION',
+    Staging: 'STAGING',
+  },
+  TransakEnvironment: {
+    Production: 'PRODUCTION',
+    Staging: 'STAGING',
+  },
   TransakOrderIdTransformer: {
     transakOrderIdToDepositOrderId: jest.fn(
       (orderId: string, _env: string) => `transformed-${orderId}`,
@@ -1723,6 +1731,35 @@ describe('useTransakRouting', () => {
         }),
       );
       expect(mockShowV2OrderToast).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the staging native provider code when the order has no provider', async () => {
+      mockGetOrder.mockResolvedValue({ ...depositOrder, provider: undefined });
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(mockRefreshOrder).toHaveBeenCalledWith(
+        'transak-native-staging',
+        'order-hs',
+        MOCK_WALLET_ADDRESS,
+      );
     });
 
     it('carries ramp_surface from the live session on the HEADLESS terminal event', async () => {

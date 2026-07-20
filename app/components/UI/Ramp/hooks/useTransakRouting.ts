@@ -5,9 +5,11 @@ import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import {
+  RampsEnvironment,
   RampsOrderStatus,
   type TransakBuyQuote,
 } from '@metamask/ramps-controller';
+import { getRampsEnvironment } from '../../../../core/Engine/controllers/ramps-controller/ramps-service-init';
 import { REDIRECTION_URL } from '../constants';
 import { generateThemeParameters } from '../utils/depositUtils';
 import type {
@@ -39,6 +41,16 @@ import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
 import { getChainIdFromAssetId } from '../headless';
 import { setHeadlessOrderContext } from '../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
 import { emitTerminalOrderAnalyticsFromCallback } from '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
+
+// The fallback provider code must match the environment that `refreshOrder`
+// polls, which is derived from `getRampsEnvironment()`. Using the Transak
+// environment here could disagree with the ramps API env (they read different
+// env vars) and poll the wrong provider, returning a 400.
+function getFallbackNativeProviderCode(): string {
+  return getRampsEnvironment() === RampsEnvironment.Staging
+    ? 'transak-native-staging'
+    : 'transak-native';
+}
 
 interface RampStackParamList {
   /** `baseRouteParams` (e.g. `headlessSessionId`) are merged onto this route in resets — see `navigateToVerifyIdentityCallback`. */
@@ -492,7 +504,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           }
 
           const providerCode = String(
-            depositOrder.provider ?? 'transak-native',
+            depositOrder.provider ?? getFallbackNativeProviderCode(),
           );
           const rampsOrder = await refreshOrder(
             providerCode,
@@ -756,7 +768,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                 }
 
                 const providerCode = String(
-                  depositOrder.provider ?? 'transak-native',
+                  depositOrder.provider ?? getFallbackNativeProviderCode(),
                 );
                 const rampsOrder = await refreshOrder(
                   providerCode,

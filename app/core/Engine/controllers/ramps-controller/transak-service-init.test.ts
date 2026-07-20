@@ -21,9 +21,74 @@ describe('transak-service-init', () => {
   });
 
   describe('getTransakEnvironment', () => {
-    it('returns a valid TransakEnvironment value', () => {
-      const result = getTransakEnvironment();
-      expect(['PRODUCTION', 'STAGING']).toContain(result);
+    const originalEnv = process.env.METAMASK_ENVIRONMENT;
+    const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
+    const originalBuildsFlag =
+      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
+
+    beforeEach(() => {
+      delete process.env.RAMPS_ENVIRONMENT;
+      delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
+    });
+
+    afterEach(() => {
+      process.env.METAMASK_ENVIRONMENT = originalEnv;
+      if (originalRampsEnvironment !== undefined) {
+        process.env.RAMPS_ENVIRONMENT = originalRampsEnvironment;
+      } else {
+        delete process.env.RAMPS_ENVIRONMENT;
+      }
+      if (originalBuildsFlag !== undefined) {
+        process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY =
+          originalBuildsFlag;
+      } else {
+        delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
+      }
+    });
+
+    describe('when BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is true (builds.yml path)', () => {
+      beforeEach(() => {
+        process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'true';
+      });
+
+      it('returns Production when RAMPS_ENVIRONMENT is production', () => {
+        process.env.RAMPS_ENVIRONMENT = 'production';
+        expect(getTransakEnvironment()).toBe('PRODUCTION');
+      });
+
+      it('returns Staging when RAMPS_ENVIRONMENT is not production', () => {
+        process.env.RAMPS_ENVIRONMENT = 'staging';
+        expect(getTransakEnvironment()).toBe('STAGING');
+      });
+
+      it('ignores METAMASK_ENVIRONMENT (uses RAMPS_ENVIRONMENT)', () => {
+        process.env.METAMASK_ENVIRONMENT = 'production';
+        process.env.RAMPS_ENVIRONMENT = 'staging';
+        expect(getTransakEnvironment()).toBe('STAGING');
+      });
+    });
+
+    describe('legacy METAMASK_ENVIRONMENT path', () => {
+      it.each(['production', 'beta', 'rc'])(
+        'returns Production for %s environment',
+        (env) => {
+          process.env.METAMASK_ENVIRONMENT = env;
+          expect(getTransakEnvironment()).toBe('PRODUCTION');
+        },
+      );
+
+      it.each(['dev', 'exp', 'test', 'e2e', 'unknown'])(
+        'returns Staging for %s environment',
+        (env) => {
+          process.env.METAMASK_ENVIRONMENT = env;
+          expect(getTransakEnvironment()).toBe('STAGING');
+        },
+      );
+
+      it('returns Staging for undefined environment', () => {
+        delete process.env.METAMASK_ENVIRONMENT;
+        expect(getTransakEnvironment()).toBe('STAGING');
+      });
     });
   });
 

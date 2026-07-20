@@ -7,6 +7,13 @@ import {
 } from '@metamask/ramps-controller';
 
 export function getTransakEnvironment(): TransakEnvironment {
+  if (process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY === 'true') {
+    const rampsEnv = process.env.RAMPS_ENVIRONMENT;
+    return rampsEnv === 'production'
+      ? TransakEnvironment.Production
+      : TransakEnvironment.Staging;
+  }
+
   const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
   switch (metamaskEnvironment) {
     case 'production':
