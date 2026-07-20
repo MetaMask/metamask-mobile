@@ -34,7 +34,7 @@ test.describe(`${System} ${PerformanceSwaps}`, () => {
         );
       });
 
-      await QuoteView.selectNetworkAndTokenTo('Solana', 'SOL');
+      await QuoteView.selectNetworkAndTokenTo('BNB', 'USDC');
       await QuoteView.enterSourceTokenAmount('0.1');
 
       const timer2 = new TimerHelper(

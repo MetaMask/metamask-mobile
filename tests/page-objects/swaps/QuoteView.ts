@@ -346,9 +346,6 @@ class QuoteView {
         });
       },
       appium: async () => {
-        await PlaywrightGestures.scrollIntoViewFullyVisible(
-          await asPlaywrightElement(this.moreNetworksButton),
-        );
         const networkElement =
           await PlaywrightMatchers.getElementByCatchAll(network);
         await PlaywrightAssertions.expectElementToBeVisible(networkElement, {

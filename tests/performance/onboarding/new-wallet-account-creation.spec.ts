@@ -123,7 +123,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await AccountListBottomSheet.tapAccountByName('Account 2');
       await screen3Timer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.getMoneySection),
+          asPlaywrightElement(WalletView.getMoneySection),
           {
             description:
               'token list should be visible after selecting the new account',
