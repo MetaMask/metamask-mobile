@@ -23,6 +23,8 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import useRegions from '../../hooks/useRegions';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import Engine from '../../../../../core/Engine';
+import { getCardProviderErrorMessage } from '../../util/getCardProviderErrorMessage';
 import {
   resetOnboardingState,
   selectContactVerificationId,
@@ -49,10 +51,16 @@ const SetPhoneNumber = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { signUpRegions, userCountry, getRegionByCode } = useRegions();
   const userCardLocation = useSelector(selectCardUserLocation);
-  const { countryKey } = useParams<{ countryKey?: string }>();
+  const {
+    countryKey,
+    immersve: isImmersve,
+    email: immersveEmail,
+  } = useParams<{ countryKey?: string; immersve?: boolean; email?: string }>();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberError, setIsPhoneNumberError] = useState(false);
   const [isUsPhoneNumberError, setIsUsPhoneNumberError] = useState(false);
+  const [isImmersveSubmitting, setIsImmersveSubmitting] = useState(false);
+  const [immersveError, setImmersveError] = useState<string | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(
     () => getRegionByCode(countryKey) ?? userCountry ?? null,
   );
@@ -149,6 +157,32 @@ const SetPhoneNumber = () => {
     }
   };
 
+  const handleImmersveContinue = async () => {
+    const areaCode = selectedCountry?.areaCode;
+    if (!phoneNumber || !areaCode || !immersveEmail) {
+      return;
+    }
+    if (!/^\d{4,15}$/.test(phoneNumber)) {
+      setIsPhoneNumberError(true);
+      return;
+    }
+    setImmersveError(null);
+    setIsImmersveSubmitting(true);
+    try {
+      await Engine.context.CardController.patchContactDetails({
+        email: immersveEmail,
+        phone: `+${areaCode}${phoneNumber}`,
+      });
+      navigation.navigate(Routes.CARD.ONBOARDING.KYC_PROCESSING, {
+        countryKey,
+      });
+    } catch (e) {
+      setImmersveError(getCardProviderErrorMessage(e));
+    } finally {
+      setIsImmersveSubmitting(false);
+    }
+  };
+
   const handleCountrySelect = useCallback(() => {
     resetPhoneVerificationSend();
     setIsUsPhoneNumberError(false);
@@ -202,6 +236,16 @@ const SetPhoneNumber = () => {
       ? /^\d{4,15}$/.test(phoneNumber)
       : false;
 
+    if (isImmersve) {
+      // No phone verification; just need a valid number + area code.
+      return (
+        !phoneNumber ||
+        !selectedCountry?.areaCode ||
+        !isCurrentPhoneNumberValid ||
+        isImmersveSubmitting
+      );
+    }
+
     // For US users, also check US phone format
     const isUsPhoneValid = isUsUser ? US_PHONE_REGEX.test(phoneNumber) : true;
 
@@ -221,6 +265,8 @@ const SetPhoneNumber = () => {
     phoneVerificationIsLoading,
     phoneVerificationIsError,
     isUsUser,
+    isImmersve,
+    isImmersveSubmitting,
   ]);
 
   useEffect(() => () => clearOnValueChange(), []);
@@ -255,7 +301,9 @@ const SetPhoneNumber = () => {
               'card.card_onboarding.set_phone_number.phone_number_label',
             )}
             testID="set-phone-number-phone-number-input"
-            onSubmitEditing={handleContinue}
+            onSubmitEditing={
+              isImmersve ? handleImmersveContinue : handleContinue
+            }
             returnKeyType="done"
           />
         </Box>
@@ -294,31 +342,48 @@ const SetPhoneNumber = () => {
 
   const renderActions = () => (
     <Box twClassName="flex flex-col items-center justify-center gap-2">
+      {isImmersve && immersveError ? (
+        <Text
+          variant={TextVariant.BodySm}
+          testID="set-phone-number-immersve-error"
+          twClassName="text-error-default text-center"
+        >
+          {immersveError}
+        </Text>
+      ) : null}
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
-        onPress={handleContinue}
+        onPress={isImmersve ? handleImmersveContinue : handleContinue}
         isFullWidth
         isDisabled={isDisabled}
-        isLoading={phoneVerificationIsLoading}
+        isLoading={
+          isImmersve ? isImmersveSubmitting : phoneVerificationIsLoading
+        }
         testID="set-phone-number-continue-button"
       >
         {strings('card.card_onboarding.continue_button')}
       </Button>
-      <Text
-        variant={TextVariant.BodySm}
-        testID="set-phone-number-legal-terms"
-        twClassName="text-text-alternative text-center"
-      >
-        {strings('card.card_onboarding.set_phone_number.legal_terms')}
-      </Text>
+      {!isImmersve ? (
+        <Text
+          variant={TextVariant.BodySm}
+          testID="set-phone-number-legal-terms"
+          twClassName="text-text-alternative text-center"
+        >
+          {strings('card.card_onboarding.set_phone_number.legal_terms')}
+        </Text>
+      ) : null}
     </Box>
   );
 
   return (
     <OnboardingStep
       title={strings('card.card_onboarding.set_phone_number.title')}
-      description={strings('card.card_onboarding.set_phone_number.description')}
+      description={
+        isImmersve
+          ? undefined
+          : strings('card.card_onboarding.set_phone_number.description')
+      }
       formFields={renderFormFields()}
       actions={renderActions()}
       stickyActions

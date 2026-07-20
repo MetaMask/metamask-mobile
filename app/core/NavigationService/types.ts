@@ -1025,6 +1025,8 @@ export type RootStackParamList = {
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
   CardOnboardingKYCPending: undefined;
+  CardOnboardingKYCProcessing: CardScreensStackParamList['CardOnboardingKYCProcessing'];
+  CardOnboardingFundingApproval: CardScreensStackParamList['CardOnboardingFundingApproval'];
   CardModals: NavigatorScreenParams<CardModalsNavigationParamList> | undefined;
   CardAddFundsModal: CardModalsNavigationParamList['CardAddFundsModal'];
   CardAssetSelectionModal: CardModalsNavigationParamList['CardAssetSelectionModal'];
@@ -1036,6 +1038,7 @@ export type RootStackParamList = {
   CardViewPinModal: CardModalsNavigationParamList['CardViewPinModal'];
   CardSpendingLimitOptionsModal: CardModalsNavigationParamList['CardSpendingLimitOptionsModal'];
   CardWaitlistFormModal: CardModalsNavigationParamList['CardWaitlistFormModal'];
+  CardImmersveKYCModal: CardModalsNavigationParamList['CardImmersveKYCModal'];
   CardForgotPasswordModal: CardModalsNavigationParamList['CardForgotPasswordModal'];
   CardCreditBalanceTooltipModal: CardModalsNavigationParamList['CardCreditBalanceTooltipModal'];
   CardCreditRefundTooltipModal: CardModalsNavigationParamList['CardCreditRefundTooltipModal'];
