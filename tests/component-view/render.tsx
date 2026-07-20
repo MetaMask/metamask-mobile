@@ -11,11 +11,13 @@ import renderWithProvider, {
 } from '../../app/util/test/renderWithProvider';
 import Engine from '../../app/core/Engine';
 import { DATA_SERVICES } from '../../app/constants/data-services';
+import { MessengerAdapter } from '../../app/core/ReactQueryService/ReactQueryService';
 
 notifyManager.setBatchNotifyFunction((callback) => callback());
 
 function createQueryClient() {
-  return createUIQueryClient(DATA_SERVICES, Engine.controllerMessenger, {
+  const messengerAdapter = new MessengerAdapter();
+  return createUIQueryClient(DATA_SERVICES, messengerAdapter, {
     defaultOptions: { queries: { retry: false } },
   });
 }
@@ -66,15 +68,15 @@ export const getRouteParamsProbeTestId = (routeName: string) =>
 
 export const createRouteParamsProbe =
   (routeName: string): React.FC =>
-  () => {
-    const route = useRoute();
+    () => {
+      const route = useRoute();
 
-    return (
-      <Text testID={getRouteParamsProbeTestId(routeName)}>
-        {JSON.stringify(route.params)}
-      </Text>
-    );
-  };
+      return (
+        <Text testID={getRouteParamsProbeTestId(routeName)}>
+          {JSON.stringify(route.params)}
+        </Text>
+      );
+    };
 
 /**
  * Render a screen with additional registered routes to assert navigation without mocking.
@@ -94,7 +96,7 @@ export function renderScreenWithRoutes(
 
   const DefaultRouteProbe =
     (routeName: string): React.FC =>
-    () => <Text testID={getRouteProbeTestId(routeName)}>{routeName}</Text>;
+      () => <Text testID={getRouteProbeTestId(routeName)}>{routeName}</Text>;
 
   const stackTree = (
     <QueryClientBoundary>

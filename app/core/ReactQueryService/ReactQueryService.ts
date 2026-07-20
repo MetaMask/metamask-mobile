@@ -35,7 +35,7 @@ type DataServiceGranularCacheUpdatedHandler = (
  * messenger can be accessed. So we need to lazy-call
  * `Engine.controllerMessenger`.
  */
-class MessengerAdapter {
+export class MessengerAdapter {
   call(
     actionType: Extract<GlobalActions['type'], `${DataServiceName}:${string}`>,
     ...params: ExtractActionParameters<
