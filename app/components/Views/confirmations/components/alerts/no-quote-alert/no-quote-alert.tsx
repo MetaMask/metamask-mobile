@@ -2,9 +2,9 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
+} from '../../../../../../component-library/components/Texts/Text';
+import { strings } from '../../../../../../../locales/i18n';
+import { useTheme } from '../../../../../../util/theme';
 import type { QuoteErrorInfo } from '@metamask/transaction-pay-controller';
 
 const TAPS_TO_EXPAND = 5;
@@ -14,7 +14,7 @@ interface Props {
   error: QuoteErrorInfo;
 }
 
-export function QuoteValidationAlertContent({ error }: Props) {
+export function NoQuoteAlert({ error }: Props) {
   const { colors } = useTheme();
   const [tapCount, setTapCount] = useState(0);
 
@@ -55,10 +55,7 @@ export function QuoteValidationAlertContent({ error }: Props) {
           : strings('alert_system.no_pay_token_quotes.message')}
       </Text>
       {isExpanded && error.detail && error.detail.length > 0 && (
-        <View
-          style={styles.detailsBlock}
-          testID="quote-validation-alert-details"
-        >
+        <View style={styles.detailsBlock} testID="no-quote-alert-details">
           {error.detail.map((row) => (
             <Text key={row} style={styles.detailRow}>
               {row}

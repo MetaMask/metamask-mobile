@@ -6,7 +6,7 @@ import {
   selectTransactionPayIsMaxAmountByTransactionId,
   selectTransactionPayIsPostQuoteByTransactionId,
   selectTransactionPayQuotesByTransactionId,
-  selectTransactionPayQuoteValidationErrorByTransactionId,
+  selectTransactionPayQuoteErrorByTransactionId,
   selectTransactionPaySourceAmountsByTransactionId,
   selectTransactionPayTokensByTransactionId,
   selectTransactionPayTotalsByTransactionId,
@@ -54,10 +54,8 @@ export function useTransactionPayFiatPayment() {
   return useTransactionPayData(selectTransactionPayFiatPaymentByTransactionId);
 }
 
-export function useTransactionPayQuoteValidationError() {
-  return useTransactionPayData(
-    selectTransactionPayQuoteValidationErrorByTransactionId,
-  );
+export function useTransactionPayQuoteError() {
+  return useTransactionPayData(selectTransactionPayQuoteErrorByTransactionId);
 }
 
 function useTransactionPayData<T>(

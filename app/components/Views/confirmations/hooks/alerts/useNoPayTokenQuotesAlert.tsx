@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { QuoteValidationAlertContent } from './QuoteValidationAlertContent';
+import { NoQuoteAlert } from '../../components/alerts/no-quote-alert';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
@@ -10,7 +10,7 @@ import {
   useTransactionPayFiatPayment,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
-  useTransactionPayQuoteValidationError,
+  useTransactionPayQuoteError,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPaySourceAmounts,
@@ -34,7 +34,7 @@ export function useNoPayTokenQuotesAlert() {
   const isMaxAmount = useTransactionPayIsMaxAmount();
   const transactionMeta = useTransactionMetadataRequest();
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
-  const quoteValidationError = useTransactionPayQuoteValidationError();
+  const quoteError = useTransactionPayQuoteError();
 
   const fiatAmount = Number(fiatPayment?.amountFiat);
   const hasValidFiatAmount = Number.isFinite(fiatAmount) && fiatAmount > 0;
@@ -124,7 +124,7 @@ export function useNoPayTokenQuotesAlert() {
   // A quote may be returned but fail validation (e.g. insufficient balance).
   // The quote still renders prices/fees, but the alert blocks confirmation and
   // surfaces the structured reason and detail rows provided by core.
-  const shouldShowQuoteValidationAlert = Boolean(quoteValidationError);
+  const shouldShowQuoteErrorAlert = Boolean(quoteError);
 
   const showAlert =
     shouldShowNonFiatNoQuotesAlert ||
@@ -133,33 +133,27 @@ export function useNoPayTokenQuotesAlert() {
     shouldShowQuoteRequiredNoQuotesAlert ||
     shouldShowWithdrawNotInitialisedAlert ||
     shouldShowPayTokenNotSelectedAlert ||
-    shouldShowQuoteValidationAlert;
+    shouldShowQuoteErrorAlert;
 
   return useMemo(() => {
     if (!showAlert) {
       return [];
     }
 
-    const title = quoteValidationError
-      ? strings('alert_system.pay_quote_validation_alert_title')
-      : strings('alert_system.no_pay_token_quotes.title');
-
     return [
       {
         key: AlertKeys.NoPayTokenQuotes,
         field: RowAlertKey.PayWith,
-        ...(quoteValidationError
+        ...(quoteError
           ? {
-              content: (
-                <QuoteValidationAlertContent error={quoteValidationError} />
-              ),
-              message: quoteValidationError.message,
+              content: <NoQuoteAlert error={quoteError} />,
+              message: quoteError.message,
             }
           : { message: strings('alert_system.no_pay_token_quotes.message') }),
-        title,
+        title: strings('alert_system.no_pay_token_quotes.title'),
         severity: Severity.Danger,
         isBlocking: true,
       },
     ];
-  }, [showAlert, quoteValidationError]);
+  }, [showAlert, quoteError]);
 }

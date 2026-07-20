@@ -117,7 +117,6 @@
       "message": "This payment route isn't available right now. Try changing the amount or payment method and we'll find the best option.",
       "title": "No quotes"
     },
-    "pay_quote_validation_alert_title": "No valid quotes",
     "account_no_funds": {
       "message": "No funds available. Use a different account.",
       "title": "Insufficient funds"

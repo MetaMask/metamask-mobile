@@ -15,7 +15,7 @@ import {
   useTransactionPayFiatPayment,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
-  useTransactionPayQuoteValidationError,
+  useTransactionPayQuoteError,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPaySourceAmounts,
@@ -91,9 +91,7 @@ describe('useNoPayTokenQuotesAlert', () => {
     });
     jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
     jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(false);
-    jest
-      .mocked(useTransactionPayQuoteValidationError)
-      .mockReturnValue(undefined);
+    jest.mocked(useTransactionPayQuoteError).mockReturnValue(undefined);
   });
 
   it('returns alert if pay token selected and no quotes available', () => {
@@ -112,15 +110,13 @@ describe('useNoPayTokenQuotesAlert', () => {
     ]);
   });
 
-  it('uses quoteValidationError message and detail when present', () => {
-    const validationError = {
+  it('uses quoteError message and detail when present', () => {
+    const quoteError = {
       message: 'Insufficient balance',
       reason: 'insufficient-source-balance' as const,
       detail: ['Required: 1.5 USDC', 'Current: 1 USDC', 'Missing: 0.5 USDC'],
     };
-    jest
-      .mocked(useTransactionPayQuoteValidationError)
-      .mockReturnValue(validationError);
+    jest.mocked(useTransactionPayQuoteError).mockReturnValue(quoteError);
 
     const { result } = runHook();
 
@@ -130,7 +126,9 @@ describe('useNoPayTokenQuotesAlert', () => {
     expect(resultAlert.field).toBe(RowAlertKey.PayWith);
     expect(resultAlert.content).toBeDefined();
     expect(resultAlert.message).toBe('Insufficient balance');
-    expect(resultAlert.title).toBe('No valid quotes');
+    expect(resultAlert.title).toBe(
+      strings('alert_system.no_pay_token_quotes.title'),
+    );
     expect(resultAlert.severity).toBe(Severity.Danger);
     expect(resultAlert.isBlocking).toBe(true);
   });
