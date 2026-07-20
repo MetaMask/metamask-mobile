@@ -150,13 +150,9 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
   immersve: {
     network: 'base-sepolia',
     cardProgramId: '',
-    fundingChannelId: '',
-    kycType: 'immersve-conducted',
-    kycHiddenSteps: ['region', 'contact-channels', 'expected-spend'],
-    spendableCurrency: 'USD',
-    spendableAmount: '0',
-    countries: ['GB'],
+    fundingType: 'base-sepolia-usdc-universal-evm',
   },
+  immersveCountries: ['GB'],
 };
 
 export interface GateVersionedFeatureFlag {
@@ -168,17 +164,13 @@ export interface CardFeatureFlag {
   constants?: Record<string, string>;
   chains?: Record<string, SupportedChain>;
   immersve?: ImmersveProgramConfig;
+  immersveCountries?: string[];
 }
 
 export interface ImmersveProgramConfig {
   network?: string;
   cardProgramId?: string;
-  fundingChannelId?: string;
-  kycType?: string;
-  kycHiddenSteps?: string[];
-  spendableCurrency?: string;
-  spendableAmount?: string;
-  countries?: string[];
+  fundingType?: string;
 }
 
 export interface SupportedChain {
