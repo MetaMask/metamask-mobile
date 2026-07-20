@@ -418,7 +418,7 @@
     "@types/readable-stream": "^2.3.9",
     "@veriff/react-native-sdk": "^11.2.0",
     "@viem/anvil": "^0.0.10",
-    "@walletconnect/core": "^2.23.0",
+    "@walletconnect/core": "^2.23.10",
     "@walletconnect/react-native-compat": "^2.23.0",
     "@walletconnect/utils": "^2.23.0",
     "@xmldom/xmldom": "^0.8.13",
