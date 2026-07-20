@@ -32,6 +32,7 @@ import Icon, {
 import TransactionAsset from './TransactionAsset';
 import { BatchSell7702TransactionAssets } from './BatchSell7702TransactionAssets';
 import { calcTokenAmount } from '../../../../../util/transactions';
+import { toTokenMinimalUnit } from '../../../../../util/number/bigint';
 import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
@@ -382,6 +383,28 @@ export const BridgeTransactionDetails = (
     status = evmTxMeta?.status || multiChainTx?.status;
   }
 
+  const handleViewBlockExplorer = () => {
+    if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+        location: 'bridge_transaction_details',
+        text: strings('bridge_transaction_details.view_on_block_explorer'),
+        url: swapSrcExplorerData.explorerTxUrl,
+      });
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: { url: swapSrcExplorerData.explorerTxUrl },
+      });
+    } else if (isBridge) {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+        params: {
+          evmTxMeta: props.route.params.evmTxMeta,
+          multiChainTx: props.route.params.multiChainTx,
+        },
+      });
+    }
+  };
+
   if (isRedesign) {
     const isGasSponsored =
       isTransactionMarkedAsGasFeeSponsored(evmTxMeta) && !isHardwareWallet;
@@ -391,18 +414,16 @@ export const BridgeTransactionDetails = (
       : multiChainGasFeeSymbol;
     const transactionId =
       evmTxMeta?.hash ?? bridgeStatus.srcChain?.txHash ?? multiChainTx?.id;
-    // Mirrors the activity row's own titles (which use these literals): a swap
-    // reads "Swapped"; a bridge reads "Bridged {destinationSymbol}".
+
     const redesignTitle = isSwap
       ? 'Swapped'
       : destinationToken.symbol
         ? `Bridged ${destinationToken.symbol}`
         : 'Bridged';
-    // Bridge quotes store fiat in USD; display-currency conversion is a
-    // follow-up. Total = amount sent + network fee.
+
     const pricing = bridgeTxHistoryItem.pricingData;
     const totalAmountUsd =
-      pricing?.amountSentInUsd !== undefined
+      pricing?.amountSentInUsd != null
         ? Number(pricing.amountSentInUsd) + Number(pricing.quotedGasInUsd ?? 0)
         : undefined;
     const totalAmountText =
@@ -410,10 +431,6 @@ export const BridgeTransactionDetails = (
         ? `$${totalAmountUsd.toFixed(2)}`
         : undefined;
 
-    // Map the bridge/swap onto the shared ActivityListItem shape so the
-    // redesigned Activity detail row components render it directly (no
-    // duplicate row components). Token amounts stay in smallest units +
-    // decimals, matching what the row components expect.
     const activityStatus: Status = isBridge
       ? bridgeStatus.status === StatusTypes.COMPLETE
         ? 'success'
@@ -429,8 +446,16 @@ export const BridgeTransactionDetails = (
             status === 'failed'
           ? 'failed'
           : 'pending';
+
+    const sourceAmountMinimalUnit =
+      quote.gasSponsored && pricing?.amountSent
+        ? toTokenMinimalUnit(
+            pricing.amountSent,
+            quote.srcAsset.decimals,
+          ).toString()
+        : quote.srcTokenAmount;
     const sourceTokenModel: TokenAmount = {
-      amount: quote.srcTokenAmount,
+      amount: sourceAmountMinimalUnit,
       decimals: quote.srcAsset.decimals,
       symbol: quote.srcAsset.symbol,
       direction: 'out',
@@ -454,31 +479,10 @@ export const BridgeTransactionDetails = (
         destinationToken: destinationTokenModel,
       },
     };
-    const activityDestinationChainId = getBridgeDestinationCaipChainId(
-      destinationTokenModel,
-    );
 
-    const handleViewBlockExplorer = () => {
-      if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
-        trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
-          location: 'bridge_transaction_details',
-          text: strings('bridge_transaction_details.view_on_block_explorer'),
-          url: swapSrcExplorerData.explorerTxUrl,
-        });
-        navigation.navigate(Routes.WEBVIEW.MAIN, {
-          screen: Routes.WEBVIEW.SIMPLE,
-          params: { url: swapSrcExplorerData.explorerTxUrl },
-        });
-      } else if (isBridge) {
-        navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
-          params: {
-            evmTxMeta: props.route.params.evmTxMeta,
-            multiChainTx: props.route.params.multiChainTx,
-          },
-        });
-      }
-    };
+    const activityDestinationChainId =
+      getBridgeDestinationCaipChainId(destinationTokenModel) ??
+      formatChainIdToCaip(quote.destChainId);
 
     const handleBridgeAgain = () => {
       dispatch(setSourceAmount(undefined));
@@ -780,7 +784,7 @@ export const BridgeTransactionDetails = (
               )}
               {multiChainTotalGasFee && (
                 <Text variant={TextVariant.BodyMd}>
-                  {multiChainTotalGasFee} {nativeCurrencySymbol}
+                  {multiChainTotalGasFee} {multiChainGasFeeSymbol}
                 </Text>
               )}
             </>
@@ -792,34 +796,7 @@ export const BridgeTransactionDetails = (
           <Button
             style={styles.blockExplorerButton}
             variant={ButtonVariant.Secondary}
-            onPress={() => {
-              // For swaps, go directly to block explorer web view
-              if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
-                trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
-                  location: 'bridge_transaction_details',
-                  text: strings(
-                    'bridge_transaction_details.view_on_block_explorer',
-                  ),
-                  url: swapSrcExplorerData.explorerTxUrl,
-                });
-                navigation.navigate(Routes.WEBVIEW.MAIN, {
-                  screen: Routes.WEBVIEW.SIMPLE,
-                  params: {
-                    url: swapSrcExplorerData.explorerTxUrl,
-                  },
-                });
-              } else if (isBridge) {
-                // For bridges, show the modal with both explorers
-                navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-                  screen:
-                    Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
-                  params: {
-                    evmTxMeta: props.route.params.evmTxMeta,
-                    multiChainTx: props.route.params.multiChainTx,
-                  },
-                });
-              }
-            }}
+            onPress={handleViewBlockExplorer}
           >
             {strings('bridge_transaction_details.view_on_block_explorer')}
           </Button>

@@ -540,6 +540,60 @@ describe('BridgeTransactionDetails', () => {
       });
     });
 
+    it('renders a same-chain non-EVM swap and opens its source explorer directly', () => {
+      const { getByText, getByTestId } = renderScreen(
+        () => (
+          <BridgeTransactionDetails
+            route={{ params: { multiChainTx: mockMultiChainTx } }}
+          />
+        ),
+        { name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS },
+        { state: redesignState },
+      );
+
+      expect(getByText('You sent')).toBeOnTheScreen();
+      expect(getByText('You received')).toBeOnTheScreen();
+      // Same-chain swap -> "Swap again" CTA.
+      expect(getByText('Swap again')).toBeOnTheScreen();
+
+      // Swap explorer goes straight to the webview (not the bridge modal).
+      fireEvent.press(
+        getByTestId('bridge-transaction-details-view-block-explorer'),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: expect.objectContaining({
+          url: expect.stringContaining('solana-tx-hash-123'),
+        }),
+      });
+    });
+
+    it('shows "Paid by MetaMask" and the sponsored sent amount for a gas-sponsored bridge', () => {
+      mockIsHardwareAccount.mockReturnValue(false);
+      const gasSponsoredTx = {
+        ...mockEVMTx,
+        id: 'gas-sponsored-tx-id',
+        isGasFeeSponsored: true,
+      } as TransactionMeta;
+
+      const { getByTestId, getByText, queryByText } = renderScreen(
+        () => (
+          <BridgeTransactionDetails
+            route={{ params: { evmTxMeta: gasSponsoredTx } }}
+          />
+        ),
+        { name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS },
+        { state: redesignState },
+      );
+
+      // Sponsored fee shows the "Paid by MetaMask" tag instead of an amount.
+      expect(getByTestId('paid-by-metamask')).toBeOnTheScreen();
+      // Header reflects the full sponsored amount (1 SEI), not the smaller
+      // routed srcTokenAmount (~0.99125 SEI).
+      expect(getByText(/1\s*SEI/)).toBeOnTheScreen();
+      expect(queryByText(/0\.99/)).toBeNull();
+    });
+
     it('copies the transaction id via the shared copy control', () => {
       const { getByTestId } = renderScreen(
         () => (
