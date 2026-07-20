@@ -13,7 +13,12 @@ import {
   TransactionStatus as KeyringTransactionStatus,
   TransactionType as KeyringTransactionType,
 } from '@metamask/keyring-api';
-import { ActivityFee, ActivityListItem, Status, TokenAmount } from '../types';
+import type {
+  ActivityFee,
+  ActivityListItem,
+  Status,
+  TokenAmount,
+} from '../types';
 import { hasTrustlineTypeLabel } from '../trustline';
 
 type Movement = Transaction['from'][number];
