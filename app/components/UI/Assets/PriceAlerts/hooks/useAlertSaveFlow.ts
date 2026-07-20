@@ -41,7 +41,7 @@ type AlertAnalyticsProperties = {
   alert_recurring: boolean;
 } & Record<string, string | number | boolean>;
 
-interface SaveAlertParams {
+interface SaveAlertFlowParams {
   /** Type-specific submit (create or update mutation). */
   submit: () => Promise<void>;
   /** Present when editing — drives cache patch + UPDATED analytics / prev_* fields. */
@@ -124,7 +124,7 @@ const useAlertSaveFlow = ({
       editingAlert,
       patch,
       analyticsProperties,
-    }: SaveAlertParams) => {
+    }: SaveAlertFlowParams) => {
       try {
         await submit();
 

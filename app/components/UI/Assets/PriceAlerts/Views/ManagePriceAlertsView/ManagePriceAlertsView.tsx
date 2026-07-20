@@ -182,7 +182,6 @@ const ManagePriceAlertsView: React.FC = () => {
           (a): a is PercentChangeAlert => a.type === 'percent_change',
         ),
         editingAlert,
-        initialType: editingAlert?.type,
       });
     },
     [
