@@ -26,7 +26,7 @@ import {
   PriceAlertAnalytics,
 } from '../../constants';
 import { useSubmitPercentAlert } from '../../api';
-import useAlertSaveFlow from '../../hooks/useAlertSaveFlow';
+import { type SaveAlert } from '../../hooks/useAlertSaveFlow';
 import {
   KEYPAD_EMPTY,
   MAX_DOWN_PERCENT_THRESHOLD,
@@ -36,16 +36,14 @@ import {
 
 interface PercentChangeAlertFormProps {
   assetId: string;
-  displayTicker: string;
-  fromManage?: boolean;
+  saveAlert: SaveAlert;
   editingAlert?: PercentChangeAlert;
   existingPercentAlerts?: PercentChangeAlert[];
 }
 
 const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
   assetId,
-  displayTicker,
-  fromManage,
+  saveAlert,
   editingAlert,
   existingPercentAlerts,
 }) => {
@@ -101,12 +99,6 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
     isRecurring === editingAlert?.recurring;
 
   const { submit, isSubmitting } = useSubmitPercentAlert(editingAlert);
-  const { saveAlert } = useAlertSaveFlow({
-    assetId,
-    displayTicker,
-    isEditing,
-    fromManage,
-  });
 
   const handleSave = useCallback(async () => {
     if (!hasValidPercent) return;

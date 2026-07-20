@@ -1,56 +1,29 @@
 import React from 'react';
 import { act, fireEvent, render } from '@testing-library/react-native';
-import { ToastContext } from '../../../../../../component-library/components/Toast';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import {
   CreatePriceAlertTestIds,
   type PercentChangeAlert,
 } from '../../constants';
+import { type SaveAlertFlowParams } from '../../hooks/useAlertSaveFlow';
 import PercentChangeAlertForm from './PercentChangeAlertForm';
 
-const mockGoBack = jest.fn();
-const mockPop = jest.fn();
 const mockSubmitPercent = jest.fn();
-const mockShowToast = jest.fn();
-const mockCloseToast = jest.fn();
-const mockSetQueryData = jest.fn();
+const mockSaveAlert = jest.fn(async ({ submit }: SaveAlertFlowParams) => {
+  await submit();
+});
 const mockUseSubmitPercentAlert = jest.fn((_editingAlert?: unknown) => ({
   submit: mockSubmitPercent,
   isSubmitting: false,
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack, pop: mockPop }),
-}));
-
-jest.mock('@tanstack/react-query', () => ({
-  ...jest.requireActual('@tanstack/react-query'),
-  useQueryClient: () => ({ setQueryData: mockSetQueryData }),
-}));
-
 jest.mock('../../api', () => ({
-  priceAlertsQueryKey: (assetId: string) => ['priceAlerts', assetId],
   useSubmitPercentAlert: (editingAlert?: unknown) =>
     mockUseSubmitPercentAlert(editingAlert),
 }));
 
-function WithToast({ children }: { children: React.ReactNode }) {
-  const ref = React.useRef({
-    showToast: mockShowToast,
-    closeToast: mockCloseToast,
-  });
-  return (
-    <ToastContext.Provider value={{ toastRef: ref }}>
-      {children}
-    </ToastContext.Provider>
-  );
-}
-
 const baseProps: React.ComponentProps<typeof PercentChangeAlertForm> = {
   assetId: 'eip155:1/slip44:60',
-  displayTicker: 'ETH',
+  saveAlert: mockSaveAlert,
 };
 
 const editingPercentAlert: PercentChangeAlert = {
@@ -68,17 +41,17 @@ const editingPercentAlert: PercentChangeAlert = {
 
 const renderForm = (
   overrides: Partial<React.ComponentProps<typeof PercentChangeAlertForm>> = {},
-) =>
-  render(
-    <WithToast>
-      <PercentChangeAlertForm {...baseProps} {...overrides} />
-    </WithToast>,
-  );
+) => render(<PercentChangeAlertForm {...baseProps} {...overrides} />);
 
 describe('PercentChangeAlertForm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSubmitPercent.mockResolvedValue(undefined);
+    mockSaveAlert.mockImplementation(
+      async ({ submit }: SaveAlertFlowParams) => {
+        await submit();
+      },
+    );
     mockUseSubmitPercentAlert.mockImplementation(() => ({
       submit: mockSubmitPercent,
       isSubmitting: false,
@@ -96,6 +69,9 @@ describe('PercentChangeAlertForm', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
@@ -245,8 +221,7 @@ describe('PercentChangeAlertForm', () => {
     });
   });
 
-  it('tracks percent-specific properties after creation', async () => {
-    const mockAnalytics = jest.mocked(useAnalytics)();
+  it('passes percent-specific properties to saveAlert after creation', async () => {
     const screen = renderForm();
     fireEvent.press(screen.getByTestId('keypad-key-5'));
 
@@ -256,21 +231,15 @@ describe('PercentChangeAlertForm', () => {
       );
     });
 
-    const interactionCallIndex = jest
-      .mocked(mockAnalytics.createEventBuilder)
-      .mock.calls.findIndex(
-        ([event]) =>
-          event === MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
-      );
-    const interactionBuilder = jest.mocked(mockAnalytics.createEventBuilder)
-      .mock.results[interactionCallIndex].value;
-    expect(interactionBuilder.addProperties).toHaveBeenCalledWith(
+    expect(mockSaveAlert).toHaveBeenCalledWith(
       expect.objectContaining({
-        alert_type: 'percent',
-        alert_period: '24h',
-        alert_direction: 'up',
-        alert_value: 5,
-        alert_recurring: true,
+        analyticsProperties: expect.objectContaining({
+          alert_type: 'percent',
+          alert_period: '24h',
+          alert_direction: 'up',
+          alert_value: 5,
+          alert_recurring: true,
+        }),
       }),
     );
   });

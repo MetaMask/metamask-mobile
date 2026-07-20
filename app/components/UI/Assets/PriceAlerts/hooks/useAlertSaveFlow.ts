@@ -22,7 +22,6 @@ import {
 interface UseAlertSaveFlowParams {
   assetId: string;
   displayTicker: string;
-  isEditing: boolean;
   fromManage?: boolean;
 }
 
@@ -41,7 +40,7 @@ type AlertAnalyticsProperties = {
   alert_recurring: boolean;
 } & Record<string, string | number | boolean>;
 
-interface SaveAlertFlowParams {
+export interface SaveAlertFlowParams {
   /** Type-specific submit (create or update mutation). */
   submit: () => Promise<void>;
   /** Present when editing — drives cache patch + UPDATED analytics / prev_* fields. */
@@ -52,10 +51,11 @@ interface SaveAlertFlowParams {
   analyticsProperties: AlertAnalyticsProperties;
 }
 
+export type SaveAlert = (params: SaveAlertFlowParams) => Promise<void>;
+
 const useAlertSaveFlow = ({
   assetId,
   displayTicker,
-  isEditing,
   fromManage,
 }: UseAlertSaveFlowParams) => {
   const navigation = useNavigation<AppStackNavigationProp>();
@@ -90,13 +90,16 @@ const useAlertSaveFlow = ({
     });
   }, [toastRef, colors]);
 
-  const navigateAfterSave = useCallback(() => {
-    if (isEditing || !fromManage) {
-      navigation.goBack();
-    } else {
-      navigation.pop(2);
-    }
-  }, [isEditing, fromManage, navigation]);
+  const navigateAfterSave = useCallback(
+    (isEditing: boolean) => {
+      if (isEditing || !fromManage) {
+        navigation.goBack();
+      } else {
+        navigation.pop(2);
+      }
+    },
+    [fromManage, navigation],
+  );
 
   const patchAlertCache = useCallback(
     (alertId: string, patch: AlertPatch) => {
@@ -157,7 +160,7 @@ const useAlertSaveFlow = ({
         );
 
         showSuccessToast();
-        navigateAfterSave();
+        navigateAfterSave(Boolean(editingAlert));
       } catch {
         showErrorToast();
       }

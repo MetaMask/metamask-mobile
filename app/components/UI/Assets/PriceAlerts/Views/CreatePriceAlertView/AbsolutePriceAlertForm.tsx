@@ -23,7 +23,7 @@ import {
   PriceAlertAnalytics,
 } from '../../constants';
 import { useSubmitPriceAlert } from '../../api';
-import useAlertSaveFlow from '../../hooks/useAlertSaveFlow';
+import { type SaveAlert } from '../../hooks/useAlertSaveFlow';
 import { getKeypadDecimalPlaces, KEYPAD_EMPTY, toKeypadString } from './utils';
 
 interface AbsolutePriceAlertFormProps {
@@ -31,7 +31,7 @@ interface AbsolutePriceAlertFormProps {
   displayTicker: string;
   currentPrice: number;
   currentCurrency: string;
-  fromManage?: boolean;
+  saveAlert: SaveAlert;
   editingAlert?: AbsolutePriceAlert;
   existingAbsoluteAlerts?: AbsolutePriceAlert[];
 }
@@ -41,7 +41,7 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
   displayTicker,
   currentPrice,
   currentCurrency,
-  fromManage,
+  saveAlert,
   editingAlert,
   existingAbsoluteAlerts,
 }) => {
@@ -99,12 +99,6 @@ const AbsolutePriceAlertForm: React.FC<AbsolutePriceAlertFormProps> = ({
   }, [currentCurrency, currentPrice, hasInput, targetAmount]);
 
   const { submit, isSubmitting } = useSubmitPriceAlert(editingAlert);
-  const { saveAlert } = useAlertSaveFlow({
-    assetId,
-    displayTicker,
-    isEditing,
-    fromManage,
-  });
 
   const handleSave = useCallback(async () => {
     if (!hasValidTarget) return;

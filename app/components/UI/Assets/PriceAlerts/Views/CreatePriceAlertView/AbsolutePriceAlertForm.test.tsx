@@ -1,58 +1,32 @@
 import React from 'react';
 import { act, fireEvent, render } from '@testing-library/react-native';
-import { ToastContext } from '../../../../../../component-library/components/Toast';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import {
   type AbsolutePriceAlert,
   CreatePriceAlertTestIds,
 } from '../../constants';
+import { type SaveAlertFlowParams } from '../../hooks/useAlertSaveFlow';
 import AbsolutePriceAlertForm from './AbsolutePriceAlertForm';
 
-const mockGoBack = jest.fn();
-const mockPop = jest.fn();
 const mockSubmit = jest.fn();
-const mockShowToast = jest.fn();
-const mockCloseToast = jest.fn();
-const mockSetQueryData = jest.fn();
+const mockSaveAlert = jest.fn(async ({ submit }: SaveAlertFlowParams) => {
+  await submit();
+});
 const mockUseSubmitPriceAlert = jest.fn((_editingAlert?: unknown) => ({
   submit: mockSubmit,
   isSubmitting: false,
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack, pop: mockPop }),
-}));
-
-jest.mock('@tanstack/react-query', () => ({
-  ...jest.requireActual('@tanstack/react-query'),
-  useQueryClient: () => ({ setQueryData: mockSetQueryData }),
-}));
-
 jest.mock('../../api', () => ({
-  priceAlertsQueryKey: (assetId: string) => ['priceAlerts', assetId],
   useSubmitPriceAlert: (editingAlert?: unknown) =>
     mockUseSubmitPriceAlert(editingAlert),
 }));
-
-function WithToast({ children }: { children: React.ReactNode }) {
-  const ref = React.useRef({
-    showToast: mockShowToast,
-    closeToast: mockCloseToast,
-  });
-  return (
-    <ToastContext.Provider value={{ toastRef: ref }}>
-      {children}
-    </ToastContext.Provider>
-  );
-}
 
 const baseProps: React.ComponentProps<typeof AbsolutePriceAlertForm> = {
   assetId: 'eip155:1/slip44:60',
   displayTicker: 'ETH',
   currentPrice: 1201.98,
   currentCurrency: 'USD',
+  saveAlert: mockSaveAlert,
 };
 
 const editingAlert: AbsolutePriceAlert = {
@@ -83,12 +57,7 @@ const absoluteAlertAt = (
 
 const renderForm = (
   overrides: Partial<React.ComponentProps<typeof AbsolutePriceAlertForm>> = {},
-) =>
-  render(
-    <WithToast>
-      <AbsolutePriceAlertForm {...baseProps} {...overrides} />
-    </WithToast>,
-  );
+) => render(<AbsolutePriceAlertForm {...baseProps} {...overrides} />);
 
 const enter1500 = (getByTestId: ReturnType<typeof render>['getByTestId']) => {
   fireEvent.press(getByTestId('keypad-key-1'));
@@ -97,18 +66,15 @@ const enter1500 = (getByTestId: ReturnType<typeof render>['getByTestId']) => {
   fireEvent.press(getByTestId('keypad-key-0'));
 };
 
-const mockAnalytics = jest.mocked(useAnalytics)();
-const builderForEvent = (event: unknown) => {
-  const calls = jest.mocked(mockAnalytics.createEventBuilder).mock.calls;
-  const index = calls.findIndex(([candidate]) => candidate === event);
-  return jest.mocked(mockAnalytics.createEventBuilder).mock.results[index]
-    .value;
-};
-
 describe('AbsolutePriceAlertForm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSubmit.mockResolvedValue(undefined);
+    mockSaveAlert.mockImplementation(
+      async ({ submit }: SaveAlertFlowParams) => {
+        await submit();
+      },
+    );
     mockUseSubmitPriceAlert.mockImplementation(() => ({
       submit: mockSubmit,
       isSubmitting: false,
@@ -467,7 +433,6 @@ describe('AbsolutePriceAlertForm', () => {
       renderForm({
         editingAlert,
         existingAbsoluteAlerts: [editingAlert],
-        fromManage: true,
       });
 
     it('prepopulates the existing threshold', () => {
@@ -549,7 +514,6 @@ describe('AbsolutePriceAlertForm', () => {
           editingAlert,
           absoluteAlertAt(2000, { id: 'alert-other' }),
         ],
-        fromManage: true,
       });
       for (let index = 0; index < 4; index++) {
         fireEvent.press(screen.getByTestId('keypad-delete-button'));
@@ -596,7 +560,7 @@ describe('AbsolutePriceAlertForm', () => {
   });
 
   describe('analytics', () => {
-    it('tracks threshold-specific properties after creation', async () => {
+    it('passes threshold-specific properties to saveAlert after creation', async () => {
       const screen = renderForm();
       enter1500(screen.getByTestId);
 
@@ -606,22 +570,18 @@ describe('AbsolutePriceAlertForm', () => {
         );
       });
 
-      expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
-      );
-      expect(
-        builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
-          .addProperties,
-      ).toHaveBeenCalledWith(
+      expect(mockSaveAlert).toHaveBeenCalledWith(
         expect.objectContaining({
-          alert_type: 'threshold',
-          alert_value: 1500,
-          alert_recurring: true,
+          analyticsProperties: expect.objectContaining({
+            alert_type: 'threshold',
+            alert_value: 1500,
+            alert_recurring: true,
+          }),
         }),
       );
     });
 
-    it('tracks recurring false after creation with recurrence disabled', async () => {
+    it('passes recurring false after creation with recurrence disabled', async () => {
       const screen = renderForm();
       fireEvent(
         screen.getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE),
@@ -636,23 +596,21 @@ describe('AbsolutePriceAlertForm', () => {
         );
       });
 
-      expect(
-        builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
-          .addProperties,
-      ).toHaveBeenCalledWith(
+      expect(mockSaveAlert).toHaveBeenCalledWith(
         expect.objectContaining({
-          alert_type: 'threshold',
-          alert_value: 2,
-          alert_recurring: false,
+          analyticsProperties: expect.objectContaining({
+            alert_type: 'threshold',
+            alert_value: 2,
+            alert_recurring: false,
+          }),
         }),
       );
     });
 
-    it('tracks threshold properties while editing', async () => {
+    it('passes threshold properties while editing', async () => {
       const screen = renderForm({
         editingAlert,
         existingAbsoluteAlerts: [editingAlert],
-        fromManage: true,
       });
       fireEvent(
         screen.getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE),
@@ -666,14 +624,13 @@ describe('AbsolutePriceAlertForm', () => {
         );
       });
 
-      expect(
-        builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
-          .addProperties,
-      ).toHaveBeenCalledWith(
+      expect(mockSaveAlert).toHaveBeenCalledWith(
         expect.objectContaining({
-          alert_type: 'threshold',
-          alert_value: 1500,
-          alert_recurring: false,
+          analyticsProperties: expect.objectContaining({
+            alert_type: 'threshold',
+            alert_value: 1500,
+            alert_recurring: false,
+          }),
         }),
       );
     });

@@ -24,6 +24,7 @@ import {
 } from '../../constants';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import useAlertSaveFlow from '../../hooks/useAlertSaveFlow';
 import AbsolutePriceAlertForm from './AbsolutePriceAlertForm';
 import PercentChangeAlertForm from './PercentChangeAlertForm';
 
@@ -52,6 +53,11 @@ const CreatePriceAlertView: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isEditing = Boolean(editingAlert);
   const displayTicker = ticker || symbol;
+  const { saveAlert } = useAlertSaveFlow({
+    assetId,
+    displayTicker,
+    fromManage,
+  });
   const [alertType, setAlertType] = useState<AlertType>(
     editingAlert?.type ?? initialType ?? 'absolute_price',
   );
@@ -121,8 +127,7 @@ const CreatePriceAlertView: React.FC = () => {
         {alertType === 'percent_change' ? (
           <PercentChangeAlertForm
             assetId={assetId}
-            displayTicker={displayTicker}
-            fromManage={fromManage}
+            saveAlert={saveAlert}
             editingAlert={editingPercentAlert}
             existingPercentAlerts={existingPercentAlerts}
           />
@@ -132,7 +137,7 @@ const CreatePriceAlertView: React.FC = () => {
             displayTicker={displayTicker}
             currentPrice={currentPrice}
             currentCurrency={currentCurrency}
-            fromManage={fromManage}
+            saveAlert={saveAlert}
             editingAlert={editingAbsoluteAlert}
             existingAbsoluteAlerts={existingAbsoluteAlerts}
           />

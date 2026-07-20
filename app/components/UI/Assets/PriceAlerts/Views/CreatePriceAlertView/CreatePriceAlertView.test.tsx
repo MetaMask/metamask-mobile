@@ -34,6 +34,11 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
+jest.mock('../../hooks/useAlertSaveFlow', () => ({
+  __esModule: true,
+  default: () => ({ saveAlert: jest.fn() }),
+}));
+
 jest.mock('./AbsolutePriceAlertForm', () => ({
   __esModule: true,
   default: (props: unknown) => mockAbsoluteForm(props),
