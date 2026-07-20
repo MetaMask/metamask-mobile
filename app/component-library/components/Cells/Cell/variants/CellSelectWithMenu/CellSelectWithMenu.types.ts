@@ -1,9 +1,9 @@
 // External dependencies.
-import { CellBaseProps } from '../../../component-library/components/Cells/Cell/foundation/CellBase/CellBase.types';
-import { ListItemMultiSelectButtonProps } from '../ListItemMultiSelectButton/ListItemMultiSelectButton.types';
+import { CellBaseProps } from '../../foundation/CellBase/CellBase.types';
+import { ListItemMultiSelectButtonProps } from '../../../../../components-temp/ListItemMultiSelectButton/ListItemMultiSelectButton.types';
 
 /**
- * Cell Account Select  component props.
+ * Cell Account Select component props.
  */
 export interface CellSelectWithMenuProps
   extends CellBaseProps,
