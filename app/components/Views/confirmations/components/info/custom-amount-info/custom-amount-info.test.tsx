@@ -359,6 +359,7 @@ describe('CustomAmountInfo', () => {
       hasInput: true,
       isDepositPrefillEnabled: false,
       isDepositPrefilled: false,
+      isAmountUpdateQuotePipelineEnabled: false,
       isInputChanged: false,
       isPrefillPending: false,
       isDepositPrefillLoading: false,
@@ -647,6 +648,25 @@ describe('CustomAmountInfo', () => {
 
       return { deferred, updateTokenAmount };
     }
+
+    it('keeps amount editing enabled while a prefetched quote is loading', () => {
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
+      useTransactionCustomAmountMock.mockReturnValue({
+        ...useTransactionCustomAmountMock(),
+        isAmountUpdateQuotePipelineEnabled: true,
+      });
+
+      const { getByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-cursor')).toBeOnTheScreen();
+      expect(
+        getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props.pointerEvents,
+      ).toBe('none');
+      expect(getByTestId('custom-amount-input').props.onPress).toBeUndefined();
+    });
 
     it('replaces the keypad with preparation feedback before the amount update resolves', () => {
       arrangePendingPreparation();
@@ -963,6 +983,7 @@ describe('CustomAmountInfo', () => {
       hasInput: true,
       isDepositPrefillEnabled: false,
       isDepositPrefilled: false,
+      isAmountUpdateQuotePipelineEnabled: false,
       isInputChanged: false,
       isPrefillPending: false,
       isDepositPrefillLoading: false,
@@ -1020,6 +1041,7 @@ describe('CustomAmountInfo', () => {
       hasInput: true,
       isDepositPrefillEnabled: false,
       isDepositPrefilled: false,
+      isAmountUpdateQuotePipelineEnabled: false,
       isInputChanged: false,
       isPrefillPending: false,
       isDepositPrefillLoading: false,
@@ -1144,6 +1166,7 @@ describe('CustomAmountInfo', () => {
         hasInput: false,
         isDepositPrefillEnabled: false,
         isDepositPrefilled: false,
+        isAmountUpdateQuotePipelineEnabled: false,
         isInputChanged: false,
         isPrefillPending: false,
         isDepositPrefillLoading: false,

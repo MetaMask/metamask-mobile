@@ -181,6 +181,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       isDepositPrefillEnabled,
       isDepositPrefilled,
       isDepositPrefillLoading,
+      isAmountUpdateQuotePipelineEnabled,
       isInputChanged,
       isPrefillPending,
       updatePendingAmount,
@@ -235,6 +236,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     quotesLastUpdatedRef.current = quotesLastUpdated;
     const isQuotesLoading = useIsTransactionPayLoading();
     const showLoadingReview = isAmountUpdating || isQuotesLoading;
+    const isBackgroundQuotePrefetch =
+      isKeyboardVisible &&
+      isAmountUpdateQuotePipelineEnabled &&
+      isQuotesLoading &&
+      !isAmountUpdating;
     const isResultReady =
       showLoadingReview ||
       isTransactionResultReady ||
@@ -389,7 +395,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             }
             onPress={showLoadingReview ? undefined : handleAmountPress}
             disabled={!hasPaymentOption}
-            showCursor={isKeyboardVisible && !showLoadingReview}
+            showCursor={
+              isKeyboardVisible &&
+              (!showLoadingReview || isBackgroundQuotePrefetch)
+            }
           />
           {!hidePayTokenAmount &&
             disablePay !== true &&

@@ -192,6 +192,64 @@ describe('useUpdateTransactionPayAmount', () => {
     expect(updateMoneyAccountWithdrawTokenAmountMock).not.toHaveBeenCalled();
     expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
     expect(updateTokenAmountMock).not.toHaveBeenCalled();
+    expect(result.current.isAmountUpdateQuotePipelineEnabled).toBe(true);
+  });
+
+  it('reuses a completed optimized amount update for the same amount', async () => {
+    const { result } = runHook({
+      transactionMeta: moneyAccountDepositMeta,
+      quotePipelineEnabled: true,
+    });
+
+    await result.current.updateTransactionPayAmount('1.23');
+    await result.current.updateTransactionPayAmount('1.23');
+
+    expect(updateAmountMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries an optimized amount update after the previous request rejects', async () => {
+    const error = new Error('quote failed');
+    updateAmountMock.mockRejectedValueOnce(error).mockResolvedValueOnce(true);
+    const { result } = runHook({
+      transactionMeta: moneyAccountDepositMeta,
+      quotePipelineEnabled: true,
+    });
+
+    await expect(
+      result.current.updateTransactionPayAmount('1.23'),
+    ).rejects.toThrow('quote failed');
+    await result.current.updateTransactionPayAmount('1.23');
+
+    expect(updateAmountMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries an optimized amount update when the quote is not published', async () => {
+    updateAmountMock.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    const { result } = runHook({
+      transactionMeta: moneyAccountDepositMeta,
+      quotePipelineEnabled: true,
+    });
+
+    await result.current.updateTransactionPayAmount('1.23');
+    await result.current.updateTransactionPayAmount('1.23');
+
+    expect(updateAmountMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('starts a new optimized amount update when the amount changes', async () => {
+    const { result } = runHook({
+      transactionMeta: moneyAccountDepositMeta,
+      quotePipelineEnabled: true,
+    });
+
+    await result.current.updateTransactionPayAmount('1.23');
+    await result.current.updateTransactionPayAmount('4.56');
+
+    expect(updateAmountMock).toHaveBeenCalledTimes(2);
+    expect(updateAmountMock).toHaveBeenLastCalledWith({
+      transactionId: transactionIdMock,
+      amountHuman: '4.56',
+    });
   });
 
   it.each(['addMusd', 'card'] as const)(
@@ -208,6 +266,7 @@ describe('useUpdateTransactionPayAmount', () => {
 
       expect(updateAmountMock).not.toHaveBeenCalled();
       expect(updateMoneyAccountDepositTokenAmountMock).toHaveBeenCalledTimes(1);
+      expect(result.current.isAmountUpdateQuotePipelineEnabled).toBe(false);
     },
   );
 
@@ -225,6 +284,7 @@ describe('useUpdateTransactionPayAmount', () => {
 
     expect(updateAmountMock).not.toHaveBeenCalled();
     expect(updateMoneyAccountDepositTokenAmountMock).toHaveBeenCalledTimes(1);
+    expect(result.current.isAmountUpdateQuotePipelineEnabled).toBe(false);
   });
 
   it('uses the explicit quote pipeline for an explicit convert intent', async () => {
