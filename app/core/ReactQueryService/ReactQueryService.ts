@@ -61,8 +61,6 @@ class MessengerAdapter {
   }
 }
 
-const adapter = new MessengerAdapter();
-
 export class ReactQueryService {
   queryClient: QueryClient;
 
@@ -70,7 +68,8 @@ export class ReactQueryService {
   #netInfoUnsubscribe?: () => void;
 
   constructor() {
-    this.queryClient = createUIQueryClient(DATA_SERVICES, adapter, {
+    const messengerAdapter = new MessengerAdapter();
+    this.queryClient = createUIQueryClient(DATA_SERVICES, messengerAdapter, {
       defaultOptions: {
         queries: {
           // Mobile users often trigger re-renders or navigate back/forth frequently.
