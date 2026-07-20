@@ -424,9 +424,12 @@ export const BridgeTransactionDetails = (
         : strings('bridge_transaction_details.bridged');
 
     const pricing = bridgeTxHistoryItem.pricingData;
+    // Exclude gas from the total when it's sponsored, the network fee row
+    // shows "Paid by MetaMask", so the user never paid that gas.
     const totalAmountUsd =
       pricing?.amountSentInUsd != null
-        ? Number(pricing.amountSentInUsd) + Number(pricing.quotedGasInUsd ?? 0)
+        ? Number(pricing.amountSentInUsd) +
+          (isGasSponsored ? 0 : Number(pricing.quotedGasInUsd ?? 0))
         : undefined;
     const totalAmountText =
       totalAmountUsd !== undefined && Number.isFinite(totalAmountUsd)
