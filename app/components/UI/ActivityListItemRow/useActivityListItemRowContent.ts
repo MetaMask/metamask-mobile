@@ -1210,17 +1210,17 @@ export function useActivityListItemRowContent(
   // user's own accounts so transfers between their accounts read as
   // "To: <account name>" instead of a hex address.
   const counterpartyAddress =
-    item.type === 'send' || item.type === 'receive'
-      ? item.type === 'receive'
-        ? item.data.from
-        : item.data.to
-      : undefined;
+    item.type === 'receive'
+      ? item.data.from
+      : item.type === 'send'
+        ? item.data.to
+        : undefined;
   const counterpartyName = useAccountNames(
     counterpartyAddress
       ? [
           {
             value: counterpartyAddress,
-            variation: networkChainId ?? '',
+            variation: '',
             type: NameType.EthereumAddress,
           },
         ]
