@@ -47,25 +47,30 @@ const mockBottomSheetHeader = jest.fn(
 );
 
 const mockShareTokenCard = jest.fn((props: ShareTokenCardProps) => {
-  const {
-    formattedPrice,
-    priceChangePercent,
-    marketCap,
-    liquidity,
-    holdersCount,
-    volume24h,
-    networkBadgeSource,
-    networkName,
-  } = props;
+  const { statTiles, priceChangePercent, networkBadgeSource, networkName } =
+    props;
   const { View, Text } = jest.requireActual('react-native');
+  const getStatValue = (testID: string) =>
+    statTiles.find((tile) => tile.testID === testID)?.value ?? 'null';
+
   return (
     <View testID="share-token-card-mock">
-      <Text testID="share-token-card-price">{formattedPrice}</Text>
+      <Text testID="share-token-card-price">
+        {getStatValue('share-token-price')}
+      </Text>
       <Text testID="share-token-card-change">{priceChangePercent}</Text>
-      <Text testID="share-token-card-market-cap">{marketCap ?? 'null'}</Text>
-      <Text testID="share-token-card-liquidity">{liquidity ?? 'null'}</Text>
-      <Text testID="share-token-card-holders">{holdersCount ?? 'null'}</Text>
-      <Text testID="share-token-card-volume">{volume24h ?? 'null'}</Text>
+      <Text testID="share-token-card-market-cap">
+        {getStatValue('share-token-market-cap')}
+      </Text>
+      <Text testID="share-token-card-liquidity">
+        {getStatValue('share-token-liquidity')}
+      </Text>
+      <Text testID="share-token-card-holders">
+        {getStatValue('share-token-holders')}
+      </Text>
+      <Text testID="share-token-card-volume">
+        {getStatValue('share-token-volume')}
+      </Text>
       <Text testID="share-token-card-network-name">
         {networkName ?? 'null'}
       </Text>
@@ -624,7 +629,12 @@ describe('ShareTokenBottomSheet', () => {
       expect(mockShareTokenCard).toHaveBeenCalledWith(
         expect.objectContaining({
           priceChangePercent: 1.1,
-          marketCap: '$9.00M',
+          statTiles: expect.arrayContaining([
+            expect.objectContaining({
+              testID: 'share-token-market-cap',
+              value: '$9.00M',
+            }),
+          ]),
         }),
       );
     });
@@ -660,7 +670,12 @@ describe('ShareTokenBottomSheet', () => {
         expect(mockShareTokenCard).toHaveBeenCalledWith(
           expect.objectContaining({
             priceChangePercent: 2.2,
-            marketCap: '$3.00M',
+            statTiles: expect.arrayContaining([
+              expect.objectContaining({
+                testID: 'share-token-market-cap',
+                value: '$3.00M',
+              }),
+            ]),
           }),
         );
       });
@@ -704,7 +719,14 @@ describe('ShareTokenBottomSheet', () => {
       });
 
       expect(mockShareTokenCard).toHaveBeenCalledWith(
-        expect.objectContaining({ marketCap: null }),
+        expect.objectContaining({
+          statTiles: expect.arrayContaining([
+            expect.objectContaining({
+              testID: 'share-token-market-cap',
+              value: null,
+            }),
+          ]),
+        }),
       );
     });
 

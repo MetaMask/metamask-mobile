@@ -1,32 +1,27 @@
-import React, { useMemo } from 'react';
-import {
-  Image,
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-  type ImageSourcePropType,
-} from 'react-native';
+import React, { useMemo, type ReactElement } from 'react';
+import { Image, type ImageSourcePropType } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
+import { chunk } from 'lodash';
 import {
-  AvatarToken,
-  AvatarTokenSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Badge from '../../../../component-library/components/Badges/Badge';
 import metamaskFoxLogo from '../../../../images/branding/fox.png';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../component-library/components/Badges/BadgeWrapper';
 import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { strings } from '../../../../../locales/i18n';
 import { TokenI } from '../../Tokens/types';
-import NetworkAssetLogo from '../../NetworkAssetLogo';
-import { getFallbackAssetImageUrls } from '../../Assets/components/AssetLogo/AssetLogo.utils';
-import { useSmartImageFallback } from '../../Assets/components/AssetLogo/AssetLogo.hook';
+import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
 
 // Figma share-card palette — fixed dark branding regardless of app theme.
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex
@@ -41,369 +36,243 @@ const VALUE_TEXT = '#FFFFFF';
 const POSITIVE_ACCENT = '#00FF88';
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex
 const NEGATIVE_ACCENT = '#FF6B9D';
-
-const QR_SIZE = 36;
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex
 const QR_BACKGROUND = '#FFFFFF';
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: CARD_BG,
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingTop: 14,
-    paddingBottom: 12,
-  },
-  cardShadow: Platform.select({
-    ios: {
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.35,
-      shadowRadius: 8,
-    },
-    android: {
-      elevation: 6,
-    },
-    default: {},
-  }),
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  tokenIdentity: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    marginRight: 8,
-  },
-  avatarImage: {
-    width: 40,
-    height: 40,
-  },
-  tokenMeta: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  tokenName: {
-    color: VALUE_TEXT,
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: -0.2,
-  },
-  tokenSymbol: {
-    color: LABEL_TEXT,
-    fontSize: 12,
-    fontWeight: '500',
-    marginTop: 2,
-    textTransform: 'uppercase',
-  },
-  changeColumn: {
-    alignItems: 'flex-end',
-    minWidth: 88,
-  },
-  changeValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    letterSpacing: -0.4,
-    lineHeight: 24,
-  },
-  changeLabel: {
-    color: LABEL_TEXT,
-    fontSize: 10,
-    fontWeight: '500',
-    marginTop: 2,
-    textAlign: 'right',
-  },
-  gridRow: {
-    flexDirection: 'row',
-    gap: 6,
-    marginBottom: 6,
-  },
-  statTile: {
-    flex: 1,
-    backgroundColor: TILE_BG,
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 10,
-    minHeight: 64,
-    justifyContent: 'space-between',
-  },
-  statLabel: {
-    color: LABEL_TEXT,
-    fontSize: 10,
-    fontWeight: '500',
-    lineHeight: 12,
-  },
-  statValue: {
-    color: VALUE_TEXT,
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: -0.2,
-    lineHeight: 16,
-    marginTop: 4,
-  },
-  qrTile: {
-    flex: 1,
-    backgroundColor: TILE_BG,
-    borderRadius: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 64,
-  },
-  qrWrapper: {
-    borderRadius: 4,
-    overflow: 'hidden',
-    backgroundColor: QR_BACKGROUND,
-    padding: 2,
-    flexShrink: 0,
-  },
-  buyLabelWrap: {
-    flex: 1,
-    marginLeft: 6,
-    justifyContent: 'center',
-  },
-  buyLabel: {
-    color: VALUE_TEXT,
-    fontSize: 10,
-    fontWeight: '700',
-    lineHeight: 13,
-  },
-  timestamp: {
-    color: LABEL_TEXT,
-    fontSize: 10,
-    fontWeight: '400',
-    lineHeight: 14,
-  },
-  foxLogo: {
-    width: 36,
-    height: 36,
-  },
-});
+const QR_SIZE = 28;
+const STAT_TILES_PER_ROW = 3;
+
+export interface ShareTokenStatTile {
+  label: string;
+  value?: string | null;
+  testID?: string;
+}
 
 export interface ShareTokenCardProps {
   token: TokenI;
   shareUrl: string;
   priceChangePercent: number;
-  formattedPrice: string;
-  marketCap: string | null;
-  liquidity: string | null;
-  holdersCount: string | null;
-  volume24h: string | null;
+  statTiles: ShareTokenStatTile[];
   networkBadgeSource?: ImageSourcePropType;
   networkName?: string;
 }
 
 const formatShareCardTimestamp = (): { timeLine: string; dateLine: string } => {
   const now = new Date();
-  const hours = now.getHours().toString().padStart(2, '0');
-  const minutes = now.getMinutes().toString().padStart(2, '0');
-  const offsetMinutes = -now.getTimezoneOffset();
-  const sign = offsetMinutes >= 0 ? '+' : '-';
-  const absOffset = Math.abs(offsetMinutes);
-  const offsetHours = Math.floor(absOffset / 60)
-    .toString()
-    .padStart(2, '0');
-  const offsetMins = (absOffset % 60).toString().padStart(2, '0');
 
   return {
-    timeLine: `${hours}:${minutes} (GMT${sign}${offsetHours}:${offsetMins})`,
-    dateLine: [
-      now.getDate().toString().padStart(2, '0'),
-      (now.getMonth() + 1).toString().padStart(2, '0'),
-      now.getFullYear(),
-    ].join('/'),
+    timeLine: new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'longOffset',
+      hour12: false,
+    }).format(now),
+    dateLine: new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(now),
   };
 };
 
-const ShareTokenCardAvatar = ({
-  token,
-  networkBadgeSource,
-  networkName,
-}: {
-  token: TokenI;
-  networkBadgeSource?: ImageSourcePropType;
-  networkName?: string;
-}) => {
-  const images = useMemo(
-    () =>
-      [
-        token.image,
-        ...(getFallbackAssetImageUrls(token.chainId, token.address) ?? []),
-      ]
-        .filter((image): image is string => Boolean(image))
-        .map((image) => ({ uri: image })),
-    [token.image, token.chainId, token.address],
-  );
-  const { source, onError, uniqueSourceImageKey } =
-    useSmartImageFallback(images);
-
-  const avatar =
-    token.isNative || token.isETH ? (
-      <NetworkAssetLogo
-        chainId={token.chainId as string}
-        ticker={token.ticker ?? token.symbol}
-        style={styles.avatarImage}
-        big={false}
-        biggest={false}
-      />
-    ) : (
-      <AvatarToken
-        key={uniqueSourceImageKey}
-        name={token.symbol}
-        src={source}
-        size={AvatarTokenSize.Md}
-        imageOrSvgProps={{ imageProps: { onError } }}
-      />
-    );
-
-  if (!networkBadgeSource) {
-    return avatar;
-  }
+const StatTile = ({ label, value, testID }: ShareTokenStatTile) => {
+  const tw = useTailwind();
 
   return (
-    <BadgeWrapper
-      badgePosition={BadgePosition.BottomRight}
-      badgeElement={
-        <Badge
-          variant={BadgeVariant.Network}
-          imageSource={networkBadgeSource}
-          name={networkName}
-        />
-      }
+    <Box
+      twClassName="flex-1 rounded-[10px] px-2 py-2.5 min-h-16 justify-between"
+      style={tw.style({ backgroundColor: TILE_BG })}
+      testID={testID}
     >
-      {avatar}
-    </BadgeWrapper>
+      <Text
+        variant={TextVariant.BodyXs}
+        fontWeight={FontWeight.Medium}
+        style={tw.style({ color: LABEL_TEXT })}
+      >
+        {label}
+      </Text>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Bold}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.75}
+        twClassName="mt-1"
+        style={tw.style({ color: VALUE_TEXT })}
+      >
+        {value ?? '—'}
+      </Text>
+    </Box>
   );
 };
 
-interface StatTileProps {
-  label: string;
-  value: string | null;
-  testID?: string;
-}
+const QrTile = ({ shareUrl }: { shareUrl: string }) => {
+  const tw = useTailwind();
 
-const StatTile = ({ label, value, testID }: StatTileProps) => (
-  <View style={styles.statTile} testID={testID}>
-    <Text style={styles.statLabel}>{label}</Text>
-    <Text
-      style={styles.statValue}
-      numberOfLines={1}
-      adjustsFontSizeToFit
-      minimumFontScale={0.75}
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="flex-1 rounded-[10px] px-1.5 py-2 min-h-16 gap-1"
+      style={tw.style({ backgroundColor: TILE_BG })}
+      testID="share-token-qr-tile"
     >
-      {value ?? '—'}
-    </Text>
-  </View>
-);
+      <Box
+        twClassName="rounded overflow-hidden p-0.5 shrink-0"
+        style={tw.style({ backgroundColor: QR_BACKGROUND })}
+      >
+        <QRCode
+          value={shareUrl}
+          size={QR_SIZE}
+          backgroundColor={QR_BACKGROUND}
+          color="black"
+        />
+      </Box>
+      <Box twClassName="flex-1 min-w-0 justify-center">
+        <Text
+          variant={TextVariant.BodyXs}
+          fontWeight={FontWeight.Bold}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          style={tw.style({ color: VALUE_TEXT })}
+        >
+          {strings('share_token.buy_on')}
+        </Text>
+        <Text
+          variant={TextVariant.BodyXs}
+          fontWeight={FontWeight.Bold}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          style={tw.style({ color: VALUE_TEXT })}
+        >
+          {strings('share_token.metamask')}
+        </Text>
+      </Box>
+    </Box>
+  );
+};
 
 const ShareTokenCard = ({
   token,
   shareUrl,
   priceChangePercent,
-  formattedPrice,
-  marketCap,
-  liquidity,
-  holdersCount,
-  volume24h,
+  statTiles,
   networkBadgeSource,
   networkName,
 }: ShareTokenCardProps) => {
+  const tw = useTailwind();
   const isPriceUp = priceChangePercent >= 0;
   const accentColor = isPriceUp ? POSITIVE_ACCENT : NEGATIVE_ACCENT;
   const formattedPct = `${isPriceUp ? '+' : ''}${priceChangePercent.toFixed(2)}%`;
   const { timeLine, dateLine } = useMemo(() => formatShareCardTimestamp(), []);
 
+  const gridRows = useMemo(() => {
+    const tileNodes: ReactElement[] = [
+      ...statTiles.map((tile) => (
+        <StatTile
+          key={tile.testID ?? tile.label}
+          label={tile.label}
+          value={tile.value}
+          testID={tile.testID}
+        />
+      )),
+      <QrTile key="share-token-qr-tile" shareUrl={shareUrl} />,
+    ];
+
+    return chunk(tileNodes, STAT_TILES_PER_ROW);
+  }, [statTiles, shareUrl]);
+
   return (
-    <View
-      style={[
-        styles.card,
-        styles.cardShadow,
-        {
-          borderColor: accentColor,
-          shadowColor: accentColor,
-        },
-      ]}
+    <Box
+      twClassName="rounded-2xl border px-3.5 pt-3.5 pb-3"
+      style={tw.style({
+        backgroundColor: CARD_BG,
+        borderColor: accentColor,
+        shadowColor: accentColor,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.35,
+        shadowRadius: 8,
+        elevation: 6,
+      })}
       testID="share-token-card"
     >
-      <View style={styles.headerRow}>
-        <View style={styles.tokenIdentity}>
-          <ShareTokenCardAvatar
-            token={token}
-            networkBadgeSource={networkBadgeSource}
-            networkName={networkName}
-          />
-          <View style={styles.tokenMeta}>
-            <Text style={styles.tokenName} numberOfLines={1}>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        justifyContent={BoxJustifyContent.Between}
+        alignItems={BoxAlignItems.Start}
+        twClassName="mb-3"
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="flex-1 mr-2"
+        >
+          <BadgeWrapper
+            badgePosition={BadgePosition.BottomRight}
+            badgeElement={
+              networkBadgeSource ? (
+                <Badge
+                  variant={BadgeVariant.Network}
+                  imageSource={networkBadgeSource}
+                  name={networkName}
+                  size={AvatarSize.Xs}
+                />
+              ) : undefined
+            }
+          >
+            <AssetLogo asset={token} />
+          </BadgeWrapper>
+          <Box twClassName="flex-1 ml-2.5">
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              numberOfLines={1}
+              style={tw.style({ color: VALUE_TEXT })}
+            >
               {token.name || token.symbol}
             </Text>
-            <Text style={styles.tokenSymbol} numberOfLines={1}>
+            <Text
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              numberOfLines={1}
+              twClassName="uppercase mt-0.5"
+              style={tw.style({ color: LABEL_TEXT })}
+            >
               {token.symbol}
             </Text>
-          </View>
-        </View>
+          </Box>
+        </Box>
 
-        <View style={styles.changeColumn}>
-          <Text style={[styles.changeValue, { color: accentColor }]}>
+        <Box twClassName="items-end min-w-[88px]">
+          <Text
+            variant={TextVariant.HeadingSm}
+            fontWeight={FontWeight.Bold}
+            style={tw.style({ color: accentColor })}
+          >
             {formattedPct}
           </Text>
-          <Text style={styles.changeLabel}>
+          <Text
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            twClassName="text-right mt-0.5"
+            style={tw.style({ color: LABEL_TEXT })}
+          >
             {strings('share_token.change_24h')}
           </Text>
-        </View>
-      </View>
+        </Box>
+      </Box>
 
-      <View style={styles.gridRow}>
-        <StatTile
-          label={strings('share_token.market_cap')}
-          value={marketCap}
-          testID="share-token-market-cap"
-        />
-        <StatTile
-          label={strings('share_token.price')}
-          value={formattedPrice}
-          testID="share-token-price"
-        />
-        <StatTile
-          label={strings('share_token.liquidity')}
-          value={liquidity}
-          testID="share-token-liquidity"
-        />
-      </View>
-
-      <View style={styles.gridRow}>
-        <StatTile
-          label={strings('share_token.holders')}
-          value={holdersCount}
-          testID="share-token-holders"
-        />
-        <StatTile
-          label={strings('share_token.volume_24h')}
-          value={volume24h}
-          testID="share-token-volume"
-        />
-        <View style={styles.qrTile} testID="share-token-qr-tile">
-          <View style={styles.qrWrapper}>
-            <QRCode
-              value={shareUrl}
-              size={QR_SIZE}
-              backgroundColor={QR_BACKGROUND}
-              color="black"
-            />
-          </View>
-          <View style={styles.buyLabelWrap}>
-            <Text style={styles.buyLabel} numberOfLines={1}>
-              {strings('share_token.buy_on')}
-            </Text>
-            <Text style={styles.buyLabel} numberOfLines={1}>
-              {strings('share_token.metamask')}
-            </Text>
-          </View>
-        </View>
-      </View>
+      {gridRows.map((row, rowIndex) => (
+        <Box
+          key={`share-token-grid-row-${rowIndex}`}
+          flexDirection={BoxFlexDirection.Row}
+          twClassName="gap-1.5 mb-1.5"
+        >
+          {row}
+        </Box>
+      ))}
 
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -411,18 +280,28 @@ const ShareTokenCard = ({
         justifyContent={BoxJustifyContent.Between}
         twClassName="mt-4"
       >
-        <View>
-          <Text style={styles.timestamp}>{timeLine}</Text>
-          <Text style={styles.timestamp}>{dateLine}</Text>
-        </View>
+        <Box>
+          <Text
+            variant={TextVariant.BodyXs}
+            style={tw.style({ color: LABEL_TEXT })}
+          >
+            {timeLine}
+          </Text>
+          <Text
+            variant={TextVariant.BodyXs}
+            style={tw.style({ color: LABEL_TEXT })}
+          >
+            {dateLine}
+          </Text>
+        </Box>
         <Image
           source={metamaskFoxLogo}
-          style={styles.foxLogo}
+          style={tw.style('w-9 h-9')}
           resizeMode="contain"
           testID="share-token-fox-logo"
         />
       </Box>
-    </View>
+    </Box>
   );
 };
 

@@ -6,21 +6,9 @@ import type { TokenI } from '../../Tokens/types';
 
 jest.mock('react-native-qrcode-svg', () => 'QRCode');
 
-jest.mock('../../NetworkAssetLogo', () => ({
+jest.mock('../../Assets/components/AssetLogo/AssetLogo', () => ({
   __esModule: true,
   default: () => null,
-}));
-
-jest.mock('../../Assets/components/AssetLogo/AssetLogo.utils', () => ({
-  getFallbackAssetImageUrls: jest.fn(() => []),
-}));
-
-jest.mock('../../Assets/components/AssetLogo/AssetLogo.hook', () => ({
-  useSmartImageFallback: jest.fn(() => ({
-    source: undefined,
-    onError: jest.fn(),
-    uniqueSourceImageKey: 'avatar-key',
-  })),
 }));
 
 jest.mock('../../../../images/branding/fox.png', () => 'fox-logo');
@@ -42,11 +30,33 @@ const defaultProps = {
   shareUrl:
     'https://link.metamask.io/asset?assetId=eip155%3A1%2Ferc20%3A0x6b17',
   priceChangePercent: 5,
-  formattedPrice: '$1.00',
-  marketCap: '$100.00M',
-  liquidity: '$10.00M',
-  holdersCount: '28.78K',
-  volume24h: '$75.57M',
+  statTiles: [
+    {
+      label: strings('share_token.market_cap'),
+      value: '$100.00M',
+      testID: 'share-token-market-cap',
+    },
+    {
+      label: strings('share_token.price'),
+      value: '$1.00',
+      testID: 'share-token-price',
+    },
+    {
+      label: strings('share_token.liquidity'),
+      value: '$10.00M',
+      testID: 'share-token-liquidity',
+    },
+    {
+      label: strings('share_token.holders'),
+      value: '28.78K',
+      testID: 'share-token-holders',
+    },
+    {
+      label: strings('share_token.volume_24h'),
+      value: '$75.57M',
+      testID: 'share-token-volume',
+    },
+  ],
 };
 
 describe('ShareTokenCard', () => {
@@ -92,10 +102,10 @@ describe('ShareTokenCard', () => {
     const { getAllByText } = render(
       <ShareTokenCard
         {...defaultProps}
-        marketCap={null}
-        liquidity={null}
-        holdersCount={null}
-        volume24h={null}
+        statTiles={defaultProps.statTiles.map((tile) => ({
+          ...tile,
+          value: null,
+        }))}
       />,
     );
 
@@ -105,7 +115,7 @@ describe('ShareTokenCard', () => {
   it('formats footer timestamp with GMT offset and DD/MM/YYYY date', () => {
     const { getByText } = render(<ShareTokenCard {...defaultProps} />);
 
-    expect(getByText(/\d{2}:\d{2} \(GMT[+-]\d{2}:\d{2}\)/)).toBeTruthy();
+    expect(getByText(/\d{2}:\d{2} GMT[+-]\d{2}:\d{2}/)).toBeTruthy();
     expect(getByText('15/07/2026')).toBeTruthy();
   });
 });

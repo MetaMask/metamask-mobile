@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Platform, Share, StyleSheet } from 'react-native';
+import { Platform, Share } from 'react-native';
 import type { Hex } from '@metamask/utils';
 import type {
   MarketDataDetails,
@@ -45,12 +45,6 @@ import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { localizeLargeNumber } from '../../../../util/number/bigint';
 import { TokenI } from '../../Tokens/types';
 import ShareTokenCard from './ShareTokenCard';
-
-const styles = StyleSheet.create({
-  urlText: {
-    textAlign: 'center',
-  },
-});
 
 export interface ShareTokenBottomSheetProps {
   shareUrl: string;
@@ -281,6 +275,43 @@ const ShareTokenBottomSheet = ({
     [currentPrice, currentCurrency],
   );
 
+  const statTiles = useMemo(
+    () => [
+      {
+        label: strings('share_token.market_cap'),
+        value: marketDetails?.marketCap ?? null,
+        testID: 'share-token-market-cap',
+      },
+      {
+        label: strings('share_token.price'),
+        value: formattedPrice,
+        testID: 'share-token-price',
+      },
+      {
+        label: strings('share_token.liquidity'),
+        value: liquidity,
+        testID: 'share-token-liquidity',
+      },
+      {
+        label: strings('share_token.holders'),
+        value: holdersCount,
+        testID: 'share-token-holders',
+      },
+      {
+        label: strings('share_token.volume_24h'),
+        value: volume24h,
+        testID: 'share-token-volume',
+      },
+    ],
+    [
+      marketDetails?.marketCap,
+      formattedPrice,
+      liquidity,
+      holdersCount,
+      volume24h,
+    ],
+  );
+
   const networkBadgeSource = token.chainId
     ? NetworkBadgeSource(token.chainId as Hex)
     : undefined;
@@ -307,11 +338,7 @@ const ShareTokenBottomSheet = ({
           token={token}
           shareUrl={shareUrl}
           priceChangePercent={priceChangePercent}
-          formattedPrice={formattedPrice}
-          marketCap={marketDetails?.marketCap ?? null}
-          liquidity={liquidity}
-          holdersCount={holdersCount}
-          volume24h={volume24h}
+          statTiles={statTiles}
           networkBadgeSource={networkBadgeSource}
           networkName={networkName}
         />
@@ -319,7 +346,7 @@ const ShareTokenBottomSheet = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          style={styles.urlText}
+          twClassName="text-center"
           numberOfLines={2}
           testID="share-token-url"
         >
