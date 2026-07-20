@@ -19,6 +19,7 @@ import type {
   Status,
   TokenAmount,
 } from '../types';
+import { hasTrustlineTypeLabel } from '../trustline';
 
 type Movement = Transaction['from'][number];
 type Fee = Transaction['fees'][number];
@@ -306,6 +307,25 @@ export function mapKeyringTransaction({
   }
 
   if (transaction.type === KeyringTransactionType.TokenApprove) {
+    const rawToken = getToken(transaction.from, 'out');
+
+    if (hasTrustlineTypeLabel(transaction.details)) {
+      return {
+        type: 'assetActivation',
+        chainId,
+        status,
+        timestamp,
+        hash: transaction.id,
+        raw: { type: 'keyringTransaction', data: transaction },
+        data: {
+          from,
+          to,
+          token: rawToken ? { ...rawToken, amount: undefined } : undefined,
+          ...(fees ? { fees } : {}),
+        },
+      };
+    }
+
     return {
       type: 'approveSpendingCap',
       chainId,
@@ -318,6 +338,27 @@ export function mapKeyringTransaction({
         ...(fees ? { fees } : {}),
       },
     };
+  }
+
+  if (transaction.type === KeyringTransactionType.TokenDisapprove) {
+    const rawToken = getToken(transaction.from, 'out');
+
+    if (hasTrustlineTypeLabel(transaction.details)) {
+      return {
+        type: 'assetDeactivation',
+        chainId,
+        status,
+        timestamp,
+        hash: transaction.id,
+        raw: { type: 'keyringTransaction', data: transaction },
+        data: {
+          from,
+          to,
+          token: rawToken ? { ...rawToken, amount: undefined } : undefined,
+          ...(fees ? { fees } : {}),
+        },
+      };
+    }
   }
 
   return {

@@ -67,6 +67,9 @@ export interface CardAuthTokens {
   accessTokenExpiresAt: number;
   refreshTokenExpiresAt?: number;
   location: string;
+  cardholderAccountId?: string;
+  accountAddress?: string;
+  keyringId?: string;
 }
 
 export type AuthTokenValidity = 'valid' | 'needs_refresh' | 'expired';
@@ -348,13 +351,59 @@ export interface RegistrationStatus {
   data?: Record<string, unknown>;
 }
 
+export interface CardContactDetails {
+  email?: string;
+  phone?: string;
+}
+
+export interface CardFundingSourceResult {
+  id: string;
+  network?: string;
+  balance?: string;
+  balanceCurrency?: string;
+}
+
+export type CardPrerequisiteStage = 'funding' | 'kyc' | 'aml';
+export type CardPrerequisiteStatus = 'action-required' | 'pending' | 'ok';
+
+export interface CardSmartContractWriteParams {
+  abi: unknown[];
+  contractAddress: string;
+  method: string;
+  params: Record<string, string>;
+}
+
+export interface CardSpendingPrerequisite {
+  stage: CardPrerequisiteStage;
+  status: CardPrerequisiteStatus;
+  actionType?: string;
+  type?: string;
+  params?: Record<string, unknown>;
+}
+
+export interface CardSpendingPrerequisitesResult {
+  prerequisites: CardSpendingPrerequisite[];
+}
+
+export interface CardSpendingPrerequisitesParams {
+  kycRegion?: string;
+  kycRedirectUrl?: string;
+}
+
+export interface CardCreateResult {
+  cardId: string;
+}
+
 // -- Provider Interface --
 
 export interface ICardProvider {
   readonly id: CardProviderId;
   readonly capabilities: CardProviderCapabilities;
 
-  initiateAuth(country: string): Promise<CardAuthSession>;
+  initiateAuth(
+    country: string,
+    options?: { address?: string },
+  ): Promise<CardAuthSession>;
   submitCredentials(
     session: CardAuthSession,
     credentials: CardCredentials,
@@ -432,6 +481,23 @@ export interface ICardProvider {
     country: string,
   ): Promise<RegistrationStatus>;
   submitOnboardingStep?(step: OnboardingStep): Promise<OnboardingStepResult>;
+
+  createFundingSource?(
+    tokens: CardAuthTokens,
+  ): Promise<CardFundingSourceResult>;
+  patchContactDetails?(
+    details: CardContactDetails,
+    tokens: CardAuthTokens,
+  ): Promise<void>;
+  getSpendingPrerequisites?(
+    fundingSourceId: string,
+    params: CardSpendingPrerequisitesParams,
+    tokens: CardAuthTokens,
+  ): Promise<CardSpendingPrerequisitesResult>;
+  createCard?(
+    fundingSourceId: string,
+    tokens: CardAuthTokens,
+  ): Promise<CardCreateResult>;
 
   getOnChainAssets?(address: string): Promise<CardHomeData>;
 }
