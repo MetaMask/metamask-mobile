@@ -222,7 +222,7 @@ describe('V2EnterAddress', () => {
           'RAMPS_ADDRESS_ENTERED',
           expect.objectContaining({
             region: 'US',
-            ramp_type: 'DEPOSIT',
+            ramp_type: 'UNIFIED_BUY_2',
           }),
         );
       }

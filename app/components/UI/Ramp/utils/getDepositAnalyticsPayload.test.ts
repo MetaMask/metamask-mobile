@@ -29,7 +29,7 @@ describe('getDepositAnalyticsPayload', () => {
 
     expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
     expect(params).toEqual({
-      ramp_type: 'DEPOSIT',
+      ramp_type: 'UNIFIED_BUY_2',
       provider_order_id: '123',
       amount_source: 100,
       amount_destination: 0.05,
@@ -84,7 +84,7 @@ describe('getDepositAnalyticsPayload', () => {
 
     expect(eventName).toBe('RAMPS_TRANSACTION_FAILED');
     expect(params).toEqual({
-      ramp_type: 'DEPOSIT',
+      ramp_type: 'UNIFIED_BUY_2',
       provider_order_id: '123',
       amount_source: 100,
       amount_destination: 0.05,
@@ -117,7 +117,7 @@ describe('getDepositAnalyticsPayload', () => {
 
     expect(eventName).toBe('RAMPS_TRANSACTION_FAILED');
     expect(params).toEqual({
-      ramp_type: 'DEPOSIT',
+      ramp_type: 'UNIFIED_BUY_2',
       provider_order_id: '123',
       amount_source: 100,
       amount_destination: 0.05,
@@ -158,7 +158,7 @@ describe('getDepositAnalyticsPayload', () => {
 
     expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
     expect(params).toEqual({
-      ramp_type: 'DEPOSIT',
+      ramp_type: 'UNIFIED_BUY_2',
       provider_order_id: '123',
       amount_source: 250.75,
       amount_destination: 0.135,
@@ -256,7 +256,7 @@ describe('getDepositAnalyticsPayload', () => {
 
     expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
     expect(params).toEqual({
-      ramp_type: 'DEPOSIT',
+      ramp_type: 'UNIFIED_BUY_2',
       provider_order_id: '123',
       amount_source: 100,
       amount_destination: 0.05,
@@ -291,7 +291,7 @@ describe('getDepositAnalyticsPayload', () => {
 
     expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
     expect(params).toEqual({
-      ramp_type: 'DEPOSIT',
+      ramp_type: 'UNIFIED_BUY_2',
       provider_order_id: '123',
       amount_source: 100,
       amount_destination: 0.05,
@@ -326,7 +326,7 @@ describe('getDepositAnalyticsPayload', () => {
 
     expect(eventName).toBe('RAMPS_TRANSACTION_COMPLETED');
     expect(params).toEqual({
-      ramp_type: 'DEPOSIT',
+      ramp_type: 'UNIFIED_BUY_2',
       provider_order_id: '123',
       amount_source: 100,
       amount_destination: 0.05,

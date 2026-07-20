@@ -103,7 +103,7 @@ const V2OtpCode = () => {
   // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when a headless session
   // drives the flow, sourced from the per-screen `headlessSessionId`. Two
   // variants because some events default to 'UNIFIED_BUY_2' and others (OTP_*)
-  // to 'DEPOSIT' when not headless.
+  // to 'UNIFIED_BUY_2' when not headless.
   const { headlessRampProps, headlessDepositRampProps } =
     useHeadlessRampProps(headlessSessionId);
 

@@ -92,7 +92,7 @@ const V2BasicInfo = (): React.JSX.Element => {
 
   // Headless deposit (TRAM-3623): tag RAMPS_BASIC_INFO_ENTERED with
   // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when this screen is
-  // part of a headless buy flow; keep 'DEPOSIT' otherwise.
+  // part of a headless buy flow; keep 'UNIFIED_BUY_2' otherwise.
   const { headlessDepositRampProps } = useHeadlessRampProps(headlessSessionId);
 
   const firstNameInputRef = useRef<TextInput>(null);

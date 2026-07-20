@@ -550,7 +550,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             emitTerminalOrderAnalyticsFromCallback(rampsOrder);
           } else {
             trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
-              ramp_type: wasHeadless ? 'HEADLESS' : 'DEPOSIT',
+              ramp_type: wasHeadless ? 'HEADLESS' : 'UNIFIED_BUY_2',
               ramp_surface: rampSurface,
               provider_order_id: rampsOrder.providerOrderId,
               amount_source: Number(rampsOrder.fiatAmount),
@@ -867,10 +867,10 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           case 'NOT_SUBMITTED': {
             // Snapshot the headless session BEFORE navigating so KYC_STARTED
             // carries `ramp_type: 'HEADLESS'` + the seeded `ramp_surface`
-            // (TRAM-3623); the regular flow keeps `'DEPOSIT'`.
+            // (TRAM-3623); the regular flow keeps `'UNIFIED_BUY_2'`.
             const kycStartedSession = getSession(headlessSessionId);
             trackEvent('RAMPS_KYC_STARTED', {
-              ramp_type: kycStartedSession ? 'HEADLESS' : 'DEPOSIT',
+              ramp_type: kycStartedSession ? 'HEADLESS' : 'UNIFIED_BUY_2',
               ramp_surface: kycStartedSession?.params?.rampSurface,
               kyc_type: requirements.kycType || '',
               region: regionIsoCode,
@@ -916,7 +916,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               // (TRAM-3623): HEADLESS + ramp_surface on the headless path.
               const idProofKycSession = getSession(headlessSessionId);
               trackEvent('RAMPS_KYC_STARTED', {
-                ramp_type: idProofKycSession ? 'HEADLESS' : 'DEPOSIT',
+                ramp_type: idProofKycSession ? 'HEADLESS' : 'UNIFIED_BUY_2',
                 ramp_surface: idProofKycSession?.params?.rampSurface,
                 kyc_type: 'STANDARD',
                 region: regionIsoCode,

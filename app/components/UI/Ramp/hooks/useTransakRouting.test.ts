@@ -344,7 +344,7 @@ describe('useTransakRouting', () => {
       );
       expect(mockTrackEvent).toHaveBeenCalledWith(
         'RAMPS_KYC_STARTED',
-        expect.objectContaining({ ramp_type: 'DEPOSIT' }),
+        expect.objectContaining({ ramp_type: 'UNIFIED_BUY_2' }),
       );
       // Non-headless stays DEPOSIT and carries no surface (TRAM-3623).
       expect(mockTrackEvent).not.toHaveBeenCalledWith(
@@ -808,7 +808,10 @@ describe('useTransakRouting', () => {
       // Non-headless IDPROOF KYC_STARTED stays DEPOSIT (TRAM-3623).
       expect(mockTrackEvent).toHaveBeenCalledWith(
         'RAMPS_KYC_STARTED',
-        expect.objectContaining({ ramp_type: 'DEPOSIT', kyc_type: 'STANDARD' }),
+        expect.objectContaining({
+          ramp_type: 'UNIFIED_BUY_2',
+          kyc_type: 'STANDARD',
+        }),
       );
       expect(mockTrackEvent).not.toHaveBeenCalledWith(
         'RAMPS_KYC_STARTED',

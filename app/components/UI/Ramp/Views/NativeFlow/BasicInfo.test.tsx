@@ -395,7 +395,7 @@ describe('V2BasicInfo', () => {
         'RAMPS_BASIC_INFO_ENTERED',
         expect.objectContaining({
           region: 'US',
-          ramp_type: 'DEPOSIT',
+          ramp_type: 'UNIFIED_BUY_2',
         }),
       );
     });

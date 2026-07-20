@@ -21,7 +21,7 @@ describe('useHeadlessRampProps', () => {
       ramp_type: 'UNIFIED_BUY_2',
     });
     expect(result.current.headlessDepositRampProps).toEqual({
-      ramp_type: 'DEPOSIT',
+      ramp_type: 'UNIFIED_BUY_2',
     });
     // No session lookup happens for non-headless traffic.
     expect(getSessionMock).toHaveBeenCalledWith(undefined);
