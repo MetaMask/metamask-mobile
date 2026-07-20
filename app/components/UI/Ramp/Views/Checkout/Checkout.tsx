@@ -11,6 +11,7 @@ import { parseUrl } from 'query-string';
 import { v4 as uuidv4 } from 'uuid';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
@@ -182,7 +183,7 @@ const Checkout = () => {
   const [error, setError] = useState('');
   const isRedirectionHandledRef = useRef(false);
   const [key, setKey] = useState(0);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<CheckoutParams>();
   const { themeAppearance } = useTheme();
   const { addOrder, addPrecreatedOrder, getOrderFromCallback } =

@@ -27,12 +27,17 @@ import {
   type CardAuthStep,
   type CardAuthTokens,
   type CardCredentials,
+  type CardContactDetails,
+  type CardCreateResult,
   type CardDetails,
   type CardFundingAsset,
+  type CardFundingSourceResult,
   type CardHomeData,
   type CardProviderCapabilities,
   type CardSecureView,
   type CardSecureViewParams,
+  type CardSpendingPrerequisitesParams,
+  type CardSpendingPrerequisitesResult,
   type CashbackWalletResponse,
   type CashbackWithdrawEstimationResponse,
   type CashbackWithdrawParams,
@@ -378,7 +383,7 @@ export class CardController extends BaseController<
           | CardFeatureFlag
           | undefined,
       );
-      const immersveCountries = cardFeature?.immersve?.countries ?? [];
+      const immersveCountries = cardFeature?.immersveCountries ?? [];
       const map = deriveCountryProviderMap(
         Object.fromEntries(
           immersveCountries.map((c) => [c, true] as [string, boolean]),
@@ -1083,6 +1088,74 @@ export class CardController extends BaseController<
       );
     }
     return this.#withAuthRetry((tokens) => getCardPinView(tokens, params));
+  }
+
+  async createFundingSource(): Promise<CardFundingSourceResult> {
+    const provider = this.getActiveProvider();
+    const createFundingSource = provider.createFundingSource?.bind(provider);
+    if (!createFundingSource) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Funding source creation not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => createFundingSource(tokens));
+  }
+
+  async getFundingSources(): Promise<CardFundingSourceResult[]> {
+    const provider = this.getActiveProvider();
+    const getFundingSources = provider.getFundingSources?.bind(provider);
+    if (!getFundingSources) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Listing funding sources not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getFundingSources(tokens));
+  }
+
+  async getSpendingPrerequisites(
+    fundingSourceId: string,
+    params: CardSpendingPrerequisitesParams,
+  ): Promise<CardSpendingPrerequisitesResult> {
+    const provider = this.getActiveProvider();
+    const getSpendingPrerequisites =
+      provider.getSpendingPrerequisites?.bind(provider);
+    if (!getSpendingPrerequisites) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Spending prerequisites not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) =>
+      getSpendingPrerequisites(fundingSourceId, params, tokens),
+    );
+  }
+
+  async createCard(fundingSourceId: string): Promise<CardCreateResult> {
+    const provider = this.getActiveProvider();
+    const createCard = provider.createCard?.bind(provider);
+    if (!createCard) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Card creation not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => createCard(fundingSourceId, tokens));
+  }
+
+  async patchContactDetails(details: CardContactDetails): Promise<void> {
+    const provider = this.getActiveProvider();
+    const patchContactDetails = provider.patchContactDetails?.bind(provider);
+    if (!patchContactDetails) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Contact details update not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) =>
+      patchContactDetails(details, tokens),
+    );
   }
 
   async updateAssetPriority(

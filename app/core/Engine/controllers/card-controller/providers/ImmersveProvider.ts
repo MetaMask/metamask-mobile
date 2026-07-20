@@ -29,6 +29,11 @@ const REFRESH_EXPIRY_BUFFER_MS = 60 * 60 * 1000;
 const DEFAULT_NETWORK = 'base-sepolia';
 const IMMERSVE_LOCATION = 'international';
 
+const IMMERSVE_KYC_TYPE = 'immersve-conducted';
+const IMMERSVE_KYC_HIDDEN_STEPS = ['region', 'contact-channels'];
+const IMMERSVE_SPENDABLE_CURRENCY = 'USD';
+const IMMERSVE_SPENDABLE_AMOUNT = 999999999;
+
 function getErrorContext(method: string, extra?: Record<string, unknown>) {
   return {
     tags: { feature: 'card', provider: 'immersve' },
@@ -39,11 +44,20 @@ function getErrorContext(method: string, extra?: Record<string, unknown>) {
 function mapApiError(error: unknown, operation: string): CardProviderError {
   if (error instanceof CardProviderError) return error;
   if (error instanceof CardApiError) {
-    if ([401, 403].includes(error.statusCode)) {
+    if (error.statusCode === 401) {
       return new CardProviderError(
         CardProviderErrorCode.InvalidCredentials,
         `Authentication failed on ${operation}`,
         error.statusCode,
+      );
+    }
+
+    if (error.statusCode === 403) {
+      return new CardProviderError(
+        CardProviderErrorCode.Forbidden,
+        `Forbidden on ${operation}`,
+        403,
+        error.errorCode,
       );
     }
     if (error.statusCode === 404) {
@@ -129,6 +143,18 @@ interface ImmersveFundingSourceResponse {
   network?: string;
 }
 
+interface ImmersveFundingSourceListItem {
+  id: string;
+  balance?: string;
+  balanceCurrency?: string;
+  network?: string;
+  fundingChannelId?: string;
+}
+
+interface ImmersveFundingSourcesResponse {
+  items?: ImmersveFundingSourceListItem[];
+}
+
 export class ImmersveProvider implements ICardProvider {
   readonly id = 'immersve' as const;
 
@@ -172,6 +198,12 @@ export class ImmersveProvider implements ICardProvider {
     return this.programConfig.network ?? DEFAULT_NETWORK;
   }
 
+  private get clientApplicationId(): string {
+    return (
+      this.programConfig.clientApplicationId || this.config.clientApplicationId
+    );
+  }
+
   private requireProgramValue(
     key: 'cardProgramId' | 'fundingChannelId',
   ): string {
@@ -203,7 +235,7 @@ export class ImmersveProvider implements ICardProvider {
         {
           loginMethod: 'siwe',
           network: this.network,
-          clientApplicationId: this.config.clientApplicationId,
+          clientApplicationId: this.clientApplicationId,
           scopes: ['cardholder-partner'],
           address,
           url: this.config.appUrl,
@@ -282,7 +314,7 @@ export class ImmersveProvider implements ICardProvider {
         '/auth/token',
         {
           refreshToken: tokens.refreshToken,
-          clientApplicationId: this.config.clientApplicationId,
+          clientApplicationId: this.clientApplicationId,
         },
         undefined,
         { origin: this.config.appUrl },
@@ -356,11 +388,12 @@ export class ImmersveProvider implements ICardProvider {
     }
 
     try {
+      const fundingChannelId = this.requireProgramValue('fundingChannelId');
       const response = await this.service.post<ImmersveFundingSourceResponse>(
         '/api/funding-sources',
         {
           accountId,
-          fundingChannelId: this.requireProgramValue('fundingChannelId'),
+          fundingChannelId,
           fundingAddress,
         },
         tokens,
@@ -373,6 +406,33 @@ export class ImmersveProvider implements ICardProvider {
       };
     } catch (error) {
       throw mapApiError(error, 'createFundingSource');
+    }
+  }
+
+  async getFundingSources(
+    tokens: CardAuthTokens,
+  ): Promise<CardFundingSourceResult[]> {
+    const accountId = tokens.cardholderAccountId;
+    if (!accountId) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'getFundingSources: missing cardholder account id',
+      );
+    }
+
+    try {
+      const { items } = await this.service.get<ImmersveFundingSourcesResponse>(
+        `/api/accounts/${accountId}/funding-sources`,
+        tokens,
+      );
+      return (items ?? []).map((item) => ({
+        id: item.id,
+        network: item.network,
+        balance: item.balance,
+        balanceCurrency: item.balanceCurrency,
+      }));
+    } catch (error) {
+      throw mapApiError(error, 'getFundingSources');
     }
   }
 
@@ -411,21 +471,18 @@ export class ImmersveProvider implements ICardProvider {
     params: CardSpendingPrerequisitesParams,
     tokens: CardAuthTokens,
   ): Promise<CardSpendingPrerequisitesResult> {
-    const { spendableAmount, spendableCurrency, kycType, kycHiddenSteps } =
-      this.programConfig;
-
     try {
       return await this.service.post<CardSpendingPrerequisitesResult>(
         '/api/spending-prerequisites',
         {
           cardProgramId: this.requireProgramValue('cardProgramId'),
           fundingSourceId,
-          spendableAmount: spendableAmount ?? '0',
-          spendableCurrency: spendableCurrency ?? 'USD',
-          kycType: kycType ?? 'immersve-conducted',
+          spendableAmount: IMMERSVE_SPENDABLE_AMOUNT,
+          spendableCurrency: IMMERSVE_SPENDABLE_CURRENCY,
+          kycType: IMMERSVE_KYC_TYPE,
           kycRedirectUrl: params.kycRedirectUrl,
           kycRegion: params.kycRegion,
-          kycHiddenSteps,
+          kycHiddenSteps: IMMERSVE_KYC_HIDDEN_STEPS,
         },
         tokens,
       );
