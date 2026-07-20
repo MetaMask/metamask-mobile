@@ -4,7 +4,7 @@ import {
 } from '../../../../util/analytics/analytics.types';
 import { SmartTransactionsController } from '@metamask/smart-transactions-controller';
 import type { RootState } from '../../../../reducers';
-import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
+import { TransactionControllerInitMessenger } from '../../wallet-init/messengers/transaction-controller-messenger';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
 export interface TransactionMetrics {

@@ -29,8 +29,13 @@ import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDevi
 import { useAddDeviceResetToInstructionsListener } from '../../../core/QrSync/useAddDeviceResetToInstructionsListener';
 import { useIsQrTabSwitcherOpen } from '../../../core/QrSync/useIsQrTabSwitcherOpen';
 import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from '../../../core/QrSync/qrSyncTelemetry';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
-import Logger from '../../../util/Logger';
 import {
   selectQrSyncError,
   selectQrSyncIsBusy,
@@ -118,11 +123,12 @@ const AddDeviceToWallet = () => {
     (data: ScanSuccess, content?: string) => {
       const scannedQrPayload = content ?? data.content ?? '';
 
-      submitQrPayload(scannedQrPayload).catch((error: unknown) => {
-        Logger.error(
-          error as Error,
-          'AddDeviceToWallet: failed to submit scanned QR payload',
-        );
+      submitQrPayload(scannedQrPayload).catch((err: unknown) => {
+        reportQrSyncFailure(err, {
+          surface: QrSyncSurfaces.SCANNER,
+          operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
+          source: QrSyncTelemetrySources.ADD_DEVICE_ON_SCAN_SUCCESS,
+        });
       });
     },
     [submitQrPayload],
@@ -150,11 +156,12 @@ const AddDeviceToWallet = () => {
   }, [manualQrPayload, submitQrPayload]);
 
   const triggerManualQrSubmit = useCallback(() => {
-    handleManualQrSubmit().catch((error: unknown) => {
-      Logger.error(
-        error as Error,
-        'AddDeviceToWallet: failed to submit manual QR payload',
-      );
+    handleManualQrSubmit().catch((submitError: unknown) => {
+      reportQrSyncFailure(submitError, {
+        surface: QrSyncSurfaces.SCANNER,
+        operation: QrSyncOperations.SUBMIT_MANUAL_PAYLOAD,
+        source: QrSyncTelemetrySources.ADD_DEVICE_MANUAL_SUBMIT,
+      });
     });
   }, [handleManualQrSubmit]);
 
