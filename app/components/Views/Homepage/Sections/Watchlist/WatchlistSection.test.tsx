@@ -1,15 +1,17 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import WatchlistSection from './WatchlistSection';
+import Routes from '../../../../../constants/navigation/Routes';
 
 let mockIsWatchlistEnabled = true;
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
     }),
   };
 });
@@ -208,5 +210,23 @@ describe('WatchlistSection', () => {
     );
 
     expect(getByTestId('homepage-section-title-watchlist')).toBeDefined();
+  });
+
+  it('navigates to the watchlist full view when the section header is pressed', () => {
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByTestId } = render(
+      <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
+    );
+
+    fireEvent.press(getByTestId('homepage-section-title-watchlist'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.WALLET.WATCHLIST_FULL_VIEW,
+    );
   });
 });
