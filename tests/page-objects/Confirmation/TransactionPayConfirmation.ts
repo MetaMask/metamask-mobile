@@ -331,6 +331,7 @@ class TransactionPayConfirmation {
   async tapPayWithRow(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.payWithRow, {
       description: 'Pay With Row',
+      timeout: 60_000,
     });
   }
 
