@@ -461,7 +461,7 @@ describe('AccountsMenu', () => {
       fireEvent.press(notificationsButton);
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'Notifications Menu Opened',
+        'InApp Notifications Menu Opened',
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         unread_count: 5,
