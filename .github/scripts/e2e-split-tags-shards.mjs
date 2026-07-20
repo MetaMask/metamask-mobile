@@ -125,13 +125,24 @@ async function shouldSkipFlakinessDetection() {
 }
 
 /**
- * Check if a file is a spec file
+ * Check if a file is a spec file eligible for the Detox runner.
+ *
+ * Excludes:
+ *   - `quarantine/` specs (skipped in CI)
+ *   - `smoke-appium/` specs — these are Playwright + Appium specs run via
+ *     tests/playwright.smoke-appium.config.ts, and are explicitly ignored by
+ *     the Detox Jest config (jest.e2e.detox.config.js `testPathIgnorePatterns`).
+ *     They still carry Smoke* tags, so without this exclusion the tag-based
+ *     selection feeds them to the Detox runner, which then finds 0 matching
+ *     tests and exits 1.
  * @param {*} filePath - The path to the file
  * @returns True if the file is a spec file, false otherwise
  */
 function isSpecFile(filePath) {
+  const segments = filePath.split(path.sep);
   return (filePath.endsWith('.spec.js') || filePath.endsWith('.spec.ts')) &&
-    !filePath.split(path.sep).includes('quarantine');
+    !segments.includes('quarantine') &&
+    !segments.includes('smoke-appium');
 }
 
 /**
