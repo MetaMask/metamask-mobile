@@ -263,6 +263,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         // has been successfully applied above (no-op for non-money flows).
         trackAmountCommitted();
       } catch (error) {
+        const isConfirmationDismissed =
+          !Engine.context.TransactionController.state.transactions.some(
+            (tx) => tx.id === transactionId,
+          );
+        if (isConfirmationDismissed) {
+          return;
+        }
         const prefixed = prefixError(error, AMOUNT_UPDATE_ERROR_PREFIX);
         toastRef?.current?.showToast(
           getAmountUpdateErrorToastOptions(prefixed, () =>
