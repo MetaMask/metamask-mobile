@@ -60,9 +60,14 @@ import {
   useFocusEffect,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import { BridgeViewMode, SecurityDataType } from '../../types';
+import {
+  BridgeViewMode,
+  SecurityDataType,
+  TokenSelectorType,
+} from '../../types';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
@@ -160,7 +165,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const { styles } = useStyles(createStyles);
   const { bottom: bottomInset } = useSafeAreaInsets();
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
   const keypadRef = useRef<SwapsKeypadRef>(null);
@@ -189,9 +194,13 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   const destTokenSecurityData = destToken?.securityData;
-  const tokenWarning = isNegativeSecurityType(destTokenSecurityData?.type)
-    ? destTokenSecurityData
-    : undefined;
+  // Rebuild with the narrowed `type` so it stays a negative security type
+  // (Warning/Malicious/Spam) everywhere `tokenWarning` is used — assigning the
+  // object as-is would widen `type` back to the full `SecurityDataType`.
+  const tokenWarning =
+    destTokenSecurityData && isNegativeSecurityType(destTokenSecurityData.type)
+      ? { ...destTokenSecurityData, type: destTokenSecurityData.type }
+      : undefined;
   const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
   const handleSourceAmountChange = useCallback(
@@ -459,7 +468,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
 
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-      type: 'source',
+      type: TokenSelectorType.Source,
     });
 
   const handleFlipTokensPress = useCallback(() => {
@@ -471,7 +480,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
 
   const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-      type: 'dest',
+      type: TokenSelectorType.Dest,
     });
 
   const getContentMode = () => {
