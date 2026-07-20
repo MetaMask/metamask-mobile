@@ -457,6 +457,12 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
   const overrides = new E2EControllerOverrides(controller);
 
   // Override key methods with E2E mocks
+  if (typeof overrides.placeOrder !== 'function') {
+    throw new Error(
+      'E2E Mock: E2EControllerOverrides.placeOrder is missing or not a function; cannot mock provider.placeOrder',
+    );
+  }
+
   const methodsToOverride = [
     'depositWithOrder',
     'depositWithConfirmation',
@@ -537,9 +543,7 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
       return () => undefined;
     };
 
-    providerRecord.placeOrder = (
-      overrides.placeOrder as (...args: unknown[]) => unknown
-    ).bind(overrides);
+    providerRecord.placeOrder = overrides.placeOrder.bind(overrides);
     providerRecord.getOrders = (
       overrides.getOrders as (...args: unknown[]) => unknown
     ).bind(overrides);
