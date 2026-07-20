@@ -1,8 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react';
-import {
-  useInfiniteQuery,
-  type InfiniteData,
-} from '@tanstack/react-query';
+import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
@@ -49,7 +46,13 @@ export const usePredictSearchMarketData = ({
     hasNextPage,
     fetchNextPage,
     refetch: queryRefetch,
-  } = useInfiniteQuery<SearchPage, Error, InfiniteData<SearchPage>, readonly unknown[], number>({
+  } = useInfiniteQuery<
+    SearchPage,
+    Error,
+    InfiniteData<SearchPage>,
+    readonly unknown[],
+    number
+  >({
     queryKey: ['predict', 'markets', 'search', trimmedQuery, pageSize],
     enabled,
     initialPageParam: 1,

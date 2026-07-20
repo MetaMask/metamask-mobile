@@ -1,8 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import {
-  useInfiniteQuery,
-  type InfiniteData,
-} from '@tanstack/react-query';
+import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
