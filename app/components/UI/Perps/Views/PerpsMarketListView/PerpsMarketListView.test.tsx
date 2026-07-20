@@ -262,21 +262,26 @@ jest.mock('../../components/PerpsRecentlyViewedRail', () => {
     markets: { symbol: string }[];
     onMarketPress?: (market: { symbol: string }) => void;
   }) =>
-    MockReact.createElement(
-      View,
-      { testID: 'perps-recently-viewed-rail-mock' },
-      markets.map((m) =>
-        MockReact.createElement(
-          TouchableOpacity,
-          {
-            key: m.symbol,
-            testID: `recently-viewed-row-${m.symbol}`,
-            onPress: () => onMarketPress?.(m),
-          },
-          MockReact.createElement(Text, null, m.symbol),
-        ),
-      ),
-    );
+    // Mirror the real component: render nothing when there are no markets.
+    // The rail is always mounted as the list header and handed an empty array
+    // when it should be hidden (flag off / search active / watchlist filter).
+    markets.length === 0
+      ? null
+      : MockReact.createElement(
+          View,
+          { testID: 'perps-recently-viewed-rail-mock' },
+          markets.map((m) =>
+            MockReact.createElement(
+              TouchableOpacity,
+              {
+                key: m.symbol,
+                testID: `recently-viewed-row-${m.symbol}`,
+                onPress: () => onMarketPress?.(m),
+              },
+              MockReact.createElement(Text, null, m.symbol),
+            ),
+          ),
+        );
   return {
     __esModule: true,
     default: MockPerpsRecentlyViewedRail,
@@ -562,6 +567,7 @@ interface FlashListProps {
     nativeEvent: { contentOffset: { x: number; y: number } };
   }) => void;
   scrollEventThrottle?: number;
+  ListHeaderComponent?: React.ReactElement | React.ComponentType | null;
 }
 
 // Mock FlashList
@@ -574,6 +580,7 @@ jest.mock('@shopify/flash-list', () => ({
     onRefresh,
     onScroll,
     scrollEventThrottle,
+    ListHeaderComponent,
   }: FlashListProps) => {
     const {
       TouchableOpacity: MockTouchableOpacity,
@@ -581,6 +588,12 @@ jest.mock('@shopify/flash-list', () => ({
       ScrollView,
       Text,
     } = jest.requireActual('react-native');
+    const header =
+      typeof ListHeaderComponent === 'function' ? (
+        <ListHeaderComponent />
+      ) : (
+        (ListHeaderComponent ?? null)
+      );
     return (
       <ScrollView
         testID="flash-list"
@@ -589,6 +602,7 @@ jest.mock('@shopify/flash-list', () => ({
         onScroll={onScroll}
         scrollEventThrottle={scrollEventThrottle}
       >
+        {header}
         <View testID="flash-list-content">
           {data.map((item: PerpsMarketData, index: number) => (
             <View key={keyExtractor ? keyExtractor(item, index) : index}>
@@ -2664,95 +2678,22 @@ describe('PerpsMarketListView', () => {
       );
     });
 
-    describe('collapse on scroll', () => {
-      const railContainerTestID =
-        PerpsMarketListViewSelectorsIDs.RECENTLY_VIEWED_RAIL_CONTAINER;
+    it('keeps the search bar and both fixed filter rows above the rail', () => {
+      mockUsePerpsMarketListView.mockReturnValueOnce(buildHookReturn());
 
-      const scrollTo = (offsetY: number) => {
-        fireEvent.scroll(screen.getByTestId('flash-list'), {
-          nativeEvent: { contentOffset: { x: 0, y: offsetY } },
-        });
-      };
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
-      it('is expanded by default', () => {
-        mockUsePerpsMarketListView.mockReturnValueOnce(buildHookReturn());
-
-        renderWithProvider(<PerpsMarketListView />, { state: mockState });
-
-        expect(
-          screen.getByTestId(railContainerTestID).props.accessibilityState,
-        ).toEqual({ expanded: true });
-      });
-
-      it('collapses once the list is scrolled past the threshold', () => {
-        mockUsePerpsMarketListView.mockReturnValueOnce(buildHookReturn());
-
-        renderWithProvider(<PerpsMarketListView />, { state: mockState });
-
-        act(() => {
-          scrollTo(100);
-        });
-
-        expect(
-          screen.getByTestId(railContainerTestID).props.accessibilityState,
-        ).toEqual({ expanded: false });
-      });
-
-      it('re-expands once the list is scrolled back near the top', () => {
-        mockUsePerpsMarketListView.mockReturnValueOnce(buildHookReturn());
-
-        renderWithProvider(<PerpsMarketListView />, { state: mockState });
-
-        act(() => {
-          scrollTo(100);
-        });
-        expect(
-          screen.getByTestId(railContainerTestID).props.accessibilityState,
-        ).toEqual({ expanded: false });
-
-        act(() => {
-          scrollTo(0);
-        });
-        expect(
-          screen.getByTestId(railContainerTestID).props.accessibilityState,
-        ).toEqual({ expanded: true });
-      });
-
-      it('does not collapse for small scroll jitters below the threshold', () => {
-        mockUsePerpsMarketListView.mockReturnValueOnce(buildHookReturn());
-
-        renderWithProvider(<PerpsMarketListView />, { state: mockState });
-
-        act(() => {
-          scrollTo(10);
-        });
-
-        expect(
-          screen.getByTestId(railContainerTestID).props.accessibilityState,
-        ).toEqual({ expanded: true });
-      });
-
-      it('keeps the search bar and filter/count-sort rows visible while the rail is collapsed', () => {
-        mockUsePerpsMarketListView.mockReturnValueOnce(buildHookReturn());
-
-        renderWithProvider(<PerpsMarketListView />, { state: mockState });
-
-        act(() => {
-          scrollTo(100);
-        });
-
-        expect(
-          screen.getByTestId(PerpsMarketListViewSelectorsIDs.SEARCH_BAR),
-        ).toBeOnTheScreen();
-        expect(
-          screen.getByTestId(PerpsMarketListViewSelectorsIDs.SORT_FILTERS),
-        ).toBeOnTheScreen();
-        expect(
-          screen.getByTestId(
-            `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`,
-          ),
-        ).toBeOnTheScreen();
-      });
+      expect(
+        screen.getByTestId(PerpsMarketListViewSelectorsIDs.SEARCH_BAR),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketListViewSelectorsIDs.SORT_FILTERS),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`,
+        ),
+      ).toBeOnTheScreen();
     });
   });
 
