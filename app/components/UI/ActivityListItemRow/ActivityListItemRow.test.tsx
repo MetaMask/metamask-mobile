@@ -1593,6 +1593,7 @@ describe('ActivityListItemRow — display currency conversion', () => {
   // reset them), so restore the suite-wide defaults (USD, equal rates) after
   // each test to keep overrides from leaking.
   afterEach(() => {
+    jest.clearAllMocks();
     mockCurrency.mockReturnValue('usd');
     mockConversionRate.mockReturnValue(2500);
     mockUsdConversionRate.mockReturnValue(2500);
@@ -1686,6 +1687,28 @@ describe('ActivityListItemRow — amount display', () => {
     expect(getByText('+$1')).toBeOnTheScreen();
   });
 
+  it('renders ramp buy mUSD amounts as already-human values (no decimal re-scale)', () => {
+    // FiatOrder.cryptoAmount is human-readable ("30"). Injecting mUSD decimals
+    // would scale 30 → 0.00003 via formatUnits.
+    const item = makeItem({
+      type: 'buy',
+      status: 'success',
+      token: {
+        amount: '30',
+        symbol: 'mUSD',
+        assetId: `eip155:1/erc20:${LINEA_MUSD_ADDRESS}`,
+        direction: 'in',
+      },
+    });
+
+    const { getByText, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByText('+30 mUSD')).toBeOnTheScreen();
+    expect(queryByText('+0.00003 mUSD')).toBeNull();
+  });
+
   it('does not render fiat when token market data is unavailable', () => {
     const item = makeItem({
       status: 'success',
@@ -1743,6 +1766,7 @@ describe('ActivityListItemRow — ERC-20 fiat address casing (TMCU-937)', () => 
   // This mock uses a persistent return value (clearAllMocks does not reset it),
   // so restore the suite default (lowercased mUSD key) after each test.
   afterEach(() => {
+    jest.clearAllMocks();
     mockContractExchangeRates.mockReturnValue(ratesFor(LINEA_MUSD_ADDRESS));
   });
 
@@ -1830,6 +1854,8 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'marketCloseLong',
   'limitLong',
   'limitCloseLong',
+  'assetActivation',
+  'assetDeactivation',
 ];
 
 const EXPECTED_TITLES = {
@@ -1910,6 +1936,8 @@ const EXPECTED_TITLES = {
   marketCloseLong: strings('transactions.activity_market_close_long'),
   limitLong: strings('transactions.activity_limit_long'),
   limitCloseLong: strings('transactions.activity_limit_close_long'),
+  assetActivation: strings('transactions.activity_trustline_activated'),
+  assetDeactivation: strings('transactions.activity_trustline_deactivated'),
 } satisfies Record<ActivityListItem['type'], string>;
 
 describe('ActivityListItemRow — title display for all ActivityKind values', () => {
