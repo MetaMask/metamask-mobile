@@ -1020,10 +1020,8 @@ export type RootStackParamList = {
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
   CardOnboardingKYCPending: undefined;
-  CardOnboardingKYCProcessing:
-    | { countryKey?: string; kycUrl?: string }
-    | undefined;
-  CardOnboardingFundingApproval: { countryKey?: string } | undefined;
+  CardOnboardingKYCProcessing: CardScreensStackParamList['CardOnboardingKYCProcessing'];
+  CardOnboardingFundingApproval: CardScreensStackParamList['CardOnboardingFundingApproval'];
   CardModals: NavigatorScreenParams<CardModalsNavigationParamList> | undefined;
   CardAddFundsModal: CardModalsNavigationParamList['CardAddFundsModal'];
   CardAssetSelectionModal: CardModalsNavigationParamList['CardAssetSelectionModal'];
