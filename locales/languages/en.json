@@ -10427,6 +10427,10 @@
     "added_to_watchlist": "Added to Watchlist",
     "removed_from_watchlist": "Removed from Watchlist",
     "home_empty_title": "Watchlist",
-    "home_empty_subtitle": "You have no watchlist items yet"
+    "home_empty_subtitle": "You have no watchlist items yet",
+    "fullscreen_title": "Watchlist",
+    "tokens_tab": "Tokens",
+    "edit": "Edit",
+    "done": "Done"
   }
 }

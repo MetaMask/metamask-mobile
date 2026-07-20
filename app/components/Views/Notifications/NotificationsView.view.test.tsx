@@ -22,7 +22,7 @@ import NotificationsView from './';
 /**
  * Component-view coverage for smoke `enable-notifications-after-onboarding`.
  *
- * Smoke spec: tests/smoke/notifications/enable-notifications-after-onboarding.spec.ts
+ * Smoke spec: tests/smoke-appium/notifications/enable-notifications-after-onboarding.spec.ts
  *
  * Notifications are seeded into Redux via `buildNotificationsState` (controllers
  * + remote feature flag), mirroring what the smoke E2E gets via
