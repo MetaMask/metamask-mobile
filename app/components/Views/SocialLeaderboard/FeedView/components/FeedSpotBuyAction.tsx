@@ -140,11 +140,8 @@ const FeedSpotBuyAction = forwardRef<
   // navigate to swaps (treatment only).
   const [swapTarget, setSwapTarget] = useState<QuickBuyTarget | null>(null);
 
-  // TODO: switch `location` to `SwapBridgeNavigationLocation.FollowTradingFeedScreen`
-  // once that value lands in the `@metamask/bridge-controller`
-  // `MetaMetricsSwapsEventSource` enum.
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TokenView,
+    location: SwapBridgeNavigationLocation.FollowTradingFeedScreen,
     sourcePage: FOLLOW_TRADER_SWAPS_SOURCE_PAGE,
   });
 

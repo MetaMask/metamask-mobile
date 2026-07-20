@@ -141,7 +141,10 @@ jest.mock('../../../../hooks/useABTest', () => ({
 const mockGoToSwaps = jest.fn();
 jest.mock('../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
   useSwapBridgeNavigation: () => ({ goToSwaps: mockGoToSwaps }),
-  SwapBridgeNavigationLocation: { TokenView: 'Token View' },
+  SwapBridgeNavigationLocation: {
+    TokenView: 'Token View',
+    FollowTradingTokenScreen: 'Follow Trading Token Screen',
+  },
 }));
 
 jest.mock('./components/QuickBuy/hooks/useQuickBuySetup', () => ({

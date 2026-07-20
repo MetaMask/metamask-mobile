@@ -25,7 +25,10 @@ jest.mock('../../../../../hooks/useABTest', () => ({
 
 jest.mock('../../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
   useSwapBridgeNavigation: jest.fn(),
-  SwapBridgeNavigationLocation: { TokenView: 'Token View' },
+  SwapBridgeNavigationLocation: {
+    TokenView: 'Token View',
+    FollowTradingTokenScreen: 'Follow Trading Token Screen',
+  },
 }));
 
 jest.mock('./QuickBuy/hooks/useQuickBuySetup', () => ({
@@ -137,7 +140,7 @@ describe('TraderPositionBuyCta', () => {
     renderCta();
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith(
       expect.objectContaining({
-        location: 'Token View',
+        location: 'Follow Trading Token Screen',
         sourcePage: 'follow_trader',
       }),
     );

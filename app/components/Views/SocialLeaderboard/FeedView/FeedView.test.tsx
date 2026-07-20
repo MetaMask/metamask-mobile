@@ -165,7 +165,10 @@ jest.mock('../../../../hooks/useABTest', () => ({
 
 const mockGoToSwaps = jest.fn();
 jest.mock('../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
-  SwapBridgeNavigationLocation: { TokenView: 'TokenView' },
+  SwapBridgeNavigationLocation: {
+    TokenView: 'TokenView',
+    FollowTradingFeedScreen: 'Follow Trading Feed Screen',
+  },
   useSwapBridgeNavigation: () => ({ goToSwaps: mockGoToSwaps }),
 }));
 

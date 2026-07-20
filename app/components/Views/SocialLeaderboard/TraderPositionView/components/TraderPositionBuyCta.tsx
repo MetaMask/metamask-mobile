@@ -98,11 +98,8 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   // `isLoading` always reflect the current position (no stale-carryover).
   const { destToken, isLoading } = useQuickBuySetup(target);
 
-  // TODO: switch `location` to `SwapBridgeNavigationLocation.FollowTrader` once
-  // the `follow_trader` value lands in the `@metamask/bridge-controller`
-  // `MetaMetricsSwapsEventSource` enum.
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TokenView,
+    location: SwapBridgeNavigationLocation.FollowTradingTokenScreen,
     sourcePage: FOLLOW_TRADER_SWAPS_SOURCE_PAGE,
   });
 
