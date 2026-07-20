@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import React, { useMemo } from 'react';
-import Text, {
-  TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
+import { Text, TextColor } from '@metamask/design-system-react-native';
 import { Box } from '../../../../../UI/Box/Box';
 import {
   selectTransactionsByBatchId,
@@ -106,7 +104,9 @@ export function TransactionDetailsSummary() {
 
   return (
     <Box gap={12}>
-      {heading ? <Text color={TextColor.Alternative}>{heading}</Text> : null}
+      {heading ? (
+        <Text color={TextColor.TextAlternative}>{heading}</Text>
+      ) : null}
       <ProgressList showConnectors={false}>
         {fiatOrderId ? (
           <FiatOrderSummaryLine parentTransaction={transactionMeta} />
