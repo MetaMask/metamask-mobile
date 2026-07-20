@@ -8,15 +8,24 @@ const mockMutate = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockUseSuggestedWatchlistItemsQuery = jest.fn();
+const mockUseTokenWatchlistQuery = jest.fn();
+let mockAddMutationIsSuccess = false;
 
 jest.mock('../../hooks/useSuggestedWatchlistItemsQuery', () => ({
   useSuggestedWatchlistItemsQuery: () => mockUseSuggestedWatchlistItemsQuery(),
+}));
+
+jest.mock('../../hooks/useTokenWatchlistQuery', () => ({
+  useTokenWatchlistQuery: () => mockUseTokenWatchlistQuery(),
 }));
 
 jest.mock('../../hooks/useTokenWatchlistMutations', () => ({
   useTokenWatchlistAddItemMutation: () => ({
     mutate: mockMutate,
     isPending: false,
+    get isSuccess() {
+      return mockAddMutationIsSuccess;
+    },
   }),
 }));
 
@@ -76,6 +85,8 @@ const makeToken = (
 describe('WatchlistEmptyCTA', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAddMutationIsSuccess = false;
+    mockMutate.mockImplementation(() => undefined);
     mockCreateEventBuilder.mockReturnValue({
       addProperties: jest.fn().mockReturnThis(),
       build: jest.fn().mockReturnValue({ name: 'Watchlist Token Added' }),
@@ -86,6 +97,10 @@ describe('WatchlistEmptyCTA', () => {
         makeToken('bip122:000000000019d6689c085ae165831e93/slip44:0', 'BTC'),
       ],
       isLoading: false,
+    });
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [],
+      isFetching: false,
     });
   });
 
@@ -166,6 +181,7 @@ describe('WatchlistEmptyCTA', () => {
 
   it('calls add mutation with selected asset IDs', () => {
     mockMutate.mockImplementation((_assetIds, options) => {
+      mockAddMutationIsSuccess = true;
       options?.onSuccess?.();
     });
 
@@ -212,6 +228,36 @@ describe('WatchlistEmptyCTA', () => {
     fireEvent.press(addButton);
 
     expect(addButton.props.accessibilityState?.disabled).toBe(false);
+  });
+
+  it('re-enables add button when hydrated refetch settles without items', () => {
+    mockMutate.mockImplementation((_assetIds, options) => {
+      mockAddMutationIsSuccess = true;
+      options?.onSuccess?.();
+    });
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [],
+      isFetching: true,
+    });
+
+    const { getByTestId, rerender } = render(
+      <WatchlistEmptyCTA source="watchlist_empty_cta" />,
+    );
+
+    const addButton = getByTestId(WatchlistEmptyCTATestIds.ADD_BUTTON);
+    fireEvent.press(addButton);
+    expect(addButton.props.accessibilityState?.disabled).toBe(true);
+
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [],
+      isFetching: false,
+    });
+    rerender(<WatchlistEmptyCTA source="watchlist_empty_cta" />);
+
+    expect(
+      getByTestId(WatchlistEmptyCTATestIds.ADD_BUTTON).props.accessibilityState
+        ?.disabled,
+    ).toBe(false);
   });
 
   it('renders skeleton cards while loading', () => {

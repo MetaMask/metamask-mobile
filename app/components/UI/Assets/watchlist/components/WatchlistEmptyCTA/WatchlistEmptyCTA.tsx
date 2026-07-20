@@ -20,6 +20,7 @@ import { useTheme } from '../../../../../../util/theme';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { useSuggestedWatchlistItemsQuery } from '../../hooks/useSuggestedWatchlistItemsQuery';
 import { useTokenWatchlistAddItemMutation } from '../../hooks/useTokenWatchlistMutations';
+import { useTokenWatchlistQuery } from '../../hooks/useTokenWatchlistQuery';
 import type { WatchlistTokenWithBalance } from '../../utils/addBalanceToTokens';
 import WatchlistDefaultTokenCard from '../WatchlistDefaultTokenCard';
 import styleSheet from './WatchlistEmptyCTA.styles';
@@ -41,6 +42,8 @@ const WatchlistEmptyCTA: React.FC<WatchlistEmptyCTAProps> = ({ source }) => {
   const insets = useSafeAreaInsets();
   const { data: suggestedTokens, isLoading } =
     useSuggestedWatchlistItemsQuery();
+  const { data: hydratedTokens, isFetching: isHydratedFetching } =
+    useTokenWatchlistQuery();
   const addMutation = useTokenWatchlistAddItemMutation();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -65,6 +68,28 @@ const WatchlistEmptyCTA: React.FC<WatchlistEmptyCTAProps> = ({ source }) => {
       new Set(suggestedTokens.map((token) => String(token.assetId))),
     );
   }, [suggestedTokens]);
+
+  useEffect(() => {
+    if (
+      !hasSubmitted ||
+      !addMutation.isSuccess ||
+      addMutation.isPending ||
+      isHydratedFetching ||
+      (hydratedTokens?.length ?? 0) > 0
+    ) {
+      return;
+    }
+
+    // Mutation succeeded but the empty CTA is still visible — allow retry when
+    // the hydrated refetch failed or did not populate the list.
+    setHasSubmitted(false);
+  }, [
+    addMutation.isPending,
+    addMutation.isSuccess,
+    hasSubmitted,
+    hydratedTokens,
+    isHydratedFetching,
+  ]);
 
   const handleToggle = useCallback((assetId: string) => {
     setSelectedAssetIds((prev) => {
