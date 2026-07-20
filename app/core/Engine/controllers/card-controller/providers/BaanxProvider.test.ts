@@ -581,6 +581,8 @@ describe('BaanxProvider', () => {
     });
 
     it('returns a mapped token set on success', async () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2024-06-01T12:00:00.000Z'));
       const request = jest.fn().mockResolvedValue({
         access_token: 'new-at',
         refresh_token: 'new-rt',
@@ -588,14 +590,19 @@ describe('BaanxProvider', () => {
         refresh_token_expires_in: 120,
       });
 
-      const result = await buildProvider(request).refreshTokens(tokens);
+      try {
+        const result = await buildProvider(request).refreshTokens(tokens);
 
-      expect(result).toMatchObject({
-        accessToken: 'new-at',
-        refreshToken: 'new-rt',
-        location: 'international',
-      });
-      expect(result.accessTokenExpiresAt).toBeGreaterThan(Date.now());
+        expect(result).toMatchObject({
+          accessToken: 'new-at',
+          refreshToken: 'new-rt',
+          location: 'international',
+          accessTokenExpiresAt: Date.now() + 60_000,
+          refreshTokenExpiresAt: Date.now() + 120_000,
+        });
+      } finally {
+        jest.useRealTimers();
+      }
     });
   });
 
