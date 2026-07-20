@@ -38,7 +38,7 @@ const PREDICT_WITHDRAW_ANY_TOKEN_FLAGS = {
       predictWithdraw: {
         enabled: true,
         tokens: {
-          '0x1': ['0x0000000000000000000000000000000000000000'],
+          '0x1': ['0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'],
         },
       },
     },
@@ -181,8 +181,8 @@ appiumTest.describe(SmokePredictions('Predictions Withdraw'), () => {
           await TransactionPayConfirmation.tapPayWithRow();
           await TransactionPayConfirmation.tapOtherAssetsRow();
           await TransactionPayConfirmation.tapByNetworkFilter('Ethereum');
-          await TransactionPayConfirmation.tapPayWithToken('ETH');
-          await TransactionPayConfirmation.verifyPayWithSymbol('ETH');
+          await TransactionPayConfirmation.tapPayWithToken('USDC');
+          await TransactionPayConfirmation.verifyPayWithSymbol('USDC');
         },
       );
     },
