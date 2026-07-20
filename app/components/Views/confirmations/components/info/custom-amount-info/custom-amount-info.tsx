@@ -190,6 +190,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(
       !isAddMusdIntent && !isDepositPrefillEnabled,
     );
+    const isKeyboardVisibleRef = useRef(isKeyboardVisible);
+    isKeyboardVisibleRef.current = isKeyboardVisible;
     const wasKeyboardEverVisible = useRef(isKeyboardVisible);
     if (isKeyboardVisible) {
       wasKeyboardEverVisible.current = true;
@@ -249,6 +251,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     });
 
     const handleDone = useCallback(async () => {
+      const keyboardVisibleAtStart = isKeyboardVisibleRef.current;
       try {
         await updateTokenAmount();
         if (selectedFiatPaymentMethodId && transactionId) {
@@ -273,6 +276,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         return;
       }
       EngineService.flushState();
+      // If the keyboard was closed when handleDone started (auto-submit) but
+      // the user opened it during the await, don't dismiss it.
+      if (!keyboardVisibleAtStart && isKeyboardVisibleRef.current) {
+        return;
+      }
       setIsKeyboardVisible(false);
       onAmountSubmit?.();
     }, [
@@ -302,11 +310,19 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         return;
       }
 
+      // Never auto-submit while the user is actively editing on the keyboard.
+      // The tokenKey in useDepositPrefillAmount can toggle hasPrefilled
+      // (true → false → true) during background state changes, which resets
+      // the guard above and would otherwise dismiss the keyboard mid-edit.
+      if (isKeyboardVisible) {
+        return;
+      }
+
       if (!hasAutoSubmittedPrefill.current && amountFiat !== '0') {
         hasAutoSubmittedPrefill.current = true;
         handleDone();
       }
-    }, [isDepositPrefilled, amountFiat, handleDone]);
+    }, [isDepositPrefilled, amountFiat, handleDone, isKeyboardVisible]);
 
     const handleAmountPress = useCallback(() => {
       wasKeyboardEverVisible.current = true;
