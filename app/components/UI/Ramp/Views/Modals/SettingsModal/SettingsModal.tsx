@@ -20,6 +20,7 @@ import { createNavigationDetails } from '../../../../../../util/navigation/navUt
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   ToastContext,
   ToastVariants,
@@ -53,7 +54,7 @@ export const createSettingsModalNavDetails = createNavigationDetails(
 function SettingsModal() {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { toastRef } = useContext(ToastContext);
   const { selectedProvider, setSelectedProvider } = useRampsProviders();
   const [isAuthenticatedWithProvider, setIsAuthenticatedWithProvider] =
