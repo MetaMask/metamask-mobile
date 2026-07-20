@@ -87,7 +87,7 @@ export const getEnrichedSupportUrl = async (
   }
 };
 
-export type OpenSupportUrl = (url: string) => void;
+export type OpenSupportUrl = (url: string) => void | Promise<void>;
 
 /**
  * Shows the support consent sheet, then opens the support URL via the
@@ -114,10 +114,14 @@ export const navigateToSupportConsent = (
 ): void => {
   const onConfirm = async () => {
     const url = await getEnrichedSupportUrl(baseUrl);
-    open(url);
+    try {
+      await open(url);
+    } catch (error) {
+      Logger.log('[SupportConsent] Failed to open support URL', error);
+    }
   };
 
-  const onReject = () => {
+  const onReject = async () => {
     // Honor the "Don't share" choice literally: open the raw base URL without
     // appending metamask_version (or any device detail), matching the consent copy.
     const url = baseUrl ?? METAMASK_SUPPORT_URL;
@@ -125,7 +129,11 @@ export const navigateToSupportConsent = (
       '[SupportConsent] Opening support URL without device details',
       url,
     );
-    open(url);
+    try {
+      await open(url);
+    } catch (error) {
+      Logger.log('[SupportConsent] Failed to open support URL', error);
+    }
   };
 
   navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
