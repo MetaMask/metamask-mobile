@@ -58,10 +58,11 @@ const createApproveTransaction = (amount: string): Transaction =>
 const baseTransaction: Transaction = {
   id: 'tx-trustline',
   chain: 'stellar:pubnet',
-  account: 'GABC123',
+  account: 'account-id',
   type: TransactionType.Unknown,
-  status: 'confirmed',
+  status: TransactionStatus.Confirmed,
   timestamp: 1_700_000_000,
+  events: [],
   from: [
     {
       address: 'GABC123',

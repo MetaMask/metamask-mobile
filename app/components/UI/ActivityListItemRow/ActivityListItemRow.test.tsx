@@ -1593,6 +1593,7 @@ describe('ActivityListItemRow — display currency conversion', () => {
   // reset them), so restore the suite-wide defaults (USD, equal rates) after
   // each test to keep overrides from leaking.
   afterEach(() => {
+    jest.clearAllMocks();
     mockCurrency.mockReturnValue('usd');
     mockConversionRate.mockReturnValue(2500);
     mockUsdConversionRate.mockReturnValue(2500);
@@ -1743,6 +1744,7 @@ describe('ActivityListItemRow — ERC-20 fiat address casing (TMCU-937)', () => 
   // This mock uses a persistent return value (clearAllMocks does not reset it),
   // so restore the suite default (lowercased mUSD key) after each test.
   afterEach(() => {
+    jest.clearAllMocks();
     mockContractExchangeRates.mockReturnValue(ratesFor(LINEA_MUSD_ADDRESS));
   });
 

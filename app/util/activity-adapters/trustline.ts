@@ -1,7 +1,4 @@
-import {
-  TransactionStatus as KeyringTransactionStatus,
-  type Transaction,
-} from '@metamask/keyring-api';
+import type { Transaction } from '@metamask/keyring-api';
 import { strings } from '../../../locales/i18n';
 
 /**
@@ -41,19 +38,19 @@ function withOptionalSymbol(label: string, symbol?: string): string {
  * @returns A localized activity title for asset activation/deactivation flows from a transaction.
  */
 export function resolveAssetActivationActivityTitle(
-  status: KeyringTransactionStatus,
+  status: Transaction['status'],
   tokenSymbol: string | undefined,
   isActivate: boolean,
 ): string {
   switch (status) {
-    case KeyringTransactionStatus.Confirmed:
+    case 'confirmed':
       return withOptionalSymbol(
         isActivate
           ? strings('transactions.activity_trustline_activated')
           : strings('transactions.activity_trustline_deactivated'),
         tokenSymbol,
       );
-    case KeyringTransactionStatus.Failed:
+    case 'failed':
       return isActivate
         ? strings('transactions.activity_trustline_activation_failed')
         : strings('transactions.activity_trustline_deactivation_failed');
