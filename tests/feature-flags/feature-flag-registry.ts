@@ -3372,6 +3372,25 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyEarnBannerEnabled: {
+    name: 'earnMoneyEarnBannerEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyEarnBannerTokens: {
+    name: 'earnMoneyEarnBannerTokens',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {},
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyTokenListItemCtaEnabled: {
     name: 'earnMoneyTokenListItemCtaEnabled',
     type: FeatureFlagType.Remote,
@@ -5152,6 +5171,36 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       },
       {
         name: 'colorIcons',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  homeTMCU1103AbtestActionButtonsGrid: {
+    name: 'homeTMCU1103AbtestActionButtonsGrid',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+      {
+        name: 'row1Top',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+      {
+        name: 'row2Top',
         scope: {
           type: 'percentage_rollout',
           value: 1,
