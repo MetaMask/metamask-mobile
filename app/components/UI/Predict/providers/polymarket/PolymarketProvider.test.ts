@@ -85,7 +85,7 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 jest.mock('../../../../../util/analytics/analytics', () => ({
-  analytics: { identify: jest.fn() },
+  analytics: { identify: jest.fn(), trackEvent: jest.fn() },
 }));
 
 jest.mock('../../../../../util/transactions', () => ({
@@ -200,6 +200,7 @@ jest.mock('./preflight/withdraw', () => ({
 }));
 
 const mockAnalyticsIdentify = jest.mocked(analytics.identify);
+const mockAnalyticsTrackEvent = jest.mocked(analytics.trackEvent);
 const mockComputeProxyAddress = jest.mocked(computeProxyAddress);
 const mockCreateApiKey = jest.mocked(createApiKey);
 const mockExecuteDepositWalletBatch = jest.mocked(executeDepositWalletBatch);
@@ -1527,6 +1528,16 @@ describe('PolymarketProvider', () => {
     expect(mockAnalyticsIdentify).toHaveBeenCalledWith({
       [UserProfileProperty.CREATED_POLYMARKET_ACCOUNT_VIA_MM]: true,
     });
+    const walletCreationEvent = mockAnalyticsTrackEvent.mock.calls
+      .map((call) => call[0])
+      .find(
+        (event) =>
+          event?.properties?.transaction_type ===
+            'mm_predict_wallet_creation' &&
+          event?.properties?.status === 'succeeded',
+      );
+    expect(walletCreationEvent).toBeDefined();
+    expect(walletCreationEvent?.properties?.entry_point).toBe('background');
     expect(
       mockSyncDepositWalletCollateralBalanceAllowance,
     ).not.toHaveBeenCalled();
@@ -1549,6 +1560,64 @@ describe('PolymarketProvider', () => {
       transactionID: 'batch-1',
       requireCompletion: true,
     });
+  });
+
+  it('tracks failed wallet creation when the relayer create request fails', async () => {
+    const provider = createProvider();
+    mockIsSmartContractAddress.mockResolvedValueOnce(false);
+    mockRequestDepositWalletCreate.mockRejectedValueOnce(
+      new Error('relayer unavailable'),
+    );
+
+    await expect(
+      provider.beforePublishDepositWalletDeposit({
+        transactionMeta: createDepositTransactionMeta({
+          recipient: depositWalletAddress,
+        }),
+        getSigner: () => signer,
+      }),
+    ).rejects.toThrow('relayer unavailable');
+
+    const walletCreationEvent = mockAnalyticsTrackEvent.mock.calls
+      .map((call) => call[0])
+      .find(
+        (event) =>
+          event?.properties?.transaction_type ===
+            'mm_predict_wallet_creation' &&
+          event?.properties?.status === 'failed',
+      );
+    expect(walletCreationEvent).toBeDefined();
+    expect(walletCreationEvent?.properties?.failure_reason).toBe(
+      'relayer unavailable',
+    );
+  });
+
+  it('does not track failed wallet creation when waiting fails after the relayer accepted', async () => {
+    const provider = createProvider();
+    mockIsSmartContractAddress.mockResolvedValueOnce(false);
+    // The relayer accepted the create request, but local polling failed
+    // afterwards — the wallet may still have been created remotely.
+    mockWaitForDepositWalletTransaction.mockRejectedValueOnce(
+      new Error('polling timed out'),
+    );
+
+    await expect(
+      provider.beforePublishDepositWalletDeposit({
+        transactionMeta: createDepositTransactionMeta({
+          recipient: depositWalletAddress,
+        }),
+        getSigner: () => signer,
+      }),
+    ).rejects.toThrow('polling timed out');
+
+    const walletCreationEvents = mockAnalyticsTrackEvent.mock.calls
+      .map((call) => call[0])
+      .filter(
+        (event) =>
+          event?.properties?.transaction_type === 'mm_predict_wallet_creation',
+      );
+    expect(walletCreationEvents).toHaveLength(1);
+    expect(walletCreationEvents[0]?.properties?.status).toBe('succeeded');
   });
 
   it('waits for WALLET-CREATE polling before submitting allowance batch', async () => {

@@ -19,6 +19,10 @@ import Logger from '../../../../../util/Logger';
 
 const I18N_PREFIX = 'predict.sports_market_types';
 const MISSING_TRANSLATION_PREFIX = '[missing';
+const DYNAMIC_SPORTS_MARKET_TYPE_PREFIXES = [
+  'soccer_player_goals-',
+  'soccer_team_totals-',
+] as const;
 const loggedMissingTranslationKeys = new Set<string>();
 const O_U_PLAYER_PATTERN = /^(.+?):\s+\w+ O\/U/;
 const FIFA_WORLD_CUP_LEAGUE = 'fifwc';
@@ -44,7 +48,14 @@ const toTitleCase = (str: string): string =>
 const isMissingTranslation = (value: string, key: string): boolean =>
   value === key || value.startsWith(MISSING_TRANSLATION_PREFIX);
 
-const logMissingSportsMarketTypeTranslation = (
+const isDynamicSportsMarketTypeKey = (type: string): boolean => {
+  const normalizedType = type.toLowerCase();
+  return DYNAMIC_SPORTS_MARKET_TYPE_PREFIXES.some((prefix) =>
+    normalizedType.startsWith(prefix),
+  );
+};
+
+const warnMissingSportsMarketTypeTranslation = (
   key: string,
   type: string,
 ): void => {
@@ -52,10 +63,8 @@ const logMissingSportsMarketTypeTranslation = (
 
   loggedMissingTranslationKeys.add(key);
   const message = `Missing Predict sports market type translation: ${key}`;
-  Logger.error(new Error(message), {
-    message,
-    context: { key, type },
-  });
+
+  Logger.log(message, { key, type });
 };
 
 export const getTranslatedSportsMarketTypeLabel = (
@@ -64,7 +73,9 @@ export const getTranslatedSportsMarketTypeLabel = (
   const key = `${I18N_PREFIX}.${type}`;
   const label = strings(key);
   if (typeof label !== 'string' || isMissingTranslation(label, key)) {
-    logMissingSportsMarketTypeTranslation(key, type);
+    if (!isDynamicSportsMarketTypeKey(type)) {
+      warnMissingSportsMarketTypeTranslation(key, type);
+    }
     return undefined;
   }
   return label;

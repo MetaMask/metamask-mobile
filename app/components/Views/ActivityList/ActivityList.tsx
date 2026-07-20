@@ -99,6 +99,7 @@ import {
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  isSpendingCapWithAmount,
   type ActivityKind,
   type GroupedActivityListItem,
 } from '../../../util/activity-adapters';
@@ -388,7 +389,14 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           confirmed.type !== localItem.type &&
           localItem.type !== 'contractInteraction' &&
           localItem.type !== 'swapIncomplete';
-        if (localOutCategorizesConfirmed) {
+        // Same-kind spending caps: the accounts API returns no calldata for an
+        // approve, so its confirmed copy has no cap amount. Prefer the local
+        // copy, which decodes the amount from calldata.
+        const localHasRicherSpendingCap =
+          confirmed.type === localItem.type &&
+          isSpendingCapWithAmount(localItem) &&
+          !isSpendingCapWithAmount(confirmed);
+        if (localOutCategorizesConfirmed || localHasRicherSpendingCap) {
           localWinsHashes.add(hash);
         }
       }

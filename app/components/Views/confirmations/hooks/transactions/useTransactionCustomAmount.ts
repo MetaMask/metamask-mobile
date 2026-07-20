@@ -94,8 +94,7 @@ export function useTransactionCustomAmount({
     TransactionType.moneyAccountWithdraw,
   ]);
   const tokenAddress = getTokenAddress(transactionMeta);
-  const payTokenFiatRate =
-    useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
+  const payTokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency);
   const musdFiatRate =
     useTokenFiatRate(
       MUSD_TOKEN_ADDRESS,
@@ -152,7 +151,9 @@ export function useTransactionCustomAmount({
 
   const amountHuman = useMemo(
     () =>
-      new BigNumber(amountFiat || '0').dividedBy(tokenFiatRate).toString(10),
+      tokenFiatRate
+        ? new BigNumber(amountFiat || '0').dividedBy(tokenFiatRate).toString(10)
+        : '0',
     [amountFiat, tokenFiatRate],
   );
 
@@ -343,7 +344,7 @@ export function useTransactionCustomAmount({
   };
 }
 
-function useTokenBalance(tokenUsdRate: number) {
+function useTokenBalance(tokenUsdRate: number | undefined) {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const transactionId = transactionMeta?.id ?? '';
 
@@ -355,9 +356,11 @@ function useTokenBalance(tokenUsdRate: number) {
 
   const { data: predictBalanceHuman = 0 } = usePredictBalance();
 
-  const predictBalanceUsd = new BigNumber(predictBalanceHuman ?? '0')
-    .multipliedBy(tokenUsdRate)
-    .toNumber();
+  const predictBalanceUsd = tokenUsdRate
+    ? new BigNumber(predictBalanceHuman ?? '0')
+        .multipliedBy(tokenUsdRate)
+        .toNumber()
+    : 0;
 
   const { withdrawableMusd, withdrawableFiatRaw } = useMoneyAccountBalance();
 
@@ -379,7 +382,9 @@ function useTokenBalance(tokenUsdRate: number) {
     if (withdrawableMusd === undefined) {
       return 0;
     }
-    return withdrawableMusd.multipliedBy(tokenUsdRate).toNumber();
+    return tokenUsdRate
+      ? withdrawableMusd.multipliedBy(tokenUsdRate).toNumber()
+      : 0;
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {

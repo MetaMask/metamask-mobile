@@ -45,14 +45,14 @@ export interface AddressFormData {
   countryCode: string;
 }
 
-interface V2EnterAddressParams {
+export interface V2EnterAddressParams {
   previousFormData?: BasicInfoFormData & AddressFormData;
   quote: TransakBuyQuote;
   /** When set, post-KYC `routeAfterAuthentication` resets use `HEADLESS_HOST` as stack base. */
   headlessSessionId?: string;
 }
 
-const V2EnterAddress = (): JSX.Element => {
+const V2EnterAddress = (): React.JSX.Element => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { quote, previousFormData, headlessSessionId } =

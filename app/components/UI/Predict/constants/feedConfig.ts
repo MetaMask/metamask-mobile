@@ -9,7 +9,6 @@ export const PREDICT_FEED_IDS = [
   'crypto',
   'live',
   'trending',
-  'popular-today',
 ] as const;
 
 export type PredictFeedId = (typeof PREDICT_FEED_IDS)[number];
@@ -227,7 +226,10 @@ export const PREDICT_FEED_REGISTRY: Record<PredictFeedId, PredictFeedConfig> = {
             createAllFilter({
               status: 'open',
               order: 'volume24hr',
-              limit: 5,
+              // Fetch 10 (not the ~5 shown) so the home Trending section still
+              // fills its display cap after standalone/staleness filtering, and
+              // so the "See all" feed loads 10 per infinite-scroll page.
+              limit: 10,
             }),
           ],
           dynamic: {
@@ -236,40 +238,7 @@ export const PREDICT_FEED_REGISTRY: Record<PredictFeedId, PredictFeedConfig> = {
             baseParams: {
               status: 'open',
               order: 'volume24hr',
-              limit: 5,
-            },
-          },
-        },
-      },
-    ],
-  },
-  'popular-today': {
-    id: 'popular-today',
-    titleKey: 'predict.feed.popular_today',
-    header: {
-      showBackButton: true,
-      showSearchButton: true,
-    },
-    tabs: [
-      {
-        id: 'all',
-        titleKey: 'predict.feed.popular_today',
-        defaultFilterId: 'all',
-        filters: {
-          static: [
-            createAllFilter({
-              status: 'open',
-              order: 'volume24hr',
-              limit: 12,
-            }),
-          ],
-          dynamic: {
-            source: 'related-tags',
-            baseTagSlug: 'all',
-            baseParams: {
-              status: 'open',
-              order: 'volume24hr',
-              limit: 12,
+              limit: 10,
             },
           },
         },

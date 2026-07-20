@@ -18,7 +18,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect, useSelector } from 'react-redux';
 import {
   KeyboardAwareScrollView,
-  KeyboardProvider,
   KeyboardStickyView,
   useKeyboardState,
 } from 'react-native-keyboard-controller';
@@ -103,7 +102,11 @@ import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
 import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
-import { selectQrSyncPrimaryMnemonic } from '../../../selectors/qrSyncController';
+import {
+  selectQrSyncImportMnemonic,
+  selectQrSyncPrimaryMnemonic,
+} from '../../../selectors/qrSyncController';
+import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -122,6 +125,8 @@ const ImportFromSecretRecoveryPhrase = ({
 }) => {
   const isQrSyncImport = Boolean(route?.params?.qrSyncImport);
   const qrSyncPrimaryMnemonic = useSelector(selectQrSyncPrimaryMnemonic);
+  const qrSyncImportMnemonic = useSelector(selectQrSyncImportMnemonic);
+  const qrSyncMnemonic = qrSyncImportMnemonic ?? qrSyncPrimaryMnemonic;
   const walletSetupCompletedAttributionProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
   );
@@ -173,11 +178,11 @@ const ImportFromSecretRecoveryPhrase = ({
   }, [seedPhrase]);
 
   useEffect(() => {
-    if (isQrSyncImport && qrSyncPrimaryMnemonic) {
-      setSeedPhrase(qrSyncPrimaryMnemonic.split(SPACE_CHAR));
+    if (isQrSyncImport && qrSyncMnemonic) {
+      setSeedPhrase(qrSyncMnemonic.split(SPACE_CHAR));
       setCurrentStep(1);
     }
-  }, [isQrSyncImport, qrSyncPrimaryMnemonic]);
+  }, [isQrSyncImport, qrSyncMnemonic]);
 
   const { isEnabled: isMetricsEnabled } = useAnalytics();
 
@@ -473,10 +478,8 @@ const ImportFromSecretRecoveryPhrase = ({
           navigation.dispatch(resetAction);
         } else {
           navigation.navigate('OptinMetrics', {
-            onContinue: () => {
-              navigation.dispatch(resetAction);
-            },
             accountType: AccountType.Imported,
+            successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
           });
         }
       } catch (error) {
@@ -558,7 +561,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const uniqueId = useMemo(() => uuidv4(), []);
 
-  const content = (
+  return (
     <Box twClassName="flex-1 bg-default">
       <HeaderStandard
         includesTopInset
@@ -884,8 +887,6 @@ const ImportFromSecretRecoveryPhrase = ({
       <ScreenshotDeterrent enabled isSRP />
     </Box>
   );
-
-  return <KeyboardProvider>{content}</KeyboardProvider>;
 };
 
 ImportFromSecretRecoveryPhrase.propTypes = {

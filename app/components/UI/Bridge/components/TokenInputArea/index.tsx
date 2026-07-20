@@ -1,4 +1,10 @@
-import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from 'react';
 import {
   StyleSheet,
   ImageSourcePropType,
@@ -26,7 +32,7 @@ import Input from '../../../../../component-library/components/Form/TextField/fo
 import { TokenButton } from '../TokenButton';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { BigNumber } from 'ethers';
-import { BridgeToken } from '../../types';
+import { BridgeToken, TokenSelectorType } from '../../types';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import OldButton, {
@@ -45,8 +51,10 @@ import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
 import {
+  FeatureId,
   formatAddressToAssetId,
   isNativeAddress,
+  UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
 import { useTokenAddress } from '../../hooks/useTokenAddress';
@@ -57,6 +65,7 @@ import { useFormattedBalanceWithThreshold } from '../../hooks/useFormattedBalanc
 import { useDisplayCurrencyValue } from '../../hooks/useDisplayCurrencyValue';
 import { formatSecondaryTokenAmount } from '../../utils/sourceAmountInputMode';
 import { normalizeTokenAddress } from '../../utils/tokenUtils';
+import Engine from '../../../../../core/Engine';
 
 export const MAX_INPUT_LENGTH = 36;
 
@@ -240,16 +249,38 @@ export const TokenInputArea = forwardRef<
     }));
 
     const navigation = useNavigation();
+    const tokenSelectorType =
+      tokenType === TokenInputAreaType.Source || isSourceToken
+        ? TokenSelectorType.Source
+        : TokenSelectorType.Dest;
+
+    const trackAssetPickerOpened = useCallback((type: TokenSelectorType) => {
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+        UnifiedSwapBridgeEventName.AssetPickerOpened,
+        {
+          asset_location:
+            type === TokenSelectorType.Source ? 'source' : 'destination',
+          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+        },
+      );
+    }, []);
+
+    const handleTokenButtonPress = useCallback(() => {
+      trackAssetPickerOpened(tokenSelectorType);
+      onTokenPress?.();
+    }, [onTokenPress, tokenSelectorType, trackAssetPickerOpened]);
 
     const navigateToDestTokenSelector = () => {
+      trackAssetPickerOpened(TokenSelectorType.Dest);
       navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: 'dest',
+        type: TokenSelectorType.Dest,
       });
     };
 
     const navigateToSourceTokenSelector = () => {
+      trackAssetPickerOpened(TokenSelectorType.Source);
       navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: 'source',
+        type: TokenSelectorType.Source,
       });
     };
 
@@ -401,7 +432,7 @@ export const TokenInputArea = forwardRef<
                 networkImageSource={networkImageSource}
                 networkName={networkName}
                 testID={testID}
-                onPress={onTokenPress}
+                onPress={handleTokenButtonPress}
                 securityBadgeAssetId={tokenSecurityBadgeAssetId}
               />
             ) : (

@@ -21,7 +21,7 @@ import { useChipScrollList } from './useChipScrollList';
 
 export { calculateChipScrollX } from './calculateChipScrollX';
 
-const DEFAULT_CONTAINER_CLASS = 'pt-3 pb-4';
+const DEFAULT_CONTAINER_CLASS = 'pt-3 pb-3';
 const DEFAULT_CHIP_CLASS = 'rounded-xl px-4 py-2';
 
 const PredictChipList: React.FC<PredictChipListProps> = ({

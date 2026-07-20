@@ -3334,6 +3334,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     },
     status: FeatureFlagStatus.Active,
   },
+  earnMoneyParallaxAnimationEnabled: {
+    name: 'earnMoneyParallaxAnimationEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
 
   earnMoneyVaultApyControl: {
     name: 'earnMoneyVaultApyControl',
@@ -3834,11 +3841,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  perpsAbtestButtonColor: {
-    name: 'perpsAbtestButtonColor',
+  perpsTAT1937AbtestButtonColor: {
+    name: 'perpsTAT1937AbtestButtonColor',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: 'monochrome',
+    productionDefault: 'control',
     status: FeatureFlagStatus.Active,
   },
 
@@ -4385,6 +4392,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  rewardsFirstPredictOnUsEnabled: {
+    name: 'rewardsFirstPredictOnUsEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   rewardsReferralCodeEnabled: {
     name: 'rewardsReferralCodeEnabled',
     type: FeatureFlagType.Remote,
@@ -4514,6 +4529,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         sentinelUrl: 'https://tx-sentinel-bsc-mainnet.api.cx.metamask.io',
         gaslessBridgeWith7702Enabled: false,
       },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  socialAIQuickBuyStreamQuotes: {
+    name: 'socialAIQuickBuyStreamQuotes',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.2.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5420,6 +5446,23 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  tradeTO880AbtestOnboardingInterestQuestion: {
+    name: 'tradeTO880AbtestOnboardingInterestQuestion',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: { type: 'percentage_rollout', value: 0.75 },
+      },
+      {
+        name: 'treatment',
+        scope: { type: 'percentage_rollout', value: 1.0 },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
   homeTMCU828AbtestOnboardingChecklistStepper: {
     name: 'homeTMCU828AbtestOnboardingChecklistStepper',
     type: FeatureFlagType.Remote,
@@ -5475,6 +5518,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       'mainnet.base.org',
       'rpc.linea.build',
     ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  'stable-tokens': {
+    name: 'stable-tokens',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {},
     status: FeatureFlagStatus.Active,
   },
 
@@ -5762,6 +5813,39 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '7.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsRecentlyAddedEnabled: {
+    name: 'perpsRecentlyAddedEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.3.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsRecentlyViewedEnabled: {
+    name: 'perpsRecentlyViewedEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.4.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsClosePositionLimitOrderEnabled: {
+    name: 'perpsClosePositionLimitOrderEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.3.0',
     },
     status: FeatureFlagStatus.Active,
   },

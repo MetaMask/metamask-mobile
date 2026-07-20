@@ -6,6 +6,7 @@ import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import {
   normalizeProviderCode,
+  RampsOrderStatus,
   type TransakBuyQuote,
 } from '@metamask/ramps-controller';
 import { REDIRECTION_URL } from '../constants';
@@ -38,6 +39,7 @@ import {
 import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
 import { getChainIdFromAssetId } from '../headless';
 import { setHeadlessOrderContext } from '../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
+import { emitTerminalOrderAnalyticsFromCallback } from '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
 
 interface RampStackParamList {
   /** `baseRouteParams` (e.g. `headlessSessionId`) are merged onto this route in resets — see `navigateToVerifyIdentityCallback`. */
@@ -190,7 +192,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
    * call. No-op without a live session; `quote` (when in scope) seeds amount.
    */
   const emitHeadlessOrderFailed = useCallback(
-    (error: unknown, quote?: TransakBuyQuote) => {
+    (error: unknown, quote?: TransakBuyQuote, providerOrderId?: string) => {
       const session = getSession(headlessSessionId);
       if (!session) {
         return;
@@ -198,6 +200,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       trackEvent('RAMPS_ORDER_FAILED', {
         ramp_type: 'HEADLESS',
         ramp_surface: session.params?.rampSurface,
+        // TRAM-3696: present when the failure occurs after an order exists.
+        ...(providerOrderId && { provider_order_id: providerOrderId }),
         amount_source: Number(quote?.fiatAmount ?? session.params?.amount ?? 0),
         amount_destination: 0,
         payment_method_id: selectedPaymentMethod?.id || '',
@@ -536,29 +540,41 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           // type returned by `getParent()`.
           navigation.getParent()?.pop();
 
-          trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
-            ramp_type: wasHeadless ? 'HEADLESS' : 'DEPOSIT',
-            ramp_surface: rampSurface,
-            amount_source: Number(rampsOrder.fiatAmount),
-            amount_destination: Number(rampsOrder.cryptoAmount),
-            exchange_rate: Number(rampsOrder.exchangeRate),
-            gas_fee: rampsOrder.networkFees
-              ? Number(rampsOrder.networkFees)
-              : 0,
-            processing_fee: rampsOrder.partnerFees
-              ? Number(rampsOrder.partnerFees)
-              : 0,
-            total_fee: Number(rampsOrder.totalFeesFiat),
-            payment_method_id: rampsOrder.paymentMethod?.id || '',
-            country: regionIsoCode,
-            region: regionIsoCode,
-            chain_id: rampsOrder.network?.chainId || '',
-            currency_destination: rampsOrder.cryptoCurrency?.assetId || '',
-            currency_destination_symbol:
-              rampsOrder.cryptoCurrency?.symbol || '',
-            currency_destination_network: rampsOrder.network?.name || '',
-            currency_source: rampsOrder.fiatCurrency?.symbol || '',
-          });
+          // TRAM-3691: a widget payment that came back terminal-failed must NOT
+          // report as confirmed/placed. Emit the terminal failure instead — the
+          // order is terminal so polling never observes it, and the headless
+          // context set above tags it HEADLESS.
+          if (
+            rampsOrder.status === RampsOrderStatus.Failed ||
+            rampsOrder.status === RampsOrderStatus.IdExpired
+          ) {
+            emitTerminalOrderAnalyticsFromCallback(rampsOrder);
+          } else {
+            trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
+              ramp_type: wasHeadless ? 'HEADLESS' : 'DEPOSIT',
+              ramp_surface: rampSurface,
+              provider_order_id: rampsOrder.providerOrderId,
+              amount_source: Number(rampsOrder.fiatAmount),
+              amount_destination: Number(rampsOrder.cryptoAmount),
+              exchange_rate: Number(rampsOrder.exchangeRate),
+              gas_fee: rampsOrder.networkFees
+                ? Number(rampsOrder.networkFees)
+                : 0,
+              processing_fee: rampsOrder.partnerFees
+                ? Number(rampsOrder.partnerFees)
+                : 0,
+              total_fee: Number(rampsOrder.totalFeesFiat),
+              payment_method_id: rampsOrder.paymentMethod?.id || '',
+              country: regionIsoCode,
+              region: regionIsoCode,
+              chain_id: rampsOrder.network?.chainId || '',
+              currency_destination: rampsOrder.cryptoCurrency?.assetId || '',
+              currency_destination_symbol:
+                rampsOrder.cryptoCurrency?.symbol || '',
+              currency_destination_network: rampsOrder.network?.name || '',
+              currency_source: rampsOrder.fiatCurrency?.symbol || '',
+            });
+          }
         } catch (error) {
           processingOrderIdRef.current = null;
           Logger.error(error as Error, {
@@ -567,7 +583,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           });
           // Emit the HEADLESS failure event BEFORE failSession tears the
           // session down (TRAM-3623 §7) so the surface snapshot is available.
-          emitHeadlessOrderFailed(error);
+          // orderId (from the callback URL) is the provider order id (TRAM-3696).
+          emitHeadlessOrderFailed(error, undefined, orderId);
           if (failSession(headlessSessionId, error)) {
             // @ts-expect-error `pop` exists on the parent stack navigator at
             // runtime but is not surfaced on the generic `NavigationProp`
@@ -774,6 +791,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
                     ramp_type: 'HEADLESS',
                     ramp_surface: rampSurface,
+                    provider_order_id: rampsOrder.providerOrderId,
                     amount_source: Number(rampsOrder.fiatAmount),
                     amount_destination: Number(rampsOrder.cryptoAmount),
                     exchange_rate: Number(rampsOrder.exchangeRate),

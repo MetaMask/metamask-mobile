@@ -16,6 +16,8 @@ import {
   BannerAlertSeverity,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Engine from '../../../../../core/Engine';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
@@ -106,6 +108,8 @@ const MoneyHomeView = () => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedCardActionRowViewRef = useRef(false);
+  const { PreferencesController } = Engine.context;
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const {
     trackButtonClicked,
@@ -464,6 +468,10 @@ const MoneyHomeView = () => {
     });
   }, [trackTooltipClicked, navigation, apyPercent]);
 
+  const handleBalancePress = useCallback(() => {
+    PreferencesController.setPrivacyMode(!privacyMode);
+  }, [PreferencesController, privacyMode]);
+
   const handleEarningsInfoPress = useCallback(() => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.ESTIMATED_EARNINGS,
@@ -654,17 +662,22 @@ const MoneyHomeView = () => {
 
   const { primaryToken: cardPrimaryToken } = useCardHomeData();
   const currencyRates = useSelector(selectCurrencyRates);
-  // The Card pipeline reports balanceFiat in the user's selected currency, but
-  // we want to show USD fiat values in this view.
+  // Money Account entries are already valued in USD. Other Card tokens report
+  // their fiat value in the user's selected currency.
   const cardBalanceUsd = useMemo(() => {
-    const usd = convertSelectedFiatToUsd(
-      cardPrimaryToken?.rawFiatNumber,
-      currencyRates,
-    );
+    const rawFiat = cardPrimaryToken?.rawFiatNumber;
+    const usd = cardPrimaryToken?.isMoneyAccountEntry
+      ? rawFiat
+      : convertSelectedFiatToUsd(rawFiat, currencyRates);
     return usd === undefined
       ? formattedZero
       : moneyFormatUsd(new BigNumber(usd));
-  }, [cardPrimaryToken?.rawFiatNumber, currencyRates, formattedZero]);
+  }, [
+    cardPrimaryToken?.isMoneyAccountEntry,
+    cardPrimaryToken?.rawFiatNumber,
+    currencyRates,
+    formattedZero,
+  ]);
 
   const cardState = deriveCardState({
     isCardholder,
@@ -689,6 +702,7 @@ const MoneyHomeView = () => {
             isLinkDisabled={isLinking}
             cardBalance={cardBalanceUsd}
             isBalanceStale={showBalanceUnavailableBanner}
+            privacyMode={privacyMode}
             apy={apyPercent}
             analyticsScreen={CardScreens.MONEY_HOME}
             analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
@@ -714,6 +728,7 @@ const MoneyHomeView = () => {
           yearlyEarnings={yearlyEarnings}
           isLoading={vaultApyQuery.isLoading || isBalanceLoading}
           onInfoPress={handleEarningsInfoPress}
+          privacyMode={privacyMode}
         />
       ),
     });
@@ -742,6 +757,7 @@ const MoneyHomeView = () => {
             }
             onAddPress={handleMusdRowAddPress}
             balance={musdFiatFormatted}
+            privacyMode={privacyMode}
           />
         </>
       ),
@@ -765,6 +781,7 @@ const MoneyHomeView = () => {
           onViewAllPress={handleViewAllActivityPress}
           onHeaderPress={handleActivityHeaderPress}
           onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}
+          privacyMode={privacyMode}
         />
       ),
     });
@@ -783,6 +800,7 @@ const MoneyHomeView = () => {
           onViewAllPress={handleMoneyPotentialEarningsViewAllPressed}
           onHeaderPress={handlePotentialEarningsHeaderPress}
           onInfoPress={handleEarnCryptoInfoPress}
+          privacyMode={privacyMode}
         />
       ),
     });
@@ -863,6 +881,8 @@ const MoneyHomeView = () => {
           apy={apyPercent}
           displayState={displayState}
           onApyInfoPress={handleApyInfoPress}
+          privacyMode={privacyMode}
+          onBalancePress={handleBalancePress}
         />
         <MoneyActionButtonRow
           add={{

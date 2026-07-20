@@ -45,6 +45,8 @@ export interface PerpsChartFullscreenModalProps {
   symbol?: string;
   /** Signed position size string for long/short side derivation. */
   positionSize?: string;
+  /** Hyperliquid size decimals; forwarded so fullscreen advanced chart matches market precision. */
+  szDecimals?: number | null;
 }
 
 const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
@@ -58,6 +60,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   isAdvancedChartEnabled,
   symbol,
   positionSize,
+  szDecimals,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
@@ -269,6 +272,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
                 height={Math.max(chartHeight - ohlcvHeight, 100)}
                 tpslLines={tpslLines}
                 positionSize={positionSize}
+                szDecimals={szDecimals}
                 onCrosshairDataChange={setOhlcData}
                 onError={handleAdvancedChartError}
                 onSkeletonHidden={trackFullscreenChartScreenViewed}

@@ -26,6 +26,8 @@ import ErrorView from '../../Aggregator/components/ErrorView';
 import Logger from '../../../../../util/Logger';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
+import { emitTerminalOrderAnalyticsFromCallback } from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
+import { setHeadlessOrderContext } from '../../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
 import {
   BottomSheet,
   HeaderStandard,
@@ -52,7 +54,6 @@ import {
   extractHostname,
   type CloseSource,
 } from '../../utils/webviewFunnelAnalytics';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface CheckoutParams {
   url: string;
@@ -415,6 +416,23 @@ const Checkout = () => {
             throw new Error('Order could not be retrieved from callback');
           }
           addOrder(rampsOrder);
+
+          // TRAM-3623/3691: carry the headless context (surface + region) so the
+          // terminal RAMPS_TRANSACTION_FAILED is tagged HEADLESS — whether it
+          // fails now (read by emitTerminalOrderAnalyticsFromCallback below) or
+          // later via polling/relaunch. Mirrors useTransakRouting; safe here
+          // because this branch is already headless-gated.
+          setHeadlessOrderContext(rampsOrder.providerOrderId, {
+            rampSurface: headlessRampSurface,
+            region: regionCode ?? '',
+          });
+
+          // TRAM-3691: headless callback skips OrderDetails, so an
+          // already-terminal order here is never polled and its terminal
+          // metrics event would be lost. Emit it directly (no-ops for
+          // non-terminal orders and dedups against the polling path).
+          emitTerminalOrderAnalyticsFromCallback(rampsOrder);
+
           dispatch(protectWalletModalVisible());
           try {
             session.callbacks.onOrderCreated(rampsOrder.providerOrderId);
@@ -482,6 +500,8 @@ const Checkout = () => {
       providerName,
       effectiveOrderId,
       headlessBaseOverrides,
+      headlessRampSurface,
+      regionCode,
     ],
   );
 
@@ -578,7 +598,6 @@ const Checkout = () => {
     /* no-op until initialized */
   });
   const closeHeadlessOnUnmountRef = useRef<() => void>(() => undefined);
-  const surfaceClass = useElevatedSurface();
   closeHeadlessOnUnmountRef.current = () => {
     if (!headlessSessionId || hasTerminatedHeadlessSessionRef.current) {
       return;
@@ -643,7 +662,6 @@ const Checkout = () => {
         goBack={navigation.goBack}
         isFullscreen
         keyboardAvoidingViewEnabled={false}
-        twClassName={surfaceClass}
       >
         {sharedHeader}
         <ScreenLayout>
@@ -678,7 +696,6 @@ const Checkout = () => {
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
-        twClassName={surfaceClass}
       >
         {sharedHeader}
         <WebView
@@ -755,7 +772,6 @@ const Checkout = () => {
       goBack={navigation.goBack}
       isFullscreen
       keyboardAvoidingViewEnabled={false}
-      twClassName={surfaceClass}
     >
       {sharedHeader}
       <ScreenLayout>
