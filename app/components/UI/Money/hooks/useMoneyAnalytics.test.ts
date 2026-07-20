@@ -1,12 +1,18 @@
 import { renderHook } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import {
   TransactionStatus,
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import useMoneyAccountCardLinkage from '../../Card/hooks/useMoneyAccountCardLinkage';
-import useMoneyAccountBalance from './useMoneyAccountBalance';
+import {
+  selectIsCardAuthenticated,
+  selectIsMoneyAccountDelegatedForCard,
+} from '../../../../selectors/cardController';
+import useMoneyAccountInfo from './useMoneyAccountInfo';
+import ReactQueryService from '../../../../core/ReactQueryService';
+import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import {
   isMoneyDepositTx,
   isMoneyWithdrawTx,
@@ -44,8 +50,26 @@ jest.mock('../../../../constants/urls', () => ({
 }));
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
-jest.mock('../../Card/hooks/useMoneyAccountCardLinkage');
-jest.mock('./useMoneyAccountBalance');
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/cardController', () => ({
+  selectIsCardAuthenticated: jest.fn(),
+  selectIsMoneyAccountDelegatedForCard: jest.fn(),
+}));
+
+jest.mock('./useMoneyAccountInfo');
+
+jest.mock('../../../../core/ReactQueryService', () => ({
+  __esModule: true,
+  default: {
+    queryClient: {
+      getQueryState: jest.fn(),
+    },
+  },
+}));
 
 jest.mock('../utils/moneyTransactionGuards', () => ({
   isMoneyDepositTx: jest.fn(),
@@ -67,6 +91,19 @@ const mockIsMoneyWithdrawTx = isMoneyWithdrawTx as jest.MockedFunction<
 const mockGetMMPayChainIds = getMMPayChainIds as jest.MockedFunction<
   typeof getMMPayChainIds
 >;
+
+const mockUseSelector = useSelector as jest.Mock;
+const mockSelectIsCardAuthenticated =
+  selectIsCardAuthenticated as unknown as jest.Mock;
+const mockSelectIsMoneyAccountDelegatedForCard =
+  selectIsMoneyAccountDelegatedForCard as unknown as jest.Mock;
+const mockUseMoneyAccountInfo = useMoneyAccountInfo as jest.Mock;
+const mockQueryClient = ReactQueryService.queryClient as unknown as {
+  getQueryState: jest.Mock;
+};
+const mockGetQueryState = mockQueryClient.getQueryState;
+
+const MOCK_MONEY_ACCOUNT_ADDRESS = '0xMoneyAccountAddress';
 
 const mockBuiltEvent = { mock: 'built_event' };
 const mockBuild = jest.fn().mockReturnValue(mockBuiltEvent);
@@ -98,12 +135,16 @@ describe('useMoneyAnalytics', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });
-    (useMoneyAccountCardLinkage as jest.Mock).mockReturnValue({
-      isCardLinkedToMoneyAccount: false,
-      isCardAuthenticated: false,
+    mockUseSelector.mockImplementation((selector) => selector());
+    mockSelectIsMoneyAccountDelegatedForCard.mockReturnValue(false);
+    mockSelectIsCardAuthenticated.mockReturnValue(false);
+    mockUseMoneyAccountInfo.mockReturnValue({
+      primaryMoneyAccount: { address: MOCK_MONEY_ACCOUNT_ADDRESS },
     });
-    (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-      totalFiatRaw: '0',
+    mockGetQueryState.mockReturnValue({
+      status: 'success',
+      fetchStatus: 'idle',
+      data: { totalBalance: '0' },
     });
     mockBuild.mockReturnValue(mockBuiltEvent);
     mockAddProperties.mockReturnValue({ build: mockBuild });
@@ -160,11 +201,8 @@ describe('useMoneyAnalytics', () => {
       );
     });
 
-    it('sets is_card_linked_to_money_account from linkage hook', () => {
-      (useMoneyAccountCardLinkage as jest.Mock).mockReturnValue({
-        isCardLinkedToMoneyAccount: true,
-        isCardAuthenticated: false,
-      });
+    it('sets is_card_linked_to_money_account from the delegation selector', () => {
+      mockSelectIsMoneyAccountDelegatedForCard.mockReturnValue(true);
       const { result } = renderHook(() => useMoneyAnalytics());
 
       result.current.trackScreenViewed();
@@ -174,11 +212,8 @@ describe('useMoneyAnalytics', () => {
       );
     });
 
-    it('sets is_card_holder from isCardAuthenticated', () => {
-      (useMoneyAccountCardLinkage as jest.Mock).mockReturnValue({
-        isCardLinkedToMoneyAccount: false,
-        isCardAuthenticated: true,
-      });
+    it('sets is_card_holder from selectIsCardAuthenticated', () => {
+      mockSelectIsCardAuthenticated.mockReturnValue(true);
       const { result } = renderHook(() => useMoneyAnalytics());
 
       result.current.trackScreenViewed();
@@ -188,9 +223,22 @@ describe('useMoneyAnalytics', () => {
       );
     });
 
-    it('sets is_account_funded to true when totalFiatRaw is greater than 0', () => {
-      (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-        totalFiatRaw: '100.50',
+    it('reads the balance query state keyed by the money account address', () => {
+      const { result } = renderHook(() => useMoneyAnalytics());
+
+      result.current.trackScreenViewed();
+
+      expect(mockGetQueryState).toHaveBeenCalledWith([
+        MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
+        MOCK_MONEY_ACCOUNT_ADDRESS,
+      ]);
+    });
+
+    it('sets is_account_funded to true when the settled balance is greater than 0', () => {
+      mockGetQueryState.mockReturnValue({
+        status: 'success',
+        fetchStatus: 'idle',
+        data: { totalBalance: '100500000' },
       });
       const { result } = renderHook(() => useMoneyAnalytics());
 
@@ -201,9 +249,11 @@ describe('useMoneyAnalytics', () => {
       );
     });
 
-    it('sets is_account_funded to false when totalFiatRaw is "0"', () => {
-      (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-        totalFiatRaw: '0',
+    it('sets is_account_funded to false when the settled balance is zero', () => {
+      mockGetQueryState.mockReturnValue({
+        status: 'success',
+        fetchStatus: 'idle',
+        data: { totalBalance: '0' },
       });
       const { result } = renderHook(() => useMoneyAnalytics());
 
@@ -214,37 +264,61 @@ describe('useMoneyAnalytics', () => {
       );
     });
 
-    it('sets is_account_funded to false when totalFiatRaw is null', () => {
-      (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-        totalFiatRaw: null,
+    it('sets is_account_funded to false and is_money_balance_loading to false when the balance query errored', () => {
+      mockGetQueryState.mockReturnValue({
+        status: 'error',
+        fetchStatus: 'idle',
+        data: undefined,
       });
       const { result } = renderHook(() => useMoneyAnalytics());
 
       result.current.trackScreenViewed();
 
       expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ is_account_funded: false }),
+        expect.objectContaining({
+          is_money_balance_loading: false,
+          is_account_funded: false,
+        }),
       );
     });
 
-    it('sets is_account_funded to false when totalFiatRaw is undefined', () => {
-      (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-        totalFiatRaw: undefined,
+    it('sets is_account_funded to false and is_money_balance_loading to false when there is no money account', () => {
+      mockUseMoneyAccountInfo.mockReturnValue({
+        primaryMoneyAccount: undefined,
       });
+      mockGetQueryState.mockReturnValue(undefined);
       const { result } = renderHook(() => useMoneyAnalytics());
 
       result.current.trackScreenViewed();
 
       expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({ is_account_funded: false }),
+        expect.objectContaining({
+          is_money_balance_loading: false,
+          is_account_funded: false,
+        }),
+      );
+    });
+
+    it('sets is_money_balance_loading to true and is_account_funded to null when the balance query has never been observed for an existing money account', () => {
+      mockGetQueryState.mockReturnValue(undefined);
+      const { result } = renderHook(() => useMoneyAnalytics());
+
+      result.current.trackScreenViewed();
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          is_money_balance_loading: true,
+          is_account_funded: null,
+        }),
       );
     });
 
     describe('is_money_balance_loading', () => {
       it('sets is_money_balance_loading to true and is_account_funded to null during initial fetch', () => {
-        (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-          totalFiatRaw: undefined,
-          isBalanceFetching: true,
+        mockGetQueryState.mockReturnValue({
+          status: 'loading',
+          fetchStatus: 'fetching',
+          data: undefined,
         });
         const { result } = renderHook(() => useMoneyAnalytics());
 
@@ -259,9 +333,10 @@ describe('useMoneyAnalytics', () => {
       });
 
       it('sets is_money_balance_loading to false and is_account_funded to false when settled with zero balance', () => {
-        (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-          totalFiatRaw: '0',
-          isBalanceFetching: false,
+        mockGetQueryState.mockReturnValue({
+          status: 'success',
+          fetchStatus: 'idle',
+          data: { totalBalance: '0' },
         });
         const { result } = renderHook(() => useMoneyAnalytics());
 
@@ -276,9 +351,10 @@ describe('useMoneyAnalytics', () => {
       });
 
       it('does not null out is_account_funded during a background refetch when cached value exists', () => {
-        (useMoneyAccountBalance as jest.Mock).mockReturnValue({
-          totalFiatRaw: '100',
-          isBalanceFetching: true,
+        mockGetQueryState.mockReturnValue({
+          status: 'success',
+          fetchStatus: 'fetching',
+          data: { totalBalance: '100000000' },
         });
         const { result } = renderHook(() => useMoneyAnalytics());
 
