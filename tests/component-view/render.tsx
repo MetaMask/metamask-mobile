@@ -68,15 +68,15 @@ export const getRouteParamsProbeTestId = (routeName: string) =>
 
 export const createRouteParamsProbe =
   (routeName: string): React.FC =>
-    () => {
-      const route = useRoute();
+  () => {
+    const route = useRoute();
 
-      return (
-        <Text testID={getRouteParamsProbeTestId(routeName)}>
-          {JSON.stringify(route.params)}
-        </Text>
-      );
-    };
+    return (
+      <Text testID={getRouteParamsProbeTestId(routeName)}>
+        {JSON.stringify(route.params)}
+      </Text>
+    );
+  };
 
 /**
  * Render a screen with additional registered routes to assert navigation without mocking.
@@ -96,7 +96,7 @@ export function renderScreenWithRoutes(
 
   const DefaultRouteProbe =
     (routeName: string): React.FC =>
-      () => <Text testID={getRouteProbeTestId(routeName)}>{routeName}</Text>;
+    () => <Text testID={getRouteProbeTestId(routeName)}>{routeName}</Text>;
 
   const stackTree = (
     <QueryClientBoundary>
