@@ -7,7 +7,7 @@ import {
   setupSSEMockRequest,
 } from '../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers';
+import { getDecodedProxiedURL } from '../../smoke-appium/notifications/utils/helpers';
 import {
   GET_QUOTE_ETH_USDC_RESPONSE,
   GET_QUOTE_ETH_USDC_RESPONSE_CUSTOM_SLIPPAGE,

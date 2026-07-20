@@ -45,6 +45,9 @@ import {
 } from '../../headless/headlessEntryNavigation';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './Checkout.styles';
+import { useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
+import { getProviderWebviewColors } from '../../utils/getProviderWebviewColors';
 import Device from '../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../util/browser';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
@@ -99,7 +102,7 @@ const Checkout = () => {
   const [key, setKey] = useState(0);
   const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<CheckoutParams>();
-  const { styles } = useStyles(styleSheet, {});
+  const { themeAppearance } = useTheme();
   const { addOrder, addPrecreatedOrder, getOrderFromCallback } =
     useRampsOrders();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -117,6 +120,16 @@ const Checkout = () => {
     cryptocurrency,
     headlessSessionId,
   } = params ?? {};
+
+  // Resolve the provider's iframe background color for the current theme.
+  // Applied to both the MMDS BottomSheet (via twClassName) and the WebView
+  // (via styles.webview) so the native chrome matches the embedded checkout
+  // seamlessly. Unknown providers fall back to the BottomSheet default surface.
+  const isDark = themeAppearance === AppThemeKey.dark;
+  const providerBg = getProviderWebviewColors(providerCode, isDark);
+  const { styles } = useStyles(styleSheet, { providerBg });
+  const providerBgTwClassName = `bg-[${providerBg}]`;
+
   const effectiveOrderId = (orderIdParam ?? customOrderId)?.trim() || null;
 
   // Headless deposit (TRAM-3623): when a headless session drives this Checkout,
@@ -696,6 +709,7 @@ const Checkout = () => {
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
+        twClassName={providerBgTwClassName}
       >
         {sharedHeader}
         <WebView
