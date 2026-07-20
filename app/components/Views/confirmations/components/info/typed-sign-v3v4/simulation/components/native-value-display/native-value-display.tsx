@@ -62,8 +62,8 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
 }) => {
   const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
 
-  const { colors } = useTheme();
-  const styles = styleSheet(colors);
+  const theme = useTheme();
+  const styles = styleSheet(theme);
 
   const conversionRate = useSelector((state: RootState) =>
     selectConversionRateByChainId(state, chainId),

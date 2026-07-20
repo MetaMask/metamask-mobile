@@ -26,7 +26,7 @@ import useAuthentication from '../../../../../core/Authentication/hooks/useAuthe
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 
-interface PasswordBottomSheetParams {
+export interface PasswordBottomSheetParams {
   onSuccess: () => void;
   description?: string;
 }

@@ -29,8 +29,6 @@ import {
 } from '../../../../selectors/networkController';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
-import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
-import { AppThemeKey } from '../../../../util/theme/models';
 import { TraceName, endTrace } from '../../../../util/trace';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../hooks/useStyles';
@@ -42,7 +40,6 @@ import { selectPerpsEnabledFlag } from '../../Perps';
 import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
 import Transactions from '../../Transactions';
 import {
-  AMBIENT_NEGATIVE_COLOR,
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
 } from '../components/abTestConfig';
@@ -169,8 +166,6 @@ const TokenDetails: React.FC<{
   onCtaClicked,
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
-  const { themeAppearance } = useTheme();
-  const isLightMode = themeAppearance === AppThemeKey.light;
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
@@ -188,6 +183,9 @@ const TokenDetails: React.FC<{
 
   const caip19AssetId = useMemo((): CaipAssetType | null => {
     try {
+      if (token.caipAssetId && isCaipAssetType(token.caipAssetId)) {
+        return token.caipAssetId;
+      }
       if (isCaipAssetType(token.address)) {
         return token.address as CaipAssetType;
       }
@@ -205,7 +203,7 @@ const TokenDetails: React.FC<{
     } catch {
       return null;
     }
-  }, [token.address, token.chainId]);
+  }, [token.caipAssetId, token.address, token.chainId]);
 
   const isPriceAlertsFeatureEnabled = useSelector(selectPriceAlertsEnabled);
   const shareUrl = useMemo(
@@ -310,21 +308,6 @@ const TokenDetails: React.FC<{
   const handlePriceDirectionChange = useCallback((isPositive: boolean) => {
     setChartPricePositive(isPositive);
   }, []);
-
-  const ambientIconColor = useMemo(() => {
-    if (!useAmbientColor || chartPricePositive === null) return undefined;
-
-    const successColor = isLightMode
-      ? LIGHT_MODE_SUCCESS_GREEN
-      : theme.colors.success.default;
-
-    return chartPricePositive ? successColor : AMBIENT_NEGATIVE_COLOR;
-  }, [
-    useAmbientColor,
-    chartPricePositive,
-    isLightMode,
-    theme.colors.success.default,
-  ]);
 
   const {
     balance,
@@ -469,8 +452,6 @@ const TokenDetails: React.FC<{
             ? handlePriceAlertPress
             : undefined
         }
-        iconColor={ambientIconColor}
-        useAmbientColor={useAmbientColor}
         onCopyAddress={() =>
           trackActionTapped(TokenDetailsAction.CopyTokenAddress)
         }
@@ -509,7 +490,7 @@ const TokenDetails: React.FC<{
           location={TransactionDetailLocation.AssetDetails}
         />
       )}
-      {!txLoading && !(useAmbientColor && chartPricePositive === null) && (
+      {!txLoading && (
         <TokenDetailsStickyFooter
           token={token}
           securityData={securityData}
@@ -518,7 +499,6 @@ const TokenDetails: React.FC<{
           currentTokenBalance={balance}
           onStickyButtonsResolved={onStickyButtonsResolved}
           sourcePage="TokenDetailsView"
-          isPricePositive={chartPricePositive}
           useAmbientColor={useAmbientColor}
           onSwapPress={onCtaClicked}
           onBuyPress={onCtaClicked}
