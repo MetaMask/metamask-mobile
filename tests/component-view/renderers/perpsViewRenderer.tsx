@@ -220,6 +220,23 @@ function topOfBookChannel() {
   };
 }
 
+/** Focused-price channel: usePerpsLiveFocusedPrice calls subscribeToSymbol (e.g. PerpsMarketDetailsView, PerpsOrderView) */
+function focusedPriceChannel() {
+  return {
+    subscribe: (): (() => void) => noopUnsubscribe,
+    subscribeToSymbol: (params: {
+      symbol: string;
+      callback: (update: PriceUpdate | undefined) => void;
+    }): (() => void) => {
+      if (params?.callback) {
+        params.callback(undefined);
+      }
+      return noopUnsubscribe;
+    },
+    getSnapshot: () => null,
+  };
+}
+
 /** Prices channel: usePerpsLivePrices calls subscribeToSymbols */
 const pricesChannel = () => {
   const channel = mutableChannelWithInitialValue<Record<string, PriceUpdate>>(
@@ -314,6 +331,7 @@ function createTestStreamManager(
     marketData,
     oiCaps: noopChannel(),
     topOfBook: topOfBookChannel(),
+    focusedPrice: focusedPriceChannel(),
     candles: noopChannel(),
     clearAllChannels: (): void => undefined,
   } as unknown as PerpsStreamManager;

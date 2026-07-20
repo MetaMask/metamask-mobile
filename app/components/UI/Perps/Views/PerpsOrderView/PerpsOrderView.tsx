@@ -79,8 +79,6 @@ import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
 import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
   getPerpsDisplaySymbol,
@@ -92,6 +90,10 @@ import {
   type Position,
   ORDER_SLIPPAGE_CONFIG,
 } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller/constants';
 import { bpsToPercent } from '../../constants/slippageConfig';
 import {
   PerpsOrderProvider,
@@ -113,6 +115,7 @@ import {
 } from '../../hooks';
 import {
   usePerpsLiveAccount,
+  usePerpsLiveFocusedPrice,
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../hooks/stream';
@@ -122,12 +125,14 @@ import { usePerpsMaxSlippage } from '../../hooks/usePerpsMaxSlippage';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
 import { useABTest } from '../../../../../hooks/useABTest';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsAbandonOrderTracking } from '../../hooks/usePerpsAbandonOrderTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import {
+  selectPerpsAdvancedChartEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsTradeWithAnyTokenEnabledFlag,
 } from '../../selectors/featureFlags';
@@ -141,6 +146,8 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { willFlipPosition } from '../../utils/orderUtils';
+import { derivePerpsTradeAction } from '../../utils/deriveTradeAction';
+import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import {
   calculateRoEForPrice,
   isStopLossSafeFromLiquidation,
@@ -178,9 +185,18 @@ interface OrderRouteParams {
   fromTokenDetails?: boolean;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
   source?: string;
+  /** Analytics: market-list discovery section forwarded from market details */
+  source_section?: string;
+  /** Analytics: chart library active when the order flow started */
+  chartLibrary?: string;
   defaultSzDecimals?: number;
   defaultMaxLeverage?: number;
 }
+
+const getChartLibrary = (isAdvancedChartEnabled: boolean) =>
+  isAdvancedChartEnabled
+    ? PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED
+    : PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
 
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
@@ -212,6 +228,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     (TrendingFeedSessionManager.getInstance().isFromTrending
       ? 'trending'
       : undefined);
+  const sourceSection = route.params?.source_section;
+  const isAdvancedChartEnabled = useSelector(
+    selectPerpsAdvancedChartEnabledFlag,
+  );
+  const chartLibrary =
+    route.params?.chartLibrary ?? getChartLibrary(isAdvancedChartEnabled);
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -281,8 +303,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const orderTypeRef = useRef<OrderType>('market');
 
   const isSubmittingRef = useRef(false);
-  const orderStartTimeRef = useRef<number>(0);
   const inputMethodRef = useRef<InputMethod>('default');
+
+  // Track whether the user actually placed a trade so leaving the
+  // screen without one (back swipe, hardware back, tab switch) is emitted as an
+  // abandon interaction via the focus-effect cleanup below.
+  const hasPlacedOrderRef = useRef(false);
+  const latestAbandonPropsRef = useRef<Record<string, unknown>>({});
 
   const { isInitialized } = usePerpsConnection();
   const { subscribeToPrices, updatePositionTPSL } = usePerpsTrading();
@@ -410,7 +437,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         : PERPS_EVENT_VALUE.DIRECTION.SHORT,
     [PERPS_EVENT_PROPERTY.SOURCE]:
       source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: chartLibrary,
+    [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
     [PERPS_EVENT_PROPERTY.OPEN_POSITION]: currentMarketPosition ? 1 : 0,
+    [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: Boolean(
+      account?.totalBalance && Number.parseFloat(account.totalBalance) > 0,
+    ),
     [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
       isServiceInterruptionBannerEnabled,
   };
@@ -446,13 +478,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return unsubscribe;
   }, [isDataReady, isInitialized, orderForm.asset, subscribeToPrices]);
 
-  // Get real-time price data using new stream architecture (deferred)
-  // Uses single WebSocket subscription with component-level debouncing
+  // Fast focused price via activeAssetCtx projection (~0.5 s, TAT-3334)
+  const focusedPriceUpdate = usePerpsLiveFocusedPrice({
+    symbol: isDataReady ? orderForm.asset : '',
+    enabled: isDataReady,
+  });
+
+  // allMids baseline as first-render fallback (~2 s)
   const prices = usePerpsLivePrices({
-    symbols: isDataReady ? [orderForm.asset] : [], // Defer subscription
+    symbols: isDataReady ? [orderForm.asset] : [],
     throttleMs: !isDataReady ? 0 : 1000,
   });
-  const currentPrice = prices[orderForm.asset];
+
+  // Prefer fast focused price; fall back to allMids baseline
+  const currentPrice = focusedPriceUpdate ?? prices[orderForm.asset];
 
   // Get top of book data for maker/taker fee determination (deferred)
   const currentTopOfBook = usePerpsTopOfBook({
@@ -735,6 +774,182 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     },
   });
 
+  const currentMarketPositionSize = currentMarketPosition?.size;
+  const consideredTradeAction = useMemo(
+    () =>
+      derivePerpsTradeAction(
+        currentMarketPositionSize ? { size: currentMarketPositionSize } : null,
+        orderForm.direction,
+      ),
+    [currentMarketPositionSize, orderForm.direction],
+  );
+
+  // Emit "transaction considered" once the user has a stable,
+  // meaningful fill. Debounced 1s and reset on each change so it fires once per
+  // settled fill instead of on every keystroke.
+  useEffect(() => {
+    const orderSize = parseFloat(orderForm.amount);
+    if (!(orderSize > 0)) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      const consideredProps: Record<string, unknown> = {
+        // No ORDER_CONTEXT value enum exists; 'trade' denotes the open-order
+        // screen (the close screen would be 'close').
+        [PERPS_EVENT_PROPERTY.ORDER_CONTEXT]: 'trade',
+        [PERPS_EVENT_PROPERTY.ACTION]: consideredTradeAction,
+        [PERPS_EVENT_PROPERTY.ORDER_SIZE]: orderSize,
+        [PERPS_EVENT_PROPERTY.INPUT_METHOD]: inputMethodRef.current,
+        [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+        [PERPS_EVENT_PROPERTY.DIRECTION]:
+          orderForm.direction === 'long'
+            ? PERPS_EVENT_VALUE.DIRECTION.LONG
+            : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+        [PERPS_EVENT_PROPERTY.ORDER_TYPE]: orderForm.type,
+        [PERPS_EVENT_PROPERTY.ORDER_HAS_TP]: Boolean(orderForm.takeProfitPrice),
+        [PERPS_EVENT_PROPERTY.ORDER_HAS_SL]: Boolean(orderForm.stopLossPrice),
+        [PERPS_EVENT_PROPERTY.LEVERAGE]: orderForm.leverage,
+        [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: hasCustomTokenSelected,
+      };
+      if (hasCustomTokenSelected && payToken) {
+        consideredProps[PERPS_EVENT_PROPERTY.FROM_TOKEN] = payToken.symbol;
+        consideredProps[PERPS_EVENT_PROPERTY.FROM_CHAIN] = payToken.chainId;
+      }
+      track(MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED, consideredProps);
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [
+    orderForm.amount,
+    orderForm.asset,
+    orderForm.direction,
+    orderForm.type,
+    orderForm.leverage,
+    orderForm.takeProfitPrice,
+    orderForm.stopLossPrice,
+    consideredTradeAction,
+    hasCustomTokenSelected,
+    payToken,
+    track,
+  ]);
+
+  // Emit "trade quote received" when a pay-with-token relay quote
+  // request completes. Loading transitions provide real latency; cached quotes
+  // that are already settled emit once with zero latency instead of being
+  // skipped because no loading start was observed.
+  const payQuoteStartRef = useRef<number | null>(null);
+  const lastEmittedPayQuoteKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!hasCustomTokenSelected) {
+      payQuoteStartRef.current = null;
+      lastEmittedPayQuoteKeyRef.current = null;
+      return;
+    }
+
+    if (isPayTotalsLoading) {
+      // Start timing on the first observation of an in-flight quote — this
+      // covers both a fresh false→true transition and a quote already loading
+      // when this effect first runs (custom token pre-selected), so a
+      // completing quote is never missed for lack of a recorded start.
+      if (payQuoteStartRef.current === null) {
+        payQuoteStartRef.current = Date.now();
+      }
+      return;
+    }
+
+    const blockingNoQuoteAlert = noQuotesAlerts.find((a) => a.isBlocking);
+    const succeeded = Boolean(payTotals) && !blockingNoQuoteAlert;
+
+    if (!payTotals && !blockingNoQuoteAlert) {
+      payQuoteStartRef.current = null;
+      return;
+    }
+
+    // Include the amount and pay-token identity so a retry after changing them
+    // is a distinct attempt, not deduped against the previous one — a failed
+    // quote carries no payTotals, so without these a repeated failure with the
+    // same blocking alert would be silently undercounted.
+    const quoteKey = JSON.stringify({
+      asset: orderForm.asset,
+      amount: orderForm.amount,
+      payToken: payToken
+        ? `${payToken.symbol ?? ''}:${payToken.chainId ?? ''}`
+        : null,
+      payTotals,
+      errorKey: blockingNoQuoteAlert?.key,
+      errorMessage: blockingNoQuoteAlert?.message,
+    });
+
+    if (lastEmittedPayQuoteKeyRef.current === quoteKey) {
+      payQuoteStartRef.current = null;
+      return;
+    }
+
+    const latencyMs =
+      payQuoteStartRef.current === null
+        ? 0
+        : Date.now() - payQuoteStartRef.current;
+    payQuoteStartRef.current = null;
+    lastEmittedPayQuoteKeyRef.current = quoteKey;
+
+    const quoteProps: Record<string, unknown> = {
+      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+      [PERPS_EVENT_PROPERTY.STATUS]: succeeded
+        ? PERPS_EVENT_VALUE.STATUS.SUCCESS
+        : PERPS_EVENT_VALUE.STATUS.FAILED,
+      [PERPS_EVENT_PROPERTY.QUOTE_LATENCY_MS]: latencyMs,
+    };
+    if (!succeeded && blockingNoQuoteAlert) {
+      if (typeof blockingNoQuoteAlert.message === 'string') {
+        quoteProps[PERPS_EVENT_PROPERTY.ERROR_MESSAGE] =
+          blockingNoQuoteAlert.message;
+      }
+      if (blockingNoQuoteAlert.key) {
+        quoteProps[PERPS_EVENT_PROPERTY.ERROR_REASON] =
+          blockingNoQuoteAlert.key;
+      }
+    }
+    track(MetaMetricsEvents.PERPS_TRADE_QUOTE_RECEIVED, quoteProps);
+  }, [
+    isPayTotalsLoading,
+    hasCustomTokenSelected,
+    payTotals,
+    noQuotesAlerts,
+    orderForm.asset,
+    orderForm.amount,
+    payToken,
+    track,
+  ]);
+
+  // Snapshot of the abandon-order props, refreshed each render so the
+  // focus-effect cleanup emits the latest form state when the user leaves.
+  latestAbandonPropsRef.current = {
+    [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+      PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+    [PERPS_EVENT_PROPERTY.ACTION]: PERPS_EVENT_VALUE.ACTION.ABANDON_ORDER,
+    [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+    [PERPS_EVENT_PROPERTY.DIRECTION]:
+      orderForm.direction === 'long'
+        ? PERPS_EVENT_VALUE.DIRECTION.LONG
+        : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+    [PERPS_EVENT_PROPERTY.ORDER_SIZE]: parseFloat(orderForm.amount || '0'),
+    [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: orderForm.leverage,
+  };
+
+  // emit abandon_order on a real exit (back swipe, hardware back,
+  // programmatic dismissal) AND on a genuine tab switch away, but never when a
+  // child route is pushed (TP/SL screen, cross-margin modal, payment-token
+  // selector) or after placement (hasPlacedOrderRef).
+  const getAbandonProperties = useCallback(
+    () => latestAbandonPropsRef.current,
+    [],
+  );
+  usePerpsAbandonOrderTracking({
+    getAbandonProperties,
+    hasCommittedRef: hasPlacedOrderRef,
+  });
+
   // Order execution hook. Shows standard "Order submitted" toast for all order flows.
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
@@ -999,6 +1214,26 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         return;
       }
 
+      // Track the Place Order button press for ALL users on the real
+      // tap — emitted BEFORE the deposit/direct branching so deposit-path taps
+      // are captured too (the deposit branch returns early). `forceTrade` marks
+      // the post-deposit re-invocation, not a user tap, so it is excluded. The
+      // active A/B assignment (e.g. button color) is auto-injected onto this
+      // PERPS_UI_INTERACTION event via enrichWithABTests().
+      if (!forceTrade) {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+          [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+          [PERPS_EVENT_PROPERTY.DIRECTION]:
+            orderForm.direction === 'long'
+              ? PERPS_EVENT_VALUE.DIRECTION.LONG
+              : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+        });
+      }
+
       // Bail out before the pay-with-any-token deposit branch so an
       // excessive-slippage order never starts a deposit/signature flow.
       if (exceedsMaxSlippage && typeof estimatedSlippageBps === 'number') {
@@ -1046,7 +1281,23 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         handleDepositConfirm(activeTransactionMeta, () => {
           handlePlaceOrder(true);
         });
-        await onDepositConfirm();
+        // useTransactionConfirm swallows confirm errors and reports them via
+        // onError, so capture failure explicitly instead of assuming success.
+        let depositConfirmError: unknown;
+        await onDepositConfirm({
+          onError: (error) => {
+            depositConfirmError = error;
+          },
+        });
+        if (depositConfirmError) {
+          // A cancelled/failed deposit confirmation is not a commitment: keep
+          // abandon tracking armed and stay on the screen so the user can retry
+          // (leaving later then correctly counts as an abandon).
+          return;
+        }
+        // Deposit confirmed: the order is placed once funds arrive, so leaving
+        // now is a real commitment, not an abandoned order.
+        hasPlacedOrderRef.current = true;
         if (fromTokenDetails) {
           navigation.dispatch(
             CommonActions.reset({
@@ -1075,20 +1326,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       // No deposit needed, place order directly
       isSubmittingRef.current = true;
 
-      orderStartTimeRef.current = Date.now();
-
-      // Track Place Order button press with A/B test context
-      if (isButtonColorTestEnabled) {
-        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
-          [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-          [PERPS_EVENT_PROPERTY.DIRECTION]:
-            orderForm.direction === 'long'
-              ? PERPS_EVENT_VALUE.DIRECTION.LONG
-              : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-        });
-      }
+      // Note: order_execution_latency_ms is intentionally not emitted
+      // here — the terminal Perp transaction event is owned by the perps
+      // controller, and the latency field lands with the @metamask/perps-controller
+      // 9.2.2 bump (TrackingData.orderExecutionLatencyMs) in a follow-up PR.
+      // The Place Order button press (incl. A/B context) is already tracked at
+      // the top of this callback for all paths; the button-color assignment is
+      // auto-injected onto PERPS_UI_INTERACTION via enrichWithABTests().
 
       try {
         // Validation errors are shown in the UI
@@ -1144,6 +1388,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         const monitorOrders = true;
         const monitorPositions = true;
 
+        // Real placement is underway; leaving now is not an abandon.
+        hasPlacedOrderRef.current = true;
+
         navigation.navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.MARKET_DETAILS,
           params: {
@@ -1193,7 +1440,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             : {}),
           ...tpParams,
           ...slParams,
-          // Add tracking data for MetaMetrics events
+          // Add tracking data for MetaMetrics events (controller owns emission)
           trackingData: {
             marginUsed: Number(marginRequired),
             totalFee: feeResults.totalFee,
@@ -1204,9 +1451,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             estimatedPoints: feeResults.estimatedPoints,
             inputMethod: inputMethodRef.current,
             source,
-            tradeAction: currentMarketPosition
-              ? 'increase_exposure'
-              : 'create_position',
+            ...toPerpsEntryAttribution({ source, sourceSection }),
+            ...(feeResults.protocolFeeRate !== undefined
+              ? { hlFeeRate: feeResults.protocolFeeRate }
+              : {}),
+            tradeAction: derivePerpsTradeAction(
+              currentMarketPosition,
+              orderForm.direction,
+            ),
+            chartLibrary,
             tradeWithToken: hasCustomTokenSelected,
             ...(hasCustomTokenSelected &&
               payToken && {
@@ -1215,6 +1468,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               }),
             vipTier: vipTier ?? undefined,
             vipDiscount: feeResults.feeDiscountPercentage,
+            // Cast needed only because the installed perps-controller 9.2.1
+            // TradeAction type is narrow (create_position | increase_exposure)
+            // and does not yet include the flip values. The next release widens
+            // it, after which this cast can be dropped.
           } as OrderParams['trackingData'],
         };
 
@@ -1298,10 +1555,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       feeResults.totalFee,
       feeResults.metamaskFee,
       feeResults.metamaskFeeRate,
+      feeResults.protocolFeeRate,
       feeResults.feeDiscountPercentage,
       feeResults.estimatedPoints,
       source,
-      isButtonColorTestEnabled,
+      sourceSection,
+      chartLibrary,
       isTradeWithAnyTokenEnabled,
       depositAmount,
       activeTransactionMeta,
@@ -1449,7 +1708,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       <PerpsOrderHeader
         asset={orderForm.asset}
         price={assetData.price}
-        priceChange={assetData.change}
         orderType={orderForm.type}
         direction={orderForm.direction}
         onOrderTypePress={() => setIsOrderTypeVisible(true)}
@@ -1531,7 +1789,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         ? formatPerpsFiat(orderForm.limitPrice, {
                             ranges: PRICE_RANGES_UNIVERSAL,
                           })
-                        : 'Set price'
+                        : strings('perps.order.set_price')
                     }
                   />
                 </TouchableOpacity>

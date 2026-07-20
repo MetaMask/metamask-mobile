@@ -28,6 +28,7 @@ import { TraceName } from '../../../../../util/trace';
 import {
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
+  PERPS_EVENT_VALUE,
   type Order,
 } from '@metamask/perps-controller';
 import styleSheet from './PerpsOrderDetailsView.styles';
@@ -39,8 +40,10 @@ import {
   formatOrderCardDate,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import {
   formatOrderLabel,
+  getOrderPositionDirection,
   getValidOrderPrice,
   getValidTriggerPrice,
   inferTriggerConditionKey,
@@ -117,12 +120,6 @@ const PerpsOrderDetailsView: React.FC = () => {
 
     const orderTypeLabel = formatOrderLabel(order);
 
-    // Calculate fill percentage
-    const fillPercentage =
-      parseFloat(order.originalSize) > 0
-        ? (parseFloat(order.filledSize) / parseFloat(order.originalSize)) * 100
-        : 0;
-
     const { validOrderPrice, validTriggerPrice, effectivePrice } = priceMetrics;
     const originalSizeUSD =
       effectivePrice !== null
@@ -172,7 +169,6 @@ const PerpsOrderDetailsView: React.FC = () => {
 
     return {
       orderTypeLabel,
-      fillPercentage,
       originalSizeInUSDText:
         originalSizeUSD !== null
           ? formatPerpsFiat(originalSizeUSD)
@@ -201,10 +197,15 @@ const PerpsOrderDetailsView: React.FC = () => {
 
     setIsCanceling(true);
 
+    // Reduce-only/trigger orders close a position, so their side is the inverse
+    // of the position direction (a sell closes a long). Derive the position
+    // direction so the toast matches the order shown in the UI.
+    const orderDirection = getOrderPositionDirection(order);
+
     // Show in-progress toast
     showToast(
       PerpsToastOptions.orderManagement.shared.cancellationInProgress(
-        order.side === 'buy' ? 'long' : 'short',
+        orderDirection,
         order.size,
         order.symbol,
         order.orderType,
@@ -215,6 +216,14 @@ const PerpsOrderDetailsView: React.FC = () => {
       const result = await cancelOrder({
         orderId: order.orderId,
         symbol: order.symbol,
+        trackingData: {
+          totalFee,
+          marketPrice: priceMetrics.effectivePrice ?? 0,
+          source: PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
+          ...toPerpsEntryAttribution({
+            source: PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
+          }),
+        },
       });
 
       // Show success/failure toast
@@ -223,7 +232,7 @@ const PerpsOrderDetailsView: React.FC = () => {
           PerpsToastOptions.orderManagement.shared.cancellationSuccess(
             order.reduceOnly,
             order.orderType,
-            order.side === 'buy' ? 'long' : 'short',
+            orderDirection,
             order.size,
             order.symbol,
           ),
@@ -237,7 +246,16 @@ const PerpsOrderDetailsView: React.FC = () => {
     } finally {
       setIsCanceling(false);
     }
-  }, [order, canCancel, cancelOrder, navigation, showToast, PerpsToastOptions]);
+  }, [
+    order,
+    canCancel,
+    cancelOrder,
+    navigation,
+    showToast,
+    PerpsToastOptions,
+    totalFee,
+    priceMetrics.effectivePrice,
+  ]);
 
   if (!order) {
     return (
@@ -377,36 +395,6 @@ const PerpsOrderDetailsView: React.FC = () => {
                 </View>
               </View>
             ))}
-
-            {/* Status */}
-            <View style={styles.detailRow}>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                style={styles.detailLabel}
-              >
-                {strings('perps.order_details.status')}
-              </Text>
-              <View style={styles.detailValue}>
-                <View style={styles.statusContainer}>
-                  {orderDetails.fillPercentage > 0 && (
-                    <View style={styles.statusFilled}>
-                      <Text
-                        variant={TextVariant.BodySM}
-                        color={TextColor.Success}
-                      >
-                        {Math.round(orderDetails.fillPercentage)}% filled
-                      </Text>
-                    </View>
-                  )}
-                  {orderDetails.fillPercentage === 0 && (
-                    <Text variant={TextVariant.BodyMD}>
-                      {strings('perps.order_details.open')}
-                    </Text>
-                  )}
-                </View>
-              </View>
-            </View>
           </View>
         </View>
       </ScrollView>
