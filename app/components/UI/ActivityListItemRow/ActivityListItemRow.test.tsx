@@ -1661,6 +1661,7 @@ describe('ActivityListItemRow — display currency conversion', () => {
   // reset them), so restore the suite-wide defaults (USD, equal rates) after
   // each test to keep overrides from leaking.
   afterEach(() => {
+    jest.clearAllMocks();
     mockCurrency.mockReturnValue('usd');
     mockConversionRate.mockReturnValue(2500);
     mockUsdConversionRate.mockReturnValue(2500);
@@ -1811,6 +1812,7 @@ describe('ActivityListItemRow — ERC-20 fiat address casing (TMCU-937)', () => 
   // This mock uses a persistent return value (clearAllMocks does not reset it),
   // so restore the suite default (lowercased mUSD key) after each test.
   afterEach(() => {
+    jest.clearAllMocks();
     mockContractExchangeRates.mockReturnValue(ratesFor(LINEA_MUSD_ADDRESS));
   });
 
@@ -1898,6 +1900,8 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'marketCloseLong',
   'limitLong',
   'limitCloseLong',
+  'assetActivation',
+  'assetDeactivation',
 ];
 
 const EXPECTED_TITLES = {
@@ -1978,6 +1982,8 @@ const EXPECTED_TITLES = {
   marketCloseLong: strings('transactions.activity_market_close_long'),
   limitLong: strings('transactions.activity_limit_long'),
   limitCloseLong: strings('transactions.activity_limit_close_long'),
+  assetActivation: strings('transactions.activity_trustline_activated'),
+  assetDeactivation: strings('transactions.activity_trustline_deactivated'),
 } satisfies Record<ActivityListItem['type'], string>;
 
 describe('ActivityListItemRow — title display for all ActivityKind values', () => {

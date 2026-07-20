@@ -122,6 +122,21 @@ describe('PerpsRecentlyViewedRail', () => {
     expect(screen.getByText('+2.5%')).toBeOnTheScreen();
   });
 
+  it('strips the dex prefix from the displayed symbol and accessibility label', () => {
+    render(
+      <PerpsRecentlyViewedRail
+        markets={[createMarket('xyz:TSLA')]}
+        onMarketPress={mockOnMarketPress}
+      />,
+    );
+
+    expect(screen.getByText('TSLA')).toBeOnTheScreen();
+    expect(screen.queryByText('xyz:TSLA')).toBeNull();
+    expect(
+      screen.getByLabelText('TSLA recently viewed market'),
+    ).toBeOnTheScreen();
+  });
+
   it('preserves the newest-first order passed in via props', () => {
     render(
       <PerpsRecentlyViewedRail
