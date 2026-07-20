@@ -128,7 +128,6 @@ const getStories = () => {
     "./app/component-library/components/Tags/TagUrl/TagUrl.stories.tsx": require("../app/component-library/components/Tags/TagUrl/TagUrl.stories.tsx"),
     "./app/component-library/components/Texts/SensitiveText/SensitiveText.stories.tsx": require("../app/component-library/components/Texts/SensitiveText/SensitiveText.stories.tsx"),
     "./app/component-library/components/Texts/Text/Text.stories.tsx": require("../app/component-library/components/Texts/Text/Text.stories.tsx"),
-    "./app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx": require("../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx"),
     "./app/component-library/components/Toast/Toast.stories.tsx": require("../app/component-library/components/Toast/Toast.stories.tsx"),
     "./app/components/Base/Keypad/Keypad.stories.tsx": require("../app/components/Base/Keypad/Keypad.stories.tsx"),
     "./app/components/UI/BalanceEmptyState/BalanceEmptyState.stories.tsx": require("../app/components/UI/BalanceEmptyState/BalanceEmptyState.stories.tsx"),
