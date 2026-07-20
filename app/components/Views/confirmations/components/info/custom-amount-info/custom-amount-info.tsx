@@ -250,6 +250,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       pendingFiatAmount: amountFiatDebounced,
     });
 
+    const hasAutoSubmittedPrefill = useRef(false);
+
     const handleDone = useCallback(async () => {
       const keyboardVisibleAtStart = isKeyboardVisibleRef.current;
       try {
@@ -276,6 +278,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         return;
       }
       EngineService.flushState();
+      hasAutoSubmittedPrefill.current = true;
       // If the keyboard was closed when handleDone started (auto-submit) but
       // the user opened it during the await, don't dismiss it.
       if (!keyboardVisibleAtStart && isKeyboardVisibleRef.current) {
@@ -301,7 +304,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       wasPrefillPending.current = isPrefillPending;
     }, [isPrefillPending, handleDone]);
 
-    const hasAutoSubmittedPrefill = useRef(false);
     useEffect(() => {
       // Reset when prefill drops (e.g. pay token changed) so handleDone
       // re-fires once the new prefill amount is ready.
