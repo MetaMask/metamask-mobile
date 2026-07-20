@@ -4,6 +4,7 @@ import { Alert, Severity } from '../../types/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { BigNumber } from 'bignumber.js';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import {
@@ -16,6 +17,7 @@ import {
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
+import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import type { RootState } from '../../../../../reducers';
 
 export function useInsufficientPerpsBalanceAlert({
@@ -42,10 +44,21 @@ export function useInsufficientPerpsBalanceAlert({
     TransactionType.perpsWithdraw,
   ]);
 
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionMeta?.id ?? ''),
+  );
+  const isMoneyPaymentOverride =
+    paymentOverride === PaymentOverride.MoneyAccount;
+
   const isPendingInput = pendingAmount !== undefined;
 
   const isInsufficient = useMemo(() => {
     if (!isPerpsWithdraw) return false;
+
+    // When the destination is the Money Account, the withdrawn funds bridge
+    // into it and the vault deposit runs post-Relay; the perps balance/fees
+    // check does not apply. useInsufficientMoneyAccountBalanceAlert covers it.
+    if (isMoneyPaymentOverride) return false;
 
     if (
       withdrawableBalance !== undefined &&
@@ -86,6 +99,7 @@ export function useInsufficientPerpsBalanceAlert({
   }, [
     amountHuman,
     hasQuotes,
+    isMoneyPaymentOverride,
     isPendingInput,
     isPerpsWithdraw,
     withdrawableBalance,

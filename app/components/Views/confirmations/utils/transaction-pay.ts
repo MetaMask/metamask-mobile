@@ -328,6 +328,12 @@ export function applyMoneyAccountOverride(
       if (moneyAccountAddress && !isWithdraw) {
         config.refundTo = moneyAccountAddress as Hex;
       }
+      // Withdraw flows send funds to the Money Account, whose address the
+      // controller cannot derive from txParams.from (that is the funding EOA).
+      if (moneyAccountAddress && isWithdraw) {
+        (config as Record<string, unknown>).moneyAccountAddress =
+          moneyAccountAddress as Hex;
+      }
     },
   );
 

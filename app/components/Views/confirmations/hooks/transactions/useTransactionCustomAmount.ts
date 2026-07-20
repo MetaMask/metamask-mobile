@@ -91,6 +91,9 @@ export function useTransactionCustomAmount({
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
   ]);
+  const isPredictWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.predictWithdraw,
+  ]);
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
@@ -273,8 +276,8 @@ export function useTransactionCustomAmount({
       const shouldSetMax =
         percentage === 100 &&
         !isPerpsWithdraw &&
-        !isMoneyAccountWithdraw &&
-        !isMoneyAccountDeposit;
+        !isPredictWithdraw &&
+        !isMoneyAccountWithdraw;
 
       if (shouldSetMax) {
         setIsMax(true);
@@ -300,6 +303,7 @@ export function useTransactionCustomAmount({
       balanceUsd,
       isMaxAmount,
       isPerpsWithdraw,
+      isPredictWithdraw,
       isMoneyAccountWithdraw,
       isMoneyAccountDeposit,
       payToken?.balanceRaw,
