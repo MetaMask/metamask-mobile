@@ -29,6 +29,10 @@ export const useOndoAccountPicker = (campaignId: string | undefined) => {
   const handleGroupSelect = useCallback(
     (group: AccountGroupObject) => {
       if (!pendingPicker) return;
+      if (!campaignId) {
+        setPendingPicker(null);
+        return;
+      }
       Engine.context.AccountTreeController.setSelectedAccountGroup(group.id);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
@@ -39,10 +43,6 @@ export const useOndoAccountPicker = (campaignId: string | undefined) => {
           .build(),
       );
       const { row, tokenDecimals } = pendingPicker;
-      if (!campaignId) {
-        setPendingPicker(null);
-        return;
-      }
       const afterClose = () => {
         setPendingPicker(null);
         navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR, {
