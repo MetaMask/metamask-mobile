@@ -8,6 +8,15 @@ import { Linking } from 'react-native';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 
 const mockOnCloseBottomSheet = jest.fn();
+const mockOpenSupportWithConsent = jest.fn(
+  (open: (url: string) => void, baseUrl?: string) => open(baseUrl ?? ''),
+);
+
+jest.mock('../../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn().mockResolvedValue(undefined),
