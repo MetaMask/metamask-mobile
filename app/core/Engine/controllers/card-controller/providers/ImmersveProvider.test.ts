@@ -69,11 +69,13 @@ const TOKENS: CardAuthTokens = {
 
 describe('ImmersveProvider', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     jest.useFakeTimers();
     jest.setSystemTime(FIXED_NOW);
   });
 
   afterEach(() => {
+    jest.resetAllMocks();
     jest.useRealTimers();
   });
 

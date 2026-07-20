@@ -191,6 +191,18 @@ describe('SignUp Component', () => {
     (useDebouncedValue as jest.Mock).mockImplementation((value) => value);
     (validateEmail as jest.Mock).mockReturnValue(true);
     (validatePassword as jest.Mock).mockReturnValue(true);
+    // Restore shared mock implementations cleared by afterEach resetAllMocks
+    const mockUseRegions = jest.requireMock('../../hooks/useRegions').default;
+    mockUseRegions.mockImplementation(() => ({
+      allRegions: mockSignUpRegions,
+      signUpRegions: mockSignUpRegions.filter((r) => r.canSignUp),
+      getRegionByCode: mockGetRegionByCode,
+      isLoading: false,
+    }));
+    const { selectImmersveOnboardingEnabled } = jest.requireMock(
+      '../../../../../selectors/featureFlagController/card',
+    );
+    (selectImmersveOnboardingEnabled as jest.Mock).mockReturnValue(false);
     store = createTestStore();
   });
 
