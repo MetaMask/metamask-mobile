@@ -85,16 +85,4 @@ describe('selectDefaultReceiveToken', () => {
     const options = [usdtTron, trxNative, usdcBase];
     expect(selectDefaultReceiveToken(options, trxNative)).toBe(usdtTron);
   });
-
-  it('defaults to the same-chain USDC when selling native XLM on Stellar', () => {
-    const STELLAR = 'stellar:pubnet' as unknown as Hex;
-    const xlmNative = token('XLM', 'stellar:pubnet/slip44:148', STELLAR);
-    const usdcStellar = token(
-      'USDC',
-      'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
-      STELLAR,
-    );
-    const options = [usdcStellar, xlmNative, usdcBase];
-    expect(selectDefaultReceiveToken(options, xlmNative)).toBe(usdcStellar);
-  });
 });

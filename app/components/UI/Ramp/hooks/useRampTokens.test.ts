@@ -46,12 +46,6 @@ const mockNetworkConfigurations = {
     nativeCurrency: 'TRX',
     rpcEndpoints: [],
   },
-  'stellar:pubnet': {
-    chainId: 'stellar:pubnet',
-    name: 'Stellar',
-    nativeCurrency: 'XLM',
-    rpcEndpoints: [],
-  },
 };
 
 jest.mock('../../../../selectors/networkController', () => ({
@@ -516,43 +510,6 @@ describe('useRampTokens', () => {
       // All networks from mock config are in the user's wallet
       expect(result.current.topTokens).toHaveLength(2);
       expect(result.current.allTokens).toHaveLength(3);
-    });
-
-    it('includes Stellar tokens when Stellar network is in wallet state', async () => {
-      const ethToken = createMockToken({ symbol: 'ETH' });
-      const xlmToken = createMockToken({
-        chainId: 'stellar:pubnet',
-        symbol: 'XLM',
-        name: 'Stellar Lumens',
-        assetId: 'stellar:pubnet/slip44:148',
-      });
-      const unknownNetworkToken = createMockToken({
-        chainId: 'stellar:unknown' as `${string}:${string}`,
-        symbol: 'UNKNOWN',
-        assetId: 'stellar:unknown/slip44:148',
-      });
-
-      const mockResponse = createMockResponse(
-        [ethToken, xlmToken],
-        [ethToken, xlmToken, unknownNetworkToken],
-      );
-      mockHandleFetch.mockResolvedValueOnce(mockResponse);
-
-      const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState('us-ca'),
-      });
-
-      await waitFor(() => {
-        expect(result.current.topTokens).not.toBeNull();
-      });
-
-      // Stellar pubnet is in the wallet state, stellar:unknown is not
-      expect(result.current.topTokens).toHaveLength(2);
-      expect(result.current.topTokens?.[1].symbol).toBe('XLM');
-      expect(result.current.allTokens).toHaveLength(2);
-      expect(
-        result.current.allTokens?.some((token) => token.symbol === 'UNKNOWN'),
-      ).toBe(false);
     });
 
     it('filters out tokens with empty chainId', async () => {

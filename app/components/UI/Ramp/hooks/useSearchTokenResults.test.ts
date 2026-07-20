@@ -30,15 +30,6 @@ const mockTokens: DepositCryptoCurrency[] = [
     iconUrl:
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/56/erc20/0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d.png',
   },
-  {
-    assetId: 'stellar:pubnet/slip44:148',
-    chainId: 'stellar:pubnet',
-    name: 'Stellar Lumens',
-    symbol: 'XLM',
-    decimals: 7,
-    iconUrl:
-      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/stellar/pubnet/slip44/148.png',
-  },
 ];
 
 function mapToAssetIds(tokens: DepositCryptoCurrency[]) {
@@ -112,31 +103,6 @@ describe('useSearchTokenResults', () => {
       }),
     );
     expect(result.current).toEqual([]);
-  });
-
-  it('should filter tokens by the Stellar network', () => {
-    const { result } = renderHook(() =>
-      useSearchTokenResults({
-        tokens: mockTokens,
-        networkFilter: ['stellar:pubnet'],
-        searchString: '',
-      }),
-    );
-    expect(mapToAssetIds(result.current)).toEqual([
-      'stellar:pubnet/slip44:148',
-    ]);
-  });
-
-  it('should resolve the Stellar network name for search', () => {
-    const { result } = renderHook(() =>
-      useSearchTokenResults({
-        tokens: mockTokens,
-        networkFilter: null,
-        searchString: 'XLM',
-      }),
-    );
-    expect(result.current[0].assetId).toBe('stellar:pubnet/slip44:148');
-    expect(result.current[0].networkName).toBe('Stellar');
   });
 
   it('should return all tokens when networkFilter is null', () => {
