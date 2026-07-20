@@ -1,5 +1,6 @@
 import type { Position } from '@metamask/social-controllers';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useIsFocused } from '@react-navigation/native';
 import {
   Box,
   Button,
@@ -79,6 +80,8 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
     TOP_TRADERS_BUY_ACTION_EXPOSURE_METADATA,
   );
 
+  const isFocused = useIsFocused();
+
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
   // Treatment tapped Buy before the destination metadata finished resolving —
   // hold the intent and navigate once it settles (rather than falling back).
@@ -112,6 +115,8 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
     // Treatment: go straight to swaps with the trader's token as destination.
     if (variant.openSwaps) {
       if (destToken) {
+        // Clear any pending intent so the resolver effect can't also navigate.
+        setIsSwapPending(false);
         goToSwaps(undefined, destToken, undefined, true);
         return;
       }
@@ -123,6 +128,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
       }
       // Settled with no usable token (e.g. unsupported chain) — fall through to
       // QuickBuy so Buy is never a no-op.
+      setIsSwapPending(false);
     }
 
     setIsQuickBuyVisible(true);
@@ -138,6 +144,12 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   // Resolve a pending treatment intent once the destination metadata settles.
   useEffect(() => {
     if (!isSwapPending) return;
+    // The user left the screen while metadata was resolving — cancel the intent
+    // so we never navigate (or open QuickBuy) from a backgrounded screen.
+    if (!isFocused) {
+      setIsSwapPending(false);
+      return;
+    }
     if (destToken) {
       setIsSwapPending(false);
       goToSwaps(undefined, destToken, undefined, true);
@@ -147,7 +159,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
       setIsSwapPending(false);
       setIsQuickBuyVisible(true);
     }
-  }, [isSwapPending, destToken, isLoading, goToSwaps]);
+  }, [isSwapPending, isFocused, destToken, isLoading, goToSwaps]);
 
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);

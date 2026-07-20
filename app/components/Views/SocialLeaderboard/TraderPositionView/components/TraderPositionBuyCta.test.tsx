@@ -14,6 +14,11 @@ import {
 const mockTraderPositionQuickBuy = jest.fn((_props: unknown) => null);
 const mockPlayImpact = jest.fn();
 
+let mockIsFocused = true;
+jest.mock('@react-navigation/native', () => ({
+  useIsFocused: () => mockIsFocused,
+}));
+
 jest.mock('../../../../../hooks/useABTest', () => ({
   useABTest: jest.fn(),
 }));
@@ -111,6 +116,7 @@ const renderCta = (
 describe('TraderPositionBuyCta', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsFocused = true;
     mockUseSwapBridgeNavigation.mockReturnValue({
       goToSwaps: mockGoToSwaps,
     } as unknown as ReturnType<typeof useSwapBridgeNavigation>);
@@ -220,6 +226,30 @@ describe('TraderPositionBuyCta', () => {
         undefined,
         true,
       );
+      expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isVisible: false }),
+      );
+    });
+
+    it('cancels a pending buy without navigating when the screen loses focus', () => {
+      setDestToken(undefined, true);
+      const { getByTestId, rerender } = renderCta();
+
+      fireEvent.press(getByTestId(BUY_BUTTON_TEST_ID));
+      expect(mockGoToSwaps).not.toHaveBeenCalled();
+
+      // User leaves the screen, then the metadata resolves in the background.
+      mockIsFocused = false;
+      setDestToken(mockDestToken, false);
+      rerender(
+        <TraderPositionBuyCta
+          position={mockPosition}
+          onBuyCtaClicked={jest.fn()}
+          buyButtonTestID={BUY_BUTTON_TEST_ID}
+        />,
+      );
+
+      expect(mockGoToSwaps).not.toHaveBeenCalled();
       expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
         expect.objectContaining({ isVisible: false }),
       );

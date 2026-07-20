@@ -6,6 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useIsFocused } from '@react-navigation/native';
 import { useABTest } from '../../../../../hooks/useABTest';
 import {
   SwapBridgeNavigationLocation,
@@ -39,6 +40,8 @@ interface SwapDestResolverProps {
   target: QuickBuyTarget;
   onResolved: (destToken: BridgeToken) => void;
   onUnresolvable: () => void;
+  /** Cancel the pending buy (e.g. the feed lost focus while resolving). */
+  onCancel: () => void;
 }
 
 /**
@@ -56,12 +59,22 @@ const SwapDestResolver: React.FC<SwapDestResolverProps> = ({
   target,
   onResolved,
   onUnresolvable,
+  onCancel,
 }) => {
   const { destToken, isLoading } = useQuickBuySetup(target);
+  const isFocused = useIsFocused();
   const settledRef = useRef(false);
 
   useEffect(() => {
     if (settledRef.current) return;
+
+    // The feed lost focus while resolving — cancel so we never navigate (or open
+    // QuickBuy) from a backgrounded screen.
+    if (!isFocused) {
+      settledRef.current = true;
+      onCancel();
+      return;
+    }
 
     if (destToken) {
       settledRef.current = true;
@@ -75,7 +88,7 @@ const SwapDestResolver: React.FC<SwapDestResolverProps> = ({
       settledRef.current = true;
       onUnresolvable();
     }
-  }, [destToken, isLoading, onResolved, onUnresolvable]);
+  }, [isFocused, destToken, isLoading, onResolved, onUnresolvable, onCancel]);
 
   return null;
 };
@@ -156,6 +169,11 @@ const FeedSpotBuyAction = forwardRef<FeedSpotBuyActionHandle>((_props, ref) => {
     setSwapTarget(null);
   }, [swapTarget, openQuickBuy]);
 
+  // The feed lost focus mid-resolution — drop the pending buy without any UI.
+  const handleSwapCancel = useCallback(() => {
+    setSwapTarget(null);
+  }, []);
+
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);
   }, []);
@@ -168,6 +186,7 @@ const FeedSpotBuyAction = forwardRef<FeedSpotBuyActionHandle>((_props, ref) => {
           target={swapTarget}
           onResolved={handleSwapResolved}
           onUnresolvable={handleSwapUnresolvable}
+          onCancel={handleSwapCancel}
         />
       )}
 

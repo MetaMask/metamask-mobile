@@ -284,6 +284,7 @@ jest.mock('@react-navigation/native', () => {
     useRoute: () => ({
       params: mockRouteParams,
     }),
+    useIsFocused: () => true,
   };
 });
 

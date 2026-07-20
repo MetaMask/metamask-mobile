@@ -19,6 +19,7 @@ import type { FeedItem, FeedSection, FeedTypeFilter } from './types';
 import type { UseTraderFeedResult } from './hooks/useTraderFeed';
 
 const mockNavigate = jest.fn();
+let mockIsFocused = true;
 const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
 const mockLoadMore = jest.fn();
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
@@ -111,6 +112,7 @@ jest.mock('./hooks/useTraderFeed', () => ({
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
+  useIsFocused: () => mockIsFocused,
 }));
 
 jest.mock('../../../../util/haptics', () => ({
@@ -210,6 +212,7 @@ describe('FeedView', () => {
     mockQuickBuyAnalyticsContext = undefined;
     handleTypeFilterChange = undefined;
     mockAbTestVariant = { openSwaps: false };
+    mockIsFocused = true;
     mockDestToken = {
       address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
       symbol: 'PEPE',
@@ -331,6 +334,18 @@ describe('FeedView', () => {
     mockAbTestVariant = { openSwaps: true };
     mockDestToken = undefined;
     mockQuickBuyIsLoading = true;
+
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
+
+    expect(mockGoToSwaps).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('mock-quick-buy-open')).not.toBeOnTheScreen();
+  });
+
+  it('cancels a pending swap (treatment) without navigating when the feed loses focus', () => {
+    mockAbTestVariant = { openSwaps: true };
+    mockIsFocused = false;
 
     renderWithProvider(<FeedView />);
 
