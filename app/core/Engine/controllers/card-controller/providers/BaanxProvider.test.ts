@@ -916,7 +916,9 @@ describe('BaanxProvider — getOnChainAssets (unauthenticated on-chain path)', (
     let tokensBalance: jest.Mock;
 
     beforeEach(() => {
-      MockStaticJsonRpcProvider.mockImplementation(() => ({}));
+      MockStaticJsonRpcProvider.mockImplementation(
+        () => ({}) as unknown as ethers.providers.StaticJsonRpcProvider,
+      );
 
       spendersAllowancesForTokens = jest.fn();
       tokensBalance = jest.fn();
