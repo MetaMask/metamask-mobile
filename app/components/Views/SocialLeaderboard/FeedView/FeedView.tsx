@@ -39,11 +39,9 @@ import {
   useSocialLeaderboardAnalytics,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import {
-  QuickBuy,
-  TOP_TRADERS_QUICK_BUY_FEATURES,
-  type QuickBuyTarget,
-} from '../TraderPositionView/components/QuickBuy';
+import FeedSpotBuyAction, {
+  type FeedSpotBuyActionHandle,
+} from './components/FeedSpotBuyAction';
 import FeedAudienceToggle from './components/FeedAudienceToggle';
 import FeedItemRow from './components/FeedItemRow';
 import FeedItemRowSkeleton from './components/FeedItemRowSkeleton';
@@ -100,10 +98,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
   typeFilterRef.current = typeFilter;
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
 
-  const [quickBuyTarget, setQuickBuyTarget] = useState<QuickBuyTarget | null>(
-    null,
-  );
-  const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
+  const buyActionRef = useRef<FeedSpotBuyActionHandle>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const {
@@ -117,6 +112,14 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
     error,
     refresh,
   } = useTraderFeed({ audience, typeFilter, enabled: isActive });
+
+  // Only expose the Top Traders Buy Action A/B test (and mount its QuickBuy /
+  // swaps orchestrator) when the loaded feed actually offers a spot Buy, perps
+  // rows navigate to Perps and must not pollute the experiment.
+  const hasSpotItem = useMemo(
+    () => items.some((item) => item.type === 'spot'),
+    [items],
+  );
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -141,10 +144,6 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
       setRefreshing(false);
     }
   }, [refresh]);
-
-  const handleQuickBuyClose = useCallback(() => {
-    setIsQuickBuyVisible(false);
-  }, []);
 
   const handleAudienceChange = useCallback(
     (next: FeedAudience) => {
@@ -210,13 +209,12 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
             : {}),
         });
 
-        setQuickBuyTarget({
+        buyActionRef.current?.open({
           tokenAddress: item.tokenAddress,
           tokenSymbol: item.tokenSymbol,
           tokenName: item.tokenName,
           chain: item.chain,
         });
-        setIsQuickBuyVisible(true);
         return;
       }
 
@@ -461,13 +459,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         onClose={() => setIsTypeSheetOpen(false)}
       />
 
-      <QuickBuy.Root
-        isVisible={isQuickBuyVisible}
-        target={quickBuyTarget}
-        onClose={handleQuickBuyClose}
-        features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        analyticsContext={{ source: 'trader_feed' }}
-      />
+      {hasSpotItem && <FeedSpotBuyAction ref={buyActionRef} />}
     </Box>
   );
 };

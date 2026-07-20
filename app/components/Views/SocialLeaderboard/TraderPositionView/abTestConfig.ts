@@ -3,13 +3,15 @@ import type { ABTestAnalyticsMapping } from '../../../../util/analytics/abTestAn
 
 // --- Top Traders Buy Action A/B Test (TSA-901) ---
 //
-// Controls what the spot Buy button on the trader position screen does:
+// Controls what the spot Buy / Trade button does on the trader position screen
+// and the trader feed:
 // - control: opens the QuickBuy sheet (current behavior)
 // - treatment: opens the main swaps view directly with the trader's token
 //   pre-filled as the buy destination
 //
 // Perps positions are unaffected — they use a separate Trade button and never
-// resolve this experiment (exposure is scoped to the spot Buy sub-tree).
+// resolve this experiment (exposure is scoped to the spot Buy sub-tree on the
+// token screen, and to feeds that contain at least one spot row).
 
 export const TOP_TRADERS_BUY_ACTION_AB_KEY =
   'socialAiTSA901AbtestTopTradersBuyAction';
@@ -45,5 +47,6 @@ export const TOP_TRADERS_BUY_ACTION_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMa
     eventNames: [
       EVENT_NAME.SOCIAL_FOLLOW_TRADING_TOKEN_SCREEN_VIEWED,
       EVENT_NAME.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED,
+      EVENT_NAME.SOCIAL_TRADER_FEED_ITEM_TRADE_CLICKED,
     ],
   };
