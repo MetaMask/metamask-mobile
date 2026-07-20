@@ -206,7 +206,6 @@ jest.mock('../../../component-library/components/Cells/Cell/index.ts', () => {
     default: MockCell,
     CellVariant: {
       SelectWithMenu: 'SelectWithMenu',
-      MultiSelectWithMenu: 'MultiSelectWithMenu',
     },
   };
 });
