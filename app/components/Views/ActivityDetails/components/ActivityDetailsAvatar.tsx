@@ -49,9 +49,7 @@ export function ActivityDetailsAvatar({
       return null;
     }
 
-    const imageOnlyAvatar = (
-      <AvatarToken src={{ uri: iconUrl }} size={size} />
-    );
+    const imageOnlyAvatar = <AvatarToken src={{ uri: iconUrl }} size={size} />;
     return networkImage ? (
       <BadgeWrapper
         position={BadgeWrapperPosition.BottomRight}
@@ -66,11 +64,7 @@ export function ActivityDetailsAvatar({
 
   const avatar =
     tokens.length === 1 ? (
-      <AvatarToken
-        name={tokens[0].symbol}
-        src={imageSources[0]}
-        size={size}
-      />
+      <AvatarToken name={tokens[0].symbol} src={imageSources[0]} size={size} />
     ) : (
       <Box twClassName="flex-row">
         <AvatarToken
