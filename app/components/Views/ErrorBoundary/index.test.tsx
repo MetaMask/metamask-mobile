@@ -11,15 +11,8 @@ import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import { analytics } from '../../../util/analytics/analytics';
 import { reloadAppAsync } from 'expo';
-import { useSupportConsent } from '../../hooks/useSupportConsent';
-import AppConstants from '../../../core/AppConstants';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { navigateToSupportConsent } from '../../../util/support';
-
-const mockOpenSupportWithConsent = jest.fn();
-jest.mock('../../hooks/useSupportConsent', () => ({
-  useSupportConsent: jest.fn(),
-}));
 
 jest.mock('../../../util/support', () => ({
   navigateToSupportConsent: jest.fn(),
@@ -75,6 +68,7 @@ describe('ErrorBoundary', () => {
     errorMessage: 'Test error message',
     showExportSeedphrase: jest.fn(),
     copyErrorToClipboard: jest.fn(),
+    openTicket: jest.fn(),
     sentryId: 'test-sentry-id',
     onboardingErrorConfig: null,
   };
@@ -87,9 +81,6 @@ describe('ErrorBoundary', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(useSupportConsent).mockReturnValue({
-      openSupportWithConsent: mockOpenSupportWithConsent,
-    });
   });
 
   afterEach(() => {
@@ -258,7 +249,7 @@ describe('ErrorBoundary', () => {
     );
   });
 
-  it('opens support with consent when Contact support is pressed', async () => {
+  it('delegates to openTicket when Contact support is pressed', async () => {
     const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
       state: initialState,
     });
@@ -270,17 +261,7 @@ describe('ErrorBoundary', () => {
       fireEvent.press(contactSupportButton);
     });
 
-    expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
-      expect.any(Function),
-      AppConstants.REVIEW_PROMPT.SUPPORT,
-    );
-
-    const [open] = mockOpenSupportWithConsent.mock.calls[0];
-    const spyOpenURL = jest.spyOn(Linking, 'openURL');
-    open('https://support.metamask.io/?customer_service_token=jwt-token');
-    expect(spyOpenURL).toHaveBeenCalledWith(
-      'https://support.metamask.io/?customer_service_token=jwt-token',
-    );
+    expect(mockProps.openTicket).toHaveBeenCalledTimes(1);
   });
 
   describe('openTicket (class component)', () => {

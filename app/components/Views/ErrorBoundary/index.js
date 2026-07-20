@@ -37,12 +37,10 @@ import Text, {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import AppConstants from '../../../core/AppConstants';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { navigateToSupportConsent } from '../../../util/support';
 import { useSelector } from 'react-redux';
 import { isTestEnvironment } from '../../../util/test/utils';
-import { useSupportConsent } from '../../hooks/useSupportConsent';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -147,17 +145,15 @@ export const Fallback = (props) => {
   );
   const dataCollectionForMarketing =
     isDataCollectionForMarketingEnabled && !isOnboardingError;
-  const { openSupportWithConsent } = useSupportConsent();
 
   const toggleModal = () => {
     setModalVisible((visible) => !visible);
     setFeedback('');
   };
-  const handleContactSupport = () =>
-    openSupportWithConsent(
-      (url) => Linking.openURL(url),
-      AppConstants.REVIEW_PROMPT.SUPPORT,
-    );
+  // Delegate to the class-level openTicket instead of calling the
+  // useSupportConsent hook here: this fallback can render at the root boundary,
+  // which sits outside NavigationProvider, so navigation hooks would throw.
+  const handleContactSupport = () => props.openTicket?.();
 
   const handleTryAgain = () => {
     reloadAppAsync('Error boundary Try again').catch((error) => {
@@ -400,6 +396,7 @@ Fallback.propTypes = {
   errorMessage: PropTypes.string,
   showExportSeedphrase: PropTypes.func,
   copyErrorToClipboard: PropTypes.func,
+  openTicket: PropTypes.func,
   sentryId: PropTypes.string,
   onboardingErrorConfig: PropTypes.shape({
     navigation: PropTypes.object,

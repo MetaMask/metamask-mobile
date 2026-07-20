@@ -204,16 +204,15 @@ describe('navigateToSupportConsent', () => {
     );
   });
 
-  it('opens the plain support URL when onReject runs', () => {
+  it('opens the raw base URL with no device details when onReject runs', () => {
     navigateToSupportConsent(mockNavigation, mockOpen, METAMASK_SUPPORT_URL);
     const { onReject } = mockNavigate.mock.calls[0][1].params;
     onReject();
 
     const openedUrl = mockOpen.mock.calls[0][0] as string;
-    expect(
-      new URL(openedUrl).searchParams.has(
-        SUPPORT_URL_PARAM_CUSTOMER_SERVICE_TOKEN,
-      ),
-    ).toBe(false);
+    expect(openedUrl).toBe(METAMASK_SUPPORT_URL);
+    const params = new URL(openedUrl).searchParams;
+    expect(params.has(SUPPORT_URL_PARAM_CUSTOMER_SERVICE_TOKEN)).toBe(false);
+    expect(params.has(SUPPORT_URL_PARAM_VERSION)).toBe(false);
   });
 });

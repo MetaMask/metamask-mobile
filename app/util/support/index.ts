@@ -118,8 +118,13 @@ export const navigateToSupportConsent = (
   };
 
   const onReject = () => {
-    const url = buildSupportUrl(baseUrl);
-    Logger.log('[SupportConsent] Opening plain support URL', url);
+    // Honor the "Don't share" choice literally: open the raw base URL without
+    // appending metamask_version (or any device detail), matching the consent copy.
+    const url = baseUrl ?? METAMASK_SUPPORT_URL;
+    Logger.log(
+      '[SupportConsent] Opening support URL without device details',
+      url,
+    );
     open(url);
   };
 
