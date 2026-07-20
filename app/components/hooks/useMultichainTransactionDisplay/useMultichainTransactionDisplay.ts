@@ -8,18 +8,9 @@ import { formatWithThreshold } from '../../../util/assets';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 import { isTransactionIncomplete } from '../../../util/transactions';
 import {
-  isTrustlineApproveTransaction,
-  isTrustlineDisapproveTransaction,
-  resolveAssetActivationActivityTitleFromTransaction,
+  resolveAssetActivationActivityTitle,
+  CustomTransactionTypeLabel,
 } from '../../../util/activity-adapters/trustline';
-
-/**
- * Custom labels for non-EVM transactions mapped from `transaction.details.typeLabel`.
- */
-export enum CustomTransactionTypeLabel {
-  TrustlineApprove = 'trustline-approve',
-  TrustlineDisapprove = 'trustline-disapprove',
-}
 
 interface Asset {
   unit: string;
@@ -124,43 +115,30 @@ export function useMultichainTransactionDisplay(
     [TransactionType.Unknown]: strings('transactions.interaction'),
   };
 
-  const typeLabel = transaction.details?.typeLabel;
-
   let title = isRedeposit
     ? strings('transactions.redeposit')
     : typeToTitle[transaction.type];
 
-  if (isTrustlineApproveTransaction(transaction)) {
-    title = resolveAssetActivationActivityTitleFromTransaction(
-      transaction,
+  // align with keyring transaction mapping
+  const typeLabel = transaction.details?.typeLabel;
+  if (
+    transaction.type === TransactionType.TokenApprove &&
+    typeLabel === CustomTransactionTypeLabel.TrustlineApprove
+  ) {
+    title = resolveAssetActivationActivityTitle(
+      transaction.status,
       from?.unit,
       true,
     );
-  } else if (isTrustlineDisapproveTransaction(transaction)) {
-    title = resolveAssetActivationActivityTitleFromTransaction(
-      transaction,
+  } else if (
+    transaction.type === TransactionType.TokenDisapprove &&
+    typeLabel === CustomTransactionTypeLabel.TrustlineDisapprove
+  ) {
+    title = resolveAssetActivationActivityTitle(
+      transaction.status,
       from?.unit,
       false,
     );
-  } else if (typeLabel) {
-    switch (typeLabel) {
-      case CustomTransactionTypeLabel.TrustlineApprove:
-        title = resolveAssetActivationActivityTitleFromTransaction(
-          transaction,
-          from?.unit,
-          true,
-        );
-        break;
-      case CustomTransactionTypeLabel.TrustlineDisapprove:
-        title = resolveAssetActivationActivityTitleFromTransaction(
-          transaction,
-          from?.unit,
-          false,
-        );
-        break;
-      default:
-        break;
-    }
   }
 
   return {

@@ -197,22 +197,22 @@ describe('mapKeyringTransaction', () => {
       } as Transaction,
     });
 
-    expect(item).toStrictEqual(
-      expect.objectContaining({
-        type: 'assetActivation',
-        data: {
-          from: 'GABC123',
-          to: 'GABC123',
-          token: {
-            amount: '0',
-            assetId:
-              'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
-            direction: 'out',
-            symbol: 'USDC',
-          },
+    expect(item).toMatchObject({
+      type: 'assetActivation',
+      data: {
+        from: 'GABC123',
+        to: 'GABC123',
+        token: {
+          assetId:
+            'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+          direction: 'out',
+          symbol: 'USDC',
         },
-      }),
-    );
+      },
+    });
+    if (item?.type === 'assetActivation') {
+      expect(item.data.token?.amount).toBeUndefined();
+    }
   });
 
   it('maps trustline disapprove transactions to assetDeactivation activity items', () => {

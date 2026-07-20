@@ -4,10 +4,8 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/keyring-api';
-import {
-  CustomTransactionTypeLabel,
-  useMultichainTransactionDisplay,
-} from './useMultichainTransactionDisplay';
+import { CustomTransactionTypeLabel } from '../../../util/activity-adapters/trustline';
+import { useMultichainTransactionDisplay } from './useMultichainTransactionDisplay';
 
 jest.mock('../../../../locales/i18n', () => ({
   __esModule: true,
@@ -85,9 +83,10 @@ describe('useMultichainTransactionDisplay', () => {
   });
 
   describe('Trustline transactions', () => {
-    it('uses trustline approve title for trustline transactions', () => {
+    it('uses trustline approve title for trustline approve transactions', () => {
       const transaction: Transaction = {
         ...baseTransaction,
+        type: TransactionType.TokenApprove,
         details: {
           typeLabel: CustomTransactionTypeLabel.TrustlineApprove,
         },
@@ -106,6 +105,7 @@ describe('useMultichainTransactionDisplay', () => {
     it('uses trustline disapprove title without unit when from movement is empty', () => {
       const transaction: Transaction = {
         ...baseTransaction,
+        type: TransactionType.TokenDisapprove,
         from: [],
         details: {
           typeLabel: CustomTransactionTypeLabel.TrustlineDisapprove,
@@ -117,7 +117,9 @@ describe('useMultichainTransactionDisplay', () => {
         'stellar:pubnet',
       );
 
-      expect(displayData.title).toBe('transactions.activity_trustline_deactivated');
+      expect(displayData.title).toBe(
+        'transactions.activity_trustline_deactivated',
+      );
     });
 
     it('uses approve title for generic token approve transactions without trustline typeLabel', () => {

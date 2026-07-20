@@ -1,13 +1,7 @@
+import { TransactionStatus as KeyringTransactionStatus } from '@metamask/keyring-api';
 import {
-  TransactionStatus as KeyringTransactionStatus,
-  Transaction,
-  TransactionType,
-} from '@metamask/keyring-api';
-import {
+  CustomTransactionTypeLabel,
   hasTrustlineTypeLabel,
-  isTrustlineApproveTransaction,
-  isTrustlineDisapproveTransaction,
-  isTrustlineTransaction,
   resolveAssetActivationActivityTitle,
 } from './trustline';
 
@@ -15,82 +9,79 @@ jest.mock('../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-const baseTransaction: Transaction = {
-  id: 'tx-trustline',
-  chain: 'stellar:pubnet',
-  account: 'GABC123',
-  type: TransactionType.Unknown,
-  status: KeyringTransactionStatus.Confirmed,
-  timestamp: 1_700_000_000,
-  from: [],
-  to: [],
-  fees: [],
-};
-
 describe('trustline activity helpers', () => {
-  it('detects trustline approve transactions by typeLabel', () => {
+  it('detects trustline approve typeLabel', () => {
     expect(
-      isTrustlineApproveTransaction({
-        ...baseTransaction,
-        details: { typeLabel: 'trustline-approve' },
+      hasTrustlineTypeLabel({
+        typeLabel: CustomTransactionTypeLabel.TrustlineApprove,
       }),
     ).toBe(true);
   });
 
-  it('does not treat generic token approve transactions as trustline approve', () => {
+  it('detects trustline disapprove typeLabel', () => {
     expect(
-      isTrustlineApproveTransaction({
-        ...baseTransaction,
-        type: TransactionType.TokenApprove,
-      }),
-    ).toBe(false);
-  });
-
-  it('detects trustline disapprove transactions by typeLabel', () => {
-    expect(
-      isTrustlineDisapproveTransaction({
-        ...baseTransaction,
-        details: { typeLabel: 'trustline-disapprove' },
+      hasTrustlineTypeLabel({
+        typeLabel: CustomTransactionTypeLabel.TrustlineDisapprove,
       }),
     ).toBe(true);
   });
 
-  it('detects trustline transactions by typeLabel', () => {
+  it('does not treat missing typeLabel as trustline', () => {
+    expect(hasTrustlineTypeLabel(undefined)).toBe(false);
+    expect(hasTrustlineTypeLabel({})).toBe(false);
+  });
+
+  it('does not treat unrelated typeLabel as trustline', () => {
+    expect(hasTrustlineTypeLabel({ typeLabel: 'other-label' })).toBe(false);
+  });
+
+  it('resolves confirmed activate title with token symbol', () => {
     expect(
-      isTrustlineTransaction({
-        ...baseTransaction,
-        details: { typeLabel: 'trustline-disapprove' },
-      }),
-    ).toBe(true);
+      resolveAssetActivationActivityTitle(
+        KeyringTransactionStatus.Confirmed,
+        'USDC',
+        true,
+      ),
+    ).toBe('transactions.activity_trustline_activated USDC');
   });
 
-  it('detects trustline transactions via hasTrustlineTypeLabel', () => {
+  it('resolves confirmed deactivate title without token symbol', () => {
     expect(
-      hasTrustlineTypeLabel({ typeLabel: 'trustline-approve' }),
-    ).toBe(true);
-  });
-
-  it('resolves activate title with token symbol', () => {
-    expect(resolveAssetActivationActivityTitle('USDC', true)).toBe(
-      'transactions.activity_trustline_activated USDC',
-    );
-  });
-
-  it('resolves deactivate title without token symbol', () => {
-    expect(resolveAssetActivationActivityTitle(undefined, false)).toBe(
-      'transactions.activity_trustline_deactivated',
-    );
+      resolveAssetActivationActivityTitle(
+        KeyringTransactionStatus.Confirmed,
+        undefined,
+        false,
+      ),
+    ).toBe('transactions.activity_trustline_deactivated');
   });
 
   it('resolves pending activate title with token symbol', () => {
-    expect(resolveAssetActivationActivityTitle('USDC', true, 'pending')).toBe(
-      'transactions.activity_trustline_activating USDC',
-    );
+    expect(
+      resolveAssetActivationActivityTitle(
+        KeyringTransactionStatus.Submitted,
+        'USDC',
+        true,
+      ),
+    ).toBe('transactions.activity_trustline_activating USDC');
   });
 
   it('resolves failed deactivate title without token symbol', () => {
-    expect(resolveAssetActivationActivityTitle(undefined, false, 'failed')).toBe(
-      'transactions.activity_trustline_deactivation_failed',
-    );
+    expect(
+      resolveAssetActivationActivityTitle(
+        KeyringTransactionStatus.Failed,
+        undefined,
+        false,
+      ),
+    ).toBe('transactions.activity_trustline_deactivation_failed');
+  });
+
+  it('resolves failed activate title without token symbol', () => {
+    expect(
+      resolveAssetActivationActivityTitle(
+        KeyringTransactionStatus.Failed,
+        'USDC',
+        true,
+      ),
+    ).toBe('transactions.activity_trustline_activation_failed');
   });
 });

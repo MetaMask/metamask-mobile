@@ -1,5 +1,5 @@
 import React from 'react';
-import Tag from '../../../component-library/components/Tags/Tag';
+import { Tag, TagSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 
 export const AssetInactiveBadgeTestIds = {
@@ -8,7 +8,10 @@ export const AssetInactiveBadgeTestIds = {
 
 export const AssetInactiveBadge = () => (
   <Tag
-    label={strings('asset_activation.inactive')}
+    severity={TagSeverity.Warning}
+    twClassName="rounded-full"
     testID={AssetInactiveBadgeTestIds.BADGE}
-  />
+  >
+    {strings('asset_activation.inactive')}
+  </Tag>
 );
