@@ -135,25 +135,11 @@ const styleSheet = (params: { theme: Theme }) => {
     animatedListContainer: {
       flex: 1,
     },
-    // Wraps FlashList + the absolute count/sort sticky overlay.
-    listWithStickySort: {
-      flex: 1,
-    },
     // Compensates the FlashList content container's horizontal padding (16)
-    // for the Recently Viewed rail, which carries its own horizontal padding
-    // and used to render outside the list.
+    // for the Recently Viewed rail header, which carries its own horizontal
+    // padding and renders full-bleed.
     fullBleedListHeader: {
       marginHorizontal: -16,
-    },
-    // Absolute count/sort bar; translateY is driven by Reanimated so it
-    // sits below the rail at rest and pins to the top with no JS lag.
-    stickySortBar: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      zIndex: 2,
-      backgroundColor: colors.background.default,
     },
     watchlistScrollContainer: {
       flex: 1,
