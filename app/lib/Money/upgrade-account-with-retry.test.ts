@@ -211,6 +211,26 @@ describe('upgradeAccountWithRetry', () => {
     expect(upgradeAccount).toHaveBeenCalledTimes(1);
   });
 
+  it('lets an in-flight attempt finish and resolves when it succeeds after the signal aborts', async () => {
+    const abortController = new AbortController();
+    let resolveAttempt: () => void = () => undefined;
+    const upgradeAccount = jest.fn().mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveAttempt = resolve;
+        }),
+    );
+
+    const run = upgradeAccountWithRetry(upgradeAccount, ADDRESS, {
+      signal: abortController.signal,
+    });
+    abortController.abort();
+    resolveAttempt();
+
+    await expect(run).resolves.toBeUndefined();
+    expect(upgradeAccount).toHaveBeenCalledTimes(1);
+  });
+
   it('does not retry once the signal aborts while an attempt is in flight', async () => {
     const abortController = new AbortController();
     const upgradeAccount = jest.fn().mockImplementation(() => {

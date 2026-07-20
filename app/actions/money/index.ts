@@ -68,9 +68,13 @@ export const __resetUpgradesInFlightForTesting = () => {
  * settles.
  *
  * @param address - The Money Account address to upgrade.
- * @param signal - Aborts the run (including scheduled retries).
+ * @param signal - Stops the retry loop: cancels a pending backoff wait and
+ * prevents further attempts. An attempt already in flight is left to finish
+ * and its outcome is still recorded. Required: retries continue for as long
+ * as the signal stays live, so a run without one could never end — nor hand
+ * over to a later caller.
  */
-function startUpgradeRun(address: Hex, signal?: AbortSignal): void {
+function startUpgradeRun(address: Hex, signal: AbortSignal): void {
   const inFlight = upgradesInFlight.get(address);
   if (inFlight) {
     inFlight.takeoverSignal = signal;
@@ -150,7 +154,7 @@ function startUpgradeRun(address: Hex, signal?: AbortSignal): void {
     .finally(() => {
       upgradesInFlight.delete(address);
       const { takeoverSignal } = entry;
-      if (signal?.aborted && takeoverSignal && !takeoverSignal.aborted) {
+      if (signal.aborted && takeoverSignal && !takeoverSignal.aborted) {
         Logger.log(LOG_PREFIX, 'restarting upgrade for takeover signal', {
           address,
         });
@@ -160,7 +164,7 @@ function startUpgradeRun(address: Hex, signal?: AbortSignal): void {
 }
 
 export const upgradeMoneyAccount =
-  (signal?: AbortSignal): ThunkAction<void, RootState, unknown, AnyAction> =>
+  (signal: AbortSignal): ThunkAction<void, RootState, unknown, AnyAction> =>
   (_dispatch, getState) => {
     const address = selectPrimaryMoneyAccount(getState())?.address;
     if (!address || !isStrictHexString(address)) {

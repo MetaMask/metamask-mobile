@@ -69,6 +69,14 @@ describe('upgradeMoneyAccount', () => {
   let dispatch: jest.Mock;
   let getState: jest.Mock<RootState>;
 
+  /**
+   * Dispatches the thunk under test. The thunk requires a signal, so tests
+   * that don't exercise aborting get a fresh, never-aborted one.
+   */
+  const dispatchUpgrade = (
+    signal: AbortSignal = new AbortController().signal,
+  ) => upgradeMoneyAccount(signal)(dispatch, getState, undefined);
+
   beforeEach(() => {
     jest.clearAllMocks();
     __resetUpgradesInFlightForTesting();
@@ -83,7 +91,7 @@ describe('upgradeMoneyAccount', () => {
   it('calls MoneyAccountUpgradeController.upgradeAccount with the primary money account address', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
 
-    upgradeMoneyAccount()(dispatch, getState, undefined);
+    dispatchUpgrade();
     await flushPromises();
 
     expect(mockUpgradeAccount).toHaveBeenCalledWith(ADDRESS);
@@ -92,7 +100,7 @@ describe('upgradeMoneyAccount', () => {
   it('logs the start of an upgrade, noting the account was not previously recorded', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
 
-    upgradeMoneyAccount()(dispatch, getState, undefined);
+    dispatchUpgrade();
     await flushPromises();
 
     expect(mockLogLog).toHaveBeenCalledWith(
@@ -110,7 +118,7 @@ describe('upgradeMoneyAccount', () => {
       },
     };
 
-    upgradeMoneyAccount()(dispatch, getState, undefined);
+    dispatchUpgrade();
     await flushPromises();
 
     expect(mockLogLog).toHaveBeenCalledWith(
@@ -129,7 +137,7 @@ describe('upgradeMoneyAccount', () => {
       };
     });
 
-    upgradeMoneyAccount()(dispatch, getState, undefined);
+    dispatchUpgrade();
     await flushPromises();
 
     expect(mockLogLog).toHaveBeenCalledWith(
@@ -148,7 +156,7 @@ describe('upgradeMoneyAccount', () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
     mockUpgradeAccount.mockRejectedValueOnce(new Error('boom'));
 
-    upgradeMoneyAccount()(dispatch, getState, undefined);
+    dispatchUpgrade();
     await flushPromises();
 
     expect(mockLogError).toHaveBeenCalledWith(
@@ -172,7 +180,7 @@ describe('upgradeMoneyAccount', () => {
       return Promise.reject(new Error('terminal boom'));
     });
 
-    upgradeMoneyAccount(abortController.signal)(dispatch, getState, undefined);
+    dispatchUpgrade(abortController.signal);
     await flushPromises();
 
     expect(mockLogError).toHaveBeenCalledWith(
@@ -188,7 +196,7 @@ describe('upgradeMoneyAccount', () => {
     const abortController = new AbortController();
     abortController.abort();
 
-    upgradeMoneyAccount(abortController.signal)(dispatch, getState, undefined);
+    dispatchUpgrade(abortController.signal);
     await flushPromises();
 
     expect(mockUpgradeAccount).not.toHaveBeenCalled();
@@ -200,6 +208,33 @@ describe('upgradeMoneyAccount', () => {
     );
   });
 
+  it('does not interrupt an in-flight attempt when the signal aborts, and still records its success', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    const abortController = new AbortController();
+    let resolveAttempt: () => void = () => undefined;
+    mockUpgradeAccount.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveAttempt = resolve;
+        }),
+    );
+
+    dispatchUpgrade(abortController.signal);
+    await flushPromises();
+    // The screen blurs while the attempt is still running…
+    abortController.abort();
+    // …and the attempt later completes successfully.
+    resolveAttempt();
+    await flushPromises();
+
+    expect(mockLogError).not.toHaveBeenCalled();
+    expect(mockLogLog).toHaveBeenCalledWith(
+      expect.stringContaining('upgradeMoneyAccount'),
+      'upgrade succeeded',
+      expect.objectContaining({ address: ADDRESS }),
+    );
+  });
+
   it('reports the retryable failure but logs the abort itself quietly when the failure lands after the signal aborted', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
     const abortController = new AbortController();
@@ -208,7 +243,7 @@ describe('upgradeMoneyAccount', () => {
       return Promise.reject(retryableStepError());
     });
 
-    upgradeMoneyAccount(abortController.signal)(dispatch, getState, undefined);
+    dispatchUpgrade(abortController.signal);
     await flushPromises();
 
     // The attempt's failure reaches Sentry once (via the retry report); the
@@ -230,7 +265,7 @@ describe('upgradeMoneyAccount', () => {
     const abortController = new AbortController();
     mockUpgradeAccount.mockRejectedValueOnce(retryableStepError());
 
-    upgradeMoneyAccount(abortController.signal)(dispatch, getState, undefined);
+    dispatchUpgrade(abortController.signal);
     await flushPromises();
 
     expect(mockLogError).toHaveBeenCalledWith(
@@ -265,9 +300,9 @@ describe('upgradeMoneyAccount', () => {
       return Promise.reject(retryableStepError());
     });
 
-    upgradeMoneyAccount(abortController.signal)(dispatch, getState, undefined);
+    dispatchUpgrade(abortController.signal);
     await flushPromises();
-    upgradeMoneyAccount()(dispatch, getState, undefined);
+    dispatchUpgrade();
     await flushPromises();
 
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
@@ -276,7 +311,7 @@ describe('upgradeMoneyAccount', () => {
   it('skips the call and logs when there is no primary money account', () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue(undefined);
 
-    upgradeMoneyAccount()(dispatch, getState, undefined);
+    dispatchUpgrade();
 
     expect(mockUpgradeAccount).not.toHaveBeenCalled();
     expect(mockLogLog).toHaveBeenCalled();
@@ -285,7 +320,7 @@ describe('upgradeMoneyAccount', () => {
   it('skips the call when the primary money account address is not a strict hex string', () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: 'not-hex' });
 
-    upgradeMoneyAccount()(dispatch, getState, undefined);
+    dispatchUpgrade();
 
     expect(mockUpgradeAccount).not.toHaveBeenCalled();
     expect(mockLogLog).toHaveBeenCalledWith(
@@ -300,7 +335,7 @@ describe('upgradeMoneyAccount', () => {
     const error = new Error('boom');
     mockUpgradeAccount.mockRejectedValueOnce(error);
 
-    upgradeMoneyAccount()(dispatch, getState, undefined);
+    dispatchUpgrade();
     await flushPromises();
 
     expect(mockLogError).toHaveBeenCalledWith(
@@ -325,7 +360,7 @@ describe('upgradeMoneyAccount', () => {
     );
     mockUpgradeAccount.mockRejectedValueOnce(error);
 
-    upgradeMoneyAccount()(dispatch, getState, undefined);
+    dispatchUpgrade();
     await flushPromises();
 
     expect(mockLogError).toHaveBeenCalledWith(
@@ -352,7 +387,7 @@ describe('upgradeMoneyAccount', () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
     mockUpgradeAccount.mockRejectedValueOnce('string rejection');
 
-    upgradeMoneyAccount()(dispatch, getState, undefined);
+    dispatchUpgrade();
     await flushPromises();
 
     expect(mockLogError).toHaveBeenCalledWith(
@@ -367,7 +402,7 @@ describe('upgradeMoneyAccount', () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
     mockWhenReady.mockRejectedValueOnce(new Error('bootstrap not scheduled'));
 
-    upgradeMoneyAccount()(dispatch, getState, undefined);
+    dispatchUpgrade();
     await flushPromises();
 
     expect(mockUpgradeAccount).not.toHaveBeenCalled();
@@ -383,8 +418,8 @@ describe('upgradeMoneyAccount', () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
     mockUpgradeAccount.mockReturnValueOnce(new Promise(() => undefined));
 
-    upgradeMoneyAccount()(dispatch, getState, undefined);
-    upgradeMoneyAccount()(dispatch, getState, undefined);
+    dispatchUpgrade();
+    dispatchUpgrade();
     await flushPromises();
 
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
@@ -407,10 +442,10 @@ describe('upgradeMoneyAccount', () => {
         }),
     );
 
-    upgradeMoneyAccount(first.signal)(dispatch, getState, undefined);
+    dispatchUpgrade(first.signal);
     await flushPromises();
     // A second screen focuses while the first run is still in flight.
-    upgradeMoneyAccount(second.signal)(dispatch, getState, undefined);
+    dispatchUpgrade(second.signal);
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
 
     // The first screen blurs: its run aborts and unwinds.
@@ -437,9 +472,9 @@ describe('upgradeMoneyAccount', () => {
         }),
     );
 
-    upgradeMoneyAccount(first.signal)(dispatch, getState, undefined);
+    dispatchUpgrade(first.signal);
     await flushPromises();
-    upgradeMoneyAccount(second.signal)(dispatch, getState, undefined);
+    dispatchUpgrade(second.signal);
 
     second.abort();
     first.abort();
@@ -461,9 +496,9 @@ describe('upgradeMoneyAccount', () => {
         }),
     );
 
-    upgradeMoneyAccount(first.signal)(dispatch, getState, undefined);
+    dispatchUpgrade(first.signal);
     await flushPromises();
-    upgradeMoneyAccount(second.signal)(dispatch, getState, undefined);
+    dispatchUpgrade(second.signal);
 
     resolveFirst();
     await flushPromises();
@@ -474,9 +509,9 @@ describe('upgradeMoneyAccount', () => {
   it('allows a subsequent upgrade after a previous one resolves', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
 
-    upgradeMoneyAccount()(dispatch, getState, undefined);
+    dispatchUpgrade();
     await flushPromises();
-    upgradeMoneyAccount()(dispatch, getState, undefined);
+    dispatchUpgrade();
     await flushPromises();
 
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
@@ -486,11 +521,11 @@ describe('upgradeMoneyAccount', () => {
     mockUpgradeAccount.mockReturnValue(new Promise(() => undefined));
 
     mockSelectPrimaryMoneyAccount.mockReturnValueOnce({ address: ADDRESS });
-    upgradeMoneyAccount()(dispatch, getState, undefined);
+    dispatchUpgrade();
     mockSelectPrimaryMoneyAccount.mockReturnValueOnce({
       address: OTHER_ADDRESS,
     });
-    upgradeMoneyAccount()(dispatch, getState, undefined);
+    dispatchUpgrade();
     await flushPromises();
 
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
