@@ -169,19 +169,17 @@ export const useLiveMarketPrices = (
       handlePriceUpdates,
     );
 
-    const checkConnection = () => {
-      if (!isMountedRef.current) return;
-      const status = PredictController.getConnectionStatus();
-      setIsConnected(status.marketConnected);
-    };
-
-    checkConnection();
-    const intervalId = setInterval(checkConnection, 1000);
+    const unsubscribeStatus = PredictController.subscribeToConnectionStatus(
+      (status) => {
+        if (!isMountedRef.current) return;
+        setIsConnected(status.marketConnected);
+      },
+    );
 
     return () => {
       isMountedRef.current = false;
       unsubscribe();
-      clearInterval(intervalId);
+      unsubscribeStatus();
     };
   }, [tokenIdsKey, enabled, handlePriceUpdates]);
 

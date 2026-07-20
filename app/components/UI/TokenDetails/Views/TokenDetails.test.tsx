@@ -1149,6 +1149,23 @@ describe('TokenDetails', () => {
       expect(Share.share).not.toHaveBeenCalled();
     });
 
+    it('resolves caip19AssetId from route caipAssetId when provided', async () => {
+      const caipAssetId = 'eip155:8453/slip44:60';
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        caipAssetId,
+      });
+
+      render(<TokenDetails />);
+      await invokeSharePress();
+
+      expect(Share.share).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: expect.stringContaining(encodeURIComponent(caipAssetId)),
+        }),
+      );
+    });
+
     it('resolves caip19AssetId directly when address is already CAIP-19 format', async () => {
       const caipAddress =
         'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f';

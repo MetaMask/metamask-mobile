@@ -6,6 +6,7 @@ import React, {
   useRef,
 } from 'react';
 import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   SectionDivider,
@@ -20,6 +21,7 @@ import { useTokenWatchlistQuery } from '../../../../UI/Assets/watchlist/hooks/us
 import { mapWatchlistTokenToTrendingAsset } from './utils/mapWatchlistTokenToTrendingAsset';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
@@ -40,6 +42,7 @@ const WatchlistSection = forwardRef<
   WatchlistSectionProps
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
+  const navigation = useNavigation();
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
   const { data, isLoading, refetch } = useTokenWatchlistQuery();
 
@@ -58,8 +61,9 @@ const WatchlistSection = forwardRef<
   const isEmpty = !isLoading && displayTokens.length === 0;
   const itemCount = displayTokens.length;
 
-  // TODO(ASSETS-XXXX): navigate to full-screen watchlist view in next ticket
-  const handleSectionPress = useCallback(() => undefined, []);
+  const handleSectionPress = useCallback(() => {
+    navigation.navigate(Routes.WALLET.WATCHLIST_FULL_VIEW as never);
+  }, [navigation]);
 
   const refresh = useCallback(async () => {
     await refetch();
