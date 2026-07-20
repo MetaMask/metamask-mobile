@@ -36,11 +36,22 @@ export interface FeedSpotBuyActionHandle {
   open: (target: QuickBuyTarget) => void;
 }
 
+export interface FeedSpotBuyActionProps {
+  /**
+   * Whether the Feed is the active surface (its route is focused AND it is the
+   * selected pager tab). Used to cancel an in-flight swap resolution if the user
+   * navigates away or switches tabs mid-resolution.
+   */
+  isActive: boolean;
+}
+
 interface SwapDestResolverProps {
   target: QuickBuyTarget;
+  /** `false` once the feed is no longer the active surface — cancels the buy. */
+  isActive: boolean;
   onResolved: (destToken: BridgeToken) => void;
   onUnresolvable: () => void;
-  /** Cancel the pending buy (e.g. the feed lost focus while resolving). */
+  /** Cancel the pending buy (e.g. the feed lost focus / tab changed). */
   onCancel: () => void;
 }
 
@@ -57,20 +68,21 @@ interface SwapDestResolverProps {
  */
 const SwapDestResolver: React.FC<SwapDestResolverProps> = ({
   target,
+  isActive,
   onResolved,
   onUnresolvable,
   onCancel,
 }) => {
   const { destToken, isLoading } = useQuickBuySetup(target);
-  const isFocused = useIsFocused();
   const settledRef = useRef(false);
 
   useEffect(() => {
     if (settledRef.current) return;
 
-    // The feed lost focus while resolving — cancel so we never navigate (or open
-    // QuickBuy) from a backgrounded screen.
-    if (!isFocused) {
+    // The feed is no longer the active surface (route blurred or the user
+    // switched pager tabs) — cancel so we never navigate (or open QuickBuy)
+    // from a backgrounded screen.
+    if (!isActive) {
       settledRef.current = true;
       onCancel();
       return;
@@ -88,7 +100,7 @@ const SwapDestResolver: React.FC<SwapDestResolverProps> = ({
       settledRef.current = true;
       onUnresolvable();
     }
-  }, [isFocused, destToken, isLoading, onResolved, onUnresolvable, onCancel]);
+  }, [isActive, destToken, isLoading, onResolved, onUnresolvable, onCancel]);
 
   return null;
 };
@@ -106,12 +118,19 @@ const SwapDestResolver: React.FC<SwapDestResolverProps> = ({
  * feeds never expose the experiment. Interaction is imperative (via ref) because
  * the Trade buttons live inside the virtualized feed list.
  */
-const FeedSpotBuyAction = forwardRef<FeedSpotBuyActionHandle>((_props, ref) => {
+const FeedSpotBuyAction = forwardRef<
+  FeedSpotBuyActionHandle,
+  FeedSpotBuyActionProps
+>(({ isActive }, ref) => {
   const { variant } = useABTest(
     TOP_TRADERS_BUY_ACTION_AB_KEY,
     TOP_TRADERS_BUY_ACTION_VARIANTS,
     TOP_TRADERS_BUY_ACTION_EXPOSURE_METADATA,
   );
+
+  // Active surface = the feed route is focused AND it's the selected pager tab.
+  const isFocused = useIsFocused();
+  const isSurfaceActive = isFocused && isActive;
 
   const [quickBuyTarget, setQuickBuyTarget] = useState<QuickBuyTarget | null>(
     null,
@@ -184,6 +203,7 @@ const FeedSpotBuyAction = forwardRef<FeedSpotBuyActionHandle>((_props, ref) => {
         <SwapDestResolver
           key={targetKey(swapTarget)}
           target={swapTarget}
+          isActive={isSurfaceActive}
           onResolved={handleSwapResolved}
           onUnresolvable={handleSwapUnresolvable}
           onCancel={handleSwapCancel}

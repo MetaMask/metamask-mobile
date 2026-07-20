@@ -459,7 +459,9 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         onClose={() => setIsTypeSheetOpen(false)}
       />
 
-      {hasSpotItem && <FeedSpotBuyAction ref={buyActionRef} />}
+      {hasSpotItem && (
+        <FeedSpotBuyAction ref={buyActionRef} isActive={isActive} />
+      )}
     </Box>
   );
 };

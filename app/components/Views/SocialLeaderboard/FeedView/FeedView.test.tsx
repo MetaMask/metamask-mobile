@@ -343,11 +343,23 @@ describe('FeedView', () => {
     expect(screen.queryByTestId('mock-quick-buy-open')).not.toBeOnTheScreen();
   });
 
-  it('cancels a pending swap (treatment) without navigating when the feed loses focus', () => {
+  it('cancels a pending swap (treatment) without navigating when the feed route loses focus', () => {
     mockAbTestVariant = { openSwaps: true };
     mockIsFocused = false;
 
     renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
+
+    expect(mockGoToSwaps).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('mock-quick-buy-open')).not.toBeOnTheScreen();
+  });
+
+  it('cancels a pending swap (treatment) when the feed is not the active pager tab', () => {
+    mockAbTestVariant = { openSwaps: true };
+    mockIsFocused = true;
+
+    renderWithProvider(<FeedView isActive={false} />);
 
     fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
 
