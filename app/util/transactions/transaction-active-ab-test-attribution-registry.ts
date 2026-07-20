@@ -66,6 +66,11 @@ export function clearPendingTransactionActiveAbTests(): void {
   pendingTransactionActiveAbTests = undefined;
 }
 
+/** Clears transaction-scoped attribution (test / emergency reset). */
+export function clearTransactionAbTestAttributionRegistry(): void {
+  attributionByTransactionId.clear();
+}
+
 /**
  * Sets pending attribution for the duration of `fn` (until the returned promise
  * settles), then restores the previous stash layer.

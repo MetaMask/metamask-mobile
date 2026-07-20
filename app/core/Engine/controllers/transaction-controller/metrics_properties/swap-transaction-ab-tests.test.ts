@@ -4,7 +4,10 @@ import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 import { TransactionMetricsBuilderRequest } from '../types';
 import { EMPTY_METRICS } from '../constants';
 import { getSwapTransactionActiveAbTestProperties } from './swap-transaction-ab-tests';
-import { registerTransactionAbTestAttributionForIds } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import {
+  clearTransactionAbTestAttributionRegistry,
+  registerTransactionAbTestAttributionForIds,
+} from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const TX_ID = 'test-swap-tx-meta-id';
 
@@ -27,6 +30,11 @@ const createMockRequest = (
 });
 
 describe('getSwapTransactionActiveAbTestProperties', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    clearTransactionAbTestAttributionRegistry();
+  });
+
   it('returns empty when event is not Transaction Added', () => {
     const request = createMockRequest({
       eventType: TRANSACTION_EVENTS.TRANSACTION_SUBMITTED,

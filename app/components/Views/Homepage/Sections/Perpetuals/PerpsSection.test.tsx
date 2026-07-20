@@ -345,6 +345,10 @@ describe('PerpsSection', () => {
     mockUseHomepagePerpsPillsEmptyTransactionActiveAbTestsHook.mockClear();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders section title', () => {
     renderWithProvider(
       <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,

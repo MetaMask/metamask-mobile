@@ -1,4 +1,5 @@
 import {
+  clearTransactionAbTestAttributionRegistry,
   clearPendingTransactionActiveAbTests,
   getPendingTransactionActiveAbTests,
   registerTransactionAbTestAttributionForIds,
@@ -9,6 +10,7 @@ import {
 describe('withPendingTransactionActiveAbTests', () => {
   beforeEach(() => {
     clearPendingTransactionActiveAbTests();
+    clearTransactionAbTestAttributionRegistry();
   });
 
   it('exposes pending tests during fn and clears after resolve', async () => {
@@ -63,6 +65,7 @@ describe('withPendingTransactionActiveAbTests', () => {
 describe('registerTransactionAbTestAttributionForIds', () => {
   beforeEach(() => {
     clearPendingTransactionActiveAbTests();
+    clearTransactionAbTestAttributionRegistry();
   });
 
   it('drops oldest entries when over the cap', () => {
