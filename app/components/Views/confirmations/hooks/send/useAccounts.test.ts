@@ -8,6 +8,7 @@ import {
   isSolanaAccount,
   isBtcAccount,
   isTronAccount,
+  isStellarAccount,
 } from '../../../../../core/Multichain/utils';
 import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
@@ -29,6 +30,7 @@ jest.mock('../../../../../core/Multichain/utils', () => ({
   isSolanaAccount: jest.fn(),
   isBtcAccount: jest.fn(),
   isTronAccount: jest.fn(),
+  isStellarAccount: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/multichainAccounts/wallets', () => ({
@@ -56,6 +58,9 @@ const mockIsBtcAccount = isBtcAccount as jest.MockedFunction<
 >;
 const mockIsTronAccount = isTronAccount as jest.MockedFunction<
   typeof isTronAccount
+>;
+const mockIsStellarAccount = isStellarAccount as jest.MockedFunction<
+  typeof isStellarAccount
 >;
 const mockUseSendContext = useSendContext as jest.MockedFunction<
   typeof useSendContext
@@ -118,6 +123,18 @@ describe('useAccounts', () => {
     },
   };
 
+  const mockStellarAccount = {
+    id: 'stellar-account-1',
+    address: 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI',
+    type: 'stellar:account',
+    metadata: {
+      name: 'Stellar Account 1',
+      keyring: {
+        type: 'Stellar Keyring',
+      },
+    },
+  };
+
   const mockWallet = {
     id: 'wallet-1',
     metadata: {
@@ -152,6 +169,13 @@ describe('useAccounts', () => {
           name: 'Group 4',
         },
       },
+      'group-5': {
+        id: 'group-5',
+        accounts: ['stellar-account-1'],
+        metadata: {
+          name: 'Group 5',
+        },
+      },
     },
   };
 
@@ -160,6 +184,7 @@ describe('useAccounts', () => {
     'solana-account-1': mockSolanaAccount,
     'bitcoin-account-1': mockBitcoinAccount,
     'tron-account-1': mockTronAccount,
+    'stellar-account-1': mockStellarAccount,
   };
 
   beforeEach(() => {
@@ -191,6 +216,7 @@ describe('useAccounts', () => {
     mockIsSolanaAccount.mockReturnValue(false);
     mockIsBtcAccount.mockReturnValue(false);
     mockIsTronAccount.mockReturnValue(false);
+    mockIsStellarAccount.mockReturnValue(false);
   });
 
   describe('when isEvmSendType is true', () => {
@@ -203,10 +229,12 @@ describe('useAccounts', () => {
         isNonEvmNativeSendType: false,
         isBitcoinSendType: false,
         isTronSendType: false,
+        isStellarSendType: false,
         isPredefinedEvm: true,
         isPredefinedSolana: false,
         isPredefinedBitcoin: false,
         isPredefinedTron: false,
+        isPredefinedStellar: false,
       });
       mockIsEvmAccountType.mockImplementation(
         (accountType) => accountType === 'eip155:eoa',
@@ -399,6 +427,62 @@ describe('useAccounts', () => {
     it('filters out account when from address matches Tron account address', () => {
       mockUseSendContext.mockReturnValue({
         from: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+        maxValueMode: false,
+        updateAsset: jest.fn(),
+        updateTo: jest.fn(),
+        updateValue: jest.fn(),
+      });
+
+      const { result } = renderHook(() => useAccounts());
+
+      expect(result.current).toEqual([]);
+    });
+  });
+
+  describe('when isStellarSendType is true', () => {
+    beforeEach(() => {
+      createMockUseSendType({
+        isStellarSendType: true,
+        isPredefinedStellar: true,
+      });
+      mockIsEvmAccountType.mockReturnValue(false);
+      mockIsSolanaAccount.mockReturnValue(false);
+      mockIsBtcAccount.mockReturnValue(false);
+      mockIsTronAccount.mockReturnValue(false);
+      mockIsStellarAccount.mockImplementation(
+        (account) => account.type === 'stellar:account',
+      );
+    });
+
+    it('returns Stellar compatible accounts', () => {
+      const { result } = renderHook(() => useAccounts());
+
+      expect(result.current).toEqual([
+        {
+          accountGroupId: 'group-5',
+          accountGroupName: 'Group 5',
+          accountName: 'Stellar Account 1',
+          accountType: 'stellar:account',
+          address: 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI',
+          walletName: 'Wallet 1',
+        },
+      ]);
+    });
+
+    it('filters out non-Stellar accounts', () => {
+      const { result } = renderHook(() => useAccounts());
+
+      expect(result.current).toHaveLength(1);
+      expect(mockIsStellarAccount).toHaveBeenCalledWith(mockEvmAccount);
+      expect(mockIsStellarAccount).toHaveBeenCalledWith(mockSolanaAccount);
+      expect(mockIsStellarAccount).toHaveBeenCalledWith(mockBitcoinAccount);
+      expect(mockIsStellarAccount).toHaveBeenCalledWith(mockTronAccount);
+      expect(mockIsStellarAccount).toHaveBeenCalledWith(mockStellarAccount);
+    });
+
+    it('filters out account when from address matches Stellar account address', () => {
+      mockUseSendContext.mockReturnValue({
+        from: 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI',
         maxValueMode: false,
         updateAsset: jest.fn(),
         updateTo: jest.fn(),
