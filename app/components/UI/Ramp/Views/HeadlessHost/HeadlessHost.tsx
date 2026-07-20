@@ -264,6 +264,9 @@ function HeadlessHost() {
       paymentMethodId: resolvedPaymentMethodId,
       providerName: getQuoteProviderName(quote),
       headlessSessionId,
+      // Optional consumer override; the redirect-policy util in
+      // `continueWithQuote` remains the source of truth when absent (P2.M1).
+      redirectUrl: currentSession.params.redirectUrl,
     };
 
     continueWithQuote(quote, ctx).catch((error: Error) => {

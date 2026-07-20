@@ -3,6 +3,7 @@ import { Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
+import { v4 as uuidv4 } from 'uuid';
 import type { CaipChainId } from '@metamask/utils';
 
 import { strings } from '../../../../../locales/i18n';
@@ -15,6 +16,20 @@ import {
   getCheckoutContext,
   getWidgetRedirectConfig,
 } from '../utils/buildQuoteWithRedirectUrl';
+import {
+  clearExternalReturnCorrelation,
+  completeHeadlessExternalReturn,
+  emitExternalCheckoutClosed,
+  emitExternalOrderFailed,
+  getExternalReturnCorrelation,
+  recordExternalReturnCorrelation,
+} from '../headless/externalBrowserReturn';
+import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
+import {
+  closeSession,
+  failSession,
+  getSession,
+} from '../headless/sessionRegistry';
 import { getNavigateAfterExternalBrowserRoutes } from '../utils/rampsNavigation';
 import { reportRampsError } from '../utils/reportRampsError';
 import {
@@ -56,10 +71,21 @@ export interface ContinueWithQuoteContext {
   /**
    * When set, the native (Transak) auth-loop screens (VerifyIdentity →
    * EnterEmail → OtpCode) will carry this id and route post-auth resets
-   * back to `Routes.RAMP.HEADLESS_HOST` instead of BuildQuote. Ignored
-   * by the widget branch (no auth loop there).
+   * back to `Routes.RAMP.HEADLESS_HOST` instead of BuildQuote. The widget
+   * branch uses it to route external-browser outcomes to the session's
+   * terminal callbacks instead of resetting to BuildQuote (P2.M1).
    */
   headlessSessionId?: string;
+  /**
+   * Optional redirect-URL override (threaded from
+   * `HeadlessBuyParams.redirectUrl`). The mobile redirect-policy util
+   * (`getWidgetRedirectConfig`) stays the source of truth; when this is set
+   * it wins for both the quote's buy URL and the browser interception
+   * scheme. External-browser quotes rely on the `metamask://on-ramp`
+   * deeplink for return detection, so overriding it on an external quote is
+   * the caller's responsibility.
+   */
+  redirectUrl?: string;
 }
 
 export interface UseContinueWithQuoteOptions {
@@ -96,6 +122,21 @@ export interface UseContinueWithQuoteResult {
     quote: Quote,
     context: ContinueWithQuoteContext,
   ) => Promise<void>;
+}
+
+/**
+ * Tags a user-facing Error so `toHeadlessBuyError` classifies it as
+ * `QUOTE_FAILED` (technical checkout failure: widget URL, external open,
+ * order lookup) instead of the `UNKNOWN` fallback (P2.M7). Headless-scoped:
+ * the property is inert for non-headless callers, but only attaching it under
+ * a session keeps the UB2 path provably byte-identical.
+ */
+function tagHeadlessQuoteFailure(error: Error, isHeadless: boolean): Error {
+  if (isHeadless) {
+    (error as Error & { headlessBuyErrorCode?: string }).headlessBuyErrorCode =
+      'QUOTE_FAILED';
+  }
+  return error;
 }
 
 export function useContinueWithQuote(
@@ -251,29 +292,39 @@ export function useContinueWithQuote(
           isCustom,
         );
         useExternalBrowser = redirectConfig.useExternalBrowser;
-        redirectUrl = redirectConfig.redirectUrl;
+        // The redirect-policy util is the source of truth; a caller-supplied
+        // override (HeadlessBuyParams.redirectUrl via the Host) wins when
+        // present, and the same value feeds both the quote's buy URL and the
+        // browser interception scheme so they cannot diverge (P2.M1).
+        redirectUrl = ctx.redirectUrl ?? redirectConfig.redirectUrl;
         const quoteForWidget = buildQuoteWithRedirectUrl(quote, redirectUrl);
         buyWidget = await getBuyWidgetData(quoteForWidget);
       } catch (error) {
-        throw new Error(
-          reportRampsError(
-            error,
-            {
-              provider: quote.provider,
-              message: 'Failed to fetch widget URL',
-            },
-            strings('deposit.buildQuote.unexpectedError'),
+        throw tagHeadlessQuoteFailure(
+          new Error(
+            reportRampsError(
+              error,
+              {
+                provider: quote.provider,
+                message: 'Failed to fetch widget URL',
+              },
+              strings('deposit.buildQuote.unexpectedError'),
+            ),
           ),
+          Boolean(ctx.headlessSessionId),
         );
       }
 
       if (!buyWidget?.url) {
-        throw new Error(
-          reportRampsError(
-            new Error('No widget URL available for provider'),
-            { provider: quote.provider },
-            strings('deposit.buildQuote.unexpectedError'),
+        throw tagHeadlessQuoteFailure(
+          new Error(
+            reportRampsError(
+              new Error('No widget URL available for provider'),
+              { provider: quote.provider },
+              strings('deposit.buildQuote.unexpectedError'),
+            ),
           ),
+          Boolean(ctx.headlessSessionId),
         );
       }
 
@@ -295,12 +346,80 @@ export function useContinueWithQuote(
             });
           }
 
+          const headlessId = ctx.headlessSessionId;
+          const headlessSession = getSession(headlessId);
+          if (headlessId) {
+            if (!headlessSession) {
+              // The session terminated before launch (consumer cancel /
+              // dismissal race). Opening a browser for a dead session would
+              // orphan the return; bail without navigating.
+              return;
+            }
+            if (!effectiveWallet) {
+              // The return leg (callback resolution) is impossible without a
+              // wallet address; fail fast instead of launching a browser
+              // whose success could never be resolved into an order.
+              throw tagHeadlessQuoteFailure(
+                new Error(
+                  reportRampsError(
+                    new Error(
+                      'No wallet address available for external browser flow',
+                    ),
+                    { provider: quote.provider },
+                    strings('deposit.buildQuote.unexpectedError'),
+                  ),
+                ),
+                true,
+              );
+            }
+            // P2.M2/E2: correlate the deeplink return with this session. The
+            // record retains `onOrderCreated` so a success return can
+            // complete the order even after the session is dismissed.
+            recordExternalReturnCorrelation({
+              sessionId: headlessId,
+              providerCode,
+              walletAddress: effectiveWallet,
+              chainId: network || undefined,
+              orderId: effectiveOrderId ?? undefined,
+              rampSurface: headlessSession.params.rampSurface,
+              region: userRegion?.regionCode ?? undefined,
+              analytics: {
+                checkoutSessionId: effectiveOrderId ?? uuidv4(),
+                providerName: effectiveProviderName,
+                amountSource: Number(
+                  quote.quote?.amountIn ?? headlessSession.params.amount ?? 0,
+                ),
+                amountDestination: Number(quote.quote?.amountOut ?? 0),
+                paymentMethodId: quote.quote?.paymentMethod ?? '',
+                currencySource: effectiveCurrency,
+                currencyDestination: effectiveCryptoSymbol,
+              },
+              onOrderCreated: headlessSession.callbacks.onOrderCreated,
+              launchedAt: Date.now(),
+            });
+          }
+
           const isAndroid = Device.isAndroid();
           const inAppBrowserAvailable =
             !isAndroid && (await InAppBrowser.isAvailable());
 
           if (isAndroid || !inAppBrowserAvailable) {
-            await Linking.openURL(buyWidget.url);
+            try {
+              await Linking.openURL(buyWidget.url);
+            } catch (openError) {
+              // Only the OPEN failure is catchable here; page load is
+              // unobservable. Clear the correlation (nothing will return)
+              // and let the outer catch route the typed failure.
+              clearExternalReturnCorrelation(headlessId);
+              throw openError;
+            }
+            if (headlessId) {
+              // Headless: leave the session `continued` and the Host overlay
+              // mounted. Success arrives via the `metamask://on-ramp`
+              // deeplink (handleRampReturnUrl); abandonment is inferred by
+              // the existing dismissal machinery — no BuildQuote reset.
+              return;
+            }
             navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
             return;
           }
@@ -310,6 +429,51 @@ export function useContinueWithQuote(
               buyWidget.url,
               redirectUrl,
             );
+
+            if (headlessId) {
+              // P2.M1: resolve every openAuth outcome into a terminal
+              // session callback instead of resetting to BuildQuote.
+              const correlation = getExternalReturnCorrelation();
+              const ownCorrelation =
+                correlation?.sessionId === headlessId ? correlation : null;
+
+              if (result.type !== 'success' || !result.url) {
+                // User closed the browser sheet: a user exit, not an error.
+                if (ownCorrelation) {
+                  emitExternalCheckoutClosed(
+                    ownCorrelation,
+                    'external_browser_cancel',
+                    false,
+                  );
+                }
+                clearExternalReturnCorrelation(headlessId);
+                closeSession(headlessId, { reason: 'user_dismissed' });
+                dismissHeadlessFlow(navigation);
+                return;
+              }
+
+              try {
+                await completeHeadlessExternalReturn({
+                  sessionId: headlessId,
+                  providerCode,
+                  walletAddress: effectiveWallet,
+                  returnUrl: result.url,
+                  orderIdFallback: effectiveOrderId ?? undefined,
+                  rampSurface: headlessSession?.params.rampSurface,
+                  region: userRegion?.regionCode ?? undefined,
+                });
+              } catch (completionError) {
+                if (ownCorrelation) {
+                  emitExternalOrderFailed(ownCorrelation, completionError);
+                }
+                clearExternalReturnCorrelation(headlessId);
+                failSession(headlessId, completionError, 'QUOTE_FAILED');
+              }
+              // Success and failure both end the session; pop the transparent
+              // HEADLESS_ENTRY modal so the caller's screen is interactive.
+              dismissHeadlessFlow(navigation);
+              return;
+            }
 
             if (result.type !== 'success' || !result.url) {
               navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
@@ -349,15 +513,18 @@ export function useContinueWithQuote(
           }),
         );
       } catch (error) {
-        throw new Error(
-          reportRampsError(
-            error,
-            {
-              provider: quote.provider,
-              message: 'Failed to open widget',
-            },
-            strings('deposit.buildQuote.unexpectedError'),
+        throw tagHeadlessQuoteFailure(
+          new Error(
+            reportRampsError(
+              error,
+              {
+                provider: quote.provider,
+                message: 'Failed to open widget',
+              },
+              strings('deposit.buildQuote.unexpectedError'),
+            ),
           ),
+          Boolean(ctx.headlessSessionId),
         );
       }
     },
@@ -370,6 +537,7 @@ export function useContinueWithQuote(
       getBuyWidgetData,
       addPrecreatedOrder,
       navigateAfterExternalBrowser,
+      userRegion?.regionCode,
     ],
   );
 

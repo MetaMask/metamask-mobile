@@ -19,13 +19,13 @@ Companion to [PLAN.md](./PLAN.md) (the original Headless Buy plan).
 
 **Phase 2 - External-browser + custom-action providers (Coinbase, PayPal, etc.):**
 
-- [ ] **P2.M1** - Headless-aware `continueWidget` external-browser branch
-- [ ] **P2.M2** - Headless deeplink path in `handleRampReturnUrl` + correlation record `{sessionId, walletAddress, chainId}`
-- [ ] **P2.M3** - E1/E2/E3 reconciliation
-- [ ] **P2.M4** - Custom-action (PayPal) support
+- [x] **P2.M1** - Headless-aware `continueWidget` external-browser branch
+- [x] **P2.M2** - Headless deeplink path in `handleRampReturnUrl` + correlation record `{sessionId, walletAddress, chainId}` (`headless/externalBrowserReturn.ts`)
+- [x] **P2.M3** - E1/E2/E3 reconciliation (E3 decision: no grace delay; correlation retention makes a success deeplink win over dismissal — see P2.M3)
+- [x] **P2.M4** - Custom-action (PayPal) support
 - [ ] **P2.M5** - Widen the flag to `all`
 - [ ] **P2.M6** - Add back the preferred-provider (order-history) recommendation rung
-- [ ] **P2.M7** - Typed errors + analytics parity for external-browser
+- [x] **P2.M7** - Typed errors + analytics parity for external-browser
 
 **Deferred (after Phase 2):**
 
@@ -212,7 +212,7 @@ All three reuse the EXISTING dismissal machinery `HeadlessHost` wires (`app/comp
 
 - **E1 - iOS `openAuth` success resolves into `onOrderCreated`** (covered by P2.M1), never silently lands on `RAMPS_ORDER_DETAILS`.
 - **E2 - A success deeplink must win even if the session was already dismissed or GC'd.** MM Pay's two-step intent transaction is gated on `onOrderCreated` (`useFiatConfirm.ts:112-122`), so a real fiat order can complete (the user paid) while the intent leg never fires if focus-dismissal, the `beforeRemove` listener, or the 1-hour stale GC (`STALE_SESSION_TTL_MS`, `sessionRegistry.ts:110`) terminated the session first. Rule: a success deeplink completes the order through `onOrderCreated` (re-opening or directly completing the dismissed session). Only a deeplink with no recoverable success and no live session falls back to `RAMPS_ORDER_DETAILS`.
-- **E3 - Pre-empt the existing zero-delay focus-dismissal timer.** On re-focus, `useHeadlessSessionFocusDismissal` schedules dismissal via `setTimeout(..., 0)` (`useHeadlessSessionFocusDismissal.ts:51`) and bails if the session is gone or the focus / session id changed. Ensure a real deeplink-success terminates the session before, or takes precedence over, focus-dismissal; it does not emit `onError`, and `cancel()` plus stale-session GC remain backstops. Open product decision: whether the zero-delay focus dismissal needs a deliberate grace delay to avoid racing a slow-but-successful deeplink; record the chosen behavior before implementation.
+- **E3 - Pre-empt the existing zero-delay focus-dismissal timer.** On re-focus, `useHeadlessSessionFocusDismissal` schedules dismissal via `setTimeout(..., 0)` (`useHeadlessSessionFocusDismissal.ts:51`) and bails if the session is gone or the focus / session id changed. Ensure a real deeplink-success terminates the session before, or takes precedence over, focus-dismissal; it does not emit `onError`, and `cancel()` plus stale-session GC remain backstops. **Decision (recorded, implemented):** no grace delay is added and the zero-delay timer is unchanged. Precedence is achieved by retention instead: the external-return correlation (`externalBrowserReturn.ts`) retains `onOrderCreated` and is NOT cleared by `user_dismissed` teardown, so a success deeplink arriving after any dismissal still completes the order (E2 machinery covers the E3 race). Double-completion is prevented by an in-flight guard keyed on session id.
 
 Tests: E1 iOS `openAuth` success completes via `onOrderCreated`; E2 a success deeplink after dismissal still completes via `onOrderCreated`; E3 a deeplink-success pre-empts focus-dismissal so a slow-but-successful return is not closed as `user_dismissed`.
 

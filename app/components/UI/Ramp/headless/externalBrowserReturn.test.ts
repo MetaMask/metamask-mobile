@@ -1,0 +1,354 @@
+import {
+  __resetExternalBrowserReturnForTests,
+  clearExternalReturnCorrelation,
+  completeHeadlessExternalReturn,
+  emitExternalCheckoutClosed,
+  emitExternalOrderFailed,
+  EXTERNAL_RETURN_TTL_MS,
+  getExternalReturnCorrelation,
+  recordExternalReturnCorrelation,
+  type ExternalReturnCorrelation,
+} from './externalBrowserReturn';
+import {
+  __resetSessionRegistryForTests,
+  createSession,
+} from './sessionRegistry';
+import type { HeadlessBuyParams } from './types';
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    RampsController: {
+      getOrderFromCallback: jest.fn(),
+      getOrder: jest.fn(),
+      addOrder: jest.fn(),
+    },
+  },
+}));
+
+jest.mock(
+  '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics',
+  () => ({
+    emitTerminalOrderAnalyticsFromCallback: jest.fn(),
+  }),
+);
+
+jest.mock(
+  '../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry',
+  () => ({
+    setHeadlessOrderContext: jest.fn(),
+  }),
+);
+
+jest.mock('../../../../core/redux', () => ({
+  __esModule: true,
+  default: {
+    store: { dispatch: jest.fn() },
+  },
+}));
+
+jest.mock('../../../../actions/user', () => ({
+  protectWalletModalVisible: jest.fn(() => ({
+    type: 'PROTECT_MODAL_VISIBLE',
+  })),
+}));
+
+jest.mock('../../../../util/analytics/analytics', () => ({
+  analytics: { trackEvent: jest.fn() },
+}));
+
+jest.mock('../../../../util/analytics/AnalyticsEventBuilder', () => ({
+  AnalyticsEventBuilder: {
+    createEventBuilder: jest.fn((event: unknown) => {
+      const built: { event: unknown; properties: Record<string, unknown> } = {
+        event,
+        properties: {},
+      };
+      const builder = {
+        addProperties(props: Record<string, unknown>) {
+          built.properties = { ...built.properties, ...props };
+          return builder;
+        },
+        build: () => built,
+      };
+      return builder;
+    }),
+  },
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
+const mockRampsController = jest.requireMock('../../../../core/Engine').context
+  .RampsController as {
+  getOrderFromCallback: jest.Mock;
+  getOrder: jest.Mock;
+  addOrder: jest.Mock;
+};
+const mockEmitTerminal = jest.requireMock(
+  '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics',
+).emitTerminalOrderAnalyticsFromCallback as jest.Mock;
+const mockSetHeadlessOrderContext = jest.requireMock(
+  '../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry',
+).setHeadlessOrderContext as jest.Mock;
+const mockDispatch = jest.requireMock('../../../../core/redux').default.store
+  .dispatch as jest.Mock;
+const mockTrackEvent = jest.requireMock('../../../../util/analytics/analytics')
+  .analytics.trackEvent as jest.Mock;
+
+const ORDER = {
+  providerOrderId: '/providers/coinbase-m/orders/order-1',
+  status: 'PENDING',
+};
+
+const SESSION_PARAMS = {
+  quote: {
+    provider: 'coinbase-m',
+    quote: { paymentMethod: '/payments/debit-credit-card' },
+  },
+  assetId: 'eip155:42161/slip44:60',
+  amount: 100,
+  rampSurface: 'perps',
+} as unknown as HeadlessBuyParams;
+
+function buildCorrelation(
+  sessionId: string,
+  overrides: Partial<ExternalReturnCorrelation> = {},
+): ExternalReturnCorrelation {
+  return {
+    sessionId,
+    providerCode: 'coinbase-m',
+    walletAddress: '0xwallet',
+    chainId: '42161',
+    rampSurface: 'perps',
+    region: 'de',
+    analytics: {
+      checkoutSessionId: 'checkout-1',
+      providerName: 'Coinbase',
+      amountSource: 100,
+      amountDestination: 0.05,
+      paymentMethodId: '/payments/debit-credit-card',
+      currencySource: 'EUR',
+      currencyDestination: 'ETH',
+    },
+    onOrderCreated: jest.fn(),
+    launchedAt: Date.now(),
+    ...overrides,
+  };
+}
+
+describe('externalBrowserReturn', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __resetExternalBrowserReturnForTests();
+    __resetSessionRegistryForTests();
+    mockRampsController.getOrderFromCallback.mockResolvedValue(ORDER);
+    mockRampsController.getOrder.mockResolvedValue(ORDER);
+  });
+
+  describe('correlation store', () => {
+    it('returns the recorded correlation until TTL expiry', () => {
+      const correlation = buildCorrelation('session-1');
+      recordExternalReturnCorrelation(correlation);
+      expect(getExternalReturnCorrelation()).toBe(correlation);
+
+      recordExternalReturnCorrelation(
+        buildCorrelation('session-1', {
+          launchedAt: Date.now() - EXTERNAL_RETURN_TTL_MS - 1,
+        }),
+      );
+      expect(getExternalReturnCorrelation()).toBeNull();
+    });
+
+    it('clear with a mismatched sessionId keeps the record', () => {
+      recordExternalReturnCorrelation(buildCorrelation('session-1'));
+      clearExternalReturnCorrelation('other-session');
+      expect(getExternalReturnCorrelation()).not.toBeNull();
+      clearExternalReturnCorrelation('session-1');
+      expect(getExternalReturnCorrelation()).toBeNull();
+    });
+  });
+
+  describe('completeHeadlessExternalReturn', () => {
+    it('completes a live session: resolves the order, fires onOrderCreated then onClose(completed)', async () => {
+      const onOrderCreated = jest.fn();
+      const onClose = jest.fn();
+      const onError = jest.fn();
+      const session = createSession(SESSION_PARAMS, {
+        onOrderCreated,
+        onClose,
+        onError,
+      });
+      recordExternalReturnCorrelation(
+        buildCorrelation(session.id, { onOrderCreated }),
+      );
+
+      const order = await completeHeadlessExternalReturn({
+        sessionId: session.id,
+        providerCode: 'coinbase-m',
+        walletAddress: '0xwallet',
+        returnUrl: 'metamask://on-ramp/providers/coinbase-m?orderId=order-1',
+        rampSurface: 'perps',
+        region: 'de',
+      });
+
+      expect(order).toBe(ORDER);
+      expect(mockRampsController.getOrderFromCallback).toHaveBeenCalledWith(
+        'coinbase-m',
+        'metamask://on-ramp/providers/coinbase-m?orderId=order-1',
+        '0xwallet',
+      );
+      expect(mockRampsController.addOrder).toHaveBeenCalledWith(ORDER);
+      expect(mockEmitTerminal).toHaveBeenCalledWith(ORDER);
+      expect(mockSetHeadlessOrderContext).toHaveBeenCalledWith(
+        ORDER.providerOrderId,
+        { rampSurface: 'perps', region: 'de' },
+      );
+      expect(mockDispatch).toHaveBeenCalled();
+      expect(onOrderCreated).toHaveBeenCalledWith(ORDER.providerOrderId);
+      expect(onClose).toHaveBeenCalledWith({ reason: 'completed' });
+      expect(onError).not.toHaveBeenCalled();
+      expect(getExternalReturnCorrelation()).toBeNull();
+    });
+
+    it('E2: completes via the retained callback when the session is gone, without onClose', async () => {
+      const retainedOnOrderCreated = jest.fn();
+      recordExternalReturnCorrelation(
+        buildCorrelation('gone-session', {
+          onOrderCreated: retainedOnOrderCreated,
+        }),
+      );
+
+      const order = await completeHeadlessExternalReturn({
+        sessionId: 'gone-session',
+        providerCode: 'coinbase-m',
+        walletAddress: '0xwallet',
+        returnUrl: 'metamask://on-ramp/providers/coinbase-m?orderId=order-1',
+      });
+
+      expect(order).toBe(ORDER);
+      expect(retainedOnOrderCreated).toHaveBeenCalledWith(
+        ORDER.providerOrderId,
+      );
+      expect(getExternalReturnCorrelation()).toBeNull();
+    });
+
+    it('returns null when neither a session nor a correlation exists', async () => {
+      const order = await completeHeadlessExternalReturn({
+        sessionId: 'unknown',
+        providerCode: 'coinbase-m',
+        walletAddress: '0xwallet',
+        returnUrl: 'metamask://on-ramp/providers/coinbase-m',
+      });
+      expect(order).toBeNull();
+      expect(mockRampsController.getOrderFromCallback).not.toHaveBeenCalled();
+    });
+
+    it('falls back to getOrder with the orderId when callback resolution yields nothing', async () => {
+      mockRampsController.getOrderFromCallback.mockResolvedValue(null);
+      recordExternalReturnCorrelation(buildCorrelation('session-2'));
+
+      const order = await completeHeadlessExternalReturn({
+        sessionId: 'session-2',
+        providerCode: 'coinbase-m',
+        walletAddress: '0xwallet',
+        returnUrl: 'metamask://on-ramp/providers/coinbase-m?orderId=order-9',
+      });
+
+      expect(mockRampsController.getOrder).toHaveBeenCalledWith(
+        'coinbase-m',
+        'order-9',
+        '0xwallet',
+      );
+      expect(order).toBe(ORDER);
+    });
+
+    it('throws when the order cannot be resolved and keeps the correlation for the caller to route', async () => {
+      mockRampsController.getOrderFromCallback.mockRejectedValue(
+        new Error('lookup failed'),
+      );
+      mockRampsController.getOrder.mockRejectedValue(new Error('also failed'));
+      recordExternalReturnCorrelation(buildCorrelation('session-3'));
+
+      await expect(
+        completeHeadlessExternalReturn({
+          sessionId: 'session-3',
+          providerCode: 'coinbase-m',
+          walletAddress: '0xwallet',
+          returnUrl: 'metamask://on-ramp/providers/coinbase-m?orderId=order-9',
+        }),
+      ).rejects.toThrow('lookup failed');
+      expect(getExternalReturnCorrelation()).not.toBeNull();
+    });
+
+    it('guards against concurrent double-completion for the same session', async () => {
+      let resolveLookup: (value: unknown) => void = () => undefined;
+      mockRampsController.getOrderFromCallback.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveLookup = resolve;
+          }),
+      );
+      const onOrderCreated = jest.fn();
+      recordExternalReturnCorrelation(
+        buildCorrelation('session-4', { onOrderCreated }),
+      );
+
+      const args = {
+        sessionId: 'session-4',
+        providerCode: 'coinbase-m',
+        walletAddress: '0xwallet',
+        returnUrl: 'metamask://on-ramp/providers/coinbase-m?orderId=order-1',
+      };
+      const first = completeHeadlessExternalReturn(args);
+      const second = completeHeadlessExternalReturn(args);
+      await expect(second).resolves.toBeNull();
+      resolveLookup(ORDER);
+      await expect(first).resolves.toBe(ORDER);
+      expect(onOrderCreated).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('analytics emitters (P2.M7)', () => {
+    it('emitExternalCheckoutClosed emits RAMPS_CHECKOUT_CLOSED with headless base props', () => {
+      emitExternalCheckoutClosed(
+        buildCorrelation('session-5'),
+        'external_browser_cancel',
+        false,
+      );
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      const built = mockTrackEvent.mock.calls[0][0];
+      expect(built.properties).toMatchObject({
+        ramp_type: 'HEADLESS',
+        ramp_surface: 'perps',
+        region: 'de',
+        provider_name: 'Coinbase',
+        checkout_session_id: 'checkout-1',
+        close_source: 'external_browser_cancel',
+        callback_reached: false,
+      });
+    });
+
+    it('emitExternalOrderFailed emits RAMPS_ORDER_FAILED with the Checkout property shape', () => {
+      emitExternalOrderFailed(
+        buildCorrelation('session-6'),
+        new Error('resolution failed'),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      const built = mockTrackEvent.mock.calls[0][0];
+      expect(built.properties).toMatchObject({
+        ramp_type: 'HEADLESS',
+        ramp_surface: 'perps',
+        amount_source: 100,
+        amount_destination: 0.05,
+        payment_method_id: '/payments/debit-credit-card',
+        region: 'de',
+        chain_id: '42161',
+        currency_destination: 'ETH',
+        currency_source: 'EUR',
+        error_message: 'resolution failed',
+        is_authenticated: true,
+      });
+    });
+  });
+});

@@ -2,6 +2,12 @@ import { renderHook, act } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
+import {
+  __resetSessionRegistryForTests,
+  createSession,
+  getSession,
+} from '../headless/sessionRegistry';
+import type { HeadlessBuyParams } from '../headless/types';
 import { useContinueWithQuote } from './useContinueWithQuote';
 
 jest.mock('@react-navigation/native', () => ({
@@ -68,6 +74,19 @@ jest.mock('../utils/reportRampsError', () => ({
   reportRampsError: jest.fn(
     (_error: unknown, _ctx: unknown, fallback: string) => fallback,
   ),
+}));
+
+jest.mock('../headless/externalBrowserReturn', () => ({
+  clearExternalReturnCorrelation: jest.fn(),
+  completeHeadlessExternalReturn: jest.fn(),
+  emitExternalCheckoutClosed: jest.fn(),
+  emitExternalOrderFailed: jest.fn(),
+  getExternalReturnCorrelation: jest.fn(() => null),
+  recordExternalReturnCorrelation: jest.fn(),
+}));
+
+jest.mock('../headless/headlessEntryNavigation', () => ({
+  dismissHeadlessFlow: jest.fn(),
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -209,7 +228,13 @@ async function invoke(
     typeof renderHook<ReturnType<typeof useContinueWithQuote>, unknown>
   >['result'],
   quote: unknown,
-  ctx: { amount: number; assetId: string; headlessSessionId?: string } = CTX,
+  ctx: {
+    amount: number;
+    assetId: string;
+    headlessSessionId?: string;
+    walletAddress?: string;
+    redirectUrl?: string;
+  } = CTX,
 ): Promise<Error | undefined> {
   let caught: Error | undefined;
   await act(async () => {
@@ -723,6 +748,344 @@ describe('useContinueWithQuote', () => {
       await invoke(result, WIDGET_PROVIDER_QUOTE);
 
       expect(mockReportRampsError).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('headless external-browser branch (P2.M1 / M4 / M7)', () => {
+    const mockExternalReturn = jest.requireMock(
+      '../headless/externalBrowserReturn',
+    ) as {
+      clearExternalReturnCorrelation: jest.Mock;
+      completeHeadlessExternalReturn: jest.Mock;
+      emitExternalCheckoutClosed: jest.Mock;
+      emitExternalOrderFailed: jest.Mock;
+      getExternalReturnCorrelation: jest.Mock;
+      recordExternalReturnCorrelation: jest.Mock;
+    };
+    const mockDismissHeadlessFlow = jest.requireMock(
+      '../headless/headlessEntryNavigation',
+    ).dismissHeadlessFlow as jest.Mock;
+
+    const HEADLESS_SESSION_PARAMS = {
+      quote: WIDGET_PROVIDER_QUOTE,
+      assetId: 'eip155:1/slip44:60',
+      amount: 100,
+      rampSurface: 'perps',
+    } as unknown as HeadlessBuyParams;
+
+    const CUSTOM_ACTION_QUOTE = {
+      provider: 'paypal',
+      id: 'quote-custom-1',
+      quote: {
+        isCustomAction: true,
+        buyURL: 'https://paypal.example.com/checkout',
+      },
+    } as const;
+
+    function startHeadlessSession() {
+      const callbacks = {
+        onOrderCreated: jest.fn(),
+        onError: jest.fn(),
+        onClose: jest.fn(),
+      };
+      const session = createSession(HEADLESS_SESSION_PARAMS, callbacks);
+      return { session, callbacks };
+    }
+
+    const headlessCtx = (headlessSessionId: string) => ({
+      ...CTX,
+      headlessSessionId,
+    });
+
+    beforeEach(() => {
+      __resetSessionRegistryForTests();
+      mockDeviceIsAndroid.mockReturnValue(false);
+      mockInAppBrowser.isAvailable.mockResolvedValue(true);
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://widget.example.com/session',
+        orderId: 'order-1',
+      });
+      mockExternalReturn.getExternalReturnCorrelation.mockReturnValue(null);
+      mockExternalReturn.completeHeadlessExternalReturn.mockResolvedValue({
+        providerOrderId: 'order-1',
+      });
+    });
+
+    it('records the return correlation at external-browser launch', async () => {
+      const { session, callbacks } = startHeadlessSession();
+      mockInAppBrowser.openAuth.mockResolvedValue({
+        type: 'success',
+        url: 'metamask://on-ramp/providers/moonpay?orderId=order-1',
+      });
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      await invoke(result, WIDGET_PROVIDER_QUOTE, headlessCtx(session.id));
+
+      expect(
+        mockExternalReturn.recordExternalReturnCorrelation,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sessionId: session.id,
+          providerCode: 'moonpay',
+          walletAddress: '0x1234567890123456789012345678901234567890',
+          orderId: 'order-1',
+          rampSurface: 'perps',
+          region: 'us-ca',
+          onOrderCreated: callbacks.onOrderCreated,
+        }),
+      );
+    });
+
+    it('iOS openAuth success resolves into the shared completion and dismisses the flow (E1)', async () => {
+      const { session } = startHeadlessSession();
+      mockInAppBrowser.openAuth.mockResolvedValue({
+        type: 'success',
+        url: 'metamask://on-ramp/providers/moonpay?orderId=order-1',
+      });
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const error = await invoke(
+        result,
+        WIDGET_PROVIDER_QUOTE,
+        headlessCtx(session.id),
+      );
+
+      expect(error).toBeUndefined();
+      expect(
+        mockExternalReturn.completeHeadlessExternalReturn,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sessionId: session.id,
+          providerCode: 'moonpay',
+          returnUrl: 'metamask://on-ramp/providers/moonpay?orderId=order-1',
+          walletAddress: '0x1234567890123456789012345678901234567890',
+        }),
+      );
+      expect(mockDismissHeadlessFlow).toHaveBeenCalled();
+      expect(mockNavigationReset).not.toHaveBeenCalled();
+      expect(mockInAppBrowser.closeAuth).toHaveBeenCalled();
+    });
+
+    it('iOS openAuth cancel fires onClose(user_dismissed), emits the closed event, and dismisses', async () => {
+      const { session, callbacks } = startHeadlessSession();
+      mockExternalReturn.getExternalReturnCorrelation.mockReturnValue({
+        sessionId: session.id,
+        analytics: { checkoutSessionId: 'checkout-1' },
+        launchedAt: Date.now(),
+      });
+      mockInAppBrowser.openAuth.mockResolvedValue({ type: 'cancel' });
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      await invoke(result, WIDGET_PROVIDER_QUOTE, headlessCtx(session.id));
+
+      expect(callbacks.onClose).toHaveBeenCalledWith({
+        reason: 'user_dismissed',
+      });
+      expect(callbacks.onError).not.toHaveBeenCalled();
+      expect(mockExternalReturn.emitExternalCheckoutClosed).toHaveBeenCalled();
+      expect(
+        mockExternalReturn.clearExternalReturnCorrelation,
+      ).toHaveBeenCalledWith(session.id);
+      expect(mockDismissHeadlessFlow).toHaveBeenCalled();
+      expect(mockNavigationReset).not.toHaveBeenCalled();
+      expect(getSession(session.id)).toBeUndefined();
+    });
+
+    it('completion failure fails the session with QUOTE_FAILED and emits order-failed (P2.M7)', async () => {
+      const { session, callbacks } = startHeadlessSession();
+      mockExternalReturn.getExternalReturnCorrelation.mockReturnValue({
+        sessionId: session.id,
+        analytics: { checkoutSessionId: 'checkout-1' },
+        launchedAt: Date.now(),
+      });
+      mockExternalReturn.completeHeadlessExternalReturn.mockRejectedValue(
+        new Error('order lookup failed'),
+      );
+      mockInAppBrowser.openAuth.mockResolvedValue({
+        type: 'success',
+        url: 'metamask://on-ramp/providers/moonpay?orderId=order-1',
+      });
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const error = await invoke(
+        result,
+        WIDGET_PROVIDER_QUOTE,
+        headlessCtx(session.id),
+      );
+
+      expect(error).toBeUndefined();
+      expect(callbacks.onError).toHaveBeenCalledWith(
+        expect.objectContaining({ code: 'QUOTE_FAILED' }),
+      );
+      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(mockExternalReturn.emitExternalOrderFailed).toHaveBeenCalled();
+      expect(mockDismissHeadlessFlow).toHaveBeenCalled();
+      expect(getSession(session.id)).toBeUndefined();
+    });
+
+    it('Android launch keeps the session and overlay awaiting the deeplink (no BuildQuote reset)', async () => {
+      const { session, callbacks } = startHeadlessSession();
+      mockDeviceIsAndroid.mockReturnValue(true);
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const error = await invoke(
+        result,
+        WIDGET_PROVIDER_QUOTE,
+        headlessCtx(session.id),
+      );
+
+      expect(error).toBeUndefined();
+      expect(mockLinkingOpenURL).toHaveBeenCalledWith(
+        'https://widget.example.com/session',
+      );
+      expect(
+        mockExternalReturn.recordExternalReturnCorrelation,
+      ).toHaveBeenCalled();
+      expect(mockNavigationReset).not.toHaveBeenCalled();
+      expect(getSession(session.id)).toBeDefined();
+      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(callbacks.onError).not.toHaveBeenCalled();
+    });
+
+    it('Android open failure clears the correlation and throws a QUOTE_FAILED-tagged error', async () => {
+      const { session } = startHeadlessSession();
+      mockDeviceIsAndroid.mockReturnValue(true);
+      mockLinkingOpenURL.mockRejectedValueOnce(new Error('no browser'));
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const error = await invoke(
+        result,
+        WIDGET_PROVIDER_QUOTE,
+        headlessCtx(session.id),
+      );
+
+      expect(error).toBeDefined();
+      expect(
+        (error as Error & { headlessBuyErrorCode?: string })
+          .headlessBuyErrorCode,
+      ).toBe('QUOTE_FAILED');
+      expect(
+        mockExternalReturn.clearExternalReturnCorrelation,
+      ).toHaveBeenCalledWith(session.id);
+    });
+
+    it('does not launch a browser for a session that already terminated', async () => {
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const error = await invoke(
+        result,
+        WIDGET_PROVIDER_QUOTE,
+        headlessCtx('headless-buy-gone'),
+      );
+
+      expect(error).toBeUndefined();
+      expect(mockInAppBrowser.openAuth).not.toHaveBeenCalled();
+      expect(mockLinkingOpenURL).not.toHaveBeenCalled();
+      expect(mockNavigationReset).not.toHaveBeenCalled();
+    });
+
+    it('fails fast with QUOTE_FAILED when no wallet address is available', async () => {
+      const { session } = startHeadlessSession();
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const error = await invoke(result, WIDGET_PROVIDER_QUOTE, {
+        ...headlessCtx(session.id),
+        walletAddress: '',
+      });
+
+      expect(error).toBeDefined();
+      expect(
+        (error as Error & { headlessBuyErrorCode?: string })
+          .headlessBuyErrorCode,
+      ).toBe('QUOTE_FAILED');
+      expect(mockInAppBrowser.openAuth).not.toHaveBeenCalled();
+    });
+
+    it('honors the ctx.redirectUrl override for the buy URL and the interception scheme', async () => {
+      const { session } = startHeadlessSession();
+      mockInAppBrowser.openAuth.mockResolvedValue({ type: 'cancel' });
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      await invoke(result, WIDGET_PROVIDER_QUOTE, {
+        ...headlessCtx(session.id),
+        redirectUrl: 'metamask://custom-return',
+      });
+
+      const quoteForWidget = mockGetBuyWidgetData.mock.calls[0][0];
+      expect(quoteForWidget.quote.buyURL).toContain(
+        encodeURIComponent('metamask://custom-return'),
+      );
+      expect(mockInAppBrowser.openAuth).toHaveBeenCalledWith(
+        'https://widget.example.com/session',
+        'metamask://custom-return',
+      );
+    });
+
+    it('routes a custom-action quote through the headless external path (P2.M4)', async () => {
+      const { session, callbacks } = startHeadlessSession();
+      mockInAppBrowser.openAuth.mockResolvedValue({ type: 'cancel' });
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const error = await invoke(
+        result,
+        CUSTOM_ACTION_QUOTE,
+        headlessCtx(session.id),
+      );
+
+      expect(error).toBeUndefined();
+      // Custom actions always take the external path: a deeplink redirect
+      // (not the https callback base) and the OS browser sheet.
+      expect(mockInAppBrowser.openAuth).toHaveBeenCalledWith(
+        'https://widget.example.com/session',
+        'metamask://on-ramp/providers/paypal',
+      );
+      expect(callbacks.onClose).toHaveBeenCalledWith({
+        reason: 'user_dismissed',
+      });
+      expect(mockNavigationReset).not.toHaveBeenCalled();
+    });
+
+    it('custom-action success completes through the shared resolver (P2.M4)', async () => {
+      const { session } = startHeadlessSession();
+      mockInAppBrowser.openAuth.mockResolvedValue({
+        type: 'success',
+        url: 'metamask://on-ramp/providers/paypal?orderId=pp-1',
+      });
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      await invoke(result, CUSTOM_ACTION_QUOTE, headlessCtx(session.id));
+
+      expect(
+        mockExternalReturn.completeHeadlessExternalReturn,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerCode: 'paypal',
+          returnUrl: 'metamask://on-ramp/providers/paypal?orderId=pp-1',
+        }),
+      );
+      expect(mockDismissHeadlessFlow).toHaveBeenCalled();
+    });
+
+    it('tags widget-URL failures as QUOTE_FAILED only under a headless session (P2.M7)', async () => {
+      const { session } = startHeadlessSession();
+      mockGetBuyWidgetData.mockResolvedValue({ url: null });
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const headlessError = await invoke(
+        result,
+        WIDGET_PROVIDER_QUOTE,
+        headlessCtx(session.id),
+      );
+      expect(
+        (headlessError as Error & { headlessBuyErrorCode?: string })
+          .headlessBuyErrorCode,
+      ).toBe('QUOTE_FAILED');
+
+      const ub2Error = await invoke(result, WIDGET_PROVIDER_QUOTE, CTX);
+      expect(
+        (ub2Error as Error & { headlessBuyErrorCode?: string })
+          .headlessBuyErrorCode,
+      ).toBeUndefined();
     });
   });
 });
