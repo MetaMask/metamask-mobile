@@ -29,6 +29,11 @@ const REFRESH_EXPIRY_BUFFER_MS = 60 * 60 * 1000;
 const DEFAULT_NETWORK = 'base-sepolia';
 const IMMERSVE_LOCATION = 'international';
 
+const IMMERSVE_KYC_TYPE = 'immersve-conducted';
+const IMMERSVE_KYC_HIDDEN_STEPS = ['region', 'contact-channels'];
+const IMMERSVE_SPENDABLE_CURRENCY = 'USD';
+const IMMERSVE_SPENDABLE_AMOUNT = 999999999;
+
 function getErrorContext(method: string, extra?: Record<string, unknown>) {
   return {
     tags: { feature: 'card', provider: 'immersve' },
@@ -129,6 +134,18 @@ interface ImmersveFundingSourceResponse {
   network?: string;
 }
 
+interface ImmersveFundingChannel {
+  id: string;
+  fundingTypeName: string;
+  network?: string;
+  mode?: string;
+  storageAddress?: string;
+}
+
+interface ImmersveFundingChannelsResponse {
+  items: ImmersveFundingChannel[];
+}
+
 export class ImmersveProvider implements ICardProvider {
   readonly id = 'immersve' as const;
 
@@ -172,9 +189,7 @@ export class ImmersveProvider implements ICardProvider {
     return this.programConfig.network ?? DEFAULT_NETWORK;
   }
 
-  private requireProgramValue(
-    key: 'cardProgramId' | 'fundingChannelId',
-  ): string {
+  private requireProgramValue(key: 'cardProgramId' | 'fundingType'): string {
     const value = this.programConfig[key];
     if (!value) {
       throw new CardProviderError(
@@ -356,11 +371,15 @@ export class ImmersveProvider implements ICardProvider {
     }
 
     try {
+      const fundingChannelId = await this.#resolveFundingChannelId(
+        accountId,
+        tokens,
+      );
       const response = await this.service.post<ImmersveFundingSourceResponse>(
         '/api/funding-sources',
         {
           accountId,
-          fundingChannelId: this.requireProgramValue('fundingChannelId'),
+          fundingChannelId,
           fundingAddress,
         },
         tokens,
@@ -374,6 +393,25 @@ export class ImmersveProvider implements ICardProvider {
     } catch (error) {
       throw mapApiError(error, 'createFundingSource');
     }
+  }
+
+  async #resolveFundingChannelId(
+    accountId: string,
+    tokens: CardAuthTokens,
+  ): Promise<string> {
+    const fundingType = this.requireProgramValue('fundingType');
+    const { items } = await this.service.get<ImmersveFundingChannelsResponse>(
+      `/api/accounts/${accountId}/funding-channels`,
+      tokens,
+    );
+    const match = items?.find((c) => c.fundingTypeName === fundingType);
+    if (!match) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        `No Immersve funding channel for type ${fundingType}`,
+      );
+    }
+    return match.id;
   }
 
   async patchContactDetails(
@@ -411,21 +449,18 @@ export class ImmersveProvider implements ICardProvider {
     params: CardSpendingPrerequisitesParams,
     tokens: CardAuthTokens,
   ): Promise<CardSpendingPrerequisitesResult> {
-    const { spendableAmount, spendableCurrency, kycType, kycHiddenSteps } =
-      this.programConfig;
-
     try {
       return await this.service.post<CardSpendingPrerequisitesResult>(
         '/api/spending-prerequisites',
         {
           cardProgramId: this.requireProgramValue('cardProgramId'),
           fundingSourceId,
-          spendableAmount: spendableAmount ?? '0',
-          spendableCurrency: spendableCurrency ?? 'USD',
-          kycType: kycType ?? 'immersve-conducted',
+          spendableAmount: IMMERSVE_SPENDABLE_AMOUNT,
+          spendableCurrency: IMMERSVE_SPENDABLE_CURRENCY,
+          kycType: IMMERSVE_KYC_TYPE,
           kycRedirectUrl: params.kycRedirectUrl,
           kycRegion: params.kycRegion,
-          kycHiddenSteps,
+          kycHiddenSteps: IMMERSVE_KYC_HIDDEN_STEPS,
         },
         tokens,
       );
