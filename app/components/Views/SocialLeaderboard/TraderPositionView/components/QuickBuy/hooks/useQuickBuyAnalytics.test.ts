@@ -53,6 +53,10 @@ jest.mock('../analytics', () => {
         RECEIVE_TOKEN_SELECTED: 'receive_token_selected',
         SLIPPAGE_CHANGED: 'slippage_changed',
       },
+      TRADE_TYPE: {
+        BUY: 'buy',
+        SELL: 'sell',
+      },
     },
   };
 });
@@ -294,6 +298,53 @@ describe('useQuickBuyAnalytics', () => {
           [QuickBuyEventProperties.PREVIOUS_SLIPPAGE]: '0.5',
         }),
       );
+    });
+
+    it('includes trade_type when tradeMode is provided', () => {
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, undefined, 'buy'),
+      );
+
+      act(() => {
+        result.current.trackQuoteSelected(0, 1);
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_INTERACTED,
+        expect.objectContaining({
+          [QuickBuyEventProperties.TRADE_TYPE]:
+            QuickBuyEventValues.TRADE_TYPE.BUY,
+        }),
+      );
+    });
+
+    it('includes trade_type as sell when tradeMode is sell', () => {
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, undefined, 'sell'),
+      );
+
+      act(() => {
+        result.current.trackPayWithSelected('USDC', 'ETH');
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_INTERACTED,
+        expect.objectContaining({
+          [QuickBuyEventProperties.TRADE_TYPE]:
+            QuickBuyEventValues.TRADE_TYPE.SELL,
+        }),
+      );
+    });
+
+    it('does not include trade_type when tradeMode is not provided', () => {
+      const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, CAIP19));
+
+      act(() => {
+        result.current.trackQuoteSelected(0, 1);
+      });
+
+      const call = mockTrack.mock.calls[0][1];
+      expect(call).not.toHaveProperty(QuickBuyEventProperties.TRADE_TYPE);
     });
 
     it('is a no-op when traderAddress is empty', () => {
