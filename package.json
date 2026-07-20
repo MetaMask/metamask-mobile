@@ -235,7 +235,8 @@
     "@metamask/assets-controllers@npm:^109.2.1": "patch:@metamask/assets-controllers@npm%3A109.4.0#~/.yarn/patches/@metamask-assets-controllers-npm-109.4.0-25a362106e.patch",
     "@metamask/assets-controllers@npm:^109.3.0": "patch:@metamask/assets-controllers@npm%3A109.4.0#~/.yarn/patches/@metamask-assets-controllers-npm-109.4.0-25a362106e.patch",
     "@metamask/assets-controllers@npm:^109.4.0": "patch:@metamask/assets-controllers@npm%3A109.4.0#~/.yarn/patches/@metamask-assets-controllers-npm-109.4.0-25a362106e.patch",
-    "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch"
+    "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
+    "metamask@workspace:./@metamask/react-data-query@npm:^0.2.2": "npm:@metamask-previews/react-data-query@0.2.2-preview-789f7f935"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -859,11 +860,5 @@
       }
     },
     "version": "v0.3.0"
-  },
-  "previewBuilds": {
-    "@metamask/react-data-query": {
-      "previewVersion": "0.2.2-preview-789f7f935",
-      "type": "breaking"
-    }
   }
 }
