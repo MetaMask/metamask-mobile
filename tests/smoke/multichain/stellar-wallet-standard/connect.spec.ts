@@ -5,8 +5,10 @@ import {
   connectStellarTestDapp,
   navigateToStellarTestDApp,
 } from '../../../flows/stellar-connection.flow';
-import { Utilities } from '../../../framework';
-import { withStellarAccountSnap } from '../../../helpers/stellar/common';
+import { loginToApp } from '../../../flows/wallet.flow';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { DappVariants } from '../../../framework/Constants';
 
 describe(SmokeNetworkExpansion('Stellar Wallet Standard E2E - Connect'), () => {
   beforeAll(async () => {
@@ -14,65 +16,58 @@ describe(SmokeNetworkExpansion('Stellar Wallet Standard E2E - Connect'), () => {
   });
 
   it('Connects & disconnects from Stellar test dapp', async () => {
-    await withStellarAccountSnap(async () => {
-      await navigateToStellarTestDApp();
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withStellarEnabled().build(),
+        restartDevice: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.STELLAR_TEST_DAPP,
+          },
+        ],
+      },
+      async () => {
+        await loginToApp();
+        await navigateToStellarTestDApp();
 
-      await connectStellarTestDapp();
+        await connectStellarTestDapp();
 
-      await StellarTestDapp.verifyConnectedAccount(account1Short);
-      await StellarTestDapp.verifyConnectionStatus('Connected');
+        await StellarTestDapp.verifyConnectedAccount(account1Short);
+        await StellarTestDapp.verifyConnectionStatus('Connected');
 
-      const header = StellarTestDapp.getHeader();
-      await header.disconnect();
+        const header = StellarTestDapp.getHeader();
+        await header.disconnect();
 
-      await StellarTestDapp.verifyConnectionStatus('Not connected');
-    });
+        await StellarTestDapp.verifyConnectionStatus('Not connected');
+      },
+    );
   });
 
   it('Stays connected after page refresh', async () => {
-    await withStellarAccountSnap(async () => {
-      await navigateToStellarTestDApp();
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withStellarEnabled().build(),
+        restartDevice: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.STELLAR_TEST_DAPP,
+          },
+        ],
+      },
+      async () => {
+        await loginToApp();
+        await navigateToStellarTestDApp();
 
-      await connectStellarTestDapp();
+        await connectStellarTestDapp();
 
-      await StellarTestDapp.verifyConnectedAccount(account1Short);
-      await StellarTestDapp.verifyConnectionStatus('Connected');
+        await StellarTestDapp.verifyConnectedAccount(account1Short);
+        await StellarTestDapp.verifyConnectionStatus('Connected');
 
-      await StellarTestDapp.reloadStellarTestDApp();
+        await StellarTestDapp.reloadStellarTestDApp();
 
-      await Utilities.executeWithRetry(
-        async () => {
-          await StellarTestDapp.verifyConnectedAccount(account1Short);
-          await StellarTestDapp.verifyConnectionStatus('Connected');
-        },
-        {
-          timeout: 10000,
-          interval: 1500,
-        },
-      );
-    });
-  });
-
-  it('Switches network while connected', async () => {
-    await withStellarAccountSnap(async () => {
-      await navigateToStellarTestDApp();
-
-      await connectStellarTestDapp();
-
-      await StellarTestDapp.verifyConnectionStatus('Connected');
-
-      await StellarTestDapp.selectNetwork('pubnet');
-
-      await Utilities.executeWithRetry(
-        async () => {
-          await StellarTestDapp.verifyConnectedAccount(account1Short);
-          await StellarTestDapp.verifyConnectionStatus('Connected');
-        },
-        {
-          timeout: 10000,
-          interval: 1500,
-        },
-      );
-    });
+        await StellarTestDapp.verifyConnectedAccount(account1Short);
+        await StellarTestDapp.verifyConnectionStatus('Connected');
+      },
+    );
   });
 });

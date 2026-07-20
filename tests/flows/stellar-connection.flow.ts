@@ -9,10 +9,6 @@ import { navigateToBrowserView } from './browser.flow';
 
 export const account1Short = 'GDEM2...YE6K';
 
-// Soroban auth-entry preimage XDR for Stellar testnet (Test SDF Network ; September 2015).
-export const exampleAuthEntryXdr =
-  'AAAACc7gMC1ZhE0yvcqRXIID3USzP7t+3BkFHqN6vt8o7NRyAAAAAAdbzRUAD0JAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQAAAAh0cmFuc2ZlcgAAAAAAAAAA';
-
 /**
  * Connects the Stellar test dapp to the wallet.
  *
