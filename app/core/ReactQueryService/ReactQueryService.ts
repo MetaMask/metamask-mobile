@@ -11,7 +11,6 @@ import {
 } from '@react-native-community/netinfo';
 import { createUIQueryClient } from '@metamask/react-data-query';
 import Engine from '../Engine/Engine';
-import type { RootExtendedMessenger } from '../Engine/types';
 import { DATA_SERVICES } from '../../constants/data-services';
 
 type DataServiceName = (typeof DATA_SERVICES)[number];
@@ -31,20 +30,12 @@ type CacheUpdatedPayload =
 type CacheUpdatedHandler = (payload: CacheUpdatedPayload) => void;
 
 /**
- * A minimal, structural view of the root messenger that matches the
- * `MessengerAdapter` shape expected by `createUIQueryClient`.
+ * A minimal, structural view of the root messenger that matches the shape
+ * `createUIQueryClient` expects: it must at least be able to call any
+ * data-service action and subscribe to any data-service granular
+ * cache-updated event.
  *
- * We cannot pass `Engine.controllerMessenger` directly: it is exposed via a
- * proxy and the "real" Engine may not be constructed yet when this module is
- * imported by another file. So we wrap it in a lazy adapter that defers to the
- * proxy at call time.
- *
- * The underlying messenger's `call`/`subscribe`/`unsubscribe` are generic over
- * its own declared (literal) action/event unions and cannot express the open
- * `${DataServiceName}:${string}` template that the adapter must accept, so each
- * method bridges through a single localized cast. `createUIQueryClient` only
- * ever invokes these with valid data-service actions/events, so the cast is
- * safe.
+ * The concrete messenger is bridged to this shape by {@link getMessengerView}.
  */
 interface MessengerAdapter {
   /**
@@ -70,38 +61,40 @@ interface MessengerAdapter {
   ): void;
 }
 
+/**
+ * Return `Engine.controllerMessenger` viewed through the narrow
+ * {@link MessengerAdapter} shape.
+ *
+ * The messenger's `call`/`subscribe`/`unsubscribe` are generic and bounded by
+ * its own declared (literal) action/event unions, so they cannot accept the
+ * open `${DataServiceName}:${string}` template that the adapter must expose.
+ * Rather than assert on every call, we bridge once here. This is the same
+ * capability-bridge pattern used by `BaseController` and by
+ * `createUIQueryClient` itself.
+ *
+ * Resolving the messenger lazily (per call) is also required because
+ * `Engine.controllerMessenger` is a proxy whose backing Engine may not exist
+ * yet when this module is first imported.
+ *
+ * @returns The messenger as a {@link MessengerAdapter}.
+ */
+function getMessengerView(): MessengerAdapter {
+  // Type assertion: bridges the messenger's literal-bounded generic methods to
+  // the open template signatures the adapter exposes. `createUIQueryClient`
+  // only ever invokes these with valid data-service actions/events, so the
+  // assertion is safe.
+  return Engine.controllerMessenger as unknown as MessengerAdapter;
+}
+
 const adapter: MessengerAdapter = {
   call(actionType, ...params) {
-    // Type assertion: the messenger's generic `call` is bounded by its own
-    // declared action literals and cannot accept the open template type.
-    const messenger =
-      Engine.controllerMessenger as unknown as RootExtendedMessenger;
-    return Promise.resolve(
-      (messenger.call as (type: string, ...args: unknown[]) => unknown)(
-        actionType,
-        ...params,
-      ),
-    );
+    return getMessengerView().call(actionType, ...params);
   },
   subscribe(eventType, handler) {
-    // Type assertion: the messenger's generic `subscribe` is bounded by its own
-    // declared event literals and cannot accept the open template type.
-    const messenger =
-      Engine.controllerMessenger as unknown as RootExtendedMessenger;
-    (messenger.subscribe as (type: string, cb: CacheUpdatedHandler) => void)(
-      eventType,
-      handler,
-    );
+    getMessengerView().subscribe(eventType, handler);
   },
   unsubscribe(eventType, handler) {
-    // Type assertion: the messenger's generic `unsubscribe` is bounded by its
-    // own declared event literals and cannot accept the open template type.
-    const messenger =
-      Engine.controllerMessenger as unknown as RootExtendedMessenger;
-    (messenger.unsubscribe as (type: string, cb: CacheUpdatedHandler) => void)(
-      eventType,
-      handler,
-    );
+    getMessengerView().unsubscribe(eventType, handler);
   },
 };
 
