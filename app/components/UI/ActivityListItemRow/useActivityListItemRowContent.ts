@@ -214,6 +214,18 @@ function shortAddress(address?: string): string | undefined {
   return address ? renderShortAddress(address) : undefined;
 }
 
+function bridgeAmountTokens(
+  sourceToken?: TokenAmount,
+  destinationToken?: TokenAmount,
+): { primaryToken?: TokenAmount; secondaryToken?: TokenAmount } {
+  const primaryToken = destinationToken?.amount
+    ? destinationToken
+    : sourceToken;
+  const secondaryToken =
+    primaryToken === destinationToken ? sourceToken : destinationToken;
+  return { primaryToken, secondaryToken };
+}
+
 function formatProtocolName(protocol: string): string {
   return protocol
     .toLowerCase()
@@ -500,9 +512,9 @@ function resolveCoreContent(
 
       return {
         title: statusTitle(item, {
-          success: 'Swapped',
-          pending: 'Swapping',
-          failed: 'Swap failed',
+          success: strings('transactions.activity_swapped'),
+          pending: strings('transactions.activity_swapping'),
+          failed: strings('transactions.activity_swap_failed'),
         }),
         subtitle:
           tokenPairSubtitle(sourceToken, destinationToken) ??
@@ -515,9 +527,15 @@ function resolveCoreContent(
       const { sourceToken } = item.data;
       return {
         title: statusTitle(item, {
-          success: withOptionalSymbol('Swapped', sourceToken?.symbol),
-          pending: withOptionalSymbol('Swapping', sourceToken?.symbol),
-          failed: 'Swap failed',
+          success: withOptionalSymbol(
+            strings('transactions.activity_swapped'),
+            sourceToken?.symbol,
+          ),
+          pending: withOptionalSymbol(
+            strings('transactions.activity_swapping'),
+            sourceToken?.symbol,
+          ),
+          failed: strings('transactions.activity_swap_failed'),
         }),
         subtitle: protocolSubtitle(item),
         primaryToken: sourceToken,
@@ -574,16 +592,26 @@ function resolveCoreContent(
       return {
         title: statusTitle(item, {
           success: isSourceOnlyApiBridge
-            ? withOptionalSymbol('Sent', sourceSymbol)
-            : withOptionalSymbol('Bridged', destinationSymbol ?? sourceSymbol),
+            ? withOptionalSymbol(strings('transactions.sent'), sourceSymbol)
+            : withOptionalSymbol(
+                strings('transactions.activity_bridged'),
+                destinationSymbol ?? sourceSymbol,
+              ),
           pending: isSourceOnlyApiBridge
-            ? withOptionalSymbol('Sending', sourceSymbol)
-            : withOptionalSymbol('Bridging', destinationSymbol ?? sourceSymbol),
-          failed: isSourceOnlyApiBridge ? 'Send failed' : 'Bridge failed',
+            ? withOptionalSymbol(
+                strings('transactions.activity_sending'),
+                sourceSymbol,
+              )
+            : withOptionalSymbol(
+                strings('transactions.activity_bridging'),
+                destinationSymbol ?? sourceSymbol,
+              ),
+          failed: isSourceOnlyApiBridge
+            ? strings('transactions.activity_send_failed')
+            : strings('transactions.activity_bridge_failed'),
         }),
         subtitle,
-        primaryToken: destinationToken ?? sourceToken,
-        secondaryToken: destinationToken ? sourceToken : undefined,
+        ...bridgeAmountTokens(sourceToken, destinationToken),
       };
     }
     case 'buy':

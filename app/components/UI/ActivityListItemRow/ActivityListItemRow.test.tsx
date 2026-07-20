@@ -1334,6 +1334,29 @@ describe('ActivityListItemRow — row content', () => {
     expect(getByTestId('avatar-token-USDT')).toBeOnTheScreen();
   });
 
+  it('keeps the source amount on top when a bridge destination amount is unknown', () => {
+    const item = makeItem({
+      type: 'bridge',
+      status: 'pending',
+      sourceToken: {
+        amount: '0.02',
+        symbol: 'ETH',
+        direction: 'out',
+      },
+      destinationToken: {
+        symbol: 'USDC',
+        direction: 'in',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-0.02 ETH',
+    );
+  });
+
   it('renders bridge route and destination amount from bridge history', () => {
     const item = makeItem({
       type: 'bridge',
