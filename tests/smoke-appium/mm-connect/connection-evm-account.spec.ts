@@ -90,106 +90,106 @@ appiumTest.describe(SmokeMMConnect('EVM account switching'), () => {
   //    - Tap disconnect to reset dapp state
 
   // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
-  appiumTest.skip('@metamask/connect-evm - Account switching and wallet-side verification', async ({
-    currentDeviceDetails,
-    driver,
-  }) => {
-    const platform = currentDeviceDetails.platform;
-    const useBrowserStackLocal =
-      process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
-    const DAPP_URL = useBrowserStackLocal
-      ? `http://bs-local.com:${DAPP_PORT}`
-      : getDappUrlForBrowser(platform);
+  appiumTest.skip(
+    '@metamask/connect-evm - Account switching and wallet-side verification',
+    async ({ currentDeviceDetails, driver }) => {
+      const platform = currentDeviceDetails.platform;
+      const useBrowserStackLocal =
+        process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+      const DAPP_URL = useBrowserStackLocal
+        ? `http://bs-local.com:${DAPP_PORT}`
+        : getDappUrlForBrowser(platform);
 
-    await PlaywrightContextHelpers.withNativeAction(async () => {
-      await loginToAppPlaywright();
-      await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
-      await launchMobileBrowser();
-      await navigateToDapp(DAPP_URL);
-    });
-    await sleep(5000);
-
-    await PlaywrightContextHelpers.withWebAction(async () => {
-      await BrowserPlaygroundDapp.tapConnectLegacy();
-    }, DAPP_URL);
-
-    await PlaywrightContextHelpers.withNativeAction(async () => {
-      await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-      await unlockIfLockScreenVisible();
-      await DappConnectionModal.tapEditAccountsButton();
-      await DappConnectionModal.tapAccountButton('Account 3');
-      await DappConnectionModal.tapUpdateAccountsButton();
-      await DappConnectionModal.tapConnectButton({
-        shouldCooldown: true,
-        timeToCooldown: 2000,
+      await PlaywrightContextHelpers.withNativeAction(async () => {
+        await loginToAppPlaywright();
+        await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
+        await launchMobileBrowser();
+        await navigateToDapp(DAPP_URL);
       });
-    });
+      await sleep(5000);
 
-    await sleep(1000);
-    await switchToMobileBrowser();
-    await sleep(1000);
+      await PlaywrightContextHelpers.withWebAction(async () => {
+        await BrowserPlaygroundDapp.tapConnectLegacy();
+      }, DAPP_URL);
 
-    await PlaywrightContextHelpers.withWebAction(async () => {
-      await BrowserPlaygroundDapp.assertConnected(true);
-      await BrowserPlaygroundDapp.assertChainIdValue('0x1');
-      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_ADDRESS);
-    }, DAPP_URL);
+      await PlaywrightContextHelpers.withNativeAction(async () => {
+        await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+        await unlockIfLockScreenVisible();
+        await DappConnectionModal.tapEditAccountsButton();
+        await DappConnectionModal.tapAccountButton('Account 3');
+        await DappConnectionModal.tapUpdateAccountsButton();
+        await DappConnectionModal.tapConnectButton({
+          shouldCooldown: true,
+          timeToCooldown: 2000,
+        });
+      });
 
-    await PlaywrightContextHelpers.withNativeAction(async () => {
-      // Wait here to make sure UI is visible before attempted interaction
       await sleep(1000);
-      // We're only using Android for now
-      await PlaywrightGestures.activateApp(currentDeviceDetails);
-      await unlockIfLockScreenVisible();
+      await switchToMobileBrowser();
+      await sleep(1000);
 
-      // Change selected account to Account 3 in MetaMask
-      await WalletView.tapIdenticon();
-      await AccountListBottomSheet.tapAccountByName('Account 3');
-    });
+      await PlaywrightContextHelpers.withWebAction(async () => {
+        await BrowserPlaygroundDapp.assertConnected(true);
+        await BrowserPlaygroundDapp.assertChainIdValue('0x1');
+        await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_ADDRESS);
+      }, DAPP_URL);
 
-    await sleep(1000);
-    await switchToMobileBrowser();
-    await sleep(1000);
+      await PlaywrightContextHelpers.withNativeAction(async () => {
+        // Wait here to make sure UI is visible before attempted interaction
+        await sleep(1000);
+        // We're only using Android for now
+        await PlaywrightGestures.activateApp(currentDeviceDetails);
+        await unlockIfLockScreenVisible();
 
-    await PlaywrightContextHelpers.withWebAction(async () => {
-      // Verify account changed to Account 3
-      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
-    }, DAPP_URL);
-
-    await PlaywrightContextHelpers.withNativeAction(async () => {
-      await refreshMobileBrowser();
-    });
-    await sleep(2000);
-
-    await PlaywrightContextHelpers.withWebAction(async () => {
-      await BrowserPlaygroundDapp.assertConnected(true);
-      await BrowserPlaygroundDapp.assertChainIdValue('0x1');
-      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
-      await BrowserPlaygroundDapp.tapPersonalSign();
-    }, DAPP_URL);
-
-    await PlaywrightContextHelpers.withNativeAction(async () => {
-      await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-      await SignModal.tapCancelButton({
-        shouldCooldown: true,
-        timeToCooldown: 2000,
+        // Change selected account to Account 3 in MetaMask
+        await WalletView.tapIdenticon();
+        await AccountListBottomSheet.tapAccountByName('Account 3');
       });
-    });
 
-    await sleep(1000);
-    await switchToMobileBrowser();
-    await sleep(1000);
+      await sleep(1000);
+      await switchToMobileBrowser();
+      await sleep(1000);
 
-    await PlaywrightContextHelpers.withWebAction(async () => {
-      await BrowserPlaygroundDapp.assertResponseValue('rejected');
-    }, DAPP_URL);
+      await PlaywrightContextHelpers.withWebAction(async () => {
+        // Verify account changed to Account 3
+        await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
+      }, DAPP_URL);
 
-    //
-    // Reset dapp state
-    //
+      await PlaywrightContextHelpers.withNativeAction(async () => {
+        await refreshMobileBrowser();
+      });
+      await sleep(2000);
 
-    await PlaywrightContextHelpers.withWebAction(async () => {
-      await BrowserPlaygroundDapp.tapDisconnect();
-    }, DAPP_URL);
-  });
+      await PlaywrightContextHelpers.withWebAction(async () => {
+        await BrowserPlaygroundDapp.assertConnected(true);
+        await BrowserPlaygroundDapp.assertChainIdValue('0x1');
+        await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
+        await BrowserPlaygroundDapp.tapPersonalSign();
+      }, DAPP_URL);
+
+      await PlaywrightContextHelpers.withNativeAction(async () => {
+        await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+        await SignModal.tapCancelButton({
+          shouldCooldown: true,
+          timeToCooldown: 2000,
+        });
+      });
+
+      await sleep(1000);
+      await switchToMobileBrowser();
+      await sleep(1000);
+
+      await PlaywrightContextHelpers.withWebAction(async () => {
+        await BrowserPlaygroundDapp.assertResponseValue('rejected');
+      }, DAPP_URL);
+
+      //
+      // Reset dapp state
+      //
+
+      await PlaywrightContextHelpers.withWebAction(async () => {
+        await BrowserPlaygroundDapp.tapDisconnect();
+      }, DAPP_URL);
+    },
+  );
 }); // end describe

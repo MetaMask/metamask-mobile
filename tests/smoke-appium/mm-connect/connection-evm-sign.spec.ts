@@ -86,147 +86,147 @@ appiumTest.describe(SmokeMMConnect('EVM sign'), () => {
   // 7. CLEANUP
   //    - Tap disconnect to reset dapp state
   // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
-  appiumTest.skip('@metamask/connect-evm - Sign and transaction cancel flows', async ({
-    currentDeviceDetails,
-    driver,
-  }) => {
-    const platform = currentDeviceDetails.platform;
-    const useBrowserStackLocal =
-      process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
-    const DAPP_URL = useBrowserStackLocal
-      ? `http://bs-local.com:${DAPP_PORT}`
-      : getDappUrlForBrowser(platform);
+  appiumTest.skip(
+    '@metamask/connect-evm - Sign and transaction cancel flows',
+    async ({ currentDeviceDetails, driver }) => {
+      const platform = currentDeviceDetails.platform;
+      const useBrowserStackLocal =
+        process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
+      const DAPP_URL = useBrowserStackLocal
+        ? `http://bs-local.com:${DAPP_PORT}`
+        : getDappUrlForBrowser(platform);
 
-    await PlaywrightContextHelpers.withNativeAction(async () => {
-      await loginToAppPlaywright();
-      await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
-      await launchMobileBrowser();
-      await navigateToDapp(DAPP_URL);
-    });
-    await sleep(5000);
-
-    await PlaywrightContextHelpers.withWebAction(async () => {
-      await BrowserPlaygroundDapp.tapConnectLegacy();
-    }, DAPP_URL);
-
-    await PlaywrightContextHelpers.withNativeAction(async () => {
-      await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-      await unlockIfLockScreenVisible();
-      await DappConnectionModal.tapEditAccountsButton();
-      await DappConnectionModal.tapAccountButton('Account 3');
-      await DappConnectionModal.tapUpdateAccountsButton();
-      await DappConnectionModal.tapConnectButton({
-        shouldCooldown: true,
-        timeToCooldown: 2000,
+      await PlaywrightContextHelpers.withNativeAction(async () => {
+        await loginToAppPlaywright();
+        await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
+        await launchMobileBrowser();
+        await navigateToDapp(DAPP_URL);
       });
-    });
+      await sleep(5000);
 
-    await sleep(1000);
-    await switchToMobileBrowser();
-    await sleep(1000);
+      await PlaywrightContextHelpers.withWebAction(async () => {
+        await BrowserPlaygroundDapp.tapConnectLegacy();
+      }, DAPP_URL);
 
-    await PlaywrightContextHelpers.withWebAction(async () => {
-      await BrowserPlaygroundDapp.assertConnected(true);
-      await BrowserPlaygroundDapp.assertChainIdValue('0x1');
-      await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_ADDRESS);
-      await BrowserPlaygroundDapp.tapPersonalSign();
-    }, DAPP_URL);
-
-    await PlaywrightContextHelpers.withNativeAction(async () => {
-      await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-      await SignModal.tapConfirmButton({
-        shouldCooldown: true,
-        timeToCooldown: 2000,
+      await PlaywrightContextHelpers.withNativeAction(async () => {
+        await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+        await unlockIfLockScreenVisible();
+        await DappConnectionModal.tapEditAccountsButton();
+        await DappConnectionModal.tapAccountButton('Account 3');
+        await DappConnectionModal.tapUpdateAccountsButton();
+        await DappConnectionModal.tapConnectButton({
+          shouldCooldown: true,
+          timeToCooldown: 2000,
+        });
       });
-    });
 
-    await sleep(1000);
-    await switchToMobileBrowser();
-    await sleep(1000);
+      await sleep(1000);
+      await switchToMobileBrowser();
+      await sleep(1000);
 
-    await PlaywrightContextHelpers.withWebAction(async () => {
-      await BrowserPlaygroundDapp.assertResponseValue(
-        // Account 1 signed the message
-        '0x361c13288b4ab02d50974efddf9e4e7ca651b81c298b614be908c4754abb1dd8328224645a1a8d0fab561c4b855c7bdcebea15db5ae8d1778a1ea791dbd05c2a1b',
-      );
-      await BrowserPlaygroundDapp.tapSendTransaction();
-    }, DAPP_URL);
+      await PlaywrightContextHelpers.withWebAction(async () => {
+        await BrowserPlaygroundDapp.assertConnected(true);
+        await BrowserPlaygroundDapp.assertChainIdValue('0x1');
+        await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_ADDRESS);
+        await BrowserPlaygroundDapp.tapPersonalSign();
+      }, DAPP_URL);
 
-    await PlaywrightContextHelpers.withNativeAction(async () => {
-      await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-      await SignModal.assertNetworkText('Ethereum');
-      await SignModal.tapCancelButton({
-        shouldCooldown: true,
-        timeToCooldown: 2000,
+      await PlaywrightContextHelpers.withNativeAction(async () => {
+        await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+        await SignModal.tapConfirmButton({
+          shouldCooldown: true,
+          timeToCooldown: 2000,
+        });
       });
-    });
 
-    await sleep(1000);
-    await switchToMobileBrowser();
-    await sleep(1000);
+      await sleep(1000);
+      await switchToMobileBrowser();
+      await sleep(1000);
 
-    await PlaywrightContextHelpers.withWebAction(async () => {
-      // Note: Error message may differ slightly in browser playground
-      await BrowserPlaygroundDapp.assertResponseValue('denied');
-      await BrowserPlaygroundDapp.tapSwitchToPolygon();
-    }, DAPP_URL);
+      await PlaywrightContextHelpers.withWebAction(async () => {
+        await BrowserPlaygroundDapp.assertResponseValue(
+          // Account 1 signed the message
+          '0x361c13288b4ab02d50974efddf9e4e7ca651b81c298b614be908c4754abb1dd8328224645a1a8d0fab561c4b855c7bdcebea15db5ae8d1778a1ea791dbd05c2a1b',
+        );
+        await BrowserPlaygroundDapp.tapSendTransaction();
+      }, DAPP_URL);
 
-    await PlaywrightContextHelpers.withNativeAction(async () => {
-      await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-      await SwitchChainModal.assertNetworkText('Polygon');
-      await SwitchChainModal.tapConnectButton({
-        shouldCooldown: true,
-        timeToCooldown: 2000,
+      await PlaywrightContextHelpers.withNativeAction(async () => {
+        await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+        await SignModal.assertNetworkText('Ethereum');
+        await SignModal.tapCancelButton({
+          shouldCooldown: true,
+          timeToCooldown: 2000,
+        });
       });
-    });
 
-    await sleep(1000);
-    await switchToMobileBrowser();
-    await sleep(1000);
+      await sleep(1000);
+      await switchToMobileBrowser();
+      await sleep(1000);
 
-    await PlaywrightContextHelpers.withWebAction(async () => {
-      await BrowserPlaygroundDapp.assertChainIdValue('0x89');
-      await BrowserPlaygroundDapp.tapSendTransaction();
-    }, DAPP_URL);
+      await PlaywrightContextHelpers.withWebAction(async () => {
+        // Note: Error message may differ slightly in browser playground
+        await BrowserPlaygroundDapp.assertResponseValue('denied');
+        await BrowserPlaygroundDapp.tapSwitchToPolygon();
+      }, DAPP_URL);
 
-    await PlaywrightContextHelpers.withNativeAction(async () => {
-      await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-      await SignModal.assertNetworkText('Polygon');
-      await SignModal.tapCancelButton({
-        shouldCooldown: true,
-        timeToCooldown: 2000,
+      await PlaywrightContextHelpers.withNativeAction(async () => {
+        await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+        await SwitchChainModal.assertNetworkText('Polygon');
+        await SwitchChainModal.tapConnectButton({
+          shouldCooldown: true,
+          timeToCooldown: 2000,
+        });
       });
-    });
 
-    await sleep(1000);
-    await switchToMobileBrowser();
-    await sleep(1000);
+      await sleep(1000);
+      await switchToMobileBrowser();
+      await sleep(1000);
 
-    await PlaywrightContextHelpers.withWebAction(async () => {
-      await BrowserPlaygroundDapp.tapSwitchToMainnet();
-      await BrowserPlaygroundDapp.assertChainIdValue('0x1');
-      await BrowserPlaygroundDapp.tapSendTransaction();
-    }, DAPP_URL);
+      await PlaywrightContextHelpers.withWebAction(async () => {
+        await BrowserPlaygroundDapp.assertChainIdValue('0x89');
+        await BrowserPlaygroundDapp.tapSendTransaction();
+      }, DAPP_URL);
 
-    await PlaywrightContextHelpers.withNativeAction(async () => {
-      await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
-      await SignModal.assertNetworkText('Ethereum');
-      await SignModal.tapCancelButton({
-        shouldCooldown: true,
-        timeToCooldown: 2000,
+      await PlaywrightContextHelpers.withNativeAction(async () => {
+        await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+        await SignModal.assertNetworkText('Polygon');
+        await SignModal.tapCancelButton({
+          shouldCooldown: true,
+          timeToCooldown: 2000,
+        });
       });
-    });
 
-    await sleep(1000);
-    await switchToMobileBrowser();
-    await sleep(1000);
+      await sleep(1000);
+      await switchToMobileBrowser();
+      await sleep(1000);
 
-    //
-    // Reset dapp state
-    //
+      await PlaywrightContextHelpers.withWebAction(async () => {
+        await BrowserPlaygroundDapp.tapSwitchToMainnet();
+        await BrowserPlaygroundDapp.assertChainIdValue('0x1');
+        await BrowserPlaygroundDapp.tapSendTransaction();
+      }, DAPP_URL);
 
-    await PlaywrightContextHelpers.withWebAction(async () => {
-      await BrowserPlaygroundDapp.tapDisconnect();
-    }, DAPP_URL);
-  });
+      await PlaywrightContextHelpers.withNativeAction(async () => {
+        await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+        await SignModal.assertNetworkText('Ethereum');
+        await SignModal.tapCancelButton({
+          shouldCooldown: true,
+          timeToCooldown: 2000,
+        });
+      });
+
+      await sleep(1000);
+      await switchToMobileBrowser();
+      await sleep(1000);
+
+      //
+      // Reset dapp state
+      //
+
+      await PlaywrightContextHelpers.withWebAction(async () => {
+        await BrowserPlaygroundDapp.tapDisconnect();
+      }, DAPP_URL);
+    },
+  );
 }); // end describe
