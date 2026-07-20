@@ -517,6 +517,29 @@ describe('BridgeTransactionDetails', () => {
       expect(() => getByText('Transaction details')).toThrow();
     });
 
+    it('opens the legacy block-explorer modal from the single explorer button', () => {
+      const { getByTestId } = renderScreen(
+        () => (
+          <BridgeTransactionDetails
+            route={{ params: { evmTxMeta: mockEVMTx } }}
+          />
+        ),
+        { name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS },
+        { state: redesignState },
+      );
+
+      // One "View on block explorer" button that opens the source/destination
+      // picker modal (legacy behaviour), not the shared per-chain buttons.
+      fireEvent.press(
+        getByTestId('bridge-transaction-details-view-block-explorer'),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+        params: expect.objectContaining({ evmTxMeta: mockEVMTx }),
+      });
+    });
+
     it('copies the transaction id via the shared copy control', () => {
       const { getByTestId } = renderScreen(
         () => (

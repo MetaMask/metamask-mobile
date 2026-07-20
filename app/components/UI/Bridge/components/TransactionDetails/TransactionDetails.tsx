@@ -5,6 +5,7 @@ import {
   HeaderStandard,
   Button,
   ButtonVariant,
+  ButtonSize,
   Box,
   BoxFlexDirection,
   BoxAlignItems,
@@ -51,7 +52,6 @@ import { selectIsTransactionsRedesignEnabled } from '../../../../../selectors/fe
 import {
   ActivityDetailsDualAmountHeader,
   ActivityDetailsBridgeMetadata,
-  ActivityDetailsBridgeExplorerButtons,
   ActivityDetailsDoItAgainButton,
   ActivityDetailsTemplateFrame,
 } from '../../../../Views/ActivityDetails/components';
@@ -59,10 +59,7 @@ import {
   ActivityDetailRow,
   ActivityDetailSection,
 } from '../../../../Views/ActivityDetails/components/ActivityDetailsLayout';
-import {
-  getBridgeDestinationCaipChainId,
-  getBridgeDestinationTxHash,
-} from '../../../../Views/ActivityDetails/templates/bridgeDetailsUtils';
+import { getBridgeDestinationCaipChainId } from '../../../../Views/ActivityDetails/templates/bridgeDetailsUtils';
 /* eslint-enable import-x/no-restricted-paths */
 import type {
   ActivityListItem,
@@ -460,7 +457,28 @@ export const BridgeTransactionDetails = (
     const activityDestinationChainId = getBridgeDestinationCaipChainId(
       destinationTokenModel,
     );
-    const destinationHash = getBridgeDestinationTxHash(bridgeTxHistoryItem);
+
+    const handleViewBlockExplorer = () => {
+      if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
+        trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+          location: 'bridge_transaction_details',
+          text: strings('bridge_transaction_details.view_on_block_explorer'),
+          url: swapSrcExplorerData.explorerTxUrl,
+        });
+        navigation.navigate(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: { url: swapSrcExplorerData.explorerTxUrl },
+        });
+      } else if (isBridge) {
+        navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+          screen: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+          params: {
+            evmTxMeta: props.route.params.evmTxMeta,
+            multiChainTx: props.route.params.multiChainTx,
+          },
+        });
+      }
+    };
 
     const handleBridgeAgain = () => {
       dispatch(setSourceAmount(undefined));
@@ -589,12 +607,15 @@ export const BridgeTransactionDetails = (
               footer={
                 isIntentNotCompletedItem ? null : (
                   <>
-                    <ActivityDetailsBridgeExplorerButtons
-                      sourceChainId={bridgeItem.chainId}
-                      sourceHash={transactionId}
-                      destChainId={activityDestinationChainId}
-                      destHash={destinationHash}
-                    />
+                    <Button
+                      variant={ButtonVariant.Secondary}
+                      size={ButtonSize.Lg}
+                      twClassName="w-full"
+                      onPress={handleViewBlockExplorer}
+                      testID="bridge-transaction-details-view-block-explorer"
+                    >
+                      {strings('activity_details.view_on_block_explorer')}
+                    </Button>
                     <ActivityDetailsDoItAgainButton
                       label={
                         isSwap
