@@ -78,6 +78,17 @@ describe('parseRampIntent', () => {
       });
     });
 
+    it('normalizes Polygon native token address to slip44 asset reference', () => {
+      const pathParams = {
+        address: '0x0000000000000000000000000000000000001010',
+        chainId: '137',
+      };
+      const result = parseRampIntent(pathParams);
+      expect(result).toEqual({
+        assetId: 'eip155:137/slip44:.',
+      });
+    });
+
     it('returns a RampIntent object if pathParams contain legacy necessary fields with random value', () => {
       const pathParams = {
         address: 'string_random',

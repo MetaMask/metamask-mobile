@@ -1,8 +1,10 @@
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { Hex } from '@metamask/utils';
 import { RampIntent } from '../types';
 import { toHex } from '@metamask/controller-utils';
 import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
 import { toChecksumAddress } from '../../../../util/address';
+import { normalizeTokenAddress } from '../../Bridge/utils/tokenUtils';
 
 export default function parseRampIntent(
   pathParams: Record<string, string | undefined>,
@@ -34,10 +36,12 @@ export default function parseRampIntent(
       rampIntentCandidate.chainId = '1';
     }
 
-    const assetIdNamespace = toEvmCaipChainId(
-      toHex(rampIntentCandidate.chainId),
-    );
-    let assetIdAssetReference = rampIntentCandidate.address;
+    const chainIdHex = toHex(rampIntentCandidate.chainId) as Hex;
+    const assetIdNamespace = toEvmCaipChainId(chainIdHex);
+    const normalizedAddress = rampIntentCandidate.address
+      ? normalizeTokenAddress(rampIntentCandidate.address, chainIdHex)
+      : rampIntentCandidate.address;
+    let assetIdAssetReference = normalizedAddress;
 
     if (!assetIdAssetReference || assetIdAssetReference === NATIVE_ADDRESS) {
       // TODO: replace slip44 with the actual slip44 value for the chain

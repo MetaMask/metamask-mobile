@@ -177,6 +177,7 @@ jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
 }));
 
 jest.mock('../../Bridge/utils/tokenUtils', () => ({
+  ...jest.requireActual('../../Bridge/utils/tokenUtils'),
   getDefaultDestToken: jest.fn(),
   getNativeSourceToken: jest.fn(),
 }));
@@ -542,6 +543,25 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
 
     expect(mockGoToBuy).toHaveBeenCalledWith(
       { assetId: caipAddress },
+      { buyFlowOrigin: 'tokenInfo' },
+    );
+  });
+
+  it('normalizes Polygon native POL address to slip44 assetId for goToBuy', async () => {
+    const polToken = {
+      ...defaultToken,
+      address: '0x0000000000000000000000000000000000001010',
+      symbol: 'POL',
+      chainId: '0x89',
+      isNative: true,
+    } as TokenI;
+
+    const { result } = await renderOnBuy({ token: polToken });
+
+    result.current();
+
+    expect(mockGoToBuy).toHaveBeenCalledWith(
+      { assetId: 'eip155:137/slip44:.' },
       { buyFlowOrigin: 'tokenInfo' },
     );
   });
