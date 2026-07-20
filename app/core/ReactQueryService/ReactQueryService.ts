@@ -3,6 +3,7 @@ import {
   QueryClient,
   focusManager,
   onlineManager,
+  type DehydratedState,
 } from '@tanstack/react-query';
 import {
   addEventListener as addNetInfoEventListener,
@@ -10,49 +11,98 @@ import {
 } from '@react-native-community/netinfo';
 import { createUIQueryClient } from '@metamask/react-data-query';
 import Engine from '../Engine/Engine';
-import { RootMessenger } from '../Engine/types';
+import type { RootExtendedMessenger } from '../Engine/types';
 import { DATA_SERVICES } from '../../constants/data-services';
-import {
-  ExtractActionParameters,
-  ExtractEventHandler,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
 
 type DataServiceName = (typeof DATA_SERVICES)[number];
-type Actions = MessengerActions<RootMessenger>;
-type Events = MessengerEvents<RootMessenger>;
 
-/*
-const adapter = {
-  call: <Action extends Actions>(
-    actionType: Action['type'],
-    ...params: ExtractActionParameters<Action, Action['type']>
-  ) => Engine.controllerMessenger.call(actionType, ...params),
-  subscribe: <Event extends Events>(
-    eventType: Event['type'],
-    handler: ExtractEventHandler<Event, Event['type']>,
-  ) => Engine.controllerMessenger.subscribe(eventType, handler),
-  unsubscribe: <Event extends Events>(
-    eventType: Event['type'],
-    handler: ExtractEventHandler<Event, Event['type']>,
-  ) => Engine.controllerMessenger.unsubscribe(eventType, handler),
-};
-*/
+/**
+ * The payload of a data service's granular `:cacheUpdated:${hash}` event.
+ *
+ * Mirrors `DataServiceGranularCacheUpdatedPayload` from
+ * `@metamask/base-data-service`, which is only a transitive dependency (via
+ * `@metamask/react-data-query`) and does not re-export this type. We redeclare
+ * the (small, stable) shape locally to keep the adapter handler assignable to
+ * what `createUIQueryClient` expects without depending on an internal module.
+ */
+type CacheUpdatedPayload =
+  | { type: 'added' | 'updated'; state: DehydratedState }
+  | { type: 'removed'; state: null };
+type CacheUpdatedHandler = (payload: CacheUpdatedPayload) => void;
 
-const adapter = {
-  call: <Action extends Actions>(
+/**
+ * A minimal, structural view of the root messenger that matches the
+ * `MessengerAdapter` shape expected by `createUIQueryClient`.
+ *
+ * We cannot pass `Engine.controllerMessenger` directly: it is exposed via a
+ * proxy and the "real" Engine may not be constructed yet when this module is
+ * imported by another file. So we wrap it in a lazy adapter that defers to the
+ * proxy at call time.
+ *
+ * The underlying messenger's `call`/`subscribe`/`unsubscribe` are generic over
+ * its own declared (literal) action/event unions and cannot express the open
+ * `${DataServiceName}:${string}` template that the adapter must accept, so each
+ * method bridges through a single localized cast. `createUIQueryClient` only
+ * ever invokes these with valid data-service actions/events, so the cast is
+ * safe.
+ */
+interface MessengerAdapter {
+  /**
+   * Call a data-service action on the root messenger.
+   */
+  call(
     actionType: `${DataServiceName}:${string}`,
-    ...params: ExtractActionParameters<Action, `${DataServiceName}:${string}`>
-  ) => Engine.controllerMessenger.call(actionType, ...params),
-  subscribe: <Event extends Events>(
-    eventType: Event['type'],
-    handler: ExtractEventHandler<Event, Event['type']>,
-  ) => Engine.controllerMessenger.subscribe(eventType, handler),
-  unsubscribe: <Event extends Events>(
-    eventType: Event['type'],
-    handler: ExtractEventHandler<Event, Event['type']>,
-  ) => Engine.controllerMessenger.unsubscribe(eventType, handler),
+    ...params: unknown[]
+  ): Promise<unknown>;
+  /**
+   * Subscribe to a data-service granular cache-updated event.
+   */
+  subscribe(
+    eventType: `${DataServiceName}:cacheUpdated:${string}`,
+    handler: CacheUpdatedHandler,
+  ): void;
+  /**
+   * Unsubscribe from a data-service granular cache-updated event.
+   */
+  unsubscribe(
+    eventType: `${DataServiceName}:cacheUpdated:${string}`,
+    handler: CacheUpdatedHandler,
+  ): void;
+}
+
+const adapter: MessengerAdapter = {
+  call(actionType, ...params) {
+    // Type assertion: the messenger's generic `call` is bounded by its own
+    // declared action literals and cannot accept the open template type.
+    const messenger =
+      Engine.controllerMessenger as unknown as RootExtendedMessenger;
+    return Promise.resolve(
+      (messenger.call as (type: string, ...args: unknown[]) => unknown)(
+        actionType,
+        ...params,
+      ),
+    );
+  },
+  subscribe(eventType, handler) {
+    // Type assertion: the messenger's generic `subscribe` is bounded by its own
+    // declared event literals and cannot accept the open template type.
+    const messenger =
+      Engine.controllerMessenger as unknown as RootExtendedMessenger;
+    (messenger.subscribe as (type: string, cb: CacheUpdatedHandler) => void)(
+      eventType,
+      handler,
+    );
+  },
+  unsubscribe(eventType, handler) {
+    // Type assertion: the messenger's generic `unsubscribe` is bounded by its
+    // own declared event literals and cannot accept the open template type.
+    const messenger =
+      Engine.controllerMessenger as unknown as RootExtendedMessenger;
+    (messenger.unsubscribe as (type: string, cb: CacheUpdatedHandler) => void)(
+      eventType,
+      handler,
+    );
+  },
 };
 
 export class ReactQueryService {
