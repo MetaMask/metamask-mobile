@@ -81,6 +81,8 @@ export type ActivityKind =
   | 'perpsReceivedFundingFees'
   | 'perpsCloseShortTakeProfit'
   | 'perpsCloseLongTakeProfit'
+  | 'assetActivation'
+  | 'assetDeactivation'
   | PerpsOrderKind
   | 'nftMint';
 
@@ -217,6 +219,15 @@ export type ActivityListItem =
         transactionCategory?: string;
         transactionProtocol?: string;
         transactionType?: string;
+      }
+    >
+  | ActivityData<
+      'assetActivation' | 'assetDeactivation',
+      {
+        from?: string;
+        to?: string;
+        token?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >
   | ActivityData<
