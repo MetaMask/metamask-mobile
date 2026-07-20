@@ -194,9 +194,6 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   const destTokenSecurityData = destToken?.securityData;
-  // Rebuild with the narrowed `type` so it stays a negative security type
-  // (Warning/Malicious/Spam) everywhere `tokenWarning` is used — assigning the
-  // object as-is would widen `type` back to the full `SecurityDataType`.
   const tokenWarning =
     destTokenSecurityData && isNegativeSecurityType(destTokenSecurityData.type)
       ? { ...destTokenSecurityData, type: destTokenSecurityData.type }
