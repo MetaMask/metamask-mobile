@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useCallback, useMemo, useState } from 'react';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Pressable } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -10,6 +10,7 @@ import {
   AvatarTokenSize,
   BottomSheet,
   BottomSheetHeader,
+  BottomSheetRef,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -33,6 +34,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   selectBatchSellSourceTokens,
+  selectBatchSellSlippages,
   selectIsSubmittingTx,
   setIsSubmittingTx,
 } from '../../../../../core/redux/slices/bridge';
@@ -46,7 +48,7 @@ import { useSubmitBatchSellTx } from '../../hooks/useSubmitBatchSellTx';
 import type { BridgeToken } from '../../types';
 import { BatchSellQuoteDetails } from '../BatchSellQuoteDetailsModal';
 import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewModal.testIds';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
+import { useTrackBatchSellReviewModalSubmitted } from '../../hooks/useTrackBatchSellReviewModalSubmitted';
 
 const MAX_VISIBLE_SOURCE_TOKEN_AVATARS = 5;
 const SOURCE_TOKEN_AVATAR_OVERLAP = 12;
@@ -289,9 +291,9 @@ function NetworkFeeRow({
 
 export function BatchSellFinalReviewModal() {
   const dispatch = useDispatch();
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const selectedTokens = useSelector(selectBatchSellSourceTokens);
+  const batchSellSlippages = useSelector(selectBatchSellSlippages);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const batchSellQuoteData = useBatchSellQuoteData({
     shouldUpdateBatchSellTrades: false,
@@ -302,8 +304,15 @@ export function BatchSellFinalReviewModal() {
     isGasless: batchSellQuoteData.isGasless,
     networkFee: batchSellQuoteData.networkFee,
   });
-  const surfaceClass = useElevatedSurface();
+  const sheetRef = useRef<BottomSheetRef>(null);
   const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(false);
+  const trackBatchSellReviewModalSubmitted =
+    useTrackBatchSellReviewModalSubmitted({
+      batchSellSlippages,
+      selectedTokens,
+      tokenData: batchSellQuoteData.tokenData,
+      usdQuotedGas: batchSellQuoteData.networkFee.usd,
+    });
   const finalReviewQuoteData = useMemo(
     () =>
       getFinalReviewQuoteData({
@@ -366,6 +375,10 @@ export function BatchSellFinalReviewModal() {
     return strings('bridge.batch_sell_sell_all');
   })();
 
+  const handleClose = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   const handleToggleTokenDetails = () => {
     setIsTokenDetailsExpanded((isExpanded) => !isExpanded);
   };
@@ -392,6 +405,7 @@ export function BatchSellFinalReviewModal() {
   const handleSellAll = useCallback(async () => {
     try {
       dispatch(setIsSubmittingTx(true));
+      trackBatchSellReviewModalSubmitted();
 
       await submitBatchSellTx({
         quoteResponses: batchSellQuoteData.recommendedQuotes,
@@ -400,23 +414,26 @@ export function BatchSellFinalReviewModal() {
       console.error('Error submitting Batch Sell tx', error);
     } finally {
       dispatch(setIsSubmittingTx(false));
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      sheetRef.current?.onCloseBottomSheet(() => {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      });
     }
   }, [
     batchSellQuoteData.recommendedQuotes,
     dispatch,
     navigation,
     submitBatchSellTx,
+    trackBatchSellReviewModalSubmitted,
   ]);
 
   return (
     <BottomSheet
+      ref={sheetRef}
       testID={BatchSellFinalReviewModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader
-        onClose={navigation.goBack}
+        onClose={handleClose}
         closeButtonProps={{
           size: ButtonIconSize.Md,
           testID: BatchSellFinalReviewModalSelectorsIDs.CLOSE_BUTTON,

@@ -1,4 +1,8 @@
-import { Messenger } from '@metamask/messenger';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+} from '@metamask/messenger';
 import {
   KeyringControllerLockEvent,
   KeyringControllerUnlockEvent,
@@ -19,7 +23,12 @@ import {
  * @param rootMessenger - The root messenger.
  * @returns The SnapControllerMessenger.
  */
-export function getSnapControllerMessenger(rootMessenger: RootMessenger) {
+export function getSnapControllerMessenger(
+  rootMessenger: RootMessenger<
+    MessengerActions<SnapControllerMessenger>,
+    MessengerEvents<SnapControllerMessenger>
+  >,
+): SnapControllerMessenger {
   const messenger: SnapControllerMessenger = new Messenger({
     namespace: 'SnapController',
     parent: rootMessenger,
@@ -27,6 +36,7 @@ export function getSnapControllerMessenger(rootMessenger: RootMessenger) {
 
   rootMessenger.delegate({
     actions: [
+      'AnalyticsController:trackEvent',
       'PermissionController:getEndowments',
       'PermissionController:getPermissions',
       'PermissionController:hasPermission',
@@ -77,8 +87,10 @@ type InitActions =
 
 type InitEvents = KeyringControllerLockEvent | KeyringControllerUnlockEvent;
 
-export type SnapControllerInitMessenger = ReturnType<
-  typeof getSnapControllerInitMessenger
+export type SnapControllerInitMessenger = Messenger<
+  'SnapControllerInit',
+  InitActions,
+  InitEvents
 >;
 
 /**
@@ -88,13 +100,13 @@ export type SnapControllerInitMessenger = ReturnType<
  * @param rootMessenger - The root messenger.
  * @returns The SnapControllerInitMessenger.
  */
-export function getSnapControllerInitMessenger(rootMessenger: RootMessenger) {
-  const messenger = new Messenger<
-    'SnapControllerInit',
-    InitActions,
-    InitEvents,
-    RootMessenger
-  >({
+export function getSnapControllerInitMessenger(
+  rootMessenger: RootMessenger<
+    MessengerActions<SnapControllerInitMessenger>,
+    MessengerEvents<SnapControllerInitMessenger>
+  >,
+): SnapControllerInitMessenger {
+  const messenger: SnapControllerInitMessenger = new Messenger({
     namespace: 'SnapControllerInit',
     parent: rootMessenger,
   });

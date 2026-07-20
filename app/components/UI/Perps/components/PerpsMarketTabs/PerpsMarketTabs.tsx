@@ -5,15 +5,17 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { View, Modal } from 'react-native';
 import {
   TabsList,
@@ -30,6 +32,7 @@ import styleSheet from './PerpsMarketTabs.styles';
 import {
   OrderDirection,
   PERPS_CONSTANTS,
+  PERPS_EVENT_VALUE,
   type Order,
   type Position,
   type TPSLTrackingData,
@@ -50,6 +53,7 @@ import PerpsOpenOrderCard from '../PerpsOpenOrderCard';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
 import { getOrderDirection } from '../../utils/orderUtils';
+import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -126,7 +130,7 @@ const OrdersTabContent = React.memo<OrdersTabContentProps>(
             <Icon
               name={IconName.Book}
               size={IconSize.Xl}
-              color={TextColor.Muted}
+              color={IconColor.IconMuted}
               style={styles.emptyStateIcon}
               testID={PerpsMarketTabsSelectorsIDs.ORDERS_EMPTY_ICON}
             />
@@ -551,6 +555,14 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         const result = await controller.cancelOrder({
           orderId: orderToCancel.orderId,
           symbol: orderToCancel.symbol,
+          trackingData: {
+            totalFee: 0,
+            marketPrice: currentPrice,
+            source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+            ...toPerpsEntryAttribution({
+              source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+            }),
+          },
         });
 
         // Order cancellation successful
@@ -620,6 +632,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     },
     [
       position?.size,
+      currentPrice,
       showToast,
       PerpsToastOptions.orderManagement.shared,
       onOrderCancelled,

@@ -122,24 +122,40 @@ describe('MoneyMoreSheet', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.HOW_IT_WORKS);
   });
 
-  it('opens the MUSD learn-more URL when "What you get" is pressed', () => {
+  it('opens the Money landing URL in the in-app browser when "What you get" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
     fireEvent.press(getByTestId(MoneyMoreSheetTestIds.WHAT_YOU_GET_OPTION));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      AppConstants.URLS.MUSD_LEARN_MORE,
+    expect(Linking.openURL).not.toHaveBeenCalledWith(
+      AppConstants.URLS.MONEY_LANDING,
     );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: AppConstants.URLS.MONEY_LANDING,
+        timestamp: expect.any(Number),
+        fromMoney: true,
+      },
+    });
   });
 
-  it('opens the MetaMask support URL when "Contact support" is pressed', () => {
+  it('opens the MetaMask support URL in the in-app browser when "Contact support" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
     fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(Linking.openURL).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
+    expect(Linking.openURL).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: METAMASK_SUPPORT_URL,
+        timestamp: expect.any(Number),
+        fromMoney: true,
+      },
+    });
   });
 
   describe('analytics', () => {
@@ -168,14 +184,14 @@ describe('MoneyMoreSheet', () => {
       });
     });
 
-    it('calls trackSurfaceClicked with WHAT_YOU_GET component and MUSD_LEARN_MORE redirect when "What you get" is pressed', () => {
+    it('calls trackSurfaceClicked with WHAT_YOU_GET component and MONEY_LANDING redirect when "What you get" is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
       fireEvent.press(getByTestId(MoneyMoreSheetTestIds.WHAT_YOU_GET_OPTION));
 
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
         component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_WHAT_YOU_GET,
-        redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
+        redirect_target: MONEY_URLS.MONEY_LANDING,
       });
     });
 

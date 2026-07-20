@@ -11,8 +11,13 @@ import {
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 
@@ -21,9 +26,11 @@ class ActivitiesView {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
   }
   get predictionsTab(): EncapsulatedElementType {
-    return Matchers.getElementByLabel(
-      ActivitiesViewSelectorsText.PREDICTIONS_TAB,
-    );
+    const label = ActivitiesViewSelectorsText.PREDICTIONS_TAB;
+    return encapsulated({
+      detox: () => Matchers.getElementByLabel(label),
+      appium: () => PlaywrightMatchers.getElementByText(label),
+    });
   }
   get transferTab(): EncapsulatedElementType {
     return Matchers.getElementByID(ActivitiesViewSelectorsIDs.TRANSFER_TAB);
@@ -157,16 +164,32 @@ class ActivitiesView {
   }
 
   async tapOnPredictionsTab(): Promise<void> {
-    // Swipe left on the tabs bar to reveal the Predictions tab (it may be off-screen)
-    await Gestures.swipe(this.tabsBar, 'left', {
-      percentage: 0.5,
-      speed: 'slow',
-      elemDescription: 'Activity View Tabs Bar',
-    });
-    await Gestures.waitAndTap(this.predictionsTab, {
-      elemDescription: 'Predictions Tab in Activity View',
-      timeout: 3500,
-    });
+    await Utilities.executeWithRetry(
+      async () => {
+        for (let attempt = 0; attempt < 4; attempt += 1) {
+          try {
+            await Assertions.expectElementToBeVisible(this.predictionsTab, {
+              timeout: 1000,
+            });
+            break;
+          } catch {
+            await UnifiedGestures.swipe(this.tabsBar, 'left', {
+              percentage: 0.5,
+              speed: 'slow',
+              description: `Swipe activity tabs to reveal Predictions (attempt ${attempt + 1})`,
+            });
+          }
+        }
+        await UnifiedGestures.waitAndTap(this.predictionsTab, {
+          description: 'Predictions Tab in Activity View',
+          timeout: 10_000,
+        });
+      },
+      {
+        timeout: 30_000,
+        description: 'Tap Predictions tab in Activity View',
+      },
+    );
   }
 
   async tapOnTransfersTab(): Promise<void> {

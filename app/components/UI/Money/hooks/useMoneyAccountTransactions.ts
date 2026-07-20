@@ -23,6 +23,7 @@ import {
   ERC20_TRANSFER_FROM_CALLDATA_LENGTH,
 } from '../constants/activityStyles';
 import { getMoneyActivityStatus } from '../utils/classifyMoneyActivity';
+import { isPerpsPredictMoneyActivity } from '../utils/moneyTransactionGuards';
 
 // Statuses that should surface in money activity. `unapproved`/`approved`/
 // `signed` are mid-compose and shouldn't appear yet; `rejected`/`dropped`/
@@ -137,6 +138,7 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
         ) {
           return isMoneyAccountTxVisible(tx);
         }
+
         // EIP-7702 batch where a Money account call is a nested call.
         if (
           tx.nestedTransactions?.some(
@@ -147,6 +149,12 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
         ) {
           return isMoneyAccountTxVisible(tx);
         }
+
+        // Perps/Predict ↔ Money account transfers
+        if (isPerpsPredictMoneyActivity(tx)) {
+          return isMoneyAccountTxVisible(tx);
+        }
+
         if (moneyAddress === undefined) return false;
         // The inbound-mUSD and locally-signed mUSD branches below must skip
         // mid-compose and explicitly-aborted rows, which would otherwise

@@ -12,7 +12,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import Engine from '../../../../../core/Engine';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import type { PredictPortfolioModel } from '../../hooks/usePredictPortfolio';
@@ -79,17 +78,14 @@ const PredictPositionsViewHeader = ({
   const handleClaimPress = useCallback(async () => {
     await executeGuardedAction(
       async () => {
-        Engine.context.PredictController.trackPortfolioTransactionInitiated({
+        await claim({
           entryPoint,
           openPositionsCount: portfolio.openPositionCount,
           claimablePositionsCount: portfolio.claimablePositionCount,
           hasClaimableWinnings: portfolio.hasClaimableWinnings,
           predictScreen:
             PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
-          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
         });
-
-        await claim();
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );

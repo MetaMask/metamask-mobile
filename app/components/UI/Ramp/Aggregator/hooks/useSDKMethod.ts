@@ -98,7 +98,11 @@ export default function useSDKMethod<T extends keyof RegionsService>(
   > | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState<boolean>(onMount);
-  const stringifiedParams = useMemo(() => JSON.stringify(params), [params]);
+  const stringifiedParams = useMemo(
+    () => JSON.stringify(params),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [...params],
+  );
   const abortControllerRef = useRef<AbortController | undefined>(undefined);
 
   const query = useCallback(

@@ -1,22 +1,56 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { QuoteList } from './QuoteList';
-import { QuoteRowProps } from './QuoteRow';
+import { QuoteRowProps, QuoteRowViewProps } from './QuoteRow';
+import { useSelector } from 'react-redux';
+import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 
-jest.mock('./QuoteRow', () => ({
-  QuoteRow: ({ provider, quoteRequestId }: QuoteRowProps) => {
+const mockQuoteRowRenderCounts = new Map<string, number>();
+
+jest.mock('./QuoteRow', () => {
+  const ReactActual = jest.requireActual('react');
+
+  function MockQuoteRowView({
+    providerName,
+    quoteRequestId,
+  }: QuoteRowViewProps) {
     const { Text } = jest.requireActual('react-native');
+
+    mockQuoteRowRenderCounts.set(
+      quoteRequestId,
+      (mockQuoteRowRenderCounts.get(quoteRequestId) ?? 0) + 1,
+    );
+
     return (
       <Text testID={`quote-row-${quoteRequestId}`}>
-        {provider.name} - {quoteRequestId}
+        {providerName} - {quoteRequestId}
       </Text>
     );
-  },
+  }
+
+  return {
+    QuoteRowView: ReactActual.memo(MockQuoteRowView),
+  };
+});
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => undefined),
+}));
+
+jest.mock('../../utils/exchange-rates', () => ({
+  getDisplayCurrencyValue: jest.fn(() => '$0.00'),
 }));
 
 jest.mock('../../hooks/useShouldRenderGasSponsoredBanner', () => ({
   useShouldRenderGasSponsoredBanner: jest.fn(),
 }));
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockGetDisplayCurrencyValue =
+  getDisplayCurrencyValue as jest.MockedFunction<
+    typeof getDisplayCurrencyValue
+  >;
 
 describe('QuoteList', () => {
   const mockOnPress = jest.fn();
@@ -33,9 +67,23 @@ describe('QuoteList', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockQuoteRowRenderCounts.clear();
   });
 
   describe('rendering', () => {
+    it('selects currency data once for multiple rows', () => {
+      const quotes = [
+        createMockQuote({ quoteRequestId: 'quote-1' }),
+        createMockQuote({ quoteRequestId: 'quote-2' }),
+        createMockQuote({ quoteRequestId: 'quote-3' }),
+      ];
+
+      render(<QuoteList data={quotes} />);
+
+      expect(mockUseSelector).toHaveBeenCalledTimes(6);
+      expect(mockGetDisplayCurrencyValue).toHaveBeenCalledTimes(3);
+    });
+
     it('renders empty list when data is empty array', () => {
       const { queryByTestId } = render(<QuoteList data={[]} />);
 
@@ -93,6 +141,50 @@ describe('QuoteList', () => {
 
       const renderedRows = getAllByText(/Lifi - quote-/);
       expect(renderedRows).toHaveLength(5);
+    });
+  });
+
+  describe('memoization', () => {
+    it('does not re-render unchanged rows when one quote changes', () => {
+      // Arrange
+      const quotes = [
+        createMockQuote({
+          provider: { name: 'Lifi' },
+          quoteRequestId: 'quote-1',
+        }),
+        createMockQuote({
+          provider: { name: 'Socket' },
+          quoteRequestId: 'quote-2',
+        }),
+        createMockQuote({
+          provider: { name: 'Hop' },
+          quoteRequestId: 'quote-3',
+        }),
+      ];
+      const { rerender } = render(<QuoteList data={quotes} />);
+      const updatedQuotes = [
+        createMockQuote({
+          provider: { name: 'Lifi' },
+          quoteRequestId: 'quote-1',
+        }),
+        createMockQuote({
+          provider: { name: 'Socket' },
+          quoteRequestId: 'quote-2',
+          formattedTotalCost: '$101.00',
+        }),
+        createMockQuote({
+          provider: { name: 'Hop' },
+          quoteRequestId: 'quote-3',
+        }),
+      ];
+
+      // Act
+      rerender(<QuoteList data={updatedQuotes} />);
+
+      // Assert
+      expect(mockQuoteRowRenderCounts.get('quote-1')).toBe(1);
+      expect(mockQuoteRowRenderCounts.get('quote-2')).toBe(2);
+      expect(mockQuoteRowRenderCounts.get('quote-3')).toBe(1);
     });
   });
 

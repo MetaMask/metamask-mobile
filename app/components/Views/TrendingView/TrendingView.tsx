@@ -1,6 +1,11 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   RouteProp,
   useFocusEffect,
@@ -31,6 +36,7 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
+import { ExploreActiveTabProvider } from './ExploreActiveTabContext';
 import { useExploreRefresh } from './hooks/useExploreRefresh';
 import NowTab from './tabs/NowTab';
 import MacroTab from './tabs/MacroTab';
@@ -43,6 +49,7 @@ import {
   trackExploreInteracted,
   type ExploreTabName,
 } from './search/analytics';
+import { EXPLORE_TAB_INDEX } from '../../../constants/navigation/exploreTabIndices';
 
 const TAB_NAMES: ExploreTabName[] = [
   'Now',
@@ -53,29 +60,33 @@ const TAB_NAMES: ExploreTabName[] = [
   'Sites',
 ];
 
-export const EXPLORE_TAB_INDEX = {
-  NOW: 0,
-  MACRO: 1,
-  RWAS: 2,
-  CRYPTO: 3,
-  SPORTS: 4,
-  SITES: 5,
-} as const;
+export { EXPLORE_TAB_INDEX } from '../../../constants/navigation/exploreTabIndices';
 
-interface ExploreFeedRouteParams {
+export interface ExploreFeedRouteParams {
   initialTab?: number | null;
+  /** Entry surface for `tab_switched` analytics (e.g. `deeplink`). */
+  source?: string;
 }
 
 const useExploreTabNavigationEffect = (opts: {
   tabsListRef: React.RefObject<TabsListRef | null>;
+  tabNames: ExploreTabName[];
+  pendingExploreEntrySourceRef: React.MutableRefObject<string | undefined>;
+  previousTabRef: React.MutableRefObject<ExploreTabName>;
 }) => {
-  const { tabsListRef } = opts;
+  const {
+    tabsListRef,
+    tabNames,
+    pendingExploreEntrySourceRef,
+    previousTabRef,
+  } = opts;
   const route =
     useRoute<RouteProp<{ params: ExploreFeedRouteParams }, 'params'>>();
   const { setParams } = useNavigation();
   const initialTabIndex = Object.values(EXPLORE_TAB_INDEX).find(
     (tab) => tab === route.params?.initialTab,
   );
+  const entrySource = route.params?.source;
 
   useFocusEffect(
     useCallback(() => {
@@ -83,9 +94,103 @@ const useExploreTabNavigationEffect = (opts: {
         return;
       }
 
+      const destinationTab = tabNames[initialTabIndex];
+      if (entrySource) {
+        pendingExploreEntrySourceRef.current = entrySource;
+      }
+
+      const currentIndex = tabsListRef.current?.getCurrentIndex();
       tabsListRef.current?.goToTabIndex(initialTabIndex);
-      setParams?.({ initialTab: null });
-    }, [initialTabIndex, setParams, tabsListRef]),
+
+      // goToTabIndex only invokes onChangeTab when the tab actually changes.
+      if (entrySource && destinationTab && currentIndex === initialTabIndex) {
+        pendingExploreEntrySourceRef.current = undefined;
+        trackExploreInteracted({
+          interaction_type: 'tab_switched',
+          tab_name: destinationTab,
+          previous_tab: previousTabRef.current,
+          source: entrySource,
+        });
+      } else if (
+        entrySource &&
+        pendingExploreEntrySourceRef.current === entrySource
+      ) {
+        // Tab switch did not run (e.g. tabs not mounted) — discard stale source.
+        pendingExploreEntrySourceRef.current = undefined;
+      }
+
+      setParams?.({ initialTab: null, source: undefined });
+    }, [
+      entrySource,
+      initialTabIndex,
+      pendingExploreEntrySourceRef,
+      previousTabRef,
+      setParams,
+      tabNames,
+      tabsListRef,
+    ]),
+  );
+};
+
+interface ExploreTabsProps {
+  tabsListRef: React.RefObject<TabsListRef | null>;
+  previousTabRef: React.MutableRefObject<ExploreTabName>;
+  pendingExploreEntrySourceRef: React.MutableRefObject<string | undefined>;
+  // Narrower than `PropsWithChildren`'s `ReactNode` to match what `TabsList`
+  // actually requires — see `tabElements` below, which is what's passed in.
+  children: React.ReactElement[];
+}
+
+/**
+ * Owns `activeTab` state and renders the `ExploreActiveTabProvider`/
+ * `TabsList` pair, so a tab switch only re-renders this small subtree
+ * instead of all of `ExploreFeed`.
+ *
+ * `children` (the six tab elements) is created once by the caller and
+ * forwarded here untouched — never re-created inline — so passing it
+ * through `TabsList` doesn't change its identity when this component
+ * re-renders. `TabsList` reads `tab.content` straight off that same
+ * `children` reference, so React bails out of re-rendering the tab content
+ * subtrees on a tab switch; only components that read `useExploreActiveTab`
+ * (e.g. `PerpsBlock`) update, matching the context's intent.
+ */
+const ExploreTabs: React.FC<ExploreTabsProps> = ({
+  tabsListRef,
+  previousTabRef,
+  pendingExploreEntrySourceRef,
+  children,
+}) => {
+  const [activeTab, setActiveTab] = useState<ExploreTabName>('Now');
+
+  const handleTabChange = useCallback(
+    ({ i }: { i: number }) => {
+      const destinationTab = TAB_NAMES[i];
+      if (!destinationTab) return;
+      const source = pendingExploreEntrySourceRef.current;
+      pendingExploreEntrySourceRef.current = undefined;
+      trackExploreInteracted({
+        interaction_type: 'tab_switched',
+        tab_name: destinationTab,
+        previous_tab: previousTabRef.current,
+        ...(source ? { source } : {}),
+      });
+      previousTabRef.current = destinationTab;
+      setActiveTab(destinationTab);
+    },
+    [pendingExploreEntrySourceRef, previousTabRef],
+  );
+
+  return (
+    <ExploreActiveTabProvider activeTab={activeTab}>
+      <TabsList
+        ref={tabsListRef}
+        testID="explore-tabs"
+        tabsListContentTwClassName="px-0 mt-0"
+        onChangeTab={handleTabChange}
+      >
+        {children}
+      </TabsList>
+    </ExploreActiveTabProvider>
   );
 };
 
@@ -96,9 +201,16 @@ export const ExploreFeed: React.FC = () => {
   const tabProps = useExploreRefresh();
   const tabsListRef = useRef<TabsListRef>(null);
   const sessionManager = TrendingFeedSessionManager.getInstance();
+  const previousTabRef = useRef<ExploreTabName>('Now');
+  const pendingExploreEntrySourceRef = useRef<string | undefined>(undefined);
 
   // Handle tab navigation from route params
-  useExploreTabNavigationEffect({ tabsListRef });
+  useExploreTabNavigationEffect({
+    tabsListRef,
+    tabNames: TAB_NAMES,
+    pendingExploreEntrySourceRef,
+    previousTabRef,
+  });
 
   // Initialize session and enable AppState listener on mount
   useEffect(() => {
@@ -146,22 +258,61 @@ export const ExploreFeed: React.FC = () => {
     navigation.navigate(Routes.EXPLORE_SEARCH);
   }, [navigation]);
 
-  const previousTabRef = useRef<ExploreTabName>('Now');
-
-  const handleTabChange = useCallback(({ i }: { i: number }) => {
-    const destinationTab = TAB_NAMES[i];
-    if (!destinationTab) return;
-    trackExploreInteracted({
-      interaction_type: 'tab_switched',
-      tab_name: destinationTab,
-      previous_tab: previousTabRef.current,
-    });
-    previousTabRef.current = destinationTab;
-  }, []);
+  // Created once per `tabProps` identity (not on every render) so
+  // `ExploreTabs` can forward this array through `TabsList` unchanged on a
+  // tab switch — see `ExploreTabs` for why that reference stability is what
+  // keeps every loaded feed from re-rendering when only the active tab
+  // changes.
+  const tabElements = useMemo(
+    () => [
+      <Box
+        key="now"
+        twClassName="flex-1"
+        {...({ tabLabel: strings('trending.tabs.now') } as TabViewProps)}
+      >
+        <NowTab {...tabProps} />
+      </Box>,
+      <Box
+        key="macro"
+        twClassName="flex-1"
+        {...({ tabLabel: strings('trending.tabs.macro') } as TabViewProps)}
+      >
+        <MacroTab {...tabProps} />
+      </Box>,
+      <Box
+        key="rwas"
+        twClassName="flex-1"
+        {...({ tabLabel: strings('trending.tabs.rwas') } as TabViewProps)}
+      >
+        <RwasTab {...tabProps} />
+      </Box>,
+      <Box
+        key="crypto"
+        twClassName="flex-1"
+        {...({ tabLabel: strings('trending.tabs.crypto') } as TabViewProps)}
+      >
+        <CryptoTab {...tabProps} />
+      </Box>,
+      <Box
+        key="sports"
+        twClassName="flex-1"
+        {...({ tabLabel: strings('trending.tabs.sports') } as TabViewProps)}
+      >
+        <SportsTab {...tabProps} />
+      </Box>,
+      <Box
+        key="dapps"
+        twClassName="flex-1"
+        {...({ tabLabel: strings('trending.tabs.dapps') } as TabViewProps)}
+      >
+        <DappsTab {...tabProps} />
+      </Box>,
+    ],
+    [tabProps],
+  );
 
   return (
-    <SafeAreaView
-      edges={{ bottom: 'additive' }}
+    <Box
       style={tw.style('flex-1 bg-default')}
       testID={TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA}
     >
@@ -194,65 +345,15 @@ export const ExploreFeed: React.FC = () => {
         {!isBasicFunctionalityEnabled ? (
           <BasicFunctionalityEmptyState />
         ) : (
-          <TabsList
-            ref={tabsListRef}
-            testID="explore-tabs"
-            tabsListContentTwClassName="px-0 mt-0"
-            onChangeTab={handleTabChange}
+          <ExploreTabs
+            tabsListRef={tabsListRef}
+            previousTabRef={previousTabRef}
+            pendingExploreEntrySourceRef={pendingExploreEntrySourceRef}
           >
-            <Box
-              key="now"
-              twClassName="flex-1"
-              {...({ tabLabel: strings('trending.tabs.now') } as TabViewProps)}
-            >
-              <NowTab {...tabProps} />
-            </Box>
-            <Box
-              key="macro"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.tabs.macro'),
-              } as TabViewProps)}
-            >
-              <MacroTab {...tabProps} />
-            </Box>
-            <Box
-              key="rwas"
-              twClassName="flex-1"
-              {...({ tabLabel: strings('trending.tabs.rwas') } as TabViewProps)}
-            >
-              <RwasTab {...tabProps} />
-            </Box>
-            <Box
-              key="crypto"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.tabs.crypto'),
-              } as TabViewProps)}
-            >
-              <CryptoTab {...tabProps} />
-            </Box>
-            <Box
-              key="sports"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.tabs.sports'),
-              } as TabViewProps)}
-            >
-              <SportsTab {...tabProps} />
-            </Box>
-            <Box
-              key="dapps"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.tabs.dapps'),
-              } as TabViewProps)}
-            >
-              <DappsTab {...tabProps} />
-            </Box>
-          </TabsList>
+            {tabElements}
+          </ExploreTabs>
         )}
       </Box>
-    </SafeAreaView>
+    </Box>
   );
 };

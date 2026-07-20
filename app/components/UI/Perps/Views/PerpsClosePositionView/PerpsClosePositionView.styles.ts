@@ -59,10 +59,10 @@ export const createStyles = (theme: Theme) => {
       paddingHorizontal: 16,
       paddingVertical: 8,
     },
-    detailItem: {
-      marginBottom: 8,
+    inputGroupContainer: {
       backgroundColor: colors.background.section,
-      borderRadius: 8,
+      borderRadius: 12,
+      paddingHorizontal: 12,
       overflow: 'hidden',
     },
     detailsSection: {
@@ -170,14 +170,6 @@ export const createStyles = (theme: Theme) => {
     },
     marketButtonIcon: {
       marginLeft: 2,
-    },
-    detailListItem: {
-      borderRadius: 12,
-    },
-    detailLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flex: 1,
     },
     infoIcon: {
       marginLeft: 0,

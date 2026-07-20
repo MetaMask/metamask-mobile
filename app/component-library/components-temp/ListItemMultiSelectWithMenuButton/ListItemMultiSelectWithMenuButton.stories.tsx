@@ -62,7 +62,8 @@ export default ListItemSelectWithButtonMeta;
 
 export const ListItemWithButtonSelect = {
   render: (
-    args: JSX.IntrinsicAttributes & ListItemMultiSelectWithMenuButtonProps,
+    args: React.JSX.IntrinsicAttributes &
+      ListItemMultiSelectWithMenuButtonProps,
   ) => (
     <ListItemSelectWithButtonComponent {...args}>
       <ListItemColumn>

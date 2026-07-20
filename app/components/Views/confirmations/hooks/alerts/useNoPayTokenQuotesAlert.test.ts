@@ -24,9 +24,14 @@ import {
   TransactionPayRequiredToken,
   TransactionPaySourceAmount,
 } from '@metamask/transaction-pay-controller';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useTransactionPayWithdraw } from '../pay/useTransactionPayWithdraw';
+import { TransactionType } from '@metamask/transaction-controller';
 
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionPayData');
+jest.mock('../pay/useTransactionPayWithdraw');
+jest.mock('../transactions/useTransactionMetadataRequest');
 
 const STATE_MOCK = merge(
   {},
@@ -60,6 +65,7 @@ describe('useNoPayTokenQuotesAlert', () => {
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
+  const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -78,6 +84,10 @@ describe('useNoPayTokenQuotesAlert', () => {
     ]);
     useTransactionPayIsPostQuoteMock.mockReturnValue(false);
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
+    useTransactionPayWithdrawMock.mockReturnValue({
+      isWithdraw: false,
+      canSelectWithdrawToken: false,
+    });
     jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
     jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(false);
   });
@@ -256,13 +266,11 @@ describe('useNoPayTokenQuotesAlert', () => {
     ]);
   });
 
-  // Money account withdraw MUSD -> MUSD: `calculatePostQuoteSourceAmounts`
-  // filters out same-token/same-chain entries, so `sourceAmounts` is empty
-  // even when the user has entered a positive amount. The alert must still
-  // fire so the Withdraw button stays disabled.
-  it('returns alert for post-quote when sourceAmounts is empty but a required token has a positive amount', () => {
+  it('returns alert for post-quote when sourceAmounts is non-empty but a required token has a positive amount and no quotes', () => {
     useTransactionPayIsPostQuoteMock.mockReturnValue(true);
-    useTransactionPaySourceAmountsMock.mockReturnValue([]);
+    useTransactionPaySourceAmountsMock.mockReturnValue([
+      { address: ADDRESS_MOCK, chainId: CHAIN_ID_MOCK } as never,
+    ]);
     useTransactionPayQuotesMock.mockReturnValue([]);
 
     useTransactionPayRequiredTokensMock.mockReturnValue([
@@ -304,9 +312,11 @@ describe('useNoPayTokenQuotesAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns alert for post-quote with empty sourceAmounts when isMaxAmount is true', () => {
+  it('returns alert for post-quote with non-empty sourceAmounts when isMaxAmount is true', () => {
     useTransactionPayIsPostQuoteMock.mockReturnValue(true);
-    useTransactionPaySourceAmountsMock.mockReturnValue([]);
+    useTransactionPaySourceAmountsMock.mockReturnValue([
+      { address: ADDRESS_MOCK, chainId: CHAIN_ID_MOCK } as never,
+    ]);
     useTransactionPayQuotesMock.mockReturnValue([]);
     jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(true);
 
@@ -328,5 +338,239 @@ describe('useNoPayTokenQuotesAlert', () => {
         isBlocking: true,
       }),
     ]);
+  });
+
+  describe('quote-required transaction types', () => {
+    beforeEach(() => {
+      jest.resetAllMocks();
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useIsTransactionPayLoadingMock.mockReturnValue(false);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+      useTransactionPaySourceAmountsMock.mockReturnValue([]);
+      useTransactionPayIsPostQuoteMock.mockReturnValue(false);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '10000',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+      useTransactionPayWithdrawMock.mockReturnValue({
+        isWithdraw: false,
+        canSelectWithdrawToken: false,
+      });
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
+      jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(false);
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+      } as never);
+    });
+
+    it('returns alert for moneyAccountDeposit with no quotes and positive required amount', () => {
+      const { result } = runHook();
+
+      expect(result.current).toEqual([
+        expect.objectContaining({
+          key: AlertKeys.NoPayTokenQuotes,
+          severity: Severity.Danger,
+          isBlocking: true,
+        }),
+      ]);
+    });
+
+    it('returns no alert for moneyAccountDeposit with no required amount', () => {
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+      } as never);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '0',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alert for moneyAccountDeposit when quotes are present', () => {
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+      } as never);
+      useTransactionPayQuotesMock.mockReturnValue([
+        {} as TransactionPayQuote<Json>,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alert for moneyAccountDeposit while quotes are loading', () => {
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+      } as never);
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+  });
+
+  describe('withdraw initialisation', () => {
+    const BLOCKING_ALERT = expect.objectContaining({
+      key: AlertKeys.NoPayTokenQuotes,
+      severity: Severity.Danger,
+      isBlocking: true,
+    });
+
+    beforeEach(() => {
+      useTransactionPayQuotesMock.mockReturnValue([]);
+      useTransactionPaySourceAmountsMock.mockReturnValue([]);
+      useTransactionPayWithdrawMock.mockReturnValue({
+        isWithdraw: true,
+        canSelectWithdrawToken: true,
+      });
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '10000',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+    });
+
+    it('returns alert when the pay config is not initialised', () => {
+      useTransactionPayIsPostQuoteMock.mockReturnValue(false);
+
+      const { result } = runHook();
+
+      expect(result.current).toEqual([BLOCKING_ALERT]);
+    });
+
+    it('returns no alerts once the pay config is initialised, even with no destination token set', () => {
+      // Withdraws with no preferred or last-used token intentionally leave
+      // payToken unset and default to a direct, same-token transfer.
+      useTransactionPayIsPostQuoteMock.mockReturnValue(true);
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alerts when the destination token and pay config are set', () => {
+      useTransactionPayIsPostQuoteMock.mockReturnValue(true);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alerts when withdraw token selection is disabled', () => {
+      useTransactionPayWithdrawMock.mockReturnValue({
+        isWithdraw: true,
+        canSelectWithdrawToken: false,
+      });
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alerts while quotes are loading', () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+  });
+
+  describe('pay-token-required transaction types', () => {
+    const BLOCKING_ALERT = expect.objectContaining({
+      key: AlertKeys.NoPayTokenQuotes,
+      severity: Severity.Danger,
+      isBlocking: true,
+    });
+
+    beforeEach(() => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+      } as ReturnType<typeof useTransactionPayToken>);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+      useTransactionPaySourceAmountsMock.mockReturnValue([]);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '10000',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        type: TransactionType.perpsDeposit,
+      } as never);
+    });
+
+    it('returns alert for perps deposit when no payment token is set', () => {
+      const { result } = runHook();
+
+      expect(result.current).toEqual([BLOCKING_ALERT]);
+    });
+
+    it('returns no alerts when a fiat payment method is selected', () => {
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'debit-credit-card',
+      } as never);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alerts when a payment token is set', () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+        },
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alerts when the required amount is zero', () => {
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          amountRaw: '0',
+          skipIfBalance: false,
+        } as TransactionPayRequiredToken,
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
   });
 });

@@ -61,7 +61,6 @@ const createProps = (
   isMarketLoading: false,
   market: createMarket(),
   openOutcomes: [createOutcome()],
-  yesPercentage: 65,
   onClaimPress: jest.fn(),
   onBuyPress: jest.fn(),
   isClaimPending: false,
@@ -122,20 +121,27 @@ describe('PredictMarketDetailsActions', () => {
     expect(claimButton).toBeOnTheScreen();
   });
 
-  it('renders buy buttons for open single-outcome market and handles presses', () => {
+  it('labels buy buttons with the ask (buyPrice), not the mid, and handles presses', () => {
     const onBuyPress = jest.fn();
-    const openOutcome = createOutcome();
+    // Wide spread: mid 0.65/0.35 but ask 0.71/0.41 -> buttons must show the ask.
+    const openOutcome = createOutcome({
+      tokens: [
+        { id: 'token-yes', title: 'Yes', price: 0.65, buyPrice: 0.71 },
+        { id: 'token-no', title: 'No', price: 0.35, buyPrice: 0.41 },
+      ],
+    });
     const props = createProps({
       hasPositivePnl: false,
       onBuyPress,
       openOutcomes: [openOutcome],
-      yesPercentage: 70,
     });
 
     renderWithProvider(<PredictMarketDetailsActions {...props} />);
 
-    fireEvent.press(screen.getByText('Yes • 70¢'));
-    fireEvent.press(screen.getByText('No • 30¢'));
+    fireEvent.press(screen.getByText('Yes • 71¢'));
+    fireEvent.press(screen.getByText('No • 41¢'));
+    // The mid must NOT be shown on the CTA.
+    expect(screen.queryByText('Yes • 65¢')).toBeNull();
 
     expect(onBuyPress).toHaveBeenNthCalledWith(1, openOutcome.tokens[0]);
     expect(onBuyPress).toHaveBeenNthCalledWith(2, openOutcome.tokens[1]);
@@ -167,7 +173,6 @@ describe('PredictMarketDetailsActions', () => {
       market: fallbackMarket,
       openOutcomes: [],
       onBuyPress,
-      yesPercentage: 65,
     });
 
     renderWithProvider(<PredictMarketDetailsActions {...props} />);

@@ -7,6 +7,7 @@ import {
   selectTransactions,
   selectSwapsTransactions,
 } from '../../../../selectors/transactionController';
+import { selectIsActivityRedesignEnabled } from '../../../../selectors/featureFlagController/activityRedesign';
 import { selectTokens } from '../../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
@@ -14,6 +15,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
+import { TransactionType } from '@metamask/transaction-controller';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -31,6 +33,13 @@ jest.mock('../../../../selectors/transactionController', () => ({
   selectTransactions: jest.fn(),
   selectSwapsTransactions: jest.fn(),
 }));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/activityRedesign',
+  () => ({
+    selectIsActivityRedesignEnabled: jest.fn(),
+  }),
+);
 
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(),
@@ -128,10 +137,15 @@ const createAsset = (overrides: Partial<TokenI> = {}): TokenI => ({
   ...overrides,
 });
 
-const setupMocks = (transactions: unknown[] = []) => {
+const setupMocks = (
+  transactions: unknown[] = [],
+  { isActivityRedesignEnabled = false } = {},
+) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectTransactions) return transactions;
     if (selector === selectSwapsTransactions) return {};
+    if (selector === selectIsActivityRedesignEnabled)
+      return isActivityRedesignEnabled;
     if (selector === selectTokens) return [];
     if (selector === selectSelectedInternalAccount) {
       return { address: MOCK_ADDRESS, metadata: { importTime: 0 } };
@@ -326,6 +340,69 @@ describe('useTokenTransactions', () => {
       });
 
       expect(result.current.confirmedTxs.length).toBe(0);
+    });
+  });
+
+  describe('gas_payment fee legs', () => {
+    it('hides gas_payment transactions when activity redesign is on', async () => {
+      const send = createMockTransaction({
+        id: 'send',
+        type: TransactionType.simpleSend,
+        txParams: { from: MOCK_ADDRESS, to: MOCK_TOKEN_ADDRESS },
+      });
+      const fee = createMockTransaction({
+        id: 'fee',
+        type: TransactionType.gasPayment,
+        txParams: { from: MOCK_ADDRESS, to: MOCK_TOKEN_ADDRESS },
+      });
+      setupMocks([send, fee], { isActivityRedesignEnabled: true });
+
+      const asset = createAsset({
+        symbol: 'USDT',
+        isETH: false,
+        isNative: false,
+        address: MOCK_TOKEN_ADDRESS,
+      });
+
+      const { result } = renderHook(() => useTokenTransactions(asset));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.transactions.map((tx) => tx.id)).toEqual(['send']);
+    });
+
+    it('keeps gas_payment transactions when activity redesign is off', async () => {
+      const send = createMockTransaction({
+        id: 'send',
+        type: TransactionType.simpleSend,
+        txParams: { from: MOCK_ADDRESS, to: MOCK_TOKEN_ADDRESS },
+      });
+      const fee = createMockTransaction({
+        id: 'fee',
+        type: TransactionType.gasPayment,
+        txParams: { from: MOCK_ADDRESS, to: MOCK_TOKEN_ADDRESS },
+      });
+      setupMocks([send, fee], { isActivityRedesignEnabled: false });
+
+      const asset = createAsset({
+        symbol: 'USDT',
+        isETH: false,
+        isNative: false,
+        address: MOCK_TOKEN_ADDRESS,
+      });
+
+      const { result } = renderHook(() => useTokenTransactions(asset));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.transactions.map((tx) => tx.id).sort()).toEqual([
+        'fee',
+        'send',
+      ]);
     });
   });
 });

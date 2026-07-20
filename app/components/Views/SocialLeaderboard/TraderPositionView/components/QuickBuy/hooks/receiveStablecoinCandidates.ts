@@ -5,7 +5,7 @@ import { NETWORK_CHAIN_ID } from '../../../../../../../util/networks/customNetwo
 /**
  * Canonical USDC / USDT deployments per EVM chain for the Sell "Receive" picker.
  *
- * `DefaultSwapDestTokens` only carries a single stablecoin per chain (USDC *or*
+ * `DefaultSwapDestTokens` only carries a single default destination stablecoin per chain (USDC *or*
  * USDT, never both), which is why USDT was missing on Optimism (and USDC on
  * Polygon, etc.). This table lets `useReceiveTokens` offer *both* major
  * stablecoins on every supported chain.
@@ -46,6 +46,7 @@ const makeStable = (
   decimals,
   image: tokenIconUrl(chainId, address),
   chainId,
+  isVerified: true,
 });
 
 export const RECEIVE_STABLECOIN_CANDIDATES: BridgeToken[] = [

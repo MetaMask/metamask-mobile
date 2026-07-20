@@ -1,11 +1,13 @@
-import { BASE_DEFAULTS, sleep } from './Utilities.ts';
+import Utilities, { BASE_DEFAULTS, sleep } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
 import type { PlaywrightElement } from './PlaywrightAdapter.ts';
 import PlaywrightMatchers from './PlaywrightMatchers.ts';
 import PlaywrightGestures from './PlaywrightGestures.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 import {
   addOverhead,
   isOverheadTrackingActive,
+  withImplicitWait,
 } from './PlaywrightUtilities.ts';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
 
@@ -13,6 +15,11 @@ const logger = createPlaywrightLogger('PlaywrightAssertions');
 
 export interface VisibilityWithSettleOptions extends AssertionOptions {
   settleMs?: number;
+}
+
+export interface TextDisplayedOptions extends AssertionOptions {
+  /** When set, asserts text on this element instead of searching the screen. */
+  within?: PlaywrightElement | Promise<PlaywrightElement>;
 }
 
 /**
@@ -59,6 +66,10 @@ export default class PlaywrightAssertions {
    * - After detection a {@link probeOverhead} call measures the pure
    * per-command cost and registers it for subtraction.
    */
+  private static readonly FINAL_WAIT_RESERVE_MS = 2_000;
+  /** Fast implicit wait for poll probes — avoids 3.5s find penalty per attempt. */
+  private static readonly POLL_IMPLICIT_WAIT_MS = 300;
+
   private static async pollUntilVisible(
     el: PlaywrightElement,
     timeout: number,
@@ -66,24 +77,34 @@ export default class PlaywrightAssertions {
     const interval = 300;
     const start = Date.now();
     let attempt = 0;
-    while (Date.now() - start < timeout - interval) {
+    while (Date.now() - start < timeout - this.FINAL_WAIT_RESERVE_MS) {
+      const remaining = timeout - (Date.now() - start);
+      if (remaining <= 0) {
+        break;
+      }
       try {
         attempt++;
         const t0 = Date.now();
-        const exists = await el.unwrap().isExisting();
+        const exists = await withImplicitWait(this.POLL_IMPLICIT_WAIT_MS, () =>
+          el.unwrap().isExisting(),
+        );
         if (exists) {
-          if (isOverheadTrackingActive()) {
-            await this.probeOverhead(el);
+          const displayed = await el.isVisible();
+          if (displayed) {
+            if (isOverheadTrackingActive()) {
+              addOverhead(Date.now() - t0);
+            }
+            return;
           }
-          return;
         }
       } catch {
         // element not ready yet
       }
-      await sleep(interval);
+      await sleep(Math.min(interval, remaining));
     }
+    const remainingTimeout = timeout - (Date.now() - start);
     await el.waitForDisplayed({
-      timeout: Math.max(interval, timeout - (Date.now() - start)),
+      timeout: Math.max(interval, remainingTimeout),
     });
     if (isOverheadTrackingActive()) {
       await this.probeOverhead(el);
@@ -224,30 +245,142 @@ export default class PlaywrightAssertions {
     targetElement: PlaywrightElement | Promise<PlaywrightElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
-    const el = await targetElement;
-    await el.waitForDisplayed({
-      reverse: true,
-      timeout: this.getTimeout(options),
-    });
+    try {
+      const el = await targetElement;
+      try {
+        if (!(await el.unwrap().isExisting())) {
+          return;
+        }
+      } catch {
+        // Fall through to waitForDisplayed when existence cannot be determined.
+      }
+      await el.waitForDisplayed({
+        reverse: true,
+        timeout: this.getTimeout(options),
+      });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('No elements found for XPath') ||
+          error.message.includes('An element could not be located') ||
+          error.message.includes('no such element'))
+      ) {
+        return;
+      }
+      if (
+        error instanceof TypeError &&
+        error.message.includes('waitForDisplayed')
+      ) {
+        return;
+      }
+      throw error;
+    }
   }
 
   static async expectTextDisplayed(
     text: string,
+    options: TextDisplayedOptions = {},
+  ): Promise<void> {
+    const { within, ...assertionOptions } = options;
+    if (within) {
+      await this.expectElementText(within, text, assertionOptions);
+      return;
+    }
+    const timeout = this.getTimeout(assertionOptions);
+    return Utilities.executeWithRetry(
+      async () => {
+        const el = await PlaywrightMatchers.getElementByText(text);
+        await el.waitForDisplayed({ timeout: 100 });
+      },
+      {
+        timeout,
+        description: `Assert text "${text}" is displayed`,
+      },
+    );
+  }
+
+  static async expectElementToHaveLabel(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    expectedLabel: string,
     options: AssertionOptions = {},
   ): Promise<void> {
-    const el = await PlaywrightMatchers.getElementByText(text);
-    await el.waitForDisplayed({ timeout: this.getTimeout(options) });
+    const timeout = this.getTimeout(options);
+    const interval = 300;
+    const start = Date.now();
+    const el = await targetElement;
+
+    const normalize = (value: string): string =>
+      value
+        .replace(/[\s,]+/g, ' ')
+        .trim()
+        .toLowerCase();
+
+    const matchesLabel = (actual: string): boolean => {
+      const normalizedActual = normalize(actual);
+      const normalizedExpected = normalize(expectedLabel);
+      if (normalizedActual.includes(normalizedExpected)) {
+        return true;
+      }
+
+      return expectedLabel
+        .split(',')
+        .map((part) => normalize(part))
+        .every((part) => part.length > 0 && normalizedActual.includes(part));
+    };
+
+    while (Date.now() - start < timeout) {
+      const label = await this.getElementAccessibilityLabel(el);
+      if (matchesLabel(label)) {
+        return;
+      }
+      await sleep(interval);
+    }
+
+    const lastLabel = await this.getElementAccessibilityLabel(el);
+    throw new Error(
+      `Expected label "${expectedLabel}" but got "${lastLabel}" within ${timeout}ms`,
+    );
+  }
+
+  private static async getElementAccessibilityLabel(
+    el: PlaywrightElement,
+  ): Promise<string> {
+    const raw = el.unwrap();
+    const isAndroid = await PlatformDetector.isAndroid();
+    const accessibilityText = isAndroid
+      ? ((await raw.getAttribute('content-desc')) ?? '')
+      : ((await raw.getAttribute('label')) ??
+        (await raw.getAttribute('name')) ??
+        '');
+    let text = '';
+    try {
+      text = await raw.getText();
+    } catch {
+      text = '';
+    }
+    return [accessibilityText, text].filter(Boolean).join(', ');
   }
 
   static async expectTextNotDisplayed(
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
-    const el = await PlaywrightMatchers.getElementByText(text);
-    await el.waitForDisplayed({
-      reverse: true,
-      timeout: this.getTimeout(options),
-    });
+    try {
+      const el = await PlaywrightMatchers.getElementByText(text);
+      await el.waitForDisplayed({
+        reverse: true,
+        timeout: this.getTimeout(options),
+      });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('No elements found for XPath') ||
+          error.message.includes('No elements found'))
+      ) {
+        return;
+      }
+      throw error;
+    }
   }
 
   /**

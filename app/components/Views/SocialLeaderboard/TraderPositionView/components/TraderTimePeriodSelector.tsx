@@ -23,7 +23,7 @@ const TraderTimePeriodSelector: React.FC<TraderTimePeriodSelectorProps> = ({
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
-    twClassName="px-4 pb-3"
+    twClassName="px-4 pt-3 pb-3"
   >
     {timePeriods.map((period) => (
       <TimePeriodButton

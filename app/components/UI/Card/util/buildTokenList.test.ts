@@ -301,4 +301,110 @@ describe('buildTokenList', () => {
       expect(result[0].displaySymbol).toBeUndefined();
     });
   });
+
+  describe('enforceSupportList', () => {
+    const createDelegationSettings = (
+      networks: DelegationSettingsResponse['networks'],
+    ): DelegationSettingsResponse => ({
+      networks,
+      count: networks.length,
+      _links: { self: 'https://api.example.com' },
+    });
+
+    const lineaUsdcAndFoo = createDelegationSettings([
+      {
+        network: 'linea',
+        chainId: '59144',
+        environment: 'production',
+        delegationContract: '0xDelegation',
+        tokens: {
+          usdc: { symbol: 'usdc', decimals: 6, address: '0xUSDC' },
+          foo: { symbol: 'foo', decimals: 18, address: '0xFOO' },
+        },
+      },
+    ]);
+
+    const vedaOnMonad = createDelegationSettings([
+      {
+        network: 'monad',
+        chainId: '143',
+        environment: 'production',
+        delegationContract: '0xDelegation',
+        tokens: {
+          veda: { symbol: 'veda', decimals: 6, address: '0xVEDA' },
+        },
+      },
+    ]);
+
+    it('drops tokens absent from the support list when enforceSupportList is true', () => {
+      const result = buildDelegationTokenList({
+        delegationSettings: lineaUsdcAndFoo,
+        enforceSupportList: true,
+        getSupportedTokensByChainId: () => [
+          { symbol: 'USDC', address: '0xUSDC', name: 'USD Coin' },
+        ],
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('USDC');
+    });
+
+    it('keeps unsupported tokens when enforceSupportList is false (default)', () => {
+      const result = buildDelegationTokenList({
+        delegationSettings: lineaUsdcAndFoo,
+        getSupportedTokensByChainId: () => [],
+      });
+
+      expect(result).toHaveLength(2);
+    });
+
+    it('matches the support list by address even when the symbol differs', () => {
+      const result = buildDelegationTokenList({
+        delegationSettings: lineaUsdcAndFoo,
+        enforceSupportList: true,
+        getSupportedTokensByChainId: () => [
+          { symbol: 'USD Coin', address: '0xusdc', name: 'USD Coin' },
+        ],
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].address).toBe('0xUSDC');
+    });
+
+    it('drops the veda entry when it is not in the support list', () => {
+      const result = buildDelegationTokenList({
+        delegationSettings: vedaOnMonad,
+        enforceSupportList: true,
+        getSupportedTokensByChainId: () => [],
+      });
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('keeps the veda entry (as mUSD) when present in the support list by symbol', () => {
+      const result = buildDelegationTokenList({
+        delegationSettings: vedaOnMonad,
+        enforceSupportList: true,
+        getSupportedTokensByChainId: () => [
+          { symbol: 'veda', address: '0xVEDA', name: 'Veda' },
+        ],
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].displaySymbol).toBe('mUSD');
+    });
+
+    it('keeps the veda entry when matched by address even if the support-list symbol differs', () => {
+      const result = buildDelegationTokenList({
+        delegationSettings: vedaOnMonad,
+        enforceSupportList: true,
+        getSupportedTokensByChainId: () => [
+          { symbol: 'mUSD', address: '0xveda', name: 'MetaMask USD' },
+        ],
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].displaySymbol).toBe('mUSD');
+    });
+  });
 });

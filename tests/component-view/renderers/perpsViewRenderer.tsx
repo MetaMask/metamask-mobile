@@ -1,7 +1,7 @@
 import '../mocks';
 import React from 'react';
 import { Text } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import renderWithProvider, {
   type DeepPartial,
@@ -142,6 +142,7 @@ const initialMarketData: PerpsMarketData[] = [
     change24h: '$0',
     change24hPercent: '0%',
     volume: '$1M',
+    openInterest: '$500K',
   },
 ];
 
@@ -209,6 +210,23 @@ function topOfBookChannel() {
     subscribeToSymbol: (params: {
       symbol: string;
       callback: (data: unknown) => void;
+    }): (() => void) => {
+      if (params?.callback) {
+        params.callback(undefined);
+      }
+      return noopUnsubscribe;
+    },
+    getSnapshot: () => null,
+  };
+}
+
+/** Focused-price channel: usePerpsLiveFocusedPrice calls subscribeToSymbol (e.g. PerpsMarketDetailsView, PerpsOrderView) */
+function focusedPriceChannel() {
+  return {
+    subscribe: (): (() => void) => noopUnsubscribe,
+    subscribeToSymbol: (params: {
+      symbol: string;
+      callback: (update: PriceUpdate | undefined) => void;
     }): (() => void) => {
       if (params?.callback) {
         params.callback(undefined);
@@ -313,6 +331,7 @@ function createTestStreamManager(
     marketData,
     oiCaps: noopChannel(),
     topOfBook: topOfBookChannel(),
+    focusedPrice: focusedPriceChannel(),
     candles: noopChannel(),
     clearAllChannels: (): void => undefined,
   } as unknown as PerpsStreamManager;
@@ -396,8 +415,8 @@ export function renderPerpsView(
   };
 
   if (extraRoutes?.length) {
-    const Stack = createStackNavigator();
-    const InnerStack = createStackNavigator();
+    const Stack = createNativeStackNavigator();
+    const InnerStack = createNativeStackNavigator();
     const nestedPerpsRoutes = extraRoutes.filter(
       ({ mount }) => mount === 'perps-root',
     );
@@ -522,6 +541,7 @@ const defaultMarketDetailsMarket = {
   change24h: '+$50.00',
   change24hPercent: '+2.5%',
   volume: '$1.5B',
+  openInterest: '$500M',
   maxLeverage: '50x',
   marketType: 'crypto',
 };
@@ -658,6 +678,7 @@ const defaultOrderBookMarket = {
   change24h: '+$50.00',
   change24hPercent: '+2.5%',
   volume: '$1.5B',
+  openInterest: '$500M',
   maxLeverage: '50x',
   marketType: 'crypto' as const,
 };

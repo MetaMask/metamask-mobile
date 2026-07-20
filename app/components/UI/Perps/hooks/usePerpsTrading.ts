@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import {
   type AccountState,
@@ -33,6 +35,29 @@ import {
   type WithdrawParams,
   type WithdrawResult,
 } from '@metamask/perps-controller';
+import { TraceName } from '../../../../util/trace';
+import {
+  startPerpsCufTrace,
+  endPerpsCufTrace,
+  endPerpsCufRequestAfter,
+  watchPerpsCufOrderAbsent,
+  acceptPerpsCufRequest,
+} from '../utils/perpsCufTrace';
+import {
+  PERPS_CUF_TAG,
+  PERPS_CUF_END_REASON,
+  PERPS_CUF_STREAM_TIMEOUT_MS,
+} from '../constants/perpsCufTags';
+
+/**
+ * UI-facing params for fetching markets.
+ *
+ * `useTerminalApi` is source-selection policy, not market-query intent, so it is
+ * intentionally hidden from callers. The hook injects the source flag, and the
+ * controller owns Terminal-first fetching with HyperLiquid fallback. Callers
+ * should only describe query intent (symbols, dex, standalone, filters, etc.).
+ */
+export type MobileGetMarketsParams = Omit<GetMarketsParams, 'useTerminalApi'>;
 
 /**
  * Hook for trading operations
@@ -40,6 +65,7 @@ import {
  */
 export function usePerpsTrading() {
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
+  const useTerminalApi = useSelector(selectPerpsTerminalBackendEnabledFlag);
 
   const placeOrder = useCallback(
     async (params: OrderParams): Promise<OrderResult> => {
@@ -52,7 +78,47 @@ export function usePerpsTrading() {
   const cancelOrder = useCallback(
     async (params: CancelOrderParams): Promise<CancelOrderResult> => {
       const controller = Engine.context.PerpsController;
-      return controller.cancelOrder(params);
+      // Confirmation CUF: every cancel UI path funnels through here; the span
+      // ends when the stream no longer lists the order.
+      const cancelCufOpId = startPerpsCufTrace({
+        name: TraceName.PerpsCancelOrderToConfirmation,
+      });
+      watchPerpsCufOrderAbsent(cancelCufOpId, params.orderId);
+      let controllerSettled = false;
+      endPerpsCufRequestAfter(
+        cancelCufOpId,
+        () => controllerSettled,
+        PERPS_CUF_STREAM_TIMEOUT_MS,
+      );
+      try {
+        const result = await controller.cancelOrder(params);
+        controllerSettled = true;
+        if (!result?.success) {
+          endPerpsCufTrace({
+            id: cancelCufOpId,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
+            },
+          });
+        } else {
+          // Only now may a stream absence complete the span as a success — the
+          // controller accepted the cancel. If the order already vanished while
+          // the request was in flight, the render instant was recorded and the
+          // span ends at it here.
+          acceptPerpsCufRequest(cancelCufOpId);
+        }
+        return result;
+      } catch (error) {
+        endPerpsCufTrace({
+          id: cancelCufOpId,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+          },
+        });
+        throw error;
+      }
     },
     [],
   );
@@ -66,11 +132,14 @@ export function usePerpsTrading() {
   );
 
   const getMarkets = useCallback(
-    async (params?: GetMarketsParams): Promise<MarketInfo[]> => {
+    async (params?: MobileGetMarketsParams): Promise<MarketInfo[]> => {
       const controller = Engine.context.PerpsController;
-      return controller.getMarkets(params);
+      return controller.getMarkets({
+        ...params,
+        useTerminalApi,
+      });
     },
-    [],
+    [useTerminalApi],
   );
 
   const getPositions = useCallback(

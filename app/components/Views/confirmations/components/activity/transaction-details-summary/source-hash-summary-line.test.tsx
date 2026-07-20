@@ -115,6 +115,39 @@ describe('SourceHashSummaryLine', () => {
     ).toBeDefined();
   });
 
+  it('renders branded mUSD symbol when registry token at the mUSD address has symbol MUSD', () => {
+    useTokenWithBalanceMock.mockReturnValue({ symbol: 'MUSD' } as ReturnType<
+      typeof useTokenWithBalance
+    >);
+
+    const { getByText, queryByText } = render({
+      id: 'parent-id',
+      chainId: '0x1' as Hex,
+      submittedTime: 1755719285723,
+      metamaskPay: {
+        tokenAddress: '0xAcA92E438df0B2401fF60dA7E4337B687a2435DA' as Hex,
+        chainId: '0x1' as Hex,
+      },
+    } as Partial<TransactionMeta>);
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_send', {
+          sourceSymbol: 'mUSD',
+          sourceChain: 'Ethereum',
+        }),
+      ),
+    ).toBeDefined();
+    expect(
+      queryByText(
+        strings('transaction_details.summary_title.bridge_send', {
+          sourceSymbol: 'MUSD',
+          sourceChain: 'Ethereum',
+        }),
+      ),
+    ).toBeNull();
+  });
+
   it('navigates to block explorer when button is pressed', () => {
     const { getByTestId } = render();
 
@@ -150,6 +183,32 @@ describe('SourceHashSummaryLine', () => {
         strings('transaction_details.summary_title.predict_withdraw', {
           sourceSymbol: 'pUSD',
           sourceChain: 'Polygon',
+        }),
+      ),
+    ).toBeDefined();
+  });
+
+  it('renders perps-withdraw title with USDC and Arbitrum network', () => {
+    useNetworkNameMock.mockImplementation((chainId?: Hex) =>
+      chainId === '0xa4b1' ? 'Arbitrum' : 'Monad',
+    );
+
+    const { getByText } = render({
+      id: 'parent-id',
+      chainId: '0xa4b1' as Hex,
+      submittedTime: 1755719285723,
+      type: TransactionType.perpsWithdraw,
+      metamaskPay: {
+        tokenAddress: '0xmusd' as Hex,
+        chainId: '0xmonad' as Hex,
+      },
+    } as Partial<TransactionMeta>);
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_send', {
+          sourceSymbol: 'USDC',
+          sourceChain: 'Arbitrum',
         }),
       ),
     ).toBeDefined();

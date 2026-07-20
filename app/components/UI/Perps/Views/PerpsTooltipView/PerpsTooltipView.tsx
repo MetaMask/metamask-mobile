@@ -15,9 +15,8 @@ import { strings } from '../../../../../../locales/i18n';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import { tooltipContentRegistry } from '../../components/PerpsBottomSheetTooltip/content/contentRegistry';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
-interface PerpsTooltipViewRouteParams {
+export interface PerpsTooltipViewRouteParams {
   contentKey: PerpsTooltipContentKey;
   data?: Record<string, unknown>;
 }
@@ -27,7 +26,6 @@ const PerpsTooltipView: React.FC = () => {
   const route =
     useRoute<RouteProp<Record<string, PerpsTooltipViewRouteParams>, string>>();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const surfaceClass = useElevatedSurface();
 
   const { contentKey, data } = route.params || {};
 
@@ -69,7 +67,6 @@ const PerpsTooltipView: React.FC = () => {
       ref={bottomSheetRef}
       goBack={navigation.goBack}
       testID="perps-tooltip-bottom-sheet"
-      twClassName={surfaceClass}
     >
       {!hasCustomHeader && (
         <BottomSheetHeader testID="perps-tooltip-bottom-sheet-header">

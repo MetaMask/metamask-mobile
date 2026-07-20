@@ -3,21 +3,10 @@ import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagCo
 import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
-  isVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
 import type { RootState } from '../../../../../reducers';
-import type { ButtonColorVariantName } from '../../utils/abTesting/types';
 import { hasProperty } from '@metamask/utils';
 import { parseAllowlistAssets } from '../../utils/parseAllowlistAssets';
-
-/**
- * Valid variants for button color A/B test (TAT-1937)
- * Used for runtime validation of LaunchDarkly responses
- */
-const VALID_BUTTON_COLOR_VARIANTS: readonly ButtonColorVariantName[] = [
-  'control',
-  'monochrome',
-];
 
 export const selectPerpsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -75,6 +64,56 @@ export const selectPerpsOrderBookEnabledFlag = createSelector(
 );
 
 /**
+ * Client-config / Redux key for the Perps advanced chart feature flag.
+ * LaunchDarkly key (kebab-case): `perps-advanced-chart-enabled-v2`
+ */
+export const PERPS_ADVANCED_CHART_ENABLED_FLAG_KEY =
+  'perpsAdvancedChartEnabledV2' as const;
+
+/**
+ * Selector for Perps advanced chart feature flag.
+ * Controls whether market detail and fullscreen charts use the shared AdvancedChart
+ * (TradingView) instead of the Lightweight Charts WebView.
+ *
+ * @returns boolean - true if advanced chart should be shown, false otherwise
+ */
+export const selectPerpsAdvancedChartEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_ADVANCED_CHART_ENABLED_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Client-config / Redux key for the Perps show full asset names feature flag.
+ * LaunchDarkly key (kebab-case): `perps-show-full-asset-names`
+ */
+export const PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY =
+  'perpsShowFullAssetNames' as const;
+
+/**
+ * Selector for showing full asset names in Perps market row lists.
+ * When enabled, vertical market lists display the full asset name (e.g. "Bitcoin")
+ * instead of the ticker symbol (e.g. "BTC").
+ *
+ * @returns boolean - true if full asset names should be shown, false otherwise.
+ */
+export const selectPerpsShowFullAssetNamesFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Selector for Related Markets rail feature flag.
  * Controls visibility of the discovery rail on Perps market details.
  *
@@ -93,63 +132,40 @@ export const selectPerpsRelatedMarketsEnabledFlag = createSelector(
 );
 
 /**
- * Selector for button color A/B test variant from LaunchDarkly
- * TAT-1937: Tests impact of button colors (green/red vs white/white) on trading behavior
+ * Selector for Perps Close Position order-type selector feature flag.
+ * Controls visibility of the Market/Limit order-type selector on the close
+ * position screen. Defaults to false (disabled by default) so it can be
+ * rolled out and rolled back independently of the release.
  *
- * @returns Variant name ('control' | 'monochrome') or null if test is disabled
+ * @returns boolean - true if the close-position order-type selector should be shown, false otherwise
  */
-export const selectPerpsButtonColorTestVariant = createSelector(
+export const selectPerpsClosePositionLimitOrderEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): string | null => {
-    const remoteFlag = remoteFeatureFlags?.perpsAbtestButtonColor;
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsClosePositionLimitOrderEnabled as unknown as VersionGatedFeatureFlag;
 
-    // LaunchDarkly can return:
-    // 1. A string variant name: 'control' or 'monochrome'
-    // 2. A version-gated object: { enabled: true, minAppVersion: '7.60.0', variant: 'control' }
-    // 3. null/undefined if test is disabled
+    // Default to false if no flag is set (disabled by default)
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
 
-    if (!remoteFlag) {
-      return null;
-    }
+/**
+ * Selector for Recently Viewed rail feature flag.
+ * Controls visibility of the "Recently viewed" markets rail on the Perps
+ * market list screen.
+ *
+ * @returns boolean - true if the recently viewed rail should be shown.
+ */
+export const selectPerpsRecentlyViewedEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    // Default to false if no flag is set (disabled by default)
+    const localFlag = process.env.MM_PERPS_RECENTLY_VIEWED_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsRecentlyViewedEnabled as unknown as VersionGatedFeatureFlag;
 
-    // Direct string variant (simpler LaunchDarkly config)
-    if (typeof remoteFlag === 'string') {
-      // Validate variant is a known value
-      if (
-        VALID_BUTTON_COLOR_VARIANTS.includes(
-          remoteFlag as ButtonColorVariantName,
-        )
-      ) {
-        return remoteFlag; // Already a string, validated against known variants
-      }
-      return null;
-    }
-
-    // Check if it's a version-gated flag with variant
-    if (isVersionGatedFeatureFlag(remoteFlag)) {
-      // Validate version gating (enabled and version check)
-      const isValid = validatedVersionGatedFeatureFlag(remoteFlag);
-
-      if (!isValid) {
-        return null;
-      }
-
-      // Safely access variant property if it exists
-      if ('variant' in remoteFlag && typeof remoteFlag.variant === 'string') {
-        // Validate variant is a known value
-        if (
-          VALID_BUTTON_COLOR_VARIANTS.includes(
-            remoteFlag.variant as ButtonColorVariantName,
-          )
-        ) {
-          return remoteFlag.variant; // Already a string, validated against known variants
-        }
-      }
-
-      return null;
-    }
-
-    return null;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 
@@ -346,6 +362,23 @@ export const selectPerpsTopMoversEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for Perps Recently Added feature flag.
+ * Controls visibility of the Recently Added section on the Perps home screen,
+ * independently of the Terminal backend flag that supplies `listedAt` data.
+ *
+ * @returns boolean - true if the Recently Added section should be shown, false otherwise
+ */
+export const selectPerpsRecentlyAddedEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsRecentlyAddedEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Selector for Perps Watchlist redesign feature flag
  * Controls whether the redesigned Watchlist UI (empty state, suggested markets,
  * show-more/less, tappable header, animations, 10-asset limit) and the
@@ -359,6 +392,23 @@ export const selectPerpsWatchlistEnabledFlag = createSelector(
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.perpsWatchlistV2Enabled as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Selector for Terminal Backend feature flag.
+ * Controls whether market-data calls route through the MetaMask Terminal API
+ * (with HyperLiquid fallback) or go directly to HyperLiquid.
+ *
+ * @returns boolean - true if Terminal API should be used, false otherwise
+ */
+export const selectPerpsTerminalBackendEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsTerminalBackendEnabled as unknown as VersionGatedFeatureFlag;
+
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );

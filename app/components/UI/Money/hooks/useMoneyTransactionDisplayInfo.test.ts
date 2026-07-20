@@ -12,10 +12,23 @@ import {
 import { safeToChecksumAddress } from '../../../../util/address';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import { useMoneyTransactionDisplayInfo } from './useMoneyTransactionDisplayInfo';
+import { useFiatPaymentMethodName } from './useFiatPaymentMethodName';
 
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
+
+// The async ramp-order lookup is tested in useFiatPaymentMethodName.test.ts;
+// here we defaults to undefined so deposit rows fall back to the default label.
+jest.mock('./useFiatPaymentMethodName', () => ({
+  useFiatPaymentMethodName: jest.fn(),
+}));
+
+const mockUseFiatPaymentMethodName = jest.mocked(useFiatPaymentMethodName);
+
+beforeEach(() => {
+  mockUseFiatPaymentMethodName.mockReturnValue(undefined);
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   __esModule: true,
@@ -768,7 +781,7 @@ describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
     expect(result.current.primaryAmount).toContain('mUSD');
   });
 
-  it('converts mUSD to EUR via the peg (ignoring market rate)', () => {
+  it('always shows mUSD in USD via the peg, ignoring preferred currency', () => {
     const state = {
       engine: {
         backgroundState: {
@@ -804,8 +817,7 @@ describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
       { state },
     );
 
-    expect(result.current.fiatAmount).toMatch(/^\+/);
-    expect(result.current.fiatAmount).toMatch(/920/);
+    expect(result.current.fiatAmount).toBe('+$1,000.00');
     expect(result.current.primaryAmount).toMatch(/1,000\.00/);
     expect(result.current.primaryAmount).toContain('mUSD');
   });
@@ -918,17 +930,32 @@ describe('useMoneyTransactionDisplayInfo — per-kind subtitles', () => {
     expect(result.current.description).toBe('mUSD → ETH');
   });
 
-  it('sent → "mUSD → USDC" for a withdrawal whose dest token cannot be resolved', () => {
-    // No metamaskPay token → falls back to the known money withdraw token.
+  it('sent → "mUSD" for a plain mUSD send (no redundant "mUSD → mUSD")', () => {
+    // A simple mUSD transfer out of the Money account: the pay token resolves
+    // to mUSD, so the pair would be "mUSD → mUSD". It collapses to just "mUSD",
+    // mirroring the deposit row.
+    const tx = makeTx(TransactionType.simpleSend, {
+      metamaskPay: { tokenAddress: MUSD_TOKEN_ADDRESS, chainId: CHAIN_ID },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.description).toBe('mUSD');
+  });
+
+  it('sent → "mUSD" for a withdrawal whose dest token cannot be resolved', () => {
+    // No metamaskPay token → withdrawals pay out the vault asset (mUSD), so
+    // an unresolvable destination is a plain mUSD send, never a token pair.
     const tx = makeTx(TransactionType.moneyAccountWithdraw, {});
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       { state: makeState() },
     );
-    expect(result.current.description).toBe('mUSD → USDC');
+    expect(result.current.description).toBe('mUSD');
   });
 
-  it('deposited (fiat on-ramp) → provider name', () => {
+  it('deposited (fiat on-ramp) → provider name when the payment method is unresolved', () => {
     const tx = makeTx(TransactionType.moneyAccountDeposit, {
       metamaskPay: { fiat: { orderId: 'o-1', provider: 'transak-native' } },
     });
@@ -937,6 +964,19 @@ describe('useMoneyTransactionDisplayInfo — per-kind subtitles', () => {
       { state: makeState() },
     );
     expect(result.current.description).toBe('Transak');
+  });
+
+  it('deposited (fiat on-ramp) → payment-method name when resolved', () => {
+    // The payment method (e.g. "Apple Pay") is preferred over the provider name.
+    mockUseFiatPaymentMethodName.mockReturnValue('Apple Pay');
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { fiat: { orderId: 'o-1', provider: 'transak-native' } },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.description).toBe('Apple Pay');
   });
 
   it('deposited (mUSD top-up) → "mUSD"', () => {
@@ -948,5 +988,172 @@ describe('useMoneyTransactionDisplayInfo — per-kind subtitles', () => {
       { state: makeState() },
     );
     expect(result.current.description).toBe('mUSD');
+  });
+
+  it('canonicalises the registry "MUSD" symbol to the branded "mUSD"', () => {
+    // mUSD is registered with the uppercase symbol "MUSD"; the subtitle must
+    // still show the branded casing, not whatever the registry holds.
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: MUSD_TOKEN_ADDRESS, chainId: CHAIN_ID },
+    });
+    const stateWithUppercaseMusd = {
+      engine: {
+        backgroundState: {
+          CurrencyRateController: { currentCurrency: 'usd', currencyRates: {} },
+          TokenRatesController: { marketData: {} },
+          TokensController: {
+            allTokens: {
+              [CHAIN_ID]: {
+                '0xSomeWallet': [
+                  { address: MUSD_TOKEN_ADDRESS, symbol: 'MUSD', decimals: 6 },
+                ],
+              },
+            },
+          },
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [CHAIN_ID]: { nativeCurrency: 'ETH' },
+            },
+          },
+        },
+      },
+    } as unknown as ProviderValues['state'];
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: stateWithUppercaseMusd },
+    );
+    expect(result.current.description).toBe('mUSD');
+  });
+
+  it('sent → "mUSD" even when the registry symbol is uppercase "MUSD"', () => {
+    // The send pair must collapse to "mUSD" (not "mUSD → MUSD") once the
+    // destination symbol is canonicalised.
+    const tx = makeTx(TransactionType.simpleSend, {
+      metamaskPay: { tokenAddress: MUSD_TOKEN_ADDRESS, chainId: CHAIN_ID },
+    });
+    const stateWithUppercaseMusd = {
+      engine: {
+        backgroundState: {
+          CurrencyRateController: { currentCurrency: 'usd', currencyRates: {} },
+          TokenRatesController: { marketData: {} },
+          TokensController: {
+            allTokens: {
+              [CHAIN_ID]: {
+                '0xSomeWallet': [
+                  { address: MUSD_TOKEN_ADDRESS, symbol: 'MUSD', decimals: 6 },
+                ],
+              },
+            },
+          },
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [CHAIN_ID]: { nativeCurrency: 'ETH' },
+            },
+          },
+        },
+      },
+    } as unknown as ProviderValues['state'];
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: stateWithUppercaseMusd },
+    );
+    expect(result.current.description).toBe('mUSD');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Perps/Predict ↔ Money transfers (matched via the mUSD pay token)
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — Perps/Predict ↔ Money', () => {
+  const MONAD: Hex = '0x8f';
+  const payOnMonad = (extra: Record<string, string>) => ({
+    tokenAddress: MUSD_TOKEN_ADDRESS,
+    chainId: MONAD,
+    ...extra,
+  });
+
+  it('renders a money-funded Perps deposit as an outflow ("Sent")', () => {
+    // Outflow → the debit from the account, including the bridge fee = totalFiat.
+    const tx = makeTx(TransactionType.perpsDeposit, {
+      metamaskPay: payOnMonad({ totalFiat: '0.67157', targetFiat: '0.64' }),
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState({ currentCurrency: 'usd' }) },
+    );
+
+    expect(result.current.label).toBe('money.transaction.sent');
+    expect(result.current.icon).toBe(IconName.Arrow2UpRight);
+    expect(result.current.description).toBe(
+      'transaction_details.label.perps_account',
+    );
+    expect(result.current.isIncoming).toBe(false);
+    expect(result.current.primaryAmount).toBe('-0.67 mUSD');
+    expect(result.current.fiatAmount).toBe('-$0.67');
+  });
+
+  it('renders a Predict withdraw into the Money account as an inflow ("Deposited")', () => {
+    // Inflow → the net amount that lands = targetFiat. Withdraw sits in the
+    // EIP-7702 batch's nested calls.
+    const tx = makeTx(TransactionType.batch, {
+      nestedTransactions: [{ type: TransactionType.predictWithdraw }],
+      metamaskPay: payOnMonad({
+        totalFiat: '0.158879',
+        targetFiat: '0.099965',
+      }),
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState({ currentCurrency: 'usd' }) },
+    );
+
+    expect(result.current.label).toBe('money.transaction.deposited');
+    expect(result.current.icon).toBe(IconName.Add);
+    expect(result.current.description).toBe(
+      'transaction_details.label.predictions_account',
+    );
+    expect(result.current.isIncoming).toBe(true);
+    expect(result.current.primaryAmount).toBe('+0.10 mUSD');
+    expect(result.current.fiatAmount).toBe('+$0.10');
+  });
+
+  it('shows signed-zero (not the real amount) for a failed money-funded Perps deposit', () => {
+    // Failed rows must show signed-zero like every other kind; the perps amount
+    // block must not clobber it.
+    const tx = makeTx(TransactionType.perpsDeposit, {
+      status: TransactionStatus.failed,
+      metamaskPay: payOnMonad({ totalFiat: '0.67157', targetFiat: '0.64' }),
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState({ currentCurrency: 'usd' }) },
+    );
+
+    expect(result.current.label).toBe('money.transaction.send_failed');
+    expect(result.current.isIncoming).toBe(false);
+    expect(result.current.primaryAmount).toBe('-0.00 mUSD');
+    expect(result.current.fiatAmount).toBe('-$0.00');
+  });
+
+  it('shows signed-zero for a failed Predict withdraw into the Money account', () => {
+    const tx = makeTx(TransactionType.batch, {
+      status: TransactionStatus.failed,
+      nestedTransactions: [{ type: TransactionType.predictWithdraw }],
+      metamaskPay: payOnMonad({
+        totalFiat: '0.158879',
+        targetFiat: '0.099965',
+      }),
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState({ currentCurrency: 'usd' }) },
+    );
+
+    expect(result.current.isIncoming).toBe(true);
+    expect(result.current.primaryAmount).toBe('+0.00 mUSD');
+    expect(result.current.fiatAmount).toBe('+$0.00');
   });
 });

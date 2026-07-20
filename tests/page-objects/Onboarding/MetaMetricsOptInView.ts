@@ -65,10 +65,22 @@ class MetaMetricsOptIn {
     );
   }
 
+  get marketingCheckbox(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX,
+    );
+  }
+
+  get scrollViewIdentifier(): Promise<DetoxMatcher> {
+    return Matchers.getIdentifier(
+      MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
+    );
+  }
+
   async swipeContentUp(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.swipe(this.optInMetricsContent, 'up', {
+        await Gestures.swipe(asDetoxElement(this.optInMetricsContent), 'up', {
           speed: 'fast',
           percentage: 0.9,
           elemDescription: 'Opt-in Metrics Privacy Policy Content',
@@ -111,8 +123,21 @@ class MetaMetricsOptIn {
   }
 
   async tapMetricsCheckbox(): Promise<void> {
-    await Gestures.waitAndTap(this.metricsCheckbox, {
-      elemDescription: 'Opt-in Metrics Metrics Checkbox',
+    await UnifiedGestures.waitAndTap(this.metricsCheckbox, {
+      description: 'Opt-in Metrics Metrics Checkbox',
+    });
+  }
+
+  async tapMarketingCheckbox(): Promise<void> {
+    await UnifiedGestures.scrollToElement(
+      this.marketingCheckbox,
+      this.scrollViewIdentifier,
+      {
+        description: 'Opt-in Metrics Marketing Checkbox',
+      },
+    );
+    await UnifiedGestures.waitAndTap(this.marketingCheckbox, {
+      description: 'Opt-in Metrics Marketing Checkbox',
     });
   }
 }

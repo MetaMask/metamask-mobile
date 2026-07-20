@@ -1,14 +1,16 @@
 import { ethers } from 'ethers';
 import BigNumber from 'bignumber.js';
 import {
+  CHAIN_IDS,
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import { UpdateTransactionPayAmountCall } from '../../../Views/confirmations/types/transactions';
 import {
   MUSD_DECIMALS,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../Earn/constants/musd';
 import AppConstants from '../../../../core/AppConstants';
 import ReduxService from '../../../../core/redux/ReduxService';
@@ -137,6 +139,22 @@ export function getMoneyAccountDepositAssetAddress(chainId: Hex): Hex {
   return musdAddress;
 }
 
+/**
+ * Resolves the CAIP-19 asset id of the Money Account deposit asset (mUSD) for a
+ * given chain. Pure mapping over `MUSD_TOKEN_ASSET_ID_BY_CHAIN`.
+ *
+ * Money Account is Monad-only today, so an unknown or undefined `chainId` falls
+ * back to the Monad mUSD asset id rather than throwing — the entry-point gate
+ * that consumes this should still resolve against the asset the deposit flow
+ * actually targets.
+ * @param chainId - The chain ID to get the deposit asset id for.
+ * @returns The CAIP-19 asset id of the deposit asset for the given chain ID.
+ */
+export function getMoneyAccountDepositAssetId(chainId?: Hex): CaipAssetType {
+  return (MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId as Hex] ??
+    MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD]) as CaipAssetType;
+}
+
 export type MoneyAccountDepositBatchResult = MoneyAccountBatchResult<
   'approveTx' | 'depositTx'
 >;
@@ -263,11 +281,12 @@ export async function updateMoneyAccountDepositTokenAmount(
 export async function updateMoneyAccountWithdrawTokenAmount(
   transactionMeta: TransactionMeta,
   amountHuman: string,
+  recipientOverride?: Hex,
 ): Promise<UpdateTransactionPayAmountCall[]> {
   const state = ReduxService.store.getState() as RootState;
   const vaultConfig = selectMoneyAccountVaultConfig(state);
   const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
-  const recipient = selectEvmAddress(state);
+  const recipient = recipientOverride ?? selectEvmAddress(state);
   if (!vaultConfig || !primaryMoneyAccount?.address || !recipient) return [];
 
   const chainIdHex = transactionMeta.chainId as Hex;
@@ -399,9 +418,14 @@ const SHARE_DECIMALS_SCALAR = BigInt(1_000_000);
 /**
  * Converts a USD asset amount (6 decimals) to vault shares given a pre-fetched rate.
  * Pure arithmetic — no I/O, safe to call directly inside workflows.
+ *
+ * Uses ceiling division so the contract's `mulDivDown(shares × rate / ONE_SHARE)`
+ * always produces `assetsOut >= minimumAssets`. Floor division caused a double-
+ * truncation bug where `assetsOut` could land 1 unit below `minimumAssets`,
+ * reverting with `MinimumAssetsNotMet`.
  */
 export function getSharesForWithdrawal(amount: bigint, rate: bigint): bigint {
-  return (amount * SHARE_DECIMALS_SCALAR) / rate;
+  return (amount * SHARE_DECIMALS_SCALAR + rate - 1n) / rate;
 }
 
 function buildWithdrawData(
@@ -463,11 +487,16 @@ export async function buildMoneyAccountWithdrawBatch({
           amount,
           await getVaultRate({ accountantAddress, provider }),
         );
-  // No slippage on minimumAssets — the exact amount is needed for the
-  // subsequent transfer. If the rate moves down between encoding and
-  // execution, the batch reverts atomically and the user retries with a
-  // fresh quote; we accept that over partial-fill fragility.
-  const minimumAssets = amount;
+  // Allow 1-unit slippage on minimumAssets as defense-in-depth against
+  // rounding: the contract's mulDivDown can truncate assetsOut by up to
+  // 1 unit relative to the requested amount. This tolerance is safe
+  // because ceiling division in getSharesForWithdrawal already guarantees
+  // assetsOut >= amount; the 1-unit slack here is a second line of
+  // defense, not a standalone fix. The subsequent ERC-20 transfer uses
+  // the original `amount`, so the tolerance does not affect how much the
+  // user receives — it only prevents a spurious revert from the teller's
+  // MinimumAssetsNotMet check.
+  const minimumAssets = amount > 0n ? amount - 1n : 0n;
   const withdrawData = buildWithdrawData(
     musdAddress,
     shareAmount,

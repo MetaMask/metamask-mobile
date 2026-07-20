@@ -1,7 +1,7 @@
-import { DepositOrderType } from '@consensys/native-ramps-sdk';
+import { DepositOrderType } from '../types/legacyDeposit';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
 import { getNotificationDetails as getAggregatorNotificationDetails } from '../Aggregator/utils';
-import { getNotificationDetails as getDepositNotificationDetails } from '../Deposit/utils';
+import { getNotificationDetails as getDepositNotificationDetails } from './depositUtils';
 
 function getNotificationDetails(order: FiatOrder) {
   if (order.orderType === DepositOrderType.Deposit) {

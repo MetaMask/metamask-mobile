@@ -30,7 +30,12 @@ import {
   selectMetaMaskPayTokensFlags,
   PreferredToken,
   getPreferredTokensForTransactionType,
+  selectRelayFixedSpread,
 } from '../../../../../selectors/featureFlagController/confirmations';
+import {
+  isSubsidizedSource,
+  RelayFixedSpreadConfig,
+} from '../../utils/relayFixedSpread';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { RootState } from '../../../../../reducers';
@@ -64,6 +69,7 @@ export function useAutomaticTransactionPayToken({
   const requiredTokens = useTransactionPayRequiredTokens();
   const { availableTokens } = useTransactionPayAvailableTokens();
   const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
+  const relayFixedSpread = useSelector(selectRelayFixedSpread);
 
   const transactionMetaRequest = useTransactionMetadataRequest();
   const transactionMeta = useMemo(
@@ -135,6 +141,7 @@ export function useAutomaticTransactionPayToken({
         isWithdraw,
         lastWithdrawToken,
         minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
+        relayFixedSpread,
         preferredToken,
         preferredTokensFromFlags,
         targetToken,
@@ -148,6 +155,7 @@ export function useAutomaticTransactionPayToken({
       isQRWallet,
       isWithdraw,
       lastWithdrawToken,
+      relayFixedSpread,
       payTokensFlags.minimumRequiredTokenBalance,
       preferredToken,
       preferredTokensFromFlags,
@@ -225,10 +233,20 @@ export function useAutomaticTransactionPayToken({
     transactionId,
   ]);
 
+  // In fiat flows a pay token only exists once the user explicitly selects an
+  // ERC-20; the latch survives the token reset that an account change causes.
+  const payTokenEverSelectedRef = useRef(false);
+  if (payToken) {
+    payTokenEverSelectedRef.current = true;
+  }
+
   // Re-select the pay token whenever the signer address (`from`) or the
   // account selected in the PayAccountSelector (`accountOverride`) changes.
   // `accountOverride` is what switches money-account deposit/withdraw flows to
   // a different user-selected account without touching `txParams.from`.
+  // Skipped while a fiat flow never had an explicit pay token:
+  // `updatePaymentToken` resets the fiat payment, so re-selecting here would
+  // clear (or block) the auto-selected fiat payment method.
   const prevAccountKeyRef = useRef(`${from ?? ''}:${accountOverride ?? ''}`);
   useEffect(() => {
     const accountKey = `${from ?? ''}:${accountOverride ?? ''}`;
@@ -243,6 +261,10 @@ export function useAutomaticTransactionPayToken({
     }
     prevAccountKeyRef.current = accountKey;
 
+    if (autoSelectFiatPayment && !payTokenEverSelectedRef.current) {
+      return;
+    }
+
     if (automaticToken) {
       setPayToken({
         address: automaticToken.address,
@@ -252,6 +274,7 @@ export function useAutomaticTransactionPayToken({
     }
   }, [
     accountOverride,
+    autoSelectFiatPayment,
     automaticToken,
     disable,
     from,
@@ -304,6 +327,7 @@ function getBestToken({
   isWithdraw,
   lastWithdrawToken,
   minimumRequiredTokenBalance,
+  relayFixedSpread,
   preferredToken,
   preferredTokensFromFlags,
   targetToken,
@@ -317,6 +341,7 @@ function getBestToken({
   isWithdraw: boolean;
   lastWithdrawToken?: SetPayTokenRequest;
   minimumRequiredTokenBalance: number;
+  relayFixedSpread: RelayFixedSpreadConfig;
   preferredToken?: SetPayTokenRequest;
   preferredTokensFromFlags: PreferredToken[];
   targetToken?: { address: Hex; chainId: Hex };
@@ -383,34 +408,57 @@ function getBestToken({
   }
 
   if (preferredTokensFromFlags.length) {
-    const sorted = [...preferredTokensFromFlags].sort(
-      (a, b) => b.successRate - a.successRate,
-    );
-
-    for (const preferred of sorted) {
+    const candidates: AssetType[] = [];
+    for (const preferred of preferredTokensFromFlags) {
       const matchingToken = tokens.find(
         (token) =>
           token.address.toLowerCase() === preferred.address.toLowerCase() &&
           token.chainId?.toLowerCase() === preferred.chainId.toLowerCase(),
       );
-
       if (matchingToken) {
-        if (isWithdraw) {
-          return {
-            address: matchingToken.address as Hex,
-            chainId: matchingToken.chainId as Hex,
-          };
-        }
-
-        const fiatBalance = matchingToken.fiat?.balance ?? 0;
-
-        if (fiatBalance >= minimumRequiredTokenBalance) {
-          return {
-            address: matchingToken.address as Hex,
-            chainId: matchingToken.chainId as Hex,
-          };
-        }
+        candidates.push(matchingToken);
       }
+    }
+
+    if (isWithdraw && candidates.length) {
+      return {
+        address: candidates[0].address as Hex,
+        chainId: candidates[0].chainId as Hex,
+      };
+    }
+
+    const eligible = candidates
+      .filter(
+        (token) => (token.fiat?.balance ?? 0) >= minimumRequiredTokenBalance,
+      )
+      .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
+
+    if (eligible.length) {
+      return {
+        address: eligible[0].address as Hex,
+        chainId: eligible[0].chainId as Hex,
+      };
+    }
+  }
+
+  if (tokens?.length && !isWithdraw) {
+    const noFeeCandidates = tokens
+      .filter((token) => {
+        if (!token.chainId) return false;
+        const fiatBalance = token.fiat?.balance ?? 0;
+        if (fiatBalance < minimumRequiredTokenBalance) return false;
+        return isSubsidizedSource(relayFixedSpread, {
+          chainId: token.chainId,
+          address: token.address,
+        });
+      })
+      .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
+
+    if (noFeeCandidates.length) {
+      return {
+        address: noFeeCandidates[0].address as Hex,
+        chainId: noFeeCandidates[0].chainId as Hex,
+      };
     }
   }
 

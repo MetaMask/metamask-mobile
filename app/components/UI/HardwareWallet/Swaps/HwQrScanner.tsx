@@ -1,4 +1,11 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { useDispatch } from 'react-redux';
 import { Image, Linking, StyleSheet, View } from 'react-native';
 import {
   useIsFocused,
@@ -25,6 +32,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
+import { ToastContext } from '../../../../component-library/components/Toast';
+import { completeHwSwapSuccess } from './hwSwapSuccess';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import { UR } from '@ngraveio/bc-ur';
 import { stringify as uuidStringify } from 'uuid';
@@ -47,6 +56,7 @@ const REQUEST_ID_MISMATCH_ANALYTICS_ERROR =
 const NO_PENDING_SCAN_REQUEST_ANALYTICS_ERROR =
   'no pending scan request found when signature was received';
 
+/** Props for the {@link ScannerRecovery} fallback panel. */
 interface ScannerRecoveryProps {
   title?: string | null;
   message?: string | null;
@@ -54,6 +64,11 @@ interface ScannerRecoveryProps {
   onTryAgain: () => void;
 }
 
+/**
+ * Fallback panel shown by {@link HwQrScanner} when scanning fails or a scanned
+ * QR's request id doesn't match the pending request. Offers "Learn more" and
+ * "Try again" actions.
+ */
 function ScannerRecovery({
   title,
   message,
@@ -138,7 +153,7 @@ const styles = StyleSheet.create({
  * @property currentStep - The current step number in the multi-step signing flow (1-based).
  * @property totalSteps - The total number of steps in the signing flow.
  */
-interface HwQrScannerRouteParams {
+export interface HwQrScannerRouteParams {
   currentStep: number;
   totalSteps: number;
 }
@@ -157,9 +172,12 @@ interface HwQrScannerRouteParams {
  */
 export function HwQrScanner() {
   const tw = useTailwind();
+  const dispatch = useDispatch();
   const navigation = useNavigation();
   const route = useRoute();
   const isFocused = useIsFocused();
+  const toastRef = useContext(ToastContext)?.toastRef;
+  const hasCompletedOnSuccessRef = useRef(false);
   const { qr } = useHardwareWallet();
   const {
     pendingScanRequest,
@@ -188,7 +206,19 @@ export function HwQrScanner() {
             cbor: Buffer.from(ur.cbor).toString('hex'),
           });
           setRequestCompleted();
-          navigation.goBack();
+          // Last-step: complete success here (toast + Redux reset + navigate)
+          // instead of goBack()-ing to HardwareWalletsSwaps. Ledger flows do
+          // this via `useHwSwapLifecycle.navigateOnSuccess`, which is disabled
+          // for QR to avoid two native view insertions in the same frame on
+          // Android (addViewAt crash).
+          if (isLastStep) {
+            if (!hasCompletedOnSuccessRef.current) {
+              hasCompletedOnSuccessRef.current = true;
+              completeHwSwapSuccess({ dispatch, navigation, toastRef });
+            }
+          } else {
+            navigation.goBack();
+          }
           return true;
         }
       }
@@ -207,11 +237,14 @@ export function HwQrScanner() {
       return false;
     },
     [
-      pendingScanRequest,
-      navigation,
-      setRequestCompleted,
       trackEvent,
       createEventBuilder,
+      pendingScanRequest,
+      setRequestCompleted,
+      isLastStep,
+      dispatch,
+      navigation,
+      toastRef,
     ],
   );
 
@@ -229,6 +262,10 @@ export function HwQrScanner() {
     purpose: QrScanRequestType.SIGN,
     onScanSuccess,
   });
+
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const handleCancel = useCallback(async () => {
     try {
@@ -368,7 +405,7 @@ export function HwQrScanner() {
         <ButtonIcon
           iconName={IconName.ArrowLeft}
           size={ButtonIconSize.Md}
-          onPress={handleCancel}
+          onPress={handleGoBack}
         />
         <Box twClassName="h-10 w-10" />
       </Box>

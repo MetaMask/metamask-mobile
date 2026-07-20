@@ -23,7 +23,7 @@ import { View } from 'react-native';
 import { CardFundingToken } from '../../types';
 import AppConstants from '../../../../../core/AppConstants';
 import { isBridgeAllowed } from '../../../Bridge/utils';
-import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
+import useDepositEnabled from '../../../Ramp/hooks/useDepositEnabled';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
@@ -35,7 +35,6 @@ import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
-import useRampsUnifiedV2Enabled from '../../../Ramp/hooks/useRampsUnifiedV2Enabled';
 import {
   createNavigationDetails,
   useParams,
@@ -43,7 +42,7 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 
-interface AddFundsModalNavigationDetails {
+export interface AddFundsModalNavigationDetails {
   priorityToken?: CardFundingToken;
 }
 
@@ -67,7 +66,6 @@ const AddFundsBottomSheet: React.FC = () => {
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const { goToBuy } = useRampNavigation();
   const buttonClickData = useRampsButtonClickData();
-  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -104,7 +102,7 @@ const AddFundsBottomSheet: React.FC = () => {
           button_text: 'Fund with cash',
           location: 'CardHome',
           chain_id_destination: getDecimalChainId(priorityToken?.caipChainId),
-          ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'DEPOSIT',
+          ramp_type: 'UNIFIED_BUY_2',
           region: rampGeodetectedRegion,
           is_authenticated: buttonClickData.is_authenticated,
           preferred_provider: buttonClickData.preferred_provider,
@@ -124,7 +122,6 @@ const AddFundsBottomSheet: React.FC = () => {
     createEventBuilder,
     priorityToken,
     buttonClickData,
-    isV2UnifiedEnabled,
   ]);
 
   const options = [

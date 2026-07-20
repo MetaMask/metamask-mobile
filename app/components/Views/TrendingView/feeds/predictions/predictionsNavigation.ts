@@ -3,9 +3,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 import { PREDICT_WORLD_CUP_TAB_KEYS } from '../../../../UI/Predict/constants/worldCupTabs';
 import type { PredictEntryPoint } from '../../../../UI/Predict/types/navigation';
+import type { PredictCategory } from '../../../../UI/Predict/types';
 import type { PredictionsVariant } from './usePredictionsFeed';
 
-const VARIANT_TO_TAB: Record<PredictionsVariant, string> = {
+const VARIANT_TO_TAB: Record<PredictionsVariant, PredictCategory> = {
   trending: 'trending',
   sports: 'sports',
   crypto: 'crypto',

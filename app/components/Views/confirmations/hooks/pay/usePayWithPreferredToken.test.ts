@@ -5,12 +5,14 @@ import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayTok
 import { usePayWithPreferredToken } from './usePayWithPreferredToken';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useTransactionPayToken } from './useTransactionPayToken';
+import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
 import { AssetType } from '../../types/token';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 jest.mock('./useAutomaticTransactionPayToken');
 jest.mock('./useTransactionPayAvailableTokens');
 jest.mock('./useTransactionPayToken');
+jest.mock('./usePayTokenAccountBalance');
 jest.mock('../transactions/useTransactionMetadataRequest');
 
 const TOKEN_MOCK: TransactionPaymentToken = {
@@ -56,6 +58,7 @@ describe('usePayWithPreferredToken', () => {
     useTransactionPayAvailableTokens,
   );
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+  const usePayTokenAccountBalanceMock = jest.mocked(usePayTokenAccountBalance);
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -80,6 +83,11 @@ describe('usePayWithPreferredToken', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: TOKEN_MOCK,
       setPayToken: setPayTokenMock,
+    });
+
+    usePayTokenAccountBalanceMock.mockReturnValue({
+      balanceUsd: TOKEN_MOCK.balanceUsd,
+      balanceRaw: TOKEN_MOCK.balanceRaw,
     });
   });
 

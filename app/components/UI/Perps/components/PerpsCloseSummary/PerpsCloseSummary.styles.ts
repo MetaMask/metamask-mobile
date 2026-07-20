@@ -1,10 +1,8 @@
 import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (_params: { theme: Theme }) => {
-  const { colors } = _params.theme;
-
-  return StyleSheet.create({
+const styleSheet = (_params: { theme: Theme }) =>
+  StyleSheet.create({
     summaryContainer: {
       paddingTop: 16,
       paddingBottom: 16,
@@ -26,17 +24,6 @@ const styleSheet = (_params: { theme: Theme }) => {
       flexShrink: 0,
       alignItems: 'flex-end',
     },
-    summaryTotalRow: {
-      marginTop: 4,
-      paddingTop: 16,
-      borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
-    },
-    labelWithTooltip: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
     inclusiveFeeRow: {
       flexDirection: 'row',
       gap: 4,
@@ -47,6 +34,5 @@ const styleSheet = (_params: { theme: Theme }) => {
       gap: 8,
     },
   });
-};
 
 export default styleSheet;

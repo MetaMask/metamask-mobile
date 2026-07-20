@@ -114,9 +114,8 @@ const DeviceSecurityToggle = ({
                   updateError as Error,
                   'Failed to update auth preference after password entry',
                 );
-              } finally {
-                setOptimisticValue(null);
               }
+              setOptimisticValue(null);
             },
             onCancel: () => {
               setOptimisticValue(null);

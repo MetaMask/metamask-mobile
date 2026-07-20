@@ -1,5 +1,4 @@
 export const MoneyBalanceCardTestIds = {
-  NEW_USER_CONTAINER: 'money-balance-card-new-user-container',
   EMPTY_CONTAINER: 'money-balance-card-empty-container',
   FUNDED_CONTAINER: 'money-balance-card-funded-container',
   ERROR_CONTAINER: 'money-balance-card-error-container',
@@ -16,5 +15,4 @@ export const MoneyBalanceCardTestIds = {
   APY_TAG_SKELETON: 'money-balance-card-apy-tag-skeleton',
   ADD_BUTTON: 'money-balance-card-add-button',
   GET_STARTED_BUTTON: 'money-balance-card-get-started-button',
-  EARN_BUTTON: 'money-balance-card-earn-button',
 } as const;

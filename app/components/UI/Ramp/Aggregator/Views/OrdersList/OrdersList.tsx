@@ -7,7 +7,7 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
 import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
 import { createRampsOrderDetailsNavDetails } from '../../../Views/OrderDetails';
-import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
+import { createDepositOrderDetailsNavDetails } from '../../../Views/OrderDetails/DepositOrderDetails/DepositOrderDetails';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
 import createStyles from './OrdersList.styles';
 import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
@@ -181,7 +181,7 @@ function OrdersList() {
   const allLegacyOrders = useSelector(getOrders);
   const { orders: v2Orders } = useRampsOrders();
   const [currentFilter, setCurrentFilter] = useState<filterType>('ALL');
-  const { goToDeposit } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
   const tw = useTailwind();
 
   const displayOrders = useMemo(
@@ -237,7 +237,7 @@ function OrdersList() {
         order?.state === FIAT_ORDER_STATES.CREATED &&
         order?.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
       ) {
-        goToDeposit();
+        goToBuy();
       } else if (order?.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
         navigation.navigate(
           ...createDepositOrderDetailsNavDetails({
@@ -248,12 +248,7 @@ function OrdersList() {
         handleNavigateToAggregatorTxDetails(orderId);
       }
     },
-    [
-      allLegacyOrders,
-      goToDeposit,
-      handleNavigateToAggregatorTxDetails,
-      navigation,
-    ],
+    [allLegacyOrders, goToBuy, handleNavigateToAggregatorTxDetails, navigation],
   );
 
   const handleItemPress = useCallback(

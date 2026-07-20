@@ -8,8 +8,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React from 'react';
-import { Image, View } from 'react-native';
+import React, { memo } from 'react';
+import { View } from 'react-native';
+import { Image } from 'expo-image';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -36,6 +37,7 @@ import {
   formatPercentage,
   formatVolume,
 } from '../../utils/format';
+import { getDisplayBuyPrice } from '../../utils/prices';
 import styleSheet from './PredictMarketOutcome.styles';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictPreviewSheet } from '../../contexts';
@@ -50,7 +52,7 @@ interface PredictMarketOutcomeProps {
 
 const MAX_LABEL_LENGTH = 6;
 
-const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
+const PredictMarketOutcomeComponent: React.FC<PredictMarketOutcomeProps> = ({
   market,
   outcome,
   entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
@@ -67,6 +69,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
   });
   const { openBuySheet } = usePredictPreviewSheet();
 
+  // Odds use the mid price (token.price), matching the chart and Polymarket.
   const getOutcomePrices = (): number[] =>
     outcome.tokens.map((token) => token.price);
 
@@ -77,6 +80,10 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
     }
     return '0%';
   };
+
+  // BUY CTAs use the best ask (what the user actually pays), not the odds mid.
+  const getTokenBuyPrice = (token: PredictOutcomeToken): number =>
+    getDisplayBuyPrice(token) ?? token.price;
 
   const getTitle = (): string => {
     if (isClosed && outcomeToken) {
@@ -121,7 +128,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
             <Image
               source={{ uri: getImageUrl() }}
               style={tw.style('w-full h-full')}
-              resizeMode="cover"
+              contentFit="cover"
             />
           ) : (
             <Box twClassName="w-full h-full bg-muted" />
@@ -192,7 +199,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
               >
                 {outcome.tokens[0].title}
                 {isBiggerLabel ? '\n' : ' • '}
-                {formatCents(outcome.tokens[0].price)}
+                {formatCents(getTokenBuyPrice(outcome.tokens[0]))}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[0])}
@@ -209,7 +216,7 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
               >
                 {outcome.tokens[1].title}
                 {isBiggerLabel ? '\n' : ' • '}
-                {formatCents(outcome.tokens[1].price)}
+                {formatCents(getTokenBuyPrice(outcome.tokens[1]))}
               </Text>
             }
             onPress={() => handleBuy(outcome.tokens[1])}
@@ -220,5 +227,10 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
     </View>
   );
 };
+
+// Memoized so that in a live-updating outcomes list only the rows whose
+// `outcome` reference actually changed re-render. Relies on useOpenOutcomes
+// preserving identity for unchanged outcomes/tokens.
+const PredictMarketOutcome = memo(PredictMarketOutcomeComponent);
 
 export default PredictMarketOutcome;

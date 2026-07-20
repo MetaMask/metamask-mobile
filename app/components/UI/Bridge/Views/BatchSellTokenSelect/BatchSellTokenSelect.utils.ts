@@ -20,7 +20,7 @@ export const SUPPORTED_BATCH_SELL_CHAIN_IDS: CaipChainId[] = [
   'eip155:137',
 ];
 
-interface BatchSellEligibleChain {
+export interface BatchSellEligibleChain {
   chainId: CaipChainId;
   name: string;
   tokenFiatAmount: number;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 import PerpsNavigationCard, {
   type NavigationItem,
 } from './PerpsNavigationCard';
@@ -34,21 +34,13 @@ jest.mock(
     },
   }),
 );
-jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
-  __esModule: true,
-  default: 'Icon',
+jest.mock('@metamask/design-system-react-native', () => ({
+  ...jest.requireActual('@metamask/design-system-react-native'),
+  Icon: 'Icon',
   IconName: {
     Setting: 'Setting',
     Notification: 'Notification',
     ArrowRight: 'ArrowRight',
-  },
-  IconSize: {
-    Md: 'Md',
-  },
-  IconColor: {
-    Default: 'Default',
-    Alternative: 'Alternative',
-    Primary: 'Primary',
   },
 }));
 jest.mock('../../../../../component-library/components/Texts/Text', () => ({

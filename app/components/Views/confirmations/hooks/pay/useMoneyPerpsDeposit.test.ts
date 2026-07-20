@@ -45,7 +45,7 @@ describe('useMoneyPerpsDeposit', () => {
       navigateToConfirmation: mockNavigateToConfirmation,
     });
     (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
-      enableMoneyHomePagePerpsTransaction: false,
+      enableMoneyAccountTransactions: {},
     });
   });
 
@@ -58,7 +58,7 @@ describe('useMoneyPerpsDeposit', () => {
 
   it('returns isEnabled true when flag is enabled', () => {
     (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
-      enableMoneyHomePagePerpsTransaction: true,
+      enableMoneyAccountTransactions: { perpsDeposit: true },
     });
 
     const { result } = render();

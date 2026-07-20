@@ -18,13 +18,19 @@
 #
 # Follows up the version bump made by merge-version-bump-pr.yml.
 #
+# Triggered by push to main (not pull_request) so the run's OIDC subject is
+# refs/heads/main, which the TestFlight AWS role trusts — a pull_request run's subject
+# (repo:...:pull_request) is rejected by the IAM trust policy. The release cut is the
+# only thing that changes package.json's version on main, so a changed version == cut.
+#
 ##############################################################################################
 name: Post-Release-Cut TestFlight Build
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches: [main]
+    paths:
+      - 'package.json'
 
 permissions:
   contents: read
@@ -33,30 +39,37 @@ permissions:
 jobs:
   compute-version:
     runs-on: ubuntu-latest
-    if: |
-      github.event.pull_request.merged == true &&
-      startsWith(github.event.pull_request.head.ref, 'version-bump/')
     outputs:
       next-version: ${{ steps.version.outputs.next }}
+      bumped: ${{ steps.version.outputs.bumped }}
     steps:
-      - name: Checkout main
+      - name: Checkout pushed commit
         uses: actions/checkout@v4
         with:
-          ref: main
-          fetch-depth: 1
+          ref: ${{ github.sha }}
+          fetch-depth: 2
 
       - name: Compute x+2 version
         id: version
         run: |
           CURRENT=$(node -p "require('./package.json').version")
+          git show HEAD~1:package.json > /tmp/prev-package.json
+          PREV=$(node -p "require('/tmp/prev-package.json').version")
+          if [ "$CURRENT" = "$PREV" ]; then
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+            echo "Version unchanged ($CURRENT) — not a release cut, skipping."
+            exit 0
+          fi
           MAJOR=$(echo "$CURRENT" | cut -d. -f1)
           MINOR=$(echo "$CURRENT" | cut -d. -f2)
           NEXT="${MAJOR}.$((MINOR + 1)).0"
+          echo "bumped=true" >> "$GITHUB_OUTPUT"
           echo "next=$NEXT" >> "$GITHUB_OUTPUT"
-          echo "Current version: $CURRENT → TestFlight version: $NEXT"
+          echo "Release cut $PREV → $CURRENT → TestFlight version: $NEXT"
 
   generate-build-version:
     needs: [compute-version]
+    if: needs.compute-version.outputs.bumped == 'true'
     uses: ./.github/workflows/generate-build-version.yml
 
   build:

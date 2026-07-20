@@ -22,24 +22,69 @@ export interface NamespaceConfig {
 }
 
 /**
- * Snap-shaped request after WC method translation.
+ * Pairing of `params` and `response` for one JSON-RPC method in a spec.
  */
-export interface SnapMappedRequest<Param = unknown> {
-  method: string;
-  params: Param;
+interface RpcMethodSpec {
+  params: unknown;
+  response: unknown;
+}
+
+/**
+ * Static JSON-RPC method specification: a map of method name to its
+ * `params`/`response` pairing.
+ *
+ * Self-referential (`Record<keyof Spec, ...>`) so concrete specs can be plain
+ * interfaces, which have no string index signature. Used bare, `RpcSpec` is
+ * the type-erased spec accepting any method name.
+ */
+export type RpcSpec<Spec = Record<string, RpcMethodSpec>> = Record<
+  keyof Spec,
+  RpcMethodSpec
+>;
+
+/**
+ * Runtime JSON-RPC method names derived from a method spec.
+ */
+export type RpcMethod<Spec extends RpcSpec<Spec>> = keyof Spec & string;
+
+/**
+ * Runtime JSON-RPC request derived from a method spec.
+ */
+export type RpcRequest<
+  Spec extends RpcSpec<Spec>,
+  Method extends RpcMethod<Spec> = RpcMethod<Spec>,
+> =
+  Method extends RpcMethod<Spec>
+    ? { method: Method; params: Spec[Method]['params'] }
+    : never;
+
+/**
+ * WalletConnect-shaped response paired with a method in the spec. Defaults to
+ * the union of every response in the spec.
+ */
+export type RpcResponse<
+  Spec extends RpcSpec<Spec>,
+  Method extends RpcMethod<Spec> = RpcMethod<Spec>,
+> = Spec[Method]['response'];
+
+/**
+ * Fixed context fields every adapter receives alongside the request.
+ */
+interface AdapterRequestContext {
+  connectedAddresses: CaipAccountId[];
+  scope: CaipChainId;
+  requestId: number;
 }
 
 /**
  * Arguments passed to a chain adapter's `handleRequest` method.
  */
-export interface AdapterHandleRequestArgs {
-  channelId: string;
-  connectedAddresses: CaipAccountId[];
-  scope: CaipChainId;
-  requestId: number;
-  method: string;
-  params: unknown;
-}
+export type AdapterHandleRequestArgs<Spec extends RpcSpec<Spec> = RpcSpec> =
+  RpcRequest<Spec> extends infer Request
+    ? Request extends unknown
+      ? AdapterRequestContext & Request
+      : never
+    : never;
 
 /**
  * Minimal shape of a WalletConnect session proposal.
@@ -53,11 +98,14 @@ export type ProposalParamsLight = Pick<
  * Adapter contract every non-EVM chain implements. Registered in
  * `./registry.ts` behind a per-chain feature flag.
  */
-export interface ChainAdapter {
+export interface ChainAdapter<
+  CaipNamespace extends KnownCaipNamespace = KnownCaipNamespace,
+  Spec extends RpcSpec<Spec> = RpcSpec,
+> {
   /**
    * CAIP-2 namespace this adapter handles (`'tron'`, `'solana'`, ...).
    */
-  namespace: KnownCaipNamespace;
+  namespace: CaipNamespace;
 
   /**
    * Methods that should redirect the user back to the dapp after handling.
@@ -106,5 +154,14 @@ export interface ChainAdapter {
   /**
    * Handle a WC request and return its WalletConnect-shaped result.
    */
+  handleRequest(
+    args: AdapterHandleRequestArgs<Spec>,
+  ): Promise<RpcResponse<Spec>>;
+}
+
+/**
+ * Type-erased `ChainAdapter` view used by the registry.
+ */
+export interface AnyChainAdapter extends Omit<ChainAdapter, 'handleRequest'> {
   handleRequest(args: AdapterHandleRequestArgs): Promise<unknown>;
 }

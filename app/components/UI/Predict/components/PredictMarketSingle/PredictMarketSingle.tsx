@@ -9,7 +9,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -23,6 +24,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   PredictMarket as PredictMarketType,
   PredictOutcomeToken,
+  type PredictMarketBuyButtonPress,
 } from '../../types';
 import {
   PredictNavigationParamList,
@@ -129,10 +131,11 @@ interface PredictMarketSingleProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
+  cardPressDisabled?: boolean;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
-  onBuyButtonPress?: (marketId: string) => void;
+  onBuyButtonPress?: PredictMarketBuyButtonPress;
   predictFeedTab?: string;
   predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
@@ -141,6 +144,7 @@ interface PredictMarketSingleProps {
 const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   market,
   testID,
+  cardPressDisabled,
   entryPoint: propEntryPoint,
   isCarousel = false,
   onCardPress,
@@ -189,7 +193,12 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const yesPercentage = getYesPercentage();
 
   const handleBuy = (token: PredictOutcomeToken) => {
-    onBuyButtonPress?.(market.id);
+    const handledExternally =
+      onBuyButtonPress?.({ market, outcome, outcomeToken: token }) === true;
+    if (handledExternally) {
+      return;
+    }
+
     executeGuardedAction(
       () => {
         openBuySheet({
@@ -214,6 +223,10 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
     <TouchableOpacity
       testID={testID}
       onPress={() => {
+        if (cardPressDisabled) {
+          return;
+        }
+
         onCardPress?.();
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MARKET_DETAILS,
@@ -243,7 +256,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
                 <Image
                   source={{ uri: getImageUrl() }}
                   style={tw.style('w-full h-full')}
-                  resizeMode="cover"
+                  contentFit="cover"
+                  recyclingKey={getImageUrl()}
                 />
               ) : (
                 <Box twClassName="w-full h-full bg-muted" />

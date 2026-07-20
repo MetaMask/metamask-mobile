@@ -1,20 +1,47 @@
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import { query } from '@metamask/controller-utils';
 import type { Signer } from '../types';
 import {
   DEPOSIT_WALLET_FACTORY_ADDRESS,
+  deriveDepositWalletBeaconAddress,
   deriveDepositWalletAddress,
+  deriveDepositWalletUupsAddress,
   executeDepositWalletBatch,
   executeDepositWalletBatchAndWaitForCompletion,
   getDepositWalletNonce,
+  readDepositWalletFactoryBeacon,
   requestDepositWalletCreate,
+  resolveDepositWalletAddress,
   syncDepositWalletCollateralBalanceAllowance,
   toDepositWalletCalls,
   waitForDepositWalletDeployed,
   waitForDepositWalletTransaction,
 } from './depositWallet';
+import Engine from '../../../../../core/Engine';
 import { POLYMARKET_V2_PROTOCOL } from './protocol/definitions';
 import { OperationType } from './safe/types';
 import { getL2Headers } from './utils';
+
+jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
+  query: jest.fn(),
+}));
+
+jest.mock('@metamask/eth-query', () =>
+  jest.fn().mockImplementation(() => ({})),
+);
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      NetworkController: {
+        findNetworkClientIdByChainId: jest.fn(() => 'polygon-mainnet'),
+        getNetworkClientById: jest.fn(() => ({ provider: {} })),
+      },
+    },
+  },
+}));
 
 jest.mock('./utils', () => ({
   getPolymarketEndpoints: jest.fn(() => ({
@@ -24,6 +51,8 @@ jest.mock('./utils', () => ({
 }));
 
 const mockGetL2Headers = jest.mocked(getL2Headers);
+const mockQuery = jest.mocked(query);
+const mockNetworkController = jest.mocked(Engine.context.NetworkController);
 const mockFetch = jest.fn();
 
 type MockResponseBody = Record<string, unknown> | Record<string, unknown>[];
@@ -41,6 +70,9 @@ function getFetchBody(callIndex = 0): unknown {
 }
 
 const ownerAddress = '0x1111111111111111111111111111111111111111';
+const beaconAddress = '0x7A18EDfe055488A3128f01F563e5B479D92ffc3a';
+const uupsWalletAddress = '0xfAeA0f08159fcF2f573fE24E9E989B0d48f7651B';
+const beaconWalletAddress = '0x574548bC296A44a39a7828343FC262244f37a7e5';
 
 const signer: Signer = {
   address: ownerAddress,
@@ -70,6 +102,110 @@ describe('depositWallet', () => {
 
     expect(lowerResult).toMatch(/^0x[a-fA-F0-9]{40}$/u);
     expect(checksumResult).toBe(lowerResult);
+  });
+
+  it('derives legacy UUPS deposit-wallet address for owner', () => {
+    const result = deriveDepositWalletUupsAddress(ownerAddress);
+
+    expect(result).toBe(uupsWalletAddress);
+    expect(deriveDepositWalletAddress(ownerAddress)).toBe(uupsWalletAddress);
+  });
+
+  it('derives beacon deposit-wallet address for owner', () => {
+    const result = deriveDepositWalletBeaconAddress({
+      ownerAddress,
+      beaconAddress,
+    });
+
+    expect(result).toBe(beaconWalletAddress);
+  });
+
+  it('resolves UUPS wallet when factory beacon is unavailable', async () => {
+    const readFactoryBeacon = jest.fn().mockResolvedValue(undefined);
+    const isWalletDeployed = jest.fn();
+
+    const result = await resolveDepositWalletAddress({
+      ownerAddress,
+      readFactoryBeacon,
+      isWalletDeployed,
+    });
+
+    expect(result).toBe(uupsWalletAddress);
+    expect(readFactoryBeacon).toHaveBeenCalledTimes(1);
+    expect(isWalletDeployed).not.toHaveBeenCalled();
+  });
+
+  it('resolves deployed UUPS wallet when factory exposes beacon', async () => {
+    const readFactoryBeacon = jest.fn().mockResolvedValue(beaconAddress);
+    const isWalletDeployed = jest.fn().mockResolvedValue(true);
+
+    const result = await resolveDepositWalletAddress({
+      ownerAddress,
+      readFactoryBeacon,
+      isWalletDeployed,
+    });
+
+    expect(result).toBe(uupsWalletAddress);
+    expect(isWalletDeployed).toHaveBeenCalledWith(uupsWalletAddress);
+  });
+
+  it('resolves beacon wallet when factory exposes beacon and UUPS wallet is undeployed', async () => {
+    const readFactoryBeacon = jest.fn().mockResolvedValue(beaconAddress);
+    const isWalletDeployed = jest.fn().mockResolvedValue(false);
+
+    const result = await resolveDepositWalletAddress({
+      ownerAddress,
+      readFactoryBeacon,
+      isWalletDeployed,
+    });
+
+    expect(result).toBe(beaconWalletAddress);
+    expect(isWalletDeployed).toHaveBeenCalledWith(uupsWalletAddress);
+  });
+
+  it('reads factory beacon address from Polygon RPC', async () => {
+    mockQuery.mockResolvedValue(
+      `0x000000000000000000000000${beaconAddress.slice(2)}`,
+    );
+
+    const result = await readDepositWalletFactoryBeacon();
+
+    expect(result).toBe(beaconAddress);
+    expect(
+      mockNetworkController.findNetworkClientIdByChainId,
+    ).toHaveBeenCalledWith('0x89');
+    expect(mockQuery).toHaveBeenCalledWith(expect.anything(), 'call', [
+      {
+        to: DEPOSIT_WALLET_FACTORY_ADDRESS,
+        data: '0x49493a4d',
+      },
+    ]);
+  });
+
+  it('returns undefined when factory beacon call reverts', async () => {
+    mockQuery.mockRejectedValue(
+      Object.assign(new Error('execution reverted'), { code: 3 }),
+    );
+
+    const result = await readDepositWalletFactoryBeacon();
+
+    expect(result).toBeUndefined();
+  });
+
+  it('throws contextual error when factory beacon response is malformed', async () => {
+    mockQuery.mockResolvedValue('0x1234');
+
+    await expect(readDepositWalletFactoryBeacon()).rejects.toThrow(
+      'Polymarket deposit wallet factory BEACON returned malformed address data',
+    );
+  });
+
+  it('throws contextual error when factory beacon call fails without revert', async () => {
+    mockQuery.mockRejectedValue(new Error('network offline'));
+
+    await expect(readDepositWalletFactoryBeacon()).rejects.toThrow(
+      'Polymarket deposit wallet factory BEACON call failed: network offline',
+    );
   });
 
   it('maps Safe transactions to deposit-wallet calls', () => {

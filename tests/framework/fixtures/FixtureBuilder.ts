@@ -188,7 +188,6 @@ class FixtureBuilder {
       '@MetaMask:existingUser': 'true',
       '@MetaMask:OptinMetaMetricsUISeen': 'true',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
-      '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
       '@MetaMask:solanaFeatureModalShownV2': 'false',
     };
     return this;
@@ -496,28 +495,6 @@ class FixtureBuilder {
 
     // Use the provided region or fallback to the default
     this.fixture.state.fiatOrders.selectedPaymentMethodAgg = paymentType;
-    return this;
-  }
-
-  /**
-   * Seeds the ramps unified buy V2 flag in RemoteFeatureFlagController so deeplinks
-   * and early navigation match the intended path before the remote config API responds.
-   * Uses minimumVersion 0.0.0 so any E2E app build passes the version gate.
-   */
-  withRampsUnifiedBuyRemoteFlagsSeededForE2E(options?: {
-    rampsUnifiedBuyV2?: boolean;
-  }) {
-    const rampsUnifiedBuyV2 = options?.rampsUnifiedBuyV2 ?? true;
-    merge(this.fixture.state.engine.backgroundState, {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          rampsUnifiedBuyV2: {
-            enabled: rampsUnifiedBuyV2,
-            minimumVersion: '0.0.0',
-          },
-        },
-      },
-    });
     return this;
   }
 
@@ -1435,6 +1412,19 @@ class FixtureBuilder {
     });
 
     // Enable basic functionality in settings (required for profile syncing)
+    merge(this.fixture.state.settings, {
+      basicFunctionalityEnabled: true,
+    });
+
+    return this;
+  }
+
+  /**
+   * Enables basic functionality in settings.
+   * Required for remote feature flags and other external-service gated features.
+   * @returns The current instance for method chaining.
+   */
+  withBasicFunctionalityEnabled() {
     merge(this.fixture.state.settings, {
       basicFunctionalityEnabled: true,
     });

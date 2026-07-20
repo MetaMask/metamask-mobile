@@ -4,9 +4,31 @@ import { render } from '@testing-library/react-native';
 import Price from './Price';
 import type { TokenI } from '../../Tokens/types';
 import { PriceChartProvider } from '../PriceChart/PriceChart.context';
-import { selectTokenOverviewAdvancedChartEnabled } from '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart';
-import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
+import {
+  selectTokenOverviewChartType,
+  selectTokenIndicators,
+} from '../../../../reducers/user/selectors';
+import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
+import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
 import { ChartType } from '../../Charts/AdvancedChart/AdvancedChart.types';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+  }),
+}));
+
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
 
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
@@ -104,27 +126,25 @@ const unifiedProps = {
 describe('Price Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
     mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectTokenOverviewAdvancedChartEnabled) {
-        return false;
-      }
       if (selector === selectTokenOverviewChartType) {
         return ChartType.Line;
+      }
+      if (selector === selectTokenIndicators) {
+        return [];
+      }
+      if (selector === selectTokenDetailsOhlcvWsEnabled) {
+        return false;
+      }
+      if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+        return false;
       }
       return undefined;
     });
   });
 
-  it('shows loading state when isLoading prop is true (advanced)', () => {
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectTokenOverviewAdvancedChartEnabled) {
-        return true;
-      }
-      if (selector === selectTokenOverviewChartType) {
-        return ChartType.Line;
-      }
-      return undefined;
-    });
+  it('shows loading state when isLoading prop is true', () => {
     const { getByTestId } = renderWithProviders(
       <Price {...unifiedProps} isLoading />,
     );
@@ -132,16 +152,7 @@ describe('Price Component', () => {
     expect(getByTestId('loading-price-diff')).toBeTruthy();
   });
 
-  it('does not show header skeletons when only chart is loading (advanced)', () => {
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectTokenOverviewAdvancedChartEnabled) {
-        return true;
-      }
-      if (selector === selectTokenOverviewChartType) {
-        return ChartType.Line;
-      }
-      return undefined;
-    });
+  it('does not show header skeletons when only chart is loading', () => {
     mockUseOHLCVChart.mockReturnValueOnce({
       ohlcvData: [],
       isLoading: true,
@@ -157,40 +168,13 @@ describe('Price Component', () => {
     expect(queryByTestId('loading-price-diff')).toBeNull();
   });
 
-  it('renders the advanced chart when token overview advanced chart flag is enabled', () => {
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectTokenOverviewAdvancedChartEnabled) {
-        return true;
-      }
-      if (selector === selectTokenOverviewChartType) {
-        return ChartType.Line;
-      }
-      return undefined;
-    });
+  it('renders the advanced chart when OHLCV data is available', () => {
     const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
 
     expect(getByTestId('mock-advanced-chart')).toBeTruthy();
   });
 
-  it('renders the legacy chart when token overview advanced chart flag is disabled', () => {
-    const { getByTestId } = renderWithProviders(<Price {...unifiedProps} />);
-
-    expect(getByTestId('mock-legacy-price-chart')).toBeTruthy();
-  });
-
   describe('shouldFallbackToLegacy logic', () => {
-    beforeEach(() => {
-      mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectTokenOverviewAdvancedChartEnabled) {
-          return true;
-        }
-        if (selector === selectTokenOverviewChartType) {
-          return ChartType.Line;
-        }
-        return undefined;
-      });
-    });
-
     it('falls back to legacy when OHLCV data length is below threshold (< 5)', () => {
       mockUseOHLCVChart.mockReturnValueOnce({
         ohlcvData: [

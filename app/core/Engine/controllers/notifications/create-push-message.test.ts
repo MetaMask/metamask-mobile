@@ -24,7 +24,7 @@ describe('notification-message tests', () => {
     const result = createNotificationMessage(notification);
 
     expect(result?.title).toBe('Funds sent');
-    expect(result?.description).toContain('You successfully sent 4.96K USDC');
+    expect(result?.description).toContain('You sent 4.96K USDC.');
   });
 
   test('displays erc20 received notification', () => {
@@ -34,7 +34,7 @@ describe('notification-message tests', () => {
     const result = createNotificationMessage(notification);
 
     expect(result?.title).toBe('Funds received');
-    expect(result?.description).toContain('You received 8.38B SHIB');
+    expect(result?.description).toContain('You received 8.38B SHIB.');
   });
 
   test('displays eth/native sent notification', () => {
@@ -42,7 +42,7 @@ describe('notification-message tests', () => {
     const result = createNotificationMessage(notification);
 
     expect(result?.title).toBe('Funds sent');
-    expect(result?.description).toContain('You successfully sent 0.005 ETH');
+    expect(result?.description).toContain('You sent 0.005 ETH.');
   });
 
   test('displays eth/native received notification', () => {
@@ -52,7 +52,7 @@ describe('notification-message tests', () => {
     const result = createNotificationMessage(notification);
 
     expect(result?.title).toBe('Funds received');
-    expect(result?.description).toContain('You received 808 ETH');
+    expect(result?.description).toContain('You received 808 ETH.');
   });
 
   test('displays metamask swap completed notification', () => {
@@ -61,8 +61,8 @@ describe('notification-message tests', () => {
     );
     const result = createNotificationMessage(notification);
 
-    expect(result?.title).toBe('Swap completed');
-    expect(result?.description).toContain('Your MetaMask Swap was successful');
+    expect(result?.title).toBe('Swap complete');
+    expect(result?.description).toContain('Your swap is complete.');
   });
 
   test('displays erc721 sent notification', () => {
@@ -72,7 +72,7 @@ describe('notification-message tests', () => {
     const result = createNotificationMessage(notification);
 
     expect(result?.title).toBe('NFT sent');
-    expect(result?.description).toContain('You successfully sent an NFT');
+    expect(result?.description).toContain('You sent an NFT.');
   });
 
   test('displays erc721 received notification', () => {
@@ -82,7 +82,7 @@ describe('notification-message tests', () => {
     const result = createNotificationMessage(notification);
 
     expect(result?.title).toBe('NFT received');
-    expect(result?.description).toContain('You received new NFTs');
+    expect(result?.description).toContain('You received new NFTs.');
   });
 
   test('displays erc1155 sent notification', () => {
@@ -92,7 +92,7 @@ describe('notification-message tests', () => {
     const result = createNotificationMessage(notification);
 
     expect(result?.title).toBe('NFT sent');
-    expect(result?.description).toContain('You successfully sent an NFT');
+    expect(result?.description).toContain('You sent an NFT.');
   });
 
   test('displays erc1155 received notification', () => {
@@ -102,7 +102,7 @@ describe('notification-message tests', () => {
     const result = createNotificationMessage(notification);
 
     expect(result?.title).toBe('NFT received');
-    expect(result?.description).toContain('You received new NFTs');
+    expect(result?.description).toContain('You received new NFTs.');
   });
 
   test('displays rocketpool stake completed notification', () => {
@@ -111,9 +111,9 @@ describe('notification-message tests', () => {
     );
     const result = createNotificationMessage(notification);
 
-    expect(result?.title).toBe('Stake complete');
+    expect(result?.title).toBe('Stake deposited');
     expect(result?.description).toContain(
-      'Your RocketPool stake was successful',
+      'Your Rocket Pool stake deposit is complete.',
     );
   });
 
@@ -125,7 +125,7 @@ describe('notification-message tests', () => {
 
     expect(result?.title).toBe('Unstake complete');
     expect(result?.description).toContain(
-      'Your RocketPool unstake was successful',
+      'Your Rocket Pool unstake is complete.',
     );
   });
 
@@ -135,8 +135,10 @@ describe('notification-message tests', () => {
     );
     const result = createNotificationMessage(notification);
 
-    expect(result?.title).toBe('Stake complete');
-    expect(result?.description).toContain('Your Lido stake was successful');
+    expect(result?.title).toBe('Stake deposited');
+    expect(result?.description).toContain(
+      'Your Lido stake deposit is complete.',
+    );
   });
 
   test('displays lido stake ready to be withdrawn notification', () => {
@@ -145,9 +147,9 @@ describe('notification-message tests', () => {
     );
     const result = createNotificationMessage(notification);
 
-    expect(result?.title).toBe('Stake ready for withdrawal');
+    expect(result?.title).toBe('Stake ready to withdraw');
     expect(result?.description).toContain(
-      'Your Lido stake is now ready to be withdrawn',
+      'Your Lido stake is ready to withdraw.',
     );
   });
 
@@ -159,7 +161,7 @@ describe('notification-message tests', () => {
 
     expect(result?.title).toBe('Withdrawal requested');
     expect(result?.description).toContain(
-      'Your Lido withdrawal request was submitted',
+      'Your Lido withdrawal request was submitted.',
     );
   });
 
@@ -169,9 +171,7 @@ describe('notification-message tests', () => {
     );
     const result = createNotificationMessage(notification);
 
-    expect(result?.title).toBe('Withdrawal completed');
-    expect(result?.description).toContain(
-      'Your Lido withdrawal was successful',
-    );
+    expect(result?.title).toBe('Withdrawal complete');
+    expect(result?.description).toContain('Your Lido withdrawal is complete.');
   });
 });

@@ -35,11 +35,22 @@ jobs:
     name: Run Stable branch sync
     runs-on: ubuntu-latest
     needs: get-stable-version
+    permissions:
+      id-token: write
     steps:
+      - name: Get token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            contents: write
+            pull_requests: write
+            workflows: write
       - name: Run stable branch sync
-        uses: MetaMask/github-tools/.github/actions/stable-sync@v1
+        uses: MetaMask/github-tools/.github/actions/stable-sync@v1.16.0
         with:
           semver-version: ${{ needs['get-stable-version'].outputs['stable-version'] }}
           repo-type: 'mobile'
           stable-branch-name: 'stable'
-          github-token: ${{ secrets.STABLE_SYNC_TOKEN }}
+          github-token: ${{ steps.get-token.outputs.token }}

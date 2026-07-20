@@ -1,10 +1,5 @@
 import React, { useCallback } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  ActivityIndicator,
-  type ViewStyle,
-} from 'react-native';
+import { View, ActivityIndicator, type ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -22,13 +17,14 @@ import createStyles from './PerpsCloseSummary.styles';
 import Routes from '../../../../../constants/navigation/Routes';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
+  FontWeight,
+  IconName,
+  KeyValueRow,
+  KeyValueRowVariant,
+  SectionDivider,
   Text,
   TextColor,
   TextVariant,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
 } from '@metamask/design-system-react-native';
 
 export interface PerpsCloseSummaryProps {
@@ -154,6 +150,33 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
 
   const rewardAnimationState = getRewardAnimationState();
 
+  const feesValue = isLoadingFees ? (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="small" color={theme.colors.icon.alternative} />
+    </View>
+  ) : totalFees !== undefined ? (
+    <PerpsFeesDisplay
+      feeDiscountPercentage={feeDiscountPercentage}
+      fee={totalFees}
+      originalFee={originalTotalFees}
+      testID={testIDs?.feesValue}
+      variant={TextVariant.BodyMd}
+    />
+  ) : (
+    '--'
+  );
+
+  const pointsValue = accountOptedIn ? (
+    <RewardsAnimations
+      value={estimatedPoints}
+      bonusBips={bonusBips}
+      shouldShow={shouldShowRewards}
+      state={rewardAnimationState}
+    />
+  ) : (
+    <AddRewardsAccount account={rewardsAccount ?? undefined} />
+  );
+
   return (
     <View
       style={[
@@ -162,15 +185,24 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
         style,
       ]}
     >
-      {/* Margin with P&L breakdown */}
+      {/* Margin with P&L breakdown — custom row to support nested includes P&L */}
       <View style={styles.summaryRow}>
         <View style={styles.summaryLabel}>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
             {strings('perps.close_position.margin')}
           </Text>
         </View>
         <View style={styles.summaryValue}>
-          <Text testID={testIDs?.marginValue} variant={TextVariant.BodyMd}>
+          <Text
+            testID={testIDs?.marginValue}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+          >
             {formatPerpsFiat(totalMargin, {
               ranges: PRICE_RANGES_MINIMAL_VIEW,
             })}
@@ -194,148 +226,60 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
         </View>
       </View>
 
-      {/* Fees with discount */}
-      <View style={styles.summaryRow}>
-        <View style={styles.summaryLabel}>
-          {enableTooltips ? (
-            <TouchableOpacity
-              onPress={() =>
-                handleTooltipPress('closing_fees', {
-                  metamaskFeeRate,
-                  protocolFeeRate,
-                  originalMetamaskFeeRate,
-                  feeDiscountPercentage,
-                })
-              }
-              style={styles.labelWithTooltip}
-              testID={testIDs?.feesTooltip}
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings('perps.close_position.fees')}
-              </Text>
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                color={IconColor.IconMuted}
-              />
-            </TouchableOpacity>
-          ) : (
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('perps.close_position.fees')}
-            </Text>
-          )}
-        </View>
-        <View style={styles.summaryValue}>
-          {isLoadingFees ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator
-                size="small"
-                color={theme.colors.icon.alternative}
-              />
-            </View>
-          ) : totalFees !== undefined ? (
-            <PerpsFeesDisplay
-              feeDiscountPercentage={feeDiscountPercentage}
-              fee={totalFees}
-              originalFee={originalTotalFees}
-              testID={testIDs?.feesValue}
-              variant={TextVariant.BodyMd}
-            />
-          ) : (
-            <Text variant={TextVariant.BodyMd}>--</Text>
-          )}
-        </View>
-      </View>
+      <KeyValueRow
+        variant={KeyValueRowVariant.Summary}
+        keyLabel={strings('perps.close_position.fees')}
+        {...(enableTooltips && {
+          keyEndButtonIconProps: {
+            iconName: IconName.Info,
+            onPress: () =>
+              handleTooltipPress('closing_fees', {
+                metamaskFeeRate,
+                protocolFeeRate,
+                originalMetamaskFeeRate,
+                feeDiscountPercentage,
+              }),
+            testID: testIDs?.feesTooltip,
+          },
+        })}
+        value={feesValue}
+      />
 
-      {/* You'll receive */}
-      <View style={[styles.summaryRow, styles.summaryTotalRow]}>
-        <View style={styles.summaryLabel}>
-          {enableTooltips ? (
-            <TouchableOpacity
-              onPress={() => handleTooltipPress('close_position_you_receive')}
-              style={styles.labelWithTooltip}
-              testID={testIDs?.receiveTooltip}
-            >
-              <Text variant={TextVariant.BodyMd}>
-                {strings('perps.close_position.you_receive')}
-              </Text>
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                color={IconColor.IconMuted}
-              />
-            </TouchableOpacity>
-          ) : (
-            <Text variant={TextVariant.BodyMd}>
-              {strings('perps.close_position.you_receive')}
-            </Text>
-          )}
-        </View>
-        <View style={styles.summaryValue}>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextDefault}
-            testID={testIDs?.receiveValue}
-          >
-            {formatPerpsFiat(receiveAmount, {
-              ranges: PRICE_RANGES_MINIMAL_VIEW,
-            })}
-          </Text>
-        </View>
-      </View>
+      <SectionDivider marginVertical={1} />
 
-      {/* Estimated Points */}
+      <KeyValueRow
+        variant={KeyValueRowVariant.Summary}
+        keyLabel={strings('perps.close_position.you_receive')}
+        {...(enableTooltips && {
+          keyEndButtonIconProps: {
+            iconName: IconName.Info,
+            onPress: () => handleTooltipPress('close_position_you_receive'),
+            testID: testIDs?.receiveTooltip,
+          },
+        })}
+        value={formatPerpsFiat(receiveAmount, {
+          ranges: PRICE_RANGES_MINIMAL_VIEW,
+        })}
+        valueTextProps={{
+          testID: testIDs?.receiveValue,
+        }}
+      />
+
       {shouldShowRewards &&
         (accountOptedIn ||
           (accountOptedIn === false && rewardsAccount !== undefined)) && (
-          <View style={styles.summaryRow}>
-            <View style={styles.summaryLabel}>
-              {enableTooltips ? (
-                <TouchableOpacity
-                  onPress={() => handleTooltipPress('points')}
-                  style={styles.labelWithTooltip}
-                  testID={testIDs?.pointsTooltip}
-                >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                  >
-                    {strings('perps.estimated_points')}
-                  </Text>
-                  <Icon
-                    name={IconName.Info}
-                    size={IconSize.Sm}
-                    color={IconColor.IconMuted}
-                  />
-                </TouchableOpacity>
-              ) : (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                >
-                  {strings('perps.estimated_points')}
-                </Text>
-              )}
-            </View>
-            <View style={styles.summaryValue}>
-              {accountOptedIn ? (
-                <RewardsAnimations
-                  value={estimatedPoints}
-                  bonusBips={bonusBips}
-                  shouldShow={shouldShowRewards}
-                  state={rewardAnimationState}
-                />
-              ) : (
-                <AddRewardsAccount account={rewardsAccount ?? undefined} />
-              )}
-            </View>
-          </View>
+          <KeyValueRow
+            variant={KeyValueRowVariant.Summary}
+            keyLabel={strings('perps.estimated_points')}
+            {...(enableTooltips && {
+              keyEndButtonIconProps: {
+                iconName: IconName.Info,
+                onPress: () => handleTooltipPress('points'),
+                testID: testIDs?.pointsTooltip,
+              },
+            })}
+            value={pointsValue}
+          />
         )}
     </View>
   );

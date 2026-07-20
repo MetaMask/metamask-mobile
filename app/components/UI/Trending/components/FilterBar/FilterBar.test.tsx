@@ -151,4 +151,39 @@ describe('FilterBar', () => {
     );
     expect(queryByTestId('extra-filter')).toBeNull();
   });
+
+  it('renders watchlist star filter when showWatchlistFilter is true', () => {
+    const { getByTestId } = renderWithProvider(
+      <FilterBar
+        {...defaultProps}
+        showWatchlistFilter
+        onWatchlistFilterPress={jest.fn()}
+      />,
+    );
+    expect(
+      getByTestId('trending-watchlist-filter-watchlist'),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render watchlist star filter by default', () => {
+    const { queryByTestId } = renderWithProvider(
+      <FilterBar {...defaultProps} />,
+    );
+    expect(
+      queryByTestId('trending-watchlist-filter-watchlist'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('calls onWatchlistFilterPress when star filter is pressed', () => {
+    const onWatchlistFilterPress = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <FilterBar
+        {...defaultProps}
+        showWatchlistFilter
+        onWatchlistFilterPress={onWatchlistFilterPress}
+      />,
+    );
+    fireEvent.press(getByTestId('trending-watchlist-filter-watchlist'));
+    expect(onWatchlistFilterPress).toHaveBeenCalledTimes(1);
+  });
 });

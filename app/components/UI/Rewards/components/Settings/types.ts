@@ -4,7 +4,13 @@ import {
 } from '../../hooks/useRewardOptinSummary';
 
 export interface RewardSettingsAccountGroupListFlatListItem {
-  type: 'wallet' | 'accountGroup' | 'showMore';
+  type:
+    | 'wallet'
+    | 'accountGroup'
+    | 'showMore'
+    | 'referredByCode'
+    | 'optOut'
+    | 'environmentToggle';
   walletItem?: WalletWithAccountGroupsWithOptInStatus;
   accountGroup?: AccountGroupWithOptInStatus;
   allAddresses?: string[];

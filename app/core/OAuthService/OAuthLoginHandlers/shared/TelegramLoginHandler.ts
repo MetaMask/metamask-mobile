@@ -21,6 +21,7 @@ import {
 } from '../baseHandler';
 import { isRetryableError, retryWithDelay } from '../utils';
 import { OAuthError, OAuthErrorType } from '../../error';
+import Device from '../../../../util/device';
 
 const TELEGRAM_AUTH_SERVER_INITIATE_PATH = '/api/v2/telegram/login/initiate';
 const TELEGRAM_AUTH_SERVER_VERIFY_PATH = '/api/v2/telegram/login/verify';
@@ -207,12 +208,15 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     });
 
     try {
+      const authSessionOptions = {
+        createTask: false,
+        preferUniversalLinks: true,
+      };
+
       const result = await openAuthSessionAsync(
         authorizationUrl,
         this.redirectUri,
-        {
-          createTask: false,
-        },
+        authSessionOptions,
       );
 
       if (result.type === 'success') {
@@ -232,6 +236,12 @@ export class TelegramLoginHandler extends BaseLoginHandler {
 
       if (initialUrl?.startsWith(this.redirectUri)) {
         return initialUrl;
+      }
+
+      // Temporary workaround for Android 16 Safer Intents which prevents Chrome from handling custom scheme URLs directly
+      // Currently Telegram login flow is not using params in the redirect url
+      if (Device.isAndroid()) {
+        return this.redirectUri;
       }
 
       if (result.type === 'cancel') {

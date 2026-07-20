@@ -1,6 +1,7 @@
 import { useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { useHardwareWallet } from '../../../../../core/HardwareWallet';
+import { getHardwareWalletTypeForAddress } from '../../../../../core/HardwareWallet/helpers';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { updateHardwareWalletsSwaps } from '../../../../../core/redux/slices/bridge';
 import {
@@ -17,6 +18,12 @@ import {
 interface UseHwQrStateOptions {
   isEnabled: boolean;
   currentStatus: HardwareWalletsSwapsStatus;
+  /**
+   * Address of the hardware wallet. Used to derive wallet type when the
+   * provider's walletType is not yet determined (or has been transiently
+   * cleared via setPendingOperationAddress during the submit lifecycle).
+   */
+  walletAddress?: string;
 }
 
 /**
@@ -47,11 +54,16 @@ const TERMINAL_STATUSES: Set<HardwareWalletsSwapsStatus> = new Set([
 export function useHwQrState({
   isEnabled,
   currentStatus,
+  walletAddress,
 }: UseHwQrStateOptions) {
   const dispatch = useDispatch();
   const { walletType, qr } = useHardwareWallet();
 
-  const isQrHardwareWallet = walletType === HardwareWalletType.Qr;
+  const isQrHardwareWallet =
+    walletType === HardwareWalletType.Qr ||
+    (Boolean(walletAddress) &&
+      getHardwareWalletTypeForAddress(walletAddress as string) ===
+        HardwareWalletType.Qr);
   const { pendingScanRequest, cancelQRScanRequestIfPresent } = qr;
 
   const [isReadingQrSignature, setIsReadingQrSignature] = useState(false);

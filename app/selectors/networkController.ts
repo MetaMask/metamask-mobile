@@ -197,6 +197,29 @@ export const selectEvmNetworkConfigurationsByChainId = createSelector(
     networkControllerState?.networkConfigurationsByChainId,
 );
 
+/**
+ * All configured EVM networks, as hex chain IDs — independent of which are
+ * "enabled". Use for surfaces that must show all networks (e.g. the Activity
+ * feed) so enabling/disabling a single network doesn't collapse the view.
+ */
+export const selectAllConfiguredEvmChainIds = createDeepEqualSelector(
+  selectEvmNetworkConfigurationsByChainId,
+  (configsByChainId): Hex[] => Object.keys(configsByChainId ?? {}) as Hex[],
+);
+
+/**
+ * Same as {@link selectAllConfiguredEvmChainIds} but in CAIP-2 form
+ * (e.g. `eip155:1`), matching the shape the accounts transactions API expects.
+ */
+export const selectAllConfiguredEvmCaipNetworks = createDeepEqualSelector(
+  selectAllConfiguredEvmChainIds,
+  (chainIds): string[] =>
+    chainIds.map(
+      (chainId) =>
+        `${KnownCaipNamespace.Eip155}:${Number.parseInt(chainId, 16)}`,
+    ),
+);
+
 export const selectNetworkConfigurations = createDeepEqualSelector(
   selectEvmNetworkConfigurationsByChainId,
   selectNonEvmNetworkConfigurationsByChainId,
@@ -323,7 +346,7 @@ export const selectIsEIP1559Network = createSelector(
 );
 
 // Selector to get the popular network configurations, this filter also testnet networks
-export const selectAllPopularNetworkConfigurations = createSelector(
+export const selectAllPopularNetworkConfigurations = createDeepEqualSelector(
   selectEvmNetworkConfigurationsByChainId,
   (networkConfigurations) => {
     const popularNetworksChainIds = PopularList.map(

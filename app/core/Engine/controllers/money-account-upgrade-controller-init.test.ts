@@ -236,7 +236,9 @@ describe('moneyAccountUpgradeControllerInit', () => {
       expect.objectContaining({
         message: 'Missing Money Account vault config',
       }),
-      'MoneyAccountUpgradeController bootstrap',
+      expect.objectContaining({
+        tags: expect.objectContaining({ feature: 'money-account-upgrade' }),
+      }),
     );
   });
 
@@ -417,7 +419,10 @@ describe('moneyAccountUpgradeControllerInit', () => {
         expect.objectContaining({
           message: expect.stringContaining(UNSUPPORTED_CHAIN_ID),
         }),
-        'MoneyAccountUpgradeController bootstrap',
+        expect.objectContaining({
+          tags: expect.objectContaining({ feature: 'money-account-upgrade' }),
+          context: expect.objectContaining({ name: 'money_account_upgrade' }),
+        }),
       );
     });
   });

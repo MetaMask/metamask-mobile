@@ -32,4 +32,13 @@ if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   exit 1
 fi
 
+# For OTA releases package.json is not bumped, so use the version from the
+# merge commit's source branch name (release/X.Y.Z-ota) instead.
+COMMIT_MSG=$(git log -1 --pretty=%B HEAD 2>/dev/null || echo "")
+if [[ "$COMMIT_MSG" =~ release/([0-9]+\.[0-9]+\.[0-9]+)-ota ]]; then
+  OTA_STRIPPED="${BASH_REMATCH[1]}"
+  echo "OTA release detected from merge commit (release/${OTA_STRIPPED}-ota): using ${OTA_STRIPPED} instead of package.json ${VERSION}"
+  VERSION="$OTA_STRIPPED"
+fi
+
 echo "stable_version=${VERSION}" >> "$GITHUB_OUTPUT"

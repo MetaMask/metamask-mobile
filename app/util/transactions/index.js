@@ -128,6 +128,7 @@ export const TRANSACTION_TYPES = {
   SITE_INTERACTION: 'transaction_site_interaction',
   SWAPS_TRANSACTION: 'swaps_transaction',
   BRIDGE_TRANSACTION: 'bridge_transaction',
+  BATCH_SELL_TRANSACTION: 'batch_sell_transaction',
 };
 
 const MULTIPLIER_HEX = 16;

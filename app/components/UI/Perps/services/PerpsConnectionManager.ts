@@ -17,6 +17,18 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import {
+  startPerpsCufTrace,
+  endPerpsCufTrace,
+  endPerpsCufTraceAfter,
+  watchPerpsCufAnyPositions,
+  clearPendingPerpsCufTraces,
+} from '../utils/perpsCufTrace';
+import {
+  PERPS_CUF_TAG,
+  PERPS_CUF_END_REASON,
+  PERPS_CUF_STREAM_TIMEOUT_MS,
+} from '../constants/perpsCufTags';
 import Logger from '../../../../util/Logger';
 import {
   PERPS_CONSTANTS,
@@ -233,6 +245,22 @@ class PerpsConnectionManagerClass {
             );
           });
         }, 50);
+      }
+
+      // Abandon pending CUFs on ANY session-identity change — even while
+      // disconnected, since the tracked identity advances below regardless of
+      // isConnected. Pending close/cancel/TP-SL/place ops and stale reconnect
+      // measurements must not survive into the next session and be falsely
+      // ended by that session's first delivery. Same-account soft reconnects
+      // don't reach here, so their pending confirmations are kept; the new
+      // reconnect measurement starts later inside performReconnection.
+      if (
+        hasAccountChanged ||
+        hasPerpsNetworkChanged ||
+        hasProviderChanged ||
+        hasHip3Changed
+      ) {
+        clearPendingPerpsCufTraces();
       }
 
       // Update tracked values
@@ -461,6 +489,21 @@ class PerpsConnectionManagerClass {
     );
   }
 
+  /**
+   * Re-register all stream channel subscriptions (candles, prices, etc.) on a
+   * still-healthy connection. A ping success only proves the socket transport
+   * is alive — it does NOT prove the server-side topic subscriptions survived
+   * backgrounding. Mobile OSes frequently leave the WebSocket in a "zombie"
+   * state after backgrounding: ping/pong still works, but HyperLiquid has
+   * dropped the `candle`/`allMids` subscriptions, so no further ticks arrive
+   * until something forces a resubscribe. Without this, the chart and price
+   * header appear frozen after foregrounding until the user navigates away
+   * and back (which happens to trigger a fresh subscription elsewhere).
+   */
+  private resubscribeActiveStreamChannels(): void {
+    getStreamManagerInstance().clearAllChannels();
+  }
+
   async resumeFromForeground(options?: ConnectOptions): Promise<void> {
     const source =
       options?.source ?? PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND;
@@ -479,6 +522,7 @@ class PerpsConnectionManagerClass {
         if (!suppressError) {
           this.clearError();
         }
+        this.resubscribeActiveStreamChannels();
         return;
       } catch {
         // First ping failed — JS thread may be sluggish right after foregrounding.
@@ -494,6 +538,7 @@ class PerpsConnectionManagerClass {
           if (!suppressError) {
             this.clearError();
           }
+          this.resubscribeActiveStreamChannels();
           return;
         } catch {
           DevLogger.log(
@@ -610,6 +655,15 @@ class PerpsConnectionManagerClass {
               streamManager.fills.clearCache();
               streamManager.topOfBook.clearCache();
               streamManager.candles.clearCache();
+              // Hard teardown (streams torn down, caches cleared): abandon any
+              // pending confirmation CUF as `disconnected`, or a later reconnect
+              // delivery would end the stale op as a success with a duration
+              // inflated by the background/disconnect gap. Skipped for a
+              // preserveCaches soft resume above, where the stream continuity
+              // means the confirming delivery is still legitimate. No reconnect
+              // measurement span is armed during disconnect (it is armed later
+              // in performReconnection, after its own clear), so none is lost.
+              clearPendingPerpsCufTraces();
             }
 
             // Reset state before disconnecting to prevent race conditions
@@ -987,6 +1041,32 @@ class PerpsConnectionManagerClass {
       'PerpsConnectionManager: Reconnecting with new account/network context',
     );
 
+    // Abandon any pending confirmation CUF (and any stale reconnect span) from
+    // the previous session BEFORE arming this reconnection's own span. The
+    // streams are being torn down and resubscribed here, so a stale op must not
+    // be ended by the new subscription's first delivery (which would record a
+    // success with a duration inflated by the offline/reconnect gap). This also
+    // covers reconnect paths that do not route through the identity-change or
+    // hard-disconnect clears — notably NetInfo offline->online.
+    clearPendingPerpsCufTraces();
+
+    // Freshness CUF: reconnect start -> first fresh positions delivery. Armed
+    // AFTER the clear above so it is never abandoned by it.
+    const reconnectCufOpId = startPerpsCufTrace({
+      name: TraceName.PerpsWebSocketReconnectToFreshData,
+    });
+    watchPerpsCufAnyPositions(reconnectCufOpId);
+    endPerpsCufTraceAfter(
+      {
+        id: reconnectCufOpId,
+        data: {
+          [PERPS_CUF_TAG.SUCCESS]: false,
+          [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+        },
+      },
+      PERPS_CUF_STREAM_TIMEOUT_MS,
+    );
+
     // Set connecting state immediately to prevent race conditions
     this.isConnecting = true;
 
@@ -1161,6 +1241,17 @@ class PerpsConnectionManagerClass {
       // Clear connection timeout on error
       this.clearConnectionTimeout();
 
+      // Reconnect failed: end its CUF span now as a failure rather than leaving
+      // it open for the 30s fallback — otherwise a retry's fresh positions
+      // delivery could end both this stale span and the new reconnect span.
+      endPerpsCufTrace({
+        id: reconnectCufOpId,
+        data: {
+          [PERPS_CUF_TAG.SUCCESS]: false,
+          [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+        },
+      });
+
       traceData = {
         success: false,
         error: ensureError(error, 'PerpsConnectionManager.reconnect').message,
@@ -1236,6 +1327,14 @@ class PerpsConnectionManagerClass {
       source: source ?? 'ensure_connected',
       suppressError,
     });
+
+    // A cache-preserving foreground reconnect intentionally skips stream cache
+    // clearing during disconnect. Rebind active channel handles after the
+    // controller comes back so subscribers do not keep stale WebSocket
+    // unsubscribe references from the pre-reconnect provider.
+    if (preserveCaches) {
+      this.resubscribeActiveStreamChannels();
+    }
   }
 
   async disconnect(): Promise<void> {

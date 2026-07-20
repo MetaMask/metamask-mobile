@@ -1,17 +1,17 @@
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useEffect, useRef } from 'react';
-import { AccessibilityActionEvent, LayoutChangeEvent } from 'react-native';
 import {
-  Gesture,
-  GestureDetector,
-  GestureHandlerRootView,
-} from 'react-native-gesture-handler';
+  AccessibilityActionEvent,
+  LayoutChangeEvent,
+  View,
+} from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { playImpact, ImpactMoment } from '../../../../../../../util/haptics';
+import { ImpactMoment, playImpact } from '../../../../../../../util/haptics';
 
 const HANDLE_SIZE = 24;
 const MARKER_SIZE = 4;
@@ -189,7 +189,7 @@ export function QuickBuyPercentageSlider({
   );
 
   return (
-    <GestureHandlerRootView
+    <View
       testID={testID}
       accessibilityRole="adjustable"
       accessibilityState={{ disabled }}
@@ -205,7 +205,7 @@ export function QuickBuyPercentageSlider({
         >
           <Animated.View
             style={tw.style(
-              'absolute left-0 right-0 h-1 rounded-full bg-icon-muted',
+              'absolute left-0 right-0 h-1 rounded-full bg-background-muted',
             )}
           />
           <Animated.View
@@ -235,6 +235,6 @@ export function QuickBuyPercentageSlider({
           />
         </Animated.View>
       </GestureDetector>
-    </GestureHandlerRootView>
+    </View>
   );
 }

@@ -49,4 +49,11 @@ describe('formatExchangeRate', () => {
 
     expect(formatExchangeRate(dest, source)).toBe('1 TOKEN = 0.05 USDC');
   });
+
+  it('uses subscript notation for small rates with many leading zeros', () => {
+    const dest = createToken('GIGA', 0.006375);
+    const source = createToken('SOL', 150);
+
+    expect(formatExchangeRate(dest, source)).toBe('1 GIGA = 0.0₄425 SOL');
+  });
 });

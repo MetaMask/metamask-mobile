@@ -20,6 +20,9 @@ import { PopularList } from '../../../util/networks/customNetworks';
 import { isMoneyAccountEnabled } from '../../../lib/Money/feature-flags';
 import Logger from '../../../util/Logger';
 
+/** Sentry tag used to group/filter Money Account upgrade failures. */
+const SENTRY_FEATURE_TAG = 'money-account-upgrade';
+
 /**
  * Ensures the given chain exists in the user's NetworkController configuration.
  * If missing, adds it from `PopularList`. The upgrade flow's
@@ -132,7 +135,13 @@ export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
   const runBootstrap = (vaultConfig: MoneyAccountVaultConfig) => {
     bootstrapPromise = bootstrap(vaultConfig);
     bootstrapPromise.catch((error) => {
-      Logger.error(error as Error, 'MoneyAccountUpgradeController bootstrap');
+      Logger.error(error as Error, {
+        tags: { feature: SENTRY_FEATURE_TAG },
+        context: {
+          name: 'money_account_upgrade',
+          data: { phase: 'bootstrap' },
+        },
+      });
     });
   };
 
@@ -167,10 +176,13 @@ export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
     }
     const vaultConfig = getMoneyAccountVaultConfig(flags);
     if (!vaultConfig) {
-      Logger.error(
-        new Error('Missing Money Account vault config'),
-        'MoneyAccountUpgradeController bootstrap',
-      );
+      Logger.error(new Error('Missing Money Account vault config'), {
+        tags: { feature: SENTRY_FEATURE_TAG },
+        context: {
+          name: 'money_account_upgrade',
+          data: { phase: 'bootstrap' },
+        },
+      });
       return false;
     }
     scheduleBootstrap(vaultConfig);

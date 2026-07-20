@@ -44,6 +44,24 @@ import {
   isAddressCompatibleWithChainId,
 } from '../../../../util/address';
 
+const keyExtractor = (
+  item: FlattenedMultichainAccountListItem,
+  index: number,
+) => {
+  switch (item.type) {
+    case 'header':
+      return `header-${item.data.walletName}`;
+    case 'cell':
+      return `account-${item.data.id}`;
+    case 'external':
+      return `external-${item.data.address}`;
+    case 'footer':
+      return `footer-${item.data.walletName}`;
+    default:
+      return `item-${index}`;
+  }
+};
+
 const MultichainAccountSelectorList = ({
   onSelectAccount,
   selectedAccountGroups,
@@ -183,11 +201,15 @@ const MultichainAccountSelectorList = ({
       return items;
     }
 
+    const showWalletHeaders = walletSections.length > 1;
+
     filteredWalletSections.forEach((section) => {
-      items.push({
-        type: 'header',
-        data: { title: section.title, walletName: section.walletName },
-      });
+      if (showWalletHeaders) {
+        items.push({
+          type: 'header',
+          data: { title: section.title, walletName: section.walletName },
+        });
+      }
 
       section.data.forEach((accountGroup) => {
         items.push({
@@ -209,6 +231,7 @@ const MultichainAccountSelectorList = ({
     isExternalAddressValid,
     shouldShowExternalAccount,
     trimmedSearchText,
+    walletSections.length,
   ]);
 
   // Track if we've done the initial scroll to selected item
@@ -372,24 +395,6 @@ const MultichainAccountSelectorList = ({
         selectedExternalAddress,
       ],
     );
-
-  const keyExtractor = useCallback(
-    (item: FlattenedMultichainAccountListItem, index: number) => {
-      switch (item.type) {
-        case 'header':
-          return `header-${item.data.walletName}`;
-        case 'cell':
-          return `account-${item.data.id}`;
-        case 'external':
-          return `external-${item.data.address}`;
-        case 'footer':
-          return `footer-${item.data.walletName}`;
-        default:
-          return `item-${index}`;
-      }
-    },
-    [],
-  );
 
   const getItemType = useCallback(
     (item: FlattenedMultichainAccountListItem) => item.type,

@@ -48,14 +48,6 @@ export interface GasImpactModalParams {
   chainId: string;
 }
 
-/** Earn screens parameters */
-export interface EarnScreensParams {
-  screen?: string;
-  params?: {
-    token?: Record<string, unknown>;
-  };
-}
-
 /**
  * Lending deposit confirmation parameters
  * Matches LendingDepositViewRouteParams in EarnLendingDepositConfirmationView

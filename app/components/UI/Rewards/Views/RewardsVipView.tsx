@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView } from 'react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxFlexDirection,
@@ -20,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { exitRewardsFlow } from '../utils';
 import { acceptVipInvite } from '../../../../reducers/rewards';
 import {
   selectIsCurrentSubscriptionVipEnabled,
@@ -38,6 +39,11 @@ import VipFeeTile, {
 import VipPointsSection from '../components/Vip/VipPointsSection';
 import VipTierProgressCard from '../components/Vip/VipTierProgressCard';
 import VipVolumeSection from '../components/Vip/VipVolumeSection';
+import VipSwapsVolumeInfoSheet from '../components/Vip/VipSwapsVolumeInfoSheet';
+import {
+  VIP_GOLD_BACKGROUND_MUTED,
+  VIP_GOLD_BORDER_DEFAULT,
+} from '../components/Vip/Vip.constants';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import {
   selectHasAcceptedVipInvite,
@@ -66,6 +72,11 @@ export const REWARDS_VIP_VIEW_TEST_IDS = {
 
 const BENEFIT_TILE_GAP = 12;
 const BENEFIT_TILE_SNAP_INTERVAL = VIP_FEE_TILE_WIDTH + BENEFIT_TILE_GAP;
+
+const vipTierCardSkeletonStyle = {
+  borderColor: VIP_GOLD_BORDER_DEFAULT,
+  backgroundColor: VIP_GOLD_BACKGROUND_MUTED,
+};
 
 const RewardsVipViewContent: React.FC = () => {
   const tw = useTailwind();
@@ -97,7 +108,7 @@ const RewardsVipViewContent: React.FC = () => {
 
   useEffect(() => {
     if (!canViewVip) {
-      navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
+      exitRewardsFlow(navigation);
     }
   }, [canViewVip, navigation]);
 
@@ -112,6 +123,9 @@ const RewardsVipViewContent: React.FC = () => {
   const handleTiersPress = useCallback(() => {
     navigation.navigate(Routes.REWARDS_VIP_TIERS_VIEW as never);
   }, [navigation]);
+
+  const [isSwapsVolumeInfoVisible, setIsSwapsVolumeInfoVisible] =
+    useState(false);
 
   if (!canViewVip) {
     return null;
@@ -146,7 +160,7 @@ const RewardsVipViewContent: React.FC = () => {
   return (
     <ErrorBoundary navigation={navigation} view="RewardsVipView">
       <SafeAreaView
-        edges={{ top: 'additive' }}
+        edges={{ top: 'additive', bottom: 'additive' }}
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIEW_SELECTORS.VIP_VIEW}
       >
@@ -170,13 +184,49 @@ const RewardsVipViewContent: React.FC = () => {
         >
           {showSkeleton ? (
             <Box
-              twClassName="gap-4 px-4"
+              twClassName="gap-4"
               testID={REWARDS_VIP_VIEW_TEST_IDS.SKELETON}
             >
-              <Skeleton style={tw.style('h-10 w-36 rounded-lg')} />
-              <Skeleton style={tw.style('h-44 rounded-2xl')} />
-              <Skeleton style={tw.style('h-8 w-44 rounded-lg')} />
-              <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
+              <Box twClassName="px-4 gap-4">
+                <Skeleton style={tw.style('h-8 w-36 rounded-lg')} />
+
+                <Box
+                  twClassName="gap-4 rounded-2xl border p-4"
+                  style={vipTierCardSkeletonStyle}
+                >
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    twClassName="items-start justify-between"
+                  >
+                    <Skeleton style={tw.style('h-8 w-8 rounded-lg')} />
+                    <Box twClassName="items-end gap-1">
+                      <Skeleton style={tw.style('h-4 w-16 rounded-lg')} />
+                      <Skeleton style={tw.style('h-4 w-20 rounded-lg')} />
+                    </Box>
+                  </Box>
+                  <Box twClassName="gap-1">
+                    <Skeleton style={tw.style('h-6 w-24 rounded-lg')} />
+                    <Skeleton style={tw.style('h-4 w-32 rounded-lg')} />
+                  </Box>
+                  <Box twClassName="gap-1">
+                    <Skeleton style={tw.style('h-3 w-full rounded-full')} />
+                    <Skeleton style={tw.style('h-4 w-40 rounded-lg')} />
+                  </Box>
+                </Box>
+              </Box>
+
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                twClassName="items-center gap-2 px-4 my-3"
+              >
+                <Skeleton style={tw.style('h-8 w-36 rounded-lg')} />
+                <Skeleton style={tw.style('h-5 w-5 rounded-full')} />
+              </Box>
+
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                twClassName="gap-3 px-4"
+              >
                 {[0, 1, 2, 3].map((index) => (
                   <Skeleton
                     key={index}
@@ -187,8 +237,63 @@ const RewardsVipViewContent: React.FC = () => {
                   />
                 ))}
               </Box>
-              <Skeleton style={tw.style('h-36 rounded-2xl')} />
-              <Skeleton style={tw.style('h-36 rounded-2xl')} />
+
+              <Box twClassName="mt-4 border-b border-border-muted" />
+
+              <Box twClassName="gap-3 px-4">
+                <Box twClassName="gap-1">
+                  <Skeleton style={tw.style('h-8 w-32 rounded-lg')} />
+                  <Skeleton style={tw.style('h-4 w-44 rounded-lg')} />
+                </Box>
+
+                <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6">
+                  <Box twClassName="flex-1 gap-1">
+                    <Skeleton style={tw.style('h-4 w-20 rounded-lg')} />
+                    <Skeleton style={tw.style('h-6 w-16 rounded-lg')} />
+                  </Box>
+                  <Box twClassName="flex-1 gap-1">
+                    <Skeleton style={tw.style('h-4 w-24 rounded-lg')} />
+                    <Skeleton style={tw.style('h-6 w-20 rounded-lg')} />
+                  </Box>
+                </Box>
+
+                <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6">
+                  <Box twClassName="flex-1 gap-1">
+                    <Skeleton style={tw.style('h-4 w-28 rounded-lg')} />
+                    <Skeleton style={tw.style('h-6 w-16 rounded-lg')} />
+                  </Box>
+                  <Box twClassName="flex-1 gap-1">
+                    <Skeleton style={tw.style('h-4 w-24 rounded-lg')} />
+                    <Skeleton style={tw.style('h-6 w-20 rounded-lg')} />
+                  </Box>
+                </Box>
+
+                <Box twClassName="gap-1">
+                  <Skeleton style={tw.style('h-4 w-24 rounded-lg')} />
+                  <Skeleton style={tw.style('h-6 w-16 rounded-lg')} />
+                </Box>
+              </Box>
+
+              <Box twClassName="px-4 items-end">
+                <Skeleton style={tw.style('h-4 w-36 rounded-lg')} />
+              </Box>
+
+              <Box twClassName="mt-4 border-b border-border-muted" />
+
+              <Box twClassName="gap-3 px-4">
+                <Skeleton style={tw.style('h-8 w-40 rounded-lg')} />
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  twClassName="items-center gap-3"
+                >
+                  <Box twClassName="flex-1 gap-1">
+                    <Skeleton style={tw.style('h-4 w-full rounded-lg')} />
+                    <Skeleton style={tw.style('h-4 w-4/5 rounded-lg')} />
+                    <Skeleton style={tw.style('h-4 w-3/4 rounded-lg')} />
+                  </Box>
+                  <Skeleton style={tw.style('h-24 w-24 rounded-full')} />
+                </Box>
+              </Box>
             </Box>
           ) : showError ? (
             <Box twClassName="px-4">
@@ -300,13 +405,14 @@ const RewardsVipViewContent: React.FC = () => {
                   perpsVolume: dashboard.localizedText.perpsVolumeTitle,
                   vipReferrals: dashboard.localizedText.vipReferralsTitle,
                 }}
+                onSwapsVolumeInfoPress={() => setIsSwapsVolumeInfoVisible(true)}
               />
 
               {dashboard.computedAt ? (
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
-                  twClassName="text-right"
+                  twClassName="text-left px-4"
                   testID={REWARDS_VIP_VIEW_TEST_IDS.LAST_UPDATED}
                 >
                   {strings('rewards.vip.last_updated', {
@@ -335,6 +441,11 @@ const RewardsVipViewContent: React.FC = () => {
           ) : null}
         </ScrollView>
       </SafeAreaView>
+      {isSwapsVolumeInfoVisible ? (
+        <VipSwapsVolumeInfoSheet
+          onClose={() => setIsSwapsVolumeInfoVisible(false)}
+        />
+      ) : null}
     </ErrorBoundary>
   );
 };

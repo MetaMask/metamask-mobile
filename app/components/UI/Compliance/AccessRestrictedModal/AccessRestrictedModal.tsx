@@ -13,22 +13,18 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { AccessRestrictedModalProps } from './AccessRestrictedModal.types';
 import { AccessRestrictedModalSelectorsIDs } from './AccessRestrictedModal.testIds';
-import { useElevatedSurface } from '../../../../util/theme/themeUtils';
 
 const AccessRestrictedModal: React.FC<AccessRestrictedModalProps> = ({
   isVisible,
   onClose,
   onContactSupport,
 }) => {
-  const surfaceClass = useElevatedSurface();
-
   if (!isVisible) return null;
 
   return (
     <BottomSheet
       onClose={onClose}
       testID={AccessRestrictedModalSelectorsIDs.BOTTOM_SHEET}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={onClose}

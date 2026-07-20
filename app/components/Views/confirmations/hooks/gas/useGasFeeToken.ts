@@ -1,8 +1,9 @@
 import { Hex } from '@metamask/utils';
 import {
-  BatchTransactionParams,
+  BatchTransaction,
   GasFeeToken,
   TransactionMeta,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import { Interface } from '@ethersproject/abi';
@@ -177,7 +178,7 @@ function useFiatTokenValue(
 
 function getTokenTransferTransaction(
   gasFeeToken: GasFeeToken,
-): BatchTransactionParams {
+): BatchTransaction {
   const data = new Interface(abiERC20).encodeFunctionData('transfer', [
     gasFeeToken.recipient,
     gasFeeToken.amount,
@@ -189,17 +190,22 @@ function getTokenTransferTransaction(
     maxFeePerGas: gasFeeToken.maxFeePerGas,
     maxPriorityFeePerGas: gasFeeToken.maxPriorityFeePerGas,
     to: gasFeeToken.tokenAddress,
+    // Type the gas-payment child so the HW sendbundle tracker can distinguish
+    // it from the Send (tokenMethodTransfer/simpleSend) — even when the Send
+    // transfers the gas token itself (same `to`), where address comparison fails.
+    type: TransactionType.gasPayment,
   };
 }
 
 function getNativeTransferTransaction(
   gasFeeToken: GasFeeToken,
-): BatchTransactionParams {
+): BatchTransaction {
   return {
     gas: gasFeeToken.gasTransfer,
     maxFeePerGas: gasFeeToken.maxFeePerGas,
     maxPriorityFeePerGas: gasFeeToken.maxPriorityFeePerGas,
     to: gasFeeToken.recipient,
     value: gasFeeToken.amount,
+    type: TransactionType.gasPayment,
   };
 }

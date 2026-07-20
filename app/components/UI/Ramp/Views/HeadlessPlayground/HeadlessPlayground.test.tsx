@@ -1100,6 +1100,8 @@ describe('HeadlessPlayground', () => {
         assetId: HEADLESS_SIM_ASSET_ID,
         amount: 25,
         currency: mockUserRegion.country?.currency,
+        // Playground sandbox passes a default money_account surface (TRAM-3623).
+        rampSurface: 'money_account',
       });
       expect(typeof callbacks.onOrderCreated).toBe('function');
       expect(typeof callbacks.onError).toBe('function');

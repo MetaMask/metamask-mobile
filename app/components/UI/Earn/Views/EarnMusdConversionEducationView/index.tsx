@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
   BoxFlexDirection,
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   },
 });
 
-interface EarnMusdConversionEducationViewRouteParams {
+export interface EarnMusdConversionEducationViewRouteParams {
   /**
    * Indicates if this navigation originated from a deeplink
    * When true, the component determines routing based on user state
@@ -122,8 +122,7 @@ const EarnMusdConversionEducationView = () => {
     conversionTokens,
   } = useMusdConversionFlowData();
 
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const colorScheme = useColorScheme();
 
@@ -297,7 +296,14 @@ const EarnMusdConversionEducationView = () => {
         if (navigation.canGoBack()) {
           navigation.goBack();
         }
-        navigation.navigate(returnTo.screen, returnTo.params);
+        // `returnTo` is a dynamic navigation target (route name + params are
+        // resolved at runtime), so it can't be checked against the strict
+        // route map. Cast to a generic navigate signature for this call.
+        const navigateToDynamicRoute = navigation.navigate as unknown as (
+          screen: string,
+          params?: Record<string, unknown>,
+        ) => void;
+        navigateToDynamicRoute(returnTo.screen, returnTo.params);
         return;
       }
 

@@ -22,6 +22,13 @@ export interface UsePerpsLiveOrderBookOptions {
   throttleMs?: number;
   /** Whether to enable the subscription (default: true) */
   enabled?: boolean;
+  /**
+   * Enable Hyperliquid's fast order book stream (5 levels @ ~0.5s cadence).
+   * When omitted, uses the default cadence (20 levels @ ~2s).
+   * Note: with `fast: true` the book returns at most 5 levels per side
+   * regardless of the `levels` setting.
+   */
+  fast?: boolean;
 }
 
 export interface UsePerpsLiveOrderBookReturn {
@@ -70,6 +77,7 @@ export function usePerpsLiveOrderBook(
     mantissa,
     throttleMs = 100,
     enabled = true,
+    fast = false,
   } = options;
 
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
@@ -128,6 +136,7 @@ export function usePerpsLiveOrderBook(
       nSigFigs,
       mantissa,
       throttleMs,
+      fast,
     });
 
     let unsubscribe: (() => void) | null = null;
@@ -142,6 +151,7 @@ export function usePerpsLiveOrderBook(
         levels,
         nSigFigs,
         mantissa,
+        fast,
         callback: (data: OrderBookData) => {
           applyUpdate(data);
         },
@@ -175,7 +185,16 @@ export function usePerpsLiveOrderBook(
         unsubscribe();
       }
     };
-  }, [symbol, levels, nSigFigs, mantissa, enabled, applyUpdate, throttleMs]);
+  }, [
+    symbol,
+    levels,
+    nSigFigs,
+    mantissa,
+    enabled,
+    applyUpdate,
+    throttleMs,
+    fast,
+  ]);
 
   return useMemo(
     () => ({

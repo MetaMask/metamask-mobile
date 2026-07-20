@@ -24,6 +24,11 @@ export interface UserState {
   musdConversionEducationSeen: boolean;
   musdConversionAssetDetailCtasSeen: Record<string, boolean>;
   moneyOnboardingSeen: boolean;
+  moneyEarnBannerDismissedTokens: Record<string, boolean>;
   tokenOverviewChartType: ChartType;
+  /** Candle interval (e.g. '15m') when technical indicators chart is enabled. */
+  tokenOverviewChartInterval: string;
+  tokenIndicators: string[];
   onboardingStepperProgress: Record<string, number>;
+  appInstallEventFired: boolean;
 }

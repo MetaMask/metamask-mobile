@@ -6,6 +6,7 @@ import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBala
 import { useInsufficientPerpsBalanceAlert } from './useInsufficientPerpsBalanceAlert';
 import { useInsufficientMoneyAccountBalanceAlert } from './useInsufficientMoneyAccountBalanceAlert';
 import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
+import { useTransactionDepositLimitAlert } from './useTransactionDepositLimitAlert';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 
 export function usePendingAmountAlerts({
@@ -16,7 +17,7 @@ export function usePendingAmountAlerts({
   pendingFiatAmount?: string;
 }): Alert[] {
   const insufficientTokenFundsAlert = useInsufficientPayTokenBalanceAlert({
-    pendingAmountUsd: pendingTokenAmount,
+    pendingAmountUsd: pendingFiatAmount ?? '0',
   });
 
   const mmPayHardwareAccountAlert = useMMPayHardwareAccountAlert();
@@ -38,6 +39,10 @@ export function usePendingAmountAlerts({
     pendingAmount: pendingFiatAmount,
   });
 
+  const depositLimitAlert = useTransactionDepositLimitAlert({
+    pendingAmount: pendingFiatAmount,
+  });
+
   const accountNoFundsAlert = useAccountNoFundsAlert();
 
   return useMemo(
@@ -48,6 +53,7 @@ export function usePendingAmountAlerts({
       ...insufficientPerpsBalanceAlert,
       ...insufficientMoneyAccountBalanceAlert,
       ...fiatBuyLimitAlert,
+      ...depositLimitAlert,
       ...accountNoFundsAlert,
     ],
     [
@@ -57,6 +63,7 @@ export function usePendingAmountAlerts({
       insufficientPerpsBalanceAlert,
       insufficientMoneyAccountBalanceAlert,
       fiatBuyLimitAlert,
+      depositLimitAlert,
       accountNoFundsAlert,
     ],
   );

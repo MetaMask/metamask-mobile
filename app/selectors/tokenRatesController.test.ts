@@ -6,7 +6,6 @@ import {
   selectPricePercentChange1d,
   selectSingleTokenPriceMarketData,
   selectTokenMarketData,
-  selectTokenMarketDataByChainId,
   selectTokenMarketPriceData,
 } from './tokenRatesController';
 
@@ -107,35 +106,6 @@ describe('selectTokenMarketPriceData', () => {
         '0x111': { price: mockChainMarketDetails['0x111'].price },
       },
     });
-  });
-});
-
-describe('selectTokenMarketDataByChainId', () => {
-  const arrange = () => {
-    const mockState = createMockState();
-    const mockChainMarketDetails = createMockMarketTokenDetails();
-    mockState.engine.backgroundState.TokenRatesController.marketData = {
-      '0x1': mockChainMarketDetails,
-    };
-
-    return {
-      mockChainMarketDetails,
-      mockState,
-    };
-  };
-
-  it('returns marketData for explicitly provided chain id', () => {
-    const { mockState, mockChainMarketDetails } = arrange();
-    expect(selectTokenMarketDataByChainId(mockState, '0x1')).toStrictEqual(
-      mockChainMarketDetails,
-    );
-  });
-
-  it('fallbacks to an empty object', () => {
-    const { mockState } = arrange();
-    expect(selectTokenMarketDataByChainId(mockState, '0x999')).toStrictEqual(
-      {},
-    );
   });
 });
 

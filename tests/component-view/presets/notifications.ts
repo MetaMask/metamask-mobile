@@ -12,8 +12,8 @@ import { AvatarAccountType } from '../../../app/component-library/components/Ava
  * but seeded directly into Redux instead of fetched via mockttp.
  *
  * Smoke E2E refs:
- * - tests/smoke/notifications/enable-notifications-after-onboarding.spec.ts
- * - tests/smoke/notifications/utils/mocks.ts
+ * - tests/smoke-appium/notifications/enable-notifications-after-onboarding.spec.ts
+ * - tests/smoke-appium/notifications/utils/mocks.ts
  */
 export const MOCK_NOTIFICATIONS = [
   ...MOCK_FEATURE_ANNOUNCEMENT_NOTIFICATIONS,
@@ -43,6 +43,7 @@ interface NotificationsPresetOptions {
   featureAnnouncementsEnabled?: boolean;
   pushEnabled?: boolean;
   socialLeaderboardEnabled?: boolean;
+  priceAlertsEnabled?: boolean;
   notifications?: typeof MOCK_NOTIFICATIONS;
 }
 
@@ -64,6 +65,7 @@ export function buildNotificationsState(
     featureAnnouncementsEnabled = true,
     pushEnabled = true,
     socialLeaderboardEnabled = false,
+    priceAlertsEnabled = false,
     notifications = MOCK_NOTIFICATIONS,
   } = options;
 
@@ -97,6 +99,10 @@ export function buildNotificationsState(
             assetsNotificationsEnabled: true,
             aiSocialLeaderboardEnabled: {
               enabled: socialLeaderboardEnabled,
+              minimumVersion: '0.0.1',
+            },
+            priceAlertsEnabled: {
+              enabled: priceAlertsEnabled,
               minimumVersion: '0.0.1',
             },
           },

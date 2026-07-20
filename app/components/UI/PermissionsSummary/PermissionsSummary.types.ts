@@ -2,7 +2,7 @@ import { CaipAccountId } from '@metamask/utils';
 import { USER_INTENT } from '../../../constants/permissions';
 import { Account, EnsByAccountAddress } from '../../hooks/useAccounts';
 import { NetworkAvatarProps } from '../../Views/MultichainAccounts/shared/AccountConnect.types';
-import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { WalletClientType } from '../../../core/SnapKeyring/types';
 import { SolScope } from '@metamask/keyring-api';
 export interface PermissionsSummaryProps {
   currentPageInformation: {

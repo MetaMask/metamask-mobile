@@ -51,8 +51,9 @@ export default class UnifiedGestures {
 
   /**
    * Resolve scroll container for scrollToElement.
-   * - `string` testID → Detox matcher via Matchers.getIdentifier; omitted under Appium.
-   * - `ScrollViewMatcher` → passed through (Detox-only; do not build with getIdentifier in page objects under Appium).
+   * - `string` testID → Detox matcher via Matchers.getIdentifier; passed through on Appium.
+   * - `EncapsulatedElementType` → passed through for Appium scrollableElement resolution.
+   * - `ScrollViewMatcher` → Detox-only matcher promise.
    */
   private static resolveScrollContainer(
     scrollView?: ScrollContainer,
@@ -62,7 +63,7 @@ export default class UnifiedGestures {
     }
     if (typeof scrollView === 'string') {
       if (FrameworkDetector.isAppium()) {
-        return undefined;
+        return scrollView;
       }
       return Matchers.getIdentifier(scrollView);
     }

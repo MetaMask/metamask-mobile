@@ -13,11 +13,11 @@ import {
   Box,
   BoxFlexDirection,
   FontWeight,
-  ListItem,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import ListItem from '../../../component-library/components/List/ListItem';
 
 const createStyles = (colors) =>
   StyleSheet.create({

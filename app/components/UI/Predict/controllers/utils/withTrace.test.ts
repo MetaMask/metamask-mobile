@@ -6,8 +6,14 @@ import {
   type TraceOperation,
   type TraceValue,
 } from '../../../../../util/trace';
-import { ensureError } from '../../utils/predictErrorHandler';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { ensureError, isNetworkError } from '../../utils/predictErrorHandler';
 import { type TraceableController, withTrace } from './withTrace';
+
+jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
+  __esModule: true,
+  default: { log: jest.fn() },
+}));
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -23,6 +29,7 @@ jest.mock('../../../../../util/trace', () => ({
 jest.mock('../../utils/predictErrorHandler', () => ({
   __esModule: true,
   ensureError: jest.fn(),
+  isNetworkError: jest.fn(),
 }));
 
 interface ControllerState {
@@ -68,6 +75,8 @@ describe('withTrace', () => {
   const mockTrace = jest.mocked(trace);
   const mockEndTrace = jest.mocked(endTrace);
   const mockEnsureError = jest.mocked(ensureError);
+  const mockIsNetworkError = jest.mocked(isNetworkError);
+  const mockDevLogger = jest.mocked(DevLogger);
   const mockLogger = jest.mocked(Logger);
 
   beforeEach(() => {
@@ -75,6 +84,7 @@ describe('withTrace', () => {
     mockEnsureError.mockImplementation((error: unknown) =>
       error instanceof Error ? error : new Error(String(error)),
     );
+    mockIsNetworkError.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -163,6 +173,45 @@ describe('withTrace', () => {
       name: TRACE_NAME,
       id: 'getBalance-3000',
       data: { success: false, error: 'network failed' },
+    });
+  });
+
+  it('reports transient network errors to DevLogger instead of Sentry', async () => {
+    const controller = createController();
+    const thrownError = new Error(
+      'java.lang.RuntimeException: Cronet failed: net::ERR_NAME_NOT_RESOLVED',
+    );
+    const run = jest.fn(async () => {
+      throw thrownError;
+    });
+    mockIsNetworkError.mockReturnValue(true);
+    jest.spyOn(Date, 'now').mockReturnValueOnce(3000).mockReturnValueOnce(4000);
+
+    const resultPromise = withTrace(
+      controller,
+      {
+        method: 'getPositions',
+        trace: {
+          name: TRACE_NAME,
+          op: TRACE_OPERATION,
+        },
+      },
+      run,
+    );
+
+    await expect(resultPromise).rejects.toBe(thrownError);
+    // Still updates error state and re-throws so UI behaves the same...
+    expect(controller.state.lastError).toBe(thrownError.message);
+    // ...but does NOT report to Sentry.
+    expect(mockLogger.error).not.toHaveBeenCalled();
+    expect(mockDevLogger.log).toHaveBeenCalledWith(
+      'withTrace: network error in getPositions',
+      thrownError.message,
+    );
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TRACE_NAME,
+      id: 'getPositions-3000',
+      data: { success: false, error: thrownError.message },
     });
   });
 

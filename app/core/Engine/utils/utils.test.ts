@@ -1,14 +1,11 @@
-import {
-  AccountsController,
-  AccountsControllerMessenger,
-} from '@metamask/accounts-controller';
-import { ApprovalController } from '@metamask/approval-controller';
+import { AccountsController } from '@metamask/accounts-controller';
+import { PreferencesControllerMessenger } from '@metamask/preferences-controller';
 import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
 import { merge } from 'lodash';
 
 import { ExtendedMessenger } from '../../ExtendedMessenger';
-import { accountsControllerInit } from '../controllers/accounts-controller';
-import { ApprovalControllerInit } from '../controllers/approval-controller';
+import { preferencesControllerInit } from '../controllers/preferences-controller-init';
+import type { PreferencesControllerWithSavedGasFees } from '../controllers/preferences-controller-types';
 import { createMockMessengerClientInitFunction } from './test-utils';
 import { getMessengerClientOrThrow, initMessengerClients } from './utils';
 import { permissionControllerInit } from '../controllers/permission-controller-init';
@@ -22,14 +19,12 @@ import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { Wallet } from '@metamask/wallet';
 
-jest.mock('../controllers/accounts-controller');
-jest.mock('../controllers/approval-controller');
+jest.mock('../controllers/preferences-controller-init');
 jest.mock('../controllers/permission-controller-init');
 jest.mock('../controllers/delegation/delegation-controller-init');
 
 describe('initMessengerClients', () => {
-  const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
-  const mockApprovalControllerInit = jest.mocked(ApprovalControllerInit);
+  const mockPreferencesControllerInit = jest.mocked(preferencesControllerInit);
   const mockPermissionControllerInit = jest.mocked(permissionControllerInit);
 
   function buildModularizedControllerRequest(
@@ -39,8 +34,7 @@ describe('initMessengerClients', () => {
       {
         wallet: { getInstance: jest.fn() } as unknown as Wallet,
         initFunctions: {
-          AccountsController: mockAccountsControllerInit,
-          ApprovalController: mockApprovalControllerInit,
+          PreferencesController: mockPreferencesControllerInit,
           PermissionController: mockPermissionControllerInit,
         },
         persistedState: {},
@@ -66,11 +60,8 @@ describe('initMessengerClients', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockAccountsControllerInit.mockReturnValue({
-      controller: {} as unknown as AccountsController,
-    });
-    mockApprovalControllerInit.mockReturnValue({
-      controller: {} as unknown as ApprovalController,
+    mockPreferencesControllerInit.mockReturnValue({
+      controller: {} as unknown as PreferencesControllerWithSavedGasFees,
     });
     mockPermissionControllerInit.mockReturnValue({
       controller: {} as unknown as PermissionController<
@@ -84,8 +75,9 @@ describe('initMessengerClients', () => {
     const request = buildModularizedControllerRequest();
     const controllers = initMessengerClients(request);
 
-    expect(controllers.messengerClientsByName.AccountsController).toBeDefined();
-    expect(controllers.messengerClientsByName.ApprovalController).toBeDefined();
+    expect(
+      controllers.messengerClientsByName.PreferencesController,
+    ).toBeDefined();
     expect(
       controllers.messengerClientsByName.PermissionController,
     ).toBeDefined();
@@ -104,15 +96,15 @@ describe('initMessengerClients', () => {
   it('throws when controller is not found', async () => {
     const request = buildModularizedControllerRequest({
       initFunctions: {
-        AccountsController: createMockMessengerClientInitFunction<
-          AccountsController,
-          AccountsControllerMessenger
-        >('NetworkController'),
+        PreferencesController: createMockMessengerClientInitFunction<
+          PreferencesControllerWithSavedGasFees,
+          PreferencesControllerMessenger
+        >('GasFeeController'),
       },
     });
 
     expect(() => initMessengerClients(request)).toThrow(
-      'Messenger client requested before it was initialized: NetworkController',
+      'Messenger client requested before it was initialized: GasFeeController',
     );
   });
 });

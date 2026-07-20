@@ -10,6 +10,7 @@ import {
   getErrorMessage,
   getSeverity,
   hasGasFeeTokenSelected,
+  getTransactionType,
   hasTransactionType,
   isRevokeDelegationTransaction,
   isTransactionMarkedAsGasFeeSponsored,
@@ -177,6 +178,60 @@ describe('get4ByteCode', () => {
     const transactionData = '0x1234567811111111111111111111111111111111';
     const result = get4ByteCode(transactionData);
     expect(result).toBe('0x12345678');
+  });
+});
+
+describe('getTransactionType', () => {
+  it('returns undefined for undefined input', () => {
+    expect(getTransactionType(undefined)).toBeUndefined();
+  });
+
+  it('returns direct type for regular transactions', () => {
+    const txMeta = {
+      type: TransactionType.perpsDeposit,
+    } as TransactionMeta;
+
+    expect(getTransactionType(txMeta)).toBe(TransactionType.perpsDeposit);
+  });
+
+  it('returns nested type when nested transactions exist', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.predictDeposit }],
+    } as TransactionMeta;
+
+    expect(getTransactionType(txMeta)).toBe(TransactionType.predictDeposit);
+  });
+
+  it('returns direct type when nested transactions have no type', () => {
+    const txMeta = {
+      type: TransactionType.simpleSend,
+      nestedTransactions: [{}],
+    } as TransactionMeta;
+
+    expect(getTransactionType(txMeta)).toBe(TransactionType.simpleSend);
+  });
+
+  it('returns first nested type that has a type', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [
+        {},
+        { type: TransactionType.perpsWithdraw },
+        { type: TransactionType.predictWithdraw },
+      ],
+    } as TransactionMeta;
+
+    expect(getTransactionType(txMeta)).toBe(TransactionType.perpsWithdraw);
+  });
+
+  it('returns direct type when nestedTransactions is empty', () => {
+    const txMeta = {
+      type: TransactionType.perpsDeposit,
+      nestedTransactions: [],
+    } as unknown as TransactionMeta;
+
+    expect(getTransactionType(txMeta)).toBe(TransactionType.perpsDeposit);
   });
 });
 

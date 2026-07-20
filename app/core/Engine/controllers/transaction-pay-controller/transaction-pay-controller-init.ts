@@ -9,6 +9,7 @@ import { getAmountData } from './amount-data-callback';
 import { getDelegationTransaction } from '../../../../util/transactions/delegation';
 import { getPaymentOverrideData } from './paymentoverride-callback';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
+import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
 
 export const TransactionPayControllerInit: MessengerClientInitFunction<
   TransactionPayController,
@@ -20,10 +21,11 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
   try {
     const transactionPayController = new TransactionPayController({
       getAmountData,
-      getDelegationTransaction: ({ transaction }) =>
-        getDelegationTransaction(initMessenger, transaction),
-      getPaymentOverrideData: (request) =>
-        getPaymentOverrideData(request, initMessenger),
+      getDelegationTransaction: ({ transaction, isSubsidized }) =>
+        getDelegationTransaction(initMessenger, transaction, isSubsidized),
+      fiatOptions: getTransactionPayFiatTestOptions(),
+      getPaymentOverrideData: (paymentOverrideRequest) =>
+        getPaymentOverrideData(paymentOverrideRequest, initMessenger),
       messenger: controllerMessenger,
       polymarket: createPolymarketCallbacks(initMessenger),
       state: persistedState.TransactionPayController,

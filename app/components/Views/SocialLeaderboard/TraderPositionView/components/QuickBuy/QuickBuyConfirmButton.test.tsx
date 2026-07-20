@@ -21,9 +21,11 @@ describe('QuickBuyConfirmButton', () => {
     expect(screen.getByText('Confirm')).toBeOnTheScreen();
   });
 
-  it('does not render the label in loading state', () => {
+  it('marks the button as busy in loading state', () => {
     render(<QuickBuyConfirmButton {...defaultProps} state="loading" />);
-    expect(screen.queryByText('Confirm')).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId('confirm-button').props.accessibilityState,
+    ).toEqual(expect.objectContaining({ busy: true, disabled: true }));
   });
 
   it('does not render the label in success state', () => {

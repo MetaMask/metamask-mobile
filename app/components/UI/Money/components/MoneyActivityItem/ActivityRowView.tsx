@@ -8,6 +8,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
+  SensitiveText,
+  SensitiveTextLength,
   Text,
   TextColor,
   TextVariant,
@@ -34,6 +36,8 @@ export interface ActivityRowViewProps {
   chainId?: Hex;
   onPress?: (id: string) => void;
   showNetworkBadge?: boolean;
+  /** Whether the crypto/fiat amounts should be masked. */
+  privacyMode?: boolean;
 }
 
 const ActivityRowView = ({
@@ -42,6 +46,7 @@ const ActivityRowView = ({
   chainId,
   onPress,
   showNetworkBadge = false,
+  privacyMode = false,
 }: ActivityRowViewProps) => {
   const tw = useTailwind();
 
@@ -135,22 +140,28 @@ const ActivityRowView = ({
         ) : null}
       </Box>
       <Box alignItems={BoxAlignItems.End} twClassName="shrink-0 gap-0.5">
-        <Text
+        <SensitiveText
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           color={amountColor}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Medium}
           twClassName="text-right"
+          testID={MoneyActivityItemTestIds.PRIMARY_AMOUNT}
         >
           {display.primaryAmount}
-        </Text>
-        <Text
+        </SensitiveText>
+        <SensitiveText
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Short}
           twClassName="text-right"
+          testID={MoneyActivityItemTestIds.FIAT_AMOUNT}
         >
           {display.fiatAmount}
-        </Text>
+        </SensitiveText>
       </Box>
     </Pressable>
   );

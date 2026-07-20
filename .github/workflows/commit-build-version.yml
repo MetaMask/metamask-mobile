@@ -19,17 +19,13 @@ on:
         description: 'Build number from generate-build-version.yml outputs.build-version'
         required: true
         type: string
-    secrets:
-      PR_TOKEN:
-        description: 'GitHub token for checkout and push operations'
-        required: false
     outputs:
       commit-hash:
         description: 'Commit SHA with build version bumped'
         value: ${{ jobs.commit.outputs.commit-hash }}
 
 permissions:
-  contents: write
+  id-token: write
 
 jobs:
   commit:
@@ -37,11 +33,18 @@ jobs:
     outputs:
       commit-hash: ${{ steps.bump-build-version.outputs.commit-hash }}
     steps:
+      - name: Get token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            contents: write
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ inputs.base-branch }}
-          token: ${{ secrets.PR_TOKEN || github.token }}
+          token: ${{ steps.get-token.outputs.token }}
       - name: Bump build version
         id: bump-build-version
         shell: bash

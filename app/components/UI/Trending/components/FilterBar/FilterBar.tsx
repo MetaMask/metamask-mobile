@@ -1,11 +1,13 @@
 import React from 'react';
-import { View } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  FilterButton as FilterPillButton,
   IconName,
   SelectButton,
   SelectButtonVariant,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 
 export interface FilterButtonProps {
   testID: string;
@@ -42,7 +44,7 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
       numberOfLines,
       ellipsizeMode,
     }}
-    twClassName={twClassName}
+    twClassName={twClassName ? `shrink-0 ${twClassName}` : 'shrink-0'}
   />
 );
 
@@ -56,8 +58,18 @@ export interface FilterBarProps {
   networkName: string;
   onNetworkPress: () => void;
 
+  /** When true, renders the watchlist star filter before other pills. */
+  showWatchlistFilter?: boolean;
+  /** Whether the watchlist filter is currently active. */
+  isWatchlistFilterActive?: boolean;
+  /** Called when the watchlist star filter is pressed (toggle). */
+  onWatchlistFilterPress?: () => void;
   /** Optional extra filter buttons rendered after the network button */
   extraFilters?: React.ReactNode;
+  /** Optional testID override for the price-change button */
+  priceChangeTestID?: string;
+  /** Optional testID override for the network button */
+  networkTestID?: string;
 }
 
 /**
@@ -72,32 +84,58 @@ const FilterBar: React.FC<FilterBarProps> = ({
   priceChangeIconName,
   networkName,
   onNetworkPress,
+  showWatchlistFilter = false,
+  isWatchlistFilterActive = false,
+  onWatchlistFilterPress,
   extraFilters,
+  priceChangeTestID = 'price-change-button',
+  networkTestID = 'all-networks-button',
 }) => {
   const tw = useTailwind();
 
   return (
-    <View style={tw`flex-grow-0 px-4 pb-4`}>
-      <View style={tw`flex-row items-center gap-2`}>
-        <FilterButton
-          testID="price-change-button"
-          label={priceChangeButtonText}
-          onPress={onPriceChangePress}
-          disabled={isPriceChangeDisabled}
-          iconName={priceChangeIconName}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        />
-        <FilterButton
-          testID="all-networks-button"
-          label={networkName}
-          onPress={onNetworkPress}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        />
-        {extraFilters}
-      </View>
-    </View>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      style={tw`flex-grow-0`}
+      contentContainerStyle={tw.style(
+        'flex-grow-0 flex-row items-center gap-2 px-4 pb-4',
+      )}
+    >
+      {showWatchlistFilter && onWatchlistFilterPress ? (
+        <FilterPillButton
+          isSelected={isWatchlistFilterActive}
+          startIconName={IconName.StarFilled}
+          onPress={onWatchlistFilterPress}
+          testID="trending-watchlist-filter-watchlist"
+          accessibilityLabel={strings('perps.watchlist.filter_badge_label')}
+          contentWrapperProps={{ gap: 0 }}
+          twClassName={
+            isWatchlistFilterActive ? undefined : 'bg-background-muted'
+          }
+        >
+          {null}
+        </FilterPillButton>
+      ) : null}
+      <FilterButton
+        testID={priceChangeTestID}
+        label={priceChangeButtonText}
+        onPress={onPriceChangePress}
+        disabled={isPriceChangeDisabled}
+        iconName={priceChangeIconName}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      />
+      <FilterButton
+        testID={networkTestID}
+        label={networkName}
+        onPress={onNetworkPress}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      />
+      {extraFilters}
+    </ScrollView>
   );
 };
 

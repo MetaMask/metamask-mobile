@@ -16,6 +16,11 @@ import PerpsWithdrawView from './PerpsWithdrawView';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 
 // Mock component-library Button to avoid IconSize import issues during tests
+jest.mock('../../utils/perpsAnalyticsAttribution', () => ({
+  ...jest.requireActual('../../utils/perpsAnalyticsAttribution'),
+  getPerpsUtmAttributionProperties: jest.fn(() => ({})),
+}));
+
 jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
   __esModule: true,
   default: ({

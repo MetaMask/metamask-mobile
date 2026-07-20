@@ -6,10 +6,9 @@ import {
   isUserCancellation,
 } from '..';
 import { useQRHardwareContext } from '../../../components/Views/confirmations/context/qr-hardware-context';
-import useApprovalRequest from '../../../components/Views/confirmations/hooks/useApprovalRequest';
-import { useTransactionMetadataRequest } from '../../../components/Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 
 interface UseQrConfirmOptions {
+  fromAddress: string;
   onReject: () => void;
   onTransactionConfirm: (opts?: {
     onError?: (err: unknown) => void;
@@ -28,6 +27,7 @@ interface UseQrConfirmOptions {
  * @returns An `onConfirm` callback for the confirmation submit action.
  */
 export function useQrConfirm({
+  fromAddress,
   onReject,
   onTransactionConfirm,
   executeApproval,
@@ -35,15 +35,13 @@ export function useQrConfirm({
 }: UseQrConfirmOptions) {
   const {
     ensureDeviceReady,
+    setPendingOperationAddress,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
   } = useHardwareWallet();
 
   const { isSigningQRObject } = useQRHardwareContext();
-
-  const { approvalRequest } = useApprovalRequest();
-  const transactionMetadata = useTransactionMetadataRequest();
 
   const hasRejectedRef = useRef(false);
 
@@ -69,10 +67,6 @@ export function useQrConfirm({
       onReject();
     };
 
-    const fromAddress =
-      (approvalRequest?.requestData?.from as string) ||
-      (transactionMetadata?.txParams?.from as string);
-
     if (!fromAddress) {
       rejectOnce();
       return;
@@ -96,6 +90,7 @@ export function useQrConfirm({
         address: fromAddress,
         operationType: isTransactionReq ? 'transaction' : 'message',
         ensureDeviceReady,
+        setPendingOperationAddress,
         showAwaitingConfirmation,
         hideAwaitingConfirmation,
         showHardwareWalletError,
@@ -109,13 +104,13 @@ export function useQrConfirm({
       rejectOnce();
     }
   }, [
-    approvalRequest?.requestData?.from,
-    transactionMetadata?.txParams?.from,
+    fromAddress,
     isSigningQRObject,
     executeQrConfirmation,
     isTransactionReq,
     onReject,
     ensureDeviceReady,
+    setPendingOperationAddress,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,

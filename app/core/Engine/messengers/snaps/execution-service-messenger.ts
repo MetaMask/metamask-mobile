@@ -1,4 +1,8 @@
-import { Messenger } from '@metamask/messenger';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+} from '@metamask/messenger';
 import { ExecutionServiceMessenger } from '@metamask/snaps-controllers';
 import { RootMessenger } from '../../types';
 
@@ -10,7 +14,10 @@ import { RootMessenger } from '../../types';
  * @returns The ExecutionServiceMessenger.
  */
 export function getExecutionServiceMessenger(
-  rootMessenger: RootMessenger,
+  rootMessenger: RootMessenger<
+    MessengerActions<ExecutionServiceMessenger>,
+    MessengerEvents<ExecutionServiceMessenger>
+  >,
 ): ExecutionServiceMessenger {
   const messenger: ExecutionServiceMessenger = new Messenger({
     namespace: 'ExecutionService',

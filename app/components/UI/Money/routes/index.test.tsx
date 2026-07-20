@@ -103,19 +103,19 @@ jest.mock('../components/MoneyLinkCardSheet', () => () => (
 jest.mock('../components/MoneyEarnCryptoInfoSheet', () => () => (
   <MockView testID="mock-money-earn-crypto-info-sheet" />
 ));
-jest.mock('../components/MoneyTransactionDetailsSheet', () => () => (
-  <MockView testID="mock-money-transaction-details-sheet" />
-));
 jest.mock('../../../Views/confirmations/components/confirm', () => ({
   Confirm: () => <MockView testID="mock-confirm" />,
 }));
+jest.mock('../components/MoneyGeoBlockSheet/MoneyGeoBlockSheet', () => () => (
+  <MockView testID="mock-money-geo-block-sheet" />
+));
 
 describe('MoneyTabScreenStack', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('registers Money home, activity, how-it-works, and potential-earnings screens', () => {
+  it('registers Money home, activity, and how-it-works screens', () => {
     const { getByTestId } = renderWithProvider(<MoneyTabScreenStack />, {
       theme: themeWithCustomBackground,
     });
@@ -123,9 +123,6 @@ describe('MoneyTabScreenStack', () => {
     expect(getByTestId('money-screen-MoneyHome')).toBeOnTheScreen();
     expect(getByTestId('money-screen-MoneyActivity')).toBeOnTheScreen();
     expect(getByTestId('money-screen-MoneyHowItWorks')).toBeOnTheScreen();
-    expect(
-      getByTestId('money-screen-MoneyPotentialEarnings'),
-    ).toBeOnTheScreen();
   });
 
   it('sets stack content background from theme to avoid flash during inner navigation', () => {
@@ -269,13 +266,11 @@ describe('MoneyModalStack', () => {
     ).toBeOnTheScreen();
   });
 
-  it('registers the Transaction details sheet as a modal screen', () => {
+  it('registers the Geo block sheet as a modal screen', () => {
     const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
       theme: themeWithCustomBackground,
     });
 
-    expect(
-      getByTestId('money-screen-MoneyTransactionDetailsSheet'),
-    ).toBeOnTheScreen();
+    expect(getByTestId('money-screen-MoneyGeoBlockSheet')).toBeOnTheScreen();
   });
 });

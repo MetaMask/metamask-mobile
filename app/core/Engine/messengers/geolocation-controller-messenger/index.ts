@@ -3,11 +3,7 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
-import type {
-  GeolocationControllerMessenger,
-  GeolocationControllerActions,
-  GeolocationControllerEvents,
-} from '@metamask/geolocation-controller';
+import type { GeolocationControllerMessenger } from '@metamask/geolocation-controller';
 import type { RootMessenger } from '../../types';
 
 const name = 'GeolocationController' as const;
@@ -21,14 +17,12 @@ const name = 'GeolocationController' as const;
  * @returns The GeolocationControllerMessenger.
  */
 export function getGeolocationControllerMessenger(
-  rootMessenger: RootMessenger,
-): GeolocationControllerMessenger {
-  const messenger = new Messenger<
-    typeof name,
+  rootMessenger: RootMessenger<
     MessengerActions<GeolocationControllerMessenger>,
-    MessengerEvents<GeolocationControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<GeolocationControllerMessenger>
+  >,
+): GeolocationControllerMessenger {
+  const messenger: GeolocationControllerMessenger = new Messenger({
     namespace: name,
     parent: rootMessenger,
   });
@@ -41,5 +35,3 @@ export function getGeolocationControllerMessenger(
 
   return messenger;
 }
-
-export type { GeolocationControllerActions, GeolocationControllerEvents };

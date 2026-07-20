@@ -5,6 +5,11 @@ import { PERPS_EVENT_VALUE, type Position } from '@metamask/perps-controller';
 
 // react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
 
+jest.mock('../../utils/perpsAnalyticsAttribution', () => ({
+  ...jest.requireActual('../../utils/perpsAnalyticsAttribution'),
+  getPerpsUtmAttributionProperties: jest.fn(() => ({})),
+}));
+
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: 'View',
   GestureDetector: 'View',
@@ -411,35 +416,84 @@ describe('PerpsTPSLView', () => {
     ])(
       'handles focus and blur events for %s input',
       (_description, getInput, focusHandler, blurHandler) => {
-        jest.useFakeTimers();
-        try {
-          const mockFocusHandler = jest.fn();
-          const mockBlurHandler = jest.fn();
-          renderView({
-            handlers: {
-              ...defaultMockReturn.handlers,
-              [focusHandler]: mockFocusHandler,
-              [blurHandler]: mockBlurHandler,
-            },
-          });
+        const mockFocusHandler = jest.fn();
+        const mockBlurHandler = jest.fn();
+        renderView({
+          handlers: {
+            ...defaultMockReturn.handlers,
+            [focusHandler]: mockFocusHandler,
+            [blurHandler]: mockBlurHandler,
+          },
+        });
 
-          fireEvent(getInput(), 'focus');
+        fireEvent(getInput(), 'focus');
+        fireEvent(getInput(), 'blur');
 
-          // Flush the iOS programmatic-dismiss guard (rAF + 150ms setTimeout)
-          // so isProgrammaticDismissRef resets to false before the blur fires.
-          act(() => {
-            jest.advanceTimersByTime(200);
-          });
-
-          fireEvent(getInput(), 'blur');
-
-          expect(mockFocusHandler).toHaveBeenCalled();
-          expect(mockBlurHandler).toHaveBeenCalled();
-        } finally {
-          jest.useRealTimers();
-        }
+        expect(mockFocusHandler).toHaveBeenCalled();
+        expect(mockBlurHandler).toHaveBeenCalled();
       },
     );
+
+    it.each([
+      [
+        'take profit',
+        () => getTakeProfitPriceInput(),
+        () => getTakeProfitPercentageInput(),
+        'handleTakeProfitPriceBlur',
+        'handleTakeProfitPercentageFocus',
+      ],
+      [
+        'stop loss',
+        () => getStopLossPriceInput(),
+        () => getStopLossPercentageInput(),
+        'handleStopLossPriceBlur',
+        'handleStopLossPercentageFocus',
+      ],
+    ])(
+      // Regression: when the user moves focus from the price field to the %
+      // field, the price blur must be delivered regardless of the order in
+      // which focus/blur events arrive, so that hook focus state stays accurate.
+      'delivers %s price blur when focus moves from price to percentage field',
+      (_description, getPriceInput, getPctInput, priceBlurHandler) => {
+        const mockPriceBlur = jest.fn();
+        renderView({
+          handlers: {
+            ...defaultMockReturn.handlers,
+            [priceBlurHandler]: mockPriceBlur,
+          },
+        });
+
+        fireEvent(getPriceInput(), 'focus');
+        fireEvent(getPctInput(), 'focus');
+        fireEvent(getPriceInput(), 'blur');
+
+        expect(mockPriceBlur).toHaveBeenCalled();
+      },
+    );
+
+    it.each([
+      ['take profit price', () => getTakeProfitPriceInput()],
+      ['take profit percentage', () => getTakeProfitPercentageInput()],
+      ['stop loss price', () => getStopLossPriceInput()],
+      ['stop loss percentage', () => getStopLossPercentageInput()],
+    ])(
+      'renders %s input with showSoftInputOnFocus={false}',
+      (_description, getInput) => {
+        renderView();
+        expect(getInput().props.showSoftInputOnFocus).toBe(false);
+      },
+    );
+
+    it('does not call Keyboard.dismiss when an input is focused', () => {
+      const { Keyboard } = jest.requireActual('react-native');
+      const dismissSpy = jest.spyOn(Keyboard, 'dismiss');
+      renderView();
+
+      fireEvent(getTakeProfitPriceInput(), 'focus');
+
+      expect(dismissSpy).not.toHaveBeenCalled();
+      dismissSpy.mockRestore();
+    });
   });
 
   // ==================== Display Hook Data ====================
@@ -526,7 +580,7 @@ describe('PerpsTPSLView', () => {
         undefined,
         '3150.00',
         '2850.00',
-        {
+        expect.objectContaining({
           direction: 'long',
           source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
           positionSize: 0,
@@ -534,7 +588,7 @@ describe('PerpsTPSLView', () => {
           stopLossPercentage: undefined,
           isEditingExistingPosition: false,
           entryPrice: 3000,
-        },
+        }),
       );
     });
 
@@ -557,7 +611,7 @@ describe('PerpsTPSLView', () => {
         undefined,
         undefined,
         undefined,
-        {
+        expect.objectContaining({
           direction: 'long',
           source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
           positionSize: 0,
@@ -565,7 +619,7 @@ describe('PerpsTPSLView', () => {
           stopLossPercentage: undefined,
           isEditingExistingPosition: false,
           entryPrice: 3000,
-        },
+        }),
       );
     });
 

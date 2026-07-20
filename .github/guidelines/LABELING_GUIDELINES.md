@@ -43,6 +43,10 @@ Using any of these labels should be exceptional in case of CI friction and urgen
 
 - **run-performance-tests**: Forces the PR performance E2E workflow to run (all performance tests on Android low-profile devices), even when Smart E2E Selection would skip them (e.g. no performance-relevant changes detected, `skip-e2e`, or `pr-not-ready-for-e2e`). Adding or removing this label re-triggers CI. Not honored on fork PRs.
 
+### Force Appium iOS Smoke Tests
+
+- **run-appium-ios-tests**: Also runs Appium iOS smoke tests on a PR (normally they run only on `main` push/schedule). Uses the same Smart E2E Selection tags as Detox/Appium Android — it does not bypass path filters, build gates, or AI tag selection. Remove `pr-not-ready-for-e2e` when the PR is ready for E2E validation. Adding or removing this label re-triggers CI. Not honored on fork PRs.
+
 ### Block merge if any is present
 
 - **needs-qa**: The PR requires a full manual QA prior to being merged and added to a release.

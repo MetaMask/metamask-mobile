@@ -130,4 +130,20 @@ describe('useLastUsedPaymentMethod', () => {
 
     expect(result.current).toBe(firstResult);
   });
+
+  it('renderLastUsedTag returns a non-null node when the token matches the last-used token', () => {
+    const { result } = renderHook(() => useLastUsedPaymentMethod());
+
+    expect(
+      result.current.renderLastUsedTag(TOKEN_ADDRESS_MOCK, CHAIN_ID_MOCK),
+    ).not.toBeNull();
+  });
+
+  it('renderLastUsedTag returns null when the token does not match', () => {
+    const { result } = renderHook(() => useLastUsedPaymentMethod());
+
+    expect(
+      result.current.renderLastUsedTag(OTHER_TOKEN_ADDRESS_MOCK, CHAIN_ID_MOCK),
+    ).toBeNull();
+  });
 });

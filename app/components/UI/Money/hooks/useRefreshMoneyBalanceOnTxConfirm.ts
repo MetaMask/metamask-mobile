@@ -3,12 +3,16 @@ import {
   TransactionStatus,
 } from '@metamask/transaction-controller';
 import { useEffect } from 'react';
+import type { MoneyAccountBalanceResponse } from '@metamask/money-account-balance-service';
 import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { store } from '../../../../store';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
-import { isMoneyAccountTx } from '../utils/moneyTransactionGuards';
+import {
+  isMoneyAccountTx,
+  isPerpsPredictMoneyActivity,
+} from '../utils/moneyTransactionGuards';
 import Logger from '../../../../util/Logger';
 import { calculateExponentialRetryDelay } from '../../../../util/exponential-retry';
 
@@ -18,45 +22,30 @@ const MAX_RETRIES = 4;
 const BASE_DELAY_MS = 500;
 const MAX_DELAY_MS = 4000;
 
-type MusdBalanceSnapshot = { balance: string } | undefined;
-type MusdEquivalentSnapshot = { balanceOfInAssets: string } | undefined;
+type MoneyBalanceSnapshot = MoneyAccountBalanceResponse | undefined;
 
 const sleep = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-const readBalanceSnapshot = (address: string) => ({
-  musd: ReactQueryService.queryClient.getQueryData<MusdBalanceSnapshot>([
-    MoneyAccountBalanceServiceQueryKeys.GET_MUSD_BALANCE,
+const readBalanceSnapshot = (address: string) =>
+  ReactQueryService.queryClient.getQueryData<MoneyBalanceSnapshot>([
+    MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
     address,
-  ]),
-  equivalent:
-    ReactQueryService.queryClient.getQueryData<MusdEquivalentSnapshot>([
-      MoneyAccountBalanceServiceQueryKeys.GET_MUSD_EQUIVALENT_VALUE,
-      address,
-    ]),
-});
+  ]);
 
 const didBalanceChange = (
-  before: ReturnType<typeof readBalanceSnapshot>,
-  after: ReturnType<typeof readBalanceSnapshot>,
-) =>
-  before.musd?.balance !== after.musd?.balance ||
-  before.equivalent?.balanceOfInAssets !== after.equivalent?.balanceOfInAssets;
+  before: MoneyBalanceSnapshot,
+  after: MoneyBalanceSnapshot,
+) => before?.totalBalance !== after?.totalBalance;
 
 const invalidateBalanceQueries = async (address: string) =>
-  Promise.all([
-    ReactQueryService.queryClient.invalidateQueries({
-      queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_MUSD_BALANCE, address],
-      refetchType: 'all',
-    }),
-    ReactQueryService.queryClient.invalidateQueries({
-      queryKey: [
-        MoneyAccountBalanceServiceQueryKeys.GET_MUSD_EQUIVALENT_VALUE,
-        address,
-      ],
-      refetchType: 'all',
-    }),
-  ]);
+  ReactQueryService.queryClient.invalidateQueries({
+    queryKey: [
+      MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
+      address,
+    ],
+    refetchType: 'all',
+  });
 
 /**
  * Capture the pre-invalidation cached snapshot as a baseline, then invalidate +
@@ -101,10 +90,17 @@ export const useRefreshMoneyBalanceOnTxConfirm = () => {
   useEffect(() => {
     const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
       if (transactionMeta.status !== TransactionStatus.confirmed) return;
-      if (!isMoneyAccountTx(transactionMeta)) return;
 
       const address = selectPrimaryMoneyAccount(store.getState())?.address;
       if (!address) return;
+
+      // Direct Money txs (deposit/withdraw) plus Perps/Predict transfers to or
+      // from the Money account (paid with mUSD via MetaMask Pay), which also
+      // move mUSD and so must refresh the balance.
+      const affectsMoneyBalance =
+        isMoneyAccountTx(transactionMeta) ||
+        isPerpsPredictMoneyActivity(transactionMeta);
+      if (!affectsMoneyBalance) return;
 
       refreshMoneyBalanceQueries(address).catch((error) => {
         Logger.error(error, `${LOG_PREFIX} Balance refresh failed`);

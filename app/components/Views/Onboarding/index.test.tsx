@@ -299,8 +299,8 @@ const mockNav = {
     }
   }),
 };
-jest.mock('@react-navigation/stack', () => ({
-  createStackNavigator: () => ({
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: () => ({
     Navigator: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     Screen: ({
       component: ScreenComponent,
@@ -745,7 +745,6 @@ describe('Onboarding', () => {
               'error_sheet.no_internet_connection_description',
             ),
             descriptionAlign: 'left',
-            buttonLabel: strings('error_sheet.no_internet_connection_button'),
             primaryButtonLabel: strings(
               'error_sheet.no_internet_connection_button',
             ),
@@ -1459,7 +1458,7 @@ describe('Onboarding', () => {
             title: strings('error_sheet.user_cancelled_title'),
             description: strings('error_sheet.user_cancelled_description'),
             descriptionAlign: 'center',
-            buttonLabel: strings('error_sheet.user_cancelled_button'),
+            primaryButtonLabel: strings('error_sheet.user_cancelled_button'),
             type: 'error',
           }),
         }),
@@ -1506,7 +1505,7 @@ describe('Onboarding', () => {
             title: strings('error_sheet.oauth_error_title'),
             description: strings('error_sheet.oauth_error_description'),
             descriptionAlign: 'center',
-            buttonLabel: strings('error_sheet.oauth_error_button'),
+            primaryButtonLabel: strings('error_sheet.oauth_error_button'),
             type: 'error',
           }),
         }),
@@ -3341,7 +3340,7 @@ describe('Onboarding', () => {
               title: strings('error_sheet.oauth_error_title'),
               description: strings('error_sheet.oauth_error_description'),
               descriptionAlign: 'center',
-              buttonLabel: strings('error_sheet.oauth_error_button'),
+              primaryButtonLabel: strings('error_sheet.oauth_error_button'),
               type: 'error',
             }),
           }),

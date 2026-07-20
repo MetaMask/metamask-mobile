@@ -36,14 +36,14 @@ import {
   getOrders,
 } from '../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
-import { getProviderToken } from '../../Ramp/Deposit/utils/ProviderTokenVault';
+import { getProviderToken } from '../../Ramp/utils/ProviderTokenVault';
 import {
   completedOrdersFromFiatOrders,
   completedOrdersFromRampsOrders,
 } from '../../Ramp/utils/determinePreferredProvider';
-import useRampsUnifiedV2Enabled from '../../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { BridgeToken } from '../../Bridge/types';
 import { adaptTokenSecurityData } from '../../Bridge/utils/tokenSecurityUtils';
+import { getSwapDestToken } from '../../Bridge/utils/getSwapDestToken';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import {
   isExploreTokenDetailsSource,
@@ -220,7 +220,6 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
   const store = useStore<RootState>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { goToBuy } = useRampNavigation();
-  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
   const isAuthenticated = useIsRampAuthenticated();
 
   return useCallback(() => {
@@ -270,7 +269,7 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
           button_text: 'Buy',
           location: 'TokenDetails',
           chain_id_destination: getDecimalChainId(tokenChainIdHex),
-          ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'BUY',
+          ramp_type: 'UNIFIED_BUY_2',
           region: rampGeodetectedRegion,
           is_authenticated: isAuthenticated,
           preferred_provider: preferredProvider,
@@ -281,15 +280,7 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
     );
 
     goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
-  }, [
-    store,
-    token,
-    trackEvent,
-    createEventBuilder,
-    isV2UnifiedEnabled,
-    isAuthenticated,
-    goToBuy,
-  ]);
+  }, [store, token, trackEvent, createEventBuilder, isAuthenticated, goToBuy]);
 };
 
 /**
@@ -330,8 +321,12 @@ export const useHandleOnSwap = ({
     const currentTokenAsBridgeToken = toCurrentTokenAsBridgeToken(token);
     const balanceForCheck = currentTokenBalance ?? token.balance;
 
+    const destTokenOverride = token.chainId
+      ? getSwapDestToken(token.chainId, token.address)
+      : undefined;
+
     if (hasPositiveBalance(balanceForCheck)) {
-      goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
+      goToSwaps(currentTokenAsBridgeToken, destTokenOverride, undefined, true);
       return;
     }
 
@@ -344,11 +339,15 @@ export const useHandleOnSwap = ({
     );
 
     if (buySourceToken) {
-      goToSwaps(buySourceToken, currentTokenAsBridgeToken, undefined, true);
+      goToSwaps(
+        buySourceToken,
+        destTokenOverride ?? currentTokenAsBridgeToken,
+        undefined,
+        true,
+      );
       return;
     }
-
-    goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
+    goToSwaps(currentTokenAsBridgeToken, destTokenOverride, undefined, true);
   }, [goToSwaps, store, token, currentTokenBalance]);
 };
 

@@ -1,0 +1,97 @@
+---
+description: Use shared version-gated feature flag helpers; never duplicate hasMinimumRequiredVersion or validatedVersionGatedFeatureFlag
+globs: app/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Version-Gated Feature Flags
+
+> Canonical human guide: [`docs/readme/version-gated-feature-flags.md`](../../docs/readme/version-gated-feature-flags.md)
+
+## Canonical source (SSOT)
+
+All version-gated feature flag logic lives in `app/util/remoteFeatureFlag/index.ts`:
+
+- `validatedVersionGatedFeatureFlag` — preferred for remote flags shaped as `{ enabled, minimumVersion }` (or progressive-rollout wrappers)
+- `hasMinimumRequiredVersion` — version comparison only; import when needed, never redefine
+
+## Required patterns
+
+### ✅ Use `validatedVersionGatedFeatureFlag` in selectors
+
+```typescript
+import { validatedVersionGatedFeatureFlag, VersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
+
+export const selectMyFeatureEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.myFeature as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+```
+
+### ✅ Non-standard flag shapes — map, don't duplicate
+
+Configs that use `active` instead of `enabled` (e.g. `depositConfig`) must map to the canonical shape and call the shared helper:
+
+```typescript
+import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
+
+return (
+  validatedVersionGatedFeatureFlag({
+    enabled: depositConfig.active ?? false,
+    minimumVersion: depositConfig.minimumVersion ?? '',
+  }) ?? false
+);
+```
+
+### ✅ Import `hasMinimumRequiredVersion` only from the util
+
+```typescript
+import { hasMinimumRequiredVersion } from '../../../util/remoteFeatureFlag';
+```
+
+Never copy the `compare-versions` + `getVersion` pattern into feature modules.
+
+## Forbidden patterns
+
+### ❌ Do not define local version-gating helpers
+
+```typescript
+// FORBIDDEN — duplicate of app/util/remoteFeatureFlag
+function hasMinimumRequiredVersion(minVersion: string) { ... }
+const validatedVersionGatedFeatureFlag = (flag: unknown) => { ... }
+```
+
+### ❌ Do not inline version checks for feature flags
+
+```typescript
+// FORBIDDEN
+import { getVersion } from 'react-native-device-info';
+import compareVersions from 'compare-versions';
+
+const ok = compareVersions.compare(getVersion(), flag.minimumVersion, '>=');
+```
+
+### ❌ Do not add duplicate utils under feature folders
+
+Do not create files like:
+
+- `app/components/UI/**/utils/hasMinimumRequiredVersion.ts`
+- `app/core/redux/slices/**/hasMinimumRequiredVersion.ts`
+
+## Where logic belongs
+
+| Layer | Responsibility |
+|-------|----------------|
+| `RemoteFeatureFlagController` | Fetch/store raw flags — **no** client version gating |
+| `app/util/remoteFeatureFlag` | Version comparison + `validatedVersionGatedFeatureFlag` |
+| Selectors (`featureFlagController`, `**/selectors/featureFlags`) | Call shared helpers; return `boolean` |
+| Hooks / components | `useSelector(selectXEnabled)` — not local version math |
+
+## Enforcement
+
+- **REJECT** new local definitions of `hasMinimumRequiredVersion` or `validatedVersionGatedFeatureFlag`
+- **REJECT** new `compare-versions` + `getVersion` usage for feature-flag gating outside `app/util/remoteFeatureFlag`
+- **REQUIRE** imports from `app/util/remoteFeatureFlag` for all version-gated flag checks

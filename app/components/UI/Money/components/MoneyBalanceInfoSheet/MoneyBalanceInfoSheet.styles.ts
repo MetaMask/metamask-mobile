@@ -7,7 +7,6 @@ const styleSheet = (params: { theme: Theme }) =>
       paddingHorizontal: 16,
       paddingBottom: 16,
       gap: 16,
-      backgroundColor: params.theme.colors.background.default,
     },
   });
 

@@ -4,6 +4,7 @@ import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.test
 import StakeButton from './index';
 import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../locales/i18n';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_USDC_MAINNET_ASSET,
@@ -248,6 +249,12 @@ describe('StakeButton', () => {
   });
 
   describe('Pooled-Staking', () => {
+    it('renders "Stake" as CTA label for pooled-staking', () => {
+      const { getByText } = renderComponent();
+
+      expect(getByText(strings('stake.stake'))).toBeOnTheScreen();
+    });
+
     it('navigates to Stake Input screen when stake button is pressed and user is eligible', async () => {
       const { getByTestId } = renderComponent();
 
@@ -324,6 +331,17 @@ describe('StakeButton', () => {
   });
 
   describe('Stablecoin Lending', () => {
+    it('renders "Earn" as CTA label for stablecoin lending', () => {
+      const { getByText } = renderWithProvider(
+        <StakeButton asset={MOCK_USDC_MAINNET_ASSET_WITH_MINIMUM_BALANCE} />,
+        {
+          state: STATE_MOCK,
+        },
+      );
+
+      expect(getByText(strings('stake.earn'))).toBeOnTheScreen();
+    });
+
     it('navigates to Lending Input View when earn button is pressed', async () => {
       const { getByTestId } = renderWithProvider(
         <StakeButton asset={MOCK_USDC_MAINNET_ASSET_WITH_MINIMUM_BALANCE} />,

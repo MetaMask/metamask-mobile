@@ -1045,6 +1045,7 @@ describe('transactionTransforms', () => {
           size: '50000',
           limitPrice: '50000',
           filled: '100%', // Filled status without fill data defaults to 100%
+          side: 'buy',
         },
       });
     });

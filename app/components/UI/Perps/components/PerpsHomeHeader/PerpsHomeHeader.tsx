@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity, TextInput, Pressable } from 'react-native';
+import { View, TouchableOpacity, Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -12,6 +12,7 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Input,
   Text,
   TextColor,
   TextVariant,
@@ -134,12 +135,14 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
               color={IconColor.IconAlternative}
               style={tw.style('mr-2')}
             />
-            <TextInput
+            <Input
               value={searchQuery}
               onChangeText={onSearchQueryChange}
               placeholder={strings('perps.search_by_token_symbol')}
               placeholderTextColor={colors.text.muted}
               autoFocus
+              isStateStylesDisabled
+              twClassName="flex-1 bg-transparent border-0"
               style={tw.style('flex-1 text-base text-default')}
               testID={testID ? `${testID}-search-bar` : undefined}
             />

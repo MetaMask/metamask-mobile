@@ -204,7 +204,8 @@ const createStyles = (colors: Colors) =>
       alignSelf: 'center',
     },
     networkNameText: {
-      flex: 1,
+      flexGrow: 1,
+      flexShrink: 1,
       minWidth: 0,
     },
   });

@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsOrderForm } from './usePerpsOrderForm';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import { usePerpsLivePrices } from './stream/usePerpsLivePrices';
@@ -152,8 +153,18 @@ describe('usePerpsOrderForm', () => {
       isInitialLoading: false,
     });
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { price: '50000', timestamp: Date.now(), symbol: 'BTC' },
-      ETH: { price: '3000', timestamp: Date.now(), symbol: 'ETH' },
+      BTC: {
+        price: '50000',
+        timestamp: Date.now(),
+        symbol: 'BTC',
+        isTradable: true,
+      },
+      ETH: {
+        price: '3000',
+        timestamp: Date.now(),
+        symbol: 'ETH',
+        isTradable: true,
+      },
     });
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
@@ -812,7 +823,12 @@ describe('usePerpsOrderForm', () => {
 
       // BTC at $50000 with szDecimals=0: position size rounding is per whole token
       mockUsePerpsLivePrices.mockReturnValue({
-        BTC: { price: '50000', timestamp: Date.now(), symbol: 'BTC' },
+        BTC: {
+          price: '50000',
+          timestamp: Date.now(),
+          symbol: 'BTC',
+          isTradable: true,
+        },
       });
 
       const { result } = renderHook(
@@ -940,6 +956,93 @@ describe('usePerpsOrderForm', () => {
       });
 
       expect(result.current.orderForm.amount).toBe('0');
+    });
+  });
+
+  describe('callback referential stability', () => {
+    const STABLE_CALLBACKS = [
+      'updateOrderForm',
+      'setAmount',
+      'setLeverage',
+      'setDirection',
+      'setAsset',
+      'setTakeProfitPrice',
+      'setStopLossPrice',
+      'setLimitPrice',
+      'setOrderType',
+      'handlePercentageAmount',
+      'handleMaxAmount',
+      'handleMinAmount',
+    ] as const;
+
+    it('keeps callback identities stable across re-renders with no state changes', () => {
+      const { result, rerender } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      const first = STABLE_CALLBACKS.map((key) => result.current[key]);
+
+      rerender({});
+
+      STABLE_CALLBACKS.forEach((key, index) => {
+        expect(result.current[key]).toBe(first[index]);
+      });
+    });
+
+    it('keeps state-independent setter identities stable after a state change', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      // Setters that use functional updates only and have no reactive deps
+      const stateIndependent = [
+        'updateOrderForm',
+        'setAmount',
+        'setLeverage',
+        'setDirection',
+        'setAsset',
+        'setTakeProfitPrice',
+        'setStopLossPrice',
+        'setLimitPrice',
+        'setOrderType',
+      ] as const;
+
+      const before = stateIndependent.map((key) => result.current[key]);
+
+      act(() => {
+        result.current.setAmount('250');
+      });
+
+      expect(result.current.orderForm.amount).toBe('250');
+
+      stateIndependent.forEach((key, index) => {
+        expect(result.current[key]).toBe(before[index]);
+      });
+    });
+
+    it('preserves setStopLossPrice DevLogger side effect and clearing behavior', () => {
+      const devLoggerSpy = jest.spyOn(DevLogger, 'log').mockImplementation();
+
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.setStopLossPrice('45000');
+      });
+      expect(result.current.orderForm.stopLossPrice).toBe('45000');
+
+      act(() => {
+        result.current.setStopLossPrice('');
+      });
+      expect(result.current.orderForm.stopLossPrice).toBeUndefined();
+
+      expect(devLoggerSpy).toHaveBeenCalledWith(
+        '[Order Debug] setStopLossPrice state update:',
+        expect.objectContaining({ wasCleared: true }),
+      );
+
+      devLoggerSpy.mockRestore();
     });
   });
 });

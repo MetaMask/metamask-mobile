@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { handleFetch } from '@metamask/controller-utils';
-import type { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
+import type { DepositCryptoCurrency } from '../types/legacyDeposit';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
 import Logger from '../../../../util/Logger';

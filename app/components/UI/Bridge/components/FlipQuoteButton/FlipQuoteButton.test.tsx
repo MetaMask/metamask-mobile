@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { Animated } from 'react-native';
 import { FLipQuoteButton } from './index';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { initialState } from '../../_mocks_/initialState';
@@ -17,6 +18,9 @@ const renderFlipQuoteButton = (disabled: boolean = false) =>
 describe('FLipQuoteButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Animated, 'timing').mockReturnValue({
+      start: jest.fn(),
+    } as unknown as Animated.CompositeAnimation);
   });
 
   afterEach(() => {

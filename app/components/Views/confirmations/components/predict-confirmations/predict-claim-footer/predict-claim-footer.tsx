@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
+import Engine from '../../../../../../core/Engine';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -38,6 +39,7 @@ export function PredictClaimFooter({
   const { setIsConfirmationSubmitting } = useConfirmationContext();
 
   const address = transactionMetadata?.txParams.from;
+  const transactionId = transactionMetadata?.id;
 
   const wonPositions = useSelector(
     selectPredictWonPositions({
@@ -47,11 +49,26 @@ export function PredictClaimFooter({
 
   const hasNoPositions = !address || !wonPositions?.length;
 
+  const hasTrackedNoPositions = useRef(false);
+
   useEffect(() => {
     if (hasNoPositions) {
+      // Resolution-lag is the dominant claim failure mode (PRED-963). Route the
+      // failure through the controller so it shares the per-attempt idempotency
+      // guard with the transaction-status terminal event (preventing a
+      // duplicate/contradictory `user_rejected` or `succeeded` for the same
+      // claim). Render-level ref avoids re-firing on re-renders.
+      if (!hasTrackedNoPositions.current) {
+        hasTrackedNoPositions.current = true;
+        Engine.context.PredictController?.trackClaimResolutionLagFailure?.({
+          transactionId,
+          address,
+        });
+      }
+
       onError(new Error('Tried to claim but no positions were won'));
     }
-  }, [hasNoPositions, onError]);
+  }, [hasNoPositions, onError, address, transactionId]);
 
   const handlePress = useCallback(async () => {
     setIsConfirmationSubmitting(true);

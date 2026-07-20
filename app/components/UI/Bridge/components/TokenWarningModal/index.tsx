@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 // Must use this to make sure scroll works inside a bottom sheet on Android
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import BottomSheet, {
   BottomSheetRef,
@@ -90,8 +90,7 @@ export const getTokenWarningContent = (
 };
 
 export const TokenWarningModal = () => {
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [loading, setLoading] = useState(false);
 
@@ -151,7 +150,11 @@ export const TokenWarningModal = () => {
     }
 
     setLoading(true);
-    await confirmBridge();
+    if (sheetRef.current?.onCloseBottomSheet) {
+      sheetRef.current.onCloseBottomSheet(confirmBridge);
+    } else {
+      await confirmBridge();
+    }
   }, [
     activeQuote,
     bridgeFeatureFlags,

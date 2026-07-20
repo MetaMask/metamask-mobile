@@ -206,27 +206,51 @@ const PerpsOrderBookTable: React.FC<PerpsOrderBookTableProps> = ({
 
   return (
     <View style={styles.container} testID={testID}>
-      {/* Column Headers */}
+      {/* Column Headers - mirrors the bid/ask split row structure */}
       <View style={styles.header}>
-        <View style={styles.headerColumn}>
-          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-            {strings('perps.order_book.total')} ({unitLabel})
-          </Text>
-        </View>
-        <View style={styles.headerColumnCenter}>
-          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-            {strings('perps.order_book.price')}
-          </Text>
-        </View>
-        <View style={styles.headerColumnCenter}>
-          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-            {strings('perps.order_book.price')}
-          </Text>
-        </View>
-        <View style={styles.headerColumnRight}>
-          <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-            {strings('perps.order_book.total')} ({unitLabel})
-          </Text>
+        <View style={styles.bookContainer}>
+          <View style={styles.bidsSide}>
+            <View style={styles.row}>
+              <View style={styles.totalColumn}>
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                  numberOfLines={1}
+                >
+                  {strings('perps.order_book.total')} ({unitLabel})
+                </Text>
+              </View>
+              <View style={styles.priceColumnBid}>
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.order_book.price')}
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View style={styles.asksSide}>
+            <View style={styles.row}>
+              <View style={styles.priceColumnAsk}>
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.order_book.price')}
+                </Text>
+              </View>
+              <View style={styles.totalColumnRight}>
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                  numberOfLines={1}
+                >
+                  {strings('perps.order_book.total')} ({unitLabel})
+                </Text>
+              </View>
+            </View>
+          </View>
         </View>
       </View>
 

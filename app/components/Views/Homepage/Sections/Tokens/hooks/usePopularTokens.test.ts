@@ -99,27 +99,6 @@ describe('usePopularTokens', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('includes localized description for mUSD token', async () => {
-    mockHandleFetch.mockResolvedValue({});
-
-    const { result } = renderHook(() => usePopularTokens());
-
-    await waitFor(() => {
-      expect(result.current.isInitialLoading).toBe(false);
-    });
-
-    const musdToken = result.current.tokens.find(
-      (token) => token.symbol === 'mUSD',
-    );
-    expect(musdToken?.description).toBe('Get 3% mUSD bonus');
-
-    // Other tokens should not have a description
-    const ethToken = result.current.tokens.find(
-      (token) => token.symbol === 'ETH',
-    );
-    expect(ethToken?.description).toBeUndefined();
-  });
-
   it('sets error state when fetch fails', async () => {
     mockHandleFetch.mockRejectedValue(new Error('Network error'));
 
