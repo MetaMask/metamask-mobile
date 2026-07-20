@@ -94,3 +94,20 @@ export function formatRampActivityDate(timestamp: number) {
   }).format(date);
   return `${month} ${date.getDate()}, ${date.getFullYear()} at ${timeString}`;
 }
+
+/** Matches OrderContent short id: `...` + last 6 chars when longer than 8. */
+export function formatShortRampOrderId(orderId: string | undefined): string {
+  if (!orderId) {
+    return '...';
+  }
+  return orderId.length > 8 ? `...${orderId.slice(-6)}` : orderId;
+}
+
+export function getFiatOrderProviderOrderLink(
+  order: FiatOrder,
+): string | undefined {
+  const data = order.data as { providerOrderLink?: unknown } | undefined;
+  return typeof data?.providerOrderLink === 'string'
+    ? data.providerOrderLink
+    : undefined;
+}

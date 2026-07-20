@@ -107,13 +107,16 @@ export function toRampsOrderToken(
   order: RampsOrder,
   direction: TokenAmount['direction'],
 ): TokenAmount {
+  // RampsOrder.cryptoAmount is already human-readable. Activity TokenAmount
+  // amounts are treated as atomic when `decimals` is set
+  // (`getHumanReadableTokenAmount` → formatUnits), so do not attach decimals
+  // from cryptoCurrency metadata here.
   return {
     amount:
       order.cryptoAmount === undefined || order.cryptoAmount === null
         ? undefined
         : String(order.cryptoAmount),
     assetId: order.cryptoCurrency?.assetId,
-    decimals: order.cryptoCurrency?.decimals,
     symbol: order.cryptoCurrency?.symbol,
     direction,
   };

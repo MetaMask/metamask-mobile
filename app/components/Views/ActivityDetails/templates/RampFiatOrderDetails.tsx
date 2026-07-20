@@ -1,26 +1,18 @@
 import React, { useMemo } from 'react';
-import { Pressable } from 'react-native';
 import {
   AvatarTokenSize,
   Box,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import ClipboardManager from '../../../../core/ClipboardManager';
 import { getProviderName } from '../../../../reducers/fiatOrders';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
-import { renderShortAddress } from '../../../../util/address';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { ActivityDetailsAvatar } from '../components/ActivityDetailsAvatar';
 import { ActivityDetailsBlockExplorerButton } from '../components/ActivityDetailsFooter';
-import { ActivityDetailsStatus } from '../components/ActivityDetailsStatus';
 import { ActivityDetailsTemplateFrame } from '../components/ActivityDetailsTemplateFrame';
 import {
   ActivityDetailRow,
@@ -28,9 +20,15 @@ import {
 } from '../components/ActivityDetailsLayout';
 import { ActivityDetailsAccountValue } from '../components/ActivityDetailsAccountValue';
 import {
+  RampOrderIdValue,
+  RampStatusWithProviderLink,
+  RampTransactionIdValue,
+} from './RampDetailsShared';
+import {
   formatRampActivityDate,
   formatRampActivityFiatAmount,
   formatRampActivityFiatTotal,
+  getFiatOrderProviderOrderLink,
   getRampActivityExplorerChainId,
   getRampActivityHeroAmount,
   getRampActivityHeroToken,
@@ -44,28 +42,6 @@ export type RampFiatActivityListItem = ActivityListItem & {
   type: 'buy' | 'sell';
   raw: { type: 'rampOrder'; data: FiatOrder };
 };
-
-function RampTransactionIdValue({ hash }: Readonly<{ hash?: string }>) {
-  if (!hash) {
-    return <Text>{strings('transactions.tx_details_not_available')}</Text>;
-  }
-
-  return (
-    <Box twClassName="flex-row items-center gap-1">
-      <Text>{renderShortAddress(hash, 4)}</Text>
-      <Pressable
-        onPress={() => ClipboardManager.setString(hash)}
-        testID="ramp-transaction-id-copy"
-      >
-        <Icon
-          name={IconName.Copy}
-          size={IconSize.Sm}
-          color={IconColor.IconAlternative}
-        />
-      </Pressable>
-    </Box>
-  );
-}
 
 function RampDetailsHero({ order }: Readonly<{ order: FiatOrder }>) {
   const token = getRampActivityHeroToken(order);
@@ -110,12 +86,19 @@ function RampDetailsMetadata({
   readonly transactionHash?: string;
 }) {
   const isSell = isRampSellOrder(order);
+  const providerOrderLink = getFiatOrderProviderOrderLink(order);
 
   return (
     <ActivityDetailSection>
       <ActivityDetailRow
         label={strings('activity_details.status')}
-        value={<ActivityDetailsStatus status={mapRampActivityStatus(order)} />}
+        value={
+          <RampStatusWithProviderLink
+            status={mapRampActivityStatus(order)}
+            providerName={providerName}
+            providerOrderLink={providerOrderLink}
+          />
+        }
         testID={ActivityDetailsSelectorsIDs.STATUS_ROW}
       />
 
@@ -127,7 +110,7 @@ function RampDetailsMetadata({
 
       <ActivityDetailRow
         label={strings('transaction_details.label.order_id')}
-        value={order.id}
+        value={<RampOrderIdValue orderId={order.id} />}
       />
 
       <ActivityDetailRow

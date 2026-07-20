@@ -46,11 +46,39 @@ describe('mapRampsOrder', () => {
           amount: '5.01',
           symbol: 'mUSD',
           assetId: baseOrder.cryptoCurrency?.assetId,
-          decimals: 6,
           direction: 'in',
         },
       },
     });
+  });
+
+  it('keeps human-readable cryptoAmount without token decimals', () => {
+    const order = {
+      ...baseOrder,
+      cryptoAmount: '30',
+      cryptoCurrency: {
+        symbol: 'mUSD',
+        decimals: 6,
+        assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+        chainId: 'eip155:1',
+      },
+    };
+
+    expect(mapRampsOrder({ order })).toMatchObject({
+      data: {
+        token: {
+          amount: '30',
+          symbol: 'mUSD',
+          assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          direction: 'in',
+        },
+      },
+    });
+    expect(mapRampsOrder({ order })?.data).toEqual(
+      expect.objectContaining({
+        token: expect.not.objectContaining({ decimals: expect.anything() }),
+      }),
+    );
   });
 
   it('maps DEPOSIT orderType to buy', () => {

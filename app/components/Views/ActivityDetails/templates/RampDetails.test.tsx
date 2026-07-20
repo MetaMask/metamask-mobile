@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
@@ -14,6 +14,7 @@ import {
   findBlockExplorerUrlForChain,
   getBlockExplorerTxUrl,
 } from '../../../../util/networks';
+import ClipboardManager from '../../../../core/ClipboardManager';
 import { mapRampOrder } from '../../../../util/activity-adapters';
 import { useAccountNames } from '../../../hooks/DisplayName/useAccountNames';
 import { RampDetails, type RampActivityListItem } from './RampDetails';
@@ -45,6 +46,10 @@ jest.mock('../../../../util/networks', () => ({
   ...jest.requireActual('../../../../util/networks'),
   findBlockExplorerUrlForChain: jest.fn(),
   getBlockExplorerTxUrl: jest.fn(),
+}));
+
+jest.mock('../../../../core/ClipboardManager', () => ({
+  setString: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -116,12 +121,34 @@ describe('RampDetails', () => {
 
     expect(getByText('+5.01 mUSD')).toBeOnTheScreen();
     expect(getByText('Confirmed')).toBeOnTheScreen();
-    expect(getByText('0d13232233944')).toBeOnTheScreen();
+    expect(getByText('...233944')).toBeOnTheScreen();
     expect(getByText('Transaction fee')).toBeOnTheScreen();
     expect(getByText('Total amount')).toBeOnTheScreen();
     expect(getByText('$1.26')).toBeOnTheScreen();
     expect(getByText('$6.27')).toBeOnTheScreen();
     expect(queryByText('Destination')).toBeNull();
+    expect(queryByText('View on Mercuryo')).toBeNull();
+  });
+
+  it('shows provider link and copies the full FiatOrder id', async () => {
+    const item = makeItem({
+      ...baseOrder,
+      data: { providerOrderLink: 'https://mercuryo.io/order/abc' },
+    });
+
+    const { getByText, getByTestId } = render(<RampDetails item={item} />);
+
+    expect(getByText('View on Mercuryo')).toBeOnTheScreen();
+    fireEvent.press(getByTestId('ramp-provider-order-link'));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: { url: 'https://mercuryo.io/order/abc' },
+    });
+
+    fireEvent.press(getByTestId('ramp-order-id-copy'));
+    await waitFor(() => {
+      expect(ClipboardManager.setString).toHaveBeenCalledWith('0d13232233944');
+    });
   });
 
   it('renders sell-specific destination and received total rows', () => {
@@ -161,7 +188,7 @@ describe('RampDetails', () => {
     });
   });
 
-  it('renders native RampsOrder details via RampRampsOrderDetails', () => {
+  it('renders native RampsOrder details via RampRampsOrderDetails', async () => {
     const { mapRampsOrder } = jest.requireActual(
       '../../../../util/activity-adapters',
     );
@@ -193,11 +220,23 @@ describe('RampDetails', () => {
     };
     const item = mapRampsOrder({ order }) as RampActivityListItem;
 
-    const { getByText } = render(<RampDetails item={item} />);
+    const { getByText, getByTestId } = render(<RampDetails item={item} />);
 
     expect(getByText('+5.01 mUSD')).toBeOnTheScreen();
-    expect(getByText('/providers/transak/orders/po-1')).toBeOnTheScreen();
+    expect(getByText('po-1')).toBeOnTheScreen();
+    expect(getByText('View on Transak')).toBeOnTheScreen();
     expect(getByText('$1.26')).toBeOnTheScreen();
     expect(getByText('$6.27')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('ramp-provider-order-link'));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: { url: 'https://example.com' },
+    });
+
+    fireEvent.press(getByTestId('ramp-order-id-copy'));
+    await waitFor(() => {
+      expect(ClipboardManager.setString).toHaveBeenCalledWith('po-1');
+    });
   });
 });
