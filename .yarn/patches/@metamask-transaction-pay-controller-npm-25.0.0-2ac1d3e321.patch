@@ -1,0 +1,70 @@
+diff --git a/dist/utils/token.cjs b/dist/utils/token.cjs
+index 5d33b38b545b19c36626bf792167e1dfd73e115b..8ea50745e66ed51d4ffbc0cfaef25c29c9cd39dc 100644
+--- a/dist/utils/token.cjs
++++ b/dist/utils/token.cjs
+@@ -126,7 +126,8 @@ function getTokenFiatRate(messenger, tokenAddress, chainId) {
+     const normalizedTokenAddress = (0, controller_utils_1.toChecksumHexAddress)(tokenAddress);
+     const isNative = normalizedTokenAddress === getNativeToken(chainId);
+     const tokenToNativeRate = marketData?.[chainId]?.[normalizedTokenAddress]?.price;
+-    if (tokenToNativeRate === undefined && !isNative) {
++    const isStablecoin = (0, feature_flags_1.getStablecoins)(messenger)[chainId]?.includes(tokenAddress.toLowerCase());
++    if (tokenToNativeRate === undefined && !isNative && !isStablecoin) {
+         return undefined;
+     }
+     const { conversionRate: nativeToFiatRate, usdConversionRate: nativeToUsdRate, } = currencyRates?.[ticker] ?? {
+@@ -136,7 +137,19 @@ function getTokenFiatRate(messenger, tokenAddress, chainId) {
+     if (nativeToFiatRate === null || nativeToUsdRate === null) {
+         return undefined;
+     }
+-    const isStablecoin = (0, feature_flags_1.getStablecoins)(messenger)[chainId]?.includes(tokenAddress.toLowerCase());
++    if (tokenToNativeRate === undefined && isStablecoin) {
++        // TEMP patch: listed stablecoin with no market data entry (asset not
++        // held, so the unified assets pipeline has no price for it). Peg the
++        // USD rate to 1 and derive the display-currency rate from the native
++        // currency rates.
++        const nativeToUsd = new bignumber_js_1.BigNumber(String(nativeToUsdRate));
++        const fiatRateFallback = nativeToUsd.gt(0)
++            ? new bignumber_js_1.BigNumber(String(nativeToFiatRate))
++                .dividedBy(nativeToUsd)
++                .toString(10)
++            : '1';
++        return { usdRate: '1', fiatRate: fiatRateFallback };
++    }
+     const usdRate = isStablecoin
+         ? '1'
+         : new bignumber_js_1.BigNumber(String(tokenToNativeRate ?? 1))
+diff --git a/dist/utils/token.mjs b/dist/utils/token.mjs
+index 24e28554df06ed352b86a5cd698b046497b608ee..b2d5730259f8ad6393cb376d1babb243769937a0 100644
+--- a/dist/utils/token.mjs
++++ b/dist/utils/token.mjs
+@@ -120,7 +120,8 @@ export function getTokenFiatRate(messenger, tokenAddress, chainId) {
+     const normalizedTokenAddress = toChecksumHexAddress(tokenAddress);
+     const isNative = normalizedTokenAddress === getNativeToken(chainId);
+     const tokenToNativeRate = marketData?.[chainId]?.[normalizedTokenAddress]?.price;
+-    if (tokenToNativeRate === undefined && !isNative) {
++    const isStablecoin = getStablecoins(messenger)[chainId]?.includes(tokenAddress.toLowerCase());
++    if (tokenToNativeRate === undefined && !isNative && !isStablecoin) {
+         return undefined;
+     }
+     const { conversionRate: nativeToFiatRate, usdConversionRate: nativeToUsdRate, } = currencyRates?.[ticker] ?? {
+@@ -130,7 +131,19 @@ export function getTokenFiatRate(messenger, tokenAddress, chainId) {
+     if (nativeToFiatRate === null || nativeToUsdRate === null) {
+         return undefined;
+     }
+-    const isStablecoin = getStablecoins(messenger)[chainId]?.includes(tokenAddress.toLowerCase());
++    if (tokenToNativeRate === undefined && isStablecoin) {
++        // TEMP patch: listed stablecoin with no market data entry (asset not
++        // held, so the unified assets pipeline has no price for it). Peg the
++        // USD rate to 1 and derive the display-currency rate from the native
++        // currency rates.
++        const nativeToUsd = new BigNumber(String(nativeToUsdRate));
++        const fiatRateFallback = nativeToUsd.gt(0)
++            ? new BigNumber(String(nativeToFiatRate))
++                .dividedBy(nativeToUsd)
++                .toString(10)
++            : '1';
++        return { usdRate: '1', fiatRate: fiatRateFallback };
++    }
+     const usdRate = isStablecoin
+         ? '1'
+         : new BigNumber(String(tokenToNativeRate ?? 1))
