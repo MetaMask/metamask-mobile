@@ -263,6 +263,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         // has been successfully applied above (no-op for non-money flows).
         trackAmountCommitted();
       } catch (error) {
+        const isConfirmationDismissed =
+          !Engine.context.TransactionController.state.transactions.some(
+            (tx) => tx.id === transactionId,
+          );
+        if (isConfirmationDismissed) {
+          return;
+        }
         const prefixed = prefixError(error, AMOUNT_UPDATE_ERROR_PREFIX);
         toastRef?.current?.showToast(
           getAmountUpdateErrorToastOptions(prefixed, () =>
@@ -295,11 +302,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const hasAutoSubmittedPrefill = useRef(false);
     useEffect(() => {
-      if (
-        !hasAutoSubmittedPrefill.current &&
-        isDepositPrefilled &&
-        amountFiat !== '0'
-      ) {
+      // Reset when prefill drops (e.g. pay token changed) so handleDone
+      // re-fires once the new prefill amount is ready.
+      if (!isDepositPrefilled) {
+        hasAutoSubmittedPrefill.current = false;
+        return;
+      }
+
+      if (!hasAutoSubmittedPrefill.current && amountFiat !== '0') {
         hasAutoSubmittedPrefill.current = true;
         handleDone();
       }

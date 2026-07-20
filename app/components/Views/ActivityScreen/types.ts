@@ -1,4 +1,7 @@
-import type { ActivityKind } from '../../../util/activity-adapters';
+import {
+  PERPS_ORDER_KINDS,
+  type ActivityKind,
+} from '../../../util/activity-adapters';
 
 export type { ActivityKind };
 
@@ -56,13 +59,8 @@ export const PERPS_ACTIVITY_FILTER_KINDS: Record<
     'perpsCloseShortStopLoss',
     'perpsCloseShortTakeProfit',
   ]),
-  [PerpsActivityFilter.Order]: new Set<ActivityKind>([
-    'marketShort',
-    'marketCloseShort',
-    'limitShort',
-    'limitCloseShort',
-    'stopMarketCloseShort',
-  ]),
+
+  [PerpsActivityFilter.Order]: new Set<ActivityKind>(PERPS_ORDER_KINDS),
   [PerpsActivityFilter.Fundings]: new Set<ActivityKind>([
     'perpsPaidFundingFees',
     'perpsReceivedFundingFees',
@@ -118,6 +116,8 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
     'nftBuy',
     'nftMint',
     'nftSell',
+    'assetActivation',
+    'assetDeactivation',
     'deposit',
     'stake',
     'claim',

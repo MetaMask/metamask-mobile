@@ -9,7 +9,7 @@ import {
   QuickBuyEventProperties,
   QuickBuyEventValues,
 } from '../analytics';
-import type { QuickBuyAnalyticsContext } from '../types';
+import type { QuickBuyAnalyticsContext, QuickBuyTradeMode } from '../types';
 
 type QuickBuyDismissStage =
   (typeof QuickBuyEventValues.DISMISS_STAGE)[keyof typeof QuickBuyEventValues.DISMISS_STAGE];
@@ -29,6 +29,7 @@ export function useQuickBuyAnalytics(
   traderAddress: string,
   caip19: string,
   analyticsContext?: QuickBuyAnalyticsContext,
+  tradeMode?: QuickBuyTradeMode,
 ): {
   refs: QuickBuyAnalyticsRefs;
   trackAmountSelected: (
@@ -68,7 +69,6 @@ export function useQuickBuyAnalytics(
     source: analyticsSource,
     originalEntryPoint,
     marketCap,
-    traderTradeType,
   } = analyticsContext ?? {};
 
   const sharedAnalyticsProps = useMemo(
@@ -77,9 +77,8 @@ export function useQuickBuyAnalytics(
         source: analyticsSource,
         originalEntryPoint,
         marketCap,
-        traderTradeType,
       }),
-    [analyticsSource, originalEntryPoint, marketCap, traderTradeType],
+    [analyticsSource, originalEntryPoint, marketCap],
   );
 
   // Dismiss cleanup must run only on unmount. `sharedAnalyticsProps` updates when
@@ -167,10 +166,13 @@ export function useQuickBuyAnalytics(
         [QuickBuyEventProperties.TRADER_ADDRESS]: resolvedTraderAddress,
         [QuickBuyEventProperties.CAIP19]: caip19,
         [QuickBuyEventProperties.INTERACTION_TYPE]: interactionType,
+        ...(tradeMode !== undefined
+          ? { [QuickBuyEventProperties.TRADE_TYPE]: tradeMode }
+          : {}),
         ...props,
       });
     },
-    [resolvedTraderAddress, caip19, track, sharedAnalyticsProps],
+    [resolvedTraderAddress, caip19, track, sharedAnalyticsProps, tradeMode],
   );
 
   const trackQuoteSelected = useCallback(

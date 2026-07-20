@@ -58,12 +58,14 @@ import {
   usePerpsTopOfBook,
 } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsAbandonOrderTracking } from '../../hooks/usePerpsAbandonOrderTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
   formatPositionSize,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import {
   calculateCloseAmountFromPercentage,
   validateCloseAmountLimits,
@@ -87,13 +89,22 @@ const PerpsClosePositionView: React.FC = () => {
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsClosePosition'>>();
-  const { position, source: routeSource } = route.params as {
+  const {
+    position,
+    source: routeSource,
+    buttonClicked: entryButtonClicked,
+    buttonLocation: entryButtonLocation,
+  } = route.params as {
     position: Position;
     source?: string;
+    buttonClicked?: string;
+    buttonLocation?: string;
   };
 
   const inputMethodRef = useRef<InputMethod>('default');
   const isAmountInitializedRef = useRef(false);
+  const hasConfirmedCloseRef = useRef(false);
+  const latestAbandonPropsRef = useRef<Record<string, unknown>>({});
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
@@ -381,9 +392,46 @@ const PerpsClosePositionView: React.FC = () => {
       [PERPS_EVENT_PROPERTY.POSITION_SIZE]: absSize,
       [PERPS_EVENT_PROPERTY.UNREALIZED_PNL_DOLLAR]: pnl,
       [PERPS_EVENT_PROPERTY.UNREALIZED_PNL_PERCENT]: unrealizedPnlPercent,
-      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      // Honour the route-provided source threaded by each entry CTA
+      // (reduce-exposure → position_screen, order-book → order_book); fall back
+      // to the asset screen for direct entries that pass no source.
+      [PERPS_EVENT_PROPERTY.SOURCE]:
+        routeSource ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       [PERPS_EVENT_PROPERTY.RECEIVED_AMOUNT]: receiveAmount,
+      // The entry CTA (close vs reduce_exposure) is passed via the navigation
+      // route param — closePercentage defaults to 100 at open, so isPartialClose
+      // can't identify which CTA opened this screen. isPartialClose still drives
+      // later interaction events, just not this entry screen-view.
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        entryButtonClicked ?? PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        entryButtonLocation ?? PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
     },
+  });
+
+  latestAbandonPropsRef.current = {
+    [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+      PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+    [PERPS_EVENT_PROPERTY.ACTION]: PERPS_EVENT_VALUE.ACTION.ABANDON_ORDER,
+    [PERPS_EVENT_PROPERTY.ASSET]: position.symbol,
+    [PERPS_EVENT_PROPERTY.DIRECTION]: isLong
+      ? PERPS_EVENT_VALUE.DIRECTION.LONG
+      : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+    [PERPS_EVENT_PROPERTY.ORDER_SIZE]: closingValue,
+    [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: livePosition.leverage?.value,
+  };
+
+  // emit abandon_order on a real exit (back swipe, hardware back,
+  // programmatic dismissal) AND on a genuine tab switch away, but never when a
+  // child route (e.g. the limit-price flow) is pushed or after a confirmed close
+  // (hasConfirmedCloseRef).
+  const getAbandonProperties = useCallback(
+    () => latestAbandonPropsRef.current,
+    [],
+  );
+  usePerpsAbandonOrderTracking({
+    getAbandonProperties,
+    hasCommittedRef: hasConfirmedCloseRef,
   });
 
   // Initialize USD values when price data is available (only once, not on price updates)
@@ -420,6 +468,9 @@ const PerpsClosePositionView: React.FC = () => {
       return;
     }
 
+    // Mark confirmed so the focus-effect cleanup does not emit an abandon event
+    hasConfirmedCloseRef.current = true;
+
     // Go back immediately to close the position screen
     navigation.goBack();
 
@@ -439,6 +490,10 @@ const PerpsClosePositionView: React.FC = () => {
         estimatedPoints: rewardsState.estimatedPoints,
         inputMethod: inputMethodRef.current,
         source: routeSource,
+        ...toPerpsEntryAttribution({ source: routeSource }),
+        ...(feeResults.protocolFeeRate !== undefined
+          ? { hlFeeRate: feeResults.protocolFeeRate }
+          : {}),
         vipTier: vipTier ?? undefined,
         vipDiscount: feeResults.feeDiscountPercentage,
       },
@@ -625,9 +680,6 @@ const PerpsClosePositionView: React.FC = () => {
       <PerpsOrderHeader
         asset={position.symbol}
         price={currentPrice}
-        priceChange={parseFloat(
-          priceData[position.symbol]?.percentChange24h ?? '0',
-        )}
         title={strings('perps.close_position.title')}
         isLoading={isClosing}
         orderType={

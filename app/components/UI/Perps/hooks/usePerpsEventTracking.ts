@@ -8,6 +8,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import { getPerpsUtmAttributionProperties } from '../utils/perpsAnalyticsAttribution';
 
 // Static helper function - moved outside component to avoid recreation
 const allTrue = (conditionArray: boolean[]): boolean =>
@@ -91,12 +92,22 @@ export const usePerpsEventTracking = (options?: EventTrackingOptions) => {
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: Date.now(),
         ...properties,
       };
-      trackEvent(createEventBuilder(eventName).addProperties(props).build());
 
-      if (
-        eventName === MetaMetricsEvents.PERPS_SCREEN_VIEWED &&
-        shouldEmitAssetViewedForPerpsScreenViewed(props)
-      ) {
+      const isScreenViewed =
+        eventName === MetaMetricsEvents.PERPS_SCREEN_VIEWED;
+
+      // attach stored UTM attribution to every Perp Screen Viewed
+      // event. Explicit props win over attribution, so it never overrides a
+      // caller-provided UTM value. Scoped to Screen Viewed only — the mirrored
+      // Asset Viewed emission below keeps its existing property set.
+      const emittedProps = isScreenViewed
+        ? { ...getPerpsUtmAttributionProperties(), ...props }
+        : props;
+      trackEvent(
+        createEventBuilder(eventName).addProperties(emittedProps).build(),
+      );
+
+      if (isScreenViewed && shouldEmitAssetViewedForPerpsScreenViewed(props)) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
             .addProperties(mergeAssetViewedProperties('Perps', props))

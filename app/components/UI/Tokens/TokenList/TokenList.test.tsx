@@ -9,6 +9,8 @@ import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { SCROLL_TO_TOKEN_EVENT } from '../constants';
+import { useMoneyTokenListCta } from '../../Money/hooks/useMoneyTokenListCta';
+import { SCREEN_NAMES } from '../../Money/constants/moneyEvents';
 
 // Mock external dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -39,24 +41,50 @@ jest.mock('../../../../selectors/preferencesController', () => ({
   selectIsTokenNetworkFilterEqualCurrentNetwork: jest.fn(() => true),
 }));
 
-jest.mock('../../Earn/hooks/useMusdCtaVisibility', () => ({
-  useMusdCtaVisibility: jest.fn(() => ({
-    shouldShowGetMusdCta: false,
-    shouldShowTokenListItemCta: jest.fn(() => false),
-    shouldShowConversionTokenListItemCta: jest.fn(() => false),
-    shouldShowConversionAssetDetailCta: jest.fn(() => false),
+const mockTokenListItemCta = {
+  label: 'Get 4% APY',
+  color: 'success-default',
+  shouldShow: jest.fn(),
+  onPress: jest.fn(),
+};
+
+jest.mock('../../Money/hooks/useMoneyTokenListCta', () => ({
+  useMoneyTokenListCta: jest.fn(() => ({
+    tokenListItemCta: mockTokenListItemCta,
   })),
 }));
 
 // Mock child components
 jest.mock('./TokenListItem/TokenListItem', () => ({
-  TokenListItem: ({ assetKey }: { assetKey: { address: string } }) => {
+  TokenListItem: ({
+    assetKey,
+    tokenListItemCta,
+    tokenPositionInList,
+    tokensInList,
+  }: {
+    assetKey: { address: string };
+    tokenListItemCta?: { label: string };
+    tokenPositionInList?: number;
+    tokensInList?: number;
+  }) => {
     const React = jest.requireActual('react');
     const { View, Text } = jest.requireActual('react-native');
     return React.createElement(
       View,
       { testID: `token-item-${assetKey.address}` },
       React.createElement(Text, null, `Token: ${assetKey.address}`),
+      tokenListItemCta
+        ? React.createElement(
+            Text,
+            { testID: `token-cta-${assetKey.address}` },
+            tokenListItemCta.label,
+          )
+        : null,
+      React.createElement(
+        Text,
+        { testID: `token-context-${assetKey.address}` },
+        `${tokenPositionInList}/${tokensInList}`,
+      ),
     );
   },
   TokenListItemBip44: ({ assetKey }: { assetKey: { address: string } }) => {
@@ -204,6 +232,23 @@ describe('TokenList', () => {
     ).toBeOnTheScreen();
     expect(getByTestId('token-item-0x123')).toBeOnTheScreen();
     expect(getByTestId('token-item-0x456')).toBeOnTheScreen();
+  });
+
+  it('forwards Money CTA to mapped token rows', () => {
+    const { getByTestId } = renderComponent();
+
+    expect(getByTestId('token-cta-0x123')).toHaveTextContent('Get 4% APY');
+    expect(getByTestId('token-cta-0x456')).toHaveTextContent('Get 4% APY');
+    expect(getByTestId('token-context-0x123')).toHaveTextContent('1/2');
+    expect(getByTestId('token-context-0x456')).toHaveTextContent('2/2');
+  });
+
+  it('initializes Money CTA analytics for the full token list screen', () => {
+    renderComponent({ isFullView: true });
+
+    expect(useMoneyTokenListCta).toHaveBeenCalledWith(
+      SCREEN_NAMES.TOKENS_SECTION_FULL_VIEW,
+    );
   });
 
   it('renders empty container when no tokens', () => {
