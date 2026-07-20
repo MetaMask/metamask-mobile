@@ -155,11 +155,20 @@ function mapLoginError(error: unknown, hasOtpCode: boolean): CardProviderError {
 function mapApiError(error: unknown, operation: string): CardProviderError {
   if (error instanceof CardProviderError) return error;
   if (error instanceof CardApiError) {
-    if ([401, 403].includes(error.statusCode)) {
+    if (error.statusCode === 401) {
       return new CardProviderError(
         CardProviderErrorCode.InvalidCredentials,
         `Authentication failed on ${operation}`,
         error.statusCode,
+      );
+    }
+
+    if (error.statusCode === 403) {
+      return new CardProviderError(
+        CardProviderErrorCode.Forbidden,
+        `Forbidden on ${operation}`,
+        403,
+        error.errorCode,
       );
     }
     if (error.statusCode === 404) {

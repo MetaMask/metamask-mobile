@@ -65,6 +65,10 @@ export type CardScreensStackParamList = {
         postAuthRedirect?: CardPostAuthRedirect;
       })
     | undefined;
+  CardOnboardingKYCProcessing:
+    | { countryKey?: string; kycUrl?: string }
+    | undefined;
+  CardOnboardingFundingApproval: { countryKey?: string } | undefined;
 };
 
 /**
@@ -117,6 +121,7 @@ export type CardModalsNavigationParamList = {
     callerParams?: Record<string, unknown>;
   };
   CardWaitlistFormModal: { url: string };
+  CardImmersveKYCModal: { url: string; redirectUrl: string };
   CardForgotPasswordModal: { location?: 'us' | 'international' } | undefined;
   CardCreditBalanceTooltipModal: CreditBalanceTooltipParams | undefined;
   CardCreditRefundTooltipModal: { isMoneyAccount?: boolean } | undefined;

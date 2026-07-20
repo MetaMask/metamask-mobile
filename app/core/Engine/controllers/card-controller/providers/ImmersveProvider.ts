@@ -44,11 +44,20 @@ function getErrorContext(method: string, extra?: Record<string, unknown>) {
 function mapApiError(error: unknown, operation: string): CardProviderError {
   if (error instanceof CardProviderError) return error;
   if (error instanceof CardApiError) {
-    if ([401, 403].includes(error.statusCode)) {
+    if (error.statusCode === 401) {
       return new CardProviderError(
         CardProviderErrorCode.InvalidCredentials,
         `Authentication failed on ${operation}`,
         error.statusCode,
+      );
+    }
+
+    if (error.statusCode === 403) {
+      return new CardProviderError(
+        CardProviderErrorCode.Forbidden,
+        `Forbidden on ${operation}`,
+        403,
+        error.errorCode,
       );
     }
     if (error.statusCode === 404) {
@@ -134,16 +143,16 @@ interface ImmersveFundingSourceResponse {
   network?: string;
 }
 
-interface ImmersveFundingChannel {
+interface ImmersveFundingSourceListItem {
   id: string;
-  fundingTypeName: string;
+  balance?: string;
+  balanceCurrency?: string;
   network?: string;
-  mode?: string;
-  storageAddress?: string;
+  fundingChannelId?: string;
 }
 
-interface ImmersveFundingChannelsResponse {
-  items: ImmersveFundingChannel[];
+interface ImmersveFundingSourcesResponse {
+  items?: ImmersveFundingSourceListItem[];
 }
 
 export class ImmersveProvider implements ICardProvider {
@@ -189,7 +198,15 @@ export class ImmersveProvider implements ICardProvider {
     return this.programConfig.network ?? DEFAULT_NETWORK;
   }
 
-  private requireProgramValue(key: 'cardProgramId' | 'fundingType'): string {
+  private get clientApplicationId(): string {
+    return (
+      this.programConfig.clientApplicationId || this.config.clientApplicationId
+    );
+  }
+
+  private requireProgramValue(
+    key: 'cardProgramId' | 'fundingChannelId',
+  ): string {
     const value = this.programConfig[key];
     if (!value) {
       throw new CardProviderError(
@@ -218,7 +235,7 @@ export class ImmersveProvider implements ICardProvider {
         {
           loginMethod: 'siwe',
           network: this.network,
-          clientApplicationId: this.config.clientApplicationId,
+          clientApplicationId: this.clientApplicationId,
           scopes: ['cardholder-partner'],
           address,
           url: this.config.appUrl,
@@ -297,7 +314,7 @@ export class ImmersveProvider implements ICardProvider {
         '/auth/token',
         {
           refreshToken: tokens.refreshToken,
-          clientApplicationId: this.config.clientApplicationId,
+          clientApplicationId: this.clientApplicationId,
         },
         undefined,
         { origin: this.config.appUrl },
@@ -371,10 +388,7 @@ export class ImmersveProvider implements ICardProvider {
     }
 
     try {
-      const fundingChannelId = await this.#resolveFundingChannelId(
-        accountId,
-        tokens,
-      );
+      const fundingChannelId = this.requireProgramValue('fundingChannelId');
       const response = await this.service.post<ImmersveFundingSourceResponse>(
         '/api/funding-sources',
         {
@@ -395,23 +409,31 @@ export class ImmersveProvider implements ICardProvider {
     }
   }
 
-  async #resolveFundingChannelId(
-    accountId: string,
+  async getFundingSources(
     tokens: CardAuthTokens,
-  ): Promise<string> {
-    const fundingType = this.requireProgramValue('fundingType');
-    const { items } = await this.service.get<ImmersveFundingChannelsResponse>(
-      `/api/accounts/${accountId}/funding-channels`,
-      tokens,
-    );
-    const match = items?.find((c) => c.fundingTypeName === fundingType);
-    if (!match) {
+  ): Promise<CardFundingSourceResult[]> {
+    const accountId = tokens.cardholderAccountId;
+    if (!accountId) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
-        `No Immersve funding channel for type ${fundingType}`,
+        'getFundingSources: missing cardholder account id',
       );
     }
-    return match.id;
+
+    try {
+      const { items } = await this.service.get<ImmersveFundingSourcesResponse>(
+        `/api/accounts/${accountId}/funding-sources`,
+        tokens,
+      );
+      return (items ?? []).map((item) => ({
+        id: item.id,
+        network: item.network,
+        balance: item.balance,
+        balanceCurrency: item.balanceCurrency,
+      }));
+    } catch (error) {
+      throw mapApiError(error, 'getFundingSources');
+    }
   }
 
   async patchContactDetails(
