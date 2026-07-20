@@ -36,13 +36,13 @@ type DataServiceGranularCacheUpdatedHandler = (
  * `Engine.controllerMessenger`.
  */
 class MessengerAdapter {
-  async call(
+  call(
     actionType: Extract<GlobalActions['type'], `${DataServiceName}:${string}`>,
     ...params: ExtractActionParameters<
       GlobalActions,
       Extract<GlobalActions['type'], `${DataServiceName}:${string}`>
     >
-  ): Promise<unknown> {
+  ): unknown {
     return Engine.controllerMessenger.call(actionType, ...params);
   }
 

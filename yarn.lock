@@ -10016,9 +10016,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/react-data-query@npm:@metamask-previews/react-data-query@0.2.2-preview-789f7f935":
-  version: 0.2.2-preview-789f7f935
-  resolution: "@metamask-previews/react-data-query@npm:0.2.2-preview-789f7f935"
+"@metamask/react-data-query@npm:@metamask-previews/react-data-query@0.2.2-preview-4f66412be":
+  version: 0.2.2-preview-4f66412be
+  resolution: "@metamask-previews/react-data-query@npm:0.2.2-preview-4f66412be"
   dependencies:
     "@metamask/base-data-service": "npm:^0.1.3"
     "@metamask/utils": "npm:^11.11.0"
@@ -10033,7 +10033,7 @@ __metadata:
       optional: true
     react-native:
       optional: true
-  checksum: 10/e92690f407771c8056c7c2d07a5af499a43c7f06e46623136ccf9a5705cf89ee41068ea70227dadd7586ecab41a720dcdf5ffef7462007559d8b374f34e8d7d8
+  checksum: 10/82fc87c5293c2290c8ba81135328cd8078bcc8e5d1cca159324ac838ec607ff21723e435a42f17dd2ac8e1425525fccc43bddaae51881cbbc4eb22a3247a82c0
   languageName: node
   linkType: hard
 
