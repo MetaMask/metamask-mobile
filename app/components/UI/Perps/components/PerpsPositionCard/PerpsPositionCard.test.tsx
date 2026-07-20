@@ -100,9 +100,6 @@ jest.mock('../../hooks/stream', () => ({
 
 // Mock the new hooks from ../../hooks
 jest.mock('../../hooks', () => ({
-  usePerpsPositions: jest.fn().mockReturnValue({
-    loadPositions: jest.fn().mockResolvedValue(undefined),
-  }),
   usePerpsMarkets: jest.fn().mockReturnValue({
     markets: [
       {
