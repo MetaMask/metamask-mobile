@@ -1323,6 +1323,13 @@ describe('ActivityListItemRow — row content', () => {
     expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
       'ETH → USDT',
     );
+    // Received (destination) amount on top, spent (source) amount below.
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+300 USDT',
+    );
+    expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
+      '-0.123 ETH',
+    );
     expect(getByTestId('avatar-token-ETH')).toBeOnTheScreen();
     expect(getByTestId('avatar-token-USDT')).toBeOnTheScreen();
   });
@@ -1370,10 +1377,10 @@ describe('ActivityListItemRow — row content', () => {
       'Ethereum → Linea',
     );
     expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
-      '-5.1 USDC',
+      '+5.09 USDC',
     );
     expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
-      '+5.09 USDC',
+      '-5.1 USDC',
     );
     expect(getAllByTestId('avatar-token-USDC')).toHaveLength(1);
   });

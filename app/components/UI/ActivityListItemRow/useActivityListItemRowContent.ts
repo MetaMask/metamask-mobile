@@ -582,8 +582,8 @@ function resolveCoreContent(
           failed: isSourceOnlyApiBridge ? 'Send failed' : 'Bridge failed',
         }),
         subtitle,
-        primaryToken: sourceToken,
-        secondaryToken: destinationToken,
+        primaryToken: destinationToken ?? sourceToken,
+        secondaryToken: destinationToken ? sourceToken : undefined,
       };
     }
     case 'buy':
