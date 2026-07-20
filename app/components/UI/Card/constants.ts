@@ -9,6 +9,9 @@ const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 export const LINEA_MAINNET_RPC_URL = `https://linea-mainnet.infura.io/v3/${infuraProjectId}`;
 export const BASE_MAINNET_RPC_URL = `https://base-mainnet.infura.io/v3/${infuraProjectId}`;
 export const MONAD_MAINNET_RPC_URL = `https://monad-mainnet.infura.io/v3/${infuraProjectId}`;
+export const BASE_SEPOLIA_RPC_URL = `https://base-sepolia.infura.io/v3/${infuraProjectId}`;
+export const BASE_USDC_TOKEN_ADDRESS =
+  '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 export const COINME_TERMS_URL = 'https://coinme.com/legal/';
 export const CRB_TERMS_URL =
   'https://baanx-public.s3-eu-west-1.amazonaws.com/Ledger/public-files/BaanxUS_CLCard_TOS.undefined-fddb292f91ce3.pdf';
@@ -34,6 +37,10 @@ export const SUPPORTED_ASSET_NETWORKS: CardNetwork[] = [
 export const CARD_SUPPORT_EMAIL = 'metamask@cl-cards.com';
 export const HUBSPOT_WAITLIST_URL =
   'https://share.hsforms.com/1kNZXeod7TU2xEy0BxmQxJw2urwb';
+// Fixed sentinel Immersve redirects the user to when they exit the hosted KYC
+// UI; the KYC webview watches for it to know onboarding-in-webview is done, and
+// it is passed to spending-prerequisites as kycRedirectUrl.
+export const KYC_REDIRECT_URL = 'https://metamask.io/card/kyc-complete';
 export const NON_PRODUCTION_ENVIRONMENTS = [
   'e2e',
   'dev',
