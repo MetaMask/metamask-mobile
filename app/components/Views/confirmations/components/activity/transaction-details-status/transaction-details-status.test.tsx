@@ -139,6 +139,22 @@ describe('TransactionDetailsStatus', () => {
     expect(getByText(strings('transaction.confirmed'))).toBeDefined();
   });
 
+  it('renders failed status text without icon or error tooltip in money context', () => {
+    useIsMoneyAccountContextMock.mockReturnValue(true);
+
+    const { queryByTestId, getByText } = render({
+      error: {
+        name: 'test',
+        message: ERROR_MESSAGE_MOCK,
+      },
+      status: TransactionStatus.failed,
+    });
+
+    expect(getByText(strings('transaction.failed'))).toBeDefined();
+    expect(queryByTestId('status-icon-error')).toBeNull();
+    expect(queryByTestId('status-tooltip')).toBeNull();
+  });
+
   it('renders solution text if bridge failed but user has successful perps bridge', () => {
     selectBridgeHistoryForAccountMock.mockReturnValue({
       '1': {
