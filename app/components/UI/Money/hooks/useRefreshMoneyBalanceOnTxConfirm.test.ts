@@ -130,7 +130,7 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
 
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: [
-        MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
+        MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
         MOCK_ADDRESS,
       ],
       refetchType: 'all',

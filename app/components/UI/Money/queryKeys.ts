@@ -7,5 +7,10 @@ export const MoneyAccountBalanceServiceQueryKeys = {
   /** Internally, this helper fetches the vmUSD balance and exchange rate */
   GET_MUSD_EQUIVALENT_VALUE: `${MoneyAccountBalanceService.name}:getMusdEquivalentValue`,
   GET_EXCHANGE_RATE: `${MoneyAccountBalanceService.name}:getExchangeRate`,
-  GET_MONEY_ACCOUNT_BALANCE: `${MoneyAccountBalanceService.name}:getMoneyAccountBalance`,
+  /**
+   * Canonical Money Account balance via API/RPC facade
+   * (`fetchBalanceWithFallback`). Prefer this over the RPC-only
+   * `getMoneyAccountBalance` key for presentation.
+   */
+  FETCH_BALANCE_WITH_FALLBACK: `${MoneyAccountBalanceService.name}:fetchBalanceWithFallback`,
 } as const;
