@@ -5,26 +5,23 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../hooks';
-import Pressable from '../Pressable';
-import Tag from '../../../component-library/components/Tags/Tag';
-
-// Internal dependencies.
-import styleSheet from './CellSelectWithMenu.styles';
-import { CellSelectWithMenuProps } from './CellSelectWithMenu.types';
-import { CellComponentSelectorsIDs } from '../../components/Cells/Cell/CellComponent.testIds';
-import ListItemMultiSelectButton from '../ListItemMultiSelectButton/ListItemMultiSelectButton';
-import Avatar from '../../../component-library/components/Avatars/Avatar';
-import Text from '../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../hooks';
+import Pressable from '../../../../../components-temp/Pressable';
+import Tag from '../../../../Tags/Tag';
+import ListItemMultiSelectButton from '../../../../../components-temp/ListItemMultiSelectButton/ListItemMultiSelectButton';
+import Avatar from '../../../../Avatars/Avatar';
+import Text from '../../../../Texts/Text';
 import {
   DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT,
   DEFAULT_CELLBASE_AVATAR_SIZE,
   DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT,
-} from '../../../component-library/components/Cells/Cell/foundation/CellBase/CellBase.constants';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
+} from '../../foundation/CellBase/CellBase.constants';
+import Icon, { IconName, IconSize } from '../../../../Icons/Icon';
+
+// Internal dependencies.
+import styleSheet from './CellSelectWithMenu.styles';
+import { CellSelectWithMenuProps } from './CellSelectWithMenu.types';
+import { CellComponentSelectorsIDs } from '../../CellComponent.testIds';
 
 const CellSelectWithMenu = ({
   style,
@@ -81,7 +78,7 @@ const CellSelectWithMenu = ({
               >
                 <Text
                   numberOfLines={1}
-                  variant={DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT}
+                  variant={DEFAULT_CELLBASE_AVATAR_SECONDTEXT_TEXTVARIANT}
                   style={styles.secondaryText}
                 >
                   {secondaryText}
@@ -98,7 +95,7 @@ const CellSelectWithMenu = ({
               <View style={styles.containerRow}>
                 <Text
                   numberOfLines={1}
-                  variant={DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT}
+                  variant={DEFAULT_CELLBASE_AVATAR_SECONDTEXT_TEXTVARIANT}
                   style={styles.secondaryText}
                 >
                   {secondaryText}

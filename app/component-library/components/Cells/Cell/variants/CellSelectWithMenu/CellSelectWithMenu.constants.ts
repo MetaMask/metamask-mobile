@@ -1,10 +1,7 @@
 // External dependencies.
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import {
-  AvatarVariant,
-  AvatarAccountType,
-} from '../../../component-library/components/Avatars/Avatar';
-import { AvatarProps } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { IconName } from '../../../../Icons/Icon';
+import { AvatarVariant, AvatarAccountType } from '../../../../Avatars/Avatar';
+import { AvatarProps } from '../../../../Avatars/Avatar/Avatar.types';
 
 // Internal dependencies.
 import { CellSelectWithMenuProps } from './CellSelectWithMenu.types';

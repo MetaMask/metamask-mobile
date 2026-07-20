@@ -5,10 +5,10 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { CellSelectWithMenuStyleSheetVars } from './CellSelectWithMenu.types';
 
 // Internal dependencies.
-import { Theme } from '../../../util/theme/models';
+import { Theme } from '../../../../../../util/theme/models';
 
 /**
- * Style sheet function for CellSelect component.
+ * Style sheet function for CellSelectWithMenu component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
