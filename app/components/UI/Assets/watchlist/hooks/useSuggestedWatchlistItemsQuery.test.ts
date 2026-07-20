@@ -1,41 +1,84 @@
+import { renderHook } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { useTokenWatchlistQuery } from './useTokenWatchlistQuery';
-import {
-  SUGGESTED_WATCHLIST_ASSET_IDS,
-  useSuggestedWatchlistItemsQuery,
-} from './useSuggestedWatchlistItemsQuery';
+import { useSuggestedWatchlistItemsQuery } from './useSuggestedWatchlistItemsQuery';
+import { DEFAULT_WATCHLIST_BASE_ASSET_IDS , SPACEX_DEFAULT_ASSET_ID } from '../constants/defaultWatchlistTokens';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
 
 jest.mock('./useTokenWatchlistQuery', () => ({
   useTokenWatchlistQuery: jest.fn(),
 }));
 
+jest.mock('../utils/defaultWatchlistGeo', () => ({
+  isSpaceXDefaultEligible: jest.fn(),
+  getDefaultWatchlistAssetIds: jest.fn(),
+}));
+
+import {
+  getDefaultWatchlistAssetIds,
+  isSpaceXDefaultEligible,
+} from '../utils/defaultWatchlistGeo';
+
+const mockedUseSelector = useSelector as unknown as jest.Mock;
 const mockedUseTokenWatchlistQuery =
   useTokenWatchlistQuery as jest.MockedFunction<typeof useTokenWatchlistQuery>;
+const mockedIsSpaceXDefaultEligible =
+  isSpaceXDefaultEligible as jest.MockedFunction<
+    typeof isSpaceXDefaultEligible
+  >;
+const mockedGetDefaultWatchlistAssetIds =
+  getDefaultWatchlistAssetIds as jest.MockedFunction<
+    typeof getDefaultWatchlistAssetIds
+  >;
 
 describe('useSuggestedWatchlistItemsQuery', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('exposes the three curated mainnet native asset IDs (ETH/BTC/SOL)', () => {
-    expect(SUGGESTED_WATCHLIST_ASSET_IDS).toStrictEqual([
-      'eip155:1/slip44:60',
-      'bip122:000000000019d6689c085ae165831e93/slip44:0',
-      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+    mockedUseSelector.mockReturnValue('DE');
+    mockedIsSpaceXDefaultEligible.mockReturnValue(true);
+    mockedGetDefaultWatchlistAssetIds.mockReturnValue([
+      ...DEFAULT_WATCHLIST_BASE_ASSET_IDS,
+      SPACEX_DEFAULT_ASSET_ID,
     ]);
   });
 
-  it('delegates to useTokenWatchlistQuery with the curated suggested IDs', () => {
+  it('delegates to useTokenWatchlistQuery with geo-aware suggested IDs', () => {
     const stubResult = { data: undefined, isSuccess: false };
     mockedUseTokenWatchlistQuery.mockReturnValue(
       stubResult as unknown as ReturnType<typeof useTokenWatchlistQuery>,
     );
 
-    const returned = useSuggestedWatchlistItemsQuery();
+    const { result } = renderHook(() => useSuggestedWatchlistItemsQuery());
 
-    expect(mockedUseTokenWatchlistQuery).toHaveBeenCalledTimes(1);
+    expect(mockedGetDefaultWatchlistAssetIds).toHaveBeenCalledWith('DE');
     expect(mockedUseTokenWatchlistQuery).toHaveBeenCalledWith({
-      suggestedTokens: SUGGESTED_WATCHLIST_ASSET_IDS,
+      suggestedTokens: [
+        ...DEFAULT_WATCHLIST_BASE_ASSET_IDS,
+        SPACEX_DEFAULT_ASSET_ID,
+      ],
+      suggestedIncludeSpaceX: true,
     });
-    expect(returned).toBe(stubResult);
+    expect(result.current).toBe(stubResult);
+  });
+
+  it('passes suggestedIncludeSpaceX false when SpaceX is not eligible', () => {
+    mockedUseSelector.mockReturnValue('US');
+    mockedIsSpaceXDefaultEligible.mockReturnValue(false);
+    mockedGetDefaultWatchlistAssetIds.mockReturnValue(
+      DEFAULT_WATCHLIST_BASE_ASSET_IDS,
+    );
+    mockedUseTokenWatchlistQuery.mockReturnValue(
+      {} as ReturnType<typeof useTokenWatchlistQuery>,
+    );
+
+    renderHook(() => useSuggestedWatchlistItemsQuery());
+
+    expect(mockedUseTokenWatchlistQuery).toHaveBeenCalledWith({
+      suggestedTokens: DEFAULT_WATCHLIST_BASE_ASSET_IDS,
+      suggestedIncludeSpaceX: false,
+    });
   });
 });

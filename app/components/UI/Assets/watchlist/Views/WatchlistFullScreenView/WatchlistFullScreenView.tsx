@@ -21,6 +21,7 @@ import TrendingTokensSkeleton from '../../../../Trending/components/TrendingToke
 import { strings } from '../../../../../../../locales/i18n';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
 import WatchlistEditableRow from './WatchlistEditableRow';
+import WatchlistEmptyCTA from '../../components/WatchlistEmptyCTA';
 import styleSheet from './WatchlistFullScreenView.styles';
 
 const SKELETON_COUNT = 5;
@@ -119,7 +120,11 @@ const WatchlistFullScreenView = () => {
     }
 
     if (!hasItems) {
-      return null;
+      return (
+        <View style={styles.emptyContentContainer}>
+          <WatchlistEmptyCTA source="watchlist_fullscreen_empty_cta" />
+        </View>
+      );
     }
 
     return (
@@ -145,7 +150,14 @@ const WatchlistFullScreenView = () => {
         </Animated.View>
       </ScrollView>
     );
-  }, [displayTokens, hasItems, isEditMode, isLoading, styles.listContainer]);
+  }, [
+    displayTokens,
+    hasItems,
+    isEditMode,
+    isLoading,
+    styles.emptyContentContainer,
+    styles.listContainer,
+  ]);
 
   return (
     <View
