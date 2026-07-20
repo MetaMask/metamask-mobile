@@ -1381,6 +1381,13 @@ describe('CustomAmountInfo', () => {
   });
 
   it('closes toast via close button when amount update fails', async () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
+      type: TransactionType.contractInteraction,
+      txParams: { from: '0x123' },
+    } as never);
+    setControllerTransactions([{ id: TRANSACTION_ID_MOCK }]);
+
     useTransactionCustomAmountMock.mockReturnValue({
       amountFiat: '123.45',
       amountHuman: '0',
@@ -1489,13 +1496,15 @@ describe('CustomAmountInfo', () => {
       fireEvent.press(getByText(strings('confirm.edit_amount_done')));
     });
 
-    try {
-      await act(async () => {
+    // handleConfirm is async and re-throws after resetting submitting state.
+    // Flush microtasks inside act so the rejection is captured, then assert
+    // via .rejects to properly handle the unhandled rejection.
+    await expect(
+      act(async () => {
         fireEvent.press(getByText(strings('confirm.deposit_edit_amount_done')));
-      });
-    } catch (e) {
-      expect(e).toBeDefined();
-    }
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }),
+    ).rejects.toThrow('confirm failed');
 
     expect(setIsConfirmationSubmittingMock).toHaveBeenCalledWith(true);
     expect(setIsConfirmationSubmittingMock).toHaveBeenCalledWith(false);
