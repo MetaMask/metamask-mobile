@@ -726,7 +726,7 @@ export type GlobalEvents =
   | RampsServiceEvents
   | AiDigestControllerEvents
   | SocialControllerEvents
-  // | SocialServiceEvents
+  | SocialServiceEvents
   | AuthenticatedUserStorageEvents
   | ComplianceControllerEvents
   | ComplianceServiceEvents

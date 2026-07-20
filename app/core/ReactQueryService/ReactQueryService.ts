@@ -1,9 +1,9 @@
 import { AppState, type NativeEventSubscription } from 'react-native';
+import type { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
 import {
   QueryClient,
   focusManager,
   onlineManager,
-  type DehydratedState,
 } from '@tanstack/react-query';
 import {
   addEventListener as addNetInfoEventListener,
@@ -11,30 +11,18 @@ import {
 } from '@react-native-community/netinfo';
 import { createUIQueryClient } from '@metamask/react-data-query';
 import Engine from '../Engine/Engine';
-import type {
-  GlobalActions,
-  GlobalEvents,
-  RootExtendedMessenger,
-} from '../Engine/types';
+import type { GlobalActions } from '../Engine/types';
 import { DATA_SERVICES } from '../../constants/data-services';
+import { ExtractActionParameters } from '@metamask/messenger';
 
 type DataServiceName = (typeof DATA_SERVICES)[number];
-type MessengerActionType = GlobalActions['type'];
-type MessengerEventType = GlobalEvents['type'];
 
 /**
- * The payload of a data service's granular `:cacheUpdated:${hash}` event.
- *
- * Mirrors `DataServiceGranularCacheUpdatedPayload` from
- * `@metamask/base-data-service`, which is only a transitive dependency (via
- * `@metamask/react-data-query`) and does not re-export this type. We redeclare
- * the (small, stable) shape locally to keep the adapter handler assignable to
- * what `createUIQueryClient` expects without depending on an internal module.
+ * Handles granular cache update events emitted by data services.
  */
-type CacheUpdatedPayload =
-  | { type: 'added' | 'updated'; state: DehydratedState }
-  | { type: 'removed'; state: null };
-type CacheUpdatedHandler = (payload: CacheUpdatedPayload) => void;
+type DataServiceGranularCacheUpdatedHandler = (
+  payload: DataServiceGranularCacheUpdatedPayload,
+) => void;
 
 /**
  * Wraps the root messenger to the messenger adapter shape that the
@@ -49,48 +37,27 @@ type CacheUpdatedHandler = (payload: CacheUpdatedPayload) => void;
  */
 class MessengerAdapter {
   async call(
-    actionType: `${DataServiceName}:${string}`,
-    ...params: unknown[]
+    actionType: Extract<GlobalActions['type'], `${DataServiceName}:${string}`>,
+    ...params: ExtractActionParameters<
+      GlobalActions,
+      Extract<GlobalActions['type'], `${DataServiceName}:${string}`>
+    >
   ): Promise<unknown> {
-    // Type assertion: We just have to assume that the root messenger supports
-    // actions for any of the configured data services. There isn't a way to
-    // resolve the literal template type we've declared above with the literal
-    // string types in the types for RootExtendedMessenger.
-    return Engine.controllerMessenger.call(
-      actionType as MessengerActionType,
-      // The parameters of a data-service action are not statically known here.
-      ...(params as never),
-    );
+    return Engine.controllerMessenger.call(actionType, ...params);
   }
 
   subscribe(
     eventType: `${DataServiceName}:cacheUpdated:${string}`,
-    handler: CacheUpdatedHandler,
+    handler: DataServiceGranularCacheUpdatedHandler,
   ): void {
-    // Type assertion: We just have to assume that the root messenger supports
-    // the `:cacheUpdated:${hash}` event for any of the configured data
-    // services. There isn't a way to resolve the literal template type we've
-    // declared above with the literal string types in the types for
-    // RootExtendedMessenger.
-    Engine.controllerMessenger.subscribe(
-      eventType as MessengerEventType,
-      handler as never,
-    );
+    Engine.controllerMessenger.subscribe(eventType, handler);
   }
 
   unsubscribe(
     eventType: `${DataServiceName}:cacheUpdated:${string}`,
-    handler: CacheUpdatedHandler,
+    handler: DataServiceGranularCacheUpdatedHandler,
   ): void {
-    // Type assertion: We just have to assume that the root messenger supports
-    // the `:cacheUpdated:${hash}` event for any of the configured data
-    // services. There isn't a way to resolve the literal template type we've
-    // declared above with the literal string types in the types for
-    // RootExtendedMessenger.
-    Engine.controllerMessenger.unsubscribe(
-      eventType as MessengerEventType,
-      handler as never,
-    );
+    Engine.controllerMessenger.unsubscribe(eventType, handler);
   }
 }
 
