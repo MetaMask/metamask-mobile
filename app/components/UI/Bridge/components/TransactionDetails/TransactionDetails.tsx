@@ -438,12 +438,11 @@ export const BridgeTransactionDetails = (
             bridgeStatus.status === StatusTypes.UNKNOWN
           ? 'failed'
           : 'pending'
-      : status === TransactionStatus.confirmed || status === 'confirmed'
+      : status === TransactionStatus.confirmed
         ? 'success'
         : status === TransactionStatus.failed ||
             status === TransactionStatus.dropped ||
-            status === TransactionStatus.rejected ||
-            status === 'failed'
+            status === TransactionStatus.rejected
           ? 'failed'
           : 'pending';
 
