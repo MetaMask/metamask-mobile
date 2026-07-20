@@ -60,7 +60,6 @@ const renderSaveFlow = (
   overrides: Partial<{
     assetId: string;
     displayTicker: string;
-    isEditing: boolean;
     fromManage: boolean;
   }> = {},
 ) =>
@@ -69,7 +68,6 @@ const renderSaveFlow = (
       useAlertSaveFlow({
         assetId: 'eip155:1/slip44:60',
         displayTicker: 'ETH',
-        isEditing: false,
         ...overrides,
       }),
     { wrapper },
@@ -136,7 +134,6 @@ describe('useAlertSaveFlow', () => {
 
   it('navigates back without popping after an edit save from manage', async () => {
     const { result } = renderSaveFlow({
-      isEditing: true,
       fromManage: true,
     });
 
@@ -182,7 +179,7 @@ describe('useAlertSaveFlow', () => {
   });
 
   it('patches the matching cached alert after an edit save', async () => {
-    const { result } = renderSaveFlow({ isEditing: true });
+    const { result } = renderSaveFlow();
 
     await act(async () => {
       await result.current.saveAlert({
@@ -270,7 +267,7 @@ describe('useAlertSaveFlow', () => {
 
   it('tracks updated analytics properties with previous values', async () => {
     const analytics = mockAnalytics();
-    const { result } = renderSaveFlow({ isEditing: true });
+    const { result } = renderSaveFlow();
 
     await act(async () => {
       await result.current.saveAlert({
