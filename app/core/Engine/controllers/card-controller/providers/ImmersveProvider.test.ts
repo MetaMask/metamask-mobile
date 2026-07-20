@@ -58,17 +58,28 @@ function createProvider(featureFlag: CardFeatureFlag | null = FEATURE_FLAG) {
   return { provider, service };
 }
 
+const FIXED_NOW = new Date('2024-06-01T12:00:00.000Z').getTime();
+
 const TOKENS: CardAuthTokens = {
   accessToken: 'access-token',
   refreshToken: 'refresh-token',
-  accessTokenExpiresAt: Date.now() + 60 * 60 * 1000,
-  refreshTokenExpiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+  accessTokenExpiresAt: FIXED_NOW + 60 * 60 * 1000,
+  refreshTokenExpiresAt: FIXED_NOW + 30 * 24 * 60 * 60 * 1000,
   location: 'international',
   cardholderAccountId: 'cardholder-1',
   accountAddress: '0xabc',
 };
 
 describe('ImmersveProvider', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(FIXED_NOW);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   describe('capabilities', () => {
     it('uses SIWE and disables cashback/credit', () => {
       const { provider } = createProvider();
@@ -138,8 +149,8 @@ describe('ImmersveProvider', () => {
 
     it('completes login and binds cardholderAccountId + address', async () => {
       const { provider, service } = createProvider();
-      const accessJwt = makeJwt(Date.now() + 60 * 60 * 1000);
-      const refreshJwt = makeJwt(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      const accessJwt = makeJwt(FIXED_NOW + 60 * 60 * 1000);
+      const refreshJwt = makeJwt(FIXED_NOW + 30 * 24 * 60 * 60 * 1000);
       service.post.mockResolvedValue({
         accessToken: accessJwt,
         refreshToken: refreshJwt,
@@ -159,10 +170,8 @@ describe('ImmersveProvider', () => {
       expect(result.tokenSet?.accessToken).toBe(accessJwt);
       expect(result.tokenSet?.cardholderAccountId).toBe('cardholder-1');
       expect(result.tokenSet?.accountAddress).toBe('0xabc');
-      expect(result.tokenSet?.accessTokenExpiresAt).toBeGreaterThan(Date.now());
-      expect(result.tokenSet?.refreshTokenExpiresAt).toBeGreaterThan(
-        Date.now(),
-      );
+      expect(result.tokenSet?.accessTokenExpiresAt).toBeGreaterThan(FIXED_NOW);
+      expect(result.tokenSet?.refreshTokenExpiresAt).toBeGreaterThan(FIXED_NOW);
     });
   });
 
@@ -176,7 +185,7 @@ describe('ImmersveProvider', () => {
 
     it('exchanges the refresh token and preserves binding fields', async () => {
       const { provider, service } = createProvider();
-      const accessJwt = makeJwt(Date.now() + 60 * 60 * 1000);
+      const accessJwt = makeJwt(FIXED_NOW + 60 * 60 * 1000);
       service.post.mockResolvedValue({
         accessToken: accessJwt,
         refreshToken: 'new-rt',
@@ -213,7 +222,7 @@ describe('ImmersveProvider', () => {
       expect(
         provider.validateTokens({
           ...TOKENS,
-          accessToken: makeJwt(Date.now() + 60 * 60 * 1000),
+          accessToken: makeJwt(FIXED_NOW + 60 * 60 * 1000),
         }),
       ).toBe('valid');
     });
@@ -223,8 +232,8 @@ describe('ImmersveProvider', () => {
       expect(
         provider.validateTokens({
           ...TOKENS,
-          accessToken: makeJwt(Date.now() - 1000),
-          refreshToken: makeJwt(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          accessToken: makeJwt(FIXED_NOW - 1000),
+          refreshToken: makeJwt(FIXED_NOW + 30 * 24 * 60 * 60 * 1000),
         }),
       ).toBe('needs_refresh');
     });
@@ -234,7 +243,7 @@ describe('ImmersveProvider', () => {
       expect(
         provider.validateTokens({
           ...TOKENS,
-          accessToken: makeJwt(Date.now() - 1000),
+          accessToken: makeJwt(FIXED_NOW - 1000),
           refreshToken: undefined,
         }),
       ).toBe('expired');
