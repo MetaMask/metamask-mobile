@@ -515,11 +515,27 @@ class TransactionPayConfirmation {
   }
 
   async verifyPayWithSymbol(symbol: string): Promise<void> {
-    await this.expectText(
-      this.payWithSymbol,
-      symbol,
-      'Selected token symbol should be correct',
-    );
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToHaveText(
+          asDetoxElement(this.payWithSymbol),
+          symbol,
+          {
+            description: 'Selected token symbol should be correct',
+          },
+        );
+      },
+      appium: async () => {
+        await PlaywrightAssertions.expectElementText(
+          asPlaywrightElement(this.payWithSymbol),
+          symbol,
+          {
+            description: 'Selected token symbol should be correct',
+            timeout: 15_000,
+          },
+        );
+      },
+    });
   }
 
   async verifyTotal(total: string): Promise<void> {
