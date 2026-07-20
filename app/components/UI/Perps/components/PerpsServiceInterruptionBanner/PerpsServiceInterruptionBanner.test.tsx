@@ -2,6 +2,8 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsServiceInterruptionBanner from './PerpsServiceInterruptionBanner';
 import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../selectors/featureFlags';
+import { SUPPORT_CONFIG } from '../../constants/perpsConfig';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
 
@@ -13,6 +15,15 @@ jest.mock('react-redux', () => ({
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+const mockOpenSupportWithConsent = jest.fn(
+  (open: (url: string) => void, baseUrl?: string) => open(baseUrl ?? ''),
+);
+jest.mock('../../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
 }));
 
 const { useSelector } = jest.requireMock('react-redux');
@@ -63,7 +74,7 @@ describe('PerpsServiceInterruptionBanner', () => {
     expect(getByText('Contact support')).toBeOnTheScreen();
   });
 
-  it('navigates to support when contact support action button pressed', () => {
+  it('shows the support consent sheet with the support URL when the support link is pressed', () => {
     useSelector.mockImplementation((selector: unknown) => {
       if (selector === selectPerpsServiceInterruptionBannerEnabledFlag) {
         return true;
@@ -75,7 +86,31 @@ describe('PerpsServiceInterruptionBanner', () => {
 
     fireEvent.press(getByText('Contact support'));
 
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      SUPPORT_CONFIG.Url,
+    );
+  });
+
+  it('navigates to the SimpleWebview with the resolved support URL when the opener resolves', () => {
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectPerpsServiceInterruptionBannerEnabledFlag) {
+        return true;
+      }
+      return undefined;
+    });
+
+    const { getByText } = render(<PerpsServiceInterruptionBanner />);
+
+    fireEvent.press(getByText('Contact support'));
+
+    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: SUPPORT_CONFIG.Url,
+        title: strings(SUPPORT_CONFIG.TitleKey),
+      },
+    });
   });
 
   it('uses custom testID when provided', () => {

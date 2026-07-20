@@ -15,7 +15,10 @@ import { mockTheme } from '../../../../../util/theme';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
-import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
+import {
+  HOME_SCREEN_CONFIG,
+  SUPPORT_CONFIG,
+} from '../../constants/perpsConfig';
 
 // Mock useDiscoveryScrollManager
 const mockPerpsOnTabEnter = jest.fn();
@@ -186,6 +189,15 @@ jest.mock('../../hooks/usePerpsProvider', () => ({
 }));
 
 // Use real BigNumber library - mocking it causes issues with module initialization
+
+const mockOpenSupportWithConsent = jest.fn(
+  (open: (url: string) => void, baseUrl?: string) => open(baseUrl ?? ''),
+);
+jest.mock('../../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
@@ -953,6 +965,37 @@ describe('PerpsHomeView', () => {
         params: {
           url: 'https://survey.alchemer.com/s3/8649911/MetaMask-Perps-Trading-Feedback',
           title: 'perps.feedback.title',
+        },
+      });
+    });
+  });
+
+  describe('Contact Support', () => {
+    beforeEach(() => {
+      mockOpenSupportWithConsent.mockClear();
+    });
+
+    it('shows the support consent sheet with the support URL when the support button is pressed', () => {
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON));
+
+      expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+        expect.any(Function),
+        SUPPORT_CONFIG.Url,
+      );
+    });
+
+    it('navigates to the SimpleWebview with the resolved support URL when the opener resolves', () => {
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: SUPPORT_CONFIG.Url,
+          title: 'perps.support.title',
         },
       });
     });
