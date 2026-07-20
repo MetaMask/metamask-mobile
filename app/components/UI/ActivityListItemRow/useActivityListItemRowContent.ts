@@ -848,9 +848,9 @@ function resolveCoreContent(
 
 export function resolveActivityListItemTitle(
   item: ActivityListItem,
-  titleOverride?: string,
+  bridgeHistoryItem?: BridgeHistoryItem,
 ): string {
-  return titleOverride ?? resolveCoreContent(item).title;
+  return resolveCoreContent(item, bridgeHistoryItem).title;
 }
 
 function resolveAmount(

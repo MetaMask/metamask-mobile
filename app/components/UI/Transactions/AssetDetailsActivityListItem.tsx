@@ -11,6 +11,7 @@ import {
 } from '../ActivityListItemRow/ActivityListItemRow';
 import { type ActivityListItem } from '../../../util/activity-adapters';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity-details routing; route-isolation backlog
 import { getActivityDetailsRoute } from '../../Views/ActivityList/getActivityDetailsRoute';
@@ -105,6 +106,11 @@ export const AssetDetailsActivityListItem = ({
     tx,
   ]);
 
+  const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
+  const bridgeHistoryItem = activityItem.hash
+    ? bridgeHistory?.[activityItem.hash]
+    : undefined;
+
   const handlePress = useCallback(
     (item: ActivityListItem) => {
       if (isTransactionsRedesignEnabled) {
@@ -123,7 +129,7 @@ export const AssetDetailsActivityListItem = ({
 
       const { from, to } = getActivityFromTo(item);
       const value = getActivityValue(item);
-      const actionKey = resolveActivityListItemTitle(item);
+      const actionKey = resolveActivityListItemTitle(item, bridgeHistoryItem);
 
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.TRANSACTION_DETAILS,
@@ -142,6 +148,7 @@ export const AssetDetailsActivityListItem = ({
       });
     },
     [
+      bridgeHistoryItem,
       currentChainId,
       isTransactionsRedesignEnabled,
       navigation,
@@ -175,6 +182,7 @@ export const AssetDetailsActivityListItem = ({
     <Box twClassName="px-4">
       {shouldShowImportTimeBeforeRow && importTimeRow}
       <ActivityListItemRow
+        bridgeHistoryItem={bridgeHistoryItem}
         item={activityItem}
         index={index}
         onPress={handlePress}

@@ -70,7 +70,6 @@ import PriceChartContext, {
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
 import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 import {
-  getSwapBridgeTxActivityTitle,
   handleUnifiedSwapsTxHistoryItemClick,
   isBridgeTxHistoryItemBridge,
 } from '../../UI/Bridge/utils/transaction-history';
@@ -911,9 +910,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         const itemBridgeHistoryItem = getBridgeHistoryItemByHash(item.hash);
         const actionKey = resolveActivityListItemTitle(
           item,
-          itemBridgeHistoryItem
-            ? getSwapBridgeTxActivityTitle(itemBridgeHistoryItem)
-            : undefined,
+          itemBridgeHistoryItem,
         );
 
         const selectedEvmAddress =
