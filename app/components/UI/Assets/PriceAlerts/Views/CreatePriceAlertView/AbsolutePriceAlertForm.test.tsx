@@ -285,9 +285,12 @@ describe('AbsolutePriceAlertForm', () => {
       );
       const screen = renderForm();
       fireEvent.press(screen.getByTestId('keypad-key-1'));
-      fireEvent.press(
-        screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
-      );
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+        );
+      });
 
       await act(async () => {
         resolveFirst();
