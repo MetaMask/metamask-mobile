@@ -31,7 +31,7 @@ import {
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
-import { QrSyncImportPlan } from '../../../core/QrSync/types';
+import { QrSyncSecretTypes } from '../../../core/QrSync/constants';
 
 const mockQrSyncResetState = jest.fn();
 
@@ -1226,16 +1226,14 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         backgroundState: {
           QrSyncController: {
             ...defaultQrSyncControllerState,
-            importPlan: [
+            pendingSecretImports: [
               {
                 index: 0,
                 value: qrSyncMnemonic,
-                type: 'MNEMONIC',
-                accountName: null,
-                hiddenIndexes: [],
+                type: QrSyncSecretTypes.MNEMONIC,
                 isPrimary: true,
               },
-            ] as QrSyncImportPlan,
+            ],
           },
         },
       },
@@ -1296,6 +1294,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID));
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockQrSyncResetState).toHaveBeenCalledTimes(1);
     });
 
     it('does not prefill the seed phrase when qrSyncImport is false', async () => {
@@ -1313,14 +1312,16 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       ).toBeNull();
     });
 
-    it('clears QR sync secrets after a successful vault import', async () => {
+    it('preserves QR sync provisioning state after a successful vault import', async () => {
       jest
         .spyOn(Authentication, 'componentAuthenticationType')
         .mockResolvedValueOnce({
           currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
           availableBiometryType: BIOMETRY_TYPE.FACE_ID,
         });
-      jest.spyOn(Authentication, 'newWalletAndRestore').mockResolvedValueOnce();
+      const newWalletAndRestoreSpy = jest
+        .spyOn(Authentication, 'newWalletAndRestore')
+        .mockResolvedValueOnce();
 
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
@@ -1347,8 +1348,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.press(getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID));
 
       await waitFor(() => {
-        expect(mockQrSyncResetState).toHaveBeenCalledTimes(1);
+        expect(newWalletAndRestoreSpy).toHaveBeenCalledTimes(1);
       });
+
+      expect(mockQrSyncResetState).not.toHaveBeenCalled();
     });
   });
 
@@ -1429,6 +1432,16 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       // Toggle visibility for confirm password
       fireEvent.press(confirmPasswordVisibilityIcon);
       expect(confirmPasswordInput).toHaveProp('secureTextEntry', false);
+    });
+
+    it('shows Done keyboard action on confirm password field', async () => {
+      const { getByTestId } = await renderCreatePasswordUI();
+
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      expect(confirmPasswordInput).toHaveProp('returnKeyType', 'done');
     });
 
     it('error message is shown when passwords do not match', async () => {

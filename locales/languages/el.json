@@ -218,6 +218,49 @@
     "try_again": "Προσπαθήστε ξανά",
     "failed": "Κάτι πήγε στραβά"
   },
+  "scam_questionnaire": {
+    "header_title": "Security check",
+    "continue": "Συνεχίστε",
+    "select_an_answer": "Select an answer",
+    "q1": {
+      "title": "Did someone you only know online tell you to send this?",
+      "subtitle": "This includes dating apps, social media, and group chats—even if you've spoken on video.",
+      "yes": "Yes, someone I met online told me to send this",
+      "no": "No, I know this person in real life"
+    },
+    "q2": {
+      "title": "What's this payment for?",
+      "subtitle": "Choose the option that best describes this payment.",
+      "investment_title": "Investment",
+      "investment_subtitle": "Buying crypto, tokens, or a financial opportunity",
+      "helping_title": "Helping someone I care about",
+      "helping_subtitle": "Sending money to a partner, family member, or friend in need",
+      "government_title": "Paying the police or a government agency",
+      "government_subtitle": "Fines, taxes, or official fees requested in crypto",
+      "job_title": "A job opportunity or work-related",
+      "job_subtitle": "Onboarding fees, equipment, or task payments",
+      "goods_title": "Buying goods or services",
+      "goods_subtitle": "Paying a merchant for something I'm receiving",
+      "self_transfer_title": "Moving funds between my own wallets",
+      "self_transfer_subtitle": "Self-transfer or moving to cold storage"
+    },
+    "q3": {
+      "title": "Is someone guiding you through this transaction?",
+      "subtitle": "This could be over a phone call, video chat, or sharing your screen.",
+      "yes": "Yes, someone is walking me through the steps right now",
+      "no": "No, I am doing this entirely on my own"
+    },
+    "warning": {
+      "title": "You might be getting scammed right now",
+      "reason_known_scam": "Based on your answers and this recipient's history, this transaction might be a scam.",
+      "reason_irreversible_emphasis": "Crypto transactions are irreversible.",
+      "reason_irreversible_detail": "Once you send, your funds can't be recovered.",
+      "stop_payment": "Stop this payment",
+      "contact_support": "Επικοινωνία με την υποστήριξη",
+      "proceed_anyway": "Ignore risks and continue anyway",
+      "proceed_anyway_countdown": "Continue anyway in {{seconds}}s"
+    }
+  },
   "date": {
     "months": {
       "0": "Ιαν",
@@ -1059,7 +1102,75 @@
         "all": "Όλα",
         "tokens": "Token",
         "perps": "Συμβ.αορ."
+      },
+      "notifications_banner": {
+        "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
+        "open_settings": "Άνοιγμα ρυθμίσεων"
       }
+    },
+    "feed": {
+      "title": "Κορυφαίοι Traders",
+      "tabs": {
+        "leaderboard": "Πίνακας κατάταξης",
+        "feed": "Feed"
+      },
+      "following": "Ακολουθείτε",
+      "all": "Όλα",
+      "trade": "Συναλλαγές",
+      "action": {
+        "bought": "αγόρασε",
+        "sold": "πουλήθηκαν",
+        "opened": "άνοιξε",
+        "closed": "έκλεισε"
+      },
+      "type_filter": {
+        "all": "Όλες οι κατηγορίες",
+        "tokens": "Token",
+        "perps": "Συμβ.αορ."
+      },
+      "empty_following": {
+        "title": "Καμία δραστηριότητα μέχρι στιγμής",
+        "description": "Follow traders to see their trades show up here."
+      },
+      "empty_all": {
+        "title": "Καμία δραστηριότητα μέχρι στιγμής",
+        "description": "Trader activity will show up here as trades come in."
+      },
+      "empty_type": {
+        "tokens": {
+          "title": "No token activity"
+        },
+        "perps": {
+          "title": "No perps activity"
+        },
+        "description": "No matching trades in the activity so far."
+      },
+      "load_more": "Φόρτωση περισσότερων",
+      "error": {
+        "title": "Couldn't load the feed",
+        "retry": "Προσπαθήστε ξανά"
+      },
+      "no_data": "Δεν υπάρχουν δεδομένα"
+    },
+    "onboarding": {
+      "slide_trade": {
+        "title": "Trade like a pro",
+        "description": "Track in real time when they swap or trade perps, tokens, and real-world assets."
+      },
+      "slide_follow": {
+        "title": "Follow the best",
+        "description": "Tap to follow the top three traders who are up big this week."
+      },
+      "slide_notify": {
+        "title": "Μην χάνετε καμία κίνηση της αγοράς",
+        "description_followed": "When a trader you follow makes a move, you'll get a notification. One tap to do the same.",
+        "description_default": "When you're ready, follow a trader to get notified the moment they make a move."
+      },
+      "next": "Επόμενο",
+      "follow_top_three": "Follow the top three",
+      "maybe_later": "Ίσως αργότερα",
+      "got_it": "Κατανοητό",
+      "allow_notifications": "Επιτρέψτε τις ειδοποιήσεις"
     },
     "notification_preferences": {
       "title": "Κορυφαίοι traders",
@@ -1666,6 +1777,8 @@
       "loss_percent_placeholder": "Ζημιά",
       "profit_roe_placeholder": "% Κέρδος",
       "loss_roe_placeholder": "% Ζημιά",
+      "toggle_take_profit_sign": "Toggle take profit return sign",
+      "toggle_stop_loss_sign": "Toggle stop loss return sign",
       "usd_label": "$",
       "take_profit_invalid_price": "Η τιμή λήψης κέρδους πρέπει να είναι {{direction}} από την τιμή {{priceType}}",
       "stop_loss_invalid_price": "Η τιμή περιορισμού ζημιάς πρέπει να είναι {{direction}} από την τιμή {{priceType}}",
@@ -2084,7 +2197,8 @@
       "products": "Προϊόντα",
       "top_movers": "Κορυφαίες μεταβολές",
       "gainers": "Ανοδικές μετοχές",
-      "losers": "Πτωτικές μετοχές"
+      "losers": "Πτωτικές μετοχές",
+      "recently_added": "Προστέθηκαν πρόσφατα"
     },
     "learn_more": {
       "title": "Μάθετε για τα Perps",
@@ -2178,8 +2292,17 @@
       "filter_badge_label": "Λίστα παρακολούθησης",
       "suggested": "Προτεινόμενη"
     },
+    "recently_viewed": "Recently viewed",
+    "recently_searched": "Recently searched",
+    "market_count": "{{count}} αγορά",
+    "market_count_plural": "{{count}} αγορές",
     "no_tokens_found": "Δεν βρέθηκαν token",
     "no_tokens_found_description": "Δεν βρέθηκαν token με το όνομα “{{searchQuery}}”. Δοκιμάστε άλλη αναζήτηση.",
+    "no_markets_found": "Δεν βρέθηκαν αγορές",
+    "no_markets_found_description": "Δεν βρέθηκαν αγορές που να αντιστοιχούν στο τρέχον φίλτρο σας. Δοκιμάστε με μια διαφορετική κατηγορία.",
+    "no_markets_search_description": "Δεν βρέθηκαν αγορές που να αντιστοιχούν στην αναζήτηση \"{{searchQuery}}\" σε αυτήν την κατηγορία. Δοκιμάστε διαφορετική αναζήτηση ή διαγράψτε το φίλτρο.",
+    "clear_search": "Εκκαθάριση αναζήτησης",
+    "clear_filter": "Εκκαθάριση φίλτρου",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
@@ -2494,6 +2617,7 @@
     },
     "outcome_groups": {
       "game_lines": "Στοιχήματα Αγώνων",
+      "halves": "Ημίχρονα",
       "first_half": "1ο Ημίχρονο",
       "first_set": "1ο σετ",
       "team_totals": "Σύνολα ομάδας",
@@ -2522,6 +2646,7 @@
       "first_half_moneyline": "Moneyline 1ου ημιχρόνου",
       "first_half_spreads": "Χάντικαπ 1ου ημιχρόνου",
       "first_half_totals": "Σύνολα 1ου ημιχρόνου",
+      "second_half_totals": "Σύνολο 2ου ημιχρόνου",
       "points": "Πόντοι",
       "assists": "Ασιστ",
       "rebounds": "Ριμπάουντ",
@@ -2529,6 +2654,7 @@
       "basketball_odd_even": "Μονά ή ζυγά τελικό σκορ",
       "basketball_team_to_score_first": "Ομάδα που θα σκοράρει πρώτη",
       "goalscorers": "Σκόρερ",
+      "soccer_player_goals": "Γκολ",
       "exact_score": "Ακριβές Σκορ",
       "halftime_result": "Αποτέλεσμα Ημιχρόνου",
       "corners": "Κόρνερ",
@@ -2540,6 +2666,11 @@
       "soccer_anytime_goalscorer": "Σκόρερ",
       "soccer_exact_score": "Ακριβές Σκορ",
       "soccer_halftime_result": "Αποτέλεσμα Ημιχρόνου",
+      "soccer_first_half_team_totals": "Συνολικά σκορ ομάδων 1ου ημιχρόνου",
+      "both_teams_to_score_first_half": "Να σκοράρουν και οι δύο ομάδες στο 1ο ημίχρονο",
+      "soccer_second_half_result": "Αποτέλεσμα 2ου ημιχρόνου",
+      "soccer_second_half_team_totals": "Συνολικά σκορ ομάδων 2ου ημιχρόνου",
+      "both_teams_to_score_second_half": "Να σκοράρουν και οι δύο ομάδες στο 2ο ημίχρονο",
       "soccer_team_to_advance": "Ομάδα που θα προκριθεί",
       "soccer_first_to_score": "Πρώτη ομάδα που σκοράρει",
       "soccer_extra_time": "Παράταση;",
@@ -2615,6 +2746,11 @@
     "markets_won": "Αγορές που κερδήθηκαν",
     "won_markets_text": "Κερδίσατε {{count}} αγορά{{s}}",
     "available_balance": "Διαθέσιμο υπόλοιπο",
+    "balance_error": {
+      "title": "Couldn't load your balance",
+      "description": "Your funds are safe. Check your connection and try again.",
+      "retry": "Επανάληψη"
+    },
     "portfolio": {
       "available_amount": "{{amount}} διαθέσιμα",
       "value_accessibility": "Αξία χαρτοφυλακίου, {{value}}",
@@ -2715,8 +2851,8 @@
           "description": "{{amount}} προστέθηκαν στο υπόλοιπό σας"
         },
         "redeemed": {
-          "title": "Position redeemed",
-          "description": "Your position has been redeemed"
+          "title": "Εξαργύρωση θέσης",
+          "description": "Η θέση σας εξαργυρώθηκε"
         },
         "error": {
           "title": "Κάτι πήγε στραβά",
@@ -3245,20 +3381,20 @@
     "pna25_blog_post_link": "ανάρτηση στο blog",
     "pna25_confirm_button": "Αποδοχή και κλείσιμο",
     "pna25_open_settings_button": "Άνοιγμα Ρυθμίσεων",
-    "settings": "You can also",
-    "settings_link": "manage other default settings."
+    "settings": "Μπορείτε επίσης",
+    "settings_link": "να διαχειριστείτε άλλες προεπιλεγμένες ρυθμίσεις."
   },
   "onboarding_interest_questionnaire": {
-    "title": "How will you use MetaMask?",
+    "title": "Πώς θα χρησιμοποιήσετε το MetaMask;",
     "description": "Επιλέξτε όλα όσα ισχύουν.",
     "option_swap_tokens": "Ανταλλαγή tokens",
     "option_trade_perpetuals": "Κάντε συναλλαγές σε perpetuals",
     "option_prediction_markets": "Αγορές προβλέψεων",
-    "option_send_receive_crypto": "Send and receive crypto",
-    "option_earn_and_spend": "Earn and spend",
-    "option_use_other_crypto_apps": "Use other crypto apps",
+    "option_send_receive_crypto": "Αποστολή και λήψη κρυπτονομισμάτων",
+    "option_earn_and_spend": "Κέρδη και αγορές",
+    "option_use_other_crypto_apps": "Χρησιμοποιώ άλλες εφαρμογές κρυπτονομισμάτων",
     "option_other": "Άλλο",
-    "other_placeholder": "How else will you use MetaMask?",
+    "other_placeholder": "Πώς θα χρησιμοποιήσετε το MetaMask;",
     "done": "Τέλος",
     "skip": "Παράλειψη",
     "next": "Επόμενο"
@@ -3993,8 +4129,8 @@
         "title": "Κάρτα",
         "reset_onboarding_description": "Επαναφορά της διαδικασίας ενεργοποίησης της Κάρτας για να ξεκινήσει η διαδικασία από την αρχή.",
         "reset_onboarding_button": "Επαναφορά της διαδικασίας ενεργοποίησης",
-        "unlink_money_account_description": "Ανακαλέστε το όριο δαπανών σε USDC που επιτρέπει στην κάρτα να ξοδεύει από τον λογαριασμό σας. Αυτό υποβάλλει μια συναλλαγή έγκρισης(0) και επισημαίνει τον λογαριασμό σας ως μη εξουσιοδοτημένο για ανάθεση στο σύστημα της κάρτας.",
-        "unlink_money_account_button": "Αποσύνδεση του Λογαριασμού από την κάρτα",
+        "unlink_money_account_description": "Ανακαλέστε το όριο δαπανών σε USDC που επιτρέπει στην κάρτα να ξοδεύει από τον Money Account. Αυτό υποβάλλει μια συναλλαγή έγκρισης(0) και επισημαίνει τον Money Account ως μη εξουσιοδοτημένο για ανάθεση στο σύστημα της κάρτας.",
+        "unlink_money_account_button": "Αποσύνδεση του Money Account από την κάρτα",
         "unlink_money_account_disabled_hint": "Δεν υπάρχει ενεργή σύνδεση για αφαίρεση."
       },
       "identity": {
@@ -4006,6 +4142,12 @@
         "title": "Ειδοποιήσεις",
         "description": "Επαναφορά της ένδειξης πριν την προτροπή των ειδοποιήσεων push, ώστε να εμφανιστεί ξανά το πάνελ στην επόμενη κατάλληλη εκκίνηση.",
         "reset_prompt": "Επαναφορά των ειδοποιήσεων push πριν την προτροπή"
+      },
+      "social_leaderboard": {
+        "title": "Social Leaderboard",
+        "description": "Reset the Social Leaderboard onboarding so it shows again the next time the feature is opened.",
+        "onboarding_seen": "Onboarding seen: {{seen}}",
+        "reset_onboarding": "Reset onboarding"
       },
       "haptics": {
         "title": "Απτική ανάδραση",
@@ -4068,6 +4210,20 @@
         "four": "Εισάγετε τον κωδικό ασφαλείας στην επέκτασή σας"
       },
       "scan_qr_code_button": "Σάρωση κωδικού QR",
+      "scanner": {
+        "searching_label": "Σαρώστε τον κωδικό στη άλλη σας συσκευή",
+        "detected_label": "Εντοπίστηκε κωδικός",
+        "invalid_qr_title": "Μη αναγνωρίσιμος κωδικός QR",
+        "invalid_qr_description": "Σαρώστε τον κωδικό QR από τη ροή \"Εισαγωγή σε κινητό' της επέκτασης του MetaMask.",
+        "expired_qr_title": "Ο κωδικός QR έληξε",
+        "expired_qr_description": "Δημιουργήστε έναν νέο κωδικό QR στην επέκτασή σας και σαρώστε τον ξανά μέσα σε 60 δευτερόλεπτα.",
+        "connection_failed_title": "Η σύνδεση απέτυχε",
+        "connection_failed_description": "Δεν μπορέσαμε να συνδεθούμε με την επέκτασή σας. Προσπαθήστε να σαρώσετε ξανά.",
+        "try_again": "Προσπαθήστε ξανά",
+        "permission_title": "Ενεργοποίηση της πρόσβασης στην κάμερα",
+        "permission_description": "Για να σαρώσετε έναν κωδικό QR, θα πρέπει να δώσετε πρόσβαση στην κάμερα στο MetaMask από το μενού ρυθμίσεων της συσκευής σας.",
+        "open_settings": "Άνοιγμα Ρυθμίσεων"
+      },
       "enter_code_on_extension": "Εισάγετε τον κωδικό στην επέκταση",
       "enter_code_on_extension_desc": "Για λόγους ασφαλείας, εισάγετε τον παρακάτω κωδικό επαλήθευσης στην επέκταση MetaMask.",
       "done": "Τέλος",
@@ -4075,7 +4231,13 @@
       "waiting_for_extension_description": "Ολοκληρώστε την επιλογή λογαριασμών στον υπολογιστή σας για να συνεχίσετε.",
       "extension_cancelled_title": "Η εισαγωγή ακυρώθηκε",
       "extension_cancelled_description": "Η εισαγωγή λογαριασμού ακυρώθηκε/απέτυχε. Προσπαθήστε ξανά.",
-      "extension_cancelled_button": "Προσπαθήστε ξανά"
+      "extension_cancelled_button": "Προσπαθήστε ξανά",
+      "already_synced_title": "Account already synced",
+      "already_synced_description": "This account has already been synced to this device.",
+      "already_synced_button": "Close",
+      "import_failed_title": "Couldn't add account",
+      "import_failed_description": "Something went wrong while adding the account from your extension. Try again.",
+      "import_failed_button": "Close"
     }
   },
   "aes_crypto_test_form": {
@@ -4903,8 +5065,8 @@
     "tx_details_free": "Δωρεάν",
     "tx_details_not_available": "Μη διαθέσιμο",
     "smart_contract_interaction": "Αλληλεπίδραση έξυπνου συμβολαίου",
-    "money_account_deposit": "Κατάθεση στον λογαριασμό χρημάτων",
-    "money_account_withdraw": "Μεταφορά από τον λογαριασμό χρημάτων",
+    "money_account_deposit": "Κατάθεση στον Money Account",
+    "money_account_withdraw": "Μεταφορά από τον Money Account",
     "swaps_transaction": "Συναλλαγή ανταλλαγής",
     "bridge_transaction": "Διασύνδεση",
     "approve": "Έγκριση",
@@ -5200,7 +5362,14 @@
     "enable_device_passcode_android": "Ξεκλείδωμα με PIN συσκευής;"
   },
   "authentication": {
-    "auth_prompt_desc": "Παρακαλούμε κάντε έλεγχο ταυτοποίησης για να χρησιμοποιήσετε το MetaMask"
+    "auth_prompt_desc": "Παρακαλούμε κάντε έλεγχο ταυτοποίησης για να χρησιμοποιήσετε το MetaMask",
+    "labels": {
+      "remember_me": "Remember Me",
+      "face_id": "Face ID",
+      "touch_id": "Touch ID",
+      "device_authentication": "Device Authentication",
+      "device_passcode": "Device Passcode"
+    }
   },
   "accountApproval": {
     "title": "ΑΙΤΗΜΑ ΣΥΝΔΕΣΗΣ",
@@ -5308,7 +5477,7 @@
     "what_is_seedphrase_text_2": "Πρέπει να διατηρείτε τη Μυστική Φράση Ανάκτησης κρυφή και ασφαλή. Εάν κάποιος βρει τη Μυστική Φράση Ανάκτησης, θα αποκτήσει τον έλεγχο των λογαριασμών σας.",
     "what_is_seedphrase_text_3": "Αποθηκεύστε την κάπου όπου μόνο εσείς έχετε πρόσβαση. Εάν την χάσετε, ούτε το MetaMask δεν μπορεί να σας βοηθήσει να την ανακτήσετε.",
     "what_is_seedphrase_text_4": "Οποιοσδήποτε έχει τη Μυστική Φράση Ανάκτησής σας μπορεί να:",
-    "seedPhrase_point_1": "Πάρει όλα σας τα χρήματα",
+    "seedPhrase_point_1": "Κάντε ανάληψη όλων των χρημάτων σας",
     "seedPhrase_point_2": "Επιβεβαιώνει συναλλαγές",
     "seedPhrase_point_3": "Αλλάξει τα στοιχεία σύνδεσής σας",
     "what_is_seedphrase_confirm": "Κατανοητό"
@@ -5550,17 +5719,10 @@
     "success_withdrawal_title": "Η ανάληψη ολοκληρώθηκε!",
     "error_title": "Ωχ, κάτι πήγε στραβά :/",
     "received_title": "Λάβατε {{amount}} {{assetType}}",
-    "metamask_swap_completed_title": "Ολοκληρώθηκε η ανταλλαγή",
     "erc20_sent_title": "Στάλθηκαν κεφάλαια",
     "erc20_received_title": "Ελήφθη κεφάλαια",
     "eth_sent_title": "Στάλθηκαν κεφάλαια",
     "eth_received_title": "Ελήφθη κεφάλαια",
-    "rocketpool_stake_completed_title": "Ολοκλήρωση πονταρίσματος",
-    "rocketpool_unstake_completed_title": "Μη ολοκλήρωση του πονταρίσματος",
-    "lido_stake_completed_title": "Ολοκλήρωση πονταρίσματος",
-    "lido_withdrawal_requested_title": "Αίτημα ανάληψης",
-    "lido_withdrawal_completed_title": "Η ανάληψη ολοκληρώθηκε",
-    "lido_stake_ready_to_be_withdrawn_title": "Το ποντάρισμα είναι έτοιμο για ανάληψη",
     "erc721_sent_title": "Στάλθηκαν NFT",
     "erc721_received_title": "Ελήφθησαν NFT",
     "erc1155_sent_title": "Στάλθηκαν NFT",
@@ -6660,7 +6822,12 @@
   },
   "download_files": {
     "error": "Η λήψη του συνημμένου απέτυχε.",
-    "unknownError": "Παρουσιάστηκε άγνωστο σφάλμα"
+    "unknownError": "Παρουσιάστηκε άγνωστο σφάλμα",
+    "downloaded_title": "Η λήψη ολοκληρώθηκε",
+    "downloaded_message": "Το {{filename}} αποθηκεύτηκε στον φάκελο Λήψεις.",
+    "confirm_message": "Θέλετε να κατεβάσετε \nτο {{filename}};",
+    "confirm_action": "Λήψη",
+    "cancel_action": "Άκυρο"
   },
   "remember_me": {
     "enable_remember_me": "Ενεργοποιήστε την λειτουργία «Να με θυμάστε»",
@@ -7159,13 +7326,13 @@
     "balance_unavailable_value": "$—",
     "balance_unavailable_banner_description": "Δεν είναι δυνατή η προβολή του υπολοίπου σας προς το παρόν. Τα χρήματά σας είναι ασφαλή — προσπαθήστε ξανά σε λίγο.",
     "balance_retry": "Επανάληψη",
-    "balance_no_account": "Δεν βρέθηκε ο λογαριασμός",
+    "balance_no_account": "Δεν βρέθηκε ο Money Account",
     "onboarding": {
       "step_1": {
         "title": "Κερδίστε έως και {{apy}}% APY",
-        "title_no_apy": "Χρηματοδοτήστε τον λογαριασμό Κεφαλαίων σας",
-        "description": "Χρηματοδοτήστε τον λογαριασμό Κεφαλαίων σας και δείτε το υπόλοιπό σας να αυξάνεται έως και {{apy}}% ετήσια απόδοση (APY) (μεταβλητό).",
-        "description_no_apy": "Χρηματοδοτήστε τον λογαριασμό Κεφαλαίων σας και δείτε το υπόλοιπό σας να αυξάνεται.",
+        "title_no_apy": "Χρηματοδοτήστε τον Money Account σας",
+        "description": "Χρηματοδοτήστε τον Money Account σας και δείτε το υπόλοιπό σας να αυξάνεται έως και {{apy}}% ετήσια απόδοση (APY) (μεταβλητό).",
+        "description_no_apy": "Χρηματοδοτήστε τον Money Account σας και δείτε το υπόλοιπό σας να αυξάνεται.",
         "cta": "Προσθήκη κεφαλαίων"
       },
       "step_2": {
@@ -7185,19 +7352,19 @@
     },
     "first_time_deposit": {
       "title": "Πρώτη κατάθεση, ολοκληρώθηκε",
-      "content": "Είναι στον λογαριασμό Κεφαλαίων σας — \n και ήδη αποδίδουν.",
+      "content": "Είναι στον Money Account σας — \n και ήδη αποδίδουν.",
       "button_text": "Τέλος"
     },
     "rive_onboarding": {
-      "step1_title": "Οι καταθετικοί λογαριασμοί είναι εδώ",
+      "step1_title": "Οι Money Accounts είναι εδώ",
       "step1_body": "Κερδίστε έως και {{percentage}}% APY στο υπόλοιπό σας, διαθέσιμο στο πορτοφόλι σας.",
       "step1_footer_text": "Το APY είναι μεταβλητό και δεν είναι εγγυημένο.",
       "step2_title": "Κερδίζετε αυτόματα",
       "step2_body": "Μεταφέρετε τα stablecoins χωρίς προμήθειες ανταλλαγής. Τα κεφάλαιά σας αρχίζουν να αποδίδουν άμεσα.",
-      "step2_footer_text": "Ο λογαριασμός σας χρησιμοποιεί την υποδομή της Veda.",
+      "step2_footer_text": "Ο Money Account σας χρησιμοποιεί την υποδομή της Veda.",
       "step3_title": "Κάντε αγορές οπουδήποτε",
-      "step3_body_card_eligible": "Κερδίστε έως {{percentage}}% επιστροφή στις αγορές, συνδέοντας τον λογαριασμό Κεφαλαίων σας με μια MetaMask Card.",
-      "step3_body_card_ineligible": "Έρχεται σύντομα! Κερδίστε έως {{percentage}}% επιστροφή στις αγορές, συνδέοντας τον λογαριασμό Κεφαλαίων σας με μια MetaMask Card.",
+      "step3_body_card_eligible": "Κερδίστε έως {{percentage}}% επιστροφή στις αγορές, συνδέοντας τον Money Account σας με μια MetaMask Card.",
+      "step3_body_card_ineligible": "Έρχεται σύντομα! Κερδίστε έως {{percentage}}% επιστροφή στις αγορές, συνδέοντας τον Money Account σας με μια MetaMask Card.",
       "step3_footer_text": "Περιλαμβάνει παρακολούθηση από Steakhouse Financial.",
       "step4_title": "Κάντε συναλλαγές και κερδίστε σε ένα μέρος",
       "step4_body": "Χρησιμοποιήστε το υπόλοιπο του λογαριασμού σας για συναλλαγές στο MetaMask, ενώ συνεχίζετε να κερδίζετε σε απόδοση.",
@@ -7233,7 +7400,8 @@
     "potential_earnings": {
       "title": "Κερδίστε από τα κρυπτονομίσματά σας",
       "description": "Δείτε πώς τα χρήματά σας μπορούν να αυξηθούν με τον χρόνο, μετατρέποντας τα κρυπτονομίσματά σας σε mUSD.",
-      "description_with_amounts_prefix": "Μετατρέψτε τα περιουσιακά σας στοιχεία αξίας {{total}} και μπορείτε να κερδίσετε έως και",
+      "description_with_amounts_prefix": "Μετατρέψτε τα",
+      "description_with_amounts_middle": "σε περιουσιακά στοιχεία και θα μπορούσατε να κερδίσετε έως και",
       "description_with_amounts_suffix": "σε ένα έτος.",
       "add": "Προσθήκη",
       "convert_cta": "Μετατρέψτε τα κρυπτονομίσματά σας",
@@ -7269,11 +7437,11 @@
       "link_card_sheet_description_suffix": " (μεταβλητό).",
       "link_card_sheet_description_no_apy": "Συνδέστε την κάρτα σας για να χρησιμοποιήσετε το υπόλοιπο του λογαριασμού σας και να κερδίζετε mUSD ως επιστροφή στις αγορές σας.",
       "link_card_sheet_cta": "Σύνδεση κάρτας",
-      "unlink_card_sheet_title_no_funding_source": "Αποσύνδεση του λογαριασμού Κεφαλαίων;",
+      "unlink_card_sheet_title_no_funding_source": "Αποσύνδεση του Money Account;",
       "unlink_card_sheet_title_with_funding_source": "Είστε σίγουροι;",
-      "unlink_card_sheet_description_no_funding_source": "Θα σταματήσετε να κερδίζετε από τις αγορές σας. Οι μελλοντικές δαπάνες της κάρτας θα απορρίπτονται μέχρι να ορίσετε μια νέα πηγή χρηματοδότησης. Συνδέστε ξανά τον λογαριασμό Κεφαλαίων σας οποιαδήποτε στιγμή.",
-      "unlink_card_sheet_description_with_funding_source": "Θα σταματήσετε να κερδίζετε από τις αγορές σας. Οι μελλοντικές δαπάνες της κάρτας σας θα χρηματοδοτούνται από {{fundingSource}}. Συνδέστε ξανά τον λογαριασμό Κεφαλαίων σας οποιαδήποτε στιγμή.",
-      "unlink_card_sheet_another_money_account": "άλλος λογαριασμός Κεφαλαίων",
+      "unlink_card_sheet_description_no_funding_source": "Θα σταματήσετε να κερδίζετε από τις αγορές σας. Οι μελλοντικές δαπάνες της κάρτας θα απορρίπτονται μέχρι να ορίσετε μια νέα πηγή χρηματοδότησης. Συνδέστε ξανά τον Money Account σας οποιαδήποτε στιγμή.",
+      "unlink_card_sheet_description_with_funding_source": "Θα σταματήσετε να κερδίζετε από τις αγορές σας. Οι μελλοντικές δαπάνες της κάρτας σας θα χρηματοδοτούνται από {{fundingSource}}. Συνδέστε ξανά τον Money Account σας οποιαδήποτε στιγμή.",
+      "unlink_card_sheet_another_money_account": "άλλος Money Account",
       "unlink_card_sheet_keep_linked": "Διατήρηση σύνδεσης",
       "unlink_card_sheet_unlink_account": "Αποσύνδεση λογαριασμού",
       "manage_card": "Διαχείριση",
@@ -7281,7 +7449,7 @@
       "verification_pending": "Η επαλήθευση ταυτότητάς σας βρίσκεται υπό εξέταση. Αυτό συνήθως διαρκεί λιγότερο από 12 ώρες."
     },
     "what_you_get": {
-      "title": "Οφέλη λογαριασμού Κεφαλαίων",
+      "title": "Οφέλη του Money Account",
       "benefit_auto_earn": "Αυτόματη απόδοση έως και",
       "benefit_auto_earn_variable": "(μεταβλητό)",
       "benefit_dollar_backed": "Κρατήστε τα χρήματά σας ασφαλή σε mUSD, ένα stablecoin με αναλογία 1:1 σε δολάρια",
@@ -7300,7 +7468,6 @@
       "convert_crypto": "Μετατροπή κρυπτονομισμάτων",
       "deposit_funds": "Χρεωστική κάρτα ή Apple Pay",
       "bank_account": "Τραπεζικός λογαριασμός",
-      "move_musd": "{{amount}} mUSD",
       "add_musd": "Προσθέστε mUSD",
       "receive_external": "Εξωτερική διεύθυνση",
       "coming_soon": "Προσεχώς"
@@ -7308,7 +7475,7 @@
     "more_sheet": {
       "title": "Περισσότερα",
       "how_it_works": "Πώς λειτουργεί",
-      "what_you_get": "Οφέλη λογαριασμού Κεφαλαίων",
+      "what_you_get": "Οφέλη του Money Account",
       "contact_support": "Επικοινωνία με την υποστήριξη"
     },
     "transfer_sheet": {
@@ -7330,8 +7497,8 @@
       "deposit_success_title_convert": "Η μετατροπή ολοκληρώθηκε",
       "deposit_success_title_add_musd": "Προστέθηκαν κεφάλαια",
       "deposit_success_title_card": "Η κατάθεση ολοκληρώθηκε",
-      "deposit_success_body": "Προστέθηκαν {{amount}} στον λογαριασμό σας.",
-      "deposit_success_body_no_amount": "Προστέθηκε στον λογαριασμό σας.",
+      "deposit_success_body": "Προστέθηκαν {{amount}} στον Money Account",
+      "deposit_success_body_no_amount": "Προστέθηκαν στον Money Account.",
       "withdraw_in_progress_title": "Μεταφορά σε εξέλιξη",
       "withdraw_success_title": "Η μεταφορά ολοκληρώθηκε",
       "withdraw_success_body": "Προστέθηκαν {{amount}} στο {{destination}}.",
@@ -7355,10 +7522,10 @@
     },
     "apy_tooltip": {
       "title": "Ετήσιο ποσοστό απόδοσης (APY)",
-      "paragraph_1": "Ο λογαριασμός χρημάτων σας αποδίδει έως και {{percentage}}% αυτόματα.",
+      "paragraph_1": "Ο Money Account αποδίδει έως και {{percentage}}% αυτόματα.",
       "paragraph_2": "Η απόδοση που εμφανίζεται είναι μια εκτιμώμενη Ετήσια Απόδοση (APY), βάσει των τρεχουσών συνθηκών της αγοράς. Το APY είναι κυμαινόμενο και δεν εγγυάται απόδοση. Τα κεφάλαια τοποθετούνται σε ένα DeFi vault, με διαχείριση από τη Veda και εποπτεία κινδύνου από τη Steakhouse Financial, το οποίο αποφέρει αποδόσεις σε καθιερωμένες αγορές δανεισμού.",
       "paragraph_3": "Όταν συνδέσετε την MetaMask Card σας, οι αγορές θα αφαιρούνται από αυτό το υπόλοιπο.",
-      "paragraph_4": "Ο λογαριασμός υποστηρίζεται από την Monad.",
+      "paragraph_4": "Ο Money Account υποστηρίζεται από την Monad.",
       "deposit_body": "Το επιτόκιο που εμφανίζεται είναι μια εκτιμώμενη Ετήσια Ποσοστιαία Απόδοση (APY) με βάση τις τρέχουσες συνθήκες της αγοράς. Το APY είναι μεταβλητό και δεν είναι εγγυημένο."
     },
     "earnings_tooltip": {
@@ -7374,8 +7541,8 @@
       "title": "Δραστηριότητα",
       "view_all": "Προβολή όλων",
       "empty": "Καμία δραστηριότητα μέχρι στιγμής",
-      "load_error": "Couldn't load your activity",
-      "load_error_more": "Couldn't load more activity",
+      "load_error": "Δεν ήταν δυνατή η φόρτωση της δραστηριότητάς σας",
+      "load_error_more": "Δεν ήταν δυνατή η φόρτωση περισσότερης δραστηριότητας",
       "retry": "Επανάληψη",
       "pending": "Εκκρεμεί",
       "filter_all": "Όλα",
@@ -7440,48 +7607,48 @@
     "how_it_works_page": {
       "header_title": "Οικονομικά",
       "section_title": "Πώς λειτουργεί",
-      "description_1": "Προσθέστε mUSD στον λογαριασμό σας και κερδίστε έως {{percentage}}% APY (μεταβλητό) αυτόματα. Τα κεφάλαια τοποθετούνται σε ένα DeFi vault, το οποίο διαχειρίζεται η Veda με παρακολούθηση κινδύνου από την Steakhouse Financial. Το επιτόκιο προκύπτει από τρίτες DeFi πλατφόρμες που τοποθετούν τα κεφάλαια σε blockchain πρωτόκολλα. Χωρίς δέσμευση κεφαλαίων, διεκδίκηση ανταμοιβών ή κλείδωμα κεφαλαίων.",
+      "description_1": "Προσθέστε mUSD στον Money Account και κερδίστε έως {{percentage}}% APY (μεταβλητό) αυτόματα. Τα κεφάλαια τοποθετούνται σε ένα DeFi vault, το οποίο διαχειρίζεται η Veda με παρακολούθηση κινδύνου από την Steakhouse Financial. Το επιτόκιο προκύπτει από τρίτες DeFi πλατφόρμες που τοποθετούν τα κεφάλαια σε blockchain πρωτόκολλα. Χωρίς δέσμευση κεφαλαίων, διεκδίκηση ανταμοιβών ή κλείδωμα κεφαλαίων.",
       "description_2": "Το υπόλοιπο του λογαριασμού σας είναι το διαθέσιμο υπόλοιπο για δαπάνες. Συνδέστε την MetaMask Card για να πραγματοποιείτε συναλλαγές σε περισσότερους από 150 εκατομμύρια εμπόρους παγκοσμίως. Τα χρήματά σας συνεχίζουν να αποδίδουν μέχρι τη στιγμή που θα τα χρησιμοποιήσετε.",
-      "description_3": "Ο λογαριασμός υποστηρίζεται από την Monad.",
+      "description_3": "Ο Money Account υποστηρίζεται από την Monad.",
       "faq_title": "Συχνές Ερωτήσεις",
-      "faq_q1": "Τι είναι ένας λογαριασμός Κεφαλαίων στο MetaMask;",
+      "faq_q1": "Τι είναι ένας Money Account στο MetaMask;",
       "faq_a1": "Ένας λογαριασμός που αποδίδει έως και {{percentage}}% μεταβλητή ετήσια απόδοση (APY). Καταθέτετε χρήματα, τα οποία διατηρούνται στον λογαριασμό σας ως mUSD, και κερδίζετε έως και {{percentage}}% ετήσια απόδοση (APY). Τα mUSD είναι το stablecoin του MetaMask που υποστηρίζεται από το δολάριο. Μπορείτε να χρησιμοποιήσετε ή να αποσύρετε τα χρήματά σας οποιαδήποτε στιγμή χωρίς ποινή. Μπορείτε να ξοδεύετε τα χρήματά σας μέσω της MetaMask Card σε πάνω από 150 εκατομμύρια καταστήματα που χρησιμοποιούν την Mastercard παγκοσμίως.",
-      "faq_q2": "Είναι ασφαλής ο λογαριασμός Κεφαλαίων στο MetaMask;",
-      "faq_a2": "Ναι, αλλά όπως όλα τα προϊόντα με αποκεντρωμένη χρηματοδότηση (DeFi), ενέχει κινδύνους. Είναι ένα πορτοφόλι με αυτοδιαχείριση κεφαλαίων, δηλαδή εσείς έχετε τον πλήρη έλεγχο του λογαριασμού σας με τα ιδιωτικά σας κλειδιά.\n\nΟι κίνδυνοι περιλαμβάνουν σφάλματα έξυπνων συμβολαίων, παραβιάσεις πρωτοκόλλου, περιορισμένη ρευστότητα, αστοχίες τρίτων και νομικούς ή κανονιστικούς περιορισμούς. Ο λογαριασμός Κεφαλαίων δεν καλύπτεται από την FDIC ή κάποια άλλη κρατική αρχή. Υπάρχει κίνδυνος απώλειας κεφαλαίων.",
-      "faq_q3": "Ποιος ελέγχει τον λογαριασμό Κεφαλαίων μου στο MetaMask;",
+      "faq_q2": "Είναι ασφαλής ο Money Account στο MetaMask;",
+      "faq_a2": "Ναι, αλλά όπως όλα τα προϊόντα με αποκεντρωμένη χρηματοδότηση (DeFi), ενέχει κινδύνους. Είναι ένα πορτοφόλι με αυτοδιαχείριση κεφαλαίων, δηλαδή εσείς έχετε τον πλήρη έλεγχο του λογαριασμού σας με τα ιδιωτικά σας κλειδιά.\n\nΟι κίνδυνοι περιλαμβάνουν σφάλματα έξυπνων συμβολαίων, παραβιάσεις πρωτοκόλλου, περιορισμένη ρευστότητα, αστοχίες τρίτων και νομικούς ή κανονιστικούς περιορισμούς. Ο Money Account δεν προστατεύεται από την FDIC ή κάποια άλλη κρατική αρχή. Υπάρχει κίνδυνος απώλειας κεφαλαίων.",
+      "faq_q3": "Ποιος ελέγχει τον Money Account μου στο MetaMask;",
       "faq_a3": "Εσείς! Το MetaMask είναι ένα πορτοφόλι με αυτοδιαχείριση κεφαλαίων, δηλαδή μόνο ο κάτοχος των ιδιωτικών κλειδιών ελέγχει τον λογαριασμό. Το MetaMask δεν μπορεί να έχει πρόσβαση, να παγώσει ή να μεταφέρει τα χρήματά σας. Αυτό μας διαφοροποιεί από τους παραδοσιακούς τραπεζικούς λογαριασμούς και τις πλατφόρμες φύλαξης κρυπτονομισμάτων — δεν υπάρχουν τρίτοι να διαχειρίζονται τα χρήματά σας.",
-      "faq_q4": "Ποιες είναι οι χρεώσεις για έναν λογαριασμό Κεφαλαίων στο MetaMask;",
-      "faq_a4": "Δεν υπάρχει χρέωση για την δημιουργία λογαριασμού Κεφαλαίων ούτε για την κατάθεση stablecoins. Θα επιβαρυνθείτε με χρεώσεις όταν καταθέτετε tokens που δεν είναι stablecoins. Υπάρχουν επίσης χρεώσεις που σχετίζονται με συναλλαγές της MetaMask Card, αναλήψεις από ATM και τέλη μετατροπής σε τοπικό νόμισμα. ",
+      "faq_q4": "Ποιες είναι οι χρεώσεις για έναν Money Account στο MetaMask;",
+      "faq_a4": "Δεν υπάρχει χρέωση για την δημιουργία ενός Money Account ούτε για την κατάθεση stablecoins. Θα επιβαρυνθείτε με χρεώσεις όταν καταθέτετε tokens που δεν είναι stablecoins. Υπάρχουν επίσης χρεώσεις που σχετίζονται με συναλλαγές της MetaMask Card, αναλήψεις από ATM και τέλη μετατροπής σε τοπικό νόμισμα. ",
       "faq_a4_link": "Δείτε αναλυτικά τις χρεώσεις της κάρτας εδώ.",
-      "faq_q5": "Πόσα μπορώ να κερδίσω με έναν λογαριασμό Κεφαλαίων στο MetaMask;",
-      "faq_a5": "Έως και {{percentage}}% ετήσια απόδοση (APY). Το επιτόκιο είναι μεταβλητό και διαμορφώνεται από τις συνθήκες της αγοράς. Το τρέχον επιτόκιο είναι πάντα διαθέσιμο μέσα στον λογαριασμό Κεφλαίων.",
+      "faq_q5": "Πόσα μπορώ να κερδίσω με έναν Money Account στο MetaMask;",
+      "faq_a5": "Έως και {{percentage}}% ετήσια απόδοση (APY). Το επιτόκιο είναι μεταβλητό και διαμορφώνεται από τις συνθήκες της αγοράς. Το τρέχον επιτόκιο είναι πάντα διαθέσιμο μέσα στον Money Account.",
       "faq_q6": "Από πού προέρχεται η απόδοση;",
       "faq_a6": "Όταν καταθέτετε κεφάλαια, αυτά τοποθετούνται σε καθιερωμένα πρωτόκολλα με αποκεντρωμένη χρηματοδότηση (DeFi), όπως το Aave και το Morpho, όπου αποφέρουν αποδόσεις από πραγματική οικονομική δραστηριότητα. Οι αποδόσεις αυτές καταβάλλονται σε εσάς με τη μορφή της ετήσιας απόδοσης (APY).\n\nΈνας τρίτος πάροχος υπηρεσιών, η Steakhouse Financial, παρακολουθεί τον τρόπο με τον οποίο κατανέμονται τα κεφάλαια στα πρωτόκολλα. Η Veda, ένας τρίτος πάροχος υποδομών, αναπτύσσει και διατηρεί τα έξυπνα συμβόλαια στο θησαυροφυλάκιο (vault) όπου φυλάσσονται τα κεφάλαιά σας.\n\nΟι αποδόσεις δεν αποτελούν τόκο που καταβάλλεται από τo MetaMask ή από τον εκδότη των mUSD. Πρόκειται για αποδόσεις στο blockchain που παράγονται από θέσεις σε τρίτα πρωτόκολλα με αποκεντρωμένη χρηματοδότηση (DeFi).",
-      "faq_q7": "Ποια tokens μπορώ να καταθέσω στον λογαριασμό Κεφαλαίων;",
-      "faq_a7": "Μπορείτε να καταθέσετε τα παρακάτω stablecoins και aTokens στον λογαριασμό Κεφαλαίων χωρίς τέλη μετατροπής:\n\n{{tokenBullets}}\n\nΌλα τα υπόλοιπα EVM tokens μπορούν να κατατεθούν στον λογαριασμό Κεφαλαίων, αλλά ενδέχεται να ισχύουν τυπικές χρεώσεις. Μπορείτε επίσης να χρηματοδοτήσετε τον λογαριασμό Κεφαλαίων με χρεωστική ή πιστωτική κάρτα, τραπεζικό λογαριασμό, PayPal, Apple Pay ή Google Pay.\n\nΣημείωση: Υπάρχει αρχικό μέγιστο όριο κατάθεσης $100.000 ανά token για τη διασφάλιση της ρευστότητας.",
-      "faq_q8": "Μπορώ να κάνω ανάληψη από τον λογαριασμό Κεφαλαίων στο MetaMask οποιαδήποτε στιγμή;",
+      "faq_q7": "Ποια tokens μπορώ να καταθέσω στον Money Account;",
+      "faq_a7": "Μπορείτε να καταθέσετε τα παρακάτω stablecoins και aTokens στον Money Account χωρίς τέλη μετατροπής:\n\n{{tokenBullets}}\n\nΌλα τα υπόλοιπα EVM tokens μπορούν να κατατεθούν στον Money Account, αλλά ενδέχεται να ισχύουν τυπικές χρεώσεις. Μπορείτε επίσης να χρηματοδοτήσετε τον Money Account με χρεωστική ή πιστωτική κάρτα, τραπεζικό λογαριασμό, PayPal, Apple Pay ή Google Pay.\n\nΣημείωση: Υπάρχει αρχικό μέγιστο όριο κατάθεσης $100.000 ανά token για τη διασφάλιση της ρευστότητας.",
+      "faq_q8": "Μπορώ να κάνω ανάληψη από τον Money Account στο MetaMask οποιαδήποτε στιγμή;",
       "faq_a8": "Ναι. Μπορείτε να κάνετε συναλλαγές, αποστολή, χρήση ή ανάληψη ολόκληρου του υπολοίπου σας οποιαδήποτε στιγμή, χωρίς περιόδους ειδοποίησης, χωρίς ποινές και χωρίς τέλη ανάληψης από το MetaMask. Αν η ρευστότητα είναι περιορισμένη, ενδέχεται να υπάρχουν προσωρινές καθυστερήσεις.",
-      "faq_q9": "Πρέπει να ολοκληρώσω την επαλήθευση ταυτότητας για να χρησιμοποιήσω τον λογαριασμό Κεφαλαίων στο MetaMask;",
-      "faq_a9": "Όχι, η δημιουργία ενός λογαριασμού Κεφαλαίων δεν απαιτεί επαλήθευση ταυτότητας. Ωστόσο, ορισμένες λειτουργίες, όπως η Κάρτα και οι υπηρεσίες μετατροπής νομισμάτων, απαιτούν ταυτοποίηση. Οι έλεγχοι πραγματοποιούνται από τρίτους παρόχους που λειτουργούν ρυθμιζόμενες υπηρεσίες, και όχι από το MetaMask. Εάν χρειαστεί, θα σας καθοδηγήσουμε για την διαδικασία μέσα από την εφαρμογή κατά την εγγραφή.",
-      "faq_q10": "Σε ποιες χώρες είναι διαθέσιμος ο λογαριασμός Κεφαλαίων στο MetaMask;",
+      "faq_q9": "Πρέπει να ολοκληρώσω την επαλήθευση ταυτότητας για να χρησιμοποιήσω τον Money Account στο MetaMask;",
+      "faq_a9": "Όχι, η δημιουργία ενός Money Account δεν απαιτεί επαλήθευση ταυτότητας. Ωστόσο, ορισμένες λειτουργίες, όπως η Κάρτα και οι υπηρεσίες μετατροπής νομισμάτων, απαιτούν ταυτοποίηση. Οι έλεγχοι πραγματοποιούνται από τρίτους παρόχους που λειτουργούν ρυθμιζόμενες υπηρεσίες, και όχι από το MetaMask. Εάν χρειαστεί, θα σας καθοδηγήσουμε για την διαδικασία μέσα από την εφαρμογή κατά την εγγραφή.",
+      "faq_q10": "Σε ποιες χώρες είναι διαθέσιμος ο Money Account στο MetaMask;",
       "faq_a10": "Στις περισσότερες χώρες! Προς το παρόν δεν υποστηρίζεται στο Ηνωμένο Βασίλειο και σε χώρες της λίστας κυρώσεων των ΗΠΑ.",
       "disclosures_title": "Κίνδυνοι και Γνωστοποιήσεις",
-      "disclosures_body": "Ο λογαριασμός Κεφαλαίων δεν αποτελεί τραπεζικό λογαριασμό, λογαριασμό αποταμίευσης ή ασφαλισμένο καταθετικό προϊόν. Η ετήσια απόδοση (APY) είναι μεταβλητή και δεν είναι εγγυημένη. Ο λογαριασμός Κεφαλαίων περιλαμβάνει κινδύνους από έξυπνα συμβόλαια, πρωτόκολλα, ρευστότητα και άλλους παράγοντες, και ενδέχεται να χάσετε μέρος ή το σύνολο των κεφαλαίων σας. Υπόκειται σε τοπικούς περιορισμούς. Ισχύουν όροι."
+      "disclosures_body": "Ο Money Account δεν αποτελεί τραπεζικό λογαριασμό, λογαριασμό αποταμίευσης ή ασφαλισμένο καταθετικό προϊόν. Η ετήσια απόδοση (APY) είναι μεταβλητή και δεν είναι εγγυημένη. Ο Money Account περιλαμβάνει κινδύνους από έξυπνα συμβόλαια, πρωτόκολλα, ρευστότητα και άλλους παράγοντες, και ενδέχεται να χάσετε μέρος ή το σύνολο των κεφαλαίων σας. Υπόκειται σε τοπικούς περιορισμούς. Ισχύουν όροι."
     },
     "geo_block": {
-      "title": "Ο λογαριασμός Κεφαλαίων δεν είναι διαθέσιμος",
-      "description": "Ο λογαριασμός Κεφαλαίων δεν είναι διαθέσιμος στην τοποθεσία σας λόγω τοπικών περιορισμών ή κυρώσεων.",
+      "title": "Ο Money Account δεν είναι διαθέσιμος",
+      "description": "Ο Money Account δεν είναι διαθέσιμος στην τοποθεσία σας λόγω τοπικών περιορισμών ή κυρώσεων.",
       "button": "Κατανοητό"
     },
     "deeplink_modal": {
       "button": "Κατανοητό",
       "money_account_disabled": {
-        "title": "Ο λογαριασμός Κεφαλαίων είναι προσωρινά μη διαθέσιμος",
-        "description": "Το επιλύουμε. Ο λογαριασμός Κεφαλαίων θα είναι ξανά διαθέσιμος σύντομα — προσπαθήστε ξανά σε λίγο."
+        "title": "Ο Money Account είναι προσωρινά μη διαθέσιμος",
+        "description": "Το επιλύουμε. Ο Money Account θα είναι ξανά διαθέσιμος σύντομα — προσπαθήστε ξανά σε λίγο."
       },
       "excluded_from_gradual_rollout": {
-        "title": "Ο λογαριασμός Κεφαλαίων θα είναι διαθέσιμος σύντομα",
-        "description": "Αναπτύσσουμε σταδιακά τον λογαριασμό Κεφαλαίων ώστε όλα να λειτουργούν ομαλά. Ελέγξτε ξανά σύντομα."
+        "title": "Ο Money Account θα είναι διαθέσιμος σύντομα",
+        "description": "Αναπτύσσουμε σταδιακά τον Money Account ώστε όλα να λειτουργούν ομαλά. Ελέγξτε ξανά σύντομα."
       }
     }
   },
@@ -7755,7 +7922,7 @@
       "other_assets": "Άλλα περιουσιακά στοιχεία",
       "other_assets_description": "Επιλέξτε από τα tokens σας",
       "other_assets_receive_description": "Επιλέξτε το token που θέλετε να λάβετε",
-      "money_account": "Λογαριασμός"
+      "money_account": "Money Account"
     },
     "staking_footer": {
       "part1": "Συνεχίζοντας, συμφωνείτε με τους ",
@@ -8862,7 +9029,7 @@
         "manage_spending_limit": "Διαχείριση ορίου",
         "manage_spending_limit_description_restricted": "Ο περιορισμός συναλλαγών είναι ενεργός",
         "manage_spending_limit_description_full": "Η πλήρης πρόσβαση είναι ενεργή",
-        "unlink_money_account": "Αποσύνδεση λογαριασμού Κεφαλαίων",
+        "unlink_money_account": "Αποσύνδεση του Money Account",
         "unlink_money_account_description": "Αλλάξτε την πηγή χρηματοδότησης της Κάρτας σας",
         "travel_title": "MetaMask Travel",
         "travel_description": "Κάντε κράτηση σε ξενοδοχεία με έκπτωση έως και 70%",
@@ -8910,9 +9077,9 @@
       "on_linea": "στο δίκτυο Linea",
       "account_label": "Λογαριασμός",
       "token_label": "Token",
-      "money_account_label": "Λογαριασμός",
+      "money_account_label": "Money Account",
       "money_account_token_symbol": "mUSD",
-      "use_money_account_cta": "Χρήση λογαριασμού",
+      "use_money_account_cta": "Χρήση του Money Account",
       "spend_and_earn_title": "Κάντε αγορές και κερδίστε",
       "spend_and_earn_description_prefix": "Συνδέστε το υπόλοιπό σας με την κάρτα σας και κερδίστε mUSD ως επιστροφή στις αγορές σας. Επιπλέον, κερδίστε έως ",
       "spend_and_earn_description_apy": "{{apy}}% APY",
@@ -8938,9 +9105,9 @@
         "confirm_button_label": "Ρύθμιση χρηματοδότησης"
       },
       "money_account_required": {
-        "title": "Ρύθμιση Λογαριασμού Κεφαλαίων",
-        "description": "Πρέπει να έχετε συνδεδεμένο έναν Λογαριασμό Κεφαλαίων για να εξαργυρώσετε ξανά σε mUSD.",
-        "confirm_button_label": "Ρύθμιση Λογαριασμού Κεφαλαίων"
+        "title": "Ρύθμιση του Money Account",
+        "description": "Πρέπει να έχετε συνδεδεμένο έναν Money Account για να εξαργυρώσετε ξανά σε mUSD.",
+        "confirm_button_label": "Ρύθμιση του Money Account"
       }
     },
     "credit_screen": {
@@ -8950,7 +9117,7 @@
       "expected_to_receive": "Αναμένεται να λάβετε",
       "to": "Προς",
       "withdraw": "Μεταφορά κεφαλαίων",
-      "withdraw_to_money_account": "Μεταφορά στον λογαριασμό Κεφαλαίων",
+      "withdraw_to_money_account": "Μεταφορά στον Money Account",
       "withdraw_unavailable": "Η εξαργύρωση δεν είναι διαθέσιμη",
       "withdrawal_success": "Η εξαργύρωση ολοκληρώθηκε με επιτυχία",
       "withdrawal_failed": "Η εξαργύρωση απέτυχε. Προσπαθήστε ξανά.",
@@ -8961,27 +9128,27 @@
         "confirm_button_label": "Ρύθμιση χρηματοδότησης"
       },
       "money_account_required": {
-        "title": "Ρύθμιση Λογαριασμού Κεφαλαίων",
-        "description": "Χρειάζεστε έναν συνδεδεμένο λογαριασμό Κεφαλαίων για να εξαργυρώσετε την πίστωση σας.",
-        "confirm_button_label": "Ρύθμιση Λογαριασμού Κεφαλαίων"
+        "title": "Ρύθμιση του Money Account",
+        "description": "Χρειάζεστε έναν συνδεδεμένο Money Account για να εξαργυρώσετε την πίστωση σας.",
+        "confirm_button_label": "Ρύθμιση του Money Account"
       },
       "refund_info": {
         "title": "Υπόλοιπο επιστροφών χρημάτων",
-        "description": "Αυτό το υπόλοιπο περιλαμβάνει όλες τις επιστροφές χρημάτων που έχετε λάβει. Από αυτό το υπόλοιπο θα χρεώνονται πρώτα οι αγορές με την κάρτα σας. Μπορείτε να το μεταφέρετε στον λογαριασμό Κεφαλαίων οποιαδήποτε στιγμή.",
+        "description": "Αυτό το υπόλοιπο περιλαμβάνει όλες τις επιστροφές χρημάτων που έχετε λάβει. Από αυτό το υπόλοιπο θα χρεώνονται πρώτα οι αγορές με την κάρτα σας. Μπορείτε να το μεταφέρετε στον Money Account οποιαδήποτε στιγμή.",
         "description_no_money_account": "Αυτό το υπόλοιπο περιλαμβάνει όλες τις επιστροφές χρημάτων που έχετε λάβει. Από αυτό το υπόλοιπο θα χρεώνονται πρώτα οι αγορές με την κάρτα σας. Μπορεί να εξαργυρωθεί στο πορτοφόλι σας οποιαδήποτε στιγμή."
       }
     },
     "credit_balance_tooltip": {
       "title": "Διαθέσιμο υπόλοιπο",
-      "description": "Το υπόλοιπό σας αποτελείται από το υπόλοιπο του λογαριασμού Κεφαλαίων και από τυχόν επιστροφές χρημάτων που έχετε λάβει.",
+      "description": "Το υπόλοιπό σας αποτελείται από το υπόλοιπο του Money Account και από τυχόν επιστροφές χρημάτων που έχετε λάβει.",
       "description_no_money_account": "Το υπόλοιπό σας αποτελείται από το υπόλοιπο του πορτοφολιού σας και από τυχόν επιστροφές χρημάτων που έχετε λάβει.",
-      "money_account": "Λογαριασμός",
+      "money_account": "Money Account",
       "wallet": "Πορτοφόλι",
       "refund_balance": "Υπόλοιπο επιστροφών χρημάτων"
     },
     "credit_banner": {
       "title": "Υπόλοιπο επιστροφών χρημάτων: {{amount}}",
-      "description": "Ξοδέψτε το ή μεταφέρετέ το στον λογαριασμό Κεφαλαίων για να συνεχίσετε να κερδίζετε από το υπόλοιπό σας.",
+      "description": "Ξοδέψτε το ή μεταφέρετέ το στον Money Account για να συνεχίσετε να κερδίζετε από το υπόλοιπό σας.",
       "description_no_money_account": "Ξοδέψτε το ή εξαργυρώστε το στο πορτοφόλι σας.",
       "confirm_button_label": "Μεταφορά κεφαλαίων"
     },
@@ -9723,7 +9890,7 @@
     "earn_rewards": {
       "title": "Κερδίστε ανταμοιβές",
       "musd_title": "Έως {{percentage}}% μπόνους σε mUSD",
-      "musd_subtitle": "Οι καταθετικοί λογαριασμοί είναι εδώ",
+      "musd_subtitle": "Οι Money Accounts είναι εδώ",
       "card_title": "Έως 3% επιστροφή σε κάθε αγορά",
       "card_subtitle": "Αποκτήστε τώρα την MetaMask Card",
       "card_subtitle_cardholder": "Δείτε τα προνόμια της MetaMask Card"
@@ -9795,8 +9962,8 @@
       "predict_claim": "Κέρδη που καταβλήθηκαν",
       "predict_deposit": "Λογαριασμός Προβλέψεων με διαθέσιμα κεφάλαια",
       "predict_withdraw": "Ανάληψη",
-      "money_account_deposit": "Κατάθεση στον λογαριασμό χρημάτων",
-      "money_account_withdraw": "Μεταφορά από τον λογαριασμό χρημάτων",
+      "money_account_deposit": "Κατάθεση στον Money Account",
+      "money_account_withdraw": "Μεταφορά από τον Money Account",
       "default": "Λεπτομέρειες συναλλαγής"
     },
     "label": {
@@ -9819,7 +9986,7 @@
       "you_sent": "Στείλατε",
       "you_received": "Έχετε λάβει",
       "token_received": "Έχετε λάβει token",
-      "money_account": "Λογαριασμός",
+      "money_account": "Money Account",
       "perps_account": "Λογαριασμός Perps 1",
       "predictions_account": "Λογαριασμός Προβλέψεων 1",
       "steps_completed": "Βήματα ({{count}} ολοκληρώθηκαν)",
@@ -9936,7 +10103,7 @@
   "trending": {
     "title": "Εξερεύνηση",
     "crypto_movers": "Διακυμάνσεις κρυπτονομισμάτων",
-    "hot_tokens": "Hot tokens",
+    "hot_tokens": "Δημοφιλή tokens",
     "perps_movers": "Διακυμάνσεις Perps",
     "perps_movers_pill_gainers": "Ανοδικές μετοχές",
     "perps_movers_pill_losers": "Πτωτικές μετοχές",
@@ -10162,6 +10329,7 @@
       "trending_tokens": "Δημοφιλή",
       "trending_perpetuals": "Δημοφιλή perpetuals",
       "trending_predictions": "Δημοφιλείς προβλέψεις",
+      "watchlist": "Λίστα παρακολούθησης",
       "import_nfts": "Εισαγωγή NFT",
       "import_nfts_description": "Προσθέστε εύκολα τα συλλεκτικά σας αντικείμενα",
       "view_more": "Δείτε περισσότερα",
@@ -10186,7 +10354,7 @@
   "whats_happening": {
     "title": "Τι συμβαίνει",
     "ai": "AI",
-    "outdated": "Outdated",
+    "outdated": "Παρωχημένα",
     "impact": {
       "bullish": "Ανοδικό",
       "bearish": "Πτωτικό",
@@ -10203,5 +10371,11 @@
   },
   "stepper_card": {
     "more_information": "Περισσότερες πληροφορίες"
+  },
+  "token_watchlist": {
+    "added_to_watchlist": "Added to Watchlist",
+    "removed_from_watchlist": "Removed from Watchlist",
+    "home_empty_title": "Λίστα παρακολούθησης",
+    "home_empty_subtitle": "You have no watchlist items yet"
   }
 }
