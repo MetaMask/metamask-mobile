@@ -243,7 +243,9 @@ describe('MultichainTransactionsView', () => {
       }),
       undefined,
     );
-    expect(ActivityListItemRow.mock.calls[0][0]).not.toHaveProperty('title');
+    expect(
+      jest.mocked(ActivityListItemRow).mock.calls[0][0],
+    ).not.toHaveProperty('title');
     expect(queryAllByTestId('activity-list-date-header')).toHaveLength(2);
   });
 
