@@ -46,6 +46,10 @@ import SelectField from './SelectField';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import type { Region } from '../../types';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
+import {
+  selectCardFeatureFlag,
+  selectImmersveOnboardingEnabled,
+} from '../../../../../selectors/featureFlagController/card';
 import { HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 
@@ -69,6 +73,10 @@ const SignUp = () => {
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
   const hasAutoSelectedCountry = useRef(false);
   const geoLocation = useSelector(selectGeolocationLocation);
+  const cardFeatureFlag = useSelector(selectCardFeatureFlag);
+  const immersveOnboardingEnabled = useSelector(
+    selectImmersveOnboardingEnabled,
+  );
   const {
     allRegions,
     getRegionByCode,
@@ -126,6 +134,7 @@ const SignUp = () => {
       Engine.context.CardController.setUserLocation(
         mapCountryToLocation(matchedRegion.key),
       );
+      Engine.context.CardController.setSelectedCountry(matchedRegion.key);
     }
   }, [allRegions.length, geoLocation, getRegionByCode]);
 
@@ -147,7 +156,15 @@ const SignUp = () => {
     setIsPasswordValid(isValid);
   }, [debouncedPassword]);
 
-  const isWaitlistMode = Boolean(selectedCountry && !selectedCountry.canSignUp);
+  const isImmersveCountry = Boolean(
+    immersveOnboardingEnabled &&
+      selectedCountry &&
+      (cardFeatureFlag.immersveCountries ?? []).includes(selectedCountry.key),
+  );
+
+  const isWaitlistMode = Boolean(
+    selectedCountry && !selectedCountry.canSignUp && !isImmersveCountry,
+  );
 
   const isDisabled = useMemo(() => {
     if (isWaitlistMode) {
@@ -259,6 +276,7 @@ const SignUp = () => {
       Engine.context.CardController.setUserLocation(
         mapCountryToLocation(region.key),
       );
+      Engine.context.CardController.setSelectedCountry(region.key);
     });
 
     navigateWithDetails(
