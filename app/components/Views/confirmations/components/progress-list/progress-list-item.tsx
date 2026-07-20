@@ -1,6 +1,11 @@
 import React from 'react';
-import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
@@ -79,6 +84,8 @@ function DotListItem({
           testID="block-explorer-button"
           accessibilityLabel={title}
           iconName={buttonIcon}
+          size={ButtonIconSizes.Sm}
+          iconColor={IconColor.Alternative}
           onPress={onButtonPress}
         />
       ) : null}
