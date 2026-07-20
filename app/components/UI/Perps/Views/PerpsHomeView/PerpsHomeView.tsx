@@ -114,9 +114,9 @@ import {
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import { BottomSheetRef as ComponentLibraryBottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import PerpsNavigationCard, {
-  NavigationItem,
-} from '../../components/PerpsNavigationCard/PerpsNavigationCard';
+import PerpsMoreSection, {
+  type PerpsMoreItem,
+} from '../../components/PerpsMoreSection';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsProducts from '../../components/PerpsProducts';
@@ -620,19 +620,20 @@ const PerpsHomeView = ({
     });
   }, [trackEvent, createEventBuilder, navigation]);
 
-  const navigationItems: NavigationItem[] = useMemo(() => {
-    const items: NavigationItem[] = [
+  const moreItems: PerpsMoreItem[] = useMemo(() => {
+    const items: PerpsMoreItem[] = [
       {
         label: strings(SUPPORT_CONFIG.TitleKey),
+        startIconName: IconName.Sms,
         onPress: () => navigateToContactSupport(),
         testID: PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON,
       },
     ];
 
-    // Add feedback button when feature flag is enabled
     if (isFeedbackEnabled) {
       items.push({
         label: strings(FEEDBACK_CONFIG.TitleKey),
+        startIconName: IconName.Mail,
         onPress: handleGiveFeedback,
         testID: PerpsHomeViewSelectorsIDs.FEEDBACK_BUTTON,
       });
@@ -640,6 +641,7 @@ const PerpsHomeView = ({
 
     items.push({
       label: strings(LEARN_MORE_CONFIG.TitleKey),
+      startIconName: IconName.Book,
       onPress: () => navigtateToTutorial(),
       testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
     });
@@ -900,6 +902,11 @@ const PerpsHomeView = ({
           />
         ),
       },
+      {
+        key: 'more',
+        visible: true,
+        content: <PerpsMoreSection items={moreItems} />,
+      },
     ],
     [
       isLoading,
@@ -933,6 +940,7 @@ const PerpsHomeView = ({
       sortBy,
       recentActivity,
       handleSectionLayout,
+      moreItems,
     ],
   );
 
@@ -1065,88 +1073,79 @@ const PerpsHomeView = ({
         scrollEventThrottle={16}
         testID={PerpsHomeViewSelectorsIDs.SCROLL_CONTENT}
       >
-        <Box
-          onLayout={(event) =>
-            setTitleSectionHeight(event.nativeEvent.layout.height)
-          }
-        >
-          {isServiceInterruptionBannerEnabled && (
-            <Box twClassName="px-4 mb-4">
-              <PerpsServiceInterruptionBanner
-                testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
-              />
-            </Box>
-          )}
-          <TitleHub
-            testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
-            title={hideHeader ? undefined : perpsScreenTitle}
-            titleEndAccessory={hideHeader ? undefined : titleEndAccessory}
-            titleProps={
-              hideHeader
-                ? undefined
-                : {
-                    testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
-                  }
-            }
-            amount={
-              !isBalanceEmpty ? (
-                <SensitiveText
-                  variant={TextVariant.DisplayLg}
-                  color={TextColor.TextDefault}
-                  testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
-                  isHidden={privacyMode}
-                  length={SensitiveTextLength.Medium}
-                >
-                  {formatPerpsBalance(totalBalance)}
-                </SensitiveText>
-              ) : undefined
-            }
-            bottomLabel={
-              !isBalanceEmpty ? (
-                <Box flexDirection={BoxFlexDirection.Row}>
-                  <SensitiveText
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                    isHidden={privacyMode}
-                    length={SensitiveTextLength.Short}
-                    testID={
-                      PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
-                    }
-                  >
-                    {formatPerpsBalance(spendableBalance)}
-                  </SensitiveText>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                  >
-                    {' '}
-                    {strings('perps.available')}
-                  </Text>
-                </Box>
-              ) : undefined
-            }
-            twClassName="px-4 pb-3"
-          />
-        </Box>
-
         <Box paddingBottom={3}>
-          {/* Balance Actions Component */}
           <PerpsMarketBalanceActions
             showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
             hideBalanceSection
-          />
+            onTitleSectionLayout={(event) =>
+              setTitleSectionHeight(event.nativeEvent.layout.height)
+            }
+          >
+            {isServiceInterruptionBannerEnabled && (
+              <Box twClassName="px-4 mb-4">
+                <PerpsServiceInterruptionBanner
+                  testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+                />
+              </Box>
+            )}
+            <TitleHub
+              testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
+              title={hideHeader ? undefined : perpsScreenTitle}
+              titleEndAccessory={hideHeader ? undefined : titleEndAccessory}
+              titleProps={
+                hideHeader
+                  ? undefined
+                  : {
+                      testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
+                    }
+              }
+              amount={
+                !isBalanceEmpty ? (
+                  <SensitiveText
+                    variant={TextVariant.DisplayLg}
+                    color={TextColor.TextDefault}
+                    testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
+                    isHidden={privacyMode}
+                    length={SensitiveTextLength.Medium}
+                  >
+                    {formatPerpsBalance(totalBalance)}
+                  </SensitiveText>
+                ) : undefined
+              }
+              bottomLabel={
+                !isBalanceEmpty ? (
+                  <Box flexDirection={BoxFlexDirection.Row}>
+                    <SensitiveText
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                      isHidden={privacyMode}
+                      length={SensitiveTextLength.Short}
+                      testID={
+                        PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
+                      }
+                    >
+                      {formatPerpsBalance(spendableBalance)}
+                    </SensitiveText>
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                    >
+                      {' '}
+                      {strings('perps.available')}
+                    </Text>
+                  </Box>
+                ) : undefined
+              }
+              twClassName="px-4 pb-3"
+            />
+          </PerpsMarketBalanceActions>
 
-          {/* Competition Banner */}
           <PerpsCompetitionBanner
             testID={PerpsHomeViewSelectorsIDs.COMPETITION_BANNER}
           />
         </Box>
 
         <PerpsHomeSectionList sections={homeSections} />
-
-        <View style={styles.sectionContent}>
-          <PerpsNavigationCard items={navigationItems} />
-        </View>
 
         {/* Bottom spacing for tab bar */}
         <View style={bottomSpacerStyle} />
