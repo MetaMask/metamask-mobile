@@ -24,8 +24,6 @@ interface WatchlistStarButtonProps {
   hasBalance?: boolean;
   /** Analytics: which surface triggered this (e.g. 'token_details') */
   source: string;
-  /** Called after toggle, toast, and analytics complete. */
-  onAfterToggle?: () => void;
 }
 
 /**
@@ -40,7 +38,6 @@ const WatchlistStarButton = ({
   assetType,
   hasBalance,
   source,
-  onAfterToggle,
 }: WatchlistStarButtonProps) => {
   const theme = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -79,7 +76,6 @@ const WatchlistStarButton = ({
         })
         .build(),
     );
-    onAfterToggle?.();
   }, [
     isWatched,
     toggle,
@@ -88,7 +84,6 @@ const WatchlistStarButton = ({
     source,
     assetType,
     hasBalance,
-    onAfterToggle,
     theme.colors.success.default,
     theme.colors.background.section,
   ]);
