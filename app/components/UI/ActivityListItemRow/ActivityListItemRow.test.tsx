@@ -1830,6 +1830,8 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'marketCloseLong',
   'limitLong',
   'limitCloseLong',
+  'assetActivation',
+  'assetDeactivation',
 ];
 
 const EXPECTED_TITLES = {
@@ -1910,6 +1912,8 @@ const EXPECTED_TITLES = {
   marketCloseLong: strings('transactions.activity_market_close_long'),
   limitLong: strings('transactions.activity_limit_long'),
   limitCloseLong: strings('transactions.activity_limit_close_long'),
+  assetActivation: strings('transactions.activity_trustline_activated'),
+  assetDeactivation: strings('transactions.activity_trustline_deactivated'),
 } satisfies Record<ActivityListItem['type'], string>;
 
 describe('ActivityListItemRow — title display for all ActivityKind values', () => {

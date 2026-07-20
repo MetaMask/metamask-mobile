@@ -4,6 +4,7 @@ import {
   TransactionType,
   type Transaction,
 } from '@metamask/keyring-api';
+import { CustomTransactionTypeLabel } from '../../../util/activity-adapters/trustline';
 import { useMultichainTransactionDisplay } from './useMultichainTransactionDisplay';
 
 jest.mock('../../../../locales/i18n', () => ({
@@ -54,9 +55,111 @@ const createApproveTransaction = (amount: string): Transaction =>
     ],
   }) as unknown as Transaction;
 
+const baseTransaction: Transaction = {
+  id: 'tx-trustline',
+  chain: 'stellar:pubnet',
+  account: 'GABC123',
+  type: TransactionType.Unknown,
+  status: 'confirmed',
+  timestamp: 1_700_000_000,
+  from: [
+    {
+      address: 'GABC123',
+      asset: {
+        amount: '0',
+        unit: 'USDC',
+        fungible: true,
+        type: 'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+      },
+    },
+  ],
+  to: [],
+  fees: [],
+};
+
 describe('useMultichainTransactionDisplay', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('Trustline transactions', () => {
+    it('uses trustline approve title for trustline approve transactions', () => {
+      const transaction: Transaction = {
+        ...baseTransaction,
+        type: TransactionType.TokenApprove,
+        details: {
+          typeLabel: CustomTransactionTypeLabel.TrustlineApprove,
+        },
+      };
+
+      const displayData = useMultichainTransactionDisplay(
+        transaction,
+        'stellar:pubnet',
+      );
+
+      expect(displayData.title).toBe(
+        'transactions.activity_trustline_activated USDC',
+      );
+    });
+
+    it('uses trustline disapprove title without unit when from movement is empty', () => {
+      const transaction: Transaction = {
+        ...baseTransaction,
+        type: TransactionType.TokenDisapprove,
+        from: [],
+        details: {
+          typeLabel: CustomTransactionTypeLabel.TrustlineDisapprove,
+        },
+      };
+
+      const displayData = useMultichainTransactionDisplay(
+        transaction,
+        'stellar:pubnet',
+      );
+
+      expect(displayData.title).toBe(
+        'transactions.activity_trustline_deactivated',
+      );
+    });
+
+    it('uses approve title for generic token approve transactions without trustline typeLabel', () => {
+      const transaction: Transaction = {
+        ...baseTransaction,
+        type: TransactionType.TokenApprove,
+      };
+
+      const displayData = useMultichainTransactionDisplay(
+        transaction,
+        'stellar:pubnet',
+      );
+
+      expect(displayData.title).toBe('transactions.tx_review_approve USDC');
+    });
+
+    it('formats amount for non-trustline transactions', () => {
+      const transaction: Transaction = {
+        ...baseTransaction,
+        type: TransactionType.Send,
+        to: [
+          {
+            address: 'GDEF456',
+            asset: {
+              amount: '1',
+              unit: 'USDC',
+              fungible: true,
+              type: 'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+            },
+          },
+        ],
+      };
+
+      const displayData = useMultichainTransactionDisplay(
+        transaction,
+        'stellar:pubnet',
+      );
+
+      expect(displayData.to?.amount).toBe('-1');
+    });
   });
 
   describe('TokenApprove transactions', () => {
