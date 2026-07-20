@@ -148,7 +148,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005; // Threshold: |value| < $0.005 -> display $0.00
 
   // Keep original color logic: exact zero = neutral, positive = cost (Error), negative = payment (Success)
-  let fundingColorFromValue = TextColor.TextDefault;
+  let fundingColorFromValue: TextColor = TextColor.TextDefault;
   if (fundingSinceOpen > 0) {
     fundingColorFromValue = TextColor.ErrorDefault;
   } else if (fundingSinceOpen < 0) {
