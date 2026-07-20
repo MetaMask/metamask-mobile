@@ -32,7 +32,11 @@ import {
 import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
 import OrderContent from './OrderContent';
-import { emitTerminalOrderAnalyticsFromCallback } from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
+import {
+  emitOrderConfirmedAnalyticsFromCallback,
+  emitTerminalOrderAnalyticsFromCallback,
+  isTerminalOrderStatus,
+} from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -111,11 +115,16 @@ const OrderDetails = () => {
         }
         addOrder(fetchedOrder);
 
-        // TRAM-3691: a callback-fetched order that is already terminal is never
-        // polled, so `orderStatusChanged` never fires and the terminal metrics
-        // event would be lost. Emit it directly (no-ops for non-terminal orders
-        // and dedups against the polling path).
-        emitTerminalOrderAnalyticsFromCallback(fetchedOrder);
+        // TRAM-3738: non-terminal callback orders emit Confirmed (payment
+        // submitted). Terminal orders skip Confirmed and emit Completed/Failed
+        // directly — see TRAM-3691.
+        if (isTerminalOrderStatus(fetchedOrder.status)) {
+          emitTerminalOrderAnalyticsFromCallback(fetchedOrder);
+        } else {
+          emitOrderConfirmedAnalyticsFromCallback(fetchedOrder, {
+            rampType: 'UNIFIED_BUY_2',
+          });
+        }
 
         showV2OrderToast({
           orderId: fetchedOrder.providerOrderId,

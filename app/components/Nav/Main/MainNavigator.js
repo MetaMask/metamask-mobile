@@ -39,6 +39,7 @@ import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import DeFiFullView from '../../Views/DeFiFullView';
 import CashTokensFullView from '../../Views/CashTokensFullView';
+import WatchlistFullScreenView from '../../UI/Assets/watchlist/Views/WatchlistFullScreenView';
 import TrendingTokensFullView from '../../UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import RWATokensFullView from '../../UI/Trending/Views/RWATokensFullView/RWATokensFullView';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -1072,6 +1073,11 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.WALLET.CASH_TOKENS_FULL_VIEW}
         component={CashTokensFullView}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
+      <NativeStack.Screen
+        name={Routes.WALLET.WATCHLIST_FULL_VIEW}
+        component={WatchlistFullScreenView}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <NativeStack.Screen name="AddAsset" component={AddAsset} />

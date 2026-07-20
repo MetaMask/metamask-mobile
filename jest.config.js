@@ -31,7 +31,10 @@ process.env.MM_CARD_BAANX_API_CLIENT_KEY = 'test-api-key';
 const isReassureRun = process.env.REASSURE === 'true';
 
 const config = {
-  preset: 'react-native',
+  // RN 0.85 removes the bundled 'react-native' Jest preset in favor of the
+  // extracted '@react-native/jest-preset' package (functionally identical on
+  // RN 0.83). Landed pre-upgrade so the RN 0.85 upgrade PR stays minimal.
+  preset: '@react-native/jest-preset',
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   testEnvironment: 'jest-environment-node',
   transformIgnorePatterns: [
