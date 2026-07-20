@@ -17,11 +17,7 @@ import {
   WALLET_HOME_ONBOARDING_CHECKLIST_STEP_FULL_TRANSITION_MS,
   WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS,
 } from './walletHomeOnboardingChecklistRive';
-import {
-  WALLET_HOME_ONBOARDING_VISIBLE_STEPS,
-  walletHomeOnboardingProgressRatioForStep,
-} from './walletHomeOnboardingStepsModel';
-import { ONBOARDING_CHECKLIST_STEPPER_AB_KEY } from './abTestConfig';
+import { walletHomeOnboardingProgressRatioForStep } from './walletHomeOnboardingStepsModel';
 import { strings } from '../../../../locales/i18n';
 import { animateWalletHomeOnboardingProgressRatio } from './walletHomeOnboardingProgressAnimation';
 
@@ -678,100 +674,44 @@ describe('WalletHomeOnboardingSteps', () => {
     });
   });
 
-  describe('onboarding checklist stepper experiment (TMCU-828)', () => {
+  describe('onboarding checklist progress bar', () => {
     const progressTestId = WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL;
     const firstSegmentTestId = `${progressTestId}-segment-0`;
 
-    const renderWithStepperArm = (
-      variantName?: 'control' | 'treatment',
-      onboardingOverrides?: {
-        walletHomeOnboardingSteps?: {
-          suppressedReason: null;
-          stepIndex: number;
-        };
-      },
-    ) =>
+    const renderWithOnboardingState = (onboardingOverrides?: {
+      walletHomeOnboardingSteps?: {
+        suppressedReason: null;
+        stepIndex: number;
+      };
+    }) =>
       renderWithProvider(<WalletHomeOnboardingSteps testID="steps-root" />, {
         state: {
           onboarding: {
             ...baseOnboarding,
             ...onboardingOverrides,
           },
-          engine: {
-            backgroundState: {
-              ...backgroundState,
-              RemoteFeatureFlagController: {
-                ...backgroundState.RemoteFeatureFlagController,
-                remoteFeatureFlags: {
-                  ...backgroundState.RemoteFeatureFlagController
-                    ?.remoteFeatureFlags,
-                  ...(variantName
-                    ? { [ONBOARDING_CHECKLIST_STEPPER_AB_KEY]: variantName }
-                    : {}),
-                },
-              },
-            },
-          },
+          engine: { backgroundState },
         },
       });
 
-    it('renders the continuous progress bar (no segments) for control', () => {
-      const { getByTestId, queryByTestId } = renderWithStepperArm('control');
+    it('renders the continuous progress bar with checklist title and step counter', () => {
+      const { getByTestId, getByText, queryByTestId } =
+        renderWithOnboardingState();
 
       expect(getByTestId(progressTestId)).toBeOnTheScreen();
       expect(queryByTestId(firstSegmentTestId)).toBeNull();
-    });
-
-    it('renders the continuous progress bar when no arm is assigned', () => {
-      const { getByTestId, queryByTestId } = renderWithStepperArm();
-
-      expect(getByTestId(progressTestId)).toBeOnTheScreen();
-      expect(queryByTestId(firstSegmentTestId)).toBeNull();
-    });
-
-    it('renders the discrete stepper with one segment per visible step for treatment', () => {
-      const { getByTestId } = renderWithStepperArm('treatment');
-
-      expect(getByTestId(progressTestId)).toBeOnTheScreen();
-      WALLET_HOME_ONBOARDING_VISIBLE_STEPS.forEach((_, index) => {
-        expect(
-          getByTestId(`${progressTestId}-segment-${index}`),
-        ).toBeOnTheScreen();
-      });
-    });
-
-    it('hides checklist title and step counter for treatment', () => {
-      const { queryByText } = renderWithStepperArm('treatment');
-
-      expect(
-        queryByText(strings('wallet.home_onboarding_steps.get_started_title')),
-      ).toBeNull();
-      expect(queryByText('1/3')).toBeNull();
-    });
-
-    it('shows checklist title and step counter for control', () => {
-      const { getByText } = renderWithStepperArm('control');
-
       expect(
         getByText(strings('wallet.home_onboarding_steps.get_started_title')),
       ).toBeOnTheScreen();
       expect(getByText('1/3')).toBeOnTheScreen();
     });
 
-    it('does not animate continuous progress to 100% on last-step complete for treatment', () => {
-      const { getByTestId } = renderWithStepperArm('treatment', {
-        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 2 },
-      });
-
-      animateProgressRatioSpy.mockClear();
-      fireEvent.press(getByTestId(primaryTestId));
-
-      expect(progressAnimationCalls(1)).toHaveLength(0);
-    });
-
-    it('animates continuous progress to 100% on last-step complete for control', () => {
-      const { getByTestId } = renderWithStepperArm('control', {
-        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 2 },
+    it('animates continuous progress to 100% on last-step complete', () => {
+      const { getByTestId } = renderWithOnboardingState({
+        walletHomeOnboardingSteps: {
+          suppressedReason: null,
+          stepIndex: 2,
+        },
       });
 
       animateProgressRatioSpy.mockClear();
@@ -780,8 +720,8 @@ describe('WalletHomeOnboardingSteps', () => {
       expect(progressAnimationCalls(1).length).toBeGreaterThan(0);
     });
 
-    it('animates continuous progress on step change for control', async () => {
-      const { getByTestId, store } = renderWithStepperArm('control', {
+    it('animates continuous progress on step change', async () => {
+      const { getByTestId, store } = renderWithOnboardingState({
         walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 0 },
       });
 

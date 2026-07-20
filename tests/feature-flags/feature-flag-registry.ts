@@ -5581,29 +5581,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  homeTMCU828AbtestOnboardingChecklistStepper: {
-    name: 'homeTMCU828AbtestOnboardingChecklistStepper',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          value: 0.5,
-          type: 'percentage_rollout',
-        },
-      },
-      {
-        scope: {
-          value: 1,
-          type: 'percentage_rollout',
-        },
-        name: 'treatment',
-      },
-    ],
-    status: FeatureFlagStatus.Active,
-  },
-
   predictHomeRedesign: {
     name: 'predictHomeRedesign',
     type: FeatureFlagType.Remote,
