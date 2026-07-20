@@ -2,19 +2,60 @@ import {
   array,
   boolean,
   defaulted,
+  literal,
   number,
   object,
   optional,
   string,
   type,
+  union,
 } from '@metamask/superstruct';
 import { HexSchema } from './common';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_PREDICT_FEED_BANNER_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
   PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
 } from '../constants/flags';
+import {
+  PredictFeedBannerPosition,
+  PredictFeedBannerSeverity,
+} from '../constants/feedBanner';
+
+const PredictFeedBannerPositionSchema = union([
+  literal(PredictFeedBannerPosition.AfterBalance),
+  literal(PredictFeedBannerPosition.AfterFeaturedCarousel),
+  literal(PredictFeedBannerPosition.AfterWorldCupBanner),
+  literal(PredictFeedBannerPosition.BeforePortfolio),
+  literal(PredictFeedBannerPosition.AfterPortfolio),
+  literal(PredictFeedBannerPosition.AfterLiveNow),
+  literal(PredictFeedBannerPosition.AfterCategories),
+  literal(PredictFeedBannerPosition.AfterPopularToday),
+  literal(PredictFeedBannerPosition.AfterTrending),
+]);
+
+const PredictFeedBannerSeveritySchema = union([
+  literal(PredictFeedBannerSeverity.Neutral),
+  literal(PredictFeedBannerSeverity.Info),
+  literal(PredictFeedBannerSeverity.Success),
+  literal(PredictFeedBannerSeverity.Warning),
+  literal(PredictFeedBannerSeverity.Danger),
+]);
+
+export const PredictFeedBannerSchema = defaulted(
+  type({
+    enabled: boolean(),
+    minimumVersion: string(),
+    id: string(),
+    title: string(),
+    description: string(),
+    position: PredictFeedBannerPositionSchema,
+    severity: PredictFeedBannerSeveritySchema,
+    dismissible: boolean(),
+  }),
+  () => DEFAULT_PREDICT_FEED_BANNER_FLAG,
+);
 
 export const PredictFeeCollectionSchema = defaulted(
   object({

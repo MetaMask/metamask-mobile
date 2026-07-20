@@ -23,6 +23,11 @@ import {
 import { PREDICT_HEADER_STACKED_TEST_IDS } from '../../components/PredictHeaderStacked';
 import { MOCK_PREDICT_LIVE_SPORT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
 import { PredictEventValues } from '../../constants/eventNames';
+import { PredictFeedBannerSelectorsIDs } from '../../components/PredictFeedBanner';
+import {
+  PredictFeedBannerPosition,
+  PredictFeedBannerSeverity,
+} from '../../constants/feedBanner';
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
 const PREDICTIONS_TITLE = 'Predictions';
@@ -36,6 +41,27 @@ const homeRedesignEnabledOverrides = {
             enabled: true,
             featureVersion: '1.0.0',
             minimumVersion: '0.0.1',
+          },
+        },
+      },
+    },
+  },
+};
+
+const feedBannerEnabledOverrides = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          predictFeedBanner: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+            id: 'predict-view-test-message',
+            title: 'Predict service update',
+            description: 'Some markets may be temporarily unavailable.',
+            position: PredictFeedBannerPosition.AfterPortfolio,
+            severity: PredictFeedBannerSeverity.Warning,
+            dismissible: true,
           },
         },
       },
@@ -125,6 +151,27 @@ describe('PredictHome', () => {
       await findByTestId(PredictHomeSelectorsIDs.CATEGORIES_SECTION);
       await findByTestId(PredictHomeSelectorsIDs.POPULAR_TODAY_SECTION);
       await findByTestId(PredictHomeSelectorsIDs.TRENDING_SECTION);
+    });
+
+    it('renders a remotely enabled feed banner', async () => {
+      const { findByTestId } = renderPredictHomeView({
+        overrides: feedBannerEnabledOverrides,
+      });
+
+      const banner = await findByTestId(PredictFeedBannerSelectorsIDs.BANNER);
+
+      expect(banner).toHaveTextContent(/Predict service update/);
+      expect(banner).toHaveTextContent(
+        /Some markets may be temporarily unavailable\./,
+      );
+    });
+
+    it('does not render the feed banner when the remote flag is disabled', () => {
+      const { queryByTestId } = renderPredictHomeView();
+
+      expect(
+        queryByTestId(PredictFeedBannerSelectorsIDs.BANNER),
+      ).not.toBeOnTheScreen();
     });
   });
 

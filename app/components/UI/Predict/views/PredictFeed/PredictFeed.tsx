@@ -68,6 +68,7 @@ import PredictWithdrawUnavailableSheet, {
 import PredictOffline from '../../components/PredictOffline';
 import FeaturedCarousel from '../../components/FeaturedCarousel';
 import PredictWorldCupMainFeedBanner from '../../components/PredictWorldCupMainFeedBanner';
+import PredictFeedBanner from '../../components/PredictFeedBanner';
 import {
   selectPredictFeaturedCarouselEnabledFlag,
   selectPredictPortfolioEnabledFlag,
@@ -85,6 +86,7 @@ import {
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { PredictFeedBannerPosition } from '../../constants/feedBanner';
 
 type PredictFlashListRef = FlashListRef<PredictMarketType>;
 type PredictFlashListProps = FlashListProps<PredictMarketType> & {
@@ -212,12 +214,24 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
           topInset={topInset}
           hideTitle={hideTitle}
         />
+        <PredictFeedBanner
+          position={PredictFeedBannerPosition.AfterBalance}
+          containerClassName="px-4 pb-3"
+        />
         {isFeaturedCarouselEnabled && (
           <Box twClassName="pb-3">
             <FeaturedCarousel />
           </Box>
         )}
+        <PredictFeedBanner
+          position={PredictFeedBannerPosition.AfterFeaturedCarousel}
+          containerClassName="px-4 pb-3"
+        />
         <PredictWorldCupMainFeedBanner variant="compact" />
+        <PredictFeedBanner
+          position={PredictFeedBannerPosition.AfterWorldCupBanner}
+          containerClassName="px-4 pb-3"
+        />
       </Animated.View>
       <View
         ref={tabBarRef}

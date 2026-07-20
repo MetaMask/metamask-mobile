@@ -15,6 +15,7 @@ import {
   PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
 } from '../../constants/flags';
 import { buildPredictWorldCupAllQuery } from '../../utils/worldCup';
+import { PredictFeedBannerPosition } from '../../constants/feedBanner';
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
@@ -170,10 +171,17 @@ jest.mock('../../components/PredictMarket', () => {
   };
 });
 
+jest.mock('../../components/PredictFeedBanner', () => ({
+  __esModule: true,
+  default: jest.fn(() => null),
+}));
+
 import PredictMarket from '../../components/PredictMarket';
+import PredictFeedBanner from '../../components/PredictFeedBanner';
 import { PredictEventValues } from '../../constants/eventNames';
 
 const mockPredictMarket = PredictMarket as jest.Mock;
+const mockPredictFeedBanner = PredictFeedBanner as jest.Mock;
 
 const getPredictMarketEntryPoints = () =>
   mockPredictMarket.mock.calls.map(([props]) => props.entryPoint);
@@ -433,6 +441,22 @@ describe('PredictFeed', () => {
       const { queryByPlaceholderText } = render(<PredictFeed />);
 
       expect(queryByPlaceholderText('Search prediction markets')).toBeNull();
+    });
+
+    it('mounts remote banner slots around the existing feed banners', () => {
+      render(<PredictFeed />);
+
+      const positions = mockPredictFeedBanner.mock.calls.map(
+        ([props]) => props.position,
+      );
+
+      expect(positions).toEqual(
+        expect.arrayContaining([
+          PredictFeedBannerPosition.AfterBalance,
+          PredictFeedBannerPosition.AfterFeaturedCarousel,
+          PredictFeedBannerPosition.AfterWorldCupBanner,
+        ]),
+      );
     });
   });
 
