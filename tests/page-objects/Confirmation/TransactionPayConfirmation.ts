@@ -22,6 +22,7 @@ import {
   getDriver,
   type EncapsulatedElementType,
 } from '../../framework';
+import { PAY_WITH_CRYPTO_OTHER_ASSETS_ROW_TEST_ID } from '../../../app/components/Views/confirmations/hooks/pay/sections/usePayWithCryptoSection';
 
 const TOKEN_SEARCH_PLACEHOLDER = enContent.send.search_tokens;
 const ETHEREUM_NETWORK_FILTER_TEST_ID = getNetworkFilterTestId('0x1');
@@ -69,6 +70,18 @@ class TransactionPayConfirmation {
           {
             exact: true,
           },
+        ),
+    });
+  }
+
+  get otherAssetsRow(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PAY_WITH_CRYPTO_OTHER_ASSETS_ROW_TEST_ID),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PAY_WITH_CRYPTO_OTHER_ASSETS_ROW_TEST_ID,
+          { exact: true },
         ),
     });
   }
@@ -318,6 +331,12 @@ class TransactionPayConfirmation {
   async tapPayWithRow(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.payWithRow, {
       description: 'Pay With Row',
+    });
+  }
+
+  async tapOtherAssetsRow(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.otherAssetsRow, {
+      description: 'Other assets row',
     });
   }
 

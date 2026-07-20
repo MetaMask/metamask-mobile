@@ -179,6 +179,7 @@ appiumTest.describe(SmokePredictions('Predictions Withdraw'), () => {
           await PredictBalance.tapWithdraw();
 
           await TransactionPayConfirmation.tapPayWithRow();
+          await TransactionPayConfirmation.tapOtherAssetsRow();
           await TransactionPayConfirmation.tapByNetworkFilter('Ethereum');
           await TransactionPayConfirmation.tapPayWithToken('ETH');
           await TransactionPayConfirmation.verifyPayWithSymbol('ETH');
