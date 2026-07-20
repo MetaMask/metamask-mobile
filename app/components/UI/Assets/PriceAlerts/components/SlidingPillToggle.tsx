@@ -4,8 +4,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   type LayoutRectangle,
-  type StyleProp,
-  type ViewStyle,
 } from 'react-native';
 import {
   Box,
@@ -40,7 +38,6 @@ interface SlidingPillToggleProps<T extends string> {
    * When false, both pills stay Medium.
    */
   weightBySelection?: boolean;
-  containerStyle?: StyleProp<ViewStyle>;
 }
 
 const styles = StyleSheet.create({
@@ -71,7 +68,6 @@ function SlidingPillToggle<T extends string>({
   sliderBorderRadius,
   equalWidthPills = false,
   weightBySelection = false,
-  containerStyle,
 }: SlidingPillToggleProps<T>) {
   const slideAnim = useRef(new Animated.Value(0)).current;
   const [firstLayout, setFirstLayout] = useState<LayoutRectangle | null>(null);
@@ -142,7 +138,7 @@ function SlidingPillToggle<T extends string>({
       testID={testID}
       flexDirection={BoxFlexDirection.Row}
       twClassName={containerTwClassName}
-      style={[styles.container, containerStyle]}
+      style={styles.container}
     >
       {firstLayout && sliderWidth > 0 && (
         <Animated.View

@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { StyleSheet } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import {
@@ -8,12 +7,6 @@ import {
   CreatePriceAlertTestIds,
 } from '../constants';
 import SlidingPillToggle from './SlidingPillToggle';
-
-const styles = StyleSheet.create({
-  container: {
-    alignSelf: 'center',
-  },
-});
 
 interface AlertPeriodToggleProps {
   value: AlertPeriod;
@@ -62,7 +55,6 @@ const AlertPeriodToggle: React.FC<AlertPeriodToggleProps> = ({
       pillTwClassName="rounded-full px-3 py-0.5"
       sliderBackgroundColor={colors.background.defaultPressed}
       sliderBorderRadius={999}
-      containerStyle={styles.container}
     />
   );
 };
