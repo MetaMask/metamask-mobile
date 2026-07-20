@@ -17,6 +17,7 @@ import { useStyles } from '../../../component-library/hooks';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import { useSupportConsent } from '../../hooks/useSupportConsent';
 import { PROCEED_DELAY_SECONDS } from './scam-questionnaire.constants';
 import styleSheet from './scam-questionnaire.styles';
 
@@ -33,6 +34,7 @@ export const ScamWarning: React.FC<ScamWarningProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
+  const { openSupportWithConsent } = useSupportConsent();
 
   // Gate the bypass link for a few seconds so the warning can't be dismissed
   // instantly.
@@ -53,8 +55,8 @@ export const ScamWarning: React.FC<ScamWarningProps> = ({
 
   const handleContactSupport = useCallback(() => {
     onContactSupport();
-    Linking.openURL(METAMASK_SUPPORT_URL);
-  }, [onContactSupport]);
+    openSupportWithConsent((url) => Linking.openURL(url), METAMASK_SUPPORT_URL);
+  }, [onContactSupport, openSupportWithConsent]);
 
   return (
     <View style={styles.container}>

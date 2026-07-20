@@ -8,6 +8,15 @@ import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 
 jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
 
+const mockOpenSupportWithConsent = jest.fn(
+  (open: (url: string) => void, baseUrl?: string) => open(baseUrl ?? ''),
+);
+jest.mock('../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
+
 const setup = () => {
   const onStop = jest.fn();
   const onContactSupport = jest.fn();
