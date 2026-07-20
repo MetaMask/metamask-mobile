@@ -62,7 +62,7 @@ export interface FeatureFlagRegistryEntry {
  * Remote flag values are stored in the exact format returned by the production
  * client-config API, so they can be served directly by the E2E mock server.
  *
- * Production defaults last synced: 2026-06-30
+ * Production defaults last synced: 2026-07-07
  * Source: https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=prod
  */
 export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
@@ -87,7 +87,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
+      enabled: true,
       minimumVersion: '8.0.0',
     },
     status: FeatureFlagStatus.Active,
@@ -109,8 +109,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
+      enabled: true,
       minimumVersion: '8.1.0',
-      enabled: false,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -337,11 +337,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      versions: {
-        '8.2.0': {
-          enabled: true,
-        },
-      },
+      versions: {},
     },
     status: FeatureFlagStatus.Active,
   },
@@ -602,133 +598,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      constants: {
-        accountsApiUrl: 'https://accounts.api.cx.metamask.io',
-        onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
-      },
       chains: {
-        'eip155:59144': {
-          tokens: [
-            {
-              address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
-              decimals: 6,
-              enabled: true,
-              name: 'USD Coin',
-              symbol: 'USDC',
-            },
-            {
-              symbol: 'USDT',
-              address: '0xA219439258ca9da29E9Cc4cE5596924745e12B93',
-              decimals: 6,
-              enabled: true,
-              name: 'Tether USD',
-            },
-            {
-              name: 'Wrapped Ether',
-              symbol: 'WETH',
-              address: '0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f',
-              decimals: 18,
-              enabled: true,
-            },
-            {
-              decimals: 18,
-              enabled: true,
-              name: 'EURe',
-              symbol: 'EURe',
-              address: '0x3ff47c5Bf409C86533FE1f4907524d304062428D',
-            },
-            {
-              address: '0x3Bce82cf1A2bc357F956dd494713Fe11DC54780f',
-              decimals: 18,
-              enabled: true,
-              name: 'GBPe',
-              symbol: 'GBPe',
-            },
-            {
-              name: 'Aave USDC',
-              symbol: 'aUSDC',
-              address: '0x374D7860c4f2f604De0191298dD393703Cce84f3',
-              decimals: 6,
-              enabled: true,
-            },
-            {
-              decimals: 6,
-              enabled: true,
-              name: 'MetaMask USD',
-              symbol: 'mUSD',
-              address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-            },
-            {
-              decimals: 6,
-              enabled: true,
-              name: 'Aave Linea mUSD',
-              symbol: 'amUSD',
-              address: '0x61B19879F4033c2b5682a969cccC9141e022823c',
-            },
-          ],
-          balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
-          enabled: true,
-          foxConnectAddresses: {
-            us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
-            global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
-          },
-        },
-        'eip155:8453': {
-          foxConnectAddresses: {
-            us: '0xDaBDaFC43B2BC1c7D10C2BBce950A8CAd4a367F8',
-            global: '0xDaBDaFC43B2BC1c7D10C2BBce950A8CAd4a367F8',
-          },
-          tokens: [
-            {
-              address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-              decimals: 6,
-              enabled: true,
-              name: 'USD Coin',
-              symbol: 'USDC',
-            },
-            {
-              name: 'Tether USD',
-              symbol: 'USDT',
-              address: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2',
-              decimals: 6,
-              enabled: true,
-            },
-            {
-              name: 'Aave Base USDC',
-              symbol: 'aUSDC',
-              address: '0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB',
-              decimals: 6,
-              enabled: true,
-            },
-            {
-              symbol: 'WETH',
-              address: '0x4200000000000000000000000000000000000006',
-              decimals: 18,
-              enabled: true,
-              name: 'Wrapped Ether',
-            },
-          ],
-          enabled: true,
-        },
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
-          tokens: [
-            {
-              symbol: 'USDC',
-              address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-              decimals: 6,
-              enabled: true,
-              name: 'USDC',
-            },
-            {
-              symbol: 'USDT',
-              address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
-              decimals: 6,
-              enabled: true,
-              name: 'USDT',
-            },
-          ],
-          enabled: true,
-        },
         'eip155:143': {
           enabled: true,
           foxConnectAddresses: {
@@ -737,11 +607,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           },
           tokens: [
             {
+              address: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
+              decimals: 6,
               enabled: true,
               name: 'USD Coin',
               symbol: 'USDC',
-              address: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
-              decimals: 6,
             },
             {
               address: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
@@ -752,6 +622,132 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             },
           ],
         },
+        'eip155:59144': {
+          balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
+          enabled: true,
+          foxConnectAddresses: {
+            global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
+            us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
+          },
+          tokens: [
+            {
+              address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+              decimals: 6,
+              enabled: true,
+              name: 'USD Coin',
+              symbol: 'USDC',
+            },
+            {
+              address: '0xA219439258ca9da29E9Cc4cE5596924745e12B93',
+              decimals: 6,
+              enabled: true,
+              name: 'Tether USD',
+              symbol: 'USDT',
+            },
+            {
+              address: '0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f',
+              decimals: 18,
+              enabled: true,
+              name: 'Wrapped Ether',
+              symbol: 'WETH',
+            },
+            {
+              address: '0x3ff47c5Bf409C86533FE1f4907524d304062428D',
+              decimals: 18,
+              enabled: true,
+              name: 'EURe',
+              symbol: 'EURe',
+            },
+            {
+              address: '0x3Bce82cf1A2bc357F956dd494713Fe11DC54780f',
+              decimals: 18,
+              enabled: true,
+              name: 'GBPe',
+              symbol: 'GBPe',
+            },
+            {
+              address: '0x374D7860c4f2f604De0191298dD393703Cce84f3',
+              decimals: 6,
+              enabled: false,
+              name: 'Aave USDC',
+              symbol: 'aUSDC',
+            },
+            {
+              address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+              decimals: 6,
+              enabled: true,
+              name: 'MetaMask USD',
+              symbol: 'mUSD',
+            },
+            {
+              address: '0x61B19879F4033c2b5682a969cccC9141e022823c',
+              decimals: 6,
+              enabled: false,
+              name: 'Aave Linea mUSD',
+              symbol: 'amUSD',
+            },
+          ],
+        },
+        'eip155:8453': {
+          enabled: true,
+          foxConnectAddresses: {
+            global: '0xDaBDaFC43B2BC1c7D10C2BBce950A8CAd4a367F8',
+            us: '0xDaBDaFC43B2BC1c7D10C2BBce950A8CAd4a367F8',
+          },
+          tokens: [
+            {
+              address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+              decimals: 6,
+              enabled: true,
+              name: 'USD Coin',
+              symbol: 'USDC',
+            },
+            {
+              address: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2',
+              decimals: 6,
+              enabled: true,
+              name: 'Tether USD',
+              symbol: 'USDT',
+            },
+            {
+              address: '0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB',
+              decimals: 6,
+              enabled: false,
+              name: 'Aave Base USDC',
+              symbol: 'aUSDC',
+            },
+            {
+              address: '0x4200000000000000000000000000000000000006',
+              decimals: 18,
+              enabled: true,
+              name: 'Wrapped Ether',
+              symbol: 'WETH',
+            },
+          ],
+        },
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+          enabled: true,
+          tokens: [
+            {
+              address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+              decimals: 6,
+              enabled: true,
+              name: 'USDC',
+              symbol: 'USDC',
+            },
+            {
+              address: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+              decimals: 6,
+              enabled: true,
+              name: 'USDT',
+              symbol: 'USDT',
+            },
+          ],
+        },
+      },
+      constants: {
+        accountsApiUrl: 'https://accounts.api.cx.metamask.io',
+        onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
       },
     },
     status: FeatureFlagStatus.Active,
@@ -917,9 +913,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'configRegistryApiEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: {
-      enabled: false,
-    },
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -1726,9 +1720,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             predictWithdraw: {
               enabled: true,
               tokens: {
-                '0x89': ['0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'],
-                '0xa4b1': ['0xaf88d065e77c8cC2239327C5EDb3A432268e5831'],
-                '0xe708': ['0xacA92E438df0B2401fF60dA7E4337B687a2435DA'],
                 '0x1': [
                   '0x0000000000000000000000000000000000000000',
                   '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -1745,23 +1736,22 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
                   '0x55d398326f99059fF775485246999027B3197955',
                   '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
                 ],
+                '0x89': ['0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'],
+                '0xa4b1': ['0xaf88d065e77c8cC2239327C5EDb3A432268e5831'],
+                '0xe708': ['0xacA92E438df0B2401fF60dA7E4337B687a2435DA'],
               },
             },
           },
         },
         '7.74.0': {
+          default: {
+            enabled: true,
+            tokens: {},
+          },
           overrides: {
             perpsWithdraw: {
+              enabled: true,
               tokens: {
-                '0xa4b1': [
-                  '0x0000000000000000000000000000000000000000',
-                  '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
-                  '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
-                ],
-                '0xe708': [
-                  '0x0000000000000000000000000000000000000000',
-                  '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-                ],
                 '0x1': [
                   '0x0000000000000000000000000000000000000000',
                   '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -1783,14 +1773,20 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
                   '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
                   '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
                 ],
+                '0xa4b1': [
+                  '0x0000000000000000000000000000000000000000',
+                  '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+                  '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+                ],
+                '0xe708': [
+                  '0x0000000000000000000000000000000000000000',
+                  '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+                ],
               },
-              enabled: true,
             },
             predictWithdraw: {
               enabled: true,
               tokens: {
-                '0xa4b1': ['0xaf88d065e77c8cC2239327C5EDb3A432268e5831'],
-                '0xe708': ['0xacA92E438df0B2401fF60dA7E4337B687a2435DA'],
                 '0x1': [
                   '0x0000000000000000000000000000000000000000',
                   '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -1808,19 +1804,37 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
                   '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
                 ],
                 '0x89': ['0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'],
+                '0xa4b1': ['0xaf88d065e77c8cC2239327C5EDb3A432268e5831'],
+                '0xe708': ['0xacA92E438df0B2401fF60dA7E4337B687a2435DA'],
               },
             },
           },
-          default: {
-            tokens: {},
-            enabled: true,
-          },
         },
         '7.78.0': {
+          default: {
+            enabled: true,
+            tokens: {},
+          },
           overrides: {
             perpsWithdraw: {
               enabled: true,
               tokens: {
+                '0x1': [
+                  '0x0000000000000000000000000000000000000000',
+                  '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+                  '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+                  '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+                  '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
+                ],
+                '0x2105': [
+                  '0x0000000000000000000000000000000000000000',
+                  '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+                ],
+                '0x38': [
+                  '0x0000000000000000000000000000000000000000',
+                  '0x55d398326f99059fF775485246999027B3197955',
+                  '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+                ],
                 '0x89': [
                   '0x0000000000000000000000000000000000001010',
                   '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
@@ -1835,6 +1849,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
                   '0x0000000000000000000000000000000000000000',
                   '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
                 ],
+              },
+            },
+            predictWithdraw: {
+              enabled: true,
+              tokens: {
                 '0x1': [
                   '0x0000000000000000000000000000000000000000',
                   '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -1851,11 +1870,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
                   '0x55d398326f99059fF775485246999027B3197955',
                   '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
                 ],
-              },
-            },
-            predictWithdraw: {
-              enabled: true,
-              tokens: {
                 '0x89': [
                   '0x0000000000000000000000000000000000001010',
                   '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
@@ -1865,115 +1879,19 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
                 ],
                 '0xa4b1': ['0xaf88d065e77c8cC2239327C5EDb3A432268e5831'],
                 '0xe708': ['0xacA92E438df0B2401fF60dA7E4337B687a2435DA'],
-                '0x1': [
-                  '0x0000000000000000000000000000000000000000',
-                  '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-                  '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-                  '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-                  '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
-                ],
-                '0x2105': [
-                  '0x0000000000000000000000000000000000000000',
-                  '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-                ],
-                '0x38': [
-                  '0x0000000000000000000000000000000000000000',
-                  '0x55d398326f99059fF775485246999027B3197955',
-                  '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
-                ],
               },
             },
-          },
-          default: {
-            tokens: {},
-            enabled: true,
           },
         },
         '8.0.0': {
           default: {
-            tokens: {},
             enabled: true,
+            tokens: {},
           },
           overrides: {
-            perpsWithdraw: {
-              tokens: {
-                '0xa4b1': [
-                  '0x0000000000000000000000000000000000000000',
-                  '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
-                  '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
-                ],
-                '0xe708': [
-                  '0x0000000000000000000000000000000000000000',
-                  '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-                ],
-                '0x1': [
-                  '0x0000000000000000000000000000000000000000',
-                  '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-                  '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-                  '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-                  '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
-                ],
-                '0x2105': [
-                  '0x0000000000000000000000000000000000000000',
-                  '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-                ],
-                '0x38': [
-                  '0x0000000000000000000000000000000000000000',
-                  '0x55d398326f99059fF775485246999027B3197955',
-                  '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
-                ],
-                '0x89': [
-                  '0x0000000000000000000000000000000000001010',
-                  '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
-                  '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
-                ],
-              },
-              enabled: true,
-            },
-            predictWithdraw: {
-              enabled: true,
-              tokens: {
-                '0x38': [
-                  '0x0000000000000000000000000000000000000000',
-                  '0x55d398326f99059fF775485246999027B3197955',
-                  '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
-                ],
-                '0x89': [
-                  '0x0000000000000000000000000000000000001010',
-                  '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
-                  '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-                  '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
-                  '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
-                ],
-                '0xa4b1': ['0xaf88d065e77c8cC2239327C5EDb3A432268e5831'],
-                '0xe708': ['0xacA92E438df0B2401fF60dA7E4337B687a2435DA'],
-                '0x1': [
-                  '0x0000000000000000000000000000000000000000',
-                  '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-                  '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-                  '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-                  '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
-                ],
-                '0x2105': [
-                  '0x0000000000000000000000000000000000000000',
-                  '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-                ],
-              },
-            },
             moneyAccountWithdraw: {
+              enabled: true,
               tokens: {
-                '0x38': [
-                  '0x0000000000000000000000000000000000000000',
-                  '0x55d398326f99059fF775485246999027B3197955',
-                  '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
-                ],
-                '0x89': ['0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'],
-                '0x8f': ['0xacA92E438df0B2401fF60dA7E4337B687a2435DA'],
-                '0xa4b1': ['0xaf88d065e77c8cC2239327C5EDb3A432268e5831'],
-                '0xe708': [
-                  '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-                  '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
-                ],
                 '0x1': [
                   '0x0000000000000000000000000000000000000000',
                   '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -1986,8 +1904,87 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
                   '0x0000000000000000000000000000000000000000',
                   '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
                 ],
+                '0x38': [
+                  '0x0000000000000000000000000000000000000000',
+                  '0x55d398326f99059fF775485246999027B3197955',
+                  '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+                ],
+                '0x89': ['0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174'],
+                '0x8f': ['0xacA92E438df0B2401fF60dA7E4337B687a2435DA'],
+                '0xa4b1': ['0xaf88d065e77c8cC2239327C5EDb3A432268e5831'],
+                '0xe708': [
+                  '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+                  '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+                ],
               },
+            },
+            perpsWithdraw: {
               enabled: true,
+              hyperliquidActivationFee: {
+                enabled: true,
+              },
+              tokens: {
+                '0x1': [
+                  '0x0000000000000000000000000000000000000000',
+                  '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+                  '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+                  '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+                  '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
+                ],
+                '0x2105': [
+                  '0x0000000000000000000000000000000000000000',
+                  '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+                ],
+                '0x38': [
+                  '0x0000000000000000000000000000000000000000',
+                  '0x55d398326f99059fF775485246999027B3197955',
+                  '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+                ],
+                '0x89': [
+                  '0x0000000000000000000000000000000000001010',
+                  '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+                  '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+                ],
+                '0xa4b1': [
+                  '0x0000000000000000000000000000000000000000',
+                  '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+                  '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+                ],
+                '0xe708': [
+                  '0x0000000000000000000000000000000000000000',
+                  '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+                ],
+              },
+            },
+            predictWithdraw: {
+              enabled: true,
+              tokens: {
+                '0x1': [
+                  '0x0000000000000000000000000000000000000000',
+                  '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+                  '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+                  '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+                  '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
+                ],
+                '0x2105': [
+                  '0x0000000000000000000000000000000000000000',
+                  '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+                ],
+                '0x38': [
+                  '0x0000000000000000000000000000000000000000',
+                  '0x55d398326f99059fF775485246999027B3197955',
+                  '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+                ],
+                '0x89': [
+                  '0x0000000000000000000000000000000000001010',
+                  '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+                  '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+                  '0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+                  '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
+                ],
+                '0xa4b1': ['0xaf88d065e77c8cC2239327C5EDb3A432268e5831'],
+                '0xe708': ['0xacA92E438df0B2401fF60dA7E4337B687a2435DA'],
+              },
             },
           },
         },
@@ -3435,8 +3432,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: true,
-      minimumVersion: '7.74.0',
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3456,8 +3453,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: true,
-      minimumVersion: '7.65.0',
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3478,8 +3475,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: true,
-      minimumVersion: '7.65.0',
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3518,8 +3515,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      minimumVersion: '7.65.0',
-      enabled: true,
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3548,8 +3545,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: true,
-      minimumVersion: '7.65.0',
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3828,8 +3825,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      minimumVersion: '0.0.0',
-      enabled: false,
+      enabled: true,
+      minimumVersion: '8.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4614,10 +4611,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   socialAIQuickBuyStreamQuotes: {
     name: 'socialAIQuickBuyStreamQuotes',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '8.2.0',
+      minimumVersion: '8.1.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4630,8 +4627,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       {
         name: 'control',
         scope: {
-          value: 0.95,
           type: 'percentage_rollout',
+          value: 0,
         },
       },
       {
@@ -4697,7 +4694,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
+      enabled: true,
       minimumVersion: '8.1.0',
     },
     status: FeatureFlagStatus.Active,
@@ -5131,22 +5128,9 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: [
-      {
-        scope: {
-          value: 0.5,
-          type: 'percentage_rollout',
-        },
-        name: 'control',
-      },
-      {
-        name: 'treatment',
-        scope: {
-          type: 'percentage_rollout',
-          value: 1,
-        },
-      },
-    ],
+    productionDefault: {
+      enabled: false,
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -5158,15 +5142,15 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       {
         name: 'control',
         scope: {
-          value: 1,
           type: 'percentage_rollout',
+          value: 0.34,
         },
       },
       {
         name: 'grayIcons',
         scope: {
-          value: 1,
           type: 'percentage_rollout',
+          value: 0.67,
         },
       },
       {
@@ -5272,7 +5256,27 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       versions: {
         '7.82.0': {
           enabled: true,
-          enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
+          enabledSportsMarketTypes: [
+            'moneyline',
+            'spreads',
+            'totals',
+            'both_teams_to_score',
+            'both_teams_to_score_first_half',
+            'both_teams_to_score_second_half',
+            'first_half_totals',
+            'second_half_totals',
+            'soccer_first_to_score',
+            'soccer_halftime_result',
+            'soccer_second_half_result',
+            'soccer_player_goals',
+            'team_totals',
+            'soccer_team_totals',
+            'basketball_team_to_score_first',
+            'soccer_exact_score',
+            'soccer_team_to_advance',
+            'soccer_extra_time',
+            'soccer_penalty_shootout',
+          ],
           leagues: [
             'nba',
             'wnba',
@@ -5302,6 +5306,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
+      bannerImage: {
+        height: 354,
+        url: 'https://braze-images.com/appboy/communication/assets/image_assets/images/6a29c2c64cef47009e1a3019/original.png',
+        width: 720,
+      },
       enabled: true,
       minimumVersion: '7.79.0',
       showMainFeedBanner: true,
@@ -5329,12 +5338,20 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           ],
           key: 'round_of_32',
         },
+        {
+          eventIds: [
+            '650867',
+            '654603',
+            '662059',
+            '654615',
+            '658244',
+            '658252',
+            '665652',
+            '665660',
+          ],
+          key: 'round_of_16',
+        },
       ],
-      bannerImage: {
-        height: 354,
-        url: 'https://braze-images.com/appboy/communication/assets/image_assets/images/6a29c2c64cef47009e1a3019/original.png',
-        width: 720,
-      },
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5585,22 +5602,9 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'homeTMCU828AbtestOnboardingChecklistStepper',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          value: 0.5,
-          type: 'percentage_rollout',
-        },
-      },
-      {
-        scope: {
-          value: 1,
-          type: 'percentage_rollout',
-        },
-        name: 'treatment',
-      },
-    ],
+    productionDefault: {
+      enabled: false,
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -5651,7 +5655,26 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'swapsSWAPS4543AbtestPostTradeModal',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: [],
+    productionDefault: {
+      versions: {
+        '8.1.0': [
+          {
+            name: 'control',
+            scope: {
+              type: 'percentage_rollout',
+              value: 0.5,
+            },
+          },
+          {
+            name: 'treatment',
+            scope: {
+              type: 'percentage_rollout',
+              value: 1,
+            },
+          },
+        ],
+      },
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -5659,7 +5682,26 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'swapsSWAPS4635AbtestVerified2',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: [],
+    productionDefault: {
+      versions: {
+        '8.2.0': [
+          {
+            name: 'control',
+            scope: {
+              type: 'percentage_rollout',
+              value: 0.5,
+            },
+          },
+          {
+            name: 'treatment',
+            scope: {
+              type: 'percentage_rollout',
+              value: 1,
+            },
+          },
+        ],
+      },
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -5759,7 +5801,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'tmcuActivityRedesignEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -5767,7 +5812,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'tmcuTransactionsRedesignEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
     status: FeatureFlagStatus.Active,
   },
   aiSocialLeaderboardOnboaridngEnabled: {
@@ -5970,6 +6018,62 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
 
   predictWimbledon: {
     name: 'predictWimbledon',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+  assetsMemeCoinView: {
+    name: 'assetsMemeCoinView',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsShowFullAssetNames: {
+    name: 'perpsShowFullAssetNames',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '13.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  platformTestStructure: {
+    name: 'platformTestStructure',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  rewardsFirstPredictOnUsEnabled: {
+    name: 'rewardsFirstPredictOnUsEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsSWAPS4666AbtestDiscoveryFeedRevamp: {
+    name: 'swapsSWAPS4666AbtestDiscoveryFeedRevamp',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [],
+    status: FeatureFlagStatus.Active,
+  },
+
+  tradeTO880AbtestOnboardingInterestQuestion: {
+    name: 'tradeTO880AbtestOnboardingInterestQuestion',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
