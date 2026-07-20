@@ -327,6 +327,19 @@ describe('FeedView', () => {
     expect(screen.getByTestId('mock-quick-buy-open')).toBeOnTheScreen();
   });
 
+  it('waits (treatment) while token metadata is still loading — no premature swaps or QuickBuy fallback', () => {
+    mockAbTestVariant = { openSwaps: true };
+    mockDestToken = undefined;
+    mockQuickBuyIsLoading = true;
+
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
+
+    expect(mockGoToSwaps).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('mock-quick-buy-open')).not.toBeOnTheScreen();
+  });
+
   it('does not resolve the A/B test when the feed has no spot rows', () => {
     mockFeedResult = buildResult({ items: [perpItem] });
 

@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useRef,
   useState,
 } from 'react';
 import { useABTest } from '../../../../../hooks/useABTest';
@@ -10,6 +11,7 @@ import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
 } from '../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import type { BridgeToken } from '../../../../UI/Bridge/types';
 import {
   QuickBuy,
   TOP_TRADERS_QUICK_BUY_FEATURES,
@@ -25,10 +27,58 @@ import {
 /** Same `sourcePage` used by the trader position screen — see TraderPositionBuyCta. */
 const FOLLOW_TRADER_SWAPS_SOURCE_PAGE = 'follow_trader';
 
+const targetKey = (target: QuickBuyTarget): string =>
+  `${target.chain}:${target.tokenAddress}`;
+
 export interface FeedSpotBuyActionHandle {
   /** Open the buy flow for a spot feed item (QuickBuy in control, swaps in treatment). */
   open: (target: QuickBuyTarget) => void;
 }
+
+interface SwapDestResolverProps {
+  target: QuickBuyTarget;
+  onResolved: (destToken: BridgeToken) => void;
+  onUnresolvable: () => void;
+}
+
+/**
+ * Resolves a single tapped token into a destination BridgeToken for swaps.
+ *
+ * This is mounted per-target (via `key`) so every buy gets a FRESH
+ * `useQuickBuySetup` instance. A fresh instance starts its async metadata
+ * resolution from `pending: true` and never surfaces a previous target's
+ * lagging data, so we can't navigate to swaps with a stale / wrong-decimals
+ * token or fall back to QuickBuy before the fetch has actually run.
+ *
+ * Renders nothing; it reports back through the callbacks exactly once.
+ */
+const SwapDestResolver: React.FC<SwapDestResolverProps> = ({
+  target,
+  onResolved,
+  onUnresolvable,
+}) => {
+  const { destToken, isLoading } = useQuickBuySetup(target);
+  const settledRef = useRef(false);
+
+  useEffect(() => {
+    if (settledRef.current) return;
+
+    if (destToken) {
+      settledRef.current = true;
+      onResolved(destToken);
+      return;
+    }
+
+    // Only treat "no token" as final once the metadata fetch has settled
+    // (natives / unsupported chains never enter a loading phase, real tokens do).
+    if (!isLoading) {
+      settledRef.current = true;
+      onUnresolvable();
+    }
+  }, [destToken, isLoading, onResolved, onUnresolvable]);
+
+  return null;
+};
 
 /**
  * Orchestrates the spot Buy action for the trader feed, gated by the Top Traders
@@ -50,13 +100,13 @@ const FeedSpotBuyAction = forwardRef<FeedSpotBuyActionHandle>((_props, ref) => {
     TOP_TRADERS_BUY_ACTION_EXPOSURE_METADATA,
   );
 
-  const [target, setTarget] = useState<QuickBuyTarget | null>(null);
+  const [quickBuyTarget, setQuickBuyTarget] = useState<QuickBuyTarget | null>(
+    null,
+  );
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
-  const [isSwapPending, setIsSwapPending] = useState(false);
-
-  // Resolves the tapped token into a full BridgeToken (decimals / hex chainId)
-  // for the swaps destination. Keyed to the current target.
-  const { destToken, isLoading } = useQuickBuySetup(target);
+  // When set, a keyed <SwapDestResolver> is mounted to resolve this token and
+  // navigate to swaps (treatment only).
+  const [swapTarget, setSwapTarget] = useState<QuickBuyTarget | null>(null);
 
   // TODO: switch `location` to `SwapBridgeNavigationLocation.FollowTradingFeedScreen`
   // once that value lands in the `@metamask/bridge-controller`
@@ -66,49 +116,65 @@ const FeedSpotBuyAction = forwardRef<FeedSpotBuyActionHandle>((_props, ref) => {
     sourcePage: FOLLOW_TRADER_SWAPS_SOURCE_PAGE,
   });
 
+  const openQuickBuy = useCallback((target: QuickBuyTarget) => {
+    setQuickBuyTarget(target);
+    setIsQuickBuyVisible(true);
+  }, []);
+
   useImperativeHandle(
     ref,
     () => ({
       open: (nextTarget: QuickBuyTarget) => {
-        setTarget(nextTarget);
         if (variant.openSwaps) {
-          setIsSwapPending(true);
+          setSwapTarget(nextTarget);
         } else {
-          setIsQuickBuyVisible(true);
+          openQuickBuy(nextTarget);
         }
       },
     }),
-    [variant.openSwaps],
+    [variant.openSwaps, openQuickBuy],
   );
 
-  // Treatment: navigate to swaps once the destination token resolves. If the
-  // metadata resolves with no usable token (e.g. unsupported chain), fall back
-  // to QuickBuy so Buy is never a no-op.
-  useEffect(() => {
-    if (!isSwapPending) return;
-    if (destToken) {
-      setIsSwapPending(false);
+  const handleSwapResolved = useCallback(
+    (destToken: BridgeToken) => {
+      setSwapTarget(null);
       goToSwaps(undefined, destToken, undefined, true);
-      return;
+    },
+    [goToSwaps],
+  );
+
+  // Metadata couldn't be resolved (e.g. unsupported chain / unknown token) —
+  // fall back to QuickBuy so Buy is never a no-op.
+  const handleSwapUnresolvable = useCallback(() => {
+    if (swapTarget) {
+      openQuickBuy(swapTarget);
     }
-    if (!isLoading) {
-      setIsSwapPending(false);
-      setIsQuickBuyVisible(true);
-    }
-  }, [isSwapPending, destToken, isLoading, goToSwaps]);
+    setSwapTarget(null);
+  }, [swapTarget, openQuickBuy]);
 
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);
   }, []);
 
   return (
-    <QuickBuy.Root
-      isVisible={isQuickBuyVisible}
-      target={target}
-      onClose={handleQuickBuyClose}
-      features={TOP_TRADERS_QUICK_BUY_FEATURES}
-      analyticsContext={{ source: 'trader_feed' }}
-    />
+    <>
+      {swapTarget && (
+        <SwapDestResolver
+          key={targetKey(swapTarget)}
+          target={swapTarget}
+          onResolved={handleSwapResolved}
+          onUnresolvable={handleSwapUnresolvable}
+        />
+      )}
+
+      <QuickBuy.Root
+        isVisible={isQuickBuyVisible}
+        target={quickBuyTarget}
+        onClose={handleQuickBuyClose}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        analyticsContext={{ source: 'trader_feed' }}
+      />
+    </>
   );
 });
 
