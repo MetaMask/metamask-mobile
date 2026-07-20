@@ -776,12 +776,12 @@
       "iosGoogleWarningSheetLastDismissedAt": null,
       "onboardingVersion": "7.74.0 (4138)",
       "pendingSocialLoginMarketingConsentBackfill": null,
-      "walletHomeOnboardingSkipInitialBalanceWait": true,
+      "walletHomeOnboardingSkipInitialBalanceWait": false,
       "walletHomeOnboardingSteps": {
         "stepIndex": 0,
         "suppressedReason": null
       },
-      "walletHomeOnboardingStepsEligible": true
+      "walletHomeOnboardingStepsEligible": false
     },
     "originThrottling": {
       "origins": {}
