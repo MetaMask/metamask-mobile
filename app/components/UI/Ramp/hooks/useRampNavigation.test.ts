@@ -365,6 +365,45 @@ describe('useRampNavigation', () => {
         });
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
       });
+
+      it('navigates to BuildQuote for Polygon native POL from token details intent', () => {
+        const polIntent = { assetId: 'eip155:137/slip44:.' };
+        mockTokens = {
+          allTokens: [
+            {
+              assetId: 'eip155:137/slip44:966',
+              chainId: 'eip155:137',
+              tokenSupported: true,
+            },
+          ],
+          topTokens: [],
+        };
+        const mockNavDetails = [
+          Routes.RAMP.TOKEN_SELECTION,
+          {
+            screen: Routes.RAMP.TOKEN_SELECTION,
+            params: {
+              screen: Routes.RAMP.AMOUNT_INPUT,
+              params: { assetId: 'eip155:137/slip44:966' },
+            },
+          },
+        ] as const;
+        mockCreateBuildQuoteNavDetails.mockReturnValue(mockNavDetails);
+
+        const { result } = renderUseRampNavigation();
+
+        result.current.goToBuy(polIntent, { buyFlowOrigin: 'tokenInfo' });
+
+        expect(mockSetSelectedToken).toHaveBeenCalledWith('eip155:137/slip44:966');
+        expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
+          assetId: 'eip155:137/slip44:966',
+          buyFlowOrigin: 'tokenInfo',
+        });
+        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          ...createRampUnsupportedModalNavigationDetails(),
+        );
+      });
     });
 
     describe('empty V2 catalog routing', () => {
