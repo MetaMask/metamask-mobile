@@ -336,7 +336,7 @@ describe('CardController — setSelectedCountry', () => {
   it('routes an enabled Immersve country to the immersve provider', () => {
     const controller = build({
       immersveOnboardingEnabled: { enabled: true, minimumVersion: '0.0.1' },
-      cardFeature: { immersve: { countries: ['GB'] } },
+      cardFeature: { immersveCountries: ['GB'] },
     });
 
     controller.setSelectedCountry('GB');
@@ -348,7 +348,7 @@ describe('CardController — setSelectedCountry', () => {
   it('keeps the default provider when the kill-switch is off', () => {
     const controller = build({
       immersveOnboardingEnabled: { enabled: false, minimumVersion: '0.0.1' },
-      cardFeature: { immersve: { countries: ['GB'] } },
+      cardFeature: { immersveCountries: ['GB'] },
     });
 
     controller.setSelectedCountry('GB');
@@ -360,7 +360,7 @@ describe('CardController — setSelectedCountry', () => {
   it('keeps the default provider for a non-Immersve country', () => {
     const controller = build({
       immersveOnboardingEnabled: { enabled: true, minimumVersion: '0.0.1' },
-      cardFeature: { immersve: { countries: ['GB'] } },
+      cardFeature: { immersveCountries: ['GB'] },
     });
 
     controller.setSelectedCountry('FR');
@@ -3529,5 +3529,72 @@ describe('CardController — data pass-throughs', () => {
       expect(provider.getCardHomeData).not.toHaveBeenCalled();
       expect(result).toStrictEqual(onChainData);
     });
+  });
+});
+
+describe('CardController — Immersve onboarding pass-throughs', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const withValidSession = (overrides: Partial<ICardProvider> = {}) => {
+    const provider = buildMockProvider({ id: 'baanx', ...overrides });
+    provider.validateTokens.mockReturnValue('valid');
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    const controller = buildController(provider);
+    return { controller, provider };
+  };
+
+  it('createFundingSource delegates to the active provider with valid tokens', async () => {
+    const createFundingSource = jest.fn().mockResolvedValue({ id: 'fs-1' });
+    const { controller } = withValidSession({ createFundingSource });
+
+    const result = await controller.createFundingSource();
+
+    expect(createFundingSource).toHaveBeenCalledWith(mockTokenSet);
+    expect(result).toStrictEqual({ id: 'fs-1' });
+  });
+
+  it('getSpendingPrerequisites forwards fundingSourceId + params with tokens', async () => {
+    const getSpendingPrerequisites = jest
+      .fn()
+      .mockResolvedValue({ prerequisites: [] });
+    const { controller } = withValidSession({ getSpendingPrerequisites });
+
+    await controller.getSpendingPrerequisites('fs-1', { kycRegion: 'GB' });
+
+    expect(getSpendingPrerequisites).toHaveBeenCalledWith(
+      'fs-1',
+      { kycRegion: 'GB' },
+      mockTokenSet,
+    );
+  });
+
+  it('createCard forwards fundingSourceId with tokens', async () => {
+    const createCard = jest.fn().mockResolvedValue({ cardId: 'card-1' });
+    const { controller } = withValidSession({ createCard });
+
+    const result = await controller.createCard('fs-1');
+
+    expect(createCard).toHaveBeenCalledWith('fs-1', mockTokenSet);
+    expect(result).toStrictEqual({ cardId: 'card-1' });
+  });
+
+  it('patchContactDetails forwards details with tokens', async () => {
+    const patchContactDetails = jest.fn().mockResolvedValue(undefined);
+    const { controller } = withValidSession({ patchContactDetails });
+
+    await controller.patchContactDetails({ email: 'a@b.co' });
+
+    expect(patchContactDetails).toHaveBeenCalledWith(
+      { email: 'a@b.co' },
+      mockTokenSet,
+    );
+  });
+
+  it('throws when the active provider does not support the capability', async () => {
+    const { controller } = withValidSession();
+
+    await expect(
+      controller.getSpendingPrerequisites('fs-1', {}),
+    ).rejects.toBeInstanceOf(CardProviderError);
   });
 });

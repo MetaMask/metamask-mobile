@@ -212,7 +212,7 @@ function SettingsModal() {
 
       {supportUrl && (
         <MenuItem
-          iconName={IconName.Messages}
+          iconName={IconName.Sms}
           title={strings(
             'fiat_on_ramp.build_quote_settings_modal.contact_support',
           )}
