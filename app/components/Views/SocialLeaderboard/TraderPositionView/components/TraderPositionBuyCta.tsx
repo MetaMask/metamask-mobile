@@ -1,5 +1,5 @@
 import type { Position } from '@metamask/social-controllers';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -80,6 +80,9 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   );
 
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
+  // Treatment tapped Buy before the destination metadata finished resolving —
+  // hold the intent and navigate once it settles (rather than falling back).
+  const [isSwapPending, setIsSwapPending] = useState(false);
 
   const target = useMemo(
     () => (position ? positionToQuickBuyTarget(position) : null),
@@ -88,7 +91,9 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
 
   // Resolve the token the user is buying into a full BridgeToken (decimals /
   // image / hex chainId) so it can be pre-filled as the swaps destination.
-  const { destToken } = useQuickBuySetup(target);
+  // `target` is stable for the lifetime of this screen, so `destToken` /
+  // `isLoading` always reflect the current position (no stale-carryover).
+  const { destToken, isLoading } = useQuickBuySetup(target);
 
   // TODO: switch `location` to `SwapBridgeNavigationLocation.FollowTrader` once
   // the `follow_trader` value lands in the `@metamask/bridge-controller`
@@ -105,15 +110,44 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
     onBuyCtaClicked();
 
     // Treatment: go straight to swaps with the trader's token as destination.
-    // Fall back to QuickBuy when the destination metadata hasn't resolved yet
-    // (or the chain is unsupported) so Buy is never a no-op.
-    if (variant.openSwaps && destToken) {
-      goToSwaps(undefined, destToken, undefined, true);
-      return;
+    if (variant.openSwaps) {
+      if (destToken) {
+        goToSwaps(undefined, destToken, undefined, true);
+        return;
+      }
+      // Metadata still resolving — wait for it instead of falling back so a
+      // fast tap doesn't send treatment users to QuickBuy.
+      if (isLoading) {
+        setIsSwapPending(true);
+        return;
+      }
+      // Settled with no usable token (e.g. unsupported chain) — fall through to
+      // QuickBuy so Buy is never a no-op.
     }
 
     setIsQuickBuyVisible(true);
-  }, [position, onBuyCtaClicked, variant.openSwaps, destToken, goToSwaps]);
+  }, [
+    position,
+    onBuyCtaClicked,
+    variant.openSwaps,
+    destToken,
+    isLoading,
+    goToSwaps,
+  ]);
+
+  // Resolve a pending treatment intent once the destination metadata settles.
+  useEffect(() => {
+    if (!isSwapPending) return;
+    if (destToken) {
+      setIsSwapPending(false);
+      goToSwaps(undefined, destToken, undefined, true);
+      return;
+    }
+    if (!isLoading) {
+      setIsSwapPending(false);
+      setIsQuickBuyVisible(true);
+    }
+  }, [isSwapPending, destToken, isLoading, goToSwaps]);
 
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);

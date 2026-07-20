@@ -84,11 +84,14 @@ const setVariant = (openSwaps: boolean) => {
   });
 };
 
-const setDestToken = (destToken: typeof mockDestToken | undefined) => {
+const setDestToken = (
+  destToken: typeof mockDestToken | undefined,
+  isLoading = false,
+) => {
   mockUseQuickBuySetup.mockReturnValue({
     chainId: destToken?.chainId,
     destToken,
-    isLoading: false,
+    isLoading,
     isUnsupportedChain: false,
   });
 };
@@ -174,8 +177,8 @@ describe('TraderPositionBuyCta', () => {
       );
     });
 
-    it('falls back to QuickBuy when the dest token is not yet resolved', () => {
-      setDestToken(undefined);
+    it('falls back to QuickBuy when metadata settled with no usable token', () => {
+      setDestToken(undefined, false);
       const onBuyCtaClicked = jest.fn();
       const { getByTestId } = renderCta({ onBuyCtaClicked });
 
@@ -185,6 +188,40 @@ describe('TraderPositionBuyCta', () => {
       expect(mockGoToSwaps).not.toHaveBeenCalled();
       expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
         expect.objectContaining({ isVisible: true }),
+      );
+    });
+
+    it('waits while metadata is loading, then navigates once it resolves (no QuickBuy fallback)', () => {
+      setDestToken(undefined, true);
+      const onBuyCtaClicked = jest.fn();
+      const { getByTestId, rerender } = renderCta({ onBuyCtaClicked });
+
+      fireEvent.press(getByTestId(BUY_BUTTON_TEST_ID));
+
+      // Still loading — must neither navigate nor fall back to QuickBuy.
+      expect(mockGoToSwaps).not.toHaveBeenCalled();
+      expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isVisible: false }),
+      );
+
+      // Metadata resolves — the pending intent navigates to swaps.
+      setDestToken(mockDestToken, false);
+      rerender(
+        <TraderPositionBuyCta
+          position={mockPosition}
+          onBuyCtaClicked={onBuyCtaClicked}
+          buyButtonTestID={BUY_BUTTON_TEST_ID}
+        />,
+      );
+
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        undefined,
+        mockDestToken,
+        undefined,
+        true,
+      );
+      expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isVisible: false }),
       );
     });
   });

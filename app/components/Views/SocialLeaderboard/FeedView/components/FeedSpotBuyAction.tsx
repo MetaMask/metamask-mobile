@@ -126,6 +126,9 @@ const FeedSpotBuyAction = forwardRef<FeedSpotBuyActionHandle>((_props, ref) => {
     () => ({
       open: (nextTarget: QuickBuyTarget) => {
         if (variant.openSwaps) {
+          // Dismiss any QuickBuy left open by a prior fallback so it can't
+          // linger behind a fresh swap resolution.
+          setIsQuickBuyVisible(false);
           setSwapTarget(nextTarget);
         } else {
           openQuickBuy(nextTarget);
@@ -138,6 +141,7 @@ const FeedSpotBuyAction = forwardRef<FeedSpotBuyActionHandle>((_props, ref) => {
   const handleSwapResolved = useCallback(
     (destToken: BridgeToken) => {
       setSwapTarget(null);
+      setIsQuickBuyVisible(false);
       goToSwaps(undefined, destToken, undefined, true);
     },
     [goToSwaps],
