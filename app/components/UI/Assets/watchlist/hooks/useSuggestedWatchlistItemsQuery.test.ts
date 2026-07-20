@@ -2,7 +2,10 @@ import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useTokenWatchlistQuery } from './useTokenWatchlistQuery';
 import { useSuggestedWatchlistItemsQuery } from './useSuggestedWatchlistItemsQuery';
-import { DEFAULT_WATCHLIST_BASE_ASSET_IDS , SPACEX_DEFAULT_ASSET_ID } from '../constants/defaultWatchlistTokens';
+import {
+  DEFAULT_WATCHLIST_BASE_ASSET_IDS,
+  SPACEX_DEFAULT_ASSET_ID,
+} from '../constants/defaultWatchlistTokens';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
