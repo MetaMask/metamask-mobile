@@ -107,7 +107,10 @@ export function TransactionDetailsSummary() {
       {heading ? (
         <Text color={TextColor.TextAlternative}>{heading}</Text>
       ) : null}
-      <ProgressList showConnectors={false}>
+      <ProgressList
+        showConnectors={false}
+        variant={isMoneyContext ? 'dot' : 'status-icon'}
+      >
         {fiatOrderId ? (
           <FiatOrderSummaryLine parentTransaction={transactionMeta} />
         ) : null}

@@ -14,6 +14,11 @@ import {
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import {
+  StepConnector,
+  StepDot,
+  type StepDotStatus,
+} from '../../../UI/StepTimeline';
+import {
   useActivityBlockExplorer,
   type ActivityExplorerLink,
 } from '../hooks/useActivityBlockExplorer';
@@ -36,29 +41,12 @@ export interface ActivityDetailsStepExplorerTarget {
   hash: string;
 }
 
-function StepConnector() {
-  return (
-    <Box twClassName="items-center -mt-0.5 gap-0.5">
-      {Array.from({ length: 6 }).map((_, index) => (
-        <Box key={index} twClassName="w-1 h-1 rounded-full bg-border-muted" />
-      ))}
-    </Box>
-  );
-}
-
-function getStepDotClassName(status: ActivityDetailsStepStatus): string {
-  switch (status) {
-    case 'completed':
-      return 'bg-success-default';
-    case 'failed':
-      return 'bg-error-default';
-    case 'pending':
-      return 'bg-warning-default';
-    case 'upcoming':
-    default:
-      return 'bg-muted';
-  }
-}
+const DOT_STATUS: Record<ActivityDetailsStepStatus, StepDotStatus> = {
+  completed: 'success',
+  failed: 'error',
+  pending: 'warning',
+  upcoming: 'muted',
+};
 
 function getStepTextColor(status: ActivityDetailsStepStatus): TextColor {
   return status === 'failed' ? TextColor.ErrorDefault : TextColor.TextDefault;
@@ -130,11 +118,7 @@ export function ActivityDetailsStepTimeline({
               <Box twClassName="flex-row items-start gap-3">
                 <Box twClassName="items-center">
                   <Box twClassName="h-6 items-center justify-center">
-                    <Box
-                      twClassName={`w-2 h-2 rounded-full ${getStepDotClassName(
-                        step.status,
-                      )}`}
-                    />
+                    <StepDot status={DOT_STATUS[step.status]} />
                   </Box>
                   {!isLast ? <StepConnector /> : null}
                 </Box>
