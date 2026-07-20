@@ -402,8 +402,6 @@ export class ImmersveProvider implements ICardProvider {
 
   async #resolveFundingChannelId(tokens: CardAuthTokens): Promise<string> {
     const fundingType = this.requireProgramValue('fundingType');
-    // Funding channels are defined on the partner account (fixed per program/env),
-    // not the individual cardholder — read it from the feature flag.
     const partnerAccountId = this.requireProgramValue('partnerAccountId');
     const { items } = await this.service.get<ImmersveFundingChannelsResponse>(
       `/api/accounts/${partnerAccountId}/funding-channels`,

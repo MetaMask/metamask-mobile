@@ -23,10 +23,12 @@ jest.mock('react-redux', () => ({
   useSelector: (fn: () => unknown) => fn(),
 }));
 
+const MOCK_ACCOUNT_ADDRESS = '0x1111111111111111111111111111111111111111';
+
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
-  selectSelectedInternalAccountByScope: () => () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => ({
     address: '0x1111111111111111111111111111111111111111',
-  }),
+  })),
 }));
 
 jest.mock('../../../../selectors/featureFlagController/card', () => ({
@@ -53,6 +55,11 @@ const mockTx = Engine.context.TransactionController as jest.Mocked<
   typeof Engine.context.TransactionController
 >;
 const mockAwait = awaitTransactionConfirmed as jest.Mock;
+const accountsModule = jest.requireMock(
+  '../../../../selectors/multichainAccounts/accounts',
+) as {
+  selectSelectedInternalAccountByScope: jest.Mock;
+};
 
 const APPROVE_WRITE: CardSmartContractWriteParams = {
   abi: [
@@ -76,7 +83,18 @@ const APPROVE_WRITE: CardSmartContractWriteParams = {
 };
 
 describe('useImmersveFunding', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    accountsModule.selectSelectedInternalAccountByScope.mockImplementation(
+      () => () => ({
+        address: MOCK_ACCOUNT_ADDRESS,
+      }),
+    );
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
 
   it('createFundingSource delegates to the controller', async () => {
     (mockCard.createFundingSource as jest.Mock).mockResolvedValue({
@@ -137,10 +155,9 @@ describe('useImmersveFunding', () => {
   });
 
   it('executeFunding surfaces an error when no account is selected', async () => {
-    const accountsModule = jest.requireMock(
-      '../../../../selectors/multichainAccounts/accounts',
+    accountsModule.selectSelectedInternalAccountByScope.mockImplementationOnce(
+      () => () => undefined,
     );
-    accountsModule.selectSelectedInternalAccountByScope = () => () => undefined;
 
     const { result } = renderHook(() => useImmersveFunding());
 
