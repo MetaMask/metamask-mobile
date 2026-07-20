@@ -171,6 +171,9 @@ const useWatchlistMutation = <TInput>({
     onError: (_err, _vars, ctx) => {
       if (ctx?.prevBlob !== undefined) {
         queryClient.setQueryData(tokenWatchlistQueryKeys.blob, ctx.prevBlob);
+      } else {
+        // onMutate seeds blob when the cache was cold; drop it on rollback.
+        queryClient.removeQueries({ queryKey: tokenWatchlistQueryKeys.blob });
       }
       if (ctx?.prevHydrated !== undefined) {
         queryClient.setQueryData(

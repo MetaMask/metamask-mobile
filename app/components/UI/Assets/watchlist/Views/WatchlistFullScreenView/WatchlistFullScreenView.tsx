@@ -22,7 +22,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
 import WatchlistEditableRow from './WatchlistEditableRow';
 import styleSheet from './WatchlistFullScreenView.styles';
-import type { TrendingAsset } from '@metamask/assets-controllers';
 
 const SKELETON_COUNT = 5;
 const ANIMATION_DURATION = 250;
@@ -106,6 +105,48 @@ const WatchlistFullScreenView = () => {
     styles.headerEndActions,
   ]);
 
+  const listContent = useMemo(() => {
+    if (isLoading) {
+      return (
+        <View style={styles.listContainer}>
+          {Array.from({ length: SKELETON_COUNT }, (_, i) => (
+            <TrendingTokensSkeleton
+              key={`watchlist-fullscreen-skeleton-${i}`}
+            />
+          ))}
+        </View>
+      );
+    }
+
+    if (!hasItems) {
+      return null;
+    }
+
+    return (
+      <ScrollView
+        style={styles.listContainer}
+        showsVerticalScrollIndicator={false}
+        testID={WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST}
+      >
+        <Animated.View layout={LinearTransition.duration(ANIMATION_DURATION)}>
+          {displayTokens.map((token, index) => (
+            <Animated.View
+              key={token.assetId}
+              exiting={FadeOut.duration(ANIMATION_DURATION)}
+              layout={LinearTransition.duration(ANIMATION_DURATION)}
+            >
+              <WatchlistEditableRow
+                token={token}
+                position={index}
+                isEditMode={isEditMode}
+              />
+            </Animated.View>
+          ))}
+        </Animated.View>
+      </ScrollView>
+    );
+  }, [displayTokens, hasItems, isEditMode, isLoading, styles.listContainer]);
+
   return (
     <View
       style={styles.container}
@@ -146,37 +187,7 @@ const WatchlistFullScreenView = () => {
         </Button>
       </View>
 
-      {isLoading ? (
-        <View style={styles.listContainer}>
-          {Array.from({ length: SKELETON_COUNT }, (_, i) => (
-            <TrendingTokensSkeleton
-              key={`watchlist-fullscreen-skeleton-${i}`}
-            />
-          ))}
-        </View>
-      ) : hasItems ? (
-        <ScrollView
-          style={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-          testID={WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST}
-        >
-          <Animated.View layout={LinearTransition.duration(ANIMATION_DURATION)}>
-            {displayTokens.map((token, index) => (
-              <Animated.View
-                key={token.assetId}
-                exiting={FadeOut.duration(ANIMATION_DURATION)}
-                layout={LinearTransition.duration(ANIMATION_DURATION)}
-              >
-                <WatchlistEditableRow
-                  token={token}
-                  position={index}
-                  isEditMode={isEditMode}
-                />
-              </Animated.View>
-            ))}
-          </Animated.View>
-        </ScrollView>
-      ) : null}
+      {listContent}
     </View>
   );
 };

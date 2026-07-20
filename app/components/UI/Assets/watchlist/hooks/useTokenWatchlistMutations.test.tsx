@@ -419,6 +419,33 @@ describe('useTokenWatchlistRemoveItemMutation (specifics)', () => {
     });
   });
 
+  it('rolls back blob cache to unset when remove fails with cold blob cache', async () => {
+    const failure = new Error('write failed');
+    mockedWrite.mockRejectedValue(failure);
+
+    const ASSET_D = 'eip155:8453/slip44:60' as CaipAssetType;
+    const { Wrapper, queryClient } = createWrapper();
+    seedHydratedCache(
+      queryClient,
+      hydratedFor([ASSET_A, ASSET_B, ASSET_C, ASSET_D]),
+    );
+
+    const { result } = renderHook(() => useTokenWatchlistRemoveItemMutation(), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      const pending = result.current.mutateAsync(ASSET_D);
+      await drainBatcher().catch(() => undefined);
+      await expect(pending).rejects.toBe(failure);
+    });
+
+    expect(readCache(queryClient)).toBeUndefined();
+    expect(readHydratedCache(queryClient)).toStrictEqual(
+      hydratedFor([ASSET_A, ASSET_B, ASSET_C, ASSET_D]),
+    );
+  });
+
   it('optimistically removes ids case-insensitively from the hydrated cache', async () => {
     const mixedCaseAsset = 'eip155:1/ERC20:0xbbb' as CaipAssetType;
     const { Wrapper, queryClient } = createWrapper();
