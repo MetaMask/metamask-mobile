@@ -20,6 +20,7 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () => ({
 }));
 
 const mockReset = jest.fn();
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -27,6 +28,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       reset: mockReset,
+      navigate: mockNavigate,
     }),
   };
 });
@@ -296,7 +298,7 @@ describe('SRPErrorScreen', () => {
   });
 
   describe('handleContactSupport', () => {
-    it('opens support URL when MetaMask Support is pressed', () => {
+    it('opens the support consent sheet when MetaMask Support is pressed', () => {
       const { getByText } = renderWithProvider(
         <SRPErrorScreen error={mockError} />,
       );
@@ -312,8 +314,26 @@ describe('SRPErrorScreen', () => {
         }),
         expect.any(Function),
       );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SUPPORT_CONSENT_SHEET,
+        params: {
+          onConfirm: expect.any(Function),
+          onReject: expect.any(Function),
+        },
+      });
+    });
+
+    it('opens the plain support URL when consent is rejected', () => {
+      const { getByText } = renderWithProvider(
+        <SRPErrorScreen error={mockError} />,
+      );
+
+      fireEvent.press(getByText('MetaMask Support'));
+      const { onReject } = mockNavigate.mock.calls[0][1].params;
+      onReject();
+
       expect(Linking.openURL).toHaveBeenCalledWith(
-        AppConstants.REVIEW_PROMPT.SUPPORT,
+        expect.stringContaining(AppConstants.REVIEW_PROMPT.SUPPORT),
       );
     });
   });

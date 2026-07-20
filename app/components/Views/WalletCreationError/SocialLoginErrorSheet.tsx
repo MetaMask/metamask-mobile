@@ -19,6 +19,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { useSupportConsent } from '../../hooks/useSupportConsent';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   AccountType,
@@ -45,6 +46,7 @@ const SocialLoginErrorSheet = ({
   const navigation = useNavigation();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openSupportWithConsent } = useSupportConsent();
 
   useEffect(() => {
     trackEvent(
@@ -87,8 +89,11 @@ const SocialLoginErrorSheet = ({
         })
         .build(),
     );
-    Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
-  }, [trackEvent, createEventBuilder, accountType]);
+    openSupportWithConsent(
+      (url) => Linking.openURL(url),
+      AppConstants.REVIEW_PROMPT.SUPPORT,
+    );
+  }, [trackEvent, createEventBuilder, accountType, openSupportWithConsent]);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-alternative justify-end')}>
