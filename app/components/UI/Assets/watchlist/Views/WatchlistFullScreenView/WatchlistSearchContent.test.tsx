@@ -54,6 +54,22 @@ jest.mock(
 );
 
 jest.mock(
+  '../../../../../Views/TrendingView/feeds/tokens/CryptoMoversPillItem',
+  () => {
+    const { Text, View } = jest.requireActual('react-native');
+    const ReactActual = jest.requireActual('react');
+    const Mock = ({ token }: { token: { symbol: string } }) =>
+      ReactActual.createElement(
+        View,
+        { testID: `mock-popular-pill-${token.symbol}` },
+        ReactActual.createElement(Text, null, token.symbol),
+      );
+    Mock.displayName = 'CryptoMoversPillItem';
+    return Mock;
+  },
+);
+
+jest.mock(
   '../../components/WatchlistSearchRowItem/WatchlistSearchRowItem',
   () => {
     const { Text, View } = jest.requireActual('react-native');
@@ -190,6 +206,32 @@ describe('WatchlistSearchContent', () => {
     expect(
       queryByTestId(WatchlistSearchContentTestIds.SKELETON_OVERLAY),
     ).toBeNull();
+  });
+
+  it('renders empty state when search returns no results', () => {
+    mockUseTokensFeed.mockReturnValue({
+      data: [],
+      isLoading: false,
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasMore: false,
+    });
+
+    const { getByTestId, getByText } = render(
+      <WatchlistSearchContent onDismiss={mockOnDismiss} />,
+    );
+
+    fireEvent.changeText(getByTestId('mock-watchlist-search-input'), 'zzzz');
+
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
+
+    expect(
+      getByTestId(WatchlistSearchContentTestIds.EMPTY_STATE),
+    ).toBeDefined();
+    expect(getByText('No results found for "zzzz"')).toBeDefined();
+    expect(getByText('Check out other popular assets')).toBeDefined();
   });
 
   it('hides skeleton overlay after loading completes', () => {
