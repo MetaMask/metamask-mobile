@@ -1,6 +1,10 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { TokenI } from '../../../UI/Tokens/types';
-import { getHostFromUrl, isNativeToken } from './generic';
+import {
+  getHostFromUrl,
+  isNativeToken,
+  getPaymentMethodDisplayName,
+} from './generic';
 
 describe('generic utils', () => {
   describe('getHostFromUrl', () => {
@@ -120,6 +124,27 @@ describe('generic utils', () => {
       const result = isNativeToken(token);
 
       expect(result).toBe(true);
+    });
+  });
+
+  describe('getPaymentMethodDisplayName', () => {
+    it('maps "Debit or Credit" to "Debit"', () => {
+      expect(getPaymentMethodDisplayName('Debit or Credit')).toBe('Debit');
+    });
+
+    it('passes through other names unchanged', () => {
+      expect(getPaymentMethodDisplayName('Apple Pay')).toBe('Apple Pay');
+      expect(getPaymentMethodDisplayName('Bank Transfer')).toBe(
+        'Bank Transfer',
+      );
+    });
+
+    it('returns undefined for undefined input', () => {
+      expect(getPaymentMethodDisplayName(undefined)).toBeUndefined();
+    });
+
+    it('returns empty string for empty string input', () => {
+      expect(getPaymentMethodDisplayName('')).toBe('');
     });
   });
 });

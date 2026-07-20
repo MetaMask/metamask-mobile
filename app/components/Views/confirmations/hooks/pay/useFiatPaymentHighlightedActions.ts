@@ -12,6 +12,7 @@ import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { HighlightedItem } from '../../types/token';
+import { getPaymentMethodDisplayName } from '../../utils/generic';
 
 /**
  * Converts available Ramps payment methods into {@link HighlightedItem}s for
@@ -63,7 +64,7 @@ function toHighlightedItem(
     position: 'outside_of_asset_list',
     icon: paymentMethod.icon,
     paymentType: paymentMethod.paymentType,
-    name: paymentMethod.name,
+    name: getPaymentMethodDisplayName(paymentMethod.name),
     name_description: paymentMethod.delay
       ? formatDelayFromArray(paymentMethod.delay)
       : '',
