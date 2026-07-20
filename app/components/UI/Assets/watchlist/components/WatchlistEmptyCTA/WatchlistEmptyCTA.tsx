@@ -79,6 +79,18 @@ const WatchlistEmptyCTA: React.FC<WatchlistEmptyCTAProps> = ({ source }) => {
 
   const selectedCount = selectedAssetIds.size;
 
+  const addButtonLabel = useMemo(
+    () =>
+      selectedCount === 1
+        ? strings('token_watchlist.empty_add_tokens_cta', {
+            count: selectedCount,
+          })
+        : strings('token_watchlist.empty_add_tokens_cta_plural', {
+            count: selectedCount,
+          }),
+    [selectedCount],
+  );
+
   const trackAdds = useCallback(
     (tokens: WatchlistTokenWithBalance[]) => {
       for (const token of tokens) {
@@ -193,9 +205,7 @@ const WatchlistEmptyCTA: React.FC<WatchlistEmptyCTAProps> = ({ source }) => {
           isDisabled={selectedCount === 0 || isLoading || addMutation.isPending}
           testID={WatchlistEmptyCTATestIds.ADD_BUTTON}
         >
-          {strings('token_watchlist.empty_add_tokens_cta', {
-            count: selectedCount,
-          })}
+          {addButtonLabel}
         </Button>
       </View>
     </View>

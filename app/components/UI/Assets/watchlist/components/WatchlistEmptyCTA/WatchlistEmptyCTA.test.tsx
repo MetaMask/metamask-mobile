@@ -136,6 +136,18 @@ describe('WatchlistEmptyCTA', () => {
     expect(getByText('Add 2 tokens')).toBeDefined();
   });
 
+  it('uses singular copy when one token is selected', () => {
+    const { getByTestId, getByText } = render(
+      <WatchlistEmptyCTA source="watchlist_empty_cta" />,
+    );
+
+    fireEvent.press(
+      getByTestId('mock-card-bip122:000000000019d6689c085ae165831e93/slip44:0'),
+    );
+
+    expect(getByText('Add 1 token')).toBeDefined();
+  });
+
   it('disables add button when no tokens are selected', () => {
     const { getByTestId } = render(
       <WatchlistEmptyCTA source="watchlist_empty_cta" />,
