@@ -3,18 +3,34 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-import { QrSyncPhases } from '../../../core/QrSync/constants';
+import {
+  QrSyncPhases,
+  QrSyncProvisioningStatuses,
+  QrSyncSecretTypes,
+} from '../../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import AddDeviceToWallet from './index';
 import { completeExistingUserQrSyncImport } from '../../../core/QrSync/completeExistingUserQrSyncImport';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from '../../../core/QrSync/qrSyncTelemetry';
 
 jest.mock('../../../core/QrSync/completeExistingUserQrSyncImport', () => ({
   completeExistingUserQrSyncImport: jest.fn(() => Promise.resolve()),
 }));
 
+jest.mock('../../../core/QrSync/qrSyncTelemetry', () => ({
+  ...jest.requireActual('../../../core/QrSync/qrSyncTelemetry'),
+  reportQrSyncFailure: jest.fn(),
+}));
+
 const mockCompleteExistingUserQrSyncImport = jest.mocked(
   completeExistingUserQrSyncImport,
 );
+const mockReportQrSyncFailure = jest.mocked(reportQrSyncFailure);
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -44,6 +60,8 @@ import Engine from '../../../core/Engine';
 const mockCancelSession = Engine.context.QrSyncController
   .cancelSession as jest.Mock;
 const mockResetState = Engine.context.QrSyncController.resetState as jest.Mock;
+const mockHandleScannedQrPayload = Engine.context.QrSyncController
+  .handleScannedQrPayload as jest.Mock;
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -223,6 +241,66 @@ describe('AddDeviceToWallet', () => {
         }),
       );
     });
+
+    it('reports scan submit failures to Sentry', async () => {
+      mockHandleScannedQrPayload.mockRejectedValueOnce(
+        new Error('scan submit failed'),
+      );
+      const { getByText } = renderComponent();
+
+      fireEvent.press(
+        getByText(strings('app_settings.add_device.scan_qr_code_button')),
+      );
+
+      const onScanSuccess = mockNavigate.mock.calls[0][1].onScanSuccess as (
+        data: { content?: string },
+        content?: string,
+      ) => void;
+      onScanSuccess({ content: 'metamask://connect/mwp?p=test' });
+
+      await waitFor(() => {
+        expect(mockReportQrSyncFailure).toHaveBeenCalledWith(
+          expect.any(Error),
+          {
+            surface: QrSyncSurfaces.SCANNER,
+            operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
+            source: QrSyncTelemetrySources.ADD_DEVICE_ON_SCAN_SUCCESS,
+          },
+        );
+      });
+    });
+
+    it('reports manual QR submit failures to Sentry in dev', async () => {
+      const globalWithDev = global as unknown as { __DEV__: boolean };
+      const originalDev = globalWithDev.__DEV__;
+      globalWithDev.__DEV__ = true;
+      mockHandleScannedQrPayload.mockRejectedValueOnce(
+        new Error('manual submit failed'),
+      );
+
+      try {
+        const { getByPlaceholderText, getByText } = renderComponent();
+
+        fireEvent.changeText(
+          getByPlaceholderText('Paste QR payload'),
+          'metamask://connect/mwp?p=manual',
+        );
+        fireEvent.press(getByText('Submit QR data'));
+
+        await waitFor(() => {
+          expect(mockReportQrSyncFailure).toHaveBeenCalledWith(
+            expect.any(Error),
+            {
+              surface: QrSyncSurfaces.SCANNER,
+              operation: QrSyncOperations.SUBMIT_MANUAL_PAYLOAD,
+              source: QrSyncTelemetrySources.ADD_DEVICE_MANUAL_SUBMIT,
+            },
+          );
+        });
+      } finally {
+        globalWithDev.__DEV__ = originalDev;
+      }
+    });
   });
 
   describe('QR sync presentation', () => {
@@ -264,6 +342,7 @@ describe('AddDeviceToWallet', () => {
         getByText(strings('app_settings.add_device.waiting_for_extension')),
       ).toBeOnTheScreen();
     });
+
     it('does not render the manual QR input outside dev', () => {
       const globalWithDev = global as unknown as { __DEV__: boolean };
       const originalDev = globalWithDev.__DEV__;
@@ -300,23 +379,20 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('QR sync import navigation', () => {
-    it('navigates to import when sync-ready provides import data for new users', async () => {
-      renderComponent(
-        {
-          phase: QrSyncPhases.REVIEWING_IMPORT,
-          importPlan: [
-            {
-              index: 0,
-              value: 'word1 word2 word3',
-              type: 'MNEMONIC',
-              accountName: null,
-              hiddenIndexes: [],
-              isPrimary: true,
-            },
-          ],
-        },
-        false,
-      );
+    const pendingSecretImports = [
+      {
+        index: 0,
+        value: 'word1 word2 word3',
+        type: QrSyncSecretTypes.MNEMONIC,
+        isPrimary: true,
+      },
+    ];
+
+    it('navigates to import when awaiting password with pending secrets', async () => {
+      renderComponent({
+        provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+        pendingSecretImports,
+      });
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
@@ -330,113 +406,11 @@ describe('AddDeviceToWallet', () => {
       expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
     });
 
-    it('auto-imports and navigates home for existing users when sync-ready arrives', async () => {
-      const mnemonic =
-        'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12';
-
-      renderComponent(
-        {
-          phase: QrSyncPhases.REVIEWING_IMPORT,
-          importPlan: [
-            {
-              index: 0,
-              value: mnemonic,
-              type: 'MNEMONIC',
-              accountName: null,
-              hiddenIndexes: [],
-              isPrimary: true,
-            },
-          ],
-        },
-        true,
-      );
-
-      await waitFor(() => {
-        expect(mockCompleteExistingUserQrSyncImport).toHaveBeenCalledWith(
-          expect.objectContaining({ navigate: mockNavigate }),
-          mnemonic,
-        );
-      });
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        expect.anything(),
-      );
-    });
-
-    it('auto-imports for existing users when sync-ready omits isPrimary', async () => {
-      const mnemonic =
-        'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12';
-
-      renderComponent(
-        {
-          phase: QrSyncPhases.COMPLETED,
-          importPlan: [
-            {
-              index: 0,
-              value: mnemonic,
-              type: 'MNEMONIC',
-              accountName: null,
-              hiddenIndexes: [],
-              isPrimary: false,
-            },
-          ],
-        },
-        true,
-      );
-
-      await waitFor(() => {
-        expect(mockCompleteExistingUserQrSyncImport).toHaveBeenCalledWith(
-          expect.objectContaining({ navigate: mockNavigate }),
-          mnemonic,
-        );
-      });
-    });
-
-    it.each([true, false])(
-      'does not navigate or auto-import while the scanner is open (completedOnboarding=%s)',
-      async (completedOnboarding) => {
-        mockIsQrTabSwitcherOpen = true;
-
-        renderComponent(
-          {
-            phase: QrSyncPhases.REVIEWING_IMPORT,
-            importPlan: [
-              {
-                index: 0,
-                value: 'word1 word2 word3',
-                type: 'MNEMONIC',
-                accountName: null,
-                hiddenIndexes: [],
-                isPrimary: true,
-              },
-            ],
-          },
-          completedOnboarding,
-        );
-
-        await waitFor(() => {
-          expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
-          expect(mockNavigate).not.toHaveBeenCalledWith(
-            Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-            expect.anything(),
-          );
-        });
-      },
-    );
-
-    it('navigates to import after sync completes for new users', async () => {
+    it('navigates to import after sync completes while secrets are still pending', async () => {
       renderComponent({
         phase: QrSyncPhases.COMPLETED,
-        importPlan: [
-          {
-            index: 0,
-            value: 'word1 word2 word3',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
-            isPrimary: true,
-          },
-        ],
+        provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+        pendingSecretImports,
       });
 
       await waitFor(() => {
@@ -451,19 +425,10 @@ describe('AddDeviceToWallet', () => {
       expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
     });
 
-    it('does not navigate to import when sync failed with stale import data', async () => {
+    it('does not navigate to import when sync failed with stale secret data', async () => {
       renderComponent({
         phase: QrSyncPhases.FAILED,
-        importPlan: [
-          {
-            index: 0,
-            value: 'word1 word2 word3',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
-            isPrimary: true,
-          },
-        ],
+        pendingSecretImports,
         error: {
           code: 'SYNC_FAILED',
           message: 'Sync failed',

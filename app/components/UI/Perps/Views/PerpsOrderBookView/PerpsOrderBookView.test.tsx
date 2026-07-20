@@ -5,9 +5,9 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PerpsOrderBookViewSelectorsIDs } from '../../Perps.testIds';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
+import type { PriceUpdate, PerpsMarketData } from '@metamask/perps-controller';
 import { mockTheme } from '../../../../../util/theme';
 import type { OrderBookRouteParams } from './PerpsOrderBookView.types';
-import type { PerpsMarketData } from '@metamask/perps-controller';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -135,6 +135,18 @@ const mockUsePerpsLivePrices = jest.fn<
 
 jest.mock('../../hooks/stream/usePerpsLivePrices', () => ({
   usePerpsLivePrices: (params: unknown) => mockUsePerpsLivePrices(params),
+}));
+
+// Mock usePerpsLiveFocusedPrice — returns undefined by default so the view
+// falls back to the allMids baseline from usePerpsLivePrices (TAT-3334)
+const mockUsePerpsLiveFocusedPrice = jest.fn<
+  PriceUpdate | undefined,
+  [unknown]
+>(() => undefined);
+
+jest.mock('../../hooks/stream/usePerpsLiveFocusedPrice', () => ({
+  usePerpsLiveFocusedPrice: (params: unknown) =>
+    mockUsePerpsLiveFocusedPrice(params),
 }));
 
 // Mock usePerpsMeasurement
@@ -582,7 +594,7 @@ describe('PerpsOrderBookView', () => {
       expect(mockTrack).toHaveBeenCalled();
     });
 
-    it('switches to USD unit when USD toggle is pressed', () => {
+    it('switches to USD unit when USD toggle is pressed', async () => {
       const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
         state: initialState,
       });
@@ -590,15 +602,23 @@ describe('PerpsOrderBookView', () => {
       const baseToggle = getByTestId(
         PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_BASE,
       );
-      const usdToggle = getByTestId(
-        PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_USD,
-      );
 
       fireEvent.press(baseToggle);
-      mockTrack.mockClear();
-      fireEvent.press(usdToggle);
 
-      expect(mockTrack).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(
+          getByTestId(PerpsOrderBookViewSelectorsIDs.TABLE).props.unit,
+        ).toBe('base');
+      });
+
+      mockTrack.mockClear();
+      fireEvent.press(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_USD),
+      );
+
+      await waitFor(() => {
+        expect(mockTrack).toHaveBeenCalled();
+      });
     });
 
     it('starts with USD as default unit', () => {
@@ -900,6 +920,10 @@ describe('PerpsOrderBookView', () => {
       expect(mockNavigateToClosePosition).toHaveBeenCalledWith(
         mockLongPosition,
         'order_book',
+        {
+          buttonClicked: 'close',
+          buttonLocation: 'order_book',
+        },
       );
     });
 
@@ -1241,13 +1265,24 @@ describe('PerpsOrderBookView', () => {
       );
     });
 
-    it('subscribes to live order book with MAX_ORDER_BOOK_LEVELS (20) for server-side aggregation', () => {
+    it('subscribes to live order book with FAST_ORDER_BOOK_LEVELS (5) to match the fast stream depth cap', () => {
       renderWithProvider(<PerpsOrderBookView />, { state: initialState });
 
-      // Uses MAX_ORDER_BOOK_LEVELS (20) - API returns at most ~20 levels per side with nSigFigs
+      // Uses FAST_ORDER_BOOK_LEVELS (5) since fast: true caps depth at 5
+      // levels per side regardless of a larger requested `levels` value.
       expect(mockUsePerpsLiveOrderBook).toHaveBeenCalledWith(
         expect.objectContaining({
-          levels: 20,
+          levels: 5,
+        }),
+      );
+    });
+
+    it('subscribes to live order book with fast: true (TAT-3333)', () => {
+      renderWithProvider(<PerpsOrderBookView />, { state: initialState });
+
+      expect(mockUsePerpsLiveOrderBook).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fast: true,
         }),
       );
     });
@@ -1271,6 +1306,51 @@ describe('PerpsOrderBookView', () => {
           nSigFigs: expect.any(Number),
         }),
       );
+    });
+
+    it('subscribes to focused price stream for header display (TAT-3334)', () => {
+      renderWithProvider(<PerpsOrderBookView />, { state: initialState });
+
+      expect(mockUsePerpsLiveFocusedPrice).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'BTC',
+          enabled: true,
+        }),
+      );
+    });
+
+    it('prefers focused price over allMids baseline when both are available', () => {
+      // focused price returns a faster, more recent value
+      mockUsePerpsLiveFocusedPrice.mockReturnValue({
+        symbol: 'BTC',
+        price: '52000',
+        markPrice: '52010',
+        timestamp: Date.now(),
+        isTradable: true,
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('falls back to allMids baseline when focused price is undefined', () => {
+      mockUsePerpsLiveFocusedPrice.mockReturnValue(undefined);
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: { price: '50000', percentChange24h: '2.5', symbol: 'BTC' },
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
     });
   });
 

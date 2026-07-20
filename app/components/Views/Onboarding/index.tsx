@@ -706,7 +706,7 @@ const Onboarding = () => {
               title: strings('error_sheet.oauth_error_title'),
               description: strings('error_sheet.oauth_error_description'),
               descriptionAlign: 'center',
-              buttonLabel: strings('error_sheet.oauth_error_button'),
+              primaryButtonLabel: strings('error_sheet.oauth_error_button'),
               type: 'error',
             },
           });
@@ -722,7 +722,7 @@ const Onboarding = () => {
               title: strings('error_sheet.oauth_error_title'),
               description: strings('error_sheet.oauth_error_description'),
               descriptionAlign: 'center',
-              buttonLabel: strings('error_sheet.oauth_error_button'),
+              primaryButtonLabel: strings('error_sheet.oauth_error_button'),
               type: 'error',
             },
           });
@@ -753,7 +753,7 @@ const Onboarding = () => {
           title: strings(`error_sheet.${errorMessage}_title`),
           description: strings(`error_sheet.${errorMessage}_description`),
           descriptionAlign: 'center',
-          buttonLabel: strings(`error_sheet.${errorMessage}_button`),
+          primaryButtonLabel: strings(`error_sheet.${errorMessage}_button`),
           type: 'error',
         },
       });
@@ -783,9 +783,6 @@ const Onboarding = () => {
                   `error_sheet.no_internet_connection_description`,
                 ),
                 descriptionAlign: 'left',
-                buttonLabel: strings(
-                  `error_sheet.no_internet_connection_button`,
-                ),
                 primaryButtonLabel: strings(
                   `error_sheet.no_internet_connection_button`,
                 ),

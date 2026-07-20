@@ -36,6 +36,10 @@ export enum TokenDetailsSource {
   Swap = 'swap',
   /** Price alert notification deeplink */
   PriceAlertNotification = 'price_alert_notification',
+  /** Watchlist section on the homepage */
+  WatchlistHomepage = 'watchlist_homepage',
+  /** Explore Trending Tokens — watchlist filter pill active */
+  ExploreWatchlistFilter = 'explore_watchlist_filter',
   /** Fallback when source cannot be determined */
   Unknown = 'unknown',
 }
@@ -47,6 +51,7 @@ const EXPLORE_TOKEN_DETAILS_SOURCES = new Set<TokenDetailsSource>([
   TokenDetailsSource.ExploreRwasStocks,
   TokenDetailsSource.ExploreSearch,
   TokenDetailsSource.Trending,
+  TokenDetailsSource.ExploreWatchlistFilter,
 ]);
 
 /**
@@ -90,6 +95,6 @@ export type TokenDetailsExitAction =
 
 /**
  * Technical indicators that occupy a sub-pane below the main chart.
- * Keep in sync with SUB_PANE_INDICATOR_NAMES in webview/src/features/indicators/studies.ts.
+ * Derived from `buildIndicatorLegendConfig` — no manual sync needed.
  */
-export const SUB_PANE_INDICATORS = ['MACD', 'RSI'] as const;
+export { SUB_PANE_INDICATORS } from '../../Charts/AdvancedChart/indicatorColors';

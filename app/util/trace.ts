@@ -178,6 +178,10 @@ export enum TraceName {
   PerpsAccountSwitchReconnection = 'Perps Account Switch Reconnection',
   PerpsMarketDataPreload = 'Perps Market Data Preload',
   PerpsUserDataPreload = 'Perps User Data Preload',
+  // Perps chart: first visible candle after the market detail chart mounts.
+  PerpsChartFirstCandle = 'perps.chart.first_candle',
+  // Perps chart: fullscreen chart visible after open.
+  PerpsChartFullscreenOpen = 'perps.chart.full_screen_open',
   /** Perps advanced chart: skeleton cleared after initial load or symbol/interval change. */
   PerpsAdvancedChartInitialVisible = 'Perps Advanced Chart Initial Visible',
   /** Perps advanced chart: skeleton cleared after interval change only. */
@@ -296,6 +300,8 @@ export enum TraceOperation {
   PerpsMarketData = 'perps.market_data',
   PerpsOrderSubmission = 'perps.order_submission',
   PerpsPositionManagement = 'perps.position_management',
+  // Perps chart rollout performance.
+  PerpsChart = 'perps.chart',
   /** Perps advanced chart: initial load or symbol/interval change */
   PerpsAdvancedChart = 'perps.advanced_chart',
   /** Perps advanced chart: interval change only */
@@ -314,6 +320,7 @@ export enum TraceOperation {
   HomepageSectionPerformance = 'homepage.section.performance',
   // Money Home Performance
   MoneyHomePerformance = 'money.home.performance',
+  MoneyAccountDataFetch = 'money.account.data_fetch',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
   /** Token overview OHLCV WebView: time range change only */

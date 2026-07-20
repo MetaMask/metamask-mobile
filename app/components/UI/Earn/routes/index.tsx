@@ -12,9 +12,13 @@ import {
   clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
+import type {
+  EarnModalsNavigationParamList,
+  EarnScreensStackParamList,
+} from '../types/navigation';
 
-const Stack = createNativeStackNavigator();
-const ModalStack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<EarnScreensStackParamList>();
+const ModalStack = createNativeStackNavigator<EarnModalsNavigationParamList>();
 
 const EarnScreenStack = () => {
   const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
