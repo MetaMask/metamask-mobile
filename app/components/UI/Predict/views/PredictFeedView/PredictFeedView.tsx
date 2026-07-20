@@ -46,8 +46,8 @@ const INITIAL_SKELETON_COUNT = 4;
 /**
  * Generic, config-driven Predict feed screen.
  *
- * Powers every configured feed (Sports / Politics / Crypto / Live / Trending /
- * Popular Today) from one component. Presentational: it consumes
+ * Powers every configured feed (Sports / Politics / Crypto / Live / Trending)
+ * from one component. Presentational: it consumes
  * `usePredictFeedConfig` for the render-ready config + tab/filter selection
  * state and `usePredictMarketList` for the active tab/filter's market data —
  * it owns no hydration/dedup/fallback logic itself.

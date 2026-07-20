@@ -5,6 +5,13 @@ import { showImportFailedSheet } from '../../components/Views/AddDeviceToWallet/
 import Engine from '../Engine';
 import type { AppNavigationProp } from '../NavigationService/types';
 import { isDuplicateMnemonicError } from './duplicateMnemonicError';
+import { QrSyncSyncFlows } from './constants';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from './qrSyncTelemetry';
 
 export {
   DUPLICATE_MNEMONIC_ERROR_MESSAGES,
@@ -37,6 +44,12 @@ const runExistingUserQrSyncImport = async (
       return;
     }
 
+    reportQrSyncFailure(error, {
+      surface: QrSyncSurfaces.IMPORT,
+      operation: QrSyncOperations.EXISTING_USER_MNEMONIC_IMPORT,
+      source: QrSyncTelemetrySources.COMPLETE_EXISTING_USER_IMPORT,
+      syncFlow: QrSyncSyncFlows.EXISTING_USER,
+    });
     navigation.navigate(Routes.WALLET_VIEW);
     showImportFailedSheet(navigation);
   }

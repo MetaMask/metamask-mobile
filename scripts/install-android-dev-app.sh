@@ -17,7 +17,8 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 PACKAGE_ID="io.metamask"
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# //\\// normalizes Windows backslash invocation paths (Yarn/Git Bash); no-op elsewhere.
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]//\\//}")" && pwd)"
 readonly REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 readonly BUILD_DIR="$REPO_ROOT/build"
 readonly DOWNLOAD_DIR="$BUILD_DIR/gh-expo-dev-build/android"
@@ -25,7 +26,7 @@ readonly STABLE_APK_PATH="$BUILD_DIR/metamask-dev.apk"
 readonly GHA_LIB="$SCRIPT_DIR/lib/download-gha-expo-dev-build.sh"
 readonly DEVICE_TARGET_LIB="$SCRIPT_DIR/lib/dev-device-target.sh"
 
-if [[ "$(pwd)" != "$REPO_ROOT" ]]; then
+if ! [[ "$(pwd)" -ef "$REPO_ROOT" ]]; then
   echo -e "${RED}❌ This script must be run from the repository root${NC}"
   echo -e "${YELLOW}Current directory: $(pwd)${NC}"
   echo -e "${YELLOW}Expected directory: $REPO_ROOT${NC}"
