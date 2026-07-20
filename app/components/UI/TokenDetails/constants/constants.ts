@@ -1,6 +1,7 @@
 import type { TokenI } from '../../Tokens/types';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { CaipAssetType } from '@metamask/utils';
 
 /**
  * Source of navigation to Token Details page
@@ -38,6 +39,8 @@ export enum TokenDetailsSource {
   PriceAlertNotification = 'price_alert_notification',
   /** Watchlist section on the homepage */
   WatchlistHomepage = 'watchlist_homepage',
+  /** Full-screen watchlist view */
+  WatchlistFullscreen = 'watchlist_fullscreen',
   /** Explore Trending Tokens — watchlist filter pill active */
   ExploreWatchlistFilter = 'explore_watchlist_filter',
   /** Fallback when source cannot be determined */
@@ -81,6 +84,8 @@ export enum TokenDetailsAction {
 export interface TokenDetailsRouteParams extends TokenI {
   source?: TokenDetailsSource;
   securityData?: TokenSecurityData;
+  /** CAIP-19 asset id when known at navigation time (e.g. watchlist / trending rows). */
+  caipAssetId?: CaipAssetType;
   /** Carried into swap / perps / predict flows for tx-scoped `active_ab_tests` */
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }

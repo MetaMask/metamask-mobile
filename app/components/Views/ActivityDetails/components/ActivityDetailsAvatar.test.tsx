@@ -13,10 +13,24 @@ describe('ActivityDetailsAvatar', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('shows a "?" fallback for a token whose image cannot be resolved', () => {
+  it('shows the first letter of the token symbol when the image cannot be resolved', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <ActivityDetailsAvatar
+        tokens={[
+          { symbol: 'Playful Primates', direction: 'out' } as TokenAmount,
+        ]}
+        size={AvatarTokenSize.Lg}
+      />,
+    );
+
+    expect(getByText('P')).toBeOnTheScreen();
+    expect(queryByText('?')).toBeNull();
+  });
+
+  it('shows a "?" fallback when the token has no symbol and no image', () => {
     const { getByText } = renderWithProvider(
       <ActivityDetailsAvatar
-        tokens={[{ symbol: 'BTZ', direction: 'out' } as TokenAmount]}
+        tokens={[{ direction: 'out' } as TokenAmount]}
         size={AvatarTokenSize.Lg}
       />,
     );
