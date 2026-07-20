@@ -777,6 +777,37 @@ describe('useQuickBuyQuotes', () => {
     expect(result.current.isQuoteRequestStale).toBe(true);
   });
 
+  it('does not refetch or mark quotes stale when backend slippage hydrates', async () => {
+    (selectSlippage as unknown as jest.Mock).mockReturnValue(undefined);
+    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+
+    const { result, rerender } = renderHook(() =>
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
+    expect(result.current.isQuoteRequestStale).toBe(false);
+
+    (selectSlippage as unknown as jest.Mock).mockReturnValue('2');
+    rerender({});
+
+    await act(async () => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    expect(fetchQuotesMock).toHaveBeenCalledTimes(1);
+    expect(result.current.isQuoteRequestStale).toBe(false);
+  });
+
   it('uses the one-shot fetch when the QuickBuy stream flag is off, even with bridge SSE on', async () => {
     isStreamQuotesFlagEnabledMock.mockReturnValue(false);
     isQuoteStreamingEnabledMock.mockReturnValue(true);
