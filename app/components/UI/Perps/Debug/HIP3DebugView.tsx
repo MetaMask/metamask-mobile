@@ -48,10 +48,6 @@ const HIP3DebugView: React.FC = () => {
   const insets = useSafeAreaInsets();
   const provider = getHyperLiquidProvider();
 
-  useEffect(() => {
-    navigation.setOptions({ headerShown: false });
-  }, [navigation]);
-
   // DEX selection state
   const [availableDexs, setAvailableDexs] = useState<string[]>([]);
   const [selectedDex, setSelectedDex] = useState<string | null>(null);
