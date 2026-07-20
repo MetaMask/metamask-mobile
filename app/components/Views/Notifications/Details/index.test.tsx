@@ -58,6 +58,10 @@ describe('NotificationsDetails', () => {
       .mockReturnValue({ markNotificationAsRead: jest.fn(), loading: false });
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   const renderDetailsPage = (notification: INotification) =>
     render(
       <Provider store={store}>

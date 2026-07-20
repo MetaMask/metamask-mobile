@@ -8,6 +8,7 @@ import { ModalFieldType } from '../../../../../util/notifications';
 import MOCK_NOTIFICATIONS from '../../../../UI/Notification/__mocks__/mock_notifications';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { getNotificationSubtype } from '@metamask/notification-services-controller/notification-services';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 // Mock the required modules
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
@@ -40,7 +41,7 @@ describe('TransactionField', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('should copy transaction hash and track event when copy button is pressed', () => {
@@ -54,9 +55,9 @@ describe('TransactionField', () => {
     const copyButton = getByText('transaction.transaction_id');
 
     fireEvent.press(copyButton);
-    const expectedEvent = AnalyticsEventBuilder.createEventBuilder({
-      category: 'Notification Detail Clicked',
-    })
+    const expectedEvent = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED,
+    )
       .addProperties({
         chain_id: 1,
         clicked_item: 'tx_id',

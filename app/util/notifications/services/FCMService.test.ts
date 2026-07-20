@@ -334,6 +334,7 @@ const createMockPushAnalyticsFcmData = (
 describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   const assertTrackEventCalledWith = (
@@ -465,6 +466,7 @@ describe('FCMService - onClickPushNotificationWhenAppClosed', () => {
 describe('FCMService - onClickPushNotificationWhenAppSuspended', () => {
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   const assertTrackEventCalledWith = (

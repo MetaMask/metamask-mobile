@@ -1,6 +1,6 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import AnnouncementCtaFooter from './AnnouncementCtaFooter';
 import SharedDeeplinkManager from '../../../../../core/DeeplinkManager/DeeplinkManager';
 import AppConstants from '../../../../../core/AppConstants';
@@ -139,12 +139,12 @@ describe('AnnouncementCtaFooter', () => {
       const button = getByText('Learn More');
       fireEvent.press(button);
 
-      await new Promise(process.nextTick);
-
-      expect(Logger.error).toHaveBeenCalledWith(
-        testError,
-        'Error opening external URL',
-      );
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          testError,
+          'Error opening external URL',
+        );
+      });
     });
   });
 

@@ -243,14 +243,15 @@ describe('NotificationSettingsSection', () => {
     const [pushSwitch] = screen.getAllByRole('switch');
     await act(async () => {
       fireEvent(pushSwitch, 'onValueChange', false);
-      await Promise.resolve();
     });
 
-    expect(mockUpdateSectionChannel).toHaveBeenCalledWith(
-      'perps',
-      'pushNotificationsEnabled',
-      false,
-    );
+    await waitFor(() => {
+      expect(mockUpdateSectionChannel).toHaveBeenCalledWith(
+        'perps',
+        'pushNotificationsEnabled',
+        false,
+      );
+    });
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
         AnalyticsEventBuilder.createEventBuilder(
@@ -276,14 +277,15 @@ describe('NotificationSettingsSection', () => {
     const [, inAppSwitch] = screen.getAllByRole('switch');
     await act(async () => {
       fireEvent(inAppSwitch, 'onValueChange', false);
-      await Promise.resolve();
     });
 
-    expect(mockUpdateSectionChannel).toHaveBeenCalledWith(
-      'perps',
-      'inAppNotificationsEnabled',
-      false,
-    );
+    await waitFor(() => {
+      expect(mockUpdateSectionChannel).toHaveBeenCalledWith(
+        'perps',
+        'inAppNotificationsEnabled',
+        false,
+      );
+    });
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
         AnalyticsEventBuilder.createEventBuilder(
@@ -320,7 +322,6 @@ describe('NotificationSettingsSection', () => {
     );
     await act(async () => {
       fireEvent(pushToggle, 'onValueChange', false);
-      await Promise.resolve();
     });
 
     await waitFor(() => {
@@ -340,7 +341,6 @@ describe('NotificationSettingsSection', () => {
     );
     await act(async () => {
       fireEvent(inAppToggle, 'onValueChange', false);
-      await Promise.resolve();
     });
 
     await waitFor(() => {
@@ -402,7 +402,6 @@ describe('NotificationSettingsSection', () => {
 
     await act(async () => {
       resolveUpdate();
-      await Promise.resolve();
     });
   });
 
@@ -468,7 +467,6 @@ describe('NotificationSettingsSection', () => {
 
     await act(async () => {
       resolveFirstUpdate();
-      await Promise.resolve();
     });
   });
 });
