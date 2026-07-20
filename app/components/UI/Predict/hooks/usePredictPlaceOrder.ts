@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useContext, useRef, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
@@ -13,7 +13,7 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
+import { PREDICT_CONSTANTS } from '../constants/errors';
 import { PredictEventValues } from '../constants/eventNames';
 import { predictQueries } from '../queries';
 import { PlaceOrderParams, Side, type Result } from '../types';
@@ -82,10 +82,6 @@ export function usePredictPlaceOrder(
   const { placeOrder: controllerPlaceOrder } = usePredictTrading();
 
   const [isLoading, setIsLoading] = useState(false);
-  // Synchronous in-flight guard. isLoading state only disables the CTA on the
-  // next render, so a second tap landing before then (or during the pre-submit
-  // balance refetch) would otherwise submit a duplicate order.
-  const isPlacingOrderRef = useRef(false);
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<Result | null>(null);
   const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
@@ -179,83 +175,71 @@ export function usePredictPlaceOrder(
 
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
-      // Reject duplicate submissions while an order is already in flight.
-      // Deliberately skips onError/setError: the first submission owns the UI.
-      if (isPlacingOrderRef.current) {
-        DevLogger.log(
-          'usePredictPlaceOrder: Duplicate placeOrder call ignored (order in flight)',
-        );
-        return {
-          status: 'error',
-          error: PREDICT_ERROR_CODES.ORDER_ALREADY_IN_PROGRESS,
-        };
-      }
-      isPlacingOrderRef.current = true;
-      // Disable the CTA before the balance refetch below so the button can't
-      // be tapped again during that network round-trip.
+      // Disable the CTA before the pre-submit balance refresh.
       setIsLoading(true);
       setError(undefined);
 
+      const {
+        preview: { minAmountReceived, side },
+      } = orderParams;
+
+      const buyTotalAmount =
+        side === Side.BUY ? getPredictBuyAllInCost(orderParams.preview) : 0;
+
+      let latestBalance = balance;
+
+      // Refresh balance before deciding whether to trigger a deposit.
+      // This avoids unnecessary extra deposits when the balance just changed.
+      if (side === Side.BUY) {
+        try {
+          const refreshedBalance = await refetchBalance?.();
+          if (typeof refreshedBalance?.data === 'number') {
+            latestBalance = refreshedBalance.data;
+          }
+        } catch {
+          // If balance refresh fails, fallback to cached value.
+        }
+      }
+
+      // Check if user has sufficient balance for the bet amount
+      if (side === Side.BUY && latestBalance < buyTotalAmount) {
+        setIsLoading(false);
+        if (isDepositPending) {
+          toastRef?.current?.showToast({
+            variant: ToastVariants.Icon,
+            iconName: IconName.Loading,
+            labelOptions: [
+              {
+                label: strings('predict.deposit.in_progress'),
+                isBold: true,
+              },
+              { label: '\n', isBold: false },
+              {
+                label: strings('predict.deposit.in_progress_description'),
+                isBold: false,
+              },
+            ],
+            hasNoTimeout: false,
+          });
+          return { status: 'deposit_in_progress' };
+        }
+
+        await withPendingTransactionActiveAbTests(
+          transactionActiveAbTests,
+          () =>
+            deposit({
+              amountUsd: buyTotalAmount,
+              analyticsProperties: {
+                ...orderParams.analyticsProperties,
+                marketId: orderParams.preview.marketId,
+                entryPoint: PredictEventValues.ENTRY_POINT.BUY_PREVIEW,
+              },
+            }),
+        );
+        return { status: 'deposit_required' };
+      }
+
       try {
-        const {
-          preview: { minAmountReceived, side },
-        } = orderParams;
-
-        const buyTotalAmount =
-          side === Side.BUY ? getPredictBuyAllInCost(orderParams.preview) : 0;
-
-        let latestBalance = balance;
-
-        // Refresh balance before deciding whether to trigger a deposit.
-        // This avoids unnecessary extra deposits when the balance just changed.
-        if (side === Side.BUY) {
-          try {
-            const refreshedBalance = await refetchBalance?.();
-            if (typeof refreshedBalance?.data === 'number') {
-              latestBalance = refreshedBalance.data;
-            }
-          } catch {
-            // If balance refresh fails, fallback to cached value.
-          }
-        }
-
-        // Check if user has sufficient balance for the bet amount
-        if (side === Side.BUY && latestBalance < buyTotalAmount) {
-          if (isDepositPending) {
-            toastRef?.current?.showToast({
-              variant: ToastVariants.Icon,
-              iconName: IconName.Loading,
-              labelOptions: [
-                {
-                  label: strings('predict.deposit.in_progress'),
-                  isBold: true,
-                },
-                { label: '\n', isBold: false },
-                {
-                  label: strings('predict.deposit.in_progress_description'),
-                  isBold: false,
-                },
-              ],
-              hasNoTimeout: false,
-            });
-            return { status: 'deposit_in_progress' };
-          }
-
-          await withPendingTransactionActiveAbTests(
-            transactionActiveAbTests,
-            () =>
-              deposit({
-                amountUsd: buyTotalAmount,
-                analyticsProperties: {
-                  ...orderParams.analyticsProperties,
-                  marketId: orderParams.preview.marketId,
-                  entryPoint: PredictEventValues.ENTRY_POINT.BUY_PREVIEW,
-                },
-              }),
-          );
-          return { status: 'deposit_required' };
-        }
-
         const orderResult = await withPendingTransactionActiveAbTests(
           transactionActiveAbTests,
           () =>
@@ -292,7 +276,6 @@ export function usePredictPlaceOrder(
 
         return errorResult;
       } finally {
-        isPlacingOrderRef.current = false;
         setIsLoading(false);
       }
     },
