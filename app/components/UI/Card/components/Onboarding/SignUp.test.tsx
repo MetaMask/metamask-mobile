@@ -56,16 +56,31 @@ jest.mock('../../hooks/useRegions', () => ({
 }));
 jest.mock('../../../../hooks/useDebouncedValue');
 
+// Mock only the version-gated Immersve flag selector (avoids the real device-info
+// version gate); keep the rest of the card selectors actual.
+jest.mock('../../../../../selectors/featureFlagController/card', () => {
+  const actual = jest.requireActual(
+    '../../../../../selectors/featureFlagController/card',
+  );
+  return {
+    ...actual,
+    selectImmersveOnboardingEnabled: jest.fn(() => false),
+  };
+});
+
 // Mock utility functions
 jest.mock('../../../Ramp/utils/depositUtils');
 jest.mock('../../util/validatePassword');
 
 // Mock Engine
 const mockSetUserLocation = jest.fn();
+const mockSetSelectedCountry = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     CardController: {
       setUserLocation: (...args: unknown[]) => mockSetUserLocation(...args),
+      setSelectedCountry: (...args: unknown[]) =>
+        mockSetSelectedCountry(...args),
     },
   },
 }));
@@ -176,6 +191,18 @@ describe('SignUp Component', () => {
     (useDebouncedValue as jest.Mock).mockImplementation((value) => value);
     (validateEmail as jest.Mock).mockReturnValue(true);
     (validatePassword as jest.Mock).mockReturnValue(true);
+    // Restore shared mock implementations cleared by afterEach resetAllMocks
+    const mockUseRegions = jest.requireMock('../../hooks/useRegions').default;
+    mockUseRegions.mockImplementation(() => ({
+      allRegions: mockSignUpRegions,
+      signUpRegions: mockSignUpRegions.filter((r) => r.canSignUp),
+      getRegionByCode: mockGetRegionByCode,
+      isLoading: false,
+    }));
+    const { selectImmersveOnboardingEnabled } = jest.requireMock(
+      '../../../../../selectors/featureFlagController/card',
+    );
+    (selectImmersveOnboardingEnabled as jest.Mock).mockReturnValue(false);
     store = createTestStore();
   });
 
@@ -487,6 +514,43 @@ describe('SignUp Component', () => {
       expect(queryByTestId('signup-password-input')).not.toBeOnTheScreen();
       // GB maps to 'international' location
       expect(mockSetUserLocation).toHaveBeenCalledWith('international');
+    });
+
+    it('routes the selected country to the provider via setSelectedCountry on prefill', () => {
+      const storeWithGeo = createTestStore({ geoLocation: 'US' });
+
+      render(
+        <Provider store={storeWithGeo}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(mockSetSelectedCountry).toHaveBeenCalledWith('US');
+    });
+
+    it('treats an Immersve country as supported (no waitlist) when onboarding is enabled', () => {
+      // Default card feature flag lists GB in immersveCountries; enable the gate.
+      const { selectImmersveOnboardingEnabled } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/card',
+      );
+      (selectImmersveOnboardingEnabled as jest.Mock).mockReturnValue(true);
+
+      const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
+
+      const { getByText, getByTestId, queryByTestId } = render(
+        <Provider store={storeWithImmersve}>
+          <SignUp />
+        </Provider>,
+      );
+
+      // GB is pre-selected but treated as supported (Immersve), not waitlist
+      expect(getByText('United Kingdom')).toBeOnTheScreen();
+      expect(
+        queryByTestId('signup-country-not-available-text'),
+      ).not.toBeOnTheScreen();
+      // Password field remains visible (not waitlist mode)
+      expect(getByTestId('signup-password-input')).toBeOnTheScreen();
+      expect(mockSetSelectedCountry).toHaveBeenCalledWith('GB');
     });
 
     it('does not re-run auto-selection when getRegionByCode reference changes after initial selection', () => {

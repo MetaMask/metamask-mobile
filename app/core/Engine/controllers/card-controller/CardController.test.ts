@@ -27,6 +27,10 @@ import { resetCardState } from '../../../redux/slices/card';
 jest.mock('./CardTokenStore');
 jest.mock('./CardOnboardingStore');
 jest.mock('../../../../util/Logger');
+jest.mock('../../../../util/remoteFeatureFlag', () => ({
+  validatedVersionGatedFeatureFlag: (flag?: { enabled?: boolean }) =>
+    flag?.enabled ?? false,
+}));
 jest.mock('../../../redux/slices/card', () => ({
   resetCardState: jest.fn(() => ({ type: 'card/resetCardState' })),
 }));
@@ -209,11 +213,13 @@ const mockSession: CardAuthSession = {
   },
 };
 
+const FIXED_NOW = new Date('2024-06-01T12:00:00.000Z').getTime();
+
 const mockTokenSet: CardAuthTokens = {
   accessToken: 'at',
   refreshToken: 'rt',
-  accessTokenExpiresAt: Date.now() + 3_600_000,
-  refreshTokenExpiresAt: Date.now() + 86_400_000,
+  accessTokenExpiresAt: FIXED_NOW + 3_600_000,
+  refreshTokenExpiresAt: FIXED_NOW + 86_400_000,
   location: 'international',
 };
 
@@ -305,9 +311,71 @@ describe('CardController', () => {
   });
 });
 
+describe('CardController — setSelectedCountry', () => {
+  function build(flags: Record<string, unknown>) {
+    const messenger = buildMockMessenger();
+    (messenger.call as jest.Mock).mockImplementation((action: string) => {
+      if (action === 'RemoteFeatureFlagController:getState') {
+        return { remoteFeatureFlags: flags };
+      }
+      if (action === 'AccountsController:getState') {
+        return { internalAccounts: { accounts: {}, selectedAccount: '' } };
+      }
+      return undefined;
+    });
+    return new CardController({
+      messenger,
+      providers: {
+        baanx: buildMockProvider({ id: 'baanx' }),
+        immersve: buildMockProvider({ id: 'immersve' }),
+      },
+      state: { activeProviderId: 'baanx' },
+    });
+  }
+
+  it('routes an enabled Immersve country to the immersve provider', () => {
+    const controller = build({
+      immersveOnboardingEnabled: { enabled: true, minimumVersion: '0.0.1' },
+      cardFeature: { immersveCountries: ['GB'] },
+    });
+
+    controller.setSelectedCountry('GB');
+
+    expect(controller.state.selectedCountry).toBe('GB');
+    expect(controller.state.activeProviderId).toBe('immersve');
+  });
+
+  it('keeps the default provider when the kill-switch is off', () => {
+    const controller = build({
+      immersveOnboardingEnabled: { enabled: false, minimumVersion: '0.0.1' },
+      cardFeature: { immersveCountries: ['GB'] },
+    });
+
+    controller.setSelectedCountry('GB');
+
+    expect(controller.state.selectedCountry).toBe('GB');
+    expect(controller.state.activeProviderId).toBe('baanx');
+  });
+
+  it('keeps the default provider for a non-Immersve country', () => {
+    const controller = build({
+      immersveOnboardingEnabled: { enabled: true, minimumVersion: '0.0.1' },
+      cardFeature: { immersveCountries: ['GB'] },
+    });
+
+    controller.setSelectedCountry('FR');
+
+    expect(controller.state.activeProviderId).toBe('baanx');
+  });
+});
+
 describe('CardController — auth methods', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('initiateAuth', () => {
@@ -318,7 +386,7 @@ describe('CardController — auth methods', () => {
 
       await controller.initiateAuth('US');
 
-      expect(provider.initiateAuth).toHaveBeenCalledWith('US');
+      expect(provider.initiateAuth).toHaveBeenCalledWith('US', undefined);
       expect(controller.getCurrentAuthStep()).toStrictEqual(
         mockSession.currentStep,
       );
@@ -966,6 +1034,10 @@ describe('CardController — 401 retry and forced logout', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('refreshes and retries once when a data call is rejected with 401', async () => {
     wireTokenStorage(mockTokenSet);
     const provider = buildAuthedProvider();
@@ -1201,6 +1273,10 @@ describe('CardController — 401 retry and forced logout', () => {
 describe('CardController — event subscriptions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('subscribes to KeyringController:unlock on construction', () => {
@@ -1519,6 +1595,10 @@ describe('CardController — fetchCardHomeData', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('sets cardHomeDataStatus to success and populates cardHomeData on happy path', async () => {
     const provider = buildMockProvider();
     mockTokenStore.get.mockResolvedValue(mockTokenSet);
@@ -1618,6 +1698,10 @@ describe('CardController — fetchCardHomeData', () => {
 describe('CardController — freezeCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('applies optimistic frozen status before API call resolves', async () => {
@@ -1785,6 +1869,10 @@ describe('CardController — unfreezeCard', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('applies optimistic active status before API call resolves', async () => {
     const provider = buildMockProvider();
     mockTokenStore.get.mockResolvedValue(mockTokenSet);
@@ -1932,6 +2020,10 @@ describe('CardController — updateAssetPriority', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   const assetA: CardFundingAsset = {
     ...mockAsset,
     symbol: 'USDC',
@@ -2075,6 +2167,7 @@ describe('CardController — account switch (#handleAccountSwitch)', () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     jest.useRealTimers();
   });
 
@@ -2280,6 +2373,10 @@ describe('CardController — getCapabilities', () => {
 });
 
 describe('CardController — data pass-throughs', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   function buildAuthenticatedController(provider: jest.Mocked<ICardProvider>) {
     mockTokenStore.get.mockResolvedValue(mockTokenSet);
     provider.validateTokens.mockReturnValue('valid');
@@ -3432,5 +3529,72 @@ describe('CardController — data pass-throughs', () => {
       expect(provider.getCardHomeData).not.toHaveBeenCalled();
       expect(result).toStrictEqual(onChainData);
     });
+  });
+});
+
+describe('CardController — Immersve onboarding pass-throughs', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const withValidSession = (overrides: Partial<ICardProvider> = {}) => {
+    const provider = buildMockProvider({ id: 'baanx', ...overrides });
+    provider.validateTokens.mockReturnValue('valid');
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    const controller = buildController(provider);
+    return { controller, provider };
+  };
+
+  it('createFundingSource delegates to the active provider with valid tokens', async () => {
+    const createFundingSource = jest.fn().mockResolvedValue({ id: 'fs-1' });
+    const { controller } = withValidSession({ createFundingSource });
+
+    const result = await controller.createFundingSource();
+
+    expect(createFundingSource).toHaveBeenCalledWith(mockTokenSet);
+    expect(result).toStrictEqual({ id: 'fs-1' });
+  });
+
+  it('getSpendingPrerequisites forwards fundingSourceId + params with tokens', async () => {
+    const getSpendingPrerequisites = jest
+      .fn()
+      .mockResolvedValue({ prerequisites: [] });
+    const { controller } = withValidSession({ getSpendingPrerequisites });
+
+    await controller.getSpendingPrerequisites('fs-1', { kycRegion: 'GB' });
+
+    expect(getSpendingPrerequisites).toHaveBeenCalledWith(
+      'fs-1',
+      { kycRegion: 'GB' },
+      mockTokenSet,
+    );
+  });
+
+  it('createCard forwards fundingSourceId with tokens', async () => {
+    const createCard = jest.fn().mockResolvedValue({ cardId: 'card-1' });
+    const { controller } = withValidSession({ createCard });
+
+    const result = await controller.createCard('fs-1');
+
+    expect(createCard).toHaveBeenCalledWith('fs-1', mockTokenSet);
+    expect(result).toStrictEqual({ cardId: 'card-1' });
+  });
+
+  it('patchContactDetails forwards details with tokens', async () => {
+    const patchContactDetails = jest.fn().mockResolvedValue(undefined);
+    const { controller } = withValidSession({ patchContactDetails });
+
+    await controller.patchContactDetails({ email: 'a@b.co' });
+
+    expect(patchContactDetails).toHaveBeenCalledWith(
+      { email: 'a@b.co' },
+      mockTokenSet,
+    );
+  });
+
+  it('throws when the active provider does not support the capability', async () => {
+    const { controller } = withValidSession();
+
+    await expect(
+      controller.getSpendingPrerequisites('fs-1', {}),
+    ).rejects.toBeInstanceOf(CardProviderError);
   });
 });
