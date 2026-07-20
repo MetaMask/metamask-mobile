@@ -67,7 +67,13 @@ import TransactionTypes from '../../../../core/TransactionTypes';
 import {
   resolveCardFeatureFlag,
   type CardFeatureFlag,
+  type GateVersionedFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
+import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
+import {
+  deriveCountryProviderMap,
+  getProviderForCountry,
+} from './provider-map';
 
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
@@ -334,6 +340,60 @@ export class CardController extends BaseController<
     });
   }
 
+  setSelectedCountry(country: string): void {
+    const providerId = this.#resolveProviderForCountry(country);
+    const providerChanged =
+      Boolean(providerId) && providerId !== this.state.activeProviderId;
+
+    this.update((s) => {
+      s.selectedCountry = country;
+      if (providerId) {
+        s.activeProviderId = providerId;
+      }
+      if (providerChanged) {
+        s.cardHomeData = null;
+        s.cardHomeDataStatus = 'idle';
+      }
+    });
+
+    if (providerChanged) {
+      this.invalidateFetch();
+    }
+  }
+
+  #resolveProviderForCountry(country: string): string {
+    const featureState = this.messenger.call(
+      'RemoteFeatureFlagController:getState',
+    );
+
+    const immersveEnabled =
+      validatedVersionGatedFeatureFlag(
+        featureState.remoteFeatureFlags
+          ?.immersveOnboardingEnabled as unknown as GateVersionedFeatureFlag,
+      ) ?? false;
+
+    if (immersveEnabled) {
+      const cardFeature = resolveCardFeatureFlag(
+        featureState.remoteFeatureFlags?.cardFeature as
+          | CardFeatureFlag
+          | undefined,
+      );
+      const immersveCountries = cardFeature?.immersve?.countries ?? [];
+      const map = deriveCountryProviderMap(
+        Object.fromEntries(
+          immersveCountries.map((c) => [c, true] as [string, boolean]),
+        ),
+        'immersve',
+      );
+      const provider = getProviderForCountry(country, map);
+      if (provider) {
+        return provider;
+      }
+    }
+
+    return DEFAULT_CARD_PROVIDER_ID;
+  }
+
   /**
    * Checks which CAIP-10 account IDs are MetaMask Card holders and stores
    * the result in controller state. Processes up to 150 accounts (3 × 50).
@@ -512,8 +572,11 @@ export class CardController extends BaseController<
     }
   }
 
-  async initiateAuth(country: string): Promise<void> {
-    this.currentSession = await this.getActiveProvider().initiateAuth(country);
+  async initiateAuth(country: string, address?: string): Promise<void> {
+    this.currentSession = await this.getActiveProvider().initiateAuth(
+      country,
+      address ? { address } : undefined,
+    );
   }
 
   getCurrentAuthStep(): CardAuthStep | null {
@@ -733,6 +796,17 @@ export class CardController extends BaseController<
     if (!tokens) {
       this.markUnauthenticated(this.state.lastUnauthenticatedReason);
       return null;
+    }
+
+    if (tokens.accountAddress) {
+      const selected = this.#getSelectedEvmAddress();
+      if (
+        !selected ||
+        selected.toLowerCase() !== tokens.accountAddress.toLowerCase()
+      ) {
+        this.markUnauthenticated(this.state.lastUnauthenticatedReason);
+        return null;
+      }
     }
 
     const provider = this.getActiveProvider();
