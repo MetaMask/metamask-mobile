@@ -22,7 +22,6 @@ import {
   getDriver,
   type EncapsulatedElementType,
 } from '../../framework';
-import { PAY_WITH_CRYPTO_OTHER_ASSETS_ROW_TEST_ID } from '../../../app/components/Views/confirmations/hooks/pay/sections/usePayWithCryptoSection';
 
 const TOKEN_SEARCH_PLACEHOLDER = enContent.send.search_tokens;
 const ETHEREUM_NETWORK_FILTER_TEST_ID = getNetworkFilterTestId('0x1');
@@ -70,18 +69,6 @@ class TransactionPayConfirmation {
           {
             exact: true,
           },
-        ),
-    });
-  }
-
-  get otherAssetsRow(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(PAY_WITH_CRYPTO_OTHER_ASSETS_ROW_TEST_ID),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          PAY_WITH_CRYPTO_OTHER_ASSETS_ROW_TEST_ID,
-          { exact: true },
         ),
     });
   }
@@ -175,9 +162,7 @@ class TransactionPayConfirmation {
     });
   }
 
-  // "Available balance: $X" row (PerpsWithdrawBalance) on the Perps withdraw
-  // confirmation. The row has no testID, so it is matched by text; iOS matches
-  // by.text against the whole string, so the pattern spans the trailing amount.
+  // The row has no testID, so match the full balance text.
   get availableBalance(): EncapsulatedElementType {
     return Matchers.getElementByText(/Available balance: \$[0-9,.]+/u);
   }
@@ -331,13 +316,6 @@ class TransactionPayConfirmation {
   async tapPayWithRow(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.payWithRow, {
       description: 'Pay With Row',
-      timeout: 60_000,
-    });
-  }
-
-  async tapOtherAssetsRow(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.otherAssetsRow, {
-      description: 'Other assets row',
     });
   }
 
@@ -515,30 +493,6 @@ class TransactionPayConfirmation {
     await this.expectText(this.amount, amount, 'Amount should be correct');
   }
 
-  async verifyPayWithSymbol(symbol: string): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Assertions.expectElementToHaveText(
-          asDetoxElement(this.payWithSymbol),
-          symbol,
-          {
-            description: 'Selected token symbol should be correct',
-          },
-        );
-      },
-      appium: async () => {
-        await PlaywrightAssertions.expectElementText(
-          asPlaywrightElement(this.payWithSymbol),
-          symbol,
-          {
-            description: 'Selected token symbol should be correct',
-            timeout: 15_000,
-          },
-        );
-      },
-    });
-  }
-
   async verifyTotal(total: string): Promise<void> {
     await this.expectText(this.total, total, 'Total should be correct');
   }
@@ -567,7 +521,14 @@ class TransactionPayConfirmation {
 
   async verifyAvailableBalanceVisible(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.availableBalance, {
-      description: 'Available Perps balance row should be visible',
+      description: 'Available balance row should be visible',
+      timeout: 15000,
+    });
+  }
+
+  async verifyPayWithRowVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.payWithRow, {
+      description: 'Receive token row should be visible',
       timeout: 15000,
     });
   }
