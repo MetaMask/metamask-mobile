@@ -1,10 +1,8 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import WatchlistSearchRowItem from './WatchlistSearchRowItem';
 import { WatchlistSearchRowItemTestIds } from './WatchlistSearchRowItem.testIds';
-
-const mockOnDismiss = jest.fn();
 
 jest.mock('../../../../../Views/TrendingView/feeds/tokens/TokenRowItem', () => {
   const { Text, View } = jest.requireActual('react-native');
@@ -26,15 +24,12 @@ jest.mock('../../../../../Views/TrendingView/feeds/tokens/TokenRowItem', () => {
 });
 
 jest.mock('../WatchlistStarButton', () => {
-  const { Pressable, Text } = jest.requireActual('react-native');
+  const { Text, View } = jest.requireActual('react-native');
   const ReactActual = jest.requireActual('react');
-  const Mock = ({ onAfterToggle }: { onAfterToggle?: () => void }) =>
+  const Mock = () =>
     ReactActual.createElement(
-      Pressable,
-      {
-        testID: 'watchlist-star-button',
-        onPress: () => onAfterToggle?.(),
-      },
+      View,
+      { testID: 'watchlist-star-button' },
       ReactActual.createElement(Text, null, 'star'),
     );
   Mock.displayName = 'WatchlistStarButton';
@@ -51,39 +46,16 @@ const makeToken = (symbol: string, assetId: string): TrendingAsset =>
   }) as TrendingAsset;
 
 describe('WatchlistSearchRowItem', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('renders token row and star', () => {
     const { getByTestId, getByText } = render(
       <WatchlistSearchRowItem
         token={makeToken('ETH', 'eip155:1/slip44:60')}
         index={0}
-        onDismiss={mockOnDismiss}
       />,
     );
 
     expect(getByTestId(WatchlistSearchRowItemTestIds.ROW)).toBeDefined();
     expect(getByText('ETH')).toBeDefined();
     expect(getByTestId('watchlist-star-button')).toBeDefined();
-  });
-
-  it('calls onDismiss when star is pressed', () => {
-    const onDismiss = jest.fn();
-    const { getByTestId } = render(
-      <WatchlistSearchRowItem
-        token={makeToken(
-          'BTC',
-          'bip122:000000000019d6689c085ae165831e93/slip44:0',
-        )}
-        index={1}
-        onDismiss={onDismiss}
-      />,
-    );
-
-    fireEvent.press(getByTestId('watchlist-star-button'));
-
-    expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 });

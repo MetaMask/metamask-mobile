@@ -15,13 +15,11 @@ const getWatchlistAssetType = (assetId: string): 'native' | 'erc20' =>
 interface WatchlistSearchRowItemProps {
   token: TrendingAsset;
   index: number;
-  onDismiss: () => void;
 }
 
 const WatchlistSearchRowItem: React.FC<WatchlistSearchRowItemProps> = ({
   token,
   index,
-  onDismiss,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const assetId = String(token.assetId);
@@ -41,7 +39,6 @@ const WatchlistSearchRowItem: React.FC<WatchlistSearchRowItemProps> = ({
           assetId={token.assetId as CaipAssetType}
           assetType={assetType}
           source="watchlist_fullscreen_search"
-          onAfterToggle={onDismiss}
         />
       </View>
     </View>

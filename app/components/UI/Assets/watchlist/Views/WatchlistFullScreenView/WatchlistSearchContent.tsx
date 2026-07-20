@@ -52,14 +52,8 @@ const WatchlistSearchContent: React.FC<WatchlistSearchContentProps> = ({
   }, [onDismiss]);
 
   const renderItem: ListRenderItem<TrendingAsset> = useCallback(
-    ({ item, index }) => (
-      <WatchlistSearchRowItem
-        token={item}
-        index={index}
-        onDismiss={onDismiss}
-      />
-    ),
-    [onDismiss],
+    ({ item, index }) => <WatchlistSearchRowItem token={item} index={index} />,
+    [],
   );
 
   const keyExtractor = useCallback(
