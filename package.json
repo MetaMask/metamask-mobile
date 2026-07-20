@@ -2,6 +2,18 @@
   "name": "metamask",
   "version": "8.5.0",
   "private": true,
+  "imports": {
+    "#app/*": [
+      "./app/*",
+      "./app/*.ts",
+      "./app/*.tsx",
+      "./app/*.js",
+      "./app/*.jsx",
+      "./app/*/index.ts",
+      "./app/*/index.tsx",
+      "./app/*/index.js"
+    ]
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/MetaMask/metamask-mobile.git"
