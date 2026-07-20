@@ -1123,6 +1123,10 @@
         "opened": "opened",
         "closed": "closed"
       },
+      "new_position": {
+        "bought": "Holding",
+        "opened": "Open"
+      },
       "empty_following": {
         "title": "No activity yet",
         "description": "Follow traders to see their trades show up here."
@@ -1154,7 +1158,7 @@
       },
       "slide_follow": {
         "title": "Follow the best",
-        "description": "Tap to follow the top three traders who are up big this week."
+        "description": "Tap to follow the top ten traders who are up big this week."
       },
       "slide_notify": {
         "title": "Never miss a move",
@@ -1162,7 +1166,7 @@
         "description_default": "When you're ready, follow a trader to get notified the moment they make a move."
       },
       "next": "Next",
-      "follow_top_three": "Follow the top three",
+      "follow_top_ten": "Follow the top ten",
       "maybe_later": "Maybe later",
       "got_it": "Got it",
       "allow_notifications": "Allow notifications"
@@ -7626,6 +7630,12 @@
       "swap": "Swap",
       "buy": "Buy"
     },
+    "earn_banner": {
+      "title": "Earn up to {{apy}}% APY",
+      "title_no_apy": "Earn with your Money account",
+      "description": "Add {{symbol}} to your Money account—no lockups or minimums.",
+      "cta": "Add {{symbol}}"
+    },
     "how_it_works_page": {
       "header_title": "Money",
       "section_title": "How it works",
@@ -10338,6 +10348,17 @@
     }
   },
   "homepage": {
+    "action_buttons": {
+      "buy": "Buy",
+      "sell": "Sell",
+      "send": "Send",
+      "receive": "Receive",
+      "swap": "Swap",
+      "perps": "Perps",
+      "predict": "Predict",
+      "batch_swap": "Batch Swap",
+      "traders": "Traders"
+    },
     "sections": {
       "money": "Money",
       "money_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Money section on the homepage.",

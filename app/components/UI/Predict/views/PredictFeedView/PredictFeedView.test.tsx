@@ -595,10 +595,10 @@ describe('PredictFeedView', () => {
     });
 
     it('delays trackFeedViewed until a dynamic initialFilterId resolves', () => {
-      // Simulate entry from a Popular-Today home chip: initialFilterId targets a
+      // Simulate entry from a Popular Today home chip: initialFilterId targets a
       // dynamic filter that hasn't loaded yet.
       mockRouteParams = {
-        feedId: 'popular-today',
+        feedId: 'trending',
         initialFilterId: 'soccer',
         entryPoint: 'home_chip',
       };
@@ -607,7 +607,7 @@ describe('PredictFeedView', () => {
       // default ('all') because the dynamic option hasn't resolved yet.
       mockUsePredictFeedConfig.mockReturnValue(
         feedConfigResult({
-          feedId: 'popular-today',
+          feedId: 'trending',
           dynamicFilters: { status: 'loading' },
           activeFilterId: 'all',
         }),
@@ -621,7 +621,7 @@ describe('PredictFeedView', () => {
       // Dynamic filters resolve; the pending filter is now applied.
       mockUsePredictFeedConfig.mockReturnValue(
         feedConfigResult({
-          feedId: 'popular-today',
+          feedId: 'trending',
           dynamicFilters: { status: 'ready' },
           activeFilterId: 'soccer',
           filters: [
@@ -651,7 +651,7 @@ describe('PredictFeedView', () => {
 
       expect(mockTrackFeedViewed).toHaveBeenCalledTimes(1);
       expect(mockTrackFeedViewed).toHaveBeenCalledWith({
-        feedId: 'popular-today',
+        feedId: 'trending',
         tabId: 'basketball',
         filterId: 'soccer',
         trackingMode: 'focus',
@@ -661,7 +661,7 @@ describe('PredictFeedView', () => {
 
     it('fires trackFeedViewed with fallback filter when dynamic loading fails (unavailable)', () => {
       mockRouteParams = {
-        feedId: 'popular-today',
+        feedId: 'trending',
         initialFilterId: 'soccer',
         entryPoint: 'home_chip',
       };
@@ -669,7 +669,7 @@ describe('PredictFeedView', () => {
       // Initially loading.
       mockUsePredictFeedConfig.mockReturnValue(
         feedConfigResult({
-          feedId: 'popular-today',
+          feedId: 'trending',
           dynamicFilters: { status: 'loading' },
           activeFilterId: 'all',
         }),
@@ -681,7 +681,7 @@ describe('PredictFeedView', () => {
       // Dynamic filters fail — status becomes unavailable, filter stays 'all'.
       mockUsePredictFeedConfig.mockReturnValue(
         feedConfigResult({
-          feedId: 'popular-today',
+          feedId: 'trending',
           dynamicFilters: { status: 'unavailable' },
           activeFilterId: 'all',
         }),
@@ -700,14 +700,14 @@ describe('PredictFeedView', () => {
       // response. The previous condition only fell back on 'unavailable', so
       // isFilterSettled stayed false permanently.
       mockRouteParams = {
-        feedId: 'popular-today',
+        feedId: 'trending',
         initialFilterId: 'soccer',
         entryPoint: 'home_chip',
       };
 
       mockUsePredictFeedConfig.mockReturnValue(
         feedConfigResult({
-          feedId: 'popular-today',
+          feedId: 'trending',
           dynamicFilters: { status: 'loading' },
           activeFilterId: 'all',
         }),
@@ -719,7 +719,7 @@ describe('PredictFeedView', () => {
       // Dynamic filters loaded successfully but 'soccer' is not in the list.
       mockUsePredictFeedConfig.mockReturnValue(
         feedConfigResult({
-          feedId: 'popular-today',
+          feedId: 'trending',
           dynamicFilters: { status: 'ready' },
           activeFilterId: 'all',
           // Only 'trending' is in the response — 'soccer' is absent.

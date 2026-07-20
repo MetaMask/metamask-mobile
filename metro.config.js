@@ -29,11 +29,6 @@ const parsedArgs = parseArgs({
 const getPolyfills = () => [
   // eslint-disable-next-line import-x/no-extraneous-dependencies
   ...require('@react-native/js-polyfills')(),
-  // Must come AFTER @react-native/js-polyfills (which installs RN's Promise)
-  // and BEFORE lockdown's hardenIntrinsics(). Defines Promise.withResolvers so
-  // babel-preset-expo's injected core-js polyfill skips its own (illegal, post-
-  // freeze) definition. See the file header for the full rationale.
-  require.resolve('./polyfills/promise-with-resolvers.js'),
   require.resolve('reflect-metadata'),
   // ^ Bootstraps `globalThis.Reflect.metadata` once at app startup. The
   // Ledger DMK + inversify stack reaches `reflect-metadata` indirectly
@@ -247,7 +242,7 @@ module.exports = function (baseConfig) {
               // to resolve it statically. Return an empty module stub.
               if (
                 moduleName === './providers/MYXProvider' &&
-                context.originModulePath?.includes('@metamask/perps-controller')
+                isPerpsControllerOrigin(context)
               ) {
                 return { type: 'empty' };
               }
@@ -260,7 +255,7 @@ module.exports = function (baseConfig) {
               if (
                 moduleName ===
                   'file:///home/runner/work/hyperliquid/hyperliquid/src/mod.ts' &&
-                context.originModulePath?.includes('@metamask/perps-controller')
+                isPerpsControllerOrigin(context)
               ) {
                 return context.resolveRequest(
                   context,

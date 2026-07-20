@@ -19,5 +19,7 @@ export const getFeedTradeButtonTestId = (id: string) =>
 export const getFeedTradeCardTestId = (id: string) =>
   `${FeedViewSelectorsIDs.TRADE_CARD}-${id}`;
 export const getFeedTraderTestId = (id: string) => `feed-item-trader-${id}`;
+export const getFeedNewPositionTestId = (id: string) =>
+  `feed-item-new-position-${id}`;
 export const getFeedAudienceOptionTestId = (audience: string) =>
   `${FeedViewSelectorsIDs.AUDIENCE_TOGGLE}-${audience}`;

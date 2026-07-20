@@ -1,12 +1,17 @@
 import React, { type ReactNode, useMemo } from 'react';
+import { Pressable } from 'react-native';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
+  FontWeight,
   HeaderSubpage,
   IconName,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   getPerpsDisplaySymbol,
@@ -26,20 +31,25 @@ export interface PerpsMarketInlineHeaderProps {
   onBackPress?: () => void;
   onMorePress?: () => void;
   onFavoritePress?: () => void;
-  /** Opens the market list from the arrow next to the market name. */
-  onMarketListPress?: () => void;
   isFavorite?: boolean;
   testID?: string;
   endAccessory?: ReactNode;
   /**
    * When true, renders the redesigned market-detail layout instead of the
-   * compact one: title becomes the full asset name, a leverage pill +
-   * market-list arrow are added on the first row, the description becomes the
-   * static `[Ticker]-[collateral] perp` pair on the second row, and the live
+   * compact one: title becomes the full asset name, a leverage pill is added
+   * on the first row, the description becomes the static
+   * `[Ticker]-[collateral] perp` pair on the second row, and the live
    * price/24h change are removed from the header (relocated below by the
    * parent). When false, the compact layout (pair title + live price) renders.
    */
   useDetailLayout?: boolean;
+  /**
+   * Detail layout only. When provided, the market identity (icon + name +
+   * ticker + leverage) becomes a tightly-bounded pressable box that hugs its
+   * content — pressing it fires this callback and shows a button-like pressed
+   * background. The surrounding header row stays non-interactive.
+   */
+  onIdentityPress?: () => void;
 }
 
 export const PerpsMarketInlineHeader = ({
@@ -48,11 +58,11 @@ export const PerpsMarketInlineHeader = ({
   onBackPress,
   onMorePress,
   onFavoritePress,
-  onMarketListPress,
   isFavorite = false,
   testID,
   endAccessory,
   useDetailLayout = false,
+  onIdentityPress,
 }: PerpsMarketInlineHeaderProps) => {
   const displaySymbol = getPerpsDisplaySymbol(market.symbol);
 
@@ -60,60 +70,102 @@ export const PerpsMarketInlineHeader = ({
     ? market.name || displaySymbol
     : `${displaySymbol}-${PERPS_COLLATERAL_SYMBOL}`;
 
-  const titleEndAccessory = useMemo(() => {
-    const hasLeverage = Boolean(market.maxLeverage);
+  const leverageBadge = useMemo(
+    () =>
+      market.maxLeverage ? (
+        <PerpsLeverage maxLeverage={market.maxLeverage} />
+      ) : null,
+    [market.maxLeverage],
+  );
 
-    // The market-list arrow is only relevant in the redesigned layout.
-    const showMarketListButton = useDetailLayout && Boolean(onMarketListPress);
-
-    if (!hasLeverage && !showMarketListButton) {
-      return undefined;
+  // Detail layout: the icon + name + ticker + leverage are rendered together
+  // inside a single content-hugging box so they can act as one tap target
+  // without the empty row space becoming clickable.
+  const detailIdentity = useMemo(() => {
+    if (!useDetailLayout) {
+      return null;
     }
 
-    return (
+    const subtitle = strings('perps.market_details.perp_pair', {
+      ticker: displaySymbol,
+      collateral: PERPS_COLLATERAL_SYMBOL,
+    });
+
+    const renderContent = (pressed: boolean) => (
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        gap={1}
+        gap={3}
+        twClassName={`rounded-lg p-1 ${pressed ? 'bg-pressed' : ''}`}
       >
-        {hasLeverage ? (
-          <PerpsLeverage maxLeverage={market.maxLeverage} />
-        ) : null}
-        {showMarketListButton ? (
-          <ButtonIcon
-            iconName={IconName.ArrowDown}
-            size={ButtonIconSize.Sm}
-            onPress={onMarketListPress}
-            // Keep the chevron visually small but expand the touch target to
-            // ~44dp so it stays reliably tappable (accessibility).
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            testID={PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON}
-            accessibilityLabel={strings('perps.market_details.market_list')}
-          />
-        ) : null}
+        <PerpsTokenLogo
+          symbol={market.symbol}
+          size={40}
+          testID={PerpsMarketHeaderSelectorsIDs.ASSET_ICON}
+        />
+        <Box flexDirection={BoxFlexDirection.Column}>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              numberOfLines={1}
+              testID={PerpsMarketHeaderSelectorsIDs.ASSET_NAME}
+            >
+              {displayTitle}
+            </Text>
+            {leverageBadge}
+          </Box>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+            testID={PerpsMarketHeaderSelectorsIDs.SUBTITLE}
+          >
+            {subtitle}
+          </Text>
+        </Box>
       </Box>
     );
-  }, [market.maxLeverage, useDetailLayout, onMarketListPress]);
 
-  const description = useMemo(() => {
-    // Redesigned layout shows the market pair as a static subtitle. Price and
-    // 24h change move below the header (rendered by the parent view).
-    if (useDetailLayout) {
-      return strings('perps.market_details.perp_pair', {
-        ticker: displaySymbol,
-        collateral: PERPS_COLLATERAL_SYMBOL,
-      });
+    if (!onIdentityPress) {
+      return renderContent(false);
     }
 
     return (
+      <Pressable
+        onPress={onIdentityPress}
+        accessibilityRole="button"
+        accessibilityLabel={strings('perps.market_details.market_list')}
+        testID={PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON}
+      >
+        {({ pressed }) => renderContent(pressed)}
+      </Pressable>
+    );
+  }, [
+    useDetailLayout,
+    displaySymbol,
+    displayTitle,
+    leverageBadge,
+    market.symbol,
+    onIdentityPress,
+  ]);
+
+  const compactDescription = useMemo(
+    () => (
       <LivePriceHeader
         symbol={market.symbol}
         testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
         testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
         currentPrice={currentPrice}
       />
-    );
-  }, [useDetailLayout, displaySymbol, market.symbol, currentPrice]);
+    ),
+    [market.symbol, currentPrice],
+  );
 
   const endButtonIconProps = useMemo(() => {
     const buttons = [];
@@ -153,21 +205,24 @@ export const PerpsMarketInlineHeader = ({
       endAccessory={endAccessory}
       endButtonIconProps={endAccessory ? undefined : endButtonIconProps}
       avatar={
-        <PerpsTokenLogo
-          symbol={market.symbol}
-          size={40}
-          testID={PerpsMarketHeaderSelectorsIDs.ASSET_ICON}
-        />
+        useDetailLayout ? (
+          detailIdentity
+        ) : (
+          <PerpsTokenLogo
+            symbol={market.symbol}
+            size={40}
+            testID={PerpsMarketHeaderSelectorsIDs.ASSET_ICON}
+          />
+        )
       }
-      title={displayTitle}
-      titleProps={{ testID: PerpsMarketHeaderSelectorsIDs.ASSET_NAME }}
-      titleEndAccessory={titleEndAccessory}
-      description={description}
-      descriptionProps={
+      title={useDetailLayout ? undefined : displayTitle}
+      titleProps={
         useDetailLayout
-          ? { testID: PerpsMarketHeaderSelectorsIDs.SUBTITLE }
-          : undefined
+          ? undefined
+          : { testID: PerpsMarketHeaderSelectorsIDs.ASSET_NAME }
       }
+      titleEndAccessory={useDetailLayout ? undefined : leverageBadge}
+      description={useDetailLayout ? undefined : compactDescription}
     />
   );
 };
