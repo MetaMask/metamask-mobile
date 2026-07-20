@@ -10,7 +10,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { forwardRef, useImperativeHandle } from 'react';
-import { Image } from 'react-native';
+import { Image } from 'expo-image';
 import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
