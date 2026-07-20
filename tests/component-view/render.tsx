@@ -44,9 +44,10 @@ const dataServiceMessenger = {
 };
 
 function createQueryClient() {
+  // Cast: @metamask/react-data-query still types against query-core v4.
   return createUIQueryClient(DATA_SERVICES, dataServiceMessenger, {
     defaultOptions: { queries: { retry: false } },
-  });
+  }) as unknown as import('@tanstack/react-query').QueryClient;
 }
 
 function QueryClientBoundary({ children }: { children: React.ReactNode }) {

@@ -1,4 +1,8 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  type UseInfiniteQueryOptions,
+} from '@tanstack/react-query';
+import type { V4MultiAccountTransactionsResponse } from '@metamask/core-backend';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { KnownCaipNamespace, toCaipAccountId } from '@metamask/utils';
@@ -39,7 +43,13 @@ export const useTransactionsQuery = () => {
   );
 
   return useInfiniteQuery({
-    ...queryOptions,
+    ...(queryOptions as UseInfiniteQueryOptions<
+      V4MultiAccountTransactionsResponse,
+      Error,
+      ReturnType<typeof selectFn>,
+      readonly unknown[],
+      string | undefined
+    >),
     select: selectFn,
     enabled: accountAddresses.length > 0 && networks.length > 0,
     staleTime: 5 * MINUTE,

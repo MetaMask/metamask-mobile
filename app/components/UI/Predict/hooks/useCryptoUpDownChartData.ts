@@ -348,8 +348,12 @@ export const useCryptoUpDownChartData = (
   const historicalQuery = useQuery({
     ...historicalQueryOptions,
     queryFn: async (context) => {
+      const queryFn = historicalQueryOptions.queryFn;
+      if (!queryFn) {
+        throw new Error('Missing crypto price history queryFn');
+      }
       try {
-        const data = await historicalQueryOptions.queryFn(context);
+        const data = await queryFn(context);
         recordPollSuccess();
         return data;
       } catch (error) {

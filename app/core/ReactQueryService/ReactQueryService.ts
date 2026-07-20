@@ -52,7 +52,7 @@ export class ReactQueryService {
           gcTime: 1000 * 60 * 60 * 24, // 24 hours
         },
       },
-    } as Parameters<typeof createUIQueryClient>[2]) as QueryClient;
+    } as Parameters<typeof createUIQueryClient>[2]) as unknown as QueryClient;
 
     this.#subscribeToAppFocusState();
     this.#subscribeToOnlineState();

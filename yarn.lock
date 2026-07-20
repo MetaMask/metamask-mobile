@@ -18339,13 +18339,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/query-core@npm:^5.62.16":
-  version: 5.90.20
-  resolution: "@tanstack/query-core@npm:5.90.20"
-  checksum: 10/25e38f4382442bc15e0f6cce8d787e9df8d8822c61d3f3e9427e89e01b1e2506f848292e086dae29aeb55f8ce71b097c34221f3c5eda37fb4a688b5ceca5d1b3
-  languageName: node
-  linkType: hard
-
 "@tanstack/react-query@npm:^4.43.0":
   version: 4.43.0
   resolution: "@tanstack/react-query@npm:4.43.0"

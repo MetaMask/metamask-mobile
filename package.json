@@ -183,6 +183,7 @@
     ]
   },
   "resolutions": {
+    "@tanstack/query-core@npm:^5.62.16": "5.101.2",
     "@metamask/network-controller": "34.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",

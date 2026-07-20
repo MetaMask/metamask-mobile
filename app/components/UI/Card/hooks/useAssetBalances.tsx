@@ -209,7 +209,7 @@ export const useAssetBalances = (
     queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_EXCHANGE_RATE],
     enabled: hasMoneyAccountEntry,
     refetchInterval: EXCHANGE_RATE_REFETCH_INTERVAL_MS,
-  }) as UseQueryResult<ExchangeRateResponse>;
+  }) as unknown as UseQueryResult<ExchangeRateResponse>;
 
   // Human-readable mUSD-per-vmUSD-share rate (e.g. 1.0002). The raw rate is a
   // uint256 scaled to mUSD decimals, so a value of 1_000_000 means 1.0.
