@@ -184,7 +184,7 @@
   },
   "previewBuilds": {
     "@metamask/ramps-controller": {
-      "type": "non-breaking",
+      "type": "breaking",
       "previewVersion": "17.0.0-preview-1ccf11bcb"
     }
   },
