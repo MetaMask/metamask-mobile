@@ -129,6 +129,40 @@ interface ExtendedKeyringController {
   ) => Promise<string>;
 }
 
+async function exportSimpleKeyPairAccounts(
+  keyringController: ExtendedKeyringController,
+  keychainPassword: string,
+): Promise<string[]> {
+  const simpleKeyrings = keyringController.state.keyrings.filter(
+    (keyring) => keyring.type === 'Simple Key Pair',
+  );
+  const importedAccounts: string[] = [];
+  for (const simpleKeyring of simpleKeyrings) {
+    const simpleKeyringAccounts = await Promise.all(
+      simpleKeyring.accounts.map((account) =>
+        keyringController.exportAccount(
+          { password: keychainPassword },
+          account,
+        ),
+      ),
+    );
+    importedAccounts.push(...simpleKeyringAccounts);
+  }
+  return importedAccounts;
+}
+
+async function reimportPrivateKeyAccounts(
+  keyringController: ExtendedKeyringController,
+  importedAccounts: string[],
+): Promise<void> {
+  for (const importedAccount of importedAccounts) {
+    await keyringController.importAccountWithStrategy(
+      AccountImportStrategy.privateKey,
+      [importedAccount],
+    );
+  }
+}
+
 const ChoosePassword = () => {
   const { themeAppearance } = useContext(ThemeContext);
   const tw = useTailwind();
@@ -158,7 +192,6 @@ const ChoosePassword = () => {
   const [biometryType, setBiometryType] = useState<string | null>(null);
   const [isPasswordFieldFocused, setIsPasswordFieldFocused] = useState(false);
 
-  const mounted = useRef(true);
   const passwordSetupAttemptTraceCtx = useRef<TraceContext | null>(null);
   const confirmPasswordInputRef = useRef<TextInput | null>(null);
   // Flag to know if password in keyring was set or not
@@ -275,23 +308,13 @@ const ChoosePassword = () => {
         password: keychainPassword,
       });
       const seedPhrase = uint8ArrayToMnemonic(seedPhraseUint8, wordlist);
+
       let importedAccounts: string[] = [];
-      // Get imported accounts
       try {
-        const simpleKeyrings = keyringController.state.keyrings.filter(
-          (keyring) => keyring.type === 'Simple Key Pair',
+        importedAccounts = await exportSimpleKeyPairAccounts(
+          keyringController,
+          keychainPassword,
         );
-        for (const simpleKeyring of simpleKeyrings) {
-          const simpleKeyringAccounts = await Promise.all(
-            simpleKeyring.accounts.map((account) =>
-              keyringController.exportAccount(
-                { password: keychainPassword },
-                account,
-              ),
-            ),
-          );
-          importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
-        }
       } catch (e) {
         Logger.error(
           e as Error,
@@ -320,12 +343,7 @@ const ChoosePassword = () => {
 
       // Import imported accounts again
       try {
-        for (const importedAccount of importedAccounts) {
-          await context.KeyringController.importAccountWithStrategy(
-            AccountImportStrategy.privateKey,
-            [importedAccount],
-          );
-        }
+        await reimportPrivateKeyAccounts(keyringController, importedAccounts);
       } catch (e) {
         Logger.error(
           e as Error,
@@ -421,7 +439,7 @@ const ChoosePassword = () => {
   }, [navigation]);
 
   const handlePostWalletCreation = useCallback(
-    async (authType: AuthData, marketingOptInChecked: boolean) => {
+    async (authType: AuthData, isMarketingOptedIn: boolean) => {
       dispatch(passwordSetAction());
       dispatch(setLockTimeAction(AppConstants.DEFAULT_LOCK_TIMEOUT));
 
@@ -442,8 +460,8 @@ const ChoosePassword = () => {
       endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-      dispatch(setDataCollectionForMarketing(marketingOptInChecked));
-      OAuthLoginService.updateMarketingOptInStatus(marketingOptInChecked).catch(
+      dispatch(setDataCollectionForMarketing(isMarketingOptedIn));
+      OAuthLoginService.updateMarketingOptInStatus(isMarketingOptedIn).catch(
         (err) => {
           Logger.error(err);
         },
@@ -455,26 +473,28 @@ const ChoosePassword = () => {
           ? getSocialAccountType(oauthProvider, false)
           : undefined;
 
+      const analyticsProperties = {
+        [UserProfileProperty.HAS_MARKETING_CONSENT]:
+          Boolean(isMarketingOptedIn),
+        is_metrics_opted_in: true,
+        location: 'onboarding_choosePassword',
+        updated_after_onboarding: false,
+        ...(socialAccountType && { account_type: socialAccountType }),
+      };
+      const identifyTraits = {
+        ...generateDeviceAnalyticsMetaData(),
+        ...generateUserSettingsAnalyticsMetaData(),
+      };
+
       try {
         metrics.trackEvent(
           metrics
             .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
-            .addProperties({
-              [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
-                marketingOptInChecked,
-              ),
-              is_metrics_opted_in: true,
-              location: 'onboarding_choosePassword',
-              updated_after_onboarding: false,
-              ...(socialAccountType && { account_type: socialAccountType }),
-            })
+            .addProperties(analyticsProperties)
             .build(),
         );
 
-        await metrics.identify({
-          ...generateDeviceAnalyticsMetaData(),
-          ...generateUserSettingsAnalyticsMetaData(),
-        });
+        await metrics.identify(identifyTraits);
       } catch (analyticsError) {
         Logger.error(analyticsError as Error);
       }
@@ -564,21 +584,12 @@ const ChoosePassword = () => {
     [recreateVault, dispatch, track, route.params, navigation],
   );
 
-  const onPressCreate = useCallback(async () => {
-    const validation = validatePasswordSubmission();
-    if (!validation.valid) return;
-
-    const provider = route.params?.provider;
-    const accountType = provider
-      ? getSocialAccountType(provider, false)
-      : AccountType.Metamask;
-    const isSocialLogin = getOauth2LoginSuccess();
-
-    track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
-      account_type: accountType,
-    });
-
-    try {
+  const runWalletCreation = useCallback(
+    async (
+      accountType: AccountType,
+      isSocialLogin: boolean | undefined,
+      provider: ChoosePasswordRouteParams['provider'],
+    ) => {
       setLoading(true);
       const previous_screen = route.params?.[PREVIOUS_SCREEN];
 
@@ -630,21 +641,45 @@ const ChoosePassword = () => {
       });
 
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
+    },
+    [
+      route.params,
+      biometryType,
+      handleWalletCreation,
+      handlePostWalletCreation,
+      track,
+      marketingOptInChecked,
+    ],
+  );
+
+  const onPressCreate = useCallback(async () => {
+    const validation = validatePasswordSubmission();
+    if (!validation.valid) return;
+
+    const provider = route.params?.provider;
+    const accountType = provider
+      ? getSocialAccountType(provider, false)
+      : AccountType.Metamask;
+    const isSocialLogin = getOauth2LoginSuccess();
+
+    track(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED, {
+      account_type: accountType,
+    });
+
+    try {
+      await runWalletCreation(accountType, isSocialLogin, provider);
     } catch (err) {
       const metricsEnabled = metrics.isEnabled();
       await handleWalletCreationError(err as Error, metricsEnabled);
     }
   }, [
     validatePasswordSubmission,
-    route.params,
+    route.params?.provider,
     track,
     getOauth2LoginSuccess,
-    biometryType,
-    handleWalletCreation,
-    handlePostWalletCreation,
+    runWalletCreation,
     handleWalletCreationError,
     metrics,
-    marketingOptInChecked,
   ]);
 
   const onPasswordChange = useCallback(
@@ -710,7 +745,9 @@ const ChoosePassword = () => {
       await StorageWrapper.getItem(BIOMETRY_CHOICE_DISABLED);
       await StorageWrapper.getItem(PASSCODE_DISABLED);
 
-      if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
+      if (
+        authData.currentAuthType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION
+      ) {
         setBiometryType(passcodeType(authData.currentAuthType));
       } else if (authData.availableBiometryType) {
         setBiometryType(authData.availableBiometryType);
@@ -720,10 +757,9 @@ const ChoosePassword = () => {
     initBiometrics();
   }, [route.params?.onboardingTraceCtx]);
 
-  //Reset mounted flag and end trace on unmount
+  // End password-setup trace on unmount
   useEffect(
     () => () => {
-      mounted.current = false;
       if (passwordSetupAttemptTraceCtx.current) {
         endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
         passwordSetupAttemptTraceCtx.current = null;
@@ -757,9 +793,11 @@ const ChoosePassword = () => {
         <HeaderStandard
           includesTopInset
           onBack={loading ? undefined : () => navigation.goBack()}
-          backButtonProps={{
-            testID: ChoosePasswordSelectorsIDs.BACK_BUTTON_ID,
-          }}
+          backButtonProps={
+            loading
+              ? undefined
+              : { testID: ChoosePasswordSelectorsIDs.BACK_BUTTON_ID }
+          }
         />
         {loading ? (
           <Box

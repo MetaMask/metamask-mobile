@@ -140,7 +140,6 @@ const createMockNavigation = () => ({
 
 interface SetupOptions {
   seedPhrase?: string[];
-  words?: string[];
   backupFlow?: boolean;
   settingsBackup?: boolean;
 }
@@ -186,7 +185,6 @@ const renderPasswordView = async () => {
 
   const result = renderComponent({
     seedPhrase: undefined,
-    words: undefined,
     backupFlow: false,
     settingsBackup: false,
   });
@@ -530,7 +528,6 @@ describe('ManualBackupStep1', () => {
 
       const { wrapper } = renderComponent({
         seedPhrase: undefined,
-        words: undefined,
         backupFlow: false,
         settingsBackup: false,
       });
@@ -552,7 +549,6 @@ describe('ManualBackupStep1', () => {
 
       renderComponent({
         seedPhrase: undefined,
-        words: [],
         backupFlow: false,
         settingsBackup: false,
       });
