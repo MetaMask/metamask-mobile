@@ -34,8 +34,8 @@ const TRANSACTION_TYPES_FOR_ACTIVE_AB_TESTS: ReadonlySet<TransactionType> =
   ]);
 
 /**
- * Adds `active_ab_tests` to Transaction Added for swap/bridge/perps/predict flows when
- * the user entered those flows with tracked A/B assignments (e.g. homepage trending sections).
+ * Adds `active_ab_tests` to Transaction Added for supported transaction flows
+ * when the initiating flow carries tracked A/B assignments.
  */
 export function getSwapTransactionActiveAbTestProperties({
   eventType,

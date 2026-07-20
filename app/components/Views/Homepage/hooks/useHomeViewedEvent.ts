@@ -12,9 +12,6 @@ export const HomeSectionNames = {
   PREDICT: 'predict',
   NFTS: 'nfts',
   TOP_TRADERS: 'top_traders',
-  TRENDING_TOKENS: 'trending_tokens',
-  TRENDING_PERPS: 'trending_perps',
-  TRENDING_PREDICT: 'trending_predict',
   WATCHLIST: 'watchlist',
 } as const;
 

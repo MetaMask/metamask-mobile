@@ -9,7 +9,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import TokensSection from './Sections/Tokens';
-import { PerpsSection as PerpsSectionBase } from './Sections/Perpetuals/PerpsSection';
 import HomepagePerpsHomeSlot from './Sections/Perpetuals/HomepagePerpsHomeSlot';
 import PredictionsSection from './Sections/Predictions';
 import TopTradersSection from './Sections/TopTraders';
@@ -31,7 +30,6 @@ import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetwor
 import { useOwnedNfts } from './Sections/NFTs/hooks';
 import { useNftDetection } from '../../hooks/useNftDetection';
 import { useThrottledFocusEffect } from '../../hooks/useThrottledFocusEffect';
-import { strings } from '../../../../locales/i18n';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 
@@ -58,9 +56,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const defiSectionRef = useRef<SectionRefreshHandle>(null);
     const nftsSectionRef = useRef<SectionRefreshHandle>(null);
     const watchlistSectionRef = useRef<SectionRefreshHandle>(null);
-    const trendingTokensRef = useRef<SectionRefreshHandle>(null);
-    const trendingPerpsRef = useRef<SectionRefreshHandle>(null);
-    const trendingPredictionsRef = useRef<SectionRefreshHandle>(null);
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
@@ -115,43 +110,30 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     /**
      * Compute the ordered list of enabled sections. Tokens are always present;
      * NFTs, Perps, Predictions, and DeFi are conditional.
-     * Trending sections are appended after position sections.
      */
-    const enabledSections = useMemo(() => {
-      const sections: { name: HomeSectionName; enabled: boolean }[] = [
-        { name: HomeSectionNames.TOKENS, enabled: true },
-        { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
-        { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
-        { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
-        {
-          name: HomeSectionNames.TOP_TRADERS,
-          enabled: isTopTradersEnabled,
-        },
-        { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
-      ];
-
-      if (hasNfts) {
-        sections.push({ name: HomeSectionNames.NFTS, enabled: true });
-      }
-
-      sections.push(
-        { name: HomeSectionNames.TRENDING_TOKENS, enabled: true },
-        { name: HomeSectionNames.TRENDING_PERPS, enabled: isPerpsEnabled },
-        {
-          name: HomeSectionNames.TRENDING_PREDICT,
-          enabled: isPredictEnabled,
-        },
-      );
-
-      return sections.filter((section) => section.enabled);
-    }, [
-      isPerpsEnabled,
-      isPredictEnabled,
-      isDeFiEnabled,
-      hasNfts,
-      isTopTradersEnabled,
-      isWatchlistEnabled,
-    ]);
+    const enabledSections = useMemo(
+      () =>
+        [
+          { name: HomeSectionNames.TOKENS, enabled: true },
+          { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
+          { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
+          { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
+          {
+            name: HomeSectionNames.TOP_TRADERS,
+            enabled: isTopTradersEnabled,
+          },
+          { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
+          { name: HomeSectionNames.NFTS, enabled: hasNfts },
+        ].filter((section) => section.enabled),
+      [
+        isPerpsEnabled,
+        isPredictEnabled,
+        isDeFiEnabled,
+        hasNfts,
+        isTopTradersEnabled,
+        isWatchlistEnabled,
+      ],
+    );
 
     const totalSectionsLoaded = enabledSections.length;
 
@@ -172,21 +154,51 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         topTradersSectionRef.current?.refresh(),
         defiSectionRef.current?.refresh(),
         nftsSectionRef.current?.refresh(),
-        trendingTokensRef.current?.refresh(),
-        trendingPerpsRef.current?.refresh(),
-        trendingPredictionsRef.current?.refresh(),
       ]);
     }, []);
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
-    const renderNonPerpsSections = (trendingPerpsSection: React.ReactNode) => (
-      <>
+    return (
+      <Box
+        marginBottom={8}
+        testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
+        accessible={false}
+      >
+        <TokensSection
+          ref={tokensSectionRef}
+          sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
+          totalSectionsLoaded={totalSectionsLoaded}
+        />
+        {isWatchlistEnabled && (
+          <WatchlistSection
+            ref={watchlistSectionRef}
+            sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
+            totalSectionsLoaded={totalSectionsLoaded}
+          />
+        )}
+        {isPerpsEnabled &&
+          (perpsProvidersHoisted ? (
+            <HomepagePerpsHomeSlot
+              ref={perpsSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+          ) : (
+            <PerpsConnectionProvider suppressErrorView>
+              <PerpsStreamProvider>
+                <HomepagePerpsHomeSlot
+                  ref={perpsSectionRef}
+                  sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                />
+              </PerpsStreamProvider>
+            </PerpsConnectionProvider>
+          ))}
         <PredictionsSection
           ref={predictionsSectionRef}
           sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
           totalSectionsLoaded={totalSectionsLoaded}
-          mode="positions-only"
         />
         {isTopTradersEnabled && (
           <TopTradersSection
@@ -202,8 +214,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             totalSectionsLoaded={totalSectionsLoaded}
           />
         )}
-
-        {/* NFTs above trending when user has NFTs */}
         {hasNfts && (
           <NFTsSection
             ref={nftsSectionRef}
@@ -211,83 +221,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             totalSectionsLoaded={totalSectionsLoaded}
           />
         )}
-
-        {/* Always-on trending sections */}
-        <TokensSection
-          ref={trendingTokensRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.TRENDING_TOKENS)}
-          totalSectionsLoaded={totalSectionsLoaded}
-          mode="trending-only"
-          sectionName={HomeSectionNames.TRENDING_TOKENS}
-          titleOverride={strings('homepage.sections.trending_tokens')}
-        />
-        {trendingPerpsSection}
-        <PredictionsSection
-          ref={trendingPredictionsRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.TRENDING_PREDICT)}
-          totalSectionsLoaded={totalSectionsLoaded}
-          mode="trending-only"
-          sectionName={HomeSectionNames.TRENDING_PREDICT}
-          titleOverride={strings('homepage.sections.trending_predictions')}
-        />
-
         <MoreSection />
-      </>
-    );
-
-    const trendingPerpsSection = (
-      <PerpsSectionBase
-        ref={trendingPerpsRef}
-        sectionIndex={getSectionIndex(HomeSectionNames.TRENDING_PERPS)}
-        totalSectionsLoaded={totalSectionsLoaded}
-        mode="trending-only"
-        sectionName={HomeSectionNames.TRENDING_PERPS}
-        titleOverride={strings('homepage.sections.trending_perpetuals')}
-      />
-    );
-
-    return (
-      <Box
-        marginBottom={8}
-        testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
-        accessible={false}
-      >
-        {/* Position sections — hidden when empty */}
-        <TokensSection
-          ref={tokensSectionRef}
-          sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
-          totalSectionsLoaded={totalSectionsLoaded}
-          mode="positions-only"
-        />
-        {isWatchlistEnabled && (
-          <WatchlistSection
-            ref={watchlistSectionRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
-            totalSectionsLoaded={totalSectionsLoaded}
-          />
-        )}
-        {isPerpsEnabled &&
-          (() => {
-            const perpsContent = (
-              <>
-                <HomepagePerpsHomeSlot
-                  ref={perpsSectionRef}
-                  sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
-                  totalSectionsLoaded={totalSectionsLoaded}
-                  mode="positions-only"
-                />
-                <>{renderNonPerpsSections(trendingPerpsSection)}</>
-              </>
-            );
-            return perpsProvidersHoisted ? (
-              perpsContent
-            ) : (
-              <PerpsConnectionProvider suppressErrorView>
-                <PerpsStreamProvider>{perpsContent}</PerpsStreamProvider>
-              </PerpsConnectionProvider>
-            );
-          })()}
-        {!isPerpsEnabled && renderNonPerpsSections(null)}
       </Box>
     );
   },

@@ -4,7 +4,7 @@
  * global Redux state that can go stale across sessions.
  *
  * Used for swap, bridge, perps, predict, and any other flow that reports the
- * same `active_ab_tests` shape (e.g. homepage trending-sections experiment).
+ * same `active_ab_tests` shape.
  */
 import {
   normalizeActiveABTestAssignments,
