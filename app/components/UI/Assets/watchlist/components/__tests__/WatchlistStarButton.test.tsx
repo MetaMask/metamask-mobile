@@ -193,4 +193,22 @@ describe('WatchlistStarButton', () => {
       }),
     );
   });
+
+  it('calls onAfterToggle after a successful press', () => {
+    const onAfterToggle = jest.fn();
+    const { getByTestId } = render(
+      <WatchlistStarButton
+        assetId={
+          'eip155:1/erc20:0xabc' as `${string}:${string}/${string}:${string}`
+        }
+        assetType="erc20"
+        source="token_details"
+        onAfterToggle={onAfterToggle}
+      />,
+    );
+
+    fireEvent.press(getByTestId('watchlist-star-button'));
+
+    expect(onAfterToggle).toHaveBeenCalledTimes(1);
+  });
 });
