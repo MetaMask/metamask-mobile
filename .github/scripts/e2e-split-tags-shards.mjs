@@ -152,6 +152,15 @@ function* walk(dir) {
 }
 
 /**
+ * Appium smoke specs live under tests/smoke-appium/ and are sharded by Playwright, not Detox.
+ * This will be changed in the future when Detox is removed and all E2E tests are run by Playwright.
+ * @param {string} filePath
+ */
+function isDetoxSpecFile(filePath) {
+  return !timingLookupKey(filePath).includes('smoke-appium/');
+}
+
+/**
  * Find all spec files that contain the provided tag string
  * @param {*} baseDir - The base directory to search
  * @param {*} tag - The tag to search for
@@ -591,7 +600,8 @@ async function main() {
 
   // 1) Find all specs files that include the given E2E tags
   console.log(`Searching for E2E test files with tags: ${env.TEST_SUITE_TAG}`);
-  const allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG); // TODO - review this function (!).
+  const allMatches = findMatchingFiles(env.BASE_DIR, env.TEST_SUITE_TAG) // TODO - review this function (!).
+    .filter(isDetoxSpecFile);
   if (allMatches.length === 0) throw new Error(`❌ No test files found containing tags: ${env.TEST_SUITE_TAG}`);
   console.log(`Found ${allMatches.length} matching spec files to split across ${env.TOTAL_SPLITS} shards`);
 
