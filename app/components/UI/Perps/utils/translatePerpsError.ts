@@ -1,6 +1,7 @@
 import { strings } from '../../../../../locales/i18n';
 import {
   PERPS_ERROR_CODES,
+  TRADING_DEFAULTS,
   type PerpsErrorCode,
   type PerpsDebugLogger,
 } from '@metamask/perps-controller';
@@ -368,6 +369,14 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
         break;
       case PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE:
         errorParams.providerId = context?.providerId || 'Unknown';
+        break;
+      case PERPS_ERROR_CODES.ORDER_SIZE_MIN:
+        // The minimum order size message requires an `amount` for interpolation.
+        // Fall back to the default minimum order size when no amount is provided
+        // (e.g. flip/reverse position errors surfaced via toast) so we never leak
+        // the raw `{{amount}}` placeholder to users.
+        errorParams.amount =
+          context?.amount || TRADING_DEFAULTS.amount.mainnet.toString();
         break;
       // Add other error codes that need parameters as they arise
       default:
