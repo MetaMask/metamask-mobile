@@ -11,9 +11,16 @@ import {
 } from '@react-native-community/netinfo';
 import { createUIQueryClient } from '@metamask/react-data-query';
 import Engine from '../Engine/Engine';
+import type {
+  GlobalActions,
+  GlobalEvents,
+  RootExtendedMessenger,
+} from '../Engine/types';
 import { DATA_SERVICES } from '../../constants/data-services';
 
 type DataServiceName = (typeof DATA_SERVICES)[number];
+type MessengerActionType = GlobalActions['type'];
+type MessengerEventType = GlobalEvents['type'];
 
 /**
  * The payload of a data service's granular `:cacheUpdated:${hash}` event.
@@ -30,73 +37,64 @@ type CacheUpdatedPayload =
 type CacheUpdatedHandler = (payload: CacheUpdatedPayload) => void;
 
 /**
- * A minimal, structural view of the root messenger that matches the shape
- * `createUIQueryClient` expects: it must at least be able to call any
- * data-service action and subscribe to any data-service granular
- * cache-updated event.
+ * Wraps the root messenger to the messenger adapter shape that the
+ * `createUIQueryClient` expects.
  *
- * The concrete messenger is bridged to this shape by {@link getMessengerView}.
+ * Although `createUIQueryClient` takes a messenger, not just a messenger
+ * adapter, we cannot pass `Engine.controllerMessenger` directly to it.
+ * Despite its appearance, this is not a property; it is secretly a method
+ * which expects `Engine` to have been initialized first before the root
+ * messenger can be accessed. So we need to lazy-call
+ * `Engine.controllerMessenger`.
  */
-interface MessengerAdapter {
-  /**
-   * Call a data-service action on the root messenger.
-   */
-  call(
+class MessengerAdapter {
+  async call(
     actionType: `${DataServiceName}:${string}`,
     ...params: unknown[]
-  ): Promise<unknown>;
-  /**
-   * Subscribe to a data-service granular cache-updated event.
-   */
+  ): Promise<unknown> {
+    // Type assertion: We just have to assume that the root messenger supports
+    // actions for any of the configured data services. There isn't a way to
+    // resolve the literal template type we've declared above with the literal
+    // string types in the types for RootExtendedMessenger.
+    return Engine.controllerMessenger.call(
+      actionType as MessengerActionType,
+      // The parameters of a data-service action are not statically known here.
+      ...(params as never),
+    );
+  }
+
   subscribe(
     eventType: `${DataServiceName}:cacheUpdated:${string}`,
     handler: CacheUpdatedHandler,
-  ): void;
-  /**
-   * Unsubscribe from a data-service granular cache-updated event.
-   */
+  ): void {
+    // Type assertion: We just have to assume that the root messenger supports
+    // the `:cacheUpdated:${hash}` event for any of the configured data
+    // services. There isn't a way to resolve the literal template type we've
+    // declared above with the literal string types in the types for
+    // RootExtendedMessenger.
+    Engine.controllerMessenger.subscribe(
+      eventType as MessengerEventType,
+      handler as never,
+    );
+  }
+
   unsubscribe(
     eventType: `${DataServiceName}:cacheUpdated:${string}`,
     handler: CacheUpdatedHandler,
-  ): void;
+  ): void {
+    // Type assertion: We just have to assume that the root messenger supports
+    // the `:cacheUpdated:${hash}` event for any of the configured data
+    // services. There isn't a way to resolve the literal template type we've
+    // declared above with the literal string types in the types for
+    // RootExtendedMessenger.
+    Engine.controllerMessenger.unsubscribe(
+      eventType as MessengerEventType,
+      handler as never,
+    );
+  }
 }
 
-/**
- * Return `Engine.controllerMessenger` viewed through the narrow
- * {@link MessengerAdapter} shape.
- *
- * The messenger's `call`/`subscribe`/`unsubscribe` are generic and bounded by
- * its own declared (literal) action/event unions, so they cannot accept the
- * open `${DataServiceName}:${string}` template that the adapter must expose.
- * Rather than assert on every call, we bridge once here. This is the same
- * capability-bridge pattern used by `BaseController` and by
- * `createUIQueryClient` itself.
- *
- * Resolving the messenger lazily (per call) is also required because
- * `Engine.controllerMessenger` is a proxy whose backing Engine may not exist
- * yet when this module is first imported.
- *
- * @returns The messenger as a {@link MessengerAdapter}.
- */
-function getMessengerView(): MessengerAdapter {
-  // Type assertion: bridges the messenger's literal-bounded generic methods to
-  // the open template signatures the adapter exposes. `createUIQueryClient`
-  // only ever invokes these with valid data-service actions/events, so the
-  // assertion is safe.
-  return Engine.controllerMessenger as unknown as MessengerAdapter;
-}
-
-const adapter: MessengerAdapter = {
-  call(actionType, ...params) {
-    return getMessengerView().call(actionType, ...params);
-  },
-  subscribe(eventType, handler) {
-    getMessengerView().subscribe(eventType, handler);
-  },
-  unsubscribe(eventType, handler) {
-    getMessengerView().unsubscribe(eventType, handler);
-  },
-};
+const adapter = new MessengerAdapter();
 
 export class ReactQueryService {
   queryClient: QueryClient;
