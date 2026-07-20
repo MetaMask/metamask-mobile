@@ -28,6 +28,11 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       paddingBottom: 16, // Consistent bottom padding
     },
 
+    // Keeps the fullscreen button fixed while the price row shrinks
+    marketSummaryFullscreenButton: {
+      flexShrink: 0,
+    },
+
     // Container for error state
     container: {
       flex: 1,

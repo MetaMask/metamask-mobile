@@ -520,7 +520,7 @@ describe('MoneyPotentialEarnings', () => {
       expect(
         getAllByText(strings('money.potential_earnings.no_fee')),
       ).toHaveLength(1);
-      expect(queryByText('USDT')).toBeOnTheScreen();
+      expect(queryByText('Tether')).toBeOnTheScreen();
     });
   });
 });

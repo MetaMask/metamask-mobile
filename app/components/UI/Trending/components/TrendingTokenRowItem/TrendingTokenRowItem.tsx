@@ -22,7 +22,7 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import { isCaipChainId } from '@metamask/utils';
+import { isCaipAssetType, isCaipChainId } from '@metamask/utils';
 import { getResultTypeConfig } from '../../../SecurityTrust/utils/securityUtils';
 import {
   caipChainIdToHex,
@@ -103,7 +103,7 @@ export const getAssetNavigationParams = (
   transactionActiveAbTests?: TransactionActiveAbTestEntry[],
 ) => {
   const [caipChainId, assetIdentifier] = token.assetId.split('/');
-  if (!isCaipChainId(caipChainId)) return null;
+  if (!isCaipChainId(caipChainId)) return undefined;
 
   const isEvmChain = caipChainId.startsWith('eip155:');
   const isNativeToken = assetIdentifier?.startsWith('slip44:');
@@ -129,6 +129,7 @@ export const getAssetNavigationParams = (
     source,
     rwaData: token.rwaData,
     securityData: token.securityData,
+    ...(isCaipAssetType(token.assetId) && { caipAssetId: token.assetId }),
     ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
   };
 };

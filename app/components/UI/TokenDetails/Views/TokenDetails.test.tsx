@@ -23,12 +23,9 @@ import {
 } from '../../../../selectors/featureFlagController/deposit';
 import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  AMBIENT_NEGATIVE_COLOR,
-  AMBIENT_PRICE_COLOR_AB_KEY,
-} from '../components/abTestConfig';
+import { AMBIENT_PRICE_COLOR_AB_KEY } from '../components/abTestConfig';
 import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
-import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 
 const mockUseSelector = jest.fn();
@@ -113,6 +110,12 @@ const mockUseTokenBalance = jest.fn();
 jest.mock('../hooks/useTokenBalance', () => ({
   useTokenBalance: () => mockUseTokenBalance(),
 }));
+
+jest.mock('../../Assets/watchlist/components/WatchlistStarButton', () => {
+  const MockedStarButton = () => null;
+  MockedStarButton.displayName = 'WatchlistStarButton';
+  return { __esModule: true, default: MockedStarButton };
+});
 
 const mockUseTokenBuyability = jest.fn();
 jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
@@ -329,6 +332,14 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+}));
+
+const mockShowToast = jest.fn();
+jest.mock('../../../../core/ToastService/ToastService', () => ({
+  __esModule: true,
+  default: {
+    showToast: (...args: unknown[]) => mockShowToast(...args),
+  },
 }));
 
 const mockIsTokenTradingOpen = jest.fn().mockReturnValue(true);
@@ -724,9 +735,6 @@ describe('TokenDetails', () => {
       render(<TokenDetails />);
 
       expect(mockLastUseAmbientColorProp).toBeFalsy();
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ iconColor: undefined }),
-      );
     });
 
     it('passes useAmbientColor=true in treatment variant', () => {
@@ -737,69 +745,22 @@ describe('TokenDetails', () => {
       expect(mockLastUseAmbientColorProp).toBe(true);
     });
 
-    it('keeps iconColor undefined until chart reports direction', () => {
-      enableAmbientColor();
-      mockUseTokenPrice.mockReturnValue({
-        ...defaultUseTokenPriceReturn,
-        priceDiff: 10,
-      });
-
-      render(<TokenDetails />);
-
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ iconColor: undefined }),
-      );
-    });
-
-    it('applies success green when chart reports positive direction', () => {
+    it('does not pass iconColor or useAmbientColor to the inline header', () => {
       enableAmbientColor();
 
       render(<TokenDetails />);
-      act(() => {
-        mockLatestPriceDirectionChange?.(true);
-      });
 
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ iconColor: LIGHT_MODE_SUCCESS_GREEN }),
-      );
+      const headerProps = mockTokenDetailsInlineHeader.mock.calls.at(-1)?.[0];
+      expect(headerProps).not.toHaveProperty('iconColor');
+      expect(headerProps).not.toHaveProperty('useAmbientColor');
     });
 
-    it('applies negative color when chart reports negative direction', () => {
-      enableAmbientColor();
-
-      render(<TokenDetails />);
-      act(() => {
-        mockLatestPriceDirectionChange?.(false);
-      });
-
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          iconColor: AMBIENT_NEGATIVE_COLOR,
-        }),
-      );
-    });
-
-    it('returns undefined iconColor when treatment + price is loading', () => {
-      enableAmbientColor();
-      mockUseTokenPrice.mockReturnValue({
-        ...defaultUseTokenPriceReturn,
-        isLoading: true,
-        priceDiff: 0,
-      });
-
-      render(<TokenDetails />);
-
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ iconColor: undefined }),
-      );
-    });
-
-    it('hides sticky footer while chart direction is unresolved', () => {
+    it('always shows sticky footer regardless of chart direction', () => {
       enableAmbientColor();
 
       const { queryByTestId } = render(<TokenDetails />);
 
-      expect(queryByTestId('bottomsheetfooter')).toBeNull();
+      expect(queryByTestId('bottomsheetfooter')).toBeTruthy();
     });
   });
 
@@ -1188,6 +1149,23 @@ describe('TokenDetails', () => {
       expect(Share.share).not.toHaveBeenCalled();
     });
 
+    it('resolves caip19AssetId from route caipAssetId when provided', async () => {
+      const caipAssetId = 'eip155:8453/slip44:60';
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        caipAssetId,
+      });
+
+      render(<TokenDetails />);
+      await invokeSharePress();
+
+      expect(Share.share).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: expect.stringContaining(encodeURIComponent(caipAssetId)),
+        }),
+      );
+    });
+
     it('resolves caip19AssetId directly when address is already CAIP-19 format', async () => {
       const caipAddress =
         'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f';
@@ -1502,6 +1480,18 @@ describe('TokenDetails', () => {
       });
 
       expect(getTokenDetailsClosedCallCount()).toBe(2);
+    });
+  });
+
+  describe('watchlist star button', () => {
+    it('passes starButton ReactNode to header', () => {
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          starButton: expect.anything(),
+        }),
+      );
     });
   });
 });

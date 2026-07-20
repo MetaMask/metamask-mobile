@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Linking, RefreshControl, ScrollView } from 'react-native';
+import { RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -37,7 +37,7 @@ import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
-import { useMoneyEarnableTokens } from '../../hooks/useMoneyEarnableTokens';
+import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
@@ -162,7 +162,7 @@ const MoneyHomeView = () => {
     [musdTokenBalanceAggregated],
   );
 
-  const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens({
+  const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens({
     overrideToUsd: true,
   });
   const { initiateDeposit } = useMoneyAccountDeposit();
@@ -502,11 +502,9 @@ const MoneyHomeView = () => {
         redirect_target: MONEY_URLS.MUSD_PRICE,
       });
 
-      Linking.openURL(AppConstants.URLS.MUSD_PRICE).catch((error: Error) => {
-        Logger.error(error, '[MoneyHomeView] Failed to open mUSD price page');
-      });
+      openInAppBrowser(navigation, AppConstants.URLS.MUSD_PRICE);
     },
-    [trackSurfaceClicked],
+    [navigation, trackSurfaceClicked],
   );
 
   const handleTokenButtonPress = useCallback(
@@ -662,17 +660,22 @@ const MoneyHomeView = () => {
 
   const { primaryToken: cardPrimaryToken } = useCardHomeData();
   const currencyRates = useSelector(selectCurrencyRates);
-  // The Card pipeline reports balanceFiat in the user's selected currency, but
-  // we want to show USD fiat values in this view.
+  // Money Account entries are already valued in USD. Other Card tokens report
+  // their fiat value in the user's selected currency.
   const cardBalanceUsd = useMemo(() => {
-    const usd = convertSelectedFiatToUsd(
-      cardPrimaryToken?.rawFiatNumber,
-      currencyRates,
-    );
+    const rawFiat = cardPrimaryToken?.rawFiatNumber;
+    const usd = cardPrimaryToken?.isMoneyAccountEntry
+      ? rawFiat
+      : convertSelectedFiatToUsd(rawFiat, currencyRates);
     return usd === undefined
       ? formattedZero
       : moneyFormatUsd(new BigNumber(usd));
-  }, [cardPrimaryToken?.rawFiatNumber, currencyRates, formattedZero]);
+  }, [
+    cardPrimaryToken?.isMoneyAccountEntry,
+    cardPrimaryToken?.rawFiatNumber,
+    currencyRates,
+    formattedZero,
+  ]);
 
   const cardState = deriveCardState({
     isCardholder,

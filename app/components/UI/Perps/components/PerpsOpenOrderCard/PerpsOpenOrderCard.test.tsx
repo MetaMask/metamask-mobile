@@ -10,6 +10,11 @@ jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(),
 }));
 
+jest.mock('../../utils/perpsAnalyticsAttribution', () => ({
+  ...jest.requireActual('../../utils/perpsAnalyticsAttribution'),
+  getPerpsUtmAttributionProperties: jest.fn(() => ({})),
+}));
+
 // Mock react-redux
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
