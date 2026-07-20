@@ -542,6 +542,46 @@ describe('useTransactionCustomAmount', () => {
     });
   });
 
+  it('sets manual metric once across consecutive updatePendingAmount calls', async () => {
+    const { result } = runHook();
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.46');
+    });
+
+    const manualMetricCalls = setConfirmationMetricMock.mock.calls.filter(
+      ([metric]) => metric.properties?.mm_pay_amount_input_type === 'manual',
+    );
+
+    expect(manualMetricCalls).toHaveLength(1);
+  });
+
+  it('sets input type metric matching the last input source across manual and percentage updates', async () => {
+    const { result } = runHook();
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+
+    await act(async () => {
+      result.current.updatePendingAmountPercentage(50);
+    });
+
+    await act(async () => {
+      result.current.updatePendingAmount('678.9');
+    });
+
+    const inputTypeMetrics = setConfirmationMetricMock.mock.calls
+      .map(([metric]) => metric.properties?.mm_pay_amount_input_type)
+      .filter(Boolean);
+
+    expect(inputTypeMetrics).toEqual(['manual', '50%', 'manual']);
+  });
+
   it('returns hasInput as true after amount changed and debounce', async () => {
     const { result } = runHook();
 
