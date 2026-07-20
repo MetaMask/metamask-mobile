@@ -124,6 +124,7 @@ describe('ImmersveKYCProcessing', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockParams = { countryKey: 'GB' };
+    mockCapturedOnClose = null;
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
       reset: mockReset,

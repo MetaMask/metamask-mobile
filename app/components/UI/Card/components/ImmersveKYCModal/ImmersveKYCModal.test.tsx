@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { act, render, fireEvent } from '@testing-library/react-native';
 import ImmersveKYCModal, {
   setImmersveKycOnClose,
   clearImmersveKycOnClose,
@@ -104,18 +104,22 @@ describe('ImmersveKYCModal', () => {
     expect(capturedProps.mediaPlaybackRequiresUserGesture).toBe(false);
   });
 
-  it('closes when the webview navigates to the redirect URL', () => {
+  it('closes when the webview navigates to the redirect URL', async () => {
     render(<ImmersveKYCModal />);
-    capturedProps.onNavigationStateChange?.({
-      url: 'https://metamask.io/card/kyc-complete?status=done',
+    await act(async () => {
+      capturedProps.onNavigationStateChange?.({
+        url: 'https://metamask.io/card/kyc-complete?status=done',
+      });
     });
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('does not close on unrelated navigation', () => {
+  it('does not close on unrelated navigation', async () => {
     render(<ImmersveKYCModal />);
-    capturedProps.onNavigationStateChange?.({
-      url: 'https://verify.immersve.com/step-2',
+    await act(async () => {
+      capturedProps.onNavigationStateChange?.({
+        url: 'https://verify.immersve.com/step-2',
+      });
     });
     expect(mockGoBack).not.toHaveBeenCalled();
   });
@@ -126,12 +130,14 @@ describe('ImmersveKYCModal', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('fires the registered onClose callback on redirect close', () => {
+  it('fires the registered onClose callback on redirect close', async () => {
     const onClose = jest.fn();
     setImmersveKycOnClose(onClose);
     render(<ImmersveKYCModal />);
-    capturedProps.onNavigationStateChange?.({
-      url: 'https://metamask.io/card/kyc-complete?status=done',
+    await act(async () => {
+      capturedProps.onNavigationStateChange?.({
+        url: 'https://metamask.io/card/kyc-complete?status=done',
+      });
     });
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(mockGoBack).toHaveBeenCalled();
