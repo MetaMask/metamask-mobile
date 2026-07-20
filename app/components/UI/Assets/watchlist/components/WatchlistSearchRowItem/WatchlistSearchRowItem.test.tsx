@@ -41,9 +41,12 @@ const makeToken = (symbol: string, assetId: string): TrendingAsset =>
     assetId,
     symbol,
     name: symbol,
-    price: '1.23',
+    decimals: 18,
+    price: 1.23,
+    marketCap: 0,
+    aggregatedUsdVolume: 0,
     priceChangePct: { h24: 5 },
-  }) as TrendingAsset;
+  }) as unknown as TrendingAsset;
 
 describe('WatchlistSearchRowItem', () => {
   it('renders token row and star', () => {
