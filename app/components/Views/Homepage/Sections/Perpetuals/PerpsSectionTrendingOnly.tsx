@@ -16,7 +16,6 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import type { PerpsSectionProps } from './PerpsSectionWithProvider';
-import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
 import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 import { usePerpsNavigationHandlers } from './hooks/usePerpsNavigationHandlers';
 
@@ -36,12 +35,8 @@ const PerpsSectionTrendingOnly = forwardRef<
     const sectionViewRef = useRef<View>(null);
     const title = titleOverride ?? strings('homepage.sections.perpetuals');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.PERPS;
-    const trendingTransactionActiveAbTests =
-      useHomepageTrendingTransactionActiveAbTests();
     const { handleViewAllPerps, handleViewMorePerps, handleTilePress } =
-      usePerpsNavigationHandlers({
-        trendingTransactionActiveAbTests,
-      });
+      usePerpsNavigationHandlers();
     const { marketsLoading, allCarouselMarkets, watchlistSymbolSet } =
       usePerpsTrendingCarouselData({});
     const carouselSymbols = useMemo(

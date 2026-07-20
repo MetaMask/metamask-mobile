@@ -61,21 +61,6 @@ const useWorldCupDiscoveryFeeds = (enabled: boolean) => ({
   worldCupEventCount: useHomepagePredictWorldCupEventCount({ enabled }),
 });
 
-const mergeActiveAbTests = (
-  ...testGroups: (TransactionActiveAbTestEntry[] | undefined)[]
-): TransactionActiveAbTestEntry[] | undefined => {
-  const merged = new Map<string, TransactionActiveAbTestEntry>();
-
-  testGroups.flat().forEach((assignment) => {
-    if (!assignment) {
-      return;
-    }
-    merged.set(assignment.key, assignment);
-  });
-
-  return merged.size > 0 ? Array.from(merged.values()) : undefined;
-};
-
 const usePredictEmptyStateAnalytics = ({
   activeAbTests,
   isAssignmentActive,
@@ -331,7 +316,6 @@ const PredictionsSectionDefault = forwardRef<
     const {
       discoveryLayout,
       isTreatmentDiscovery,
-      trendingTransactionActiveAbTests,
       predictEmptyStateActiveAbTests,
       predictEmptyStateVariantName,
       isPredictEmptyStateAssignmentActive,
@@ -403,10 +387,8 @@ const PredictionsSectionDefault = forwardRef<
     const emptyStateTransactionActiveAbTests = shouldTrackEmptyState
       ? predictEmptyStateActiveAbTests
       : undefined;
-    const discoveryTransactionActiveAbTests = mergeActiveAbTests(
-      trendingTransactionActiveAbTests,
-      emptyStateTransactionActiveAbTests,
-    );
+    const discoveryTransactionActiveAbTests =
+      emptyStateTransactionActiveAbTests;
 
     const refreshPositions = useRefreshPredictPositions({
       queryClient,
@@ -631,8 +613,7 @@ const PredictionsSectionTrendingOnly = forwardRef<
       enabled: isPredictEnabled,
     });
 
-    const { discoveryLayout, trendingTransactionActiveAbTests } =
-      usePredictHomepageDiscoveryExperiment();
+    const { discoveryLayout } = usePredictHomepageDiscoveryExperiment();
 
     const isListLayout = discoveryLayout === 'list';
     const {
@@ -696,10 +677,6 @@ const PredictionsSectionTrendingOnly = forwardRef<
             discoveryLayout={discoveryLayout}
             isLoadingMarkets={isLoadingMarkets}
             markets={markets}
-            transactionActiveAbTests={trendingTransactionActiveAbTests}
-            emptyStateTransactionActiveAbTests={
-              trendingTransactionActiveAbTests
-            }
             worldCupHomepage={worldCupHomepageMarkets}
             liveWorldCupHomepage={liveWorldCupHomepageMarkets}
             worldCupEventCount={worldCupEventCount.eventCount}

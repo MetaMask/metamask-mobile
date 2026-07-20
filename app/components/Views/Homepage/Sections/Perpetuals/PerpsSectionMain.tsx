@@ -52,7 +52,6 @@ import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
 } from '../../components/HomepageSectionUnrealizedPnlRow';
-import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
 import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 import { usePerpsNavigationHandlers } from './hooks/usePerpsNavigationHandlers';
 import { useHomepagePerpsPillsEmptyTransactionActiveAbTests } from '../../hooks/useHomepagePerpsPillsEmptyTransactionActiveAbTests';
@@ -149,8 +148,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
         ? (emptyStateTitleOverride ?? baseTitle)
         : baseTitle;
 
-    const trendingTransactionActiveAbTests =
-      useHomepageTrendingTransactionActiveAbTests();
     const perpsPillsEmptyTransactionActiveAbTests =
       useHomepagePerpsPillsEmptyTransactionActiveAbTests(
         shouldShowPillsEmptyState,
@@ -171,8 +168,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       handleViewMorePerps,
       handleTilePress,
     } = usePerpsNavigationHandlers({
-      trendingTransactionActiveAbTests,
-      extraTransactionActiveAbTests: perpsPillsEmptyTransactionActiveAbTests,
+      transactionActiveAbTests: perpsPillsEmptyTransactionActiveAbTests,
     });
 
     const handleTrendingMarketPress = useCallback(

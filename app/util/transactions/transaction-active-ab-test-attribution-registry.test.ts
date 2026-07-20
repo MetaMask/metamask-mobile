@@ -12,15 +12,13 @@ describe('withPendingTransactionActiveAbTests', () => {
   });
 
   it('exposes pending tests during fn and clears after resolve', async () => {
-    const tests = [
-      { key: 'homeTMCU470AbtestTrendingSections', value: 'trendingSections' },
-    ];
+    const tests = [{ key: 'testAbFlag', value: 'treatment' }];
     await withPendingTransactionActiveAbTests(tests, async () => {
       expect(getPendingTransactionActiveAbTests()).toEqual([
         {
-          key: 'homeTMCU470AbtestTrendingSections',
-          value: 'trendingSections',
-          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
+          key: 'testAbFlag',
+          value: 'treatment',
+          key_value_pair: 'testAbFlag=treatment',
         },
       ]);
       return 42;

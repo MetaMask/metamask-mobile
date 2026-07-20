@@ -51,7 +51,6 @@ import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingT
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
-import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
 import { selectMoneyHubEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { useMoneyTokenListCta } from '../../../../UI/Money/hooks/useMoneyTokenListCta';
 import { SCREEN_NAMES } from '../../../../UI/Money/constants/moneyEvents';
@@ -318,8 +317,6 @@ const TokensSectionTrendingOnly = forwardRef<
     const navigation = useNavigation();
     const title = titleOverride ?? strings('homepage.sections.tokens');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
-    const trendingTransactionActiveAbTests =
-      useHomepageTrendingTransactionActiveAbTests();
     const {
       results: trendingTokens,
       isLoading: isTrendingLoading,
@@ -383,7 +380,6 @@ const TokensSectionTrendingOnly = forwardRef<
                     token={token}
                     position={index}
                     tokenDetailsSource={TokenDetailsSource.HomepageTrending}
-                    transactionActiveAbTests={trendingTransactionActiveAbTests}
                   />
                 ))}
           </SectionRow>

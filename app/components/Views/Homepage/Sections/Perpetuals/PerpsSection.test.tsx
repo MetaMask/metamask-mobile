@@ -10,20 +10,9 @@ import {
 } from '@metamask/perps-controller';
 import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
-import { HOMEPAGE_TRENDING_SECTIONS_AB_KEY } from '../../abTestConfig';
 
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
-
-const mockUseHomepageTrendingTransactionActiveAbTests = jest.fn<
-  { key: string; value: string; key_value_pair?: string }[] | undefined,
-  []
->(() => undefined);
-
-jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests', () => ({
-  useHomepageTrendingTransactionActiveAbTests: () =>
-    mockUseHomepageTrendingTransactionActiveAbTests(),
-}));
 
 const mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests = jest.fn<
   { key: string; value: string; key_value_pair?: string }[] | undefined,
@@ -353,7 +342,6 @@ describe('PerpsSection', () => {
       refresh: jest.fn(),
       isRefreshing: false,
     });
-    mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(undefined);
     mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
       undefined,
     );
@@ -843,56 +831,6 @@ describe('PerpsSection', () => {
         params: {
           market,
           source: 'home_section',
-        },
-      });
-    });
-
-    it('merges trending active_ab_tests on carousel tile press without pills empty-state attribution', () => {
-      const market = makeTrendingMarket({ symbol: 'SOL' });
-      const trendingAbTests = [
-        createActiveABTestAssignment(
-          HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
-          'trendingSections',
-        ),
-      ];
-      const perpsEmptyAbTests = [
-        createActiveABTestAssignment(
-          'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
-          'control',
-        ),
-      ];
-      mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(
-        trendingAbTests,
-      );
-      mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests.mockReturnValue(
-        perpsEmptyAbTests,
-      );
-      usePerpsMarkets.mockReturnValue({
-        markets: [market],
-        isLoading: false,
-        error: null,
-        refresh: jest.fn(),
-        isRefreshing: false,
-      });
-
-      renderWithProvider(
-        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
-      );
-
-      fireEvent.press(screen.getByTestId('perps-market-tile-SOL'));
-
-      expect(mockTrack).toHaveBeenCalledWith(
-        MetaMetricsEvents.PERPS_UI_INTERACTION,
-        expect.objectContaining({
-          active_ab_tests: trendingAbTests,
-        }),
-      );
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market,
-          source: 'home_section',
-          transactionActiveAbTests: trendingAbTests,
         },
       });
     });
@@ -2138,46 +2076,6 @@ describe('PerpsSection', () => {
       expect(
         screen.getByTestId('homepage-trending-perps-carousel'),
       ).toBeOnTheScreen();
-    });
-
-    it('includes transactionActiveAbTests in market details params when trending-only and experiment is active', () => {
-      const abTests = [
-        {
-          key: 'homeTMCU470AbtestTrendingSections',
-          value: 'trendingSections',
-          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
-        },
-      ];
-      mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(abTests);
-      const market = makeTrendingMarket({ symbol: 'BTC' });
-      jest
-        .requireMock('../../../../UI/Perps/hooks')
-        .usePerpsMarkets.mockReturnValue({
-          markets: [market],
-          isLoading: false,
-          error: null,
-          refresh: jest.fn(),
-          isRefreshing: false,
-        });
-
-      renderWithProvider(
-        <PerpsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="trending-only"
-        />,
-      );
-
-      fireEvent.press(screen.getByTestId('perps-market-tile-BTC'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.MARKET_DETAILS,
-        params: {
-          market,
-          source: 'home_section',
-          transactionActiveAbTests: abTests,
-        },
-      });
     });
 
     it('renders carousel when WebSocket errors but REST markets load', () => {

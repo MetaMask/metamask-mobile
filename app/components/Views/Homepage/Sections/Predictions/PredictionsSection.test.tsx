@@ -140,16 +140,6 @@ jest.mock('../../../../../hooks', () => {
   };
 });
 
-const mockUseHomepageTrendingTransactionActiveAbTests = jest.fn<
-  { key: string; value: string; key_value_pair?: string }[] | undefined,
-  []
->(() => undefined);
-
-jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests', () => ({
-  useHomepageTrendingTransactionActiveAbTests: () =>
-    mockUseHomepageTrendingTransactionActiveAbTests(),
-}));
-
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -415,7 +405,6 @@ describe('PredictionsSection', () => {
         refetch: jest.fn(),
       }),
     );
-    mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(undefined);
     mockUseABTest.mockReturnValue({
       variant: { layout: 'list' as const },
       variantName: 'treatment',
@@ -1534,95 +1523,6 @@ describe('PredictionsSection', () => {
       );
 
       expect(screen.getByText('Will BTC reach 100k?')).toBeOnTheScreen();
-    });
-
-    it('navigates to market details with transactionActiveAbTests from carousel (control)', () => {
-      mockUseABTest.mockReturnValue({
-        variant: { layout: 'carousel' as const },
-        variantName: 'control',
-        isActive: true,
-      });
-      const abTests = [
-        {
-          key: 'homeTMCU470AbtestTrendingSections',
-          value: 'trendingSections',
-          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
-        },
-      ];
-      mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(abTests);
-      mockUsePredictMarketsForHomepage.mockReturnValue({
-        markets: mockMarkets,
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
-        worldCupHookForTrending(mockMarkets),
-      );
-
-      renderWithProvider(
-        <PredictionsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="trending-only"
-        />,
-      );
-
-      fireEvent.press(screen.getByText('Will BTC reach 100k?'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_DETAILS,
-        params: {
-          marketId: 'market-1',
-          transactionActiveAbTests: abTests,
-        },
-      });
-    });
-
-    it('navigates to World Cup winner market details from sports list when treatment', () => {
-      const abTests = [
-        {
-          key: 'homeTMCU470AbtestTrendingSections',
-          value: 'trendingSections',
-          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
-        },
-      ];
-      mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(abTests);
-      mockUseABTest.mockReturnValue({
-        variant: { layout: 'list' as const },
-        variantName: 'treatment',
-        isActive: true,
-      });
-      mockUsePredictMarketsForHomepage.mockReturnValue({
-        markets: mockMarkets,
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
-        worldCupHookForTrending(mockMarkets),
-      );
-
-      renderWithProvider(
-        <PredictionsSection
-          sectionIndex={0}
-          totalSectionsLoaded={5}
-          mode="trending-only"
-        />,
-      );
-
-      fireEvent.press(screen.getByText('2026 FIFA World Cup Winner'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_DETAILS,
-        params: {
-          marketId: 'market-1',
-          entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-          title: '2026 FIFA World Cup Winner',
-          image: undefined,
-          transactionActiveAbTests: abTests,
-        },
-      });
     });
 
     it('uses titleOverride when provided', () => {

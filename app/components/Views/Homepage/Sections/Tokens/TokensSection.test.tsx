@@ -114,16 +114,6 @@ jest.mock(
   }),
 );
 
-const mockUseHomepageTrendingTransactionActiveAbTests = jest.fn<
-  { key: string; value: string; key_value_pair?: string }[] | undefined,
-  []
->(() => undefined);
-
-jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests', () => ({
-  useHomepageTrendingTransactionActiveAbTests: () =>
-    mockUseHomepageTrendingTransactionActiveAbTests(),
-}));
-
 const mockTokenListItemCta = {
   label: 'Get 4% APY',
   color: 'success-default',
@@ -477,7 +467,6 @@ describe('TokensSection', () => {
       .requireMock('../../../../UI/Money/selectors/featureFlags')
       .selectMoneyHubEnabledFlag.mockReturnValue(false);
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
-    mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue(undefined);
   });
 
   it('renders section title for account with balance', () => {
@@ -1136,34 +1125,6 @@ describe('TokensSection', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
       );
-    });
-
-    it('passes transaction AB tests to trending rows when the homepage experiment is active', () => {
-      mockUseTrendingRequest.mockReturnValue({
-        results: mockTrendingTokenData,
-        isLoading: false,
-        error: null,
-        fetch: mockFetchTrendingTokens,
-      });
-      mockUseHomepageTrendingTransactionActiveAbTests.mockReturnValue([
-        {
-          key: 'homeTMCU470AbtestTrendingSections',
-          value: 'trendingSections',
-          key_value_pair: 'homeTMCU470AbtestTrendingSections=trendingSections',
-        },
-      ]);
-
-      renderWithProvider(
-        <TokensSection
-          sectionIndex={0}
-          totalSectionsLoaded={1}
-          mode="trending-only"
-        />,
-      );
-
-      expect(
-        screen.getByTestId('trending-token-row-eip155:1/slip44:60-ab'),
-      ).toBeOnTheScreen();
     });
 
     it('calls fetchTrendingTokens on refresh', async () => {
