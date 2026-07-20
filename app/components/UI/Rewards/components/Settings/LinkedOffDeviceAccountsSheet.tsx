@@ -29,6 +29,7 @@ import {
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 
 const styles = StyleSheet.create({
   list: {
@@ -64,24 +65,31 @@ const LinkedOffDeviceAccountsSheet: React.FC<
   LinkedOffDeviceAccountsSheetProps
 > = ({ accounts, onClose }) => {
   const navigation = useNavigation();
+  const { openSupportWithConsent } = useSupportConsent();
 
   const handleContactSupport = useCallback(() => {
-    let supportUrl;
+    let betaSupportUrl = '';
 
     ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    supportUrl = 'https://intercom.help/internal-beta-testing/en/';
+    betaSupportUrl = 'https://intercom.help/internal-beta-testing/en/';
     ///: END:ONLY_INCLUDE_IF
 
-    supportUrl = supportUrl || METAMASK_SUPPORT_URL;
+    const openWebview = (url: string) =>
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url,
+          title: strings('app_settings.contact_support'),
+        },
+      });
 
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: supportUrl,
-        title: strings('app_settings.contact_support'),
-      },
-    });
-  }, [navigation]);
+    if (betaSupportUrl) {
+      openWebview(betaSupportUrl);
+      return;
+    }
+
+    openSupportWithConsent(openWebview, METAMASK_SUPPORT_URL);
+  }, [navigation, openSupportWithConsent]);
 
   const handleCopy = useCallback(async (address: string) => {
     try {

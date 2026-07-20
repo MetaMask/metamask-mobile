@@ -139,9 +139,19 @@ jest.mock('../../../../../core/ClipboardManager', () => ({
   default: { setString: jest.fn().mockResolvedValue(undefined) },
 }));
 
-// Mock @metamask/controller-utils toHex
+// Mock @metamask/controller-utils toHex, keeping the rest intact so
+// transitively-loaded modules (e.g. transaction-controller via Engine) still
+// find exports like ChainId.
 jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
   toHex: jest.fn(() => '0x1'),
+}));
+
+const mockOpenSupportWithConsent = jest.fn();
+jest.mock('../../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
 }));
 
 // ─── Test fixtures ────────────────────────────────────────────────────────────
@@ -300,7 +310,10 @@ describe('LinkedOffDeviceAccountsSheet', () => {
   });
 
   describe('Interactions', () => {
-    it('navigates to the SimpleWebview with the support URL when "let us know" is pressed', () => {
+    // Jest treats ONLY_INCLUDE_IF(beta) as a plain comment, so this branch (which
+    // in a real beta build only compiles for the beta build type) always executes
+    // here, opening the intercom URL directly rather than the consent flow.
+    it('navigates to the SimpleWebview with the beta support URL when "let us know" is pressed', () => {
       const { getByText } = render(
         <LinkedOffDeviceAccountsSheet
           accounts={[mockAccount1]}
@@ -310,12 +323,15 @@ describe('LinkedOffDeviceAccountsSheet', () => {
       fireEvent.press(
         getByText('rewards.settings.off_device_accounts_sheet_let_us_know'),
       );
+
       expect(mockNavigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
-        params: expect.objectContaining({
+        params: {
+          url: 'https://intercom.help/internal-beta-testing/en/',
           title: 'app_settings.contact_support',
-        }),
+        },
       });
+      expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
     });
 
     it('navigates exactly once per press', () => {

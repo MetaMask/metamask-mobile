@@ -41,6 +41,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../selec
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { useSupportConsent } from '../../../hooks/useSupportConsent';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipRefereeDashboard } from '../hooks/useVipRefereeDashboard';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
@@ -82,6 +83,7 @@ const RewardsVipRefereeViewContent: React.FC = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openSupportWithConsent } = useSupportConsent();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const accountAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -132,25 +134,44 @@ const RewardsVipRefereeViewContent: React.FC = () => {
       return;
     }
 
-    let supportBaseUrl;
+    const openWebview = (url: string) =>
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: {
+          url,
+          title: strings('app_settings.contact_support'),
+        },
+      });
 
+    let betaSupportUrl = '';
     ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    supportBaseUrl = 'https://intercom.help/internal-beta-testing/en/';
+    betaSupportUrl = 'https://intercom.help/internal-beta-testing/en/';
     ///: END:ONLY_INCLUDE_IF
 
-    supportBaseUrl = supportBaseUrl || METAMASK_SUPPORT_URL;
+    if (betaSupportUrl) {
+      openWebview(buildVipPrioritySupportUrl(accountAddress, betaSupportUrl));
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
+      );
+      return;
+    }
 
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: buildVipPrioritySupportUrl(accountAddress, supportBaseUrl),
-        title: strings('app_settings.contact_support'),
-      },
-    });
+    const vipSupportUrl = buildVipPrioritySupportUrl(
+      accountAddress,
+      METAMASK_SUPPORT_URL,
+    );
+
+    openSupportWithConsent(openWebview, vipSupportUrl);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
     );
-  }, [accountAddress, createEventBuilder, navigation, trackEvent]);
+  }, [
+    accountAddress,
+    createEventBuilder,
+    navigation,
+    trackEvent,
+    openSupportWithConsent,
+  ]);
 
   const [isSwapsVolumeInfoVisible, setIsSwapsVolumeInfoVisible] =
     useState(false);

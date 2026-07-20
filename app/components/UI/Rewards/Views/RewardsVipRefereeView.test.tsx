@@ -44,6 +44,15 @@ jest.mock('../utils', () => ({
   exitRewardsFlow: (...args: unknown[]) => mockExitRewardsFlow(...args),
 }));
 
+const mockOpenSupportWithConsent = jest.fn(
+  (open: (url: string) => void, baseUrl?: string) => open(baseUrl ?? ''),
+);
+jest.mock('../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -497,6 +506,9 @@ describe('RewardsVipRefereeView', () => {
     ).toBeDisabled();
   });
 
+  // Jest treats ONLY_INCLUDE_IF(beta) as a plain comment, so this branch (which
+  // in a real beta build only compiles for the beta build type) always executes
+  // here, opening the beta Intercom URL directly rather than the consent flow.
   it('opens the priority support webview tagged as VIP with the account address on press', () => {
     const { getByTestId } = render(<RewardsVipRefereeView />);
 
@@ -517,6 +529,7 @@ describe('RewardsVipRefereeView', () => {
       MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
     );
     expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
   });
 
   it('does not open support when the selected account address is missing', () => {
