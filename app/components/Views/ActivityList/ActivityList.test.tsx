@@ -370,6 +370,9 @@ jest.mock('../../hooks/useBlockExplorer', () => ({
 }));
 
 jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
+  ...jest.requireActual(
+    '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash',
+  ),
   useBridgeHistoryItemBySrcTxHash: jest.fn(() => ({
     bridgeHistoryItemsBySrcTxHash: {
       '0xconfirmed': {

@@ -68,7 +68,10 @@ import { useStyles } from '../../hooks/useStyles';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
-import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
+import {
+  useBridgeHistoryItemBySrcTxHash,
+  findBridgeHistoryItemBySrcTxHash,
+} from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 import {
   handleUnifiedSwapsTxHistoryItemClick,
   isBridgeTxHistoryItemBridge,
@@ -216,19 +219,8 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
     const getBridgeHistoryItemByHash = useCallback(
-      (hash?: string) => {
-        if (!hash) {
-          return undefined;
-        }
-
-        const normalizedHash = hash.toLowerCase();
-        return (
-          bridgeHistoryItemsBySrcTxHash[hash] ??
-          Object.entries(bridgeHistoryItemsBySrcTxHash).find(
-            ([key]) => key.toLowerCase() === normalizedHash,
-          )?.[1]
-        );
-      },
+      (hash?: string) =>
+        findBridgeHistoryItemBySrcTxHash(bridgeHistoryItemsBySrcTxHash, hash),
       [bridgeHistoryItemsBySrcTxHash],
     );
 

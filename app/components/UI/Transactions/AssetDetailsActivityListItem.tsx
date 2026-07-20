@@ -11,7 +11,10 @@ import {
 } from '../ActivityListItemRow/ActivityListItemRow';
 import { type ActivityListItem } from '../../../util/activity-adapters';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
+import {
+  useBridgeHistoryItemBySrcTxHash,
+  findBridgeHistoryItemBySrcTxHash,
+} from '../Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity-details routing; route-isolation backlog
 import { getActivityDetailsRoute } from '../../Views/ActivityList/getActivityDetailsRoute';
@@ -106,10 +109,11 @@ export const AssetDetailsActivityListItem = ({
     tx,
   ]);
 
-  const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
-  const bridgeHistoryItem = activityItem.hash
-    ? bridgeHistory?.[activityItem.hash]
-    : undefined;
+  const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
+  const bridgeHistoryItem = findBridgeHistoryItemBySrcTxHash(
+    bridgeHistoryItemsBySrcTxHash,
+    activityItem.hash,
+  );
 
   const handlePress = useCallback(
     (item: ActivityListItem) => {
