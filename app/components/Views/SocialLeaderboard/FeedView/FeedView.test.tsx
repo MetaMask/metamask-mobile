@@ -154,7 +154,9 @@ jest.mock('../TraderPositionView/components/QuickBuy', () => {
 });
 
 let mockAbTestVariant: { openSwaps: boolean } = { openSwaps: false };
-const mockUseABTest = jest.fn(() => ({ variant: mockAbTestVariant }));
+const mockUseABTest = jest.fn((..._args: unknown[]) => ({
+  variant: mockAbTestVariant,
+}));
 jest.mock('../../../../hooks/useABTest', () => ({
   useABTest: (...args: unknown[]) => mockUseABTest(...args),
 }));

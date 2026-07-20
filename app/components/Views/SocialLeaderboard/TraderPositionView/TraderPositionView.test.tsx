@@ -129,7 +129,7 @@ jest.mock('./components/QuickBuy', () => ({
 // control (Buy opens QuickBuy) for existing behavior; individual tests can
 // override the variant. These hooks reach into bridge selectors / network, so
 // they're stubbed here to keep the minimal-store test deterministic.
-const mockUseABTest = jest.fn(() => ({
+const mockUseABTest = jest.fn((..._args: unknown[]) => ({
   variant: { openSwaps: false },
   variantName: 'control',
   isActive: true,
