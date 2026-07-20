@@ -147,6 +147,16 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
     accountsApiUrl: 'https://accounts.api.cx.metamask.io',
     onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
   },
+  immersve: {
+    network: 'base-sepolia',
+    cardProgramId: '',
+    fundingChannelId: '',
+    kycType: 'immersve-conducted',
+    kycHiddenSteps: ['region', 'contact-channels', 'expected-spend'],
+    spendableCurrency: 'USD',
+    spendableAmount: '0',
+    countries: ['GB'],
+  },
 };
 
 export interface GateVersionedFeatureFlag {
@@ -157,6 +167,18 @@ export interface GateVersionedFeatureFlag {
 export interface CardFeatureFlag {
   constants?: Record<string, string>;
   chains?: Record<string, SupportedChain>;
+  immersve?: ImmersveProgramConfig;
+}
+
+export interface ImmersveProgramConfig {
+  network?: string;
+  cardProgramId?: string;
+  fundingChannelId?: string;
+  kycType?: string;
+  kycHiddenSteps?: string[];
+  spendableCurrency?: string;
+  spendableAmount?: string;
+  countries?: string[];
 }
 
 export interface SupportedChain {
@@ -240,6 +262,16 @@ export const selectCardFiatCreditFeatureEnabled = createSelector(
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.cardFiatCreditFeature as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+export const selectImmersveOnboardingEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.immersveOnboardingEnabled as unknown as GateVersionedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
