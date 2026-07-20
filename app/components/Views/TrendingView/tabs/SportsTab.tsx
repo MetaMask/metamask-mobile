@@ -251,7 +251,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     <FlashList<PredictMarketType>
       data={listData}
       renderItem={renderActiveMarketItem}
-      keyExtractor={(_, index) => `all_sports-${activeKey}-${index}`}
+      keyExtractor={(item) => `all_sports-${activeKey}-${item.id}`}
       getItemType={() => 'market'}
       ListHeaderComponent={listHeader}
       ListFooterComponent={listFooter}
