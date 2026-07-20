@@ -226,7 +226,7 @@ export const TokenListItem = React.memo(
       queryFn: () => getCaipAssetIdForToken(asset),
       enabled: shouldResolveCaipForSecurityBadge && Boolean(asset?.chainId),
       staleTime: Infinity,
-      cacheTime: Infinity,
+      gcTime: Infinity,
     });
 
     const chainId = asset?.chainId as Hex;

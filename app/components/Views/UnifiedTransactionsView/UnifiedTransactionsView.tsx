@@ -124,7 +124,7 @@ const UnifiedTransactionsView = ({
     data: evmTransactions,
     fetchNextPage,
     hasNextPage,
-    isInitialLoading,
+    isLoading: isInitialLoading,
     isFetchingNextPage,
     refetch,
   } = useTransactionsQuery();

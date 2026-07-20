@@ -1,9 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  useInfiniteQuery,
-  type UseInfiniteQueryOptions,
-} from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import type { V1AccountTransactionsResponse } from '@metamask/core-backend';
 import { apiClient } from '../../../../core/apiClient';
@@ -78,11 +75,10 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     ACCOUNT_ACTIVITY_QUERY_OPTIONS,
   );
 
-  // `apiClient` is built against query-core v5; this repo's react-query is v4, so
-  // the query options aren't nominally compatible. The shapes match at runtime.
   const query = useInfiniteQuery({
     queryKey: queryOptions.queryKey,
-    queryFn: ({ pageParam }: { pageParam?: string }) =>
+    initialPageParam: undefined as string | undefined,
+    queryFn: ({ pageParam }) =>
       apiClient.accounts.fetchV1AccountTransactions(moneyAddress, {
         ...ACCOUNT_ACTIVITY_QUERY_OPTIONS,
         cursor: pageParam,
@@ -97,10 +93,7 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     enabled,
     staleTime: 5 * MINUTE,
     retry: false,
-  } as unknown as UseInfiniteQueryOptions<
-    V1AccountTransactionsResponse,
-    Error
-  >);
+  });
 
   const pages = query.data?.pages ?? EMPTY_PAGES;
 
@@ -161,9 +154,8 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     hasMore: hasNextPage === true && !isError,
     loadMore,
     isLoadingMore: isFetchingNextPage,
-    // `isInitialLoading` (not `isLoading`) so a disabled query never reports
-    // loading and a background refetch doesn't flash the spinner.
-    isLoading: query.isInitialLoading,
+    // isLoading is false for disabled queries and background refetches in v5.
+    isLoading: query.isLoading,
     error: query.isError,
     refetch: query.refetch,
   };

@@ -236,7 +236,7 @@ describe('useTokenWatchlistQuery', () => {
         wrapper: Wrapper,
       });
 
-      // TanStack Query v4 reports `status: 'loading'` whenever data is
+      // TanStack Query v5 reports `status: 'pending'` whenever data is
       // undefined, so the canonical "disabled" signal is `fetchStatus`
       // plus the queryFn never being called.
       expect(result.current.fetchStatus).toStrictEqual('idle');

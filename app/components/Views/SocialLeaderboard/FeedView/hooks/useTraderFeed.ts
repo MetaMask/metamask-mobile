@@ -4,7 +4,6 @@ import {
   useInfiniteQuery,
   useQueryClient,
   type InfiniteData,
-  type UseInfiniteQueryOptions,
 } from '@tanstack/react-query';
 import type {
   FeedResponse,
@@ -128,7 +127,8 @@ export const useTraderFeed = (
 
   const query = useInfiniteQuery({
     queryKey,
-    queryFn: ({ pageParam }: { pageParam?: string }) => {
+    initialPageParam: undefined as string | undefined,
+    queryFn: ({ pageParam }) => {
       // Call as a member expression so the messenger keeps its `this` binding;
       // aliasing `.call` into a local detaches it and breaks action lookup.
       const messenger = Engine.controllerMessenger as unknown as {
@@ -150,7 +150,7 @@ export const useTraderFeed = (
       lastPage.pagination?.olderCursor ?? undefined,
     enabled: enabled && isUnlocked,
     retry: false,
-  } as unknown as UseInfiniteQueryOptions<FeedResponse, Error>);
+  });
 
   const pages = query.data?.pages ?? undefined;
 
@@ -214,9 +214,8 @@ export const useTraderFeed = (
     sections,
     items,
     hasLoadedItems,
-    // `isInitialLoading` (not `isLoading`) so a disabled query never reports
-    // loading and a background refetch doesn't flash the skeleton.
-    isLoading: query.isInitialLoading,
+    // isLoading is false for disabled queries and background refetches in v5.
+    isLoading: query.isLoading,
     isFetchingNextPage,
     hasNextPage: hasNextPage === true && !isError,
     loadMore,

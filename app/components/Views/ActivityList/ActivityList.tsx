@@ -237,7 +237,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       data: evmTransactions,
       fetchNextPage,
       hasNextPage,
-      isInitialLoading,
+      isLoading: isInitialLoading,
       isFetchingNextPage,
       refetch,
     } = useTransactionsQuery();

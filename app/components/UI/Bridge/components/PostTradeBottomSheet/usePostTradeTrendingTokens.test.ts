@@ -27,7 +27,7 @@ const mockGetTrendingTokens = jest.mocked(getTrendingTokens);
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: Infinity } },
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
     logger: {
       log: () => undefined,
       warn: () => undefined,

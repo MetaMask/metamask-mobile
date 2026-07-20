@@ -5,6 +5,7 @@ import {
   useQueries,
   useQuery,
   useQueryClient,
+  type InfiniteData,
 } from '@tanstack/react-query';
 import { predictQueries } from '../queries';
 import {
@@ -189,13 +190,17 @@ export const usePredictWorldCupMarkets = ({
 
   const infiniteQuery = useInfiniteQuery<
     Awaited<ReturnType<typeof fetchPredictWorldCupMarketsPage>>,
-    Error
+    Error,
+    InfiniteData<Awaited<ReturnType<typeof fetchPredictWorldCupMarketsPage>>>,
+    ReturnType<typeof predictQueries.worldCup.keys.infiniteMarkets>,
+    string | undefined
   >({
     queryKey: predictQueries.worldCup.keys.infiniteMarkets(
       marketDataConfig.tabKey,
       marketDataConfig.queryParams,
       marketDataConfig.pageSize,
     ),
+    initialPageParam: undefined,
     queryFn: ({ pageParam }) =>
       fetchInfiniteWorldCupMarketsPage({
         queryParams: marketDataConfig.queryParams,
@@ -296,6 +301,7 @@ const prefetchWorldCupTabMarkets = ({
         marketDataConfig.queryParams,
         marketDataConfig.pageSize,
       ),
+      initialPageParam: undefined as string | undefined,
       queryFn: ({ pageParam }) =>
         fetchInfiniteWorldCupMarketsPage({
           queryParams: marketDataConfig.queryParams,

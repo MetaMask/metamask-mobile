@@ -35,7 +35,6 @@ export const useTransactionsQuery = () => {
     [evmAddress, excludedTxHashes],
   );
 
-  // @ts-expect-error apiClient returns v5 types, repo still in v4
   return useInfiniteQuery({
     ...queryOptions,
     select: selectFn,
