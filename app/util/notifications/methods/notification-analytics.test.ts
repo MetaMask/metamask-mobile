@@ -55,7 +55,7 @@ describe('notificationAnalyticsProperties', () => {
     const notification = {
       id: 'notification-1',
       type: 'eth_received',
-      notification_type: 'on-chain',
+      notification_type: 'wallet_activity',
       payload: { chain_id: '1', data: { kind: 'eth_received' } },
     } as unknown as INotification;
 

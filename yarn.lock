@@ -9818,17 +9818,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/notification-services-controller@npm:@metamask-previews/notification-services-controller@25.0.0-preview-1590150f2":
-  version: 25.0.0-preview-1590150f2
-  resolution: "@metamask-previews/notification-services-controller@npm:25.0.0-preview-1590150f2"
+"@metamask/notification-services-controller@npm:@metamask-previews/notification-services-controller@25.0.0-preview-069d5ced2":
+  version: 25.0.0-preview-069d5ced2
+  resolution: "@metamask-previews/notification-services-controller@npm:25.0.0-preview-069d5ced2"
   dependencies:
     "@contentful/rich-text-html-renderer": "npm:^16.5.2"
-    "@metamask/authenticated-user-storage": "npm:^3.0.0"
+    "@metamask/authenticated-user-storage": "npm:^3.0.1"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/keyring-controller": "npm:^27.1.0"
     "@metamask/messenger": "npm:^2.0.0"
-    "@metamask/profile-sync-controller": "npm:^28.2.0"
+    "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/utils": "npm:^11.11.0"
     bignumber.js: "npm:^9.1.2"
     firebase: "npm:^11.2.0"
@@ -9836,7 +9836,7 @@ __metadata:
     loglevel: "npm:^1.8.1"
     semver: "npm:^7.6.3"
     uuid: "npm:^8.3.2"
-  checksum: 10/b876774070dc75e378456721f4ee3cf18080baedf7e5c3a8f580e9ce2b4bfc27ad5568cb8e0974f29cc35a71f87ce362b3abeceb32d064fc8e7ad3ce8165604c
+  checksum: 10/9b3f3fe39f89933a16f0a2bb60363b584a1b59feb5efda2eb81fa01786a8cea72f021552d5114f55576a59fcfae8e914858733500bae2a55f34ad0fe6911f243
   languageName: node
   linkType: hard
 
@@ -36044,7 +36044,7 @@ __metadata:
     "@metamask/native-utils": "npm:^0.8.0"
     "@metamask/network-controller": "npm:^34.0.0"
     "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch"
-    "@metamask/notification-services-controller": "npm:@metamask-previews/notification-services-controller@25.0.0-preview-1590150f2"
+    "@metamask/notification-services-controller": "npm:@metamask-previews/notification-services-controller@25.0.0-preview-069d5ced2"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
     "@metamask/perps-controller": "npm:^9.2.1"
