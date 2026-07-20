@@ -113,14 +113,12 @@ export interface SavePercentAlertParams {
   recurring: boolean;
 }
 
-/**
- * Request body for `PATCH /v1/alerts/percent-change/:id`. At least one field
- * is required. `period`/`direction` are immutable server-side and are
- * intentionally absent here.
- */
+/** Request body for `PATCH /v1/alerts/percent-change/:id`. At least one field is required. */
 export interface UpdatePercentAlertParams {
   active?: boolean;
   threshold?: number;
+  period?: AlertPeriod;
+  direction?: AlertDirection;
   recurring?: boolean;
 }
 

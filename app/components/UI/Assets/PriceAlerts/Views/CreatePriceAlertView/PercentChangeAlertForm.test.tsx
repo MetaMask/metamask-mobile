@@ -189,7 +189,7 @@ describe('PercentChangeAlertForm', () => {
     ).toHaveTextContent('An alert with this configuration already exists.');
   });
 
-  it('prepopulates edit values and locks immutable form controls', () => {
+  it('prepopulates edit values and disables save until something changes', () => {
     const screen = renderForm({
       editingAlert: editingPercentAlert,
       existingPercentAlerts: [editingPercentAlert],
@@ -200,20 +200,26 @@ describe('PercentChangeAlertForm', () => {
     ).toHaveTextContent('10.5%');
     expect(
       screen.getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_1H),
-    ).toBeDisabled();
+    ).not.toBeDisabled();
     expect(
       screen.getByTestId(CreatePriceAlertTestIds.DIRECTION_TOGGLE),
-    ).toBeDisabled();
+    ).not.toBeDisabled();
     expect(
       screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).toBeDisabled();
   });
 
-  it('updates a percent alert after recurrence changes', async () => {
+  it('updates a percent alert after period, direction, and recurrence change', async () => {
     const screen = renderForm({
       editingAlert: editingPercentAlert,
       existingPercentAlerts: [editingPercentAlert],
     });
+    fireEvent.press(
+      screen.getByTestId(CreatePriceAlertTestIds.DIRECTION_TOGGLE),
+    );
+    fireEvent.press(
+      screen.getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_24H),
+    );
     fireEvent(
       screen.getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE),
       'valueChange',
@@ -230,8 +236,8 @@ describe('PercentChangeAlertForm', () => {
     expect(mockSubmitPercent).toHaveBeenCalledWith({
       asset: 'eip155:1/slip44:60',
       threshold: 10.5,
-      period: '1h',
-      direction: 'down',
+      period: '24h',
+      direction: 'up',
       recurring: false,
     });
   });

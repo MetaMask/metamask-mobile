@@ -549,12 +549,16 @@ describe('updatePercentAlert', () => {
     expect(init.body).toBe(JSON.stringify(params));
   });
 
-  it('does not send period or direction (immutable server-side)', async () => {
-    await updatePercentAlert('percent-42', { active: true });
+  it('accepts period and direction in the PATCH body', async () => {
+    const params = {
+      threshold: 15,
+      period: '24h' as const,
+      direction: 'down' as const,
+      recurring: true,
+    };
+    await updatePercentAlert('percent-42', params);
     const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
-    const body = JSON.parse(init.body as string);
-    expect(body.period).toBeUndefined();
-    expect(body.direction).toBeUndefined();
+    expect(JSON.parse(init.body as string)).toEqual(params);
   });
 });
 
@@ -692,7 +696,7 @@ describe('useSubmitPercentAlert — create mode (no editingAlert)', () => {
 });
 
 describe('useSubmitPercentAlert — edit mode (with editingAlert)', () => {
-  it('PATCHes the correct alert id with only threshold and recurring', async () => {
+  it('PATCHes the correct alert id with threshold, period, direction, and recurring', async () => {
     const alert = makePercentAlert({ id: 'percent-42' });
     const { Wrapper } = createWrapper();
     const { result } = renderHook(() => useSubmitPercentAlert(alert), {
@@ -703,8 +707,8 @@ describe('useSubmitPercentAlert — edit mode (with editingAlert)', () => {
       await result.current.submit({
         asset: 'eip155:1/slip44:60',
         threshold: 25,
-        period: '1h',
-        direction: 'up',
+        period: '24h',
+        direction: 'down',
         recurring: false,
       });
     });
@@ -714,6 +718,8 @@ describe('useSubmitPercentAlert — edit mode (with editingAlert)', () => {
     expect(init.method).toBe('PATCH');
     expect(JSON.parse(init.body as string)).toEqual({
       threshold: 25,
+      period: '24h',
+      direction: 'down',
       recurring: false,
     });
   });

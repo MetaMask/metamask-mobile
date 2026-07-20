@@ -96,6 +96,8 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
   const isUnchanged =
     isEditing &&
     percentValue === editingAlert?.threshold &&
+    period === editingAlert?.period &&
+    direction === editingAlert?.direction &&
     isRecurring === editingAlert?.recurring;
 
   const { submit, isSubmitting } = useSubmitPercentAlert(editingAlert);
@@ -119,7 +121,12 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
           recurring: isRecurring,
         }),
       editingAlert,
-      patch: { threshold: percentValue, recurring: isRecurring },
+      patch: {
+        threshold: percentValue,
+        period,
+        direction,
+        recurring: isRecurring,
+      },
       analyticsProperties: {
         alert_type: PriceAlertAnalytics.TYPE.PERCENT,
         alert_period: period,
@@ -159,7 +166,6 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
   const directionToggle = (
     <TouchableOpacity
       onPress={handleToggleDirection}
-      disabled={isEditing}
       testID={CreatePriceAlertTestIds.DIRECTION_TOGGLE}
       style={tw.style(
         'mr-2 h-10 w-10 rounded-full bg-muted items-center justify-center',
@@ -223,11 +229,7 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
         />
 
         <Box twClassName="mt-4 w-full" alignItems={BoxAlignItems.Center}>
-          <AlertPeriodToggle
-            value={period}
-            onChange={setPeriod}
-            isDisabled={isEditing}
-          />
+          <AlertPeriodToggle value={period} onChange={setPeriod} />
         </Box>
       </Box>
     </AlertFormShell>

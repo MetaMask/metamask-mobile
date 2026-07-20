@@ -141,7 +141,12 @@ export const useSubmitPercentAlert = (editingAlert?: PercentChangeAlert) =>
   useSubmitAlert<SavePercentAlertParams>(
     async ({ asset, threshold, period, direction, recurring }) => {
       const response = editingAlert
-        ? await updatePercentAlert(editingAlert.id, { threshold, recurring })
+        ? await updatePercentAlert(editingAlert.id, {
+            threshold,
+            period,
+            direction,
+            recurring,
+          })
         : await createPercentAlert({
             asset,
             threshold,

@@ -281,9 +281,11 @@ describeForPlatforms('CreatePriceAlertView', () => {
       ).toBeDisabled();
     });
 
-    it('locks immutable controls and PATCHes editable percent fields', async () => {
+    it('locks alert type and PATCHes updated percent fields including period and direction', async () => {
       const scope = setupPercentPriceAlertsPatchMock(editingPercentAlert.id, {
         threshold: 10.5,
+        period: '24h',
+        direction: 'up',
         recurring: false,
       });
       const { getByTestId } = renderCreatePriceAlertViewWithRoutes({
@@ -293,6 +295,8 @@ describeForPlatforms('CreatePriceAlertView', () => {
         },
       });
 
+      fireEvent.press(getByTestId(CreatePriceAlertTestIds.DIRECTION_TOGGLE));
+      fireEvent.press(getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_24H));
       fireEvent(
         getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE),
         'valueChange',
@@ -307,13 +311,10 @@ describeForPlatforms('CreatePriceAlertView', () => {
       ).toBeDisabled();
       expect(
         getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_1H),
-      ).toBeDisabled();
-      expect(
-        getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_24H),
-      ).toBeDisabled();
+      ).not.toBeDisabled();
       expect(
         getByTestId(CreatePriceAlertTestIds.DIRECTION_TOGGLE),
-      ).toBeDisabled();
+      ).not.toBeDisabled();
 
       await act(async () => {
         fireEvent.press(getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON));

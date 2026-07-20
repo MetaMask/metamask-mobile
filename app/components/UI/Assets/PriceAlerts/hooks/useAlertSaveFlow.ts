@@ -12,7 +12,12 @@ import { useTheme } from '../../../../../util/theme';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { priceAlertsQueryKey } from '../api';
-import { type Alert, PriceAlertAnalytics } from '../constants';
+import {
+  type Alert,
+  type AlertDirection,
+  type AlertPeriod,
+  PriceAlertAnalytics,
+} from '../constants';
 
 interface UseAlertSaveFlowParams {
   assetId: string;
@@ -21,7 +26,13 @@ interface UseAlertSaveFlowParams {
   fromManage?: boolean;
 }
 
-type AlertPatch = Partial<Pick<Alert, 'threshold' | 'recurring' | 'active'>>;
+type AlertPatch = Partial<{
+  threshold: number;
+  recurring: boolean;
+  active: boolean;
+  period: AlertPeriod;
+  direction: AlertDirection;
+}>;
 
 /** Fields shared by create/update payloads; type-specific extras ride along. */
 type AlertAnalyticsProperties = {

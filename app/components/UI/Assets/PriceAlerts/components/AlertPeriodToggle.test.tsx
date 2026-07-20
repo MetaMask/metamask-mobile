@@ -82,21 +82,4 @@ describe('AlertPeriodToggle', () => {
     expect(mockOnChange).not.toHaveBeenCalled();
     expect(mockPlaySelection).not.toHaveBeenCalled();
   });
-
-  it('ignores presses when disabled', () => {
-    const screen = render(
-      <AlertPeriodToggle value="24h" onChange={mockOnChange} isDisabled />,
-    );
-
-    fireEvent.press(
-      screen.getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_1H),
-    );
-
-    expect(
-      screen.getByTestId(CreatePriceAlertTestIds.PERIOD_SEGMENT_1H).props
-        .accessibilityState?.disabled,
-    ).toBe(true);
-    expect(mockOnChange).not.toHaveBeenCalled();
-    expect(mockPlaySelection).not.toHaveBeenCalled();
-  });
 });

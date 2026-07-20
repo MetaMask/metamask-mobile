@@ -18,8 +18,6 @@ const styles = StyleSheet.create({
 interface AlertPeriodToggleProps {
   value: AlertPeriod;
   onChange: (value: AlertPeriod) => void;
-  /** Locks the toggle — period is immutable once an alert exists (edit mode). */
-  isDisabled?: boolean;
 }
 
 const periodTestId = (period: AlertPeriod) =>
@@ -34,7 +32,6 @@ const periodTestId = (period: AlertPeriod) =>
 const AlertPeriodToggle: React.FC<AlertPeriodToggleProps> = ({
   value,
   onChange,
-  isDisabled = false,
 }) => {
   const { colors } = useTheme();
   const [firstPeriod, secondPeriod] = ALERT_PERIODS;
@@ -60,7 +57,6 @@ const AlertPeriodToggle: React.FC<AlertPeriodToggleProps> = ({
       value={value}
       options={options}
       onChange={onChange}
-      isDisabled={isDisabled}
       testID={CreatePriceAlertTestIds.PERIOD_SEGMENT}
       containerTwClassName="border border-muted rounded-full p-1 self-center"
       pillTwClassName="rounded-full px-3 py-0.5"
