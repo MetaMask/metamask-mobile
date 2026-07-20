@@ -9,27 +9,26 @@ const PERP_TRADE_TRANSACTION = 'Perp Trade Transaction';
  * Emitted by production `TradingService` on successful `placeOrder` (E2E only
  * mocks the provider layer, same pattern as other analytics smoke specs).
  */
-export const perpsTradeTransactionExecutedExpectations: AnalyticsExpectations =
-  {
-    eventNames: [PERP_TRADE_TRANSACTION],
-    events: [
-      {
-        name: PERP_TRADE_TRANSACTION,
-        containProperties: {
-          status: 'executed',
-          asset: 'ETH',
-          direction: 'long',
-          order_type: 'market',
-        },
-        requiredProperties: {
-          status: 'string',
-          asset: 'string',
-          direction: 'string',
-          order_type: 'string',
-          leverage: 'number',
-          order_size: 'number',
-          completion_duration: 'number',
-        },
+export const perpsTradeTransactionExecutedExpectations: AnalyticsExpectations = {
+  eventNames: [PERP_TRADE_TRANSACTION],
+  events: [
+    {
+      name: PERP_TRADE_TRANSACTION,
+      containProperties: {
+        status: 'executed',
+        asset: 'ETH',
+        direction: 'long',
+        order_type: 'market',
       },
-    ],
-  };
+      requiredProperties: {
+        status: 'string',
+        asset: 'string',
+        direction: 'string',
+        order_type: 'string',
+        leverage: 'number',
+        order_size: 'number',
+        completion_duration: 'number',
+      },
+    },
+  ],
+};
