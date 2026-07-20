@@ -6,11 +6,14 @@ This directory contains playwright-based E2E tests for MetaMask Connect flows.
 
 | File                            | Description                                                   |
 | ------------------------------- | ------------------------------------------------------------- |
-| `connection-evm.spec.js`        | Legacy EVM connection via Browser Playground in Chrome        |
-| `connection-multichain.spec.js` | Multichain API connection via Browser Playground in Chrome    |
-| `connection-wagmi.spec.js`      | Wagmi connector via Browser Playground in Chrome              |
-| `multichain-rn-connect.spec.js` | **Multichain + Solana via the React Native Playground APK**   |
-| `legacy-evm-rn-connect.spec.js` | **Legacy EVM connection via the React Native Playground APK** |
+| `connection-evm*.spec.ts`       | Legacy EVM connection via Browser Playground in Chrome (skipped) |
+| `connection-wagmi*.spec.ts`     | Wagmi connector via Browser Playground in Chrome (skipped)    |
+| `multichain-rn-*.spec.ts`       | Multichain via the React Native Playground APK (skipped)      |
+| `legacy-evm-rn-connect.spec.ts` | Legacy EVM via the React Native Playground APK (skipped)      |
+
+> The active multichain browser connect test lives in Appium smoke:
+> [`tests/smoke-appium/mm-connect/connection-multichain.spec.ts`](../../smoke-appium/mm-connect/connection-multichain.spec.ts)
+> (`SmokeMMConnect`).
 
 ## React Native Playground Setup
 
@@ -319,14 +322,18 @@ increasing the wallet's auto-lock timeout in Settings before running.
 
 ## Browser Playground Tests
 
-The other three spec files (`connection-evm`, `connection-multichain`,
-`connection-wagmi`) use a **local web server** that serves the Browser
-Playground dApp in Chrome. These tests do not require a separate APK — the dApp
-server is started automatically in `test.beforeAll`.
+The remaining browser-based specs under this directory (`connection-evm*`,
+`connection-wagmi*`, and related multiclient specs) use a **local web server**
+that serves the Browser Playground dApp in Chrome. They are currently
+`test.skip`'d pending [WAPI-1511](https://consensyssoftware.atlassian.net/browse/WAPI-1511).
+
+The active multichain browser connect coverage was migrated to Appium smoke:
+[`tests/smoke-appium/mm-connect/`](../../smoke-appium/mm-connect/).
 
 On **BrowserStack**, the tunnel (**BrowserStack Local**) must be running and
-`BROWSERSTACK_LOCAL=true` must be set so devices can reach that server (see the
-parent README). CI enables the tunnel **only** for mm-connect performance jobs.
+`BROWSERSTACK_LOCAL=true` must be set so devices can reach the local dapp
+server (see the parent README). CI enables the tunnel **only** for mm-connect
+performance jobs.
 
 See the [parent README](../README.md) for details on BrowserStack Local setup
 and other run configurations.

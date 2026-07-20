@@ -89,8 +89,8 @@ The test suite is configured in `tests/playwright.config.ts`, which defines mult
 | `browserstack-ios`                | iOS      | BrowserStack    | Login tests only           |
 | `android-onboarding`              | Android  | BrowserStack    | Onboarding tests only      |
 | `ios-onboarding`                  | iOS      | BrowserStack    | Onboarding tests only      |
-| `mm-connect-android-local`        | Android  | Local Emulator  | connection-multichain only |
-| `mm-connect-android-browserstack` | Android  | BrowserStack    | connection-multichain only |
+| `mm-connect-android-local`        | Android  | Local Emulator  | MM Connect (remaining skipped specs) |
+| `mm-connect-android-browserstack` | Android  | BrowserStack    | MM Connect (remaining skipped specs) |
 | `mm-connect-ios-local`            | iOS      | Local Simulator | MM Connect tests           |
 | `mm-connect-ios-browserstack`     | iOS      | BrowserStack    | MM Connect tests           |
 
@@ -152,7 +152,7 @@ yarn run-playwright:mm-connect-android-bs-local # BrowserStack Android (alias; t
 
 **BrowserStack Local (tunnel) must be enabled** when you run mm-connect tests against BrowserStack: the suite serves the Browser Playground from your machine on port **8090**, and only the tunnel lets cloud devices reach it via `bs-local.com`. Start the tunnel **before** the test and set `BROWSERSTACK_LOCAL=true` (see step 2 below). Performance CI starts the tunnel and sets these variables **only for the mm-connect build type**; other performance jobs do not use the tunnel.
 
-The `connection-multichain` test starts a **local dapp server** (Browser Playground) on port **8090**. To run it on BrowserStack, the cloud device must reach that server via **BrowserStack Local** (tunnel).
+Browser-based MM Connect specs start a **local dapp server** (Browser Playground) on port **8090**. To run them on BrowserStack, the cloud device must reach that server via **BrowserStack Local** (tunnel). The active multichain browser connect test now lives under Appium smoke (`tests/smoke-appium/mm-connect/`).
 
 1. **Start the BrowserStack Local binary** (in a separate terminal):
    - Download from [BrowserStack Local](https://www.browserstack.com/docs/local-testing/binary-params) if needed.
@@ -324,13 +324,17 @@ Tests for prediction market features:
 
 ### MM Connect Tests (`tests/performance/mm-connect/`)
 
-Integration tests for MetaMask Connect:
+Remaining MetaMask Connect performance specs (mostly `test.skip` /
+[WAPI-1511](https://consensyssoftware.atlassian.net/browse/WAPI-1511)):
 
-- `connection-evm.spec.ts` - EVM connection performance
-- `connection-multichain.spec.ts` - Multichain connection performance
-- `connection-wagmi.spec.ts` - Wagmi integration performance
-- `multichain-rn-connect.spec.ts` - Multichain + Solana via the React Native Playground APK
-- `legacy-evm-rn-connect.spec.ts` - Legacy EVM connection via the React Native Playground APK
+- `connection-evm*.spec.ts` - EVM connection via Browser Playground
+- `connection-wagmi*.spec.ts` - Wagmi integration via Browser Playground
+- `connection-multiclient*.spec.ts` - Multiclient Multichain API flows
+- `multichain-rn-*.spec.ts` - Multichain via the React Native Playground APK
+- `legacy-evm-rn-connect.spec.ts` - Legacy EVM via the React Native Playground APK
+
+> Active multichain browser connect coverage was migrated to Appium smoke:
+> [`tests/smoke-appium/mm-connect/connection-multichain.spec.ts`](../smoke-appium/mm-connect/connection-multichain.spec.ts).
 
 > The RN playground tests require a separate APK built from the
 > [`playground/react-native-playground`](https://github.com/MetaMask/connect-monorepo/tree/main/playground/react-native-playground)

@@ -16,7 +16,11 @@ Requires a **main-e2e release** APK (`HAS_TEST_OVERRIDES=true`). See
 |------|--------|
 | `connection-multichain.spec.ts` | Active — Multichain API connect via Browser Playground |
 
-Remaining MMConnect specs still live under `tests/performance/mm-connect/`
+The former performance BrowserStack copy
+(`tests/performance/mm-connect/connection-multichain.spec.ts`) was removed
+when this smoke suite became the source of truth.
+
+Other MMConnect specs still live under `tests/performance/mm-connect/`
 (mostly `test.skip` / [WAPI-1511](https://consensyssoftware.atlassian.net/browse/WAPI-1511))
 until a follow-up migration.
 
