@@ -213,11 +213,13 @@ const mockSession: CardAuthSession = {
   },
 };
 
+const FIXED_NOW = new Date('2024-06-01T12:00:00.000Z').getTime();
+
 const mockTokenSet: CardAuthTokens = {
   accessToken: 'at',
   refreshToken: 'rt',
-  accessTokenExpiresAt: Date.now() + 3_600_000,
-  refreshTokenExpiresAt: Date.now() + 86_400_000,
+  accessTokenExpiresAt: FIXED_NOW + 3_600_000,
+  refreshTokenExpiresAt: FIXED_NOW + 86_400_000,
   location: 'international',
 };
 
@@ -370,6 +372,10 @@ describe('CardController — setSelectedCountry', () => {
 describe('CardController — auth methods', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('initiateAuth', () => {
@@ -1028,6 +1034,10 @@ describe('CardController — 401 retry and forced logout', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('refreshes and retries once when a data call is rejected with 401', async () => {
     wireTokenStorage(mockTokenSet);
     const provider = buildAuthedProvider();
@@ -1263,6 +1273,10 @@ describe('CardController — 401 retry and forced logout', () => {
 describe('CardController — event subscriptions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('subscribes to KeyringController:unlock on construction', () => {
@@ -1581,6 +1595,10 @@ describe('CardController — fetchCardHomeData', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('sets cardHomeDataStatus to success and populates cardHomeData on happy path', async () => {
     const provider = buildMockProvider();
     mockTokenStore.get.mockResolvedValue(mockTokenSet);
@@ -1680,6 +1698,10 @@ describe('CardController — fetchCardHomeData', () => {
 describe('CardController — freezeCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('applies optimistic frozen status before API call resolves', async () => {
@@ -1847,6 +1869,10 @@ describe('CardController — unfreezeCard', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('applies optimistic active status before API call resolves', async () => {
     const provider = buildMockProvider();
     mockTokenStore.get.mockResolvedValue(mockTokenSet);
@@ -1994,6 +2020,10 @@ describe('CardController — updateAssetPriority', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   const assetA: CardFundingAsset = {
     ...mockAsset,
     symbol: 'USDC',
@@ -2137,6 +2167,7 @@ describe('CardController — account switch (#handleAccountSwitch)', () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     jest.useRealTimers();
   });
 
@@ -2342,6 +2373,10 @@ describe('CardController — getCapabilities', () => {
 });
 
 describe('CardController — data pass-throughs', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   function buildAuthenticatedController(provider: jest.Mocked<ICardProvider>) {
     mockTokenStore.get.mockResolvedValue(mockTokenSet);
     provider.validateTokens.mockReturnValue('valid');
