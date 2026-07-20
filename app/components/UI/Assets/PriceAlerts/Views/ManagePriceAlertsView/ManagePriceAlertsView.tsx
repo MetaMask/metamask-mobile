@@ -50,7 +50,6 @@ import {
 import {
   deleteAlertByType,
   fetchAlerts,
-  normalizeAlerts,
   priceAlertsQueryKey,
   updateAlertByType,
 } from '../../api';
@@ -117,8 +116,7 @@ const ManagePriceAlertsView: React.FC = () => {
     queryFn: async (): Promise<Alert[]> => {
       const response = await fetchAlerts(assetId);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const body: unknown[] = await response.json();
-      return normalizeAlerts(body);
+      return (await response.json()) as Alert[];
     },
     retry: false,
     staleTime: 0,
@@ -245,8 +243,8 @@ const ManagePriceAlertsView: React.FC = () => {
         });
         const response = await fetchAlerts(assetId).catch(() => null);
         if (response?.ok) {
-          const body: unknown[] = await response.json().catch(() => []);
-          queryClient.setQueryData(queryKey, normalizeAlerts(body));
+          const body = (await response.json().catch(() => [])) as Alert[];
+          queryClient.setQueryData(queryKey, body);
         } else {
           queryClient.setQueryData(queryKey, previous);
         }

@@ -36,20 +36,6 @@ async function authenticatedFetch(
 export const fetchAlerts = (assetId: string): Promise<Response> =>
   authenticatedFetch(`${ALERTS_URL}?asset=${encodeURIComponent(assetId)}`);
 
-/**
- * Normalizes a single alert parsed from the list response. Older API
- * deployments may omit `type` entirely on absolute-price alerts — treat a
- * missing `type` as `'absolute_price'` (see plan §2.1 migration note).
- */
-const normalizeAlert = (raw: Record<string, unknown>): Alert =>
-  raw.type === 'percent_change'
-    ? (raw as unknown as PercentChangeAlert)
-    : ({ ...raw, type: 'absolute_price' } as unknown as AbsolutePriceAlert);
-
-/** Normalizes a raw list-response body into the `Alert` union. */
-export const normalizeAlerts = (raw: unknown[]): Alert[] =>
-  raw.map((item) => normalizeAlert(item as Record<string, unknown>));
-
 export const fetchSupportedChains = (): Promise<Response> =>
   fetch(`${ALERTS_URL}/supported-chains`, {
     headers: { Accept: 'application/json' },

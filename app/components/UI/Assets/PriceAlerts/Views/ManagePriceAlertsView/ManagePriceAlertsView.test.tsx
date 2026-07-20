@@ -78,7 +78,6 @@ jest.mock('../../api', () => ({
   fetchAlerts: (...args: unknown[]) => mockFetchAlerts(...args),
   deleteAlertByType: (...args: unknown[]) => mockDeleteAlert(...args),
   updateAlertByType: (...args: unknown[]) => mockUpdateAlert(...args),
-  normalizeAlerts: (alerts: unknown[]) => alerts,
   priceAlertsQueryKey: (assetId: string) => ['priceAlerts', assetId],
 }));
 

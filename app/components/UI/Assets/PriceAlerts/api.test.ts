@@ -12,7 +12,6 @@ import {
   deletePercentAlert,
   updateAlertByType,
   deleteAlertByType,
-  normalizeAlerts,
   fetchSupportedChains,
   priceAlertsQueryKey,
   assertOkResponse,
@@ -568,51 +567,6 @@ describe('deletePercentAlert', () => {
     const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
     expect(url).toBe(`${PERCENT_ALERTS_URL}/percent-42`);
     expect(init.method).toBe('DELETE');
-  });
-});
-
-describe('normalizeAlerts', () => {
-  it('treats an alert with no type field as absolute_price (backward compatibility)', () => {
-    const raw = [
-      {
-        id: 'legacy-1',
-        userId: 'user-1',
-        asset: 'eip155:1/slip44:60',
-        threshold: 2000,
-        recurring: false,
-        active: true,
-        createdAt: '2025-01-01T00:00:00.000Z',
-      },
-    ];
-    const [alert] = normalizeAlerts(raw);
-    expect(alert.type).toBe('absolute_price');
-  });
-
-  it('preserves an explicit absolute_price type', () => {
-    const [alert] = normalizeAlerts([makeAlert()]);
-    expect(alert.type).toBe('absolute_price');
-  });
-
-  it('preserves percent_change alerts including period/direction', () => {
-    const percentAlert = makePercentAlert({ period: '24h', direction: 'down' });
-    const [alert] = normalizeAlerts([percentAlert]);
-    expect(alert.type).toBe('percent_change');
-    expect((alert as PercentChangeAlert).period).toBe('24h');
-    expect((alert as PercentChangeAlert).direction).toBe('down');
-  });
-
-  it('normalizes a mixed list in order', () => {
-    const legacy = { ...makeAlert({ id: 'legacy-1' }) } as Record<
-      string,
-      unknown
-    >;
-    delete legacy.type;
-    const percentAlert = makePercentAlert({ id: 'percent-1' });
-    const result = normalizeAlerts([legacy, percentAlert]);
-    expect(result.map((a) => [a.id, a.type])).toEqual([
-      ['legacy-1', 'absolute_price'],
-      ['percent-1', 'percent_change'],
-    ]);
   });
 });
 
