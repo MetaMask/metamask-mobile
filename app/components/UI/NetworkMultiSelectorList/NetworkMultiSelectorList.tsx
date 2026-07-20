@@ -236,7 +236,7 @@ const NetworkMultiSelectList = ({
   );
 
   const renderNetworkItem = useCallback(
-    ({ item }) => {
+    ({ item }: { item: NetworkListItem }) => {
       if (isAdditionalNetworkSection(item)) {
         return <View>{item.component}</View>;
       }
