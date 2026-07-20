@@ -129,7 +129,6 @@ export const completeNewUserQrSyncSrp = async ({
     commandQueueServer,
   });
 
-  // Import-from-seed step 1 reuses ChoosePassword field IDs, not create-password-screen.
   await Assertions.expectElementToBeVisible(
     CreatePasswordView.newPasswordInput,
     {
@@ -153,7 +152,6 @@ export const completeNewUserQrSyncSrp = async ({
   if (optInToMetrics) {
     await dismissOnboardingInterestQuestionnaire();
 
-    // Mirror seedless Appium onboarding: optional success/marketing sheets.
     try {
       await ExperienceEnhancerBottomSheet.tapIAgree();
     } catch {

@@ -60,7 +60,6 @@ appiumTest.describe(
                 description: 'Account list visible after new-user QR sync',
               },
             );
-            // Phase C may rename to the extension label asynchronously; default name is enough.
             await assertAccountCount(DEFAULT_ACCOUNT_NAME, 1, 15_000);
           },
         );
@@ -92,7 +91,6 @@ appiumTest.describe(
                 description: 'Account list visible after existing-user QR sync',
               },
             );
-            // Fixture Account 1 + imported SRP Account 1 → two rows with the same label.
             await assertAccountCount(DEFAULT_ACCOUNT_NAME, 2, 15_000);
           },
         );
