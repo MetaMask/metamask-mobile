@@ -494,8 +494,8 @@ describe('BridgeTransactionDetails', () => {
       },
     };
 
-    it('renders the redesigned layout (You sent/received, Transaction ID, explorer)', () => {
-      const { getByText } = renderScreen(
+    it('renders the redesigned layout (You sent/received, Transaction ID, explorer, do-it-again)', () => {
+      const { getByText, getByTestId } = renderScreen(
         () => (
           <BridgeTransactionDetails
             route={{ params: { evmTxMeta: mockEVMTx } }}
@@ -509,6 +509,10 @@ describe('BridgeTransactionDetails', () => {
       expect(getByText('You received')).toBeOnTheScreen();
       expect(getByText('Transaction ID')).toBeOnTheScreen();
       expect(getByText('View on block explorer')).toBeOnTheScreen();
+      // Footer CTA is rendered via the shared bottom-pinned template frame.
+      expect(
+        getByTestId('activity-details-do-it-again-button'),
+      ).toBeOnTheScreen();
       // The legacy header title must not render under the redesign.
       expect(() => getByText('Transaction details')).toThrow();
     });

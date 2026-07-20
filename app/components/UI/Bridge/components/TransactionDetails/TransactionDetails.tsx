@@ -8,12 +8,13 @@ import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
-  SectionDivider,
   Text,
   TextColor,
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextVariant as TextVariantLegacy } from '../../../../../component-library/components/Texts/Text';
 import ScreenView from '../../../../Base/ScreenView';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
@@ -30,7 +31,7 @@ import Icon, {
 import TransactionAsset from './TransactionAsset';
 import { BatchSell7702TransactionAssets } from './BatchSell7702TransactionAssets';
 import { calcTokenAmount } from '../../../../../util/transactions';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './BridgeStepList';
@@ -52,7 +53,7 @@ import {
   ActivityDetailsBridgeMetadata,
   ActivityDetailsBridgeExplorerButtons,
   ActivityDetailsDoItAgainButton,
-  ActivityDetailsFooter,
+  ActivityDetailsTemplateFrame,
 } from '../../../../Views/ActivityDetails/components';
 import {
   ActivityDetailRow,
@@ -109,11 +110,6 @@ const styles = StyleSheet.create({
     width: '90%',
     alignSelf: 'center',
     marginTop: 12,
-  },
-  redesignFooter: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    gap: 12,
   },
   textTransform: {
     textTransform: 'capitalize',
@@ -226,6 +222,7 @@ export const BridgeTransactionDetails = (
 ) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
   // Gate the redesigned layout behind the transactions-details redesign flag;
   // flag off renders the legacy layout untouched.
@@ -483,126 +480,136 @@ export const BridgeTransactionDetails = (
     };
 
     return (
-      <ScreenView>
-        <HeaderStandard
-          title={redesignTitle}
-          onBack={handleHeaderBack}
-          backButtonProps={{
-            testID: 'bridge-transaction-details-back-button',
-          }}
-          includesTopInset
-        />
-        <Box style={styles.transactionContainer}>
-          {is7702Batch && batchSellHistoryItems?.length ? (
-            <Box style={styles.transactionAssetsContainer}>
-              <BatchSell7702TransactionAssets
-                batchSellHistoryItems={batchSellHistoryItems}
-              />
-            </Box>
-          ) : (
-            <ActivityDetailsDualAmountHeader
-              sentToken={sourceTokenModel}
-              receivedToken={destinationTokenModel}
-            />
-          )}
-
-          <SectionDivider marginVertical={3} />
-
-          <ActivityDetailsBridgeMetadata
-            item={bridgeItem}
-            bridgeHistoryItem={bridgeTxHistoryItem}
-            destinationChainId={activityDestinationChainId}
+      <SafeAreaView
+        edges={{ bottom: 'additive' }}
+        style={tw.style('flex-1 bg-default')}
+      >
+        <Box twClassName="flex-1 bg-default">
+          <HeaderStandard
+            title={redesignTitle}
+            onBack={handleHeaderBack}
+            backButtonProps={{
+              testID: 'bridge-transaction-details-back-button',
+            }}
+            includesTopInset
           />
-
-          {isBridge &&
-            bridgeStatus.status === StatusTypes.PENDING &&
-            estimatedCompletionString && (
-              <Box style={styles.detailRow}>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                >
-                  {strings(
-                    'bridge_transaction_details.estimated_completion',
-                  )}{' '}
-                </Text>
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  gap={1}
-                  alignItems={BoxAlignItems.Center}
-                >
-                  <Text variant={TextVariant.BodyMd}>
-                    {estimatedCompletionString}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => setIsStepListExpanded(!isStepListExpanded)}
-                  >
-                    <Icon
-                      name={
-                        isStepListExpanded
-                          ? IconName.ArrowUp
-                          : IconName.ArrowDown
-                      }
-                      color={IconColor.Muted}
-                      size={IconSize.Sm}
+          <ScrollView
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('grow p-4')}
+          >
+            <ActivityDetailsTemplateFrame
+              hero={
+                is7702Batch && batchSellHistoryItems?.length ? (
+                  <BatchSell7702TransactionAssets
+                    batchSellHistoryItems={batchSellHistoryItems}
+                  />
+                ) : (
+                  <ActivityDetailsDualAmountHeader
+                    sentToken={sourceTokenModel}
+                    receivedToken={destinationTokenModel}
+                  />
+                )
+              }
+              metadata={
+                <>
+                  <ActivityDetailsBridgeMetadata
+                    item={bridgeItem}
+                    bridgeHistoryItem={bridgeTxHistoryItem}
+                    destinationChainId={activityDestinationChainId}
+                  />
+                  {isBridge &&
+                    bridgeStatus.status === StatusTypes.PENDING &&
+                    estimatedCompletionString && (
+                      <Box style={styles.detailRow}>
+                        <Text
+                          variant={TextVariant.BodyMd}
+                          fontWeight={FontWeight.Medium}
+                        >
+                          {strings(
+                            'bridge_transaction_details.estimated_completion',
+                          )}{' '}
+                        </Text>
+                        <Box
+                          flexDirection={BoxFlexDirection.Row}
+                          gap={1}
+                          alignItems={BoxAlignItems.Center}
+                        >
+                          <Text variant={TextVariant.BodyMd}>
+                            {estimatedCompletionString}
+                          </Text>
+                          <TouchableOpacity
+                            onPress={() =>
+                              setIsStepListExpanded(!isStepListExpanded)
+                            }
+                          >
+                            <Icon
+                              name={
+                                isStepListExpanded
+                                  ? IconName.ArrowUp
+                                  : IconName.ArrowDown
+                              }
+                              color={IconColor.Muted}
+                              size={IconSize.Sm}
+                            />
+                          </TouchableOpacity>
+                        </Box>
+                      </Box>
+                    )}
+                  {bridgeStatus.status !== StatusTypes.COMPLETE &&
+                    isStepListExpanded && (
+                      <Box style={styles.detailRow}>
+                        <BridgeStepList
+                          bridgeHistoryItem={bridgeTxHistoryItem}
+                          srcChainTxMeta={evmTxMeta}
+                        />
+                      </Box>
+                    )}
+                </>
+              }
+              details={
+                <ActivityDetailSection>
+                  <ActivityDetailRow
+                    label={strings('activity_details.network_fee')}
+                    value={
+                      isGasSponsored ? (
+                        <PaidByMetaMask />
+                      ) : gasFeeAmount ? (
+                        `${gasFeeAmount} ${gasFeeSymbol}`
+                      ) : undefined
+                    }
+                  />
+                  {totalAmountText ? (
+                    <ActivityDetailRow
+                      label={strings('activity_details.total_amount')}
+                      value={totalAmountText}
                     />
-                  </TouchableOpacity>
-                </Box>
-              </Box>
-            )}
-          {bridgeStatus.status !== StatusTypes.COMPLETE &&
-            isStepListExpanded && (
-              <Box style={styles.detailRow}>
-                <BridgeStepList
-                  bridgeHistoryItem={bridgeTxHistoryItem}
-                  srcChainTxMeta={evmTxMeta}
-                />
-              </Box>
-            )}
-
-          <SectionDivider marginVertical={3} />
-
-          <ActivityDetailSection>
-            <ActivityDetailRow
-              label={strings('activity_details.network_fee')}
-              value={
-                isGasSponsored ? (
-                  <PaidByMetaMask />
-                ) : gasFeeAmount ? (
-                  `${gasFeeAmount} ${gasFeeSymbol}`
-                ) : undefined
+                  ) : null}
+                </ActivityDetailSection>
+              }
+              footer={
+                isIntentNotCompletedItem ? null : (
+                  <>
+                    <ActivityDetailsBridgeExplorerButtons
+                      sourceChainId={bridgeItem.chainId}
+                      sourceHash={transactionId}
+                      destChainId={activityDestinationChainId}
+                      destHash={destinationHash}
+                    />
+                    <ActivityDetailsDoItAgainButton
+                      label={
+                        isSwap
+                          ? strings('activity_details.swap_again')
+                          : strings('activity_details.bridge_again')
+                      }
+                      onPress={handleBridgeAgain}
+                    />
+                  </>
+                )
               }
             />
-            {totalAmountText ? (
-              <ActivityDetailRow
-                label={strings('activity_details.total_amount')}
-                value={totalAmountText}
-              />
-            ) : null}
-          </ActivityDetailSection>
+          </ScrollView>
         </Box>
-
-        <Box style={styles.redesignFooter}>
-          {isIntentNotCompletedItem || (
-            <ActivityDetailsFooter>
-              <ActivityDetailsBridgeExplorerButtons
-                sourceChainId={bridgeItem.chainId}
-                sourceHash={transactionId}
-                destChainId={activityDestinationChainId}
-                destHash={destinationHash}
-              />
-              <ActivityDetailsDoItAgainButton
-                label={
-                  isSwap
-                    ? strings('activity_details.swap_again')
-                    : strings('activity_details.bridge_again')
-                }
-                onPress={handleBridgeAgain}
-              />
-            </ActivityDetailsFooter>
-          )}
-        </Box>
-      </ScreenView>
+      </SafeAreaView>
     );
   }
 
