@@ -69,9 +69,9 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
     const parsed = Number.parseFloat(percentAmount);
     return Number.isFinite(parsed) ? parsed : 0;
   }, [percentAmount]);
-  const hasValidPercent =
-    percentValue > 0 &&
-    (direction !== 'down' || percentValue <= MAX_DOWN_PERCENT_THRESHOLD);
+  const exceedsMaxDownPercent =
+    direction === 'down' && percentValue > MAX_DOWN_PERCENT_THRESHOLD;
+  const hasValidPercent = percentValue > 0 && !exceedsMaxDownPercent;
 
   const isDuplicatePercentTuple = useMemo(
     () =>
@@ -155,13 +155,18 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
     setDirection((previous) => (previous === 'up' ? 'down' : 'up'));
   }, []);
 
-  const saveButtonLabel = isDuplicatePercentTuple
-    ? strings('price_alerts.percent_duplicate')
-    : strings(
-        isEditing
-          ? 'price_alerts.update_price_alert'
-          : 'price_alerts.set_price_alert',
-      );
+  let saveButtonLabel: string;
+  if (exceedsMaxDownPercent) {
+    saveButtonLabel = strings('price_alerts.percent_max_down');
+  } else if (isDuplicatePercentTuple) {
+    saveButtonLabel = strings('price_alerts.percent_duplicate');
+  } else {
+    saveButtonLabel = strings(
+      isEditing
+        ? 'price_alerts.update_price_alert'
+        : 'price_alerts.set_price_alert',
+    );
+  }
 
   const directionToggle = (
     <TouchableOpacity

@@ -4423,7 +4423,8 @@
     "moves_up_summary": "Moves up {{percent}}%",
     "moves_down_summary": "Moves down {{percent}}%",
     "period_recurrence": "{{period}} • {{recurrence}}",
-    "percent_duplicate": "An alert with this configuration already exists."
+    "percent_duplicate": "An alert with this configuration already exists.",
+    "percent_max_down": "Price can't fall by more than 100%."
   },
   "asset_overview": {
     "market_closed": "Market closed",

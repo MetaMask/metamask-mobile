@@ -145,6 +145,9 @@ describe('PercentChangeAlertForm', () => {
     expect(
       screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).toBeDisabled();
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toHaveTextContent("Price can't fall by more than 100%.");
   });
 
   it('allows saving an up alert above 100%', async () => {
