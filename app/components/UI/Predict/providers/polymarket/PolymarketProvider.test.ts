@@ -994,6 +994,32 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  it('keeps funded legacy Safe users when raw activity is empty', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue([]),
+    });
+    mockGetRawBalance.mockImplementation(async ({ tokenAddress }) =>
+      tokenAddress === USDC_E_ADDRESS ? 100_000_000n : 0n,
+    );
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(false);
+
+    const accountState = await createProvider().getAccountState({
+      ownerAddress: signer.address,
+    });
+
+    expect(accountState).toEqual({
+      address: legacySafeAddress,
+      isDeployed: true,
+      walletType: 'safe',
+    });
+    expect(mockResolveDepositWalletAddress).toHaveBeenCalledWith({
+      ownerAddress: signer.address,
+    });
+  });
+
   it('fails closed when raw Activity API fails for a deployed legacy Safe', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: false,
@@ -2005,7 +2031,31 @@ describe('PolymarketProvider', () => {
         protocol: expect.objectContaining({ key: 'v2' }),
       }),
     );
-    expect(result).toEqual({ callData: '0xsignedWithdraw', amount: 1 });
+    expect(result).toEqual({
+      callData: '0xsignedWithdraw',
+      amount: 1,
+      walletType: 'safe',
+    });
+  });
+
+  it('leaves deposit-wallet withdrawals for external signing', async () => {
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    const provider = createProvider();
+    await provider.prepareWithdraw({ signer });
+
+    const result = await provider.signWithdraw?.({
+      signer,
+      callData: '0xtransfer',
+    });
+
+    expect(mockBuildWithdrawTransaction).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      callData: '0xtransfer',
+      amount: 1,
+      walletType: 'deposit-wallet',
+    });
   });
 
   it('gets crypto price history from Chainlink candle closes', async () => {
