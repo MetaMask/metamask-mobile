@@ -730,12 +730,9 @@ describe('WalletHomeOnboardingSteps', () => {
 
       await flushWalletHomeStepTransition();
 
-      await waitFor(() => {
-        expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
-          expect.objectContaining({ stepIndex: 1 }),
-        );
-      });
-
+      expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+        expect.objectContaining({ stepIndex: 1 }),
+      );
       expect(
         progressAnimationCalls(walletHomeOnboardingProgressRatioForStep(1))
           .length,
