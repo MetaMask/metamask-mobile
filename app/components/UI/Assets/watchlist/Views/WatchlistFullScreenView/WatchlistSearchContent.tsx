@@ -41,10 +41,28 @@ const WatchlistSearchContent: React.FC<WatchlistSearchContentProps> = ({
   });
 
   const isFeedLoading = isDebouncing || isLoading;
+  const listData = isFeedLoading ? [] : data;
 
+  // Reset only when the query changes — not when loading finishes. FlashList
+  // does not re-fire onLoad on data updates, so resetting on isFeedLoading
+  // would leave the skeleton overlay stuck after the fetch completes.
   useEffect(() => {
     setIsListReady(false);
-  }, [debouncedQuery, isFeedLoading]);
+  }, [debouncedQuery]);
+
+  useEffect(() => {
+    if (isFeedLoading || listData.length === 0 || isListReady) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setIsListReady(true);
+      });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [isFeedLoading, isListReady, listData.length]);
 
   const handleCancel = useCallback(() => {
     setSearchQuery('');
@@ -71,8 +89,6 @@ const WatchlistSearchContent: React.FC<WatchlistSearchContentProps> = ({
       ) : null,
     [isLoadingMore, styles.loadingFooter],
   );
-
-  const listData = isFeedLoading ? [] : data;
 
   const showSkeletonOverlay =
     isFeedLoading || (listData.length > 0 && !isListReady);
@@ -102,8 +118,10 @@ const WatchlistSearchContent: React.FC<WatchlistSearchContentProps> = ({
   }, [hasMore, isFeedLoading, loadMore]);
 
   const handleListLoad = useCallback(() => {
-    setIsListReady(true);
-  }, []);
+    if (listData.length > 0) {
+      setIsListReady(true);
+    }
+  }, [listData.length]);
 
   return (
     <View

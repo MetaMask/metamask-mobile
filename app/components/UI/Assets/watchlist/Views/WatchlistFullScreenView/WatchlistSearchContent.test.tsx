@@ -176,7 +176,7 @@ describe('WatchlistSearchContent', () => {
   });
 
   it('renders search results when feed has data', () => {
-    const { getByTestId, getByText } = render(
+    const { getByTestId, getByText, queryByTestId } = render(
       <WatchlistSearchContent onDismiss={mockOnDismiss} />,
     );
 
@@ -187,5 +187,44 @@ describe('WatchlistSearchContent', () => {
     expect(getByTestId(WatchlistSearchContentTestIds.CONTAINER)).toBeDefined();
     expect(getByText('eth')).toBeDefined();
     expect(getByText('btc')).toBeDefined();
+    expect(
+      queryByTestId(WatchlistSearchContentTestIds.SKELETON_OVERLAY),
+    ).toBeNull();
+  });
+
+  it('hides skeleton overlay after loading completes', () => {
+    mockUseTokensFeed.mockReturnValue({
+      data: [],
+      isLoading: true,
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasMore: false,
+    });
+
+    const { getByTestId, queryByTestId, rerender } = render(
+      <WatchlistSearchContent onDismiss={mockOnDismiss} />,
+    );
+
+    expect(
+      getByTestId(WatchlistSearchContentTestIds.SKELETON_OVERLAY),
+    ).toBeDefined();
+
+    mockUseTokensFeed.mockReturnValue({
+      data: [makeToken('eth')],
+      isLoading: false,
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasMore: false,
+    });
+
+    rerender(<WatchlistSearchContent onDismiss={mockOnDismiss} />);
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    expect(
+      queryByTestId(WatchlistSearchContentTestIds.SKELETON_OVERLAY),
+    ).toBeNull();
   });
 });
