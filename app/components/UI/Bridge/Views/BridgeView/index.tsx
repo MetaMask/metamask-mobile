@@ -96,7 +96,10 @@ import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
-import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import {
+  selectGasIncludedQuoteParams,
+  selectSourceWalletAddress,
+} from '../../../../../selectors/bridge';
 import { Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 import { SwapsKeypad } from '../../components/SwapsKeypad/index.tsx';
@@ -187,6 +190,9 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     : false;
 
   const walletAddress = useSelector(selectSourceWalletAddress);
+  const { gasIncluded, gasIncluded7702 } = useSelector(
+    selectGasIncludedQuoteParams,
+  );
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
@@ -306,6 +312,15 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const slippage = useSelector(selectSlippage);
   const isSlippageUserOverride = useSelector(selectIsSlippageUserOverride);
   const previousSlippageRef = useRef(slippage);
+  const nonSlippageQuoteRequestKey = JSON.stringify([
+    sourceAmount,
+    destAddress,
+    gasIncluded,
+    gasIncluded7702,
+  ]);
+  const previousNonSlippageQuoteRequestKeyRef = useRef(
+    nonSlippageQuoteRequestKey,
+  );
 
   const isFooterVisible = useMemo(() => {
     if (isLoading && !activeQuote && !needsNewQuote) {
@@ -409,13 +424,17 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   // Update quote parameters when relevant state changes
   useEffect(() => {
     const previousSlippage = previousSlippageRef.current;
+    const previousNonSlippageQuoteRequestKey =
+      previousNonSlippageQuoteRequestKeyRef.current;
     previousSlippageRef.current = slippage;
+    previousNonSlippageQuoteRequestKeyRef.current = nonSlippageQuoteRequestKey;
 
     // Backend hydration alone must not trigger a duplicate quote request.
     const isHydrationOnlySlippageChange =
       !isSlippageUserOverride &&
       previousSlippage === undefined &&
-      slippage !== undefined;
+      slippage !== undefined &&
+      previousNonSlippageQuoteRequestKey === nonSlippageQuoteRequestKey;
 
     if (hasValidBridgeInputs && !isHydrationOnlySlippageChange) {
       updateQuoteParams();
@@ -426,6 +445,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   }, [
     hasValidBridgeInputs,
     updateQuoteParams,
+    nonSlippageQuoteRequestKey,
     slippage,
     isSlippageUserOverride,
   ]);
