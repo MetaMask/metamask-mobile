@@ -47,6 +47,7 @@ const WatchlistEmptyCTA: React.FC<WatchlistEmptyCTAProps> = ({ source }) => {
   const [selectedAssetIds, setSelectedAssetIds] = useState<Set<string>>(
     () => new Set(),
   );
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const initializedForTokensRef = useRef<string>('');
 
   useEffect(() => {
@@ -109,7 +110,7 @@ const WatchlistEmptyCTA: React.FC<WatchlistEmptyCTAProps> = ({ source }) => {
   );
 
   const handleAddPress = useCallback(() => {
-    if (!suggestedTokens?.length || selectedCount === 0) {
+    if (!suggestedTokens?.length || selectedCount === 0 || hasSubmitted) {
       return;
     }
 
@@ -118,10 +119,18 @@ const WatchlistEmptyCTA: React.FC<WatchlistEmptyCTAProps> = ({ source }) => {
     );
     const assetIds = toAdd.map((token) => token.assetId as CaipAssetType);
 
-    addMutation.mutate(assetIds);
-    trackAdds(toAdd);
+    setHasSubmitted(true);
+    addMutation.mutate(assetIds, {
+      onSuccess: () => {
+        trackAdds(toAdd);
+      },
+      onError: () => {
+        setHasSubmitted(false);
+      },
+    });
   }, [
     addMutation,
+    hasSubmitted,
     selectedAssetIds,
     selectedCount,
     suggestedTokens,
@@ -202,7 +211,12 @@ const WatchlistEmptyCTA: React.FC<WatchlistEmptyCTAProps> = ({ source }) => {
           size={ButtonSize.Lg}
           style={styles.button}
           onPress={handleAddPress}
-          isDisabled={selectedCount === 0 || isLoading || addMutation.isPending}
+          isDisabled={
+            selectedCount === 0 ||
+            isLoading ||
+            addMutation.isPending ||
+            hasSubmitted
+          }
           testID={WatchlistEmptyCTATestIds.ADD_BUTTON}
         >
           {addButtonLabel}

@@ -165,6 +165,10 @@ describe('WatchlistEmptyCTA', () => {
   });
 
   it('calls add mutation with selected asset IDs', () => {
+    mockMutate.mockImplementation((_assetIds, options) => {
+      options?.onSuccess?.();
+    });
+
     const { getByTestId } = render(
       <WatchlistEmptyCTA source="watchlist_empty_cta" />,
     );
@@ -172,10 +176,42 @@ describe('WatchlistEmptyCTA', () => {
     fireEvent.press(getByTestId('mock-card-eip155:1/slip44:60'));
     fireEvent.press(getByTestId(WatchlistEmptyCTATestIds.ADD_BUTTON));
 
-    expect(mockMutate).toHaveBeenCalledWith([
-      'bip122:000000000019d6689c085ae165831e93/slip44:0',
-    ]);
+    expect(mockMutate).toHaveBeenCalledWith(
+      ['bip122:000000000019d6689c085ae165831e93/slip44:0'],
+      expect.objectContaining({
+        onSuccess: expect.any(Function),
+        onError: expect.any(Function),
+      }),
+    );
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps add button disabled after submit while hydrated list refetches', () => {
+    const { getByTestId } = render(
+      <WatchlistEmptyCTA source="watchlist_empty_cta" />,
+    );
+
+    const addButton = getByTestId(WatchlistEmptyCTATestIds.ADD_BUTTON);
+    fireEvent.press(addButton);
+
+    expect(addButton.props.accessibilityState?.disabled).toBe(true);
+    fireEvent.press(addButton);
+    expect(mockMutate).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-enables add button when mutation fails', () => {
+    mockMutate.mockImplementation((_assetIds, options) => {
+      options?.onError?.();
+    });
+
+    const { getByTestId } = render(
+      <WatchlistEmptyCTA source="watchlist_empty_cta" />,
+    );
+
+    const addButton = getByTestId(WatchlistEmptyCTATestIds.ADD_BUTTON);
+    fireEvent.press(addButton);
+
+    expect(addButton.props.accessibilityState?.disabled).toBe(false);
   });
 
   it('renders skeleton cards while loading', () => {
