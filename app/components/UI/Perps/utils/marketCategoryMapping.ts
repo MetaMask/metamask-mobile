@@ -53,13 +53,11 @@ export function normalizeFilterKey(filter: string): string {
  * - `'all'`: no filtering.
  * - `'crypto'`: non-HIP3 markets (main DEX).
  * - `'new'`: uncategorized HIP-3 markets flagged as new.
- * - Any other {@link MarketTypeFilter}: HIP-3 markets whose `marketType`
- *   matches the filter exactly.
+ * - Any other {@link MarketTypeFilter}: HIP-3 markets whose `marketType` matches the filter exactly.
  */
-export function filterMarketsByCategory<T extends Pick<
-  PerpsMarketData,
-  'isHip3' | 'isNewMarket' | 'marketType'
->>(markets: T[], filter: MarketTypeFilter): T[] {
+export function filterMarketsByCategory<
+  T extends Pick<PerpsMarketData, 'isHip3' | 'isNewMarket' | 'marketType'>,
+>(markets: T[], filter: MarketTypeFilter): T[] {
   if (filter === 'all') {
     return markets;
   }

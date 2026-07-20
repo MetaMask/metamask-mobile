@@ -2679,8 +2679,9 @@ describe('PerpsMarketListView', () => {
 
         renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
-        expect(screen.getByTestId(railContainerTestID).props.accessibilityState)
-          .toEqual({ expanded: true });
+        expect(
+          screen.getByTestId(railContainerTestID).props.accessibilityState,
+        ).toEqual({ expanded: true });
       });
 
       it('collapses once the list is scrolled past the threshold', () => {
@@ -2692,8 +2693,9 @@ describe('PerpsMarketListView', () => {
           scrollTo(100);
         });
 
-        expect(screen.getByTestId(railContainerTestID).props.accessibilityState)
-          .toEqual({ expanded: false });
+        expect(
+          screen.getByTestId(railContainerTestID).props.accessibilityState,
+        ).toEqual({ expanded: false });
       });
 
       it('re-expands once the list is scrolled back near the top', () => {
@@ -2704,14 +2706,16 @@ describe('PerpsMarketListView', () => {
         act(() => {
           scrollTo(100);
         });
-        expect(screen.getByTestId(railContainerTestID).props.accessibilityState)
-          .toEqual({ expanded: false });
+        expect(
+          screen.getByTestId(railContainerTestID).props.accessibilityState,
+        ).toEqual({ expanded: false });
 
         act(() => {
           scrollTo(0);
         });
-        expect(screen.getByTestId(railContainerTestID).props.accessibilityState)
-          .toEqual({ expanded: true });
+        expect(
+          screen.getByTestId(railContainerTestID).props.accessibilityState,
+        ).toEqual({ expanded: true });
       });
 
       it('does not collapse for small scroll jitters below the threshold', () => {
@@ -2723,8 +2727,9 @@ describe('PerpsMarketListView', () => {
           scrollTo(10);
         });
 
-        expect(screen.getByTestId(railContainerTestID).props.accessibilityState)
-          .toEqual({ expanded: true });
+        expect(
+          screen.getByTestId(railContainerTestID).props.accessibilityState,
+        ).toEqual({ expanded: true });
       });
 
       it('keeps the search bar and filter/count-sort rows visible while the rail is collapsed', () => {
