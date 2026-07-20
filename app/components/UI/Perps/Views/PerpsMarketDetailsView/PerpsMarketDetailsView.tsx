@@ -158,6 +158,7 @@ import {
   PERPS_BUTTON_COLOR_AB_TEST_KEY,
 } from '../../abTestConfig';
 import { getMarketHoursStatus } from '../../utils/marketHours';
+import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
 import {
@@ -705,6 +706,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       }),
       [PERPS_EVENT_PROPERTY.OPEN_POSITION]: existingPosition ? 1 : 0,
       [PERPS_EVENT_PROPERTY.OPEN_ORDER]: openOrders.length,
+      [PERPS_EVENT_PROPERTY.WATCHLISTED]: isWatchlist,
       market_insights_displayed:
         isPerpsInsightsEnabled && Boolean(perpsInsightsReport),
       [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
@@ -721,6 +723,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       source_section,
       existingPosition,
       openOrders.length,
+      isWatchlist,
       isPerpsInsightsEnabled,
       perpsInsightsReport,
       isServiceInterruptionBannerEnabled,
@@ -931,6 +934,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           direction,
           asset: market.symbol,
           source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+          ...(source_section ? { source_section } : {}),
           chartLibrary,
           defaultSzDecimals: marketData?.szDecimals,
           defaultMaxLeverage: marketData?.maxLeverage,
@@ -946,6 +950,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       navigation,
       track,
       navigateToOrder,
+      source_section,
       transactionActiveAbTests,
       market?.symbol,
       marketData,
@@ -1112,6 +1117,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       navigateToClosePosition(
         existingPosition,
         PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+        {
+          buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
+          buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.ASSET_DETAILS,
+        },
       );
     });
   }, [gate, existingPosition, navigateToClosePosition, isEligible, track]);
@@ -1195,10 +1204,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
       try {
         // Build tracking data
+        const riskSource =
+          PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.STOP_LOSS_PROMPT_BANNER;
         const trackingData: TPSLTrackingData = {
           direction: parseFloat(existingPosition.size) >= 0 ? 'long' : 'short',
-          source:
-            PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.STOP_LOSS_PROMPT_BANNER,
+          source: riskSource,
+          ...toPerpsEntryAttribution({ source: riskSource }),
           positionSize: Math.abs(parseFloat(existingPosition.size)),
         };
 
