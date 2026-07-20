@@ -768,10 +768,10 @@ describe('ChoosePassword', () => {
   });
 
   describe('Authentication Type Detection', () => {
-    it('reads passcode storage flags when auth type is DEVICE_AUTHENTICATION', async () => {
+    it('reads passcode storage flags when auth type is legacy PASSCODE', async () => {
       const mockGetType = jest.spyOn(Authentication, 'getType');
       mockGetType.mockResolvedValueOnce({
-        currentAuthType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+        currentAuthType: 'device_passcode' as AUTHENTICATION_TYPE,
         availableBiometryType: undefined,
       });
       const mockStorageWrapper = jest.mocked(StorageWrapper);

@@ -127,7 +127,8 @@ const ManualBackupStep1 = () => {
         return;
       }
 
-      let credentials: Awaited<ReturnType<typeof Authentication.getPassword>>;
+      let credentials: Awaited<ReturnType<typeof Authentication.getPassword>> =
+        null;
       let exportError: unknown;
       let exportedWords: string[] | undefined;
 
@@ -142,7 +143,6 @@ const ManualBackupStep1 = () => {
       if (
         !exportError &&
         credentials &&
-        credentials !== false &&
         typeof credentials.password === 'string'
       ) {
         try {

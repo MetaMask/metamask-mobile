@@ -745,9 +745,12 @@ const ChoosePassword = () => {
       await StorageWrapper.getItem(BIOMETRY_CHOICE_DISABLED);
       await StorageWrapper.getItem(PASSCODE_DISABLED);
 
-      if (
-        authData.currentAuthType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION
-      ) {
+      const isDevicePasscodeAuth =
+        authData.currentAuthType ===
+          AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION ||
+        authData.currentAuthType === ('device_passcode' as AUTHENTICATION_TYPE);
+
+      if (isDevicePasscodeAuth) {
         setBiometryType(passcodeType(authData.currentAuthType));
       } else if (authData.availableBiometryType) {
         setBiometryType(authData.availableBiometryType);
