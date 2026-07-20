@@ -31,7 +31,24 @@ import {
   remoteFeatureFlagPerpsDisabledForPredictSmoke,
 } from './helpers/predict-helpers.js';
 
-const PredictionMarketFeature = async (mockServer: Mockttp) => {
+const PREDICT_WITHDRAW_ANY_TOKEN_FLAGS = {
+  confirmations_pay_post_quote: {
+    default: { enabled: true, tokens: {} },
+    overrides: {
+      predictWithdraw: {
+        enabled: true,
+        tokens: {
+          '0x1': ['0x0000000000000000000000000000000000000000'],
+        },
+      },
+    },
+  },
+};
+
+const setupPredictionMarketMocks = async (
+  mockServer: Mockttp,
+  flagOverrides: Record<string, unknown> = {},
+) => {
   // Polygon predict withdraw publishes via EIP-7702 transaction relay, not Infura eth_sendRawTransaction.
   await POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS(mockServer);
   await POLYMARKET_POLYGON_RELAY_POLLING_MOCKS(mockServer);
@@ -49,6 +66,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
         },
       },
     },
+    ...flagOverrides,
   }); // we need to mock the confirmations redesign Feature flag
   await POLYMARKET_USDC_BALANCE_MOCKS(mockServer); // Sets up all RPC mocks needed for withdraw flow
   // Keep this smoke test on the legacy Safe withdraw path.
@@ -58,6 +76,12 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings for claim flow
   await POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS(mockServer);
 };
+
+const PredictionMarketFeature = async (mockServer: Mockttp) =>
+  setupPredictionMarketMocks(mockServer);
+
+const PredictWithdrawAnyTokenFeature = async (mockServer: Mockttp) =>
+  setupPredictionMarketMocks(mockServer, PREDICT_WITHDRAW_ANY_TOKEN_FLAGS);
 
 appiumTest.describe(SmokePredictions('Predictions Withdraw'), () => {
   appiumTest(
@@ -111,6 +135,53 @@ appiumTest.describe(SmokePredictions('Predictions Withdraw'), () => {
             description:
               'Predict market list should be visible after withdraw confirmation',
           });
+        },
+      );
+    },
+  );
+
+  appiumTest(
+    'selects another token for a Predict withdrawal',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder()
+            .withPolygon()
+            .withPopularNetworks()
+            .withTokens(
+              [
+                {
+                  address: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
+                  decimals: 6,
+                  name: 'USD Coin (PoS)',
+                  symbol: 'USDC.e',
+                },
+              ],
+              CHAIN_IDS.POLYGON,
+            )
+            .withDisabledSmartTransactions()
+            .build(),
+          restartDevice: true,
+          disableLocalNodes: true,
+          testSpecificMock: PredictWithdrawAnyTokenFeature,
+          currentDeviceDetails,
+        },
+        async () => {
+          await loginForPredictTests();
+
+          await TabBarComponent.tapActions();
+          await WalletActionsBottomSheet.tapPredictButton();
+
+          await PredictMarketList.waitForScreenToDisplay({
+            description: 'Predict market list container should be visible',
+          });
+          await PredictBalance.expectBalanceCardVisible();
+          await PredictBalance.tapWithdraw();
+
+          await TransactionPayConfirmation.tapPayWithRow();
+          await TransactionPayConfirmation.tapByNetworkFilter('Ethereum');
+          await TransactionPayConfirmation.tapPayWithToken('ETH');
+          await TransactionPayConfirmation.verifyPayWithSymbol('ETH');
         },
       );
     },

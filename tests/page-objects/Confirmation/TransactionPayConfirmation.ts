@@ -495,6 +495,14 @@ class TransactionPayConfirmation {
     await this.expectText(this.amount, amount, 'Amount should be correct');
   }
 
+  async verifyPayWithSymbol(symbol: string): Promise<void> {
+    await this.expectText(
+      this.payWithSymbol,
+      symbol,
+      'Selected token symbol should be correct',
+    );
+  }
+
   async verifyTotal(total: string): Promise<void> {
     await this.expectText(this.total, total, 'Total should be correct');
   }
