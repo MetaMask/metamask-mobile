@@ -24,6 +24,7 @@ export function useClearPaymentOverride() {
         (config) => {
           (config as Record<string, unknown>).paymentOverride = undefined;
           config.refundTo = undefined;
+          config.moneyAccountAddress = undefined;
         },
       );
     }
