@@ -7,6 +7,10 @@ import { selectPrimaryMoneyAccount } from '../../selectors/moneyAccountControlle
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import { whenMoneyAccountUpgradeReady } from '../../core/Engine/controllers/money-account-upgrade-controller-init';
+import {
+  isMoneyAccountUpgradeAbortedError,
+  upgradeAccountWithRetry,
+} from '../../lib/Money/upgrade-account-with-retry';
 
 const LOG_PREFIX = '[upgradeMoneyAccount]';
 
@@ -14,12 +18,30 @@ const LOG_PREFIX = '[upgradeMoneyAccount]';
 const SENTRY_FEATURE_TAG = 'money-account-upgrade';
 
 /**
- * Message `upgradeAccountWithRetry` rejects with when its AbortSignal fires.
- * Mirrors the controller package's internal constant, so we can tell an
- * aborted run apart from a genuine failure that happens to land after the
- * user navigated away (which should still be reported).
+ * Reports an upgrade failure to Sentry, tagged with the failing step when
+ * the error carries one.
+ *
+ * @param error - The failure to report.
+ * @param data - Extra context data (e.g. the attempt number for a failure
+ * that is about to be retried).
  */
-const RETRY_ABORTED_MESSAGE = 'Money Account upgrade retry aborted';
+function reportUpgradeError(
+  error: unknown,
+  data: Record<string, unknown> = {},
+): void {
+  const wrapped = error instanceof Error ? error : new Error(String(error));
+  const step = isMoneyAccountUpgradeStepError(error) ? error.step : undefined;
+  Logger.error(wrapped, {
+    tags: {
+      feature: SENTRY_FEATURE_TAG,
+      ...(step ? { step } : {}),
+    },
+    context: {
+      name: 'money_account_upgrade',
+      data: { phase: 'upgrade', ...(step ? { step } : {}), ...data },
+    },
+  });
+}
 
 interface InFlightUpgrade {
   /**
@@ -74,9 +96,24 @@ function startUpgradeRun(address: Hex, signal?: AbortSignal): void {
           recordedBefore,
         });
 
-        await MoneyAccountUpgradeController.upgradeAccountWithRetry(address, {
-          signal,
-        });
+        await upgradeAccountWithRetry(
+          (upgradeAddress) =>
+            MoneyAccountUpgradeController.upgradeAccount(upgradeAddress),
+          address,
+          {
+            signal,
+            // Failures that end the run are reported by the catch below;
+            // reporting retried ones here means every failure reaches
+            // Sentry exactly once, even when a later attempt succeeds.
+            onRetry: (error, attempt) => {
+              Logger.log(LOG_PREFIX, 'attempt failed; will retry', {
+                address,
+                attempt,
+              });
+              reportUpgradeError(error, { attempt, willRetry: true });
+            },
+          },
+        );
 
         Logger.log(LOG_PREFIX, 'upgrade succeeded', {
           address,
@@ -104,24 +141,11 @@ function startUpgradeRun(address: Hex, signal?: AbortSignal): void {
       // loop to end, not a failure worth reporting. Match the abort
       // rejection itself rather than `signal.aborted`, so a genuine failure
       // that lands just after the user navigates away is still reported.
-      if (error instanceof Error && error.message === RETRY_ABORTED_MESSAGE) {
+      if (isMoneyAccountUpgradeAbortedError(error)) {
         Logger.log(LOG_PREFIX, 'upgrade aborted; skipping', { address });
         return;
       }
-      const wrapped = error instanceof Error ? error : new Error(String(error));
-      const step = isMoneyAccountUpgradeStepError(error)
-        ? error.step
-        : undefined;
-      Logger.error(wrapped, {
-        tags: {
-          feature: SENTRY_FEATURE_TAG,
-          ...(step ? { step } : {}),
-        },
-        context: {
-          name: 'money_account_upgrade',
-          data: { phase: 'upgrade', ...(step ? { step } : {}) },
-        },
-      });
+      reportUpgradeError(error);
     })
     .finally(() => {
       upgradesInFlight.delete(address);

@@ -1,4 +1,8 @@
 import {
+  MoneyAccountUpgradeStepError,
+  TerminalUpgradeError,
+} from '@metamask/money-account-upgrade-controller';
+import {
   __resetUpgradesInFlightForTesting,
   upgradeMoneyAccount,
 } from './index';
@@ -13,7 +17,7 @@ jest.mock('../../core/Engine', () => ({
   default: {
     context: {
       MoneyAccountUpgradeController: {
-        upgradeAccountWithRetry: jest.fn(),
+        upgradeAccount: jest.fn(),
         state: { upgradedAccounts: {} },
       },
     },
@@ -40,7 +44,7 @@ jest.mock(
 );
 
 const mockUpgradeAccount = Engine.context.MoneyAccountUpgradeController
-  .upgradeAccountWithRetry as jest.Mock;
+  .upgradeAccount as jest.Mock;
 const mockSelectPrimaryMoneyAccount =
   selectPrimaryMoneyAccount as unknown as jest.Mock;
 const mockLogError = Logger.error as jest.Mock;
@@ -51,6 +55,15 @@ const ADDRESS = '0x1111111111111111111111111111111111111111' as const;
 const OTHER_ADDRESS = '0x2222222222222222222222222222222222222222' as const;
 
 const flushPromises = () => new Promise((resolve) => setImmediate(resolve));
+
+/**
+ * A step failure the retry wrapper considers retryable. In these tests it is
+ * always paired with a signal that aborts before or during the backoff wait,
+ * so the wrapper gives up promptly instead of sitting out a (real-timer)
+ * retry delay.
+ */
+const retryableStepError = () =>
+  new MoneyAccountUpgradeStepError('associate-address', new Error('http 500'));
 
 describe('upgradeMoneyAccount', () => {
   let dispatch: jest.Mock;
@@ -67,15 +80,13 @@ describe('upgradeMoneyAccount', () => {
     };
   });
 
-  it('calls MoneyAccountUpgradeController.upgradeAccountWithRetry with the primary money account address', async () => {
+  it('calls MoneyAccountUpgradeController.upgradeAccount with the primary money account address', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
 
     upgradeMoneyAccount()(dispatch, getState, undefined);
     await flushPromises();
 
-    expect(mockUpgradeAccount).toHaveBeenCalledWith(ADDRESS, {
-      signal: undefined,
-    });
+    expect(mockUpgradeAccount).toHaveBeenCalledWith(ADDRESS);
   });
 
   it('logs the start of an upgrade, noting the account was not previously recorded', async () => {
@@ -172,29 +183,15 @@ describe('upgradeMoneyAccount', () => {
     );
   });
 
-  it('passes the provided AbortSignal to upgradeAccountWithRetry', async () => {
+  it('skips the attempt and logs quietly when the signal is already aborted', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
     const abortController = new AbortController();
+    abortController.abort();
 
     upgradeMoneyAccount(abortController.signal)(dispatch, getState, undefined);
     await flushPromises();
 
-    expect(mockUpgradeAccount).toHaveBeenCalledWith(ADDRESS, {
-      signal: abortController.signal,
-    });
-  });
-
-  it('logs quietly (no Sentry error) when the upgrade rejects after the signal aborted', async () => {
-    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
-    const abortController = new AbortController();
-    mockUpgradeAccount.mockImplementationOnce(() => {
-      abortController.abort();
-      return Promise.reject(new Error('Money Account upgrade retry aborted'));
-    });
-
-    upgradeMoneyAccount(abortController.signal)(dispatch, getState, undefined);
-    await flushPromises();
-
+    expect(mockUpgradeAccount).not.toHaveBeenCalled();
     expect(mockLogError).not.toHaveBeenCalled();
     expect(mockLogLog).toHaveBeenCalledWith(
       expect.stringContaining('upgradeMoneyAccount'),
@@ -203,12 +200,69 @@ describe('upgradeMoneyAccount', () => {
     );
   });
 
+  it('reports the retryable failure but logs the abort itself quietly when the failure lands after the signal aborted', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    const abortController = new AbortController();
+    mockUpgradeAccount.mockImplementationOnce(() => {
+      abortController.abort();
+      return Promise.reject(retryableStepError());
+    });
+
+    upgradeMoneyAccount(abortController.signal)(dispatch, getState, undefined);
+    await flushPromises();
+
+    // The attempt's failure reaches Sentry once (via the retry report); the
+    // abort that ends the run is not itself an error.
+    expect(mockLogError).toHaveBeenCalledTimes(1);
+    expect(mockLogError).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'MoneyAccountUpgradeStepError' }),
+      expect.anything(),
+    );
+    expect(mockLogLog).toHaveBeenCalledWith(
+      expect.stringContaining('upgradeMoneyAccount'),
+      'upgrade aborted; skipping',
+      { address: ADDRESS },
+    );
+  });
+
+  it('reports a retried failure to Sentry with the attempt number and step tag', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    const abortController = new AbortController();
+    mockUpgradeAccount.mockRejectedValueOnce(retryableStepError());
+
+    upgradeMoneyAccount(abortController.signal)(dispatch, getState, undefined);
+    await flushPromises();
+
+    expect(mockLogError).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'MoneyAccountUpgradeStepError' }),
+      {
+        tags: {
+          feature: 'money-account-upgrade',
+          step: 'associate-address',
+        },
+        context: {
+          name: 'money_account_upgrade',
+          data: {
+            phase: 'upgrade',
+            step: 'associate-address',
+            attempt: 1,
+            willRetry: true,
+          },
+        },
+      },
+    );
+
+    // End the pending backoff wait so its timer does not leak out of the test.
+    abortController.abort();
+    await flushPromises();
+  });
+
   it('allows a new upgrade after an aborted one settles', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
     const abortController = new AbortController();
     mockUpgradeAccount.mockImplementationOnce(() => {
       abortController.abort();
-      return Promise.reject(new Error('Money Account upgrade retry aborted'));
+      return Promise.reject(retryableStepError());
     });
 
     upgradeMoneyAccount(abortController.signal)(dispatch, getState, undefined);
@@ -262,13 +316,12 @@ describe('upgradeMoneyAccount', () => {
     // `MoneyAccountUpgradeStepError.message` embeds the underlying step error's
     // message, which is what `Logger.error` forwards to Sentry's
     // `captureException`. Asserting on it guards against the thunk dropping the
-    // original message (e.g. by re-wrapping in a generic Error).
-    const causeMessage = 'eth_getTransactionCount returned a non-hex value';
-    const error = Object.assign(
-      new Error(
-        `Money Account upgrade failed at step "eip-7702-authorization": ${causeMessage}`,
-      ),
-      { name: 'MoneyAccountUpgradeStepError', step: 'eip-7702-authorization' },
+    // original message (e.g. by re-wrapping in a generic Error). The cause is
+    // terminal so the retry wrapper rethrows it immediately.
+    const causeMessage = 'account is delegated to a third-party implementation';
+    const error = new MoneyAccountUpgradeStepError(
+      'eip-7702-authorization',
+      new TerminalUpgradeError(causeMessage),
     );
     mockUpgradeAccount.mockRejectedValueOnce(error);
 
@@ -362,13 +415,14 @@ describe('upgradeMoneyAccount', () => {
 
     // The first screen blurs: its run aborts and unwinds.
     first.abort();
-    rejectFirst(new Error('Money Account upgrade retry aborted'));
+    rejectFirst(retryableStepError());
     await flushPromises();
 
+    // The restart runs under the (non-aborted) takeover signal; had it reused
+    // the first, aborted signal, the retry wrapper would give up before
+    // calling the controller again.
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
-    expect(mockUpgradeAccount).toHaveBeenNthCalledWith(2, ADDRESS, {
-      signal: second.signal,
-    });
+    expect(mockUpgradeAccount).toHaveBeenNthCalledWith(2, ADDRESS);
   });
 
   it('does not restart when the takeover signal is already aborted', async () => {
@@ -389,7 +443,7 @@ describe('upgradeMoneyAccount', () => {
 
     second.abort();
     first.abort();
-    rejectFirst(new Error('Money Account upgrade retry aborted'));
+    rejectFirst(retryableStepError());
     await flushPromises();
 
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
@@ -440,11 +494,7 @@ describe('upgradeMoneyAccount', () => {
     await flushPromises();
 
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
-    expect(mockUpgradeAccount).toHaveBeenNthCalledWith(1, ADDRESS, {
-      signal: undefined,
-    });
-    expect(mockUpgradeAccount).toHaveBeenNthCalledWith(2, OTHER_ADDRESS, {
-      signal: undefined,
-    });
+    expect(mockUpgradeAccount).toHaveBeenNthCalledWith(1, ADDRESS);
+    expect(mockUpgradeAccount).toHaveBeenNthCalledWith(2, OTHER_ADDRESS);
   });
 });
