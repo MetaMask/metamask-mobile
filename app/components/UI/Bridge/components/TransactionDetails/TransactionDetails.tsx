@@ -416,10 +416,12 @@ export const BridgeTransactionDetails = (
       evmTxMeta?.hash ?? bridgeStatus.srcChain?.txHash ?? multiChainTx?.id;
 
     const redesignTitle = isSwap
-      ? 'Swapped'
+      ? strings('bridge_transaction_details.swapped')
       : destinationToken.symbol
-        ? `Bridged ${destinationToken.symbol}`
-        : 'Bridged';
+        ? strings('bridge_transaction_details.bridged_token', {
+            symbol: destinationToken.symbol,
+          })
+        : strings('bridge_transaction_details.bridged');
 
     const pricing = bridgeTxHistoryItem.pricingData;
     const totalAmountUsd =
