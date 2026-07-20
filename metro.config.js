@@ -62,6 +62,15 @@ const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
 
+// True when the module being resolved was requested from a file inside
+// @metamask/perps-controller. Normalizes separators first so this works on
+// Windows (`\`) too; the surrounding `/` deliberately require a file *inside*
+// the package, not just a package-name prefix.
+const isPerpsControllerOrigin = (context) =>
+  (context.originModulePath ?? '')
+    .replace(/\\/g, '/')
+    .includes('/@metamask/perps-controller/');
+
 // Ledger DMK-family packages whose published `exports` field routes
 // `require`/`import` of the bare specifier to a CJS build under
 // `lib/cjs/`. The CJS output wraps `reflect-metadata` (and the rest of
