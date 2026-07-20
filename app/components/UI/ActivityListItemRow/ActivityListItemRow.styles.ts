@@ -95,6 +95,12 @@ export const createStyles = (
     listItemAmountIncoming: {
       color: colors.success.default,
     } as TextStyle,
+    listItemAmountLoss: {
+      color: colors.error.default,
+    } as TextStyle,
+    listItemAmountMuted: {
+      color: colors.text.muted,
+    } as TextStyle,
     listItemSecondaryAmount: {
       ...typography.sBodySM,
       fontFamily: getFontFamily(TextVariant.BodySM),

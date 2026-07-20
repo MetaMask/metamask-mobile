@@ -93,6 +93,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  aiSocialLeaderboardOptFlowEnabled: {
+    name: 'aiSocialLeaderboardOptFlowEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.3.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   aiSocialLeaderboardPerpsEnabled: {
     name: 'aiSocialLeaderboardPerpsEnabled',
     type: FeatureFlagType.Remote,
@@ -100,6 +111,28 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       minimumVersion: '8.1.0',
       enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  aiSocialFeedEnabled: {
+    name: 'aiSocialFeedEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.3.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  aiSocialLeaderboardOnboardingEnabled: {
+    name: 'aiSocialLeaderboardOnboardingEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -228,6 +261,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           enabled: false,
           featureVersion: null,
           minimumVersion: null,
+          deprecatedControllers: [],
+        },
+        '8.3.0': {
+          enabled: true,
+          featureVersion: '1',
+          minimumVersion: '8.3.0',
+          deprecatedControllers: [],
         },
       },
     },
@@ -3324,6 +3364,44 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyDepositCtaTokens: {
+    name: 'earnMoneyDepositCtaTokens',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {},
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyEarnBannerEnabled: {
+    name: 'earnMoneyEarnBannerEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyEarnBannerTokens: {
+    name: 'earnMoneyEarnBannerTokens',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {},
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyTokenListItemCtaEnabled: {
+    name: 'earnMoneyTokenListItemCtaEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyFirstTimeDepositAnimationEnabled: {
     name: 'earnMoneyFirstTimeDepositAnimationEnabled',
     type: FeatureFlagType.Remote,
@@ -3332,6 +3410,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: '8.0.0',
       enabled: true,
     },
+    status: FeatureFlagStatus.Active,
+  },
+  earnMoneyParallaxAnimationEnabled: {
+    name: 'earnMoneyParallaxAnimationEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -3834,11 +3919,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  perpsAbtestButtonColor: {
-    name: 'perpsAbtestButtonColor',
+  perpsTAT1937AbtestButtonColor: {
+    name: 'perpsTAT1937AbtestButtonColor',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: 'monochrome',
+    productionDefault: 'control',
     status: FeatureFlagStatus.Active,
   },
 
@@ -4964,6 +5049,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           depositLimit: {
             moneyAccountDeposit: 100000,
           },
+          prefilledAmount: {
+            default: {
+              enabled: false,
+            },
+            overrides: {
+              moneyAccountDeposit: {
+                enabled: true,
+              },
+            },
+          },
           enableDepositWalletWithdraw: true,
           enableMoneyAccountTransactions: {
             predictDeposit: true,
@@ -5076,6 +5171,36 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       },
       {
         name: 'colorIcons',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  homeTMCU1103AbtestActionButtonsGrid: {
+    name: 'homeTMCU1103AbtestActionButtonsGrid',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+      {
+        name: 'row1Top',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+      {
+        name: 'row2Top',
         scope: {
           type: 'percentage_rollout',
           value: 1,
@@ -5514,6 +5639,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  'stable-tokens': {
+    name: 'stable-tokens',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {},
+    status: FeatureFlagStatus.Active,
+  },
+
   swapsSWAPS4543AbtestPostTradeModal: {
     name: 'swapsSWAPS4543AbtestPostTradeModal',
     type: FeatureFlagType.Remote,
@@ -5798,6 +5931,39 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '7.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsRecentlyAddedEnabled: {
+    name: 'perpsRecentlyAddedEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.3.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsRecentlyViewedEnabled: {
+    name: 'perpsRecentlyViewedEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.4.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsClosePositionLimitOrderEnabled: {
+    name: 'perpsClosePositionLimitOrderEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.3.0',
     },
     status: FeatureFlagStatus.Active,
   },

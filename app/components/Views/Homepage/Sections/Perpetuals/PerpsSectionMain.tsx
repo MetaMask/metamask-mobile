@@ -271,10 +271,10 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
           perpsPillsData.find((item) => item.market.symbol === position.symbol)
             ?.market;
         navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
-          market: market ?? {
+          market: (market ?? {
             symbol: position.symbol,
             maxLeverage: position.maxLeverage,
-          },
+          }) as PerpsMarketData,
           initialTab: 'position',
           source: 'section_position',
         });

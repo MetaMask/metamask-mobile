@@ -165,6 +165,11 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  selectPrivacyMode: jest.fn(() => false),
+}));
+
 // Wrapper that unmounts the sheet when `goBack` runs — modelling the modal
 // being popped on close, which is what tears the hook down in production.
 const SheetHarness = () => {
@@ -205,6 +210,10 @@ const flushAsync = async () => {
 describe('MoneyTransferSheet — Between accounts with a pending transaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    global.requestAnimationFrame = jest.fn((callback) => {
+      callback(0);
+      return 0;
+    });
     mockEngineState.TransactionController = { transactions: [] };
     (useMoneyPerpsDeposit as jest.Mock).mockReturnValue({
       isEnabled: false,

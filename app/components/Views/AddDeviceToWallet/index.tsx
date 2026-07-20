@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -14,24 +15,32 @@ import {
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { useNavigation } from '@react-navigation/native';
-import { Image } from 'react-native';
 import addDeviceToWalletImage from '../../../images/add_wallet_to_device.png';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
-  createQRScannerNavDetails,
   QRTabSwitcherScreens,
   type ScanSuccess,
   // eslint-disable-next-line import-x/no-restricted-paths
 } from '../QRTabSwitcher';
 import DeviceAdded from './DeviceAdded';
 import Engine from '../../../core/Engine';
+import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDeviceVerificationSheet';
+import { useAddDeviceResetToInstructionsListener } from '../../../core/QrSync/useAddDeviceResetToInstructionsListener';
+import { useIsQrTabSwitcherOpen } from '../../../core/QrSync/useIsQrTabSwitcherOpen';
+import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from '../../../core/QrSync/qrSyncTelemetry';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   selectQrSyncError,
   selectQrSyncIsBusy,
   selectQrSyncIsSessionActive,
   selectQrSyncPresentation,
-  selectQrSyncShouldNavigateToImport,
   selectQrSyncShouldShowOtpSheet,
 } from '../../../selectors/qrSyncController';
 
@@ -63,35 +72,27 @@ const Points = ({
 
 const AddDeviceToWallet = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [manualQrPayload, setManualQrPayload] = useState('');
   const hasOpenedVerificationSheetRef = useRef(false);
+  const isScannerOpen = useIsQrTabSwitcherOpen();
   const presentation = useSelector(selectQrSyncPresentation);
-  const shouldNavigateToImport = useSelector(
-    selectQrSyncShouldNavigateToImport,
-  );
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
   const isBusy = useSelector(selectQrSyncIsBusy);
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
   const error = useSelector(selectQrSyncError);
 
   const handleBack = useCallback(() => {
-    if (isSessionActive) {
-      Engine.context.QrSyncController.cancelSession();
-    }
-
+    Engine.context.QrSyncController.resetState();
     navigation.goBack();
-  }, [isSessionActive, navigation]);
+  }, [navigation]);
 
   const showVerificationSheet = useCallback(() => {
-    (navigation.navigate as (route: string, params: object) => void)(
-      Routes.MODAL.ROOT_MODAL_FLOW,
-      { screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE },
-    );
+    showAddDeviceVerificationSheet(navigation);
   }, [navigation]);
 
   useEffect(() => {
-    if (!shouldShowOtpSheet) {
+    if (!shouldShowOtpSheet || isScannerOpen) {
       hasOpenedVerificationSheetRef.current = false;
       return;
     }
@@ -102,18 +103,17 @@ const AddDeviceToWallet = () => {
 
     hasOpenedVerificationSheetRef.current = true;
     showVerificationSheet();
-  }, [shouldShowOtpSheet, showVerificationSheet]);
+  }, [shouldShowOtpSheet, isScannerOpen, showVerificationSheet]);
 
-  useEffect(() => {
-    if (!shouldNavigateToImport) {
-      return;
-    }
+  useQrSyncImportNavigation({
+    enabled: true,
+    deferWhileScannerOpen: true,
+    isScannerOpen,
+  });
 
-    navigation.navigate(Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE, {
-      initialStep: 1,
-      qrSyncImport: true,
-    });
-  }, [shouldNavigateToImport, navigation]);
+  useAddDeviceResetToInstructionsListener({
+    enabled: !isScannerOpen,
+  });
 
   const submitQrPayload = useCallback(async (qrPayload: string) => {
     await Engine.context.QrSyncController.handleScannedQrPayload(qrPayload);
@@ -123,39 +123,49 @@ const AddDeviceToWallet = () => {
     (data: ScanSuccess, content?: string) => {
       const scannedQrPayload = content ?? data.content ?? '';
 
-      submitQrPayload(scannedQrPayload).catch(() => undefined);
+      submitQrPayload(scannedQrPayload).catch((err: unknown) => {
+        reportQrSyncFailure(err, {
+          surface: QrSyncSurfaces.SCANNER,
+          operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
+          source: QrSyncTelemetrySources.ADD_DEVICE_ON_SCAN_SUCCESS,
+        });
+      });
     },
     [submitQrPayload],
   );
 
   const openQRScanner = useCallback(() => {
-    navigation.navigate(
-      ...createQRScannerNavDetails({
-        initialScreen: QRTabSwitcherScreens.Scanner,
-        disableTabber: true,
-        origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-        onScanSuccess,
-      }),
-    );
-  }, [navigation, onScanSuccess]);
+    if (isSessionActive) {
+      Engine.context.QrSyncController.resetState();
+    }
+
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      initialScreen: QRTabSwitcherScreens.Scanner,
+      disableTabber: true,
+      origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+      onScanSuccess,
+    });
+  }, [navigation, onScanSuccess, isSessionActive]);
 
   const handleManualQrSubmit = useCallback(async () => {
     if (!manualQrPayload.trim()) {
       return;
     }
 
-    try {
-      await submitQrPayload(manualQrPayload);
-    } catch {
-      // Error state is handled by the controller.
-    }
+    await submitQrPayload(manualQrPayload);
   }, [manualQrPayload, submitQrPayload]);
 
   const triggerManualQrSubmit = useCallback(() => {
-    handleManualQrSubmit().catch(() => undefined);
+    handleManualQrSubmit().catch((submitError: unknown) => {
+      reportQrSyncFailure(submitError, {
+        surface: QrSyncSurfaces.SCANNER,
+        operation: QrSyncOperations.SUBMIT_MANUAL_PAYLOAD,
+        source: QrSyncTelemetrySources.ADD_DEVICE_MANUAL_SUBMIT,
+      });
+    });
   }, [handleManualQrSubmit]);
 
-  if (presentation === 'device-linked') {
+  if (presentation === 'device-linked' && !isScannerOpen) {
     return <DeviceAdded />;
   }
 

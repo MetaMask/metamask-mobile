@@ -43,4 +43,6 @@ export interface ActivityListItemRowContent {
   avatarTokens: TokenAmount[];
   avatarIconUrl?: string;
   perpsMarketSymbol?: string;
+  isPnlAmount?: boolean;
+  isMutedAmount?: boolean;
 }

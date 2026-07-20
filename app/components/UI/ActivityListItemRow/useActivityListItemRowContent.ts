@@ -25,10 +25,14 @@ import {
   applyDisplaySign,
   type ActivityKind,
   type ActivityListItem,
+  enrichTokenFromApi,
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
+  isFailedOrCancelledTransfer,
+  isPerpsOrderKind,
   isUnlimitedApprovalAmount,
   shouldShowPlusSign,
+  type Status,
   type TokenAmount,
   toMarketRateLookupToken,
 } from '../../../util/activity-adapters';
@@ -43,6 +47,7 @@ import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
 import {
   ACTIVITY_FALLBACK_TITLE_RESOLVERS,
+  resolvePerpsOrderStatusLabel,
   TOKEN_ACTION_LABELS,
 } from './titleLabels';
 
@@ -54,14 +59,20 @@ function isPerpsFundingKind(type: ActivityKind): boolean {
   return type === 'perpsPaidFundingFees' || type === 'perpsReceivedFundingFees';
 }
 
-function isPerpsTradeKind(type: ActivityKind): boolean {
+/**
+ * Perps trade fills, whose amount is realized PnL (gains green, losses red).
+ * Excludes orders, funds, and funding — they show a notional and stay neutral.
+ */
+function isPerpsPnlKind(type: ActivityKind): boolean {
   return (
-    (type.startsWith('perps') &&
-      !isPerpsFundsKind(type) &&
-      !isPerpsFundingKind(type)) ||
-    type.startsWith('market') ||
-    type.startsWith('stopMarket')
+    type.startsWith('perps') &&
+    !isPerpsFundsKind(type) &&
+    !isPerpsFundingKind(type)
   );
+}
+
+function isPerpsTradeKind(type: ActivityKind): boolean {
+  return isPerpsPnlKind(type) || isPerpsOrderKind(type);
 }
 
 function isPerpsMarketAvatarKind(type: ActivityKind): boolean {
@@ -276,10 +287,10 @@ function withDomainStatusSuffix(
   status: ActivityListItem['status'],
 ): string {
   if (status === 'failed') {
-    return `${title}—${strings('transaction.failed')}`;
+    return `${title} — ${strings('transaction.failed')}`;
   }
   if (status === 'cancelled') {
-    return `${title}—${strings('transaction.canceled')}`;
+    return `${title} — ${strings('transaction.canceled')}`;
   }
   return title;
 }
@@ -288,6 +299,10 @@ function resolveFallbackTitle(item: ActivityListItem): string {
   const base =
     ACTIVITY_FALLBACK_TITLE_RESOLVERS[item.type]?.() ??
     strings('transactions.interaction');
+
+  if (isPerpsOrderKind(item.type)) {
+    return base;
+  }
   return withDomainStatusSuffix(base, item.status);
 }
 
@@ -465,6 +480,8 @@ function resolveCoreContent(
       const pendingLabel = item.type === 'receive' ? 'Receiving' : 'Sending';
       const failedLabel =
         item.type === 'receive' ? 'Receive failed' : 'Send failed';
+      const cancelledLabel =
+        item.type === 'receive' ? 'Receive cancelled' : 'Send cancelled';
       const subtitlePrefix = item.type === 'receive' ? 'From' : 'To';
 
       return {
@@ -472,6 +489,7 @@ function resolveCoreContent(
           success: withOptionalSymbol(label, symbol),
           pending: withOptionalSymbol(pendingLabel, symbol),
           failed: failedLabel,
+          cancelled: cancelledLabel,
         }),
         subtitle: `${subtitlePrefix}: ${shortAddress(address) ?? strings('transactions.unavailable')}`,
         primaryToken: token,
@@ -715,6 +733,42 @@ function resolveCoreContent(
         }),
         primaryToken: item.data.token,
       };
+    case 'assetActivation': {
+      const token = item.data.token;
+      return {
+        title: statusTitle(item, {
+          success: withOptionalSymbol(
+            strings('transactions.activity_trustline_activated'),
+            item.data.token?.symbol,
+          ),
+          pending: withOptionalSymbol(
+            strings('transactions.activity_trustline_activating'),
+            item.data.token?.symbol,
+          ),
+          failed: strings('transactions.activity_trustline_activation_failed'),
+        }),
+        primaryToken: token,
+      };
+    }
+    case 'assetDeactivation': {
+      const token = item.data.token;
+      return {
+        title: statusTitle(item, {
+          success: withOptionalSymbol(
+            strings('transactions.activity_trustline_deactivated'),
+            item.data.token?.symbol,
+          ),
+          pending: withOptionalSymbol(
+            strings('transactions.activity_trustline_deactivating'),
+            item.data.token?.symbol,
+          ),
+          failed: strings(
+            'transactions.activity_trustline_deactivation_failed',
+          ),
+        }),
+        primaryToken: token,
+      };
+    }
     case 'contractInteraction':
       return {
         title: statusTitle(item, {
@@ -1120,17 +1174,45 @@ export function useActivityListItemRowContent(
         )
       : undefined;
 
+  const isLending =
+    item.type === 'lendingDeposit' || item.type === 'lendingWithdrawal';
+  const lendingAssetIds: string[] = [];
+  if (isLending) {
+    if (
+      'destinationToken' in item.data &&
+      item.data.destinationToken?.assetId
+    ) {
+      lendingAssetIds.push(item.data.destinationToken.assetId);
+    }
+    if ('sourceToken' in item.data && item.data.sourceToken?.assetId) {
+      lendingAssetIds.push(item.data.sourceToken.assetId);
+    }
+  }
+  const lendingTokenData = useTokensData(lendingAssetIds);
+
   const content = resolveCoreContent(item, bridgeHistoryItem);
+
+  let basePrimaryToken: TokenAmount | undefined;
+  if (isSpendingCap) {
+    basePrimaryToken = spendingCapToken?.amount ? spendingCapToken : undefined;
+  } else if (isLending) {
+    basePrimaryToken = enrichTokenFromApi(
+      content.primaryToken,
+      lendingTokenData,
+    );
+  } else {
+    basePrimaryToken = content.primaryToken;
+  }
   const primaryToken = enrichStablecoinTokenMetadata(
-    isSpendingCap
-      ? spendingCapToken?.amount
-        ? spendingCapToken
-        : undefined
-      : content.primaryToken,
+    basePrimaryToken,
     networkChainId,
   );
+
+  const baseSecondaryToken = isLending
+    ? enrichTokenFromApi(content.secondaryToken, lendingTokenData)
+    : content.secondaryToken;
   const secondaryToken = enrichStablecoinTokenMetadata(
-    content.secondaryToken,
+    baseSecondaryToken,
     networkChainId,
   );
   const isPerpsFunding = isPerpsFundingKind(item.type);
@@ -1177,13 +1259,43 @@ export function useActivityListItemRowContent(
       })
     : undefined;
 
-  const primaryAmount =
+  const isOrderRow = isPerpsOrderKind(item.type);
+
+  const rawPrimaryAmount =
     domainFiatAmount ?? resolveAmount(primaryToken, item.type);
-  const secondaryAmount = domainFiatAmount
-    ? isFundsRow
-      ? fundsTokenSecondaryAmount(primaryToken)
-      : undefined
-    : (resolvedSecondaryAmount ?? secondaryFiatAmount ?? primaryFiatAmount);
+
+  const resolveRawSecondaryAmount = (): string | undefined => {
+    // USD-denominated (perps/predict) rows: the token line only makes sense for
+    // funds movements; other domain rows have no secondary line.
+    if (domainFiatAmount) {
+      return isFundsRow ? fundsTokenSecondaryAmount(primaryToken) : undefined;
+    }
+    // Non-domain rows: prefer the secondary token amount, then its fiat, then a
+    // primary fiat fallback.
+    return resolvedSecondaryAmount ?? secondaryFiatAmount ?? primaryFiatAmount;
+  };
+
+  // A failed or cancelled send/receive moved nothing, so the transfer amount
+  // (surfaced from the attempted/original tx) is misleading — suppress it here
+  // so every consumer of this resolver (the list row and the details amount
+  // header) stays consistent.
+  const suppressTransferAmount = isFailedOrCancelledTransfer(item);
+
+  // Order rows show their lifecycle status (muted, in the primary slot) instead
+  // of a notional amount — see isPerpsOrderKind. Orders aren't transfers, so the
+  // failed/cancelled-transfer suppression never applies to them.
+  let primaryAmount: string | undefined;
+  let secondaryAmount: string | undefined;
+  if (isOrderRow) {
+    primaryAmount = resolvePerpsOrderStatusLabel(item.status);
+    secondaryAmount = undefined;
+  } else if (suppressTransferAmount) {
+    primaryAmount = undefined;
+    secondaryAmount = undefined;
+  } else {
+    primaryAmount = rawPrimaryAmount;
+    secondaryAmount = resolveRawSecondaryAmount();
+  }
 
   const perpsMarketSymbol = isPerpsMarketAvatarKind(item.type)
     ? 'sourceToken' in item.data
@@ -1194,17 +1306,25 @@ export function useActivityListItemRowContent(
     ? getPredictActivity(item)?.icon
     : undefined;
 
+  let avatarTokens: TokenAmount[];
+  if (isSpendingCap && spendingCapToken) {
+    avatarTokens = [spendingCapToken];
+  } else if (isLending && primaryToken) {
+    avatarTokens = [primaryToken];
+  } else {
+    avatarTokens = resolveAvatarTokens(item, bridgeHistoryItem);
+  }
+
   return {
     ...content,
-    avatarTokens:
-      isSpendingCap && spendingCapToken
-        ? [spendingCapToken]
-        : resolveAvatarTokens(item, bridgeHistoryItem),
+    avatarTokens,
     avatarIconUrl: predictIconUrl,
     perpsMarketSymbol,
     primaryToken,
     secondaryToken,
     primaryAmount,
     secondaryAmount,
+    isPnlAmount: isPerpsPnlKind(item.type),
+    isMutedAmount: isOrderRow,
   };
 }
