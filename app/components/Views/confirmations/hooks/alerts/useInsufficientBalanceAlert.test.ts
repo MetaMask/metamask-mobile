@@ -134,7 +134,6 @@ describe('useInsufficientBalanceAlert', () => {
     } as unknown as ReturnType<typeof useConfirmationContext>);
     mockUseRampNavigation.mockReturnValue({
       goToBuy: mockGoToBuy,
-      goToAggregator: jest.fn(),
       goToSell: jest.fn(),
     });
 

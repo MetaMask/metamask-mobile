@@ -78,18 +78,8 @@ describe('RampRoutes', () => {
     );
   };
 
-  it('renders RampRoutes with BUY type', () => {
-    const { toJSON } = renderWithProviders(RampType.BUY);
-    expect(toJSON()).toBeTruthy();
-  });
-
   it('renders RampRoutes with SELL type', () => {
     const { toJSON } = renderWithProviders(RampType.SELL);
-    expect(toJSON()).toBeTruthy();
-  });
-
-  it('provides correct initial route name for BUY type', () => {
-    const { toJSON } = renderWithProviders(RampType.BUY);
     expect(toJSON()).toBeTruthy();
   });
 

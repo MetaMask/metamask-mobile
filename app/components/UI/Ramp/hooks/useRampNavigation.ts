@@ -1,11 +1,8 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import {
-  RampIntent,
-  RampType as AggregatorRampType,
-} from '../Aggregator/types';
-import { createRampNavigationDetails } from '../Aggregator/routes/utils';
+import { RampIntent } from '../Aggregator/types';
+import { createSellNavigationDetails } from '../Aggregator/routes/utils';
 import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
 import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
 import type { BuyFlowOrigin } from '../Views/BuildQuote/BuildQuote';
@@ -29,7 +26,6 @@ import { selectProviders } from '../../../../selectors/rampsController';
  *
  * @returns An object containing navigation functions:
  * - goToBuy: Unified V2 routing gated by RampsController region/eligibility
- * - goToAggregator: deprecated Always navigates to aggregator BUY flow (bypasses smart routing)
  * - goToSell: Always navigates to aggregator SELL flow
  */
 export const useRampNavigation = () => {
@@ -56,28 +52,19 @@ export const useRampNavigation = () => {
     async (
       intent?: RampIntent,
       options?: {
-        overrideUnifiedRouting?: boolean;
         buyFlowOrigin?: BuyFlowOrigin;
       },
     ) => {
-      const { overrideUnifiedRouting = false } = options || {};
-
-      const isUnifiedRoutingEnabled = !overrideUnifiedRouting;
-
-      // Resolve the best available geolocation; only the unified path refreshes.
+      // Resolve the best available geolocation for unified buy routing.
       let location: string | undefined = geolocationLocation;
-      if (
-        isUnifiedRoutingEnabled &&
-        (!location || location === UNKNOWN_LOCATION)
-      ) {
+      if (!location || location === UNKNOWN_LOCATION) {
         location = await Promise.resolve(
           Engine.context.GeolocationController?.refreshGeolocation?.(),
         ).catch(() => undefined);
       }
 
-      // Region service disruption kill-switch — applies to every buy entry point (including
-      // the deprecated aggregator/reorder path) and takes precedence over the
-      // eligibility/unsupported gating below.
+      // Region service disruption kill-switch — applies to every buy entry point
+      // and takes precedence over the eligibility/unsupported gating below.
       if (
         isRampsServiceDisruptionActive(
           rampsServiceDisruptionRegions,
@@ -95,11 +82,7 @@ export const useRampNavigation = () => {
       // as region-unavailable. Only fires once provider/token data has settled
       // (not loading, no error) so transient states don't trip the modal.
       const v2CatalogHasLoaded =
-        !overrideUnifiedRouting &&
-        !providersLoading &&
-        !tokensLoading &&
-        !providersError &&
-        !tokensError;
+        !providersLoading && !tokensLoading && !providersError && !tokensError;
       const v2CatalogHasNoProviders =
         v2CatalogHasLoaded && rampsTokens && providers.length === 0;
       const v2CatalogHasNoBuyableTokens =
@@ -109,26 +92,22 @@ export const useRampNavigation = () => {
       const isV2CatalogUnsupported =
         v2CatalogHasNoProviders || v2CatalogHasNoBuyableTokens;
 
-      if (isUnifiedRoutingEnabled) {
-        if (!location || location === UNKNOWN_LOCATION) {
-          navigation.navigate(
-            ...createEligibilityFailedModalNavigationDetails(),
-          );
-          return;
-        }
-
-        if (isRampRegionDefinitivelyUnsupported(userRegion, countries)) {
-          navigation.navigate(...createRampUnsupportedModalNavigationDetails());
-          return;
-        }
-
-        if (isV2CatalogUnsupported) {
-          navigation.navigate(...createRampUnsupportedModalNavigationDetails());
-          return;
-        }
+      if (!location || location === UNKNOWN_LOCATION) {
+        navigation.navigate(...createEligibilityFailedModalNavigationDetails());
+        return;
       }
 
-      if (intent?.assetId && !overrideUnifiedRouting) {
+      if (isRampRegionDefinitivelyUnsupported(userRegion, countries)) {
+        navigation.navigate(...createRampUnsupportedModalNavigationDetails());
+        return;
+      }
+
+      if (isV2CatalogUnsupported) {
+        navigation.navigate(...createRampUnsupportedModalNavigationDetails());
+        return;
+      }
+
+      if (intent?.assetId) {
         const controllerAssetId = resolveRampControllerAssetId(
           intent.assetId,
           rampsTokens?.allTokens ?? [],
@@ -160,14 +139,7 @@ export const useRampNavigation = () => {
         return;
       }
 
-      if (!intent?.assetId && !overrideUnifiedRouting) {
-        navigation.navigate(...createTokenSelectionNavDetails());
-        return;
-      }
-
-      navigation.navigate(
-        ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
-      );
+      navigation.navigate(...createTokenSelectionNavDetails());
     },
     [
       setSelectedToken,
@@ -185,25 +157,12 @@ export const useRampNavigation = () => {
     ],
   );
 
-  /**
-   * @deprecated Use goToBuy instead. This function always navigates to the aggregator BUY flow,
-   * bypassing unified routing. Use goToBuy for smart routing that respects user preferences.
-   */
-  const goToAggregator = useCallback(
-    (intent?: RampIntent) => {
-      goToBuy(intent, { overrideUnifiedRouting: true });
-    },
-    [goToBuy],
-  );
-
   const goToSell = useCallback(
     (intent?: RampIntent) => {
-      navigation.navigate(
-        ...createRampNavigationDetails(AggregatorRampType.SELL, intent),
-      );
+      navigation.navigate(...createSellNavigationDetails(intent));
     },
     [navigation],
   );
 
-  return { goToBuy, goToAggregator, goToSell };
+  return { goToBuy, goToSell };
 };

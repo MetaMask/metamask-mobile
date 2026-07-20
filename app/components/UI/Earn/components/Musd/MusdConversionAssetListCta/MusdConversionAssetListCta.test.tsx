@@ -92,7 +92,6 @@ describe('MusdConversionAssetListCta', () => {
       useRampNavigation as jest.MockedFunction<typeof useRampNavigation>
     ).mockReturnValue({
       goToBuy: mockGoToBuy,
-      goToAggregator: jest.fn(),
       goToSell: jest.fn(),
     });
 
@@ -499,7 +498,7 @@ describe('MusdConversionAssetListCta', () => {
       });
     });
 
-    it('does not call goToAggregator when tokens available', async () => {
+    it('does not call goToBuy when tokens available', async () => {
       const { getByText } = renderWithProvider(<MusdConversionAssetListCta />, {
         state: initialRootState,
       });
