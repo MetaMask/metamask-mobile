@@ -222,3 +222,27 @@ jobs:
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
     secrets: inherit
+
+  appium-confirmations-ios-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
+         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeConfirmations'))
+      }}
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-confirmations-ios-smoke-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: SmokeConfirmations
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      test-timeout-minutes: 60
+      build_type: ${{ inputs.build_type || 'main' }}
+      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
+      runner_provider: ${{ inputs.runner_provider || 'current' }}
+    secrets: inherit
