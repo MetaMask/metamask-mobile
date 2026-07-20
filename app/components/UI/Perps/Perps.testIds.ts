@@ -306,6 +306,20 @@ export const PerpsPositionsViewSelectorsIDs = {
   POSITIONS_SECTION_TITLE: 'perps-positions-section-title',
 };
 
+// ========================================
+// PERPS CLOSE ALL POSITIONS VIEW SELECTORS
+// ========================================
+
+export const PerpsCloseAllPositionsViewSelectorsIDs = {
+  SHEET: 'perps-close-all-positions-sheet',
+  TITLE: 'perps-close-all-positions-title',
+  DESCRIPTION: 'perps-close-all-positions-description',
+  EMPTY_STATE: 'perps-close-all-positions-empty-state',
+  CLOSING_STATE: 'perps-close-all-positions-closing-state',
+  KEEP_BUTTON: 'perps-close-all-positions-keep-button',
+  CLOSE_ALL_BUTTON: 'perps-close-all-positions-close-all-button',
+} as const;
+
 export const PerpsPositionDetailsViewSelectorsIDs = {
   CANDLESTICK_CHART: 'candlestick-chart',
   TRADINGVIEW_CHART: 'tradingview-chart',

@@ -255,6 +255,8 @@ export function useQuickBuyController(
     [target.chain, target.tokenAddress],
   );
 
+  const [tradeMode, setTradeMode] = useState<QuickBuyTradeMode>('buy');
+
   const {
     refs: { lastInputMethodRef, lastTrackedAmountRef, submitStartedAtRef },
     trackAmountSelected,
@@ -266,9 +268,7 @@ export function useQuickBuyController(
     trackTradeSubmitted,
     trackTradeCompleted,
     markTradeSubmitted,
-  } = useQuickBuyAnalytics(traderAddress, caip19, analyticsContext);
-
-  const [tradeMode, setTradeMode] = useState<QuickBuyTradeMode>('buy');
+  } = useQuickBuyAnalytics(traderAddress, caip19, analyticsContext, tradeMode);
   const [fiatAmount, setFiatAmount] = useState('');
   const [sourceAmountTokens, setSourceAmountTokens] = useState('');
   // True when the user has committed the slider to 100% ("sell all"). In this
