@@ -10,7 +10,50 @@ import {
 } from '@react-native-community/netinfo';
 import { createUIQueryClient } from '@metamask/react-data-query';
 import Engine from '../Engine/Engine';
+import { RootMessenger } from '../Engine/types';
 import { DATA_SERVICES } from '../../constants/data-services';
+import {
+  ExtractActionParameters,
+  ExtractEventHandler,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
+
+type DataServiceName = (typeof DATA_SERVICES)[number];
+type Actions = MessengerActions<RootMessenger>;
+type Events = MessengerEvents<RootMessenger>;
+
+/*
+const adapter = {
+  call: <Action extends Actions>(
+    actionType: Action['type'],
+    ...params: ExtractActionParameters<Action, Action['type']>
+  ) => Engine.controllerMessenger.call(actionType, ...params),
+  subscribe: <Event extends Events>(
+    eventType: Event['type'],
+    handler: ExtractEventHandler<Event, Event['type']>,
+  ) => Engine.controllerMessenger.subscribe(eventType, handler),
+  unsubscribe: <Event extends Events>(
+    eventType: Event['type'],
+    handler: ExtractEventHandler<Event, Event['type']>,
+  ) => Engine.controllerMessenger.unsubscribe(eventType, handler),
+};
+*/
+
+const adapter = {
+  call: <Action extends Actions>(
+    actionType: `${DataServiceName}:${string}`,
+    ...params: ExtractActionParameters<Action, `${DataServiceName}:${string}`>
+  ) => Engine.controllerMessenger.call(actionType, ...params),
+  subscribe: <Event extends Events>(
+    eventType: Event['type'],
+    handler: ExtractEventHandler<Event, Event['type']>,
+  ) => Engine.controllerMessenger.subscribe(eventType, handler),
+  unsubscribe: <Event extends Events>(
+    eventType: Event['type'],
+    handler: ExtractEventHandler<Event, Event['type']>,
+  ) => Engine.controllerMessenger.unsubscribe(eventType, handler),
+};
 
 export class ReactQueryService {
   queryClient: QueryClient;
@@ -19,22 +62,18 @@ export class ReactQueryService {
   #netInfoUnsubscribe?: () => void;
 
   constructor() {
-    this.queryClient = createUIQueryClient(
-      DATA_SERVICES,
-      Engine.controllerMessenger,
-      {
-        defaultOptions: {
-          queries: {
-            // Mobile users often trigger re-renders or navigate back/forth frequently.
-            staleTime: 1000 * 60 * 5, // 5 minutes
-            // On mobile, failures are often due to network drops.
-            retry: 2,
-            // Keep data in memory for longer.
-            cacheTime: 1000 * 60 * 60 * 24, // 24 hours
-          },
+    this.queryClient = createUIQueryClient(DATA_SERVICES, adapter, {
+      defaultOptions: {
+        queries: {
+          // Mobile users often trigger re-renders or navigate back/forth frequently.
+          staleTime: 1000 * 60 * 5, // 5 minutes
+          // On mobile, failures are often due to network drops.
+          retry: 2,
+          // Keep data in memory for longer.
+          cacheTime: 1000 * 60 * 60 * 24, // 24 hours
         },
       },
-    );
+    });
 
     this.#subscribeToAppFocusState();
     this.#subscribeToOnlineState();
