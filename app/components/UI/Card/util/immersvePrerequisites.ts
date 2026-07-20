@@ -8,6 +8,7 @@ export type ImmersveNextAction =
   | { type: 'kyc'; url?: string }
   | { type: 'expected_spend' }
   | { type: 'funding'; write: CardSmartContractWriteParams }
+  | { type: 'rejected'; retryUrl?: string }
   | { type: 'pending' }
   | { type: 'active' };
 
@@ -48,6 +49,15 @@ export function deriveNextImmersveAction(
       type: 'funding',
       write: funding.params as unknown as CardSmartContractWriteParams,
     };
+  }
+
+  const rejected = prerequisites.find(
+    (p) => p.status === 'blocked' || p.status === 'kyc_check_failed',
+  );
+  if (rejected) {
+    const retryUrl = (rejected.params as { kycUrl?: string } | undefined)
+      ?.kycUrl;
+    return { type: 'rejected', retryUrl };
   }
 
   const anyOutstanding = prerequisites.some((p) => p.status !== 'ok');

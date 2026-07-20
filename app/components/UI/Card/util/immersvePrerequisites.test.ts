@@ -107,4 +107,34 @@ describe('deriveNextImmersveAction', () => {
   it('returns active for an empty prerequisites list', () => {
     expect(deriveNextImmersveAction([]).type).toBe('active');
   });
+
+  it('returns rejected when a KYC stage is permanently blocked', () => {
+    expect(
+      deriveNextImmersveAction([{ stage: 'kyc', status: 'blocked' }]),
+    ).toStrictEqual({ type: 'rejected', retryUrl: undefined });
+  });
+
+  it('returns rejected with the retry url on a failed KYC check', () => {
+    expect(
+      deriveNextImmersveAction([
+        {
+          stage: 'kyc',
+          status: 'kyc_check_failed',
+          params: { kycUrl: 'https://verify.immersve.com/retry' },
+        },
+      ]),
+    ).toStrictEqual({
+      type: 'rejected',
+      retryUrl: 'https://verify.immersve.com/retry',
+    });
+  });
+
+  it('prioritises rejected over pending', () => {
+    expect(
+      deriveNextImmersveAction([
+        amlPending,
+        { stage: 'kyc', status: 'blocked' },
+      ]).type,
+    ).toBe('rejected');
+  });
 });
