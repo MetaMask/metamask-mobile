@@ -768,6 +768,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  immersveOnboardingEnabled: {
+    name: 'immersveOnboardingEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   cardFiatCreditFeature: {
     name: 'cardFiatCreditFeature',
     type: FeatureFlagType.Remote,
