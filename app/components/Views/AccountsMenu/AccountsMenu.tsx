@@ -24,6 +24,7 @@ import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { useSupportConsent } from '../../hooks/useSupportConsent';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
@@ -46,6 +47,7 @@ const AccountsMenu = () => {
   const { colors } = useTheme();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openSupportWithConsent } = useSupportConsent();
   const { goToBuy } = useRampNavigation();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampsButtonClickData = useRampsButtonClickData();
@@ -170,17 +172,23 @@ const AccountsMenu = () => {
   }, [goToBrowserUrl, trackEvent, createEventBuilder]);
 
   const onPressSupport = useCallback(() => {
-    let supportUrl;
+    trackEvent(createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build());
 
+    let betaSupportUrl = '';
     ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    supportUrl = 'https://intercom.help/internal-beta-testing/en/';
+    betaSupportUrl = 'https://intercom.help/internal-beta-testing/en/';
     ///: END:ONLY_INCLUDE_IF
 
-    supportUrl = supportUrl || METAMASK_SUPPORT_URL;
+    if (betaSupportUrl) {
+      goToBrowserUrl(betaSupportUrl, strings('app_settings.contact_support'));
+      return;
+    }
 
-    goToBrowserUrl(supportUrl, strings('app_settings.contact_support'));
-    trackEvent(createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build());
-  }, [goToBrowserUrl, trackEvent, createEventBuilder]);
+    openSupportWithConsent(
+      (url) => goToBrowserUrl(url, strings('app_settings.contact_support')),
+      METAMASK_SUPPORT_URL,
+    );
+  }, [goToBrowserUrl, trackEvent, createEventBuilder, openSupportWithConsent]);
 
   const onPressLock = useCallback(async () => {
     await Authentication.lockApp({ reset: false, locked: false });

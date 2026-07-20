@@ -49,6 +49,13 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+const mockOpenSupportWithConsent = jest.fn();
+jest.mock('../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
+
 jest.mock('../../../core/', () => ({
   Authentication: {
     lockApp: jest.fn(),
@@ -609,6 +616,9 @@ describe('AccountsMenu', () => {
         expect(getByTestId(AccountsMenuSelectorsIDs.SUPPORT)).toBeOnTheScreen();
       });
 
+      // Jest treats ONLY_INCLUDE_IF(beta) as a plain comment, so this branch (which
+      // in a real beta build only compiles for the beta build type) always executes
+      // here, opening the intercom URL directly rather than the consent flow.
       it('navigate to webview when Support is pressed', () => {
         const { getByTestId } = render(<AccountsMenu />);
         const supportButton = getByTestId(AccountsMenuSelectorsIDs.SUPPORT);
@@ -622,6 +632,7 @@ describe('AccountsMenu', () => {
             title: 'app_settings.contact_support',
           },
         });
+        expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
       });
     });
 

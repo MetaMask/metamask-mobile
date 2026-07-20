@@ -1,6 +1,6 @@
 import React from 'react';
 import { waitFor, fireEvent } from '@testing-library/react-native';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image, InteractionManager, TouchableOpacity } from 'react-native';
 import renderWithProvider, {
   DeepPartial,
   renderScreen,
@@ -9,6 +9,12 @@ import AppInformation from './';
 import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
 import { RootState } from '../../../../reducers';
 import { strings } from '../../../../../locales/i18n';
+import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
+import { navigateToSupportConsent } from '../../../../util/support';
+
+jest.mock('../../../../util/support', () => ({
+  navigateToSupportConsent: jest.fn(),
+}));
 
 // Mock device info
 const mockGetApplicationName = jest.fn();
@@ -67,6 +73,14 @@ const MOCK_STATE = {
 describe('AppInformation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((task) => {
+        if (typeof task === 'function') {
+          task();
+        }
+        return { then: jest.fn(), done: jest.fn(), cancel: jest.fn() };
+      });
     mockGetApplicationName.mockResolvedValue('MetaMask');
     mockGetVersion.mockResolvedValue('7.0.0');
     mockGetBuildNumber.mockResolvedValue('1000');
@@ -95,6 +109,67 @@ describe('AppInformation', () => {
     );
 
     expect(getByTestId(AboutMetaMaskSelectorsIDs.CONTAINER)).toBeTruthy();
+  });
+
+  describe('Support Links', () => {
+    it('shows the support consent sheet via navigateToSupportConsent when the support center link is pressed', () => {
+      const mockNavigate = jest.fn();
+      const mockNavigation = { navigate: mockNavigate };
+      const { getByText } = renderWithProvider(
+        <AppInformation navigation={mockNavigation} />,
+        { state: MOCK_STATE },
+        false,
+      );
+
+      fireEvent.press(getByText(strings('app_information.support_center')));
+
+      expect(navigateToSupportConsent).toHaveBeenCalledWith(
+        mockNavigation,
+        expect.any(Function),
+        METAMASK_SUPPORT_URL,
+      );
+    });
+
+    it('shows the support consent sheet via navigateToSupportConsent when the contact us link is pressed', () => {
+      const mockNavigate = jest.fn();
+      const mockNavigation = { navigate: mockNavigate };
+      const { getByText } = renderWithProvider(
+        <AppInformation navigation={mockNavigation} />,
+        { state: MOCK_STATE },
+        false,
+      );
+
+      fireEvent.press(getByText(strings('app_information.contact_us')));
+
+      expect(navigateToSupportConsent).toHaveBeenCalledWith(
+        mockNavigation,
+        expect.any(Function),
+        METAMASK_SUPPORT_URL,
+      );
+    });
+
+    it('navigates to the SimpleWebview with the resolved URL and title when the opener is invoked', () => {
+      const mockNavigate = jest.fn();
+      const mockNavigation = { navigate: mockNavigate };
+      const { getByText } = renderWithProvider(
+        <AppInformation navigation={mockNavigation} />,
+        { state: MOCK_STATE },
+        false,
+      );
+
+      fireEvent.press(getByText(strings('app_information.contact_us')));
+      const [, open] = jest.mocked(navigateToSupportConsent).mock.calls[0];
+
+      open('https://support.metamask.io/?customer_service_token=jwt-token');
+
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://support.metamask.io/?customer_service_token=jwt-token',
+          title: strings('drawer.metamask_support'),
+        },
+      });
+    });
   });
 
   describe('Header', () => {
