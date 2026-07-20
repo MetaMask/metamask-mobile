@@ -40,9 +40,9 @@ const competitionImage = require('../../../../../images/perps-competition-banner
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: -8,
+    marginTop: 12,
     marginHorizontal: 16,
-    marginBottom: 8,
+    marginBottom: 0,
   },
   banner: {
     borderRadius: 12,
