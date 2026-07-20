@@ -95,8 +95,7 @@ export function useTransactionCustomAmount({
     TransactionType.moneyAccountWithdraw,
   ]);
   const tokenAddress = getTokenAddress(transactionMeta);
-  const payTokenFiatRate =
-    useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
+  const payTokenFiatRate = useTokenFiatRate(tokenAddress, chainId, currency);
   const musdFiatRate =
     useTokenFiatRate(
       MUSD_TOKEN_ADDRESS,
@@ -166,7 +165,9 @@ export function useTransactionCustomAmount({
 
   const amountHuman = useMemo(
     () =>
-      new BigNumber(amountFiat || '0').dividedBy(tokenFiatRate).toString(10),
+      tokenFiatRate
+        ? new BigNumber(amountFiat || '0').dividedBy(tokenFiatRate).toString(10)
+        : '0',
     [amountFiat, tokenFiatRate],
   );
 
@@ -269,15 +270,11 @@ export function useTransactionCustomAmount({
       // balance) and wrong for money account (on-chain mUSD only vs mUSD +
       // vmUSD fiat total). Keeping isMaxAmount false routes the typed
       // amount through as token.amountRaw.
-      // addMusd is the exception: its pay token is the wallet's mUSD, so
-      // token.balanceRaw is exactly what we want to move. Setting max deposits
-      // the full balance (no cent-floored dust left behind) and displays the
-      // quote's targetAmount, keeping the amount in step with the pay-with row.
       const shouldSetMax =
         percentage === 100 &&
         !isPerpsWithdraw &&
         !isMoneyAccountWithdraw &&
-        (!isMoneyAccountDeposit || isAddMusdFlow);
+        !isMoneyAccountDeposit;
 
       if (shouldSetMax) {
         setIsMax(true);
@@ -305,7 +302,6 @@ export function useTransactionCustomAmount({
       isPerpsWithdraw,
       isMoneyAccountWithdraw,
       isMoneyAccountDeposit,
-      isAddMusdFlow,
       payToken?.balanceRaw,
       payToken?.decimals,
       setIsMax,
@@ -365,7 +361,7 @@ export function useTransactionCustomAmount({
   };
 }
 
-function useTokenBalance(tokenUsdRate: number) {
+function useTokenBalance(tokenUsdRate: number | undefined) {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const transactionId = transactionMeta?.id ?? '';
 
@@ -377,9 +373,11 @@ function useTokenBalance(tokenUsdRate: number) {
 
   const { data: predictBalanceHuman = 0 } = usePredictBalance();
 
-  const predictBalanceUsd = new BigNumber(predictBalanceHuman ?? '0')
-    .multipliedBy(tokenUsdRate)
-    .toNumber();
+  const predictBalanceUsd = tokenUsdRate
+    ? new BigNumber(predictBalanceHuman ?? '0')
+        .multipliedBy(tokenUsdRate)
+        .toNumber()
+    : 0;
 
   const { withdrawableMusd, withdrawableFiatRaw } = useMoneyAccountBalance();
 
@@ -401,7 +399,9 @@ function useTokenBalance(tokenUsdRate: number) {
     if (withdrawableMusd === undefined) {
       return 0;
     }
-    return withdrawableMusd.multipliedBy(tokenUsdRate).toNumber();
+    return tokenUsdRate
+      ? withdrawableMusd.multipliedBy(tokenUsdRate).toNumber()
+      : 0;
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
