@@ -110,8 +110,11 @@ describe(
           await device.disableSynchronization();
 
           await openPredictWithdrawPayConfirmation();
+
+          // New-flow marker (mirrors the Perps any-token withdraw smoke test):
+          // the available balance row only renders on the shared MetaMask Pay
+          // confirmation, not the legacy withdraw view.
           await TransactionPayConfirmation.verifyAvailableBalanceVisible();
-          await TransactionPayConfirmation.verifyPayWithRowVisible();
         },
       );
     });

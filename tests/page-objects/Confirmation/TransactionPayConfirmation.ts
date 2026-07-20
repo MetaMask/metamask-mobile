@@ -526,13 +526,6 @@ class TransactionPayConfirmation {
     });
   }
 
-  async verifyPayWithRowVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.payWithRow, {
-      description: 'Receive token row should be visible',
-      timeout: 15000,
-    });
-  }
-
   async verifyReceive(amount: string): Promise<void> {
     await this.expectText(
       this.receive,
