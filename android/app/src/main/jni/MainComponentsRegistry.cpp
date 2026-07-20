@@ -34,7 +34,7 @@ MainComponentsRegistry::initHybrid(
 
   auto buildRegistryFunction =
       [](EventDispatcher::Weak const &eventDispatcher,
-         ContextContainer::Shared const &contextContainer)
+         std::shared_ptr<ContextContainer const> const &contextContainer)
       -> ComponentDescriptorRegistry::Shared {
     auto registry = MainComponentsRegistry::sharedProviderRegistry()
                         ->createComponentDescriptorRegistry(
