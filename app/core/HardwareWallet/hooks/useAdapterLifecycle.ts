@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from 'react';
 import {
   HardwareWalletType,
   HardwareWalletConnectionState,
@@ -47,6 +53,10 @@ interface UseAdapterLifecycleResult {
  * a NonHardwareAdapter (null-object pattern) is created so consumers never
  * need to null-check. NonHardwareAdapter methods are no-ops or return "ready"
  * immediately.
+ *
+ * Parent callbacks are wrapped in `useEffectEvent` so adapter subscriptions
+ * always invoke the latest handlers without making `createAdapterWithCallbacks`
+ * identity change (and thus without tearing down an in-flight adapter).
  */
 export const useAdapterLifecycle = ({
   walletType,
@@ -67,18 +77,9 @@ export const useAdapterLifecycle = ({
   const dmkFlagsRef = useRef(dmkFlags);
   dmkFlagsRef.current = dmkFlags;
 
-  // Hold the latest callbacks in refs so `createAdapterWithCallbacks` can be
-  // identity-stable (deps: []). This prevents the adapter-creation effect
-  // below from destroying + recreating the adapter on every re-render — which
-  // would tear down an in-flight operation (signing, app check) mid-call and
-  // surface as DeviceDisconnectedWhileSendingError / "Adapter has been
-  // destroyed". The adapter always invokes the latest handlers via these refs.
-  const handleDeviceEventRef = useRef(handleDeviceEvent);
-  handleDeviceEventRef.current = handleDeviceEvent;
-  const handleErrorRef = useRef(handleError);
-  handleErrorRef.current = handleError;
-  const updateConnectionStateRef = useRef(updateConnectionState);
-  updateConnectionStateRef.current = updateConnectionState;
+  const onDeviceEvent = useEffectEvent(handleDeviceEvent);
+  const onError = useEffectEvent(handleError);
+  const onUpdateConnectionState = useEffectEvent(updateConnectionState);
 
   const createAdapterWithCallbacks = useCallback(
     (targetType: HardwareWalletType) => {
@@ -88,19 +89,20 @@ export const useAdapterLifecycle = ({
         {
           onDisconnect: (error) => {
             if (error) {
-              handleErrorRef.current(error);
+              onError(error);
             } else {
-              updateConnectionStateRef.current({
+              onUpdateConnectionState({
                 status: ConnectionStatus.Disconnected,
               });
             }
           },
-          onDeviceEvent: (event: DeviceEventPayload) =>
-            handleDeviceEventRef.current(event),
+          onDeviceEvent,
         },
         enableDmk,
       );
     },
+    // Effect Events are intentionally non-reactive / identity-stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
@@ -170,8 +172,7 @@ export const useAdapterLifecycle = ({
           {
             // eslint-disable-next-line no-empty-function
             onDisconnect: () => {},
-            onDeviceEvent: (event: DeviceEventPayload) =>
-              handleDeviceEventRef.current(event),
+            onDeviceEvent,
           },
           enableDmk,
         );

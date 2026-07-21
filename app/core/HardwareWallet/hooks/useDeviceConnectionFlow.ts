@@ -267,7 +267,7 @@ export const useDeviceConnectionFlow = ({
       if (
         targetDeviceId &&
         adapter.isConnected?.() &&
-        adapter.deviceId === targetDeviceId
+        adapter.getConnectedDeviceId() === targetDeviceId
       ) {
         DevLogger.log(
           '[HardwareWallet] Already connected to device, checking readiness directly',

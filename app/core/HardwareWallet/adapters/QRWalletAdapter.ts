@@ -32,9 +32,6 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
 
   #options: HardwareWalletAdapterOptions;
   #deviceId: string | null = null;
-  get deviceId(): string | null {
-    return this.#deviceId;
-  }
   #isConnected = false;
   #flowComplete = false;
   #isDestroyed = false;

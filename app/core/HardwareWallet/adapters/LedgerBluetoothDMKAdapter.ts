@@ -30,13 +30,15 @@ import {
   HardwareWalletAdapterOptions,
 } from '../types';
 import {
-  connectLedgerDmkHardware,
   openEthereumAppOnLedger,
   closeRunningAppOnLedger,
+} from '../../Ledger/Ledger';
+import {
+  connectLedgerDmkHardware,
   connectLedgerDmkDevice,
   getLedgerDmkSessionState,
   disconnectLedgerDmkSession,
-} from '../../Ledger/Ledger';
+} from '../../Ledger/LedgerDmk';
 import { DISCONNECT_ERROR_NAMES } from '../../Ledger/ledgerErrors';
 import { getDmk } from '../../Ledger/dmk';
 
@@ -72,9 +74,6 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
   #sessionId: string | null = null;
   #sessionConnected = false;
   #deviceId: string | null = null;
-  get deviceId(): string | null {
-    return this.#deviceId;
-  }
   #options: HardwareWalletAdapterOptions;
   #isDestroyed = false;
   #backgroundReconnectInFlight: Promise<boolean> | null = null;

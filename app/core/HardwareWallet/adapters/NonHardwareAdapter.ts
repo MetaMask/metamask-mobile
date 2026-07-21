@@ -18,8 +18,6 @@ export class NonHardwareAdapter implements HardwareWalletAdapter {
 
   readonly requiresDeviceDiscovery = false;
 
-  readonly deviceId: string | null = null;
-
   /**
    * Constructor accepts options for consistency with other adapters,
    * but doesn't use them (passthrough adapter has no state)

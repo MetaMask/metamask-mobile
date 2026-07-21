@@ -13,12 +13,18 @@ jest.mock('@ledgerhq/react-native-hw-transport-ble', () => ({
   },
 }));
 
-// Mock Ledger module
+// Mock Ledger modules
 jest.mock('../../Ledger/Ledger', () => ({
   connectLedgerHardware: jest.fn(),
-  connectLedgerDmkHardware: jest.fn(),
   openEthereumAppOnLedger: jest.fn(),
   closeRunningAppOnLedger: jest.fn(),
+}));
+
+jest.mock('../../Ledger/LedgerDmk', () => ({
+  connectLedgerDmkHardware: jest.fn(),
+  connectLedgerDmkDevice: jest.fn(),
+  getLedgerDmkSessionState: jest.fn(),
+  disconnectLedgerDmkSession: jest.fn(),
 }));
 
 // Mock device info so hasMinimumRequiredVersion('1.0.0') returns a truthy value

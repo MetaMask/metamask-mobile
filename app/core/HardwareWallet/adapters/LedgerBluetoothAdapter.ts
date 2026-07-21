@@ -49,9 +49,6 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
   #transport: TransportBLE | null = null;
   #deviceId: string | null = null;
-  get deviceId(): string | null {
-    return this.#deviceId;
-  }
   #options: HardwareWalletAdapterOptions;
   #isDestroyed = false;
   #connectInFlight: Promise<void> | null = null;

@@ -5,14 +5,9 @@ import {
 import { KeyringType } from '@metamask/keyring-api/v2';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../Engine';
-import {
-  LedgerKeyring as LegacyLedgerKeyring,
-  LedgerMobileBridge,
-} from '@metamask/eth-ledger-bridge-keyring';
+import { LedgerKeyring as LegacyLedgerKeyring } from '@metamask/eth-ledger-bridge-keyring';
 import { LedgerKeyring } from '@metamask/eth-ledger-bridge-keyring/v2';
 import type Transport from '@ledgerhq/hw-transport';
-import { type Observable } from 'rxjs';
-import { type DiscoveredDevice } from '@ledgerhq/device-management-kit';
 import {
   LEDGER_BIP44_PATH,
   LEDGER_LEGACY_PATH,
@@ -24,35 +19,16 @@ import { keyringTypeToName } from '@metamask/accounts-controller';
 import { getChecksumAddress, Hex } from '@metamask/utils';
 import { removeAccountsFromPermissions } from '../Permissions';
 import { isEthAppNotOpenError, isDisconnectError } from './ledgerErrors';
-import DevLogger from '../SDKConnect/utils/DevLogger';
 
 /**
- * The subset of bridge methods used by the connection helpers below. Both
- * `LedgerMobileBridge` (legacy BLE) and `LedgerDmkBridge` (DMK) satisfy this
- * shape. `updateSessionId` is DMK-only; `updateTransportMethod` is used by the
- * legacy path.
+ * The subset of bridge methods used by the legacy BLE connection helpers
+ * below. `LedgerMobileBridge` satisfies this shape.
  */
 interface LedgerBridgeConnection {
-  updateSessionId?: (sessionId: string) => Promise<boolean>;
   updateTransportMethod: (transport: Transport | string) => Promise<boolean>;
   getAppNameAndVersion: () => Promise<{ appName: string; version: string }>;
   openEthApp: () => Promise<void>;
   closeApps: () => Promise<void>;
-}
-
-/**
- * The subset of DMK-bridge methods used by the adapter's session lifecycle.
- *
- * `LedgerDmkBridge` owns the single `DeviceManagementKit` instance that
- * signing uses, so the adapter routes discovery/connect/monitoring/disconnect
- * through these methods. Sessions created via `connect` live on the bridge's
- * own DMK and are therefore valid for bridge commands (app checks, signing).
- */
-interface LedgerDmkBridgeConnection {
-  startDiscovering: (args: unknown) => Observable<DiscoveredDevice>;
-  connect: (args: { device: DiscoveredDevice }) => Promise<string>;
-  readonly onSessionStateChange: Observable<{ connected: boolean }>;
-  destroy: () => Promise<void>;
 }
 
 const throwIfLedgerOperationAborted = (abortSignal?: AbortSignal) => {
@@ -101,117 +77,17 @@ export const withLedgerKeyring = async <CallbackResult = void>(
     metadata: KeyringMetadata;
   }) => Promise<CallbackResult>,
 ): Promise<CallbackResult> => {
-  DevLogger.log('[Ledger] withLedgerKeyring - entry');
   await ensureLedgerKeyringExists();
   const keyringController = Engine.context.KeyringController;
   return await keyringController.withKeyringV2(
     { type: KeyringType.Ledger },
     async ({ keyring, metadata }) => {
       if (!(keyring instanceof LedgerKeyring)) {
-        DevLogger.log(
-          '[Ledger] withLedgerKeyring - keyring is NOT LedgerKeyring, got:',
-          keyring?.constructor?.name,
-        );
         throw new Error('Expected LedgerKeyring');
       }
       return operation({ keyring, metadata });
     },
   );
-};
-
-/**
- * Resolve the keyring's DMK bridge. The keyring mutex is held only long enough
- * to fetch the bridge reference; all BLE I/O (connect, destroy, subscribing)
- * happens at the call site, outside the mutex — mirroring
- * {@link connectLedgerDmkHardware}.
- */
-const getLedgerDmkBridge = (): Promise<LedgerDmkBridgeConnection> =>
-  withLedgerKeyring(
-    async ({ keyring }) =>
-      keyring.bridge as unknown as LedgerDmkBridgeConnection,
-  );
-
-/**
- * Connect a Ledger device via a DMK session and return the running app name.
- *
- * Called by `LedgerBluetoothDMKAdapter` after it has discovered and connected
- * to the device through the shared DMK singleton. The session ID is forwarded
- * to the keyring's bridge via `updateSessionId`.
- *
- * @param sessionId - The DMK session ID from the adapter's connection.
- * @param deviceId - The device ID to connect to.
- * @param abortSignal - Optional abort signal to cancel the operation.
- * @returns The name of the currently open application on the device.
- */
-export const connectLedgerDmkHardware = async (
-  sessionId: string,
-  deviceId: string,
-  abortSignal?: AbortSignal,
-): Promise<string> => {
-  throwIfLedgerOperationAborted(abortSignal);
-
-  DevLogger.log(
-    '[Ledger] connectLedgerDmkHardware - sessionId:',
-    sessionId,
-    'deviceId:',
-    deviceId,
-  );
-
-  const bridge = await withLedgerKeyring(async ({ keyring }) => {
-    keyring.setDeviceId(deviceId);
-    const ledgerBridge = keyring.bridge as unknown as LedgerBridgeConnection;
-    await ledgerBridge.updateSessionId?.(sessionId);
-    return ledgerBridge;
-  });
-
-  // Keep the BLE exchange outside the KeyringController mutex. Hardware-wallet
-  // flows are serialized at the adapter/provider layer.
-  throwIfLedgerOperationAborted(abortSignal);
-  const result = await bridge.getAppNameAndVersion();
-  DevLogger.log(
-    '[Ledger] connectLedgerDmkHardware - app:',
-    result.appName,
-    result.version,
-  );
-  return result.appName;
-};
-
-/**
- * Connect to a discovered Ledger device via the keyring's bridge. The session
- * is created on the bridge's own DMK instance and stored internally by the
- * bridge, so it is valid for subsequent bridge commands (app checks, signing).
- *
- * @param device - A discovered device (from `getDmk().listenToAvailableDevices`).
- * @returns The DMK session ID.
- */
-export const connectLedgerDmkDevice = async (
-  device: DiscoveredDevice,
-): Promise<string> => {
-  const bridge = await getLedgerDmkBridge();
-  return bridge.connect({ device });
-};
-
-/**
- * Observe the connected/disconnected state of the bridge's DMK session.
- *
- * @returns An observable emitting `{ connected }`. Coarse signal: it does not
- * distinguish a LOCKED device — locked devices are surfaced via the error
- * path (`DeviceLockedError`) instead.
- */
-export const getLedgerDmkSessionState = async (): Promise<
-  Observable<{ connected: boolean }>
-> => {
-  const bridge = await getLedgerDmkBridge();
-  return bridge.onSessionStateChange;
-};
-
-/**
- * Disconnect the bridge's DMK session by tearing down the bridge's transport
- * middleware. The bridge is reconnectable on the next `connect`.
- */
-export const disconnectLedgerDmkSession = async (): Promise<void> => {
-  const bridge = await getLedgerDmkBridge();
-  await bridge.destroy();
 };
 
 /**
@@ -235,11 +111,6 @@ export const connectLedgerHardware = async (
 ): Promise<string> => {
   throwIfLedgerOperationAborted(abortSignal);
 
-  DevLogger.log(
-    '[Ledger] connectLedgerHardware (legacy) - deviceId:',
-    deviceId,
-  );
-
   const bridge = await withLedgerKeyring(async ({ keyring }) => {
     keyring.setDeviceId(deviceId);
     const ledgerBridge = keyring.bridge as unknown as LedgerBridgeConnection;
@@ -250,12 +121,7 @@ export const connectLedgerHardware = async (
   // Keep the BLE exchange outside the KeyringController mutex. Hardware-wallet
   // flows are serialized at the adapter/provider layer.
   throwIfLedgerOperationAborted(abortSignal);
-  const { appName, version } = await bridge.getAppNameAndVersion();
-  DevLogger.log(
-    '[Ledger] connectLedgerHardware (legacy) - app:',
-    appName,
-    version,
-  );
+  const { appName } = await bridge.getAppNameAndVersion();
   return appName;
 };
 
@@ -263,31 +129,26 @@ export const connectLedgerHardware = async (
  * Automatically opens the Ethereum app on the Ledger device.
  */
 export const openEthereumAppOnLedger = async (): Promise<void> => {
-  DevLogger.log('[Ledger] openEthereumAppOnLedger - entry');
   const bridge = await withLedgerKeyring(
     async ({ keyring }) => keyring.bridge as unknown as LedgerBridgeConnection,
   );
   await bridge.openEthApp();
-  DevLogger.log('[Ledger] openEthereumAppOnLedger - openEthApp succeeded');
 };
 
 /**
  * Automatically closes the current app on the Ledger device.
  */
 export const closeRunningAppOnLedger = async (): Promise<void> => {
-  DevLogger.log('[Ledger] closeRunningAppOnLedger - entry');
   const bridge = await withLedgerKeyring(
     async ({ keyring }) => keyring.bridge as unknown as LedgerBridgeConnection,
   );
   await bridge.closeApps();
-  DevLogger.log('[Ledger] closeRunningAppOnLedger - closeApps succeeded');
 };
 
 /**
  * Forgets the ledger device.
  */
 export const forgetLedger = async (): Promise<void> => {
-  DevLogger.log('[Ledger] forgetLedger - entry');
   await withLedgerKeyring(async ({ keyring }) => {
     // Permissions need to be updated before the hardware wallet is forgotten.
     // This is because `removeAccountsFromPermissions` relies on the account
@@ -300,7 +161,6 @@ export const forgetLedger = async (): Promise<void> => {
       accounts.map(({ address }) => getChecksumAddress(address as Hex)),
     );
     await keyring.forgetDevice();
-    DevLogger.log('[Ledger] forgetLedger - forgetDevice succeeded');
   });
 };
 
@@ -359,7 +219,6 @@ export const getHDPath = async (): Promise<string> =>
 export const getLedgerAccounts = async (): Promise<string[]> =>
   await withLedgerKeyring(async ({ keyring }) => {
     const accounts = await keyring.getAccounts();
-    DevLogger.log('[Ledger] getLedgerAccounts - count:', accounts.length);
     return accounts.map(({ address }) => address);
   });
 
@@ -371,10 +230,6 @@ export const getLedgerAccounts = async (): Promise<string[]> =>
 export const getLedgerAccountsByOperation = async (
   operation: number,
 ): Promise<{ balance: string; address: string; index: number }[]> => {
-  DevLogger.log(
-    '[Ledger] getLedgerAccountsByOperation - entry, operation:',
-    operation,
-  );
   try {
     const accounts = await withLedgerKeyring(async ({ keyring }) => {
       switch (operation) {
@@ -392,7 +247,6 @@ export const getLedgerAccountsByOperation = async (
       balance: '0x0',
     }));
   } catch (e) {
-    DevLogger.log('[DMK] getLedgerAccountsByOperation - error:', e);
     /* istanbul ignore next */
     if (isEthAppNotOpenError(e)) {
       throw new Error(strings('ledger.eth_app_not_open_message'));
@@ -410,7 +264,6 @@ export const getLedgerAccountsByOperation = async (
     ) {
       throw new Error(strings('ledger.ledger_disconnected'));
     }
-    DevLogger.log('[DMK] getLedgerAccountsByOperation - UNHANDLED error:', e);
     throw new Error(strings('ledger.unspecified_error_during_connect'));
   }
 };
@@ -427,15 +280,10 @@ export const ledgerSignTypedMessage = async (
   },
   version: SignTypedDataVersion,
 ): Promise<string> => {
-  DevLogger.log(
-    '[Ledger] ledgerSignTypedMessage - entry, from:',
-    messageParams.from,
-  );
   await withLedgerKeyring(async () => {
     // This is just to trigger the keyring to get created if it doesn't exist already
   });
   const keyringController = Engine.context.KeyringController;
-  DevLogger.log('[Ledger] ledgerSignTypedMessage - calling signTypedMessage');
   return await keyringController.signTypedMessage(
     {
       from: messageParams.from,
@@ -470,7 +318,6 @@ export const checkAccountNameExists = async (accountName: string) => {
 export const unlockLedgerWalletAccount = async (index: number) => {
   const accountsController = Engine.context.AccountsController;
   try {
-    DevLogger.log('[Ledger] unlockLedgerWalletAccount - entry, index:', index);
     const { unlockAccount, name } = await withLedgerKeyring(
       async ({ keyring }) => {
         const existingAccounts = await keyring.getAccounts();
@@ -512,16 +359,8 @@ export const unlockLedgerWalletAccount = async (index: number) => {
     if (account && name !== account.metadata.name) {
       accountsController.setAccountName(account.id, name);
     }
-    DevLogger.log(
-      '[Ledger] unlockLedgerWalletAccount - success, account:',
-      unlockAccount,
-    );
     Engine.setSelectedAddress(unlockAccount);
   } catch (e) {
-    DevLogger.log(
-      '[Ledger] unlockLedgerWalletAccount - ERROR:',
-      e instanceof Error ? e.message : String(e),
-    );
     if (isEthAppNotOpenError(e)) {
       throw new Error(strings('ledger.eth_app_not_open_message'));
     }

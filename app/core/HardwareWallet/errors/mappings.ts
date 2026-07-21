@@ -275,12 +275,4 @@ export const ERROR_NAME_MAPPINGS: Record<string, ErrorCode> = {
   QRTimeoutError: ErrorCode.ConnectionTimeout,
   QRCodeInvalid: ErrorCode.DeviceNotReady,
   CameraPermissionDenied: ErrorCode.PermissionCameraDenied,
-  // DMK _tag-based error names
-  DeviceSessionNotFound: ErrorCode.DeviceDisconnected,
-  ConnectionOpeningError: ErrorCode.BluetoothConnectionFailed,
-  DeviceDisconnectedWhileSendingError: ErrorCode.DeviceDisconnected,
-  DeviceDisconnectedBeforeSendingApdu: ErrorCode.DeviceDisconnected,
-  DeviceLockedError: ErrorCode.AuthenticationDeviceLocked,
-  DeviceNotConnectedError: ErrorCode.DeviceDisconnected,
-  SessionRefresherError: ErrorCode.DeviceDisconnected,
 };

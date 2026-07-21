@@ -3,6 +3,8 @@ import {
   HardwareWalletError,
   LEDGER_ERROR_MAPPINGS,
   HardwareWalletType,
+  getDMKErrorFromTag,
+  DMK_MESSAGE_PATTERNS,
 } from '@metamask/hw-wallet-sdk';
 import { add0x } from '@metamask/utils';
 import { LedgerCommunicationErrors } from '../../Ledger/ledgerErrors';
@@ -158,57 +160,13 @@ function parseLedgerStatusCode(
 }
 
 /**
- * Parse a DMK (Device Management Kit) error by its `_tag` property.
- *
- * DMK is Ledger's newer SDK. Unlike legacy @ledgerhq/errors, which identify
- * errors via the standard `error.name` property, DMK errors carry a
- * non-standard `_tag` string (e.g. 'DeviceSessionNotFound',
- * 'DeviceLockedError'). Tag values are looked up in ERROR_NAME_MAPPINGS,
- * which is shared with legacy error names since both map to the same
- * ErrorCode values.
- *
- * @param error - The error object to parse
- * @param walletType - The type of hardware wallet
- * @returns A structured HardwareWalletError, or null if no `_tag` is present
- * or the tag is not recognized
- */
-function parseDMKErrorByTag(
-  error: unknown,
-  walletType?: HardwareWalletType | null,
-): HardwareWalletError | null {
-  if (error === null || typeof error !== 'object') {
-    return null;
-  }
-
-  const errorObj = error as Record<string, unknown>;
-  const tag =
-    '_tag' in errorObj && typeof errorObj._tag === 'string'
-      ? errorObj._tag
-      : null;
-
-  if (!tag || !ERROR_NAME_MAPPINGS[tag]) {
-    return null;
-  }
-
-  return createHardwareWalletError(
-    ERROR_NAME_MAPPINGS[tag],
-    walletType,
-    undefined,
-    {
-      cause: isErrorLike(error) ? error : undefined,
-      metadata: { errorName: tag },
-    },
-  );
-}
-
-/**
- * Parse error by checking its `name` property.
+ * Parse error by checking its `name` property, then DMK `_tag` as fallback.
  *
  * Legacy @ledgerhq/errors identify themselves via the standard JS `error.name`
  * (e.g. 'DisconnectedDevice', 'TransportStatusError'). DMK errors do not set
- * `name`; those are handled by parseDMKErrorByTag, which is called as a
- * fallback when no legacy `name` is present. This preserves "name over _tag"
- * precedence: when both fields are present, `name` wins and `_tag` is ignored.
+ * `name`; those are resolved via SDK `getDMKErrorFromTag` when no legacy
+ * `name` is present. This preserves "name over _tag" precedence: when both
+ * fields are present, `name` wins and `_tag` is ignored.
  */
 function parseErrorByName(
   error: unknown,
@@ -235,7 +193,7 @@ function parseErrorByName(
     return null;
   }
 
-  // Check known legacy Ledger error names.
+  // Check known legacy Ledger / QR error names.
   if (name && ERROR_NAME_MAPPINGS[name]) {
     return createHardwareWalletError(
       ERROR_NAME_MAPPINGS[name],
@@ -248,11 +206,17 @@ function parseErrorByName(
     );
   }
 
-  // No legacy `name` resolved -> fall back to DMK `_tag`-based parsing.
+  // No legacy `name` resolved -> fall back to SDK DMK `_tag` parsing.
   // Only entered when `name` is absent, so legacy errors are never accidentally
   // routed through the DMK path.
   if (!name) {
-    return parseDMKErrorByTag(error, walletType);
+    const dmk = getDMKErrorFromTag(error);
+    if (dmk) {
+      return createHardwareWalletError(dmk.code, walletType, undefined, {
+        cause: isErrorLike(error) ? error : undefined,
+        metadata: { errorName: dmk.tag },
+      });
+    }
   }
 
   return null;
@@ -324,23 +288,8 @@ function parseErrorByMessage(
       condition: (msg) => msg.includes('scan'),
     },
     { patterns: ['bluetooth'], code: ErrorCode.BluetoothConnectionFailed },
-    // DMK-specific patterns
-    {
-      patterns: [
-        'session not found',
-        'sessionid is not initialized',
-        'invalid session',
-      ],
-      code: ErrorCode.DeviceDisconnected,
-    },
-    {
-      patterns: ['device action ended without completion'],
-      code: ErrorCode.DeviceUnresponsive,
-    },
-    {
-      patterns: ['ledger command failed'],
-      code: ErrorCode.DeviceNotReady,
-    },
+    // DMK message patterns — owned by @metamask/hw-wallet-sdk.
+    ...DMK_MESSAGE_PATTERNS,
   ];
 
   for (const { patterns, code, condition } of messagePatterns) {

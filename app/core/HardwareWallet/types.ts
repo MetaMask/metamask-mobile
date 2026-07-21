@@ -60,15 +60,13 @@ export interface HardwareWalletAdapter {
   isConnected(): boolean;
 
   /**
-   * The currently connected device ID, or null if not connected.
-   */
-  readonly deviceId: string | null;
-
-  /**
    * Attempt to reconnect to a known device by scanning in the background
    * without showing the scanning UI. Returns true if connected.
    */
-  backgroundReconnect?(targetDeviceId: string, timeoutMs?: number): Promise<boolean>;
+  backgroundReconnect?(
+    targetDeviceId: string,
+    timeoutMs?: number,
+  ): Promise<boolean>;
 
   /**
    * Reset the adapter state without emitting events.
@@ -145,9 +143,7 @@ export interface HardwareWalletAdapter {
    * @param callback - Called when transport state changes
    * @returns Cleanup function to unsubscribe
    */
-  onTransportStateChange(
-    callback: (isAvailable: boolean) => void,
-  ): () => void;
+  onTransportStateChange(callback: (isAvailable: boolean) => void): () => void;
 
   /**
    * Get the required app name for this wallet type.

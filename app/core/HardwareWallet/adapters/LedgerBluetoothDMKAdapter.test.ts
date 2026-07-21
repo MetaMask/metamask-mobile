@@ -14,7 +14,7 @@ import type { HardwareWalletAdapterOptions } from '../types';
  * NOTE: `@ledgerhq/device-management-kit` is intentionally NOT mocked — the
  * real `DeviceLockedError` class must be available so `instanceof` checks in
  * `#isDeviceLocked` (and in the tests below) work end-to-end. The adapter now
- * routes its DMK session lifecycle through Ledger.ts helpers (which wrap the
+ * routes its DMK session lifecycle through LedgerDmk.ts helpers (which wrap the
  * keyring's bridge), so those helpers are mocked here.
  */
 
@@ -38,7 +38,7 @@ jest.mock('react-native-ble-plx', () => ({
 }));
 
 // Discovery uses getDmk() directly (listenToAvailableDevices), so mock the
-// dmk module. Connect/monitor/disconnect still route through the Ledger.ts
+// dmk module. Connect/monitor/disconnect still route through the LedgerDmk.ts
 // bridge helpers (mocked below).
 const mockDmk = {
   listenToAvailableDevices: jest.fn(),
@@ -52,6 +52,11 @@ const mockConnectLedgerDmkDevice = jest.fn();
 const mockGetLedgerDmkSessionState = jest.fn();
 const mockDisconnectLedgerDmkSession = jest.fn();
 jest.mock('../../Ledger/Ledger', () => ({
+  openEthereumAppOnLedger: jest.fn(),
+  closeRunningAppOnLedger: jest.fn(),
+}));
+
+jest.mock('../../Ledger/LedgerDmk', () => ({
   connectLedgerDmkHardware: (...args: unknown[]) =>
     mockConnectLedgerHardware(...args),
   connectLedgerDmkDevice: (...args: unknown[]) =>
@@ -60,8 +65,6 @@ jest.mock('../../Ledger/Ledger', () => ({
     mockGetLedgerDmkSessionState(...args),
   disconnectLedgerDmkSession: (...args: unknown[]) =>
     mockDisconnectLedgerDmkSession(...args),
-  openEthereumAppOnLedger: jest.fn(),
-  closeRunningAppOnLedger: jest.fn(),
 }));
 
 jest.mock('react-native-permissions', () => ({
