@@ -581,6 +581,8 @@ describe('BaanxProvider', () => {
     });
 
     it('returns a mapped token set on success', async () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2024-06-01T12:00:00.000Z'));
       const request = jest.fn().mockResolvedValue({
         access_token: 'new-at',
         refresh_token: 'new-rt',
@@ -588,14 +590,19 @@ describe('BaanxProvider', () => {
         refresh_token_expires_in: 120,
       });
 
-      const result = await buildProvider(request).refreshTokens(tokens);
+      try {
+        const result = await buildProvider(request).refreshTokens(tokens);
 
-      expect(result).toMatchObject({
-        accessToken: 'new-at',
-        refreshToken: 'new-rt',
-        location: 'international',
-      });
-      expect(result.accessTokenExpiresAt).toBeGreaterThan(Date.now());
+        expect(result).toMatchObject({
+          accessToken: 'new-at',
+          refreshToken: 'new-rt',
+          location: 'international',
+          accessTokenExpiresAt: Date.now() + 60_000,
+          refreshTokenExpiresAt: Date.now() + 120_000,
+        });
+      } finally {
+        jest.useRealTimers();
+      }
     });
   });
 
@@ -632,7 +639,9 @@ describe('BaanxProvider', () => {
       );
     });
 
-    it('propagates a 403 from a sub-request as an auth token error', async () => {
+    it('does not treat a 403 sub-request as an auth error (degrades gracefully)', async () => {
+      // 403 is a business-rule rejection, not a revoked token, so it is
+      // swallowed like other transient failures rather than forcing re-auth.
       const get = jest.fn().mockImplementation((path: string) => {
         if (path === '/v1/user') {
           return Promise.reject(new CardApiError(403, path, ''));
@@ -640,14 +649,12 @@ describe('BaanxProvider', () => {
         return Promise.resolve(null);
       });
 
-      const promise = buildProvider(get).getCardHomeData('0xabc', tokens);
+      const result = await buildProvider(get).getCardHomeData('0xabc', tokens);
 
-      await expect(promise).rejects.toMatchObject({
-        code: CardProviderErrorCode.InvalidCredentials,
-        statusCode: 403,
-      });
-      await expect(promise.catch((e) => isCardAuthTokenError(e))).resolves.toBe(
-        true,
+      expect(result.account).toBeNull();
+      expect(result.card).toBeNull();
+      expect(isCardAuthTokenError(new CardApiError(403, '/v1/user', ''))).toBe(
+        false,
       );
     });
 

@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity, Image, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import {
   Box,

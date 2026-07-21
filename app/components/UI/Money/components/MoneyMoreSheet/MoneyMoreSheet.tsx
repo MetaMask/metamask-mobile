@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { TouchableOpacity, View, Linking } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
@@ -85,9 +85,9 @@ const MoneyMoreSheet = () => {
     });
 
     closeAndNavigate(() => {
-      Linking.openURL(METAMASK_SUPPORT_URL);
+      openInAppBrowser(navigation, METAMASK_SUPPORT_URL);
     });
-  }, [closeAndNavigate, trackSurfaceClicked]);
+  }, [closeAndNavigate, navigation, trackSurfaceClicked]);
 
   const options: MenuOption[] = [
     {
@@ -104,7 +104,7 @@ const MoneyMoreSheet = () => {
     },
     {
       label: strings('money.more_sheet.contact_support'),
-      icon: IconName.MessageQuestion,
+      icon: IconName.Sms,
       onPress: handleContactSupport,
       testID: MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION,
     },
