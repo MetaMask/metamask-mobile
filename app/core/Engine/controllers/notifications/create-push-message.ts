@@ -41,7 +41,7 @@ const walletTranslations: TranslationKeys = {
       symbol,
     }),
   pushPlatformNotificationsSwapCompletedTitle: () =>
-    t('notifications.metamask_swap_completed_title'),
+    t('notifications.push_notification_content.metamask_swap_completed_title'),
   pushPlatformNotificationsSwapCompletedDescription: () =>
     t(
       'notifications.push_notification_content.metamask_swap_completed_description',
@@ -55,37 +55,47 @@ const walletTranslations: TranslationKeys = {
   pushPlatformNotificationsNftReceivedDescription: () =>
     t('notifications.push_notification_content.nft_received_description'),
   pushPlatformNotificationsStakingRocketpoolStakeCompletedTitle: () =>
-    t('notifications.rocketpool_stake_completed_title'),
+    t(
+      'notifications.push_notification_content.rocketpool_stake_completed_title',
+    ),
   pushPlatformNotificationsStakingRocketpoolStakeCompletedDescription: () =>
     t(
       'notifications.push_notification_content.rocketpool_stake_completed_description',
     ),
   pushPlatformNotificationsStakingRocketpoolUnstakeCompletedTitle: () =>
-    t('notifications.rocketpool_unstake_completed_title'),
+    t(
+      'notifications.push_notification_content.rocketpool_unstake_completed_title',
+    ),
   pushPlatformNotificationsStakingRocketpoolUnstakeCompletedDescription: () =>
     t(
       'notifications.push_notification_content.rocketpool_unstake_completed_description',
     ),
   pushPlatformNotificationsStakingLidoStakeCompletedTitle: () =>
-    t('notifications.lido_stake_completed_title'),
+    t('notifications.push_notification_content.lido_stake_completed_title'),
   pushPlatformNotificationsStakingLidoStakeCompletedDescription: () =>
     t(
       'notifications.push_notification_content.lido_stake_completed_description',
     ),
   pushPlatformNotificationsStakingLidoStakeReadyToBeWithdrawnTitle: () =>
-    t('notifications.lido_stake_ready_to_be_withdrawn_title'),
+    t(
+      'notifications.push_notification_content.lido_stake_ready_to_be_withdrawn_title',
+    ),
   pushPlatformNotificationsStakingLidoStakeReadyToBeWithdrawnDescription: () =>
     t(
       'notifications.push_notification_content.lido_stake_ready_to_be_withdrawn_description',
     ),
   pushPlatformNotificationsStakingLidoWithdrawalRequestedTitle: () =>
-    t('notifications.lido_withdrawal_requested_title'),
+    t(
+      'notifications.push_notification_content.lido_withdrawal_requested_title',
+    ),
   pushPlatformNotificationsStakingLidoWithdrawalRequestedDescription: () =>
     t(
       'notifications.push_notification_content.lido_withdrawal_requested_description',
     ),
   pushPlatformNotificationsStakingLidoWithdrawalCompletedTitle: () =>
-    t('notifications.lido_withdrawal_completed_title'),
+    t(
+      'notifications.push_notification_content.lido_withdrawal_completed_title',
+    ),
   pushPlatformNotificationsStakingLidoWithdrawalCompletedDescription: () =>
     t(
       'notifications.push_notification_content.lido_withdrawal_completed_description',

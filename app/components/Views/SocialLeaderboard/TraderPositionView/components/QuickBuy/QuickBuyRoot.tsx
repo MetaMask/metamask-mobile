@@ -130,9 +130,8 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     track(MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED, {
       [QuickBuyEventProperties.ASSET_NAME]: target.tokenSymbol,
       ...buildQuickBuySharedAnalyticsProperties(analyticsContext),
-      [QuickBuyEventProperties.TRADER_TRADE_TYPE]:
-        analyticsContext.traderTradeType ??
-        QuickBuyEventValues.TRADER_TRADE_TYPE.BUY,
+      [QuickBuyEventProperties.TRADE_TYPE]:
+        analyticsContext.traderTradeType ?? QuickBuyEventValues.TRADE_TYPE.BUY,
     });
   }, [analyticsContext, target.tokenSymbol, track]);
 
