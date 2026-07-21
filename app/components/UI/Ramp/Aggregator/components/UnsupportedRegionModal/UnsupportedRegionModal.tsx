@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { View, TouchableOpacity, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
 import Text, {
   TextVariant,
@@ -21,6 +22,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
@@ -42,7 +44,7 @@ export const createUnsupportedRegionModalNavigationDetails =
 
 function UnsupportedRegionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { region, regions } = useParams<UnsupportedRegionModalParams>();
   const { isBuy } = useRampSDK();
 
@@ -50,8 +52,9 @@ function UnsupportedRegionModal() {
 
   const handleSelectDifferentRegion = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(
-        ...createRegionSelectorModalNavigationDetails({ regions }),
+      navigateWithDetails(
+        navigation,
+        createRegionSelectorModalNavigationDetails({ regions }),
       );
     });
   }, [navigation, regions]);
