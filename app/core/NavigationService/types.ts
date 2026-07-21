@@ -241,6 +241,10 @@ import type {
   EarnModalsNavigationParamList,
   EarnScreensStackParamList,
 } from '../../components/UI/Earn/types/navigation';
+import type {
+  StakeModalsNavigationParamList,
+  StakeScreensStackParamList,
+} from '../../components/UI/Stake/types/navigation';
 
 // Modal params
 import type {
@@ -947,6 +951,10 @@ export type RootStackParamList = {
   NotificationsDetails: NotificationDetailsParams | undefined;
 
   // Staking routes
+  StakeScreens: NavigatorScreenParams<StakeScreensStackParamList> | undefined;
+  StakeModals:
+    | NavigatorScreenParams<StakeModalsNavigationParamList>
+    | undefined;
   Stake: StakeParams | undefined;
   StakeConfirmation: StakeConfirmationParams | undefined;
   Unstake: UnstakeParams | undefined;

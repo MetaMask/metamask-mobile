@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -24,7 +25,7 @@ export const STAKE_CONFIRMATION_VIEW_BACK_BUTTON_TEST_ID =
   'stake-confirmation-header-back-button';
 
 const StakeConfirmationView = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
       RouteProp<{ params: StakeConfirmationViewRouteParams }, 'params'>

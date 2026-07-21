@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import styleSheet from './UnstakeConfirmationView.styles';
@@ -30,7 +31,7 @@ const UnstakeConfirmationView = () => {
     >();
   const { styles } = useStyles(styleSheet, {});
   const chainId = useSelector(selectEvmChainId);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleBackPress = useCallback(() => {

@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import _ from 'lodash';
 import React from 'react';
 import { View } from 'react-native-animatable';
@@ -45,7 +46,7 @@ export const EARN_EMPTY_STATE_CTA_TEST_ID = 'earn-empty-state-cta-test-id';
 const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
 
   const { createEventBuilder, trackEvent } = useAnalytics();
 
