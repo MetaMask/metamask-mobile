@@ -246,3 +246,32 @@ bash scripts/check-ab-testing-compliance.sh --staged
 ```
 
 If no files are staged, the checker automatically falls back to changed working-tree files.
+
+## Cursor Cloud specific instructions
+
+This section captures non-obvious, durable caveats for running this repo in the Cursor Cloud Linux VM. Standard commands live in the sections above and in the READMEs; only the gotchas are noted here.
+
+### Scope on Linux
+
+Only the JS-only **Expo** workflow is supported here (see [Expo setup](./docs/readme/expo-environment.md)). iOS cannot be built (needs macOS/Xcode); Android native builds work but are heavy and are not part of the default setup. What runs headless: `yarn lint`, `yarn lint:tsc`, unit tests (`yarn jest` / `yarn test:unit`), and the Metro/Expo JS bundler (`yarn watch`). Detox/Appium/Playwright E2E need an emulator/BrowserStack and are out of scope.
+
+### Node / Yarn (important)
+
+- The repo requires **Node ^24.16.0** (`.nvmrc`), installed via `nvm`. The VM's exec-daemon injects an older Node (v22) earlier in `PATH`, so `~/.bashrc` runs `nvm use default` to put Node 24 in front. Login/interactive shells (and the Shell tool) therefore get Node 24 automatically.
+- Caveat: a plain non-login `bash -c '...'` does NOT source `~/.bashrc` and will resolve the old Node 22. If a script fails with a Node-version error, run it through a login/interactive shell or prefix with `. "$NVM_DIR/nvm.sh"; nvm use default`.
+- `yarn` (4.14.1) is provided by `corepack` (shim in the nvm bin dir). If `yarn` is missing, run `corepack enable`.
+
+### First-time / full setup vs. the automatic update script
+
+- The startup **update script** only refreshes dependencies: `yarn install` → `yarn allow-scripts` → `yarn patch-package` (the last two must run after every install because they modify `node_modules`). It intentionally omits network-heavy one-time steps.
+- The one-time, network-dependent artifacts are produced by `yarn setup:expo` and are **gitignored but persisted** in the workspace: `app/core/InpageBridgeWeb3.js` (inpage bridge), `app/util/termsOfUse/termsOfUseContent.ts` (curled from legal.consensys.io), the `.js.env`/`.ios.env`/`.android.env`/`.e2e.env` files, the `ios/branch-ios-sdk` submodule, and the `anvil` binary. If any of these go missing (e.g. clean checkout), re-run `yarn setup:expo` — it needs network access.
+
+### Running the bundler (hello-world)
+
+- `yarn watch` runs `expo start --port 8081`. Verify readiness with `curl -s http://localhost:8081/status` (expect `packager-status:running`). To force a full app compile, fetch the bundle: `curl "http://localhost:8081/index.bundle?platform=android&dev=true"` (≈17.6k modules, ~140 MB, ~60s).
+- `yarn watch:clean` calls `watchman watch-del-all`; **watchman is not installed**, so use plain `yarn watch` (Metro falls back to Node file watching) unless you install watchman.
+
+### Tests
+
+- `yarn jest <file>` / `yarn test:unit` collect **full-repo coverage by default**, which makes even a single-file run allocate a lot of memory and can OOM at Node's default 4 GB heap. Run with a larger heap and/or disable coverage, e.g. `NODE_OPTIONS="--max-old-space-size=8192" yarn jest <file> --coverage=false`.
+- `yarn lint` and `yarn lint:tsc` already set `NODE_OPTIONS=--max-old-space-size=12288`; a full-repo run is slow (tsc project check takes several minutes) but passes clean.
