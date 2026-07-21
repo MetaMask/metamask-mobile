@@ -136,7 +136,7 @@ describe('RampDetails', () => {
       data: {
         providerOrderLink: 'https://mercuryo.io/order/abc',
         statusDescription: 'Card purchases typically take a few minutes',
-      },
+      } as FiatOrder['data'],
     });
 
     const { getByText, getByTestId } = render(<RampDetails item={item} />);
@@ -161,7 +161,9 @@ describe('RampDetails', () => {
     (getProviderName as jest.Mock).mockReturnValue('');
     const item = makeItem({
       ...baseOrder,
-      data: { providerOrderLink: 'https://example.com/order/1' },
+      data: {
+        providerOrderLink: 'https://example.com/order/1',
+      } as FiatOrder['data'],
     });
 
     const { getByText, queryByText } = render(<RampDetails item={item} />);
