@@ -1489,6 +1489,310 @@ describe('CustomAmountInfo', () => {
       ).toBeOnTheScreen();
     });
   });
+
+  it('invokes updateFiatPayment callback when fiat payment is active', async () => {
+    const updateFiatPaymentMock = Engine.context.TransactionPayController
+      .updateFiatPayment as jest.Mock;
+    updateFiatPaymentMock.mockImplementation(
+      ({ callback }: { callback: (fp: { amountFiat: string }) => void }) => {
+        callback({ amountFiat: '' });
+      },
+    );
+
+    useTransactionPayFiatPaymentMock.mockReturnValue({
+      selectedPaymentMethodId: 'fiat-method-1',
+    } as never);
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'tx-1',
+      type: TransactionType.contractInteraction,
+      txParams: { from: '0x123' },
+    } as never);
+
+    const { getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    expect(updateFiatPaymentMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes toast via close button when amount update fails', async () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
+      type: TransactionType.contractInteraction,
+      txParams: { from: '0x123' },
+    } as never);
+    setControllerTransactions([{ id: TRANSACTION_ID_MOCK }]);
+
+    useTransactionCustomAmountMock.mockReturnValue({
+      amountFiat: '123.45',
+      amountHuman: '0',
+      amountHumanDebounced: '0',
+      amountFiatDebounced: '0',
+      hasInput: true,
+      isDepositPrefillEnabled: false,
+      isDepositPrefilled: false,
+      isInputChanged: false,
+      isPrefillPending: false,
+      isDepositPrefillLoading: false,
+      updatePendingAmount: noop,
+      updatePendingAmountPercentage: noop,
+      updateTokenAmount: jest.fn().mockRejectedValue(new Error('fail')),
+    });
+
+    const { getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    const toastArg = mockShowToast.mock.calls[0][0];
+    toastArg.closeButtonOptions.onPress();
+
+    expect(mockToastRef.current.closeToast).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens keyboard when custom amount input is pressed', async () => {
+    useTransactionCustomAmountMock.mockReturnValue({
+      amountFiat: '123.45',
+      amountHuman: '0',
+      amountHumanDebounced: '0',
+      amountFiatDebounced: '0',
+      hasInput: true,
+      isDepositPrefillEnabled: true,
+      isDepositPrefilled: false,
+      isInputChanged: false,
+      isPrefillPending: false,
+      isDepositPrefillLoading: false,
+      updatePendingAmount: noop,
+      updatePendingAmountPercentage: noop,
+      updateTokenAmount: jest.fn(),
+    });
+
+    const { getByTestId, queryByTestId } = render();
+
+    expect(queryByTestId('deposit-keyboard')).toBeNull();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('custom-amount-input'));
+    });
+
+    expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+  });
+
+  it('renders perps buy message when no tokens available for perpsDeposit', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
+
+    const { getByText } = render({
+      transactionType: TransactionType.perpsDeposit,
+    });
+
+    expect(
+      getByText(strings('confirm.custom_amount.buy_perps')),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders predict buy message when no tokens available for predictDeposit', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.predictDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
+
+    const { getByText } = render({
+      transactionType: TransactionType.predictDeposit,
+    });
+
+    expect(
+      getByText(strings('confirm.custom_amount.buy_predict')),
+    ).toBeOnTheScreen();
+  });
+
+  it('resets submitting state when onConfirm rejects', async () => {
+    useConfirmActionsMock.mockReturnValue({
+      onConfirm: jest.fn().mockRejectedValue(new Error('confirm failed')),
+      onReject: jest.fn(),
+    });
+
+    const { getByText, getByTestId } = render();
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    // handleConfirm re-throws after resetting the submitting flag.
+    // Directly invoke and await the handler to prevent the unhandled rejection.
+    const confirmButton = getByTestId('confirm-button');
+    let pressable: typeof confirmButton | null = confirmButton;
+    while (pressable && !pressable.props.onPress) {
+      pressable = pressable.parent;
+    }
+
+    if (!pressable) {
+      throw new Error('Could not find pressable ancestor with onPress');
+    }
+
+    try {
+      await act(async () => {
+        await pressable.props.onPress();
+      });
+    } catch {
+      // Expected: handleConfirm re-throws after resetting submitting state
+    }
+
+    expect(setIsConfirmationSubmittingMock).toHaveBeenCalledWith(true);
+    expect(setIsConfirmationSubmittingMock).toHaveBeenCalledWith(false);
+  });
+
+  describe('prefill auto-submit', () => {
+    it('calls handleDone when isPrefillPending transitions to false', async () => {
+      const updateTokenAmountMock = jest.fn();
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '50',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: true,
+        isDepositPrefillEnabled: true,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: true,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: updateTokenAmountMock,
+      });
+
+      const { rerender } = render();
+
+      expect(updateTokenAmountMock).not.toHaveBeenCalled();
+
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '50',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: true,
+        isDepositPrefillEnabled: true,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: updateTokenAmountMock,
+      });
+
+      await act(async () => {
+        rerender(
+          <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
+            <CustomAmountInfo />
+          </ToastContext.Provider>,
+        );
+      });
+
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('auto-submits when prefill is ready and keyboard is hidden', async () => {
+      const updateTokenAmountMock = jest.fn();
+      const onAmountSubmitMock = jest.fn();
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '100',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: true,
+        isDepositPrefillEnabled: true,
+        isDepositPrefilled: true,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: updateTokenAmountMock,
+      });
+
+      render({ onAmountSubmit: onAmountSubmitMock });
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+      expect(onAmountSubmitMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not auto-submit while the keyboard is visible', () => {
+      const updateTokenAmountMock = jest.fn();
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '100',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: true,
+        isDepositPrefillEnabled: false,
+        isDepositPrefilled: true,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: updateTokenAmountMock,
+      });
+
+      render();
+
+      expect(updateTokenAmountMock).not.toHaveBeenCalled();
+    });
+
+    it('does not duplicate handleDone when user taps Done with a pending prefill', async () => {
+      const updateTokenAmountMock = jest.fn();
+      const onAmountSubmitMock = jest.fn();
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '100',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: true,
+        isDepositPrefillEnabled: false,
+        isDepositPrefilled: true,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: noop,
+        updateTokenAmount: updateTokenAmountMock,
+      });
+
+      const { getByText } = render({ onAmountSubmit: onAmountSubmitMock });
+
+      // Keyboard is visible → auto-submit blocked
+      expect(updateTokenAmountMock).not.toHaveBeenCalled();
+
+      // User taps Done → handleDone fires, keyboard hides, effect re-runs
+      // but hasAutoSubmittedPrefill is now true so no second invocation.
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+      expect(onAmountSubmitMock).toHaveBeenCalledTimes(1);
+    });
+  });
 });
 
 describe('CustomAmountInfoSkeleton', () => {

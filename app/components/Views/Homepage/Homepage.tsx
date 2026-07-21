@@ -156,9 +156,9 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         const sections: { name: HomeSectionName; enabled: boolean }[] = [
           { name: HomeSectionNames.CASH, enabled: isCashSectionEnabled },
           { name: HomeSectionNames.TOKENS, enabled: true },
-          { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
           { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
           { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
+          { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
           {
             name: HomeSectionNames.TOP_TRADERS,
             enabled: isTopTradersEnabled,
@@ -187,9 +187,9 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       return [
         { name: HomeSectionNames.CASH, enabled: isCashSectionEnabled },
         { name: HomeSectionNames.TOKENS, enabled: true },
-        { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
         { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
         { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
+        { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
         {
           name: HomeSectionNames.TOP_TRADERS,
           enabled: isTopTradersEnabled,
@@ -249,6 +249,13 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             totalSectionsLoaded={totalSectionsLoaded}
             mode={sectionMode}
           />
+          {isWatchlistEnabled && (
+            <WatchlistSection
+              ref={watchlistSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+          )}
           {isTopTradersEnabled && (
             <TopTradersSection
               ref={topTradersSectionRef}
@@ -330,13 +337,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               totalSectionsLoaded={totalSectionsLoaded}
               mode={sectionMode}
             />
-            {isWatchlistEnabled && (
-              <WatchlistSection
-                ref={watchlistSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
-                totalSectionsLoaded={totalSectionsLoaded}
-              />
-            )}
             {isPerpsEnabled &&
               (() => {
                 const perpsContent = (
@@ -384,13 +384,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             totalSectionsLoaded={totalSectionsLoaded}
             mode={sectionMode}
           />
-          {isWatchlistEnabled && (
-            <WatchlistSection
-              ref={watchlistSectionRef}
-              sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
-              totalSectionsLoaded={totalSectionsLoaded}
-            />
-          )}
           {isPerpsEnabled &&
             (perpsProvidersHoisted ? (
               <HomepagePerpsHomeSlot
@@ -417,6 +410,13 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             totalSectionsLoaded={totalSectionsLoaded}
             mode={sectionMode}
           />
+          {isWatchlistEnabled && (
+            <WatchlistSection
+              ref={watchlistSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+          )}
           {isTopTradersEnabled && (
             <TopTradersSection
               ref={topTradersSectionRef}

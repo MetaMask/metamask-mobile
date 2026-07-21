@@ -17,6 +17,7 @@ import { usePredictTrading } from './usePredictTrading';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { PlaceOrderParams } from '../types';
+import { RootState } from '../../../../reducers';
 
 interface PredictDepositAnalyticsParams {
   amountUsd?: number;
@@ -36,10 +37,8 @@ export const usePredictDeposit = () => {
 
   const { deposit: depositWithConfirmation } = usePredictTrading();
 
-  const depositBatchId = useSelector(
-    selectPredictPendingDepositByAddress({
-      address: selectedInternalAccountAddress,
-    }),
+  const depositBatchId = useSelector((state: RootState) =>
+    selectPredictPendingDepositByAddress(state, selectedInternalAccountAddress),
   );
 
   const deposit = useCallback(
