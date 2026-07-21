@@ -12,7 +12,8 @@ export const useHasNewMarkets = (): boolean => {
   const { markets } = usePerpsMarkets();
 
   return useMemo(
-    () => markets.some((market) => isRecentlyListed(market.listedAt)),
+    () =>
+      markets.some((market) => isRecentlyListed(market.listedAt, Date.now())),
     [markets],
   );
 };

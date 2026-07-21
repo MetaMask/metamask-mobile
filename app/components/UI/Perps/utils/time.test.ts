@@ -37,56 +37,58 @@ describe('formatDurationForDisplay', () => {
 describe('isWithinLast30Days', () => {
   const NOW = 1_700_000_000_000; // fixed epoch ms for determinism
 
-  beforeEach(() => {
-    jest.spyOn(Date, 'now').mockReturnValue(NOW);
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it('returns true for a timestamp 1 hour ago', () => {
-    expect(isWithinLast30Days(NOW - 60 * 60 * 1000)).toBe(true);
+    expect(isWithinLast30Days(NOW - 60 * 60 * 1000, NOW)).toBe(true);
   });
 
   it('returns true for a timestamp 29 days ago', () => {
-    expect(isWithinLast30Days(NOW - 29 * 24 * 60 * 60 * 1000)).toBe(true);
+    expect(isWithinLast30Days(NOW - 29 * 24 * 60 * 60 * 1000, NOW)).toBe(true);
   });
 
   it('returns true at exactly 30 days minus 1 ms', () => {
-    expect(isWithinLast30Days(NOW - 30 * 24 * 60 * 60 * 1000 + 1)).toBe(true);
+    expect(isWithinLast30Days(NOW - 30 * 24 * 60 * 60 * 1000 + 1, NOW)).toBe(
+      true,
+    );
   });
 
   it('returns false at exactly 30 days', () => {
-    expect(isWithinLast30Days(NOW - 30 * 24 * 60 * 60 * 1000)).toBe(false);
+    expect(isWithinLast30Days(NOW - 30 * 24 * 60 * 60 * 1000, NOW)).toBe(false);
   });
 
   it('returns false for a timestamp 31 days ago', () => {
-    expect(isWithinLast30Days(NOW - 31 * 24 * 60 * 60 * 1000)).toBe(false);
+    expect(isWithinLast30Days(NOW - 31 * 24 * 60 * 60 * 1000, NOW)).toBe(false);
+  });
+
+  it('returns false for a timestamp exactly at now', () => {
+    expect(isWithinLast30Days(NOW, NOW)).toBe(false);
+  });
+
+  it('returns false for a timestamp in the future', () => {
+    expect(isWithinLast30Days(NOW + 60 * 60 * 1000, NOW)).toBe(false);
+  });
+
+  it('returns false for a timestamp far in the future', () => {
+    expect(isWithinLast30Days(NOW + 45 * 24 * 60 * 60 * 1000, NOW)).toBe(false);
   });
 });
 
 describe('isRecentlyListed', () => {
   const NOW = 1_700_000_000_000; // fixed epoch ms for determinism
 
-  beforeEach(() => {
-    jest.spyOn(Date, 'now').mockReturnValue(NOW);
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it('returns true for a listedAt timestamp within the last 30 days', () => {
-    expect(isRecentlyListed(NOW - 5 * 24 * 60 * 60 * 1000)).toBe(true);
+    expect(isRecentlyListed(NOW - 5 * 24 * 60 * 60 * 1000, NOW)).toBe(true);
   });
 
   it('returns false for a listedAt timestamp older than 30 days', () => {
-    expect(isRecentlyListed(NOW - 31 * 24 * 60 * 60 * 1000)).toBe(false);
+    expect(isRecentlyListed(NOW - 31 * 24 * 60 * 60 * 1000, NOW)).toBe(false);
   });
 
   it('returns false when listedAt is undefined', () => {
-    expect(isRecentlyListed(undefined)).toBe(false);
+    expect(isRecentlyListed(undefined, NOW)).toBe(false);
+  });
+
+  it('returns false for a listedAt timestamp in the future', () => {
+    expect(isRecentlyListed(NOW + 24 * 60 * 60 * 1000, NOW)).toBe(false);
   });
 });
 

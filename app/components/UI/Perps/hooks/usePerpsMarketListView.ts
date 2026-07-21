@@ -248,7 +248,7 @@ export const usePerpsMarketListView = ({
     // 30 days (same criterion as the home "Recently added" rail).
     if (marketTypeFilter === 'new') {
       return searchedMarkets.filter((market) =>
-        isRecentlyListed(market.listedAt),
+        isRecentlyListed(market.listedAt, Date.now()),
       );
     }
 
@@ -345,7 +345,7 @@ export const usePerpsMarketListView = ({
     ) as Record<Exclude<MarketTypeFilter, 'all'>, number>;
 
     allMarkets.forEach((market) => {
-      if (isRecentlyListed(market.listedAt)) {
+      if (isRecentlyListed(market.listedAt, Date.now())) {
         counts.new++;
       }
       if (!market.isHip3) {

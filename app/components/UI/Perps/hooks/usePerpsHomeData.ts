@@ -259,7 +259,7 @@ export const usePerpsHomeData = ({
   const recentlyAddedMarkets = useMemo(
     () =>
       allMarkets
-        .filter((m) => isRecentlyListed(m.listedAt))
+        .filter((m) => isRecentlyListed(m.listedAt, Date.now()))
         .sort((a, b) => (b.listedAt as number) - (a.listedAt as number)),
     [allMarkets],
   );
