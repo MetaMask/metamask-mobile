@@ -9,12 +9,15 @@ import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 import PredictCryptoUpDownDetailsPage from '../../../page-objects/Predict/PredictCryptoUpDownDetailsPage';
 import { Performance, PerformancePredict } from '../../../tags.performance.js';
 
+const BTC_UP_OR_DOWN_SEARCH_QUERY = 'Bitcoin Up or Down';
+const BTC_UP_OR_DOWN_TITLE = /Bitcoin Up or Down/;
+
 /*
  * Scenario: Predict BTC Up or Down dwell (BrowserStack app profiling PoC)
  *
- * Login with the SRP-preloaded build, open Predict, filter Crypto, open a
- * BTC Up or Down market, and remain on that screen for 5 minutes so
- * BrowserStack app profiling can capture a sustained session.
+ * Login with the SRP-preloaded build, open Predict, search for a Bitcoin Up or
+ * Down market, open it, and remain on that screen for 5 minutes so BrowserStack
+ * app profiling can capture a sustained session.
  */
 perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
   perfTest(
@@ -43,16 +46,16 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
         );
       });
 
-      await PredictMarketList.tapCategoryTab('crypto');
-
-      // Timer 2: Open BTC Up or Down market details
+      // Timer 2: Search and open Bitcoin Up or Down market details
       const timer2 = new TimerHelper(
-        'Time since user taps BTC Up or Down market until details are visible',
+        'Time since user searches Bitcoin Up or Down until details are visible',
         { ios: 5000, android: 8000 },
         currentDeviceDetails.platform,
       );
 
-      await PredictMarketList.tapMarketCard('crypto', 1);
+      await PredictMarketList.tapSearchButton();
+      await PredictMarketList.typeSearchQuery(BTC_UP_OR_DOWN_SEARCH_QUERY);
+      await PredictMarketList.tapMarketByTitle(BTC_UP_OR_DOWN_TITLE);
       await timer2.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(PredictCryptoUpDownDetailsPage.container),
