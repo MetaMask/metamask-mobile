@@ -1,5 +1,4 @@
 import { act, renderHook } from '@testing-library/react-native';
-import { InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
 import { selectDeFiPositionsV2State } from '../../../../../../selectors/defiPositionsControllerV2';
@@ -28,16 +27,6 @@ const mockFetchDeFiPositions = Engine.context.DeFiPositionsControllerV2
   typeof Engine.context.DeFiPositionsControllerV2.fetchDeFiPositions
 >;
 
-const createInteractionHandle = (): ReturnType<
-  typeof InteractionManager.runAfterInteractions
-> => ({
-  then: (onfulfilled, onrejected) =>
-    Promise.resolve().then(onfulfilled, onrejected),
-  done: (onfulfilled, onrejected) =>
-    Promise.resolve().then(onfulfilled, onrejected),
-  cancel: jest.fn(),
-});
-
 describe('useDeFiPositionsV2', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -58,18 +47,26 @@ describe('useDeFiPositionsV2', () => {
       return undefined;
     });
 
-    jest
-      .spyOn(InteractionManager, 'runAfterInteractions')
-      .mockImplementation((task) => {
-        if (typeof task === 'function') {
-          task();
-        }
-        return createInteractionHandle();
-      });
+    // Run deferred fetch work synchronously in unit tests.
+    (
+      globalThis as typeof globalThis & {
+        requestIdleCallback: (callback: () => void) => number;
+        cancelIdleCallback: (handle: number) => void;
+      }
+    ).requestIdleCallback = (callback) => {
+      callback();
+      return 0;
+    };
+    (
+      globalThis as typeof globalThis & {
+        cancelIdleCallback: (handle: number) => void;
+      }
+    ).cancelIdleCallback = jest.fn();
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    Reflect.deleteProperty(globalThis, 'requestIdleCallback');
+    Reflect.deleteProperty(globalThis, 'cancelIdleCallback');
   });
 
   it('does not fetch when disabled', async () => {
@@ -92,7 +89,7 @@ describe('useDeFiPositionsV2', () => {
     expect(mockFetchDeFiPositions).not.toHaveBeenCalled();
   });
 
-  it('fetches when enabled and visible', async () => {
+  it('fetches without forceRefresh when enabled and visible', async () => {
     renderHook(() => useDeFiPositionsV2({ enabled: true, isVisible: true }));
 
     await act(async () => {
@@ -100,6 +97,7 @@ describe('useDeFiPositionsV2', () => {
     });
 
     expect(mockFetchDeFiPositions).toHaveBeenCalledTimes(1);
+    expect(mockFetchDeFiPositions).toHaveBeenCalledWith();
   });
 
   it('does not fetch when wallet is locked', async () => {
@@ -194,7 +192,7 @@ describe('useDeFiPositionsV2', () => {
     expect(result.current.hasFetched).toBe(false);
   });
 
-  it('refresh bypasses visibility and calls fetch', async () => {
+  it('refresh bypasses visibility and force-refreshes', async () => {
     const { result } = renderHook(() =>
       useDeFiPositionsV2({ enabled: true, isVisible: false }),
     );
@@ -204,5 +202,6 @@ describe('useDeFiPositionsV2', () => {
     });
 
     expect(mockFetchDeFiPositions).toHaveBeenCalledTimes(1);
+    expect(mockFetchDeFiPositions).toHaveBeenCalledWith({ forceRefresh: true });
   });
 });

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   mergePositionsForAccounts,
@@ -12,6 +11,30 @@ import {
   selectSelectedAccountGroupId,
   selectSelectedAccountGroupInternalAccounts,
 } from '../../../../../../selectors/multichainAccounts/accountTreeController';
+
+interface IdleCallbackGlobals {
+  requestIdleCallback?: (
+    callback: () => void,
+    options?: { timeout?: number },
+  ) => number;
+  cancelIdleCallback?: (handle: number) => void;
+}
+
+const scheduleIdleTask = (task: () => void): (() => void) => {
+  const idleGlobals = globalThis as typeof globalThis & IdleCallbackGlobals;
+
+  if (idleGlobals.requestIdleCallback) {
+    const idleCallbackId = idleGlobals.requestIdleCallback(task);
+    return () => {
+      idleGlobals.cancelIdleCallback?.(idleCallbackId);
+    };
+  }
+
+  const timeoutId = setTimeout(task, 0);
+  return () => {
+    clearTimeout(timeoutId);
+  };
+};
 
 export interface UseDeFiPositionsV2Options {
   /** Whether V2 DeFi is enabled for this surface. */
@@ -33,14 +56,18 @@ export interface UseDeFiPositionsV2Result {
    * loaded-empty.
    */
   hasFetched: boolean;
-  /** Trigger a fetch, bypassing the visibility gate (e.g. pull-to-refresh). */
+  /**
+   * Trigger a force-refresh fetch, bypassing the visibility gate and the
+   * apiClient cache (e.g. pull-to-refresh).
+   */
   refresh: () => Promise<void>;
 }
 
 /**
- * Drives homepage DeFi V2: fetches when the section is visible (and on account
- * group change while visible), then merges positions for the selected account
- * group from Redux state.
+ * Drives DeFi V2 surfaces: fetches (without forceRefresh) when the section
+ * enters the viewport — including while still empty/idle — and on account
+ * group change while visible. Pull-to-refresh uses {@link refresh} with
+ * `forceRefresh: true` to bypass the apiClient cache.
  *
  * @param options - Enablement and viewport visibility gates.
  * @returns Merged positions plus loading/error flags and a refresh helper.
@@ -87,7 +114,9 @@ export function useDeFiPositionsV2({
       setIsError(false);
 
       try {
-        await Engine.context.DeFiPositionsControllerV2.fetchDeFiPositions();
+        await Engine.context.DeFiPositionsControllerV2.fetchDeFiPositions({
+          forceRefresh: true,
+        });
       } catch {
         setIsError(true);
       } finally {
@@ -106,7 +135,7 @@ export function useDeFiPositionsV2({
 
     let cancelled = false;
 
-    const task = InteractionManager.runAfterInteractions(() => {
+    const cancelIdleTask = scheduleIdleTask(() => {
       setIsFetching(true);
       setIsError(false);
 
@@ -127,7 +156,7 @@ export function useDeFiPositionsV2({
 
     return () => {
       cancelled = true;
-      task.cancel();
+      cancelIdleTask();
     };
   }, [shouldFetch, selectedAccountGroupId]);
 
