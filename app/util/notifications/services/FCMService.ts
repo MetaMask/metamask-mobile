@@ -255,9 +255,21 @@ class FCMService {
     }
 
     try {
-      this.#hasRegisteredForeground = messaging().onMessage(async (payload) => {
+      const unsubscribeOnMessage = messaging().onMessage(async (payload) => {
         processAndHandleNotification(payload, handler, platformHandler);
       });
+
+      const unsubscribeForegroundMessages = () => {
+        try {
+          unsubscribeOnMessage();
+        } finally {
+          if (this.#hasRegisteredForeground === unsubscribeForegroundMessages) {
+            this.#hasRegisteredForeground = null;
+          }
+        }
+      };
+
+      this.#hasRegisteredForeground = unsubscribeForegroundMessages;
     } catch {
       // Do nothing
     }
