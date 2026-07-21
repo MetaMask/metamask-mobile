@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useState } from 'react';
 import TrendingQuickBuy from '../../components/TrendingQuickBuy/TrendingQuickBuy';
 import { View, RefreshControl } from 'react-native';
 import { useRoute, type RouteProp } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import TrendingTokensList, {
@@ -24,7 +23,6 @@ import { useTrendingSearch } from '../../hooks/useTrendingSearch/useTrendingSear
 import { useTokenListFilters } from '../../hooks/useTokenListFilters/useTokenListFilters';
 import EmptyErrorTrendingState from '../../../../Views/TrendingView/components/EmptyErrorState/EmptyErrorTrendingState';
 import EmptySearchResultState from '../../../../Views/TrendingView/components/EmptyErrorState/EmptySearchResultState';
-import WatchlistEmptyState from '../../../../Views/Homepage/Sections/Watchlist/components/WatchlistEmptyState';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import { useSearchTracking } from '../../hooks/useSearchTracking/useSearchTracking';
 import { FilterButton } from '../../components/FilterBar/FilterBar';
@@ -39,11 +37,6 @@ import {
 } from '../../../../Views/TrendingView/search/abTestConfig';
 import type { QuickBuySheetSource } from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/analytics';
 import { useQuickBuySearchKeyboard } from '../../hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
-import { selectTokenWatchlistEnabled } from '../../../Assets/selectors/featureFlags';
-import { useTokenWatchlistQuery } from '../../../Assets/watchlist/hooks/useTokenWatchlistQuery';
-import { mapWatchlistTokenToTrendingAsset } from '../../../../Views/Homepage/Sections/Watchlist/utils/mapWatchlistTokenToTrendingAsset';
-import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
-import { getCaipChainIdFromAssetId } from '../../components/TrendingTokenRowItem/utils';
 
 export type TrendingTokensFullViewEntryPoint =
   | 'crypto_movers'
@@ -68,10 +61,6 @@ export interface TrendingTokensDataProps {
   onLoadMore?: () => void;
   isLoadingMore?: boolean;
   onQuickTrade?: (token: TrendingAsset) => void;
-  /** When true, an empty list shows the watchlist empty illustration instead of the error state. */
-  isWatchlistFilterActive?: boolean;
-  /** Token Details analytics source for row navigation. */
-  tokenDetailsSource?: TokenDetailsSource;
 
   search: {
     searchResults: TrendingAsset[];
@@ -92,8 +81,6 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
     onLoadMore,
     isLoadingMore,
     onQuickTrade,
-    isWatchlistFilterActive = false,
-    tokenDetailsSource = TokenDetailsSource.Trending,
   } = props;
 
   const tw = useTailwind();
@@ -115,20 +102,7 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
     return <EmptySearchResultState />;
   }
 
-  if (
-    !isLoading &&
-    isWatchlistFilterActive &&
-    !isSearching &&
-    trendingTokens.length === 0
-  ) {
-    return (
-      <View style={tw`pt-40`} testID="trending-watchlist-empty-state">
-        <WatchlistEmptyState />
-      </View>
-    );
-  }
-
-  if (!isSearching && trendingTokens.length === 0) {
+  if (!isSearching && !hasSearchResults) {
     return <EmptyErrorTrendingState onRetry={handleRefresh} />;
   }
 
@@ -141,7 +115,6 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
         onLoadMore={onLoadMore}
         isLoadingMore={isLoadingMore}
         onQuickTrade={onQuickTrade}
-        tokenDetailsSource={tokenDetailsSource}
         refreshControl={
           <RefreshControl
             colors={[theme.colors.primary.default]}
@@ -157,9 +130,6 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
 
 const TrendingTokensFullView = () => {
   const sessionManager = TrendingFeedSessionManager.getInstance();
-  const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
-  const [showWatchlistOnly, setShowWatchlistOnly] = useState(false);
-  const isWatchlistFilterActive = isWatchlistEnabled && showWatchlistOnly;
   const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
     null,
   );
@@ -180,11 +150,6 @@ const TrendingTokensFullView = () => {
       : strings('trending.trending_tokens');
   const filters = useTokenListFilters({ timeOption: initialTimeOption });
 
-  const isSearchActive =
-    filters.isSearchVisible || Boolean(filters.searchQuery?.trim());
-  /** Watchlist list mode: star selected and user is not searching trending tokens. */
-  const isWatchlistListMode = isWatchlistFilterActive && !isSearchActive;
-
   const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(
     initialTimeOption ? mapTimeOptionToSortBy(initialTimeOption) : undefined,
   );
@@ -192,7 +157,7 @@ const TrendingTokensFullView = () => {
 
   const {
     data: searchResults,
-    isLoading: isTrendingLoading,
+    isLoading,
     refetch: refetchTokensSection,
     loadMore,
     isLoadingMore,
@@ -203,50 +168,7 @@ const TrendingTokensFullView = () => {
     filterLowQuality: true,
   });
 
-  const {
-    data: watchlistData,
-    isLoading: isWatchlistLoading,
-    refetch: refetchWatchlist,
-  } = useTokenWatchlistQuery();
-
-  const watchlistTokens = useMemo(() => {
-    if (!isWatchlistListMode) {
-      return [];
-    }
-
-    let tokens = (watchlistData ?? []).map(mapWatchlistTokenToTrendingAsset);
-
-    if (filters.selectedNetwork && filters.selectedNetwork.length > 0) {
-      const selectedChainId = filters.selectedNetwork[0];
-      tokens = tokens.filter(
-        (token) => getCaipChainIdFromAssetId(token.assetId) === selectedChainId,
-      );
-    }
-
-    if (filters.selectedPriceChangeOption) {
-      tokens = sortTrendingTokens(
-        tokens,
-        filters.selectedPriceChangeOption,
-        filters.priceChangeSortDirection,
-        filters.selectedTimeOption,
-      );
-    }
-
-    return tokens;
-  }, [
-    isWatchlistListMode,
-    watchlistData,
-    filters.selectedNetwork,
-    filters.selectedPriceChangeOption,
-    filters.priceChangeSortDirection,
-    filters.selectedTimeOption,
-  ]);
-
   const trendingTokens = useMemo(() => {
-    if (isWatchlistListMode) {
-      return watchlistTokens;
-    }
-
     if (searchResults.length === 0) {
       return [];
     }
@@ -266,18 +188,12 @@ const TrendingTokensFullView = () => {
       filters.selectedTimeOption,
     );
   }, [
-    isWatchlistListMode,
-    watchlistTokens,
     searchResults,
     filters.searchQuery,
     filters.selectedPriceChangeOption,
     filters.priceChangeSortDirection,
     filters.selectedTimeOption,
   ]);
-
-  const isLoading = isWatchlistListMode
-    ? isWatchlistLoading
-    : isTrendingLoading;
 
   useSearchTracking({
     searchQuery: filters.searchQuery,
@@ -338,22 +254,13 @@ const TrendingTokensFullView = () => {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      if (isWatchlistListMode) {
-        await refetchWatchlist();
-      } else {
-        refetchTokensSection?.();
-      }
+      refetchTokensSection?.();
     } catch (error) {
       console.warn('Failed to refresh trending tokens:', error);
     } finally {
       setRefreshing(false);
     }
-  }, [
-    isWatchlistListMode,
-    refetchWatchlist,
-    refetchTokensSection,
-    setRefreshing,
-  ]);
+  }, [refetchTokensSection, setRefreshing]);
 
   const closeQuickBuy = useCallback(() => {
     setQuickTradeToken(null);
@@ -373,14 +280,6 @@ const TrendingTokensFullView = () => {
     />
   );
 
-  const handleWatchlistFilterPress = useCallback(() => {
-    setShowWatchlistOnly((prev) => !prev);
-  }, []);
-
-  const tokenDetailsSource = isWatchlistListMode
-    ? TokenDetailsSource.ExploreWatchlistFilter
-    : TokenDetailsSource.Trending;
-
   return (
     <TokenListPageLayout
       title={pageTitle}
@@ -391,14 +290,9 @@ const TrendingTokensFullView = () => {
       isLoading={isLoading}
       onRefresh={handleRefresh}
       allowedNetworks={TRENDING_NETWORKS_LIST}
-      showWatchlistFilter={isWatchlistEnabled}
-      onWatchlistFilterPress={handleWatchlistFilterPress}
       extraFilters={timeFilterButton}
-      isWatchlistFilterActive={isWatchlistFilterActive}
-      isWatchlistListMode={isWatchlistListMode}
-      tokenDetailsSource={tokenDetailsSource}
-      onLoadMore={isWatchlistListMode ? undefined : loadMore}
-      isLoadingMore={isWatchlistListMode ? false : isLoadingMore}
+      onLoadMore={loadMore}
+      isLoadingMore={isLoadingMore}
       extraBottomSheets={
         <TrendingTokenTimeBottomSheet
           isVisible={showTimeBottomSheet}

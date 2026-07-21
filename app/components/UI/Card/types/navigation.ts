@@ -51,6 +51,10 @@ export type CardScreensStackParamList = {
   CardOnboarding:
     | (CardNestedNavigationParams & { cardUserPhase?: CardUserPhase })
     | undefined;
+  CardOnboardingKYCProcessing:
+    | { countryKey?: string; kycUrl?: string }
+    | undefined;
+  CardOnboardingFundingApproval: { countryKey?: string } | undefined;
 };
 
 /**

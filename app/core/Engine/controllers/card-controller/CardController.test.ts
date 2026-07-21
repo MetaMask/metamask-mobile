@@ -70,10 +70,19 @@ const mockOnboardingStore = CardOnboardingStore as jest.Mocked<
 >;
 const mockDispatch = ReduxService.store.dispatch as jest.Mock;
 
-async function flushPromises(times = 5): Promise<void> {
-  for (let i = 0; i < times; i++) {
+/** Drain microtasks until `predicate` is true (or throw). Prefer this over a
+ * fixed N×`Promise.resolve()` barrier — that under-drains under load. */
+async function waitForCondition(
+  predicate: () => boolean,
+  iterations = 50,
+): Promise<void> {
+  for (let i = 0; i < iterations; i++) {
+    if (predicate()) {
+      return;
+    }
     await Promise.resolve();
   }
+  throw new Error('waitForCondition predicate never became true');
 }
 
 function buildMessenger() {
@@ -213,11 +222,13 @@ const mockSession: CardAuthSession = {
   },
 };
 
+const FIXED_NOW = new Date('2024-06-01T12:00:00.000Z').getTime();
+
 const mockTokenSet: CardAuthTokens = {
   accessToken: 'at',
   refreshToken: 'rt',
-  accessTokenExpiresAt: Date.now() + 3_600_000,
-  refreshTokenExpiresAt: Date.now() + 86_400_000,
+  accessTokenExpiresAt: FIXED_NOW + 3_600_000,
+  refreshTokenExpiresAt: FIXED_NOW + 86_400_000,
   location: 'international',
 };
 
@@ -372,6 +383,10 @@ describe('CardController — auth methods', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('initiateAuth', () => {
     it('delegates to the active provider and stores the session internally', async () => {
       const provider = buildMockProvider();
@@ -477,9 +492,9 @@ describe('CardController — auth methods', () => {
 
       const { controller } = buildControllerWithMockMessenger(provider);
       const staleFetchPromise = controller.fetchCardHomeData();
-      await flushPromises();
-
-      expect(getOnChainAssetsMock).toHaveBeenCalledTimes(1);
+      await waitForCondition(
+        () => getOnChainAssetsMock.mock.calls.length === 1,
+      );
 
       await controller.initiateAuth('US');
       await controller.submitCredentials({
@@ -487,17 +502,19 @@ describe('CardController — auth methods', () => {
         email: 'a@b.com',
         password: 'pass',
       });
-      await flushPromises();
+      await waitForCondition(
+        () =>
+          (controller.state.cardHomeData as CardHomeData | null)
+            ?.primaryFundingAsset?.symbol === 'AUTH',
+      );
 
-      expect(provider.getCardHomeData).toHaveBeenCalledTimes(1);
       expect(controller.state.cardHomeData).toStrictEqual(
         authenticatedHomeData,
       );
 
       resolveStaleFetch(staleHomeData);
       await staleFetchPromise;
-      await flushPromises();
-
+      // Stale resolve must not overwrite the authenticated paint already applied.
       expect(controller.state.cardHomeData).toStrictEqual(
         authenticatedHomeData,
       );
@@ -1028,6 +1045,10 @@ describe('CardController — 401 retry and forced logout', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('refreshes and retries once when a data call is rejected with 401', async () => {
     wireTokenStorage(mockTokenSet);
     const provider = buildAuthedProvider();
@@ -1157,7 +1178,9 @@ describe('CardController — 401 retry and forced logout', () => {
     await expect(controller.getCashbackWallet()).rejects.toBe(
       unauthorizedError,
     );
-    await flushPromises(10);
+    await waitForCondition(
+      () => (provider.getOnChainAssets as jest.Mock).mock.calls.length === 1,
+    );
 
     expect(provider.getOnChainAssets).toHaveBeenCalledWith('0xabc');
     expect(controller.state.lastUnauthenticatedReason).toBe(
@@ -1199,7 +1222,9 @@ describe('CardController — 401 retry and forced logout', () => {
 
     const first = controller.getCashbackWallet();
     const second = controller.getCashbackWallet();
-    await flushPromises();
+    await waitForCondition(
+      () => provider.refreshTokens.mock.calls.length === 1,
+    );
     resolveRefresh(freshTokenSet);
 
     await expect(first).resolves.toStrictEqual({ balance: '1' });
@@ -1249,9 +1274,11 @@ describe('CardController — 401 retry and forced logout', () => {
     });
 
     await controller.fetchCardHomeData();
-    await flushPromises(10);
+    await waitForCondition(() => controller.state.isAuthenticated === false);
+    await waitForCondition(
+      () => (provider.getOnChainAssets as jest.Mock).mock.calls.length === 1,
+    );
 
-    expect(controller.state.isAuthenticated).toBe(false);
     expect(provider.getOnChainAssets).toHaveBeenCalledWith('0xabc');
     expect(controller.state.cardHomeData).toStrictEqual(
       onChainData as unknown as Record<string, Json>,
@@ -1263,6 +1290,10 @@ describe('CardController — 401 retry and forced logout', () => {
 describe('CardController — event subscriptions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('subscribes to KeyringController:unlock on construction', () => {
@@ -1581,6 +1612,10 @@ describe('CardController — fetchCardHomeData', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('sets cardHomeDataStatus to success and populates cardHomeData on happy path', async () => {
     const provider = buildMockProvider();
     mockTokenStore.get.mockResolvedValue(mockTokenSet);
@@ -1680,6 +1715,10 @@ describe('CardController — fetchCardHomeData', () => {
 describe('CardController — freezeCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('applies optimistic frozen status before API call resolves', async () => {
@@ -1847,6 +1886,10 @@ describe('CardController — unfreezeCard', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('applies optimistic active status before API call resolves', async () => {
     const provider = buildMockProvider();
     mockTokenStore.get.mockResolvedValue(mockTokenSet);
@@ -1994,6 +2037,10 @@ describe('CardController — updateAssetPriority', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   const assetA: CardFundingAsset = {
     ...mockAsset,
     symbol: 'USDC',
@@ -2137,6 +2184,7 @@ describe('CardController — account switch (#handleAccountSwitch)', () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     jest.useRealTimers();
   });
 
@@ -2344,6 +2392,10 @@ describe('CardController — getCapabilities', () => {
 });
 
 describe('CardController — data pass-throughs', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   function buildAuthenticatedController(provider: jest.Mocked<ICardProvider>) {
     mockTokenStore.get.mockResolvedValue(mockTokenSet);
     provider.validateTokens.mockReturnValue('valid');
