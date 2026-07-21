@@ -87,6 +87,11 @@ export enum TraceName {
   OnboardingExistingSrpImport = 'Onboarding - Existing SRP Import',
   OnboardingJourneyOverall = 'Onboarding - Overall Journey',
   OnboardingSocialLoginAttempt = 'Onboarding - Social Login Attempt',
+  /** Social provider CTA tap -> OAuth provider launch (TO-917). */
+  OnboardingSocialLoginPreProvider = 'Onboarding - Social Login Pre Provider',
+  OnboardingSocialLoginNetworkCheck = 'Onboarding - Social Login Network Check',
+  OnboardingSocialLoginMetricsEnable = 'Onboarding - Social Login Metrics Enable',
+  OnboardingSocialLoginSentrySetup = 'Onboarding - Social Login Sentry Setup',
   OnboardingPasswordSetupAttempt = 'Onboarding - Password Setup Attempt',
   OnboardingPasswordLoginAttempt = 'Onboarding - Password Login Attempt',
   OnboardingResetPassword = 'Onboarding - Reset Password',

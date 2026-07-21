@@ -95,6 +95,12 @@ import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { setupSentry } from '../../../util/sentry/utils';
+import {
+  emitSocialLoginPreProviderTrace,
+  endSocialLoginPreProviderTrace,
+  measureSocialLoginPreProviderStep,
+  startSocialLoginPreProviderTimings,
+} from './socialLoginPreProviderTrace';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 import FastOnboarding from './FastOnboarding';
@@ -763,9 +769,18 @@ const Onboarding = () => {
 
   const onPressContinueWithSocialLogin = useCallback(
     async (createWallet: boolean, provider: AuthConnection): Promise<void> => {
+      // TO-917: capture timestamps around the pre-provider awaits; spans are
+      // emitted after setupSentry() so they survive discardBufferedTraces().
+      const preProviderTimings = startSocialLoginPreProviderTimings();
+      let iosGoogleWarningShown = false;
+
       // check for internet connection
       try {
-        const netState = await netInfoFetch();
+        const netState = await measureSocialLoginPreProviderStep(
+          preProviderTimings,
+          'networkCheck',
+          () => netInfoFetch(),
+        );
         if (!netState.isConnected || netState.isInternetReachable === false) {
           navigation.dispatch(
             StackActions.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -794,9 +809,25 @@ const Onboarding = () => {
       navigation.navigate('Onboarding');
 
       // Enable metrics for OAuth users
-      await metrics.enable(true);
+      await measureSocialLoginPreProviderStep(
+        preProviderTimings,
+        'metricsEnable',
+        () => metrics.enable(true),
+      );
       discardBufferedTraces();
-      await setupSentry();
+      await measureSocialLoginPreProviderStep(
+        preProviderTimings,
+        'sentrySetup',
+        () => setupSentry(),
+      );
+
+      // Sentry and consent are ready: emit the backdated pre-provider spans.
+      // The parent stays open until the OAuth provider launch (or an early
+      // exit) and is closed via endSocialLoginPreProviderTrace.
+      emitSocialLoginPreProviderTrace(preProviderTimings, {
+        provider,
+        flow: createWallet ? 'create' : 'rehydrate',
+      });
 
       const accountType = getSocialAccountType(provider, !createWallet);
       metrics.trackEvent(
@@ -854,9 +885,14 @@ const Onboarding = () => {
                 OAuthErrorType.UnsupportedPlatform,
               ),
             });
+            endSocialLoginPreProviderTrace({
+              reachedOAuth: false,
+              reason: 'ios_google_login_unsupported',
+            });
             return;
           }
 
+          iosGoogleWarningShown = true;
           await presentIosGoogleLoginVersionWarningSheet(navigation);
           track(MetaMetricsEvents.WALLET_GOOGLE_IOS_WARNING_VIEWED, {
             account_type: accountType,
@@ -875,6 +911,10 @@ const Onboarding = () => {
             provider,
             createWallet,
           );
+          endSocialLoginPreProviderTrace({
+            reachedOAuth: false,
+            reason: 'telegram_login_unavailable',
+          });
           return;
         }
 
@@ -894,6 +934,12 @@ const Onboarding = () => {
             op: TraceOperation.OnboardingUserJourney,
             tags: { ...getTraceTags(store.getState()), provider },
             parentContext: onboardingTraceCtx.current,
+          });
+
+          // OAuth provider launch: close the tap-to-launch parent span.
+          endSocialLoginPreProviderTrace({
+            reachedOAuth: true,
+            iosGoogleWarningShown,
           });
 
           try {
@@ -921,6 +967,10 @@ const Onboarding = () => {
           }
         } catch (error) {
           unsetLoading();
+          endSocialLoginPreProviderTrace({
+            reachedOAuth: false,
+            reason: 'login_handler_error',
+          });
           if (!(error instanceof OAuthError)) {
             trackSocialLoginFailed({
               authConnection: provider,
@@ -932,6 +982,15 @@ const Onboarding = () => {
           await handleLoginError(error as Error, provider, createWallet);
         }
       };
+      if (state.existingUser) {
+        // The existing-user alert blocks on user interaction; close the span
+        // here so its duration only covers automated work. The end call
+        // inside `action` becomes a no-op if the user proceeds.
+        endSocialLoginPreProviderTrace({
+          reachedOAuth: false,
+          reason: 'existing_user_alert',
+        });
+      }
       handleExistingUser(action);
     },
     [
@@ -946,6 +1005,7 @@ const Onboarding = () => {
       handleExistingUser,
       isGoogleLoginIosUnsupportedBlockingEnabled,
       isTelegramLoginEnabled,
+      state.existingUser,
     ],
   );
 

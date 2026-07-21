@@ -79,7 +79,7 @@ import { AccountType } from '../../../constants/onboarding';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ATTRIBUTION_DEFAULT_TTL_MS } from '../../../core/redux/slices/attribution';
-import { endTrace, TraceName } from '../../../util/trace';
+import { endTrace, trace, TraceName } from '../../../util/trace';
 
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');
@@ -976,6 +976,68 @@ describe('Onboarding', () => {
       );
     });
 
+    it('emits backdated pre-provider trace spans and closes the parent at OAuth provider launch', async () => {
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      expect(trace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingSocialLoginPreProvider,
+          startTime: expect.any(Number),
+          tags: expect.objectContaining({ provider: 'google', flow: 'create' }),
+        }),
+      );
+      const childTraceNames = [
+        TraceName.OnboardingSocialLoginNetworkCheck,
+        TraceName.OnboardingSocialLoginMetricsEnable,
+        TraceName.OnboardingSocialLoginSentrySetup,
+      ];
+      childTraceNames.forEach((name) => {
+        expect(trace).toHaveBeenCalledWith(
+          expect.objectContaining({ name, startTime: expect.any(Number) }),
+        );
+        expect(endTrace).toHaveBeenCalledWith(
+          expect.objectContaining({ name, timestamp: expect.any(Number) }),
+        );
+      });
+      expect(endTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingSocialLoginPreProvider,
+          data: expect.objectContaining({ reached_oauth: true }),
+        }),
+      );
+    });
+
     it('calls Google OAuth login for create wallet flow on Android and navigates directly to ChoosePassword', async () => {
       Platform.OS = 'android'; // Set platform to Android
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
@@ -1791,6 +1853,15 @@ describe('Onboarding', () => {
             is_rehydration: 'false',
             failure_type: 'error',
             error_category: 'provider_login',
+          }),
+        }),
+      );
+      expect(endTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingSocialLoginPreProvider,
+          data: expect.objectContaining({
+            reached_oauth: false,
+            reason: 'ios_google_login_unsupported',
           }),
         }),
       );
