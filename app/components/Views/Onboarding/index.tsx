@@ -1248,9 +1248,6 @@ const Onboarding = () => {
 
     return () => {
       mounted.current = false;
-      if (notificationTimer.current) {
-        clearTimeout(notificationTimer.current);
-      }
       // Journey-level cleanup: if a social-login attempt is still in flight when the screen
       // unmounts, close it and its OAuth child spans — their finally blocks may never run if the
       // underlying promises never settle after the app was backgrounded for OAuth.
