@@ -25,17 +25,16 @@ type DataServiceGranularCacheUpdatedHandler = (
 ) => void;
 
 /**
- * Wraps the root messenger to the messenger adapter shape that the
+ * Wraps the root messenger to the messenger adapter shape that
  * `createUIQueryClient` expects.
  *
- * Although `createUIQueryClient` takes a messenger, not just a messenger
- * adapter, we cannot pass `Engine.controllerMessenger` directly to it.
- * Despite its appearance, this is not a property; it is secretly a method
- * which expects `Engine` to have been initialized first before the root
- * messenger can be accessed. So we need to lazy-call
- * `Engine.controllerMessenger`.
+ * Although `createUIQueryClient` *can* take a messenger, we cannot pass
+ * `Engine.controllerMessenger` directly to it. Despite its appearance,
+ * `Engine.controllerMessenger` is not a property; it is secretly a method which
+ * expects `Engine` to have been completely initialized first. So we need to
+ * wrap and thus lazily access the root messenger.
  */
-export class MessengerAdapter {
+export class RootMessengerAdapter {
   call(
     actionType: Extract<GlobalActions['type'], `${DataServiceName}:${string}`>,
     ...params: ExtractActionParameters<
@@ -68,19 +67,23 @@ export class ReactQueryService {
   #netInfoUnsubscribe?: () => void;
 
   constructor() {
-    const messengerAdapter = new MessengerAdapter();
-    this.queryClient = createUIQueryClient(DATA_SERVICES, messengerAdapter, {
-      defaultOptions: {
-        queries: {
-          // Mobile users often trigger re-renders or navigate back/forth frequently.
-          staleTime: 1000 * 60 * 5, // 5 minutes
-          // On mobile, failures are often due to network drops.
-          retry: 2,
-          // Keep data in memory for longer.
-          cacheTime: 1000 * 60 * 60 * 24, // 24 hours
+    const rootMessengerAdapter = new RootMessengerAdapter();
+    this.queryClient = createUIQueryClient(
+      DATA_SERVICES,
+      rootMessengerAdapter,
+      {
+        defaultOptions: {
+          queries: {
+            // Mobile users often trigger re-renders or navigate back/forth frequently.
+            staleTime: 1000 * 60 * 5, // 5 minutes
+            // On mobile, failures are often due to network drops.
+            retry: 2,
+            // Keep data in memory for longer.
+            cacheTime: 1000 * 60 * 60 * 24, // 24 hours
+          },
         },
       },
-    });
+    );
 
     this.#subscribeToAppFocusState();
     this.#subscribeToOnlineState();

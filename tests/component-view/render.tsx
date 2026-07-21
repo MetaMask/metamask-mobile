@@ -11,13 +11,13 @@ import renderWithProvider, {
 } from '../../app/util/test/renderWithProvider';
 import Engine from '../../app/core/Engine';
 import { DATA_SERVICES } from '../../app/constants/data-services';
-import { MessengerAdapter } from '../../app/core/ReactQueryService/ReactQueryService';
+import { RootMessengerAdapter } from '../../app/core/ReactQueryService/ReactQueryService';
 
 notifyManager.setBatchNotifyFunction((callback) => callback());
 
 function createQueryClient() {
-  const messengerAdapter = new MessengerAdapter();
-  return createUIQueryClient(DATA_SERVICES, messengerAdapter, {
+  const rootMessengerAdapter = new RootMessengerAdapter();
+  return createUIQueryClient(DATA_SERVICES, rootMessengerAdapter, {
     defaultOptions: { queries: { retry: false } },
   });
 }
