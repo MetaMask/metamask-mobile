@@ -24,7 +24,7 @@ const SIGNATURE_LIST = [
   {
     specName: 'Personal Sign',
     testDappBtn: TestDApp.tapPersonalSignButton.bind(TestDApp),
-    requestType: RequestTypes.PersonalSignRequest,
+    requestType: () => RequestTypes.PersonalSignRequest,
     additionAssertions: async () => {
       await Assertions.expectElementToBeVisible(RowComponents.NetworkAndOrigin);
     },
@@ -32,7 +32,7 @@ const SIGNATURE_LIST = [
   {
     specName: 'SIWE Sign',
     testDappBtn: TestDApp.tapEthereumSignButton.bind(TestDApp),
-    requestType: RequestTypes.PersonalSignRequest,
+    requestType: () => RequestTypes.PersonalSignRequest,
     additionAssertions: async () => {
       await Assertions.expectElementToBeVisible(
         RowComponents.SiweSigningAccountInfo,
@@ -103,12 +103,12 @@ appiumTest.describe(SmokeConfirmations('Signature Requests'), () => {
 
             // cancel request
             await testDappBtn();
-            await Assertions.expectElementToBeVisible(requestType);
+            await Assertions.expectElementToBeVisible(requestType());
             await FooterActions.tapCancelButton();
-            await Assertions.expectElementToNotBeVisible(requestType);
+            await Assertions.expectElementToNotBeVisible(requestType());
 
             await testDappBtn();
-            await Assertions.expectElementToBeVisible(requestType);
+            await Assertions.expectElementToBeVisible(requestType());
 
             // check different sections are visible
             await Assertions.expectElementToBeVisible(
@@ -123,7 +123,7 @@ appiumTest.describe(SmokeConfirmations('Signature Requests'), () => {
 
             // confirm request
             await FooterActions.tapConfirmButton();
-            await Assertions.expectElementToNotBeVisible(requestType);
+            await Assertions.expectElementToNotBeVisible(requestType());
           },
         );
       },

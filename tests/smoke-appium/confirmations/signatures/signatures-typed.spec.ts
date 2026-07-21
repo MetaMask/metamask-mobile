@@ -24,7 +24,7 @@ const SIGNATURE_LIST = [
   {
     specName: 'Typed V1 Sign',
     testDappBtn: TestDApp.tapTypedSignButton.bind(TestDApp),
-    requestType: RequestTypes.TypedSignRequest,
+    requestType: () => RequestTypes.TypedSignRequest,
     additionAssertions: async () => {
       await Assertions.expectElementToBeVisible(RowComponents.NetworkAndOrigin);
     },
@@ -32,7 +32,7 @@ const SIGNATURE_LIST = [
   {
     specName: 'Typed V3 Sign',
     testDappBtn: TestDApp.tapTypedV3SignButton.bind(TestDApp),
-    requestType: RequestTypes.TypedSignRequest,
+    requestType: () => RequestTypes.TypedSignRequest,
     additionAssertions: async () => {
       await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
     },
@@ -40,7 +40,7 @@ const SIGNATURE_LIST = [
   {
     specName: 'Typed V4 Sign',
     testDappBtn: TestDApp.tapTypedV4SignButton.bind(TestDApp),
-    requestType: RequestTypes.TypedSignRequest,
+    requestType: () => RequestTypes.TypedSignRequest,
     additionAssertions: async () => {
       await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
     },
@@ -109,12 +109,12 @@ appiumTest.describe(SmokeConfirmations('Typed Signature Requests'), () => {
 
             // cancel request
             await testDappBtn();
-            await Assertions.expectElementToBeVisible(requestType);
+            await Assertions.expectElementToBeVisible(requestType());
             await FooterActions.tapCancelButton();
-            await Assertions.expectElementToNotBeVisible(requestType);
+            await Assertions.expectElementToNotBeVisible(requestType());
 
             await testDappBtn();
-            await Assertions.expectElementToBeVisible(requestType);
+            await Assertions.expectElementToBeVisible(requestType());
 
             // check different sections are visible
             await Assertions.expectElementToBeVisible(
@@ -129,7 +129,7 @@ appiumTest.describe(SmokeConfirmations('Typed Signature Requests'), () => {
 
             // confirm request
             await FooterActions.tapConfirmButton();
-            await Assertions.expectElementToNotBeVisible(requestType);
+            await Assertions.expectElementToNotBeVisible(requestType());
           },
         );
       },
