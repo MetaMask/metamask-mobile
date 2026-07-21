@@ -201,7 +201,7 @@ describe('useFiatPaymentHighlightedActions', () => {
       position: 'outside_of_asset_list',
       icon: 'card-icon',
       paymentType: 'debit-credit-card',
-      name: 'Credit Card',
+      name: 'Debit',
       isSelected: false,
     });
   });
