@@ -13,14 +13,18 @@ const styles = StyleSheet.create({
  * Pro-mode chart area placeholder.
  *
  * Scaffold only: empty container sized to the Figma chart height. Real chart
- * content is added by TAT-3556.
+ * content is added by the chart capability.
  */
 const PerpsProChartPanel = () => (
   <Box
     testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
     twClassName="px-4 py-2"
   >
-    <Box twClassName="rounded-xl bg-muted" style={styles.chart} />
+    <Box
+      testID={PerpsProMarketViewSelectorsIDs.CHART_CONTENT}
+      twClassName="rounded-xl bg-muted"
+      style={styles.chart}
+    />
   </Box>
 );
 

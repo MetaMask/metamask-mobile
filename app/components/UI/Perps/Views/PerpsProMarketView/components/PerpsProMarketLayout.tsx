@@ -2,7 +2,10 @@ import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import React, { type ReactNode } from 'react';
 import { StyleSheet } from 'react-native';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
-import type { PerpsProLayoutConfig } from '../PerpsProMarketView.types';
+import {
+  resolvePerpsProLayoutConfig,
+  type PerpsProLayoutConfig,
+} from '../PerpsProMarketView.types';
 
 interface PerpsProMarketLayoutProps {
   orderForm: ReactNode;
@@ -10,15 +13,22 @@ interface PerpsProMarketLayoutProps {
   config: PerpsProLayoutConfig;
 }
 
+const PRO_TRADING_AREA_MIN_HEIGHT = 682;
+const PRO_DIVIDER_COLUMN_WIDTH = 24;
+const PRO_ORDER_BOOK_COLUMN_WIDTH = 132;
+
 const styles = StyleSheet.create({
+  container: {
+    minHeight: PRO_TRADING_AREA_MIN_HEIGHT,
+  },
   dividerColumn: {
-    width: 24,
+    width: PRO_DIVIDER_COLUMN_WIDTH,
   },
   dividerLine: {
     width: 1,
   },
   rightColumn: {
-    width: 132,
+    width: PRO_ORDER_BOOK_COLUMN_WIDTH,
   },
 });
 
@@ -36,7 +46,8 @@ const PerpsProMarketLayout = ({
   orderBook,
   config,
 }: PerpsProMarketLayoutProps) => {
-  const orderFormIsLeft = config.orderFormPosition === 'left';
+  const resolvedConfig = resolvePerpsProLayoutConfig(config);
+  const orderFormIsLeft = resolvedConfig.orderFormPosition === 'left';
   const leftPanel = orderFormIsLeft ? orderForm : orderBook;
   const rightPanel = orderFormIsLeft ? orderBook : orderForm;
 
@@ -45,12 +56,27 @@ const PerpsProMarketLayout = ({
       testID={PerpsProMarketViewSelectorsIDs.LAYOUT}
       flexDirection={BoxFlexDirection.Row}
       twClassName="px-4"
+      style={styles.container}
     >
-      <Box twClassName="flex-1">{leftPanel}</Box>
-      <Box twClassName="items-center" style={styles.dividerColumn}>
+      <Box
+        testID={PerpsProMarketViewSelectorsIDs.LEFT_COLUMN}
+        twClassName="flex-1"
+      >
+        {leftPanel}
+      </Box>
+      <Box
+        testID={PerpsProMarketViewSelectorsIDs.VERTICAL_DIVIDER}
+        twClassName="items-center"
+        style={styles.dividerColumn}
+      >
         <Box twClassName="flex-1 bg-border-muted" style={styles.dividerLine} />
       </Box>
-      <Box style={styles.rightColumn}>{rightPanel}</Box>
+      <Box
+        testID={PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN}
+        style={styles.rightColumn}
+      >
+        {rightPanel}
+      </Box>
     </Box>
   );
 };

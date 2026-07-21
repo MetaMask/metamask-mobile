@@ -33,8 +33,10 @@ describe('PerpsMarketDetailsRouter', () => {
 
     const { getByTestId, queryByTestId } = render(<PerpsMarketDetailsRouter />);
 
-    expect(getByTestId('mock-pro-market-view')).toBeTruthy();
-    expect(queryByTestId('mock-lite-market-details-view')).toBeNull();
+    expect(getByTestId('mock-pro-market-view')).toBeOnTheScreen();
+    expect(
+      queryByTestId('mock-lite-market-details-view'),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders PerpsMarketDetailsView when Pro mode is disabled', () => {
@@ -42,7 +44,7 @@ describe('PerpsMarketDetailsRouter', () => {
 
     const { getByTestId, queryByTestId } = render(<PerpsMarketDetailsRouter />);
 
-    expect(getByTestId('mock-lite-market-details-view')).toBeTruthy();
-    expect(queryByTestId('mock-pro-market-view')).toBeNull();
+    expect(getByTestId('mock-lite-market-details-view')).toBeOnTheScreen();
+    expect(queryByTestId('mock-pro-market-view')).not.toBeOnTheScreen();
   });
 });

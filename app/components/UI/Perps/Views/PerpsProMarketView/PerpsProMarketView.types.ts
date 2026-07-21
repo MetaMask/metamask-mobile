@@ -24,3 +24,20 @@ export const DEFAULT_PRO_LAYOUT_CONFIG: PerpsProLayoutConfig = {
   orderFormPosition: 'left',
   orderBookPosition: 'right',
 };
+
+/**
+ * Resolves persisted panel positions into a renderable two-column layout.
+ *
+ * Both Core fields are retained for preference parity. During rehydration or
+ * migration they may temporarily conflict; in that case the Figma default is
+ * used so both panels remain visible.
+ *
+ * @param config - Persisted order-form and order-book positions.
+ * @returns Opposing positions safe to render.
+ */
+export const resolvePerpsProLayoutConfig = (
+  config: PerpsProLayoutConfig,
+): PerpsProLayoutConfig =>
+  config.orderFormPosition !== config.orderBookPosition
+    ? config
+    : DEFAULT_PRO_LAYOUT_CONFIG;

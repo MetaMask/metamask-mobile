@@ -1,10 +1,11 @@
 import React from 'react';
+import { within } from '@testing-library/react-native';
 import PerpsProMarketView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 
-const mockRouteParams: { market?: { symbol: string } } = {
+const mockRouteParams = {
   market: { symbol: 'BTC' },
 };
 
@@ -22,38 +23,92 @@ const renderView = () =>
   });
 
 describe('PerpsProMarketView', () => {
-  it('renders the container and scroll view', () => {
-    const { getByTestId } = renderView();
-
-    expect(getByTestId(PerpsProMarketViewSelectorsIDs.CONTAINER)).toBeTruthy();
-    expect(
-      getByTestId(PerpsProMarketViewSelectorsIDs.SCROLL_VIEW),
-    ).toBeTruthy();
+  beforeEach(() => {
+    mockRouteParams.market.symbol = 'BTC';
   });
 
-  it('renders every layout panel placeholder', () => {
+  it('renders the screen inside every safe-area edge', () => {
     const { getByTestId } = renderView();
 
-    expect(getByTestId(PerpsProMarketViewSelectorsIDs.HEADER)).toBeTruthy();
+    expect(getByTestId(PerpsProMarketViewSelectorsIDs.CONTAINER)).toHaveProp(
+      'edges',
+      ['top', 'bottom', 'left', 'right'],
+    );
+  });
+
+  it('renders every top-level scaffold slot', () => {
+    const { getByTestId } = renderView();
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.CHART_PANEL),
-    ).toBeTruthy();
-    expect(getByTestId(PerpsProMarketViewSelectorsIDs.STATS_BAR)).toBeTruthy();
-    expect(getByTestId(PerpsProMarketViewSelectorsIDs.LAYOUT)).toBeTruthy();
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.STATS_BAR),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.LAYOUT),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the header fixed while the market summary scrolls', () => {
+    const { getByTestId } = renderView();
+
+    const scrollView = getByTestId(PerpsProMarketViewSelectorsIDs.SCROLL_VIEW);
+
+    expect(
+      within(scrollView).queryByTestId(PerpsProMarketViewSelectorsIDs.HEADER),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(scrollView).getByTestId(
+        PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY,
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('shows the asset symbol from route params in the header', () => {
-    const { getByText } = renderView();
+    const { getByTestId } = renderView();
 
-    expect(getByText('BTC')).toBeTruthy();
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_SYMBOL),
+    ).toHaveTextContent(/^BTC$/);
+  });
+
+  it('removes the HIP-3 dex prefix from the header symbol', () => {
+    mockRouteParams.market.symbol = 'xyz:TSLA';
+
+    const { getByTestId } = renderView();
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_SYMBOL),
+    ).toHaveTextContent(/^TSLA$/);
+  });
+
+  it('uses the Figma shell heights', () => {
+    const { getByTestId } = renderView();
+
+    expect(getByTestId(PerpsProMarketViewSelectorsIDs.HEADER)).toHaveStyle({
+      height: 64,
+    });
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY),
+    ).toHaveStyle({ height: 76 });
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.CHART_CONTENT),
+    ).toHaveStyle({ height: 344 });
   });
 });

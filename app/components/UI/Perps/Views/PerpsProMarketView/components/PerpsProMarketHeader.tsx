@@ -7,33 +7,41 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 
 interface PerpsProMarketHeaderProps {
-  symbol?: string;
+  symbol: string;
 }
 
+const styles = StyleSheet.create({
+  container: {
+    height: 64,
+  },
+});
+
 /**
- * Pro-mode market header (nav row + price/24h row).
+ * Fixed Pro-mode market header.
  *
- * Scaffold only: renders the asset symbol for orientation. The Pro tag,
- * compare/star/settings icons and price/change values are placeholder
- * containers, filled in by later Pro-mode tickets.
+ * Scaffold only: renders the normalized asset symbol for orientation. Header
+ * actions remain placeholders until their owning capability is implemented.
  */
 const PerpsProMarketHeader = ({ symbol }: PerpsProMarketHeaderProps) => (
   <Box
     testID={PerpsProMarketViewSelectorsIDs.HEADER}
-    twClassName="px-4 pt-2 pb-2 gap-2"
+    twClassName="px-4"
+    style={styles.container}
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    justifyContent={BoxJustifyContent.Between}
   >
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
+    <Text
+      testID={PerpsProMarketViewSelectorsIDs.HEADER_SYMBOL}
+      variant={TextVariant.HeadingMd}
     >
-      <Text variant={TextVariant.HeadingMd}>{symbol ?? ''}</Text>
-      <Box twClassName="h-8 w-28 rounded-lg bg-muted" />
-    </Box>
-    <Box twClassName="h-6 w-40 rounded-lg bg-muted" />
+      {symbol}
+    </Text>
+    <Box twClassName="h-8 w-28 rounded-lg bg-muted" />
   </Box>
 );
 
