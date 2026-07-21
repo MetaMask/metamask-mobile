@@ -64,30 +64,35 @@ class AndroidScreenHelpers {
           }
 
           for (const xpath of CHOOSER_METAMASK_XPATHS) {
+            let option;
             try {
-              const option = await PlaywrightMatchers.getElementByXPath(xpath);
-              if (await option.isVisible()) {
-                await PlaywrightGestures.waitAndTap(option, {
-                  timeout: 3_000,
-                  delay: 200,
-                });
-                await this.tapJustOnceIfPresent();
-                // After chooser, lock screen or connect sheet may appear.
-                const sheetDeadline = Date.now() + 20_000;
-                while (Date.now() < sheetDeadline) {
-                  await unlockIfLockScreenVisible();
-                  if (await this.isConnectSheetVisible()) {
-                    return;
-                  }
-                  await sleep(POLL_MS);
-                }
-                throw new Error(
-                  'Tapped MetaMask in Android deeplink chooser, but connect sheet did not appear within 20s',
-                );
+              option = await PlaywrightMatchers.getElementByXPath(xpath);
+              if (!(await option.isVisible())) {
+                continue;
               }
             } catch {
-              // Try next selector
+              // Selector not present; try next XPath.
+              continue;
             }
+
+            await PlaywrightGestures.waitAndTap(option, {
+              timeout: 3_000,
+              delay: 200,
+            });
+            await this.tapJustOnceIfPresent();
+            // After chooser, lock screen or connect sheet may appear.
+            // Do not catch here — failures after tap must surface clearly.
+            const sheetDeadline = Date.now() + 20_000;
+            while (Date.now() < sheetDeadline) {
+              await unlockIfLockScreenVisible();
+              if (await this.isConnectSheetVisible()) {
+                return;
+              }
+              await sleep(POLL_MS);
+            }
+            throw new Error(
+              'Tapped MetaMask in Android deeplink chooser, but connect sheet did not appear within 20s',
+            );
           }
 
           await sleep(POLL_MS);
