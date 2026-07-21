@@ -188,11 +188,13 @@
       "previewVersion": "77.6.0-preview-8abc30aca"
     },
     "@metamask/bridge-status-controller": {
-      "type": "breaking",
+      "type": "non-breaking",
       "previewVersion": "74.3.0-preview-8abc30aca"
     }
   },
   "resolutions": {
+    "@metamask/bridge-controller": "npm:@metamask-previews/bridge-controller@77.6.0-preview-8abc30aca",
+    "@metamask/bridge-status-controller": "npm:@metamask-previews/bridge-status-controller@74.3.0-preview-8abc30aca",
     "@metamask/network-controller": "34.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
