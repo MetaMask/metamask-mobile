@@ -35,6 +35,7 @@ const mockPanGestureHandlers: {
   onStart?: () => void;
   onUpdate?: (event: { translationY: number }) => void;
   onEnd?: (event: { translationY: number; velocityY: number }) => void;
+  onFinalize?: () => void;
 } = {};
 
 jest.mock('react-native-gesture-handler', () => ({
@@ -59,6 +60,10 @@ jest.mock('react-native-gesture-handler', () => ({
         handler: (event: { translationY: number; velocityY: number }) => void,
       ) {
         mockPanGestureHandlers.onEnd = handler;
+        return this;
+      },
+      onFinalize(handler: () => void) {
+        mockPanGestureHandlers.onFinalize = handler;
         return this;
       },
     }),
@@ -90,6 +95,7 @@ const swipeNotification = async ({
     mockPanGestureHandlers.onStart?.();
     mockPanGestureHandlers.onUpdate?.({ translationY });
     mockPanGestureHandlers.onEnd?.({ translationY, velocityY });
+    mockPanGestureHandlers.onFinalize?.();
     jest.runAllTimers();
   });
 };
@@ -99,6 +105,7 @@ describe('BaseNotification', () => {
     mockPanGestureHandlers.onStart = undefined;
     mockPanGestureHandlers.onUpdate = undefined;
     mockPanGestureHandlers.onEnd = undefined;
+    mockPanGestureHandlers.onFinalize = undefined;
   });
 
   it.each(allStatuses)('renders for status %s', (status) => {
@@ -382,6 +389,44 @@ describe('BaseNotification', () => {
         mockPanGestureHandlers.onStart?.();
         mockPanGestureHandlers.onUpdate?.({ translationY: -10 });
         mockPanGestureHandlers.onEnd?.({ translationY: -10, velocityY: -100 });
+        mockPanGestureHandlers.onFinalize?.();
+      });
+
+      expect(onDismissComplete).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(onDismissComplete).toHaveBeenCalledTimes(1);
+      jest.useRealTimers();
+    });
+
+    it('resumes auto-dismiss when pan fails after activation', async () => {
+      jest.useFakeTimers();
+      const onDismissComplete = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <BaseNotification
+          status="success"
+          data={defaultData}
+          dismissDuration={1000}
+          onDismissComplete={onDismissComplete}
+        />,
+      );
+
+      triggerEnterLayout(getByTestId);
+
+      await act(async () => {
+        // Finish entrance spring and start the auto-dismiss delay.
+        jest.advanceTimersByTime(500);
+      });
+
+      await act(async () => {
+        // Activate the pan (cancels auto-dismiss), then fail without onEnd
+        // (e.g. horizontal travel past failOffsetX).
+        mockPanGestureHandlers.onStart?.();
+        mockPanGestureHandlers.onUpdate?.({ translationY: -10 });
+        mockPanGestureHandlers.onFinalize?.();
       });
 
       expect(onDismissComplete).not.toHaveBeenCalled();
