@@ -135,12 +135,6 @@ const styleSheet = (params: { theme: Theme }) => {
     animatedListContainer: {
       flex: 1,
     },
-    // Compensates the FlashList content container's horizontal padding (16)
-    // for the Recently Viewed rail header, which carries its own horizontal
-    // padding and renders full-bleed.
-    fullBleedListHeader: {
-      marginHorizontal: -16,
-    },
     watchlistScrollContainer: {
       flex: 1,
     },

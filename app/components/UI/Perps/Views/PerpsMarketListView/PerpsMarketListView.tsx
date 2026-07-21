@@ -784,8 +784,9 @@ const PerpsMarketListView = ({
     }
 
     // The Recently Viewed rail is simply the FlashList header, so it scrolls
-    // away with the rows. Rendered full-bleed to cancel the list's horizontal
-    // padding (the rail manages its own insets). The count/sort bar is fixed
+    // away with the rows. The list has no horizontal content padding, so the
+    // rail's own insets (see PerpsRecentlyViewedRail.styles) already align it
+    // with the search field and market rows. The count/sort bar is fixed
     // chrome above the list (rendered outside this function).
     //
     // The header is ALWAYS mounted (never toggled to null): when the rail has
@@ -794,18 +795,16 @@ const PerpsMarketListView = ({
     // toggling here would leave the rail permanently hidden after the first
     // empty category (e.g. Stocks) — instead we keep the slot and vary content.
     const listHeader = (
-      <View style={styles.fullBleedListHeader}>
-        <PerpsRecentlyViewedRail
-          markets={
-            showRecentlyViewedRail
-              ? recentlyViewedMarketObjects
-              : EMPTY_RECENTLY_VIEWED
-          }
-          onMarketPress={(market) =>
-            handleMarketPress(market, RECENTLY_VIEWED_SOURCE_SECTION)
-          }
-        />
-      </View>
+      <PerpsRecentlyViewedRail
+        markets={
+          showRecentlyViewedRail
+            ? recentlyViewedMarketObjects
+            : EMPTY_RECENTLY_VIEWED
+        }
+        onMarketPress={(market) =>
+          handleMarketPress(market, RECENTLY_VIEWED_SOURCE_SECTION)
+        }
+      />
     );
 
     return (
