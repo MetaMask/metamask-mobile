@@ -679,7 +679,7 @@ describe('usePerpsToasts', () => {
         ]);
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
-          iconName: IconName.CheckBold,
+          iconName: IconName.Confirmation,
           hapticsType: NotificationMoment.Success,
         });
       });
@@ -699,7 +699,7 @@ describe('usePerpsToasts', () => {
         ]);
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
-          iconName: IconName.CheckBold,
+          iconName: IconName.Confirmation,
           hapticsType: NotificationMoment.Success,
         });
       });
@@ -951,7 +951,7 @@ describe('usePerpsToasts', () => {
         // style rather than an in-progress spinner that never resolves.
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
-          iconName: IconName.CheckBold,
+          iconName: IconName.Confirmation,
           hapticsType: NotificationMoment.Success,
         });
         expect(config.startAccessory).toBeUndefined();
