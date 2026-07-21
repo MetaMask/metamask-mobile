@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react-native';
 import {
-  Transaction,
   TransactionStatus,
   TransactionType,
+  type Transaction,
 } from '@metamask/keyring-api';
 import { CustomTransactionTypeLabel } from '../../../util/activity-adapters/trustline';
 import { useMultichainTransactionDisplay } from './useMultichainTransactionDisplay';
