@@ -9,7 +9,7 @@ import type { QuickBuyAnalyticsContext } from '../types';
 export function buildQuickBuySharedAnalyticsProperties(
   analyticsContext?: Pick<
     QuickBuyAnalyticsContext,
-    'source' | 'originalEntryPoint' | 'marketCap' | 'traderTradeType'
+    'source' | 'originalEntryPoint' | 'marketCap'
   >,
 ): Record<string, string | number | boolean> {
   const props: Record<string, string | number | boolean> = {};
@@ -23,10 +23,6 @@ export function buildQuickBuySharedAnalyticsProperties(
   }
   if (typeof analyticsContext?.marketCap === 'number') {
     props[QuickBuyEventProperties.MARKET_CAP] = analyticsContext.marketCap;
-  }
-  if (analyticsContext?.traderTradeType) {
-    props[QuickBuyEventProperties.TRADER_TRADE_TYPE] =
-      analyticsContext.traderTradeType;
   }
 
   return props;
