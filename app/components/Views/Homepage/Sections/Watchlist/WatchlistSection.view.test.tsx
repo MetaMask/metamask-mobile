@@ -27,7 +27,8 @@ import ToastService from '../../../../../core/ToastService/ToastService';
 
 const NEWEST_FIRST_ASSET_IDS = [...mockWatchlistAssetIds].reverse();
 
-const getRowTestId = (assetId: string) => getTrendingTokenRowItemTestId(assetId);
+const getRowTestId = (assetId: string) =>
+  getTrendingTokenRowItemTestId(assetId);
 
 beforeEach(() => {
   setupWatchlistStorageMock();
@@ -63,7 +64,9 @@ describeForPlatforms('WatchlistSection', () => {
         ).toBeOnTheScreen();
       }
 
-      const pctChange = Number(tokenMeta?.marketData?.pricePercentChange1d ?? 0);
+      const pctChange = Number(
+        tokenMeta?.marketData?.pricePercentChange1d ?? 0,
+      );
       const pctPrefix = pctChange > 0 ? '+' : pctChange < 0 ? '-' : '';
       expect(
         scope.getByText(`${pctPrefix}${Math.abs(pctChange).toFixed(2)}%`),

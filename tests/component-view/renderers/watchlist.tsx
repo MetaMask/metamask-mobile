@@ -28,13 +28,13 @@ function TokenDetailsWithProviders() {
 
 const ASSET_ROUTE = {
   name: 'Asset',
-  Component: TokenDetailsWithProviders as unknown as React.ComponentType<object>,
+  Component:
+    TokenDetailsWithProviders as unknown as React.ComponentType<object>,
 };
 
 const WATCHLIST_FULL_VIEW_ROUTE = {
   name: Routes.WALLET.WATCHLIST_FULL_VIEW,
-  Component:
-    WatchlistFullScreenView as unknown as React.ComponentType<object>,
+  Component: WatchlistFullScreenView as unknown as React.ComponentType<object>,
 };
 
 const buildWatchlistState = (options: RenderWatchlistOptions = {}) => {
@@ -77,4 +77,5 @@ export function renderWatchlistFullScreenViewWithRoutes(
 }
 
 /** Alias for cross-screen watchlist journey tests starting on the homepage section. */
-export const renderWatchlistJourneyWithRoutes = renderWatchlistSectionWithRoutes;
+export const renderWatchlistJourneyWithRoutes =
+  renderWatchlistSectionWithRoutes;
