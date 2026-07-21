@@ -96,6 +96,10 @@ describe('useImmersveCardProvisioning', () => {
     controller.createCard.mockResolvedValue({ cardId: 'card-1' });
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   describe('polling', () => {
     beforeEach(() => jest.useFakeTimers());
     afterEach(() => jest.useRealTimers());
