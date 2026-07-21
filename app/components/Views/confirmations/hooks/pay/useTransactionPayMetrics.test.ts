@@ -23,6 +23,7 @@ import {
 import { Json } from '@metamask/utils';
 import {
   useIsTransactionPayQuoteLoading,
+  useTransactionPayQuoteError,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPayFiatPayment,
@@ -128,6 +129,7 @@ describe('useTransactionPayMetrics', () => {
   const useIsTransactionPayQuoteLoadingMock = jest.mocked(
     useIsTransactionPayQuoteLoading,
   );
+  const useTransactionPayQuoteErrorMock = jest.mocked(useTransactionPayQuoteError);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -167,6 +169,7 @@ describe('useTransactionPayMetrics', () => {
     useFiatPaymentHighlightedActionsMock.mockReturnValue([]);
     useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue(undefined);
     useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+    useTransactionPayQuoteErrorMock.mockReturnValue(undefined);
   });
 
   it('includes available crypto method even before a pay token is selected', async () => {
@@ -1581,6 +1584,27 @@ describe('useTransactionPayMetrics', () => {
           address: null,
         },
       });
+    });
+
+    it('uses quoteError.message as error_message when available', async () => {
+      useTransactionPayQuoteErrorMock.mockReturnValue({
+        message: 'Insufficient balance',
+        reason: 'insufficient-source-balance',
+        detail: ['Required: 1.5 USDC', 'Current: 1 USDC'],
+      });
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(true);
+      useTransactionPayQuotesMock.mockReturnValue([]);
+
+      const { rerender } = runHook();
+      await act(async () => noop());
+
+      useIsTransactionPayQuoteLoadingMock.mockReturnValue(false);
+      rerender({});
+      await act(async () => noop());
+
+      const errors = lastProps()?.mm_pay_quote_errors as { error_message: string }[] | undefined;
+      expect(errors).toHaveLength(1);
+      expect(errors?.[0].error_message).toBe('Insufficient balance');
     });
   });
 });

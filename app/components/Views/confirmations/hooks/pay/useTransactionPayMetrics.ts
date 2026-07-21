@@ -15,6 +15,7 @@ import { BridgeToken } from '../../../../UI/Bridge/types';
 import { hasTransactionType } from '../../utils/transaction';
 import {
   useIsTransactionPayQuoteLoading,
+  useTransactionPayQuoteError,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
 } from './useTransactionPayData';
@@ -47,6 +48,7 @@ export function useTransactionPayMetrics() {
   const wasQuoteLoadingRef = useRef(false);
   const quotes = useTransactionPayQuotes();
   const isQuoteLoading = useIsTransactionPayQuoteLoading();
+  const quoteError = useTransactionPayQuoteError();
   const { availableTokens: tokens, hasTokens } =
     useTransactionPayAvailableTokens();
 
@@ -124,7 +126,7 @@ export function useTransactionPayMetrics() {
         },
         amount: sendingValue,
         amount_input_type: inputType ?? null,
-        error_message: 'unknown',
+        error_message: quoteError?.message ?? 'unknown',
       },
     ];
   }
