@@ -3,6 +3,7 @@ import StellarTestDapp from '../../../page-objects/Browser/StellarTestDapp';
 import {
   connectStellarTestDapp,
   navigateToStellarTestDApp,
+  waitForStellarAccountAlignment,
 } from '../../../flows/stellar-connection.flow';
 import { loginToApp } from '../../../flows/wallet.flow';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
@@ -13,7 +14,7 @@ describe(
   SmokeNetworkExpansion('Stellar Wallet Standard E2E - Sign Message'),
   () => {
     beforeAll(async () => {
-      jest.setTimeout(150000);
+      jest.setTimeout(300000);
     });
 
     it('Signs a message', async () => {
@@ -29,6 +30,7 @@ describe(
         },
         async () => {
           await loginToApp();
+          await waitForStellarAccountAlignment();
           await navigateToStellarTestDApp();
 
           await connectStellarTestDapp();

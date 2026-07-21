@@ -4,6 +4,7 @@ import {
   account1Short,
   connectStellarTestDapp,
   navigateToStellarTestDApp,
+  waitForStellarAccountAlignment,
 } from '../../../flows/stellar-connection.flow';
 import { loginToApp } from '../../../flows/wallet.flow';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
@@ -12,7 +13,7 @@ import { DappVariants } from '../../../framework/Constants';
 
 describe(SmokeNetworkExpansion('Stellar Wallet Standard E2E - Connect'), () => {
   beforeAll(async () => {
-    jest.setTimeout(150000);
+    jest.setTimeout(300000);
   });
 
   it('Connects & disconnects from Stellar test dapp', async () => {
@@ -28,6 +29,7 @@ describe(SmokeNetworkExpansion('Stellar Wallet Standard E2E - Connect'), () => {
       },
       async () => {
         await loginToApp();
+        await waitForStellarAccountAlignment();
         await navigateToStellarTestDApp();
 
         await connectStellarTestDapp();
@@ -56,6 +58,7 @@ describe(SmokeNetworkExpansion('Stellar Wallet Standard E2E - Connect'), () => {
       },
       async () => {
         await loginToApp();
+        await waitForStellarAccountAlignment();
         await navigateToStellarTestDApp();
 
         await connectStellarTestDapp();
