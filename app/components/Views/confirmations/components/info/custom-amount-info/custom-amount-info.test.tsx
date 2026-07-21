@@ -1504,6 +1504,10 @@ describe('CustomAmountInfo', () => {
       pressable = pressable.parent;
     }
 
+    if (!pressable) {
+      throw new Error('Could not find pressable ancestor with onPress');
+    }
+
     try {
       await act(async () => {
         await pressable.props.onPress();
