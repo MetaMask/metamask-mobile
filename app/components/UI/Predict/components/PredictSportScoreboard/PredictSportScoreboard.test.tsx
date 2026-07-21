@@ -170,7 +170,7 @@ describe('PredictSportScoreboard', () => {
         />,
       );
 
-      expect(getByText('Live')).toBeOnTheScreen();
+      expect(getByText('LIVE')).toBeOnTheScreen();
       expect(getByText('25’')).toBeOnTheScreen();
     });
 

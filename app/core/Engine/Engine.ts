@@ -65,13 +65,7 @@ import {
 import { assetsControllerInit } from './controllers/assets-controller/assets-controller-init';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
 import { backupVault } from '../BackupVault';
-import {
-  CaipAssetType,
-  Hex,
-  Json,
-  KnownCaipNamespace,
-  parseCaipAssetType,
-} from '@metamask/utils';
+import { CaipAssetType, Hex, Json, parseCaipAssetType } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 import { captureException } from '@sentry/react-native';
 
@@ -129,7 +123,6 @@ import { bridgeControllerInit } from './controllers/bridge-controller/bridge-con
 import { bridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
-import { TransactionControllerInit } from './controllers/transaction-controller';
 import { defiPositionsControllerInit } from './controllers/defi-positions-controller/defi-positions-controller-init';
 import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
@@ -327,7 +320,6 @@ export class Engine {
         GasFeeController: GasFeeControllerInit,
         GatorPermissionsController: GatorPermissionsControllerInit,
         SmartTransactionsController: smartTransactionsControllerInit,
-        TransactionController: TransactionControllerInit,
         TransactionPayController: TransactionPayControllerInit,
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
@@ -432,7 +424,9 @@ export class Engine {
     const signatureController = messengerClientsByName.SignatureController;
     const smartTransactionsController =
       messengerClientsByName.SmartTransactionsController;
-    const transactionController = messengerClientsByName.TransactionController;
+    const transactionController = this.#wallet.getInstance(
+      'TransactionController',
+    );
     const seedlessOnboardingController =
       messengerClientsByName.SeedlessOnboardingController;
     const geolocationController = messengerClientsByName.GeolocationController;
@@ -1424,30 +1418,6 @@ export class Engine {
     }
     AccountsController.setAccountName(accountToBeNamed.id, label);
   }
-
-  /**
-   * Gathers metadata (primarily connectivity status) about the enabled networks and persists it to state.
-   */
-  async lookupEnabledNetworks(): Promise<void> {
-    const { NetworkController, NetworkEnablementController } = this.context;
-
-    const chainIds = Object.entries(
-      NetworkEnablementController.state?.enabledNetworkMap?.[
-        KnownCaipNamespace.Eip155
-      ] ?? {},
-    )
-      .filter(([, isEnabled]) => isEnabled)
-      .map(([networkChainId]) => networkChainId as Hex);
-
-    await Promise.allSettled(
-      chainIds
-        .map((chainId) =>
-          NetworkController.findNetworkClientIdByChainId(chainId as Hex),
-        )
-        .filter((id): id is string => !!id)
-        .map((id) => NetworkController.lookupNetwork(id)),
-    );
-  }
 }
 
 /**
@@ -1687,11 +1657,6 @@ export default {
 
   // TODO: Use the KeyringController to find the appropriate QR keyring bridge instead of using a global.
   getQrKeyringScanner: () => qrKeyringBridge,
-
-  lookupEnabledNetworks: () => {
-    assertEngineExists(instance);
-    instance.lookupEnabledNetworks();
-  },
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   removeAccount: async (address: string) => {

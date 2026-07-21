@@ -230,7 +230,9 @@ describe('PerpsMarketRowItem', () => {
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
       ).toHaveTextContent('Bitcoin');
-      expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getPerpsMarketRowItemSelector.tickerSuffix('BTC')),
+      ).toHaveTextContent('BTC');
     });
 
     it('shows the ticker symbol when the flag is disabled', () => {
@@ -242,6 +244,9 @@ describe('PerpsMarketRowItem', () => {
         screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
       ).toHaveTextContent('BTC');
       expect(screen.queryByText('Bitcoin')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(getPerpsMarketRowItemSelector.tickerSuffix('BTC')),
+      ).not.toBeOnTheScreen();
     });
 
     it('strips the provider prefix from the ticker when the flag is disabled', () => {
@@ -260,6 +265,11 @@ describe('PerpsMarketRowItem', () => {
       ).toHaveTextContent('TSLA');
       expect(screen.queryByText('xyz:TSLA')).not.toBeOnTheScreen();
       expect(screen.queryByText('Tesla')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          getPerpsMarketRowItemSelector.tickerSuffix('xyz:TSLA'),
+        ),
+      ).not.toBeOnTheScreen();
     });
 
     it('shows the full asset name for a provider-prefixed symbol when the flag is enabled', () => {
@@ -276,8 +286,35 @@ describe('PerpsMarketRowItem', () => {
           getPerpsMarketRowItemSelector.assetLabel('xyz:TSLA'),
         ),
       ).toHaveTextContent('Tesla');
-      expect(screen.queryByText('TSLA')).not.toBeOnTheScreen();
       expect(screen.queryByText('xyz:TSLA')).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          getPerpsMarketRowItemSelector.tickerSuffix('xyz:TSLA'),
+        ),
+      ).toHaveTextContent('TSLA');
+    });
+
+    it('does not show ticker suffix when the HIP-3 bare symbol equals the name', () => {
+      mockSelectors(true);
+
+      render(
+        <PerpsMarketRowItem
+          market={{ ...mockMarketData, symbol: 'xyz:AAPL', name: 'AAPL' }}
+        />,
+      );
+
+      // Asset label should show the bare ticker 'AAPL' (name == stripped symbol)
+      expect(
+        screen.getByTestId(
+          getPerpsMarketRowItemSelector.assetLabel('xyz:AAPL'),
+        ),
+      ).toHaveTextContent('AAPL');
+      // No suffix — it would be a duplicate of the asset label
+      expect(
+        screen.queryByTestId(
+          getPerpsMarketRowItemSelector.tickerSuffix('xyz:AAPL'),
+        ),
+      ).not.toBeOnTheScreen();
     });
 
     it('falls back to the ticker when the flag is enabled but name is missing', () => {
@@ -288,6 +325,26 @@ describe('PerpsMarketRowItem', () => {
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
       ).toHaveTextContent('BTC');
+      expect(
+        screen.queryByTestId(getPerpsMarketRowItemSelector.tickerSuffix('BTC')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not show a duplicate ticker when the name falls back to the symbol', () => {
+      mockSelectors(true);
+
+      render(
+        <PerpsMarketRowItem
+          market={{ ...mockMarketData, name: 'BTC', symbol: 'BTC' }}
+        />,
+      );
+
+      expect(
+        screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
+      ).toHaveTextContent('BTC');
+      expect(
+        screen.queryByTestId(getPerpsMarketRowItemSelector.tickerSuffix('BTC')),
+      ).not.toBeOnTheScreen();
     });
   });
 

@@ -31,7 +31,7 @@ interface LineProps {
 }
 
 interface TooltipProps {
-  x: (index: number) => number;
+  x: (value: number) => number;
   y: (value: number) => number;
   ticks: number[];
   width?: number;
@@ -40,6 +40,33 @@ interface TooltipProps {
 
 /** Design: 16×16 logical px circle (TradingView-style last-point marker). */
 const END_DOT_DIAMETER = 16;
+
+/**
+ * Binary-search for the data point whose timestamp is closest to `target`.
+ * Assumes `sortedPrices` is sorted ascending by timestamp.
+ */
+export function findNearestIndex(
+  sortedPrices: TokenPrice[],
+  target: number,
+): number {
+  if (sortedPrices.length === 0) return -1;
+  let lo = 0;
+  let hi = sortedPrices.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (Number(sortedPrices[mid][0]) < target) {
+      lo = mid + 1;
+    } else {
+      hi = mid;
+    }
+  }
+  if (lo > 0) {
+    const diffLo = Math.abs(Number(sortedPrices[lo][0]) - target);
+    const diffPrev = Math.abs(Number(sortedPrices[lo - 1][0]) - target);
+    if (diffPrev < diffLo) return lo - 1;
+  }
+  return lo;
+}
 
 interface PriceChartProps {
   prices: TokenPrice[];
@@ -52,10 +79,17 @@ interface PriceChartProps {
   chartColorOverride?: string;
   /**
    * When true, the historical-prices API returned data covering less than
-   * 75% of the requested time period. The chart shows a "no data" overlay
+   * 50% of the requested time period. The chart shows a "no data" overlay
    * instead of rendering a misleading partial chart.
    */
   hasInsufficientCoverage?: boolean;
+  /**
+   * Duration of the selected time range in milliseconds (e.g. 86 400 000
+   * for "1D"). When provided the chart uses a time-based x-axis so partial
+   * data is rendered at the correct position within the full window.  When
+   * omitted (e.g. "ALL") the chart falls back to index-based x-axis.
+   */
+  timePeriodMs?: number;
 }
 
 const PriceChart = ({
@@ -66,6 +100,7 @@ const PriceChart = ({
   chartHeight = TOKEN_OVERVIEW_CHART_HEIGHT,
   chartColorOverride,
   hasInsufficientCoverage = false,
+  timePeriodMs,
 }: PriceChartProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const emptyDisplayTrackedRef = useRef(false);
@@ -92,6 +127,22 @@ const PriceChart = ({
   };
 
   const priceList = prices.map((_: TokenPrice) => _[1]);
+
+  const endDotRadius = END_DOT_DIAMETER / 2;
+  const endDotInsetRight = endDotRadius + 8;
+
+  const isTimeBased = timePeriodMs != null && timePeriodMs > 0;
+
+  // Stable x-domain for the time-based axis. Recalculated when the data or
+  // time-period changes so the "now" anchor matches the fetch moment.
+  const { chartXMin, chartXMax } = useMemo(() => {
+    if (!isTimeBased) {
+      return { chartXMin: undefined, chartXMax: undefined };
+    }
+    const now = Date.now();
+    return { chartXMin: now - timePeriodMs, chartXMax: now };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTimeBased, timePeriodMs, prices]);
 
   // Detect if this is a stablecoin and calculate appropriate Y-axis range
   const { isStablecoin, yMin, yMax } = useMemo(() => {
@@ -160,26 +211,37 @@ const PriceChart = ({
     onChartIndexChange(index);
   };
 
-  const updatePosition = (x: number) => {
-    if (x === -1) {
+  const updatePosition = (pixelX: number) => {
+    if (pixelX === -1) {
       onActiveIndexChange(-1);
       return;
     }
     const chartWidth =
       chartRowWidth > 0 ? chartRowWidth : Dimensions.get('window').width;
-    const xDistance = chartWidth / priceList.length;
-    if (x <= 0) {
-      x = 0;
+
+    if (isTimeBased && chartXMin != null && chartXMax != null) {
+      const rangeMax = chartWidth - endDotInsetRight;
+      const clamped = Math.max(0, Math.min(pixelX, rangeMax));
+      const fraction = rangeMax > 0 ? clamped / rangeMax : 0;
+      const targetTs = chartXMin + fraction * (chartXMax - chartXMin);
+      const idx = findNearestIndex(prices, targetTs);
+      onActiveIndexChange(idx);
+    } else {
+      const xDistance = chartWidth / priceList.length;
+      const clamped = Math.max(0, Math.min(pixelX, chartWidth));
+      let value = Number((clamped / xDistance).toFixed(0));
+      if (value >= priceList.length - 1) {
+        value = priceList.length - 1;
+      }
+      onActiveIndexChange(value);
     }
-    if (x >= chartWidth) {
-      x = chartWidth;
-    }
-    let value = Number((x / xDistance).toFixed(0));
-    if (value >= priceList.length - 1) {
-      value = priceList.length - 1;
-    }
-    onActiveIndexChange(value);
   };
+
+  // Refs so the PanResponder closure always calls the latest functions.
+  const updatePositionRef = useRef(updatePosition);
+  updatePositionRef.current = updatePosition;
+  const setIsChartBeingTouchedRef = useRef(setIsChartBeingTouched);
+  setIsChartBeingTouchedRef.current = setIsChartBeingTouched;
 
   const prevTouch = useRef({ x: 0, y: 0 });
   const panResponder = useRef(
@@ -190,22 +252,22 @@ const PriceChart = ({
       onMoveShouldSetPanResponderCapture: () => true,
       onPanResponderTerminationRequest: () => true,
       onPanResponderGrant: (evt: GestureResponderEvent) => {
-        // save current touch for the next move
         prevTouch.current = {
           x: evt.nativeEvent.locationX,
           y: evt.nativeEvent.locationY,
         };
-        updatePosition(evt.nativeEvent.locationX);
+        updatePositionRef.current(evt.nativeEvent.locationX);
       },
       onPanResponderMove: (evt: GestureResponderEvent) => {
         const deltaX = evt.nativeEvent.locationX - prevTouch.current.x;
         const deltaY = evt.nativeEvent.locationY - prevTouch.current.y;
         const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
 
-        setIsChartBeingTouched(isHorizontalSwipe);
-        updatePosition(isHorizontalSwipe ? evt.nativeEvent.locationX : -1);
+        setIsChartBeingTouchedRef.current(isHorizontalSwipe);
+        updatePositionRef.current(
+          isHorizontalSwipe ? evt.nativeEvent.locationX : -1,
+        );
 
-        // save current touch for the next move
         prevTouch.current = {
           x: evt.nativeEvent.locationX,
           y: evt.nativeEvent.locationY,
@@ -213,8 +275,8 @@ const PriceChart = ({
       },
 
       onPanResponderRelease: () => {
-        setIsChartBeingTouched(false);
-        updatePosition(-1);
+        setIsChartBeingTouchedRef.current(false);
+        updatePositionRef.current(-1);
       },
     }),
   );
@@ -239,8 +301,11 @@ const PriceChart = ({
     }
     const lineHeight =
       typeof svgHeight === 'number' && svgHeight > 0 ? svgHeight : chartHeight;
+    const xPos = isTimeBased
+      ? x?.(Number(prices[positionX]?.[0]))
+      : x?.(positionX);
     return (
-      <G x={x?.(positionX)} key="tooltip">
+      <G x={xPos} key="tooltip">
         <G>
           <SvgLine
             y1={1}
@@ -260,9 +325,6 @@ const PriceChart = ({
     );
   };
 
-  const endDotRadius = END_DOT_DIAMETER / 2;
-  const endDotInsetRight = endDotRadius + 8;
-
   /** Last-point marker — TradingView-style line end dot. Requires right contentInset or SVG clips half the circle. */
   const EndDot = ({ x, y }: Partial<TooltipProps>) => {
     if (!chartHasData || x === undefined || y === undefined) {
@@ -270,7 +332,7 @@ const PriceChart = ({
     }
     const lastIdx = priceList.length - 1;
     const lastY = priceList[lastIdx];
-    const cx = x(lastIdx);
+    const cx = isTimeBased ? x(Number(prices[lastIdx]?.[0])) : x(lastIdx);
     const cy = y(lastY);
     if (
       typeof cx !== 'number' ||
@@ -337,7 +399,16 @@ const PriceChart = ({
         {chartHasData ? (
           <AreaChart
             style={styles.chartArea}
-            data={priceList}
+            data={prices}
+            yAccessor={({ item }: { item: TokenPrice; index: number }) =>
+              item[1]
+            }
+            xAccessor={
+              isTimeBased
+                ? ({ item }: { item: TokenPrice; index: number }) =>
+                    Number(item[0])
+                : ({ index }: { item: TokenPrice; index: number }) => index
+            }
             contentInset={{
               top: apx(40),
               bottom: apx(40),
@@ -346,6 +417,8 @@ const PriceChart = ({
             svg={!isLoading ? { fill: 'none' } : undefined}
             yMin={isStablecoin ? yMin : undefined}
             yMax={isStablecoin ? yMax : undefined}
+            xMin={isTimeBased ? chartXMin : undefined}
+            xMax={isTimeBased ? chartXMax : undefined}
           >
             {!isLoading && <Line lineStrokeActive />}
             {!isLoading && <Tooltip />}

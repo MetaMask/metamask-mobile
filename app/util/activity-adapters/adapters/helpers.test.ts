@@ -4,6 +4,8 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import {
+  getLocalActivityFees,
+  getLocalGasTokenFee,
   getLocalTransactionFees,
   getLocalTransactionStatus,
   getNetworkFeeAmount,
@@ -66,13 +68,13 @@ describe('getLocalTransactionStatus', () => {
     expect(getLocalTransactionStatus(group)).toBe('failed');
   });
 
-  it('maps cancelled (cancel-type tx) → failed', () => {
+  it('maps a confirmed cancel-type tx → cancelled (not failed)', () => {
     const group = makeGroup({
       status: TransactionStatus.confirmed,
       type: TransactionType.cancel,
     });
 
-    expect(getLocalTransactionStatus(group)).toBe('failed');
+    expect(getLocalTransactionStatus(group)).toBe('cancelled');
   });
 
   it('maps submitted → pending', () => {
@@ -210,6 +212,233 @@ describe('getLocalTransactionFees', () => {
     } as unknown as Parameters<typeof getLocalTransactionFees>[0];
 
     expect(getLocalTransactionFees(group, nativeAsset, 'ETH')).toBeUndefined();
+  });
+});
+
+describe('getLocalGasTokenFee', () => {
+  const tokenAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+  it('builds a gasToken fee from selectedGasFeeToken + gasFeeTokens', () => {
+    const fee = getLocalGasTokenFee({
+      chainId: '0xe708',
+      selectedGasFeeToken: tokenAddress,
+      gasFeeTokens: [
+        {
+          tokenAddress,
+          amount: '0xde0b6b3a7640000',
+          decimals: 18,
+          symbol: 'mUSD',
+          balance: '0x0',
+          gas: '0x0',
+          maxFeePerGas: '0x0',
+          maxPriorityFeePerGas: '0x0',
+          rateWei: '0x0',
+          recipient: '0x1',
+        },
+      ],
+      txParams: {},
+    } as unknown as Parameters<typeof getLocalGasTokenFee>[0]);
+
+    expect(fee).toEqual(
+      expect.objectContaining({
+        type: 'gasToken',
+        amount: '1000000000000000000',
+        decimals: 18,
+        symbol: 'mUSD',
+        assetId: expect.stringContaining('erc20:'),
+      }),
+    );
+  });
+
+  it('returns undefined when no gas fee token is selected', () => {
+    expect(
+      getLocalGasTokenFee({
+        chainId: '0x1',
+        txParams: {},
+      } as unknown as Parameters<typeof getLocalGasTokenFee>[0]),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when the selected gas fee token amount is not a valid BigInt', () => {
+    expect(
+      getLocalGasTokenFee({
+        chainId: '0x1',
+        selectedGasFeeToken: tokenAddress,
+        gasFeeTokens: [
+          {
+            tokenAddress,
+            amount: 'not-a-number',
+            decimals: 18,
+            symbol: 'mUSD',
+            balance: '0x0',
+            gas: '0x0',
+            maxFeePerGas: '0x0',
+            maxPriorityFeePerGas: '0x0',
+            rateWei: '0x0',
+            recipient: '0x1',
+          },
+        ],
+        txParams: {},
+      } as unknown as Parameters<typeof getLocalGasTokenFee>[0]),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when the selected gas fee token has no amount', () => {
+    expect(
+      getLocalGasTokenFee({
+        chainId: '0x1',
+        selectedGasFeeToken: tokenAddress,
+        gasFeeTokens: [
+          {
+            tokenAddress,
+            decimals: 18,
+            symbol: 'mUSD',
+            balance: '0x0',
+            gas: '0x0',
+            maxFeePerGas: '0x0',
+            maxPriorityFeePerGas: '0x0',
+            rateWei: '0x0',
+            recipient: '0x1',
+          },
+        ],
+        txParams: {},
+      } as unknown as Parameters<typeof getLocalGasTokenFee>[0]),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when the native sentinel is selected as the gas fee token', () => {
+    const nativeSentinel = '0x0000000000000000000000000000000000000000';
+    expect(
+      getLocalGasTokenFee({
+        chainId: '0x1',
+        selectedGasFeeToken: nativeSentinel,
+        gasFeeTokens: [
+          {
+            tokenAddress: nativeSentinel,
+            amount: '0x64',
+            decimals: 18,
+            symbol: 'ETH',
+            balance: '0x0',
+            gas: '0x0',
+            maxFeePerGas: '0x0',
+            maxPriorityFeePerGas: '0x0',
+            rateWei: '0x0',
+            recipient: '0x1',
+          },
+        ],
+        txParams: {},
+      } as unknown as Parameters<typeof getLocalGasTokenFee>[0]),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when the transaction failed and gas was never paid', () => {
+    expect(
+      getLocalGasTokenFee({
+        chainId: '0x1',
+        status: TransactionStatus.failed,
+        selectedGasFeeToken: tokenAddress,
+        gasFeeTokens: [
+          {
+            tokenAddress,
+            amount: '0x64',
+            decimals: 18,
+            symbol: 'mUSD',
+            balance: '0x0',
+            gas: '0x0',
+            maxFeePerGas: '0x0',
+            maxPriorityFeePerGas: '0x0',
+            rateWei: '0x0',
+            recipient: '0x1',
+          },
+        ],
+        txParams: {},
+      } as unknown as Parameters<typeof getLocalGasTokenFee>[0]),
+    ).toBeUndefined();
+  });
+});
+
+describe('getLocalActivityFees', () => {
+  const nativeAsset = {
+    decimals: 18,
+    symbol: 'ETH',
+    assetId: 'eip155:1/slip44:60',
+  };
+  const tokenAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+  it('returns only the gasToken fee when a gas fee token is selected (omits native base)', () => {
+    const group = {
+      primaryTransaction: {
+        chainId: '0x1',
+        txReceipt: { gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00' },
+        selectedGasFeeToken: tokenAddress,
+        gasFeeTokens: [
+          {
+            tokenAddress,
+            amount: '0x64',
+            decimals: 18,
+            symbol: 'mUSD',
+            balance: '0x0',
+            gas: '0x0',
+            maxFeePerGas: '0x0',
+            maxPriorityFeePerGas: '0x0',
+            rateWei: '0x0',
+            recipient: '0x1',
+          },
+        ],
+        txParams: {},
+      },
+    } as unknown as Parameters<typeof getLocalActivityFees>[0];
+
+    expect(getLocalActivityFees(group, nativeAsset, 'ETH')).toEqual([
+      expect.objectContaining({
+        type: 'gasToken',
+        symbol: 'mUSD',
+        amount: '100',
+      }),
+    ]);
+  });
+
+  it('returns only the gasToken fee when there is no native receipt fee', () => {
+    const group = {
+      primaryTransaction: {
+        chainId: '0x1',
+        txReceipt: {},
+        selectedGasFeeToken: tokenAddress,
+        gasFeeTokens: [
+          {
+            tokenAddress,
+            amount: '0x64',
+            decimals: 18,
+            symbol: 'mUSD',
+            balance: '0x0',
+            gas: '0x0',
+            maxFeePerGas: '0x0',
+            maxPriorityFeePerGas: '0x0',
+            rateWei: '0x0',
+            recipient: '0x1',
+          },
+        ],
+        txParams: {},
+      },
+    } as unknown as Parameters<typeof getLocalActivityFees>[0];
+
+    expect(getLocalActivityFees(group, nativeAsset, 'ETH')).toEqual([
+      expect.objectContaining({ type: 'gasToken', symbol: 'mUSD' }),
+    ]);
+  });
+
+  it('returns the native base fee when no gas fee token is selected', () => {
+    const group = {
+      primaryTransaction: {
+        chainId: '0x1',
+        txReceipt: { gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00' },
+        txParams: {},
+      },
+    } as unknown as Parameters<typeof getLocalActivityFees>[0];
+
+    expect(getLocalActivityFees(group, nativeAsset, 'ETH')).toEqual([
+      expect.objectContaining({ type: 'base', symbol: 'ETH' }),
+    ]);
   });
 });
 

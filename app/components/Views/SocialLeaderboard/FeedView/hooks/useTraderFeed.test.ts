@@ -3,11 +3,17 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useTraderFeed } from './useTraderFeed';
 import type { FeedTypeFilter } from '../types';
+import { FEED_CAIP2_CHAINS } from '../feed-constants';
 import {
   mockFeedResponse,
   mockPerpFeedItem,
   mockSpotFeedItem,
 } from '../mocks/coreFeed.mock';
+
+const expectedFeedFetchOptions = {
+  limit: 30,
+  chains: [...FEED_CAIP2_CHAINS],
+};
 
 const mockCall = jest.fn();
 
@@ -64,7 +70,7 @@ describe('useTraderFeed', () => {
     await waitFor(() => expect(result.current.items).toHaveLength(1));
     expect(mockCall).toHaveBeenCalledWith('SocialService:fetchFeed', {
       scope: 'leaderboard',
-      limit: 30,
+      ...expectedFeedFetchOptions,
     });
     expect(result.current.sections).toHaveLength(1);
   });
@@ -80,7 +86,7 @@ describe('useTraderFeed', () => {
     await waitFor(() => expect(result.current.items).toHaveLength(1));
     expect(mockCall).toHaveBeenCalledWith('SocialService:fetchFeed', {
       scope: 'following',
-      limit: 30,
+      ...expectedFeedFetchOptions,
     });
   });
 
@@ -102,7 +108,7 @@ describe('useTraderFeed', () => {
     await waitFor(() => expect(result.current.items).toHaveLength(2));
     expect(mockCall).toHaveBeenLastCalledWith('SocialService:fetchFeed', {
       scope: 'leaderboard',
-      limit: 30,
+      ...expectedFeedFetchOptions,
       olderThan: 'cursor-1',
     });
   });
@@ -165,7 +171,7 @@ describe('useTraderFeed', () => {
     expect(mockCall).toHaveBeenCalledTimes(1);
     expect(mockCall).toHaveBeenCalledWith('SocialService:fetchFeed', {
       scope: 'leaderboard',
-      limit: 30,
+      ...expectedFeedFetchOptions,
     });
     // Older paginated pages are dropped, leaving just the fresh first page.
     await waitFor(() => expect(result.current.items).toHaveLength(1));

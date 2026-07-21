@@ -93,7 +93,8 @@ export const usePerpsHomeData = ({
     usePerpsLiveOrders({
       throttleMs: 1000,
       hideTpSl: true, // Hide Take Profit and Stop Loss orders from home screen
-      hideReduceOnly: true, // Hide all reduce-only orders from home screen
+      // Reduce-only orders (e.g. limit closes) are shown so they appear in the
+      // "Your orders" section, matching the portfolio "Perpetuals" section.
     });
 
   // Fetch fills via WebSocket for recent activity (instant updates, already cached)

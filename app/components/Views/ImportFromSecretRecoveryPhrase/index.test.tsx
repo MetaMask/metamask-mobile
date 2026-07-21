@@ -1239,6 +1239,35 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       },
     };
 
+    it('renders the import-from-extension link when add-device sync is enabled', () => {
+      const stateWithAddDeviceSync = {
+        ...initialState,
+        engine: {
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                addDeviceSyncEnabled: true,
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId, getByText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: stateWithAddDeviceSync },
+      );
+
+      expect(
+        getByTestId(ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('import_from_seed.import_wallet_from_extension')),
+      ).toBeOnTheScreen();
+    });
+
     it('prefills the seed phrase and opens the password step for QR sync imports', async () => {
       const { getByText, queryByPlaceholderText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
