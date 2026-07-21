@@ -41,8 +41,6 @@ export enum TokenDetailsSource {
   WatchlistHomepage = 'watchlist_homepage',
   /** Full-screen watchlist view */
   WatchlistFullscreen = 'watchlist_fullscreen',
-  /** Explore Trending Tokens — watchlist filter pill active */
-  ExploreWatchlistFilter = 'explore_watchlist_filter',
   /** Fallback when source cannot be determined */
   Unknown = 'unknown',
 }
@@ -54,7 +52,6 @@ const EXPLORE_TOKEN_DETAILS_SOURCES = new Set<TokenDetailsSource>([
   TokenDetailsSource.ExploreRwasStocks,
   TokenDetailsSource.ExploreSearch,
   TokenDetailsSource.Trending,
-  TokenDetailsSource.ExploreWatchlistFilter,
 ]);
 
 /**
