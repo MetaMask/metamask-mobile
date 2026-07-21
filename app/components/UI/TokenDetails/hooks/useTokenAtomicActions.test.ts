@@ -12,7 +12,6 @@ import {
 } from '@metamask/assets-controllers';
 import {
   computeBuySourceToken,
-  resolveBuyAssetId,
   useHandleOnBuy,
   useHandleOnReceive,
   useHandleOnSend,
@@ -505,56 +504,6 @@ describe('useTokenAtomicActions - computeBuySourceToken', () => {
         defaultToken.address,
       ),
     ).toBeNull();
-  });
-});
-
-describe('resolveBuyAssetId', () => {
-  beforeEach(() => {
-    mockIsCaipAssetType.mockImplementation(
-      jest.requireActual('@metamask/utils').isCaipAssetType,
-    );
-    mockGetCaipAssetIdForToken.mockReset();
-  });
-
-  it('returns explicit caipAssetId when it is a valid CAIP asset type', async () => {
-    const caipAssetId = 'eip155:137/slip44:966' as CaipAssetType;
-    mockGetCaipAssetIdForToken.mockResolvedValue('eip155:1/slip44:60');
-
-    await expect(
-      resolveBuyAssetId({
-        ...defaultToken,
-        caipAssetId,
-      }),
-    ).resolves.toBe(caipAssetId);
-    expect(mockGetCaipAssetIdForToken).not.toHaveBeenCalled();
-  });
-
-  it('uses token address when getCaipAssetIdForToken returns null and address is CAIP', async () => {
-    const caipAddress = 'eip155:1/erc20:0xabc' as CaipAssetType;
-    mockGetCaipAssetIdForToken.mockResolvedValue(null);
-
-    await expect(
-      resolveBuyAssetId({
-        ...defaultToken,
-        address: caipAddress,
-      }),
-    ).resolves.toBe(caipAddress);
-  });
-
-  it('falls back to parseRampIntent when getCaipAssetIdForToken returns null', async () => {
-    mockGetCaipAssetIdForToken.mockResolvedValue(null);
-
-    await expect(resolveBuyAssetId(defaultToken)).resolves.toBe(
-      'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F',
-    );
-  });
-
-  it('returns undefined when resolution throws', async () => {
-    mockGetCaipAssetIdForToken.mockRejectedValue(
-      new Error('resolution failed'),
-    );
-
-    await expect(resolveBuyAssetId(defaultToken)).resolves.toBeUndefined();
   });
 });
 
