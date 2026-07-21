@@ -111,3 +111,29 @@ export function getFiatOrderProviderOrderLink(
     ? data.providerOrderLink
     : undefined;
 }
+
+/**
+ * Provider status copy from Aggregator/Deposit `order.data.statusDescription`
+ * (same field OrderDetails Stage / DepositOrderContent render).
+ */
+export function getFiatOrderStatusDescription(
+  order: FiatOrder,
+): string | undefined {
+  const data = order.data as { statusDescription?: unknown } | undefined;
+  return typeof data?.statusDescription === 'string' &&
+    data.statusDescription.length > 0
+    ? data.statusDescription
+    : undefined;
+}
+
+/**
+ * Native RampsOrder `statusDescription` (OrderContent terminal info row).
+ */
+export function getRampsOrderStatusDescription(
+  order: RampsOrder,
+): string | undefined {
+  const description = order.statusDescription;
+  return typeof description === 'string' && description.length > 0
+    ? description
+    : undefined;
+}

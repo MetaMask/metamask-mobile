@@ -6426,6 +6426,7 @@
     "failed": "Failed",
     "cancelled": "Cancelled",
     "view_on_provider": "View on {{provider}}",
+    "view_order": "View Order",
     "order_id": "Order ID",
     "date_and_time": "Date and time",
     "fees": "Fees",

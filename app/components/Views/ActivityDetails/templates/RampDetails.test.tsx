@@ -133,12 +133,18 @@ describe('RampDetails', () => {
   it('shows provider link and copies the full FiatOrder id', async () => {
     const item = makeItem({
       ...baseOrder,
-      data: { providerOrderLink: 'https://mercuryo.io/order/abc' },
+      data: {
+        providerOrderLink: 'https://mercuryo.io/order/abc',
+        statusDescription: 'Card purchases typically take a few minutes',
+      },
     });
 
     const { getByText, getByTestId } = render(<RampDetails item={item} />);
 
     expect(getByText('View on Mercuryo')).toBeOnTheScreen();
+    expect(
+      getByText('Card purchases typically take a few minutes'),
+    ).toBeOnTheScreen();
     fireEvent.press(getByTestId('ramp-provider-order-link'));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
@@ -149,6 +155,19 @@ describe('RampDetails', () => {
     await waitFor(() => {
       expect(ClipboardManager.setString).toHaveBeenCalledWith('0d13232233944');
     });
+  });
+
+  it('falls back to View Order when provider name is missing', () => {
+    (getProviderName as jest.Mock).mockReturnValue('');
+    const item = makeItem({
+      ...baseOrder,
+      data: { providerOrderLink: 'https://example.com/order/1' },
+    });
+
+    const { getByText, queryByText } = render(<RampDetails item={item} />);
+
+    expect(getByText('View Order')).toBeOnTheScreen();
+    expect(queryByText('View on Mercuryo')).toBeNull();
   });
 
   it('renders sell-specific destination and received total rows', () => {
@@ -217,6 +236,7 @@ describe('RampDetails', () => {
       cryptoCurrency: { symbol: 'mUSD', decimals: 6 },
       fiatCurrency: { symbol: 'USD', decimals: 2 },
       provider: { name: 'Transak' },
+      statusDescription: 'Payment failed. Please place another order.',
     };
     const item = mapRampsOrder({ order }) as RampActivityListItem;
 
@@ -225,6 +245,9 @@ describe('RampDetails', () => {
     expect(getByText('+5.01 mUSD')).toBeOnTheScreen();
     expect(getByText('po-1')).toBeOnTheScreen();
     expect(getByText('View on Transak')).toBeOnTheScreen();
+    expect(
+      getByText('Payment failed. Please place another order.'),
+    ).toBeOnTheScreen();
     expect(getByText('$1.26')).toBeOnTheScreen();
     expect(getByText('$6.27')).toBeOnTheScreen();
 

@@ -824,31 +824,33 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         // TemplateLoader; flag OFF → OrdersList destinations. Kept ahead of the
         // shared redesign early-return so CREATED deposits always resume buy and
         // flag-OFF never accidentally hits ActivityDetails.
+        // Sell/offramp always uses legacy OrderDetails — that screen owns the
+        // Continue → Send Transaction flow which ActivityDetails does not.
         if (raw.type === 'rampOrder') {
           if (resolveRampOrderTarget(raw.data) === 'deposit-resume-buy') {
             goToBuy();
             return;
           }
 
-          if (isTransactionsRedesignEnabled) {
-            const detailsRoute = getActivityDetailsRoute(item);
-            if (detailsRoute) {
-              navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
-              return;
-            }
-            // Mappers always set hash (txHash || id); keep the pre-native
-            // fallback keyed by order id if a row somehow lacks hash.
-            navigation.navigate(Routes.ACTIVITY_DETAILS, {
-              chainId: item.chainId,
-              txIdentifier: item.hash ?? raw.data.id,
+          if (item.type === 'sell' || !isTransactionsRedesignEnabled) {
+            navigateToRampOrderTarget({
+              data: raw.data,
+              navigation,
+              goToBuy,
             });
             return;
           }
 
-          navigateToRampOrderTarget({
-            data: raw.data,
-            navigation,
-            goToBuy,
+          const detailsRoute = getActivityDetailsRoute(item);
+          if (detailsRoute) {
+            navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+            return;
+          }
+          // Mappers always set hash (txHash || id); keep the pre-native
+          // fallback keyed by order id if a row somehow lacks hash.
+          navigation.navigate(Routes.ACTIVITY_DETAILS, {
+            chainId: item.chainId,
+            txIdentifier: item.hash ?? raw.data.id,
           });
           return;
         }

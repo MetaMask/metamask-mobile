@@ -61,7 +61,7 @@ export function RampTransactionIdValue({ hash }: Readonly<{ hash?: string }>) {
 }
 
 /**
- * Status label with optional "View on {provider}" link beneath it (OrderContent).
+ * Status label with optional "View on {provider}" link (OrderContent).
  */
 export function RampStatusWithProviderLink({
   status,
@@ -84,7 +84,12 @@ export function RampStatusWithProviderLink({
     });
   }, [navigation, providerOrderLink]);
 
-  const showProviderLink = Boolean(providerOrderLink && providerName);
+  const showProviderLink = Boolean(providerOrderLink);
+  const providerLinkLabel = providerName
+    ? strings('ramps_order_details.view_on_provider', {
+        provider: providerName,
+      })
+    : strings('ramps_order_details.view_order');
 
   return (
     <Box twClassName="items-end gap-1">
@@ -101,9 +106,7 @@ export function RampStatusWithProviderLink({
               fontWeight={FontWeight.Medium}
               color={TextColor.PrimaryDefault}
             >
-              {strings('ramps_order_details.view_on_provider', {
-                provider: providerName,
-              })}
+              {providerLinkLabel}
             </Text>
             <Icon
               name={IconName.Export}
@@ -113,6 +116,31 @@ export function RampStatusWithProviderLink({
           </Box>
         </Pressable>
       ) : null}
+    </Box>
+  );
+}
+
+/**
+ * Full-width centered status description (Aggregator Stage / OrderContent copy).
+ * Placed below the metadata section (after Transaction ID) with equal spacing
+ * to the following SectionDivider (`marginVertical={3}` → 12px).
+ */
+export function RampStatusDescription({
+  description,
+}: Readonly<{ description?: string }>) {
+  if (!description) {
+    return null;
+  }
+
+  return (
+    <Box twClassName="w-full mt-3" testID="ramp-status-description">
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        twClassName="text-center"
+      >
+        {description}
+      </Text>
     </Box>
   );
 }

@@ -27,6 +27,7 @@ import {
 import { ActivityDetailsAccountValue } from '../components/ActivityDetailsAccountValue';
 import {
   RampOrderIdValue,
+  RampStatusDescription,
   RampStatusWithProviderLink,
   RampTransactionIdValue,
 } from './RampDetailsShared';
@@ -35,6 +36,7 @@ import {
   formatRampActivityFiatAmount,
   formatRampActivityFiatTotal,
   getRampActivityExplorerChainId,
+  getRampsOrderStatusDescription,
   mapRampsOrderActivityStatus,
   valueOrUnavailable,
 } from './rampDetailsUtils';
@@ -105,53 +107,58 @@ function RampDetailsMetadata({
   readonly transactionHash?: string;
 }) {
   const isSell = isRampsSellOrder(order);
+  const statusDescription = getRampsOrderStatusDescription(order);
 
   return (
-    <ActivityDetailSection>
-      <ActivityDetailRow
-        label={strings('activity_details.status')}
-        value={
-          <RampStatusWithProviderLink
-            status={mapRampsOrderActivityStatus(order)}
-            providerName={providerName}
-            providerOrderLink={order.providerOrderLink}
-          />
-        }
-        testID={ActivityDetailsSelectorsIDs.STATUS_ROW}
-      />
+    <>
+      <ActivityDetailSection>
+        <ActivityDetailRow
+          label={strings('activity_details.status')}
+          value={
+            <RampStatusWithProviderLink
+              status={mapRampsOrderActivityStatus(order)}
+              providerName={providerName}
+              providerOrderLink={order.providerOrderLink}
+            />
+          }
+          testID={ActivityDetailsSelectorsIDs.STATUS_ROW}
+        />
 
-      <ActivityDetailRow
-        label={strings('activity_details.date')}
-        value={formattedDate}
-        testID={ActivityDetailsSelectorsIDs.DATE_ROW}
-      />
+        <ActivityDetailRow
+          label={strings('activity_details.date')}
+          value={formattedDate}
+          testID={ActivityDetailsSelectorsIDs.DATE_ROW}
+        />
 
-      <ActivityDetailRow
-        label={strings('transaction_details.label.order_id')}
-        value={<RampOrderIdValue orderId={order.providerOrderId} />}
-      />
+        <ActivityDetailRow
+          label={strings('transaction_details.label.order_id')}
+          value={<RampOrderIdValue orderId={order.providerOrderId} />}
+        />
 
-      <ActivityDetailRow
-        label={strings('activity_details.account')}
-        value={
-          <ActivityDetailsAccountValue
-            address={order.walletAddress}
-            chainId={chainId}
-          />
-        }
-        testID={ActivityDetailsSelectorsIDs.ACCOUNT_ROW}
-      />
+        <ActivityDetailRow
+          label={strings('activity_details.account')}
+          value={
+            <ActivityDetailsAccountValue
+              address={order.walletAddress}
+              chainId={chainId}
+            />
+          }
+          testID={ActivityDetailsSelectorsIDs.ACCOUNT_ROW}
+        />
 
-      {isSell ? (
-        <ActivityDetailRow label="Destination" value={providerName} />
-      ) : null}
+        {isSell ? (
+          <ActivityDetailRow label="Destination" value={providerName} />
+        ) : null}
 
-      <ActivityDetailRow
-        label={strings('activity_details.transaction_id')}
-        value={<RampTransactionIdValue hash={transactionHash} />}
-        testID={ActivityDetailsSelectorsIDs.TRANSACTION_ID_ROW}
-      />
-    </ActivityDetailSection>
+        <ActivityDetailRow
+          label={strings('activity_details.transaction_id')}
+          value={<RampTransactionIdValue hash={transactionHash} />}
+          testID={ActivityDetailsSelectorsIDs.TRANSACTION_ID_ROW}
+        />
+      </ActivityDetailSection>
+
+      <RampStatusDescription description={statusDescription} />
+    </>
   );
 }
 

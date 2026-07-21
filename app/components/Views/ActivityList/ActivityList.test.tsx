@@ -1192,6 +1192,37 @@ describe('ActivityList', () => {
     expect(legacyCalls).toHaveLength(0);
   });
 
+  it('routes Ramp sell rows to legacy OrderDetails even when the redesign flag is on', () => {
+    selectorValues.isTxRedesign = true;
+    (useRampActivityItems as jest.Mock).mockReturnValue([
+      {
+        ...rampItem,
+        type: 'sell',
+        hash: '0xramp-sell',
+        raw: {
+          ...rampItem.raw,
+          data: {
+            ...rampItem.raw.data,
+            id: 'ramp-sell-order-id',
+            orderType: 'SELL',
+          },
+        },
+      },
+    ]);
+
+    render(<ActivityList header={<></>} />);
+
+    fireEvent.press(screen.getByTestId('row-0xramp-sell'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.ORDER_DETAILS, {
+      orderId: 'ramp-sell-order-id',
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.ACTIVITY_DETAILS,
+      expect.anything(),
+    );
+  });
+
   it('routes Ramp rows to the redesigned ActivityDetails screen when the transactions redesign flag is on', () => {
     selectorValues.isTxRedesign = true;
     (useRampActivityItems as jest.Mock).mockReturnValue([rampItem]);
