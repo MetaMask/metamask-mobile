@@ -85,14 +85,26 @@ const WatchlistSearchContent: React.FC<WatchlistSearchContentProps> = ({
       return;
     }
 
-    const frame = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setIsListReady(true);
+    let cancelled = false;
+    let innerFrame = 0;
+    const outerFrame = requestAnimationFrame(() => {
+      if (cancelled) {
+        return;
+      }
+
+      innerFrame = requestAnimationFrame(() => {
+        if (!cancelled) {
+          setIsListReady(true);
+        }
       });
     });
 
-    return () => cancelAnimationFrame(frame);
-  }, [isFeedLoading, isListReady, listData.length]);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(outerFrame);
+      cancelAnimationFrame(innerFrame);
+    };
+  }, [debouncedQuery, isFeedLoading, isListReady, listData.length]);
 
   const handleCancel = useCallback(() => {
     setSearchQuery('');
