@@ -8888,7 +8888,11 @@
         "helper_text": "This usually takes a few seconds. Please do not close the app.",
         "incomplete_title": "Finish verifying your identity",
         "incomplete_description": "You closed identity verification before it was complete. Continue to finish.",
-        "continue_button": "Continue verification"
+        "continue_button": "Continue verification",
+        "info_needed_title": "Additional information needed",
+        "info_needed_description": "We need a bit more information to complete your verification. Continue to provide it.",
+        "info_needed_button": "Continue verification",
+        "expiring_error": "Your verification session expired. Please contact support to continue."
       },
       "immersve_kyc_modal": {
         "load_error": "Something went wrong loading identity verification. Please try again.",
@@ -9264,9 +9268,11 @@
       "auth_prompt_info": "Log in to your card account to access this feature.",
       "location_button_text": "International",
       "location_button_text_us": "United States",
+      "location_button_text_uk": "United Kingdom",
       "email_label": "Email",
       "password_label": "Password",
       "login_button": "Log in",
+      "uk_login_button": "Sign in with this account",
       "signup_button": "Sign up",
       "forgot_password_button": "Forgot password?",
       "errors": {

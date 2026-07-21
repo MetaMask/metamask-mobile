@@ -43,6 +43,7 @@ import {
   selectCardHomeDataStatus,
   selectCardRedemptionDestinationIsMoneyAccount,
   selectMoneyAccountVedaTokenConfig,
+  selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { isMoneyAccountEntry } from '../../util/isMoneyAccountEntry';
@@ -74,7 +75,11 @@ import AnimatedSpinner from '../../../AnimatedSpinner';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
 import { CardType, CardMessageBoxType } from '../../types';
-import { isSpendingLimitSupportedToken } from '../../constants';
+import {
+  isSpendingLimitSupportedToken,
+  IMMERSVE_SUPPORT_EMAIL,
+  IMMERSVE_TERMS_URL,
+} from '../../constants';
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
 import CardActionsButtons from './components/CardActionsButtons';
@@ -129,13 +134,20 @@ const CardHome = () => {
   const hasSetupActions = (data?.actions ?? []).some(
     (a) => a.type === 'enable_card',
   );
+  const isImmersve = useSelector(selectCardActiveProviderId) === 'immersve';
   const cardTermsAndConditionsUrl = useMemo(
-    () => getCardTermsAndConditionsUrl(registrationSettings, userLocation),
-    [registrationSettings, userLocation],
+    () =>
+      isImmersve
+        ? IMMERSVE_TERMS_URL
+        : getCardTermsAndConditionsUrl(registrationSettings, userLocation),
+    [isImmersve, registrationSettings, userLocation],
   );
   const supportEmail = useMemo(
-    () => getCardSupportEmail(registrationSettings, userLocation),
-    [registrationSettings, userLocation],
+    () =>
+      isImmersve
+        ? IMMERSVE_SUPPORT_EMAIL
+        : getCardSupportEmail(registrationSettings, userLocation),
+    [isImmersve, registrationSettings, userLocation],
   );
 
   // --- Extracted hooks ---
