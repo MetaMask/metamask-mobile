@@ -6,7 +6,10 @@ import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.js';
 import RequestTypes from '../../../page-objects/Browser/Confirmations/RequestTypes.js';
 import TestDApp from '../../../page-objects/Browser/TestDApp.js';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
-import { navigateToBrowserView } from '../../../flows/browser.flow.js';
+import {
+  navigateToBrowserView,
+  waitForTestDappToLoad,
+} from '../../../flows/browser.flow.js';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper.js';
 import { SmokeConfirmations } from '../../../tags.js';
 import {
@@ -106,6 +109,7 @@ appiumTest.describe(SmokeConfirmations('Typed Signature Requests'), () => {
 
             await navigateToBrowserView();
             await Browser.navigateToTestDApp();
+            await waitForTestDappToLoad();
 
             // cancel request
             await testDappBtn();
