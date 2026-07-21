@@ -75,11 +75,15 @@ import { useABTest } from '../../../../../hooks';
 import { selectTokenWatchlistEnabled } from '../../../Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../Assets/watchlist/hooks/useTokenWatchlistQuery';
 import WatchlistEmptyCTA from '../../../Assets/watchlist/components/WatchlistEmptyCTA';
-import { mapWatchlistTokenToBridgeToken } from '../../utils/mapWatchlistTokenToBridgeToken';
+import {
+  applyWatchlistBridgeTokenFiatDisplay,
+  mapWatchlistTokenToBridgeToken,
+} from '../../utils/mapWatchlistTokenToBridgeToken';
 import { mergeBridgeTokensWithBalances } from '../../utils/mergeBridgeTokensWithBalances';
 import { filterWatchlistBridgeTokens } from '../../utils/filterWatchlistBridgeTokens';
 import { EVENT_NAME } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import {
   TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
   TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
@@ -198,6 +202,7 @@ export const BridgeTokenSelector: React.FC = () => {
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
   const isWatchlistFilterActive = isWatchlistEnabled && showWatchlistOnly;
   const isWatchlistListMode = isWatchlistFilterActive;
+  const currentCurrency = useSelector(selectCurrentCurrency);
 
   // Set selecting token state to prevent quote expired modal from showing
   useEffect(() => {
@@ -440,8 +445,14 @@ export const BridgeTokenSelector: React.FC = () => {
     }
 
     const mappedTokens = mergeBridgeTokensWithBalances(
-      (watchlistData ?? []).map(mapWatchlistTokenToBridgeToken),
+      (watchlistData ?? []).map((token) =>
+        mapWatchlistTokenToBridgeToken(token, {
+          defaultCurrency: currentCurrency,
+        }),
+      ),
       balancesByAssetId,
+    ).map((token) =>
+      applyWatchlistBridgeTokenFiatDisplay(token, currentCurrency),
     );
 
     return filterWatchlistBridgeTokens(mappedTokens, {
@@ -454,6 +465,7 @@ export const BridgeTokenSelector: React.FC = () => {
     selectedChainId,
     watchlistData,
     balancesByAssetId,
+    currentCurrency,
   ]);
 
   const isWatchlistSearchActive = Boolean(searchString.trim());

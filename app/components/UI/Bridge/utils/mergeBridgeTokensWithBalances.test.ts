@@ -44,4 +44,25 @@ describe('mergeBridgeTokensWithBalances', () => {
       tokenFiatAmount: 5000,
     });
   });
+
+  it('preserves existing formatted fiat when merged balance data omits it', () => {
+    const tokens = [
+      makeToken({
+        balance: '0',
+        balanceFiat: '$0.00',
+        tokenFiatAmount: 0,
+      }),
+    ];
+    const balancesByAssetId = {
+      'eip155:1/slip44:60': createMockBalanceData({
+        balance: '0',
+        balanceFiat: undefined,
+        tokenFiatAmount: 0,
+      }),
+    };
+
+    expect(
+      mergeBridgeTokensWithBalances(tokens, balancesByAssetId)[0].balanceFiat,
+    ).toBe('$0.00');
+  });
 });

@@ -1,6 +1,7 @@
 import type { WatchlistTokenWithBalance } from '../../Assets/watchlist/utils/addBalanceToTokens';
 
 import {
+  applyWatchlistBridgeTokenFiatDisplay,
   formatWatchlistBalanceFiat,
   mapWatchlistTokenToBridgeToken,
 } from './mapWatchlistTokenToBridgeToken';
@@ -32,6 +33,12 @@ describe('formatWatchlistBalanceFiat', () => {
 
   it('formats fiat values for display', () => {
     expect(formatWatchlistBalanceFiat(3000, 'usd', 'en-US')).toBe('$3,000.00');
+  });
+
+  it('formats sub-cent balances with subscript notation', () => {
+    expect(formatWatchlistBalanceFiat(0.00000614, 'usd', 'en-US')).toBe(
+      '$0.0₅614',
+    );
   });
 
   it('uses I18n.locale when no locale is provided', () => {
@@ -69,6 +76,21 @@ describe('mapWatchlistTokenToBridgeToken', () => {
     expect(result.chainId).toBe('0x1');
   });
 
+  it('formats zero-balance watchlist tokens as 0 fiat when currency is missing', () => {
+    const result = mapWatchlistTokenToBridgeToken(
+      makeWatchlistToken({
+        balance: '0',
+        balanceFiat: undefined,
+        fiatCurrency: undefined,
+        isInWallet: false,
+      }),
+      { defaultCurrency: 'usd' },
+    );
+
+    expect(result.balanceFiat).toBe('$0.00');
+    expect(result.tokenFiatAmount).toBe(0);
+  });
+
   it('falls back to the static token icon URL when iconUrl is missing', () => {
     const result = mapWatchlistTokenToBridgeToken(
       makeWatchlistToken({
@@ -82,5 +104,24 @@ describe('mapWatchlistTokenToBridgeToken', () => {
     expect(result.image).toBe(
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x6982508145454ce325ddbef9b9008f994fce8312.png',
     );
+  });
+
+  it('re-applies subscript fiat formatting after wallet merge overwrites it', () => {
+    const token = applyWatchlistBridgeTokenFiatDisplay(
+      {
+        address: '0x6982508145454ce325ddbef9b9008f994fce8312',
+        symbol: 'PEPE',
+        name: 'Pepe',
+        decimals: 18,
+        chainId: '0x1',
+        balance: '1000',
+        balanceFiat: '$0.00',
+        tokenFiatAmount: 0.00000614,
+      },
+      'usd',
+      'en-US',
+    );
+
+    expect(token.balanceFiat).toBe('$0.0₅614');
   });
 });

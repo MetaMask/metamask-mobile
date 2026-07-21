@@ -35,10 +35,11 @@ export const mergeBridgeTokensWithBalances = <
     return {
       ...token,
       balance: balanceData.balance,
-      balanceFiat: balanceData.balanceFiat,
-      tokenFiatAmount: balanceData.tokenFiatAmount,
-      currencyExchangeRate: balanceData.currencyExchangeRate,
-      accountType: balanceData.accountType,
+      balanceFiat: balanceData.balanceFiat ?? token.balanceFiat,
+      tokenFiatAmount: balanceData.tokenFiatAmount ?? token.tokenFiatAmount,
+      currencyExchangeRate:
+        balanceData.currencyExchangeRate ?? token.currencyExchangeRate,
+      accountType: balanceData.accountType ?? token.accountType,
     };
   });
 };
