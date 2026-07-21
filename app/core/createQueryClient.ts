@@ -2,7 +2,7 @@ import type { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data
 import { ExtractActionParameters } from '@metamask/messenger';
 import { createUIQueryClient } from '@metamask/react-data-query';
 
-import Engine from './Engine/Engine';
+import Engine from './Engine';
 import type { GlobalActions } from './Engine/types';
 import { DATA_SERVICES } from '../constants/data-services';
 
