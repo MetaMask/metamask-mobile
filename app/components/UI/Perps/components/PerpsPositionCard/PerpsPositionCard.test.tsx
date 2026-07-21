@@ -751,43 +751,5 @@ describe('PerpsPositionCard', () => {
       ).toHaveTextContent(/\+\$250\.00/);
       expect(screen.queryByText(DOTS_SHORT)).toBeNull();
     });
-
-    describe('Compact mode', () => {
-      it('hides position value and PnL in compact default variant', () => {
-        // Arrange
-        enablePrivacyMode();
-
-        // Act
-        render(
-          <PerpsPositionCard
-            position={mockPosition}
-            compact
-            compactVariant="default"
-          />,
-        );
-
-        // Assert - financial values replaced with dots
-        const hiddenValues = screen.getAllByText(DOTS_SHORT);
-        expect(hiddenValues.length).toBeGreaterThanOrEqual(2);
-      });
-
-      it('hides ROE in compact position variant', () => {
-        // Arrange
-        enablePrivacyMode();
-
-        // Act
-        render(
-          <PerpsPositionCard
-            position={mockPosition}
-            compact
-            compactVariant="position"
-          />,
-        );
-
-        // Assert
-        const hiddenValues = screen.getAllByText(DOTS_SHORT);
-        expect(hiddenValues.length).toBeGreaterThanOrEqual(1);
-      });
-    });
   });
 });

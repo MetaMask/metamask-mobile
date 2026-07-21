@@ -21,13 +21,10 @@ import {
   IconSize,
   KeyValueRow,
   KeyValueRowVariant,
-  ListItem,
-  ListItemVariant,
   SectionDivider,
   SectionHeader,
   SensitiveText,
   SensitiveTextLength,
-  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -43,14 +40,10 @@ import {
   formatPerpsFiat,
   formatPnl,
   formatPositionSize,
-  formatPercentage,
   formatPerpsPrice,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { buildTpSlLabel } from '../../utils/positionCalculations';
-import PerpsTokenLogo from '../PerpsTokenLogo';
-import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 
 /**
  * PerpsPositionCard Component
@@ -94,18 +87,8 @@ interface PerpsPositionCardProps {
   onFlipPress?: () => void;
   onMarginPress?: () => void;
   onSharePress?: () => void;
-  /** Render as a compact row (similar to PerpsCard) */
-  compact?: boolean;
-  /** Compact layout variant: 'default' shows size/PnL, 'position' shows leverage badge + TP/SL */
-  compactVariant?: 'default' | 'position';
-  /** Press handler for compact mode */
-  onPress?: () => void;
   /** Test ID for the card */
   testID?: string;
-  /** Icon size for compact mode (default: 40) */
-  iconSize?: number;
-  /** When true, shows a small skeleton placeholder for the TP/SL field instead of "No TP/SL" */
-  tpSlLoading?: boolean;
   /** Market size decimals, used to derive Hyperliquid price precision for TP/SL display. */
   szDecimals?: number | null;
 }
@@ -119,12 +102,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   onFlipPress: _onFlipPress,
   onMarginPress,
   onSharePress,
-  compact = false,
-  compactVariant = 'default',
-  onPress,
   testID,
-  iconSize = 40,
-  tpSlLoading = false,
   szDecimals,
 }) => {
   const [showSizeInUSD, setShowSizeInUSD] = useState(false);
@@ -221,119 +199,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     }
   };
 
-  // Compact mode: render a simplified row view
-  if (compact) {
-    const displaySymbol = getPerpsDisplaySymbol(position.symbol);
-    const roeRaw = Number.parseFloat(position.returnOnEquity || '');
-    const hasValidRoe = !Number.isNaN(roeRaw) && Number.isFinite(roeRaw);
-    const roeDisplay = hasValidRoe
-      ? formatPercentage(roeRaw * 100, 2)
-      : PERPS_CONSTANTS.FallbackPercentageDisplay;
-
-    const isPositionVariant = compactVariant === 'position';
-
-    const directionLabel = isLong
-      ? strings('perps.order.long_label')
-      : strings('perps.order.short_label');
-    const leverageLabel = `${position.leverage.value}X ${isLong ? strings('perps.market.long_lowercase') : strings('perps.market.short_lowercase')}`;
-
-    let secondaryLabel: React.ReactNode;
-    let secondaryValue: React.ReactNode;
-
-    if (isPositionVariant) {
-      const tpSlLabel = buildTpSlLabel(
-        position,
-        strings('perps.order.tp'),
-        strings('perps.order.sl'),
-      );
-      const showTpSlSkeleton = tpSlLoading && !tpSlLabel;
-      secondaryLabel = showTpSlSkeleton ? (
-        <Skeleton width={80} height={14} testID="tp-sl-skeleton" />
-      ) : (
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {tpSlLabel ?? strings('homepage.sections.positions.no_tp_sl')}
-        </Text>
-      );
-      secondaryValue = (
-        <SensitiveText
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={
-            privacyMode
-              ? TextColor.TextDefault
-              : hasValidRoe
-                ? roeRaw >= 0
-                  ? TextColor.SuccessDefault
-                  : TextColor.ErrorDefault
-                : TextColor.TextAlternative
-          }
-          isHidden={privacyMode}
-          length={SensitiveTextLength.Short}
-        >
-          {roeDisplay}
-        </SensitiveText>
-      );
-    } else {
-      secondaryLabel = (
-        <SensitiveText
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          isHidden={privacyMode}
-          length={SensitiveTextLength.Short}
-        >
-          {formatPositionSize(absoluteSize.toString())} {displaySymbol}
-        </SensitiveText>
-      );
-      secondaryValue = (
-        <SensitiveText
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={
-            privacyMode
-              ? TextColor.TextDefault
-              : pnlNum >= 0
-                ? TextColor.SuccessDefault
-                : TextColor.ErrorDefault
-          }
-          isHidden={privacyMode}
-          length={SensitiveTextLength.Short}
-        >
-          {formatPnl(pnlNum)} ({roeDisplay})
-        </SensitiveText>
-      );
-    }
-
-    const positionValueNode = (
-      <SensitiveText
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextDefault}
-        isHidden={privacyMode}
-        length={SensitiveTextLength.Short}
-      >
-        {formatPerpsFiat(position.positionValue, {
-          ranges: PRICE_RANGES_MINIMAL_VIEW,
-        })}
-      </SensitiveText>
-    );
-
-    return (
-      <ListItem
-        isInteractive
-        variant={ListItemVariant.TwoLines}
-        avatar={<PerpsTokenLogo symbol={position.symbol} size={iconSize} />}
-        title={`${directionLabel} ${displaySymbol}`}
-        titleEndAccessory={<PerpsLeverage maxLeverage={leverageLabel} />}
-        description={secondaryLabel}
-        value={positionValueNode}
-        subvalue={secondaryValue}
-        onPress={onPress}
-        testID={testID}
-      />
-    );
-  }
-
   const sectionTitle = onSharePress ? (
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -428,12 +293,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     </Box>
   );
 
+  const cardTestID = testID ?? PerpsPositionCardSelectorsIDs.CARD;
+
   return (
     <Box paddingBottom={3}>
-      <Box
-        twClassName="bg-background-default rounded-xl"
-        testID={PerpsPositionCardSelectorsIDs.CARD}
-      >
+      <Box twClassName="bg-background-default rounded-xl" testID={cardTestID}>
         <SectionHeader
           title={sectionTitle}
           titleWrapperProps={
