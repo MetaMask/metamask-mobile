@@ -1062,8 +1062,11 @@ const PerpsHomeView = ({
         (isPerpsProModeEnabled ? (
           // Pro mode: persistent centered Lite/Pro toggle in the top nav
           // (the animated compact title would only appear on scroll).
+          // h-16 (64px) matches the Figma header so the 40px toggle keeps its
+          // 12px of breathing room above/below (HeaderBase defaults to 56px).
           <HeaderStandard
             includesTopInset
+            twClassName="h-16"
             title={
               <PerpsModeToggle
                 mode={perpsMode}
