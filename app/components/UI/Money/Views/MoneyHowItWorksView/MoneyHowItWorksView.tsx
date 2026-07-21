@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
   BoxAlignItems,
@@ -138,7 +139,7 @@ const FaqItem = ({
 };
 
 const MoneyHowItWorksView = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { colors: themeColors } = useTheme();
   const { apyPercent } = useMoneyAccountBalance();

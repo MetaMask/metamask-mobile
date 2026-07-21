@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { accountsApiActivityDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
 import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
@@ -19,7 +20,7 @@ const AccountsApiActivityItem = ({
   showNetworkBadge = false,
   privacyMode = false,
 }: AccountsApiActivityItemProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const activityDetailsEnabled = useSelector(
     selectMoneyEnableActivityDetailsFlag,
   );
