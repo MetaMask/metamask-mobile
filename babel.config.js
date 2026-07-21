@@ -80,7 +80,7 @@ module.exports = {
         // promise-with-resolvers.js is a Metro polyfill — no require() at that
         // stage, and Babel/preset-expo must not inject core-js/@babel/runtime
         // into it (which is exactly the crash this polyfill exists to prevent).
-        /\/polyfills\/promise-with-resolvers\.js$/.test(filename) ||
+        /\/polyfills\/promise-with-resolvers\.js$/.test(f) ||
         // expo/virtual/streams.js is a Metro polyfill — no require() available at that stage
         // Babel must not transform it or it injects require("@babel/runtime/helpers/...")
         /\/expo\/virtual\/streams\.js$/.test(f)
