@@ -759,5 +759,58 @@ describe('Toast', () => {
 
       expect(screen.getByText('Incomplete swipe toast')).toBeOnTheScreen();
     });
+
+    it('still auto-dismisses after an incomplete swipe during entrance', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Entrance swipe toast' }],
+        hasNoTimeout: false,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view, 100);
+      });
+
+      await act(async () => {
+        mockPanGestureHandlers.onStart?.();
+        mockPanGestureHandlers.onUpdate?.({ translationY: -10 });
+        mockPanGestureHandlers.onEnd?.({ translationY: -10, velocityY: -100 });
+      });
+
+      expect(screen.getByText('Entrance swipe toast')).toBeOnTheScreen();
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(screen.queryByText('Entrance swipe toast')).toBeNull();
+    });
+
+    it('does not restore toast when panned after closeToast starts dismissing', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Closing toast' }],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view, 100);
+        jest.runAllTimers();
+      });
+
+      await act(async () => {
+        toastRef.current?.closeToast();
+      });
+
+      await swipeToast({ translationY: -10, velocityY: -100 });
+
+      expect(screen.queryByText('Closing toast')).toBeNull();
+    });
   });
 });

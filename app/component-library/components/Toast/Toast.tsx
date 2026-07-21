@@ -24,7 +24,6 @@ import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
   withSpring,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -164,9 +163,13 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const gestureStartY = useSharedValue(0);
   const toastHeight = useSharedValue(0);
   const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoDismissTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const animationStartedRef = useRef(false);
   const visibleAtRef = useRef<number | null>(null);
   const hasNoTimeoutRef = useRef(false);
+  const isDismissing = useSharedValue(false);
   const topOffset = toastOptions?.customTopOffset ?? 0;
   hasNoTimeoutRef.current = Boolean(toastOptions?.hasNoTimeout);
   const animatedStyle = useAnimatedStyle(() => ({
@@ -209,15 +212,27 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     ],
   );
 
+  const clearScheduledAutoDismiss = () => {
+    if (autoDismissTimeoutRef.current !== null) {
+      clearTimeout(autoDismissTimeoutRef.current);
+      autoDismissTimeoutRef.current = null;
+    }
+  };
+
   const resetState = () => {
     animationStartedRef.current = false;
     visibleAtRef.current = null;
+    isDismissing.value = false;
+    clearScheduledAutoDismiss();
     setDescriptionLineCount(null);
     setTitleLineCount(null);
     setToastOptions(undefined);
   };
 
   const startDismissAnimation = () => {
+    clearScheduledAutoDismiss();
+    isDismissing.value = true;
+    visibleAtRef.current = null;
     translateYProgress.value = withSpring(
       hiddenTranslateY.value,
       TOAST_SPRING_CONFIG,
@@ -230,14 +245,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const scheduleAutoDismiss = (delayMs: number) => {
-    translateYProgress.value = withDelay(
-      delayMs,
-      withSpring(hiddenTranslateY.value, TOAST_SPRING_CONFIG, (finished) => {
-        if (finished) {
-          runOnJS(resetState)();
-        }
-      }),
-    );
+    clearScheduledAutoDismiss();
+    autoDismissTimeoutRef.current = setTimeout(() => {
+      autoDismissTimeoutRef.current = null;
+      startDismissAnimation();
+    }, delayMs);
   };
 
   const beginAutoDismiss = () => {
@@ -246,7 +258,13 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const resumeAutoDismissAfterSwipe = () => {
-    if (hasNoTimeoutRef.current || visibleAtRef.current === null) {
+    if (hasNoTimeoutRef.current || isDismissing.value) {
+      return;
+    }
+
+    // Entrance was interrupted before auto-dismiss started — start a full timer.
+    if (visibleAtRef.current === null) {
+      beginAutoDismiss();
       return;
     }
 
@@ -260,11 +278,16 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const syncDismissTargetAfterRemeasure = () => {
-    if (toastOptions?.hasNoTimeout || visibleAtRef.current === null) {
+    if (
+      toastOptions?.hasNoTimeout ||
+      visibleAtRef.current === null ||
+      isDismissing.value
+    ) {
       return;
     }
 
     const elapsed = Date.now() - visibleAtRef.current;
+    clearScheduledAutoDismiss();
     cancelAnimation(translateYProgress);
 
     if (elapsed >= visibilityDuration) {
@@ -304,12 +327,14 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     let timeoutDuration = 0;
     if (toastOptions) {
       if (!options.hasNoTimeout) {
+        clearScheduledAutoDismiss();
         cancelAnimation(translateYProgress);
       }
       timeoutDuration = 100;
       // Clear existing toast state to prevent animation conflicts when showing rapid successive toasts
       animationStartedRef.current = false;
       visibleAtRef.current = null;
+      isDismissing.value = false;
       setDescriptionLineCount(null);
       setTitleLineCount(null);
       setToastOptions(undefined);
@@ -321,14 +346,15 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const closeToast = () => {
-    visibleAtRef.current = null;
     startDismissAnimation();
   };
 
   const closeToastRef = useRef(closeToast);
   const resumeAutoDismissAfterSwipeRef = useRef(resumeAutoDismissAfterSwipe);
+  const clearScheduledAutoDismissRef = useRef(clearScheduledAutoDismiss);
   closeToastRef.current = closeToast;
   resumeAutoDismissAfterSwipeRef.current = resumeAutoDismissAfterSwipe;
+  clearScheduledAutoDismissRef.current = clearScheduledAutoDismiss;
 
   const dismissToastFromSwipe = () => {
     closeToastRef.current();
@@ -338,16 +364,28 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     resumeAutoDismissAfterSwipeRef.current();
   };
 
+  const clearScheduledAutoDismissFromSwipe = () => {
+    clearScheduledAutoDismissRef.current();
+  };
+
   const swipeGesture = useMemo(
     () =>
       Gesture.Pan()
         .activeOffsetY(TOAST_SWIPE_ACTIVE_OFFSET_Y)
         .failOffsetX([-TOAST_SWIPE_FAIL_OFFSET_X, TOAST_SWIPE_FAIL_OFFSET_X])
         .onStart(() => {
+          // Don't interrupt an in-progress dismiss animation.
+          if (isDismissing.value) {
+            return;
+          }
+          runOnJS(clearScheduledAutoDismissFromSwipe)();
           cancelAnimation(translateYProgress);
           gestureStartY.value = translateYProgress.value;
         })
         .onUpdate((event) => {
+          if (isDismissing.value) {
+            return;
+          }
           const nextTranslateY = gestureStartY.value + event.translationY;
           // Toast sits at the top; only allow dragging upward (more negative).
           translateYProgress.value = Math.min(
@@ -356,6 +394,9 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           );
         })
         .onEnd((event) => {
+          if (isDismissing.value) {
+            return;
+          }
           const { translationY, velocityY } = event;
           const dismissDistance = Math.max(
             toastHeight.value * TOAST_DISMISS_DISTANCE_THRESHOLD,
@@ -378,10 +419,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           translateYProgress.value = withSpring(
             visibleTranslateY.value,
             TOAST_SPRING_CONFIG,
-            (finished) => {
-              if (finished) {
-                runOnJS(resumeAutoDismissFromSwipe)();
-              }
+            () => {
+              runOnJS(resumeAutoDismissFromSwipe)();
             },
           );
         }),
