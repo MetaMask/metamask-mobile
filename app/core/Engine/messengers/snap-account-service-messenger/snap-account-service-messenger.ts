@@ -33,6 +33,7 @@ export function getSnapAccountServiceMessenger(
       'SnapController:getState',
       'SnapController:getSnap',
       'SnapController:getRunnableSnaps',
+      'SnapController:handleRequest',
       'AccountTreeController:getAccountGroupObject',
       'AccountTreeController:getSelectedAccountGroup',
     ],

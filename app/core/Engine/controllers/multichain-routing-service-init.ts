@@ -6,6 +6,7 @@ import {
 import { MultichainRoutingServiceInitMessenger } from '../messengers/multichain-routing-service-messenger';
 import { isSnapKeyring } from '@metamask/eth-snap-keyring/v2';
 import type { Json } from '@metamask/utils';
+import { v4 as uuid } from 'uuid';
 
 type WithSnapKeyringFn = ConstructorParameters<
   typeof MultichainRoutingService
@@ -36,9 +37,7 @@ export async function withSnapKeyring(
               throw new Error('Expected v2 Snap keyring');
             }
             return keyring.submitRequest({
-              // NOTE: The `id` field is required but not used in this context. The Snap keyring will
-              // generate its own unique ID for the request.
-              id: '',
+              id: uuid(),
               origin: request.origin,
               scope: request.scope,
               account: request.account,
