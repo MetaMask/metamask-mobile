@@ -63,6 +63,7 @@ describe('useImmersveSpendingPrerequisites', () => {
     expect(result.current.nextAction).toStrictEqual({
       type: 'kyc',
       url: 'https://verify.immersve.com',
+      ctaHint: undefined,
     });
   });
 
@@ -88,55 +89,60 @@ describe('useImmersveSpendingPrerequisites', () => {
     expect(result.current.error).toBeTruthy();
   });
 
-  it('polls while pending and stops once actionable', async () => {
-    jest.useFakeTimers();
-    mockCard.getSpendingPrerequisites
-      .mockResolvedValueOnce({
-        prerequisites: [{ stage: 'aml', status: 'pending' }],
-      })
-      .mockResolvedValueOnce({
-        prerequisites: [
-          {
-            stage: 'funding',
-            status: 'action-required',
-            actionType: 'smart_contract_write',
-            params: {
-              abi: [],
-              contractAddress: '0xT',
-              method: 'approve',
-              params: { _spender: '0xS', _value: '1' },
+  describe('polling while pending', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('polls while pending and stops once actionable', async () => {
+      mockCard.getSpendingPrerequisites
+        .mockResolvedValueOnce({
+          prerequisites: [{ stage: 'aml', status: 'pending' }],
+        })
+        .mockResolvedValueOnce({
+          prerequisites: [
+            {
+              stage: 'funding',
+              status: 'action-required',
+              actionType: 'smart_contract_write',
+              params: {
+                abi: [],
+                contractAddress: '0xT',
+                method: 'approve',
+                params: { _spender: '0xS', _value: '1' },
+              },
             },
-          },
-        ],
+          ],
+        });
+
+      const { result } = renderHook(() =>
+        useImmersveSpendingPrerequisites({
+          fundingSourceId: 'fs-1',
+          pollIntervalMs: 1000,
+        }),
+      );
+
+      await act(async () => {
+        await result.current.refresh();
+      });
+      expect(result.current.nextAction?.type).toBe('pending');
+
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+        await Promise.resolve();
       });
 
-    const { result } = renderHook(() =>
-      useImmersveSpendingPrerequisites({
-        fundingSourceId: 'fs-1',
-        pollIntervalMs: 1000,
-      }),
-    );
+      expect(mockCard.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
+      expect(result.current.nextAction?.type).toBe('funding');
 
-    await act(async () => {
-      await result.current.refresh();
+      await act(async () => {
+        jest.advanceTimersByTime(5000);
+        await Promise.resolve();
+      });
+      expect(mockCard.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
     });
-    expect(result.current.nextAction?.type).toBe('pending');
-
-    await act(async () => {
-      jest.advanceTimersByTime(1000);
-      await Promise.resolve();
-    });
-
-    expect(mockCard.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
-    expect(result.current.nextAction?.type).toBe('funding');
-
-    // No longer 'pending' → poll stops (funding requires explicit user action,
-    // not background polling).
-    await act(async () => {
-      jest.advanceTimersByTime(5000);
-      await Promise.resolve();
-    });
-    expect(mockCard.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
-    jest.useRealTimers();
   });
 });

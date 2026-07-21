@@ -43,7 +43,10 @@ export const cardControllerInit: MessengerClientInitFunction<
 
   const immersveConfig = resolveImmersveConfig();
   const immersveProvider = new ImmersveProvider({
-    service: new ImmersveService({ baseUrl: immersveConfig.baseUrl }),
+    service: new ImmersveService({
+      getBaseUrl: () =>
+        getCardFeatureFlag()?.immersve?.apiBaseUrl || immersveConfig.baseUrl,
+    }),
     config: immersveConfig,
     getCardFeatureFlag,
   });
