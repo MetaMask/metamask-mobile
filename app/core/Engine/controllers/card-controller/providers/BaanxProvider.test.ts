@@ -805,10 +805,12 @@ describe('BaanxProvider — getOnChainAssets (unauthenticated on-chain path)', (
     const result = await provider.getOnChainAssets(OWNER);
 
     expect(MockStaticJsonRpcProvider).toHaveBeenCalledWith(
-      expect.stringContaining('linea-mainnet.infura.io'),
+      {
+        url: expect.stringContaining('linea-mainnet.infura.io'),
+        skipFetchSetup: true,
+      },
       { chainId: 59144, name: 'linea' },
     );
-    // Falls back to safe empty state on error — no throw
     expect(result.card).toBeNull();
     expect(result.account).toBeNull();
     expect(result.actions).toContainEqual({ type: 'add_funds', enabled: true });
@@ -873,7 +875,7 @@ describe('BaanxProvider — getOnChainAssets (unauthenticated on-chain path)', (
     expect(result.card).toBeNull();
   });
 
-  it('returns the fallback and logs when an on-chain call throws', async () => {
+  it('surfaces feature-flag Linea tokens and logs when an on-chain call throws', async () => {
     MockStaticJsonRpcProvider.mockImplementation(() => {
       throw new Error('network failure');
     });
@@ -881,10 +883,11 @@ describe('BaanxProvider — getOnChainAssets (unauthenticated on-chain path)', (
     const provider = buildProvider();
     const result = await provider.getOnChainAssets(OWNER);
 
-    // Must not throw — errors are swallowed and the fallback is returned
     expect(result.card).toBeNull();
     expect(result.account).toBeNull();
-    expect(result.fundingAssets).toHaveLength(0);
+    expect(result.fundingAssets).toHaveLength(1);
+    expect(result.fundingAssets[0]?.symbol).toBe('USDC');
+    expect(result.fundingAssets[0]?.spendableBalance).toBe('');
   });
 
   describe('#fetchOnChainAllowances — batched calls', () => {
@@ -924,7 +927,10 @@ describe('BaanxProvider — getOnChainAssets (unauthenticated on-chain path)', (
 
     beforeEach(() => {
       MockStaticJsonRpcProvider.mockImplementation(
-        () => ({}) as unknown as ethers.providers.StaticJsonRpcProvider,
+        () =>
+          ({
+            getBlockNumber: jest.fn().mockResolvedValue(1),
+          }) as unknown as ethers.providers.StaticJsonRpcProvider,
       );
 
       spendersAllowancesForTokens = jest.fn();

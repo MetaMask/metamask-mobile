@@ -952,7 +952,15 @@ export class CardController extends BaseController<
         provider.getCardHomeData(address, validTokens),
       );
     }
-    return provider.getOnChainAssets?.(address) ?? emptyCardHomeData();
+
+    const onChainProvider =
+      provider.getOnChainAssets != null
+        ? provider
+        : this.providers[DEFAULT_CARD_PROVIDER_ID];
+    return (
+      (await onChainProvider?.getOnChainAssets?.(address)) ??
+      emptyCardHomeData()
+    );
   }
 
   #restoreCardHomeDataAfterOptimisticFailure(

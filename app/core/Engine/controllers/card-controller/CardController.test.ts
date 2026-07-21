@@ -3615,6 +3615,42 @@ describe('CardController — data pass-throughs', () => {
       expect(provider.getCardHomeData).not.toHaveBeenCalled();
       expect(result).toStrictEqual(onChainData);
     });
+
+    it('falls back to baanx getOnChainAssets when active provider lacks it', async () => {
+      const onChainData: CardHomeData = {
+        primaryFundingAsset: mockAsset,
+        fundingAssets: [mockAsset],
+        availableFundingAssets: [mockAsset],
+        card: null,
+        account: null,
+        alerts: [],
+        actions: [{ type: 'add_funds', enabled: true }],
+        delegationSettings: null,
+      };
+      const immersve = buildMockProvider({
+        id: 'immersve',
+        getOnChainAssets: undefined,
+      });
+      const baanx = buildMockProvider({ id: 'baanx' });
+      (baanx.getOnChainAssets as jest.Mock).mockResolvedValue(onChainData);
+      mockTokenStore.get.mockResolvedValue(null);
+
+      const messenger = buildMessengerWithEvmAccount();
+      const controller = new CardController({
+        messenger,
+        providers: { immersve, baanx },
+        state: {
+          activeProviderId: 'immersve',
+          isAuthenticated: false,
+        },
+      });
+
+      const result = await controller.getCardHomeData('0xabc');
+
+      expect(baanx.getOnChainAssets).toHaveBeenCalledWith('0xabc');
+      expect(immersve.getCardHomeData).not.toHaveBeenCalled();
+      expect(result).toStrictEqual(onChainData);
+    });
   });
 });
 
