@@ -10470,6 +10470,7 @@
     "edit": "Edit",
     "done": "Done",
     "empty_add_tokens_cta": "Add {{count}} token",
-    "empty_add_tokens_cta_plural": "Add {{count}} tokens"
+    "empty_add_tokens_cta_plural": "Add {{count}} tokens",
+    "search_placeholder": "Search for any asset to add"
   }
 }
