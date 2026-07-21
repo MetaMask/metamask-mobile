@@ -4,8 +4,14 @@ import {
   SegmentedControl,
   SegmentedControlSize,
 } from '@metamask/design-system-react-native';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsMode, type PerpsModeToggleProps } from './PerpsModeToggle.types';
 
 /**
@@ -23,16 +29,28 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
   variant = 'toggle',
   size = SegmentedControlSize.Sm,
   isFullWidth = false,
+  source,
   testID = PerpsModeToggleSelectorsIDs.CONTAINER,
 }) => {
+  const { track } = usePerpsEventTracking();
+
   const handleChange = useCallback(
     (value: string) => {
       const nextMode = value as PerpsMode;
-      if (nextMode !== mode) {
-        onChange?.(nextMode);
+      if (nextMode === mode) {
+        return;
       }
+
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PERPS_EVENT_PROPERTY.MODE]: nextMode,
+        ...(source ? { [PERPS_EVENT_PROPERTY.SOURCE]: source } : {}),
+      });
+
+      onChange?.(nextMode);
     },
-    [mode, onChange],
+    [mode, onChange, source, track],
   );
 
   const liteLabel = strings('perps.mode.lite');

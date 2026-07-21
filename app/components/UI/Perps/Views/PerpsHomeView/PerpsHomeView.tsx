@@ -22,6 +22,7 @@ import {
   TextColor,
   Box,
   BoxFlexDirection,
+  HeaderStandard,
   HeaderStandardAnimated,
   IconName,
   useHeaderStandardAnimated,
@@ -65,7 +66,9 @@ import {
   selectPerpsTopMoversEnabledFlag,
   selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
+  selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
+import PerpsModeToggle, { PerpsMode } from '../../components/PerpsModeToggle';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
@@ -172,6 +175,21 @@ const PerpsHomeView = ({
     selectPerpsRecentlyAddedEnabledFlag,
   );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
+  const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  // TODO(TAT-3551/TAT-3582): replace this local state with the shared
+  // PerpsController mode (`selectPerpsMode` / `setPerpsMode`) once TAT-3582
+  // ships, and trigger the mode-switch transition + redirect on change.
+  const [perpsMode, setPerpsMode] = useState<PerpsMode>(PerpsMode.Lite);
+  const handleModeChange = useCallback(
+    (nextMode: PerpsMode) => {
+      setPerpsMode(nextMode);
+      // Show the full-screen interstitial, which auto-redirects to Perps home.
+      navigation.navigate(Routes.PERPS.MODE_TRANSITION, {
+        mode: nextMode === PerpsMode.Pro ? 'pro' : 'lite',
+      });
+    },
+    [navigation],
+  );
   // Mirrors PerpsProducts' own visibility check (enabled + has categories).
   const productCategories = usePerpsCategories();
   const topMoversFeed = usePerpsTopMovers({
@@ -1042,28 +1060,56 @@ const PerpsHomeView = ({
   return (
     <View style={styles.container}>
       {/* Header */}
-      {!hideHeader && (
-        <HeaderStandardAnimated
-          includesTopInset
-          scrollY={headerScrollY}
-          titleSectionHeight={titleSectionHeightSv}
-          title={perpsScreenTitle}
-          onBack={handleBackPress}
-          backButtonProps={{
-            accessibilityLabel: 'Back',
-            testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
-          }}
-          endButtonIconProps={[
-            {
-              iconName: IconName.Search,
-              onPress: handleSearchToggle,
-              accessibilityLabel: 'Search',
-              testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
-            },
-          ]}
-          testID="perps-home"
-        />
-      )}
+      {!hideHeader &&
+        (isPerpsProModeEnabled ? (
+          // Pro mode: persistent centered Lite/Pro toggle in the top nav
+          // (the animated compact title would only appear on scroll).
+          <HeaderStandard
+            includesTopInset
+            title={
+              <PerpsModeToggle
+                mode={perpsMode}
+                onChange={handleModeChange}
+                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+              />
+            }
+            onBack={handleBackPress}
+            backButtonProps={{
+              accessibilityLabel: 'Back',
+              testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+            }}
+            endButtonIconProps={[
+              {
+                iconName: IconName.Search,
+                onPress: handleSearchToggle,
+                accessibilityLabel: 'Search',
+                testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
+              },
+            ]}
+            testID="perps-home"
+          />
+        ) : (
+          <HeaderStandardAnimated
+            includesTopInset
+            scrollY={headerScrollY}
+            titleSectionHeight={titleSectionHeightSv}
+            title={perpsScreenTitle}
+            onBack={handleBackPress}
+            backButtonProps={{
+              accessibilityLabel: 'Back',
+              testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+            }}
+            endButtonIconProps={[
+              {
+                iconName: IconName.Search,
+                onPress: handleSearchToggle,
+                accessibilityLabel: 'Search',
+                testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
+              },
+            ]}
+            testID="perps-home"
+          />
+        ))}
 
       {/* Main Content - ScrollView with all carousels */}
       <Reanimated.ScrollView

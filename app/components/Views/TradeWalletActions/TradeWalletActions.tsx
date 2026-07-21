@@ -75,7 +75,12 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../UI/Earn/selectors/featureFlags';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
+import PerpsModeToggle, {
+  PerpsMode,
+} from '../../UI/Perps/components/PerpsModeToggle';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
@@ -162,7 +167,14 @@ function TradeWalletActions() {
   const shouldRenderBatchSell =
     isBatchSellEnabled && AppConstants.SWAPS.ACTIVE && !isHardwareWallet;
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+
+  // TODO(TAT-3551/TAT-3582): replace this local state with the shared
+  // PerpsController mode (`selectPerpsMode` / `setPerpsMode`) once TAT-3582
+  // ships. The mode-switch transition + redirect is already wired in
+  // `onPerpsModeChange`.
+  const [perpsMode, setPerpsMode] = useState<PerpsMode>(PerpsMode.Lite);
 
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
@@ -233,6 +245,22 @@ function TradeWalletActions() {
     };
     handleNavigateBack();
   }, [handleNavigateBack, navigate, isFirstTimePerpsUser]);
+
+  const onPerpsModeChange = useCallback(
+    (nextMode: PerpsMode) => {
+      setPerpsMode(nextMode);
+      // Dismiss the Trade sheet, then show the full-screen mode-switch
+      // interstitial (which auto-redirects to Perps home).
+      postCallback.current = () => {
+        navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MODE_TRANSITION,
+          params: { mode: nextMode === PerpsMode.Pro ? 'pro' : 'lite' },
+        });
+      };
+      handleNavigateBack();
+    },
+    [handleNavigateBack, navigate],
+  );
 
   const onPredict = useCallback(() => {
     postCallback.current = () => {
@@ -362,6 +390,15 @@ function TradeWalletActions() {
           onPress={onPerps}
           testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
           isDisabled={!canSignTransactions}
+          endAccessory={
+            isPerpsProModeEnabled ? (
+              <PerpsModeToggle
+                mode={perpsMode}
+                onChange={onPerpsModeChange}
+                source={PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION}
+              />
+            ) : undefined
+          }
         />
       )}
       {isPredictEnabled && (

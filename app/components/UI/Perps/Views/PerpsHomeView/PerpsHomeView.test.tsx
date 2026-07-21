@@ -8,14 +8,19 @@ import {
   selectPerpsTopMoversEnabledFlag,
   selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
+  selectPerpsProModeEnabledFlag,
 } from '../../selectors/featureFlags';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { mockTheme } from '../../../../../util/theme';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
-import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsHomeViewSelectorsIDs,
+  PerpsModeToggleSelectorsIDs,
+} from '../../Perps.testIds';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock useDiscoveryScrollManager
 const mockPerpsOnTabEnter = jest.fn();
@@ -57,6 +62,26 @@ jest.mock('@react-navigation/native', () => ({
     callback();
   },
 }));
+
+// Stub the reusable Lite/Pro toggle so this view test focuses on header wiring
+// (its analytics/design-system internals are covered by its own unit tests).
+jest.mock('../../components/PerpsModeToggle', () => {
+  const ReactActual = jest.requireActual('react');
+  const { TouchableOpacity } = jest.requireActual('react-native');
+  const { PerpsModeToggleSelectorsIDs: SelectorsIDs } = jest.requireActual(
+    '../../Perps.testIds',
+  );
+  return {
+    __esModule: true,
+    default: ({ onChange }: { onChange?: (mode: string) => void }) =>
+      ReactActual.createElement(TouchableOpacity, {
+        testID: SelectorsIDs.CONTAINER,
+        // Simulate the user switching to Pro from the stubbed toggle.
+        onPress: () => onChange?.('pro'),
+      }),
+    PerpsMode: { Lite: 'lite', Pro: 'pro' },
+  };
+});
 
 // Mock Redux - default feedback disabled
 const mockUseSelector = jest.fn<unknown, [unknown]>(() => false);
@@ -559,6 +584,53 @@ describe('PerpsHomeView', () => {
 
     // Assert
     expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+  });
+
+  it('renders the Lite/Pro toggle in the header when the Pro mode flag is enabled', () => {
+    // Arrange
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
+    );
+
+    // Act
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    // Assert - back/search remain and the toggle is shown centered
+    expect(
+      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+    ).toBeTruthy();
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+    expect(
+      getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render the Lite/Pro toggle when the Pro mode flag is disabled', () => {
+    // Arrange
+    mockUseSelector.mockReturnValue(false);
+
+    // Act
+    const { getByTestId, queryByTestId } = render(<PerpsHomeView />);
+
+    // Assert
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
+    expect(queryByTestId(PerpsModeToggleSelectorsIDs.CONTAINER)).toBeNull();
+  });
+
+  it('navigates to the mode-transition screen when the header toggle switches mode', () => {
+    // Arrange
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
+    );
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    // Act - stubbed toggle switches to Pro on press
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
+
+    // Assert
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODE_TRANSITION, {
+      mode: 'pro',
+    });
   });
 
   it('navigates to market list view with search enabled when search button is pressed', () => {

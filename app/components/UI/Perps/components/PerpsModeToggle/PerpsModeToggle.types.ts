@@ -57,5 +57,13 @@ export interface PerpsModeToggleProps {
    */
   isFullWidth?: boolean;
 
+  /**
+   * Entry point the toggle is rendered from (e.g. Trade menu, Perps home
+   * header). Emitted as the `source` property on the Perps UI interaction
+   * event so we can attribute mode switches to their origin. Expected to be a
+   * value from `PERPS_EVENT_VALUE.SOURCE`.
+   */
+  source?: string;
+
   testID?: string;
 }

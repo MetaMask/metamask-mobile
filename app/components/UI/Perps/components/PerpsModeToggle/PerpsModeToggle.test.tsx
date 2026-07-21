@@ -1,8 +1,18 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 import PerpsModeToggle from './PerpsModeToggle';
 import { PerpsMode } from './PerpsModeToggle.types';
 import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+
+const mockTrack = jest.fn();
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({ track: mockTrack }),
+}));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -63,6 +73,10 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 describe('PerpsModeToggle', () => {
+  beforeEach(() => {
+    mockTrack.mockClear();
+  });
+
   it('renders both Lite and Pro segments in the default toggle variant', () => {
     const { getByTestId, getByText } = render(
       <PerpsModeToggle mode={PerpsMode.Lite} onChange={jest.fn()} />,
@@ -93,7 +107,48 @@ describe('PerpsModeToggle', () => {
     expect(onChange).toHaveBeenCalledWith(PerpsMode.Pro);
   });
 
-  it('does not call onChange when re-selecting the already active mode', () => {
+  it('tracks a Perps UI interaction event carrying the new mode on change', () => {
+    const { getByTestId } = render(
+      <PerpsModeToggle
+        mode={PerpsMode.Lite}
+        onChange={jest.fn()}
+        source={PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION}
+      />,
+    );
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Pro,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
+      },
+    );
+  });
+
+  it('omits the source property when no source is provided', () => {
+    const { getByTestId } = render(
+      <PerpsModeToggle mode={PerpsMode.Lite} onChange={jest.fn()} />,
+    );
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Pro,
+      },
+    );
+  });
+
+  it('does not call onChange or track when re-selecting the already active mode', () => {
     const onChange = jest.fn();
     const { getByTestId } = render(
       <PerpsModeToggle mode={PerpsMode.Lite} onChange={onChange} />,
@@ -102,6 +157,7 @@ describe('PerpsModeToggle', () => {
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
 
     expect(onChange).not.toHaveBeenCalled();
+    expect(mockTrack).not.toHaveBeenCalled();
   });
 
   it('renders only the active mode as a read-only pill in the active variant', () => {
@@ -122,5 +178,6 @@ describe('PerpsModeToggle', () => {
 
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
     expect(onChange).not.toHaveBeenCalled();
+    expect(mockTrack).not.toHaveBeenCalled();
   });
 });

@@ -27,6 +27,7 @@ import {
 import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
@@ -102,6 +103,25 @@ jest.mock('../../UI/Perps', () => ({
 jest.mock('../../UI/Perps/selectors/perpsController', () => ({
   selectIsFirstTimePerpsUser: jest.fn(),
 }));
+
+jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
+  selectPerpsProModeEnabledFlag: jest.fn(),
+}));
+
+jest.mock('../../UI/Perps/components/PerpsModeToggle', () => {
+  const ReactActual = jest.requireActual('react');
+  const { TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ onChange }: { onChange?: (mode: string) => void }) =>
+      ReactActual.createElement(TouchableOpacity, {
+        testID: 'perps-mode-toggle',
+        // Simulate the user switching to Pro from the stubbed toggle.
+        onPress: () => onChange?.('pro'),
+      }),
+    PerpsMode: { Lite: 'lite', Pro: 'pro' },
+  };
+});
 
 jest.mock('../../UI/Predict', () => ({
   selectPredictEnabledFlag: jest.fn(),
@@ -638,6 +658,85 @@ describe('TradeWalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
     ).toBeDefined();
+  });
+
+  it('should render the Lite/Pro toggle on the Perps row when the Pro mode flag is enabled', () => {
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPerpsProModeEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsProModeEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    const { getByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(getByTestId('perps-mode-toggle')).toBeOnTheScreen();
+  });
+
+  it('should not render the Lite/Pro toggle when the Pro mode flag is disabled', () => {
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPerpsProModeEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsProModeEnabledFlag
+      >
+    ).mockReturnValue(false);
+
+    const { getByTestId, queryByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
+    ).toBeDefined();
+    expect(queryByTestId('perps-mode-toggle')).toBeNull();
+  });
+
+  it('shows the mode-transition screen after dismissing the sheet when the toggle switches mode', async () => {
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPerpsProModeEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsProModeEnabledFlag
+      >
+    ).mockReturnValue(true);
+
+    const { getByTestId } = renderScreen(
+      TradeWalletActions,
+      { name: 'TradeWalletActions' },
+      { state: mockInitialState },
+    );
+
+    await pressActionButton(getByTestId, 'perps-mode-toggle');
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MODE_TRANSITION,
+      params: { mode: 'pro' },
+    });
   });
 
   it('should render the Predict button if the Predict feature flag is enabled', () => {

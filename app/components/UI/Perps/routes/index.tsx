@@ -19,6 +19,7 @@ import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import { PerpsGlobalErrorGate } from '../components/PerpsGlobalErrorGate';
 import { PerpsStreamProvider } from '../providers/PerpsStreamManager';
 import PerpsHomeView from '../Views/PerpsHomeView/PerpsHomeView';
+import PerpsModeTransitionView from '../Views/PerpsModeTransitionView';
 import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
 import PerpsMarketListView from '../Views/PerpsMarketListView';
 import PerpsRedirect from '../Views/PerpsRedirect';
@@ -285,6 +286,17 @@ const PerpsScreenStack = () => {
                 title: strings('perps.home.markets'),
                 showBalanceActions: false,
                 showBottomNav: false,
+              }}
+            />
+
+            {/* Lite/Pro mode-switch interstitial (auto-redirects to Perps home) */}
+            <Stack.Screen
+              name={Routes.PERPS.MODE_TRANSITION}
+              component={PerpsModeTransitionView}
+              options={{
+                headerShown: false,
+                gestureEnabled: false,
+                animation: 'fade',
               }}
             />
 
