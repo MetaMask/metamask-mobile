@@ -2,7 +2,12 @@ import { ethers } from 'ethers';
 import {
   encodeSmartContractWrite,
   immersveNetworkToCaipChainId,
+  immersveNetworkToFundingToken,
 } from './immersveFunding';
+import {
+  BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
+  BASE_USDC_TOKEN_ADDRESS,
+} from '../constants';
 import type { CardSmartContractWriteParams } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
 const APPROVE_ABI = [
@@ -30,6 +35,29 @@ describe('immersveNetworkToCaipChainId', () => {
   it('throws for an unknown or missing network', () => {
     expect(() => immersveNetworkToCaipChainId('polygon')).toThrow();
     expect(() => immersveNetworkToCaipChainId(undefined)).toThrow();
+  });
+});
+
+describe('immersveNetworkToFundingToken', () => {
+  it('maps base-mainnet to Base USDC token info', () => {
+    expect(immersveNetworkToFundingToken('base-mainnet')).toStrictEqual({
+      caipChainId: 'eip155:8453',
+      tokenAddress: BASE_USDC_TOKEN_ADDRESS,
+      decimals: 6,
+    });
+  });
+
+  it('maps base-sepolia to Base Sepolia USDC token info', () => {
+    expect(immersveNetworkToFundingToken('base-sepolia')).toStrictEqual({
+      caipChainId: 'eip155:84532',
+      tokenAddress: BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
+      decimals: 6,
+    });
+  });
+
+  it('throws for an unknown or missing network', () => {
+    expect(() => immersveNetworkToFundingToken('polygon')).toThrow();
+    expect(() => immersveNetworkToFundingToken(undefined)).toThrow();
   });
 });
 
