@@ -258,6 +258,7 @@ function TradeWalletActions() {
         navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.MODE_TRANSITION,
           params: { mode: nextMode === PerpsMode.Pro ? 'pro' : 'lite' },
+          initial: false,
         });
       };
       handleNavigateBack();

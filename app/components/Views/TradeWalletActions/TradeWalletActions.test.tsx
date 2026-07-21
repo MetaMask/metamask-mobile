@@ -745,6 +745,7 @@ describe('TradeWalletActions', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MODE_TRANSITION,
       params: { mode: 'pro' },
+      initial: false,
     });
   });
 
