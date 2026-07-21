@@ -13,16 +13,6 @@ import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 
-console.log('test file was loaded');
-console.log(
-  '[test] Is Engine mocked?',
-  'init' in Engine ? 'no' : 'yes',
-);
-console.log(
-  '[test] Is Engine.controllerMessenger.call mocked?',
-  'mock' in Engine.controllerMessenger.call ? 'yes' : 'no',
-);
-
 const MOCK_NOTIFICATION_PREFERENCES = {
   walletActivity: {
     inAppNotificationsEnabled: true,
@@ -110,26 +100,16 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
       action: string,
       ...args: unknown[]
     ) => {
-      console.log('Yay we are in the mock!');
-
       if (action === GET_NOTIFICATION_PREFERENCES_ACTION) {
-        console.log('We matched:', GET_NOTIFICATION_PREFERENCES_ACTION);
         return Promise.resolve(MOCK_NOTIFICATION_PREFERENCES);
       }
 
       return controllerMessengerCall(action, ...args);
     }) as unknown as typeof Engine.controllerMessenger.call;
 
-    console.log('[test] Mocking Engine.controllerMessenger.call');
-    const spy = jest
+    jest
       .spyOn(Engine.controllerMessenger, 'call')
       .mockImplementation(mockControllerMessengerCall);
-
-    console.log(
-      '[test] Is Engine.controllerMessenger.call NOW mocked?',
-      'mock' in Engine.controllerMessenger.call ? 'yes' : 'no',
-    );
-    // console.log("[test] spy mocked?", ("mock" in spy) ? "yes" : "no");
   });
 
   afterEach(() => {
@@ -157,7 +137,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(getByText('Off')).toBeOnTheScreen();
   });
 
-  it.only('hides social AI section when social leaderboard feature flag is disabled', async () => {
+  it('hides social AI section when social leaderboard feature flag is disabled', async () => {
     const { getByText, queryByText, findAllByText, findByText } =
       renderSettings({ socialLeaderboardEnabled: false });
 

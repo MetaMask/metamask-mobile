@@ -1435,8 +1435,6 @@ function assertEngineExists(
 
 let instance: Engine | null;
 
-console.log('Yes, we loaded Engine');
-
 export default {
   get context() {
     assertEngineExists(instance);
@@ -1444,7 +1442,6 @@ export default {
   },
 
   get controllerMessenger() {
-    console.log('Yes, Engine.controllerMessenger is really being called');
     assertEngineExists(instance);
     return instance.controllerMessenger;
   },

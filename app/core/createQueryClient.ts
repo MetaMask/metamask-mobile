@@ -6,16 +6,6 @@ import Engine from './Engine';
 import type { GlobalActions } from './Engine/types';
 import { DATA_SERVICES } from '../constants/data-services';
 
-console.log('createQueryClient was loaded');
-console.log(
-  '[createQueryClient] Is Engine mocked?',
-  'init' in Engine ? 'no' : 'yes',
-);
-console.log(
-  '[createQueryClient] Is Engine.controllerMessenger.call mocked?',
-  'mock' in Engine.controllerMessenger.call ? 'yes' : 'no',
-);
-
 type DataServiceName = (typeof DATA_SERVICES)[number];
 
 /**
@@ -45,7 +35,6 @@ export class RootMessengerAdapter {
       Extract<GlobalActions['type'], `${DataServiceName}:${string}`>
     >
   ): unknown {
-    console.log('Calling messenger action:', actionType, params);
     return this.#messenger.call(actionType, ...params);
   }
 
@@ -67,15 +56,6 @@ export class RootMessengerAdapter {
 export function createQueryClient(
   options?: Partial<Parameters<typeof createUIQueryClient>[2]>,
 ) {
-  console.log('In createQueryClient, wrapping Engine.controllerMessenger');
-  console.log(
-    '[createQueryClient] Is Engine STILL mocked?',
-    'init' in Engine ? 'no' : 'yes',
-  );
-  console.log(
-    '[createQueryClient] Is Engine.controllerMessenger.call NOW mocked?',
-    'mock' in Engine.controllerMessenger.call ? 'yes' : 'no',
-  );
   const rootMessengerAdapter = new RootMessengerAdapter();
 
   return createUIQueryClient(DATA_SERVICES, rootMessengerAdapter, {
