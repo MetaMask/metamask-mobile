@@ -32,7 +32,6 @@ export const QuickBuyEventProperties = {
   STATUS: 'status',
   TRADE_TYPE: 'trade_type',
   TRADER_ADDRESS: 'trader_address',
-  TRADER_TRADE_TYPE: 'trader_trade_type',
   TX_HASH: 'tx_hash',
 } as const;
 
@@ -58,7 +57,7 @@ export const QuickBuyEventValues = {
     SUCCESS: 'success',
     FAILED: 'failed',
   },
-  TRADER_TRADE_TYPE: {
+  TRADE_TYPE: {
     BUY: 'buy',
     SELL: 'sell',
   },
@@ -69,6 +68,7 @@ export type QuickBuySheetSource =
   | 'notification'
   | 'profile_position'
   | 'leaderboard'
+  | 'trader_feed'
   | 'asset_details'
   | 'market_insights'
   | 'security_trust'
@@ -88,4 +88,5 @@ export type QuickBuyOriginalEntryPoint =
   | 'trader_profile'
   | 'notification'
   | 'deep_link'
-  | 'home_carousel';
+  | 'home_carousel'
+  | 'trader_feed';
