@@ -9056,9 +9056,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-ledger-bridge-keyring@npm:@metamask-previews/eth-ledger-bridge-keyring@12.3.0-1fa477f":
-  version: 12.3.0-1fa477f
-  resolution: "@metamask-previews/eth-ledger-bridge-keyring@npm:12.3.0-1fa477f"
+"@metamask/eth-ledger-bridge-keyring@npm:^12.4.0":
+  version: 12.4.0
+  resolution: "@metamask/eth-ledger-bridge-keyring@npm:12.4.0"
   dependencies:
     "@ethereumjs/rlp": "npm:^5.0.2"
     "@ethereumjs/tx": "npm:^5.4.0"
@@ -9069,12 +9069,12 @@ __metadata:
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/hw-transport": "npm:^6.31.3"
     "@metamask/eth-sig-util": "npm:^8.2.0"
-    "@metamask/hw-wallet-sdk": "npm:0.10.0"
-    "@metamask/keyring-api": "npm:23.5.0"
-    "@metamask/keyring-sdk": "npm:2.2.0"
+    "@metamask/hw-wallet-sdk": "npm:^0.11.0"
+    "@metamask/keyring-api": "npm:^23.5.0"
+    "@metamask/keyring-sdk": "npm:^2.2.0"
     hdkey: "npm:^2.1.0"
     rxjs: "npm:^7.8.2"
-  checksum: 10/866c683b437a9baba265b5cd8ad83cb8b14ce39addcf40037610bc5af83131a90a0c747d6b952f3738a10b833df411d0a24af256a4324facebd04af1d0b233e6
+  checksum: 10/dba6a5adc3094de24ca92a8a378a6f0c921d9ff114f49f237985492ec15ecf74df300e9a311a483238206f96d222548fbd4fb20ee7a44e74b52c10dac576b55a
   languageName: node
   linkType: hard
 
@@ -9380,17 +9380,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/hw-wallet-sdk@npm:0.10.0":
-  version: 0.10.0
-  resolution: "@metamask/hw-wallet-sdk@npm:0.10.0"
-  checksum: 10/9efd28a65193f7a9ce2a9e3d5f2709139c9106669ffe9012f7a667492d1ced7a20fd02265ef341c62b78d378fbfc18139a81715d5241e6bcdee762a1aecaa69d
-  languageName: node
-  linkType: hard
-
-"@metamask/hw-wallet-sdk@npm:@metamask-previews/hw-wallet-sdk@0.10.0-1fa477f":
-  version: 0.10.0-1fa477f
-  resolution: "@metamask-previews/hw-wallet-sdk@npm:0.10.0-1fa477f"
-  checksum: 10/df33a57ccde5bd101bd1ad7dee51dab4638e49b1729c8d392a659b7c7e379697714e8233333ffcc49dbdd0498e73ddcb8ae80b0d3d18b5f7372b6d2568a88c24
+"@metamask/hw-wallet-sdk@npm:^0.11.0":
+  version: 0.11.0
+  resolution: "@metamask/hw-wallet-sdk@npm:0.11.0"
+  checksum: 10/3c12bb318b543e0f9a242cbfa5fb2427f543f95246c887c326aaef93c47ce087397c8ad89ce1c66c8650c88113bb7933d8e4ed9a04d029c58ed4fde8d389cd07
   languageName: node
   linkType: hard
 
@@ -9447,7 +9440,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:23.5.0, @metamask/keyring-api@npm:^23.1.0, @metamask/keyring-api@npm:^23.2.0, @metamask/keyring-api@npm:^23.3.0, @metamask/keyring-api@npm:^23.5.0":
+"@metamask/keyring-api@npm:^23.1.0, @metamask/keyring-api@npm:^23.2.0, @metamask/keyring-api@npm:^23.3.0, @metamask/keyring-api@npm:^23.5.0":
   version: 23.5.0
   resolution: "@metamask/keyring-api@npm:23.5.0"
   dependencies:
@@ -9506,7 +9499,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-sdk@npm:2.2.0, @metamask/keyring-sdk@npm:^2.0.2, @metamask/keyring-sdk@npm:^2.1.1, @metamask/keyring-sdk@npm:^2.2.0":
+"@metamask/keyring-sdk@npm:^2.0.2, @metamask/keyring-sdk@npm:^2.1.1, @metamask/keyring-sdk@npm:^2.2.0":
   version: 2.2.0
   resolution: "@metamask/keyring-sdk@npm:2.2.0"
   dependencies:
@@ -36266,7 +36259,7 @@ __metadata:
     "@metamask/eth-hd-keyring": "npm:^14.1.1"
     "@metamask/eth-json-rpc-filters": "npm:^9.0.0"
     "@metamask/eth-json-rpc-middleware": "npm:^23.1.2"
-    "@metamask/eth-ledger-bridge-keyring": "npm:@metamask-previews/eth-ledger-bridge-keyring@12.3.0-1fa477f"
+    "@metamask/eth-ledger-bridge-keyring": "npm:^12.4.0"
     "@metamask/eth-money-keyring": "npm:^3.0.0"
     "@metamask/eth-qr-keyring": "npm:^2.1.0"
     "@metamask/eth-query": "npm:^4.0.0"
@@ -36280,7 +36273,7 @@ __metadata:
     "@metamask/gas-fee-controller": "npm:^26.1.0"
     "@metamask/gator-permissions-controller": "npm:^4.0.0"
     "@metamask/geolocation-controller": "npm:^0.1.1"
-    "@metamask/hw-wallet-sdk": "npm:@metamask-previews/hw-wallet-sdk@0.10.0-1fa477f"
+    "@metamask/hw-wallet-sdk": "npm:^0.11.0"
     "@metamask/json-rpc-engine": "npm:^10.5.0"
     "@metamask/json-rpc-middleware-stream": "npm:^8.0.7"
     "@metamask/key-tree": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch"
