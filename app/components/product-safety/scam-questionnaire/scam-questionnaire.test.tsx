@@ -27,6 +27,13 @@ jest.mock('./useScamQuestionnaireMetrics', () => ({
   }),
 }));
 
+const mockOpenSupportWithConsent = jest.fn();
+jest.mock('../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
+
 jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
 
 const setup = () => {
@@ -149,13 +156,16 @@ describe('ScamQuestionnaire', () => {
     expect(mockTrackWarningStopped).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the support URL and tracks the support event when "Contact support" is tapped', () => {
+  it('opens the support consent flow and tracks the support event when "Contact support" is tapped', () => {
     const { getByTestId } = setup();
     answerOneRedFlag(getByTestId);
 
     fireEvent.press(getByTestId('scam-warning-contact-support'));
 
-    expect(Linking.openURL).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
+    expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      METAMASK_SUPPORT_URL,
+    );
     expect(mockTrackWarningContactSupport).toHaveBeenCalledTimes(1);
   });
 
