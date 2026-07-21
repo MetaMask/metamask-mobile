@@ -129,7 +129,7 @@ describe('DeFiPositionsControllerInit', () => {
         const controllerMock = jest.mocked(DeFiPositionsController);
         const isEnabled = controllerMock.mock.calls[0][0].isEnabled;
 
-        expect(isEnabled()).toBe(expected);
+        expect(isEnabled?.()).toBe(expected);
       },
     );
   });

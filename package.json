@@ -234,7 +234,8 @@
     "@expo/cli@npm:55.0.32": "patch:@expo/cli@npm%3A55.0.32#~/.yarn/patches/@expo-cli-npm-55.0.32-5fb47bae24.patch",
     "expo-modules-autolinking@npm:3.0.24": "patch:expo-modules-autolinking@npm%3A3.0.24#~/.yarn/patches/expo-modules-autolinking-npm-3.0.24-67e807d080.patch",
     "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
-    "@metamask/assets-controller@npm:^11.0.0": "patch:@metamask/assets-controller@npm%3A11.0.0#~/.yarn/patches/@metamask-assets-controller-npm-11.0.0-401c665ed9.patch"
+    "@metamask/assets-controller@npm:^11.0.0": "patch:@metamask/assets-controller@npm%3A11.0.0#~/.yarn/patches/@metamask-assets-controller-npm-11.0.0-401c665ed9.patch",
+    "@metamask/core-backend": "npm:@metamask-previews/core-backend@6.5.0-preview-7144a6308"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",

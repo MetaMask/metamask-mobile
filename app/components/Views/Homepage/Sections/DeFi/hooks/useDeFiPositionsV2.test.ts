@@ -54,7 +54,10 @@ describe('useDeFiPositionsV2', () => {
         cancelIdleCallback: (handle: number) => void;
       }
     ).requestIdleCallback = (callback) => {
-      callback();
+      callback({
+        didTimeout: false,
+        timeRemaining: () => 1,
+      });
       return 0;
     };
     (
