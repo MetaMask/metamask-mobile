@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { strings } from '../../../../../../../locales/i18n';
@@ -13,7 +14,7 @@ interface RemoveAccountProps {
 }
 
 export const RemoveAccount = ({ account }: RemoveAccountProps) => {
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
 
   const handleRemoveAccountClick = useCallback(() => {

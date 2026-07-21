@@ -10,6 +10,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
@@ -45,7 +46,7 @@ export const EditAccountName = () => {
   const { colors, themeAppearance } = useTheme();
   const route = useRoute<EditAccountNameRouteProp>();
   const { account } = route.params;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [accountName, setAccountName] = useState(account.metadata.name);
   const [error, setError] = useState<string | null>(null);
 

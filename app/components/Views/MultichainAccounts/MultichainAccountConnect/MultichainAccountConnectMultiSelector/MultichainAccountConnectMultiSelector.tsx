@@ -34,6 +34,7 @@ import { selectAccountGroups } from '../../../../../selectors/multichainAccounts
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 interface MultichainAccountConnectMultiSelectorProps {
   accountGroups: AccountGroupWithInternalAccounts[];
@@ -69,7 +70,7 @@ const MultichainAccountConnectMultiSelector = ({
     ],
     [styles.safeArea, insets.top, insets.bottom],
   );
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [selectedAccountGroupIdsSet, setSelectedAccountGroupIdsSet] = useState<
     Set<AccountGroupId>
   >(() => new Set());

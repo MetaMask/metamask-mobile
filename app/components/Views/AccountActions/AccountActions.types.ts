@@ -32,6 +32,7 @@ export interface RevokeAllAccountPermissionsParams {
 /** Connection details parameters */
 export interface ConnectionDetailsParams {
   connectionDateTime?: number;
+  hostInfo?: { metadata: { origin: string } };
 }
 
 /** Add account parameters */

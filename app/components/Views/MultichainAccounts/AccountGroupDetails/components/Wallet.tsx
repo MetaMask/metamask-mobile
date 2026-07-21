@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { AccountWalletObject } from '@metamask/account-tree-controller';
 import {
   Box,
@@ -26,7 +27,7 @@ export interface WalletProps {
 
 export const Wallet = ({ wallet }: WalletProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleWalletClick = useCallback(() => {
     navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS, {
