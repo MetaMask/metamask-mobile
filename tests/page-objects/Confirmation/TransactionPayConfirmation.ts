@@ -162,7 +162,8 @@ class TransactionPayConfirmation {
     });
   }
 
-  // The row has no testID, so match the full balance text.
+  // Shared MetaMask Pay withdraw marker (Perps + Predict). No testID — match
+  // the full "Available balance: $X" string (iOS by.text needs the amount).
   get availableBalance(): EncapsulatedElementType {
     return Matchers.getElementByText(/Available balance: \$[0-9,.]+/u);
   }
