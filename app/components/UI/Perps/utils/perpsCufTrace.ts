@@ -187,8 +187,11 @@ export function endPerpsCufTrace({
   endTrace({ name, id, data, timestamp });
   // A completed operation/reconnect CUF also settles the foreground to `warm`
   // (see FOREGROUND_SETTLING_SPANS): this covers a resume where a Perps screen
-  // stayed mounted, so no entry span re-completes to draw the boundary.
-  settlePerpsForegroundOnSpan(name);
+  // stayed mounted, so no entry span re-completes to draw the boundary. An
+  // explicitly failed span cannot establish that foreground work completed.
+  if (data?.[PERPS_CUF_TAG.SUCCESS] !== false) {
+    settlePerpsForegroundOnSpan(name);
+  }
 }
 
 /**
