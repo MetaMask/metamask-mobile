@@ -1,12 +1,14 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
+  KeyValueRow,
+  KeyValueRowVariant,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
-import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Badge, {
@@ -15,17 +17,10 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
 import { isHardwareAccount } from '../../../../../util/address';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { useTheme } from '../../../../../util/theme';
 import BaseTokenIcon from '../../../../Base/TokenIcon';
-import { Box } from '../../../../UI/Box/Box';
-import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
 import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
@@ -45,6 +40,10 @@ import {
 import { PERPS_BALANCE_ICON_URI } from '../../hooks/usePerpsBalanceTokenFilter';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import {
+  consumePerpsPaymentTokenSelection,
+  resetPerpsPaymentTokenSelection,
+} from '../../utils/perpsPaymentTokenSelection';
 import { Hex } from '@metamask/utils';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 
@@ -56,50 +55,13 @@ const tokenIconStyles = StyleSheet.create({
   },
 });
 
-const createPayRowStyles = (colors: { background: { section: string } }) =>
-  StyleSheet.create({
-    payRowSection: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: colors.background.section,
-      borderRadius: 8,
-      padding: 12,
-      marginBottom: 12,
-    },
-    /** When embedded below another box (e.g. TP/SL), parent provides background and radius */
-    payRowEmbedded: {
-      borderRadius: 0,
-      marginBottom: 0,
-    },
-    payRowLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flex: 1,
-    },
-    infoIcon: {
-      marginLeft: 0,
-      padding: 10,
-      marginRight: -6,
-      marginTop: -10,
-      marginBottom: -10,
-    },
-  });
-
 export interface PerpsPayRowProps {
   /** Optional callback when the info (i) icon is pressed, e.g. for tooltip */
   onPayWithInfoPress?: () => void;
-  /** When true, row is stacked below another box (e.g. TP/SL); parent provides background and border radius */
-  embeddedInStack?: boolean;
 }
 
-export const PerpsPayRow = ({
-  onPayWithInfoPress,
-  embeddedInStack = false,
-}: PerpsPayRowProps) => {
+export const PerpsPayRow = ({ onPayWithInfoPress }: PerpsPayRowProps) => {
   const navigation = useNavigation();
-  const { colors } = useTheme();
-  const styles = createPayRowStyles(colors);
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { track } = usePerpsEventTracking();
   const { payToken } = useTransactionPayToken();
@@ -112,6 +74,15 @@ export const PerpsPayRow = ({
 
   const canEdit = !isHardwareAccount(from ?? '');
 
+  // stable token identity (address + chainId, not symbol) captured
+  // when the selector opens. Comparing identity avoids misclassifying a
+  // selection of a different token that shares a symbol as a dismissal. `null`
+  // means no selector open is pending.
+  const payTokenIdentity = payToken
+    ? `${payToken.address}:${payToken.chainId}`
+    : '';
+  const selectorOpenIdentityRef = useRef<string | null>(null);
+
   const handleClick = useCallback(() => {
     if (!canEdit) return;
     setConfirmationMetric({
@@ -123,10 +94,35 @@ export const PerpsPayRow = ({
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR,
     });
+    selectorOpenIdentityRef.current = payTokenIdentity;
+    // Clear any stale selection marker so only a press during THIS open counts.
+    resetPerpsPaymentTokenSelection();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
-  }, [canEdit, navigation, setConfirmationMetric, track]);
+  }, [canEdit, navigation, payTokenIdentity, setConfirmationMetric, track]);
 
-  // Display data: use local state (defaults to Perps balance) so UI always shows "Perps balance" by default
+  // emit payment_token_selector_dismissed when this screen regains
+  // focus after the selector closes WITHOUT an explicit row selection. A row
+  // press (even re-selecting the current token, which leaves identity unchanged)
+  // sets the selection marker; only a true dismiss with no press and unchanged
+  // identity is reported. A pending ref set on open guards the initial mount.
+  useFocusEffect(
+    useCallback(() => {
+      const identityAtOpen = selectorOpenIdentityRef.current;
+      if (identityAtOpen === null) {
+        return;
+      }
+      selectorOpenIdentityRef.current = null;
+      const selectionMade = consumePerpsPaymentTokenSelection();
+      if (!selectionMade && payTokenIdentity === identityAtOpen) {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR_DISMISSED,
+          [PERPS_EVENT_PROPERTY.CURRENT_TOKEN]: payToken?.symbol,
+        });
+      }
+    }, [payTokenIdentity, payToken, track]),
+  );
+
   const displayToken = matchesPerpsBalance
     ? {
         address: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
@@ -154,86 +150,62 @@ export const PerpsPayRow = ({
     [displayToken.networkBadgeChainId],
   );
 
+  const valueLabel = matchesPerpsBalance
+    ? strings('perps.adjust_margin.perps_balance')
+    : displayToken.symbol;
+
+  const valueStartAccessory = matchesPerpsBalance ? (
+    <BaseTokenIcon
+      testID="perps-pay-row-token-icon"
+      icon={PERPS_BALANCE_ICON_URI}
+      symbol={strings('perps.adjust_margin.perps_balance')}
+      style={tokenIconStyles.iconSmall}
+    />
+  ) : token ? (
+    <BadgeWrapper
+      badgePosition={BadgePosition.BottomRight}
+      badgeElement={
+        <Badge
+          variant={BadgeVariant.Network}
+          imageSource={networkImageSource}
+        />
+      }
+    >
+      <BaseTokenIcon
+        testID="perps-pay-row-token-icon"
+        icon={token.image}
+        symbol={token.symbol}
+        style={tokenIconStyles.iconSmall}
+      />
+    </BadgeWrapper>
+  ) : null;
+
   return (
     <TouchableOpacity
       onPress={handleClick}
       disabled={!canEdit}
       activeOpacity={0.7}
-      style={[styles.payRowSection, embeddedInStack && styles.payRowEmbedded]}
       testID={ConfirmationRowComponentIDs.PAY_WITH}
     >
-      <Box
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
-        style={styles.payRowLeft}
-      >
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {strings('confirm.label.pay_with')}
-        </Text>
-        <TouchableOpacity
-          onPress={() => onPayWithInfoPress?.()}
-          style={styles.infoIcon}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          testID="perps-pay-row-info"
-        >
-          <Icon
-            name={IconName.Info}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        </TouchableOpacity>
-      </Box>
-      <Box
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
-        gap={8}
-      >
-        {matchesPerpsBalance ? (
-          <>
-            <BaseTokenIcon
-              testID="perps-pay-row-token-icon"
-              icon={PERPS_BALANCE_ICON_URI}
-              symbol={strings('perps.adjust_margin.perps_balance')}
-              style={tokenIconStyles.iconSmall}
-            />
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Default}
-              testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
-            >
-              {strings('perps.adjust_margin.perps_balance')}
-            </Text>
-          </>
-        ) : (
-          <>
-            {token ? (
-              <BadgeWrapper
-                badgePosition={BadgePosition.BottomRight}
-                badgeElement={
-                  <Badge
-                    variant={BadgeVariant.Network}
-                    imageSource={networkImageSource}
-                  />
-                }
-              >
-                <BaseTokenIcon
-                  testID="perps-pay-row-token-icon"
-                  icon={token.image}
-                  symbol={token.symbol}
-                  style={tokenIconStyles.iconSmall}
-                />
-              </BadgeWrapper>
-            ) : null}
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Default}
-              testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
-            >
-              {displayToken.symbol}
-            </Text>
-          </>
-        )}
-      </Box>
+      <KeyValueRow
+        variant={KeyValueRowVariant.Input}
+        keyLabel={strings('confirm.label.pay_with')}
+        keyEndButtonIconProps={{
+          iconName: IconName.Info,
+          onPress: () => onPayWithInfoPress?.(),
+          testID: 'perps-pay-row-info',
+        }}
+        valueStartAccessory={valueStartAccessory}
+        value={
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
+            testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
+          >
+            {valueLabel}
+          </Text>
+        }
+      />
     </TouchableOpacity>
   );
 };

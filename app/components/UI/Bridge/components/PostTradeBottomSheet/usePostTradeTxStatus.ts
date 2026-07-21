@@ -84,10 +84,15 @@ export const usePostTradeTxStatus = ({
     submittedTransactionHash ??
     normalizeHash(bridgeHistoryItem?.status?.srcChain?.txHash) ??
     normalizeHash(transactionMetaId);
+
+  const isCrossChainQuote = quote
+    ? quote.srcChainId !== quote.destChainId
+    : false;
+  const isBridgeTx = isBridge || isCrossChainQuote;
   // Same-chain Solana swaps never terminalize in `BridgeStatusController`, so
   // resolve them from `MultichainTransactionsController` instead
   const shouldResolveFromMultichain = Boolean(
-    !isBridge && quote && isSolanaChainId(quote.srcChainId),
+    !isBridgeTx && quote && isSolanaChainId(quote.srcChainId),
   );
   const multichainStatus = useSelector((state: RootState) =>
     getMultichainPostTradeStatus(
@@ -117,14 +122,17 @@ export const usePostTradeTxStatus = ({
   }
 
   if (bridgeStatus === StatusTypes.COMPLETE) {
-    return PostTradeStatus.Success;
+    const hasDestTxHash = Boolean(bridgeHistoryItem?.status?.destChain?.txHash);
+    if (!isBridgeTx || hasDestTxHash) {
+      return PostTradeStatus.Success;
+    }
   }
 
   if (multichainStatus) {
     return multichainStatus;
   }
 
-  if (!isBridge && transactionStatus === TransactionStatus.confirmed) {
+  if (!isBridgeTx && transactionStatus === TransactionStatus.confirmed) {
     return PostTradeStatus.Success;
   }
 

@@ -164,13 +164,13 @@ export const downloadStateLogs = async (
     // a filename and JSON mime type lets Android offer "Save to Files"/Drive.
     await RNFS.writeFile(path, stateLogsWithReleaseDetails, 'utf8');
 
-    // Pass the plain file path (no `file://` scheme). react-native-share
-    // copies it into its own FileProvider and shares a `content://` URI;
-    // passing a raw `file://` URI crashes Android with FileUriExposedException.
+    // Pass a `file://` URI so react-native-share treats this as a file
+    // attachment on Android (plain paths are shared as EXTRA_TEXT). The
+    // library converts the path to a `content://` URI via FileProvider.
     await Share.open({
       subject: `${appName} State logs -  v${appVersion} (${buildNumber})`,
       title: `${appName} State logs -  v${appVersion} (${buildNumber})`,
-      url: path,
+      url: `file://${path}`,
       filename,
       type: 'application/json',
       failOnCancel: false,

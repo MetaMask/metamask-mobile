@@ -25,10 +25,14 @@ import {
   applyDisplaySign,
   type ActivityKind,
   type ActivityListItem,
+  enrichTokenFromApi,
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
+  isFailedOrCancelledTransfer,
+  isPerpsOrderKind,
   isUnlimitedApprovalAmount,
   shouldShowPlusSign,
+  type Status,
   type TokenAmount,
   toMarketRateLookupToken,
 } from '../../../util/activity-adapters';
@@ -40,7 +44,14 @@ import {
 } from '../../../util/number/bigint';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import { useAccountNames } from '../../hooks/DisplayName/useAccountNames';
+import { NameType } from '../Name/Name.types';
 import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
+import {
+  ACTIVITY_FALLBACK_TITLE_RESOLVERS,
+  resolvePerpsOrderStatusLabel,
+  TOKEN_ACTION_LABELS,
+} from './titleLabels';
 
 function isPerpsFundsKind(type: ActivityKind): boolean {
   return type === 'perpsAddFunds' || type === 'perpsWithdraw';
@@ -50,14 +61,20 @@ function isPerpsFundingKind(type: ActivityKind): boolean {
   return type === 'perpsPaidFundingFees' || type === 'perpsReceivedFundingFees';
 }
 
-function isPerpsTradeKind(type: ActivityKind): boolean {
+/**
+ * Perps trade fills, whose amount is realized PnL (gains green, losses red).
+ * Excludes orders, funds, and funding — they show a notional and stay neutral.
+ */
+function isPerpsPnlKind(type: ActivityKind): boolean {
   return (
-    (type.startsWith('perps') &&
-      !isPerpsFundsKind(type) &&
-      !isPerpsFundingKind(type)) ||
-    type.startsWith('market') ||
-    type.startsWith('stopMarket')
+    type.startsWith('perps') &&
+    !isPerpsFundsKind(type) &&
+    !isPerpsFundingKind(type)
   );
+}
+
+function isPerpsTradeKind(type: ActivityKind): boolean {
+  return isPerpsPnlKind(type) || isPerpsOrderKind(type);
 }
 
 function isPerpsMarketAvatarKind(type: ActivityKind): boolean {
@@ -118,7 +135,7 @@ function normalizeBridgeQuoteChainId(
     return `0x${Number.parseInt(chainId, 10).toString(16)}`;
   }
 
-  return chainId.toLowerCase();
+  return chainId.startsWith('0x') ? chainId.toLowerCase() : chainId;
 }
 
 function getBridgeQuoteNetworkName(
@@ -199,6 +216,18 @@ function shortAddress(address?: string): string | undefined {
   return address ? renderShortAddress(address) : undefined;
 }
 
+function bridgeAmountTokens(
+  sourceToken?: TokenAmount,
+  destinationToken?: TokenAmount,
+): { primaryToken?: TokenAmount; secondaryToken?: TokenAmount } {
+  const primaryToken = destinationToken?.amount
+    ? destinationToken
+    : sourceToken;
+  const secondaryToken =
+    primaryToken === destinationToken ? sourceToken : destinationToken;
+  return { primaryToken, secondaryToken };
+}
+
 function formatProtocolName(protocol: string): string {
   return protocol
     .toLowerCase()
@@ -263,47 +292,6 @@ function statusTitle(
   return titles.success;
 }
 
-const ACTIVITY_FALLBACK_TITLE_RESOLVERS: Partial<
-  Record<ActivityKind, () => string>
-> = {
-  predictionsAddFunds: () =>
-    strings('transactions.activity_prediction_account_funded'),
-  predictionsWithdrawFunds: () =>
-    strings('transactions.activity_prediction_withdrawal'),
-  predictionClaimWinnings: () => strings('predict.transactions.claim_title'),
-  predictionCashedOut: () => strings('predict.transactions.sell_title'),
-  // Design board copy: "Prediction placed" (not the legacy "Predicted").
-  predictionPlaced: () => strings('transactions.activity_prediction_placed'),
-  perpsAddFunds: () => strings('transactions.activity_perps_account_funded'),
-  perpsWithdraw: () => strings('transactions.activity_perps_withdrawal'),
-  perpsOpenLong: () => strings('transactions.activity_perps_open_long'),
-  perpsCloseLong: () => strings('transactions.activity_perps_close_long'),
-  perpsCloseLongLiquidated: () =>
-    strings('transactions.activity_perps_close_long_liquidated'),
-  perpsCloseLongStopLoss: () =>
-    strings('transactions.activity_perps_close_long_stop_loss'),
-  perpsOpenShort: () => strings('transactions.activity_perps_open_short'),
-  perpsCloseShort: () => strings('transactions.activity_perps_close_short'),
-  perpsCloseShortLiquidated: () =>
-    strings('transactions.activity_perps_close_short_liquidated'),
-  perpsCloseShortStopLoss: () =>
-    strings('transactions.activity_perps_close_short_stop_loss'),
-  perpsPaidFundingFees: () =>
-    strings('transactions.activity_perps_paid_funding_fees'),
-  perpsReceivedFundingFees: () =>
-    strings('transactions.activity_perps_received_funding_fees'),
-  perpsCloseShortTakeProfit: () =>
-    strings('transactions.activity_perps_close_short_take_profit'),
-  perpsCloseLongTakeProfit: () =>
-    strings('transactions.activity_perps_close_long_take_profit'),
-  marketShort: () => strings('transactions.activity_market_short'),
-  stopMarketCloseShort: () =>
-    strings('transactions.activity_stop_market_close_short'),
-  marketCloseShort: () => strings('transactions.activity_market_close_short'),
-  limitShort: () => strings('transactions.activity_limit_short'),
-  limitCloseShort: () => strings('transactions.activity_limit_close_short'),
-};
-
 // Domain (perps/predict) rows have no bespoke failed copy, so mark a
 // failed/cancelled status with an em-dash "—Failed" suffix, mirroring the perps
 // severity suffix style (e.g. "Closed short—liquidated"). The failed color is
@@ -313,10 +301,10 @@ function withDomainStatusSuffix(
   status: ActivityListItem['status'],
 ): string {
   if (status === 'failed') {
-    return `${title}—${strings('transaction.failed')}`;
+    return `${title} — ${strings('transaction.failed')}`;
   }
   if (status === 'cancelled') {
-    return `${title}—${strings('transaction.canceled')}`;
+    return `${title} — ${strings('transaction.canceled')}`;
   }
   return title;
 }
@@ -325,6 +313,10 @@ function resolveFallbackTitle(item: ActivityListItem): string {
   const base =
     ACTIVITY_FALLBACK_TITLE_RESOLVERS[item.type]?.() ??
     strings('transactions.interaction');
+
+  if (isPerpsOrderKind(item.type)) {
+    return base;
+  }
   return withDomainStatusSuffix(base, item.status);
 }
 
@@ -346,6 +338,7 @@ function uniqueTokens(tokens: (TokenAmount | undefined)[]): TokenAmount[] {
 function enrichStablecoinTokenMetadata(
   token: TokenAmount | undefined,
   chainId: string | undefined,
+  options?: { preserveHumanReadableAmount?: boolean },
 ): TokenAmount | undefined {
   const hexChainId = getHexChainId(chainId);
   const isMusd =
@@ -356,9 +349,14 @@ function enrichStablecoinTokenMetadata(
     return token;
   }
 
+  // Ramp buy/sell amounts are already human-readable. Injecting mUSD decimals
+  // would make getHumanReadableTokenAmount treat e.g. "30" as 30 atomic units
+  // (→ 0.00003 mUSD). Still fill assetId for avatars.
   return {
     ...token,
-    decimals: token.decimals ?? MUSD_DECIMALS,
+    ...(options?.preserveHumanReadableAmount
+      ? {}
+      : { decimals: token.decimals ?? MUSD_DECIMALS }),
     assetId: token.assetId ?? MUSD_TOKEN_ASSET_ID_BY_CHAIN[hexChainId],
   };
 }
@@ -488,6 +486,7 @@ function isNamelessNftToken(token: TokenAmount | undefined): boolean {
 function resolveCoreContent(
   item: ActivityListItem,
   bridgeHistoryItem?: BridgeHistoryItem,
+  counterpartyName?: string,
 ): Omit<
   ActivityListItemRowContent,
   'avatarTokens' | 'primaryAmount' | 'secondaryAmount'
@@ -502,36 +501,46 @@ function resolveCoreContent(
       const pendingLabel = item.type === 'receive' ? 'Receiving' : 'Sending';
       const failedLabel =
         item.type === 'receive' ? 'Receive failed' : 'Send failed';
+      const cancelledLabel =
+        item.type === 'receive' ? 'Receive cancelled' : 'Send cancelled';
       const subtitlePrefix = item.type === 'receive' ? 'From' : 'To';
+      const counterpartyLabel =
+        counterpartyName ||
+        shortAddress(address) ||
+        strings('transactions.unavailable');
 
       return {
         title: statusTitle(item, {
           success: withOptionalSymbol(label, symbol),
           pending: withOptionalSymbol(pendingLabel, symbol),
           failed: failedLabel,
+          cancelled: cancelledLabel,
         }),
-        subtitle: `${subtitlePrefix}: ${shortAddress(address) ?? strings('transactions.unavailable')}`,
+        subtitle: `${subtitlePrefix}: ${counterpartyLabel}`,
+        ...(counterpartyName && address
+          ? {
+              subtitleAccount: {
+                prefix: subtitlePrefix,
+                address,
+                name: counterpartyName,
+              },
+            }
+          : {}),
         primaryToken: token,
       };
     }
     case 'swap': {
       const { sourceToken, destinationToken } = item.data;
-      const sourceSymbol = sourceToken?.symbol ?? '';
-      const destinationSymbol = destinationToken?.symbol ?? '';
 
       return {
         title: statusTitle(item, {
-          success:
-            sourceSymbol && destinationSymbol
-              ? `Swapped ${sourceSymbol} to ${destinationSymbol}`
-              : strings('transactions.swaps_transaction'),
-          pending:
-            sourceSymbol && destinationSymbol
-              ? `Swapping ${sourceSymbol} to ${destinationSymbol}`
-              : strings('transactions.swap'),
-          failed: 'Swap failed',
+          success: strings('transactions.activity_swapped'),
+          pending: strings('transactions.activity_swapping'),
+          failed: strings('transactions.activity_swap_failed'),
         }),
-        subtitle: protocolSubtitle(item),
+        subtitle:
+          tokenPairSubtitle(sourceToken, destinationToken) ??
+          protocolSubtitle(item),
         primaryToken: destinationToken,
         secondaryToken: sourceToken,
       };
@@ -540,9 +549,15 @@ function resolveCoreContent(
       const { sourceToken } = item.data;
       return {
         title: statusTitle(item, {
-          success: withOptionalSymbol('Swapped', sourceToken?.symbol),
-          pending: withOptionalSymbol('Swapping', sourceToken?.symbol),
-          failed: 'Swap failed',
+          success: withOptionalSymbol(
+            strings('transactions.activity_swapped'),
+            sourceToken?.symbol,
+          ),
+          pending: withOptionalSymbol(
+            strings('transactions.activity_swapping'),
+            sourceToken?.symbol,
+          ),
+          failed: strings('transactions.activity_swap_failed'),
         }),
         subtitle: protocolSubtitle(item),
         primaryToken: sourceToken,
@@ -592,75 +607,59 @@ function resolveCoreContent(
       const destinationSymbol = destinationToken?.symbol;
       const isSourceOnlyApiBridge =
         !bridgeHistoryItem && sourceToken && !destinationToken;
-      const isCrossTokenBridge =
-        sourceSymbol && destinationSymbol && sourceSymbol !== destinationSymbol;
       const subtitle =
         bridgeRouteSubtitle(bridgeHistoryItem) ??
-        (isCrossTokenBridge
-          ? tokenPairSubtitle(sourceToken, destinationToken)
-          : undefined);
+        tokenPairSubtitle(sourceToken, destinationToken);
 
       return {
         title: statusTitle(item, {
           success: isSourceOnlyApiBridge
-            ? withOptionalSymbol('Sent', sourceSymbol)
-            : isCrossTokenBridge
-              ? 'Swapped'
-              : withOptionalSymbol(
-                  'Bridged',
-                  destinationSymbol ?? sourceSymbol,
-                ),
+            ? withOptionalSymbol(strings('transactions.sent'), sourceSymbol)
+            : withOptionalSymbol(
+                strings('transactions.activity_bridged'),
+                destinationSymbol ?? sourceSymbol,
+              ),
           pending: isSourceOnlyApiBridge
-            ? withOptionalSymbol('Sending', sourceSymbol)
-            : withOptionalSymbol('Bridging', destinationSymbol ?? sourceSymbol),
-          failed: isSourceOnlyApiBridge ? 'Send failed' : 'Bridge failed',
+            ? withOptionalSymbol(
+                strings('transactions.activity_sending'),
+                sourceSymbol,
+              )
+            : withOptionalSymbol(
+                strings('transactions.activity_bridging'),
+                destinationSymbol ?? sourceSymbol,
+              ),
+          failed: isSourceOnlyApiBridge
+            ? strings('transactions.activity_send_failed')
+            : strings('transactions.activity_bridge_failed'),
         }),
         subtitle,
-        primaryToken: sourceToken,
-        secondaryToken: destinationToken,
+        ...bridgeAmountTokens(sourceToken, destinationToken),
       };
     }
     case 'buy':
     case 'sell':
     case 'claim':
+    case 'stake':
     case 'unstake':
     case 'deposit': {
       const token = item.data.token;
       const symbol = token?.symbol;
       const isNamelessNftBuy = item.type === 'buy' && isNamelessNftToken(token);
-      const labels =
-        item.type === 'buy'
-          ? { success: 'Bought', pending: 'Buying', failed: 'Buy failed' }
-          : item.type === 'sell'
-            ? { success: 'Sold', pending: 'Selling', failed: 'Sell failed' }
-            : item.type === 'claim'
-              ? {
-                  success: 'Claimed',
-                  pending: 'Claiming',
-                  failed: 'Claim failed',
-                }
-              : item.type === 'unstake'
-                ? {
-                    success: 'Unstaked',
-                    pending: 'Unstaking',
-                    failed: 'Unstake failed',
-                  }
-                : {
-                    success: 'Deposited',
-                    pending: 'Depositing',
-                    failed: 'Deposit failed',
-                  };
+      // Pooled staking is ETH-only, so stake/unstake read the full asset name
+      // ("Staked Ethereum" / "Unstaked Ethereum") rather than the "ETH" symbol.
+      const isStakingKind = item.type === 'stake' || item.type === 'unstake';
+      let displayNoun = symbol;
+      if (isStakingKind) {
+        displayNoun = 'Ethereum';
+      } else if (isNamelessNftBuy) {
+        displayNoun = 'NFT';
+      }
+      const labels = TOKEN_ACTION_LABELS[item.type];
 
       return {
         title: statusTitle(item, {
-          success: withOptionalSymbol(
-            labels.success,
-            isNamelessNftBuy ? 'NFT' : symbol,
-          ),
-          pending: withOptionalSymbol(
-            labels.pending,
-            isNamelessNftBuy ? 'NFT' : symbol,
-          ),
+          success: withOptionalSymbol(labels.success, displayNoun),
+          pending: withOptionalSymbol(labels.pending, displayNoun),
           failed: labels.failed,
         }),
         subtitle: protocolSubtitle(item),
@@ -769,6 +768,42 @@ function resolveCoreContent(
         }),
         primaryToken: item.data.token,
       };
+    case 'assetActivation': {
+      const token = item.data.token;
+      return {
+        title: statusTitle(item, {
+          success: withOptionalSymbol(
+            strings('transactions.activity_trustline_activated'),
+            item.data.token?.symbol,
+          ),
+          pending: withOptionalSymbol(
+            strings('transactions.activity_trustline_activating'),
+            item.data.token?.symbol,
+          ),
+          failed: strings('transactions.activity_trustline_activation_failed'),
+        }),
+        primaryToken: token,
+      };
+    }
+    case 'assetDeactivation': {
+      const token = item.data.token;
+      return {
+        title: statusTitle(item, {
+          success: withOptionalSymbol(
+            strings('transactions.activity_trustline_deactivated'),
+            item.data.token?.symbol,
+          ),
+          pending: withOptionalSymbol(
+            strings('transactions.activity_trustline_deactivating'),
+            item.data.token?.symbol,
+          ),
+          failed: strings(
+            'transactions.activity_trustline_deactivation_failed',
+          ),
+        }),
+        primaryToken: token,
+      };
+    }
     case 'contractInteraction':
       return {
         title: statusTitle(item, {
@@ -835,9 +870,9 @@ function resolveCoreContent(
 
 export function resolveActivityListItemTitle(
   item: ActivityListItem,
-  titleOverride?: string,
+  bridgeHistoryItem?: BridgeHistoryItem,
 ): string {
-  return titleOverride ?? resolveCoreContent(item).title;
+  return resolveCoreContent(item, bridgeHistoryItem).title;
 }
 
 function resolveAmount(
@@ -1174,18 +1209,74 @@ export function useActivityListItemRowContent(
         )
       : undefined;
 
-  const content = resolveCoreContent(item, bridgeHistoryItem);
+  const isLending =
+    item.type === 'lendingDeposit' || item.type === 'lendingWithdrawal';
+  const lendingAssetIds: string[] = [];
+  if (isLending) {
+    if (
+      'destinationToken' in item.data &&
+      item.data.destinationToken?.assetId
+    ) {
+      lendingAssetIds.push(item.data.destinationToken.assetId);
+    }
+    if ('sourceToken' in item.data && item.data.sourceToken?.assetId) {
+      lendingAssetIds.push(item.data.sourceToken.assetId);
+    }
+  }
+  const lendingTokenData = useTokensData(lendingAssetIds);
+
+  // The send/receive subtitle names the counterparty. Resolve it against the
+  // user's own accounts so transfers between their accounts read as
+  // "To: <account name>" instead of a hex address.
+  const counterpartyAddress =
+    item.type === 'receive'
+      ? item.data.from
+      : item.type === 'send'
+        ? item.data.to
+        : undefined;
+  const counterpartyName = useAccountNames(
+    counterpartyAddress
+      ? [
+          {
+            value: counterpartyAddress,
+            variation: '',
+            type: NameType.EthereumAddress,
+          },
+        ]
+      : [],
+  )[0];
+
+  const content = resolveCoreContent(item, bridgeHistoryItem, counterpartyName);
+
+  let basePrimaryToken: TokenAmount | undefined;
+  if (isSpendingCap) {
+    basePrimaryToken = spendingCapToken?.amount ? spendingCapToken : undefined;
+  } else if (isLending) {
+    basePrimaryToken = enrichTokenFromApi(
+      content.primaryToken,
+      lendingTokenData,
+    );
+  } else {
+    basePrimaryToken = content.primaryToken;
+  }
+  // buy/sell rows today come from ramp orders whose cryptoAmount is human-
+  // readable; do not inject token decimals that would re-scale the amount.
+  const preserveHumanReadableAmount =
+    item.type === 'buy' || item.type === 'sell';
+
   const primaryToken = enrichStablecoinTokenMetadata(
-    isSpendingCap
-      ? spendingCapToken?.amount
-        ? spendingCapToken
-        : undefined
-      : content.primaryToken,
+    basePrimaryToken,
     networkChainId,
+    { preserveHumanReadableAmount },
   );
+
+  const baseSecondaryToken = isLending
+    ? enrichTokenFromApi(content.secondaryToken, lendingTokenData)
+    : content.secondaryToken;
   const secondaryToken = enrichStablecoinTokenMetadata(
-    content.secondaryToken,
+    baseSecondaryToken,
     networkChainId,
+    { preserveHumanReadableAmount },
   );
   const isPerpsFunding = isPerpsFundingKind(item.type);
   const isFundsRow = isDomainFundsKind(item.type);
@@ -1231,13 +1322,43 @@ export function useActivityListItemRowContent(
       })
     : undefined;
 
-  const primaryAmount =
+  const isOrderRow = isPerpsOrderKind(item.type);
+
+  const rawPrimaryAmount =
     domainFiatAmount ?? resolveAmount(primaryToken, item.type);
-  const secondaryAmount = domainFiatAmount
-    ? isFundsRow
-      ? fundsTokenSecondaryAmount(primaryToken)
-      : undefined
-    : (resolvedSecondaryAmount ?? secondaryFiatAmount ?? primaryFiatAmount);
+
+  const resolveRawSecondaryAmount = (): string | undefined => {
+    // USD-denominated (perps/predict) rows: the token line only makes sense for
+    // funds movements; other domain rows have no secondary line.
+    if (domainFiatAmount) {
+      return isFundsRow ? fundsTokenSecondaryAmount(primaryToken) : undefined;
+    }
+    // Non-domain rows: prefer the secondary token amount, then its fiat, then a
+    // primary fiat fallback.
+    return resolvedSecondaryAmount ?? secondaryFiatAmount ?? primaryFiatAmount;
+  };
+
+  // A failed or cancelled send/receive moved nothing, so the transfer amount
+  // (surfaced from the attempted/original tx) is misleading — suppress it here
+  // so every consumer of this resolver (the list row and the details amount
+  // header) stays consistent.
+  const suppressTransferAmount = isFailedOrCancelledTransfer(item);
+
+  // Order rows show their lifecycle status (muted, in the primary slot) instead
+  // of a notional amount — see isPerpsOrderKind. Orders aren't transfers, so the
+  // failed/cancelled-transfer suppression never applies to them.
+  let primaryAmount: string | undefined;
+  let secondaryAmount: string | undefined;
+  if (isOrderRow) {
+    primaryAmount = resolvePerpsOrderStatusLabel(item.status);
+    secondaryAmount = undefined;
+  } else if (suppressTransferAmount) {
+    primaryAmount = undefined;
+    secondaryAmount = undefined;
+  } else {
+    primaryAmount = rawPrimaryAmount;
+    secondaryAmount = resolveRawSecondaryAmount();
+  }
 
   const perpsMarketSymbol = isPerpsMarketAvatarKind(item.type)
     ? 'sourceToken' in item.data
@@ -1248,17 +1369,25 @@ export function useActivityListItemRowContent(
     ? getPredictActivity(item)?.icon
     : undefined;
 
+  let avatarTokens: TokenAmount[];
+  if (isSpendingCap && spendingCapToken) {
+    avatarTokens = [spendingCapToken];
+  } else if (isLending && primaryToken) {
+    avatarTokens = [primaryToken];
+  } else {
+    avatarTokens = resolveAvatarTokens(item, bridgeHistoryItem);
+  }
+
   return {
     ...content,
-    avatarTokens:
-      isSpendingCap && spendingCapToken
-        ? [spendingCapToken]
-        : resolveAvatarTokens(item, bridgeHistoryItem),
+    avatarTokens,
     avatarIconUrl: predictIconUrl,
     perpsMarketSymbol,
     primaryToken,
     secondaryToken,
     primaryAmount,
     secondaryAmount,
+    isPnlAmount: isPerpsPnlKind(item.type),
+    isMutedAmount: isOrderRow,
   };
 }

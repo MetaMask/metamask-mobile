@@ -62,7 +62,8 @@ jobs:
   check-diff:
     name: Check diff
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || 'macos-latest' }}
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    # NAMESPACE-SHADOW: macOS job — runs on Namespace shadow only when NAMESPACE_SHADOW_AUTO_DISPATCH=true (iOS pipeline)
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_AUTO_DISPATCH == 'true') }}
     needs:
       - get_requirements
     steps:
@@ -130,13 +131,19 @@ jobs:
     outputs:
       fingerprint: ${{ steps.publish.outputs.fingerprint }}
     steps:
-      # Use the default ref (refs/pull/N/merge on pull_request, github.sha otherwise) so the
-      # fingerprint is computed against the SAME working tree that `build-android-e2e.yml`,
-      # `build-ios-e2e.yml`, and `run-e2e-workflow.yml` check out and build/test against.
-      # Posting on `pull_request.head.sha` while fingerprinting the PR head tree would let
-      # two PRs with identical heads but different merges collide on the cache key — and the
-      # native build then runs against a different (merge) tree than the one we fingerprinted.
-      - uses: actions/checkout@v6
+      # Default: fingerprint the PR merge tree (or push/schedule commit).
+      - name: Checkout repository
+        if: ${{ needs.get_requirements.outputs.native_build_needed != 'false' || github.event_name != 'pull_request' }}
+        uses: actions/checkout@v6
+
+      # Test-only PRs reuse main native builds — fingerprint main HEAD so the lookup
+      # key matches completed ci.yml runs on the main branch.
+      - name: Checkout main for test-only fingerprint
+        if: ${{ needs.get_requirements.outputs.native_build_needed == 'false' && github.event_name == 'pull_request' }}
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 1
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -153,7 +160,7 @@ jobs:
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
-          post-status: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
+          post-status: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && needs.get_requirements.outputs.native_build_needed == 'true' }}
           # Commit statuses must be posted on a real commit SHA (not the merge ref).
           # `find-reusable-build` looks up the status via `run.head_sha` from
           # `listWorkflowRuns`, which GitHub reports as the PR head SHA for pull_request
@@ -164,8 +171,8 @@ jobs:
   dedupe:
     name: Dedupe
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
     needs:
       - get_requirements
     steps:
@@ -213,8 +220,8 @@ jobs:
   git-safe-dependencies:
     name: Run `@lavamoat/git-safe-dependencies`
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
     needs:
       - get_requirements
     steps:
@@ -255,8 +262,8 @@ jobs:
   scripts:
     name: Run `${{ matrix.scripts }}`
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
     needs:
       - get_requirements
     strategy:
@@ -264,6 +271,7 @@ jobs:
         scripts:
           - lint
           - lint:tsc
+          - lint:changelog
           - format:check
           - audit:ci
           - test:depcheck
@@ -314,8 +322,8 @@ jobs:
   js-bundle-size-check:
     name: JS bundle size check
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
     needs:
       - get_requirements
     permissions:
@@ -627,8 +635,8 @@ jobs:
   check-workflows:
     name: Check workflows
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
     needs:
       - get_requirements
     steps:
@@ -649,8 +657,8 @@ jobs:
   prepare-ci-js-deps:
     name: Prepare CI JS dependencies
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
     needs:
       - get_requirements
     steps:
@@ -676,8 +684,8 @@ jobs:
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -746,13 +754,19 @@ jobs:
             echo "No changes detected"
           fi
 
-  # We need to merge both unit and component view tests into a single coverage report so the PR coverage
-  # threshold calculation is accurate.
+  # We need to merge unit, component view, and integration tests into a
+  # single coverage report so the PR coverage threshold calculation is accurate.
   merge-unit-and-component-view-tests:
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    needs: [prepare-ci-js-deps, unit-tests, component-view-tests]
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ github.event_name != 'merge_group' && inputs.runner_provider != 'bitrise' }}
+    needs:
+      - prepare-ci-js-deps
+      - unit-tests
+      - component-view-tests
+      - integration-tests
+    # Wait for integration shards so coverage can merge into Sonar, but still run
+    # when integration fails — missing integration artifacts are tolerated below.
+    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
+    if: ${{ always() && github.event_name != 'merge_group' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') && !cancelled() && needs.prepare-ci-js-deps.result == 'success' && needs.unit-tests.result == 'success' && needs.component-view-tests.result == 'success' }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -787,8 +801,20 @@ jobs:
           pattern: coverage-*
           path: tests/coverage/
       - name: Aggregate test counts and gather coverage reports
+        id: aggregate-coverage
         shell: bash
+        env:
+          INTEGRATION_TESTS_RESULT: ${{ needs.integration-tests.result }}
         run: |
+          echo "Upstream integration-tests result: ${INTEGRATION_TESTS_RESULT}"
+          integration_shard_count=$(
+            find ./tests/coverage -maxdepth 1 -type d -name 'coverage-integration-*' 2>/dev/null | wc -l | tr -d ' '
+          )
+          echo "Integration coverage shards present: ${integration_shard_count}"
+          if [[ "$INTEGRATION_TESTS_RESULT" =~ ^(failure|cancelled)$ ]]; then
+            echo "::warning::Integration tests did not fully succeed; merging available coverage shards only."
+          fi
+
           unit_total=0
           for file in ./tests/coverage/coverage-unit-*/count.json; do
             [ -f "$file" ] || continue
@@ -807,10 +833,34 @@ jobs:
           echo "{\"component_view_test_number\": $cv_total}" > cv-test-stats.json
           echo "CV test count: $cv_total"
 
+          integration_total=0
+          for file in ./tests/coverage/coverage-integration-*/count.json; do
+            [ -f "$file" ] || continue
+            count=$(jq '.count // 0' "$file")
+            integration_total=$((integration_total + count))
+          done
+          echo "{\"integration_test_number\": $integration_total}" > integration-test-stats.json
+          echo "Integration test count: $integration_total"
+
           mkdir -p tests/coverage-cv-merged
           for file in ./tests/coverage/coverage-cv-*/coverage-cv-*.json; do
             [ -f "$file" ] && cp "$file" ./tests/coverage-cv-merged/
           done
+
+          mkdir -p tests/coverage-integration-merged
+          for file in ./tests/coverage/coverage-integration-*/coverage-integration-*.json; do
+            [ -f "$file" ] && cp "$file" ./tests/coverage-integration-merged/
+          done
+
+          integration_json_count=$(
+            find ./tests/coverage-integration-merged -maxdepth 1 -name '*.json' 2>/dev/null | wc -l | tr -d ' '
+          )
+          if [[ "$integration_json_count" -gt 0 ]]; then
+            echo "has_integration_coverage=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_integration_coverage=false" >> "$GITHUB_OUTPUT"
+            echo "No integration coverage artifacts; downstream integration nyc/upload steps will be skipped."
+          fi
 
           mkdir -p tests/coverage-unit-merged
           for file in ./tests/coverage/coverage-unit-*/coverage-unit-*.json; do
@@ -850,6 +900,22 @@ jobs:
         with:
           name: cv-test-stats
           path: ./cv-test-stats.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload integration-test-stats (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: integration-test-stats
+          path: ./integration-test-stats.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload integration-test-stats (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-stats
+          path: ./integration-test-stats.json
           if-no-files-found: error
           retention-days: 7
       - name: Upload unit-test-stats (Namespace)
@@ -902,6 +968,41 @@ jobs:
           path: ./tests/coverage-cv-lcov/coverage-summary.json
           if-no-files-found: error
           retention-days: 7
+      - name: Generate integration test coverage report
+        if: ${{ steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
+        run: yarn nyc report --temp-dir ./tests/coverage-integration-merged --report-dir ./tests/coverage-integration-lcov --reporter html --reporter json-summary
+      - name: Upload integration-test-coverage-html (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: integration-test-coverage-html
+          path: ./tests/coverage-integration-lcov/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload integration-test-coverage-html (current)
+        if: ${{ inputs.runner_provider != 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-coverage-html
+          path: ./tests/coverage-integration-lcov/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload integration-test-coverage-summary (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: integration-test-coverage-summary
+          path: ./tests/coverage-integration-lcov/coverage-summary.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload integration-test-coverage-summary (current)
+        if: ${{ inputs.runner_provider != 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-coverage-summary
+          path: ./tests/coverage-integration-lcov/coverage-summary.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Generate unit test coverage summary
         run: yarn nyc report --temp-dir ./tests/coverage-unit-merged --report-dir ./tests/coverage-unit-lcov --reporter json-summary
       - name: Upload unit-test-coverage-summary (Namespace)
@@ -933,8 +1034,8 @@ jobs:
   component-view-tests:
     name: Component view tests
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
     needs:
       - get_requirements
       - prepare-ci-js-deps
@@ -995,6 +1096,73 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  # Integration tests are optional for the PR gate — they feed coverage into
+  # merge → Sonar but are not listed in check-all-jobs-pass needs.
+  integration-tests:
+    name: Integration tests
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
+    if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' && (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') }}
+    needs:
+      - get_requirements
+      - prepare-ci-js-deps
+    strategy:
+      matrix:
+        shard: [1, 2]
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+      - uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
+      # TEMP: artifact fallback for non-Namespace runners.
+      # Remove these two steps once Namespace passes the trial and becomes the default.
+      - name: Download CI JS deps artifact
+        id: download-ci-js-deps
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ci-js-deps
+          path: .
+      - name: Extract CI JS deps
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
+        run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
+      - uses: ./.github/actions/setup-ci-js-deps
+        with:
+          runner_provider: ${{ inputs.runner_provider }}
+      - name: Prepare results directory
+        run: mkdir -p tests/results
+      - run: |
+          yarn test:integration:ci \
+            --shard=${{ matrix.shard }}/2 \
+            --json \
+            --outputFile=tests/results/integration-test-results-${{ matrix.shard }}.json
+        env:
+          NODE_OPTIONS: ${{ inputs.runner_provider == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
+      - name: Rename coverage report and extract test count for this shard
+        shell: bash
+        run: |
+          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-integration-${{ matrix.shard }}.json
+          cp tests/results/integration-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
+          count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/integration-test-results-${{ matrix.shard }}.json)
+          echo "{\"count\": $count}" > ./tests/coverage/count.json
+      - name: Upload coverage integration shard (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: coverage-integration-${{ matrix.shard }}
+          path: ./tests/coverage/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload coverage integration shard (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-integration-${{ matrix.shard }}
+          path: ./tests/coverage/
+          if-no-files-found: error
+          retention-days: 7
+
   smart-e2e-selection:
     name: 'Smart E2E Selection'
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
@@ -1050,10 +1218,11 @@ jobs:
     # ai_performance_test_tags == '[]'  → AI ran and found no perf-relevant changes: skip.
     # ai_performance_test_tags == ''    → conservative fallback (AI failed) or run-performance-tests label: run all tests.
     # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
     if: >-
       ${{
         inputs.runner_provider != 'bitrise' &&
+        inputs.runner_provider != 'namespace' &&
         github.event_name == 'pull_request' &&
         !cancelled() &&
         (
@@ -1072,6 +1241,7 @@ jobs:
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
       pr_number: ${{ github.event.pull_request.number }}
+      reuse_main_builds: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
     secrets: inherit
     permissions:
       contents: write
@@ -1081,10 +1251,11 @@ jobs:
 
   build-android-apks:
     name: 'Build Android APKs'
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
+    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux-runner job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
     if: >-
       ${{
         inputs.runner_provider != 'bitrise' &&
+        (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') &&
         !cancelled() &&
         needs.get_requirements.outputs.android_e2e_needed == 'true' &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
@@ -1102,6 +1273,7 @@ jobs:
       metamask_environment: 'e2e'
       source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
       runner_provider: ${{ inputs.runner_provider }}
+      reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
     secrets: inherit
 
   prepare-e2e-timings:
@@ -1157,10 +1329,11 @@ jobs:
 
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
+    # BITRISE/NAMESPACE-SHADOW: skipped on Bitrise shadow (iOS-only, INFRA-3679); Namespace shadow runs this Linux-runner job only when NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH=true
     if: >-
       ${{
         inputs.runner_provider != 'bitrise' &&
+        (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_LINUX_AUTO_DISPATCH == 'true') &&
         !cancelled() &&
         needs.build-android-apks.result == 'success' &&
         (needs.prepare-e2e-timings.result == 'success' || needs.prepare-e2e-timings.result == 'failure' || needs.prepare-e2e-timings.result == 'skipped')
@@ -1182,9 +1355,12 @@ jobs:
 
   build-ios-apps:
     name: 'Build iOS Apps'
+    # NAMESPACE-SHADOW: iOS pipeline runs on Namespace shadow only when NAMESPACE_SHADOW_AUTO_DISPATCH=true
+    # (downstream iOS jobs cascade-skip via needs when this is skipped)
     if: >-
       ${{
         !cancelled() &&
+        (inputs.runner_provider != 'namespace' || vars.NAMESPACE_SHADOW_AUTO_DISPATCH == 'true') &&
         needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
@@ -1199,6 +1375,7 @@ jobs:
     with:
       source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
       runner_provider: ${{ inputs.runner_provider }}
+      reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
     secrets: inherit
 
   ios-tests-ready:
@@ -1235,10 +1412,13 @@ jobs:
 
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
+    # BITRISE/NAMESPACE-SHADOW: always skipped on shadow runs. Appium Android is pinned to
+    # runner_provider=current (Cirrus) below until Namespace parity is ready, and it cannot
+    # download namespace-built APKs (they live in Namespace's artifact store, not GitHub's).
     if: >-
       ${{
         inputs.runner_provider != 'bitrise' &&
+        inputs.runner_provider != 'namespace' &&
         !cancelled() &&
         needs.build-android-apks.result == 'success'
       }}
@@ -1264,7 +1444,7 @@ jobs:
   appium-smoke-tests-ios:
     name: 'Appium Smoke Tests (iOS)'
     # Main push/schedule: always run when the iOS build succeeded.
-    # PRs: skipped by default; add run-appium-ios-tests to also run Appium iOS
+    # PRs: skipped by default; add run-appium-ios-tests, or change page-objects/selectors/locators/framework
     # (same smart-selected tags as other E2E jobs).
     if: >-
       ${{
@@ -1321,8 +1501,8 @@ jobs:
   report-fixture-validation:
     name: 'Report Fixture Validation'
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ inputs.runner_provider != 'bitrise' && !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
     needs: [validate-e2e-fixtures]
     permissions:
       pull-requests: write
@@ -1362,8 +1542,9 @@ jobs:
     name: SonarCloud analysis
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: merge-unit-and-component-view-tests
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ inputs.runner_provider != 'bitrise' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    # Run when merged coverage is ready even if optional integration shards failed upstream.
+    if: ${{ always() && !cancelled() && needs.merge-unit-and-component-view-tests.result == 'success' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1430,8 +1611,8 @@ jobs:
     name: SonarCloud quality gate status
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs: sonar-cloud
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ inputs.runner_provider != 'bitrise' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ always() && !cancelled() && needs.sonar-cloud.result == 'success' && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1506,11 +1687,12 @@ jobs:
   cleanup-ci-js-deps:
     name: Delete CI JS deps artifact
     runs-on: ubuntu-latest
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
     if: ${{ always() && inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
     needs:
       - unit-tests
       - component-view-tests
+      - integration-tests
       - merge-unit-and-component-view-tests
     permissions:
       actions: write
@@ -1540,8 +1722,8 @@ jobs:
     name: Check all jobs pass
     # Run the aggregate gate even when optional dependencies are skipped.
     # The composite action decides which skipped jobs are acceptable.
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ always() && !cancelled() && inputs.runner_provider != 'bitrise' }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ always() && !cancelled() && inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' }}
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     needs:
       - get_requirements
@@ -1550,6 +1732,7 @@ jobs:
       - scripts
       - unit-tests
       - component-view-tests
+      - merge-unit-and-component-view-tests
       - check-workflows
       - prepare-ci-js-deps
       - js-bundle-size-check
@@ -1588,8 +1771,8 @@ jobs:
     name: Log merge group failure
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     # Only run this job if the merge group event fails, skip on forks
-    # BITRISE-SHADOW: skip for iOS-only benchmark (INFRA-3679) — revert to enable full pipeline
-    if: ${{ inputs.runner_provider != 'bitrise' && github.event_name == 'merge_group' && failure() }}
+    # BITRISE/NAMESPACE-SHADOW: skip for iOS-only shadow benchmark (INFRA-3679) — revert to enable full pipeline
+    if: ${{ inputs.runner_provider != 'bitrise' && inputs.runner_provider != 'namespace' && github.event_name == 'merge_group' && failure() }}
     needs:
       - check-all-jobs-pass
     steps:

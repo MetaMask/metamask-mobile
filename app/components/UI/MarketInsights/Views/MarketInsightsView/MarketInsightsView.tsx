@@ -150,7 +150,7 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({
   );
 };
 
-interface MarketInsightsRouteParams {
+export interface MarketInsightsRouteParams {
   assetSymbol: string;
   /** Asset identifier: CAIP-19 ID for tokens, or a perps market symbol (e.g. "ETH") */
   assetIdentifier: string;
@@ -169,8 +169,6 @@ interface MarketInsightsRouteParams {
   isAtOICap?: boolean;
   /** Surface from which Market Insights was accessed */
   source?: 'token_details' | 'perps' | 'unknown';
-  /** Whether the price trend is positive on the parent Token Details screen. */
-  isPricePositive?: boolean;
   /** Whether the ambient price color A/B test treatment is active. */
   useAmbientColor?: boolean;
 }
@@ -202,7 +200,6 @@ const MarketInsightsView: React.FC = () => {
     hasPerpsPosition = false,
     isAtOICap = false,
     source: routeSource = 'unknown',
-    isPricePositive,
     useAmbientColor,
   } = route.params;
 
@@ -879,9 +876,8 @@ const MarketInsightsView: React.FC = () => {
               onBuyPress={handleStickyBuyPress}
               onQuickBuyPress={onQuickBuyPress}
               quickBuyTestID={MarketInsightsSelectorsIDs.QUICK_BUY_BUTTON}
-              sourcePage="MarketInsightsView"
-              isPricePositive={isPricePositive}
               useAmbientColor={useAmbientColor}
+              sourcePage="MarketInsightsView"
             />
           </Box>
         ) : null)}

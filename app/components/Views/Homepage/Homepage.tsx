@@ -16,6 +16,7 @@ import PredictionsSection from './Sections/Predictions';
 import TopTradersSection from './Sections/TopTraders';
 import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
+import WatchlistSection from './Sections/Watchlist';
 import MoreSection from './Sections/More';
 import { SectionRefreshHandle } from './types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -24,6 +25,7 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
+import { selectTokenWatchlistEnabled } from '../../UI/Assets/selectors/featureFlags';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../UI/Earn/hooks/useMusdConversionEligibility';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
@@ -36,6 +38,7 @@ import {
 } from './abTestConfig';
 import { useOwnedNfts } from './Sections/NFTs/hooks';
 import { useNftDetection } from '../../hooks/useNftDetection';
+import { useThrottledFocusEffect } from '../../hooks/useThrottledFocusEffect';
 import { strings } from '../../../../locales/i18n';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
@@ -64,6 +67,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const topTradersSectionRef = useRef<SectionRefreshHandle>(null);
     const defiSectionRef = useRef<SectionRefreshHandle>(null);
     const nftsSectionRef = useRef<SectionRefreshHandle>(null);
+    const watchlistSectionRef = useRef<SectionRefreshHandle>(null);
     const trendingTokensRef = useRef<SectionRefreshHandle>(null);
     const trendingPerpsRef = useRef<SectionRefreshHandle>(null);
     const trendingPredictionsRef = useRef<SectionRefreshHandle>(null);
@@ -72,6 +76,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
     const isDeFiEnabled = useSelector(selectDeFiPositionsSectionEnabled);
     const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
+    const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
     const isMusdConversionEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
     );
@@ -123,9 +128,10 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       }, [areAllPopularNetworksEnabled, enableAllPopularNetworks]),
     );
 
-    useFocusEffect(
+    // TODO(ASSETS-3660): Replace with a proper polling mechanism in NftDetectionController.
+    useThrottledFocusEffect(
       useCallback(() => {
-        detectNfts().catch(() => {
+        detectNfts(true, false).catch(() => {
           // AbortError is expected when detection is cancelled on blur
         });
 
@@ -133,6 +139,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           abortDetection();
         };
       }, [detectNfts, abortDetection]),
+      300_000, // 5 minutes
     );
 
     /**
@@ -148,6 +155,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           { name: HomeSectionNames.TOKENS, enabled: true },
           { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
           { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
+          { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
           {
             name: HomeSectionNames.TOP_TRADERS,
             enabled: isTopTradersEnabled,
@@ -178,6 +186,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         { name: HomeSectionNames.TOKENS, enabled: true },
         { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
         { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
+        { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
         {
           name: HomeSectionNames.TOP_TRADERS,
           enabled: isTopTradersEnabled,
@@ -193,6 +202,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       isDeFiEnabled,
       hasNfts,
       isTopTradersEnabled,
+      isWatchlistEnabled,
     ]);
 
     const totalSectionsLoaded = enabledSections.length;
@@ -209,6 +219,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       await Promise.allSettled([
         cashSectionRef.current?.refresh(),
         tokensSectionRef.current?.refresh(),
+        watchlistSectionRef.current?.refresh(),
         perpsSectionRef.current?.refresh(),
         predictionsSectionRef.current?.refresh(),
         topTradersSectionRef.current?.refresh(),
@@ -235,6 +246,13 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             totalSectionsLoaded={totalSectionsLoaded}
             mode={sectionMode}
           />
+          {isWatchlistEnabled && (
+            <WatchlistSection
+              ref={watchlistSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+          )}
           {isTopTradersEnabled && (
             <TopTradersSection
               ref={topTradersSectionRef}
@@ -389,6 +407,13 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             totalSectionsLoaded={totalSectionsLoaded}
             mode={sectionMode}
           />
+          {isWatchlistEnabled && (
+            <WatchlistSection
+              ref={watchlistSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+          )}
           {isTopTradersEnabled && (
             <TopTradersSection
               ref={topTradersSectionRef}

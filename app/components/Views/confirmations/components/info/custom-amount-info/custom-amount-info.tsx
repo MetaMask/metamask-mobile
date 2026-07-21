@@ -27,6 +27,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
+import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import {
   SetPayTokenRequest,
@@ -169,8 +170,37 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
     const { styles } = useStyles(styleSheet, {});
-    const [isKeyboardVisible, setIsKeyboardVisible] =
-      useState(!isAddMusdIntent);
+
+    const {
+      amountFiat,
+      amountFiatDebounced,
+      amountHuman,
+      amountHumanDebounced,
+      hasInput,
+      isDepositPrefillEnabled,
+      isDepositPrefilled,
+      isDepositPrefillLoading,
+      isInputChanged,
+      isPrefillPending,
+      updatePendingAmount,
+      updatePendingAmountPercentage,
+      updateTokenAmount,
+    } = useTransactionCustomAmount({ currency });
+
+    const [isKeyboardVisible, setIsKeyboardVisible] = useState(
+      !isAddMusdIntent && !isDepositPrefillEnabled,
+    );
+    const isKeyboardVisibleRef = useRef(isKeyboardVisible);
+    isKeyboardVisibleRef.current = isKeyboardVisible;
+    const wasKeyboardEverVisible = useRef(isKeyboardVisible);
+    if (isKeyboardVisible) {
+      wasKeyboardEverVisible.current = true;
+    }
+    useMMPayNavigation(
+      isKeyboardVisible,
+      setIsKeyboardVisible,
+      wasKeyboardEverVisible,
+    );
     const { hasTokens: hasAvailableTokens } =
       useTransactionPayAvailableTokens();
     const fiatPayment = useTransactionPayFiatPayment();
@@ -192,7 +222,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { toastRef } = useContext(ToastContext);
 
     const isResultReady =
-      useIsResultReady({ isKeyboardVisible }) || isAddMusdIntent;
+      useIsResultReady({ isKeyboardVisible }) ||
+      (isAddMusdIntent && !isKeyboardVisible);
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
     const hasSourceAmount = useTransactionPayHasSourceAmount();
@@ -207,18 +238,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       Boolean(quotes?.length) ||
       (!isAddMusdIntent && !hasSourceAmount && !hasNoQuotesAlert);
 
-    const {
-      amountFiat,
-      amountFiatDebounced,
-      amountHuman,
-      amountHumanDebounced,
-      hasInput,
-      isInputChanged,
-      isPrefillPending,
-      updatePendingAmount,
-      updatePendingAmountPercentage,
-      updateTokenAmount,
-    } = useTransactionCustomAmount({ currency });
+    const isAwaitingPrefillResult =
+      !hasAccountNoFunds &&
+      (isDepositPrefillLoading ||
+        (isDepositPrefilled && !hasSourceAmount && !isKeyboardVisible));
 
     const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
       isInputChanged,
@@ -227,7 +250,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       pendingFiatAmount: amountFiatDebounced,
     });
 
+    const hasAutoSubmittedPrefill = useRef(false);
+
     const handleDone = useCallback(async () => {
+      const keyboardVisibleAtStart = isKeyboardVisibleRef.current;
       try {
         await updateTokenAmount();
         if (selectedFiatPaymentMethodId && transactionId) {
@@ -242,6 +268,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         // has been successfully applied above (no-op for non-money flows).
         trackAmountCommitted();
       } catch (error) {
+        const isConfirmationDismissed =
+          !Engine.context.TransactionController.state.transactions.some(
+            (tx) => tx.id === transactionId,
+          );
+        if (isConfirmationDismissed) {
+          return;
+        }
         const prefixed = prefixError(error, AMOUNT_UPDATE_ERROR_PREFIX);
         toastRef?.current?.showToast(
           getAmountUpdateErrorToastOptions(prefixed, () =>
@@ -252,6 +285,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         return;
       }
       EngineService.flushState();
+      hasAutoSubmittedPrefill.current = true;
+      // If the keyboard was closed when handleDone started (auto-submit) but
+      // the user opened it during the await, don't dismiss it.
+      if (!keyboardVisibleAtStart && isKeyboardVisibleRef.current) {
+        return;
+      }
       setIsKeyboardVisible(false);
       onAmountSubmit?.();
     }, [
@@ -272,12 +311,58 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       wasPrefillPending.current = isPrefillPending;
     }, [isPrefillPending, handleDone]);
 
+    useEffect(() => {
+      // Reset when prefill drops (e.g. pay token changed) so handleDone
+      // re-fires once the new prefill amount is ready.
+      if (!isDepositPrefilled) {
+        hasAutoSubmittedPrefill.current = false;
+        return;
+      }
+
+      // Never auto-submit while the user is actively editing on the keyboard.
+      // The tokenKey in useDepositPrefillAmount can toggle hasPrefilled
+      // (true → false → true) during background state changes, which resets
+      // the guard above and would otherwise dismiss the keyboard mid-edit.
+      if (isKeyboardVisible) {
+        return;
+      }
+
+      if (!hasAutoSubmittedPrefill.current && amountFiat !== '0') {
+        hasAutoSubmittedPrefill.current = true;
+        handleDone();
+      }
+    }, [isDepositPrefilled, amountFiat, handleDone, isKeyboardVisible]);
+
+    const isMaxAutoSubmitPending = useRef(false);
+
+    const handlePercentagePress = useCallback(
+      (percentage: number) => {
+        updatePendingAmountPercentage(percentage);
+        if (percentage === 100) {
+          isMaxAutoSubmitPending.current = true;
+          setIsKeyboardVisible(false);
+        }
+      },
+      [updatePendingAmountPercentage],
+    );
+
+    useEffect(() => {
+      if (isMaxAutoSubmitPending.current && amountFiat !== '0') {
+        isMaxAutoSubmitPending.current = false;
+        handleDone();
+      }
+    }, [amountFiat, handleDone]);
+
     const handleAmountPress = useCallback(() => {
+      wasKeyboardEverVisible.current = true;
       setIsKeyboardVisible(true);
     }, []);
 
     const isAccountSelectionNeeded =
       supportAccountSelection && !accountOverride;
+    const hideDetailsForNoFunds = hasAccountNoFunds && Boolean(accountOverride);
+    const hideBuyForNoFunds =
+      Boolean(accountOverride) && (hasAccountNoFunds || isQuotesLoading);
 
     const { headlessBuyError } = useConfirmationContext();
 
@@ -288,7 +373,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             amountFiat={amountFiat}
             currency={currency}
             hasAlert={Boolean(alertMessage)}
-            isLoading={isPrefillPending}
+            isLoading={
+              !hasAccountNoFunds &&
+              (isPrefillPending || isDepositPrefillLoading)
+            }
             onPress={handleAmountPress}
             disabled={!hasPaymentOption}
             showCursor={isKeyboardVisible}
@@ -311,7 +399,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           style={styles.bottomBlock}
         >
           <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
-          {!isResultReady && (
+          {!isResultReady && !(isKeyboardVisible && isAddMusdIntent) && (
             <>
               {supportAccountSelection &&
                 !selectedFiatPaymentMethodId &&
@@ -334,25 +422,26 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}
-              {showPaymentDetails ? (
-                <>
-                  <BridgeFeeRow />
-                  <BridgeTimeRow />
-                  {canSelectWithdrawToken ? (
-                    <ReceiveRow inputAmountUsd={amountFiat} />
-                  ) : (
-                    <TotalRow />
-                  )}
-                </>
-              ) : (
-                isAddMusdIntent && (
+              {!hasAccountNoFunds &&
+                (showPaymentDetails && !isAwaitingPrefillResult ? (
                   <>
-                    <InfoRowSkeleton />
-                    <InfoRowSkeleton />
-                    <InfoRowSkeleton />
+                    <BridgeFeeRow />
+                    <BridgeTimeRow />
+                    {canSelectWithdrawToken ? (
+                      <ReceiveRow inputAmountUsd={amountFiat} />
+                    ) : (
+                      <TotalRow />
+                    )}
                   </>
-                )
-              )}
+                ) : (
+                  (isAddMusdIntent || isAwaitingPrefillResult) && (
+                    <>
+                      <InfoRowSkeleton />
+                      <InfoRowSkeleton />
+                      <InfoRowSkeleton />
+                    </>
+                  )
+                ))}
               <PercentageRow />
             </Box>
           )}
@@ -375,7 +464,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               value={amountFiat}
               onChange={updatePendingAmount}
               onDonePress={handleDone}
-              onPercentagePress={updatePendingAmountPercentage}
+              onPercentagePress={handlePercentagePress}
               hasInput={hasInput}
               hasMax={
                 (hasMax || isMoneyDepositNoFee) &&
@@ -383,12 +472,17 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               }
             />
           )}
-          {!hasPaymentOption && !hasAccountNoFunds && <BuySection />}
+          {(!hasPaymentOption || hasAccountNoFunds) &&
+            !hideBuyForNoFunds &&
+            !isDepositPrefillEnabled && <BuySection />}
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
               disableConfirm={
-                disableConfirm || isAccountSelectionNeeded || isPrefillPending
+                disableConfirm ||
+                isAccountSelectionNeeded ||
+                isPrefillPending ||
+                isAwaitingPrefillResult
               }
               onContinue={trackContinue}
             />
@@ -418,6 +512,10 @@ export function CustomAmountInfoSkeleton() {
 
 export function AdvancedCustomAmountInfoSkeleton() {
   const { styles } = useStyles(styleSheet, {});
+  const params = useParams<ConfirmationParams>();
+  // Fiat flows never render the account selector or pay-with rows while the
+  // keyboard is up, so their skeletons would cause a layout shift on load.
+  const hideAccountRows = Boolean(params?.autoSelectFiatPayment);
 
   return (
     <View
@@ -429,8 +527,12 @@ export function AdvancedCustomAmountInfoSkeleton() {
         <PayTokenAmountSkeleton />
       </View>
       <View>
-        <AccountSelectorSkeleton />
-        <PayWithRowSkeleton />
+        {!hideAccountRows && (
+          <>
+            <AccountSelectorSkeleton />
+            <PayWithRowSkeleton />
+          </>
+        )}
         <DepositKeyboardSkeleton />
       </View>
     </View>

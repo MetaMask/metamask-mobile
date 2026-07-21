@@ -40,6 +40,29 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
   }
 
+  /**
+   * Wallet header root — high in the Android view hierarchy (above scroll /
+   * homepage sections). Appium uses resourceIdMatches so package-qualified
+   * IDs resolve quickly without deep tree walks into token lists.
+   */
+  get headerRoot(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.WALLET_HEADER_ROOT,
+            { exact: false },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            WalletViewSelectorsIDs.WALLET_HEADER_ROOT,
+          ),
+      },
+    });
+  }
+
   /** Cross-framework scroll container for the wallet homepage ScrollView. */
   get walletScrollContainer(): string {
     return WalletViewSelectorsIDs.WALLET_SCROLL_VIEW;
@@ -1002,6 +1025,11 @@ class WalletView {
     );
   }
 
+  get getMoneySection(): EncapsulatedElementType {
+    return PlaywrightMatchers.getElementById('homepage-section-title-cash', {
+      exact: false,
+    });
+  }
   /** Tokens section header on the homepage. */
   get tokensSectionHeader(): EncapsulatedElementType {
     return Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION);
@@ -1032,10 +1060,58 @@ class WalletView {
   }
 
   async tapOnNewTokensSection(): Promise<void> {
-    await Gestures.waitAndTap(this.tokensSectionHeader, {
-      checkStability: true,
-      elemDescription: 'New Tokens Section',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.tokensSectionHeader, {
+          checkStability: true,
+          elemDescription: 'New Tokens Section',
+        });
+      },
+      appium: async () => {
+        await this.scrollAndTapTokensSection();
+      },
     });
+  }
+
+  /**
+   * Scrolls the wallet homepage until the Tokens section header is tappable.
+   * On long homepages the header can sit below the fold near the tab bar; a plain
+   * tap then hits the tab bar instead of navigating to Tokens Full View.
+   */
+  async scrollAndTapTokensSection(
+    direction: 'up' | 'down' = 'down',
+  ): Promise<void> {
+    if (
+      await this.tapIfAlreadyVisible(this.tokensSectionHeader, 'Tokens section')
+    ) {
+      return;
+    }
+
+    const getScrollOptions = (scrollDirection: 'up' | 'down') => ({
+      overshootSwipe: {
+        direction:
+          scrollDirection === 'down' ? ('up' as const) : ('down' as const),
+        percentage: 0.15,
+      },
+      timeout: 60_000,
+    });
+
+    try {
+      await this.scrollAndTapSection(
+        this.tokensSectionHeader,
+        'Tokens section',
+        direction,
+        getScrollOptions(direction),
+      );
+    } catch {
+      const fallbackDirection = direction === 'down' ? 'up' : 'down';
+      await this.scrollAndTapSection(
+        this.tokensSectionHeader,
+        'Tokens section',
+        fallbackDirection,
+        getScrollOptions(fallbackDirection),
+      );
+    }
   }
 
   async tapOnTokensSection(): Promise<void> {

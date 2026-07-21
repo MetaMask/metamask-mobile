@@ -4,7 +4,6 @@ import {
   type HapticNotificationMoment,
 } from '../../../../util/haptics';
 import React, { useCallback, useContext, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Icon, {
   IconName,
@@ -74,16 +73,20 @@ const DEPOSIT_TOAST_KEYS: Record<DepositIntent, DepositToastKeys> = {
 const getDepositToastKeys = (intent?: DepositIntent): DepositToastKeys =>
   DEPOSIT_TOAST_KEYS[intent ?? 'convert'];
 
-export interface DepositInProgressParams {
+interface ToastPressParams {
+  onPress?: () => void;
+}
+
+export interface DepositInProgressParams extends ToastPressParams {
   intent?: DepositIntent;
 }
 
-export interface DepositSuccessParams {
+export interface DepositSuccessParams extends ToastPressParams {
   amountFiat?: string;
   intent?: DepositIntent;
 }
 
-export interface DepositFailedParams {
+export interface DepositFailedParams extends ToastPressParams {
   intent?: DepositIntent;
 }
 
@@ -92,10 +95,14 @@ export interface WithdrawSuccessParams {
   destination: string;
 }
 
-export interface SendSuccessParams {
+export interface SendSuccessParams extends ToastPressParams {
   amountFiat?: string;
   destination: string;
 }
+
+export type SendInProgressParams = ToastPressParams;
+
+export type SendFailedParams = ToastPressParams;
 
 export interface MoneyToastOptionsConfig {
   deposit: {
@@ -109,9 +116,9 @@ export interface MoneyToastOptionsConfig {
     failed: () => MoneyToastOptions;
   };
   send: {
-    inProgress: () => MoneyToastOptions;
+    inProgress: (params?: SendInProgressParams) => MoneyToastOptions;
     success: (params: SendSuccessParams) => MoneyToastOptions;
-    failed: () => MoneyToastOptions;
+    failed: (params?: SendFailedParams) => MoneyToastOptions;
   };
 }
 
@@ -135,14 +142,9 @@ const MONEY_TOASTS_DEFAULT_OPTIONS: Partial<MoneyToastOptions> = {
   hasNoTimeout: false,
 };
 
-const toastStyles = StyleSheet.create({
-  iconWrapper: {
-    marginRight: 16,
-  },
-});
-
 const useMoneyToasts = (): {
   showToast: (config: MoneyToastOptions) => void;
+  closeToast: () => void;
   MoneyToastOptions: MoneyToastOptionsConfig;
 } => {
   const { toastRef } = useContext(ToastContext);
@@ -161,6 +163,19 @@ const useMoneyToasts = (): {
     [closeToast],
   );
 
+  const buildToastPress = useCallback(
+    (onPress?: () => void) => {
+      if (!onPress) {
+        return undefined;
+      }
+      return () => {
+        closeToast();
+        onPress();
+      };
+    },
+    [closeToast],
+  );
+
   const moneyBaseToastOptions: Record<string, MoneyToastOptions> = useMemo(
     () => ({
       success: {
@@ -170,13 +185,11 @@ const useMoneyToasts = (): {
         iconColor: theme.colors.success.default,
         hapticsType: NotificationMoment.Success,
         startAccessory: (
-          <View style={toastStyles.iconWrapper}>
-            <Icon
-              name={IconName.Confirmation}
-              color={theme.colors.success.default}
-              size={IconSize.Lg}
-            />
-          </View>
+          <Icon
+            name={IconName.Confirmation}
+            color={theme.colors.success.default}
+            size={IconSize.Lg}
+          />
         ),
       },
       inProgress: {
@@ -186,9 +199,7 @@ const useMoneyToasts = (): {
         hapticsType: NotificationMoment.Warning,
         hasNoTimeout: true,
         startAccessory: (
-          <View style={toastStyles.iconWrapper}>
-            <Spinner spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }} />
-          </View>
+          <Spinner spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }} />
         ),
       },
       error: {
@@ -198,13 +209,11 @@ const useMoneyToasts = (): {
         iconColor: theme.colors.error.default,
         hapticsType: NotificationMoment.Error,
         startAccessory: (
-          <View style={toastStyles.iconWrapper}>
-            <Icon
-              name={IconName.CircleX}
-              color={theme.colors.error.default}
-              size={IconSize.Lg}
-            />
-          </View>
+          <Icon
+            name={IconName.CircleX}
+            color={theme.colors.error.default}
+            size={IconSize.Lg}
+          />
         ),
       },
     }),
@@ -226,6 +235,7 @@ const useMoneyToasts = (): {
       primaryKey: string,
       secondaryKey: string,
       secondaryParams?: Record<string, string>,
+      onPress?: () => void,
     ): MoneyToastOptions => ({
       ...base,
       labelOptions: getMoneyToastLabels({
@@ -238,6 +248,7 @@ const useMoneyToasts = (): {
         ),
       }),
       closeButtonOptions,
+      onPress: buildToastPress(onPress),
     });
 
     return {
@@ -259,9 +270,10 @@ const useMoneyToasts = (): {
               ),
             }),
             closeButtonOptions,
+            onPress: buildToastPress(params?.onPress),
           };
         },
-        success: ({ amountFiat, intent }: DepositSuccessParams) => ({
+        success: ({ amountFiat, intent, onPress }: DepositSuccessParams) => ({
           ...moneyBaseToastOptions.success,
           labelOptions: getMoneyToastLabels({
             primary: strings(getDepositToastKeys(intent).successTitle),
@@ -280,6 +292,7 @@ const useMoneyToasts = (): {
             ),
           }),
           closeButtonOptions,
+          onPress: buildToastPress(onPress),
         }),
         failed: (params?: DepositFailedParams) => {
           const keys = getDepositToastKeys(params?.intent);
@@ -298,6 +311,7 @@ const useMoneyToasts = (): {
               ),
             }),
             closeButtonOptions,
+            onPress: buildToastPress(params?.onPress),
           };
         },
       },
@@ -359,42 +373,49 @@ const useMoneyToasts = (): {
         }),
       },
       send: {
-        inProgress: () =>
+        inProgress: (params?: SendInProgressParams) =>
           buildSendToast(
             moneyBaseToastOptions.inProgress,
             'money.toasts.send_in_progress_title',
             'money.toasts.in_progress_body',
+            undefined,
+            params?.onPress,
           ),
-        success: ({ amountFiat, destination }: SendSuccessParams) =>
+        success: ({ amountFiat, destination, onPress }: SendSuccessParams) =>
           amountFiat
             ? buildSendToast(
                 moneyBaseToastOptions.success,
                 'money.toasts.send_success_title',
                 'money.toasts.send_success_body',
                 { amount: amountFiat, destination },
+                onPress,
               )
             : buildSendToast(
                 moneyBaseToastOptions.success,
                 'money.toasts.send_success_title',
                 'money.toasts.send_success_body_no_amount',
                 { destination },
+                onPress,
               ),
-        failed: () =>
+        failed: (params?: SendFailedParams) =>
           buildSendToast(
             moneyBaseToastOptions.error,
             'money.toasts.send_failed_title',
             'money.toasts.send_failed_body',
+            undefined,
+            params?.onPress,
           ),
       },
     };
   }, [
+    buildToastPress,
     closeButtonOptions,
     moneyBaseToastOptions.error,
     moneyBaseToastOptions.inProgress,
     moneyBaseToastOptions.success,
   ]);
 
-  return { showToast, MoneyToastOptions };
+  return { showToast, closeToast, MoneyToastOptions };
 };
 
 export default useMoneyToasts;

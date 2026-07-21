@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, TextInput, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
   Text,
@@ -45,7 +46,7 @@ export interface AddressFormData {
   countryCode: string;
 }
 
-interface V2EnterAddressParams {
+export interface V2EnterAddressParams {
   previousFormData?: BasicInfoFormData & AddressFormData;
   quote: TransakBuyQuote;
   /** When set, post-KYC `routeAfterAuthentication` resets use `HEADLESS_HOST` as stack base. */
@@ -53,7 +54,7 @@ interface V2EnterAddressParams {
 }
 
 const V2EnterAddress = (): React.JSX.Element => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { quote, previousFormData, headlessSessionId } =
     useParams<V2EnterAddressParams>();

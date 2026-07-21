@@ -176,12 +176,17 @@ Follow existing test patterns covering:
 | `perpsCompetitionBannerEnabled`                    | `perps-competition-banner-enabled`                       | —                                              | false   | Competition promotion banner on perps home (remote only)                                                 |
 | `perpsDefaultPayTokenWhenNoBalanceEnabled`         | `perps-default-pay-token-when-no-balance-enabled`        | —                                              | true    | Default pay token when no perps balance + Add funds CTA on market details (remote only)                  |
 | `vipProgramEnabled`                                | `vip-program-enabled`                                    | —                                              | false   | Gates VIP fee discount in perps (UI preview and order execution)                                         |
+| `perpsClosePositionLimitOrderEnabled`              | `perps-close-position-limit-order-enabled`               | —                                              | false   | Market/Limit order-type selector on the close position screen (limit close orders, remote only)          |
 
 ### A/B Test Flags
 
-| Redux Property           | LaunchDarkly Key            | Variants                | Purpose                          |
-| ------------------------ | --------------------------- | ----------------------- | -------------------------------- |
-| `perpsAbtestButtonColor` | `perps-abtest-button-color` | `control`, `monochrome` | Button color A/B test (TAT-1937) |
+| Redux Property                  | LaunchDarkly Key                    | Variants            | Purpose                          |
+| ------------------------------- | ----------------------------------- | ------------------- | -------------------------------- |
+| `perpsTAT1937AbtestButtonColor` | `perps-tat1937-abtest-button-color` | `control`, `colors` | Button color A/B test (TAT-1937) |
+
+`control` (white/white) is the required fallback variant for `useABTest` and is therefore the default experience; `colors` (green long / red short) is the active-experiment variant.
+
+`perpsTAT1937AbtestButtonColor` is version-gated to app version `8.3.0` and above using the `versions` + `thresholdVersion: 2` LaunchDarkly composition (see [MetaMask/contributor-docs: Remote Feature Flags](https://github.com/MetaMask/contributor-docs/blob/main/docs/remote-feature-flags.md#4-composing-version-based-scope-with-threshold-scope)) — the version gate lives entirely in the LaunchDarkly flag config, not in app code.
 
 ### Configuration Flags
 

@@ -202,7 +202,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
                   fontWeight={FontWeight.Medium}
                   color={TextColor.SuccessDefault}
                 >
-                  Live
+                  LIVE
                 </Text>
                 <Box twClassName="w-3" />
               </Box>
