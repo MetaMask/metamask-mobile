@@ -88,6 +88,7 @@ import CardHomeFooter from './components/CardHomeFooter';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardProvisioning } from './hooks/useCardProvisioning';
+import { useImmersveCardProvisioning } from './hooks/useImmersveCardProvisioning';
 import { CardEntryPoint, CardFlow, CardScreens } from '../../util/metrics';
 
 interface CardHomeRouteParams {
@@ -143,10 +144,15 @@ const CardHome = () => {
     primaryToken,
     isFrozen,
     cardTermsAndConditionsUrl,
+    capabilities,
   });
+
+  const isBlocked = data?.card?.status === CardStatus.BLOCKED;
 
   const { initiateProvisioning, isProvisioning, canAddToWallet } =
     useCardProvisioning(data);
+
+  useImmersveCardProvisioning(data);
 
   // --- Money Account linkage ---
   const {
@@ -519,15 +525,26 @@ const CardHome = () => {
           />
         </Box>
 
+        {isBlocked && (
+          <Box twClassName="mx-4 mt-2">
+            <CardMessageBox messageType={CardMessageBoxType.Blocked} />
+          </Box>
+        )}
+
         <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
           <Box twClassName="w-full relative">
             <CardImageSection
               isLoading={isLoading}
-              isCardDetailsLoading={actions.isCardDetailsLoading}
+              isCardDetailsLoading={
+                actions.isCardDetailsLoading ||
+                actions.isSensitiveDetailsLoading
+              }
               cardDetailsImageUrl={actions.cardDetailsImageUrl}
               isCardDetailsImageLoading={actions.isCardDetailsImageLoading}
               onImageLoad={actions.onCardDetailsImageLoad}
               onImageError={actions.onCardDetailsImageError}
+              cardSensitiveDetails={actions.cardSensitiveDetails}
+              onCopyDetail={actions.copyCardDetail}
               cardType={data?.card?.type}
               cardStatus={data?.card?.status}
               walletAddress={
@@ -648,38 +665,44 @@ const CardHome = () => {
           </>
         )}
 
-        <ManageCardOptions
-          card={data?.card}
-          account={data?.account}
-          capabilities={capabilities}
-          isSpendingLimitActive={isSpendingLimitActive}
-          isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
-          isAuthenticated={isAuthenticated}
-          isLoading={isLoading}
-          hasSetupActions={hasSetupActions}
-          hasAlertOnlyState={hasAlertOnlyState}
-          hasSetupAlerts={hasSetupAlerts}
-          userLocation={userLocation}
-          isFrozen={isFrozen}
-          isFreezeLoading={
-            actions.freeze.isPending || actions.unfreeze.isPending
-          }
-          isPinLoading={actions.isPinLoading}
-          cardDetailsImageUrl={actions.cardDetailsImageUrl}
-          onViewCardDetails={actions.viewCardDetailsAction}
-          onViewPin={actions.viewPinAction}
-          onToggleFreeze={actions.handleToggleFreeze}
-          onManageSpendingLimit={actions.manageSpendingLimitAction}
-          showUnlinkMoneyAccount={canUnlinkMoneyAccount}
-          onUnlinkMoneyAccount={() =>
-            actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)
-          }
-          onOrderMetalCard={actions.orderMetalCardAction}
-          onChangeAsset={actions.changeAssetAction}
-          hasPriorityTokenBalance={hasPriorityTokenBalance}
-          onCashback={actions.cashbackAction}
-          onTravel={actions.navigateToTravelPage}
-        />
+        {!isBlocked && (
+          <ManageCardOptions
+            card={data?.card}
+            account={data?.account}
+            capabilities={capabilities}
+            isSpendingLimitActive={isSpendingLimitActive}
+            isMetalCardCheckoutEnabled={isMetalCardCheckoutEnabled}
+            isAuthenticated={isAuthenticated}
+            isLoading={isLoading}
+            hasSetupActions={hasSetupActions}
+            hasAlertOnlyState={hasAlertOnlyState}
+            hasSetupAlerts={hasSetupAlerts}
+            userLocation={userLocation}
+            isFrozen={isFrozen}
+            isFreezeLoading={
+              actions.freeze.isPending || actions.unfreeze.isPending
+            }
+            isPinLoading={actions.isPinLoading}
+            cardDetailsVisible={
+              (!!actions.cardDetailsImageUrl ||
+                !!actions.cardSensitiveDetails) &&
+              isAuthenticated
+            }
+            onViewCardDetails={actions.viewCardDetailsAction}
+            onViewPin={actions.viewPinAction}
+            onToggleFreeze={actions.handleToggleFreeze}
+            onManageSpendingLimit={actions.manageSpendingLimitAction}
+            showUnlinkMoneyAccount={canUnlinkMoneyAccount}
+            onUnlinkMoneyAccount={() =>
+              actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)
+            }
+            onOrderMetalCard={actions.orderMetalCardAction}
+            onChangeAsset={actions.changeAssetAction}
+            hasPriorityTokenBalance={hasPriorityTokenBalance}
+            onCashback={actions.cashbackAction}
+            onTravel={actions.navigateToTravelPage}
+          />
+        )}
 
         <CardHomeFooter
           isAuthenticated={isAuthenticated}
@@ -691,7 +714,11 @@ const CardHome = () => {
           onLogout={actions.logoutAction}
         />
 
-        <CardScreenshotDeterrent enabled={!!actions.cardDetailsImageUrl} />
+        <CardScreenshotDeterrent
+          enabled={
+            !!actions.cardDetailsImageUrl || !!actions.cardSensitiveDetails
+          }
+        />
       </ScrollView>
     </Box>
   );
