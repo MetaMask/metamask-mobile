@@ -3,6 +3,8 @@
  * - ONLY Engine (business) and minimal native mocks.
  */
 
+console.log('Engine is being mocked');
+
 // Engine mock (singleton default export)
 jest.mock('../../app/core/Engine', () => {
   const engine = {

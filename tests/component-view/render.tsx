@@ -4,22 +4,14 @@ import { useRoute } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
-import { createUIQueryClient } from '@metamask/react-data-query';
+
+import { createQueryClient } from '../../app/core/createQueryClient';
 import renderWithProvider, {
   renderScreen,
   type ProviderValues,
 } from '../../app/util/test/renderWithProvider';
-import { DATA_SERVICES } from '../../app/constants/data-services';
-import { RootMessengerAdapter } from '../../app/core/ReactQueryService/ReactQueryService';
 
 notifyManager.setBatchNotifyFunction((callback) => callback());
-
-function createQueryClient() {
-  const rootMessengerAdapter = new RootMessengerAdapter();
-  return createUIQueryClient(DATA_SERVICES, rootMessengerAdapter, {
-    defaultOptions: { queries: { retry: false } },
-  });
-}
 
 function QueryClientBoundary({ children }: { children: React.ReactNode }) {
   const [queryClient] = React.useState(createQueryClient);

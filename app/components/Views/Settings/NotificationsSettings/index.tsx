@@ -107,6 +107,7 @@ const NotificationsSettings = ({ navigation }: Props) => {
   const isPriceAlertsEnabled = useSelector(selectPriceAlertsEnabled);
 
   const { preferences } = useNotificationStoragePreferences();
+  console.warn('preferences', preferences);
 
   const navigateToSection = (
     type: NotificationPreferenceSection,
