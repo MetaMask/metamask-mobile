@@ -1,8 +1,11 @@
 import { useHasNewMarkets } from './useHasNewMarkets';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import { renderHook, act } from '@testing-library/react-hooks';
+import { useSelector } from 'react-redux';
+import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 
 jest.mock('./usePerpsMarkets');
+jest.mock('react-redux');
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
@@ -16,6 +19,7 @@ const { useFocusEffect } = require('@react-navigation/native') as {
 const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
   typeof usePerpsMarkets
 >;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const NOW = 1_700_000_000_000; // fixed epoch ms for determinism
@@ -28,9 +32,19 @@ function mockMarkets(markets: { listedAt?: number }[]) {
   } as unknown as ReturnType<typeof usePerpsMarkets>);
 }
 
+function mockTerminalBackendEnabled(enabled: boolean) {
+  mockUseSelector.mockImplementation((selector: unknown) => {
+    if (selector === selectPerpsTerminalBackendEnabledFlag) return enabled;
+    return undefined;
+  });
+}
+
 describe('useHasNewMarkets', () => {
   beforeEach(() => {
     jest.spyOn(Date, 'now').mockReturnValue(NOW);
+    // Terminal backend enabled by default so existing listedAt-driven cases
+    // exercise the "data present" path; flag-off behavior is covered below.
+    mockTerminalBackendEnabled(true);
   });
 
   afterEach(() => {
@@ -103,5 +117,34 @@ describe('useHasNewMarkets', () => {
     });
 
     expect(result.current).toBe(false);
+  });
+
+  describe('Terminal backend gating', () => {
+    it('returns false when the Terminal backend flag is off, even with a recently listed market', () => {
+      mockTerminalBackendEnabled(false);
+      mockMarkets([{ listedAt: RECENT_LISTED_AT }]);
+
+      const { result } = renderHook(() => useHasNewMarkets());
+
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when the Terminal backend flag is on and a market qualifies', () => {
+      mockTerminalBackendEnabled(true);
+      mockMarkets([{ listedAt: RECENT_LISTED_AT }]);
+
+      const { result } = renderHook(() => useHasNewMarkets());
+
+      expect(result.current).toBe(true);
+    });
+
+    it('returns false when the Terminal backend flag is off and there is no listedAt data', () => {
+      mockTerminalBackendEnabled(false);
+      mockMarkets([{ listedAt: undefined }]);
+
+      const { result } = renderHook(() => useHasNewMarkets());
+
+      expect(result.current).toBe(false);
+    });
   });
 });

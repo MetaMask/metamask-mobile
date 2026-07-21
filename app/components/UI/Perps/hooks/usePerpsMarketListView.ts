@@ -253,7 +253,12 @@ export const usePerpsMarketListView = ({
     }
 
     // Special handling for 'new' filter - shows markets listed within the last
-    // 30 days (same criterion as the home "Recently added" rail).
+    // 30 days (same criterion as the home "Recently added" rail and the "New"
+    // pill/badge gated by useHasNewMarkets). `listedAt` is only populated when
+    // the Terminal backend flag is on (see useHasNewMarkets); a caller that
+    // reaches this filter directly (e.g. a deep link or restored navigation
+    // state) while that flag is off will simply see an empty list rather than
+    // an error, since every market's `listedAt` will be undefined.
     if (marketTypeFilter === 'new') {
       return searchedMarkets.filter((market) =>
         isRecentlyListed(market.listedAt, now),
