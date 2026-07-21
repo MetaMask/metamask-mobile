@@ -895,6 +895,96 @@ describe('usePerpsMarketListView', () => {
     });
   });
 
+  describe('Recently Viewed Markets category filtering', () => {
+    const mixedMarkets = [
+      { ...createMockMarket('BTC', '$1B'), isHip3: false },
+      { ...createMockMarket('ETH', '$500M'), isHip3: false },
+      {
+        ...createMockMarket('AAPL', '$2B'),
+        marketType: 'stock' as const,
+        isHip3: true,
+      },
+      {
+        ...createMockMarket('GOLD', '$800M'),
+        marketType: 'commodity' as const,
+        isHip3: true,
+      },
+    ];
+
+    beforeEach(() => {
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: mixedMarkets as unknown as ReturnType<
+          typeof usePerpsMarkets
+        >['markets'],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+
+      mockUsePerpsSearch.mockReturnValue({
+        searchQuery: '',
+        setSearchQuery: jest.fn(),
+        filteredMarkets: mixedMarkets,
+        clearSearch: jest.fn(),
+      });
+    });
+
+    it('shows all recently viewed markets when filter is "all"', () => {
+      mockSelectorState({ recentlyViewed: ['GOLD', 'BTC', 'AAPL', 'ETH'] });
+
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'all' }),
+      );
+
+      expect(
+        result.current.recentlyViewedState.recentlyViewedMarketObjects.map(
+          (m) => m.symbol,
+        ),
+      ).toEqual(['GOLD', 'BTC', 'AAPL', 'ETH']);
+    });
+
+    it('filters recently viewed markets to the active crypto category, preserving newest-first order', () => {
+      mockSelectorState({ recentlyViewed: ['GOLD', 'BTC', 'AAPL', 'ETH'] });
+
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'crypto' }),
+      );
+
+      expect(
+        result.current.recentlyViewedState.recentlyViewedMarketObjects.map(
+          (m) => m.symbol,
+        ),
+      ).toEqual(['BTC', 'ETH']);
+    });
+
+    it('filters recently viewed markets to the active HIP-3 category', () => {
+      mockSelectorState({ recentlyViewed: ['GOLD', 'BTC', 'AAPL', 'ETH'] });
+
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'stock' }),
+      );
+
+      expect(
+        result.current.recentlyViewedState.recentlyViewedMarketObjects.map(
+          (m) => m.symbol,
+        ),
+      ).toEqual(['AAPL']);
+    });
+
+    it('returns an empty array when no recently viewed market matches the active category', () => {
+      mockSelectorState({ recentlyViewed: ['GOLD', 'AAPL'] });
+
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'crypto' }),
+      );
+
+      expect(
+        result.current.recentlyViewedState.recentlyViewedMarketObjects,
+      ).toEqual([]);
+    });
+  });
+
   describe('Market Type Category Filtering', () => {
     const mixedMarkets = [
       { ...createMockMarket('BTC', '$1B'), isHip3: false }, // crypto (no marketType, not HIP-3)
