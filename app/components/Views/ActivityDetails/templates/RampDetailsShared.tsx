@@ -206,7 +206,7 @@ export function RampDetailsMetadataSection({
   statusDescription?: string;
   formattedDate: string;
   orderId?: string;
-  accountAddress?: string;
+  accountAddress: string;
   chainId: string;
   isSell: boolean;
   transactionHash?: string;
