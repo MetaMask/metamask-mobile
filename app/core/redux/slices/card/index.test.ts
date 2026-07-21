@@ -25,6 +25,7 @@ const CARD_STATE_MOCK: CardSliceState = {
     onboardingId: null,
     contactVerificationId: null,
     consentSetId: null,
+    immersveFundingSourceId: null,
   },
   pendingMoneyAccountCardLink: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
 };
@@ -37,6 +38,7 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
     onboardingId: null,
     contactVerificationId: null,
     consentSetId: null,
+    immersveFundingSourceId: null,
   },
   pendingMoneyAccountCardLink: null,
 };
@@ -159,6 +161,7 @@ describe('Card Reducer', () => {
           onboardingId: null,
           contactVerificationId: null,
           consentSetId: null,
+          immersveFundingSourceId: null,
         },
         pendingMoneyAccountCardLink: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
       };
@@ -340,6 +343,7 @@ describe('Card Reducer', () => {
               onboardingId: 'test-id',
               contactVerificationId: 'verification-123',
               consentSetId: 'consent-456',
+              immersveFundingSourceId: 'fs-456',
             },
           };
           const state = cardReducer(current, resetOnboardingState());
@@ -347,6 +351,7 @@ describe('Card Reducer', () => {
             onboardingId: null,
             contactVerificationId: null,
             consentSetId: null,
+            immersveFundingSourceId: null,
           });
         });
 
@@ -356,6 +361,7 @@ describe('Card Reducer', () => {
             onboardingId: null,
             contactVerificationId: null,
             consentSetId: null,
+            immersveFundingSourceId: null,
           });
         });
       });

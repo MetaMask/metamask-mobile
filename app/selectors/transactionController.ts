@@ -245,6 +245,12 @@ export const selectTransactions = createDeepEqualSelector(
   },
 );
 
+export const selectHasUnapprovedTransactions = createSelector(
+  selectTransactionsStrict,
+  (transactions) =>
+    transactions.some((tx) => tx.status === TransactionStatus.unapproved),
+);
+
 /**
  * A transaction is "replaced" once its speed-up/cancel replacement has fully
  * committed: the controller sets `replacedBy` (replacement hash) and
