@@ -109,4 +109,19 @@ describe('useERC20Tokens', () => {
 
     expect(result.current[0]?.name).toBe(TOKEN_NAME_MOCK);
   });
+
+  it('returns a stable reference across re-renders with identical inputs', () => {
+    const { result, rerender } = renderHook([
+      {
+        type: NameType.EthereumAddress,
+        value: TOKEN_ADDRESS_MOCK,
+        variation: CHAIN_ID_MOCK,
+      },
+    ]);
+    const first = result.current;
+
+    rerender({});
+
+    expect(result.current).toBe(first);
+  });
 });
