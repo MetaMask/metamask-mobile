@@ -5,7 +5,12 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import {
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
@@ -143,6 +148,39 @@ const BridgeTokenSelectorRow = React.memo(
       </TokenSelectorItem>
     );
   },
+);
+
+interface BridgeTokenSelectorSearchEmptyStateProps {
+  containerStyle: StyleProp<ViewStyle>;
+  NoSearchResultsIcon: React.ComponentType<{ width: number; height: number }>;
+}
+
+const BridgeTokenSelectorSearchEmptyState = React.memo(
+  ({
+    containerStyle,
+    NoSearchResultsIcon,
+  }: BridgeTokenSelectorSearchEmptyStateProps) => (
+    <TabEmptyState
+      testID="bridge-token-selector-empty-state"
+      icon={<NoSearchResultsIcon width={72} height={78} />}
+      description={strings('bridge.no_tokens_found')}
+      descriptionProps={{
+        variant: TextVariant.HeadingMd,
+        color: TextColor.TextDefault,
+        twClassName: 'text-center',
+      }}
+      style={containerStyle}
+      twClassName="self-center"
+    >
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        twClassName="text-center -mt-1"
+      >
+        {strings('bridge.no_tokens_found_description')}
+      </Text>
+    </TabEmptyState>
+  ),
 );
 
 export const BridgeTokenSelector: React.FC = () => {
@@ -529,17 +567,21 @@ export const BridgeTokenSelector: React.FC = () => {
     searchString,
   ]);
 
+  const resetSearchForNetworkChange = useCallback(() => {
+    debouncedSearch.cancel();
+    resetSearch();
+
+    if (isValidSearch) {
+      shouldResearchAfterChainChange.current = true;
+    }
+  }, [debouncedSearch, resetSearch, isValidSearch]);
+
   const handleChainSelect = useCallback(
     (chainId?: CaipChainId) => {
       if (isWatchlistFilterActive) {
         setShowWatchlistOnly(false);
         dispatch(setTokenSelectorNetworkFilter(chainId));
-        debouncedSearch.cancel();
-        resetSearch();
-
-        if (isValidSearch) {
-          shouldResearchAfterChainChange.current = true;
-        }
+        resetSearchForNetworkChange();
         return;
       }
 
@@ -553,20 +595,13 @@ export const BridgeTokenSelector: React.FC = () => {
       // Eagerly clean up search state so the UI doesn't flash stale results.
       // The useEffect watching selectedChainId also performs this cleanup
       // to handle changes from NetworkListModal (which dispatches directly).
-      debouncedSearch.cancel();
-      resetSearch();
-
-      if (isValidSearch) {
-        shouldResearchAfterChainChange.current = true;
-      }
+      resetSearchForNetworkChange();
     },
     [
       selectedChainId,
       dispatch,
-      debouncedSearch,
-      resetSearch,
-      isValidSearch,
       isWatchlistFilterActive,
+      resetSearchForNetworkChange,
     ],
   );
 
@@ -726,36 +761,16 @@ export const BridgeTokenSelector: React.FC = () => {
 
   const renderEmptyState = useCallback(() => {
     if (isWatchlistListMode) {
-      if (isWatchlistLoading) {
+      if (isWatchlistLoading || !isWatchlistSearchActive) {
         return null;
       }
 
-      if (isWatchlistSearchActive) {
-        return (
-          <TabEmptyState
-            testID="bridge-token-selector-empty-state"
-            icon={<NoSearchResultsIcon width={72} height={78} />}
-            description={strings('bridge.no_tokens_found')}
-            descriptionProps={{
-              variant: TextVariant.HeadingMd,
-              color: TextColor.TextDefault,
-              twClassName: 'text-center',
-            }}
-            style={styles.emptyStateContainer}
-            twClassName="self-center"
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-              twClassName="text-center -mt-1"
-            >
-              {strings('bridge.no_tokens_found_description')}
-            </Text>
-          </TabEmptyState>
-        );
-      }
-
-      return null;
+      return (
+        <BridgeTokenSelectorSearchEmptyState
+          containerStyle={styles.emptyStateContainer}
+          NoSearchResultsIcon={NoSearchResultsIcon}
+        />
+      );
     }
 
     // Only show empty state when search is active and not loading
@@ -764,26 +779,10 @@ export const BridgeTokenSelector: React.FC = () => {
     }
 
     return (
-      <TabEmptyState
-        testID="bridge-token-selector-empty-state"
-        icon={<NoSearchResultsIcon width={72} height={78} />}
-        description={strings('bridge.no_tokens_found')}
-        descriptionProps={{
-          variant: TextVariant.HeadingMd,
-          color: TextColor.TextDefault,
-          twClassName: 'text-center',
-        }}
-        style={styles.emptyStateContainer}
-        twClassName="self-center"
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="text-center -mt-1"
-        >
-          {strings('bridge.no_tokens_found_description')}
-        </Text>
-      </TabEmptyState>
+      <BridgeTokenSelectorSearchEmptyState
+        containerStyle={styles.emptyStateContainer}
+        NoSearchResultsIcon={NoSearchResultsIcon}
+      />
     );
   }, [
     isWatchlistListMode,
