@@ -24,6 +24,7 @@ import ButtonHero from '../../../../../../component-library/components-temp/Butt
 import { ButtonBaseSize } from '@metamask/design-system-react-native';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useConfirmationContext } from '../../../context/confirmation-context';
+import { RootState } from '../../../../../../reducers';
 
 export interface PredictClaimFooterProps {
   onPress: () => void | Promise<void>;
@@ -41,10 +42,8 @@ export function PredictClaimFooter({
   const address = transactionMetadata?.txParams.from;
   const transactionId = transactionMetadata?.id;
 
-  const wonPositions = useSelector(
-    selectPredictWonPositions({
-      address: address ?? '0x',
-    }),
+  const wonPositions = useSelector((state: RootState) =>
+    selectPredictWonPositions(state, address ?? '0x'),
   );
 
   const hasNoPositions = !address || !wonPositions?.length;

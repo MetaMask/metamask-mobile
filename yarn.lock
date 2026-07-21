@@ -12916,10 +12916,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-community/slider@npm:5.1.2":
-  version: 5.1.2
-  resolution: "@react-native-community/slider@npm:5.1.2"
-  checksum: 10/465e42b05cf47ac590ea66c8b1bb29dc1d0925ab1a8c41c8c9fce28e464bef02c629ca9eceece63f1128132f11877800e59e918d040c1ad15ea03c58ec23b5b9
+"@react-native-community/slider@npm:5.2.0":
+  version: 5.2.0
+  resolution: "@react-native-community/slider@npm:5.2.0"
+  checksum: 10/81078cef11297f3d4f49ecf0871a5479ca91ca78229556bff49c75c449bd00b853b552d32324230f70840b8a9004e898085a1a793ec0da64f3145d6247ea150f
   languageName: node
   linkType: hard
 
@@ -35447,9 +35447,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lottie-react-native@npm:~7.3.1":
-  version: 7.3.6
-  resolution: "lottie-react-native@npm:7.3.6"
+"lottie-react-native@npm:~7.3.8":
+  version: 7.3.8
+  resolution: "lottie-react-native@npm:7.3.8"
   peerDependencies:
     "@lottiefiles/dotlottie-react": ^0.13.5
     react: "*"
@@ -35460,7 +35460,7 @@ __metadata:
       optional: true
     react-native-windows:
       optional: true
-  checksum: 10/8d22f2883d9ddcd6fa0c8e45e0c2b174f44c2bd6efc661cb291e5b20026c8faf2275793125bce2dd743f2db680c27edd8f57248c6014a760b707c2ddf7a9c656
+  checksum: 10/050154a675de4aeff10d629ca48743806818ebe4c79d041e0983ff278a59e2d59f4e88b559a6d681e49d7d82b253ad969909d9cde9a887bc22c8a2ebf05c2538
   languageName: node
   linkType: hard
 
@@ -35978,7 +35978,7 @@ __metadata:
     "@react-native-community/cli-server-api": "npm:^17.0.0"
     "@react-native-community/datetimepicker": "npm:^8.5.1"
     "@react-native-community/netinfo": "npm:11.5.2"
-    "@react-native-community/slider": "npm:5.1.2"
+    "@react-native-community/slider": "npm:5.2.0"
     "@react-native-cookies/cookies": "npm:^6.2.1"
     "@react-native-firebase/app": "npm:^20.5.0"
     "@react-native-firebase/messaging": "npm:^20.5.0"
@@ -36153,7 +36153,7 @@ __metadata:
     listr2: "npm:^8.0.2"
     liveline: "npm:0.0.7"
     lodash: "npm:4.18.1"
-    lottie-react-native: "npm:~7.3.1"
+    lottie-react-native: "npm:~7.3.8"
     luxon: "npm:^3.5.0"
     metro-react-native-babel-preset: "npm:~0.76.9"
     metro-react-native-babel-transformer: "npm:~0.76.9"
@@ -36232,7 +36232,7 @@ __metadata:
     react-native-reanimated: "npm:4.2.1"
     react-native-release-profiler: "npm:^0.4.4"
     react-native-render-html: "npm:^6.3.4"
-    react-native-safe-area-context: "npm:~5.6.0"
+    react-native-safe-area-context: "npm:~5.8.0"
     react-native-screens: "npm:~4.25.2"
     react-native-sensors: "patch:react-native-sensors@npm%3A5.3.0#~/.yarn/patches/react-native-sensors-npm-5.3.0-318d1d324d.patch"
     react-native-share: "patch:react-native-share@npm%3A7.3.7#~/.yarn/patches/react-native-share-npm-7.3.7-5b491ea831.patch"
@@ -40975,13 +40975,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-safe-area-context@npm:~5.6.0":
-  version: 5.6.2
-  resolution: "react-native-safe-area-context@npm:5.6.2"
+"react-native-safe-area-context@npm:~5.8.0":
+  version: 5.8.0
+  resolution: "react-native-safe-area-context@npm:5.8.0"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/880d87ee60119321b366eef2c151ecefe14f5bc0d39cf5cfbfb167684e571d3dae2600ee19b9bc8521f5726eb285abecaa7aafb1a3b213529dafbac24703d302
+  checksum: 10/d4f526a98110f88ba9f5dfe6d6bda2c26b86404b2d29a6571931a1f02a531f565a2fd58d20b4ac70c1fa37c00ad6a72332fb0a463e27262c4ff1d1dfb694af7c
   languageName: node
   linkType: hard
 
