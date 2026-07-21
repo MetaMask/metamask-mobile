@@ -49,6 +49,7 @@ import { selectSelectedInternalAccountByScope } from '../../../../../selectors/m
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { useImmersveResumeOnboarding } from '../../hooks/useImmersveResumeOnboarding';
 import { getCardProviderErrorMessage } from '../../util/getCardProviderErrorMessage';
 
@@ -346,8 +347,9 @@ const CardAuthentication = () => {
   }, [navigation, trackEvent, createEventBuilder, selectedLocation]);
 
   const openAccountSelector = useCallback(() => {
-    navigation.navigate(
-      ...createAccountSelectorNavDetails({
+    navigateWithDetails(
+      navigation,
+      createAccountSelectorNavDetails({
         isEvmOnly: true,
         isSelectOnly: true,
         disableAddAccountButton: true,
