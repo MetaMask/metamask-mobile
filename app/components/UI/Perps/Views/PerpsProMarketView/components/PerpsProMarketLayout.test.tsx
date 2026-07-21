@@ -24,6 +24,8 @@ describe('PerpsProMarketLayout', () => {
       },
       expectedLeftPanel: 'mock-order-form',
       expectedRightPanel: 'mock-order-book',
+      expectedLeftColumnStyle: { flex: 1 },
+      expectedRightColumnStyle: { width: 132 },
     },
     {
       name: 'reversed opposing positions',
@@ -33,6 +35,8 @@ describe('PerpsProMarketLayout', () => {
       },
       expectedLeftPanel: 'mock-order-book',
       expectedRightPanel: 'mock-order-form',
+      expectedLeftColumnStyle: { width: 132 },
+      expectedRightColumnStyle: { flex: 1 },
     },
     {
       name: 'conflicting left positions',
@@ -42,6 +46,8 @@ describe('PerpsProMarketLayout', () => {
       },
       expectedLeftPanel: 'mock-order-form',
       expectedRightPanel: 'mock-order-book',
+      expectedLeftColumnStyle: { flex: 1 },
+      expectedRightColumnStyle: { width: 132 },
     },
     {
       name: 'conflicting right positions',
@@ -51,10 +57,18 @@ describe('PerpsProMarketLayout', () => {
       },
       expectedLeftPanel: 'mock-order-form',
       expectedRightPanel: 'mock-order-book',
+      expectedLeftColumnStyle: { flex: 1 },
+      expectedRightColumnStyle: { width: 132 },
     },
   ] as const)(
     'places panels for $name',
-    ({ config, expectedLeftPanel, expectedRightPanel }) => {
+    ({
+      config,
+      expectedLeftPanel,
+      expectedRightPanel,
+      expectedLeftColumnStyle,
+      expectedRightColumnStyle,
+    }) => {
       const { getByTestId } = renderLayout(config);
 
       const leftColumn = getByTestId(
@@ -70,6 +84,8 @@ describe('PerpsProMarketLayout', () => {
       expect(
         within(rightColumn).getByTestId(expectedRightPanel),
       ).toBeOnTheScreen();
+      expect(leftColumn).toHaveStyle(expectedLeftColumnStyle);
+      expect(rightColumn).toHaveStyle(expectedRightColumnStyle);
     },
   );
 
@@ -85,8 +101,5 @@ describe('PerpsProMarketLayout', () => {
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.VERTICAL_DIVIDER),
     ).toHaveStyle({ width: 24 });
-    expect(
-      getByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
-    ).toHaveStyle({ width: 132 });
   });
 });

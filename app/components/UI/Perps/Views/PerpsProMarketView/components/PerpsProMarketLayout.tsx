@@ -27,7 +27,10 @@ const styles = StyleSheet.create({
   dividerLine: {
     width: 1,
   },
-  rightColumn: {
+  orderFormColumn: {
+    flex: 1,
+  },
+  orderBookColumn: {
     width: PRO_ORDER_BOOK_COLUMN_WIDTH,
   },
 });
@@ -50,6 +53,12 @@ const PerpsProMarketLayout = ({
   const orderFormIsLeft = resolvedConfig.orderFormPosition === 'left';
   const leftPanel = orderFormIsLeft ? orderForm : orderBook;
   const rightPanel = orderFormIsLeft ? orderBook : orderForm;
+  const leftColumnStyle = orderFormIsLeft
+    ? styles.orderFormColumn
+    : styles.orderBookColumn;
+  const rightColumnStyle = orderFormIsLeft
+    ? styles.orderBookColumn
+    : styles.orderFormColumn;
 
   return (
     <Box
@@ -60,7 +69,7 @@ const PerpsProMarketLayout = ({
     >
       <Box
         testID={PerpsProMarketViewSelectorsIDs.LEFT_COLUMN}
-        twClassName="flex-1"
+        style={leftColumnStyle}
       >
         {leftPanel}
       </Box>
@@ -73,7 +82,7 @@ const PerpsProMarketLayout = ({
       </Box>
       <Box
         testID={PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN}
-        style={styles.rightColumn}
+        style={rightColumnStyle}
       >
         {rightPanel}
       </Box>
