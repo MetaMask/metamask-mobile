@@ -12,6 +12,12 @@ export const MONAD_MAINNET_RPC_URL = `https://monad-mainnet.infura.io/v3/${infur
 export const BASE_SEPOLIA_RPC_URL = `https://base-sepolia.infura.io/v3/${infuraProjectId}`;
 export const BASE_USDC_TOKEN_ADDRESS =
   '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+export const BASE_SEPOLIA_USDC_TOKEN_ADDRESS =
+  '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
+
+export const CARD_TOKEN_ICON_OVERRIDES: Record<string, string> = {
+  [`eip155:84532:${BASE_SEPOLIA_USDC_TOKEN_ADDRESS.toLowerCase()}`]: `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/erc20/${BASE_USDC_TOKEN_ADDRESS.toLowerCase()}.png`,
+};
 export const COINME_TERMS_URL = 'https://coinme.com/legal/';
 export const CRB_TERMS_URL =
   'https://baanx-public.s3-eu-west-1.amazonaws.com/Ledger/public-files/BaanxUS_CLCard_TOS.undefined-fddb292f91ce3.pdf';
@@ -68,9 +74,15 @@ export const cardNetworkInfos: Record<CardNetwork, CardNetworkInfo> = {
   },
 };
 
-export const CARD_CHAIN_IDS = Object.values(cardNetworkInfos).map(
-  (info) => info.caipChainId,
-);
+// Immersve test funding network. Not a first-class card network, but its
+// balance must flow through useTokensWithBalance, which only queries chains
+// listed here.
+export const IMMERSVE_BASE_SEPOLIA_CAIP_CHAIN_ID: CaipChainId = 'eip155:84532';
+
+export const CARD_CHAIN_IDS = [
+  ...Object.values(cardNetworkInfos).map((info) => info.caipChainId),
+  IMMERSVE_BASE_SEPOLIA_CAIP_CHAIN_ID,
+];
 
 export const caipChainIdToNetwork = Object.fromEntries(
   Object.entries(cardNetworkInfos).map(([network, info]) => [
