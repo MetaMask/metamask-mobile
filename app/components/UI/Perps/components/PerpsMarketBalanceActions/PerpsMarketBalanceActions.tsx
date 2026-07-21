@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { Animated, Modal, View } from 'react-native';
+import { Animated, LayoutChangeEvent, Modal, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -8,6 +8,9 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  KeyValueRow,
+  KeyValueRowVariant,
+  SectionDivider,
 } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
@@ -37,9 +40,12 @@ import PerpsEmptyBalance from '../PerpsEmptyBalance';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProgressBar } from '../PerpsProgressBar';
 import { selectWithdrawalRequestsBySelectedAccount } from '../../../../../selectors/perps';
+
 interface PerpsMarketBalanceActionsProps {
   showActionButtons?: boolean;
   hideBalanceSection?: boolean;
+  onTitleSectionLayout?: (event: LayoutChangeEvent) => void;
+  children?: React.ReactNode;
 }
 
 const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
@@ -65,6 +71,8 @@ const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
 const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   showActionButtons = true,
   hideBalanceSection = false,
+  onTitleSectionLayout,
+  children,
 }) => {
   const tw = useTailwind();
   const { isDepositInProgress } = usePerpsDepositProgress();
@@ -135,18 +143,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     [isDepositInProgress, hasActiveWithdrawals],
   );
 
-  const shouldShowDollarAmount = useMemo(
-    () =>
-      (isOnlyDepositInProgress && transactionAmountWei) ||
-      (isOnlyWithdrawalInProgress && withdrawalAmount),
-    [
-      isOnlyDepositInProgress,
-      isOnlyWithdrawalInProgress,
-      transactionAmountWei,
-      withdrawalAmount,
-    ],
-  );
-
   // Use the reusable hooks for balance animation
   const {
     startPulseAnimation: startBalancePulse,
@@ -196,53 +192,65 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     return <PerpsMarketBalanceActionsSkeleton />;
   }
 
-  // Allow transaction progress UI before account data arrives
-  if (!perpsAccount && !isAnyTransactionInProgress) {
+  // Allow transaction progress UI before account data arrives.
+  // When balance lives in TitleHub (hideBalanceSection), still render
+  // children (title + interruption banner) even if account is null.
+  if (
+    !perpsAccount &&
+    !isAnyTransactionInProgress &&
+    !(hideBalanceSection && children)
+  ) {
     return null;
   }
+
+  const transactionAmountDisplay =
+    isOnlyDepositInProgress && transactionAmountWei
+      ? convertPerpsAmountToUSD(transactionAmountWei)
+      : isOnlyWithdrawalInProgress && withdrawalAmount
+        ? convertPerpsAmountToUSD(withdrawalAmount)
+        : null;
 
   return (
     <>
       <Box
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
-        twClassName={isBalanceEmpty ? 'mb-4 rounded-xl' : 'mb-4'}
+        twClassName={isBalanceEmpty ? 'mb-4 rounded-xl' : undefined}
       >
-        <PerpsProgressBar
-          progressAmount={INITIAL_AMOUNT_UI_PROGRESS}
-          height={4}
-          onTransactionAmountChange={setTransactionAmountWei}
-        />
-        {/* Single Progress Section */}
-        {isAnyTransactionInProgress && (
-          <Box twClassName="p-4">
-            <Box twClassName="w-full flex-row justify-between">
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Default}
-              >
-                {statusText}
-              </Text>
-              {/* Only show dollar value when there's a single transaction in progress */}
-              {shouldShowDollarAmount && (
-                <SensitiveText
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                  isHidden={privacyMode}
-                  length={SensitiveTextLength.Short}
-                >
-                  {isOnlyDepositInProgress && transactionAmountWei
-                    ? convertPerpsAmountToUSD(transactionAmountWei)
-                    : isOnlyWithdrawalInProgress && withdrawalAmount
-                      ? convertPerpsAmountToUSD(withdrawalAmount)
-                      : null}
-                </SensitiveText>
-              )}
-            </Box>
-          </Box>
-        )}
-        {isAnyTransactionInProgress && (
-          <Box twClassName="w-full border-b border-muted"></Box>
-        )}
+        <Box
+          onLayout={onTitleSectionLayout}
+          testID={PerpsMarketBalanceActionsSelectorsIDs.TITLE_SECTION}
+        >
+          <PerpsProgressBar
+            progressAmount={INITIAL_AMOUNT_UI_PROGRESS}
+            height={4}
+            onTransactionAmountChange={setTransactionAmountWei}
+          />
+          {isAnyTransactionInProgress && (
+            <>
+              <Box twClassName="px-4">
+                <KeyValueRow
+                  variant={KeyValueRowVariant.Summary}
+                  keyLabel={statusText}
+                  twClassName="mt-3 h-6"
+                  value={
+                    transactionAmountDisplay ? (
+                      <SensitiveText
+                        variant={TextVariant.BodySMMedium}
+                        color={TextColor.Default}
+                        isHidden={privacyMode}
+                        length={SensitiveTextLength.Short}
+                      >
+                        {transactionAmountDisplay}
+                      </SensitiveText>
+                    ) : undefined
+                  }
+                />
+              </Box>
+              <SectionDivider marginVertical={3} />
+            </>
+          )}
+          {children}
+        </Box>
         {/* Balance Section — defer until account data lands when balance is in TitleHub */}
         {!isInitialLoading &&
           (isBalanceEmpty ? (
@@ -250,7 +258,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
           ) : hideBalanceSection ? (
             showActionButtons && (
               <Box
-                twClassName="gap-3 px-4 pt-1 pb-3"
+                twClassName="gap-3 px-4 pt-1"
                 flexDirection={BoxFlexDirection.Row}
               >
                 <Box twClassName="flex-1">

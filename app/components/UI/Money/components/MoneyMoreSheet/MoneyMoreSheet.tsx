@@ -114,7 +114,7 @@ const MoneyMoreSheet = () => {
     },
     {
       label: strings('money.more_sheet.contact_support'),
-      icon: IconName.MessageQuestion,
+      icon: IconName.Sms,
       onPress: handleContactSupport,
       testID: MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION,
     },
