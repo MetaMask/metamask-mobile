@@ -172,7 +172,10 @@ class BitcoinTestDapp {
     await this.tapButton(this.signMessageButtonSelector);
   }
 
-  async verifyConnectedAccount(connectionStatus: string): Promise<void> {
+  async verifyConnectedAccount(
+    connectionStatus: string,
+    timeout: number = BASE_DEFAULTS.timeout,
+  ): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
         const account = await getTestElement(
@@ -190,13 +193,16 @@ class BitcoinTestDapp {
         }
       },
       {
-        timeout: BASE_DEFAULTS.timeout,
-        description: 'Verify connection status',
+        timeout,
+        description: 'Verify connected account',
       },
     );
   }
 
-  async verifyConnectionStatus(connectionStatus: string): Promise<void> {
+  async verifyConnectionStatus(
+    connectionStatus: string,
+    timeout: number = BASE_DEFAULTS.timeout,
+  ): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
         const connectionStatusDiv = await getTestElement(
@@ -211,7 +217,7 @@ class BitcoinTestDapp {
         }
       },
       {
-        timeout: BASE_DEFAULTS.timeout,
+        timeout,
         description: 'Verify connection status',
       },
     );
