@@ -930,3 +930,22 @@ export const PerpsFlipPositionConfirmSheetSelectorsIDs = {
   EST_SIZE_VALUE: 'perps-flip-position-est-size-value',
   FEES_VALUE: 'perps-flip-position-fees-value',
 } as const;
+
+// ========================================
+// PERPS MODE TOGGLE SELECTORS
+// ========================================
+
+export const PerpsModeToggleSelectorsIDs = {
+  CONTAINER: 'perps-mode-toggle',
+  LITE_SEGMENT: 'perps-mode-toggle-lite',
+  PRO_SEGMENT: 'perps-mode-toggle-pro',
+} as const;
+
+// ========================================
+// PERPS MODE TRANSITION SELECTORS
+// ========================================
+
+export const PerpsModeTransitionSelectorsIDs = {
+  CONTAINER: 'perps-mode-transition',
+  TITLE: 'perps-mode-transition-title',
+} as const;
