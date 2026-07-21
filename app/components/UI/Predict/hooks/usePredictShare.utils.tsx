@@ -26,7 +26,6 @@ export const buildShareCopiedToastOptions = ({
   backgroundColor: 'transparent',
   iconColor: successColor,
   hasNoTimeout: false,
-  customBottomOffset: -50,
   startAccessory: (
     <Box twClassName="items-center justify-center pr-3">
       <Icon
