@@ -96,7 +96,7 @@
     "build:ios:pre-flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/build.sh ios flask --pre",
     "build:attribution": "./scripts/generate-attributions.sh",
     "test": "yarn test:unit",
-    "test:unit": "jest ./app/ ./locales/ ./tests/**/*.test.ts .github/**/*.test.ts ./scripts/**/*.test.ts --testPathIgnorePatterns='.*/tests/(smoke|regression)/.*\\.spec\\.(ts|tsx|js)$|.*/e2e/.*\\.spec\\.(ts|tsx|js)$|.*\\.integration\\.test\\.(ts|tsx|js|jsx)$|.*\\.view(\\..*)?\\.test\\.(ts|tsx|js|jsx)$'",
+    "test:unit": "jest **/*ridge* --testPathIgnorePatterns='.*/tests/(smoke|regression)/.*\\.spec\\.(ts|tsx|js)$|.*/e2e/.*\\.spec\\.(ts|tsx|js)$|.*\\.view(\\..*)?\\.test\\.(ts|tsx|js|jsx)$'",
     "test:view:base": "jest -c jest.config.view.js --no-watchman --silent",
     "test:view": "yarn test:view:base --coverage=false --testPathPattern='.*\\.view(\\..*)?\\.test\\.(ts|tsx|js|jsx)$'",
     "test:view:one": "yarn test:view:base --verbose --coverage=false --testTimeout=30000",
@@ -182,6 +182,16 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/bridge-controller": {
+      "type": "breaking",
+      "previewVersion": "77.6.0-preview-8abc30aca"
+    },
+    "@metamask/bridge-status-controller": {
+      "type": "breaking",
+      "previewVersion": "74.3.0-preview-8abc30aca"
+    }
+  },
   "resolutions": {
     "@metamask/network-controller": "34.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
@@ -223,7 +233,6 @@
     "@metamask/keyring-api@npm:^21.4.0": "^23.3.0",
     "@metamask/keyring-api@npm:^21.6.0": "^23.3.0",
     "@metamask/keyring-api@npm:^22.0.0": "^23.3.0",
-    "@metamask/bridge-status-controller@npm:^71.0.0": "patch:@metamask/bridge-status-controller@npm%3A71.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-71.1.0-6140a0bdf3.patch",
     "react-native-quick-base64@npm:^2.0.5": "patch:react-native-quick-base64@npm%3A2.2.0#~/.yarn/patches/react-native-quick-base64-npm-2.2.0-9083eb316a.patch",
     "@metamask/permission-controller": "^13.1.1",
     "react-native-ble-plx@npm:3.4.0": "patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch",
