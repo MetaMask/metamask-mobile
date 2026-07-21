@@ -16,6 +16,6 @@ export function resolveImmersveConfig(): ImmersveProviderConfig {
       ),
     clientApplicationId:
       process.env.MM_CARD_IMMERSVE_CLIENT_APPLICATION_ID ?? '',
-    appUrl: process.env.MM_CARD_IMMERSVE_APP_URL ?? 'https://app.immersve.com',
+    appUrl: process.env.MM_CARD_IMMERSVE_APP_URL ?? 'https://metamask.app.link',
   };
 }

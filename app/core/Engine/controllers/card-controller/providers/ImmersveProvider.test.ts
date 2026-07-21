@@ -24,7 +24,8 @@ const FEATURE_FLAG: CardFeatureFlag = {
   immersve: {
     network: 'base-sepolia',
     cardProgramId: 'program-1',
-    fundingType: 'base-sepolia-usdc-universal-evm',
+    partnerAccountId: 'partner-1',
+    fundingChannelId: 'base-channel',
   },
   immersveCountries: ['GB'],
 };
@@ -146,9 +147,27 @@ describe('ImmersveProvider', () => {
       );
     });
 
+    it('prefers the feature-flag clientApplicationId over the env config', async () => {
+      const { provider, service } = createProvider({
+        immersve: { ...FEATURE_FLAG.immersve, clientApplicationId: 'flag-app' },
+        immersveCountries: ['GB'],
+      });
+      service.post.mockResolvedValue({
+        id: 'login-req-1',
+        signingChallenge: { message: 'sign in' },
+      });
+
+      await provider.initiateAuth('GB', { address: '0xabc' });
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/auth/login-init',
+        expect.objectContaining({ clientApplicationId: 'flag-app' }),
+      );
+    });
+
     it.each([
       [401, CardProviderErrorCode.InvalidCredentials],
-      [403, CardProviderErrorCode.InvalidCredentials],
+      [403, CardProviderErrorCode.Forbidden],
       [404, CardProviderErrorCode.NotFound],
       [409, CardProviderErrorCode.Conflict],
       [408, CardProviderErrorCode.Timeout],
@@ -440,20 +459,8 @@ describe('ImmersveProvider', () => {
   });
 
   describe('onboarding state machine', () => {
-    it('createFundingSource resolves the funding channel by fundingTypeName then posts', async () => {
+    it('createFundingSource posts with the flag fundingChannelId', async () => {
       const { provider, service } = createProvider();
-      service.get.mockResolvedValue({
-        items: [
-          {
-            id: 'arb-channel',
-            fundingTypeName: 'arbitrum-sepolia-usdc-universal-evm',
-          },
-          {
-            id: 'base-channel',
-            fundingTypeName: 'base-sepolia-usdc-universal-evm',
-          },
-        ],
-      });
       service.post.mockResolvedValue({
         id: 'fs-1',
         network: 'base-sepolia',
@@ -463,10 +470,8 @@ describe('ImmersveProvider', () => {
 
       const result = await provider.createFundingSource(TOKENS);
 
-      expect(service.get).toHaveBeenCalledWith(
-        '/api/accounts/cardholder-1/funding-channels',
-        TOKENS,
-      );
+      // No funding-channels lookup — the concrete id comes straight from the flag.
+      expect(service.get).not.toHaveBeenCalled();
       expect(service.post).toHaveBeenCalledWith(
         '/api/funding-sources',
         {
@@ -484,27 +489,11 @@ describe('ImmersveProvider', () => {
       });
     });
 
-    it('createFundingSource throws when no channel matches the configured fundingType', async () => {
-      const { provider, service } = createProvider();
-      service.get.mockResolvedValue({
-        items: [
-          {
-            id: 'arb-channel',
-            fundingTypeName: 'arbitrum-sepolia-usdc-universal-evm',
-          },
-        ],
-      });
+    it('createFundingSource throws when fundingChannelId is unconfigured', async () => {
+      const { provider } = createProvider({ immersve: { cardProgramId: 'p' } });
       await expect(provider.createFundingSource(TOKENS)).rejects.toBeInstanceOf(
         CardProviderError,
       );
-    });
-
-    it('createFundingSource throws when fundingType is unconfigured', async () => {
-      const { provider } = createProvider({ immersve: { cardProgramId: 'p' } });
-      await expect(provider.createFundingSource(TOKENS)).rejects.toMatchObject({
-        code: CardProviderErrorCode.Unknown,
-        message: 'Immersve fundingType is not configured',
-      });
     });
 
     it('createFundingSource throws when cardholder binding fields are missing', async () => {
@@ -523,16 +512,28 @@ describe('ImmersveProvider', () => {
       });
     });
 
+    it('createFundingSource maps a 403 to Forbidden (not a revoked token) and surfaces the errorCode', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockRejectedValue(
+        new CardApiError(
+          403,
+          '/api/funding-sources',
+          JSON.stringify({
+            statusCode: 403,
+            errorCode: 'FUNDING_SOURCE_EXISTS',
+          }),
+        ),
+      );
+
+      await expect(provider.createFundingSource(TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Forbidden,
+        statusCode: 403,
+        errorCode: 'FUNDING_SOURCE_EXISTS',
+      });
+    });
+
     it('createFundingSource maps API failures', async () => {
       const { provider, service } = createProvider();
-      service.get.mockResolvedValue({
-        items: [
-          {
-            id: 'base-channel',
-            fundingTypeName: 'base-sepolia-usdc-universal-evm',
-          },
-        ],
-      });
       service.post.mockRejectedValue(
         new CardApiError(409, '/api/funding-sources', 'exists'),
       );
@@ -540,6 +541,45 @@ describe('ImmersveProvider', () => {
       await expect(provider.createFundingSource(TOKENS)).rejects.toMatchObject({
         code: CardProviderErrorCode.Conflict,
       });
+    });
+
+    it('getFundingSources GETs the account funding-sources and maps items', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [
+          {
+            id: 'fs-1',
+            network: 'base-sepolia',
+            balance: '1000000',
+            balanceCurrency: 'USDC',
+            fundingChannelId: 'base-channel',
+          },
+        ],
+      });
+
+      const result = await provider.getFundingSources(TOKENS);
+
+      expect(service.get).toHaveBeenCalledWith(
+        '/api/accounts/cardholder-1/funding-sources',
+        TOKENS,
+      );
+      expect(result).toStrictEqual([
+        {
+          id: 'fs-1',
+          network: 'base-sepolia',
+          balance: '1000000',
+          balanceCurrency: 'USDC',
+        },
+      ]);
+    });
+
+    it('getFundingSources returns an empty array when there are no items', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({});
+
+      await expect(provider.getFundingSources(TOKENS)).resolves.toStrictEqual(
+        [],
+      );
     });
 
     it('patchContactDetails PATCHes the account contact-details path', async () => {
