@@ -46,21 +46,24 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   showBadge = true,
   contentContainerStyle,
   filterKey,
+  scrollResetKey,
   testID = 'perps-market-list',
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
   const listRef = useRef<FlashListRef<PerpsMarketData>>(null);
-  // Reset scroll to the absolute top whenever the active category filter
-  // changes so the list header (e.g. the Recently Viewed rail, which sits
-  // above the first row) scrolls back into view rather than leaving the user
-  // mid-list from the previous filter. Skips the first render.
+  // Reset scroll to the absolute top whenever the list context changes (the
+  // active category, and — via scrollResetKey — search toggling on/off) so the
+  // list header (e.g. the Recently Viewed rail, which sits above the first row)
+  // scrolls back into view rather than leaving the user mid-list. Skips the
+  // first render.
   //
   // offset 0 targets the very top (above the header); scrollToIndex would only
   // reach the first row and push the header off-screen. This is reliable
   // because maintainVisibleContentPosition is disabled below — otherwise its
   // post-data-change re-anchor to the previously visible row would override
   // the scroll.
+  const scrollResetToken = scrollResetKey ?? filterKey;
   const hasMountedRef = useRef(false);
   useEffect(() => {
     if (!hasMountedRef.current) {
@@ -70,7 +73,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
     // Ref is null when the new filter has no rows (empty state rendered
     // instead), so this safely no-ops in that case.
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
-  }, [filterKey]);
+  }, [scrollResetToken]);
 
   const renderItem = useCallback(
     ({ item }: { item: PerpsMarketData }) => (

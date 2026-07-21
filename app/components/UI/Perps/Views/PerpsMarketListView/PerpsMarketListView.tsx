@@ -818,6 +818,12 @@ const PerpsMarketListView = ({
           sortBy={sortBy}
           showBadge={false}
           filterKey={marketTypeFilter}
+          // Reset scroll to the top (revealing the rail) on category change and
+          // when search toggles on/off — clearing search keeps the same
+          // category, so filterKey alone wouldn't bring the rail back.
+          scrollResetKey={`${marketTypeFilter}|${
+            searchQuery.trim() ? 'search' : 'browse'
+          }`}
           contentContainerStyle={listContentContainerStyle}
           ListHeaderComponent={listHeader}
           testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
