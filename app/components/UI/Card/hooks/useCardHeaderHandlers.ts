@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { Alert } from 'react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
@@ -34,7 +35,7 @@ export type CardHeaderMode =
   | 'none';
 
 export const useCardHeaderHandlers = (mode: CardHeaderMode = 'none') => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
