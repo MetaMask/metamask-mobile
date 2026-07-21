@@ -163,7 +163,19 @@ class FCMService {
     }
 
     try {
-      this.#hasRegisteredForeground = messaging().onMessage(handler);
+      const unsubscribeOnMessage = messaging().onMessage(handler);
+
+      const unsubscribeForegroundMessages = () => {
+        try {
+          unsubscribeOnMessage();
+        } finally {
+          if (this.#hasRegisteredForeground === unsubscribeForegroundMessages) {
+            this.#hasRegisteredForeground = null;
+          }
+        }
+      };
+
+      this.#hasRegisteredForeground = unsubscribeForegroundMessages;
     } catch {
       // Do nothing
     }

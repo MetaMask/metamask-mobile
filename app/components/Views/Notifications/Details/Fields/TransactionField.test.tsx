@@ -7,7 +7,7 @@ import * as useCopyClipboardModule from '../hooks/useCopyClipboard';
 import { ModalFieldType } from '../../../../../util/notifications';
 import MOCK_NOTIFICATIONS from '../../../../UI/Notification/__mocks__/mock_notifications';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
-import { getNotificationSubtype } from '@metamask/notification-services-controller/notification-services';
+import { notificationAnalyticsProperties } from '../../../../../util/notifications/methods/notification-analytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 // Mock the required modules
@@ -59,11 +59,8 @@ describe('TransactionField', () => {
       MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED,
     )
       .addProperties({
-        chain_id: 1,
+        ...notificationAnalyticsProperties(MOCK_NOTIFICATIONS[0]),
         clicked_item: 'tx_id',
-        notification_id: '3fa85f64-5717-4562-b3fc-2c963f66afa7',
-        notification_type: 'eth_sent',
-        notification_subtype: getNotificationSubtype(MOCK_NOTIFICATIONS[0]),
       })
       .build();
     expect(mockTrackEvent).toHaveBeenCalledWith(expectedEvent);
