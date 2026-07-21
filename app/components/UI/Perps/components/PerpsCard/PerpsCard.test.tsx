@@ -61,18 +61,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../PerpsLeverage/PerpsLeverage', () => {
-  const ReactActual = jest.requireActual('react') as typeof import('react');
-  const { Text } = jest.requireActual(
-    'react-native',
-  ) as typeof import('react-native');
-  return {
-    __esModule: true,
-    default: ({ maxLeverage }: { maxLeverage: string }) =>
-      ReactActual.createElement(Text, null, maxLeverage),
-  };
-});
-
 jest.mock('../../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: jest.fn(),
 }));
@@ -237,8 +225,7 @@ describe('PerpsCard', () => {
       );
 
       // Assert
-      expect(getByText('Long ETH')).toBeDefined();
-      expect(getByText('3X long')).toBeDefined();
+      expect(getByText('ETH 3x long')).toBeDefined();
       expect(getByText('1.5 ETH')).toBeDefined();
     });
 
@@ -312,8 +299,7 @@ describe('PerpsCard', () => {
       );
 
       // Assert
-      expect(getByText('Short ETH')).toBeDefined();
-      expect(getByText('3X short')).toBeDefined();
+      expect(getByText('ETH 3x short')).toBeDefined();
       expect(getByText('1.5 ETH')).toBeDefined();
     });
 
@@ -496,9 +482,8 @@ describe('PerpsCard', () => {
         <PerpsCard position={mockPosition} testID="test-card" />,
       );
 
-      // Assert - title/leverage stay visible; size is treated as sensitive
-      expect(getByText('Long ETH')).toBeOnTheScreen();
-      expect(getByText('3X long')).toBeOnTheScreen();
+      // Assert - title stays visible; size is treated as sensitive
+      expect(getByText('ETH 3x long')).toBeOnTheScreen();
       expect(queryByText('1.5 ETH')).toBeNull();
     });
   });

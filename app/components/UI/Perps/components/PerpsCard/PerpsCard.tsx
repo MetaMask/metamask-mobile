@@ -19,6 +19,7 @@ import {
   PERPS_EVENT_VALUE,
   PERPS_EVENT_PROPERTY,
   type Order,
+  type PerpsMarketData,
   type Position,
 } from '@metamask/perps-controller';
 import {
@@ -35,7 +36,6 @@ import {
 } from '../../utils/orderUtils';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
-import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 import type { PerpsCardProps } from './PerpsCard.types';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -43,7 +43,6 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.eve
 
 interface PositionListDisplay {
   title: string;
-  leverageLabel: string;
   description: string;
   valueText: string;
   subvalueText: string;
@@ -62,9 +61,6 @@ const getPositionListDisplay = (position: Position): PositionListDisplay => {
   const isLong = parseFloat(position.size) > 0;
   const displaySymbol = getPerpsDisplaySymbol(position.symbol);
   const absoluteSize = Math.abs(parseFloat(position.size));
-  const directionLabel = isLong
-    ? strings('perps.order.long_label')
-    : strings('perps.order.short_label');
   const directionLower = isLong
     ? strings('perps.market.long_lowercase')
     : strings('perps.market.short_lowercase');
@@ -73,8 +69,8 @@ const getPositionListDisplay = (position: Position): PositionListDisplay => {
   const roeValue = parseFloat(position.returnOnEquity) * 100;
 
   return {
-    title: `${directionLabel} ${displaySymbol}`,
-    leverageLabel: `${position.leverage.value}X ${directionLower}`,
+    // Match main: leverage lives in the title string (e.g. "ETH 3x long")
+    title: `${displaySymbol} ${position.leverage.value}x ${directionLower}`,
     description: `${formatPositionSize(absoluteSize.toString())} ${displaySymbol}`,
     valueText: formatPerpsFiat(position.positionValue, {
       ranges: PRICE_RANGES_MINIMAL_VIEW,
@@ -103,13 +99,16 @@ const getOrderListDisplay = (order: Order): OrderListDisplay => {
   };
 };
 
+interface PerpsCardContentProps extends PerpsCardProps {
+  /** Market used for default navigation when `onPress` is not provided */
+  market?: PerpsMarketData;
+}
+
 /**
- * PerpsCard Component
- *
- * A unified list row for positions and orders on the Perps home tab.
- * Uses MMDS ListItem defaults (including horizontal padding).
+ * Shared list row UI. Does not call stream hooks — safe outside PerpsStreamProvider
+ * when a custom `onPress` is supplied.
  */
-const PerpsCard: React.FC<PerpsCardProps> = ({
+const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
   position,
   order,
   onPress,
@@ -117,6 +116,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   source,
   source_section,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
+  market,
 }) => {
   const navigation = useNavigation();
   const { track } = usePerpsEventTracking();
@@ -124,15 +124,8 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
 
   const symbol = position?.symbol || order?.symbol || '';
 
-  const { markets } = usePerpsMarkets();
-
   const positionDisplay = position ? getPositionListDisplay(position) : null;
   const orderDisplay = order ? getOrderListDisplay(order) : null;
-
-  const market = useMemo(
-    () => markets.find((m) => m.symbol === symbol),
-    [markets, symbol],
-  );
 
   const handlePress = useCallback(() => {
     if (onPress) {
@@ -241,11 +234,6 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
         symbol ? <PerpsTokenLogo symbol={symbol} size={iconSize} /> : undefined
       }
       title={title}
-      titleEndAccessory={
-        positionDisplay ? (
-          <PerpsLeverage maxLeverage={positionDisplay.leverageLabel} />
-        ) : undefined
-      }
       description={descriptionNode}
       value={valueNode}
       subvalue={subvalueNode}
@@ -253,6 +241,37 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
       testID={testID}
     />
   );
+};
+
+/**
+ * Resolves market via stream for default navigation. Requires PerpsStreamProvider.
+ */
+const PerpsCardWithMarketLookup: React.FC<PerpsCardProps> = (props) => {
+  const symbol = props.position?.symbol || props.order?.symbol || '';
+  const { markets } = usePerpsMarkets();
+  const market = useMemo(
+    () => markets.find((m) => m.symbol === symbol),
+    [markets, symbol],
+  );
+
+  return <PerpsCardContent {...props} market={market} />;
+};
+
+/**
+ * PerpsCard Component
+ *
+ * A unified list row for positions and orders on the Perps home tab.
+ * Uses MMDS ListItem defaults (including horizontal padding).
+ *
+ * When `onPress` is provided, stream/market lookup is skipped so the card can
+ * render outside PerpsStreamProvider (e.g. Asset overview).
+ */
+const PerpsCard: React.FC<PerpsCardProps> = (props) => {
+  if (props.onPress) {
+    return <PerpsCardContent {...props} />;
+  }
+
+  return <PerpsCardWithMarketLookup {...props} />;
 };
 
 export default React.memo(PerpsCard);

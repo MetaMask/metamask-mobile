@@ -122,7 +122,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 16,
     } as ViewStyle,
     perpsPositionCardContainer: {
-      paddingHorizontal: 16,
       paddingTop: 24,
     } as ViewStyle,
     marketClosedActionButtonContainer: {
@@ -684,7 +683,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           }
           {showPerpsSection && perpsPosition && (
             <View style={styles.perpsPositionCardContainer}>
-              <Text variant={TextVariant.HeadingMd} twClassName="mb-2">
+              <Text variant={TextVariant.HeadingMd} twClassName="mb-2 px-4">
                 {strings('asset_overview.perps_position')}
               </Text>
               <PerpsCard
