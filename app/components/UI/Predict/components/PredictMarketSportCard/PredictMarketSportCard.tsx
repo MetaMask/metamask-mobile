@@ -19,10 +19,8 @@ import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
-import {
-  getPrimaryMoneylineOutcomes,
-  isDrawCapableLeague,
-} from '../../constants/sports';
+import { isDrawCapableLeague } from '../../constants/sports';
+import { resolvePredictSportCardButtons } from '../../utils/sports';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
@@ -36,6 +34,7 @@ import {
   PredictOutcome,
   PredictOutcomeToken,
   PredictSportTeam,
+  type PredictMarketBuyButtonPress,
 } from '../../types';
 import {
   PredictEntryPoint,
@@ -46,6 +45,7 @@ import PredictSportScoreboard from '../PredictSportScoreboard';
 import { isGameEnded } from '../../utils/scoreboard';
 import { isValidPrice } from '../../utils/prices';
 import { selectPredictSportCardLivePricesEnabledFlag } from '../../selectors/featureFlags';
+import { getLeagueTeamOrder } from '../../utils/gameParser';
 
 interface PredictMarketSportCardProps {
   market: PredictMarketType;
@@ -53,10 +53,11 @@ interface PredictMarketSportCardProps {
   entryPoint?: PredictEntryPoint;
   onDismiss?: () => void;
   isCarousel?: boolean;
+  cardPressDisabled?: boolean;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
-  onBuyButtonPress?: (marketId: string) => void;
+  onBuyButtonPress?: PredictMarketBuyButtonPress;
   predictFeedTab?: string;
   predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
@@ -76,17 +77,6 @@ const formatCents = (price: number): string => `${Math.round(price * 100)}¢`;
 const getTeamButtonLabel = (team: PredictSportTeam): string =>
   (team.abbreviation || team.alias || team.name).toUpperCase();
 
-const matchesTeam = (
-  tokenTitle: string | undefined,
-  team: PredictSportTeam,
-): boolean => {
-  if (!tokenTitle) return false;
-  const lower = tokenTitle.toLowerCase();
-  return [team.name, team.alias, team.abbreviation]
-    .filter(Boolean)
-    .some((value) => lower === value?.toLowerCase());
-};
-
 const compactButtonItems = (
   items: (SportOutcomeButtonItem | undefined)[],
 ): SportOutcomeButtonItem[] =>
@@ -97,101 +87,47 @@ const buildButtonItems = (
   game: PredictMarketGame,
   showDraw: boolean,
 ): SportOutcomeButtonItem[] => {
-  const moneylineOutcomes = getPrimaryMoneylineOutcomes(market.outcomes);
-  const sortedDrawOutcomes =
-    showDraw && moneylineOutcomes.length >= 3
-      ? [...moneylineOutcomes].sort(
-          (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
-        )
-      : null;
+  const { home, draw, away } = resolvePredictSportCardButtons({
+    outcomes: market.outcomes,
+    game,
+    showDraw,
+  });
+  const isHomeFirst = getLeagueTeamOrder(game.league) === 'home-away';
 
-  if (sortedDrawOutcomes) {
-    const homeOutcome = sortedDrawOutcomes[0];
-    const drawOutcome = sortedDrawOutcomes[1];
-    const awayOutcome = sortedDrawOutcomes[2];
-    const homeToken = homeOutcome?.tokens[0];
-    const drawToken = drawOutcome?.tokens[0];
-    const awayToken = awayOutcome?.tokens[0];
-
-    return compactButtonItems([
-      homeToken
-        ? {
-            key: homeToken.id,
-            label: getTeamButtonLabel(game.homeTeam),
-            token: homeToken,
-            outcome: homeOutcome,
-            teamColor: game.homeTeam.color,
-            variant: 'home',
-          }
-        : undefined,
-      drawToken
-        ? {
-            key: drawToken.id,
-            label: 'Draw',
-            token: drawToken,
-            outcome: drawOutcome,
-            variant: 'draw',
-          }
-        : undefined,
-      awayToken
-        ? {
-            key: awayToken.id,
-            label: getTeamButtonLabel(game.awayTeam),
-            token: awayToken,
-            outcome: awayOutcome,
-            teamColor: game.awayTeam.color,
-            variant: 'away',
-          }
-        : undefined,
-    ]);
-  }
-
-  const outcome = moneylineOutcomes[0];
-  if (!outcome) return [];
-
-  const homeToken =
-    outcome.tokens.find((token) => matchesTeam(token.title, game.homeTeam)) ??
-    outcome.tokens[0];
-  const drawToken = showDraw
-    ? outcome.tokens.find((token) => token.title?.toLowerCase() === 'draw')
+  const homeItem: SportOutcomeButtonItem | undefined = home
+    ? {
+        key: home.token.id,
+        label: getTeamButtonLabel(game.homeTeam),
+        token: home.token,
+        outcome: home.outcome,
+        teamColor: game.homeTeam.color,
+        variant: 'home',
+      }
     : undefined;
-  const awayToken =
-    outcome.tokens.find((token) => matchesTeam(token.title, game.awayTeam)) ??
-    outcome.tokens.find(
-      (token) => token.id !== homeToken?.id && token.id !== drawToken?.id,
-    ) ??
-    outcome.tokens[1];
+  const drawItem: SportOutcomeButtonItem | undefined = draw
+    ? {
+        key: draw.token.id,
+        label: 'Draw',
+        token: draw.token,
+        outcome: draw.outcome,
+        variant: 'draw',
+      }
+    : undefined;
+  const awayItem: SportOutcomeButtonItem | undefined = away
+    ? {
+        key: away.token.id,
+        label: getTeamButtonLabel(game.awayTeam),
+        token: away.token,
+        outcome: away.outcome,
+        teamColor: game.awayTeam.color,
+        variant: 'away',
+      }
+    : undefined;
 
   return compactButtonItems([
-    homeToken
-      ? {
-          key: homeToken.id,
-          label: getTeamButtonLabel(game.homeTeam),
-          token: homeToken,
-          outcome,
-          teamColor: game.homeTeam.color,
-          variant: 'home',
-        }
-      : undefined,
-    drawToken
-      ? {
-          key: drawToken.id,
-          label: 'Draw',
-          token: drawToken,
-          outcome,
-          variant: 'draw',
-        }
-      : undefined,
-    awayToken
-      ? {
-          key: awayToken.id,
-          label: getTeamButtonLabel(game.awayTeam),
-          token: awayToken,
-          outcome,
-          teamColor: game.awayTeam.color,
-          variant: 'away',
-        }
-      : undefined,
+    isHomeFirst ? homeItem : awayItem,
+    drawItem,
+    isHomeFirst ? awayItem : homeItem,
   ]);
 };
 
@@ -201,6 +137,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   entryPoint: propEntryPoint,
   onDismiss,
   isCarousel,
+  cardPressDisabled,
   onCardPress,
   onBuyButtonPress,
   predictFeedTab,
@@ -237,6 +174,10 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   );
 
   const handleCardPress = useCallback(() => {
+    if (cardPressDisabled) {
+      return;
+    }
+
     onCardPress?.();
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_DETAILS,
@@ -254,6 +195,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     });
   }, [
     market,
+    cardPressDisabled,
     navigation,
     onCardPress,
     predictFeedTab,
@@ -264,7 +206,16 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
 
   const handleBuy = useCallback(
     (item: SportOutcomeButtonItem) => {
-      onBuyButtonPress?.(market.id);
+      const handledExternally =
+        onBuyButtonPress?.({
+          market,
+          outcome: item.outcome,
+          outcomeToken: item.token,
+        }) === true;
+      if (handledExternally) {
+        return;
+      }
+
       executeGuardedAction(
         () => {
           openBuySheet({
@@ -340,7 +291,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
 
   return (
     <TouchableOpacity
-      style={tw.style(isCarousel ? '' : 'my-[8px]')}
+      style={tw.style(isCarousel ? 'h-full' : 'my-[8px]')}
       testID={testID}
       onPress={handleCardPress}
       activeOpacity={0.9}
@@ -361,9 +312,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
           </Box>
         )}
 
-        <Box
-          twClassName={isCompact ? 'flex-1 p-3 justify-between' : 'p-4 gap-4'}
-        >
+        <Box twClassName={isCompact ? 'flex-1 p-3' : 'p-4 gap-4'}>
           <Text
             variant={TextVariant.HeadingSm}
             color={TextColor.TextDefault}
@@ -374,16 +323,18 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
             {market.title}
           </Text>
 
-          <PredictSportScoreboard
-            game={game}
-            compact={isCompact}
-            testID={testID ? `${testID}-scoreboard` : undefined}
-          />
+          <Box twClassName={isCompact ? 'flex-1 mt-3 justify-center' : ''}>
+            <PredictSportScoreboard
+              game={game}
+              compact={isCompact}
+              testID={testID ? `${testID}-scoreboard` : undefined}
+            />
+          </Box>
 
           {showBuyButtons && (
             <Box
               flexDirection={BoxFlexDirection.Row}
-              twClassName="w-full gap-2"
+              twClassName={`w-full gap-2 ${isCompact ? 'mt-1' : ''}`}
             >
               {buttonItems.map((item) => (
                 <Box key={item.key} twClassName="flex-1">

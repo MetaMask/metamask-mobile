@@ -17,14 +17,16 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 PACKAGE_ID="io.metamask"
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# //\\// normalizes Windows backslash invocation paths (Yarn/Git Bash); no-op elsewhere.
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]//\\//}")" && pwd)"
 readonly REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 readonly BUILD_DIR="$REPO_ROOT/build"
 readonly DOWNLOAD_DIR="$BUILD_DIR/gh-expo-dev-build/android"
 readonly STABLE_APK_PATH="$BUILD_DIR/metamask-dev.apk"
 readonly GHA_LIB="$SCRIPT_DIR/lib/download-gha-expo-dev-build.sh"
+readonly DEVICE_TARGET_LIB="$SCRIPT_DIR/lib/dev-device-target.sh"
 
-if [[ "$(pwd)" != "$REPO_ROOT" ]]; then
+if ! [[ "$(pwd)" -ef "$REPO_ROOT" ]]; then
   echo -e "${RED}❌ This script must be run from the repository root${NC}"
   echo -e "${YELLOW}Current directory: $(pwd)${NC}"
   echo -e "${YELLOW}Expected directory: $REPO_ROOT${NC}"
@@ -34,6 +36,8 @@ fi
 
 # shellcheck source=lib/download-gha-expo-dev-build.sh
 source "$GHA_LIB"
+# shellcheck source=lib/dev-device-target.sh
+source "$DEVICE_TARGET_LIB"
 
 GITHUB_REPO="$(resolve_github_repo)"
 BRANCH="main"
@@ -77,12 +81,15 @@ while [[ $# -gt 0 ]]; do
     *)
       echo -e "${RED}Unknown option: $1${NC}"
       echo "Usage: $0 [--branch main] [--run RUN_ID] [--skip-download] [--skipInstall] [--uninstall]"
+      echo "Targets ADB_SERIAL or ANDROID_DEVICE from .js.env; falls back to first connected device."
       exit 1
       ;;
   esac
 done
 
 download_latest_app() {
+  mkdir -p "$BUILD_DIR"
+
   echo -e "${BLUE}━━━ Step 1: Resolving expo-dev-build run ━━━${NC}"
   require_gh
 
@@ -130,15 +137,9 @@ echo -e "${BLUE}━━━ Step 4: Installing on emulator/device ━━━${NC}"
 
 require_cmd adb "Ensure Android SDK platform-tools are on PATH."
 
-BOOTED_DEVICES="$(adb devices | grep -E '^[^ ]+\s+device$' | awk '{print $1}' || true)"
-if [[ -z "$BOOTED_DEVICES" ]]; then
-  echo -e "${RED}❌ No emulator/device in 'device' state.${NC}"
-  echo -e "${YELLOW}Start an Android emulator and run: adb devices${NC}"
-  exit 1
-fi
-
-echo -e "${GREEN}✓ Device(s):${NC}"
-echo "$BOOTED_DEVICES" | while read -r dev; do echo "  $dev"; done
+ADB_TARGET_SERIAL=$(dev_resolve_android_adb_serial)
+export ANDROID_SERIAL="$ADB_TARGET_SERIAL"
+echo -e "${GREEN}✓ Target device:${NC} ${ADB_TARGET_SERIAL}"
 
 if [[ ! -f "$STABLE_APK_PATH" ]]; then
   echo -e "${RED}❌ No APK found at ${STABLE_APK_PATH}${NC}"
@@ -148,13 +149,13 @@ fi
 
 if [[ "$UNINSTALL" == true ]]; then
   echo -e "${YELLOW}Uninstalling existing app...${NC}"
-  adb uninstall "$PACKAGE_ID" 2>/dev/null || true
+  adb -s "$ADB_TARGET_SERIAL" uninstall "$PACKAGE_ID" 2>/dev/null || true
   echo -e "${GREEN}✓ Uninstall complete${NC}"
 fi
 
 echo -e "${BLUE}Installing APK on device...${NC}"
 set +e
-INSTALL_OUTPUT="$(adb install -r "$STABLE_APK_PATH" 2>&1)"
+INSTALL_OUTPUT="$(adb -s "$ADB_TARGET_SERIAL" install -r "$STABLE_APK_PATH" 2>&1)"
 INSTALL_EXIT=$?
 set -e
 

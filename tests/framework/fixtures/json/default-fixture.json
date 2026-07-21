@@ -421,6 +421,10 @@
             "optionId": "volume"
           },
           "perpsBalances": {},
+          "recentlyViewedMarkets": {
+            "mainnet": [],
+            "testnet": []
+          },
           "selectedPaymentToken": null,
           "tradeConfigurations": {
             "mainnet": {},
@@ -869,6 +873,7 @@
       "isConnectionRemoved": false,
       "loadingMsg": "",
       "loadingSet": false,
+      "moneyEarnBannerDismissedTokens": {},
       "multichainAccountsIntroModalSeen": true,
       "musdConversionAssetDetailCtasSeen": {},
       "musdConversionEducationSeen": false,

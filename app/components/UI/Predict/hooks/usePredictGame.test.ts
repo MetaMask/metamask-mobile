@@ -19,6 +19,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       subscribeToGameUpdates: jest.fn(),
+      subscribeToConnectionStatus: jest.fn(),
       getConnectionStatus: jest.fn(),
     },
   },
@@ -99,19 +100,32 @@ const createUpdate = (overrides: Partial<GameUpdate> = {}): GameUpdate => ({
 describe('usePredictGame', () => {
   const mockSubscribeToGameUpdates = Engine.context.PredictController
     .subscribeToGameUpdates as jest.Mock;
+  const mockSubscribeToConnectionStatus = Engine.context.PredictController
+    .subscribeToConnectionStatus as jest.Mock;
   const mockGetConnectionStatus = Engine.context.PredictController
     .getConnectionStatus as jest.Mock;
   const mockUnsubscribe = jest.fn();
+  const mockUnsubscribeStatus = jest.fn();
+  let statusCallbacks: ((status: {
+    sportsConnected: boolean;
+    marketConnected: boolean;
+  }) => void)[] = [];
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     __resetPredictGameCacheForTest();
+    statusCallbacks = [];
 
     mockSubscribeToGameUpdates.mockReturnValue(mockUnsubscribe);
     mockGetConnectionStatus.mockReturnValue({
       sportsConnected: true,
       marketConnected: false,
+    });
+    mockSubscribeToConnectionStatus.mockImplementation((callback) => {
+      statusCallbacks.push(callback);
+      callback(mockGetConnectionStatus());
+      return mockUnsubscribeStatus;
     });
   });
 
@@ -344,14 +358,12 @@ describe('usePredictGame', () => {
     });
   });
 
-  it('updates connection status on interval', () => {
+  it('updates connection status when the subscription pushes a transition', () => {
     const { Wrapper } = createWrapper();
-    mockGetConnectionStatus
-      .mockReturnValueOnce({ sportsConnected: true, marketConnected: false })
-      .mockReturnValueOnce({
-        sportsConnected: false,
-        marketConnected: false,
-      });
+    mockGetConnectionStatus.mockReturnValue({
+      sportsConnected: true,
+      marketConnected: false,
+    });
 
     const { result } = renderHook(
       () => usePredictGame(createMarket(), { live: true }),
@@ -363,15 +375,28 @@ describe('usePredictGame', () => {
     expect(result.current.isConnected).toBe(true);
 
     act(() => {
-      jest.advanceTimersByTime(1000);
+      statusCallbacks.forEach((cb) =>
+        cb({ sportsConnected: false, marketConnected: false }),
+      );
     });
 
     expect(result.current.isConnected).toBe(false);
   });
 
-  it('unsubscribes and clears the connection interval on unmount', () => {
+  it('does not create a polling timer for connection status', () => {
     const { Wrapper } = createWrapper();
-    const clearIntervalSpy = jest.spyOn(global, 'clearInterval');
+    const setIntervalSpy = jest.spyOn(global, 'setInterval');
+
+    renderHook(() => usePredictGame(createMarket(), { live: true }), {
+      wrapper: Wrapper,
+    });
+
+    expect(setIntervalSpy).not.toHaveBeenCalled();
+    setIntervalSpy.mockRestore();
+  });
+
+  it('unsubscribes from game updates and connection status on unmount', () => {
+    const { Wrapper } = createWrapper();
 
     const { unmount } = renderHook(
       () => usePredictGame(createMarket(), { live: true }),
@@ -383,6 +408,6 @@ describe('usePredictGame', () => {
     unmount();
 
     expect(mockUnsubscribe).toHaveBeenCalled();
-    expect(clearIntervalSpy).toHaveBeenCalled();
+    expect(mockUnsubscribeStatus).toHaveBeenCalled();
   });
 });

@@ -29,6 +29,10 @@ jest.mock('../../../UI/ActivityListItemRow/useNftActivityImage', () => ({
   useNftActivityImage: () => undefined,
 }));
 
+jest.mock('../../../UI/Bridge/hooks/useTokensWithBalance', () => ({
+  useTokensWithBalance: () => [],
+}));
+
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => {
@@ -68,7 +72,7 @@ jest.mock('./RampDetails', () => {
   };
 });
 
-const rampItem = (type: 'buy' | 'deposit'): ActivityListItem =>
+const rampItem = (type: 'buy' | 'sell'): ActivityListItem =>
   ({
     type,
     chainId: 'eip155:1',
@@ -153,6 +157,23 @@ const bridgeItem: ActivityListItem = {
       symbol: 'USDC',
       assetId: 'eip155:8453/erc20:0x0000000000000000000000000000000000000001',
       direction: 'in',
+    },
+  },
+} as ActivityListItem;
+
+const swapIncompleteItem: ActivityListItem = {
+  type: 'swapIncomplete',
+  chainId: 'eip155:1',
+  status: 'success',
+  timestamp: 1,
+  hash: '0xswapincomplete',
+  data: {
+    sourceToken: {
+      amount: '1000000000000000000',
+      decimals: 18,
+      symbol: 'DAI',
+      assetId: 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
+      direction: 'out',
     },
   },
 } as ActivityListItem;
@@ -302,6 +323,22 @@ const unstakeItem: ActivityListItem = {
   },
 } as ActivityListItem;
 
+const stakeItem: ActivityListItem = {
+  type: 'stake',
+  chainId: 'eip155:1',
+  status: 'success',
+  timestamp: 1,
+  hash: '0xstake',
+  data: {
+    token: {
+      amount: '1000000000000000000',
+      decimals: 18,
+      symbol: 'ETH',
+      direction: 'out',
+    },
+  },
+} as ActivityListItem;
+
 const smartAccountUpgradeItem: ActivityListItem = {
   type: 'smartAccountUpgrade',
   chainId: 'eip155:1',
@@ -412,6 +449,7 @@ describe('TemplateLoader', () => {
     ['contract interaction', contractItem],
     ['claim mUSD bonus', claimMusdBonusItem],
     ['earn/staking deposit', depositItem],
+    ['earn/staking stake', stakeItem],
     ['earn/staking claim', claimItem],
     ['earn/staking unstake', unstakeItem],
   ])('renders the %s details template', (_type, item) => {
@@ -419,6 +457,22 @@ describe('TemplateLoader', () => {
 
     expect(
       getByTestId(ActivityDetailsSelectorsIDs.STATUS_ROW),
+    ).toBeOnTheScreen();
+  });
+
+  it('routes a swapIncomplete tx to SwapDetails (source header + Swap again), not the generic fallback', () => {
+    const { getByTestId } = renderWithProvider(
+      <TemplateLoader item={swapIncompleteItem} />,
+    );
+
+    // The sent leg still renders even though the destination could not be resolved.
+    expect(
+      getByTestId(ActivityDetailsSelectorsIDs.AMOUNT_HEADER),
+    ).toBeOnTheScreen();
+    // "Swap again" is exclusive to SwapDetails, so its presence proves we did not
+    // fall through to DefaultDetails for this type.
+    expect(
+      getByTestId(ActivityDetailsSelectorsIDs.DO_IT_AGAIN_BUTTON),
     ).toBeOnTheScreen();
   });
 
@@ -433,14 +487,6 @@ describe('TemplateLoader', () => {
     expect(
       getByTestId(ActivityDetailsSelectorsIDs.TOTAL_ROW),
     ).toBeOnTheScreen();
-  });
-
-  it('routes a ramp deposit to RampDetails (not the staking DepositDetails)', () => {
-    const { getByTestId } = renderWithProvider(
-      <TemplateLoader item={rampItem('deposit')} />,
-    );
-
-    expect(getByTestId(RAMP_DETAILS_STUB_TEST_ID)).toBeOnTheScreen();
   });
 
   it('routes a ramp buy to RampDetails', () => {

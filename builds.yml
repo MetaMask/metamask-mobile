@@ -47,8 +47,7 @@ _public_envs: &public_envs # Servers (production)
   MM_PERPS_HIP3_ALLOWLIST_MARKETS: ''
   MM_PERPS_HIP3_BLOCKLIST_MARKETS: ''
   MM_PERPS_HIP3_ENABLED: 'true'
-  # Temporary flag to enable builds with GitHub Actions (legacy path retained for local dev)
-  BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY: 'true'
+  MM_PURE_BLACK_PREVIEW: 'true'
   MM_CHARTING_LIBRARY_URL: 'https://charting-assets.static.metamask.io/tradingview/advanced-charts/v30.1.0/'
   MM_PREDICT_BUILDER_CODE: '0x11a22276beb720e66a072cba8b8e74cded60afda510af535b947b81a1b81a883'
 
@@ -91,6 +90,7 @@ _secrets: &secrets # Infrastructure
   QUICKNODE_POLYGON_URL: 'QUICKNODE_POLYGON_URL'
   QUICKNODE_HYPEREVM_URL: 'QUICKNODE_HYPEREVM_URL'
   QUICKNODE_ARC_URL: 'QUICKNODE_ARC_URL'
+  QUICKNODE_ROBINHOOD_URL: 'QUICKNODE_ROBINHOOD_URL'
   # OAuth
   IOS_GOOGLE_CLIENT_ID: 'IOS_GOOGLE_CLIENT_ID'
   IOS_GOOGLE_REDIRECT_URI: 'IOS_GOOGLE_REDIRECT_URI'

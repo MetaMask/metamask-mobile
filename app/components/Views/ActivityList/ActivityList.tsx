@@ -72,17 +72,18 @@ import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridge
 import {
   getSwapBridgeTxActivityTitle,
   handleUnifiedSwapsTxHistoryItemClick,
+  isBridgeTxHistoryItemBridge,
 } from '../../UI/Bridge/utils/transaction-history';
-import MultichainBridgeTransactionListItem from '../../UI/MultichainBridgeTransactionListItem';
 import TransactionsFooter from '../../UI/Transactions/TransactionsFooter';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import MultichainTransactionsFooter from '../MultichainTransactionsView/MultichainTransactionsFooter';
 import { getAddressUrl } from '../../../core/Multichain/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { hasTransactionType } from '../confirmations/utils/transaction';
 import styleSheet from './ActivityList.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
-import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { useTransactionAutoScroll } from './useTransactionAutoScroll';
 import useBlockExplorer from '../../hooks/useBlockExplorer';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
@@ -99,7 +100,11 @@ import {
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  isFailedOrCancelledTransfer,
+  preferLocalOrApiActivityItem,
+  type ActivityKind,
   type GroupedActivityListItem,
+  type TransactionGroup,
 } from '../../../util/activity-adapters';
 import {
   isBridgeHistoryForEvmTransaction,
@@ -108,7 +113,7 @@ import {
 } from './helpers/transformations';
 import { normalizeTransaction } from './helpers/adapters';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
-import { stashPreloadedActivityItem } from './preloadedActivityItemStore';
+import { getActivityDetailsRoute } from './getActivityDetailsRoute';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
 import {
   INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
@@ -159,6 +164,20 @@ const generateGroupedKey = (
 
 const noop = () => undefined;
 
+const PERPS_WALLET_TX_TYPES = [
+  TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
+];
+
+const isPerpsWalletTransactionGroup = (group: TransactionGroup): boolean =>
+  [group.primaryTransaction, group.initialTransaction].some(
+    (meta) =>
+      hasTransactionType(meta, PERPS_WALLET_TX_TYPES) ||
+      (meta?.originalType !== undefined &&
+        PERPS_WALLET_TX_TYPES.includes(meta.originalType)),
+  );
+
 const getBlockExplorerTrackingText = (url: string, fallbackName?: string) => {
   const blockExplorerName = getBlockExplorerName(url) ?? fallbackName;
   const prefix = strings('transactions.view_full_history_on');
@@ -170,7 +189,6 @@ interface ActivityListProps {
   header?: React.ReactElement;
   tabLabel?: string;
   chainId?: string; // used by non-EVM list items for explorer links
-  location?: TransactionDetailLocation;
   /**
    * Shared value updated on the UI thread with the list's vertical scroll
    * offset, for driving scroll-linked animations in the parent.
@@ -178,6 +196,7 @@ interface ActivityListProps {
   scrollY?: SharedValue<number>;
   typeFilter?: ActivityTypeFilter;
   networkFilter?: CaipChainId[] | null;
+  subFilterKinds?: ReadonlySet<ActivityKind>;
 }
 
 export interface ActivityListHandle {
@@ -186,7 +205,10 @@ export interface ActivityListHandle {
 }
 
 const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
-  ({ header, chainId, location, scrollY, typeFilter, networkFilter }, ref) => {
+  (
+    { header, chainId, scrollY, typeFilter, networkFilter, subFilterKinds },
+    ref,
+  ) => {
     const navigation = useNavigation();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const { colors } = useTheme();
@@ -336,6 +358,13 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           .map((item) => item.hash?.toLowerCase())
           .filter(Boolean) as string[],
       );
+      const confirmedItemByHash = new Map<string, ActivityListItem>();
+      for (const confirmed of allConfirmedForConfiguredChains) {
+        const hash = confirmed.hash?.toLowerCase();
+        if (hash && !confirmedItemByHash.has(hash)) {
+          confirmedItemByHash.set(hash, confirmed);
+        }
+      }
 
       const localDomainKindHashes = new Set(
         localActivityItems
@@ -357,12 +386,28 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           .filter(Boolean) as string[],
       );
 
+      const localWinsHashes = new Set(localDomainKindHashes);
+      for (const localItem of localActivityItems) {
+        if (localItem.raw?.type !== 'localTransaction') continue;
+        const hash = localItem.raw.data.primaryTransaction.hash?.toLowerCase();
+        if (!hash) continue;
+        const confirmed = confirmedItemByHash.get(hash);
+        if (!confirmed) continue;
+        if (preferLocalOrApiActivityItem(localItem, confirmed) === localItem) {
+          localWinsHashes.add(hash);
+        }
+      }
+
       // localActivityItems are already mapped from TransactionMeta via the adapter;
       // here we apply the same chain-filter and EVM-confirmed dedup that existed before.
       const filteredLocalItems = localActivityItems.filter((item) => {
         const raw = item.raw;
         if (raw?.type !== 'localTransaction') return true;
         const tx = raw.data.primaryTransaction;
+
+        if (isPerpsEnabled && isPerpsWalletTransactionGroup(raw.data)) {
+          return false;
+        }
 
         const txChainId = tx.chainId?.toLowerCase() ?? '';
         const relatedChainIds = relatedChainIdsByTransactionId.get(tx.id) ?? [
@@ -375,10 +420,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
         // Dedup against confirmed by hash — bridge txns are exempt from nonce dedup
         const hash = tx.hash?.toLowerCase();
-        // Domain-specific local kinds win over the generic confirmed copy.
-        const isLocalDomainKind = !!hash && localDomainKindHashes.has(hash);
-        if (hash && confirmedHashes.has(hash) && !isLocalDomainKind)
-          return false;
+        // Local copies that out-categorize their confirmed copy win over it.
+        const localWins = !!hash && localWinsHashes.has(hash);
+        if (hash && confirmedHashes.has(hash) && !localWins) return false;
 
         // Nonce dedup: skip local if a confirmed tx has the same nonce+from+chain
         // (bridge txns exempt, as they may have same nonce as their approval)
@@ -386,7 +430,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           tx,
           bridgeHistoryValues,
         );
-        if (!isBridgeTx && !isLocalDomainKind) {
+        if (!isBridgeTx && !localWins) {
           const nonce = tx.txParams?.nonce;
           const from = tx.txParams?.from?.toLowerCase();
           if (nonce !== undefined && nonce !== null && from) {
@@ -436,14 +480,19 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           maliciousTokenKeys,
         );
 
-      const nonEvmItems = mapNonEvmTransactions(filteredNonEvmForMalicious);
+      const nonEvmItems = mapNonEvmTransactions(
+        filteredNonEvmForMalicious,
+        getBridgeHistoryItemByHash,
+      );
 
+      // Drop confirmed copies whose local copy won above, so the winning local
+      // copy isn't rendered alongside a duplicate confirmed row.
       const confirmedEvmItems =
-        localDomainKindHashes.size === 0
+        localWinsHashes.size === 0
           ? allConfirmedForConfiguredChains
           : allConfirmedForConfiguredChains.filter((item) => {
               const hash = item.hash?.toLowerCase();
-              return !(hash && localDomainKindHashes.has(hash));
+              return !(hash && localWinsHashes.has(hash));
             });
 
       return {
@@ -458,8 +507,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       configuredEVMChainIds,
       configuredNonEVMChainIds,
       bridgeHistory,
+      getBridgeHistoryItemByHash,
       relatedChainIdsByTransactionId,
       maliciousTokenKeys,
+      isPerpsEnabled,
     ]);
 
     const data = useMemo<ActivityListItem[]>(() => {
@@ -480,6 +531,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           activityKindMatchesTypeFilter(item.type, typeFilter),
         );
       }
+      if (subFilterKinds) {
+        filtered = filtered.filter((item) => subFilterKinds.has(item.type));
+      }
       if (networkFilter && networkFilter.length > 0) {
         const allowedChains = new Set(
           networkFilter.map((caipChainId) => caipChainId.toLowerCase()),
@@ -493,6 +547,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     }, [
       unifiedTransactionSource,
       typeFilter,
+      subFilterKinds,
       networkFilter,
       isPerpsEnabled,
       perpsSource.items,
@@ -769,28 +824,33 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         const { raw } = item;
         if (!raw) return;
 
-        // Redesigned details (flag-gated): route resolvable EVM / non-EVM rows
-        // to the new ActivityDetails screen, replacing the legacy detail sheets.
-        // Specialized flows (bridge) keep their dedicated
-        // screens until they get redesigned templates — ActivityDetails only
-        // resolves local/API/non-EVM/domain items, so it can't render those yet.
-        const hasDedicatedScreen =
-          raw.type === 'localTransaction' &&
-          raw.data.primaryTransaction?.type === TransactionType.bridge;
-        if (isTransactionsRedesignEnabled && item.hash && !hasDedicatedScreen) {
-          // Provider-backed rows (Perps / Predict) can't be re-resolved by hash
-          // outside their source tree, so hand the row off via the transient
-          // store and pass only its key in the (serializable) params.
-          const preloadKey =
-            raw.type === 'perpsTransaction' || raw.type === 'predictActivity'
-              ? stashPreloadedActivityItem(item)
-              : undefined;
-          navigation.navigate(Routes.ACTIVITY_DETAILS, {
-            chainId: item.chainId,
-            txIdentifier: item.hash,
-            ...(preloadKey ? { preloadKey } : {}),
-          });
-          return;
+        // Non-EVM swaps/bridges submitted from this device carry a
+        // bridge-history entry. Cross-chain bridges keep their dedicated
+        // bridge-status screen, mirroring hasDedicatedDetailScreen for local
+        // EVM bridges; same-chain swaps fall through to the shared detail flows.
+        if (raw.type === 'keyringTransaction') {
+          const keyringBridgeHistoryItem = getBridgeHistoryItemByHash(
+            item.hash,
+          );
+          if (
+            keyringBridgeHistoryItem &&
+            isBridgeTxHistoryItemBridge(keyringBridgeHistoryItem)
+          ) {
+            handleUnifiedSwapsTxHistoryItemClick({
+              navigation,
+              multiChainTx: raw.data,
+              bridgeTxHistoryItem: keyringBridgeHistoryItem,
+            });
+            return;
+          }
+        }
+
+        if (isTransactionsRedesignEnabled) {
+          const detailsRoute = getActivityDetailsRoute(item);
+          if (detailsRoute) {
+            navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+            return;
+          }
         }
 
         const pressToken = (activityPressTokenRef.current += 1);
@@ -1108,7 +1168,11 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         return;
       }
       listRef.current?.scrollToOffset({ offset: 0, animated: false });
-    }, [typeFilter, networkFilter]);
+
+      if (scrollY) {
+        scrollY.value = 0;
+      }
+    }, [typeFilter, networkFilter, subFilterKinds, scrollY]);
 
     const runAutoScroll = useCallback(() => {
       handleScroll();
@@ -1123,9 +1187,18 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       },
     });
 
+    const perpsSubFilterActive =
+      typeFilter === ActivityTypeFilter.Perps &&
+      Boolean(subFilterKinds) &&
+      isPerpsEnabled &&
+      perpsSource.items.length > 0;
+
     const renderEmptyList = () => (
       <View style={styles.emptyList}>
-        <ActivityEmptyState typeFilter={typeFilter ?? ActivityTypeFilter.All} />
+        <ActivityEmptyState
+          typeFilter={typeFilter ?? ActivityTypeFilter.All}
+          perpsSubFilterActive={perpsSubFilterActive}
+        />
       </View>
     );
 
@@ -1177,30 +1250,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       }
 
       const { item } = groupedItem;
-      const raw = item.raw;
 
-      // Non-EVM bridge transactions: route to MultichainBridgeTransactionListItem.
-      if (raw?.type === 'keyringTransaction') {
-        const srcTxHash = raw.data.id;
-        const bridgeHistoryItem = getBridgeHistoryItemByHash(srcTxHash);
-        if (bridgeHistoryItem) {
-          return (
-            <MultichainBridgeTransactionListItem
-              transaction={raw.data}
-              bridgeHistoryItem={bridgeHistoryItem}
-              navigation={navigation}
-              index={index}
-              location={location}
-              showDestinationPerspective={
-                !configuredNonEVMChainIds.includes(raw.data.chain)
-              }
-            />
-          );
-        }
-      }
-
-      // All other items (API EVM confirmed, completed local EVM, non-EVM non-bridge):
-      // render from the shared ActivityListItem shape.
+      // All items (API EVM confirmed, completed local EVM, non-EVM) render from
+      // the shared ActivityListItem shape.
       //
       // Preserve the legacy Activity title for swap/bridge rows (e.g.
       // "Swap ETH to USDC", "Bridge to Optimism") by deriving it from bridge

@@ -6,7 +6,10 @@ import {
 } from '@metamask/transaction-controller';
 import { useSelector } from 'react-redux';
 import { useLocalActivityItems } from './useLocalActivityItems';
-import { selectLocalTransactions } from '../../../../selectors/transactionController';
+import {
+  selectLocalTransactions,
+  selectReplacedLocalTransactions,
+} from '../../../../selectors/transactionController';
 import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { selectAllTokens } from '../../../../selectors/tokensController';
@@ -18,6 +21,7 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../selectors/transactionController', () => ({
   selectLocalTransactions: jest.fn(),
+  selectReplacedLocalTransactions: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/bridgeStatusController', () => ({
@@ -69,6 +73,7 @@ const selectorState = {
   bridgeHistory: {},
   groupAccount: { address: from },
   localTransactions: [] as unknown[],
+  replacedTransactions: [] as unknown[],
   networks: {
     '0x2105': { nativeCurrency: 'ETH' },
   },
@@ -78,11 +83,14 @@ describe('useLocalActivityItems', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     selectorState.localTransactions = [];
+    selectorState.replacedTransactions = [];
     selectorState.bridgeHistory = {};
     (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
       switch (selector) {
         case selectLocalTransactions:
           return selectorState.localTransactions;
+        case selectReplacedLocalTransactions:
+          return selectorState.replacedTransactions;
         case selectBridgeHistoryForAccount:
           return selectorState.bridgeHistory;
         case selectEvmNetworkConfigurationsByChainId:
@@ -257,5 +265,239 @@ describe('useLocalActivityItems', () => {
         sourceToken: { direction: 'out', symbol: 'ETH' },
       },
     });
+  });
+
+  it('enriches a swap from the bridge quote when the TransactionMeta has no legacy swap fields', () => {
+    // Unified swaps keep token metadata in the quote, not on the TransactionMeta,
+    // so on-device fields are absent — the row would otherwise be swapIncomplete.
+    selectorState.bridgeHistory = {
+      'swap-id': {
+        quote: {
+          srcChainId: '0x89',
+          destChainId: '0x89',
+          srcAsset: {
+            symbol: 'POL',
+            decimals: 18,
+            assetId: 'eip155:137/slip44:966',
+          },
+          destAsset: {
+            symbol: 'USDT',
+            decimals: 6,
+            assetId:
+              'eip155:137/erc20:0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+          },
+          srcTokenAmount: '1000000000000000000',
+          destTokenAmount: '900000',
+        },
+      },
+    };
+    selectorState.localTransactions = [
+      makeTx({
+        hash: '0xnativeswap',
+        id: 'swap-id',
+        type: TransactionType.swap,
+        txParams: { from, nonce: '0x3', to: usdc, value: '0x1' },
+      } as Partial<TransactionMeta>),
+    ];
+
+    const { result } = renderHook(() => useLocalActivityItems());
+
+    // Resolves to a full swap (not swapIncomplete) with tokens + amounts from the quote.
+    expect(result.current[0]).toMatchObject({
+      type: 'swap',
+      data: {
+        sourceToken: {
+          direction: 'out',
+          symbol: 'POL',
+          decimals: 18,
+          amount: '1000000000000000000',
+        },
+        destinationToken: {
+          direction: 'in',
+          symbol: 'USDT',
+          decimals: 6,
+          amount: '900000',
+        },
+      },
+    });
+  });
+
+  it('prefers the bridge quote over legacy TransactionMeta swap fields', () => {
+    selectorState.bridgeHistory = {
+      'swap-id': {
+        quote: {
+          srcChainId: '0x89',
+          destChainId: '0x89',
+          srcAsset: { symbol: 'POL', decimals: 18 },
+          destAsset: { symbol: 'USDT', decimals: 6 },
+          srcTokenAmount: '1000000000000000000',
+          destTokenAmount: '900000',
+        },
+      },
+    };
+    selectorState.localTransactions = [
+      makeTx({
+        // Stale/partial legacy fields; the quote is authoritative.
+        destinationTokenSymbol: 'STALE',
+        sourceTokenSymbol: 'STALE',
+        hash: '0xnativeswap',
+        id: 'swap-id',
+        type: TransactionType.swap,
+        txParams: { from, nonce: '0x4', to: usdc, value: '0x1' },
+      } as Partial<TransactionMeta>),
+    ];
+
+    const { result } = renderHook(() => useLocalActivityItems());
+
+    expect(result.current[0]).toMatchObject({
+      data: {
+        sourceToken: { symbol: 'POL', amount: '1000000000000000000' },
+        destinationToken: { symbol: 'USDT', amount: '900000' },
+      },
+    });
+  });
+
+  it('merges a dropped speed-up original into its nonce group so it stays a send', () => {
+    // The original send was dropped once the retry confirmed; only the retry is
+    // in the (non-replaced) list. Without the merge, the retry would categorize
+    // as a contractInteraction. With it, the original drives the type/amount and
+    // the confirmed retry drives the status.
+    selectorState.localTransactions = [
+      makeTx({
+        id: 'retry-1',
+        hash: '0xretry',
+        time: 2,
+        status: TransactionStatus.confirmed,
+        type: TransactionType.retry,
+        originalType: TransactionType.simpleSend,
+        txParams: { from, nonce: '0x1', to: recipient, value: '0x1' },
+      } as Partial<TransactionMeta>),
+    ];
+    selectorState.replacedTransactions = [
+      makeTx({
+        id: 'orig-1',
+        hash: '0xorig',
+        time: 1,
+        status: TransactionStatus.dropped,
+        type: TransactionType.simpleSend,
+        replacedBy: '0xretry',
+        replacedById: 'retry-1',
+        txParams: { from, nonce: '0x1', to: recipient, value: '0x1' },
+      } as Partial<TransactionMeta>),
+    ];
+
+    const { result } = renderHook(() => useLocalActivityItems());
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0]).toMatchObject({
+      type: 'send',
+      status: 'success',
+      hash: '0xretry',
+    });
+  });
+
+  it('keeps the original amount and recipient when a send is cancelled', () => {
+    // Cancel rewrites txParams to a zero-value self-send. The merged original
+    // must supply the real amount/recipient (not 0 / self), with the cancel
+    // driving the status.
+    selectorState.localTransactions = [
+      makeTx({
+        id: 'cancel-1',
+        hash: '0xcancel',
+        time: 2,
+        status: TransactionStatus.confirmed,
+        type: TransactionType.cancel,
+        originalType: TransactionType.simpleSend,
+        txParams: { from, nonce: '0x1', to: from, value: '0x0' },
+      } as Partial<TransactionMeta>),
+    ];
+    selectorState.replacedTransactions = [
+      makeTx({
+        id: 'orig-1',
+        hash: '0xorig',
+        time: 1,
+        status: TransactionStatus.dropped,
+        type: TransactionType.simpleSend,
+        replacedBy: '0xcancel',
+        replacedById: 'cancel-1',
+        txParams: { from, nonce: '0x1', to: recipient, value: '0x5' },
+      } as Partial<TransactionMeta>),
+    ];
+
+    const { result } = renderHook(() => useLocalActivityItems());
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0]).toMatchObject({
+      type: 'send',
+      status: 'cancelled',
+      data: {
+        to: recipient,
+        token: { amount: '0x5' },
+      },
+    });
+  });
+
+  it('stays a successful send when the original confirms and the newer speed-up is dropped', () => {
+    // Race outcome: the first-broadcast original won and confirmed; the (newer,
+    // higher-gas) speed-up lost its nonce and was dropped. Status must reflect
+    // the surviving original, not the newer dropped replacement.
+    selectorState.localTransactions = [
+      makeTx({
+        id: 'orig-1',
+        hash: '0xorig',
+        time: 1,
+        status: TransactionStatus.confirmed,
+        type: TransactionType.simpleSend,
+        txParams: { from, nonce: '0x1', to: recipient, value: '0x1' },
+      }),
+    ];
+    selectorState.replacedTransactions = [
+      makeTx({
+        id: 'retry-1',
+        hash: '0xretry',
+        time: 2, // newer than the confirmed winner
+        status: TransactionStatus.dropped,
+        type: TransactionType.retry,
+        originalType: TransactionType.simpleSend,
+        replacedBy: '0xorig',
+        replacedById: 'orig-1',
+        txParams: { from, nonce: '0x1', to: recipient, value: '0x1' },
+      } as Partial<TransactionMeta>),
+    ];
+
+    const { result } = renderHook(() => useLocalActivityItems());
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0]).toMatchObject({
+      type: 'send',
+      status: 'success',
+      hash: '0xorig',
+    });
+  });
+
+  it('does not create a row for a replaced tx that has no surviving representative', () => {
+    selectorState.localTransactions = [
+      makeTx({
+        id: 'send-1',
+        hash: '0xsend',
+        txParams: { from, nonce: '0x1', to: recipient, value: '0x1' },
+      }),
+    ];
+    selectorState.replacedTransactions = [
+      makeTx({
+        id: 'orphan-replaced',
+        hash: '0xorphan',
+        time: 5,
+        status: TransactionStatus.dropped,
+        replacedBy: '0xgone',
+        replacedById: 'gone',
+        txParams: { from, nonce: '0x9', to: recipient, value: '0x1' },
+      } as Partial<TransactionMeta>),
+    ];
+
+    const { result } = renderHook(() => useLocalActivityItems());
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0]).toMatchObject({ hash: '0xsend' });
   });
 });

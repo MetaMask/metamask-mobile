@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react-native';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position, Trade } from '@metamask/social-controllers';
@@ -34,6 +35,7 @@ interface MockRouteParams {
   tokenSymbol?: string;
   position?: Position;
   source?: string;
+  originalEntryPoint?: string;
 }
 
 const makeMockTrades = (): Trade[] => [
@@ -107,9 +109,10 @@ jest.mock('../../../../core/ClipboardManager', () => ({
 // for design-system `BottomSheet` (see app/util/test/testSetup.js) can mount
 // QuickBuy provider/controller (bridge selectors, NetworkController, …). This
 // file intentionally uses a minimal Redux store, so we stub the sheet here.
+const mockTraderPositionQuickBuy = jest.fn((_props: unknown) => null);
 jest.mock('./components/QuickBuy', () => ({
   __esModule: true,
-  default: () => null,
+  default: (props: unknown) => mockTraderPositionQuickBuy(props),
 }));
 
 // Resolves the tradable perp market set used by the Trade CTA's xyz/HIP-3
@@ -138,6 +141,15 @@ jest.mock('../../../../util/haptics', () => {
 });
 
 const mockPlayImpact = jest.mocked(playImpact);
+const mockTrack = jest.fn();
+
+jest.mock('../analytics', () => {
+  const actual = jest.requireActual('../analytics');
+  return {
+    ...actual,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  };
+});
 
 // New hooks added for deep-link self-sufficiency. Existing tests pass `position`
 // via route params, so these are effectively no-ops in the existing flow.
@@ -425,6 +437,25 @@ describe('TraderPositionView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('fires Follow Trading Token CTA Clicked with cta_type buy when the Buy button is pressed', () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+    );
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED,
+      expect.objectContaining({
+        trader_address: '0xabc',
+        asset_name: 'PEPE',
+        chain_name: 'base',
+        caip19: expect.stringContaining('eip155:8453/erc20:'),
+        cta_type: 'buy',
+      }),
+    );
+  });
+
   describe('perp positions', () => {
     beforeEach(() => {
       mockRouteParams.position = {
@@ -464,6 +495,74 @@ describe('TraderPositionView', () => {
           source: 'social_leaderboard',
         },
       });
+    });
+
+    it('fires Follow Trading Token Screen Viewed with perps_market on mount', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_SCREEN_VIEWED,
+        expect.objectContaining({
+          trader_address: '0xabc',
+          asset_name: 'ETH',
+          chain_name: 'hyperliquid',
+          perps_market: 'ETH',
+          source: 'trader_profile',
+        }),
+      );
+    });
+
+    it('fires Follow Trading Token CTA Clicked with cta_type trade when the Trade button is pressed', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      );
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED,
+        expect.objectContaining({
+          trader_address: '0xabc',
+          asset_name: 'ETH',
+          chain_name: 'hyperliquid',
+          perps_market: 'ETH',
+          cta_type: 'trade',
+        }),
+      );
+    });
+
+    it('fires Follow Trading Token Dismissed with perps_market when backing out without trading', () => {
+      const { unmount } = renderWithProvider(<TraderPositionView />, {
+        state: mockState,
+      });
+
+      unmount();
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_DISMISSED,
+        {
+          trader_address: '0xabc',
+          chain_name: 'hyperliquid',
+          perps_market: 'ETH',
+        },
+      );
+    });
+
+    it('does not fire Follow Trading Token Dismissed after Trade is pressed', () => {
+      const { unmount } = renderWithProvider(<TraderPositionView />, {
+        state: mockState,
+      });
+
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      );
+      mockTrack.mockClear();
+      unmount();
+
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_DISMISSED,
+        expect.anything(),
+      );
     });
 
     it('renders the perp leverage and direction badges in the header', () => {
@@ -571,6 +670,13 @@ describe('TraderPositionView', () => {
             source: 'social_leaderboard',
           },
         });
+        expect(mockTrack).toHaveBeenCalledWith(
+          MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED,
+          expect.objectContaining({
+            perps_market: 'xyz:SPCX',
+            cta_type: 'trade',
+          }),
+        );
       });
 
       it('links another HIP-3 provider to its xyz equivalent when that market exists', () => {
@@ -598,6 +704,13 @@ describe('TraderPositionView', () => {
             source: 'social_leaderboard',
           },
         });
+        expect(mockTrack).toHaveBeenCalledWith(
+          MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED,
+          expect.objectContaining({
+            perps_market: 'xyz:SPCX',
+            cta_type: 'trade',
+          }),
+        );
       });
 
       it('disables the Trade button as Unsupported market when the loaded market list lacks the xyz market', () => {
@@ -652,6 +765,13 @@ describe('TraderPositionView', () => {
             source: 'social_leaderboard',
           },
         });
+        expect(mockTrack).toHaveBeenCalledWith(
+          MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED,
+          expect.objectContaining({
+            perps_market: 'xyz:SPCX',
+            cta_type: 'trade',
+          }),
+        );
       });
 
       it('stays optimistic when the market set is empty even with isLoading false (fetch in flight / empty cache)', () => {
@@ -683,6 +803,13 @@ describe('TraderPositionView', () => {
             source: 'social_leaderboard',
           },
         });
+        expect(mockTrack).toHaveBeenCalledWith(
+          MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED,
+          expect.objectContaining({
+            perps_market: 'xyz:SPCX',
+            cta_type: 'trade',
+          }),
+        );
       });
     });
   });
@@ -941,45 +1068,66 @@ describe('TraderPositionView', () => {
     });
   });
 
-  describe('analytics source routing', () => {
-    it('uses notification as quickBuySource when source param is notification', () => {
-      mockRouteParams = { ...mockRouteParams, source: 'notification' };
+  describe('Quick Buy analytics routing', () => {
+    it('passes profile_position source and notification original_entry_point from route params', () => {
+      mockRouteParams = {
+        ...mockRouteParams,
+        source: 'notification',
+        originalEntryPoint: 'notification',
+      };
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
       fireEvent.press(
         screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
       );
 
-      expect(
-        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
+      expect(mockTraderPositionQuickBuy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'profile_position',
+          originalEntryPoint: 'notification',
+        }),
+      );
     });
 
-    it('uses leaderboard as quickBuySource when source param is leaderboard', () => {
-      mockRouteParams = { ...mockRouteParams, source: 'leaderboard' };
+    it('passes forwarded original_entry_point from route params', () => {
+      mockRouteParams = {
+        ...mockRouteParams,
+        source: 'profile_position',
+        originalEntryPoint: 'leaderboard',
+      };
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
       fireEvent.press(
         screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
       );
 
-      expect(
-        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
+      expect(mockTraderPositionQuickBuy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'profile_position',
+          originalEntryPoint: 'leaderboard',
+        }),
+      );
     });
 
-    it('defaults quickBuySource to profile_position when source param is deep_link', () => {
+    it('derives original_entry_point from position source when route param is absent', () => {
       mockRouteParams = { ...mockRouteParams, source: 'deep_link' };
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
-      expect(
-        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      );
+
+      expect(mockTraderPositionQuickBuy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'profile_position',
+          originalEntryPoint: 'deep_link',
+        }),
+      );
     });
   });
 
   describe('followTradingTokenContext', () => {
-    it('does not track buy when traderAddress is empty', () => {
+    it('does not track cta when traderAddress is empty', () => {
       mockRouteParams = { ...mockRouteParams, traderAddress: undefined };
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
@@ -988,6 +1136,10 @@ describe('TraderPositionView', () => {
       );
 
       expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED,
+        expect.anything(),
+      );
     });
 
     it('does not track when chain is unsupported (caip19 empty)', () => {

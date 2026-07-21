@@ -1,6 +1,6 @@
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { Hex } from '@metamask/utils';
-import React, { useMemo } from 'react';
+import React, { useMemo, type ReactNode } from 'react';
 import {
   Box,
   BoxFlexDirection,
@@ -38,42 +38,34 @@ export const TokenDetailsInlineHeader = ({
   onBackPress,
   onPriceAlertPress,
   onSharePress,
+  starButton,
   onCopyAddress,
-  iconColor,
-  useAmbientColor = false,
 }: {
   token: TokenDetailsRouteParams;
   securityData: TokenSecurityData | null | undefined;
   onBackPress: () => void;
   onPriceAlertPress?: () => void;
   onSharePress?: () => void;
+  /** Self-contained watchlist star button ReactNode (e.g. WatchlistStarButton). */
+  starButton?: ReactNode;
   onCopyAddress?: () => void;
-  /** Hex color string for the back button icon (A/B test). */
-  iconColor?: string;
-  useAmbientColor?: boolean;
 }) => {
   const tw = useTailwind();
   const { isStockToken } = useRWAToken();
   const { securityConfig, handleSecurityBadgePress } =
     useTokenSecurityBadgePress(token, securityData);
 
-  const contractAddress = useMemo(
-    () => resolveTokenContractAddress(token),
-    [token],
-  );
+  const isNativeToken = token.isETH || token.isNative;
+  const contractAddress = useMemo(() => {
+    if (isNativeToken) {
+      return null;
+    }
+    return resolveTokenContractAddress(token);
+  }, [token, isNativeToken]);
   const handleCopyContractAddress = useCopyTokenContractAddress(
     contractAddress,
     onCopyAddress,
   );
-
-  const shouldShowEndButtons = !useAmbientColor || iconColor !== undefined;
-
-  const backButtonIconProps = useMemo(() => {
-    if (useAmbientColor && iconColor) {
-      return { twClassName: `text-[${iconColor}]` };
-    }
-    return undefined;
-  }, [useAmbientColor, iconColor]);
 
   const networkBadgeSource = token.chainId
     ? NetworkBadgeSource(token.chainId as Hex)
@@ -127,29 +119,44 @@ export const TokenDetailsInlineHeader = ({
     isStockToken,
   ]);
 
-  const endButtonIconProps = useMemo(() => {
-    if (!shouldShowEndButtons) {
-      return undefined;
+  const endAccessory = useMemo(() => {
+    const buttons: ReactNode[] = [];
+
+    if (starButton) {
+      buttons.push(<React.Fragment key="star">{starButton}</React.Fragment>);
     }
-    const buttons = [];
     if (onSharePress) {
-      buttons.push({
-        iconName: IconName.Share,
-        onPress: onSharePress,
-        testID: 'share-button',
-        accessibilityLabel: 'Share token',
-      });
+      buttons.push(
+        <ButtonIcon
+          key="share"
+          iconName={IconName.Share}
+          size={ButtonIconSize.Md}
+          onPress={onSharePress}
+          testID="share-button"
+          accessibilityLabel="Share token"
+        />,
+      );
     }
     if (onPriceAlertPress) {
-      buttons.push({
-        iconName: IconName.Notification,
-        onPress: onPriceAlertPress,
-        testID: TokenOverviewSelectorsIDs.PRICE_ALERT_BUTTON,
-        accessibilityLabel: 'Create price alert',
-      });
+      buttons.push(
+        <ButtonIcon
+          key="alert"
+          iconName={IconName.Notification}
+          size={ButtonIconSize.Md}
+          onPress={onPriceAlertPress}
+          testID={TokenOverviewSelectorsIDs.PRICE_ALERT_BUTTON}
+          accessibilityLabel="Create price alert"
+        />,
+      );
     }
-    return buttons.length > 0 ? buttons : undefined;
-  }, [shouldShowEndButtons, onSharePress, onPriceAlertPress]);
+
+    if (buttons.length === 0) return undefined;
+    return (
+      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+        {buttons}
+      </Box>
+    );
+  }, [starButton, onSharePress, onPriceAlertPress]);
 
   const descriptionEndAccessory = useMemo(() => {
     if (!contractAddress) {
@@ -177,11 +184,10 @@ export const TokenDetailsInlineHeader = ({
           iconName={IconName.ArrowLeft}
           size={ButtonIconSize.Md}
           onPress={onBackPress}
-          iconProps={backButtonIconProps}
           testID="back-arrow-button"
         />
       }
-      endButtonIconProps={endButtonIconProps}
+      endAccessory={endAccessory}
       avatar={
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}

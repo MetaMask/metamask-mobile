@@ -27,16 +27,25 @@ import {
   type CardAuthStep,
   type CardAuthTokens,
   type CardCredentials,
+  type CardContactDetails,
+  type CardCreateResult,
   type CardDetails,
   type CardFundingAsset,
+  type CardFundingSourceResult,
   type CardHomeData,
   type CardProviderCapabilities,
   type CardSecureView,
   type CardSecureViewParams,
+  type CardSpendingPrerequisitesParams,
+  type CardSpendingPrerequisitesResult,
   type CashbackWalletResponse,
   type CashbackWithdrawEstimationResponse,
   type CashbackWithdrawParams,
   type CashbackWithdrawResponse,
+  type CreditWalletResponse,
+  type CreditWithdrawEstimationResponse,
+  type CreditWithdrawParams,
+  type CreditWithdrawResponse,
   type DelegationChallengeResponse,
   type FundingApprovalParams,
   type ICardProvider,
@@ -63,7 +72,13 @@ import TransactionTypes from '../../../../core/TransactionTypes';
 import {
   resolveCardFeatureFlag,
   type CardFeatureFlag,
+  type GateVersionedFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
+import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
+import {
+  deriveCountryProviderMap,
+  getProviderForCountry,
+} from './provider-map';
 
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
@@ -330,6 +345,60 @@ export class CardController extends BaseController<
     });
   }
 
+  setSelectedCountry(country: string): void {
+    const providerId = this.#resolveProviderForCountry(country);
+    const providerChanged =
+      Boolean(providerId) && providerId !== this.state.activeProviderId;
+
+    this.update((s) => {
+      s.selectedCountry = country;
+      if (providerId) {
+        s.activeProviderId = providerId;
+      }
+      if (providerChanged) {
+        s.cardHomeData = null;
+        s.cardHomeDataStatus = 'idle';
+      }
+    });
+
+    if (providerChanged) {
+      this.invalidateFetch();
+    }
+  }
+
+  #resolveProviderForCountry(country: string): string {
+    const featureState = this.messenger.call(
+      'RemoteFeatureFlagController:getState',
+    );
+
+    const immersveEnabled =
+      validatedVersionGatedFeatureFlag(
+        featureState.remoteFeatureFlags
+          ?.immersveOnboardingEnabled as unknown as GateVersionedFeatureFlag,
+      ) ?? false;
+
+    if (immersveEnabled) {
+      const cardFeature = resolveCardFeatureFlag(
+        featureState.remoteFeatureFlags?.cardFeature as
+          | CardFeatureFlag
+          | undefined,
+      );
+      const immersveCountries = cardFeature?.immersveCountries ?? [];
+      const map = deriveCountryProviderMap(
+        Object.fromEntries(
+          immersveCountries.map((c) => [c, true] as [string, boolean]),
+        ),
+        'immersve',
+      );
+      const provider = getProviderForCountry(country, map);
+      if (provider) {
+        return provider;
+      }
+    }
+
+    return DEFAULT_CARD_PROVIDER_ID;
+  }
+
   /**
    * Checks which CAIP-10 account IDs are MetaMask Card holders and stores
    * the result in controller state. Processes up to 150 accounts (3 × 50).
@@ -508,8 +577,11 @@ export class CardController extends BaseController<
     }
   }
 
-  async initiateAuth(country: string): Promise<void> {
-    this.currentSession = await this.getActiveProvider().initiateAuth(country);
+  async initiateAuth(country: string, address?: string): Promise<void> {
+    this.currentSession = await this.getActiveProvider().initiateAuth(
+      country,
+      address ? { address } : undefined,
+    );
   }
 
   getCurrentAuthStep(): CardAuthStep | null {
@@ -729,6 +801,17 @@ export class CardController extends BaseController<
     if (!tokens) {
       this.markUnauthenticated(this.state.lastUnauthenticatedReason);
       return null;
+    }
+
+    if (tokens.accountAddress) {
+      const selected = this.#getSelectedEvmAddress();
+      if (
+        !selected ||
+        selected.toLowerCase() !== tokens.accountAddress.toLowerCase()
+      ) {
+        this.markUnauthenticated(this.state.lastUnauthenticatedReason);
+        return null;
+      }
     }
 
     const provider = this.getActiveProvider();
@@ -1005,6 +1088,74 @@ export class CardController extends BaseController<
       );
     }
     return this.#withAuthRetry((tokens) => getCardPinView(tokens, params));
+  }
+
+  async createFundingSource(): Promise<CardFundingSourceResult> {
+    const provider = this.getActiveProvider();
+    const createFundingSource = provider.createFundingSource?.bind(provider);
+    if (!createFundingSource) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Funding source creation not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => createFundingSource(tokens));
+  }
+
+  async getFundingSources(): Promise<CardFundingSourceResult[]> {
+    const provider = this.getActiveProvider();
+    const getFundingSources = provider.getFundingSources?.bind(provider);
+    if (!getFundingSources) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Listing funding sources not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getFundingSources(tokens));
+  }
+
+  async getSpendingPrerequisites(
+    fundingSourceId: string,
+    params: CardSpendingPrerequisitesParams,
+  ): Promise<CardSpendingPrerequisitesResult> {
+    const provider = this.getActiveProvider();
+    const getSpendingPrerequisites =
+      provider.getSpendingPrerequisites?.bind(provider);
+    if (!getSpendingPrerequisites) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Spending prerequisites not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) =>
+      getSpendingPrerequisites(fundingSourceId, params, tokens),
+    );
+  }
+
+  async createCard(fundingSourceId: string): Promise<CardCreateResult> {
+    const provider = this.getActiveProvider();
+    const createCard = provider.createCard?.bind(provider);
+    if (!createCard) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Card creation not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => createCard(fundingSourceId, tokens));
+  }
+
+  async patchContactDetails(details: CardContactDetails): Promise<void> {
+    const provider = this.getActiveProvider();
+    const patchContactDetails = provider.patchContactDetails?.bind(provider);
+    if (!patchContactDetails) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Contact details update not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) =>
+      patchContactDetails(details, tokens),
+    );
   }
 
   async updateAssetPriority(
@@ -1451,5 +1602,46 @@ export class CardController extends BaseController<
       );
     }
     return this.#withAuthRetry((tokens) => withdrawCashback(params, tokens));
+  }
+
+  // -- Credit --
+
+  async getCreditWallet(): Promise<CreditWalletResponse> {
+    const provider = this.getActiveProvider();
+    const getCreditWallet = provider.getCreditWallet?.bind(provider);
+    if (!getCreditWallet) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Credit not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getCreditWallet(tokens));
+  }
+
+  async getCreditWithdrawEstimation(): Promise<CreditWithdrawEstimationResponse> {
+    const provider = this.getActiveProvider();
+    const getCreditWithdrawEstimation =
+      provider.getCreditWithdrawEstimation?.bind(provider);
+    if (!getCreditWithdrawEstimation) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Credit not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getCreditWithdrawEstimation(tokens));
+  }
+
+  async withdrawCredit(
+    params: CreditWithdrawParams,
+  ): Promise<CreditWithdrawResponse> {
+    const provider = this.getActiveProvider();
+    const withdrawCredit = provider.withdrawCredit?.bind(provider);
+    if (!withdrawCredit) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Credit withdrawal not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => withdrawCredit(params, tokens));
   }
 }

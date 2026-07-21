@@ -25,7 +25,12 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
 
 jest.mock('../../../../../selectors/transactionController', () => ({
   ...jest.requireActual('../../../../../selectors/transactionController'),
-  selectTransactions: jest.fn(() => []),
+  selectHasUnapprovedTransactions: jest.fn(() => false),
+}));
+
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  selectPrivacyMode: jest.fn(() => false),
 }));
 
 const mockInitiateWithdrawal = jest.fn().mockResolvedValue(undefined);

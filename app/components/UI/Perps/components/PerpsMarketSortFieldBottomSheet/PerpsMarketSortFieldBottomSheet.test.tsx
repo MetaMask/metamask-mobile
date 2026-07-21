@@ -1,94 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketSortFieldBottomSheet from './PerpsMarketSortFieldBottomSheet';
-const { mockTheme } = jest.requireActual('../../../../../util/theme');
-
-// Mock dependencies
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: () => ({
-    styles: {
-      optionsList: {},
-      optionRow: {},
-      optionRowSelected: {},
-      arrowContainer: {},
-      applyButton: {},
-      applyButtonText: {},
-    },
-    theme: mockTheme,
-  }),
-}));
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const MockReact = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: MockReact.forwardRef(
-        (
-          {
-            children,
-            testID,
-          }: {
-            children: React.ReactNode;
-            testID?: string;
-          },
-          ref: React.Ref<{
-            onOpenBottomSheet: () => void;
-            onCloseBottomSheet: (callback?: () => void) => void;
-          }>,
-        ) => {
-          // Expose mock ref methods
-          MockReact.useImperativeHandle(ref, () => ({
-            onOpenBottomSheet: jest.fn(),
-            onCloseBottomSheet: (callback?: () => void) => {
-              callback?.();
-            },
-          }));
-
-          return <View testID={testID}>{children}</View>;
-        },
-      ),
-    };
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    return function MockBottomSheetHeader({
-      children,
-    }: {
-      children: React.ReactNode;
-    }) {
-      return <View testID="bottom-sheet-header">{children}</View>;
-    };
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase',
-  () => {
-    const { TouchableOpacity, View } = jest.requireActual('react-native');
-    return ({
-      label,
-      onPress,
-      style,
-      testID,
-    }: {
-      label?: React.ReactNode;
-      onPress?: () => void;
-      style?: unknown;
-      testID?: string;
-    }) => (
-      <TouchableOpacity onPress={onPress} style={style} testID={testID}>
-        <View>{label}</View>
-      </TouchableOpacity>
-    );
-  },
-);
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -100,7 +12,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.sort.open_interest': 'Open interest',
       'perps.sort.high_to_low': 'High to low',
       'perps.sort.low_to_high': 'Low to high',
-      'perps.sort.apply': 'Apply',
     };
     return translations[key] || key;
   }),
@@ -137,10 +48,12 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
           sortDirection="desc"
           onClose={mockOnClose}
           onOptionSelect={mockOnOptionSelect}
+          testID="sort-field-sheet"
         />,
       );
 
-      expect(screen.getByTestId('bottom-sheet-header')).toBeOnTheScreen();
+      expect(screen.getByTestId('sort-field-sheet')).toBeOnTheScreen();
+      expect(screen.getByText('Sort by')).toBeOnTheScreen();
     });
   });
 
@@ -183,7 +96,6 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         />,
       );
 
-      // Check that direction indicator is present for priceChange
       expect(
         screen.getByTestId('sort-field-sheet-direction-indicator'),
       ).toBeOnTheScreen();
@@ -204,35 +116,17 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         />,
       );
 
-      // Should show direction indicator for volume (all options now support direction toggle)
       expect(
         screen.getByTestId('sort-field-sheet-direction-indicator'),
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId('sort-field-sheet-direction-text'),
       ).toHaveTextContent('High to low');
-    });
-
-    it('renders apply button', () => {
-      render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="volume"
-          sortDirection="desc"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      expect(
-        screen.getByTestId('sort-field-sheet-apply-button'),
-      ).toBeOnTheScreen();
     });
   });
 
   describe('Option Selection', () => {
-    it('selects a different option when pressed', () => {
+    it('closes and applies when a different option is pressed', () => {
       render(
         <PerpsMarketSortFieldBottomSheet
           isVisible
@@ -244,124 +138,20 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         />,
       );
 
-      // Initially volume is selected (has direction indicator)
-      expect(
-        screen.getByTestId('sort-field-sheet-direction-indicator'),
-      ).toBeOnTheScreen();
-
-      // Press priceChange option
       fireEvent.press(
         screen.getByTestId('sort-field-sheet-option-priceChange'),
       );
 
-      // Now priceChange should have direction indicator
-      expect(
-        screen.getByTestId('sort-field-sheet-direction-indicator'),
-      ).toBeOnTheScreen();
-
-      // onOptionSelect should NOT be called until Apply is pressed
-      expect(mockOnOptionSelect).not.toHaveBeenCalled();
-    });
-
-    it('toggles direction when pressing the same priceChange option', () => {
-      render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="priceChange"
-          sortDirection="desc"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      // Direction indicator should be visible initially
-      expect(
-        screen.getByTestId('sort-field-sheet-direction-indicator'),
-      ).toBeOnTheScreen();
-
-      // Press priceChange again to toggle direction
-      fireEvent.press(
-        screen.getByTestId('sort-field-sheet-option-priceChange'),
-      );
-
-      // Direction indicator should still be visible (direction toggled internally)
-      expect(
-        screen.getByTestId('sort-field-sheet-direction-indicator'),
-      ).toBeOnTheScreen();
-
-      // onOptionSelect should NOT be called until Apply is pressed
-      expect(mockOnOptionSelect).not.toHaveBeenCalled();
-    });
-
-    it('toggles direction for all options when pressed again', () => {
-      render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="volume"
-          sortDirection="desc"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      // Volume should have direction indicator showing "High to low"
-      expect(
-        screen.getByTestId('sort-field-sheet-direction-indicator'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId('sort-field-sheet-direction-text'),
-      ).toHaveTextContent('High to low');
-
-      // Press volume again (same option) to toggle direction
-      fireEvent.press(screen.getByTestId('sort-field-sheet-option-volume'));
-
-      // Should now show "Low to high" (direction toggled)
-      expect(
-        screen.getByTestId('sort-field-sheet-direction-indicator'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId('sort-field-sheet-direction-text'),
-      ).toHaveTextContent('Low to high');
-
-      // onOptionSelect should NOT be called until Apply is pressed
-      expect(mockOnOptionSelect).not.toHaveBeenCalled();
-    });
-
-    it('calls onOptionSelect and closes when Apply button is pressed', () => {
-      render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="volume"
-          sortDirection="desc"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      // Select priceChange option
-      fireEvent.press(
-        screen.getByTestId('sort-field-sheet-option-priceChange'),
-      );
-
-      // Press Apply button
-      fireEvent.press(screen.getByTestId('sort-field-sheet-apply-button'));
-
-      // Should call onOptionSelect with correct parameters
       expect(mockOnOptionSelect).toHaveBeenCalledTimes(1);
       expect(mockOnOptionSelect).toHaveBeenCalledWith(
         'priceChange',
         'priceChange',
         'desc',
       );
-
-      // Should call onClose
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(mockOnClose).toHaveBeenCalled();
     });
 
-    it('calls onOptionSelect with toggled direction when Apply is pressed for priceChange', () => {
+    it('closes and applies with toggled direction when pressing the same option', () => {
       render(
         <PerpsMarketSortFieldBottomSheet
           isVisible
@@ -373,23 +163,20 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         />,
       );
 
-      // Toggle direction
       fireEvent.press(
         screen.getByTestId('sort-field-sheet-option-priceChange'),
       );
 
-      // Press Apply
-      fireEvent.press(screen.getByTestId('sort-field-sheet-apply-button'));
-
-      // Should call with ascending direction (toggled from desc to asc)
+      expect(mockOnOptionSelect).toHaveBeenCalledTimes(1);
       expect(mockOnOptionSelect).toHaveBeenCalledWith(
         'priceChange',
         'priceChange',
         'asc',
       );
+      expect(mockOnClose).toHaveBeenCalled();
     });
 
-    it('calls onOptionSelect with desc direction for non-priceChange options', () => {
+    it('closes and applies with desc direction when selecting a different option', () => {
       render(
         <PerpsMarketSortFieldBottomSheet
           isVisible
@@ -401,45 +188,19 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         />,
       );
 
-      // Select volume option
       fireEvent.press(screen.getByTestId('sort-field-sheet-option-volume'));
 
-      // Press Apply
-      fireEvent.press(screen.getByTestId('sort-field-sheet-apply-button'));
-
-      // Should call with desc direction (default for new selection)
       expect(mockOnOptionSelect).toHaveBeenCalledWith(
         'volume',
         'volume',
         'desc',
       );
-    });
-
-    it('does not auto-close when option is selected (waits for Apply)', () => {
-      render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="volume"
-          sortDirection="desc"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      // Select an option
-      fireEvent.press(
-        screen.getByTestId('sort-field-sheet-option-priceChange'),
-      );
-
-      // Should NOT close yet
-      expect(mockOnClose).not.toHaveBeenCalled();
-      expect(mockOnOptionSelect).not.toHaveBeenCalled();
+      expect(mockOnClose).toHaveBeenCalled();
     });
   });
 
   describe('State Synchronization', () => {
-    it('syncs local state when props change', () => {
+    it('reflects updated props when reopened', () => {
       const { rerender } = render(
         <PerpsMarketSortFieldBottomSheet
           isVisible
@@ -451,15 +212,10 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         />,
       );
 
-      // Initially volume is selected with "High to low"
-      expect(
-        screen.getByTestId('sort-field-sheet-direction-indicator'),
-      ).toBeOnTheScreen();
       expect(
         screen.getByTestId('sort-field-sheet-direction-text'),
       ).toHaveTextContent('High to low');
 
-      // Change props to priceChange with asc direction
       rerender(
         <PerpsMarketSortFieldBottomSheet
           isVisible
@@ -471,76 +227,9 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
         />,
       );
 
-      // Now priceChange should have direction indicator showing "Low to high"
-      expect(
-        screen.getByTestId('sort-field-sheet-direction-indicator'),
-      ).toBeOnTheScreen();
       expect(
         screen.getByTestId('sort-field-sheet-direction-text'),
       ).toHaveTextContent('Low to high');
-    });
-
-    it('resets uncommitted changes when reopening the sheet', () => {
-      const { rerender } = render(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="volume"
-          sortDirection="desc"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      // Initially volume is selected with "High to low"
-      expect(
-        screen.getByTestId('sort-field-sheet-direction-indicator'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId('sort-field-sheet-direction-text'),
-      ).toHaveTextContent('High to low');
-
-      // User makes changes without applying - select priceChange
-      fireEvent.press(
-        screen.getByTestId('sort-field-sheet-option-priceChange'),
-      );
-
-      // Now priceChange should be selected locally
-      expect(
-        screen.getByTestId('sort-field-sheet-direction-indicator'),
-      ).toBeOnTheScreen();
-
-      // User closes the sheet without applying
-      rerender(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible={false}
-          selectedOptionId="volume"
-          sortDirection="desc"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      // User reopens the sheet - props haven't changed (still volume)
-      rerender(
-        <PerpsMarketSortFieldBottomSheet
-          isVisible
-          selectedOptionId="volume"
-          sortDirection="desc"
-          onClose={mockOnClose}
-          onOptionSelect={mockOnOptionSelect}
-          testID="sort-field-sheet"
-        />,
-      );
-
-      // Local state should be reset to volume with "High to low" (uncommitted changes discarded)
-      expect(
-        screen.getByTestId('sort-field-sheet-direction-indicator'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId('sort-field-sheet-direction-text'),
-      ).toHaveTextContent('High to low');
     });
   });
 });

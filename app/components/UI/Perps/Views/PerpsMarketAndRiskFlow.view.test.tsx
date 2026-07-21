@@ -14,7 +14,13 @@
  */
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
-import { cleanup, act, fireEvent, screen } from '@testing-library/react-native';
+import {
+  cleanup,
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import {
   renderPerpsView,
@@ -25,7 +31,9 @@ import {
   PerpsStopLossPromptSelectorsIDs,
   PerpsTransactionSelectorsIDs,
   TradingViewChartSelectorsIDs,
+  getPerpsMarketRowItemSelector,
 } from '../Perps.testIds';
+import { PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY } from '../selectors/featureFlags';
 import PerpsLoader from '../components/PerpsLoader/PerpsLoader';
 import LivePriceDisplay from '../components/LivePriceDisplay/LivePriceDisplay';
 import PerpsMarketRowItem from '../components/PerpsMarketRowItem/PerpsMarketRowItem';
@@ -103,12 +111,10 @@ const transactionItemStyles = {
 describe('Market Browsing & Risk Awareness Flow', () => {
   let NOTIFICATIONS_TITLE: string;
   let SORT_SORT_BY: string;
-  let SORT_APPLY: string;
 
   beforeAll(() => {
     NOTIFICATIONS_TITLE = strings('perps.tooltips.notifications.title');
     SORT_SORT_BY = strings('perps.sort.sort_by');
-    SORT_APPLY = strings('perps.sort.apply');
   });
 
   it('trader sees loading, browses markets, checks risk warnings, enables notifications, and reviews transactions', async () => {
@@ -167,12 +173,18 @@ describe('Market Browsing & Risk Awareness Flow', () => {
       >,
       { market: ethMarket, onPress: mockOnPress },
     );
-    expect(await screen.findByText('Ethereum')).toBeOnTheScreen();
+    expect(
+      await screen.findByTestId(
+        getPerpsMarketRowItemSelector.assetLabel('ETH'),
+      ),
+    ).toHaveTextContent('ETH');
     expect(screen.getByText('$2,000')).toBeOnTheScreen();
     expect(screen.getByText('+2.5%')).toBeOnTheScreen();
 
     // Trader taps the market row
-    fireEvent.press(screen.getByText('Ethereum'));
+    fireEvent.press(
+      screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('ETH')),
+    );
     expect(mockOnPress).toHaveBeenCalledTimes(1);
 
     // Trader sees BTC market row with negative change
@@ -185,7 +197,11 @@ describe('Market Browsing & Risk Awareness Flow', () => {
       >,
       { market: btcMarket },
     );
-    expect(await screen.findByText('Bitcoin')).toBeOnTheScreen();
+    expect(
+      await screen.findByTestId(
+        getPerpsMarketRowItemSelector.assetLabel('BTC'),
+      ),
+    ).toHaveTextContent('BTC');
     expect(screen.getByText('$50,000')).toBeOnTheScreen();
     expect(screen.getByText('-1.0%')).toBeOnTheScreen();
 
@@ -396,11 +412,16 @@ describe('Market Browsing & Risk Awareness Flow', () => {
       },
     );
     await screen.findByText(SORT_SORT_BY, {}, { timeout: 3000 });
-    expect(screen.getByText(SORT_APPLY)).toBeOnTheScreen();
     const volumeOption = screen.getByTestId('perps-sort-sheet-option-volume');
     fireEvent.press(volumeOption);
-    fireEvent.press(screen.getByText(SORT_APPLY));
-    expect(mockOnOptionSelect).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockOnOptionSelect).toHaveBeenCalledWith(
+        'volume',
+        'volume',
+        'desc',
+      );
+    });
+    expect(mockOnCloseSort).toHaveBeenCalled();
 
     // ── PHASE 9: Transaction list item ───────────────────────────────────
     await act(async () => {
@@ -453,5 +474,36 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     );
     renderPerpsView(NotificationTooltipWrapper, 'NotificationTooltipTest');
     expect(screen.queryByText(NOTIFICATIONS_TITLE)).not.toBeOnTheScreen();
+  });
+
+  it('renders full asset names on market rows when perpsShowFullAssetNames is enabled', async () => {
+    renderPerpsComponent(
+      PerpsMarketRowItem as unknown as React.ComponentType<
+        Record<string, unknown>
+      >,
+      { market: ethMarket },
+      {
+        overrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY]: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(
+      await screen.findByTestId(
+        getPerpsMarketRowItemSelector.assetLabel('ETH'),
+      ),
+    ).toHaveTextContent('Ethereum');
   });
 });

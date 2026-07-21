@@ -2,12 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { ImageSourcePropType } from 'react-native';
-import {
-  Box,
-  FontWeight,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
 import type { BridgeToken } from '../../types';
 import PillScrollList from '../../../Trending/components/PillScrollList/PillScrollList';
 import SectionPillsSkeleton from '../../../Trending/components/SectionPillsSkeleton/SectionPillsSkeleton';
@@ -20,7 +15,11 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import { getNetworkBadgeSource } from '../../../Trending/components/TrendingTokenRowItem/utils';
+import {
+  getCaipChainIdFromAssetId,
+  getNetworkBadgeSource,
+} from '../../../Trending/components/TrendingTokenRowItem/utils';
+import { NetworkToCaipChainId } from '../../../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { formatPercentChange } from '../../../Trending/utils/formatPercentChange';
 import { strings } from '../../../../../../locales/i18n';
 import { PostTradeStatus } from './PostTradeBottomSheet.types';
@@ -35,6 +34,10 @@ interface PostTradeSuggestionPillProps {
   networkBadgeImageSource?: ImageSourcePropType;
   onPress: (token: TrendingAsset) => void;
 }
+
+const ETHEREUM_NETWORK_BADGE_SOURCE = getNetworkBadgeSource(
+  NetworkToCaipChainId.ETHEREUM,
+);
 
 const PostTradeSuggestionPill = React.memo(
   ({
@@ -104,23 +107,30 @@ export const PostTradeTokenSuggestions = ({
     destToken,
     enabled: shouldShowSuggestions,
   });
-  const networkBadgeImageSource = useMemo(
+  const destinationNetworkBadgeSource = useMemo(
     () =>
       destToken?.chainId
         ? getNetworkBadgeSource(formatChainIdToCaip(destToken.chainId))
         : undefined,
     [destToken?.chainId],
   );
-
   const renderItem = useCallback(
-    (token: TrendingAsset) => (
-      <PostTradeSuggestionPill
-        token={token}
-        networkBadgeImageSource={networkBadgeImageSource}
-        onPress={onTokenPress}
-      />
-    ),
-    [networkBadgeImageSource, onTokenPress],
+    (token: TrendingAsset) => {
+      const networkBadgeImageSource =
+        getCaipChainIdFromAssetId(token.assetId) ===
+        NetworkToCaipChainId.ETHEREUM
+          ? ETHEREUM_NETWORK_BADGE_SOURCE
+          : destinationNetworkBadgeSource;
+
+      return (
+        <PostTradeSuggestionPill
+          token={token}
+          networkBadgeImageSource={networkBadgeImageSource}
+          onPress={onTokenPress}
+        />
+      );
+    },
+    [destinationNetworkBadgeSource, onTokenPress],
   );
 
   if (!shouldShowSuggestions || (!isLoading && tokens.length === 0)) {
@@ -129,12 +139,12 @@ export const PostTradeTokenSuggestions = ({
 
   return (
     <Box
-      twClassName="px-4 pb-4"
+      twClassName="pb-4"
       testID={PostTradeBottomSheetTestIds.SUGGESTIONS_SECTION}
     >
-      <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
-        {strings('bridge.post_trade_modal.what_to_swap_next')}
-      </Text>
+      <SectionHeader
+        title={strings('bridge.post_trade_modal.what_to_swap_next')}
+      />
       <PillScrollList
         data={tokens}
         isLoading={isLoading}
@@ -144,7 +154,7 @@ export const PostTradeTokenSuggestions = ({
         rowCount={2}
         maxPills={20}
         listTestId={PostTradeBottomSheetTestIds.SUGGESTIONS_LIST}
-        wrapperTwClassName="-mx-4 bg-transparent mt-2 mb-0"
+        wrapperTwClassName="bg-transparent"
       />
     </Box>
   );

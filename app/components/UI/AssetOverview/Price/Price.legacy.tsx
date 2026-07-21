@@ -20,7 +20,10 @@ import styleSheet from './Price.styles';
 import ChartNavigationButton from '../ChartNavigationButton';
 import { useSelector } from 'react-redux';
 import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
-import { TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT } from './tokenOverviewChart.constants';
+import {
+  TIME_PERIOD_MS,
+  TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT,
+} from './tokenOverviewChart.constants';
 
 export interface PriceLegacyProps {
   prices: TokenPrice[];
@@ -201,6 +204,7 @@ const PriceLegacy = ({
           onChartIndexChange={handleChartInteraction}
           chartColorOverride={initialAmbientColor}
           hasInsufficientCoverage={hasInsufficientCoverage}
+          timePeriodMs={TIME_PERIOD_MS[timePeriod] ?? undefined}
         />
       </Box>
       {/* Technical indicators flag OFF: time range below chart (legacy position) */}

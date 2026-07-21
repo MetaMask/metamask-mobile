@@ -5,7 +5,6 @@ import PerpsAdvancedChart, {
   mapTpslToPositionLines,
   getPerpsPositionLineColors,
 } from '../PerpsAdvancedChart';
-import { advancedChartLineChromePresets } from '../../../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import type { AdvancedChartProps } from '../../../../Charts/AdvancedChart/AdvancedChart.types';
 import { getPerpsVolumeColors, hexToRgba } from '../../../utils/chartColors';
 import type { TPSLLines } from '../../TradingViewChart/TradingViewChart';
@@ -45,10 +44,13 @@ jest.mock('../../../../../../util/trace', () => ({
   endTrace: jest.fn(),
   trace: jest.fn(),
   TraceName: {
+    PerpsChartFirstCandle: 'perps.chart.first_candle',
+    PerpsChartFullscreenOpen: 'perps.chart.full_screen_open',
     PerpsAdvancedChartInitialVisible: 'Perps Advanced Chart Initial Visible',
     PerpsAdvancedChartIntervalVisible: 'Perps Advanced Chart Interval Visible',
   },
   TraceOperation: {
+    PerpsChart: 'perps.chart',
     PerpsAdvancedChart: 'perps.advanced_chart',
     PerpsAdvancedChartInterval: 'perps.advanced_chart_interval',
   },
@@ -110,12 +112,33 @@ describe('PerpsAdvancedChart', () => {
 
     expect(mockAdvancedChart).toHaveBeenCalledWith(
       expect.objectContaining({
-        lineChrome: advancedChartLineChromePresets.perps.lineChrome,
         currentPriceLineColorOverride: mockTheme.colors.text.default,
         volumeSuccessColorOverride: volumeColors.success,
         volumeErrorColorOverride: volumeColors.error,
       }),
     );
+  });
+
+  it('passes market-aware price decimals to AdvancedChart', () => {
+    renderChart({ szDecimals: 2 });
+
+    expect(mockAdvancedChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        priceDecimals: 4,
+      }),
+    );
+  });
+
+  it('omits market-aware price decimals when szDecimals is not provided', () => {
+    renderChart();
+
+    expect(advancedChartProps().priceDecimals).toBeUndefined();
+  });
+
+  it('passes zero price decimals when szDecimals uses full Hyperliquid precision', () => {
+    renderChart({ szDecimals: 6 });
+
+    expect(advancedChartProps().priceDecimals).toBe(0);
   });
 
   it('passes pagination duration into the adapter', () => {
@@ -328,20 +351,23 @@ describe('PerpsAdvancedChart', () => {
 
     expect(trace).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: 'Perps Advanced Chart Initial Visible',
-        op: 'perps.advanced_chart',
+        name: 'perps.chart.first_candle',
+        op: 'perps.chart',
         id: 'BTC|1h',
       }),
     );
     expect(endTrace).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: 'Perps Advanced Chart Initial Visible',
+        name: 'perps.chart.first_candle',
         id: 'BTC|1h',
         data: expect.objectContaining({
           symbol: 'BTC',
           interval: CandlePeriod.OneHour,
           surface: 'market_detail',
+          chart_library: 'advanced',
           transition: 'initial_load',
+          chart_load_latency_ms: expect.any(Number),
+          first_candle_rendered: false,
         }),
       }),
     );
@@ -368,7 +394,7 @@ describe('PerpsAdvancedChart', () => {
 
     expect(endTrace).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: 'Perps Advanced Chart Initial Visible',
+        name: 'perps.chart.first_candle',
         id: 'BTC|1h',
         data: { superseded: true },
       }),
@@ -402,9 +428,15 @@ describe('PerpsAdvancedChart', () => {
 
     expect(trace).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        name: 'Perps Advanced Chart Initial Visible',
-        op: 'perps.advanced_chart',
+        name: 'perps.chart.first_candle',
+        op: 'perps.chart',
         id: 'ETH|1h',
+        data: expect.objectContaining({
+          symbol: 'ETH',
+          interval: CandlePeriod.OneHour,
+          surface: 'market_detail',
+          chart_library: 'advanced',
+        }),
       }),
     );
   });
@@ -444,6 +476,22 @@ describe('PerpsAdvancedChart', () => {
     );
   });
 
+  it('uses the fullscreen open trace for fullscreen initial load', () => {
+    renderChart({ surface: 'full_screen_chart' });
+
+    expect(trace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'perps.chart.full_screen_open',
+        op: 'perps.chart',
+        id: 'BTC|1h',
+        data: expect.objectContaining({
+          surface: 'full_screen_chart',
+          chart_library: 'advanced',
+        }),
+      }),
+    );
+  });
+
   it('ends the active visibility trace when unmounted before the skeleton hides', () => {
     const { unmount } = renderChart();
 
@@ -451,7 +499,7 @@ describe('PerpsAdvancedChart', () => {
 
     expect(endTrace).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: 'Perps Advanced Chart Initial Visible',
+        name: 'perps.chart.first_candle',
         id: 'BTC|1h',
         data: { unmounted: true },
       }),
@@ -479,6 +527,18 @@ describe('PerpsAdvancedChart', () => {
     });
 
     expect(onError).toHaveBeenCalledWith('chart failed');
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'perps.chart.first_candle',
+        id: 'BTC|1h',
+        data: expect.objectContaining({
+          surface: 'market_detail',
+          chart_library: 'advanced',
+          fallbackToLightweight: true,
+          errorMessage: 'chart failed',
+        }),
+      }),
+    );
     expect(mockTradingViewChart).toHaveBeenCalledWith(
       expect.objectContaining({
         candleData: null,

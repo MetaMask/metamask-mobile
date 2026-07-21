@@ -47,11 +47,12 @@ import {
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
   resolveE2EFixtureBootstrapTimeoutMs,
+  shouldHandleMetroDevLauncherLocally,
 } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
-import { mockNotificationServices } from '../../smoke/notifications/utils/mocks';
+import { mockNotificationServices } from '../../smoke-appium/notifications/utils/mocks';
 import {
   runAnalyticsExpectations,
   shouldRunAnalyticsExpectations,
@@ -371,22 +372,16 @@ function updateRpcUrlsWithAllocatedPorts(state: Fixture): Fixture {
 }
 
 /**
- * Updates dapp URLs in PermissionController with actual allocated ports by index.
- * Replaces all occurrences of dapp URLs (by index) with their actual allocated ports.
+ * Updates dapp URLs in fixture with actual allocated ports by index.
+ * Replaces all occurrences of fallback dapp ports (8085, 8086, …) with the
+ * dynamically allocated ports. This affects browser tabs, PermissionController
+ * subjects, and any other fixture field that references a dapp URL.
  */
 function updateDappUrlsWithAllocatedPorts(state: Fixture): Fixture {
   const portManager = PortManager.getInstance();
-  const permissionController =
-    state.state?.engine?.backgroundState?.PermissionController;
 
-  if (!permissionController?.subjects) {
-    return state;
-  }
+  let fixtureJson = JSON.stringify(state);
 
-  // Serialize subjects to JSON string for easy replacement
-  let subjectsJson = JSON.stringify(permissionController.subjects);
-
-  // Update each dapp URL by index
   let index = 0;
   while (true) {
     const actualPort = portManager.getMultiInstancePort(
@@ -399,15 +394,15 @@ function updateDappUrlsWithAllocatedPorts(state: Fixture): Fixture {
     const oldUrl = `localhost:${fallbackPort}`;
     const newUrl = `localhost:${actualPort}`;
 
-    // Replace all occurrences
-    subjectsJson = subjectsJson.split(oldUrl).join(newUrl);
-
+    fixtureJson = fixtureJson.split(oldUrl).join(newUrl);
     index++;
   }
 
-  // Parse back and update
-  permissionController.subjects = JSON.parse(subjectsJson);
-  return state;
+  if (index === 0) {
+    return state;
+  }
+
+  return JSON.parse(fixtureJson);
 }
 
 /**
@@ -719,7 +714,7 @@ export async function withFixtures(
           await PlaywrightUtilities.launchApp(currentDeviceDetails, {
             launchArgs: testArgs,
           });
-          if (process.env.CI !== 'true') {
+          if (shouldHandleMetroDevLauncherLocally()) {
             didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
             await Promise.all([
               appStateRequest,
@@ -756,12 +751,14 @@ export async function withFixtures(
       }
     }
 
-    // Dismiss dev menu after bootstrap (Appium: adb-only overlay dismiss — element
-    // queries here crash UiAutomator2 while Metro is still loading).
+    // Dismiss dev menu after bootstrap (Appium debug only — release/CI skip Metro paths).
     if (process.env.CI !== 'true') {
       if (FrameworkDetector.isDetox()) {
         await dismissDevScreens();
-      } else if (FrameworkDetector.isAppium()) {
+      } else if (
+        FrameworkDetector.isAppium() &&
+        shouldHandleMetroDevLauncherLocally()
+      ) {
         if (!didAttemptPlaywrightDevelopmentServerPickerDismissal) {
           await dismissDevelopmentServerPickerPlaywright();
         }

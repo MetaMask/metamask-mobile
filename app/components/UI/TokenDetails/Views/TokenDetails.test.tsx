@@ -9,7 +9,11 @@ import {
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
+import {
+  selectNetworkConfigurationByChainId,
+  selectNetworkConfigurations,
+} from '../../../../selectors/networkController';
+import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { selectPerpsEnabledFlag } from '../../Perps';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
@@ -19,12 +23,9 @@ import {
 } from '../../../../selectors/featureFlagController/deposit';
 import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  AMBIENT_NEGATIVE_COLOR,
-  AMBIENT_PRICE_COLOR_AB_KEY,
-} from '../components/abTestConfig';
+import { AMBIENT_PRICE_COLOR_AB_KEY } from '../components/abTestConfig';
 import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
-import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 
 const mockUseSelector = jest.fn();
@@ -109,6 +110,12 @@ const mockUseTokenBalance = jest.fn();
 jest.mock('../hooks/useTokenBalance', () => ({
   useTokenBalance: () => mockUseTokenBalance(),
 }));
+
+jest.mock('../../Assets/watchlist/components/WatchlistStarButton', () => {
+  const MockedStarButton = () => null;
+  MockedStarButton.displayName = 'WatchlistStarButton';
+  return { __esModule: true, default: MockedStarButton };
+});
 
 const mockUseTokenBuyability = jest.fn();
 jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
@@ -254,6 +261,15 @@ jest.mock(
 
 jest.mock('../../../../selectors/networkController', () => ({
   selectNetworkConfigurationByChainId: jest.fn(() => ({ name: 'Ethereum' })),
+  selectNetworkConfigurations: jest.fn(() => ({
+    '0x1': { nativeCurrency: 'ETH' },
+  })),
+}));
+
+jest.mock('../../../../selectors/currencyRateController', () => ({
+  selectCurrencyRates: jest.fn(() => ({
+    ETH: { conversionRate: 1, usdConversionRate: 1 },
+  })),
 }));
 
 jest.mock('../../Perps', () => ({
@@ -302,15 +318,6 @@ jest.mock(
   }),
 );
 
-const mockUsePriceInUsd = jest.fn<
-  number | null,
-  [string | null | undefined, number]
->(() => 100);
-jest.mock('../../Assets/PriceAlerts/hooks/usePriceInUsd', () => ({
-  usePriceInUsd: (chainId: string | null | undefined, price: number) =>
-    mockUsePriceInUsd(chainId, price),
-}));
-
 jest.mock('../../Ramp/Aggregator/utils', () => ({
   isNetworkRampNativeTokenSupported: jest.fn(() => true),
   isNetworkRampSupported: jest.fn(() => true),
@@ -325,6 +332,14 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+}));
+
+const mockShowToast = jest.fn();
+jest.mock('../../../../core/ToastService/ToastService', () => ({
+  __esModule: true,
+  default: {
+    showToast: (...args: unknown[]) => mockShowToast(...args),
+  },
 }));
 
 const mockIsTokenTradingOpen = jest.fn().mockReturnValue(true);
@@ -423,7 +438,6 @@ describe('TokenDetails', () => {
       networkModal: null,
     });
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
-    mockUsePriceInUsd.mockReturnValue(100);
 
     mockUseTokenBalance.mockReturnValue({
       balance: '1.5',
@@ -435,6 +449,11 @@ describe('TokenDetails', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectNetworkConfigurationByChainId)
         return { name: 'Ethereum' };
+      if (selector === selectNetworkConfigurations)
+        return { '0x1': { nativeCurrency: 'ETH' } };
+      if (selector === selectCurrencyRates)
+        // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
+        return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
       if (selector === selectPerpsEnabledFlag) return false;
       if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
       if (selector === getRampNetworks) return [];
@@ -716,9 +735,6 @@ describe('TokenDetails', () => {
       render(<TokenDetails />);
 
       expect(mockLastUseAmbientColorProp).toBeFalsy();
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ iconColor: undefined }),
-      );
     });
 
     it('passes useAmbientColor=true in treatment variant', () => {
@@ -729,69 +745,22 @@ describe('TokenDetails', () => {
       expect(mockLastUseAmbientColorProp).toBe(true);
     });
 
-    it('keeps iconColor undefined until chart reports direction', () => {
-      enableAmbientColor();
-      mockUseTokenPrice.mockReturnValue({
-        ...defaultUseTokenPriceReturn,
-        priceDiff: 10,
-      });
-
-      render(<TokenDetails />);
-
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ iconColor: undefined }),
-      );
-    });
-
-    it('applies success green when chart reports positive direction', () => {
+    it('does not pass iconColor or useAmbientColor to the inline header', () => {
       enableAmbientColor();
 
       render(<TokenDetails />);
-      act(() => {
-        mockLatestPriceDirectionChange?.(true);
-      });
 
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ iconColor: LIGHT_MODE_SUCCESS_GREEN }),
-      );
+      const headerProps = mockTokenDetailsInlineHeader.mock.calls.at(-1)?.[0];
+      expect(headerProps).not.toHaveProperty('iconColor');
+      expect(headerProps).not.toHaveProperty('useAmbientColor');
     });
 
-    it('applies negative color when chart reports negative direction', () => {
-      enableAmbientColor();
-
-      render(<TokenDetails />);
-      act(() => {
-        mockLatestPriceDirectionChange?.(false);
-      });
-
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          iconColor: AMBIENT_NEGATIVE_COLOR,
-        }),
-      );
-    });
-
-    it('returns undefined iconColor when treatment + price is loading', () => {
-      enableAmbientColor();
-      mockUseTokenPrice.mockReturnValue({
-        ...defaultUseTokenPriceReturn,
-        isLoading: true,
-        priceDiff: 0,
-      });
-
-      render(<TokenDetails />);
-
-      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
-        expect.objectContaining({ iconColor: undefined }),
-      );
-    });
-
-    it('hides sticky footer while chart direction is unresolved', () => {
+    it('always shows sticky footer regardless of chart direction', () => {
       enableAmbientColor();
 
       const { queryByTestId } = render(<TokenDetails />);
 
-      expect(queryByTestId('bottomsheetfooter')).toBeNull();
+      expect(queryByTestId('bottomsheetfooter')).toBeTruthy();
     });
   });
 
@@ -800,6 +769,11 @@ describe('TokenDetails', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectNetworkConfigurationByChainId)
           return { name: 'Ethereum' };
+        if (selector === selectNetworkConfigurations)
+          return { '0x1': { nativeCurrency: 'ETH' } };
+        if (selector === selectCurrencyRates)
+          // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
+          return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
         if (selector === selectPerpsEnabledFlag) return false;
         if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
         if (selector === getRampNetworks) return [];
@@ -841,7 +815,6 @@ describe('TokenDetails', () => {
         ...defaultUseTokenPriceReturn,
         currentPrice: 0,
       });
-      mockUsePriceInUsd.mockReturnValue(0);
 
       render(<TokenDetails />);
 
@@ -883,9 +856,22 @@ describe('TokenDetails', () => {
       );
     });
 
-    it('passes undefined onPriceAlertPress when usePriceInUsd returns null', () => {
-      enablePriceAlerts();
-      mockUsePriceInUsd.mockReturnValue(null);
+    it('passes undefined onPriceAlertPress when USD conversion rates are unavailable', () => {
+      // Override to return no currency rates — calcUsdAmountFromFiat returns undefined → null
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectNetworkConfigurationByChainId)
+          return { name: 'Ethereum' };
+        if (selector === selectNetworkConfigurations)
+          return { '0x1': { nativeCurrency: 'ETH' } };
+        if (selector === selectCurrencyRates) return {};
+        if (selector === selectPerpsEnabledFlag) return false;
+        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
+        if (selector === getRampNetworks) return [];
+        if (selector === selectDepositActiveFlag) return false;
+        if (selector === selectDepositMinimumVersionFlag) return null;
+        if (selector === selectPriceAlertsEnabled) return true;
+        return undefined;
+      });
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 100,
@@ -898,14 +884,108 @@ describe('TokenDetails', () => {
       );
     });
 
-    it('always navigates to MANAGE_PRICE_ALERTS with currentCurrency usd regardless of user fiat setting', () => {
+    it('shows the price alert button for a Solana token when the chain is supported', () => {
       enablePriceAlerts();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 150,
+      });
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        symbol: 'SOL',
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          onPriceAlertPress: expect.any(Function),
+        }),
+      );
+    });
+
+    it('shows the price alert button for a Bitcoin token using the native currency CAIP-19 fallback', () => {
+      enablePriceAlerts();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 60000,
+      });
+      // Bitcoin's address is "native" — formatAddressToAssetId cannot resolve it,
+      // so caip19AssetId falls back to AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS
+      // nativeCurrency = "bip122:000000000019d6689c085ae165831e93/slip44:0"
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        address: 'native',
+        chainId: 'bip122:000000000019d6689c085ae165831e93',
+        symbol: 'BTC',
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          onPriceAlertPress: expect.any(Function),
+        }),
+      );
+    });
+
+    it('navigates with the Bitcoin native CAIP-19 asset id when the price alert button is pressed', () => {
+      enablePriceAlerts();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 60000,
+      });
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        address: 'native',
+        chainId: 'bip122:000000000019d6689c085ae165831e93',
+        symbol: 'BTC',
+      });
+
+      render(<TokenDetails />);
+
+      const lastCall = mockTokenDetailsInlineHeader.mock.calls.at(-1)?.[0] as {
+        onPriceAlertPress?: () => void;
+      };
+      act(() => {
+        lastCall.onPriceAlertPress?.();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MANAGE_PRICE_ALERTS,
+        expect.objectContaining({
+          symbol: 'BTC',
+          currentPrice: 60000,
+          currentCurrency: 'usd',
+          assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+        }),
+      );
+    });
+
+    it('always navigates to MANAGE_PRICE_ALERTS with currentCurrency usd regardless of user fiat setting', () => {
+      // 2800 EUR × (3000 USD/ETH ÷ 2800 EUR/ETH) = 3000 USD
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectNetworkConfigurationByChainId)
+          return { name: 'Ethereum' };
+        if (selector === selectNetworkConfigurations)
+          return { '0x1': { nativeCurrency: 'ETH' } };
+        if (selector === selectCurrencyRates)
+          return { ETH: { conversionRate: 2800, usdConversionRate: 3000 } };
+        if (selector === selectPerpsEnabledFlag) return false;
+        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
+        if (selector === getRampNetworks) return [];
+        if (selector === selectDepositActiveFlag) return false;
+        if (selector === selectDepositMinimumVersionFlag) return null;
+        if (selector === selectPriceAlertsEnabled) return true;
+        return undefined;
+      });
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 2800,
         currentCurrency: 'eur',
       });
-      mockUsePriceInUsd.mockReturnValue(3000);
       mockRouteParams.mockReturnValue({
         ...defaultRouteParams,
         address: '0x6b175474e89094c44da98b954eedeac495271d0f',
@@ -938,7 +1018,6 @@ describe('TokenDetails', () => {
         currentPrice: 2500,
         currentCurrency: 'USD',
       });
-      mockUsePriceInUsd.mockReturnValue(2500);
       mockRouteParams.mockReturnValue({
         ...defaultRouteParams,
         address: '0x6b175474e89094c44da98b954eedeac495271d0f',
@@ -1068,6 +1147,23 @@ describe('TokenDetails', () => {
       await invokeSharePress();
 
       expect(Share.share).not.toHaveBeenCalled();
+    });
+
+    it('resolves caip19AssetId from route caipAssetId when provided', async () => {
+      const caipAssetId = 'eip155:8453/slip44:60';
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        caipAssetId,
+      });
+
+      render(<TokenDetails />);
+      await invokeSharePress();
+
+      expect(Share.share).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: expect.stringContaining(encodeURIComponent(caipAssetId)),
+        }),
+      );
     });
 
     it('resolves caip19AssetId directly when address is already CAIP-19 format', async () => {
@@ -1384,6 +1480,18 @@ describe('TokenDetails', () => {
       });
 
       expect(getTokenDetailsClosedCallCount()).toBe(2);
+    });
+  });
+
+  describe('watchlist star button', () => {
+    it('passes starButton ReactNode to header', () => {
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          starButton: expect.anything(),
+        }),
+      );
     });
   });
 });
