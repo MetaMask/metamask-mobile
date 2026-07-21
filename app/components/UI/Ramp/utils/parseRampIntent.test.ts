@@ -78,14 +78,14 @@ describe('parseRampIntent', () => {
       });
     });
 
-    it('normalizes Polygon native token address to slip44 asset reference', () => {
+    it('treats Polygon system address as ERC-20 when only address+chain are provided (Buy should use getCaipAssetIdForToken for natives)', () => {
       const pathParams = {
         address: '0x0000000000000000000000000000000000001010',
         chainId: '137',
       };
       const result = parseRampIntent(pathParams);
       expect(result).toEqual({
-        assetId: 'eip155:137/slip44:.',
+        assetId: 'eip155:137/erc20:0x0000000000000000000000000000000000001010',
       });
     });
 

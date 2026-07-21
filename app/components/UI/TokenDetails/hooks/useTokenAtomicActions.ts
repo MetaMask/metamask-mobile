@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useStore } from 'react-redux';
-import { Hex, CaipChainId, isCaipAssetType } from '@metamask/utils';
+import {
+  Hex,
+  CaipAssetType,
+  CaipChainId,
+  isCaipAssetType,
+} from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { selectEvmChainId } from '../../../../selectors/networkController';
@@ -45,6 +50,7 @@ import { BridgeToken } from '../../Bridge/types';
 import { adaptTokenSecurityData } from '../../Bridge/utils/tokenSecurityUtils';
 import { getSwapDestToken } from '../../Bridge/utils/getSwapDestToken';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
+import { getCaipAssetIdForToken } from '../../Tokens/util/getCaipAssetIdForToken';
 import {
   isExploreTokenDetailsSource,
   TokenDetailsSource,
@@ -53,9 +59,42 @@ import type { RootState } from '../../../../reducers';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 export type TokenActionInput = TokenI & {
+  /** Preferred CAIP-19 when already resolved (e.g. Asset route params). */
+  caipAssetId?: CaipAssetType;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   source?: TokenDetailsSource;
 };
+
+/**
+ * Resolves the CAIP-19 asset id for Buy / ramp navigation.
+ * Prefers an explicit caipAssetId, then Tokens-domain native/ERC-20 resolution
+ * (`getCaipAssetIdForToken`), then legacy address+chain parseRampIntent.
+ */
+export async function resolveBuyAssetId(
+  token: TokenActionInput,
+): Promise<string | undefined> {
+  try {
+    if (token.caipAssetId && isCaipAssetType(token.caipAssetId)) {
+      return token.caipAssetId;
+    }
+
+    const fromTokenModel = await getCaipAssetIdForToken(token);
+    if (fromTokenModel) {
+      return fromTokenModel;
+    }
+
+    if (isCaipAssetType(token.address)) {
+      return token.address;
+    }
+
+    return parseRampIntent({
+      chainId: getDecimalChainId(token.chainId as Hex),
+      address: token.address,
+    })?.assetId;
+  } catch {
+    return undefined;
+  }
+}
 
 interface BuySourceAsset {
   chainId: string;
@@ -222,7 +261,7 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
   const { goToBuy } = useRampNavigation();
   const isAuthenticated = useIsRampAuthenticated();
 
-  return useCallback(() => {
+  return useCallback(async () => {
     const tokenChainIdHex = token.chainId as Hex;
 
     trackActionButtonClick(trackEvent, createEventBuilder, {
@@ -232,19 +271,7 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
       location: ActionLocation.ASSET_DETAILS,
     });
 
-    let assetId: string | undefined;
-    try {
-      if (isCaipAssetType(token.address)) {
-        assetId = token.address;
-      } else {
-        assetId = parseRampIntent({
-          chainId: getDecimalChainId(tokenChainIdHex),
-          address: token.address,
-        })?.assetId;
-      }
-    } catch {
-      assetId = undefined;
-    }
+    const assetId = await resolveBuyAssetId(token);
 
     const state = store.getState();
     const rampGeodetectedRegion = getDetectedGeolocation(state);

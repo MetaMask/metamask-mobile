@@ -513,7 +513,9 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
   it('calls goToBuy with parsed assetId and tracks ACTION_BUTTON_CLICKED', async () => {
     const { result } = await renderOnBuy();
 
-    result.current();
+    await act(async () => {
+      await result.current();
+    });
 
     expect(mockGoToBuy).toHaveBeenCalledTimes(1);
     expect(mockGoToBuy).toHaveBeenCalledWith(
@@ -539,7 +541,9 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
 
     const { result } = await renderOnBuy({ token: caipToken });
 
-    result.current();
+    await act(async () => {
+      await result.current();
+    });
 
     expect(mockGoToBuy).toHaveBeenCalledWith(
       { assetId: caipAddress },
@@ -547,7 +551,7 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
     );
   });
 
-  it('normalizes Polygon native POL address to slip44 assetId for goToBuy', async () => {
+  it('uses getCaipAssetIdForToken so Polygon native POL gets slip44 CAIP for goToBuy', async () => {
     const polToken = {
       ...defaultToken,
       address: '0x0000000000000000000000000000000000001010',
@@ -558,10 +562,38 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
 
     const { result } = await renderOnBuy({ token: polToken });
 
-    result.current();
+    await act(async () => {
+      await result.current();
+    });
 
     expect(mockGoToBuy).toHaveBeenCalledWith(
-      { assetId: 'eip155:137/slip44:.' },
+      { assetId: 'eip155:137/slip44:966' },
+      { buyFlowOrigin: 'tokenInfo' },
+    );
+  });
+
+  it('prefers explicit caipAssetId on the token when present', async () => {
+    const caipAssetId = 'eip155:137/slip44:966';
+    mockIsCaipAssetType.mockImplementation(
+      (value: string) => value === caipAssetId,
+    );
+    const polToken = {
+      ...defaultToken,
+      address: '0x0000000000000000000000000000000000001010',
+      symbol: 'POL',
+      chainId: '0x89',
+      isNative: true,
+      caipAssetId,
+    } as TokenI & { caipAssetId: string };
+
+    const { result } = await renderOnBuy({ token: polToken });
+
+    await act(async () => {
+      await result.current();
+    });
+
+    expect(mockGoToBuy).toHaveBeenCalledWith(
+      { assetId: caipAssetId },
       { buyFlowOrigin: 'tokenInfo' },
     );
   });
@@ -569,7 +601,9 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
   it('includes asset_symbol and ramp analytics in RAMPS_BUTTON_CLICKED event', async () => {
     const { result } = await renderOnBuy();
 
-    result.current();
+    await act(async () => {
+      await result.current();
+    });
 
     assertAnalyticsEvent(MetaMetricsEvents.RAMPS_BUTTON_CLICKED, {
       location: 'TokenDetails',
@@ -586,8 +620,8 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
 
     const { result } = await renderOnBuy();
 
-    await waitFor(() => {
-      result.current();
+    await waitFor(async () => {
+      await result.current();
       assertAnalyticsEvent(MetaMetricsEvents.RAMPS_BUTTON_CLICKED, {
         is_authenticated: false,
       });

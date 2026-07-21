@@ -394,7 +394,9 @@ describe('useRampNavigation', () => {
 
         result.current.goToBuy(polIntent, { buyFlowOrigin: 'tokenInfo' });
 
-        expect(mockSetSelectedToken).toHaveBeenCalledWith('eip155:137/slip44:966');
+        expect(mockSetSelectedToken).toHaveBeenCalledWith(
+          'eip155:137/slip44:966',
+        );
         expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
           assetId: 'eip155:137/slip44:966',
           buyFlowOrigin: 'tokenInfo',
