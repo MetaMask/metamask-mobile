@@ -15,6 +15,7 @@ import {
 } from '@metamask/perps-controller';
 import { isHip3Filter } from '../utils/marketCategoryMapping';
 import { isRecentlyListed } from '../utils/time';
+import { useNowOnScreenFocus } from './useNowOnScreenFocus';
 import {
   selectPerpsWatchlistMarkets,
   selectPerpsRecentlyViewedMarkets,
@@ -181,6 +182,13 @@ export const usePerpsMarketListView = ({
     showZeroOpenInterest,
   });
 
+  // `usePerpsMarkets` is a cached REST snapshot with no continuous updates, so
+  // the 'new' filter and count below use `now` from useNowOnScreenFocus
+  // (refreshed when this screen regains focus) rather than reading Date.now()
+  // directly in the memos — otherwise a mounted screen could keep showing a
+  // stale "new" result past the 30-day boundary.
+  const now = useNowOnScreenFocus();
+
   // Get Redux state
   const watchlistMarkets = useSelector(selectPerpsWatchlistMarkets);
   const recentlyViewedSymbols = useSelector(selectPerpsRecentlyViewedMarkets);
@@ -248,7 +256,7 @@ export const usePerpsMarketListView = ({
     // 30 days (same criterion as the home "Recently added" rail).
     if (marketTypeFilter === 'new') {
       return searchedMarkets.filter((market) =>
-        isRecentlyListed(market.listedAt, Date.now()),
+        isRecentlyListed(market.listedAt, now),
       );
     }
 
@@ -256,7 +264,7 @@ export const usePerpsMarketListView = ({
     return searchedMarkets.filter(
       (market) => market.marketType === marketTypeFilter,
     );
-  }, [searchedMarkets, marketTypeFilter]);
+  }, [searchedMarkets, marketTypeFilter, now]);
 
   // Use sorting hook for sort state and sorting logic.
   // defaultSortOptionId (from navigation params) takes precedence over the saved user
@@ -345,7 +353,7 @@ export const usePerpsMarketListView = ({
     ) as Record<Exclude<MarketTypeFilter, 'all'>, number>;
 
     allMarkets.forEach((market) => {
-      if (isRecentlyListed(market.listedAt, Date.now())) {
+      if (isRecentlyListed(market.listedAt, now)) {
         counts.new++;
       }
       if (!market.isHip3) {
@@ -357,7 +365,7 @@ export const usePerpsMarketListView = ({
       }
     });
     return counts;
-  }, [allMarkets]);
+  }, [allMarkets, now]);
 
   return {
     markets: finalMarkets,

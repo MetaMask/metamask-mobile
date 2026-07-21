@@ -32,6 +32,9 @@ jest.mock('./usePerpsMarkets');
 jest.mock('./usePerpsSearch');
 jest.mock('./usePerpsSorting');
 jest.mock('react-redux');
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
