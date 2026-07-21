@@ -75,7 +75,6 @@ import { mergeBridgeTokensWithBalances } from '../../utils/mergeBridgeTokensWith
 import { filterWatchlistBridgeTokens } from '../../utils/filterWatchlistBridgeTokens';
 import { EVENT_NAME } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import {
   TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
   TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
@@ -162,7 +161,6 @@ export const BridgeTokenSelector: React.FC = () => {
   const isWatchlistFilterActive = isWatchlistEnabled && showWatchlistOnly;
   const isWatchlistListMode = isWatchlistFilterActive;
   const isSourcePicker = route.params?.type === TokenSelectorType.Source;
-  const currentCurrency = useSelector(selectCurrentCurrency);
 
   // Set selecting token state to prevent quote expired modal from showing
   useEffect(() => {
@@ -380,15 +378,8 @@ export const BridgeTokenSelector: React.FC = () => {
       return [];
     }
 
-    const locale =
-      currentCurrency === 'usd' || currentCurrency === 'USD'
-        ? 'en-US'
-        : undefined;
-
     const mappedTokens = mergeBridgeTokensWithBalances(
-      (watchlistData ?? []).map((token) =>
-        mapWatchlistTokenToBridgeToken(token, { locale }),
-      ),
+      (watchlistData ?? []).map(mapWatchlistTokenToBridgeToken),
       balancesByAssetId,
     );
 
@@ -398,7 +389,6 @@ export const BridgeTokenSelector: React.FC = () => {
       searchQuery: searchString,
     });
   }, [
-    currentCurrency,
     isSourcePicker,
     isWatchlistListMode,
     searchString,

@@ -1,6 +1,7 @@
 import type { CaipAssetType } from '@metamask/utils';
 
 import type { WatchlistTokenWithBalance } from '../../Assets/watchlist/utils/addBalanceToTokens';
+import I18n from '../../../../../locales/i18n';
 import { formatWithThreshold } from '../../../../util/assets';
 import type { BridgeToken } from '../types';
 import { convertApiTokenToBridgeToken } from './tokenUtils';
@@ -8,7 +9,7 @@ import { convertApiTokenToBridgeToken } from './tokenUtils';
 export const formatWatchlistBalanceFiat = (
   balanceFiat: number | undefined,
   currency: string | undefined,
-  locale = 'en-US',
+  locale: string = I18n.locale,
 ): string | undefined => {
   if (balanceFiat == null || !currency) {
     return undefined;
@@ -26,7 +27,6 @@ export const formatWatchlistBalanceFiat = (
  */
 export const mapWatchlistTokenToBridgeToken = (
   token: WatchlistTokenWithBalance,
-  options?: { locale?: string },
 ): BridgeToken & { assetId: CaipAssetType } => {
   const bridgeToken = convertApiTokenToBridgeToken({
     assetId: String(token.assetId),
@@ -39,7 +39,6 @@ export const mapWatchlistTokenToBridgeToken = (
   const balanceFiat = formatWatchlistBalanceFiat(
     token.balanceFiat,
     token.fiatCurrency,
-    options?.locale,
   );
 
   return {

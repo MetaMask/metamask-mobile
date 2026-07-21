@@ -302,10 +302,6 @@ jest.mock('../../../Assets/selectors/featureFlags', () => ({
   selectTokenWatchlistEnabled: jest.fn(() => mockIsWatchlistEnabled),
 }));
 
-jest.mock('../../../../../selectors/currencyRateController', () => ({
-  selectCurrentCurrency: jest.fn(() => 'usd'),
-}));
-
 jest.mock('../../../Assets/watchlist/hooks/useTokenWatchlistQuery', () => ({
   useTokenWatchlistQuery: () => mockUseTokenWatchlistQuery(),
 }));

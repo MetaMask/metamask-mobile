@@ -5,6 +5,11 @@ import {
   mapWatchlistTokenToBridgeToken,
 } from './mapWatchlistTokenToBridgeToken';
 
+jest.mock('../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en-US' },
+}));
+
 const makeWatchlistToken = (
   overrides: Partial<WatchlistTokenWithBalance> = {},
 ): WatchlistTokenWithBalance => ({
@@ -27,6 +32,10 @@ describe('formatWatchlistBalanceFiat', () => {
 
   it('formats fiat values for display', () => {
     expect(formatWatchlistBalanceFiat(3000, 'usd', 'en-US')).toBe('$3,000.00');
+  });
+
+  it('uses I18n.locale when no locale is provided', () => {
+    expect(formatWatchlistBalanceFiat(3000, 'usd')).toBe('$3,000.00');
   });
 });
 
