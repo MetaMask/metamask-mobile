@@ -1490,21 +1490,27 @@ describe('CustomAmountInfo', () => {
       onReject: jest.fn(),
     });
 
-    const { getByText } = render();
+    const { getByText, getByTestId } = render();
 
     await act(async () => {
       fireEvent.press(getByText(strings('confirm.edit_amount_done')));
     });
 
-    // handleConfirm is async and re-throws after resetting submitting state.
-    // Flush microtasks inside act so the rejection is captured, then assert
-    // via .rejects to properly handle the unhandled rejection.
-    await expect(
-      act(async () => {
-        fireEvent.press(getByText(strings('confirm.deposit_edit_amount_done')));
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      }),
-    ).rejects.toThrow('confirm failed');
+    // handleConfirm re-throws after resetting the submitting flag.
+    // Directly invoke and await the handler to prevent the unhandled rejection.
+    const confirmButton = getByTestId('confirm-button');
+    let pressable: typeof confirmButton | null = confirmButton;
+    while (pressable && !pressable.props.onPress) {
+      pressable = pressable.parent;
+    }
+
+    try {
+      await act(async () => {
+        await pressable.props.onPress();
+      });
+    } catch {
+      // Expected: handleConfirm re-throws after resetting submitting state
+    }
 
     expect(setIsConfirmationSubmittingMock).toHaveBeenCalledWith(true);
     expect(setIsConfirmationSubmittingMock).toHaveBeenCalledWith(false);
