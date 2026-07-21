@@ -167,9 +167,8 @@ export function useMoneyAccountDeposit() {
       });
 
       try {
-        // Commented out to improve the performance of the deposit batch creation.
         // Allows confirmation skeleton to render immediately before setup work for immediate navigation.
-        // await waitForNextFrame();
+        await waitForNextFrame();
 
         const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
           amount: BigInt(0),
