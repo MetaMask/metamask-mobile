@@ -9078,6 +9078,11 @@
         "kyc_pending": {
           "title": "Verification in progress",
           "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
+        },
+        "pending_verification": {
+          "title": "Finish setting up your card",
+          "description": "You have pending verification steps to complete before your card can be enabled.",
+          "confirm_button_label": "Continue verification"
         }
       },
       "messages": {

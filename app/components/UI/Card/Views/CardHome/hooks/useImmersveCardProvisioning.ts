@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
@@ -18,7 +18,10 @@ import {
   type CardHomeData,
 } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 import { KYC_REDIRECT_URL } from '../../../constants';
-import { deriveNextImmersveAction } from '../../../util/immersvePrerequisites';
+import {
+  deriveNextImmersveAction,
+  type ImmersveNextAction,
+} from '../../../util/immersvePrerequisites';
 import { resolveImmersveFundingSourceId } from '../../../util/immersveResume';
 import { useImmersveOnboardingRouter } from '../../../hooks/useImmersveOnboardingRouter';
 
@@ -41,20 +44,32 @@ export function useImmersveCardProvisioning(
   const route = useImmersveOnboardingRouter();
   const dispatch = useDispatch();
   const handled = useRef(false);
-  // The reconcile below can redirect a mid-onboarding user off Card Home while
-  // it stays mounted underneath; gate the poll on focus so it doesn't keep
-  // hitting /cards from the background.
+  const [pendingAction, setPendingAction] = useState<ImmersveNextAction | null>(
+    null,
+  );
+  const [hasResolvedStatus, setHasResolvedStatus] = useState(false);
+  const isReconciling = isProvisioning && !hasResolvedStatus;
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    if (!isProvisioning || !isFocused) return undefined;
+    if (!isProvisioning) {
+      setHasResolvedStatus(false);
+      setPendingAction(null);
+      handled.current = false;
+    }
+  }, [isProvisioning]);
+
+  useEffect(() => {
+    if (!isProvisioning || !isFocused || pendingAction || isReconciling) {
+      return undefined;
+    }
 
     const interval = setInterval(() => {
       Engine.context.CardController.fetchCardHomeData().catch(() => undefined);
     }, POLL_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [isProvisioning, isFocused]);
+  }, [isProvisioning, isFocused, pendingAction, isReconciling]);
 
   useEffect(() => {
     if (!isProvisioning || handled.current) {
@@ -82,7 +97,7 @@ export function useImmersveCardProvisioning(
         if (action.type === 'active') {
           await controller.createCard(id);
         } else {
-          route(action, { navigateFromRoot: true, countryKey: kycRegion });
+          setPendingAction(action);
         }
       } catch (error) {
         if (
@@ -99,6 +114,10 @@ export function useImmersveCardProvisioning(
             data: { method: 'reconcile' },
           },
         });
+      } finally {
+        if (!cancelled) {
+          setHasResolvedStatus(true);
+        }
       }
     })();
     return () => {
@@ -109,9 +128,18 @@ export function useImmersveCardProvisioning(
     reduxFundingSourceId,
     kycRegion,
     fundingChannelId,
-    route,
     dispatch,
   ]);
 
-  return { isProvisioning };
+  const resumePendingAction = useCallback(() => {
+    if (!pendingAction) return;
+    route(pendingAction, { navigateFromRoot: true, countryKey: kycRegion });
+  }, [pendingAction, route, kycRegion]);
+
+  return {
+    isProvisioning,
+    isReconciling,
+    pendingAction,
+    resumePendingAction,
+  };
 }

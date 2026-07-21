@@ -43,7 +43,7 @@ describe('useImmersveOnboardingRouter', () => {
     });
   });
 
-  it('routes contact to SET_PHONE_NUMBER with email + countryKey', () => {
+  it('routes contact to SIGN_UP', () => {
     const action: ImmersveNextAction = {
       type: 'contact',
       needsEmail: true,
@@ -52,8 +52,8 @@ describe('useImmersveOnboardingRouter', () => {
     getRoute()(action, { email: 'a@b.co', countryKey: 'GB' });
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
-      { countryKey: 'GB', immersve: true, email: 'a@b.co' },
+      Routes.CARD.ONBOARDING.SIGN_UP,
+      {},
     );
   });
 
@@ -145,6 +145,7 @@ describe('useImmersveOnboardingRouter', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
         screen: Routes.CARD.ONBOARDING.SIGN_UP,
+        params: {},
       });
     });
 

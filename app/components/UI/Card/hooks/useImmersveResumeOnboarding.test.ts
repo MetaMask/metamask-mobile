@@ -6,6 +6,7 @@ const mockSetSelectedCountry = jest.fn();
 const mockCreateFundingSource = jest.fn();
 const mockGetFundingSources = jest.fn();
 const mockGetSpendingPrerequisites = jest.fn();
+const mockPatchContactDetails = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {
     CardController: {
@@ -16,6 +17,8 @@ jest.mock('../../../../core/Engine', () => ({
       getFundingSources: (...args: unknown[]) => mockGetFundingSources(...args),
       getSpendingPrerequisites: (...args: unknown[]) =>
         mockGetSpendingPrerequisites(...args),
+      patchContactDetails: (...args: unknown[]) =>
+        mockPatchContactDetails(...args),
     },
   },
 }));
@@ -50,7 +53,12 @@ jest.mock('../../../../core/redux/slices/card', () => ({
   }),
 }));
 
-const PARAMS = { country: 'GB', address: '0xabc', email: 'user@example.com' };
+const PARAMS = {
+  country: 'GB',
+  address: '0xabc',
+  email: 'user@example.com',
+  phone: '+447911123456',
+};
 
 const contactPrereqs: CardSpendingPrerequisite[] = [
   {
@@ -70,10 +78,22 @@ describe('useImmersveResumeOnboarding', () => {
     mockGetSpendingPrerequisites.mockResolvedValue({ prerequisites: [] });
   });
 
-  it('sets the provider country, signs in, then resolves + routes for a new user (empty funding list)', async () => {
-    mockGetSpendingPrerequisites.mockResolvedValue({
-      prerequisites: contactPrereqs,
-    });
+  it('sets the provider country, signs in, patches contact, then routes for a new user', async () => {
+    mockGetSpendingPrerequisites
+      .mockResolvedValueOnce({
+        prerequisites: contactPrereqs,
+      })
+      .mockResolvedValueOnce({
+        prerequisites: [
+          {
+            stage: 'kyc',
+            status: 'action-required',
+            actionType: 'follow_kyc_url',
+            params: { kycUrl: 'https://kyc' },
+          },
+        ],
+      });
+    mockPatchContactDetails.mockResolvedValue(undefined);
     const { result } = renderHook(() => useImmersveResumeOnboarding());
 
     await act(async () => {
@@ -91,12 +111,31 @@ describe('useImmersveResumeOnboarding', () => {
       type: 'card/setImmersveFundingSourceId',
       payload: 'fs-new',
     });
-    expect(mockGetSpendingPrerequisites).toHaveBeenCalledWith('fs-new', {
-      kycRegion: 'GB',
-      kycRedirectUrl: 'https://metamask.io/card/kyc-complete',
+    expect(mockPatchContactDetails).toHaveBeenCalledWith({
+      email: 'user@example.com',
+      phone: '+447911123456',
     });
+    expect(mockGetSpendingPrerequisites).toHaveBeenCalledTimes(2);
     expect(mockRoute).toHaveBeenCalledWith(
-      { type: 'contact', needsEmail: true, needsPhone: false },
+      { type: 'kyc', url: 'https://kyc', ctaHint: undefined },
+      { email: 'user@example.com', countryKey: 'GB' },
+    );
+  });
+
+  it('does not patch contact when prerequisites are already satisfied', async () => {
+    mockGetFundingSources.mockResolvedValue([
+      { id: 'fs-existing', fundingChannelId: 'base-channel' },
+    ]);
+    mockGetSpendingPrerequisites.mockResolvedValue({ prerequisites: [] });
+
+    const { result } = renderHook(() => useImmersveResumeOnboarding());
+    await act(async () => {
+      await result.current(PARAMS);
+    });
+
+    expect(mockPatchContactDetails).not.toHaveBeenCalled();
+    expect(mockRoute).toHaveBeenCalledWith(
+      { type: 'active' },
       { email: 'user@example.com', countryKey: 'GB' },
     );
   });

@@ -36,8 +36,7 @@ export const useImmersveOnboardingRouter = () => {
 
   return useCallback(
     (action: ImmersveNextAction, ctx: RouteContext = {}) => {
-      const { email, countryKey, showAccountExistsToast, navigateFromRoot } =
-        ctx;
+      const { countryKey, showAccountExistsToast, navigateFromRoot } = ctx;
 
       const goToOnboarding = (
         screen: string,
@@ -52,17 +51,8 @@ export const useImmersveOnboardingRouter = () => {
 
       switch (action.type) {
         case 'contact':
-          if (navigateFromRoot) {
-            navigation.navigate(Routes.CARD.ONBOARDING.ROOT, {
-              screen: Routes.CARD.ONBOARDING.SIGN_UP,
-            });
-          } else {
-            navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER, {
-              countryKey,
-              immersve: true,
-              email,
-            });
-          }
+          // Contact details are collected on SignUp; resume back there if still needed.
+          goToOnboarding(Routes.CARD.ONBOARDING.SIGN_UP, {});
           break;
         case 'kyc':
         case 'pending':

@@ -164,7 +164,11 @@ const CardHome = () => {
   const { initiateProvisioning, isProvisioning, canAddToWallet } =
     useCardProvisioning(data);
 
-  useImmersveCardProvisioning(data);
+  const {
+    pendingAction: immersvePendingAction,
+    resumePendingAction,
+    isReconciling: isReconcilingImmersveProvisioning,
+  } = useImmersveCardProvisioning(data);
 
   // --- Money Account linkage ---
   const {
@@ -534,6 +538,9 @@ const CardHome = () => {
             onDismissSpendingLimitWarning={() =>
               setIsSpendingLimitWarningDismissed(true)
             }
+            hasPendingVerification={Boolean(immersvePendingAction)}
+            onContinueVerification={resumePendingAction}
+            isReconcilingProvisioning={isReconcilingImmersveProvisioning}
           />
         </Box>
 

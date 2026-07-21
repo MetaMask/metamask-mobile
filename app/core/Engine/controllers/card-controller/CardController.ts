@@ -73,9 +73,7 @@ import TransactionTypes from '../../../../core/TransactionTypes';
 import {
   resolveCardFeatureFlag,
   type CardFeatureFlag,
-  type GateVersionedFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
-import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import {
   deriveCountryProviderMap,
   getProviderForCountry,
@@ -372,19 +370,14 @@ export class CardController extends BaseController<
       'RemoteFeatureFlagController:getState',
     );
 
-    const immersveEnabled =
-      validatedVersionGatedFeatureFlag(
-        featureState.remoteFeatureFlags
-          ?.immersveOnboardingEnabled as unknown as GateVersionedFeatureFlag,
-      ) ?? false;
+    const cardFeature = resolveCardFeatureFlag(
+      featureState.remoteFeatureFlags?.cardFeature as
+        | CardFeatureFlag
+        | undefined,
+    );
 
-    if (immersveEnabled) {
-      const cardFeature = resolveCardFeatureFlag(
-        featureState.remoteFeatureFlags?.cardFeature as
-          | CardFeatureFlag
-          | undefined,
-      );
-      const immersveCountries = cardFeature?.immersveCountries ?? [];
+    if (cardFeature.immersve?.enabled) {
+      const immersveCountries = cardFeature.immersveCountries ?? [];
       const map = deriveCountryProviderMap(
         Object.fromEntries(
           immersveCountries.map((c) => [c, true] as [string, boolean]),

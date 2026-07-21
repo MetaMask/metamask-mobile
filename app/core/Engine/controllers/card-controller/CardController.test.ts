@@ -344,8 +344,10 @@ describe('CardController — setSelectedCountry', () => {
 
   it('routes an enabled Immersve country to the immersve provider', () => {
     const controller = build({
-      immersveOnboardingEnabled: { enabled: true, minimumVersion: '0.0.1' },
-      cardFeature: { immersveCountries: ['GB'] },
+      cardFeature: {
+        immersve: { enabled: true },
+        immersveCountries: ['GB'],
+      },
     });
 
     controller.setSelectedCountry('GB');
@@ -356,8 +358,10 @@ describe('CardController — setSelectedCountry', () => {
 
   it('keeps the default provider when the kill-switch is off', () => {
     const controller = build({
-      immersveOnboardingEnabled: { enabled: false, minimumVersion: '0.0.1' },
-      cardFeature: { immersveCountries: ['GB'] },
+      cardFeature: {
+        immersve: { enabled: false },
+        immersveCountries: ['GB'],
+      },
     });
 
     controller.setSelectedCountry('GB');
@@ -368,8 +372,10 @@ describe('CardController — setSelectedCountry', () => {
 
   it('keeps the default provider for a non-Immersve country', () => {
     const controller = build({
-      immersveOnboardingEnabled: { enabled: true, minimumVersion: '0.0.1' },
-      cardFeature: { immersveCountries: ['GB'] },
+      cardFeature: {
+        immersve: { enabled: true },
+        immersveCountries: ['GB'],
+      },
     });
 
     controller.setSelectedCountry('FR');

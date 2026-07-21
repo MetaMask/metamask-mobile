@@ -22,6 +22,7 @@ import type {
 import {
   encodeSmartContractWrite,
   immersveNetworkToCaipChainId,
+  withApproveAmount,
 } from '../util/immersveFunding';
 import { getCardProviderErrorMessage } from '../util/getCardProviderErrorMessage';
 import { useEnsureCardNetworkExists } from './useEnsureCardNetworkExists';
@@ -65,7 +66,10 @@ export const useImmersveFunding = () => {
     }, []);
 
   const executeFunding = useCallback(
-    async (write: CardSmartContractWriteParams): Promise<string> => {
+    async (
+      write: CardSmartContractWriteParams,
+      approveAmountBaseUnits?: string,
+    ): Promise<string> => {
       setState({ isLoading: true, error: null });
       try {
         const account = selectAccountByScope('eip155:0');
@@ -78,7 +82,10 @@ export const useImmersveFunding = () => {
           cardFeatureFlag?.immersve?.network,
         );
         const networkClientId = await ensureNetworkExists(caipChainId);
-        const data = encodeSmartContractWrite(write);
+        const writeToEncode = approveAmountBaseUnits
+          ? withApproveAmount(write, approveAmountBaseUnits)
+          : write;
+        const data = encodeSmartContractWrite(writeToEncode);
 
         const { txHash } = await awaitTransactionConfirmed({
           messenger:

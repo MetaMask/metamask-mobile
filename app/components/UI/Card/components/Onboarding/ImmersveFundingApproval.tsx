@@ -1,10 +1,21 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { ActivityIndicator, TouchableOpacity } from 'react-native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { ethers } from 'ethers';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   Box,
@@ -45,11 +56,17 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens } from '../../util/metrics';
 import {
   KYC_REDIRECT_URL,
+  BAANX_MAX_LIMIT,
   cardNetworkInfos,
   BASE_USDC_TOKEN_ADDRESS,
 } from '../../constants';
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
+import { createSpendingLimitOptionsNavigationDetails } from '../../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
+import type { LimitType } from '../../hooks/useSpendingLimit';
+import { sanitizeCustomLimit } from '../../util/sanitizeCustomLimit';
+import { immersveNetworkToFundingToken } from '../../util/immersveFunding';
+import { selectCardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 
 const BASE_CAIP_CHAIN_ID = cardNetworkInfos.base.caipChainId;
 const BASE_NETWORK_IMAGE = getNetworkImageSource({
@@ -146,15 +163,19 @@ const ReadOnlyTokenRow = () => (
  */
 const ImmersveFundingApproval = () => {
   const navigation = useNavigation();
+  const navRoute = useRoute();
   const tw = useTailwind();
   const theme = useTheme();
   const headerHandlers = useCardHeaderHandlers('close-direct');
   const { countryKey } = useParams<{ countryKey?: string }>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const fundingSourceId = useSelector(selectImmersveFundingSourceId);
+  const cardFeatureFlag = useSelector(selectCardFeatureFlag);
   const route = useImmersveOnboardingRouter();
   const hasCreatedCard = useRef(false);
   const [isSettling, setIsSettling] = useState(false);
+  const [limitType, setLimitType] = useState<LimitType>('full');
+  const [customLimit, setCustomLimit] = useState('');
 
   const selectAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
@@ -175,6 +196,54 @@ const ImmersveFundingApproval = () => {
     isLoading: fundingIsLoading,
     error: fundingError,
   } = useImmersveFunding();
+
+  const spendingLimitLabel = useMemo(() => {
+    if (limitType === 'full') {
+      return strings('card.card_spending_limit.full_access_title');
+    }
+    return customLimit || '0';
+  }, [limitType, customLimit]);
+
+  const isLimitValid = useMemo(() => {
+    if (limitType === 'restricted') {
+      const num = parseFloat(customLimit);
+      return customLimit !== '' && !isNaN(num) && num >= 0;
+    }
+    return true;
+  }, [limitType, customLimit]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const params = navRoute.params as
+        | {
+            returnedLimitType?: LimitType;
+            returnedCustomLimit?: string;
+          }
+        | undefined;
+
+      if (params?.returnedLimitType !== undefined) {
+        setLimitType(params.returnedLimitType);
+        if (params.returnedCustomLimit !== undefined) {
+          setCustomLimit(sanitizeCustomLimit(params.returnedCustomLimit));
+        }
+        navigation.setParams({
+          returnedLimitType: undefined,
+          returnedCustomLimit: undefined,
+        } as never);
+      }
+    }, [navRoute.params, navigation]),
+  );
+
+  const handleLimitSelect = useCallback(() => {
+    navigation.navigate(
+      ...createSpendingLimitOptionsNavigationDetails({
+        currentLimitType: limitType,
+        currentCustomLimit: customLimit,
+        callerRoute: Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
+        callerParams: { countryKey },
+      }),
+    );
+  }, [navigation, limitType, customLimit, countryKey]);
 
   useEffect(() => {
     trackEvent(
@@ -219,14 +288,32 @@ const ImmersveFundingApproval = () => {
   }, [createCard, fundingSourceId, navigation]);
 
   const handleApprove = useCallback(() => {
-    if (!nextAction || nextAction.type !== 'funding') {
+    if (!nextAction || nextAction.type !== 'funding' || !isLimitValid) {
       return;
     }
+    const tokenInfo = immersveNetworkToFundingToken(
+      cardFeatureFlag.immersve?.network,
+    );
+    const approveAmountBaseUnits =
+      limitType === 'full'
+        ? BAANX_MAX_LIMIT
+        : ethers.utils
+            .parseUnits(customLimit || '0', tokenInfo.decimals)
+            .toString();
+
     setIsSettling(true);
-    executeFunding(nextAction.write)
+    executeFunding(nextAction.write, approveAmountBaseUnits)
       .then(() => refresh())
       .catch(() => setIsSettling(false));
-  }, [nextAction, executeFunding, refresh]);
+  }, [
+    nextAction,
+    executeFunding,
+    refresh,
+    isLimitValid,
+    limitType,
+    customLimit,
+    cardFeatureFlag.immersve?.network,
+  ]);
 
   useEffect(() => {
     if (!nextAction) {
@@ -372,6 +459,35 @@ const ImmersveFundingApproval = () => {
             accountGroupName={accountGroupName}
           />
           <ReadOnlyTokenRow />
+          <TouchableOpacity
+            onPress={handleLimitSelect}
+            activeOpacity={0.7}
+            testID="immersve-funding-approval-spending-limit-row"
+          >
+            <Box twClassName="flex-row items-center p-4">
+              <Text
+                variant={TextVariant.BodyMd}
+                twClassName="flex-1 text-text-alternative"
+              >
+                {strings('card.card_spending_limit.restricted_limit_title')}
+              </Text>
+              <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName="text-text-default font-medium self-center shrink"
+                  numberOfLines={1}
+                >
+                  {spendingLimitLabel}
+                </Text>
+                <Icon
+                  name={IconName.ArrowDown}
+                  size={IconSize.Md}
+                  color={IconColor.IconDefault}
+                  style={tw.style('self-center shrink-0')}
+                />
+              </Box>
+            </Box>
+          </TouchableOpacity>
         </Box>
 
         {displayError && (
@@ -391,7 +507,7 @@ const ImmersveFundingApproval = () => {
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
-            isDisabled={busy}
+            isDisabled={busy || !isLimitValid}
             isLoading={busy}
             onPress={displayError ? handleRetry : handleApprove}
             testID={
