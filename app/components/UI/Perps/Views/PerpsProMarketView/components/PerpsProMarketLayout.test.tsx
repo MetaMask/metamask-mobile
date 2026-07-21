@@ -2,98 +2,35 @@ import React from 'react';
 import { View } from 'react-native';
 import { render, within } from '@testing-library/react-native';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
-import type { PerpsProLayoutConfig } from '../PerpsProMarketView.types';
 import PerpsProMarketLayout from './PerpsProMarketLayout';
 
-const renderLayout = (config: PerpsProLayoutConfig) =>
+const renderLayout = () =>
   render(
     <PerpsProMarketLayout
-      config={config}
       orderForm={<View testID="mock-order-form" />}
       orderBook={<View testID="mock-order-book" />}
     />,
   );
 
 describe('PerpsProMarketLayout', () => {
-  it.each([
-    {
-      name: 'default opposing positions',
-      config: {
-        orderFormPosition: 'left',
-        orderBookPosition: 'right',
-      },
-      expectedLeftPanel: 'mock-order-form',
-      expectedRightPanel: 'mock-order-book',
-      expectedLeftColumnStyle: { flex: 1 },
-      expectedRightColumnStyle: { width: 132 },
-    },
-    {
-      name: 'reversed opposing positions',
-      config: {
-        orderFormPosition: 'right',
-        orderBookPosition: 'left',
-      },
-      expectedLeftPanel: 'mock-order-book',
-      expectedRightPanel: 'mock-order-form',
-      expectedLeftColumnStyle: { width: 132 },
-      expectedRightColumnStyle: { flex: 1 },
-    },
-    {
-      name: 'conflicting left positions',
-      config: {
-        orderFormPosition: 'left',
-        orderBookPosition: 'left',
-      },
-      expectedLeftPanel: 'mock-order-form',
-      expectedRightPanel: 'mock-order-book',
-      expectedLeftColumnStyle: { flex: 1 },
-      expectedRightColumnStyle: { width: 132 },
-    },
-    {
-      name: 'conflicting right positions',
-      config: {
-        orderFormPosition: 'right',
-        orderBookPosition: 'right',
-      },
-      expectedLeftPanel: 'mock-order-form',
-      expectedRightPanel: 'mock-order-book',
-      expectedLeftColumnStyle: { flex: 1 },
-      expectedRightColumnStyle: { width: 132 },
-    },
-  ] as const)(
-    'places panels for $name',
-    ({
-      config,
-      expectedLeftPanel,
-      expectedRightPanel,
-      expectedLeftColumnStyle,
-      expectedRightColumnStyle,
-    }) => {
-      const { getByTestId } = renderLayout(config);
+  it('places the order form left and the order book right', () => {
+    const { getByTestId } = renderLayout();
 
-      const leftColumn = getByTestId(
-        PerpsProMarketViewSelectorsIDs.LEFT_COLUMN,
-      );
-      const rightColumn = getByTestId(
-        PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN,
-      );
+    const leftColumn = getByTestId(PerpsProMarketViewSelectorsIDs.LEFT_COLUMN);
+    const rightColumn = getByTestId(
+      PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN,
+    );
 
-      expect(
-        within(leftColumn).getByTestId(expectedLeftPanel),
-      ).toBeOnTheScreen();
-      expect(
-        within(rightColumn).getByTestId(expectedRightPanel),
-      ).toBeOnTheScreen();
-      expect(leftColumn).toHaveStyle(expectedLeftColumnStyle);
-      expect(rightColumn).toHaveStyle(expectedRightColumnStyle);
-    },
-  );
+    expect(within(leftColumn).getByTestId('mock-order-form')).toBeOnTheScreen();
+    expect(
+      within(rightColumn).getByTestId('mock-order-book'),
+    ).toBeOnTheScreen();
+    expect(leftColumn).toHaveStyle({ flex: 1 });
+    expect(rightColumn).toHaveStyle({ width: 132 });
+  });
 
   it('uses the Figma trading-area dimensions', () => {
-    const { getByTestId } = renderLayout({
-      orderFormPosition: 'left',
-      orderBookPosition: 'right',
-    });
+    const { getByTestId } = renderLayout();
 
     expect(getByTestId(PerpsProMarketViewSelectorsIDs.LAYOUT)).toHaveStyle({
       minHeight: 682,

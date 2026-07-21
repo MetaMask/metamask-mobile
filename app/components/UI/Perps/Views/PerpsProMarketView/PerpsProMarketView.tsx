@@ -16,7 +16,6 @@ import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
 import PerpsProStatsBar from './components/PerpsProStatsBar';
 import { createStyles } from './PerpsProMarketView.styles';
-import { DEFAULT_PRO_LAYOUT_CONFIG } from './PerpsProMarketView.types';
 
 /**
  * Pro-mode replacement for `PerpsMarketDetailsView`.
@@ -49,7 +48,6 @@ const PerpsProMarketView = () => {
         <PerpsProChartPanel />
         <PerpsProStatsBar />
         <PerpsProMarketLayout
-          config={DEFAULT_PRO_LAYOUT_CONFIG}
           orderForm={<PerpsProOrderFormPanel />}
           orderBook={<PerpsProOrderBookPanel />}
         />
