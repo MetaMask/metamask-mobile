@@ -607,24 +607,18 @@ const ImportFromSecretRecoveryPhrase = ({
                 {strings('import_from_seed.title')}
               </Text>
               <Box twClassName="mt-1.5">
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  twClassName="gap-1"
-                >
+                {isAddDeviceSyncEnabled ? (
                   <Text
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
                   >
                     {strings(
                       'import_from_seed.enter_your_secret_recovery_phrase',
-                    )}
-                    {isAddDeviceSyncEnabled ? (
-                      <> {strings('import_from_seed.or')} </>
-                    ) : null}
-                  </Text>
-                  {isAddDeviceSyncEnabled && (
-                    <TouchableOpacity
+                    )}{' '}
+                    {strings('import_from_seed.or')}{' '}
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.PrimaryDefault}
                       accessibilityRole="link"
                       onPress={() =>
                         navigation.navigate(
@@ -635,17 +629,23 @@ const ImportFromSecretRecoveryPhrase = ({
                         ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID
                       }
                     >
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.PrimaryDefault}
-                      >
-                        {strings(
-                          'import_from_seed.import_wallet_from_extension',
-                        )}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                  {!isAddDeviceSyncEnabled && (
+                      {strings('import_from_seed.import_wallet_from_extension')}
+                    </Text>
+                  </Text>
+                ) : (
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    twClassName="gap-1"
+                  >
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings(
+                        'import_from_seed.enter_your_secret_recovery_phrase',
+                      )}
+                    </Text>
                     <TouchableOpacity
                       onPress={showWhatIsSeedPhrase}
                       testID={
@@ -658,8 +658,8 @@ const ImportFromSecretRecoveryPhrase = ({
                         color={colors.icon.alternative}
                       />
                     </TouchableOpacity>
-                  )}
-                </Box>
+                  </Box>
+                )}
                 <SrpInputGrid
                   ref={srpInputGridRef}
                   seedPhrase={seedPhrase}
