@@ -50,6 +50,8 @@ import {
   selectQuoteStreamComplete,
   selectBridgeBalanceRefreshKey,
   selectBridgeControllerState,
+  selectSlippage,
+  selectIsSlippageUserOverride,
 } from '../../../../../core/redux/slices/bridge';
 import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
 import { IconName as CLIconName } from '../../../../../component-library/components/Icons/Icon';
@@ -91,10 +93,13 @@ import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
-import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
+import { useInitialSlippage } from '../../hooks/useInitialSlippage';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../hooks/useRecipientInitialization';
-import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import {
+  selectGasIncludedQuoteParams,
+  selectSourceWalletAddress,
+} from '../../../../../selectors/bridge';
 import { Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 import { SwapsKeypad } from '../../components/SwapsKeypad/index.tsx';
@@ -185,6 +190,9 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     : false;
 
   const walletAddress = useSelector(selectSourceWalletAddress);
+  const { gasIncluded, gasIncluded7702 } = useSelector(
+    selectGasIncludedQuoteParams,
+  );
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
@@ -274,8 +282,6 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     endTrace({ name: TraceName.SwapViewLoaded, timestamp: Date.now() });
   }, []);
 
-  useInitialSlippage();
-
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 
   const updateQuoteParams = useBridgeQuoteRequest({
@@ -291,12 +297,30 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     quoteFetchError,
     shouldShowPriceImpactWarning,
     needsNewQuote,
+    isActiveQuoteForCurrentTokenPair,
   } = useBridgeQuoteDataContext();
+
+  useInitialSlippage(
+    activeQuote?.quote.slippage,
+    isActiveQuoteForCurrentTokenPair && !needsNewQuote,
+  );
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
+  const slippage = useSelector(selectSlippage);
+  const isSlippageUserOverride = useSelector(selectIsSlippageUserOverride);
+  const previousSlippageRef = useRef(slippage);
+  const nonSlippageQuoteRequestKey = JSON.stringify([
+    sourceAmount,
+    destAddress,
+    gasIncluded,
+    gasIncluded7702,
+  ]);
+  const previousNonSlippageQuoteRequestKeyRef = useRef(
+    nonSlippageQuoteRequestKey,
+  );
 
   const isFooterVisible = useMemo(() => {
     if (isLoading && !activeQuote && !needsNewQuote) {
@@ -399,13 +423,32 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
 
   // Update quote parameters when relevant state changes
   useEffect(() => {
-    if (hasValidBridgeInputs) {
+    const previousSlippage = previousSlippageRef.current;
+    const previousNonSlippageQuoteRequestKey =
+      previousNonSlippageQuoteRequestKeyRef.current;
+    previousSlippageRef.current = slippage;
+    previousNonSlippageQuoteRequestKeyRef.current = nonSlippageQuoteRequestKey;
+
+    // Backend hydration alone must not trigger a duplicate quote request.
+    const isHydrationOnlySlippageChange =
+      !isSlippageUserOverride &&
+      previousSlippage === undefined &&
+      slippage !== undefined &&
+      previousNonSlippageQuoteRequestKey === nonSlippageQuoteRequestKey;
+
+    if (hasValidBridgeInputs && !isHydrationOnlySlippageChange) {
       updateQuoteParams();
     }
     return () => {
       updateQuoteParams.cancel();
     };
-  }, [hasValidBridgeInputs, updateQuoteParams]);
+  }, [
+    hasValidBridgeInputs,
+    updateQuoteParams,
+    nonSlippageQuoteRequestKey,
+    slippage,
+    isSlippageUserOverride,
+  ]);
 
   // Reset bridge state when component unmounts
   useEffect(

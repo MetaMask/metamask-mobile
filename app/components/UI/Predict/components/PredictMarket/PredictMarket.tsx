@@ -113,4 +113,7 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
   );
 };
 
-export default PredictMarket;
+const MemoizedPredictMarket: React.FC<PredictMarketProps> =
+  React.memo(PredictMarket);
+
+export default MemoizedPredictMarket;

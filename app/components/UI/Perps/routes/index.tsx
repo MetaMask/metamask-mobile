@@ -331,7 +331,7 @@ const PerpsScreenStack = () => {
                 component={HIP3DebugView}
                 options={{
                   title: 'HIP-3 Debug Tools',
-                  headerShown: true,
+                  headerShown: false,
                 }}
               />
             )}
