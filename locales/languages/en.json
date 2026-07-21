@@ -4426,6 +4426,19 @@
     "percent_duplicate": "An alert with this configuration already exists.",
     "percent_max_down": "Price can't fall by more than 100%."
   },
+  "share_token": {
+    "title": "Share token info",
+    "share": "Share token info",
+    "market_cap": "Market cap",
+    "price": "Price",
+    "liquidity": "Liquidity",
+    "holders": "Holders",
+    "volume_24h": "24h volume",
+    "change_24h": "24h change",
+    "buy_on_metamask": "Buy on MetaMask",
+    "buy_on": "Buy on",
+    "metamask": "MetaMask"
+  },
   "asset_overview": {
     "market_closed": "Market closed",
     "send_button": "Send",
@@ -7427,6 +7440,7 @@
     },
     "balance_card": {
       "label": "Money balance",
+      "currency_suffix": " • mUSD",
       "add": "Add",
       "info_sheet_title": "Money balance",
       "info_sheet_body": "Your dollar-backed mUSD balance that's always available to spend, send, or trade anytime. We don't calculate this into your total account balance.\n\nWithdrawals process immediately, subject to standard network confirmation times on the relevant blockchain. If liquidity is tight, there may be temporary delays."
@@ -7483,7 +7497,7 @@
       "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
     },
     "what_you_get": {
-      "title": "Money account benefits",
+      "title": "Benefits",
       "benefit_auto_earn": "Auto-earn up to",
       "benefit_auto_earn_variable": "(variable)",
       "benefit_dollar_backed": "Keep your money secure in mUSD, a 1:1 dollar-backed stablecoin",
@@ -7509,7 +7523,7 @@
     "more_sheet": {
       "title": "More",
       "how_it_works": "How it works",
-      "what_you_get": "Money account benefits",
+      "what_you_get": "Benefits",
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
@@ -8807,7 +8821,10 @@
         "invalid_email": "Invalid email address",
         "invalid_password": "Password must be 15+ characters long. It cannot contain non-printable characters or consecutive spaces.",
         "join_waitlist": "Join waitlist",
-        "country_not_available": "Card sign-up isn't available in your country yet."
+        "country_not_available": "Card sign-up isn't available in your country yet.",
+        "account_label": "Account",
+        "account_description": "Your MetaMask Card will be associated with this account.",
+        "account_exists_toast": "You already have a card account."
       },
       "confirm_email": {
         "title": "Confirm your email",
@@ -8864,6 +8881,25 @@
         "title": "Awaiting approval",
         "description": "Our partner needs to verify your identity in order to approve your application.",
         "helper_text": "This usually takes a few seconds. Please do not close the app."
+      },
+      "immersve_kyc_processing": {
+        "title": "Awaiting approval",
+        "description": "Our partner needs to verify your identity in order to approve your application.",
+        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "incomplete_title": "Finish verifying your identity",
+        "incomplete_description": "You closed identity verification before it was complete. Continue to finish.",
+        "continue_button": "Continue verification"
+      },
+      "immersve_kyc_modal": {
+        "load_error": "Something went wrong loading identity verification. Please try again.",
+        "try_again": "Try again"
+      },
+      "immersve_funding_approval": {
+        "title": "Set up card funding",
+        "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
+        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "confirm_button": "Approve funding",
+        "retry_button": "Try again"
       },
       "verifying_registration": {
         "title": "Verifying your identity",
@@ -9004,6 +9040,13 @@
       "view_card_details_error": "Unable to load card details. Please try again.",
       "biometric_verification_required": "Authentication required to view card details.",
       "unfreeze_auth_required": "Authentication required to resume spending on your card.",
+      "card_details": {
+        "card_number_label": "Card number",
+        "expiry_label": "Expiry",
+        "cvv_label": "CVV",
+        "name_label": "Name",
+        "copied": "Copied to clipboard"
+      },
       "warnings": {
         "close_spending_limit": {
           "title": "You're close to your spending limit",
@@ -9238,7 +9281,8 @@
         "network_error": "Network error. Please check your connection and try again.",
         "timeout_error": "Request timed out. Please check your connection and try again.",
         "server_error": "Server error. Please try again later.",
-        "configuration_error": "Service is temporarily unavailable. Please try again later."
+        "configuration_error": "Service is temporarily unavailable. Please try again later.",
+        "forbidden_error": "This action isn't available for your account."
       }
     },
     "card_forgot_password": {
@@ -9446,7 +9490,6 @@
       "referee_error_description": "Check your connection and try again.",
       "referee_contact_support": "Contact support",
       "referee_priority_support_disclaimer": "By contacting priority support you will connect your wallet.",
-      "referral_tag_label": "VIP",
       "last_updated": "Last updated: {{time}}",
       "swaps_volume_info_label": "Swaps volume information",
       "swaps_volume_info_title": "Swaps volume",
@@ -10433,6 +10476,9 @@
     "fullscreen_title": "Watchlist",
     "tokens_tab": "Tokens",
     "edit": "Edit",
-    "done": "Done"
+    "done": "Done",
+    "empty_add_tokens_cta": "Add {{count}} token",
+    "empty_add_tokens_cta_plural": "Add {{count}} tokens",
+    "search_placeholder": "Search for any asset to add"
   }
 }

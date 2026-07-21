@@ -9,6 +9,7 @@ import React, {
 import { ListRenderItem, View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetRef,
@@ -56,7 +57,7 @@ function SearchableSelectorBottomSheet<T>({
   closeButtonProps,
 }: Readonly<SearchableSelectorBottomSheetProps<T>>) {
   const listRef = useRef<FlatList<T>>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, { screenHeight });
