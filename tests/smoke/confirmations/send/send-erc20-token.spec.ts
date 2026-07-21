@@ -13,7 +13,7 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { AnvilManager } from '../../../seeder/anvil-manager';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
-import { getDecodedProxiedURL } from '../../notifications/utils/helpers';
+import { getDecodedProxiedURL } from '../../../smoke-appium/notifications/utils/helpers';
 import type { AssetsControllerState } from '@metamask/assets-controller';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
