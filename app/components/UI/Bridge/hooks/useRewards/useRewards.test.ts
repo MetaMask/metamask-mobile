@@ -28,7 +28,6 @@ const mockActiveQuote: QuoteResponse & QuoteMetadata = {
     srcChainId: 1,
     destChainId: 1,
     aggregator: '1inch',
-    aggregatorType: 'AGG',
     srcAsset: {
       address: '0x0000000000000000000000000000000000000000',
       chainId: 1,
@@ -36,12 +35,8 @@ const mockActiveQuote: QuoteResponse & QuoteMetadata = {
       symbol: 'ETH',
       decimals: 18,
       name: 'Ethereum',
-      coingeckoId: 'ethereum',
-      aggregators: [],
-      occurrences: 100,
       iconUrl:
         'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-      metadata: {},
     },
     srcTokenAmount: '991250000000000000',
     destAsset: {
@@ -52,35 +47,8 @@ const mockActiveQuote: QuoteResponse & QuoteMetadata = {
       symbol: 'USDC',
       decimals: 6,
       name: 'USDC',
-      coingeckoId: 'usd-coin',
-      aggregators: [
-        'uniswapLabs',
-        'metamask',
-        'aave',
-        'coinGecko',
-        'openSwap',
-        'zerion',
-        'oneInch',
-        'liFi',
-        'xSwap',
-        'socket',
-        'rubic',
-        'squid',
-        'rango',
-        'sonarwatch',
-        'sushiSwap',
-        'pmm',
-        'bancor',
-      ],
-      occurrences: 17,
       iconUrl:
         'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
-      metadata: {
-        storage: {
-          balance: 9,
-          approval: 10,
-        },
-      },
     },
     destTokenAmount: '4437209427',
     minDestTokenAmount: '4348465238',
@@ -96,12 +64,8 @@ const mockActiveQuote: QuoteResponse & QuoteMetadata = {
           symbol: 'ETH',
           decimals: 18,
           name: 'Ethereum',
-          coingeckoId: 'ethereum',
-          aggregators: [],
-          occurrences: 100,
           iconUrl:
             'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-          metadata: {},
         },
       },
     },
@@ -155,7 +119,6 @@ const mockActiveQuote: QuoteResponse & QuoteMetadata = {
     valueInCurrency: '36.24350903820319270464',
     usd: '36.24350903820319270464',
   },
-  includedTxFees: null,
 };
 
 validateQuoteResponseV1(mockActiveQuote);
