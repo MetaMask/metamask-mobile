@@ -209,7 +209,7 @@ export const SwapsConfirmButton = ({
     // thus this check is not expected to be used, but we introduce
     // it regardless as a defensive mechanism.
     const priceImpact = parsePriceImpact(
-      activeQuote?.quote.priceData?.priceImpact,
+      activeQuote?.quote.priceData?.priceImpact?.amount,
     );
 
     if (

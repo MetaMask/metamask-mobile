@@ -2,7 +2,12 @@ import { act, waitFor } from '@testing-library/react-native';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useBridgeConfirm } from './index';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import { useABTest } from '../../../../../hooks';
+import {
+  ChainId,
+  MetaMetricsSwapsEventSource,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import Routes from '../../../../../constants/navigation/Routes';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -132,8 +137,8 @@ describe('useBridgeConfirm', () => {
           status: PostTradeStatus.InProgress,
           transactionMetaId: 'tx-meta-id',
           transactionHash: '0xabc',
-          sourceAmount: mockQuoteWithMetadata.sentAmount?.amount,
-          destAmount: mockQuoteWithMetadata.toTokenAmount?.amount,
+          sourceAmount: mockQuoteWithMetadata.quote.src?.normalizedAmount,
+          destAmount: mockQuoteWithMetadata.quote.dest?.normalizedAmount,
         }),
       });
     });
@@ -185,7 +190,7 @@ describe('useBridgeConfirm', () => {
         ...defaultParams,
         activeQuote: {
           ...mockQuoteWithMetadata,
-          approval: { raw_data_hex: '0xabc' },
+          approval: { raw_data_hex: '0xabc' } as never,
         },
       });
 
@@ -228,7 +233,7 @@ describe('useBridgeConfirm', () => {
         ...defaultParams,
         activeQuote: {
           ...mockQuoteWithMetadata,
-          approval: { raw_data_hex: '0xabc' },
+          approval: { raw_data_hex: '0xabc' } as never,
         },
       });
 
@@ -326,8 +331,8 @@ describe('useBridgeConfirm', () => {
         screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
         params: expect.objectContaining({
           status: PostTradeStatus.Failed,
-          sourceAmount: mockQuoteWithMetadata.sentAmount?.amount,
-          destAmount: mockQuoteWithMetadata.toTokenAmount?.amount,
+          sourceAmount: mockQuoteWithMetadata.quote.src?.normalizedAmount,
+          destAmount: mockQuoteWithMetadata.quote.dest?.normalizedAmount,
         }),
       });
     });

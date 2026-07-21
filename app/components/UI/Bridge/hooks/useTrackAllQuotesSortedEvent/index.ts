@@ -2,7 +2,7 @@ import {
   FeatureId,
   formatProviderLabel,
   getNativeAssetForChainId,
-  Quote,
+  type QuoteResponse,
   SortOrder,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
@@ -17,6 +17,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
 
 export const useTrackAllQuotesSortedEvent = (
   latestSourceBalance?: ReturnType<typeof useLatestBalance>,
@@ -33,15 +34,13 @@ export const useTrackAllQuotesSortedEvent = (
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
-  return (quote: Quote) => {
+  return (quote: QuoteResponse['quote']) => {
     Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
       UnifiedSwapBridgeEventName.AllQuotesSorted,
       {
         can_submit: !hasInsufficientBalance,
-        price_impact: Number(quote?.priceData?.priceImpact ?? '0'),
+        price_impact: parsePriceImpact(quote?.priceData?.priceImpact?.amount),
         gas_included: Boolean(quote?.gasIncluded),
-        // @ts-expect-error gas_included_7702 needs to be added to bridge-controller types
-        gas_included_7702: Boolean(quote?.gasIncluded7702),
         token_symbol_source:
           sourceToken?.symbol ??
           (sourceToken
@@ -50,10 +49,8 @@ export const useTrackAllQuotesSortedEvent = (
         token_symbol_destination: destToken?.symbol ?? null,
         stx_enabled: smartTransactionsEnabled,
         feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
-        ...(isBridge && {
-          sort_order: SortOrder.COST_ASC,
-          best_quote_provider: formatProviderLabel(quote),
-        }),
+        sort_order: SortOrder.COST_ASC,
+        best_quote_provider: isBridge ? formatProviderLabel(quote) : undefined,
       },
     );
   };

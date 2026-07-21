@@ -1,38 +1,52 @@
-import { ChainId } from '@metamask/bridge-controller';
+import {
+  ChainId,
+  formatChainIdToCaip,
+  mergeQuoteMetadata,
+  toQuoteResponseV2,
+  type DeepPartial,
+  type QuoteMetadata,
+  type QuoteResponse,
+  type QuoteResponseV1,
+} from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { isQuoteNetworkFeeUnavailable } from '.';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
+import { merge } from 'lodash';
 
 type ActiveQuote = ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
 const createQuote = (
-  overrides: Partial<NonNullable<ActiveQuote>> = {},
+  overrides: DeepPartial<QuoteResponse> = {},
+  metadata: DeepPartial<QuoteMetadata> = {},
 ): ActiveQuote =>
-  ({
-    ...mockQuoteWithMetadata,
-    ...overrides,
-    quote: {
-      ...mockQuoteWithMetadata.quote,
-      srcChainId: ChainId.BTC,
-      ...overrides.quote,
+  mergeQuoteMetadata(
+    merge({}, mockQuoteWithMetadata, overrides, {
+      chainId: formatChainIdToCaip(ChainId.BTC),
+    }),
+    {
+      ...mockQuoteWithMetadata,
+      ...metadata,
+      totalNetworkFee: {
+        ...mockQuoteWithMetadata.totalNetworkFee,
+        amount: '0.0001',
+        ...metadata.totalNetworkFee,
+      },
     },
-    totalNetworkFee: {
-      ...mockQuoteWithMetadata.totalNetworkFee,
-      amount: '0.0001',
-      ...overrides.totalNetworkFee,
-    },
-  }) as ActiveQuote;
+  );
 
 describe('isQuoteNetworkFeeUnavailable', () => {
   it('returns true for a BTC quote with zero network fee', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
-        createQuote({
-          totalNetworkFee: {
-            ...mockQuoteWithMetadata.totalNetworkFee,
-            amount: '0',
+        createQuote(
+          {},
+          {
+            totalNetworkFee: {
+              ...mockQuoteWithMetadata.totalNetworkFee,
+              amount: '0',
+            },
           },
-        }),
+        ),
       ),
     ).toBe(true);
   });
@@ -40,12 +54,15 @@ describe('isQuoteNetworkFeeUnavailable', () => {
   it('returns true for a BTC quote with negative network fee', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
-        createQuote({
-          totalNetworkFee: {
-            ...mockQuoteWithMetadata.totalNetworkFee,
-            amount: '-0.0001',
+        createQuote(
+          {},
+          {
+            totalNetworkFee: {
+              ...mockQuoteWithMetadata.totalNetworkFee,
+              amount: '-0.0001',
+            },
           },
-        }),
+        ),
       ),
     ).toBe(true);
   });
@@ -53,12 +70,15 @@ describe('isQuoteNetworkFeeUnavailable', () => {
   it('returns true for a BTC quote with missing network fee amount', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
-        createQuote({
-          totalNetworkFee: {
-            ...mockQuoteWithMetadata.totalNetworkFee,
-            amount: undefined,
-          } as unknown as NonNullable<ActiveQuote>['totalNetworkFee'],
-        }),
+        createQuote(
+          {},
+          {
+            totalNetworkFee: {
+              ...mockQuoteWithMetadata.totalNetworkFee,
+              amount: undefined,
+            },
+          },
+        ),
       ),
     ).toBe(true);
   });
@@ -70,16 +90,20 @@ describe('isQuoteNetworkFeeUnavailable', () => {
   it('returns false for a non-BTC/non-Tron quote with zero network fee', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
-        createQuote({
-          quote: {
-            ...mockQuoteWithMetadata.quote,
-            srcChainId: 1,
+        createQuote(
+          {
+            chainId: 'eip155:1',
+            quote: {
+              ...mockQuoteWithMetadata.quote,
+            },
           },
-          totalNetworkFee: {
-            ...mockQuoteWithMetadata.totalNetworkFee,
-            amount: '0',
+          {
+            totalNetworkFee: {
+              ...mockQuoteWithMetadata.totalNetworkFee,
+              amount: '0',
+            },
           },
-        }),
+        ),
       ),
     ).toBe(false);
   });
@@ -87,16 +111,20 @@ describe('isQuoteNetworkFeeUnavailable', () => {
   it('returns true for a Tron quote with zero network fee', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
-        createQuote({
-          quote: {
-            ...mockQuoteWithMetadata.quote,
-            srcChainId: ChainId.TRON,
+        createQuote(
+          {
+            chainId: formatChainIdToCaip(ChainId.TRON),
+            quote: {
+              ...mockQuoteWithMetadata.quote,
+            },
           },
-          totalNetworkFee: {
-            ...mockQuoteWithMetadata.totalNetworkFee,
-            amount: '0',
+          {
+            totalNetworkFee: {
+              ...mockQuoteWithMetadata.totalNetworkFee,
+              amount: '0',
+            },
           },
-        }),
+        ),
       ),
     ).toBe(true);
   });
@@ -104,16 +132,17 @@ describe('isQuoteNetworkFeeUnavailable', () => {
   it('returns true for a Tron quote with negative network fee', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
-        createQuote({
-          quote: {
-            ...mockQuoteWithMetadata.quote,
-            srcChainId: ChainId.TRON,
+        createQuote(
+          {
+            chainId: formatChainIdToCaip(ChainId.TRON),
           },
-          totalNetworkFee: {
-            ...mockQuoteWithMetadata.totalNetworkFee,
-            amount: '-1',
+          {
+            totalNetworkFee: {
+              ...mockQuoteWithMetadata.totalNetworkFee,
+              amount: '-1',
+            },
           },
-        }),
+        ),
       ),
     ).toBe(true);
   });
@@ -121,16 +150,17 @@ describe('isQuoteNetworkFeeUnavailable', () => {
   it('returns true for a Tron quote with missing network fee amount', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
-        createQuote({
-          quote: {
-            ...mockQuoteWithMetadata.quote,
-            srcChainId: ChainId.TRON,
+        createQuote(
+          {
+            chainId: formatChainIdToCaip(ChainId.TRON),
           },
-          totalNetworkFee: {
-            ...mockQuoteWithMetadata.totalNetworkFee,
-            amount: undefined,
-          } as unknown as NonNullable<ActiveQuote>['totalNetworkFee'],
-        }),
+          {
+            totalNetworkFee: {
+              ...mockQuoteWithMetadata.totalNetworkFee,
+              amount: undefined,
+            },
+          },
+        ),
       ),
     ).toBe(true);
   });
@@ -139,10 +169,7 @@ describe('isQuoteNetworkFeeUnavailable', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
         createQuote({
-          quote: {
-            ...mockQuoteWithMetadata.quote,
-            srcChainId: ChainId.TRON,
-          },
+          chainId: formatChainIdToCaip(ChainId.TRON),
         }),
       ),
     ).toBe(false);
@@ -152,10 +179,10 @@ describe('isQuoteNetworkFeeUnavailable', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
         createQuote({
+          chainId: null as never,
           quote: {
             ...mockQuoteWithMetadata.quote,
-            srcChainId: undefined,
-          } as unknown as NonNullable<ActiveQuote>['quote'],
+          },
         }),
       ),
     ).toBe(false);

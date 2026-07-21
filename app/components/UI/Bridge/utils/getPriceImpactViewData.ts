@@ -6,7 +6,7 @@ import {
 import AppConstants from '../../../../core/AppConstants';
 
 interface Params {
-  priceImpactValue?: string;
+  priceImpactValue?: string | null;
   threshold: { warning: number; error: number };
 }
 
@@ -70,7 +70,9 @@ export const getPriceImpactViewData = ({
  * Parses the priceImpact string from an active quote into a number.
  * Returns 0 when absent — treating a missing value as safe (no impact).
  */
-export function parsePriceImpact(priceImpactStr: string | undefined): number {
+export function parsePriceImpact(
+  priceImpactStr: string | undefined | null,
+): number {
   if (!priceImpactStr) return 0;
   return Number.parseFloat(priceImpactStr);
 }

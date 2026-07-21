@@ -185,11 +185,11 @@
   "previewBuilds": {
     "@metamask/bridge-controller": {
       "type": "breaking",
-      "previewVersion": "77.6.0-preview-8abc30aca"
+      "previewVersion": "77.6.0-preview-47e51e2d9"
     },
     "@metamask/bridge-status-controller": {
       "type": "breaking",
-      "previewVersion": "74.3.0-preview-8abc30aca"
+      "previewVersion": "74.3.0-preview-47e51e2d9"
     }
   },
   "resolutions": {

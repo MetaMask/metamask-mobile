@@ -1,7 +1,9 @@
 interface QuoteLike {
   quote?: {
     priceData?: {
-      priceImpact?: string | null;
+      priceImpact?: {
+        amount?: string | null;
+      } | null;
     } | null;
   } | null;
 }
@@ -9,7 +11,5 @@ interface QuoteLike {
 export const hasMissingPriceData = (quote?: QuoteLike | null) => {
   const priceData = quote?.quote?.priceData;
 
-  return (
-    !priceData || priceData.priceImpact == null || priceData.priceImpact === ''
-  );
+  return !priceData || !priceData.priceImpact || !priceData.priceImpact.amount;
 };

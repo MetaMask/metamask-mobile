@@ -7,8 +7,10 @@ import { waitFor } from '@testing-library/react-native';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import {
   validateQuoteResponseV1,
-  QuoteResponse,
   QuoteMetadata,
+  type QuoteResponseV1,
+  toQuoteResponseV2,
+  mergeQuoteMetadata,
 } from '@metamask/bridge-controller';
 // Mock dependencies
 jest.mock('../../../../../core/Engine', () => ({
@@ -20,7 +22,7 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 // Mock useBridgeQuoteData hook
-const mockActiveQuote: QuoteResponse & QuoteMetadata = {
+const mockQuote: QuoteResponseV1 = {
   quote: {
     requestId:
       '0xd12f19d577efae2b92748c1abc32d8be78a5e73a99d74e16cada270a2ad99516' as Hex,
@@ -83,6 +85,8 @@ const mockActiveQuote: QuoteResponse & QuoteMetadata = {
     gasLimit: 266281,
   } as const,
   estimatedProcessingTimeInSeconds: 0,
+};
+const metadata: QuoteMetadata = {
   sentAmount: {
     amount: '1',
     valueInCurrency: '4470.66',
@@ -121,7 +125,11 @@ const mockActiveQuote: QuoteResponse & QuoteMetadata = {
   },
 };
 
-validateQuoteResponseV1(mockActiveQuote);
+validateQuoteResponseV1(mockQuote);
+const mockActiveQuote = mergeQuoteMetadata(
+  toQuoteResponseV2(mockQuote),
+  metadata,
+);
 
 describe('useRewards', () => {
   const mockCall = Engine.controllerMessenger.call as jest.Mock;

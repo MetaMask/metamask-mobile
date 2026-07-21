@@ -133,7 +133,7 @@ describe('useBridgeQuoteData', () => {
     }));
 
     const bridgeControllerOverrides = {
-      quotes: mockQuotes as unknown as QuoteResponse[],
+      quotes: mockQuotes,
       quotesLoadingStatus: null,
       quoteFetchError: null,
     };
@@ -405,7 +405,7 @@ describe('useBridgeQuoteData', () => {
     }));
 
     const bridgeControllerOverrides = {
-      quotes: mockQuotes as unknown as QuoteResponse[],
+      quotes: mockQuotes,
       quotesLoadingStatus: null,
       quoteFetchError: null,
     };
@@ -447,7 +447,7 @@ describe('useBridgeQuoteData', () => {
 
     const testState = createBridgeTestState({
       bridgeControllerOverrides: {
-        quotes: mockQuotes as unknown as QuoteResponse[],
+        quotes: mockQuotes,
         quotesLoadingStatus: RequestStatus.LOADING,
         quoteFetchError: null,
       },
@@ -477,7 +477,7 @@ describe('useBridgeQuoteData', () => {
 
     const testState = createBridgeTestState({
       bridgeControllerOverrides: {
-        quotes: mockQuotes as unknown as QuoteResponse[],
+        quotes: mockQuotes,
         quotesLoadingStatus: null,
         quoteFetchError: null,
       },
@@ -521,7 +521,7 @@ describe('useBridgeQuoteData', () => {
     isQuoteExpired.mockReturnValueOnce(true);
 
     const bridgeControllerOverrides = {
-      quotes: mockQuotes as unknown as QuoteResponse[],
+      quotes: mockQuotes,
       quotesLoadingStatus: null,
       quoteFetchError: null,
     };
@@ -1211,7 +1211,7 @@ describe('useBridgeQuoteData', () => {
         quote: {
           ...mockQuoteWithMetadata.quote,
           destAsset: {
-            ...mockQuoteWithMetadata.quote.destAsset,
+            ...mockQuoteWithMetadata.quote.dest.asset,
             address:
               'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
             assetId:
@@ -1225,7 +1225,7 @@ describe('useBridgeQuoteData', () => {
         quote: {
           ...mockQuoteWithMetadata.quote,
           destAsset: {
-            ...mockQuoteWithMetadata.quote.destAsset,
+            ...mockQuoteWithMetadata.quote.dest.asset,
             address: '0x0000000000000000000000000000000000000000',
             assetId:
               bridgeController.getNativeAssetForChainId(1151111081099710)
@@ -1315,7 +1315,7 @@ describe('useBridgeQuoteData', () => {
         quote: {
           ...mockQuoteWithMetadata.quote,
           srcAsset: {
-            ...mockQuoteWithMetadata.quote.srcAsset,
+            ...mockQuoteWithMetadata.quote.src.asset,
             address: '0x1111111111111111111111111111111111111111',
           },
         },

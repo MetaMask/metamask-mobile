@@ -2,6 +2,8 @@ import {
   appendFeesToQuotes,
   BridgeClientId,
   fetchBridgeQuoteStream,
+  formatChainIdToCaip,
+  toQuoteResponseV1,
   type BridgeControllerMessenger,
   type FeatureId,
   type GenericQuoteRequest,
@@ -94,7 +96,7 @@ export async function streamQuickBuyQuotes(
   const messenger =
     Engine.controllerMessenger as unknown as BridgeControllerMessenger;
 
-  const getLayer1GasFee: Parameters<typeof appendFeesToQuotes>[2] = (request) =>
+  const getLayer1GasFee: Parameters<typeof appendFeesToQuotes>[3] = (request) =>
     Engine.context.TransactionController.getLayer1GasFee(
       request as Parameters<
         typeof Engine.context.TransactionController.getLayer1GasFee
@@ -113,13 +115,14 @@ export async function streamQuickBuyQuotes(
       onQuoteValidationFailure: () => undefined,
       onValidQuoteReceived: async (rawQuote) => {
         const [enriched] = await appendFeesToQuotes(
+          formatChainIdToCaip(rawQuote.chainId),
           [rawQuote],
           messenger,
           getLayer1GasFee,
           selectedAccount,
         );
         if (enriched) {
-          onQuote(enriched as StreamedQuickBuyQuote);
+          onQuote(enriched);
         }
       },
       onTokenWarning: () => undefined,

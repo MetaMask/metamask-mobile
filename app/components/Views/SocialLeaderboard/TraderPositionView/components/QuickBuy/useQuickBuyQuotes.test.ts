@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { FeatureId } from '@metamask/bridge-controller';
+import { FeatureId, toQuoteResponseV2 } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -135,34 +135,35 @@ const createDestToken = (overrides: Partial<BridgeToken> = {}): BridgeToken =>
     ...overrides,
   }) as BridgeToken;
 
-const createFetchedQuote = (overrides = {}) => ({
-  quote: {
-    requestId: 'quote-1',
-    srcAsset: {
-      address: '0x0000000000000000000000000000000000000000',
-      chainId: 1,
-      assetId: 'eip155:1/slip44:60',
-      symbol: 'ETH',
-      decimals: 18,
-      name: 'Ethereum',
+const createFetchedQuote = (overrides = {}) =>
+  toQuoteResponseV2({
+    quote: {
+      requestId: 'quote-1',
+      srcAsset: {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: 1,
+        assetId: 'eip155:1/slip44:60',
+        symbol: 'ETH',
+        decimals: 18,
+        name: 'Ethereum',
+      },
+      destAsset: {
+        address: '0xDEST',
+        chainId: 8453,
+        assetId: 'eip155:8453/erc20:0xDEST',
+        symbol: 'TEST',
+        decimals: 6,
+        name: 'Test',
+      },
+      srcChainId: 1,
+      destChainId: 8453,
+      srcTokenAmount: '10000000000000000',
+      destTokenAmount: '5000000',
+      minDestTokenAmount: '4950000',
     },
-    destAsset: {
-      address: '0xDEST',
-      chainId: 8453,
-      assetId: 'eip155:8453/erc20:0xDEST',
-      symbol: 'TEST',
-      decimals: 6,
-      name: 'Test',
-    },
-    srcChainId: 1,
-    destChainId: 8453,
-    srcTokenAmount: '10000000000000000',
-    destTokenAmount: '5000000',
-    minDestTokenAmount: '4950000',
-  },
-  estimatedProcessingTimeInSeconds: 30,
-  ...overrides,
-});
+    estimatedProcessingTimeInSeconds: 30,
+    ...overrides,
+  });
 
 const mockRootState = {
   engine: {

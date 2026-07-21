@@ -5,7 +5,7 @@ import {
   isBitcoinChainId,
   isNativeAddress,
   isNonEvmChainId,
-  type QuoteMetadata,
+  sumAmounts,
   type QuoteResponse,
 } from '@metamask/bridge-controller';
 import type { CaipChainId, Hex } from '@metamask/utils';
@@ -18,7 +18,7 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { isHardwareAccount } from '../../../../../util/address';
 
 type ChainIdHexOrCaip = Hex | CaipChainId;
-type ActiveQuote = (QuoteResponse & QuoteMetadata) | null | undefined;
+type ActiveQuote = QuoteResponse | null | undefined;
 
 const BTC_MAINNET_CHAIN_ID = formatChainIdToCaip(ChainId.BTC);
 
@@ -137,8 +137,10 @@ export const useInsufficientNativeReserveError = ({
   let btcQuoteNetworkFeeBaseUnits = BigNumberJS(0);
   let btcQuoteSourceOverheadBaseUnits = BigNumberJS(0);
   if (isBitcoinReserveChain && activeQuote) {
-    const networkFeeAmount = activeQuote.totalNetworkFee?.amount;
-    const sentAmount = activeQuote.sentAmount?.amount;
+    const networkFeeAmount = sumAmounts(
+      activeQuote.quote.feeData.metabridge,
+    )?.normalizedAmount;
+    const sentAmount = activeQuote.quote.src?.normalizedAmount;
     const networkFeeBaseUnits = networkFeeAmount
       ? toBaseUnitBigNumber(networkFeeAmount, token.decimals)
       : undefined;

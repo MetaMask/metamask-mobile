@@ -865,7 +865,7 @@ describe('BridgeView', () => {
             insufficientBal: false,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotes: [mockQuoteWithMetadata],
         },
         bridgeReducerOverrides: {
           sourceAmount: '1.0',
@@ -913,7 +913,7 @@ describe('BridgeView', () => {
             insufficientBal: false,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote as unknown as QuoteResponse],
+          quotes: [mockQuote],
         },
         bridgeReducerOverrides: {
           sourceAmount: '1.0',
@@ -962,7 +962,7 @@ describe('BridgeView', () => {
               insufficientBal: false,
             },
             quotesLoadingStatus: RequestStatus.FETCHED,
-            quotes: [mockQuote as unknown as QuoteResponse],
+            quotes: [mockQuote],
           },
           bridgeReducerOverrides: {
             sourceAmount: '1.0',
@@ -1188,7 +1188,7 @@ describe('BridgeView', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.LOADING,
-          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotes: [mockQuoteWithMetadata],
           quotesLastFetched: now,
         },
         bridgeReducerOverrides: {
@@ -1201,7 +1201,7 @@ describe('BridgeView', () => {
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isLoading: true,
-          activeQuote: mockQuoteWithMetadata as unknown as QuoteResponse,
+          activeQuote: mockQuoteWithMetadata,
         }));
 
       const { getByTestId, queryByTestId } = renderScreen(
@@ -1227,7 +1227,7 @@ describe('BridgeView', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotes: [mockQuoteWithMetadata],
           quotesLastFetched: now,
         },
         bridgeReducerOverrides: {
@@ -1240,7 +1240,7 @@ describe('BridgeView', () => {
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isLoading: false,
-          activeQuote: mockQuoteWithMetadata as unknown as QuoteResponse,
+          activeQuote: mockQuoteWithMetadata,
         }));
 
       const { getByTestId, queryByTestId } = renderScreen(
@@ -1712,7 +1712,7 @@ describe('BridgeView', () => {
         {
           bridgeControllerOverrides: {
             quotesLoadingStatus: RequestStatus.FETCHED,
-            quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+            quotes: [mockQuoteWithMetadata],
             quotesLastFetched: Date.now(),
           },
           bridgeReducerOverrides: {
@@ -1794,7 +1794,7 @@ describe('BridgeView', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote as unknown as QuoteResponse],
+          quotes: [mockQuote],
           quotesLastFetched: Date.now(),
         },
         bridgeReducerOverrides: {
@@ -1892,7 +1892,7 @@ describe('BridgeView', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotes: [mockQuoteWithMetadata],
           quotesLastFetched: Date.now(),
         },
         bridgeReducerOverrides: {
@@ -2087,7 +2087,7 @@ describe('BridgeView', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote as unknown as QuoteResponse],
+          quotes: [mockQuote],
           quotesLastFetched: Date.now(),
         },
         bridgeReducerOverrides: {

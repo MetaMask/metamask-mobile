@@ -822,7 +822,7 @@ export function useQuickBuyController(
     if (!sourceToken || !destToken || !activeQuote || !estimatedReceiveAmount) {
       return undefined;
     }
-    const quoteSrcMinimal = activeQuote.quote.srcTokenAmount;
+    const quoteSrcMinimal = activeQuote.quote.src.normalizedAmount;
     if (sourceToken.decimals == null || !quoteSrcMinimal) return undefined;
     const sourceAmt =
       parseFloat(quoteSrcMinimal) / Math.pow(10, sourceToken.decimals);
@@ -846,13 +846,13 @@ export function useQuickBuyController(
   }, [activeQuote]);
 
   const priceImpactViewData = usePriceImpactViewData(
-    activeQuote?.quote?.priceData?.priceImpact,
+    activeQuote?.quote?.priceData?.priceImpact?.amount,
   );
 
   const isPriceImpactError = useMemo(
     () =>
       exceedsPriceImpactErrorThreshold(
-        parsePriceImpact(activeQuote?.quote?.priceData?.priceImpact),
+        parsePriceImpact(activeQuote?.quote?.priceData?.priceImpact?.amount),
         bridgeFeatureFlags?.priceImpactThreshold?.error,
       ),
     [activeQuote, bridgeFeatureFlags],
@@ -1435,8 +1435,7 @@ export function useQuickBuyController(
       dispatch(setIsSubmittingTx(true));
       const submitResult = await Engine.context.BridgeStatusController.submitTx(
         walletAddress,
-        // @ts-expect-error - TODO: fix this
-        { ...activeQuote, approval: activeQuote.approval ?? undefined },
+        activeQuote,
         stxEnabled,
       );
       const txHash =
