@@ -24,7 +24,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import { exitRewardsFlow } from '../utils';
+import { exitRewardsFlow, getBetaSupportUrl } from '../utils';
 import {
   buildVipPrioritySupportUrl,
   METAMASK_SUPPORT_URL,
@@ -143,10 +143,7 @@ const RewardsVipRefereeViewContent: React.FC = () => {
         },
       });
 
-    let betaSupportUrl = '';
-    ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    betaSupportUrl = 'https://intercom.help/internal-beta-testing/en/';
-    ///: END:ONLY_INCLUDE_IF
+    const betaSupportUrl = getBetaSupportUrl();
 
     if (betaSupportUrl) {
       openWebview(buildVipPrioritySupportUrl(accountAddress, betaSupportUrl));

@@ -30,6 +30,7 @@ import ClipboardManager from '../../../../../core/ClipboardManager';
 import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { useSupportConsent } from '../../../../hooks/useSupportConsent';
+import { getBetaSupportUrl } from '../../utils';
 
 const styles = StyleSheet.create({
   list: {
@@ -68,11 +69,7 @@ const LinkedOffDeviceAccountsSheet: React.FC<
   const { openSupportWithConsent } = useSupportConsent();
 
   const handleContactSupport = useCallback(() => {
-    let betaSupportUrl = '';
-
-    ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    betaSupportUrl = 'https://intercom.help/internal-beta-testing/en/';
-    ///: END:ONLY_INCLUDE_IF
+    const betaSupportUrl = getBetaSupportUrl();
 
     const openWebview = (url: string) =>
       navigation.navigate('Webview', {

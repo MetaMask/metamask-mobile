@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import LinkedOffDeviceAccountsSheet from './LinkedOffDeviceAccountsSheet';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
+import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -152,6 +153,13 @@ jest.mock('../../../../hooks/useSupportConsent', () => ({
   useSupportConsent: () => ({
     openSupportWithConsent: mockOpenSupportWithConsent,
   }),
+}));
+
+const mockGetBetaSupportUrl = jest.fn(
+  () => 'https://intercom.help/internal-beta-testing/en/',
+);
+jest.mock('../../utils', () => ({
+  getBetaSupportUrl: () => mockGetBetaSupportUrl(),
 }));
 
 // ─── Test fixtures ────────────────────────────────────────────────────────────
@@ -310,10 +318,9 @@ describe('LinkedOffDeviceAccountsSheet', () => {
   });
 
   describe('Interactions', () => {
-    // Jest treats ONLY_INCLUDE_IF(beta) as a plain comment, so this branch (which
-    // in a real beta build only compiles for the beta build type) always executes
-    // here, opening the intercom URL directly rather than the consent flow.
-    it('navigates to the SimpleWebview with the beta support URL when "let us know" is pressed', () => {
+    // On a beta build, getBetaSupportUrl() resolves to the Intercom beta URL, so
+    // "let us know" opens it directly rather than through the consent flow.
+    it('navigates to the SimpleWebview with the beta support URL when "let us know" is pressed on a beta build', () => {
       const { getByText } = render(
         <LinkedOffDeviceAccountsSheet
           accounts={[mockAccount1]}
@@ -332,6 +339,42 @@ describe('LinkedOffDeviceAccountsSheet', () => {
         },
       });
       expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
+    });
+
+    // On a non-beta (main) build, getBetaSupportUrl() resolves to an empty string,
+    // so "let us know" routes through the consent flow instead of a direct link.
+    it('routes "let us know" through the consent flow on a non-beta build', () => {
+      mockGetBetaSupportUrl.mockReturnValueOnce('');
+
+      const { getByText } = render(
+        <LinkedOffDeviceAccountsSheet
+          accounts={[mockAccount1]}
+          onClose={mockOnClose}
+        />,
+      );
+      fireEvent.press(
+        getByText('rewards.settings.off_device_accounts_sheet_let_us_know'),
+      );
+
+      expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+        expect.any(Function),
+        METAMASK_SUPPORT_URL,
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+
+      // Invoking the opener passed to openSupportWithConsent should navigate to
+      // the webview with the support URL, exercising the actual wiring rather
+      // than just the call arguments.
+      const [openWebview] = mockOpenSupportWithConsent.mock.calls[0];
+      openWebview(METAMASK_SUPPORT_URL);
+
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: METAMASK_SUPPORT_URL,
+          title: 'app_settings.contact_support',
+        },
+      });
     });
 
     it('navigates exactly once per press', () => {
