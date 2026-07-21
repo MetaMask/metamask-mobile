@@ -28,12 +28,20 @@ import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import { mockTheme } from '../../../util/theme';
 
-// Mock the navigation and other dependencies
-const mockNavigationPush = jest.fn();
-const mockNavigation = {
-  push: mockNavigationPush,
-  setOptions: jest.fn(),
-  navigate: jest.fn(),
+let mockNavigationPush: jest.Mock;
+let mockNavigation: {
+  push: jest.Mock;
+  setOptions: jest.Mock;
+  navigate: jest.Mock;
+};
+
+const resetNavigationMocks = () => {
+  mockNavigationPush = jest.fn();
+  mockNavigation = {
+    push: mockNavigationPush,
+    setOptions: jest.fn(),
+    navigate: jest.fn(),
+  };
 };
 
 // Mock the multichain utils
@@ -277,10 +285,7 @@ const mockSpeedUpTransaction = speedUpTransaction as jest.MockedFunction<
   typeof speedUpTransaction
 >;
 
-jest.useFakeTimers();
-
-// Common default props for testing
-const defaultTestProps = {
+const createDefaultTestProps = () => ({
   transactions: [],
   submittedTransactions: [],
   confirmedTransactions: [],
@@ -301,21 +306,17 @@ const defaultTestProps = {
     medium: { suggestedMaxFeePerGas: '20' },
   },
   isActivityRedesignEnabled: false,
-};
+});
 
 describe('Transactions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetNavigationMocks();
     mockIsNonEvmChainId.mockReturnValue(false);
     mockIsHardwareAccount.mockReturnValue(false);
     mockNotificationManagerGetTransactionToView.mockReturnValue(null);
     mockExecuteHardwareWalletOperation.mockResolvedValue(true);
   });
-
-  afterEach(() => {
-    jest.clearAllTimers();
-  });
-
   it('should render correctly', () => {
     const { toJSON } = render(
       <Provider store={store}>
@@ -780,7 +781,7 @@ describe('Transactions', () => {
         id: 'test-tx-render',
         status: 'confirmed',
         txParams: { from: '0x123', to: '0x456', value: '1000000000000000000' },
-        time: Date.now(),
+        time: 1000000,
       };
 
       expect(mockTransaction.status).toBe('confirmed');
@@ -1208,7 +1209,6 @@ describe('Transactions', () => {
 
       const chainId = 'solana:mainnet';
       const rpcBlockExplorer = 'https://solscan.io';
-      const NO_RPC_BLOCK_EXPLORER = 'NO_RPC_BLOCK_EXPLORER';
 
       // Simulate blockExplorerText logic
       let blockExplorerText = null;
@@ -1372,6 +1372,7 @@ describe('UnconnectedTransactions Simplified RNTL Tests', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetNavigationMocks();
     mockIsNonEvmChainId.mockReturnValue(false);
     mockIsHardwareAccount.mockReturnValue(false);
     mockNotificationManagerGetTransactionToView.mockReturnValue(null);
@@ -1379,7 +1380,7 @@ describe('UnconnectedTransactions Simplified RNTL Tests', () => {
 
   it('should render loading state when loading prop is true', () => {
     const renderResult = render(
-      <UnconnectedTransactions {...defaultTestProps} loading />,
+      <UnconnectedTransactions {...createDefaultTestProps()} loading />,
     );
 
     // Component should render when loading is true
@@ -1389,7 +1390,7 @@ describe('UnconnectedTransactions Simplified RNTL Tests', () => {
   it('should render component without crashing when not loading', () => {
     const renderResult = render(
       <UnconnectedTransactions
-        {...defaultTestProps}
+        {...createDefaultTestProps()}
         transactions={[]}
         loading={false}
       />,
@@ -1402,7 +1403,7 @@ describe('UnconnectedTransactions Simplified RNTL Tests', () => {
   it('should render with different props without crashing', () => {
     const renderResult = render(
       <UnconnectedTransactions
-        {...defaultTestProps}
+        {...createDefaultTestProps()}
         transactions={[]}
         loading={false}
         chainId="0x89"
@@ -1417,7 +1418,7 @@ describe('UnconnectedTransactions Simplified RNTL Tests', () => {
   it('should render with gas fee estimates without crashing', () => {
     const renderResult = render(
       <UnconnectedTransactions
-        {...defaultTestProps}
+        {...createDefaultTestProps()}
         transactions={[]}
         loading={false}
         gasFeeEstimates={{
@@ -1432,7 +1433,7 @@ describe('UnconnectedTransactions Simplified RNTL Tests', () => {
   it('should handle prop changes without crashing', () => {
     const { rerender } = render(
       <UnconnectedTransactions
-        {...defaultTestProps}
+        {...createDefaultTestProps()}
         transactions={[]}
         loading={false}
         chainId="0x1"
@@ -1442,7 +1443,7 @@ describe('UnconnectedTransactions Simplified RNTL Tests', () => {
     // Change props to trigger componentDidUpdate
     rerender(
       <UnconnectedTransactions
-        {...defaultTestProps}
+        {...createDefaultTestProps()}
         transactions={[]}
         loading={false}
         chainId="0x89"
@@ -1457,10 +1458,17 @@ describe('UnconnectedTransactions Simplified RNTL Tests', () => {
 
 describe('Transactions list behavior', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
+    resetNavigationMocks();
     mockIsNonEvmChainId.mockReturnValue(false);
     mockIsHardwareAccount.mockReturnValue(false);
     mockNotificationManagerGetTransactionToView.mockReturnValue(null);
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
   });
 
   it('keeps submitted transactions immutable while preparing the list', () => {
@@ -1472,7 +1480,7 @@ describe('Transactions list behavior', () => {
     const { UNSAFE_getByType } = render(
       <Provider store={store}>
         <UnconnectedTransactions
-          {...defaultTestProps}
+          {...createDefaultTestProps()}
           submittedTransactions={submittedTransactions}
         />
       </Provider>,
@@ -1484,11 +1492,11 @@ describe('Transactions list behavior', () => {
 
     const flashList = UNSAFE_getByType(FlashList);
 
-    expect(submittedTransactions.map(({ id }) => id)).toEqual([
+    expect(submittedTransactions.map(({ id }: { id: string }) => id)).toEqual([
       'older',
       'newer',
     ]);
-    expect(flashList.props.data.map(({ id }) => id)).toEqual([
+    expect(flashList.props.data.map(({ id }: { id: string }) => id)).toEqual([
       'newer',
       'older',
     ]);
@@ -1498,7 +1506,7 @@ describe('Transactions list behavior', () => {
     const { UNSAFE_getByType } = render(
       <Provider store={store}>
         <UnconnectedTransactions
-          {...defaultTestProps}
+          {...createDefaultTestProps()}
           isActivityRedesignEnabled
           location={TransactionDetailLocation.AssetDetails}
         />
