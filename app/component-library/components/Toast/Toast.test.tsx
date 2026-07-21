@@ -19,7 +19,10 @@ import {
 } from './Toast.types';
 import { ToastSelectorsIDs } from './ToastModal.testIds';
 import { lightTheme } from '@metamask/design-tokens';
-import { visibilityDuration } from './Toast.constants';
+import {
+  TOAST_DISMISS_VELOCITY_THRESHOLD,
+  visibilityDuration,
+} from './Toast.constants';
 
 const TEST_ACCOUNT_ADDRESS = '0x2990079bcdEe240329a520d2444386FC119da21a';
 const TEST_NETWORK_NAME = 'Ethereum Mainnet';
@@ -29,6 +32,40 @@ const TEST_NETWORK_IMAGE_SOURCE = {
 const TEST_APP_ICON_SOURCE = {
   uri: 'https://app.uniswap.org/favicon.ico',
 };
+
+const mockPanGestureHandlers: {
+  onStart?: () => void;
+  onUpdate?: (event: { translationY: number }) => void;
+  onEnd?: (event: { translationY: number; velocityY: number }) => void;
+} = {};
+
+jest.mock('react-native-gesture-handler', () => ({
+  GestureDetector: ({ children }: { children: React.ReactNode }) => children,
+  Gesture: {
+    Pan: () => ({
+      activeOffsetY() {
+        return this;
+      },
+      failOffsetX() {
+        return this;
+      },
+      onStart(handler: () => void) {
+        mockPanGestureHandlers.onStart = handler;
+        return this;
+      },
+      onUpdate(handler: (event: { translationY: number }) => void) {
+        mockPanGestureHandlers.onUpdate = handler;
+        return this;
+      },
+      onEnd(
+        handler: (event: { translationY: number; velocityY: number }) => void,
+      ) {
+        mockPanGestureHandlers.onEnd = handler;
+        return this;
+      },
+    }),
+  },
+}));
 
 // react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
 
@@ -48,6 +85,21 @@ const showToast = async (
   });
 };
 
+const swipeToast = async ({
+  translationY,
+  velocityY = 0,
+}: {
+  translationY: number;
+  velocityY?: number;
+}) => {
+  await act(async () => {
+    mockPanGestureHandlers.onStart?.();
+    mockPanGestureHandlers.onUpdate?.({ translationY });
+    mockPanGestureHandlers.onEnd?.({ translationY, velocityY });
+    jest.runAllTimers();
+  });
+};
+
 // Mock safe area context
 describe('Toast', () => {
   let toastRef: React.RefObject<ToastRef | null>;
@@ -55,6 +107,9 @@ describe('Toast', () => {
   beforeEach(() => {
     toastRef = createRef<ToastRef>();
     jest.clearAllMocks();
+    mockPanGestureHandlers.onStart = undefined;
+    mockPanGestureHandlers.onUpdate = undefined;
+    mockPanGestureHandlers.onEnd = undefined;
     jest.useFakeTimers();
   });
 
@@ -637,5 +692,72 @@ describe('Toast', () => {
 
     expect(onCloseButtonPress).toHaveBeenCalledTimes(1);
     expect(onPress).not.toHaveBeenCalled();
+  });
+
+  describe('swipe to dismiss', () => {
+    it('dismisses toast when swiped up past the distance threshold', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Swipe dismiss toast' }],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view, 100);
+        jest.runAllTimers();
+      });
+
+      expect(screen.getByText('Swipe dismiss toast')).toBeOnTheScreen();
+
+      await swipeToast({ translationY: -40 });
+
+      expect(screen.queryByText('Swipe dismiss toast')).toBeNull();
+    });
+
+    it('dismisses toast when swiped up with sufficient velocity', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Quick swipe toast' }],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view, 100);
+        jest.runAllTimers();
+      });
+
+      await swipeToast({
+        translationY: -10,
+        velocityY: -(TOAST_DISMISS_VELOCITY_THRESHOLD + 1),
+      });
+
+      expect(screen.queryByText('Quick swipe toast')).toBeNull();
+    });
+
+    it('keeps toast visible when swipe does not meet dismiss thresholds', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Incomplete swipe toast' }],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view, 100);
+        jest.runAllTimers();
+      });
+
+      await swipeToast({ translationY: -10, velocityY: -100 });
+
+      expect(screen.getByText('Incomplete swipe toast')).toBeOnTheScreen();
+    });
   });
 });

@@ -18,6 +18,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   cancelAnimation,
   runOnJS,
@@ -52,7 +53,14 @@ import {
 } from './Toast.types';
 import styleSheet from './Toast.styles';
 import { ToastSelectorsIDs } from './ToastModal.testIds';
-import { TOAST_SPRING_CONFIG, visibilityDuration } from './Toast.constants';
+import {
+  TOAST_DISMISS_DISTANCE_THRESHOLD,
+  TOAST_DISMISS_VELOCITY_THRESHOLD,
+  TOAST_SPRING_CONFIG,
+  TOAST_SWIPE_ACTIVE_OFFSET_Y,
+  TOAST_SWIPE_FAIL_OFFSET_X,
+  visibilityDuration,
+} from './Toast.constants';
 import { useStyles } from '../../hooks';
 import { ButtonProps, ButtonVariants } from '../Buttons/Button/Button.types';
 import ButtonIcon from '../Buttons/ButtonIcon';
@@ -152,10 +160,15 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const { top: topInset } = useSafeAreaInsets();
   const hiddenTranslateY = useSharedValue(-screenHeight);
   const translateYProgress = useSharedValue(-screenHeight);
+  const visibleTranslateY = useSharedValue(0);
+  const gestureStartY = useSharedValue(0);
+  const toastHeight = useSharedValue(0);
   const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animationStartedRef = useRef(false);
   const visibleAtRef = useRef<number | null>(null);
+  const hasNoTimeoutRef = useRef(false);
   const topOffset = toastOptions?.customTopOffset ?? 0;
+  hasNoTimeoutRef.current = Boolean(toastOptions?.hasNoTimeout);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateYProgress.value + topOffset }],
   }));
@@ -232,6 +245,20 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     scheduleAutoDismiss(visibilityDuration);
   };
 
+  const resumeAutoDismissAfterSwipe = () => {
+    if (hasNoTimeoutRef.current || visibleAtRef.current === null) {
+      return;
+    }
+
+    const elapsed = Date.now() - visibleAtRef.current;
+    if (elapsed >= visibilityDuration) {
+      startDismissAnimation();
+      return;
+    }
+
+    scheduleAutoDismiss(visibilityDuration - elapsed);
+  };
+
   const syncDismissTargetAfterRemeasure = () => {
     if (toastOptions?.hasNoTimeout || visibleAtRef.current === null) {
       return;
@@ -298,6 +325,71 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     startDismissAnimation();
   };
 
+  const closeToastRef = useRef(closeToast);
+  const resumeAutoDismissAfterSwipeRef = useRef(resumeAutoDismissAfterSwipe);
+  closeToastRef.current = closeToast;
+  resumeAutoDismissAfterSwipeRef.current = resumeAutoDismissAfterSwipe;
+
+  const dismissToastFromSwipe = () => {
+    closeToastRef.current();
+  };
+
+  const resumeAutoDismissFromSwipe = () => {
+    resumeAutoDismissAfterSwipeRef.current();
+  };
+
+  const swipeGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetY(TOAST_SWIPE_ACTIVE_OFFSET_Y)
+        .failOffsetX([-TOAST_SWIPE_FAIL_OFFSET_X, TOAST_SWIPE_FAIL_OFFSET_X])
+        .onStart(() => {
+          cancelAnimation(translateYProgress);
+          gestureStartY.value = translateYProgress.value;
+        })
+        .onUpdate((event) => {
+          const nextTranslateY = gestureStartY.value + event.translationY;
+          // Toast sits at the top; only allow dragging upward (more negative).
+          translateYProgress.value = Math.min(
+            nextTranslateY,
+            visibleTranslateY.value,
+          );
+        })
+        .onEnd((event) => {
+          const { translationY, velocityY } = event;
+          const dismissDistance = Math.max(
+            toastHeight.value * TOAST_DISMISS_DISTANCE_THRESHOLD,
+            24,
+          );
+          const hasReachedDismissOffset = translationY <= -dismissDistance;
+          const hasReachedSwipeThreshold =
+            Math.abs(velocityY) > TOAST_DISMISS_VELOCITY_THRESHOLD;
+          const isQuickDismissing = velocityY < 0;
+
+          const shouldDismiss =
+            hasReachedDismissOffset ||
+            (hasReachedSwipeThreshold && isQuickDismissing);
+
+          if (shouldDismiss) {
+            runOnJS(dismissToastFromSwipe)();
+            return;
+          }
+
+          translateYProgress.value = withSpring(
+            visibleTranslateY.value,
+            TOAST_SPRING_CONFIG,
+            (finished) => {
+              if (finished) {
+                runOnJS(resumeAutoDismissFromSwipe)();
+              }
+            },
+          );
+        }),
+    // Shared values and swipe JS wrappers are stable for the component lifetime.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   useImperativeHandle(ref, () => ({
     showToast,
     closeToast,
@@ -311,9 +403,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     if (toastOptions) {
       const { height } = e.nativeEvent.layout;
       const nextHiddenTranslateY = getHiddenTranslateY(height, topOffset);
-      const visibleTranslateY = topInset + 8;
+      const nextVisibleTranslateY = topInset + 8;
 
       hiddenTranslateY.value = nextHiddenTranslateY;
+      visibleTranslateY.value = nextVisibleTranslateY;
+      toastHeight.value = height;
 
       if (animationStartedRef.current) {
         syncDismissTargetAfterRemeasure();
@@ -326,12 +420,12 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
       if (toastOptions.hasNoTimeout) {
         translateYProgress.value = withSpring(
-          visibleTranslateY,
+          nextVisibleTranslateY,
           TOAST_SPRING_CONFIG,
         );
       } else {
         translateYProgress.value = withSpring(
-          visibleTranslateY,
+          nextVisibleTranslateY,
           TOAST_SPRING_CONFIG,
           (finished) => {
             if (finished) {
@@ -550,19 +644,21 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   }
 
   return (
-    <Animated.View onLayout={onAnimatedViewLayout} style={baseStyle}>
-      {toastOptions.onPress ? (
-        <Pressable
-          style={styles.pressableContent}
-          onPress={toastOptions.onPress}
-          testID={ToastSelectorsIDs.PRESSABLE}
-        >
-          {renderToastContent(toastOptions)}
-        </Pressable>
-      ) : (
-        renderToastContent(toastOptions)
-      )}
-    </Animated.View>
+    <GestureDetector gesture={swipeGesture}>
+      <Animated.View onLayout={onAnimatedViewLayout} style={baseStyle}>
+        {toastOptions.onPress ? (
+          <Pressable
+            style={styles.pressableContent}
+            onPress={toastOptions.onPress}
+            testID={ToastSelectorsIDs.PRESSABLE}
+          >
+            {renderToastContent(toastOptions)}
+          </Pressable>
+        ) : (
+          renderToastContent(toastOptions)
+        )}
+      </Animated.View>
+    </GestureDetector>
   );
 });
 
