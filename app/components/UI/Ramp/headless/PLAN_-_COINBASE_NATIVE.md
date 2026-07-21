@@ -2,6 +2,8 @@
 
 > Add Coinbase Headless Onramp as a native guest provider across the on-ramp API, ramps controller, and MetaMask Mobile while keeping hosted Coinbase as a separate sign-in-only provider. Phase 0 proves the payment and API contracts, Phase 1 ships the minimum safe flow, and Phase 2 adds hardening and the separately gated Transak proxy migration.
 
+> Plain-language companion (no jargon): see [the ELI5 version](./PLAN_-_COINBASE_NATIVE_ELI5.md).
+
 ## Phases checklist
 
 - [ ] **Phase 0** - Confirm Coinbase contracts, prove mobile payment bridges, and settle security and configuration decisions
