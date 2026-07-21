@@ -901,7 +901,7 @@ describe('BridgeView', () => {
       ).toBeNull();
     });
 
-    it('should set slippage to undefined when isSolanaSwap is true', async () => {
+    it('leaves slippage unset until a current-pair quote suggests a value', async () => {
       const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
@@ -940,7 +940,7 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      // Wait for the useEffect to run and update the state
+      // Quotes without quote.slippage must not invent a client default.
       await waitFor(() => {
         expect(store.getState().bridge.slippage).toBeUndefined();
       });
@@ -948,7 +948,7 @@ describe('BridgeView', () => {
   });
 
   describe('RWA same-chain EVM swap', () => {
-    it('sets slippage to undefined for stock RWA swap with RWA flag enabled', async () => {
+    it('leaves slippage unset when the active quote is not for the selected pair', async () => {
       const mockQuote = mockQuoteWithMetadata;
       const ethChainId = '0x1' as const;
       const testState = createBridgeTestState(

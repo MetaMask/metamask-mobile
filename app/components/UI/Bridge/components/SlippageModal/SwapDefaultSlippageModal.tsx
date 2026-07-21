@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectSlippage,
-  setSlippage,
+  setSlippageUserOverride,
 } from '../../../../../core/redux/slices/bridge';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { DefaultSlippageModalContent } from './DefaultSlippageModal';
@@ -26,7 +26,7 @@ export const SwapDefaultSlippageModal = () => {
 
   const handleSubmitSlippage = useCallback(
     (nextSlippage: string | undefined) => {
-      dispatch(setSlippage(nextSlippage));
+      dispatch(setSlippageUserOverride(nextSlippage));
     },
     [dispatch],
   );
