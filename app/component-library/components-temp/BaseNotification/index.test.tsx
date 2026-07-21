@@ -4,6 +4,7 @@ import BaseNotification, { getDescription } from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import { BaseNotificationStatus } from './BaseNotification.types';
+import { NOTIFICATION_DISMISS_VELOCITY_THRESHOLD } from './BaseNotification.constants';
 
 const defaultData = {
   description: 'Testing description',
@@ -30,6 +31,40 @@ const allStatuses: BaseNotificationStatus[] = [
   'simple_notification_rejected',
 ];
 
+const mockPanGestureHandlers: {
+  onStart?: () => void;
+  onUpdate?: (event: { translationY: number }) => void;
+  onEnd?: (event: { translationY: number; velocityY: number }) => void;
+} = {};
+
+jest.mock('react-native-gesture-handler', () => ({
+  GestureDetector: ({ children }: { children: React.ReactNode }) => children,
+  Gesture: {
+    Pan: () => ({
+      activeOffsetY() {
+        return this;
+      },
+      failOffsetX() {
+        return this;
+      },
+      onStart(handler: () => void) {
+        mockPanGestureHandlers.onStart = handler;
+        return this;
+      },
+      onUpdate(handler: (event: { translationY: number }) => void) {
+        mockPanGestureHandlers.onUpdate = handler;
+        return this;
+      },
+      onEnd(
+        handler: (event: { translationY: number; velocityY: number }) => void,
+      ) {
+        mockPanGestureHandlers.onEnd = handler;
+        return this;
+      },
+    }),
+  },
+}));
+
 const mockLayoutEvent = {
   nativeEvent: { layout: { height: 100, width: 300, x: 0, y: 0 } },
 };
@@ -44,7 +79,28 @@ const triggerEnterLayout = (
   );
 };
 
+const swipeNotification = async ({
+  translationY,
+  velocityY = 0,
+}: {
+  translationY: number;
+  velocityY?: number;
+}) => {
+  await act(async () => {
+    mockPanGestureHandlers.onStart?.();
+    mockPanGestureHandlers.onUpdate?.({ translationY });
+    mockPanGestureHandlers.onEnd?.({ translationY, velocityY });
+    jest.runAllTimers();
+  });
+};
+
 describe('BaseNotification', () => {
+  beforeEach(() => {
+    mockPanGestureHandlers.onStart = undefined;
+    mockPanGestureHandlers.onUpdate = undefined;
+    mockPanGestureHandlers.onEnd = undefined;
+  });
+
   it.each(allStatuses)('renders for status %s', (status) => {
     const { getByTestId } = renderWithProvider(
       <BaseNotification status={status} data={defaultData} />,
@@ -224,6 +280,118 @@ describe('BaseNotification', () => {
       expect(
         getByText(strings('notifications.speedup_title', { nonce: '5' })),
       ).toBeTruthy();
+    });
+  });
+
+  describe('swipe to dismiss', () => {
+    it('dismisses notification when swiped up past the distance threshold', async () => {
+      jest.useFakeTimers();
+      const onHide = jest.fn();
+      const onDismissComplete = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <BaseNotification
+          status="success"
+          data={defaultData}
+          persistUntilDismiss
+          onHide={onHide}
+          onDismissComplete={onDismissComplete}
+        />,
+      );
+
+      triggerEnterLayout(getByTestId);
+
+      expect(getByTestId('base-notification-container')).toBeOnTheScreen();
+
+      await swipeNotification({ translationY: -40 });
+
+      expect(onHide).toHaveBeenCalledTimes(1);
+      expect(onDismissComplete).toHaveBeenCalledTimes(1);
+      jest.useRealTimers();
+    });
+
+    it('dismisses notification when swiped up with sufficient velocity', async () => {
+      jest.useFakeTimers();
+      const onHide = jest.fn();
+      const onDismissComplete = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <BaseNotification
+          status="success"
+          data={defaultData}
+          persistUntilDismiss
+          onHide={onHide}
+          onDismissComplete={onDismissComplete}
+        />,
+      );
+
+      triggerEnterLayout(getByTestId);
+
+      await swipeNotification({
+        translationY: -10,
+        velocityY: -(NOTIFICATION_DISMISS_VELOCITY_THRESHOLD + 1),
+      });
+
+      expect(onHide).toHaveBeenCalledTimes(1);
+      expect(onDismissComplete).toHaveBeenCalledTimes(1);
+      jest.useRealTimers();
+    });
+
+    it('keeps notification visible when swipe does not meet dismiss thresholds', async () => {
+      jest.useFakeTimers();
+      const onHide = jest.fn();
+      const onDismissComplete = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <BaseNotification
+          status="success"
+          data={defaultData}
+          persistUntilDismiss
+          onHide={onHide}
+          onDismissComplete={onDismissComplete}
+        />,
+      );
+
+      triggerEnterLayout(getByTestId);
+
+      await swipeNotification({ translationY: -10, velocityY: -100 });
+
+      expect(onHide).not.toHaveBeenCalled();
+      expect(onDismissComplete).not.toHaveBeenCalled();
+      expect(getByTestId('base-notification-container')).toBeOnTheScreen();
+      jest.useRealTimers();
+    });
+
+    it('resumes auto-dismiss after an incomplete swipe', async () => {
+      jest.useFakeTimers();
+      const onDismissComplete = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <BaseNotification
+          status="success"
+          data={defaultData}
+          dismissDuration={1000}
+          onDismissComplete={onDismissComplete}
+        />,
+      );
+
+      triggerEnterLayout(getByTestId);
+
+      await act(async () => {
+        // Finish entrance spring and start the auto-dismiss delay.
+        jest.advanceTimersByTime(500);
+      });
+
+      await act(async () => {
+        mockPanGestureHandlers.onStart?.();
+        mockPanGestureHandlers.onUpdate?.({ translationY: -10 });
+        mockPanGestureHandlers.onEnd?.({ translationY: -10, velocityY: -100 });
+      });
+
+      expect(onDismissComplete).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(onDismissComplete).toHaveBeenCalledTimes(1);
+      jest.useRealTimers();
     });
   });
 });
