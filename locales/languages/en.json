@@ -10457,6 +10457,8 @@
     "fullscreen_title": "Watchlist",
     "tokens_tab": "Tokens",
     "edit": "Edit",
-    "done": "Done"
+    "done": "Done",
+    "empty_add_tokens_cta": "Add {{count}} token",
+    "empty_add_tokens_cta_plural": "Add {{count}} tokens"
   }
 }
