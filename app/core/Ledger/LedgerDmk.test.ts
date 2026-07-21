@@ -1,4 +1,11 @@
-import { connectLedgerDmkHardware } from './LedgerDmk';
+import { of } from 'rxjs';
+import type { DiscoveredDevice } from '@ledgerhq/device-management-kit';
+import {
+  connectLedgerDmkDevice,
+  connectLedgerDmkHardware,
+  disconnectLedgerDmkSession,
+  getLedgerDmkSessionState,
+} from './LedgerDmk';
 import Engine from '../../core/Engine';
 import type { RestrictedController } from '@metamask/keyring-controller';
 import {
@@ -29,9 +36,15 @@ jest.mock('../../core/Engine', () => ({
 const MockEngine = jest.mocked(Engine);
 const mockRestrictedAddNewLedgerKeyring = jest.fn();
 
+const mockSessionState = of({ connected: true });
+
 const mockBridge = {
   getAppNameAndVersion: jest.fn(),
   updateSessionId: jest.fn(),
+  connect: jest.fn(),
+  destroy: jest.fn(),
+  onSessionStateChange: mockSessionState,
+  startDiscovering: jest.fn(),
 };
 
 const legacyLedgerKeyring = new LegacyLedgerKeyring({
@@ -216,6 +229,36 @@ describe('LedgerDmk', () => {
       await expect(
         connectLedgerDmkHardware(mockSessionId, 'bar'),
       ).rejects.toThrow('Expected LedgerKeyring');
+    });
+  });
+
+  describe('connectLedgerDmkDevice', () => {
+    it('connects through the keyring bridge and returns the session id', async () => {
+      const device = { id: 'device-1' } as DiscoveredDevice;
+      mockBridge.connect.mockResolvedValue('bridge-session-id');
+
+      const sessionId = await connectLedgerDmkDevice(device);
+
+      expect(mockBridge.connect).toHaveBeenCalledWith({ device });
+      expect(sessionId).toBe('bridge-session-id');
+    });
+  });
+
+  describe('getLedgerDmkSessionState', () => {
+    it('returns the bridge session state observable', async () => {
+      const sessionState = await getLedgerDmkSessionState();
+
+      expect(sessionState).toBe(mockBridge.onSessionStateChange);
+    });
+  });
+
+  describe('disconnectLedgerDmkSession', () => {
+    it('destroys the bridge session', async () => {
+      mockBridge.destroy.mockResolvedValue(undefined);
+
+      await disconnectLedgerDmkSession();
+
+      expect(mockBridge.destroy).toHaveBeenCalledTimes(1);
     });
   });
 });
