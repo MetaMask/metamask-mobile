@@ -8,7 +8,7 @@ import type { Json } from '@metamask/utils';
 export enum FeatureFlagNames {
   otaUpdatesEnabled = 'otaUpdatesEnabled',
   fullPageAccountList = 'fullPageAccountList',
-  assetsDefiPositionsV2Enabled = 'assetsDefiPositionsV2Enabled',
+  defiControllerV2 = 'defiControllerV2',
   tokenDetailsV2Buttons = 'tokenDetailsV2Buttons',
   tokenDetailsV2ButtonLayout = 'tokenDetailsV2ButtonLayout',
   complianceEnabled = 'complianceEnabled',
@@ -30,7 +30,7 @@ export const LEDGER_DMK_MINIMUM_VERSION = '8.2.0';
 export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   Record<FeatureFlagNames, Json>
 > = {
-  [FeatureFlagNames.assetsDefiPositionsV2Enabled]: false,
+  [FeatureFlagNames.defiControllerV2]: { enabled: false },
   [FeatureFlagNames.tokenDetailsV2Buttons]: false,
   [FeatureFlagNames.tokenDetailsV2ButtonLayout]: false,
   [FeatureFlagNames.tronClaimUnstakedTrxButtonEnabled]: false,

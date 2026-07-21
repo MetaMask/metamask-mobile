@@ -6,7 +6,7 @@ import type { MessengerClientInitFunction } from '../../types';
 import { DeFiPositionsControllerInitMessenger } from '../../messengers/defi-positions-controller-messenger/defi-positions-controller-messenger';
 import { store } from '../../../../store';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import { selectAssetsDefiPositionsV2Enabled } from '../../../../selectors/featureFlagController/assetsDefiPositionsV2';
+import { selectDefiControllerV2Enabled } from '../../../../selectors/featureFlagController/defiControllerV2';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import type { AnalyticsTrackingEvent as PackageAnalyticsTrackingEvent } from '@metamask/analytics-controller';
 
@@ -14,7 +14,7 @@ import type { AnalyticsTrackingEvent as PackageAnalyticsTrackingEvent } from '@m
  * Initialize the DeFiPositionsController (V1).
  *
  * Enabled only when V2 is off: the two controllers are mutually exclusive via
- * {@link selectAssetsDefiPositionsV2Enabled}.
+ * {@link selectDefiControllerV2Enabled}.
  *
  * @param request - The request object.
  * @returns The DeFiPositionsController.
@@ -32,7 +32,7 @@ export const defiPositionsControllerInit: MessengerClientInitFunction<
       const isBasicFunctionalityToggleEnabled = selectBasicFunctionalityEnabled(
         store.getState(),
       );
-      const isV2Enabled = selectAssetsDefiPositionsV2Enabled(store.getState());
+      const isV2Enabled = selectDefiControllerV2Enabled(store.getState());
 
       return isBasicFunctionalityToggleEnabled && !isV2Enabled;
     },

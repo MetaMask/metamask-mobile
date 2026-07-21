@@ -14,7 +14,7 @@ import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEvent
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { store } from '../../../../store';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import { selectAssetsDefiPositionsV2Enabled } from '../../../../selectors/featureFlagController/assetsDefiPositionsV2';
+import { selectDefiControllerV2Enabled } from '../../../../selectors/featureFlagController/defiControllerV2';
 
 jest.mock('@metamask/assets-controllers');
 jest.mock('../../../../util/analytics/AnalyticsEventBuilder');
@@ -28,9 +28,9 @@ jest.mock('../../../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn(),
 }));
 jest.mock(
-  '../../../../selectors/featureFlagController/assetsDefiPositionsV2',
+  '../../../../selectors/featureFlagController/defiControllerV2',
   () => ({
-    selectAssetsDefiPositionsV2Enabled: jest.fn(),
+    selectDefiControllerV2Enabled: jest.fn(),
   }),
 );
 
@@ -64,9 +64,9 @@ describe('DeFiPositionsControllerInit', () => {
     (selectBasicFunctionalityEnabled as unknown as jest.Mock).mockReturnValue(
       true,
     );
-    (
-      selectAssetsDefiPositionsV2Enabled as unknown as jest.Mock
-    ).mockReturnValue(false);
+    (selectDefiControllerV2Enabled as unknown as jest.Mock).mockReturnValue(
+      false,
+    );
     (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue({
       addProperties: jest.fn().mockReturnThis(),
       build: jest.fn().mockReturnValue({
@@ -120,9 +120,9 @@ describe('DeFiPositionsControllerInit', () => {
         (
           selectBasicFunctionalityEnabled as unknown as jest.Mock
         ).mockReturnValue(basicFunctionality);
-        (
-          selectAssetsDefiPositionsV2Enabled as unknown as jest.Mock
-        ).mockReturnValue(v2Enabled);
+        (selectDefiControllerV2Enabled as unknown as jest.Mock).mockReturnValue(
+          v2Enabled,
+        );
 
         defiPositionsControllerInit(getInitRequestMock());
 

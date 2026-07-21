@@ -12,7 +12,7 @@ import { DeFiPositionsControllerV2InitMessenger } from '../../messengers/defi-po
 import { store } from '../../../../store';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
-import { selectAssetsDefiPositionsV2Enabled } from '../../../../selectors/featureFlagController/assetsDefiPositionsV2';
+import { selectDefiControllerV2Enabled } from '../../../../selectors/featureFlagController/defiControllerV2';
 
 /**
  * Cached API client instance shared across init calls (matches AssetsController).
@@ -73,7 +73,7 @@ export const defiPositionsControllerV2Init: MessengerClientInitFunction<
     isEnabled: () =>
       selectBasicFunctionalityEnabled(store.getState()) &&
       selectCompletedOnboarding(store.getState()) &&
-      selectAssetsDefiPositionsV2Enabled(store.getState()),
+      selectDefiControllerV2Enabled(store.getState()),
     getVsCurrency: () =>
       initMessenger.call('CurrencyRateController:getState').currentCurrency,
   });

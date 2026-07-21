@@ -14,7 +14,7 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { store } from '../../../../store';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
-import { selectAssetsDefiPositionsV2Enabled } from '../../../../selectors/featureFlagController/assetsDefiPositionsV2';
+import { selectDefiControllerV2Enabled } from '../../../../selectors/featureFlagController/defiControllerV2';
 
 jest.mock('@metamask/assets-controllers');
 jest.mock('@metamask/core-backend', () => ({
@@ -39,9 +39,9 @@ jest.mock('../../../../selectors/onboarding', () => ({
   selectCompletedOnboarding: jest.fn(),
 }));
 jest.mock(
-  '../../../../selectors/featureFlagController/assetsDefiPositionsV2',
+  '../../../../selectors/featureFlagController/defiControllerV2',
   () => ({
-    selectAssetsDefiPositionsV2Enabled: jest.fn(),
+    selectDefiControllerV2Enabled: jest.fn(),
   }),
 );
 
@@ -76,9 +76,9 @@ describe('DeFiPositionsControllerV2Init', () => {
       true,
     );
     (selectCompletedOnboarding as unknown as jest.Mock).mockReturnValue(true);
-    (
-      selectAssetsDefiPositionsV2Enabled as unknown as jest.Mock
-    ).mockReturnValue(true);
+    (selectDefiControllerV2Enabled as unknown as jest.Mock).mockReturnValue(
+      true,
+    );
   });
 
   it('returns controller instance with expected constructor args', () => {
@@ -129,9 +129,9 @@ describe('DeFiPositionsControllerV2Init', () => {
         (selectCompletedOnboarding as unknown as jest.Mock).mockReturnValue(
           completedOnboarding,
         );
-        (
-          selectAssetsDefiPositionsV2Enabled as unknown as jest.Mock
-        ).mockReturnValue(flag);
+        (selectDefiControllerV2Enabled as unknown as jest.Mock).mockReturnValue(
+          flag,
+        );
 
         defiPositionsControllerV2Init(getInitRequestMock());
 

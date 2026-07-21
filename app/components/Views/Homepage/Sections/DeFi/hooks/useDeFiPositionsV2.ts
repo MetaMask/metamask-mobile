@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
-import type { DeFiProtocolPositionGroup } from '@metamask/assets-controllers';
+import {
+  mergePositionsForAccounts,
+  type DeFiProtocolPositionGroup,
+} from '@metamask/assets-controllers';
 import Engine from '../../../../../../core/Engine';
 import { selectDeFiPositionsV2State } from '../../../../../../selectors/defiPositionsControllerV2';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
@@ -9,7 +12,6 @@ import {
   selectSelectedAccountGroupId,
   selectSelectedAccountGroupInternalAccounts,
 } from '../../../../../../selectors/multichainAccounts/accountTreeController';
-import { mergePositionsForAccounts } from '../../../../../UI/DeFiPositions/utils/mergePositionsForAccounts';
 
 export interface UseDeFiPositionsV2Options {
   /** Whether V2 DeFi is enabled for this surface. */

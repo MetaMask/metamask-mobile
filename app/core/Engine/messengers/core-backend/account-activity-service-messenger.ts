@@ -25,7 +25,7 @@ export function getAccountActivityServiceMessenger(
   });
   rootMessenger.delegate({
     actions: [
-      'AccountsController:getSelectedAccount',
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'BackendWebSocketService:connect',
       'BackendWebSocketService:forceReconnection',
       'BackendWebSocketService:subscribe',
@@ -37,8 +37,9 @@ export function getAccountActivityServiceMessenger(
       'BackendWebSocketService:removeChannelCallback',
     ],
     events: [
-      'AccountsController:selectedAccountChange',
+      'AccountTreeController:selectedAccountGroupChange',
       'BackendWebSocketService:connectionStateChanged',
+      'RemoteFeatureFlagController:stateChange',
     ],
     messenger,
   });
