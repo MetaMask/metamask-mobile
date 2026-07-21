@@ -142,11 +142,11 @@ jest.mock('../../../store/storage-wrapper', () => ({
 
 jest.mock('../../../core/Authentication', () => ({
   getType: jest.fn().mockResolvedValue({
-    currentAuthType: 'passcode',
+    currentAuthType: 'device_passcode',
     availableBiometryType: 'faceID',
   }),
   componentAuthenticationType: jest.fn().mockResolvedValue({
-    currentAuthType: 'passcode',
+    currentAuthType: 'device_passcode',
     availableBiometryType: 'faceID',
   }),
   requestBiometricsAccessControlForIOS: jest.fn((authType) =>
@@ -356,6 +356,15 @@ const fillAndSubmitForm = async (
 };
 
 describe('ChoosePassword', () => {
+  const defaultKeyringControllerState = {
+    keyrings: [
+      {
+        type: 'HD Key Tree',
+        accounts: ['0xhd1'],
+      },
+    ],
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockTrackOnboarding.mockClear();
@@ -363,9 +372,20 @@ describe('ChoosePassword', () => {
     ReduxService.store = store as unknown as ReduxStore;
     mockRefreshGeolocation.mockResolvedValue('GB');
     (Authentication.getType as jest.Mock).mockResolvedValue({
-      currentAuthType: 'passcode',
+      // eslint-disable-next-line @typescript-eslint/no-deprecated -- getType still returns PASSCODE
+      currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
       availableBiometryType: 'faceID',
     });
+    (
+      Engine.context.KeyringController as unknown as {
+        state: typeof defaultKeyringControllerState;
+      }
+    ).state = {
+      keyrings: defaultKeyringControllerState.keyrings.map((keyring) => ({
+        ...keyring,
+        accounts: [...keyring.accounts],
+      })),
+    };
     mockRoute.params = {
       [ONBOARDING]: true,
       [PROTECT]: true,
@@ -428,7 +448,10 @@ describe('ChoosePassword', () => {
 
       await act(async () => {
         resolveWalletCreation();
-        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      await waitFor(() => {
+        expect(mockNavigation.replace).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
@@ -470,7 +493,10 @@ describe('ChoosePassword', () => {
 
       await act(async () => {
         resolveWalletCreation();
-        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      await waitFor(() => {
+        expect(mockNavigation.replace).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
@@ -984,10 +1010,11 @@ describe('ChoosePassword', () => {
   });
 
   describe('Authentication Type Detection', () => {
-    it('reads passcode storage flags when auth type is legacy PASSCODE', async () => {
+    it('sets passcode biometry type when auth type is PASSCODE', async () => {
       const mockGetType = jest.spyOn(Authentication, 'getType');
-      mockGetType.mockResolvedValueOnce({
-        currentAuthType: 'device_passcode' as AUTHENTICATION_TYPE,
+      mockGetType.mockResolvedValue({
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- getType still returns PASSCODE
+        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
         availableBiometryType: undefined,
       });
       const mockStorageWrapper = jest.mocked(StorageWrapper);
@@ -1000,8 +1027,12 @@ describe('ChoosePassword', () => {
           return Promise.resolve('true');
         return Promise.resolve(null);
       });
+      jest
+        .spyOn(Authentication, 'newWalletAndKeychain')
+        .mockResolvedValue(undefined);
+      mockTrackOnboarding.mockClear();
 
-      renderWithProviders(<ChoosePassword />);
+      const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
       expect(mockGetType).toHaveBeenCalled();
@@ -1011,20 +1042,21 @@ describe('ChoosePassword', () => {
       expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
         '@MetaMask:passcodeDisabled',
       );
-      mockGetType.mockRestore();
-    });
 
-    it('treats DEVICE_AUTHENTICATION as device passcode auth type', async () => {
-      const mockGetType = jest.spyOn(Authentication, 'getType');
-      mockGetType.mockResolvedValueOnce({
-        currentAuthType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
-        availableBiometryType: undefined,
+      await fillAndSubmitForm(component, 'StrongPassword123!@#');
+
+      await waitFor(() => {
+        expect(mockTrackOnboarding).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: EVENT_NAME.WALLET_CREATED,
+            properties: expect.objectContaining({
+              biometrics_enabled: true,
+            }),
+          }),
+          expect.any(Function),
+        );
       });
 
-      renderWithProviders(<ChoosePassword />);
-      await waitForInit();
-
-      expect(mockGetType).toHaveBeenCalled();
       mockGetType.mockRestore();
     });
 

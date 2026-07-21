@@ -746,12 +746,12 @@ const ChoosePassword = () => {
       await StorageWrapper.getItem(PASSCODE_DISABLED);
 
       const isDevicePasscodeAuth =
-        authData.currentAuthType ===
-          AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION ||
-        authData.currentAuthType === ('device_passcode' as AUTHENTICATION_TYPE);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- still returned by Authentication.getType()
+        authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE;
 
       if (isDevicePasscodeAuth) {
-        setBiometryType(passcodeType(authData.currentAuthType));
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- passcodeType expects PASSCODE
+        setBiometryType(passcodeType(AUTHENTICATION_TYPE.PASSCODE));
       } else if (authData.availableBiometryType) {
         setBiometryType(authData.availableBiometryType);
       }
