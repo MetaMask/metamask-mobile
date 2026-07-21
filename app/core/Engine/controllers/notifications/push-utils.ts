@@ -14,6 +14,7 @@ export const createSubscribeToPushNotifications = () => async () =>
     }
     await NotificationsService.displayNotification({
       pressActionId: PressActionId.OPEN_NOTIFICATIONS_VIEW,
+      id: rawPayload.data?.notification_id,
       title,
       body,
       data: rawPayload.data,
