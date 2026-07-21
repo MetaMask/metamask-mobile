@@ -4,7 +4,8 @@ import { RouteProp, useRoute } from '@react-navigation/native';
 type NavigationParams = object | undefined;
 
 export type NavigationDetails<T extends NavigationParams = NavigationParams> =
-  readonly [string, T];
+  | readonly [string]
+  | readonly [string, T];
 
 export const createNavigationDetails =
   <T extends NavigationParams>(name: string, screen?: string) =>

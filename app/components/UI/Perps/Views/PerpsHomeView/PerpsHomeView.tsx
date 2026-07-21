@@ -114,9 +114,9 @@ import {
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import { BottomSheetRef as ComponentLibraryBottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import PerpsNavigationCard, {
-  NavigationItem,
-} from '../../components/PerpsNavigationCard/PerpsNavigationCard';
+import PerpsMoreSection, {
+  type PerpsMoreItem,
+} from '../../components/PerpsMoreSection';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsProducts from '../../components/PerpsProducts';
@@ -620,19 +620,20 @@ const PerpsHomeView = ({
     });
   }, [trackEvent, createEventBuilder, navigation]);
 
-  const navigationItems: NavigationItem[] = useMemo(() => {
-    const items: NavigationItem[] = [
+  const moreItems: PerpsMoreItem[] = useMemo(() => {
+    const items: PerpsMoreItem[] = [
       {
         label: strings(SUPPORT_CONFIG.TitleKey),
+        startIconName: IconName.Sms,
         onPress: () => navigateToContactSupport(),
         testID: PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON,
       },
     ];
 
-    // Add feedback button when feature flag is enabled
     if (isFeedbackEnabled) {
       items.push({
         label: strings(FEEDBACK_CONFIG.TitleKey),
+        startIconName: IconName.Mail,
         onPress: handleGiveFeedback,
         testID: PerpsHomeViewSelectorsIDs.FEEDBACK_BUTTON,
       });
@@ -640,6 +641,7 @@ const PerpsHomeView = ({
 
     items.push({
       label: strings(LEARN_MORE_CONFIG.TitleKey),
+      startIconName: IconName.Book,
       onPress: () => navigtateToTutorial(),
       testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
     });
@@ -900,6 +902,11 @@ const PerpsHomeView = ({
           />
         ),
       },
+      {
+        key: 'more',
+        visible: true,
+        content: <PerpsMoreSection items={moreItems} />,
+      },
     ],
     [
       isLoading,
@@ -934,6 +941,7 @@ const PerpsHomeView = ({
       sortBy,
       recentActivity,
       handleSectionLayout,
+      moreItems,
     ],
   );
 
@@ -1139,10 +1147,6 @@ const PerpsHomeView = ({
         </Box>
 
         <PerpsHomeSectionList sections={homeSections} />
-
-        <View style={styles.sectionContent}>
-          <PerpsNavigationCard items={navigationItems} />
-        </View>
 
         {/* Bottom spacing for tab bar */}
         <View style={bottomSpacerStyle} />

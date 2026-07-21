@@ -18,6 +18,13 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
           name: 'USD Coin',
           symbol: 'USDC',
         },
+        {
+          address: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+          decimals: 6,
+          enabled: true,
+          name: 'Money account',
+          symbol: 'VEDA',
+        },
       ],
     },
     'eip155:59144': {
@@ -150,13 +157,11 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
   immersve: {
     network: 'base-sepolia',
     cardProgramId: '',
+    clientApplicationId: '',
+    partnerAccountId: '',
     fundingChannelId: '',
-    kycType: 'immersve-conducted',
-    kycHiddenSteps: ['region', 'contact-channels', 'expected-spend'],
-    spendableCurrency: 'USD',
-    spendableAmount: '0',
-    countries: ['GB'],
   },
+  immersveCountries: ['GB'],
 };
 
 export interface GateVersionedFeatureFlag {
@@ -168,17 +173,15 @@ export interface CardFeatureFlag {
   constants?: Record<string, string>;
   chains?: Record<string, SupportedChain>;
   immersve?: ImmersveProgramConfig;
+  immersveCountries?: string[];
 }
 
 export interface ImmersveProgramConfig {
   network?: string;
   cardProgramId?: string;
+  clientApplicationId?: string;
+  partnerAccountId?: string;
   fundingChannelId?: string;
-  kycType?: string;
-  kycHiddenSteps?: string[];
-  spendableCurrency?: string;
-  spendableAmount?: string;
-  countries?: string[];
 }
 
 export interface SupportedChain {
