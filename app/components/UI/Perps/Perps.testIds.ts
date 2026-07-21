@@ -457,6 +457,22 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
 };
 
 // ========================================
+// PERPS PRO MARKET VIEW SELECTORS
+// ========================================
+
+export const PerpsProMarketViewSelectorsIDs = {
+  CONTAINER: 'perps-pro-market-view',
+  SCROLL_VIEW: 'perps-pro-market-scroll-view',
+  HEADER: 'perps-pro-market-header',
+  CHART_PANEL: 'perps-pro-market-chart-panel',
+  STATS_BAR: 'perps-pro-market-stats-bar',
+  LAYOUT: 'perps-pro-market-layout',
+  ORDER_FORM_PANEL: 'perps-pro-market-order-form-panel',
+  ORDER_BOOK_PANEL: 'perps-pro-market-order-book-panel',
+  POSITIONS_PANEL: 'perps-pro-market-positions-panel',
+};
+
+// ========================================
 // PERPS MARKET HEADER SELECTORS
 // ========================================
 
