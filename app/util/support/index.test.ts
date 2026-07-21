@@ -5,9 +5,11 @@ import Routes from '../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../constants/urls';
 import {
   buildSupportUrl,
+  confirmSupportConsent,
   getEnrichedSupportUrl,
   navigateToSupportConsent,
   redactCustomerServiceToken,
+  rejectSupportConsent,
   SUPPORT_URL_PARAM_CUSTOMER_SERVICE_TOKEN,
   SUPPORT_URL_PARAM_VERSION,
 } from './index';
@@ -163,6 +165,74 @@ describe('getEnrichedSupportUrl', () => {
         SUPPORT_URL_PARAM_CUSTOMER_SERVICE_TOKEN,
       ),
     ).toBe('[REDACTED]');
+  });
+});
+
+describe('confirmSupportConsent', () => {
+  const mockOpen = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(getVersion).mockReturnValue('7.1.0');
+  });
+
+  it('opens the enriched support URL', async () => {
+    jest
+      .mocked(Engine.context.AuthenticationController.getCustomerServiceToken)
+      .mockResolvedValue('jwt-token');
+
+    await confirmSupportConsent(mockOpen, METAMASK_SUPPORT_URL);
+
+    expect(mockOpen).toHaveBeenCalledWith(
+      expect.stringContaining('customer_service_token=jwt-token'),
+    );
+  });
+
+  it('logs and swallows errors thrown by the opener', async () => {
+    jest
+      .mocked(Engine.context.AuthenticationController.getCustomerServiceToken)
+      .mockResolvedValue('jwt-token');
+    mockOpen.mockRejectedValueOnce(new Error('failed to open'));
+
+    await expect(
+      confirmSupportConsent(mockOpen, METAMASK_SUPPORT_URL),
+    ).resolves.toBeUndefined();
+
+    expect(Logger.log).toHaveBeenCalledWith(
+      '[SupportConsent] Failed to open support URL',
+      expect.any(Error),
+    );
+  });
+});
+
+describe('rejectSupportConsent', () => {
+  const mockOpen = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('opens the raw base URL with no device details', async () => {
+    await rejectSupportConsent(mockOpen, METAMASK_SUPPORT_URL);
+
+    const openedUrl = mockOpen.mock.calls[0][0] as string;
+    expect(openedUrl).toBe(METAMASK_SUPPORT_URL);
+    const params = new URL(openedUrl).searchParams;
+    expect(params.has(SUPPORT_URL_PARAM_CUSTOMER_SERVICE_TOKEN)).toBe(false);
+    expect(params.has(SUPPORT_URL_PARAM_VERSION)).toBe(false);
+  });
+
+  it('logs and swallows errors thrown by the opener', async () => {
+    mockOpen.mockRejectedValueOnce(new Error('failed to open'));
+
+    await expect(
+      rejectSupportConsent(mockOpen, METAMASK_SUPPORT_URL),
+    ).resolves.toBeUndefined();
+
+    expect(Logger.log).toHaveBeenCalledWith(
+      '[SupportConsent] Failed to open support URL',
+      expect.any(Error),
+    );
   });
 });
 
