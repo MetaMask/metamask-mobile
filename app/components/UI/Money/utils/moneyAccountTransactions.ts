@@ -175,6 +175,7 @@ export async function buildMoneyAccountDepositBatch({
   accountantAddress,
   lensAddress,
   provider,
+  initialiseWithoutData = false,
 }: {
   amount: bigint;
   chainId: Hex;
@@ -183,6 +184,7 @@ export async function buildMoneyAccountDepositBatch({
   accountantAddress: string;
   lensAddress: string;
   provider: ethers.providers.Provider;
+  initialiseWithoutData?: boolean;
 }): Promise<MoneyAccountDepositBatchResult> {
   const musdAddress = getMoneyAccountDepositAssetAddress(chainId);
 
@@ -201,8 +203,12 @@ export async function buildMoneyAccountDepositBatch({
           }),
         );
 
-  const approveData = buildApproveData(boringVault, amount);
-  const depositData = buildDepositData(musdAddress, amount, minimumMint);
+  const approveData = initialiseWithoutData
+    ? (undefined as Hex)
+    : buildApproveData(boringVault, amount);
+  const depositData = initialiseWithoutData
+    ? (undefined as Hex)
+    : buildDepositData(musdAddress, amount, minimumMint);
 
   return {
     approveTx: {

@@ -167,8 +167,9 @@ export function useMoneyAccountDeposit() {
       });
 
       try {
+        // Commented out to improve the performance of the deposit batch creation.
         // Allows confirmation skeleton to render immediately before setup work for immediate navigation.
-        await waitForNextFrame();
+        // await waitForNextFrame();
 
         const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
           amount: BigInt(0),
@@ -178,6 +179,7 @@ export function useMoneyAccountDeposit() {
           accountantAddress: depositSetup.accountantAddress,
           lensAddress: depositSetup.lensAddress,
           provider: depositSetup.provider,
+          initialiseWithoutData: true,
         });
 
         // We only set the transaction from the money account perspective.

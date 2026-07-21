@@ -330,6 +330,64 @@ describe('moneyAccountTransactions', () => {
         MOCK_ACCOUNTANT,
       );
     });
+
+    it('returns undefined data fields when initialiseWithoutData is true', async () => {
+      const result = await buildMoneyAccountDepositBatch({
+        amount: BigInt(0),
+        chainId: MOCK_CHAIN_ID,
+        boringVault: MOCK_BORING_VAULT,
+        tellerAddress: MOCK_TELLER,
+        accountantAddress: MOCK_ACCOUNTANT,
+        lensAddress: MOCK_LENS,
+        provider: MOCK_PROVIDER,
+        initialiseWithoutData: true,
+      });
+
+      expect(result.approveTx.params.data).toBeUndefined();
+      expect(result.depositTx.params.data).toBeUndefined();
+      expect(result.approveTx.type).toBe(TransactionType.tokenMethodApprove);
+      expect(result.depositTx.type).toBe(TransactionType.moneyAccountDeposit);
+      expect(result.approveTx.params.to).toBe(MOCK_MUSD_ADDRESS);
+      expect(result.depositTx.params.to).toBe(MOCK_TELLER);
+    });
+
+    it('skips calldata encoding but still resolves minimumMint for non-zero amounts when initialiseWithoutData is true', async () => {
+      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
+
+      const result = await buildMoneyAccountDepositBatch({
+        amount: BigInt(1_000_000),
+        chainId: MOCK_CHAIN_ID,
+        boringVault: MOCK_BORING_VAULT,
+        tellerAddress: MOCK_TELLER,
+        accountantAddress: MOCK_ACCOUNTANT,
+        lensAddress: MOCK_LENS,
+        provider: MOCK_PROVIDER,
+        initialiseWithoutData: true,
+      });
+
+      expect(result.approveTx.params.data).toBeUndefined();
+      expect(result.depositTx.params.data).toBeUndefined();
+    });
+
+    it('builds calldata normally when initialiseWithoutData is false', async () => {
+      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
+
+      const result = await buildMoneyAccountDepositBatch({
+        amount: BigInt(1_000_000),
+        chainId: MOCK_CHAIN_ID,
+        boringVault: MOCK_BORING_VAULT,
+        tellerAddress: MOCK_TELLER,
+        accountantAddress: MOCK_ACCOUNTANT,
+        lensAddress: MOCK_LENS,
+        provider: MOCK_PROVIDER,
+        initialiseWithoutData: false,
+      });
+
+      expect(result.approveTx.params.data).toBeDefined();
+      expect(result.approveTx.params.data.startsWith('0x')).toBe(true);
+      expect(result.depositTx.params.data).toBeDefined();
+      expect(result.depositTx.params.data.startsWith('0x')).toBe(true);
+    });
   });
 
   describe('updateMoneyAccountDepositTokenAmount', () => {
