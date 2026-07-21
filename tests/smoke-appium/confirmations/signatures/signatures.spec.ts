@@ -1,6 +1,5 @@
 import { test as appiumTest } from '../../../framework/fixtures/playwright/index.js';
 import Assertions from '../../../framework/Assertions.js';
-import Browser from '../../../page-objects/Browser/BrowserView.js';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions.js';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.js';
 import RequestTypes from '../../../page-objects/Browser/Confirmations/RequestTypes.js';
@@ -15,6 +14,7 @@ import { SmokeConfirmations } from '../../../tags.js';
 import {
   buildPermissions,
   AnvilPort,
+  getDappUrlForFixture,
 } from '../../../framework/fixtures/FixtureUtils.js';
 import RowComponents from '../../../page-objects/Browser/Confirmations/RowComponents.js';
 import { DappVariants } from '../../../framework/Constants.js';
@@ -49,7 +49,7 @@ function buildSignatureFixture({ localNodes }: { localNodes?: LocalNode[] }) {
   const rpcPort =
     node instanceof AnvilManager ? (node.getPort() ?? AnvilPort()) : undefined;
 
-  return new FixtureBuilder()
+  const fixture = new FixtureBuilder()
     .withNetworkController({
       chainId: '0x539',
       rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
@@ -59,6 +59,10 @@ function buildSignatureFixture({ localNodes }: { localNodes?: LocalNode[] }) {
     })
     .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
     .build();
+
+  fixture.state.browser.tabs[0].url = getDappUrlForFixture(0);
+
+  return fixture;
 }
 
 appiumTest.describe(SmokeConfirmations('Signature Requests'), () => {
@@ -102,7 +106,6 @@ appiumTest.describe(SmokeConfirmations('Signature Requests'), () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
 
             await navigateToBrowserView();
-            await Browser.navigateToTestDApp();
             await waitForTestDappToLoad();
 
             // cancel request
