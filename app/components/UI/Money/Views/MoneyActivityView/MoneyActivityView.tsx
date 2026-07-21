@@ -15,6 +15,8 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonBaseSize,
+  ButtonFilter,
   ButtonIconSize,
   ButtonIcon,
   ButtonSize,
@@ -314,14 +316,9 @@ const MoneyActivityView = () => {
         style={styles.filterScroll}
         contentContainerStyle={styles.filterRow}
       >
-        <Button
-          variant={
-            isActive(MoneyActivityFilter.All)
-              ? ButtonVariant.Primary
-              : ButtonVariant.Secondary
-          }
-          size={ButtonSize.Md}
-          twClassName="px-3"
+        <ButtonFilter
+          isActive={isActive(MoneyActivityFilter.All)}
+          size={ButtonBaseSize.Md}
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.All,
@@ -332,15 +329,10 @@ const MoneyActivityView = () => {
           testID={MoneyActivityViewTestIds.FILTER_ALL}
         >
           {strings(FILTER_LABEL_KEYS.all)}
-        </Button>
-        <Button
-          variant={
-            isActive(MoneyActivityFilter.Deposits)
-              ? ButtonVariant.Primary
-              : ButtonVariant.Secondary
-          }
-          size={ButtonSize.Md}
-          twClassName="px-3"
+        </ButtonFilter>
+        <ButtonFilter
+          isActive={isActive(MoneyActivityFilter.Deposits)}
+          size={ButtonBaseSize.Md}
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.Deposits,
@@ -351,15 +343,10 @@ const MoneyActivityView = () => {
           testID={MoneyActivityViewTestIds.FILTER_DEPOSITS}
         >
           {strings(FILTER_LABEL_KEYS.deposits)}
-        </Button>
-        <Button
-          variant={
-            isActive(MoneyActivityFilter.Transfers)
-              ? ButtonVariant.Primary
-              : ButtonVariant.Secondary
-          }
-          size={ButtonSize.Md}
-          twClassName="px-3"
+        </ButtonFilter>
+        <ButtonFilter
+          isActive={isActive(MoneyActivityFilter.Transfers)}
+          size={ButtonBaseSize.Md}
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.Transfers,
@@ -370,15 +357,10 @@ const MoneyActivityView = () => {
           testID={MoneyActivityViewTestIds.FILTER_TRANSFERS}
         >
           {strings(FILTER_LABEL_KEYS.transfers)}
-        </Button>
-        <Button
-          variant={
-            isActive(MoneyActivityFilter.Purchases)
-              ? ButtonVariant.Primary
-              : ButtonVariant.Secondary
-          }
-          size={ButtonSize.Md}
-          twClassName="px-3"
+        </ButtonFilter>
+        <ButtonFilter
+          isActive={isActive(MoneyActivityFilter.Purchases)}
+          size={ButtonBaseSize.Md}
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.Purchases,
@@ -389,7 +371,7 @@ const MoneyActivityView = () => {
           testID={MoneyActivityViewTestIds.FILTER_PURCHASES}
         >
           {strings(FILTER_LABEL_KEYS.purchases)}
-        </Button>
+        </ButtonFilter>
       </ScrollView>
 
       {isSettling ? (
