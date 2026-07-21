@@ -1,4 +1,12 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'fs';
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+  mkdirSync,
+} from 'fs';
+import { spawn } from 'child_process';
 
 /** Return only the data rows from the log file (skip the CSV header). */
 function dataLines(file: string): string[] {
@@ -150,6 +158,67 @@ describe('plugin-usage-tracking', () => {
       process.env.CI = '1';
       plugin.factory(); // returns {} when CI is set — no filesystem access
       expect(existsSync(logFile)).toBe(false);
+    });
+  });
+
+  describe('maybeTriggerAnonymizer guard', () => {
+    let homeDir: string;
+    let savedHome: string | undefined;
+    let spawnSpy: jest.SpiedFunction<typeof spawn>;
+
+    beforeEach(() => {
+      spawnSpy = jest
+        .spyOn(require('child_process'), 'spawn')
+        .mockImplementation(
+          () => ({ unref: jest.fn() }) as ReturnType<typeof spawn>,
+        );
+      homeDir = mkdtempSync(join(tmpdir(), 'plugin-trigger-home-'));
+      savedHome = process.env.HOME;
+      process.env.HOME = homeDir;
+      delete process.env.CI;
+      mkdirSync(join(homeDir, '.tool-usage-collection'), { recursive: true });
+    });
+
+    afterEach(() => {
+      spawnSpy.mockRestore();
+      rmSync(homeDir, { recursive: true, force: true });
+      if (savedHome === undefined) {
+        delete process.env.HOME;
+      } else {
+        process.env.HOME = savedHome;
+      }
+    });
+
+    async function runScript(scriptName: string): Promise<void> {
+      const { hooks } = plugin.factory();
+      const executor = jest.fn().mockResolvedValue(0);
+      const wrappedFactory = await hooks!.wrapScriptExecution(
+        executor,
+        null,
+        null,
+        scriptName,
+      );
+      await wrappedFactory();
+    }
+
+    it('does not spawn when last_run_at is within 24h', async () => {
+      writeFileSync(
+        join(homeDir, '.tool-usage-collection', 'anonymizer-state.json'),
+        JSON.stringify({
+          version: 1,
+          instance_uuid: 'uuid',
+          last_run_at: new Date().toISOString(),
+          last_pushed_day: null,
+        }),
+      );
+      await runScript('test:unit');
+      expect(spawnSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not spawn when CI is set', () => {
+      process.env.CI = '1';
+      expect(plugin.factory()).toEqual({});
+      expect(spawnSpy).not.toHaveBeenCalled();
     });
   });
 });
