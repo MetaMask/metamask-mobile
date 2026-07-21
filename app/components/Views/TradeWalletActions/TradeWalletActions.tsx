@@ -244,9 +244,17 @@ function TradeWalletActions() {
   const onPerpsModeChange = useCallback(
     (nextMode: PerpsMode) => {
       setPerpsMode(nextMode);
-      // Dismiss the Trade sheet, then show the full-screen mode-switch
-      // interstitial (which auto-redirects to Perps home).
+      // Dismiss the Trade sheet, then route the user into Perps.
       postCallback.current = () => {
+        // First-time users must still go through onboarding (same as tapping
+        // the Perps row): the mode-transition screen redirects to Perps home,
+        // which would skip the tutorial otherwise.
+        if (isFirstTimePerpsUser) {
+          navigate(Routes.PERPS.TUTORIAL);
+          return;
+        }
+        // Returning users see the full-screen mode-switch interstitial (which
+        // auto-redirects to Perps home).
         navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.MODE_TRANSITION,
           params: { mode: nextMode === PerpsMode.Pro ? 'pro' : 'lite' },
@@ -254,7 +262,7 @@ function TradeWalletActions() {
       };
       handleNavigateBack();
     },
-    [handleNavigateBack, navigate, setPerpsMode],
+    [handleNavigateBack, navigate, setPerpsMode, isFirstTimePerpsUser],
   );
 
   const onPredict = useCallback(() => {

@@ -748,6 +748,41 @@ describe('TradeWalletActions', () => {
     });
   });
 
+  it('routes first-time users to the Perps tutorial when the toggle switches mode', async () => {
+    (
+      selectPerpsEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectPerpsProModeEnabledFlag as jest.MockedFunction<
+        typeof selectPerpsProModeEnabledFlag
+      >
+    ).mockReturnValue(true);
+    (
+      selectIsFirstTimePerpsUser as jest.MockedFunction<
+        typeof selectIsFirstTimePerpsUser
+      >
+    ).mockReturnValue(true);
+
+    const { getByTestId } = renderScreen(
+      TradeWalletActions,
+      { name: 'TradeWalletActions' },
+      { state: mockInitialState },
+    );
+
+    await pressActionButton(getByTestId, 'perps-mode-toggle');
+
+    // Mode is still persisted, but onboarding is not skipped: the user is sent
+    // to the tutorial instead of the mode-transition/home shortcut.
+    expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL);
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.objectContaining({ screen: Routes.PERPS.MODE_TRANSITION }),
+    );
+  });
+
   it('should render the Predict button if the Predict feature flag is enabled', () => {
     (
       selectPredictEnabledFlag as jest.MockedFunction<
