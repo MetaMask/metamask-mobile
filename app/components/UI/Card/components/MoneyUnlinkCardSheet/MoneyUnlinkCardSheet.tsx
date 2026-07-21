@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -25,7 +26,7 @@ export interface MoneyUnlinkCardSheetRouteParams {
 
 const MoneyUnlinkCardSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const surfaceClass = useElevatedSurface();
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
