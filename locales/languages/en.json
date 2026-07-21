@@ -7497,7 +7497,7 @@
       "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
     },
     "what_you_get": {
-      "title": "Money account benefits",
+      "title": "Benefits",
       "benefit_auto_earn": "Auto-earn up to",
       "benefit_auto_earn_variable": "(variable)",
       "benefit_dollar_backed": "Keep your money secure in mUSD, a 1:1 dollar-backed stablecoin",
@@ -7523,7 +7523,7 @@
     "more_sheet": {
       "title": "More",
       "how_it_works": "How it works",
-      "what_you_get": "Money account benefits",
+      "what_you_get": "Benefits",
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
