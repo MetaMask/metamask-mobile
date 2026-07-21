@@ -589,6 +589,7 @@ jobs:
         run-ios-onboarding-tests,
         wait-for-onboarding-completion,
         determine-branch-name,
+        compute-test-selection,
       ]
     if: always()
     steps:
@@ -606,6 +607,9 @@ jobs:
         env:
           BRANCH_NAME: ${{ needs.determine-branch-name.outputs.branch_name }}
           BUILD_VARIANT: ${{ inputs.build_variant || 'e2e' }}
+          PERFORMANCE_TESTS_RUN: ${{ needs.compute-test-selection.outputs.run_tests }}
+          PERFORMANCE_TESTS_TAGS: ${{ inputs.performance_tags }}
+          PERFORMANCE_TESTS_SELECTION_REASONING: ${{ inputs.performance_tags_reasoning }}
         run: |
           echo "Processing all test results..."
           echo "Running aggregation script..."
