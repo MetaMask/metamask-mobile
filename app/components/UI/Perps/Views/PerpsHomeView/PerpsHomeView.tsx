@@ -113,7 +113,6 @@ import {
 } from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
-import { BottomSheetRef as ComponentLibraryBottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import PerpsMoreSection, {
   type PerpsMoreItem,
 } from '../../components/PerpsMoreSection';
@@ -210,7 +209,7 @@ const PerpsHomeView = ({
   const [showCloseAllSheet, setShowCloseAllSheet] = useState(false);
   const [showCancelAllSheet, setShowCancelAllSheet] = useState(false);
   const closeAllSheetRef = useRef<BottomSheetRef>(null);
-  const cancelAllSheetRef = useRef<ComponentLibraryBottomSheetRef>(null);
+  const cancelAllSheetRef = useRef<BottomSheetRef>(null);
 
   // Use hook for eligibility checks and action handlers
   // Pass button location for tracking deposit entry point

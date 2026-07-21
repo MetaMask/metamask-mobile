@@ -24,6 +24,15 @@ jest.mock('react-native-reanimated', () => {
   return Reanimated;
 });
 
+jest.mock('../../components/WatchlistEmptyCTA', () => {
+  const { View } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+  const Mock = () =>
+    ReactActual.createElement(View, { testID: 'watchlist-empty-cta' });
+  Mock.displayName = 'WatchlistEmptyCTA';
+  return Mock;
+});
+
 jest.mock('./WatchlistEditableRow', () => {
   const { Text, View } = jest.requireActual('react-native');
   const ReactActual = jest.requireActual('react');
@@ -130,9 +139,10 @@ describe('WatchlistFullScreenView', () => {
     expect(getByTestId('editable-row-eip155:1/erc20:0xeth')).toBeDefined();
   });
 
-  it('omits the token list when the watchlist is empty', () => {
-    const { queryByTestId } = render(<WatchlistFullScreenView />);
+  it('renders empty CTA when the watchlist is empty', () => {
+    const { getByTestId, queryByTestId } = render(<WatchlistFullScreenView />);
 
+    expect(getByTestId('watchlist-empty-cta')).toBeDefined();
     expect(
       queryByTestId(WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST),
     ).toBeNull();

@@ -4426,6 +4426,19 @@
     "percent_duplicate": "An alert with this configuration already exists.",
     "percent_max_down": "Price can't fall by more than 100%."
   },
+  "share_token": {
+    "title": "Share token info",
+    "share": "Share token info",
+    "market_cap": "Market cap",
+    "price": "Price",
+    "liquidity": "Liquidity",
+    "holders": "Holders",
+    "volume_24h": "24h volume",
+    "change_24h": "24h change",
+    "buy_on_metamask": "Buy on MetaMask",
+    "buy_on": "Buy on",
+    "metamask": "MetaMask"
+  },
   "asset_overview": {
     "market_closed": "Market closed",
     "send_button": "Send",
@@ -10455,6 +10468,8 @@
     "fullscreen_title": "Watchlist",
     "tokens_tab": "Tokens",
     "edit": "Edit",
-    "done": "Done"
+    "done": "Done",
+    "empty_add_tokens_cta": "Add {{count}} token",
+    "empty_add_tokens_cta_plural": "Add {{count}} tokens"
   }
 }
