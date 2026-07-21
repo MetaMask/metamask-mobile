@@ -1,6 +1,7 @@
 import type { TokenI } from '../../Tokens/types';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { CaipAssetType } from '@metamask/utils';
 
 /**
  * Source of navigation to Token Details page
@@ -26,12 +27,24 @@ export enum TokenDetailsSource {
   ExploreSearch = 'explore_search',
   /** Trending tokens section on the Swaps / Bridge view */
   TrendingSwaps = 'trending-swaps',
+  /** Swap discovery feed — hot tokens / movers pills */
+  MoversSwaps = 'movers-swaps',
+  /** Swap discovery feed — stocks section */
+  RwasStocksSwaps = 'rwas_stocks-swaps',
   /** Dedicated homepage trending-tokens section (A/B treatment layout) */
   HomepageTrending = 'homepage-trending',
   /** Swap/Bridge token selector */
   Swap = 'swap',
   /** Price alert notification deeplink */
   PriceAlertNotification = 'price_alert_notification',
+  /** Watchlist section on the homepage */
+  WatchlistHomepage = 'watchlist_homepage',
+  /** Full-screen watchlist view */
+  WatchlistFullscreen = 'watchlist_fullscreen',
+  /** Full-screen watchlist search */
+  WatchlistFullscreenSearch = 'watchlist_fullscreen_search',
+  /** Explore Trending Tokens — watchlist filter pill active */
+  ExploreWatchlistFilter = 'explore_watchlist_filter',
   /** Fallback when source cannot be determined */
   Unknown = 'unknown',
 }
@@ -43,6 +56,7 @@ const EXPLORE_TOKEN_DETAILS_SOURCES = new Set<TokenDetailsSource>([
   TokenDetailsSource.ExploreRwasStocks,
   TokenDetailsSource.ExploreSearch,
   TokenDetailsSource.Trending,
+  TokenDetailsSource.ExploreWatchlistFilter,
 ]);
 
 /**
@@ -72,6 +86,8 @@ export enum TokenDetailsAction {
 export interface TokenDetailsRouteParams extends TokenI {
   source?: TokenDetailsSource;
   securityData?: TokenSecurityData;
+  /** CAIP-19 asset id when known at navigation time (e.g. watchlist / trending rows). */
+  caipAssetId?: CaipAssetType;
   /** Carried into swap / perps / predict flows for tx-scoped `active_ab_tests` */
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
@@ -86,6 +102,6 @@ export type TokenDetailsExitAction =
 
 /**
  * Technical indicators that occupy a sub-pane below the main chart.
- * Keep in sync with SUB_PANE_INDICATOR_NAMES in chartLogic.js.
+ * Derived from `buildIndicatorLegendConfig` — no manual sync needed.
  */
-export const SUB_PANE_INDICATORS = ['MACD', 'RSI'] as const;
+export { SUB_PANE_INDICATORS } from '../../Charts/AdvancedChart/indicatorColors';

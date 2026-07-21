@@ -687,8 +687,31 @@ describe('TraderProfileView', () => {
         tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
         position: fixtureOpenPositions[0],
         source: 'profile_position',
+        originalEntryPoint: 'leaderboard',
         isClosed: false,
       },
+    );
+  });
+
+  it('tracks Trader Profile Position Clicked with perps_market for a perp row', () => {
+    mockPositionsResult.openPositions = [
+      ...fixtureOpenPositions,
+      fixturePerpOpenPosition,
+    ];
+
+    renderWithProvider(<TraderProfileView />);
+
+    fireEvent.press(screen.getByTestId('position-row-BTC'));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_PROFILE_POSITION_CLICKED,
+      expect.objectContaining({
+        trader_address: '0xabc',
+        asset_name: 'BTC',
+        chain_name: 'hyperliquid',
+        perps_market: 'BTC',
+        is_open: true,
+      }),
     );
   });
 
@@ -938,6 +961,7 @@ describe('TraderProfileView', () => {
           source: 'trader_profile',
           traderAddress: '0xabc',
           traderUsername: 'trader1',
+          traderAvatarUri: fixtureProfile.profile.imageUrl,
         }),
       );
     });

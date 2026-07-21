@@ -17,6 +17,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  SensitiveText,
+  SensitiveTextLength,
   Skeleton,
   Text,
   TextColor,
@@ -25,6 +27,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../component-library/hooks';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
@@ -44,6 +47,7 @@ import {
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 
 const MoneyBalanceCard = () => {
   const tw = useTailwind();
@@ -70,6 +74,7 @@ const MoneyBalanceCard = () => {
   const hasOtherPrimaryCtaOnHome = useSelector(
     selectHasWalletFundingPrimaryCta,
   );
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const {
     trackButtonClicked,
@@ -149,31 +154,37 @@ const MoneyBalanceCard = () => {
     trackSurfaceClicked,
   ]);
 
-  const handleAddPress = useCallback(() => {
-    if (!hasSeenMoneyOnboarding && isOnboardingEnabled) {
-      trackButtonClicked({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
-        label_key: buttonLabelKey,
-        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+  const handleAddPress = useCallback(async () => {
+    const redirectedToOnboarding =
+      !hasSeenMoneyOnboarding && isOnboardingEnabled;
+
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: redirectedToOnboarding
+        ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
+        : MONEY_BUTTON_INTENTS.ADD_MONEY,
+      label_key: buttonLabelKey,
+      redirect_target: redirectedToOnboarding
+        ? SCREEN_NAMES.MONEY_ONBOARDING
+        : SCREEN_NAMES.MONEY_DEPOSIT,
+    });
+
+    if (redirectedToOnboarding) {
+      navigation.navigate(Routes.MONEY.ONBOARDING, {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+        },
       });
-      navigation.navigate(Routes.MONEY.ONBOARDING);
       return;
     }
 
-    // Initiate deposit
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-      label_key: buttonLabelKey,
-      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-    });
-
-    initiateDeposit().catch((error) =>
+    try {
+      await initiateDeposit();
+    } catch (error) {
       Logger.error(error as Error, {
         message: '[MoneyBalanceCard] Failed to initiate deposit',
-      }),
-    );
+      });
+    }
   }, [
     hasSeenMoneyOnboarding,
     initiateDeposit,
@@ -253,14 +264,16 @@ const MoneyBalanceCard = () => {
       );
     }
     return (
-      <Text
+      <SensitiveText
         variant={TextVariant.HeadingMd}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextDefault}
+        isHidden={privacyMode}
+        length={SensitiveTextLength.Medium}
         testID={MoneyBalanceCardTestIds.BALANCE}
       >
         {balanceText}
-      </Text>
+      </SensitiveText>
     );
   };
 

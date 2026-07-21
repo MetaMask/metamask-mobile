@@ -98,6 +98,23 @@ export const POST_QUOTE_TRANSACTION_TYPES = [
  */
 export const USER_CURRENCY_TYPES = [TransactionType.musdClaim] as const;
 
+/**
+ * Transaction types that participate in the pay flow (deposits, orders,
+ * conversions, withdrawals). Token/amount displays inside these confirmations
+ * are priced in USD unless the type is also in {@link USER_CURRENCY_TYPES}.
+ */
+export const PAY_TRANSACTION_TYPES = [
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
+  TransactionType.musdConversion,
+  TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
+  TransactionType.predictDeposit,
+  TransactionType.predictDepositAndOrder,
+  TransactionType.predictWithdraw,
+] as const;
+
 export const RELAY_DEPOSIT_TYPES = [
   TransactionType.relayDeposit,
   TransactionType.musdRelayDeposit,
@@ -125,4 +142,18 @@ export const MM_PAY_TRANSACTION_TYPES = [
  */
 export const QUOTE_REQUIRED_TRANSACTION_TYPES = [
   TransactionType.moneyAccountDeposit,
+] as const;
+
+/**
+ * MetaMask Pay transaction types that cannot work without a payment token
+ * (unless paying with fiat). Confirmation is blocked and publish throws when
+ * no payment token is set. Claims and withdraws are excluded because they can
+ * legitimately submit without engaging MetaMask Pay.
+ */
+export const PAY_TOKEN_REQUIRED_TRANSACTION_TYPES = [
+  TransactionType.musdConversion,
+  TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
+  TransactionType.predictDeposit,
+  TransactionType.predictDepositAndOrder,
 ] as const;

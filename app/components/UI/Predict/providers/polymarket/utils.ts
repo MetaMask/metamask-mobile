@@ -29,12 +29,15 @@ import {
   type TeamLookup,
 } from '../../utils/gameParser';
 import {
-  getNegRiskMoneylineTeamLogo,
   isDrawCapableLeague,
   isMoneylineLikeMarketType,
-  resolveNegRiskMoneylineShortTitles,
   SUPPORTED_SPORTS_LEAGUES,
 } from '../../constants/sports';
+import { getTokenImage } from '../../utils/sports';
+import {
+  getSportsMarketTeamLogo,
+  resolveNegRiskMoneylineShortTitles,
+} from './sportsUtils';
 import type {
   GetMarketsParams,
   OrderPreview,
@@ -813,10 +816,17 @@ const parsePolymarketMarketOutcomes = (
         shortTitle = negRiskShort.noShort;
       }
 
+      const tokenImage = getTokenImage({
+        sportsMarketType: market.sportsMarketType,
+        tokenTitle: title,
+        game,
+      });
+
       return {
         id: tokenId,
         title,
         ...(shortTitle && { shortTitle }),
+        ...(tokenImage && { image: tokenImage }),
         price: parseFloat(outcomePrices[index]),
       };
     },
@@ -915,8 +925,7 @@ export const parsePolymarketMarket = (
   marketId: event.id,
   title: market.question,
   description: market.description,
-  image:
-    getNegRiskMoneylineTeamLogo(market, game) ?? market.icon ?? market.image,
+  image: getSportsMarketTeamLogo(market, game) ?? market.icon ?? market.image,
   groupItemTitle: formatMarketGroupItemTitle(market),
   groupItemThreshold:
     market.groupItemThreshold != null
@@ -1434,6 +1443,12 @@ export interface PolymarketRelatedTag {
   id: string | number;
   label?: string;
   slug: string;
+  /**
+   * Active event count for the tag. `omit_empty=true` only drops globally-empty
+   * tags, so a tag can still surface here with zero markets under the applied
+   * params; we skip those (see `normalizeRelatedTagsToFilterOptions`).
+   */
+  activeEventsCount?: number;
 }
 
 /**
@@ -1500,6 +1515,13 @@ export const normalizeRelatedTagsToFilterOptions = (
     // Check the cap before adding so `limit: 0` yields an empty list.
     if (limit !== undefined && options.length >= limit) {
       break;
+    }
+
+    // Skip tags with no active events so empty chips (e.g. "Other") never render.
+    // Fail-open: a missing count is kept (best-effort, matches prior behavior).
+    // Placed before the limit accounting so empty tags don't consume a slot.
+    if (tag?.activeEventsCount === 0) {
+      continue;
     }
 
     const slug = tag?.slug?.trim();

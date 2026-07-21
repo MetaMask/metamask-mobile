@@ -10,6 +10,7 @@ import { AccountType } from '../../../constants/onboarding';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -34,10 +35,13 @@ jest.mock('../../../util/analytics/analytics', () => ({
 }));
 
 jest.mock(
-  '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility',
+  '../../../hooks/useOnboardingInterestQuestionnaireEligibility',
   () => ({
-    useOnboardingInterestQuestionnaireEligibility: () => (): Promise<boolean> =>
-      Promise.resolve(false),
+    useOnboardingInterestQuestionnaireEligibility: () => ({
+      shouldShowQuestionnaire: false,
+      variantName: 'control',
+      isActive: false,
+    }),
   }),
 );
 
@@ -88,6 +92,9 @@ jest.mock('../../../core/AppStateEventListener', () => ({
 
 jest.mock('../../../util/analytics/walletSetupCompletedAttribution', () => ({
   getWalletSetupAttributionPropsFromStore: jest.fn().mockReturnValue({}),
+  getWalletSetupCompletedAttributionAnalyticsProps: jest
+    .fn()
+    .mockReturnValue({}),
 }));
 
 jest.mock(
@@ -96,6 +103,11 @@ jest.mock(
     scheduleBufferedOnboardingEventReplay: jest.fn(),
   }),
 );
+
+jest.mock('../../../selectors/qrSyncController', () => ({
+  ...jest.requireActual('../../../selectors/qrSyncController'),
+  selectQrSyncNeedsProvisioning: jest.fn(),
+}));
 
 jest.doMock('react-native', () => {
   const originalRN = jest.requireActual('react-native');
@@ -110,6 +122,7 @@ jest.doMock('react-native', () => {
 describe('OptinMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(selectQrSyncNeedsProvisioning).mockReturnValue(false);
     mockAppStateEventProcessor.pendingDeeplink = null;
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({

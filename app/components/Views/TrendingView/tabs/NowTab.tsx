@@ -1,5 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import {
+  useIsFocused,
+  useNavigation,
+  NavigationProp,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -12,8 +16,6 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../../UI/Predict';
-import { usePerpsLivePrices } from '../../../UI/Perps/hooks/stream';
-import { formatPercentage } from '../../../UI/Perps/utils/formatUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
@@ -25,12 +27,13 @@ import CryptoMoversSkeleton from '../feeds/tokens/CryptoMoversSkeleton';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { TimeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import {
-  filterAndSortByPriceChangeDirection,
   PERPS_PRICE_CHANGE_SORT_DIRECTION,
   usePerpsFeed,
   type PerpsFeedItem,
   type PerpsPriceChangeDirection,
 } from '../feeds/perps/usePerpsFeed';
+import { usePerpsLiveMovers } from '../feeds/perps/usePerpsLiveMovers';
+import { useExploreActiveTab } from '../ExploreActiveTabContext';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 import PerpsPillItem from '../feeds/perps/PerpsPillItem';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
@@ -65,16 +68,57 @@ import {
   useWhatsHappening,
 } from '../../../UI/WhatsHappening/hooks';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
-import { useABTest } from '../../../../hooks';
-import {
-  WHATS_HAPPENING_EXPLORE_AB_KEY,
-  WHATS_HAPPENING_EXPLORE_VARIANTS,
-} from '../abTestConfig';
 
 interface PerpsBlockProps {
   refresh: TabProps['refresh'];
   navigation: NavigationProp<PerpsNavigationParamList>;
 }
+
+interface PerpsMoverPillProps {
+  item: PerpsFeedItem;
+  index: number;
+}
+
+/**
+ * Wraps `PerpsPillItem` with a stable `onCardPress`, so unchanged items
+ * (which `usePerpsLiveMovers` keeps at the same object identity — see that
+ * hook) actually skip re-rendering through `PerpsPillItem`'s `React.memo`.
+ * An inline `onCardPress` passed directly at the `renderItem` call site
+ * would be a new function on every render, busting that memoization.
+ */
+const PerpsMoverPill: React.FC<PerpsMoverPillProps> = React.memo(
+  ({ item, index }) => {
+    const onCardPress = useCallback(
+      () =>
+        trackExploreInteracted({
+          interaction_type: 'section_item_tapped',
+          tab_name: 'Now',
+          section_name: 'perps_movers',
+          asset_type: 'perp',
+          position: index,
+          item_clicked: item.market.symbol,
+        }),
+      [index, item.market.symbol],
+    );
+
+    return (
+      <PerpsPillItem
+        item={item}
+        marketDetailsSourceSection="perps_movers"
+        onCardPress={onCardPress}
+      />
+    );
+  },
+);
+
+// Matches PillScrollList's default maxPills — PerpsBlock doesn't override it,
+// so the movers hook should rank/display exactly as many as will be shown.
+const PERPS_MOVERS_MAX_COUNT = 12;
+
+// Pills only ever show a 24h percent change, so re-ranking the top-N more
+// often than this is wasted work — batch the ranking pass to at most once
+// per interval regardless of how often price ticks arrive.
+const PERPS_MOVERS_RECOMPUTE_INTERVAL_MS = 10_000;
 
 const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
   const [activeMoverDirection, setActiveMoverDirection] =
@@ -85,49 +129,32 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
     withTileExtras: false,
   });
 
-  const symbols = useMemo(
-    () => perps.data.map(({ market }) => market.symbol),
-    [perps.data],
-  );
-  const livePrices = usePerpsLivePrices({ symbols, throttleMs: 3000 });
-
   const handleMoverPillSelect = (key: string) => {
     if (key === 'gainers' || key === 'losers') {
       setActiveMoverDirection(key);
     }
   };
 
-  const data = useMemo<PerpsFeedItem[]>(() => {
-    const feedItemsBySymbol = new Map(
-      perps.data.map((item) => [item.market.symbol, item]),
-    );
-    const marketsWithLivePrices = perps.data.map(({ market }) => {
-      const livePrice = livePrices[market.symbol];
-      if (!livePrice?.percentChange24h) {
-        return market;
-      }
+  // Pause the live subscription when the Explore screen isn't focused (e.g.
+  // user navigated to another bottom tab) or the Now tab isn't the active
+  // one (TabsList keeps every tab mounted, so switching tabs doesn't
+  // unmount PerpsBlock on its own).
+  const isScreenFocused = useIsFocused();
+  const activeExploreTab = useExploreActiveTab();
+  const isMoversSubscriptionEnabled =
+    isScreenFocused && activeExploreTab === 'Now';
 
-      const changePercent = parseFloat(livePrice.percentChange24h);
-      if (Number.isNaN(changePercent)) {
-        return market;
-      }
-
-      return {
-        ...market,
-        change24hPercent: formatPercentage(changePercent),
-      };
-    });
-    const markets = filterAndSortByPriceChangeDirection(
-      marketsWithLivePrices,
-      activeMoverDirection,
-    );
-    return markets
-      .map((market) => {
-        const item = feedItemsBySymbol.get(market.symbol);
-        return item ? { ...item, market } : undefined;
-      })
-      .filter((item): item is PerpsFeedItem => item !== undefined);
-  }, [activeMoverDirection, livePrices, perps.data]);
+  // Observes live percent-change for every market on a ref between ticks and
+  // only commits state when the displayed top-N (matches PillScrollList's
+  // default maxPills) actually changes — see usePerpsLiveMovers for why this
+  // is cheap despite watching the whole market set.
+  const data = usePerpsLiveMovers({
+    items: perps.data,
+    direction: activeMoverDirection,
+    maxCount: PERPS_MOVERS_MAX_COUNT,
+    recomputeIntervalMs: PERPS_MOVERS_RECOMPUTE_INTERVAL_MS,
+    enabled: isMoversSubscriptionEnabled,
+  });
   const pillData =
     data.length === 0 &&
     perps.data.length > 0 &&
@@ -158,7 +185,7 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
         tabName="Now"
         sectionName="perps_movers"
       />
-      <Box twClassName="mb-3">
+      <Box twClassName="px-4 mb-3">
         <SegmentedControl
           value={activeMoverDirection}
           onChange={handleMoverPillSelect}
@@ -177,20 +204,7 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
         data={pillData}
         isLoading={perps.isLoading}
         renderItem={(item, index) => (
-          <PerpsPillItem
-            item={item}
-            marketDetailsSourceSection="perps_movers"
-            onCardPress={() =>
-              trackExploreInteracted({
-                interaction_type: 'section_item_tapped',
-                tab_name: 'Now',
-                section_name: 'perps_movers',
-                asset_type: 'perp',
-                position: index,
-                item_clicked: item.market.symbol,
-              })
-            }
-          />
+          <PerpsMoverPill item={item} index={index} />
         )}
         keyExtractor={(item) => item.market.symbol}
         Skeleton={CryptoMoversSkeleton}
@@ -215,10 +229,6 @@ const NowTabContent: React.FC<TabProps> = ({
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
-  const { variant: whatsHappeningExploreVariant } = useABTest(
-    WHATS_HAPPENING_EXPLORE_AB_KEY,
-    WHATS_HAPPENING_EXPLORE_VARIANTS,
-  );
 
   const whatsHappening = useWhatsHappening(MAX_ITEMS_DISPLAYED);
   const refreshWhatsHappening = whatsHappening.refresh;
@@ -290,50 +300,31 @@ const NowTabContent: React.FC<TabProps> = ({
 
   const sections = useMemo((): ExploreSectionItem[] => {
     const items: ExploreSectionItem[] = [];
-    const whFirst = whatsHappeningExploreVariant.whatsHappeningBeforePredict;
 
-    const whatsHappeningSection: ExploreSectionItem = {
-      key: 'wh',
-      content: (
-        <WhatsHappeningSection
-          source={WhatsHappeningSource.Explore}
-          feed={whatsHappening}
-          tabName="Now"
-          sectionName="whats_happening"
-        />
-      ),
-    };
-
-    const predictionsSection: ExploreSectionItem = {
-      key: 'predict',
-      content: (
-        <PredictionsCarouselSection
-          feed={displayedPredictions}
-          tabName="Now"
-          sectionName="predictions_trending"
-          title={
-            worldCupPredictions.isEnabled
-              ? strings('predict.world_cup.predictions_title')
-              : strings('wallet.predict')
-          }
-          testIdPrefix="predict-market-row-item"
-          idPrefix="predictions"
-          onViewAll={() =>
-            worldCupPredictions.isEnabled
-              ? navigateToExploreWorldCupPredictions(navigation)
-              : navigateToExplorePredictionsList(navigation, 'trending')
-          }
-          isEnabled={isPredictEnabled}
-        />
-      ),
-    };
-
-    if (whFirst) {
-      if (showWhatsHappening) items.push(whatsHappeningSection);
-      if (showPredictions) items.push(predictionsSection);
-    } else {
-      if (showPredictions) items.push(predictionsSection);
-      if (showWhatsHappening) items.push(whatsHappeningSection);
+    if (showPredictions) {
+      items.push({
+        key: 'predict',
+        content: (
+          <PredictionsCarouselSection
+            feed={displayedPredictions}
+            tabName="Now"
+            sectionName="predictions_trending"
+            title={
+              worldCupPredictions.isEnabled
+                ? strings('predict.world_cup.predictions_title')
+                : strings('wallet.predict')
+            }
+            testIdPrefix="predict-market-row-item"
+            idPrefix="predictions"
+            onViewAll={() =>
+              worldCupPredictions.isEnabled
+                ? navigateToExploreWorldCupPredictions(navigation)
+                : navigateToExplorePredictionsList(navigation, 'trending')
+            }
+            isEnabled={isPredictEnabled}
+          />
+        ),
+      });
     }
 
     if (showCryptoMovers) {
@@ -394,6 +385,20 @@ const NowTabContent: React.FC<TabProps> = ({
       });
     }
 
+    if (showWhatsHappening) {
+      items.push({
+        key: 'wh',
+        content: (
+          <WhatsHappeningSection
+            source={WhatsHappeningSource.Explore}
+            feed={whatsHappening}
+            tabName="Now"
+            sectionName="whats_happening"
+          />
+        ),
+      });
+    }
+
     if (showStocks) {
       items.push({
         key: 'stocks',
@@ -423,7 +428,6 @@ const NowTabContent: React.FC<TabProps> = ({
 
     return items;
   }, [
-    whatsHappeningExploreVariant.whatsHappeningBeforePredict,
     showWhatsHappening,
     showPredictions,
     showCryptoMovers,

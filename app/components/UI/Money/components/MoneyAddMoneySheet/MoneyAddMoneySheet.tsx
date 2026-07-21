@@ -9,10 +9,7 @@ import { Platform, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
-import {
-  TransactionStatus,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import { createProjectLogger, Hex } from '@metamask/utils';
 import {
   BottomSheet,
@@ -27,6 +24,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import {
@@ -34,9 +32,9 @@ import {
   type InitiateDepositOptions,
 } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
-import { useRegionHasNativeFiatProvider } from '../../hooks/useRegionHasNativeFiatProvider';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
-import { selectTransactions } from '../../../../../selectors/transactionController';
+import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
+import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDepositAssetId';
+import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import MoneySheetOptionsList, {
   type MoneySheetOption,
@@ -51,6 +49,7 @@ import {
   COMPONENT_NAMES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 
 const log = createProjectLogger('money-add-money-sheet');
 
@@ -58,11 +57,9 @@ const MoneyAddMoneySheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const surfaceClass = useElevatedSurface();
 
   const {
     fiatBalanceAggregated,
-    fiatBalanceAggregatedFormatted,
     hasMusdBalanceOnAnyChain,
     tokenBalanceAggregated,
     tokenBalanceByChain,
@@ -70,26 +67,22 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
-  const transactions = useSelector(selectTransactions);
-  const regionHasNativeFiatProvider = useRegionHasNativeFiatProvider();
+  const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
+  // Derive the deposit asset (CAIP-19) from the same vault config the deposit
+  // flow uses, so the entry gate checks the exact asset the deposit targets.
+  const depositAssetId = useMoneyAccountDepositAssetId();
+  const regionHasFiatProvider = useRegionHasFiatProvider(depositAssetId);
   const isFiatDepositEnabled = useMemo(
     () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
     [enabledTransactionTypes],
   );
+  const canDepositFiat = isFiatDepositEnabled && regionHasFiatProvider;
 
   const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
   });
 
   useMountEffect(trackBottomSheetViewed);
-
-  const hasPendingTransaction = useMemo(
-    () =>
-      (transactions ?? []).some(
-        (tx) => tx.status === TransactionStatus.unapproved,
-      ),
-    [transactions],
-  );
 
   // When a deposit is requested while a stale transaction is still pending, we
   // reject it and stash the requested options here until it clears — see the
@@ -119,13 +112,13 @@ const MoneyAddMoneySheet: React.FC = () => {
     (options?: InitiateDepositOptions) => {
       if (hasPendingTransaction) {
         log('Rejecting pending transaction before starting deposit');
-        rejectPendingTransactions(transactions ?? []);
+        rejectPendingTransactions();
         setDeferredDeposit({ options });
         return;
       }
       closeAndStartDeposit(options);
     },
-    [hasPendingTransaction, transactions, closeAndStartDeposit],
+    [hasPendingTransaction, closeAndStartDeposit],
   );
 
   useEffect(() => {
@@ -149,7 +142,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
-    startDeposit();
+    startDeposit({ intent: 'convert' });
   }, [startDeposit, trackSurfaceClicked]);
 
   const handleDepositFunds = useCallback(() => {
@@ -161,7 +154,26 @@ const MoneyAddMoneySheet: React.FC = () => {
     startDeposit({ autoSelectFiatPayment: true, intent: 'card' });
   }, [startDeposit, trackSurfaceClicked]);
 
+  const parsedMusdFiat = Number(fiatBalanceAggregated);
+  const hasParsedFiatBalance =
+    Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
+  const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
+
   const handleMoveMusd = useCallback(() => {
+    // With no mUSD anywhere there is nothing to move, so the row funds the
+    // money account through the MM Pay fiat deposit (debit card / Apple Pay)
+    // instead — the money account is only ever funded via MM Pay, never the
+    // standalone Ramps flow.
+    if (!hasMusdBalance) {
+      trackSurfaceClicked({
+        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_MUSD,
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      });
+
+      startDeposit({ autoSelectFiatPayment: true, intent: 'card' });
+      return;
+    }
+
     let sourceChainId: Hex = MUSD_CONVERSION_DEFAULT_CHAIN_ID;
     let bestBalance = new BigNumber(0);
     for (const [chainId, balance] of Object.entries(
@@ -186,18 +198,15 @@ const MoneyAddMoneySheet: React.FC = () => {
         chainId: sourceChainId,
       },
     });
-  }, [startDeposit, tokenBalanceByChain, trackSurfaceClicked]);
+  }, [hasMusdBalance, startDeposit, tokenBalanceByChain, trackSurfaceClicked]);
 
-  const parsedMusdFiat = Number(fiatBalanceAggregated);
-  const hasParsedFiatBalance =
-    Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
-  const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
-
-  const moveMusdAmount = hasParsedFiatBalance
-    ? fiatBalanceAggregatedFormatted
-    : new BigNumber(tokenBalanceAggregated).toFixed(2);
-  const moveMusdLabel = hasMusdBalance
-    ? strings('money.add_money_sheet.move_musd', { amount: moveMusdAmount })
+  const moveMusdAmount = useMemo(
+    () => moneyFormatUsd(new BigNumber(tokenBalanceAggregated)),
+    [tokenBalanceAggregated],
+  );
+  // Mask only the amount; keep the mUSD symbol visible in privacy mode.
+  const moveMusdLabel: MoneySheetOption['label'] = hasMusdBalance
+    ? { maskedText: moveMusdAmount, suffix: MUSD_TOKEN.symbol }
     : strings('money.add_money_sheet.add_musd');
 
   const baseOptions: MoneySheetOption[] = [
@@ -208,7 +217,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       disabled: !hasAnyCryptoBalance,
     },
-    ...(isFiatDepositEnabled && regionHasNativeFiatProvider
+    ...(canDepositFiat
       ? [
           {
             label: strings(
@@ -231,7 +240,9 @@ const MoneyAddMoneySheet: React.FC = () => {
       icon: IconName.Add,
       onPress: handleMoveMusd,
       testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
-      disabled: !hasMusdBalance,
+      // Without mUSD the row falls back to the MM Pay fiat deposit, so it is
+      // only actionable when that flow is available.
+      disabled: !hasMusdBalance && !canDepositFiat,
     },
     {
       label: strings('money.add_money_sheet.bank_account'),
@@ -255,7 +266,6 @@ const MoneyAddMoneySheet: React.FC = () => {
       goBack={handleGoBack}
       testID={MoneyAddMoneySheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingSm}>

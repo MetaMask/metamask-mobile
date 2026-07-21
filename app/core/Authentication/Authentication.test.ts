@@ -207,8 +207,15 @@ jest.mock('../Engine', () => ({
     MultichainAccountService: {
       init: jest.fn().mockResolvedValue(undefined),
       resyncAccounts: jest.fn().mockImplementation(() => mockResyncAccounts()),
-      createMultichainAccountWallet: jest.fn(),
+      createMultichainAccountWallet: jest.fn().mockResolvedValue({
+        entropySource: 'primary-entropy-source',
+      }),
       removeMultichainAccountWallet: jest.fn(),
+    },
+
+    QrSyncController: {
+      enrichPrimaryProvisioningEntry: jest.fn(),
+      importRemainingSecrets: jest.fn().mockResolvedValue(undefined),
     },
   },
 }));
@@ -1407,6 +1414,42 @@ describe('Authentication', () => {
         );
         expect(restoreMockDispatch).toHaveBeenCalledWith(setExistingUser(true));
         expect(restoreMockDispatch).toHaveBeenCalledWith(logIn());
+      });
+
+      it('imports remaining QR sync secrets after primary vault restore', async () => {
+        const Engine = jest.requireMock('../Engine');
+        const PRIMARY_ENTROPY_SOURCE = 'primary-entropy-source';
+
+        await Authentication.newWalletAndRestore(
+          'password',
+          { currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC },
+          'test seed phrase',
+          true,
+          true,
+        );
+
+        expect(
+          Engine.context.QrSyncController.enrichPrimaryProvisioningEntry,
+        ).toHaveBeenCalledWith(PRIMARY_ENTROPY_SOURCE);
+        expect(
+          Engine.context.QrSyncController.importRemainingSecrets,
+        ).toHaveBeenCalledWith();
+      });
+
+      it('does not import remaining QR sync secrets when isQrSync is false', async () => {
+        const Engine = jest.requireMock('../Engine');
+
+        await Authentication.newWalletAndRestore(
+          'password',
+          { currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC },
+          'test seed phrase',
+          true,
+          false,
+        );
+
+        expect(
+          Engine.context.QrSyncController.importRemainingSecrets,
+        ).not.toHaveBeenCalled();
       });
 
       it('resyncs accounts after login', async () => {
@@ -3184,6 +3227,7 @@ describe('Authentication', () => {
     beforeEach(() => {
       // Reset mocks
       jest.clearAllMocks();
+      mockHdKeyringV2.getAccounts.mockResolvedValue([{ address: mockAddress }]);
 
       // Setup Engine context mocks
       Engine.context.KeyringController = {
@@ -3209,6 +3253,7 @@ describe('Authentication', () => {
         createMultichainAccountWallet: jest
           .fn()
           .mockResolvedValue(mockMultichainAccountWallet),
+        removeMultichainAccountWallet: jest.fn(),
       } as unknown as MultichainAccountService;
 
       Engine.context.SeedlessOnboardingController = {

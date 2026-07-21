@@ -224,7 +224,7 @@ class AuthenticationService {
     password: string,
     seed: string,
     clearEngine: boolean,
-  ): Promise<void> => {
+  ): Promise<EntropySourceId> => {
     // Restore vault with user entered password
     if (clearEngine) await Engine.resetState();
 
@@ -232,14 +232,17 @@ class AuthenticationService {
 
     const mnemonic = mnemonicPhraseToBytes(seed);
 
-    await MultichainAccountService.createMultichainAccountWallet({
-      type: 'restore',
-      password,
-      mnemonic,
-    });
+    const wallet = await MultichainAccountService.createMultichainAccountWallet(
+      {
+        type: 'restore',
+        password,
+        mnemonic,
+      },
+    );
 
     password = this.wipeSensitiveData();
     seed = this.wipeSensitiveData();
+    return wallet.entropySource;
   };
 
   private retryAccountDiscovery = async (discovery: () => Promise<void>) => {
@@ -592,15 +595,29 @@ class AuthenticationService {
    * @param authData - type of authentication required to fetch password from keychain
    * @param parsedSeed - provides the parsed SRP
    * @param clearEngine - this boolean clears the engine data on new wallet
+   * @param isQrSync - this boolean indicates if the wallet is being created from QR sync
    */
   newWalletAndRestore = async (
     password: string,
     authData: AuthData,
     parsedSeed: string,
     clearEngine: boolean,
+    isQrSync: boolean = false,
   ): Promise<void> => {
     try {
-      await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
+      const primaryEntropySource = await this.newWalletVaultAndRestore(
+        password,
+        parsedSeed,
+        clearEngine,
+      );
+
+      if (isQrSync) {
+        Engine.context.QrSyncController.enrichPrimaryProvisioningEntry(
+          primaryEntropySource,
+        );
+        await Engine.context.QrSyncController.importRemainingSecrets();
+      }
+
       await this.storePassword(password, authData.currentAuthType, true);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
@@ -678,8 +695,7 @@ class AuthenticationService {
         passcodeAvailable,
       });
 
-      // Ex - "Face ID", "Device Passcode", "Password"
-      const authLabel = getAuthLabel({
+      const authLabelKey = getAuthLabel({
         allowLoginWithRememberMe,
         legacyUserChoseBiometrics,
         legacyUserChosePasscode,
@@ -687,9 +703,10 @@ class AuthenticationService {
         passcodeAvailable,
         supportedBiometricTypes,
       });
+      const authLabel = strings(authLabelKey);
 
       const authDescription =
-        authLabel === 'Device Authentication'
+        authLabelKey === 'authentication.labels.device_authentication'
           ? strings('app_settings.enable_device_authentication_desc')
           : undefined;
 

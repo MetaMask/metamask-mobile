@@ -1,4 +1,5 @@
 import React from 'react';
+import type { SharedValue } from 'react-native-reanimated';
 import {
   fireEvent,
   render,
@@ -7,6 +8,7 @@ import {
 } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { TransactionType } from '@metamask/transaction-controller';
 import ActivityList, { type ActivityListHandle } from './ActivityList';
 import { ActivityListSelectorsIDs } from './ActivityList.testIds';
 import { getPreloadedActivityItem } from './preloadedActivityItemStore';
@@ -318,24 +320,14 @@ jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
     return (
       <TouchableOpacity testID={`row-${hash}`} onPress={() => onPress(item)}>
         <Text testID={`row-kind-${hash}`}>{item.type}</Text>
+        <Text testID={`row-status-${hash}`}>{item.status}</Text>
+        <Text testID={`row-raw-${hash}`}>{item.raw?.type}</Text>
         <Text>{title ?? item.hash}</Text>
       </TouchableOpacity>
     );
   },
   resolveActivityListItemTitle: jest.fn(() => 'Activity title'),
 }));
-
-jest.mock('../../UI/MultichainBridgeTransactionListItem', () => {
-  const { Text, View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ transaction }: { transaction: { id: string } }) => (
-      <View testID={`bridge-${transaction.id}`}>
-        <Text>Bridge tx</Text>
-      </View>
-    ),
-  };
-});
 
 jest.mock('../../UI/Transactions/TransactionsFooter', () => {
   const { Text, TouchableOpacity } = jest.requireActual('react-native');
@@ -380,8 +372,51 @@ jest.mock('../../hooks/useBlockExplorer', () => ({
 jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
   useBridgeHistoryItemBySrcTxHash: jest.fn(() => ({
     bridgeHistoryItemsBySrcTxHash: {
-      '0xconfirmed': { title: 'bridge-history' },
-      solanaBridge: { title: 'solana-bridge' },
+      '0xconfirmed': {
+        title: 'bridge-history',
+        quote: {
+          srcChainId: '0x1',
+          destChainId: '0x1',
+          srcAsset: { chainId: '0x1' },
+          destAsset: { chainId: '0x1' },
+        },
+      },
+      // Same-chain swap (src and dest chains match → not a cross-chain bridge).
+      solanaBridge: {
+        title: 'solana-bridge',
+        quote: {
+          srcChainId: 'solana:mainnet',
+          destChainId: 'solana:mainnet',
+          srcAsset: { chainId: 'solana:mainnet' },
+          destAsset: { chainId: 'solana:mainnet' },
+        },
+      },
+      // Cross-chain bridge whose destination leg hasn't landed yet.
+      solanaCross: {
+        title: 'solana-cross-bridge',
+        quote: {
+          srcChainId: 'solana:mainnet',
+          destChainId: 1,
+          srcAsset: { chainId: 'solana:mainnet' },
+          destAsset: { chainId: 1 },
+        },
+        status: { status: 'PENDING', srcChain: { txHash: 'solanaCross' } },
+      },
+      // Cross-chain bridge whose destination leg has landed.
+      solanaCrossDone: {
+        title: 'solana-cross-bridge-done',
+        quote: {
+          srcChainId: 'solana:mainnet',
+          destChainId: 1,
+          srcAsset: { chainId: 'solana:mainnet' },
+          destAsset: { chainId: 1 },
+        },
+        status: {
+          status: 'COMPLETE',
+          srcChain: { txHash: 'solanaCrossDone' },
+          destChain: { txHash: '0xdest' },
+        },
+      },
     },
   })),
 }));
@@ -389,6 +424,11 @@ jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
 jest.mock('../../UI/Bridge/utils/transaction-history', () => ({
   getSwapBridgeTxActivityTitle: jest.fn(() => 'Bridge title'),
   handleUnifiedSwapsTxHistoryItemClick: jest.fn(),
+  // Mirrors the real predicate: cross-chain when quote src/dest chains differ.
+  isBridgeTxHistoryItemBridge: jest.fn(
+    (item: { quote: { srcChainId?: unknown; destChainId?: unknown } }) =>
+      item.quote.srcChainId !== item.quote.destChainId,
+  ),
 }));
 
 jest.mock('../../../util/multichain/multichainTransactionTokenScan', () => ({
@@ -430,17 +470,6 @@ jest.mock('./helpers/transformations', () => {
   const actual = jest.requireActual('./helpers/transformations');
   return {
     ...actual,
-    mapNonEvmTransactions: jest.fn((txs) =>
-      txs.map((tx: { id: string; chain: string }) => ({
-        type: 'send',
-        chainId: tx.chain,
-        status: 'success',
-        timestamp: 2,
-        hash: tx.id,
-        data: {},
-        raw: { type: 'keyringTransaction', data: tx },
-      })),
-    ),
     mergeTransactionsByTime: jest.fn(
       (local, confirmed, nonEvm, perps = [], predict = [], ramp = []) => [
         ...perps,
@@ -754,6 +783,157 @@ describe('ActivityList', () => {
     );
   });
 
+  // TMCU-1066: a perps deposit/withdrawal is a real Arbitrum USDC tx, so it also
+  // lands in the generic EVM stream. The perps source already surfaces it, so
+  // the generic copy is dropped to stop it double-rendering across filters.
+  const makePerpsLocalTx = (
+    txType: TransactionType,
+    options: {
+      nestedTxTypes?: TransactionType[];
+      originalType?: TransactionType;
+      initialTransactionType?: TransactionType;
+    } = {},
+  ) => ({
+    type: 'contractInteraction' as const,
+    chainId: 'eip155:1',
+    status: 'pending' as const,
+    timestamp: 9,
+    hash: '0xperpsdep',
+    data: { from: '0xevm', to: '0xusdc' },
+    raw: {
+      type: 'localTransaction',
+      data: {
+        primaryTransaction: {
+          chainId: '0x1',
+          hash: '0xperpsdep',
+          id: 'perps-dep-id',
+          type: txType,
+          ...(options.originalType
+            ? { originalType: options.originalType }
+            : {}),
+          ...(options.nestedTxTypes
+            ? {
+                nestedTransactions: options.nestedTxTypes.map((type) => ({
+                  type,
+                })),
+              }
+            : {}),
+          txParams: { from: '0xevm', nonce: '0x1' },
+        },
+        ...(options.initialTransactionType
+          ? {
+              initialTransaction: {
+                chainId: '0x1',
+                hash: '0xperpsdep-initial',
+                id: 'perps-dep-id-initial',
+                type: options.initialTransactionType,
+                txParams: { from: '0xevm', nonce: '0x1' },
+              },
+            }
+          : {}),
+      },
+    },
+  });
+
+  it.each([
+    ['perpsDeposit', TransactionType.perpsDeposit],
+    ['perpsDepositAndOrder', TransactionType.perpsDepositAndOrder],
+    ['perpsWithdraw', TransactionType.perpsWithdraw],
+  ])(
+    'suppresses the generic EVM copy of a %s tx when perps is enabled',
+    (_label, txType) => {
+      selectorValues.perpsEnabled = true;
+      (useLocalActivityItems as jest.Mock).mockReturnValue([
+        makePerpsLocalTx(txType),
+      ]);
+      (useTransactionsQuery as jest.Mock).mockReturnValue({
+        data: { pages: [{ data: [] }] },
+        fetchNextPage: mockFetchNextPage,
+        hasNextPage: false,
+        isFetchingNextPage: false,
+        isInitialLoading: false,
+        refetch: mockRefetch,
+      });
+
+      render(<ActivityList header={<></>} />);
+
+      expect(screen.queryByTestId('row-0xperpsdep')).toBeNull();
+    },
+  );
+
+  it('suppresses the generic EVM copy of a batch-wrapped perps withdraw when perps is enabled', () => {
+    selectorValues.perpsEnabled = true;
+    (useLocalActivityItems as jest.Mock).mockReturnValue([
+      makePerpsLocalTx(TransactionType.batch, {
+        nestedTxTypes: [TransactionType.perpsWithdraw],
+      }),
+    ]);
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+
+    render(<ActivityList header={<></>} />);
+
+    expect(screen.queryByTestId('row-0xperpsdep')).toBeNull();
+  });
+
+  // After a speed-up/cancel the group's primaryTransaction is the replacement
+  // meta ('retry'/'cancel'); the perps type survives only on originalType and
+  // on the group's initialTransaction.
+  it.each([
+    ['sped-up (retry)', TransactionType.retry],
+    ['cancelled', TransactionType.cancel],
+  ])(
+    'suppresses the generic EVM copy of a %s perps deposit when perps is enabled',
+    (_label, replacementType) => {
+      selectorValues.perpsEnabled = true;
+      (useLocalActivityItems as jest.Mock).mockReturnValue([
+        makePerpsLocalTx(replacementType, {
+          originalType: TransactionType.perpsDeposit,
+          initialTransactionType: TransactionType.perpsDeposit,
+        }),
+      ]);
+      (useTransactionsQuery as jest.Mock).mockReturnValue({
+        data: { pages: [{ data: [] }] },
+        fetchNextPage: mockFetchNextPage,
+        hasNextPage: false,
+        isFetchingNextPage: false,
+        isInitialLoading: false,
+        refetch: mockRefetch,
+      });
+
+      render(<ActivityList header={<></>} />);
+
+      expect(screen.queryByTestId('row-0xperpsdep')).toBeNull();
+    },
+  );
+
+  it('keeps the generic EVM copy of a perps deposit when perps is disabled', () => {
+    selectorValues.perpsEnabled = false;
+    (useLocalActivityItems as jest.Mock).mockReturnValue([
+      makePerpsLocalTx(TransactionType.perpsDeposit),
+    ]);
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+
+    render(<ActivityList header={<></>} />);
+
+    // Perps off → the perps source emits nothing, so the generic copy is the
+    // only representation and must remain.
+    expect(screen.getByTestId('row-0xperpsdep')).toBeOnTheScreen();
+  });
+
   it('keeps the typed local smart-account-upgrade row over the generic confirmed copy', () => {
     const upgradeHash = '0xupgrade';
     const localUpgrade = {
@@ -806,6 +986,126 @@ describe('ActivityList', () => {
     expect(screen.getAllByTestId(`row-${upgradeHash}`)).toHaveLength(1);
     expect(screen.getByTestId(`row-kind-${upgradeHash}`)).toHaveTextContent(
       'smartAccountUpgrade',
+    );
+  });
+
+  it('keeps the quote-enriched local swap row over a bare confirmed contractInteraction copy', () => {
+    const swapHash = '0xswap';
+    const localSwap = {
+      type: 'swap',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 7,
+      hash: swapHash,
+      data: {
+        sourceToken: { direction: 'out', symbol: 'POL', decimals: 18 },
+        destinationToken: { direction: 'in', symbol: 'USDT', decimals: 6 },
+      },
+      raw: {
+        type: 'localTransaction',
+        data: {
+          primaryTransaction: {
+            chainId: '0x1',
+            hash: swapHash,
+            id: 'swap-id',
+            txParams: { from: '0xevm', nonce: '0xb' },
+          },
+        },
+      },
+    };
+    // Indexer hasn't classified the swap yet — the confirmed copy is a bare
+    // contract call with the same hash.
+    const confirmedSwapContractCall = {
+      type: 'contractInteraction',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 7,
+      hash: swapHash,
+      data: { from: '0xevm', to: '0xrouter' },
+      raw: {
+        type: 'apiEvmTransaction',
+        data: { chainId: 1, from: '0xevm', hash: swapHash, nonce: 11 },
+      },
+    };
+    (useLocalActivityItems as jest.Mock).mockReturnValue([localSwap]);
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [confirmedSwapContractCall] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+
+    render(<ActivityList header={<></>} />);
+
+    // One row, and it's the typed swap (with both tokens) — the bare confirmed
+    // "contractInteraction" copy is deduped away, not the reverse.
+    expect(screen.getAllByTestId(`row-${swapHash}`)).toHaveLength(1);
+    expect(screen.getByTestId(`row-kind-${swapHash}`)).toHaveTextContent(
+      'swap',
+    );
+  });
+
+  it('keeps the local approve row with the cap amount over the amount-less confirmed copy', () => {
+    const approveHash = '0xapprovecap';
+    const localApprove = {
+      type: 'approveSpendingCap',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 7,
+      hash: approveHash,
+      data: {
+        token: {
+          direction: 'out',
+          amount: '100000',
+          decimals: 6,
+          symbol: 'USDC',
+        },
+      },
+      raw: {
+        type: 'localTransaction',
+        data: {
+          primaryTransaction: {
+            chainId: '0x1',
+            hash: approveHash,
+            id: 'approve-id',
+            txParams: { from: '0xevm', nonce: '0xb' },
+          },
+        },
+      },
+    };
+    // The accounts API returns no calldata for an approve, so the confirmed
+    // copy carries no cap amount.
+    const confirmedApproveNoAmount = {
+      type: 'approveSpendingCap',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 7,
+      hash: approveHash,
+      data: {},
+      raw: {
+        type: 'apiEvmTransaction',
+        data: { chainId: 1, from: '0xevm', hash: approveHash, nonce: 11 },
+      },
+    };
+    (useLocalActivityItems as jest.Mock).mockReturnValue([localApprove]);
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [confirmedApproveNoAmount] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+
+    render(<ActivityList header={<></>} />);
+
+    // One row, and it's the local copy (which carries the cap amount) — the
+    // amount-less confirmed copy is deduped away, not the reverse.
+    expect(screen.getAllByTestId(`row-${approveHash}`)).toHaveLength(1);
+    expect(screen.getByTestId(`row-raw-${approveHash}`)).toHaveTextContent(
+      'localTransaction',
     );
   });
 
@@ -1117,6 +1417,34 @@ describe('ActivityList', () => {
       offset: 0,
       animated: false,
     });
+  });
+
+  it('resets scrollY to 0 when the type filter changes so the pinned filter bar unpins', () => {
+    // The programmatic scroll-to-offset above doesn't emit `onScroll`, so
+    // without this reset `scrollY` keeps its pre-switch value and the parent
+    // keeps a duplicate (pinned) filter bar rendered over the reset header.
+    const scrollY = { value: 500 };
+
+    const { rerender } = render(
+      <ActivityList
+        header={<></>}
+        typeFilter={ActivityTypeFilter.Transactions}
+        scrollY={scrollY as unknown as SharedValue<number>}
+      />,
+    );
+
+    // Untouched on initial render.
+    expect(scrollY.value).toBe(500);
+
+    rerender(
+      <ActivityList
+        header={<></>}
+        typeFilter={ActivityTypeFilter.Perps}
+        scrollY={scrollY as unknown as SharedValue<number>}
+      />,
+    );
+
+    expect(scrollY.value).toBe(0);
   });
 
   it('hides rows whose kind does not match the type filter', () => {
@@ -1590,11 +1918,13 @@ describe('ActivityList', () => {
     });
   });
 
-  it('renders non-EVM bridge rows and footer when only non-EVM chains are enabled', () => {
+  it('renders non-EVM swap/bridge rows through ActivityListItemRow with the bridge-history title', () => {
     selectorValues.enabledEvm = [];
     selectorValues.enabledNonEvm = ['solana:mainnet'];
     selectorValues.nonEvmState = {
-      transactions: [{ chain: 'solana:mainnet', id: 'solanaBridge' }],
+      transactions: [
+        { chain: 'solana:mainnet', id: 'solanaBridge', from: [], to: [] },
+      ],
     };
     selectorValues.selectedGroupAccounts = [
       { address: 'solana-address', type: 'solana:data-account' },
@@ -1611,11 +1941,141 @@ describe('ActivityList', () => {
 
     render(<ActivityList chainId="solana:mainnet" />);
 
-    expect(screen.getByTestId('bridge-solanaBridge')).toBeOnTheScreen();
+    expect(screen.getByTestId('row-solanaBridge')).toBeOnTheScreen();
+    expect(screen.getByText('Bridge title')).toBeOnTheScreen();
     fireEvent.press(screen.getByTestId('non-evm-footer'));
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       params: { url: 'https://solana.explorer/address/sol' },
       screen: 'SimpleWebview',
     });
+  });
+
+  it('routes non-EVM cross-chain bridge taps to the unified swaps detail screen', () => {
+    selectorValues.enabledNonEvm = ['solana:mainnet'];
+    selectorValues.nonEvmState = {
+      transactions: [
+        { chain: 'solana:mainnet', id: 'solanaCross', from: [], to: [] },
+      ],
+    };
+
+    render(<ActivityList header={<></>} />);
+
+    fireEvent.press(screen.getByTestId('row-solanaCross'));
+
+    expect(handleUnifiedSwapsTxHistoryItemClick).toHaveBeenCalledWith({
+      navigation: expect.any(Object),
+      multiChainTx: expect.objectContaining({
+        chain: 'solana:mainnet',
+        id: 'solanaCross',
+      }),
+      bridgeTxHistoryItem: expect.objectContaining({
+        title: 'solana-cross-bridge',
+      }),
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('opens the multichain details sheet for non-EVM same-chain swaps with bridge history', () => {
+    selectorValues.enabledNonEvm = ['solana:mainnet'];
+    selectorValues.nonEvmState = {
+      transactions: [
+        { chain: 'solana:mainnet', id: 'solanaBridge', from: [], to: [] },
+      ],
+    };
+
+    render(<ActivityList header={<></>} />);
+
+    fireEvent.press(screen.getByTestId('row-solanaBridge'));
+
+    expect(handleUnifiedSwapsTxHistoryItemClick).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      expect.objectContaining({
+        screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
+      }),
+    );
+  });
+
+  it('presents in-flight non-EVM cross-chain bridges as pending bridge rows', () => {
+    selectorValues.enabledNonEvm = ['solana:mainnet'];
+    selectorValues.nonEvmState = {
+      transactions: [
+        {
+          chain: 'solana:mainnet',
+          id: 'solanaCross',
+          status: 'confirmed',
+          from: [],
+          to: [],
+        },
+        {
+          chain: 'solana:mainnet',
+          id: 'solanaBridge',
+          type: 'swap',
+          status: 'confirmed',
+          from: [],
+          to: [],
+        },
+      ],
+    };
+
+    render(<ActivityList header={<></>} />);
+
+    // The destination leg hasn't landed, so the confirmed source tx must not
+    // present the row as completed.
+    expect(screen.getByTestId('row-kind-solanaCross')).toHaveTextContent(
+      'bridge',
+    );
+    expect(screen.getByTestId('row-status-solanaCross')).toHaveTextContent(
+      'pending',
+    );
+    // Same-chain swaps keep their mapped kind and source-tx status.
+    expect(screen.getByTestId('row-kind-solanaBridge')).toHaveTextContent(
+      'swap',
+    );
+    expect(screen.getByTestId('row-status-solanaBridge')).toHaveTextContent(
+      'success',
+    );
+  });
+
+  it('marks non-EVM cross-chain bridges successful once the destination leg lands', () => {
+    selectorValues.enabledNonEvm = ['solana:mainnet'];
+    selectorValues.nonEvmState = {
+      transactions: [
+        { chain: 'solana:mainnet', id: 'solanaCrossDone', from: [], to: [] },
+      ],
+    };
+
+    render(<ActivityList header={<></>} />);
+
+    expect(screen.getByTestId('row-kind-solanaCrossDone')).toHaveTextContent(
+      'bridge',
+    );
+    expect(screen.getByTestId('row-status-solanaCrossDone')).toHaveTextContent(
+      'success',
+    );
+  });
+
+  it('keeps failed non-EVM cross-chain bridges failed instead of pending', () => {
+    selectorValues.enabledNonEvm = ['solana:mainnet'];
+    selectorValues.nonEvmState = {
+      transactions: [
+        {
+          chain: 'solana:mainnet',
+          id: 'solanaCross',
+          status: 'failed',
+          from: [],
+          to: [],
+        },
+      ],
+    };
+
+    render(<ActivityList header={<></>} />);
+
+    expect(screen.getByTestId('row-kind-solanaCross')).toHaveTextContent(
+      'bridge',
+    );
+    expect(screen.getByTestId('row-status-solanaCross')).toHaveTextContent(
+      'failed',
+    );
   });
 });

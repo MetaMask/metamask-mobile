@@ -42,9 +42,10 @@ import useRewardsToast from './hooks/useRewardsToast';
 import { strings } from '../../../../locales/i18n';
 import PerpsTradingCampaignWinningView from './Views/PerpsTradingCampaignWinningView';
 import { getActiveRouteNameFromNavigationState } from './utils';
+import type { RewardsStackParamList } from './types/navigation';
 
 let sessionNotificationsNudgeShown = false;
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RewardsStackParamList>();
 
 const RewardsNavigator: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);

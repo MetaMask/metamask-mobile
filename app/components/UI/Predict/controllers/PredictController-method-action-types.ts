@@ -76,7 +76,6 @@ export type PredictControllerGetUnrealizedPnLAction = {
 /**
  * Track Predict trade transaction analytics event
  * Uses a single consolidated event with status discriminator
- *
  * @public
  */
 export type PredictControllerTrackPredictOrderEventAction = {
@@ -152,6 +151,47 @@ export type PredictControllerTrackShareActionAction = {
 export type PredictControllerTrackSearchInteractedAction = {
   type: `PredictController:trackSearchInteracted`;
   handler: PredictController['trackSearchInteracted'];
+};
+
+/**
+ * Track Predict Home Viewed analytics event (redesigned home)
+ *
+ * @public
+ */
+export type PredictControllerTrackHomeViewedAction = {
+  type: `PredictController:trackHomeViewed`;
+  handler: PredictController['trackHomeViewed'];
+};
+
+/**
+ * Track Predict Home Section Interaction analytics event
+ * (section viewed / tapped / see-all)
+ *
+ * @public
+ */
+export type PredictControllerTrackHomeSectionInteractionAction = {
+  type: `PredictController:trackHomeSectionInteraction`;
+  handler: PredictController['trackHomeSectionInteraction'];
+};
+
+/**
+ * Track Predict Feed Tab Changed analytics event (generic feed)
+ *
+ * @public
+ */
+export type PredictControllerTrackFeedTabChangedAction = {
+  type: `PredictController:trackFeedTabChanged`;
+  handler: PredictController['trackFeedTabChanged'];
+};
+
+/**
+ * Track Predict Feed Filter Changed analytics event (generic feed)
+ *
+ * @public
+ */
+export type PredictControllerTrackFeedFilterChangedAction = {
+  type: `PredictController:trackFeedFilterChanged`;
+  handler: PredictController['trackFeedFilterChanged'];
 };
 
 /**
@@ -240,6 +280,19 @@ export type PredictControllerSubscribeToOrderbookAction = {
 export type PredictControllerSubscribeToCryptoPricesAction = {
   type: `PredictController:subscribeToCryptoPrices`;
   handler: PredictController['subscribeToCryptoPrices'];
+};
+
+/**
+ * Subscribes to WebSocket connection-status changes for live data feeds.
+ * The callback fires immediately with the current status and thereafter only
+ * on real transitions, replacing per-subscriber polling.
+ *
+ * @param callback - Function invoked with the current {@link ConnectionStatus}.
+ * @returns Unsubscribe function to clean up the subscription.
+ */
+export type PredictControllerSubscribeToConnectionStatusAction = {
+  type: `PredictController:subscribeToConnectionStatus`;
+  handler: PredictController['subscribeToConnectionStatus'];
 };
 
 /**
@@ -373,6 +426,10 @@ export type PredictControllerMethodActions =
   | PredictControllerTrackCategoryClickedAction
   | PredictControllerTrackShareActionAction
   | PredictControllerTrackSearchInteractedAction
+  | PredictControllerTrackHomeViewedAction
+  | PredictControllerTrackHomeSectionInteractionAction
+  | PredictControllerTrackFeedTabChangedAction
+  | PredictControllerTrackFeedFilterChangedAction
   | PredictControllerTrackBetslipDismissedAction
   | PredictControllerPreviewOrderAction
   | PredictControllerPlaceOrderAction
@@ -383,6 +440,7 @@ export type PredictControllerMethodActions =
   | PredictControllerSubscribeToMarketPricesAction
   | PredictControllerSubscribeToOrderbookAction
   | PredictControllerSubscribeToCryptoPricesAction
+  | PredictControllerSubscribeToConnectionStatusAction
   | PredictControllerGetConnectionStatusAction
   | PredictControllerClearOrderErrorAction
   | PredictControllerOnPlaceOrderSuccessAction
