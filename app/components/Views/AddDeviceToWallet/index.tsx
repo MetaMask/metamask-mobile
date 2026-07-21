@@ -29,8 +29,13 @@ import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDevi
 import { useAddDeviceResetToInstructionsListener } from '../../../core/QrSync/useAddDeviceResetToInstructionsListener';
 import { useIsQrTabSwitcherOpen } from '../../../core/QrSync/useIsQrTabSwitcherOpen';
 import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
+import {
+  QrSyncOperations,
+  QrSyncSurfaces,
+  QrSyncTelemetrySources,
+  reportQrSyncFailure,
+} from '../../../core/QrSync/qrSyncTelemetry';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
-import Logger from '../../../util/Logger';
 import {
   selectQrSyncError,
   selectQrSyncIsBusy,
@@ -38,6 +43,7 @@ import {
   selectQrSyncPresentation,
   selectQrSyncShouldShowOtpSheet,
 } from '../../../selectors/qrSyncController';
+import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
 
 const Points = ({
   number,
@@ -119,10 +125,11 @@ const AddDeviceToWallet = () => {
       const scannedQrPayload = content ?? data.content ?? '';
 
       submitQrPayload(scannedQrPayload).catch((err: unknown) => {
-        Logger.error(
-          err as Error,
-          'AddDeviceToWallet: failed to submit scanned QR payload',
-        );
+        reportQrSyncFailure(err, {
+          surface: QrSyncSurfaces.SCANNER,
+          operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
+          source: QrSyncTelemetrySources.ADD_DEVICE_ON_SCAN_SUCCESS,
+        });
       });
     },
     [submitQrPayload],
@@ -150,11 +157,12 @@ const AddDeviceToWallet = () => {
   }, [manualQrPayload, submitQrPayload]);
 
   const triggerManualQrSubmit = useCallback(() => {
-    handleManualQrSubmit().catch((error: unknown) => {
-      Logger.error(
-        error as Error,
-        'AddDeviceToWallet: failed to submit manual QR payload',
-      );
+    handleManualQrSubmit().catch((submitError: unknown) => {
+      reportQrSyncFailure(submitError, {
+        surface: QrSyncSurfaces.SCANNER,
+        operation: QrSyncOperations.SUBMIT_MANUAL_PAYLOAD,
+        source: QrSyncTelemetrySources.ADD_DEVICE_MANUAL_SUBMIT,
+      });
     });
   }, [handleManualQrSubmit]);
 
@@ -163,7 +171,10 @@ const AddDeviceToWallet = () => {
   }
 
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-default')}>
+    <SafeAreaView
+      style={tw.style('flex-1 bg-default')}
+      testID={AddDeviceToWalletTestIds.SCREEN}
+    >
       <HeaderCompactStandard onBack={handleBack} />
       <Box twClassName="flex-1 gap-5 px-4 py-4">
         <Image
@@ -211,6 +222,7 @@ const AddDeviceToWallet = () => {
 
         <Box twClassName="mt-auto gap-4">
           <Button
+            testID={AddDeviceToWalletTestIds.SCAN_QR_CODE_BUTTON}
             twClassName="w-full"
             onPress={openQRScanner}
             isDisabled={isBusy}
@@ -244,6 +256,7 @@ const AddDeviceToWallet = () => {
                 Paste the QR code payload here when testing on an emulator.
               </Text>
               <TextField
+                testID={AddDeviceToWalletTestIds.MANUAL_QR_INPUT}
                 value={manualQrPayload}
                 onChangeText={setManualQrPayload}
                 placeholder="Paste QR payload"
@@ -256,6 +269,7 @@ const AddDeviceToWallet = () => {
                 }}
               />
               <Button
+                testID={AddDeviceToWalletTestIds.MANUAL_QR_SUBMIT_BUTTON}
                 twClassName="w-full"
                 onPress={triggerManualQrSubmit}
                 isDisabled={!manualQrPayload.trim() || isBusy}

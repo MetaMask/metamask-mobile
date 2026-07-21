@@ -57,6 +57,7 @@ import {
   ClaimOrderParams,
   ClaimOrderResponse,
   ConnectionStatus,
+  ConnectionStatusCallback,
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
@@ -3344,6 +3345,12 @@ export class PolymarketProvider implements PredictProvider {
       symbols,
       callback,
     );
+  }
+
+  public subscribeToConnectionStatus(
+    callback: ConnectionStatusCallback,
+  ): () => void {
+    return WebSocketManager.getInstance().subscribeToConnectionStatus(callback);
   }
 
   public getConnectionStatus(): ConnectionStatus {

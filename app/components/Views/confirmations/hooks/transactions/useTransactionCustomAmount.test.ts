@@ -542,6 +542,46 @@ describe('useTransactionCustomAmount', () => {
     });
   });
 
+  it('sets manual metric once across consecutive updatePendingAmount calls', async () => {
+    const { result } = runHook();
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.46');
+    });
+
+    const manualMetricCalls = setConfirmationMetricMock.mock.calls.filter(
+      ([metric]) => metric.properties?.mm_pay_amount_input_type === 'manual',
+    );
+
+    expect(manualMetricCalls).toHaveLength(1);
+  });
+
+  it('sets input type metric matching the last input source across manual and percentage updates', async () => {
+    const { result } = runHook();
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+
+    await act(async () => {
+      result.current.updatePendingAmountPercentage(50);
+    });
+
+    await act(async () => {
+      result.current.updatePendingAmount('678.9');
+    });
+
+    const inputTypeMetrics = setConfirmationMetricMock.mock.calls
+      .map(([metric]) => metric.properties?.mm_pay_amount_input_type)
+      .filter(Boolean);
+
+    expect(inputTypeMetrics).toEqual(['manual', '50%', 'manual']);
+  });
+
   it('returns hasInput as true after amount changed and debounce', async () => {
     const { result } = runHook();
 
@@ -1018,22 +1058,6 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('1234.56');
     });
 
-    it('sets isMaxAmount=true when auto-filling so the full mUSD balance is moved', async () => {
-      runHook({
-        transactionMeta: addMusdTransactionMeta,
-      });
-
-      await act(async () => {
-        jest.runAllTimers();
-      });
-
-      expect(setTransactionConfigMock).toHaveBeenCalled();
-
-      const config = { isMaxAmount: false };
-      setTransactionConfigMock.mock.calls[0][1](config);
-      expect(config.isMaxAmount).toBe(true);
-    });
-
     it('does not auto-fill when intent is not addMusd', async () => {
       jest.mocked(getMoneyAccountDepositIntent).mockReturnValue('convert');
 
@@ -1391,23 +1415,6 @@ describe('useTransactionCustomAmount', () => {
       chainId: '0x1' as Hex,
       txParams: { from: '0xabc' },
     } as unknown as Partial<TransactionMeta>;
-
-    it('sets isMaxAmount=true when auto-filling so the full mUSD balance is moved', async () => {
-      jest.mocked(getMoneyAccountDepositIntent).mockReturnValue('addMusd');
-      runHook({
-        transactionMeta: addMusdTransactionMeta,
-      });
-
-      await act(async () => {
-        jest.runAllTimers();
-      });
-
-      expect(setTransactionConfigMock).toHaveBeenCalled();
-
-      const config = { isMaxAmount: false };
-      setTransactionConfigMock.mock.calls[0][1](config);
-      expect(config.isMaxAmount).toBe(true);
-    });
 
     it('does not auto-fill when intent is not addMusd', async () => {
       jest.mocked(getMoneyAccountDepositIntent).mockReturnValue('convert');

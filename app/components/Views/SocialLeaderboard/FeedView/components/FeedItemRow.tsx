@@ -19,16 +19,25 @@ import { strings } from '../../../../../../locales/i18n';
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 import PerpBadges from '../../components/PerpBadges';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
-import type { FeedItem } from '../types';
+import type { FeedAction, FeedItem } from '../types';
 import { formatFeedTimestamp } from '../../utils/formatters';
 import {
   getFeedItemTestId,
+  getFeedNewPositionTestId,
   getFeedTradeButtonTestId,
   getFeedTradeCardTestId,
   getFeedTraderTestId,
 } from '../FeedView.testIds';
 
 const AVATAR_SIZE = 24;
+
+// Open actions map to an intentional state label shown when the right column
+// would otherwise be blank. Closed actions (`sold`/`closed`) have no entry, so
+// their empty rows stay blank.
+const NEW_POSITION_LABEL_KEYS: Partial<Record<FeedAction, string>> = {
+  bought: 'social_leaderboard.feed.new_position.bought',
+  opened: 'social_leaderboard.feed.new_position.opened',
+};
 
 const styles = StyleSheet.create({
   // Keep the tappable trader identity flexible so the Trade button retains its
@@ -72,6 +81,12 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   const actionLabel = strings(`social_leaderboard.feed.action.${item.action}`);
   const timeLabel = formatFeedTimestamp(item.timestamp);
   const symbol = item.type === 'spot' ? item.tokenSymbol : item.marketSymbol;
+
+  // For open rows whose value/P&L hasn't arrived yet, surface an intentional
+  // state label ("Holding" for spot, "Open" for perps) instead of a blank right
+  // column. The row is an entry that hasn't been exited, so there's no realized
+  // P&L to show yet.
+  const newPositionLabelKey = NEW_POSITION_LABEL_KEYS[item.action] ?? null;
 
   return (
     <Box twClassName="px-4 py-3 gap-4" testID={getFeedItemTestId(item.id)}>
@@ -181,7 +196,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
             </Text>
           </Box>
 
-          {(item.hasValueData || item.hasPnlData) && (
+          {item.hasValueData || item.hasPnlData ? (
             <Box alignItems={BoxAlignItems.End}>
               {item.hasValueData ? (
                 <Text
@@ -207,7 +222,18 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
                 </Text>
               ) : null}
             </Box>
-          )}
+          ) : newPositionLabelKey ? (
+            <Box alignItems={BoxAlignItems.End}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                numberOfLines={1}
+                testID={getFeedNewPositionTestId(item.id)}
+              >
+                {strings(newPositionLabelKey)}
+              </Text>
+            </Box>
+          ) : null}
         </Box>
       </Pressable>
     </Box>

@@ -243,6 +243,17 @@ if (typeof global.AbortSignal.timeout === 'undefined') {
   };
 }
 
+if (typeof global.Promise.withResolvers === 'undefined') {
+  global.Promise.withResolvers = function () {
+    let resolve, reject;
+    const promise = new Promise((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  };
+}
+
 // global.location = global.location || { port: 80 }
 const isDev = typeof __DEV__ === 'boolean' && __DEV__;
 Object.assign(process.env, { NODE_ENV: isDev ? 'development' : 'production' });
