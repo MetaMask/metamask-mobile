@@ -1,5 +1,6 @@
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
 import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
+import enContent from '../../../locales/languages/en.json';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
@@ -15,7 +16,6 @@ import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
-import { FrameworkDetector } from '../../framework/FrameworkDetector';
 
 class ImportWalletView {
   get container(): EncapsulatedElementType {
@@ -264,35 +264,22 @@ class ImportWalletView {
         Matchers.getElementByID(
           ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID,
         ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID,
-          { exact: true },
-        ),
+      appium: {
+        // Nested/legacy Android renders may omit resource-id — match copy.
+        android: () =>
+          PlaywrightMatchers.getElementByText(
+            enContent.import_from_seed.import_wallet_from_extension,
+            true,
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementById(
+            ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID,
+          ),
+      },
     });
   }
 
   async tapImportFromExtensionLink(): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      try {
-        await UnifiedGestures.waitAndTap(this.importFromExtensionLink, {
-          description: 'Import from MetaMask extension link',
-          timeout: 8_000,
-        });
-        return;
-      } catch {
-        // Nested/legacy renders may omit resource-id on Android — fall back to copy.
-        const linkByText = await PlaywrightMatchers.getElementByText(
-          'import from the MetaMask extension',
-          false,
-        );
-        await PlaywrightGestures.waitAndTap(linkByText, {
-          timeout: 15_000,
-        });
-        return;
-      }
-    }
-
     await UnifiedGestures.waitAndTap(this.importFromExtensionLink, {
       description: 'Import from MetaMask extension link',
       timeout: 15_000,

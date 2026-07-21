@@ -165,7 +165,7 @@ describe('e2eBridgeQrSync deep link', () => {
     );
   });
 
-  it('ignores duplicate deep links', () => {
+  it('ignores duplicate deep links after a successful apply', () => {
     const applyTestSyncReadyPayload = jest.fn();
     registerE2EQrSyncDeepLinkHandler(() =>
       buildController(applyTestSyncReadyPayload),
@@ -179,36 +179,50 @@ describe('e2eBridgeQrSync deep link', () => {
     expect(applyTestSyncReadyPayload).toHaveBeenCalledTimes(1);
   });
 
-  it('logs when QrSyncController is unavailable', () => {
-    registerE2EQrSyncDeepLinkHandler(() => undefined);
+  it('logs when QrSyncController is unavailable and allows retry', () => {
+    const applyTestSyncReadyPayload = jest.fn();
+    const controllerRef: { current: QrSyncController | undefined } = {
+      current: undefined,
+    };
+    registerE2EQrSyncDeepLinkHandler(() => controllerRef.current);
 
-    __handleE2EQrSyncUrlForTests(
-      'metamask://e2e/qr-sync/apply-sync-ready?mnemonic=x',
-    );
+    const url = 'metamask://e2e/qr-sync/apply-sync-ready?mnemonic=x';
+    __handleE2EQrSyncUrlForTests(url);
 
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
       'E2E QR Sync apply-sync-ready',
     );
+    expect(applyTestSyncReadyPayload).not.toHaveBeenCalled();
+
+    controllerRef.current = buildController(applyTestSyncReadyPayload);
+    __handleE2EQrSyncUrlForTests(url);
+
+    expect(applyTestSyncReadyPayload).toHaveBeenCalledTimes(1);
   });
 
-  it('logs when applyTestSyncReadyPayload throws', () => {
+  it('logs when applyTestSyncReadyPayload throws and allows retry', () => {
+    const applyTestSyncReadyPayload = jest
+      .fn()
+      .mockImplementationOnce(() => {
+        throw new Error('boom');
+      })
+      .mockImplementationOnce(() => undefined);
     registerE2EQrSyncDeepLinkHandler(() =>
-      buildController(
-        jest.fn(() => {
-          throw new Error('boom');
-        }),
-      ),
+      buildController(applyTestSyncReadyPayload),
     );
 
-    __handleE2EQrSyncUrlForTests(
-      'metamask://e2e/qr-sync/apply-sync-ready?mnemonic=x',
-    );
+    const url = 'metamask://e2e/qr-sync/apply-sync-ready?mnemonic=x';
+    __handleE2EQrSyncUrlForTests(url);
 
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
       'E2E QR Sync apply-sync-ready failed',
     );
+
+    __handleE2EQrSyncUrlForTests(url);
+
+    expect(applyTestSyncReadyPayload).toHaveBeenCalledTimes(2);
   });
 
   it('registers a Linking listener once and applies live url events', () => {

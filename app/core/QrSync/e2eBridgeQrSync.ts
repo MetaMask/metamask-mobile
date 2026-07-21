@@ -80,7 +80,6 @@ function handleE2EQrSyncUrl(incomingUrl = ''): void {
   if (processedDeepLinks.has(incomingUrl)) {
     return;
   }
-  processedDeepLinks.add(incomingUrl);
 
   const withoutScheme = stripE2EQrSyncScheme(incomingUrl);
   const [path, queryString = ''] = withoutScheme.split('?');
@@ -102,6 +101,7 @@ function handleE2EQrSyncUrl(incomingUrl = ''): void {
   try {
     const payload = parseApplySyncReadyPayload(queryString);
     controller.applyTestSyncReadyPayload(payload);
+    processedDeepLinks.add(incomingUrl);
     Logger.log('[E2E QR Sync] Applied test sync-ready payload');
   } catch (error) {
     Logger.error(error as Error, 'E2E QR Sync apply-sync-ready failed');
