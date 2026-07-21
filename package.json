@@ -331,7 +331,7 @@
     "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
     "@metamask/notification-services-controller": "^25.0.0",
     "@metamask/permission-controller": "^13.1.1",
-    "@metamask/perps-controller": "npm:@metamask-previews/perps-controller@9.2.1-preview-9c0a7053d",
+    "@metamask/perps-controller": "npm:@metamask-previews/perps-controller@9.3.0-preview-2721cb096",
     "@metamask/phishing-controller": "^17.2.0",
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/preferences-controller": "^23.0.0",
