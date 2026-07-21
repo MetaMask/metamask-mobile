@@ -31,7 +31,7 @@ import {
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
-import { QrSyncImportPlan } from '../../../core/QrSync/types';
+import { QrSyncSecretTypes } from '../../../core/QrSync/constants';
 
 const mockQrSyncResetState = jest.fn();
 
@@ -1226,20 +1226,47 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         backgroundState: {
           QrSyncController: {
             ...defaultQrSyncControllerState,
-            importPlan: [
+            pendingSecretImports: [
               {
                 index: 0,
                 value: qrSyncMnemonic,
-                type: 'MNEMONIC',
-                accountName: null,
-                hiddenIndexes: [],
+                type: QrSyncSecretTypes.MNEMONIC,
                 isPrimary: true,
               },
-            ] as QrSyncImportPlan,
+            ],
           },
         },
       },
     };
+
+    it('renders the import-from-extension link when add-device sync is enabled', () => {
+      const stateWithAddDeviceSync = {
+        ...initialState,
+        engine: {
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                addDeviceSyncEnabled: true,
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId, getByText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: stateWithAddDeviceSync },
+      );
+
+      expect(
+        getByTestId(ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('import_from_seed.import_wallet_from_extension')),
+      ).toBeOnTheScreen();
+    });
 
     it('prefills the seed phrase and opens the password step for QR sync imports', async () => {
       const { getByText, queryByPlaceholderText } = renderScreen(
@@ -1296,6 +1323,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID));
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockQrSyncResetState).toHaveBeenCalledTimes(1);
     });
 
     it('does not prefill the seed phrase when qrSyncImport is false', async () => {
@@ -1313,14 +1341,16 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       ).toBeNull();
     });
 
-    it('clears QR sync secrets after a successful vault import', async () => {
+    it('preserves QR sync provisioning state after a successful vault import', async () => {
       jest
         .spyOn(Authentication, 'componentAuthenticationType')
         .mockResolvedValueOnce({
           currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
           availableBiometryType: BIOMETRY_TYPE.FACE_ID,
         });
-      jest.spyOn(Authentication, 'newWalletAndRestore').mockResolvedValueOnce();
+      const newWalletAndRestoreSpy = jest
+        .spyOn(Authentication, 'newWalletAndRestore')
+        .mockResolvedValueOnce();
 
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
@@ -1347,8 +1377,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.press(getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID));
 
       await waitFor(() => {
-        expect(mockQrSyncResetState).toHaveBeenCalledTimes(1);
+        expect(newWalletAndRestoreSpy).toHaveBeenCalledTimes(1);
       });
+
+      expect(mockQrSyncResetState).not.toHaveBeenCalled();
     });
   });
 

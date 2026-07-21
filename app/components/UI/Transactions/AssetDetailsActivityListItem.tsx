@@ -22,6 +22,9 @@ import {
   mapTransactionToActivityItem,
   type TransactionWithImportTime,
 } from './AssetDetailsActivityListItem.utils';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import { selectAllTokens } from '../../../selectors/tokensController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
 
 interface AssetDetailsActivityListItemProps {
   transaction: TransactionWithImportTime;
@@ -44,21 +47,63 @@ export const AssetDetailsActivityListItem = ({
   onSpeedUpAction,
   onCancelAction,
 }: AssetDetailsActivityListItemProps) => {
+  // Kept for importTime metadata
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  // Used for TokensController lookups (matches useLocalActivityItems)
+  const groupEvmAccount = useSelector(
+    selectSelectedAccountGroupEvmInternalAccount,
+  );
   const isTransactionsRedesignEnabled = useSelector(
     selectIsTransactionsRedesignEnabled,
   );
-  const accountImportTime = selectedInternalAccount?.metadata.importTime;
-  const activityItem = useMemo(
-    () =>
-      mapTransactionToActivityItem({
-        transaction: tx,
-        assetSymbol,
-        currentChainId,
-        tokenChainId,
-      }),
-    [assetSymbol, currentChainId, tokenChainId, tx],
+
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
   );
+  // allTokens: Record<chainId, Record<accountAddress, Token[]>>
+  const allTokens = useSelector(selectAllTokens) as unknown as Record<
+    string,
+    Record<string, { address: string; symbol?: string; decimals?: number }[]>
+  >;
+  const accountImportTime = selectedInternalAccount?.metadata.importTime;
+  const activityItem = useMemo(() => {
+    const resolvedChainId = (tx.chainId ?? tokenChainId ?? currentChainId) as
+      | Hex
+      | undefined;
+
+    const nativeAssetSymbol = resolvedChainId
+      ? networkConfigurations?.[resolvedChainId]?.nativeCurrency
+      : undefined;
+
+    // Token metadata for the tx's target contract, from TokensController —
+    // same enrichment as useLocalActivityItems.
+    const accountAddress = groupEvmAccount?.address?.toLowerCase();
+    const contractAddress = tx.txParams?.to?.toLowerCase();
+    const matchingToken =
+      resolvedChainId && accountAddress && contractAddress
+        ? (allTokens[resolvedChainId]?.[accountAddress] ?? []).find(
+            (t) => t.address?.toLowerCase() === contractAddress,
+          )
+        : undefined;
+
+    return mapTransactionToActivityItem({
+      transaction: tx,
+      assetSymbol: matchingToken?.symbol ?? assetSymbol,
+      assetDecimals: matchingToken?.decimals,
+      assetAddress: matchingToken ? contractAddress : undefined,
+      nativeAssetSymbol,
+      currentChainId,
+      tokenChainId,
+    });
+  }, [
+    allTokens,
+    assetSymbol,
+    currentChainId,
+    groupEvmAccount?.address,
+    networkConfigurations,
+    tokenChainId,
+    tx,
+  ]);
 
   const handlePress = useCallback(
     (item: ActivityListItem) => {

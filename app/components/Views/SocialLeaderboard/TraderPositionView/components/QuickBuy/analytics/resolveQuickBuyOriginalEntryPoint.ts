@@ -1,6 +1,28 @@
 import type { TraderProfileScreenViewedSource } from '../../../../analytics';
 import type { QuickBuyOriginalEntryPoint } from './quickBuyEvents';
 
+const PROFILE_SOURCE_TO_ENTRY_POINT: Record<
+  TraderProfileScreenViewedSource,
+  QuickBuyOriginalEntryPoint
+> = {
+  leaderboard: 'leaderboard',
+  home_carousel: 'home_carousel',
+  notification: 'notification',
+  deep_link: 'trader_profile',
+  trader_feed: 'trader_feed',
+};
+
+const POSITION_SOURCE_TO_ENTRY_POINT: Partial<
+  Record<string, QuickBuyOriginalEntryPoint>
+> = {
+  leaderboard: 'leaderboard',
+  notification: 'notification',
+  deep_link: 'deep_link',
+  home_carousel: 'home_carousel',
+  profile_position: 'trader_profile',
+  trader_feed: 'trader_feed',
+};
+
 /**
  * Maps the trader-profile upstream `source` route param into the Quick Buy
  * `original_entry_point` for flows that reach the trade screen via profile.
@@ -8,17 +30,7 @@ import type { QuickBuyOriginalEntryPoint } from './quickBuyEvents';
 export function resolveQuickBuyOriginalEntryPointFromProfile(
   profileSource: TraderProfileScreenViewedSource,
 ): QuickBuyOriginalEntryPoint {
-  switch (profileSource) {
-    case 'leaderboard':
-      return 'leaderboard';
-    case 'home_carousel':
-      return 'home_carousel';
-    case 'notification':
-      return 'notification';
-    case 'deep_link':
-    default:
-      return 'trader_profile';
-  }
+  return PROFILE_SOURCE_TO_ENTRY_POINT[profileSource];
 }
 
 /**
@@ -28,20 +40,9 @@ export function resolveQuickBuyOriginalEntryPointFromProfile(
 export function resolveQuickBuyOriginalEntryPointFromPositionSource(
   positionSource?: string,
 ): QuickBuyOriginalEntryPoint | undefined {
-  switch (positionSource) {
-    case 'leaderboard':
-      return 'leaderboard';
-    case 'notification':
-      return 'notification';
-    case 'deep_link':
-      return 'deep_link';
-    case 'home_carousel':
-      return 'home_carousel';
-    case 'profile_position':
-      return 'trader_profile';
-    default:
-      return undefined;
-  }
+  return positionSource
+    ? POSITION_SOURCE_TO_ENTRY_POINT[positionSource]
+    : undefined;
 }
 
 const QUICK_BUY_ORIGINAL_ENTRY_POINTS: readonly QuickBuyOriginalEntryPoint[] = [
@@ -50,6 +51,7 @@ const QUICK_BUY_ORIGINAL_ENTRY_POINTS: readonly QuickBuyOriginalEntryPoint[] = [
   'notification',
   'deep_link',
   'home_carousel',
+  'trader_feed',
 ];
 
 /** Validates a route param into the Quick Buy `original_entry_point` enum. */

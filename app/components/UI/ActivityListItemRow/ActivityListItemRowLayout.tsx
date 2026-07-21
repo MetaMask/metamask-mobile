@@ -18,6 +18,7 @@ export function ActivityListItemRowLayout({
   primaryAmount,
   primaryToken,
   amountIsPnl,
+  amountIsMuted,
   secondaryAmount,
   styles,
   subtitle,
@@ -35,6 +36,7 @@ export function ActivityListItemRowLayout({
   primaryAmount?: string;
   primaryToken?: TokenAmount;
   amountIsPnl?: boolean;
+  amountIsMuted?: boolean;
   secondaryAmount?: string;
   styles: ActivityListItemRowStyles;
   subtitle?: string;
@@ -98,6 +100,7 @@ export function ActivityListItemRowLayout({
         amountIsPnl &&
           primaryToken?.direction === 'out' &&
           styles.listItemAmountLoss,
+        amountIsMuted && styles.listItemAmountMuted,
       ]}
       testID={`activity-primary-amount-${testIdSuffix}`}
     >

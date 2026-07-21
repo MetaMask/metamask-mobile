@@ -68,6 +68,12 @@ export const selectMoneyOnboardingSeen = (state: RootState) =>
   state.user?.moneyOnboardingSeen ?? false;
 
 /**
+ * Selects the moneyEarnBannerDismissedTokens state
+ */
+export const selectMoneyEarnBannerDismissedTokens = (state: RootState) =>
+  state.user?.moneyEarnBannerDismissedTokens ?? {};
+
+/**
  * Selects the token overview chart type preference
  */
 export const selectTokenOverviewChartType = (state: RootState) =>

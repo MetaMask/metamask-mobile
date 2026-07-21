@@ -10,6 +10,13 @@ import { usePredictMarketList } from '../../../../hooks/usePredictMarketList';
 export const TRENDING_DISPLAY_LIMIT = 5;
 
 /**
+ * How many markets we fetch. Deliberately larger than {@link TRENDING_DISPLAY_LIMIT}
+ * so that after standalone/staleness filtering the home section still has enough
+ * survivors to fill its display cap. Mirrors the feed registry's trending limit.
+ */
+const TRENDING_FETCH_LIMIT = 10;
+
+/**
  * Query params derived from the feed registry so the home section and the
  * full "See all" feed share the same React Query cache key.
  * Falls back to hardcoded params if the registry entry is missing.
@@ -18,7 +25,7 @@ const TRENDING_PARAMS: PredictMarketListParams =
   resolvePredictFeedDefaultFilter('trending')?.params ?? {
     order: 'volume24hr',
     status: 'open',
-    limit: TRENDING_DISPLAY_LIMIT,
+    limit: TRENDING_FETCH_LIMIT,
   };
 
 export interface UsePredictTrendingSectionResult {

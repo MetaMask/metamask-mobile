@@ -1,11 +1,15 @@
 import { useCallback, useRef } from 'react';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import {
+  navigateWithDetails,
+  resetWithRoutes,
+} from '../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import {
-  normalizeProviderCode,
   RampsOrderStatus,
   type TransakBuyQuote,
 } from '@metamask/ramps-controller';
@@ -146,7 +150,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     },
     [baseRoute, baseRouteParams],
   );
-  const navigation = useNavigation<NavigationProp<RampStackParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
   const processingOrderIdRef = useRef<string | null>(null);
@@ -326,7 +330,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const navigateToVerifyIdentityCallback = useCallback(
     ({ quote, amount }: { quote: TransakBuyQuote; amount?: number }) => {
       const baseEntry = buildBaseRouteEntry({ amount });
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 1,
         routes: [
           baseEntry,
@@ -354,7 +358,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       amount?: number;
     }) => {
       const baseEntry = buildBaseRouteEntry({ amount });
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 1,
         routes: [
           baseEntry,
@@ -380,7 +384,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       orderId: string;
       shouldUpdate?: boolean;
     }) => {
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 0,
         routes: [
           {
@@ -412,7 +416,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         dismissActiveHeadlessFlow();
         return;
       }
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 0,
         routes: [
           {
@@ -437,7 +441,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       workFlowRunId: string;
       amount?: number;
     }) => {
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 1,
         routes: [
           buildBaseRouteEntry({ amount }),
@@ -492,8 +496,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             throw new Error('Missing order');
           }
 
-          const providerCode = normalizeProviderCode(
-            String(depositOrder.provider ?? 'transak-native'),
+          const providerCode = String(
+            depositOrder.provider ?? 'transak-native',
           );
           const rampsOrder = await refreshOrder(
             providerCode,
@@ -607,14 +611,14 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       }
 
       const cryptoSymbol = selectedToken?.symbol;
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 0,
         routes: [
           {
             name: Routes.RAMP.RAMPS_ORDER_DETAILS,
             params: {
               callbackUrl: url,
-              providerCode: normalizeProviderCode(selectedProvider.id),
+              providerCode: selectedProvider.id,
               walletAddress: walletAddress || '',
               showCloseButton: true,
               ...(cryptoSymbol ? { cryptocurrency: cryptoSymbol } : {}),
@@ -648,7 +652,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         headlessSessionId,
       });
       const baseEntry = buildBaseRouteEntry({ amount });
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 1,
         routes: [baseEntry, { name: routeName, params: routeParams }],
       });
@@ -664,7 +668,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const navigateToKycProcessingCallback = useCallback(
     ({ amount }: { amount?: number }) => {
       const baseEntry = buildBaseRouteEntry({ amount });
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 1,
         routes: [
           baseEntry,
@@ -699,7 +703,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         quote,
         amount,
       });
-      navigation.reset({
+      resetWithRoutes(navigation, {
         index: 2,
         routes: [
           buildBaseRouteEntry({ amount }),
@@ -756,8 +760,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   throw new Error('Missing order');
                 }
 
-                const providerCode = normalizeProviderCode(
-                  String(depositOrder.provider ?? 'transak-native'),
+                const providerCode = String(
+                  depositOrder.provider ?? 'transak-native',
                 );
                 const rampsOrder = await refreshOrder(
                   providerCode,
@@ -959,8 +963,9 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                 : quote.fiatAmount != null
                   ? String(quote.fiatAmount)
                   : undefined;
-            navigation.navigate(
-              ...createV2EnterEmailNavDetails({
+            navigateWithDetails(
+              navigation,
+              createV2EnterEmailNavDetails({
                 headlessSessionId: hid,
                 amount: resolvedAmount,
                 currency: quote.fiatCurrency || fiatCurrency || undefined,

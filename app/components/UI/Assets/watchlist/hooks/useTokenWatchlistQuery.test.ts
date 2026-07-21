@@ -305,7 +305,7 @@ describe('useTokenWatchlistQuery', () => {
       });
 
       expect(
-        queryClient.getQueryData(tokenWatchlistQueryKeys.suggested),
+        queryClient.getQueryData(tokenWatchlistQueryKeys.suggested(false)),
       ).toStrictEqual([]);
       expect(
         queryClient.getQueryData(tokenWatchlistQueryKeys.hydrated),
