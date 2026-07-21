@@ -43,11 +43,7 @@ const PerpsModeTransition: React.FC<PerpsModeTransitionProps> = ({
 
   return (
     <View style={styles.container} testID={testID}>
-      <Text
-        style={styles.title}
-        testID={PerpsModeTransitionSelectorsIDs.TITLE}
-        allowFontScaling={false}
-      >
+      <Text style={styles.title} testID={PerpsModeTransitionSelectorsIDs.TITLE}>
         {title}
       </Text>
     </View>
