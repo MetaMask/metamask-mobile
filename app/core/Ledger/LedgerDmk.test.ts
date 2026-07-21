@@ -114,6 +114,10 @@ describe('LedgerDmk', () => {
     });
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('connectLedgerDmkHardware', () => {
     const mockSessionId = 'mock-session-id';
     it('calls keyring.updateSessionId', async () => {
