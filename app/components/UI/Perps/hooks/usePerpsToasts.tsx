@@ -105,6 +105,12 @@ export interface PerpsToastOptionsConfig {
         assetSymbol?: string,
       ) => PerpsToastOptions;
       cancellationFailed: PerpsToastOptions;
+      cancelAllSuccess: (count: number) => PerpsToastOptions;
+      cancelAllPartialSuccess: (
+        successCount: number,
+        totalCount: number,
+      ) => PerpsToastOptions;
+      cancelAllFailed: (error?: string) => PerpsToastOptions;
     };
     limit: {
       submitted: (
@@ -155,6 +161,7 @@ export interface PerpsToastOptionsConfig {
             amount: string,
             assetSymbol: string,
           ) => PerpsToastOptions;
+          fullPositionCloseFailed: PerpsToastOptions;
         };
         partial: {
           partialPositionCloseSubmitted: (
@@ -162,6 +169,7 @@ export interface PerpsToastOptionsConfig {
             amount: string,
             assetSymbol: string,
           ) => PerpsToastOptions;
+          partialPositionCloseFailed: PerpsToastOptions;
           switchToMarketOrderMissingLimitPrice: PerpsToastOptions;
         };
       };
@@ -717,6 +725,33 @@ const usePerpsToasts = (): {
               strings('perps.order.order_still_active'),
             ),
           },
+          cancelAllSuccess: (count: number) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.cancel_all_modal.success_title'),
+              strings('perps.cancel_all_modal.success_message', { count }),
+            ),
+          }),
+          cancelAllPartialSuccess: (
+            successCount: number,
+            totalCount: number,
+          ) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.cancel_all_modal.success_title'),
+              strings('perps.cancel_all_modal.partial_success', {
+                successCount,
+                totalCount,
+              }),
+            ),
+          }),
+          cancelAllFailed: (error?: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.cancel_all_modal.error_title'),
+              error || 'Unknown error',
+            ),
+          }),
         },
       },
       positionManagement: {
@@ -874,7 +909,11 @@ const usePerpsToasts = (): {
                 amount: string,
                 assetSymbol: string,
               ) => ({
-                ...perpsBaseToastOptions.inProgress,
+                // Limit closes rest until filled and get no follow-up toast, so
+                // this is terminal. Use success (green tick) — matching the
+                // partial close and the open limit "Order placed" toast —
+                // instead of an in-progress spinner that never resolves.
+                ...perpsBaseToastOptions.success,
                 labelOptions: getPerpsToastLabels(
                   strings('perps.close_position.position_close_order_placed'),
                   strings('perps.close_position.closing_position_subtitle', {
@@ -884,6 +923,13 @@ const usePerpsToasts = (): {
                   }),
                 ),
               }),
+              fullPositionCloseFailed: {
+                ...perpsBaseToastOptions.error,
+                labelOptions: getPerpsToastLabels(
+                  strings('perps.close_position.failed_to_place_close_order'),
+                  strings('perps.close_position.your_position_is_still_active'),
+                ),
+              },
             },
             partial: {
               partialPositionCloseSubmitted: (
@@ -901,6 +947,15 @@ const usePerpsToasts = (): {
                   }),
                 ),
               }),
+              partialPositionCloseFailed: {
+                ...perpsBaseToastOptions.error,
+                labelOptions: getPerpsToastLabels(
+                  strings(
+                    'perps.close_position.failed_to_place_partial_close_order',
+                  ),
+                  strings('perps.close_position.your_position_is_still_active'),
+                ),
+              },
               switchToMarketOrderMissingLimitPrice: {
                 ...perpsBaseToastOptions.info,
                 labelOptions: getPerpsToastLabels(

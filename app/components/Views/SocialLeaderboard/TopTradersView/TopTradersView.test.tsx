@@ -13,6 +13,16 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ImpactMoment } from '../../../../util/haptics';
 import TopTradersView from './TopTradersView';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
+import { getTypeFilterOptionTestId } from '../components/TypeFilter';
+
+/**
+ * Opens the type-filter dropdown and picks an option, mirroring the real user
+ * flow (the leaderboard no longer renders inline pills).
+ */
+const selectTypeFilter = (type: 'all' | 'tokens' | 'perps') => {
+  fireEvent.press(screen.getByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR));
+  fireEvent.press(screen.getByTestId(getTypeFilterOptionTestId(type)));
+};
 
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
@@ -87,12 +97,14 @@ jest.mock(
 const mockToggleTraderNotification = jest.fn();
 const mockIsTraderNotificationEnabled = jest.fn((_traderId: string) => true);
 
-let mockNotificationPreferences = {
+const defaultNotificationPreferences = {
   ...DEFAULT_SOCIAL_AI_PREFERENCES,
   mutedTraderProfileIds: [
     ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
   ],
 };
+
+let mockNotificationPreferences = { ...defaultNotificationPreferences };
 
 const channelsDisabledPreferences = {
   ...DEFAULT_SOCIAL_AI_PREFERENCES,
@@ -292,12 +304,7 @@ describe('TopTradersView', () => {
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
     mockHasNotificationPreferences.mockReturnValue(true);
     mockRouteParams = {};
-    mockNotificationPreferences = {
-      ...DEFAULT_SOCIAL_AI_PREFERENCES,
-      mutedTraderProfileIds: [
-        ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
-      ],
-    };
+    mockNotificationPreferences = { ...defaultNotificationPreferences };
     mockIsTraderNotificationEnabled.mockReturnValue(true);
   });
 
@@ -308,12 +315,12 @@ describe('TopTradersView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the Top Traders title in the scrollable title section', () => {
+  it('renders the Weekly top traders title in the scrollable title section', () => {
     renderWithProvider(<TopTradersView />);
 
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.TITLE),
-    ).toHaveTextContent('Weekly Top Traders');
+    ).toHaveTextContent('Weekly top traders');
   });
 
   it('connects the scrollable title section to the compact header', () => {
@@ -331,7 +338,7 @@ describe('TopTradersView', () => {
 
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.HEADER_TITLE),
-    ).toHaveTextContent('Weekly Top Traders');
+    ).toHaveTextContent('Weekly top traders');
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST).props.onScroll,
     ).toEqual(expect.any(Function));
@@ -341,7 +348,7 @@ describe('TopTradersView', () => {
     ).toBe(16);
   });
 
-  it('renders a pinned filter bar without duplicate filter test IDs', () => {
+  it('renders a pinned filter bar with its own type selector test ID', () => {
     renderWithProvider(<TopTradersView />);
 
     expect(
@@ -349,8 +356,10 @@ describe('TopTradersView', () => {
         includeHiddenElements: true,
       }),
     ).toBeOnTheScreen();
+    // The header selector and the pinned selector use distinct test IDs, so the
+    // primary selector resolves to exactly one node.
     expect(
-      screen.getAllByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_ALL),
+      screen.getAllByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
     ).toHaveLength(1);
   });
 
@@ -523,12 +532,8 @@ describe('TopTradersView', () => {
   it('refreshes visited tab queries when the scroll view is pulled down', async () => {
     mockRefresh.mockResolvedValue(undefined);
     renderWithProvider(<TopTradersView />);
-    fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
-    );
-    fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_PERPS),
-    );
+    selectTypeFilter('tokens');
+    selectTypeFilter('perps');
     const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
 
     await act(async () => {
@@ -582,31 +587,28 @@ describe('TopTradersView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('renders the three asset-class filter pills', () => {
+  it('renders the three asset-class options in the type filter sheet', () => {
     renderWithProvider(<TopTradersView />);
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
+    );
     expect(
-      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_ALL),
+      screen.getByTestId(getTypeFilterOptionTestId('all')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
+      screen.getByTestId(getTypeFilterOptionTestId('tokens')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_PERPS),
+      screen.getByTestId(getTypeFilterOptionTestId('perps')),
     ).toBeOnTheScreen();
   });
 
-  it('renders only the All filter pill when perps are disabled', () => {
+  it('hides the type selector entirely when perps are disabled', () => {
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
     renderWithProvider(<TopTradersView />);
 
     expect(
-      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_ALL),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
-    ).not.toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_PERPS),
+      screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
     ).not.toBeOnTheScreen();
   });
 
@@ -620,12 +622,10 @@ describe('TopTradersView', () => {
     });
   });
 
-  it('enables the Tokens query after the Tokens pill is tapped', () => {
+  it('enables the Tokens query after the Tokens option is selected', () => {
     renderWithProvider(<TopTradersView />);
 
-    fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
-    );
+    selectTypeFilter('tokens');
 
     expectLatestQueryEnabledStates({
       all: true,
@@ -634,12 +634,10 @@ describe('TopTradersView', () => {
     });
   });
 
-  it('enables the Perps query after the Perps pill is tapped', () => {
+  it('enables the Perps query after the Perps option is selected', () => {
     renderWithProvider(<TopTradersView />);
 
-    fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_PERPS),
-    );
+    selectTypeFilter('perps');
 
     expectLatestQueryEnabledStates({
       all: true,
@@ -684,9 +682,7 @@ describe('TopTradersView', () => {
     });
     renderWithProvider(<TopTradersView />);
 
-    fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
-    );
+    selectTypeFilter('tokens');
 
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
     expect(screen.getByText('gamma.eth')).toBeOnTheScreen();
@@ -699,9 +695,7 @@ describe('TopTradersView', () => {
     });
     renderWithProvider(<TopTradersView />);
 
-    fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_PERPS),
-    );
+    selectTypeFilter('perps');
 
     expect(screen.getByText('gamma.eth')).toBeOnTheScreen();
     expect(screen.queryByText('beta.eth')).not.toBeOnTheScreen();
@@ -713,9 +707,7 @@ describe('TopTradersView', () => {
     });
     renderWithProvider(<TopTradersView />);
 
-    fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
-    );
+    selectTypeFilter('tokens');
     fireEvent.press(screen.getByText('alpha.eth'));
 
     expect(mockNavigate).toHaveBeenCalledWith(
@@ -731,7 +723,7 @@ describe('TopTradersView', () => {
     setTabResult('all', { isLoading: true, traders: [] });
     renderWithProvider(<TopTradersView />);
     expect(
-      screen.queryByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_ALL),
+      screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
     ).toBeOnTheScreen();
     expect(screen.queryByText('alpha.eth')).not.toBeOnTheScreen();
   });
@@ -903,11 +895,9 @@ describe('TopTradersView', () => {
       );
     });
 
-    it('fires Trader Leaderboard Chain Filter Changed when a pill is selected', () => {
+    it('fires Trader Leaderboard Chain Filter Changed when an option is selected', () => {
       renderWithProvider(<TopTradersView />);
-      fireEvent.press(
-        screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
-      );
+      selectTypeFilter('tokens');
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_CHAIN_FILTER_CHANGED,
         expect.objectContaining({
@@ -917,15 +907,11 @@ describe('TopTradersView', () => {
       );
     });
 
-    it('triggers a selection haptic when a different pill is tapped', () => {
+    it('triggers a selection haptic only when a different option is chosen', () => {
       renderWithProvider(<TopTradersView />);
 
-      fireEvent.press(
-        screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
-      );
-      fireEvent.press(
-        screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
-      );
+      selectTypeFilter('tokens');
+      selectTypeFilter('tokens');
 
       expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     });

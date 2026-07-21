@@ -177,6 +177,7 @@ jest.mock('../../Perps.testIds', () => ({
     rowItem: (symbol: string) => `perps-market-row-${symbol}`,
     tokenLogo: (symbol: string) => `perps-market-logo-${symbol}`,
     assetLabel: (symbol: string) => `perps-market-asset-label-${symbol}`,
+    tickerSuffix: (symbol: string) => `perps-market-ticker-suffix-${symbol}`,
     badge: (symbol: string) => `perps-market-badge-${symbol}`,
   },
 }));
@@ -360,15 +361,17 @@ describe('PerpsTabView', () => {
   });
 
   describe('Hook Integration', () => {
-    it('passes TP/SL and reduce-only filtering options to usePerpsLiveOrders', () => {
+    it('hides TP/SL orders but shows reduce-only orders (e.g. limit closes)', () => {
       render(<PerpsTabView />);
 
       expect(mockUsePerpsLiveOrders).toHaveBeenCalledWith(
         expect.objectContaining({
           hideTpSl: true,
-          hideReduceOnly: true,
           throttleMs: 1000,
         }),
+      );
+      expect(mockUsePerpsLiveOrders).not.toHaveBeenCalledWith(
+        expect.objectContaining({ hideReduceOnly: true }),
       );
     });
 

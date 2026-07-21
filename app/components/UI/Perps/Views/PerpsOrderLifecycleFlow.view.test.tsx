@@ -203,7 +203,7 @@ describe('Order Lifecycle & Funds Flow', () => {
       screen.queryByTestId('perps-select-provider-sheet-option-myx-mainnet'),
     ).not.toBeOnTheScreen();
 
-    // With MYX enabled + aggregated provider → HyperLiquid shows selected
+    // With MYX enabled + aggregated provider → aggregated shows selected
     await act(async () => {
       cleanup();
     });
@@ -218,14 +218,14 @@ describe('Order Lifecycle & Funds Flow', () => {
         },
       },
     });
+    const aggregatedOption = await screen.findByTestId(
+      'perps-select-provider-sheet-option-aggregated-mainnet',
+    );
+    expect(aggregatedOption.props.accessibilityState?.selected).toBe(true);
     expect(
-      await screen.findByTestId(
-        'perps-select-provider-sheet-check-aggregated-mainnet',
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId('perps-select-provider-sheet-check-myx-mainnet'),
-    ).not.toBeOnTheScreen();
+      screen.getByTestId('perps-select-provider-sheet-option-myx-mainnet').props
+        .accessibilityState?.selected,
+    ).toBe(false);
 
     // Trader selects MYX provider — switchProvider is called
     await act(async () => {
