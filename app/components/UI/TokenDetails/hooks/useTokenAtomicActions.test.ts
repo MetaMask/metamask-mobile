@@ -1,5 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { CaipChainId, Hex, isCaipAssetType } from '@metamask/utils';
+import {
+  CaipAssetType,
+  CaipChainId,
+  Hex,
+  isCaipAssetType,
+} from '@metamask/utils';
 import {
   AccountGroupAssets,
   Asset,
@@ -7,12 +12,14 @@ import {
 } from '@metamask/assets-controllers';
 import {
   computeBuySourceToken,
+  resolveBuyAssetId,
   useHandleOnBuy,
   useHandleOnReceive,
   useHandleOnSend,
   useHandleOnSwap,
 } from './useTokenAtomicActions';
 import { getSwapDestToken } from '../../Bridge/utils/getSwapDestToken';
+import { getCaipAssetIdForToken } from '../../Tokens/util/getCaipAssetIdForToken';
 import { TokenI } from '../../Tokens/types';
 import { SecurityDataType } from '../../Bridge/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -191,6 +198,10 @@ jest.mock('@metamask/utils', () => ({
   isCaipAssetType: jest.fn(),
 }));
 
+jest.mock('../../Tokens/util/getCaipAssetIdForToken', () => ({
+  getCaipAssetIdForToken: jest.fn(),
+}));
+
 jest.mock('../../../../util/Logger');
 
 jest.mock('../../../../core/Engine', () => ({
@@ -208,6 +219,10 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 const mockIsCaipAssetType = jest.mocked(isCaipAssetType);
+const mockGetCaipAssetIdForToken = jest.mocked(getCaipAssetIdForToken);
+const actualGetCaipAssetIdForToken = jest.requireActual(
+  '../../Tokens/util/getCaipAssetIdForToken',
+).getCaipAssetIdForToken as typeof getCaipAssetIdForToken;
 const mockSelectEvmChainId = jest.mocked(selectEvmChainId);
 const mockSelectSelectedInternalAccount = jest.mocked(
   selectSelectedInternalAccount,
@@ -493,9 +508,60 @@ describe('useTokenAtomicActions - computeBuySourceToken', () => {
   });
 });
 
+describe('resolveBuyAssetId', () => {
+  beforeEach(() => {
+    mockIsCaipAssetType.mockImplementation(
+      jest.requireActual('@metamask/utils').isCaipAssetType,
+    );
+    mockGetCaipAssetIdForToken.mockReset();
+  });
+
+  it('returns explicit caipAssetId when it is a valid CAIP asset type', async () => {
+    const caipAssetId = 'eip155:137/slip44:966' as CaipAssetType;
+    mockGetCaipAssetIdForToken.mockResolvedValue('eip155:1/slip44:60');
+
+    await expect(
+      resolveBuyAssetId({
+        ...defaultToken,
+        caipAssetId,
+      }),
+    ).resolves.toBe(caipAssetId);
+    expect(mockGetCaipAssetIdForToken).not.toHaveBeenCalled();
+  });
+
+  it('uses token address when getCaipAssetIdForToken returns null and address is CAIP', async () => {
+    const caipAddress = 'eip155:1/erc20:0xabc' as CaipAssetType;
+    mockGetCaipAssetIdForToken.mockResolvedValue(null);
+
+    await expect(
+      resolveBuyAssetId({
+        ...defaultToken,
+        address: caipAddress,
+      }),
+    ).resolves.toBe(caipAddress);
+  });
+
+  it('falls back to parseRampIntent when getCaipAssetIdForToken returns null', async () => {
+    mockGetCaipAssetIdForToken.mockResolvedValue(null);
+
+    await expect(resolveBuyAssetId(defaultToken)).resolves.toBe(
+      'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F',
+    );
+  });
+
+  it('returns undefined when resolution throws', async () => {
+    mockGetCaipAssetIdForToken.mockRejectedValue(
+      new Error('resolution failed'),
+    );
+
+    await expect(resolveBuyAssetId(defaultToken)).resolves.toBeUndefined();
+  });
+});
+
 describe('useTokenAtomicActions - useHandleOnBuy', () => {
   beforeEach(() => {
     mockIsCaipAssetType.mockReturnValue(false);
+    mockGetCaipAssetIdForToken.mockImplementation(actualGetCaipAssetIdForToken);
   });
 
   /**
@@ -573,9 +639,9 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
   });
 
   it('prefers explicit caipAssetId on the token when present', async () => {
-    const caipAssetId = 'eip155:137/slip44:966';
+    const caipAssetId = 'eip155:137/slip44:966' as CaipAssetType;
     mockIsCaipAssetType.mockImplementation(
-      (value: string) => value === caipAssetId,
+      (value: unknown) => value === caipAssetId,
     );
     const polToken = {
       ...defaultToken,
@@ -584,7 +650,7 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
       chainId: '0x89',
       isNative: true,
       caipAssetId,
-    } as TokenI & { caipAssetId: string };
+    };
 
     const { result } = await renderOnBuy({ token: polToken });
 
