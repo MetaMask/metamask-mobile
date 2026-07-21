@@ -509,7 +509,7 @@ PODS:
   - libwebp/webp (1.5.0):
     - libwebp/sharpyuv
   - lottie-ios (4.6.0)
-  - lottie-react-native (7.3.6):
+  - lottie-react-native (7.3.8):
     - boost
     - DoubleConversion
     - fast_float
@@ -5124,7 +5124,7 @@ SPEC CHECKSUMS:
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   lottie-ios: 8f959969761e9c45d70353667d00af0e5b9cadb3
-  lottie-react-native: 983fd0489530e8d40f173de7f04e2f88b9317a15
+  lottie-react-native: b410d8c9dcaf536198ce852ea47e73c9158ad04e
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   NativeUtils: 1856148c08a042bbbca306acbe2771db8a9be99b
