@@ -1,9 +1,6 @@
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-// eslint-disable-next-line import-x/no-namespace
-import { processNotification } from '@metamask/notification-services-controller/notification-services';
-import { createMockNotificationEthSent } from '@metamask/notification-services-controller/notification-services/mocks';
 
 import FCMService from './FCMService';
 import { EVENT_NAME } from '../../../core/Analytics';
@@ -220,18 +217,6 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
     FCMService.clearRegistration();
   });
 
-  const arrangeNotificationServicesMocks = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const identity = (x: any) => x;
-    const mockProcessNotification = jest
-      .mocked(processNotification)
-      .mockImplementation(identity);
-
-    return {
-      mockProcessNotification,
-    };
-  };
-
   const arrangeMocks = () => {
     const firebaseMocks = arrangeFirebaseMocks();
     const mockHandler = jest.fn();
@@ -261,63 +246,19 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
     expect(result).toBe(null);
   });
 
-  describe('FCMService - Process Foreground Messages', () => {
-    const act = async (
-      mocks: ReturnType<typeof arrangeMocks>,
-      overridePayload = {},
-    ) => {
-      const defaultPayload = {
-        data: { data: JSON.stringify(createMockNotificationEthSent()) },
-      } as unknown as FirebaseMessagingTypes.RemoteMessage;
-      const mockPayload = { ...defaultPayload, ...overridePayload };
+  it('passes the raw FCM payload directly to the handler', async () => {
+    const mocks = arrangeMocks();
+    const mockPayload = {
+      notification: { title: 'You received ETH', body: '0.05 ETH' },
+      data: { notification_id: 'abc', notification_type: 'wallet_activity' },
+    } as unknown as FirebaseMessagingTypes.RemoteMessage;
 
-      // Act - Start Listening
-      await FCMService.listenToPushNotificationsReceived(mocks.mockHandler);
-      expect(mocks.firebaseMocks.mockOnMessage).toHaveBeenCalled();
+    await FCMService.listenToPushNotificationsReceived(mocks.mockHandler);
 
-      // Fake a new remote message has been received
-      const messageHandler =
-        mocks.firebaseMocks.mockOnMessage.mock.lastCall?.[0];
-      await messageHandler?.(mockPayload);
-    };
+    const messageHandler = mocks.firebaseMocks.mockOnMessage.mock.lastCall?.[0];
+    await messageHandler?.(mockPayload);
 
-    it('invokes "processAndHandleNotification" & calls handler param', async () => {
-      const mocks = arrangeMocks();
-      const notificationMocks = arrangeNotificationServicesMocks();
-
-      await act(mocks);
-
-      // Assert - notification was processed
-      expect(notificationMocks.mockProcessNotification).toHaveBeenCalled();
-
-      // Assert - handler callback was invoked
-      expect(mocks.mockHandler).toHaveBeenCalled();
-    });
-
-    it('handles invalid or non-parseable payload', async () => {
-      const mocks = arrangeMocks();
-      arrangeNotificationServicesMocks();
-
-      const invalidPayload = {
-        data: { data: 'invalid json' },
-      } as unknown as FirebaseMessagingTypes.RemoteMessage;
-
-      await act(mocks, invalidPayload);
-
-      expect(mocks.mockHandler).not.toHaveBeenCalled();
-    });
-
-    it('handles errors from notification services', async () => {
-      const mocks = arrangeMocks();
-      const notificationMocks = arrangeNotificationServicesMocks();
-      notificationMocks.mockProcessNotification.mockImplementationOnce(() => {
-        throw new Error('TEST ERROR');
-      });
-
-      await act(mocks);
-
-      expect(mocks.mockHandler).not.toHaveBeenCalled();
-    });
+    expect(mocks.mockHandler).toHaveBeenCalledWith(mockPayload);
   });
 });
 

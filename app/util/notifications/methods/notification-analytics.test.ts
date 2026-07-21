@@ -61,7 +61,7 @@ describe('notificationAnalyticsProperties', () => {
 
     expect(notificationAnalyticsProperties(notification)).toStrictEqual({
       notification_id: 'notification-1',
-      notification_type: 'eth_received',
+      notification_type: 'wallet_activity',
       notification_subtype: 'eth_received',
       chain_id: '1',
     });

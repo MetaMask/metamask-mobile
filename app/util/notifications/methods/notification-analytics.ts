@@ -20,7 +20,8 @@ const onChainAnalyticProperties = (item: INotification) => {
 export function notificationAnalyticsProperties(item: INotification) {
   return {
     notification_id: item.id,
-    notification_type: item.type,
+    notification_type:
+      'notification_type' in item ? item.notification_type : item.type,
     notification_subtype: getNotificationSubtype(item),
     ...onChainAnalyticProperties(item),
   };

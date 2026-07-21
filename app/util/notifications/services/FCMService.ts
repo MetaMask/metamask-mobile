@@ -1,9 +1,3 @@
-import {
-  type INotification,
-  processNotification,
-  type UnprocessedRawNotification,
-  toRawAPINotification,
-} from '@metamask/notification-services-controller/notification-services';
 import { toPushAnalyticsPayload } from '@metamask/notification-services-controller/push-services';
 import messaging, {
   type FirebaseMessagingTypes,
@@ -88,50 +82,6 @@ async function registerForRemoteMessages() {
   }
 }
 
-/**
- * Processes and handles a remote firebase message.
- * Currently firebase messages only support wallet notifications (from our notification services).
- * @param payload - Firebase Remote Message Payload.
- * @param handler - Callback handler for callers to handle a notification
- * @returns - void
- */
-async function processAndHandleNotification(
-  payload: FirebaseMessagingTypes.RemoteMessage,
-  handler: (notification: INotification) => void | Promise<void>,
-  platformHandler?: (
-    rawPayload: FirebaseMessagingTypes.RemoteMessage,
-  ) => void | Promise<void>,
-) {
-  try {
-    const payloadData = payload?.data?.data
-      ? String(payload?.data?.data)
-      : undefined;
-    const data: UnprocessedRawNotification | undefined = payloadData
-      ? JSON.parse(payloadData)
-      : undefined;
-
-    if (!data) {
-      await platformHandler?.(payload);
-      return;
-    }
-
-    // If we are able to handle a remote push notification
-    // Then we do not want to render the original server notification but custom content
-    // Prevents duplicate notifications
-    delete payload.notification;
-
-    const notificationData = toRawAPINotification(data);
-    const notification = processNotification(notificationData);
-    await handler(notification);
-  } catch (error) {
-    // Do Nothing, cannot parse a bad notification
-    Logger.log('Unable to send push notification:', {
-      notification: payload?.data?.data,
-      error,
-    });
-  }
-}
-
 class FCMService {
   /**
    * Creates a registration token for Firebase Cloud Messaging
@@ -171,15 +121,12 @@ class FCMService {
   };
 
   /**
-   * Listener for when push notifications are received.
-   * Subscribed to both foreground and background messages
-
-   * @param handler - handler used for displaying push notifications. Must be provided.
+   * Listener for foreground push notifications.
+   * Background/killed state is handled natively by the OS from the FCM notification payload.
    * @returns unsubscribe handler
    */
   listenToPushNotificationsReceived = async (
-    handler: (notification: INotification) => void | Promise<void>,
-    platformHandler?: (
+    handler: (
       rawPayload: FirebaseMessagingTypes.RemoteMessage,
     ) => void | Promise<void>,
   ): Promise<UnsubscribeFunc | null> => {
@@ -189,7 +136,7 @@ class FCMService {
       // IOS - requires isHeadless injection and app modification to ship a minimal app when headless (https://rnfirebase.io/messaging/usage#background-application-state).
       // Android - will cause double notifications if a remote message contains both `notification` + `data` payloads
       // Firebase will still send push notifications in background + app kill as there is a `notification` payload in the remote message
-      await this.#registerForegroundMessages(handler, platformHandler);
+      await this.#registerForegroundMessages(handler);
       return this.#hasRegisteredForeground;
     } catch {
       return null;
@@ -203,8 +150,7 @@ class FCMService {
    */
   #hasRegisteredForeground: UnsubscribeFunc | null = null;
   #registerForegroundMessages = async (
-    handler: (notification: INotification) => void | Promise<void>,
-    platformHandler?: (
+    handler: (
       rawPayload: FirebaseMessagingTypes.RemoteMessage,
     ) => void | Promise<void>,
   ) => {
@@ -217,9 +163,7 @@ class FCMService {
     }
 
     try {
-      this.#hasRegisteredForeground = messaging().onMessage(async (payload) => {
-        processAndHandleNotification(payload, handler, platformHandler);
-      });
+      this.#hasRegisteredForeground = messaging().onMessage(handler);
     } catch {
       // Do nothing
     }
