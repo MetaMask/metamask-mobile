@@ -58,7 +58,7 @@ export function renderWatchlistSectionWithRoutes(
     { name: 'WatchlistSection' },
     [WATCHLIST_FULL_VIEW_ROUTE, ASSET_ROUTE],
     { state: buildWatchlistState(options) },
-    { sectionIndex: 2, totalSectionsLoaded: 5 },
+    { sectionIndex: 3, totalSectionsLoaded: 5 },
   );
 }
 
