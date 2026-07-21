@@ -45,6 +45,10 @@ describe('useHasNewMarkets', () => {
     // Terminal backend enabled by default so existing listedAt-driven cases
     // exercise the "data present" path; flag-off behavior is covered below.
     mockTerminalBackendEnabled(true);
+    // `restoreAllMocks` (global afterEach) doesn't clear call history on this
+    // jest.mock factory's `jest.fn()`, so without this, `.mock.calls[0][0]`
+    // below would read a stale callback from a previous test's unmounted hook.
+    useFocusEffect.mockClear();
   });
 
   afterEach(() => {

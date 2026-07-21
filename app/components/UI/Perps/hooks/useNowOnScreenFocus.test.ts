@@ -11,6 +11,13 @@ const { useFocusEffect } = require('@react-navigation/native') as {
 };
 
 describe('useNowOnScreenFocus', () => {
+  beforeEach(() => {
+    // `restoreAllMocks` (global afterEach) doesn't clear call history on this
+    // jest.mock factory's `jest.fn()`, so without this, `.mock.calls[0][0]`
+    // below would read a stale callback from a previous test's unmounted hook.
+    useFocusEffect.mockClear();
+  });
+
   afterEach(() => {
     jest.restoreAllMocks();
   });

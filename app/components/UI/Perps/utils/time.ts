@@ -62,7 +62,7 @@ const ONE_HOUR_MS = 60 * 60 * 1000;
  */
 export const isWithinLast30Days = (listedAt: number, now: number): boolean => {
   const age = now - listedAt;
-  return age >= 0 && age < THIRTY_DAYS_MS;
+  return age > 0 && age < THIRTY_DAYS_MS;
 };
 
 /**
