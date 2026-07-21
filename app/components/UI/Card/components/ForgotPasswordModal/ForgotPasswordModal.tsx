@@ -9,6 +9,7 @@ import React, {
 import { ActivityIndicator, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   WebView,
   WebViewMessageEvent,
@@ -136,7 +137,7 @@ type ForgotPasswordModalParams = {
 };
 
 const ForgotPasswordModal: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<ForgotPasswordModalParams, 'CardForgotPasswordModal'>>();
   const tw = useTailwind();

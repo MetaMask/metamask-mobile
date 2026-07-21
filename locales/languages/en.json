@@ -5101,6 +5101,14 @@
     "receive": "Receive",
     "swap": "Swap",
     "send": "Send",
+    "activity_swapped": "Swapped",
+    "activity_swapping": "Swapping",
+    "activity_swap_failed": "Swap failed",
+    "activity_bridged": "Bridged",
+    "activity_bridging": "Bridging",
+    "activity_bridge_failed": "Bridge failed",
+    "activity_sending": "Sending",
+    "activity_send_failed": "Send failed",
     "redeposit": "Redeposit",
     "interaction": "Interaction",
     "contract_deploy": "Contract deployment",
@@ -8429,7 +8437,10 @@
     "you_swapped": "You swapped",
     "you_received": "You received",
     "bridge_to_chain": "Bridge to {{chainName}}",
-    "recipient": "Recipient"
+    "recipient": "Recipient",
+    "swapped": "Swapped",
+    "bridged": "Bridged",
+    "bridged_token": "Bridged {{symbol}}"
   },
   "account_status": {
     "account_already_exists": "Wallet already exists",
