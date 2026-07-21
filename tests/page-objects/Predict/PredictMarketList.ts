@@ -370,36 +370,6 @@ class PredictMarketList {
     );
   }
 
-  getMarketByTitle(title: string | RegExp): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText(title),
-      appium: () => PlaywrightMatchers.getElementByText(title),
-    });
-  }
-
-  async tapMarketByTitle(title: string | RegExp): Promise<void> {
-    const market = this.getMarketByTitle(title);
-    const titleDescription =
-      title instanceof RegExp ? title.source : String(title);
-
-    await Utilities.executeWithRetry(
-      async () => {
-        await Assertions.expectElementToBeVisible(market, {
-          timeout: 15_000,
-          description: `Predict market titled ${titleDescription}`,
-        });
-        await UnifiedGestures.waitAndTap(market, {
-          description: `Predict market titled ${titleDescription}`,
-          timeout: 15_000,
-        });
-      },
-      {
-        timeout: 60_000,
-        description: `Tap predict market titled ${titleDescription}`,
-      },
-    );
-  }
-
   async tapCategoryTab(
     category: CategoryTab,
     options: { direction?: CategoryTabScrollDirection } = {},

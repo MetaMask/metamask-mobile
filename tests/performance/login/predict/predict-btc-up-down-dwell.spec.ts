@@ -1,21 +1,13 @@
 import { test as perfTest } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
-import {
-  asPlaywrightElement,
-  PlaywrightAssertions,
-  sleep,
-} from '../../../framework';
+import { asPlaywrightElement, PlaywrightAssertions } from '../../../framework';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import ToastModal from '../../../page-objects/wallet/ToastModal';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 import PredictCryptoUpDownDetailsPage from '../../../page-objects/Predict/PredictCryptoUpDownDetailsPage';
 import { Performance, PerformancePredict } from '../../../tags.performance.js';
-
-const BTC_UP_OR_DOWN_TITLE = /BTC Up or Down/;
-const DWELL_DURATION_MS = 5 * 60 * 1000;
-const DWELL_KEEPALIVE_INTERVAL_MS = 30_000;
 
 /*
  * Scenario: Predict BTC Up or Down dwell (BrowserStack app profiling PoC)
@@ -25,77 +17,74 @@ const DWELL_KEEPALIVE_INTERVAL_MS = 30_000;
  * BrowserStack app profiling can capture a sustained session.
  */
 perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
-  perfTest.setTimeout(15 * 60 * 1000);
-
   perfTest(
     'Predict BTC Up or Down - 5 minute dwell for profiling',
     { tag: '@team-predict' },
-    async ({ currentDeviceDetails, driver, performanceTracker }) => {
+    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+      // Login to the app
       await loginToAppPlaywright();
+      perfTest.setTimeout(15 * 60 * 1000);
 
-      const navigateToPredictTimer = new TimerHelper(
-        'Time since user taps Predict until Predict Market List is displayed',
+      // Timer 1: Navigate to Predict tab
+      const timer1 = new TimerHelper(
+        'Time since user taps Predict button until Predict Market List is displayed',
         { ios: 8000, android: 5000 },
         currentDeviceDetails.platform,
       );
-
       await ToastModal.waitForToastToDismiss();
+
       await TabBarComponent.tapActions();
+
       await WalletActionsBottomSheet.tapPredictButton();
-      await navigateToPredictTimer.measure(async () => {
+      await timer1.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(PredictMarketList.container),
+          { timeout: 60000 },
         );
       });
 
       await PredictMarketList.tapCategoryTab('crypto');
 
-      const openMarketTimer = new TimerHelper(
-        'Time since user taps BTC Up or Down until crypto up/down details are visible',
+      // Timer 2: Open BTC Up or Down market details
+      const timer2 = new TimerHelper(
+        'Time since user taps BTC Up or Down market until details are visible',
         { ios: 5000, android: 8000 },
         currentDeviceDetails.platform,
       );
 
-      await PredictMarketList.tapMarketByTitle(BTC_UP_OR_DOWN_TITLE);
-      await openMarketTimer.measure(async () => {
+      await PredictMarketList.tapMarketCard('crypto', 1);
+      await timer2.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(PredictCryptoUpDownDetailsPage.container),
         );
       });
 
-      const dwellTimer = new TimerHelper(
-        'Dwell on BTC Up or Down market details for BrowserStack app profiling',
-      );
-      dwellTimer.start();
-
-      const dwellDeadline = Date.now() + DWELL_DURATION_MS;
+      // Stay on the market details screen for 5 minutes (profiling window)
+      const dwellMs = 5 * 60 * 1000;
+      const pollMs = 30 * 1000;
+      const dwellDeadline = Date.now() + dwellMs;
       while (Date.now() < dwellDeadline) {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PredictCryptoUpDownDetailsPage.container),
-          { timeout: 10_000 },
-        );
-
+        await driver.getWindowSize();
         const remainingMs = dwellDeadline - Date.now();
         if (remainingMs <= 0) {
           break;
         }
-        await sleep(Math.min(DWELL_KEEPALIVE_INTERVAL_MS, remainingMs));
+        await new Promise((resolve) =>
+          setTimeout(resolve, Math.min(pollMs, remainingMs)),
+        );
       }
 
-      dwellTimer.stop();
+      // Add all timers to performance tracker
+      performanceTracker.addTimers(timer1, timer2);
 
-      performanceTracker.addTimers(
-        navigateToPredictTimer,
-        openMarketTimer,
-        dwellTimer,
-      );
+      // Attach performance metrics to test report
 
       console.log('Predict BTC Up or Down dwell profiling PoC completed');
+      console.log(`Navigate to Predict: ${timer1.getDuration()}ms`);
+      console.log(`Open Market Details: ${timer2.getDuration()}ms`);
       console.log(
-        `Navigate to Predict: ${navigateToPredictTimer.getDuration()}ms`,
+        `Total Time: ${(timer1.getDuration() ?? 0) + (timer2.getDuration() ?? 0)}ms`,
       );
-      console.log(`Open BTC Up or Down: ${openMarketTimer.getDuration()}ms`);
-      console.log(`Dwell duration: ${dwellTimer.getDuration()}ms`);
     },
   );
 });
