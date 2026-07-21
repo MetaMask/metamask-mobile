@@ -862,6 +862,7 @@
   "QrSyncController": {
     "phase": "idle",
     "connectionStatus": "disconnected",
+    "syncFlow": null,
     "pendingSecretImports": null,
     "provisioningMetadata": null,
     "provisioningStatus": null,

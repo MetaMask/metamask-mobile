@@ -6,7 +6,7 @@ import React, {
   useRef,
 } from 'react';
 import { View } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -35,6 +35,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import useSectionViewportVisible from '../../hooks/useSectionViewportVisible';
+import { useThrottledFocusEffect } from '../../../../hooks/useThrottledFocusEffect';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
@@ -117,7 +118,7 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     });
 
     // V1 focus-poll — mutually exclusive with V2 viewport fetch.
-    useFocusEffect(
+    useThrottledFocusEffect(
       useCallback(() => {
         if (isV2Enabled || !isV1Enabled) {
           return;
@@ -126,6 +127,7 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
           () => undefined,
         );
       }, [isV2Enabled, isV1Enabled]),
+      300_000, // 5 minutes
     );
 
     const {

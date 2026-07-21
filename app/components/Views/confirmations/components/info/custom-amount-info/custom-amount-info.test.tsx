@@ -2,6 +2,7 @@ import React, { act } from 'react';
 import { merge, noop } from 'lodash';
 import { ToastContext } from '../../../../../../component-library/components/Toast';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import Engine from '../../../../../../core/Engine';
 import {
   CustomAmountInfo,
   CustomAmountInfoProps,
@@ -96,6 +97,9 @@ jest.mock('../../../../../../core/Engine', () => ({
     TransactionPayController: {
       updateFiatPayment: jest.fn(),
     },
+    TransactionController: {
+      state: { transactions: [] },
+    },
   },
 }));
 jest.mock('../../PayAccountSelector', () => {
@@ -189,6 +193,15 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampsPaymentMethods', () => ({
 
 const TOKEN_ADDRESS_MOCK = '0x123' as Hex;
 const CHAIN_ID_MOCK = '0x1' as Hex;
+const TRANSACTION_ID_MOCK = 'tx-mock-id';
+
+function setControllerTransactions(transactions: { id: string }[]) {
+  (
+    Engine.context.TransactionController as unknown as {
+      state: { transactions: { id: string }[] };
+    }
+  ).state = { transactions };
+}
 
 const mockShowToast = jest.fn();
 const mockToastRef = {
@@ -389,6 +402,8 @@ describe('CustomAmountInfo', () => {
     useMoneyNoFeeTokensMock.mockReturnValue({ isMoneyNoFeeToken: false });
     usePayWithMoneyAccountSectionMock.mockReturnValue(null);
     useAccountNoFundsAlertMock.mockReturnValue([]);
+
+    setControllerTransactions([]);
   });
 
   it('renders amount', () => {
@@ -666,6 +681,12 @@ describe('CustomAmountInfo', () => {
     const error = new Error('update failed');
     const updateTokenAmountMock = jest.fn().mockRejectedValue(error);
     const mockOnAmountSubmit = jest.fn();
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
+      type: TransactionType.contractInteraction,
+      txParams: { from: '0x123' },
+    } as never);
+    setControllerTransactions([{ id: TRANSACTION_ID_MOCK }]);
     useTransactionCustomAmountMock.mockReturnValue({
       amountFiat: '123.45',
       amountHuman: '0',
@@ -700,6 +721,88 @@ describe('CustomAmountInfo', () => {
     );
     // Keyboard stays open: Done button still present
     expect(queryByText(strings('confirm.edit_amount_done'))).toBeOnTheScreen();
+  });
+
+  it('does not show toast when the transaction was removed before updateTokenAmount rejects', async () => {
+    const error = new Error(
+      `Cannot update transaction as ID not found - ${TRANSACTION_ID_MOCK}`,
+    );
+    const updateTokenAmountMock = jest.fn().mockRejectedValue(error);
+    const mockOnAmountSubmit = jest.fn();
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
+      type: TransactionType.contractInteraction,
+      txParams: { from: '0x123' },
+    } as never);
+    // Confirmation dismissed by back navigation: the transaction is gone.
+    setControllerTransactions([]);
+    useTransactionCustomAmountMock.mockReturnValue({
+      amountFiat: '123.45',
+      amountHuman: '0',
+      amountHumanDebounced: '0',
+      amountFiatDebounced: '0',
+      hasInput: true,
+      isDepositPrefillEnabled: false,
+      isDepositPrefilled: false,
+      isInputChanged: false,
+      isPrefillPending: false,
+      isDepositPrefillLoading: false,
+      updatePendingAmount: noop,
+      updatePendingAmountPercentage: noop,
+      updateTokenAmount: updateTokenAmountMock,
+    });
+
+    const { getByText } = render({
+      onAmountSubmit: mockOnAmountSubmit,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(mockOnAmountSubmit).not.toHaveBeenCalled();
+  });
+
+  it('does not show toast when only unrelated transactions remain after the tracked one is removed', async () => {
+    const error = new Error('update failed');
+    const updateTokenAmountMock = jest.fn().mockRejectedValue(error);
+    const mockOnAmountSubmit = jest.fn();
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
+      type: TransactionType.contractInteraction,
+      txParams: { from: '0x123' },
+    } as never);
+    // Tracked transaction is gone; an unrelated one still lingers in state.
+    setControllerTransactions([{ id: 'unrelated-tx-id' }]);
+    useTransactionCustomAmountMock.mockReturnValue({
+      amountFiat: '123.45',
+      amountHuman: '0',
+      amountHumanDebounced: '0',
+      amountFiatDebounced: '0',
+      hasInput: true,
+      isDepositPrefillEnabled: false,
+      isDepositPrefilled: false,
+      isInputChanged: false,
+      isPrefillPending: false,
+      isDepositPrefillLoading: false,
+      updatePendingAmount: noop,
+      updatePendingAmountPercentage: noop,
+      updateTokenAmount: updateTokenAmountMock,
+    });
+
+    const { getByText } = render({
+      onAmountSubmit: mockOnAmountSubmit,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(mockOnAmountSubmit).not.toHaveBeenCalled();
   });
 
   it('renders PayAccountSelector when supportAccountSelection is true', () => {
@@ -918,6 +1021,144 @@ describe('CustomAmountInfo', () => {
     });
   });
 
+  describe('Max auto-submit', () => {
+    const updateTokenAmountMock = jest.fn();
+    const updatePendingAmountPercentageMock = jest.fn();
+
+    beforeEach(() => {
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '0',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        isDepositPrefillEnabled: false,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageMock,
+        updateTokenAmount: updateTokenAmountMock,
+      });
+    });
+
+    it('hides keyboard immediately when Max is pressed', async () => {
+      const { getByText, queryByTestId } = render({ hasMax: true });
+
+      expect(queryByTestId('deposit-keyboard')).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      expect(queryByTestId('deposit-keyboard')).toBeNull();
+    });
+
+    it('calls updatePendingAmountPercentage with 100 when Max is pressed', async () => {
+      const { getByText } = render({ hasMax: true });
+
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      expect(updatePendingAmountPercentageMock).toHaveBeenCalledWith(100);
+    });
+
+    it('calls handleDone when amountFiat updates after Max press', async () => {
+      const { getByText, rerender } = render({ hasMax: true });
+
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '50',
+        amountHuman: '0.05',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        isDepositPrefillEnabled: false,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageMock,
+        updateTokenAmount: updateTokenAmountMock,
+      });
+
+      await act(async () => {
+        rerender(
+          <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
+            <CustomAmountInfo hasMax />
+          </ToastContext.Provider>,
+        );
+      });
+
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onAmountSubmit after Max auto-submit completes', async () => {
+      const onAmountSubmitMock = jest.fn();
+      const { getByText, rerender } = render({
+        hasMax: true,
+        onAmountSubmit: onAmountSubmitMock,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '50',
+        amountHuman: '0.05',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        isDepositPrefillEnabled: false,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageMock,
+        updateTokenAmount: updateTokenAmountMock,
+      });
+
+      await act(async () => {
+        rerender(
+          <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
+            <CustomAmountInfo hasMax onAmountSubmit={onAmountSubmitMock} />
+          </ToastContext.Provider>,
+        );
+      });
+
+      expect(onAmountSubmitMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not auto-submit for non-max percentages', async () => {
+      const { getByText, queryByTestId } = render();
+
+      await act(async () => {
+        fireEvent.press(getByText('10%'));
+      });
+
+      expect(queryByTestId('deposit-keyboard')).toBeOnTheScreen();
+      expect(updateTokenAmountMock).not.toHaveBeenCalled();
+    });
+
+    it('does not auto-submit when amountFiat stays at zero', async () => {
+      const { getByText } = render({ hasMax: true });
+
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      expect(updateTokenAmountMock).not.toHaveBeenCalled();
+    });
+  });
+
   describe('showPaymentDetails', () => {
     async function pressDone(
       getByText: ReturnType<typeof render>['getByText'],
@@ -984,6 +1225,7 @@ describe('CustomAmountInfo', () => {
         type: TransactionType.moneyAccountDeposit,
         txParams: { from: '0x123' },
       } as never);
+      setControllerTransactions([{ id: 'tx-1' }]);
       useTransactionPayFiatPaymentMock.mockReturnValue({
         selectedPaymentMethodId: '/payments/debit-credit-card',
         amountFiat: '100',

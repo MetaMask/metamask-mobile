@@ -10,6 +10,8 @@ export const SPENDING_CAP_KINDS = new Set<ActivityListItem['type']>([
   'approveSpendingCap',
   'increaseSpendingCap',
   'revokeSpendingCap',
+  'assetActivation',
+  'assetDeactivation',
 ]);
 
 const hidePlusSignActivityTypes = SPENDING_CAP_KINDS;

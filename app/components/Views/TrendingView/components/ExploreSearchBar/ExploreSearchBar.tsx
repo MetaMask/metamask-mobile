@@ -23,6 +23,8 @@ interface ExploreSearchBarButtonProps {
   type: 'button';
   onPress: () => void;
   placeholder?: string;
+  /** Tailwind gap class for the search + cancel row. Defaults to `gap-2`. */
+  rowTwClassName?: string;
 }
 
 interface ExploreSearchBarInteractiveProps {
@@ -31,6 +33,8 @@ interface ExploreSearchBarInteractiveProps {
   onSearchChange: (query: string) => void;
   onCancel: () => void;
   placeholder?: string;
+  /** Tailwind gap class for the search + cancel row. Defaults to `gap-2`. */
+  rowTwClassName?: string;
 }
 
 type ExploreSearchBarProps =
@@ -44,10 +48,12 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
     selectBasicFunctionalityEnabled,
   );
   const isButtonMode = props.type === 'button';
+  const rowTwClassName = props.rowTwClassName ?? 'gap-2';
   const placeholder =
-    props.placeholder || isBasicFunctionalityEnabled
+    props.placeholder ??
+    (isBasicFunctionalityEnabled
       ? strings('trending.search_placeholder')
-      : strings('trending.search_sites');
+      : strings('trending.search_sites'));
 
   // Button mode: tappable faux search bar (no text input).
   const searchBarStatic = (
@@ -76,7 +82,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-2"
+      twClassName={rowTwClassName}
     >
       {isButtonMode ? (
         <TouchableOpacity

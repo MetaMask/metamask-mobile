@@ -263,6 +263,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         // has been successfully applied above (no-op for non-money flows).
         trackAmountCommitted();
       } catch (error) {
+        const isConfirmationDismissed =
+          !Engine.context.TransactionController.state.transactions.some(
+            (tx) => tx.id === transactionId,
+          );
+        if (isConfirmationDismissed) {
+          return;
+        }
         const prefixed = prefixError(error, AMOUNT_UPDATE_ERROR_PREFIX);
         toastRef?.current?.showToast(
           getAmountUpdateErrorToastOptions(prefixed, () =>
@@ -307,6 +314,26 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         handleDone();
       }
     }, [isDepositPrefilled, amountFiat, handleDone]);
+
+    const isMaxAutoSubmitPending = useRef(false);
+
+    const handlePercentagePress = useCallback(
+      (percentage: number) => {
+        updatePendingAmountPercentage(percentage);
+        if (percentage === 100) {
+          isMaxAutoSubmitPending.current = true;
+          setIsKeyboardVisible(false);
+        }
+      },
+      [updatePendingAmountPercentage],
+    );
+
+    useEffect(() => {
+      if (isMaxAutoSubmitPending.current && amountFiat !== '0') {
+        isMaxAutoSubmitPending.current = false;
+        handleDone();
+      }
+    }, [amountFiat, handleDone]);
 
     const handleAmountPress = useCallback(() => {
       wasKeyboardEverVisible.current = true;
@@ -419,7 +446,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               value={amountFiat}
               onChange={updatePendingAmount}
               onDonePress={handleDone}
-              onPercentagePress={updatePendingAmountPercentage}
+              onPercentagePress={handlePercentagePress}
               hasInput={hasInput}
               hasMax={
                 (hasMax || isMoneyDepositNoFee) &&
