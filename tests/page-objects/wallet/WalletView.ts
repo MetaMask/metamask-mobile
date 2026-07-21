@@ -40,6 +40,29 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
   }
 
+  /**
+   * Wallet header root — high in the Android view hierarchy (above scroll /
+   * homepage sections). Appium uses resourceIdMatches so package-qualified
+   * IDs resolve quickly without deep tree walks into token lists.
+   */
+  get headerRoot(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.WALLET_HEADER_ROOT,
+            { exact: false },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            WalletViewSelectorsIDs.WALLET_HEADER_ROOT,
+          ),
+      },
+    });
+  }
+
   /** Cross-framework scroll container for the wallet homepage ScrollView. */
   get walletScrollContainer(): string {
     return WalletViewSelectorsIDs.WALLET_SCROLL_VIEW;

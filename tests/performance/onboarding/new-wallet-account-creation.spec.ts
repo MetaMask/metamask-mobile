@@ -37,12 +37,12 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await OnboardingView.tapCreateNewWalletButton();
       await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(OnboardingSheet.importSeedButton),
+        asPlaywrightElement(OnboardingSheet.importSeedButton),
       );
       test.setTimeout(10 * 60 * 1000);
       await OnboardingSheet.tapImportSeedButton();
       await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(CreatePasswordView.newPasswordInput),
+        asPlaywrightElement(CreatePasswordView.newPasswordInput),
       );
       await CreatePasswordView.enterPassword(
         getPasswordForScenario('onboarding') ?? '',
@@ -56,7 +56,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await CreatePasswordView.tapCreatePasswordButton();
       await ProtectYourWalletView.tapRemindMeLater();
       await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(MetaMetricsOptInView.screenTitle),
+        asPlaywrightElement(MetaMetricsOptInView.screenTitle),
       );
       await MetaMetricsOptInView.tapAgreeButton();
       await dismissOnboardingInterestQuestionnaire();
@@ -95,7 +95,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       );
 
       await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(TabBarComponent.tabBarWalletButton),
+        asPlaywrightElement(TabBarComponent.tabBarWalletButton),
         {
           description:
             'token list should be visible after selecting the new account',
@@ -106,7 +106,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await screen1Timer.measure(
         async () =>
           await PlaywrightAssertions.expectElementToBeVisible(
-            await asPlaywrightElement(AccountListBottomSheet.addWalletButton),
+            asPlaywrightElement(AccountListBottomSheet.addWalletButton),
           ),
       );
 
@@ -114,7 +114,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await screen2Timer.measure(
         async () =>
           await PlaywrightAssertions.expectElementToBeVisible(
-            await asPlaywrightElement(
+            asPlaywrightElement(
               AccountListBottomSheet.accountNameInList('Account 2'),
             ),
           ),
@@ -123,7 +123,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await AccountListBottomSheet.tapAccountByName('Account 2');
       await screen3Timer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.getMoneySection),
+          asPlaywrightElement(WalletView.headerRoot),
           {
             description:
               'token list should be visible after selecting the new account',

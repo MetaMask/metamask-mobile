@@ -40,7 +40,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       // Open Perps Main Screen
       await selectPerpsMainScreenTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsOnboarding.tutorialTitle),
+          asPlaywrightElement(PerpsOnboarding.tutorialTitle),
         );
       });
 
@@ -51,7 +51,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       // Open Add Funds flow
       await openAddFundsTimer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsDepositView.amountInput),
+          asPlaywrightElement(PerpsDepositView.amountInput),
         );
       });
 

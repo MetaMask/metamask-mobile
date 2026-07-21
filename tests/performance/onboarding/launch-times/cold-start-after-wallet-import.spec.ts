@@ -26,7 +26,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
       await PlaywrightGestures.activateApp(currentDeviceDetails);
 
       await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(LoginView.loginButton),
+        asPlaywrightElement(LoginView.loginButton),
       );
 
       await loginToAppPlaywright({
@@ -43,7 +43,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
       );
       await timer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.getMoneySection),
+          asPlaywrightElement(WalletView.headerRoot),
         );
       });
 

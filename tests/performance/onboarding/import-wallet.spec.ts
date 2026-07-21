@@ -73,14 +73,14 @@ test.describe(PerformanceOnboarding, () => {
       await OnboardingView.tapHaveAnExistingWallet();
       await timer1.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(OnboardingSheet.importSeedButton),
+          asPlaywrightElement(OnboardingSheet.importSeedButton),
         );
       });
 
       await OnboardingSheet.tapImportSeedButton();
       await timer2.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(ImportWalletView.title),
+          asPlaywrightElement(ImportWalletView.title),
         );
       });
 
@@ -93,7 +93,7 @@ test.describe(PerformanceOnboarding, () => {
       await ImportWalletView.tapContinueButton();
       await timer3.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(CreatePasswordView.newPasswordInput),
+          asPlaywrightElement(CreatePasswordView.newPasswordInput),
         );
       });
 
@@ -114,7 +114,7 @@ test.describe(PerformanceOnboarding, () => {
 
       await timer4.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(MetaMetricsOptInView.screenTitle),
+          asPlaywrightElement(MetaMetricsOptInView.screenTitle),
         );
       });
 
@@ -127,7 +127,7 @@ test.describe(PerformanceOnboarding, () => {
       if (predictGtmOnboardingModalEnabled) {
         await timer6.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            await asPlaywrightElement(PredictModalView.notNowButton),
+            asPlaywrightElement(PredictModalView.notNowButton),
           );
         });
       }
@@ -135,7 +135,7 @@ test.describe(PerformanceOnboarding, () => {
       await dismisspredictionsModalPlaywright();
       await timer7.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.getMoneySection),
+          asPlaywrightElement(WalletView.headerRoot),
           { timeout: walletTokenLoadTimeoutMs },
         );
       });
