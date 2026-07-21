@@ -198,6 +198,18 @@ describe('RampDetails', () => {
     expect(getByText('€58.88')).toBeOnTheScreen();
   });
 
+  it('shows Not available for missing FiatOrder transaction hash', () => {
+    const item = makeItem({
+      ...baseOrder,
+      txHash: undefined,
+      sellTxHash: undefined,
+    });
+
+    const { getAllByText } = render(<RampDetails item={item} />);
+
+    expect(getAllByText('Not available').length).toBeGreaterThan(0);
+  });
+
   it('opens the block explorer when the footer button is pressed', () => {
     const { getByText } = render(<RampDetails item={makeItem(baseOrder)} />);
 
@@ -263,5 +275,44 @@ describe('RampDetails', () => {
     await waitFor(() => {
       expect(ClipboardManager.setString).toHaveBeenCalledWith('po-1');
     });
+  });
+
+  it('renders native RampsOrder sell amounts and destination', () => {
+    const { mapRampsOrder } = jest.requireActual(
+      '../../../../util/activity-adapters',
+    );
+    const { RampsOrderStatus } = jest.requireActual(
+      '@metamask/ramps-controller',
+    );
+    const order = {
+      isOnlyLink: false,
+      success: true,
+      cryptoAmount: '0.085',
+      fiatAmount: 61.88,
+      providerOrderId: 'sell-po-1',
+      createdAt: Date.UTC(2025, 11, 10, 10, 34),
+      totalFeesFiat: 3,
+      walletAddress: '0x232123456789abcdef123456789abcdef12321',
+      status: RampsOrderStatus.Completed,
+      network: { name: 'Ethereum', chainId: 'eip155:1' },
+      canBeUpdated: false,
+      idHasExpired: false,
+      excludeFromPurchases: false,
+      timeDescriptionPending: '',
+      orderType: 'SELL',
+      id: '/providers/transak/orders/sell-po-1',
+      cryptoCurrency: { symbol: 'ETH', decimals: 18 },
+      fiatCurrency: { symbol: 'EUR', decimals: 2 },
+      provider: { name: 'Transak' },
+    };
+    const item = mapRampsOrder({ order }) as RampActivityListItem;
+
+    const { getByText } = render(<RampDetails item={item} />);
+
+    expect(getByText('-0.085 ETH')).toBeOnTheScreen();
+    expect(getByText('Destination')).toBeOnTheScreen();
+    expect(getByText('Transak')).toBeOnTheScreen();
+    expect(getByText('EUR value')).toBeOnTheScreen();
+    expect(getByText('Total received')).toBeOnTheScreen();
   });
 });
