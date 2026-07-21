@@ -1,5 +1,5 @@
 export { default } from './PerpsModeToggle';
-export { PerpsMode } from './PerpsModeToggle.types';
+export { PerpsMode } from '@metamask/perps-controller';
 export type {
   PerpsModeToggleProps,
   PerpsModeToggleVariant,

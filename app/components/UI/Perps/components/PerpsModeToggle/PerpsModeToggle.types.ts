@@ -1,19 +1,5 @@
 import type { SegmentedControlSize } from '@metamask/design-system-react-native';
-
-/**
- * Perps Lite ⇄ Pro mode.
- *
- * NOTE: This is a temporary local definition for the design phase of TAT-3551.
- * The canonical `PerpsMode` enum is owned by the external
- * `@metamask/perps-controller` package (TAT-3582). Once that ships and the
- * mobile dependency is bumped, this local enum should be removed and replaced
- * with the imported one (values are intentionally kept identical: `'lite'` /
- * `'pro'`).
- */
-export enum PerpsMode {
-  Lite = 'lite',
-  Pro = 'pro',
-}
+import type { PerpsMode } from '@metamask/perps-controller';
 
 /**
  * How the toggle presents itself.

@@ -115,6 +115,7 @@ const mockNavigateToMarketList = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
+const mockSetPerpsMode = jest.fn();
 jest.mock('../../hooks', () => ({
   usePerpsHomeData: jest.fn(),
   usePerpsMeasurement: jest.fn(),
@@ -139,6 +140,10 @@ jest.mock('../../hooks', () => ({
     handleSectionLayout: jest.fn(() => jest.fn()),
     handleScroll: jest.fn(),
     resetTracking: jest.fn(),
+  })),
+  usePerpsMode: jest.fn(() => ({
+    mode: 'lite',
+    setMode: mockSetPerpsMode,
   })),
 }));
 
@@ -627,7 +632,8 @@ describe('PerpsHomeView', () => {
     // Act - stubbed toggle switches to Pro on press
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER));
 
-    // Assert
+    // Assert - persists the new mode and shows the transition interstitial
+    expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODE_TRANSITION, {
       mode: 'pro',
     });

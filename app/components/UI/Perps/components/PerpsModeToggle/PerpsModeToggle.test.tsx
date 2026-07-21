@@ -3,9 +3,9 @@ import { render, fireEvent } from '@testing-library/react-native';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  PerpsMode,
 } from '@metamask/perps-controller';
 import PerpsModeToggle from './PerpsModeToggle';
-import { PerpsMode } from './PerpsModeToggle.types';
 import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 

@@ -108,6 +108,14 @@ jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsProModeEnabledFlag: jest.fn(),
 }));
 
+const mockSetPerpsMode = jest.fn();
+jest.mock('../../UI/Perps/hooks', () => ({
+  usePerpsMode: jest.fn(() => ({
+    mode: 'lite',
+    setMode: mockSetPerpsMode,
+  })),
+}));
+
 jest.mock('../../UI/Perps/components/PerpsModeToggle', () => {
   const ReactActual = jest.requireActual('react');
   const { TouchableOpacity } = jest.requireActual('react-native');
@@ -733,6 +741,7 @@ describe('TradeWalletActions', () => {
 
     await pressActionButton(getByTestId, 'perps-mode-toggle');
 
+    expect(mockSetPerpsMode).toHaveBeenCalledWith('pro');
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MODE_TRANSITION,
       params: { mode: 'pro' },

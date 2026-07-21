@@ -47,6 +47,7 @@ import {
   usePerpsNavigation,
   usePerpsMeasurement,
   usePerpsHomeSectionTracking,
+  usePerpsMode,
 } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import { usePerpsNetworkManagement } from '../../hooks/usePerpsNetworkManagement';
@@ -179,7 +180,7 @@ const PerpsHomeView = ({
   // TODO(TAT-3551/TAT-3582): replace this local state with the shared
   // PerpsController mode (`selectPerpsMode` / `setPerpsMode`) once TAT-3582
   // ships, and trigger the mode-switch transition + redirect on change.
-  const [perpsMode, setPerpsMode] = useState<PerpsMode>(PerpsMode.Lite);
+  const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const handleModeChange = useCallback(
     (nextMode: PerpsMode) => {
       setPerpsMode(nextMode);
@@ -188,7 +189,7 @@ const PerpsHomeView = ({
         mode: nextMode === PerpsMode.Pro ? 'pro' : 'lite',
       });
     },
-    [navigation],
+    [navigation, setPerpsMode],
   );
   // Mirrors PerpsProducts' own visibility check (enabled + has categories).
   const productCategories = usePerpsCategories();

@@ -7,12 +7,13 @@ import {
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  PerpsMode,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { PerpsMode, type PerpsModeToggleProps } from './PerpsModeToggle.types';
+import { type PerpsModeToggleProps } from './PerpsModeToggle.types';
 
 /**
  * Reusable Lite ⇄ Pro mode toggle for Perps entry points (TAT-3551).
