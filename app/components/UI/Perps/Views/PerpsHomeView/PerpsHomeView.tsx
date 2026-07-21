@@ -177,9 +177,6 @@ const PerpsHomeView = ({
   );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
-  // TODO(TAT-3551/TAT-3582): replace this local state with the shared
-  // PerpsController mode (`selectPerpsMode` / `setPerpsMode`) once TAT-3582
-  // ships, and trigger the mode-switch transition + redirect on change.
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const handleModeChange = useCallback(
     (nextMode: PerpsMode) => {

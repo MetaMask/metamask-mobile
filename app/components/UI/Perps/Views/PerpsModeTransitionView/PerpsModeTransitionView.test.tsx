@@ -5,10 +5,16 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsModeTransitionSelectorsIDs } from '../../Perps.testIds';
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+let mockCanGoBack = true;
 let mockRouteParams: { mode?: 'lite' | 'pro' } = { mode: 'pro' };
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: mockNavigate }),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    goBack: mockGoBack,
+    canGoBack: () => mockCanGoBack,
+  }),
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
@@ -26,6 +32,8 @@ describe('PerpsModeTransitionView', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     mockNavigate.mockClear();
+    mockGoBack.mockClear();
+    mockCanGoBack = true;
     mockRouteParams = { mode: 'pro' };
   });
 
@@ -61,15 +69,29 @@ describe('PerpsModeTransitionView', () => {
     ).toHaveTextContent('Lite Mode');
   });
 
-  it('redirects to the Perps home screen after the interstitial duration', () => {
+  it('dismisses the interstitial after its duration by popping back to Perps home', () => {
     render(<PerpsModeTransitionView />);
 
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
 
     act(() => {
       jest.advanceTimersByTime(1500);
     });
 
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('navigates to Perps home when there is nothing to pop', () => {
+    mockCanGoBack = false;
+
+    render(<PerpsModeTransitionView />);
+
+    act(() => {
+      jest.advanceTimersByTime(1500);
+    });
+
+    expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.PERPS_HOME);
   });

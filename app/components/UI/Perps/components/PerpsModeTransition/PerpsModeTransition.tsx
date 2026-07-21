@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Text, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -23,13 +23,18 @@ const PerpsModeTransition: React.FC<PerpsModeTransitionProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
+  // Keep the latest onDone in a ref so the auto-dismiss timer depends only on
+  // `durationMs`. Otherwise a change in `onDone` identity (e.g. when the
+  // navigation object re-renders under the Perps stream/connection providers)
+  // would tear down and restart the timer, potentially resetting it forever
+  // and leaving the interstitial stuck on screen.
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
+
   useEffect(() => {
-    if (!onDone) {
-      return undefined;
-    }
-    const timer = setTimeout(onDone, durationMs);
+    const timer = setTimeout(() => onDoneRef.current?.(), durationMs);
     return () => clearTimeout(timer);
-  }, [durationMs, onDone]);
+  }, [durationMs]);
 
   const title =
     mode === PerpsMode.Pro

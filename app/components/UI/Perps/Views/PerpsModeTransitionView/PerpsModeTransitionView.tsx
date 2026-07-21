@@ -29,9 +29,14 @@ const PerpsModeTransitionView: React.FC = () => {
   const mode = params?.mode === 'pro' ? PerpsMode.Pro : PerpsMode.Lite;
 
   const handleDone = useCallback(() => {
-    // Navigating to an existing route name pops the interstitial off the stack
-    // and returns to the already-mounted Perps home screen.
-    navigation.navigate(Routes.PERPS.PERPS_HOME);
+    // The interstitial is always pushed on top of an existing Perps screen, so
+    // popping it off reliably returns to the previous (Perps home) screen. Fall
+    // back to an explicit navigate if for some reason there is nothing to pop.
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate(Routes.PERPS.PERPS_HOME);
+    }
   }, [navigation]);
 
   return <PerpsModeTransition mode={mode} onDone={handleDone} />;
