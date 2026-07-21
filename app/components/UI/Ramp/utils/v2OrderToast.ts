@@ -40,7 +40,6 @@ export function buildV2OrderToastOptions(
       return {
         variant: ToastVariants.Plain,
         hasNoTimeout: false,
-        customBottomOffset: 32,
         startAccessory: React.createElement(Spinner, {
           color: DsIconColor.IconDefault,
           spinnerIconProps: { size: DsIconSize.Lg },
