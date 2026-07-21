@@ -64,15 +64,46 @@ jest.mock('../TopTradersView', () => {
 });
 
 jest.mock('../FeedView', () => {
-  const { View } = jest.requireActual('react-native');
+  const { View, Pressable } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ isActive }: { isActive?: boolean }) => (
+    default: ({
+      isActive,
+      onQuickBuy,
+    }: {
+      isActive?: boolean;
+      onQuickBuy?: (target: { tokenSymbol: string }) => void;
+    }) => (
       <View
         testID="mock-feed"
         accessibilityState={{ selected: isActive === true }}
-      />
+      >
+        <Pressable
+          testID="mock-feed-quick-buy-trigger"
+          onPress={() => onQuickBuy?.({ tokenSymbol: 'PEPE' })}
+        />
+      </View>
     ),
+  };
+});
+
+let mockQuickBuyProps: {
+  isVisible: boolean;
+  analyticsContext?: { source?: string };
+};
+jest.mock('../TraderPositionView/components/QuickBuy', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    QuickBuy: {
+      Root: (props: {
+        isVisible: boolean;
+        analyticsContext?: { source?: string };
+      }) => {
+        mockQuickBuyProps = props;
+        return props.isVisible ? <View testID="mock-quick-buy-open" /> : null;
+      },
+    },
+    TOP_TRADERS_QUICK_BUY_FEATURES: {},
   };
 });
 
@@ -143,6 +174,19 @@ describe('SocialTradersTabsView', () => {
     expect(
       screen.getByTestId('mock-feed').props.accessibilityState?.selected,
     ).toBe(true);
+  });
+
+  it('hosts QuickBuy (closed by default) and opens it on the feed request', () => {
+    renderWithProvider(<SocialTradersTabsView />);
+
+    expect(screen.queryByTestId('mock-quick-buy-open')).not.toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId('mock-feed-quick-buy-trigger'));
+
+    expect(screen.getByTestId('mock-quick-buy-open')).toBeOnTheScreen();
+    expect(mockQuickBuyProps.analyticsContext).toEqual({
+      source: 'trader_feed',
+    });
   });
 
   it('tracks tab changes via Follow Trading Interaction when a different tab is pressed', () => {

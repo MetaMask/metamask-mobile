@@ -39,11 +39,7 @@ import {
   useSocialLeaderboardAnalytics,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import {
-  QuickBuy,
-  TOP_TRADERS_QUICK_BUY_FEATURES,
-  type QuickBuyTarget,
-} from '../TraderPositionView/components/QuickBuy';
+import type { QuickBuyTarget } from '../TraderPositionView/components/QuickBuy';
 import FeedAudienceToggle from './components/FeedAudienceToggle';
 import FeedItemRow from './components/FeedItemRow';
 import FeedItemRowSkeleton from './components/FeedItemRowSkeleton';
@@ -73,6 +69,13 @@ export interface FeedViewProps {
    * to `true` for standalone use.
    */
   isActive?: boolean;
+  /**
+   * Opens the QuickBuy sheet for a spot token. The sheet is hosted by the
+   * parent (above the tab `PagerView`) rather than inside this page so it isn't
+   * clipped by the pager and can leave the content behind it interactive (no
+   * backdrop). Omitting it makes the spot Trade CTA a no-op (standalone use).
+   */
+  onQuickBuy?: (target: QuickBuyTarget) => void;
 }
 
 /**
@@ -84,7 +87,7 @@ export interface FeedViewProps {
  * pages. The Trade button is wired: spot rows open the QuickBuy sheet, perps
  * rows navigate to the Perps market detail page.
  */
-const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
+const FeedView: React.FC<FeedViewProps> = ({ isActive = true, onQuickBuy }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation();
@@ -100,10 +103,6 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
   typeFilterRef.current = typeFilter;
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
 
-  const [quickBuyTarget, setQuickBuyTarget] = useState<QuickBuyTarget | null>(
-    null,
-  );
-  const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const {
@@ -141,10 +140,6 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
       setRefreshing(false);
     }
   }, [refresh]);
-
-  const handleQuickBuyClose = useCallback(() => {
-    setIsQuickBuyVisible(false);
-  }, []);
 
   const handleAudienceChange = useCallback(
     (next: FeedAudience) => {
@@ -210,13 +205,12 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
             : {}),
         });
 
-        setQuickBuyTarget({
+        onQuickBuy?.({
           tokenAddress: item.tokenAddress,
           tokenSymbol: item.tokenSymbol,
           tokenName: item.tokenName,
           chain: item.chain,
         });
-        setIsQuickBuyVisible(true);
         return;
       }
 
@@ -239,7 +233,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         },
       });
     },
-    [audience, navigation, track, typeFilter],
+    [audience, navigation, onQuickBuy, track, typeFilter],
   );
 
   const handleTraderPress = useCallback(
@@ -459,14 +453,6 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         value={typeFilter}
         onChange={handleTypeFilterChange}
         onClose={() => setIsTypeSheetOpen(false)}
-      />
-
-      <QuickBuy.Root
-        isVisible={isQuickBuyVisible}
-        target={quickBuyTarget}
-        onClose={handleQuickBuyClose}
-        features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        analyticsContext={{ source: 'trader_feed' }}
       />
     </Box>
   );

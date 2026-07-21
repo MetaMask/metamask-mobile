@@ -172,9 +172,11 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
 
   const handleContentLayout = useCallback(
     (event: LayoutChangeEvent) => {
-      // The keyboard treatment sizes each screen to its own content so the
-      // amount screen can grow/shrink with the keypad; skip height locking.
-      if (useKeyboard || lockedHeight !== null) {
+      // Capture the first (amount) screen height once so every sub-screen shares
+      // it and doesn't collapse to its own (often short) content height. In the
+      // keyboard treatment the amount screen stays dynamic below, but its
+      // initial (keypad-open) height is still the baseline for the others.
+      if (lockedHeight !== null) {
         return;
       }
       const { height } = event.nativeEvent.layout;
@@ -182,7 +184,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
         setLockedHeight(height);
       }
     },
-    [useKeyboard, lockedHeight],
+    [lockedHeight],
   );
 
   // Keep the bottom safe-area inset only on screens that pin a CTA at the
@@ -190,6 +192,13 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   // receive) sit flush to the edge instead of leaving dead space below.
   const hasBottomCta =
     activeScreen === 'amount' || activeScreen === 'priceImpactConfirm';
+
+  // The amount screen in the keyboard treatment stays dynamic so it can grow and
+  // shrink with the keypad; every other screen (and the whole control variant)
+  // uses the locked height so sub-screens like "Pay with" don't collapse to
+  // their own short content height.
+  const isDynamicAmountScreen = useKeyboard && activeScreen === 'amount';
+  const shouldLockHeight = lockedHeight !== null && !isDynamicAmountScreen;
 
   return (
     <BottomSheetDialog
@@ -211,7 +220,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
             testID="quick-buy-content-container"
             onLayout={handleContentLayout}
             style={
-              lockedHeight !== null
+              shouldLockHeight && lockedHeight !== null
                 ? {
                     // Scroll-only screens reclaim the bottom safe-area inset
                     // that BottomSheetDialog adds, so they sit flush to the
@@ -229,7 +238,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
               key={activeScreen}
               entering={hasNavigated ? entering : undefined}
               exiting={isClosing ? undefined : exiting}
-              style={lockedHeight !== null ? tw.style('flex-1') : undefined}
+              style={shouldLockHeight ? tw.style('flex-1') : undefined}
             >
               {renderActiveScreen(activeScreen, children)}
             </Animated.View>

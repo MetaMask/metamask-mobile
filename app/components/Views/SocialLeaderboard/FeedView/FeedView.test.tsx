@@ -123,33 +123,12 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-let mockQuickBuyAnalyticsContext: { source?: string } | undefined;
-
 const mockTrack = jest.fn();
 jest.mock('../analytics', () => {
   const actual = jest.requireActual('../analytics');
   return {
     ...actual,
     useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
-  };
-});
-
-jest.mock('../TraderPositionView/components/QuickBuy', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    QuickBuy: {
-      Root: ({
-        isVisible,
-        analyticsContext,
-      }: {
-        isVisible: boolean;
-        analyticsContext?: { source?: string };
-      }) => {
-        mockQuickBuyAnalyticsContext = analyticsContext;
-        return isVisible ? <View testID="mock-quick-buy-open" /> : null;
-      },
-    },
-    TOP_TRADERS_QUICK_BUY_FEATURES: {},
   };
 });
 
@@ -173,7 +152,6 @@ describe('FeedView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFeedResult = buildResult();
-    mockQuickBuyAnalyticsContext = undefined;
     handleTypeFilterChange = undefined;
   });
 
@@ -225,14 +203,21 @@ describe('FeedView', () => {
     expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the QuickBuy sheet with a CTA haptic when a spot Trade is pressed', () => {
-    renderWithProvider(<FeedView />);
+  it('requests QuickBuy with a CTA haptic when a spot Trade is pressed', () => {
+    const onQuickBuy = jest.fn();
+    renderWithProvider(<FeedView onQuickBuy={onQuickBuy} />);
 
     fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
 
     expect(mockPlayImpact).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId('mock-quick-buy-open')).toBeOnTheScreen();
-    expect(mockQuickBuyAnalyticsContext).toEqual({ source: 'trader_feed' });
+    expect(onQuickBuy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokenAddress: spotItem.tokenAddress,
+        tokenSymbol: spotItem.tokenSymbol,
+        tokenName: spotItem.tokenName,
+        chain: spotItem.chain,
+      }),
+    );
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_TRADER_FEED_ITEM_TRADE_CLICKED,

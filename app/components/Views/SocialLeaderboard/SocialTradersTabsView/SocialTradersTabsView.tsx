@@ -31,6 +31,11 @@ import {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import FeedView from '../FeedView';
 import TopTradersView from '../TopTradersView';
+import {
+  QuickBuy,
+  TOP_TRADERS_QUICK_BUY_FEATURES,
+  type QuickBuyTarget,
+} from '../TraderPositionView/components/QuickBuy';
 import SocialTradersTabBar, {
   type SocialTradersTab,
 } from './SocialTradersTabBar';
@@ -57,6 +62,23 @@ const SocialTradersTabsView: React.FC = () => {
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
   const [activeIndex, setActiveIndex] = useState(LEADERBOARD_INDEX);
+
+  // QuickBuy is hosted here (outside the PagerView) rather than inside FeedView
+  // so the sheet isn't clipped by the pager page and the content behind it
+  // stays interactive (no backdrop / tap- and swipe-through).
+  const [quickBuyTarget, setQuickBuyTarget] = useState<QuickBuyTarget | null>(
+    null,
+  );
+  const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
+
+  const handleQuickBuy = useCallback((target: QuickBuyTarget) => {
+    setQuickBuyTarget(target);
+    setIsQuickBuyVisible(true);
+  }, []);
+
+  const handleQuickBuyClose = useCallback(() => {
+    setIsQuickBuyVisible(false);
+  }, []);
 
   const {
     hasNotificationPreferences,
@@ -212,9 +234,20 @@ const SocialTradersTabsView: React.FC = () => {
           collapsable={false}
           testID={SocialTradersTabsViewSelectorsIDs.FEED_PAGE}
         >
-          <FeedView isActive={activeIndex === FEED_INDEX} />
+          <FeedView
+            isActive={activeIndex === FEED_INDEX}
+            onQuickBuy={handleQuickBuy}
+          />
         </View>
       </PagerView>
+
+      <QuickBuy.Root
+        isVisible={isQuickBuyVisible}
+        target={quickBuyTarget}
+        onClose={handleQuickBuyClose}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        analyticsContext={{ source: 'trader_feed' }}
+      />
     </SafeAreaView>
   );
 };
