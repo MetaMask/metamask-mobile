@@ -1,11 +1,13 @@
 import React from 'react';
 import { Linking } from 'react-native';
+import { getVersion } from 'react-native-device-info';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyMoreSheet from './MoneyMoreSheet';
 import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Engine from '../../../../../core/Engine';
 import AppConstants from '../../../../../core/AppConstants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
@@ -16,6 +18,18 @@ import {
   MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    AuthenticationController: {
+      getCustomerServiceToken: jest.fn(),
+    },
+  },
+}));
 
 const mockTrackBottomSheetViewed = jest.fn();
 const mockTrackSurfaceClicked = jest.fn();
@@ -75,6 +89,7 @@ describe('MoneyMoreSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    jest.mocked(getVersion).mockReturnValue('7.1.0');
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackSurfaceClicked: mockTrackSurfaceClicked,
@@ -168,6 +183,28 @@ describe('MoneyMoreSheet', () => {
       screen: Routes.BROWSER.VIEW,
       params: {
         newTabUrl: expect.stringContaining(METAMASK_SUPPORT_URL),
+        timestamp: expect.any(Number),
+        fromMoney: true,
+      },
+    });
+  });
+
+  it('opens the MetaMask support URL with profile id and token in the in-app browser when consent is confirmed', async () => {
+    jest
+      .mocked(Engine.context.AuthenticationController.getCustomerServiceToken)
+      .mockResolvedValue('jwt-token');
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
+    const { onConfirm } = mockNavigate.mock.calls[0][1].params;
+    await onConfirm();
+
+    expect(mockNavigate).toHaveBeenLastCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: expect.stringContaining(
+          'metamask_version=7.1.0&customer_service_token=jwt-token',
+        ),
         timestamp: expect.any(Number),
         fromMoney: true,
       },
