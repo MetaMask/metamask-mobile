@@ -26,6 +26,8 @@ import { useTokensData } from '../../hooks/useTokensData/useTokensData';
 const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 const LINEA_MUSD_CHECKSUM_ADDRESS =
   '0xacA92E438df0B2401fF60dA7E4337B687a2435DA';
+const OWNED_ACCOUNT_ADDRESS = '0xAa60919dd0d0964B76620dAaF08bF357e1c9DD73';
+const OWNED_SOLANA_ADDRESS = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
 
 const mockState = {
   user: {
@@ -57,6 +59,45 @@ const mockState = {
           '0x1': {
             [LINEA_MUSD_CHECKSUM_ADDRESS]: {
               price: 0.0004,
+            },
+          },
+        },
+      },
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: 'owned-account-1',
+          accounts: {
+            'owned-account-1': {
+              id: 'owned-account-1',
+              address: OWNED_ACCOUNT_ADDRESS,
+              metadata: { name: 'Account 2' },
+            },
+            'owned-account-solana': {
+              id: 'owned-account-solana',
+              address: OWNED_SOLANA_ADDRESS,
+              metadata: { name: 'Solana Account' },
+            },
+          },
+        },
+      },
+      AccountTreeController: {
+        accountTree: {
+          wallets: {
+            'entropy:wallet-1': {
+              id: 'entropy:wallet-1',
+              metadata: { name: 'Wallet 1' },
+              groups: {
+                'entropy:wallet-1/1': {
+                  id: 'entropy:wallet-1/1',
+                  metadata: { name: 'ETH DeFi' },
+                  accounts: ['owned-account-1'],
+                },
+                'entropy:wallet-1/2': {
+                  id: 'entropy:wallet-1/2',
+                  metadata: { name: 'Solana' },
+                  accounts: ['owned-account-solana'],
+                },
+              },
             },
           },
         },
@@ -222,6 +263,11 @@ jest.mock('@metamask/design-system-react-native', () => {
       severity,
     });
 
+  const AvatarAccount = ({ address }: { address?: string }) =>
+    ReactActual.createElement(View, {
+      testID: `avatar-account-${address ?? 'unknown'}`,
+    });
+
   const BadgeNetwork = ({ src }: { src?: unknown }) =>
     ReactActual.createElement(View, { src });
 
@@ -249,6 +295,13 @@ jest.mock('@metamask/design-system-react-native', () => {
     AvatarIcon,
     AvatarIconSeverity: { Neutral: 'neutral', Danger: 'danger' },
     AvatarIconSize: { Xs: 'xs', Sm: 'sm', Md: 'md', Lg: 'lg', Xl: 'xl' },
+    AvatarAccount,
+    AvatarAccountVariant: {
+      Jazzicon: 'Jazzicon',
+      Blockies: 'Blockies',
+      Maskicon: 'Maskicon',
+    },
+    AvatarBaseSize: { Xs: 'xs', Sm: 'sm', Md: 'md', Lg: 'lg', Xl: 'xl' },
     BadgeNetwork,
     BadgeWrapper,
     BadgeWrapperPosition: { BottomRight: 'BottomRight' },
@@ -453,6 +506,82 @@ describe('ActivityListItemRow — row content', () => {
       '-10 USDC',
     );
     expect(getByTestId('avatar-token-USDC')).toBeOnTheScreen();
+  });
+
+  it('renders the account name in the subtitle when sending to an owned account', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'success',
+      // Lowercased on purpose: the owned-account match is case-insensitive.
+      to: OWNED_ACCOUNT_ADDRESS.toLowerCase(),
+      token: {
+        amount: '10',
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe('To: ');
+    expect(
+      getByTestId('activity-subtitle-account-name-0xabc').props.children,
+    ).toBe('ETH DeFi');
+    expect(
+      getByTestId('activity-subtitle-account-avatar-0xabc'),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the account name and avatar for a non-EVM (Solana) owned counterparty', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'success',
+      to: OWNED_SOLANA_ADDRESS,
+      token: {
+        amount: '10',
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(
+      getByTestId('activity-subtitle-account-name-0xabc').props.children,
+    ).toBe('Solana');
+    // The non-hex address is passed straight through to the avatar (no
+    // checksumming), so the multichain row renders without error.
+    expect(
+      getByTestId(`avatar-account-${OWNED_SOLANA_ADDRESS}`),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the account name in the subtitle when receiving from an owned account', () => {
+    const item = makeItem({
+      type: 'receive',
+      status: 'success',
+      from: OWNED_ACCOUNT_ADDRESS,
+      token: {
+        amount: '10',
+        symbol: 'USDC',
+        direction: 'in',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'From: ',
+    );
+    expect(
+      getByTestId('activity-subtitle-account-name-0xabc').props.children,
+    ).toBe('ETH DeFi');
+    expect(
+      getByTestId('activity-subtitle-account-avatar-0xabc'),
+    ).toBeOnTheScreen();
   });
 
   it('shows "Send cancelled" and hides the amount for a cancelled send', () => {
@@ -1593,6 +1722,7 @@ describe('ActivityListItemRow — display currency conversion', () => {
   // reset them), so restore the suite-wide defaults (USD, equal rates) after
   // each test to keep overrides from leaking.
   afterEach(() => {
+    jest.clearAllMocks();
     mockCurrency.mockReturnValue('usd');
     mockConversionRate.mockReturnValue(2500);
     mockUsdConversionRate.mockReturnValue(2500);
@@ -1686,6 +1816,28 @@ describe('ActivityListItemRow — amount display', () => {
     expect(getByText('+$1')).toBeOnTheScreen();
   });
 
+  it('renders ramp buy mUSD amounts as already-human values (no decimal re-scale)', () => {
+    // FiatOrder.cryptoAmount is human-readable ("30"). Injecting mUSD decimals
+    // would scale 30 → 0.00003 via formatUnits.
+    const item = makeItem({
+      type: 'buy',
+      status: 'success',
+      token: {
+        amount: '30',
+        symbol: 'mUSD',
+        assetId: `eip155:1/erc20:${LINEA_MUSD_ADDRESS}`,
+        direction: 'in',
+      },
+    });
+
+    const { getByText, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByText('+30 mUSD')).toBeOnTheScreen();
+    expect(queryByText('+0.00003 mUSD')).toBeNull();
+  });
+
   it('does not render fiat when token market data is unavailable', () => {
     const item = makeItem({
       status: 'success',
@@ -1743,6 +1895,7 @@ describe('ActivityListItemRow — ERC-20 fiat address casing (TMCU-937)', () => 
   // This mock uses a persistent return value (clearAllMocks does not reset it),
   // so restore the suite default (lowercased mUSD key) after each test.
   afterEach(() => {
+    jest.clearAllMocks();
     mockContractExchangeRates.mockReturnValue(ratesFor(LINEA_MUSD_ADDRESS));
   });
 
@@ -1830,6 +1983,8 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'marketCloseLong',
   'limitLong',
   'limitCloseLong',
+  'assetActivation',
+  'assetDeactivation',
 ];
 
 const EXPECTED_TITLES = {
@@ -1910,6 +2065,8 @@ const EXPECTED_TITLES = {
   marketCloseLong: strings('transactions.activity_market_close_long'),
   limitLong: strings('transactions.activity_limit_long'),
   limitCloseLong: strings('transactions.activity_limit_close_long'),
+  assetActivation: strings('transactions.activity_trustline_activated'),
+  assetDeactivation: strings('transactions.activity_trustline_deactivated'),
 } satisfies Record<ActivityListItem['type'], string>;
 
 describe('ActivityListItemRow — title display for all ActivityKind values', () => {

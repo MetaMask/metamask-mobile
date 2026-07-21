@@ -44,6 +44,8 @@ import {
 } from '../../../util/number/bigint';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import { useAccountNames } from '../../hooks/DisplayName/useAccountNames';
+import { NameType } from '../Name/Name.types';
 import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
 import {
   ACTIVITY_FALLBACK_TITLE_RESOLVERS,
@@ -324,6 +326,7 @@ function uniqueTokens(tokens: (TokenAmount | undefined)[]): TokenAmount[] {
 function enrichStablecoinTokenMetadata(
   token: TokenAmount | undefined,
   chainId: string | undefined,
+  options?: { preserveHumanReadableAmount?: boolean },
 ): TokenAmount | undefined {
   const hexChainId = getHexChainId(chainId);
   const isMusd =
@@ -334,9 +337,14 @@ function enrichStablecoinTokenMetadata(
     return token;
   }
 
+  // Ramp buy/sell amounts are already human-readable. Injecting mUSD decimals
+  // would make getHumanReadableTokenAmount treat e.g. "30" as 30 atomic units
+  // (→ 0.00003 mUSD). Still fill assetId for avatars.
   return {
     ...token,
-    decimals: token.decimals ?? MUSD_DECIMALS,
+    ...(options?.preserveHumanReadableAmount
+      ? {}
+      : { decimals: token.decimals ?? MUSD_DECIMALS }),
     assetId: token.assetId ?? MUSD_TOKEN_ASSET_ID_BY_CHAIN[hexChainId],
   };
 }
@@ -466,6 +474,7 @@ function isNamelessNftToken(token: TokenAmount | undefined): boolean {
 function resolveCoreContent(
   item: ActivityListItem,
   bridgeHistoryItem?: BridgeHistoryItem,
+  counterpartyName?: string,
 ): Omit<
   ActivityListItemRowContent,
   'avatarTokens' | 'primaryAmount' | 'secondaryAmount'
@@ -483,6 +492,10 @@ function resolveCoreContent(
       const cancelledLabel =
         item.type === 'receive' ? 'Receive cancelled' : 'Send cancelled';
       const subtitlePrefix = item.type === 'receive' ? 'From' : 'To';
+      const counterpartyLabel =
+        counterpartyName ||
+        shortAddress(address) ||
+        strings('transactions.unavailable');
 
       return {
         title: statusTitle(item, {
@@ -491,7 +504,16 @@ function resolveCoreContent(
           failed: failedLabel,
           cancelled: cancelledLabel,
         }),
-        subtitle: `${subtitlePrefix}: ${shortAddress(address) ?? strings('transactions.unavailable')}`,
+        subtitle: `${subtitlePrefix}: ${counterpartyLabel}`,
+        ...(counterpartyName && address
+          ? {
+              subtitleAccount: {
+                prefix: subtitlePrefix,
+                address,
+                name: counterpartyName,
+              },
+            }
+          : {}),
         primaryToken: token,
       };
     }
@@ -733,6 +755,42 @@ function resolveCoreContent(
         }),
         primaryToken: item.data.token,
       };
+    case 'assetActivation': {
+      const token = item.data.token;
+      return {
+        title: statusTitle(item, {
+          success: withOptionalSymbol(
+            strings('transactions.activity_trustline_activated'),
+            item.data.token?.symbol,
+          ),
+          pending: withOptionalSymbol(
+            strings('transactions.activity_trustline_activating'),
+            item.data.token?.symbol,
+          ),
+          failed: strings('transactions.activity_trustline_activation_failed'),
+        }),
+        primaryToken: token,
+      };
+    }
+    case 'assetDeactivation': {
+      const token = item.data.token;
+      return {
+        title: statusTitle(item, {
+          success: withOptionalSymbol(
+            strings('transactions.activity_trustline_deactivated'),
+            item.data.token?.symbol,
+          ),
+          pending: withOptionalSymbol(
+            strings('transactions.activity_trustline_deactivating'),
+            item.data.token?.symbol,
+          ),
+          failed: strings(
+            'transactions.activity_trustline_deactivation_failed',
+          ),
+        }),
+        primaryToken: token,
+      };
+    }
     case 'contractInteraction':
       return {
         title: statusTitle(item, {
@@ -1154,7 +1212,28 @@ export function useActivityListItemRowContent(
   }
   const lendingTokenData = useTokensData(lendingAssetIds);
 
-  const content = resolveCoreContent(item, bridgeHistoryItem);
+  // The send/receive subtitle names the counterparty. Resolve it against the
+  // user's own accounts so transfers between their accounts read as
+  // "To: <account name>" instead of a hex address.
+  const counterpartyAddress =
+    item.type === 'receive'
+      ? item.data.from
+      : item.type === 'send'
+        ? item.data.to
+        : undefined;
+  const counterpartyName = useAccountNames(
+    counterpartyAddress
+      ? [
+          {
+            value: counterpartyAddress,
+            variation: '',
+            type: NameType.EthereumAddress,
+          },
+        ]
+      : [],
+  )[0];
+
+  const content = resolveCoreContent(item, bridgeHistoryItem, counterpartyName);
 
   let basePrimaryToken: TokenAmount | undefined;
   if (isSpendingCap) {
@@ -1167,9 +1246,15 @@ export function useActivityListItemRowContent(
   } else {
     basePrimaryToken = content.primaryToken;
   }
+  // buy/sell rows today come from ramp orders whose cryptoAmount is human-
+  // readable; do not inject token decimals that would re-scale the amount.
+  const preserveHumanReadableAmount =
+    item.type === 'buy' || item.type === 'sell';
+
   const primaryToken = enrichStablecoinTokenMetadata(
     basePrimaryToken,
     networkChainId,
+    { preserveHumanReadableAmount },
   );
 
   const baseSecondaryToken = isLending
@@ -1178,6 +1263,7 @@ export function useActivityListItemRowContent(
   const secondaryToken = enrichStablecoinTokenMetadata(
     baseSecondaryToken,
     networkChainId,
+    { preserveHumanReadableAmount },
   );
   const isPerpsFunding = isPerpsFundingKind(item.type);
   const isFundsRow = isDomainFundsKind(item.type);
