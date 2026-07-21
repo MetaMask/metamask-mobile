@@ -257,8 +257,10 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
       translateYProgress.value = withSpring(
         hiddenTranslateY,
         NOTIFICATION_SPRING_CONFIG,
-        () => {
-          if (onComplete) {
+        (finished) => {
+          // cancelAnimation (e.g. pan start) invokes this with finished=false;
+          // only run dismiss/hide callbacks when the exit spring completed.
+          if (finished && onComplete) {
             runOnJS(onComplete)();
           }
         },
@@ -283,8 +285,11 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
 
       translateYProgress.value = withDelay(
         delayMs,
-        withSpring(hiddenTranslateY, NOTIFICATION_SPRING_CONFIG, () => {
-          runOnJS(handleDismissComplete)();
+        withSpring(hiddenTranslateY, NOTIFICATION_SPRING_CONFIG, (finished) => {
+          // cancelAnimation during a pan must not mark the toast dismissed.
+          if (finished) {
+            runOnJS(handleDismissComplete)();
+          }
         }),
       );
     },
@@ -461,8 +466,11 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
       translateYProgress.value = withSpring(
         nextVisibleTranslateY,
         NOTIFICATION_SPRING_CONFIG,
-        () => {
-          runOnJS(beginAutoDismiss)();
+        (finished) => {
+          // Only start the auto-dismiss timer after entrance completes.
+          if (finished) {
+            runOnJS(beginAutoDismiss)();
+          }
         },
       );
     },
