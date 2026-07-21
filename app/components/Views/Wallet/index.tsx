@@ -77,7 +77,10 @@ import {
   IconName as MMDSIconName,
   Text as CustomText,
   TextColor,
-} from '@metamask/design-system-react-native';
+
+  Button as DSButton,
+  ButtonVariant as DSButtonVariant,
+  ButtonSize as DSButtonSize} from '@metamask/design-system-react-native';
 
 import {
   NavigationProp,
@@ -209,6 +212,11 @@ const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
     base: {
       paddingHorizontal: 16,
+    },
+    demoButtons: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
     },
     wrapper: {
       flex: 1,
@@ -1087,6 +1095,14 @@ const Wallet = ({
     <HomepageDiscoveryPills iconStyle={discoveryPillsIconStyle} />
   ) : null;
 
+  // const handleSumSubDemoPress = useCallback(() => {
+  //   navigation.navigate(Routes.SUMSUB_DEMO);
+  // }, [navigation]);
+
+  const handleKYCDemoPress = useCallback(() => {
+    navigation.navigate(Routes.KYC_DEMO);
+  }, [navigation]);
+
   const portfolioHeaderBase = (
     <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
@@ -1097,6 +1113,15 @@ const Wallet = ({
         homeGrowthBannerContent}
       {homepageDiscoveryPills}
       {isMoneyAccountVisible && <MoneyBalanceCard />}
+      <View style={[styles.base, styles.demoButtons]}>
+        <DSButton
+          variant={DSButtonVariant.Secondary}
+          size={DSButtonSize.Md}
+          onPress={handleKYCDemoPress}
+        >
+          KYC Demo
+        </DSButton>
+      </View>
     </View>
   );
 
@@ -1112,6 +1137,15 @@ const Wallet = ({
         homeGrowthBannerContent}
       {homepageDiscoveryPills}
       {isMoneyAccountVisible && <MoneyBalanceCard />}
+      <View style={[styles.base, styles.demoButtons]}>
+        <DSButton
+          variant={DSButtonVariant.Secondary}
+          size={DSButtonSize.Md}
+          onPress={handleKYCDemoPress}
+        >
+          KYC Demo
+        </DSButton>
+      </View>
     </View>
   );
 

@@ -294,6 +294,7 @@
 				8E369AC13A2049B6B21E5120 /* libRCTSearchApi.a */,
 				D0CBAE789660472DB719C765 /* libLottie.a */,
 				178440FE3F1C4F4180D14622 /* libTcpSockets.a */,
+				AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -1040,7 +1041,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = MetaMask;
 				PROVISIONING_PROFILE_SPECIFIER = "development-metamask";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "development-metamask";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development io.metamask.MetaMask";
 				SWIFT_OBJC_BRIDGING_HEADER = "MetaMask-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_PRECOMPILE_BRIDGING_HEADER = NO;
@@ -1058,6 +1059,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 4823;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -1106,7 +1108,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = MetaMask;
 				PROVISIONING_PROFILE_SPECIFIER = "Bitrise AppStore io.metamask.MetaMask";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Bitrise AppStore io.metamask.MetaMask";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development io.metamask.MetaMask";
 				SWIFT_OBJC_BRIDGING_HEADER = "MetaMask-Bridging-Header.h";
 				SWIFT_PRECOMPILE_BRIDGING_HEADER = NO;
 				SWIFT_VERSION = 5.0;

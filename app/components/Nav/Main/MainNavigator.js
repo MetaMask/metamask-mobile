@@ -188,6 +188,7 @@ import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
 import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
+import KYCDemo from '../../Views/KYCDemo';
 
 const NativeStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -1446,6 +1447,11 @@ const MainNavigator = () => {
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       </>
+      <NativeStack.Screen
+        name={Routes.KYC_DEMO}
+        component={KYCDemo}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
       <NativeStack.Screen
         name="SetPasswordFlow"
         component={SetPasswordFlow}

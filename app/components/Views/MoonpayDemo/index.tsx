@@ -1,0 +1,859 @@
+/**
+ * MoonpayDemo — drives the MoonPay Identity API path end-to-end.
+ *
+ * Implements the integration walkthrough from the MoonPay Identity API
+ * Partner Integration Guide (2026-06-22). The screen is structured as a
+ * linear state machine that mirrors Steps 1-8 of the guide:
+ *
+ * terms — display MoonPay's Terms of Use; capture acceptance timestamp
+ * session — POST /platform/v1/sessions via the local UKYC service
+ * check — mount the Check frame (invisible) to detect a returning auth
+ * auth — mount the Auth frame (visible) for email OTP when needed
+ * form — confirm/edit the customer profile to submit
+ * submit — POST /identities, then PATCH country, then PATCH rest
+ * verify — POST /verifications
+ * challenge — render the Challenge frame for liveness / doc capture
+ * poll — GET /identities/{id} until terminal
+ * done — show approved / rejected / blocked / manualReview
+ *
+ * State machine logic lives in `./useMoonpayIdentityFlow`. The HTTP layer
+ * is in `./api`, crypto in `./crypto`, and the WebView bridge in
+ * `./MoonpayFrame`.
+ */
+
+import React, { useState } from 'react';
+import {
+  KeyboardAvoidingView,
+  Linking,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+  IconColor,
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
+import { useTheme } from '../../../util/theme';
+import ClipboardManager from '../../../core/ClipboardManager';
+import type {
+  Disclaimer,
+  IdentitySubmission,
+  KycRequiredResponse,
+} from './api';
+import MoonpayFrame from './MoonpayFrame';
+import useMoonpayReset from './useMoonpayReset';
+import useMoonpayIdentityFlow, {
+  DEMO_PROFILES,
+  type DemoProfile,
+  type Phase,
+  type DebugEvent,
+  type DebugSeverity,
+} from './useMoonpayIdentityFlow';
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const TERMS_URL = 'https://www.moonpay.com/legal/terms';
+const PRIVACY_URL = 'https://www.moonpay.com/legal/privacy_policy';
+const SEVERITY_TO_COLOR: Record<DebugSeverity, TextColor> = {
+  info: TextColor.TextAlternative,
+  success: TextColor.SuccessDefault,
+  warn: TextColor.WarningDefault,
+  error: TextColor.ErrorDefault,
+};
+
+// ---------------------------------------------------------------------------
+// Styles
+// ---------------------------------------------------------------------------
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  headerTitle: { flex: 1, marginLeft: 8 },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 16,
+  },
+  resetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  panel: { gap: 12 },
+  termsBlock: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+  },
+  codeBlock: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  bold: { fontWeight: 'bold' },
+  profileSelector: {
+    gap: 4,
+  },
+  profileDropdown: {
+    borderWidth: 1,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  profileOption: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+  },
+  profileTrigger: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+  },
+  frameArea: {
+    flex: 1,
+    minHeight: 480,
+  },
+  donePanel: {
+    borderRadius: 12,
+  },
+  errorPanel: {
+    borderRadius: 12,
+  },
+  debugPanel: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    gap: 8,
+  },
+  debugHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  debugHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  debugList: {
+    gap: 6,
+  },
+  debugEntry: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 6,
+    gap: 4,
+  },
+  debugEntryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  debugEntryData: {
+    fontFamily: Platform.select({
+      ios: 'Menlo',
+      android: 'monospace',
+      default: undefined,
+    }),
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Sub-panels
+// ---------------------------------------------------------------------------
+
+interface ThemeColors {
+  background: { default: string; alternative: string };
+  border: { muted: string };
+  primary: { default: string };
+}
+
+const PRESET_EMAILS = [
+  'jiexi.luan@consensys.net',
+  'sebastien.vaneyck@consensys.net',
+];
+
+const TermsPanel: React.FC<{
+  email: string;
+  onEmailChange: (v: string) => void;
+  onAccept: () => void;
+  disclaimers: Disclaimer[];
+  disclaimersError: string | null;
+  disclaimersLoaded: boolean;
+  colors: ThemeColors;
+}> = ({
+  email,
+  onEmailChange,
+  onAccept,
+  disclaimers,
+  disclaimersError,
+  disclaimersLoaded,
+  colors,
+}) => {
+  const [emailDropdownOpen, setEmailDropdownOpen] = useState(false);
+
+  return (
+    <View style={styles.panel}>
+      <Text variant={TextVariant.HeadingSm}>Step 1 — Accept terms</Text>
+
+      <View
+        style={[
+          styles.termsBlock,
+          {
+            backgroundColor: colors.background.alternative,
+            borderColor: colors.border.muted,
+          },
+        ]}
+      >
+        <Text variant={TextVariant.BodySm} style={styles.bold}>
+          MoonPay Services and Legal Framework
+        </Text>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          All regulated services, including digital asset purchase and sale
+          transactions, fiat currency payments, and related services, are
+          provided exclusively by our partner, MoonPay. By using our platform
+          for such services, you are engaging directly with MoonPay which will
+          conduct such services under its applicable licenses and regulatory
+          approvals.
+        </Text>
+        <Text variant={TextVariant.BodySm} style={styles.bold}>
+          Applicable Terms & Policies
+        </Text>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          By accessing these services, you agree to be bound by MoonPay&apos;s{' '}
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.PrimaryDefault}
+            onPress={() => Linking.openURL(TERMS_URL)}
+          >
+            Terms of Use
+          </Text>{' '}
+          and{' '}
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.PrimaryDefault}
+            onPress={() => Linking.openURL(PRIVACY_URL)}
+          >
+            Privacy Policy
+          </Text>
+          .
+        </Text>
+        {disclaimersError && (
+          <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+            {disclaimersError}
+          </Text>
+        )}
+        {!disclaimersError && !disclaimersLoaded && (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            Loading disclaimers…
+          </Text>
+        )}
+        {disclaimersLoaded &&
+          disclaimers.map((disclaimer) => (
+            <Text
+              key={disclaimer.id}
+              variant={TextVariant.BodySm}
+              color={TextColor.PrimaryDefault}
+              onPress={() => Linking.openURL(disclaimer.url)}
+            >
+              {disclaimer.display_name}
+            </Text>
+          ))}
+      </View>
+
+      <View style={styles.profileSelector}>
+        <Text variant={TextVariant.BodySm}>Quick-fill email</Text>
+        <Pressable
+          onPress={() => setEmailDropdownOpen((v) => !v)}
+          style={[
+            styles.profileTrigger,
+            {
+              borderColor: colors.border.muted,
+              backgroundColor: colors.background.alternative,
+            },
+          ]}
+        >
+          <Text variant={TextVariant.BodySm}>
+            {email && PRESET_EMAILS.includes(email)
+              ? email
+              : 'Select an email…'}
+          </Text>
+          <Text variant={TextVariant.BodySm}>
+            {emailDropdownOpen ? '\u25B2' : '\u25BC'}
+          </Text>
+        </Pressable>
+        {emailDropdownOpen && (
+          <View
+            style={[
+              styles.profileDropdown,
+              {
+                borderColor: colors.border.muted,
+                backgroundColor: colors.background.default,
+              },
+            ]}
+          >
+            {PRESET_EMAILS.map((addr) => {
+              const isSelected = addr === email;
+              return (
+                <Pressable
+                  key={addr}
+                  onPress={() => {
+                    onEmailChange(addr);
+                    setEmailDropdownOpen(false);
+                  }}
+                  style={[
+                    styles.profileOption,
+                    isSelected && {
+                      backgroundColor: colors.primary.default + '18',
+                    },
+                  ]}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={
+                      isSelected
+                        ? TextColor.PrimaryDefault
+                        : TextColor.TextDefault
+                    }
+                  >
+                    {addr}
+                  </Text>
+                  {isSelected && (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.PrimaryDefault}
+                    >
+                      {'\u2713'}
+                    </Text>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+      </View>
+
+      <Text variant={TextVariant.BodySm}>Email (required for OTP)</Text>
+      <TextInput
+        value={email}
+        onChangeText={onEmailChange}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        style={[
+          styles.input,
+          {
+            borderColor: colors.border.muted,
+            backgroundColor: colors.background.alternative,
+          },
+        ]}
+      />
+
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Lg}
+        onPress={onAccept}
+        isDisabled={!disclaimersLoaded}
+      >
+        {disclaimersLoaded ? 'Accept terms and start' : 'Loading disclaimers…'}
+      </Button>
+    </View>
+  );
+};
+
+const PROFILE_LABELS: Record<DemoProfile, string> = {
+  US: '\u{1F1FA}\u{1F1F8}  United States (USA)',
+  FR: '\u{1F1EB}\u{1F1F7}  France (FRA)',
+};
+const PROFILE_KEYS: DemoProfile[] = ['US', 'FR'];
+
+const SubmissionReviewPanel: React.FC<{
+  submission: IdentitySubmission;
+  onChange: (s: IdentitySubmission) => void;
+  onSubmit: () => void;
+  colors: ThemeColors;
+}> = ({ submission, onChange, onSubmit, colors }) => {
+  const [selectedProfile, setSelectedProfile] = useState<DemoProfile>('US');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const applyProfile = (profile: DemoProfile) => {
+    setSelectedProfile(profile);
+    onChange(DEMO_PROFILES[profile]);
+    setDropdownOpen(false);
+  };
+
+  return (
+    <View style={styles.panel}>
+      <Text variant={TextVariant.HeadingSm}>Step 4 — Check KYC status</Text>
+      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        Asks the local UKYC service whether KYC is required for the profile
+        below. Only `residentialAddress.country` is sent; the result is shown
+        next.
+      </Text>
+
+      <View style={styles.profileSelector}>
+        <Text variant={TextVariant.BodySm}>Country profile</Text>
+        <Pressable
+          onPress={() => setDropdownOpen((v) => !v)}
+          style={[
+            styles.profileTrigger,
+            {
+              borderColor: colors.border.muted,
+              backgroundColor: colors.background.alternative,
+            },
+          ]}
+        >
+          <Text variant={TextVariant.BodySm}>
+            {PROFILE_LABELS[selectedProfile]}
+          </Text>
+          <Text variant={TextVariant.BodySm}>
+            {dropdownOpen ? '\u25B2' : '\u25BC'}
+          </Text>
+        </Pressable>
+        {dropdownOpen && (
+          <View
+            style={[
+              styles.profileDropdown,
+              {
+                borderColor: colors.border.muted,
+                backgroundColor: colors.background.default,
+              },
+            ]}
+          >
+            {PROFILE_KEYS.map((key) => {
+              const isSelected = key === selectedProfile;
+              return (
+                <Pressable
+                  key={key}
+                  onPress={() => applyProfile(key)}
+                  style={[
+                    styles.profileOption,
+                    isSelected && {
+                      backgroundColor: colors.primary.default + '18',
+                    },
+                  ]}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={
+                      isSelected
+                        ? TextColor.PrimaryDefault
+                        : TextColor.TextDefault
+                    }
+                  >
+                    {PROFILE_LABELS[key]}
+                  </Text>
+                  {isSelected && (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.PrimaryDefault}
+                    >
+                      {'\u2713'}
+                    </Text>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+      </View>
+
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Lg}
+        onPress={onSubmit}
+      >
+        Check KYC status
+      </Button>
+    </View>
+  );
+};
+
+const LoadingPanel: React.FC<{ message: string }> = ({ message }) => (
+  <View style={styles.panel}>
+    <Text variant={TextVariant.BodyMd}>{message}</Text>
+  </View>
+);
+
+const DonePanel: React.FC<{
+  result: KycRequiredResponse;
+  colors: ThemeColors;
+  onLaunchSumSub: () => void;
+}> = ({ result, colors, onLaunchSumSub }) => (
+  <View
+    style={[
+      styles.panel,
+      styles.donePanel,
+      { backgroundColor: colors.background.alternative },
+    ]}
+  >
+    <Text variant={TextVariant.HeadingSm}>
+      KYC required: {result.kycRequired ? 'Yes' : 'No'}
+    </Text>
+    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+      Full response:
+    </Text>
+    <View
+      style={[
+        styles.codeBlock,
+        {
+          backgroundColor: colors.background.default,
+          borderColor: colors.border.muted,
+        },
+      ]}
+    >
+      <Text variant={TextVariant.BodySm}>
+        {JSON.stringify(result, null, 2)}
+      </Text>
+    </View>
+    <Button
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Lg}
+      onPress={onLaunchSumSub}
+    >
+      Launch SumSub verification
+    </Button>
+  </View>
+);
+
+const DebugEntry: React.FC<{
+  event: DebugEvent;
+  colors: ThemeColors;
+}> = ({ event, colors }) => {
+  const color = SEVERITY_TO_COLOR[event.severity];
+  const time = event.timestamp.slice(11, 23);
+  let dataString: string;
+  try {
+    dataString = JSON.stringify(event.data, null, 2);
+  } catch {
+    dataString = String(event.data);
+  }
+  return (
+    <View style={[styles.debugEntry, { borderColor: colors.border.muted }]}>
+      <View style={styles.debugEntryHeader}>
+        <Text variant={TextVariant.BodyXs} color={color}>
+          {time}
+        </Text>
+        <Text variant={TextVariant.BodySm} style={styles.bold} color={color}>
+          {event.label}
+        </Text>
+      </View>
+      <Text
+        variant={TextVariant.BodyXs}
+        color={TextColor.TextAlternative}
+        style={styles.debugEntryData}
+      >
+        {dataString}
+      </Text>
+    </View>
+  );
+};
+
+const DebugPanel: React.FC<{
+  events: DebugEvent[];
+  onClear: () => void;
+  colors: ThemeColors;
+  phase: Phase;
+  showCheckFrame: boolean;
+  onToggleCheckFrameVisibility: () => void;
+}> = ({
+  events,
+  onClear,
+  colors,
+  phase,
+  showCheckFrame,
+  onToggleCheckFrameVisibility,
+}) => {
+  const handleCopy = () => {
+    const serialized = events
+      .map((event) => {
+        let dataString: string;
+        try {
+          dataString = JSON.stringify(event.data, null, 2);
+        } catch {
+          dataString = String(event.data);
+        }
+        return `[${event.timestamp}] ${event.label}\n${dataString}`;
+      })
+      .join('\n\n');
+    ClipboardManager.setString(serialized);
+  };
+
+  return (
+    <View
+      style={[
+        styles.debugPanel,
+        {
+          backgroundColor: colors.background.alternative,
+          borderColor: colors.border.muted,
+        },
+      ]}
+    >
+      <View style={styles.debugHeader}>
+        <Text variant={TextVariant.HeadingSm}>
+          Check frame debug ({events.length})
+        </Text>
+        <View style={styles.debugHeaderActions}>
+          {phase === 'check' && (
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Sm}
+              onPress={onToggleCheckFrameVisibility}
+            >
+              {showCheckFrame ? 'Hide frame' : 'Show frame'}
+            </Button>
+          )}
+          <ButtonIcon
+            iconName={IconName.Copy}
+            size={ButtonIconSize.Md}
+            onPress={handleCopy}
+            iconProps={{ color: IconColor.IconDefault }}
+          />
+          <ButtonIcon
+            iconName={IconName.Trash}
+            size={ButtonIconSize.Md}
+            onPress={onClear}
+            iconProps={{ color: IconColor.IconDefault }}
+          />
+        </View>
+      </View>
+      <View style={styles.debugList}>
+        {events.map((event) => (
+          <DebugEntry key={event.id} event={event} colors={colors} />
+        ))}
+      </View>
+    </View>
+  );
+};
+
+const ErrorPanel: React.FC<{
+  message: string;
+  colors: ThemeColors;
+}> = ({ message, colors }) => (
+  <View
+    style={[
+      styles.panel,
+      styles.errorPanel,
+      { backgroundColor: colors.background.alternative },
+    ]}
+  >
+    <Text variant={TextVariant.HeadingSm} color={TextColor.ErrorDefault}>
+      Error
+    </Text>
+    <Text variant={TextVariant.BodySm}>{message}</Text>
+  </View>
+);
+
+interface MoonpayDemoProps {
+  launchSumSubSDK: (moonPayAccessToken: string | null) => Promise<void> | void;
+}
+
+const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ launchSumSubSDK }) => {
+  const { colors } = useTheme();
+
+  const {
+    phase,
+    statusMessage,
+    errorMessage,
+    email,
+    setEmail,
+    submission,
+    setSubmission,
+    geoCountry,
+    disclaimers,
+    disclaimersError,
+    disclaimersLoaded,
+    debugEvents,
+    clearDebug,
+    showCheckFrame,
+    setShowCheckFrame,
+    kycResult,
+    checkFrameUrl,
+    authFrameUrl,
+    acceptTermsAndCreateSession,
+    runKycCheck,
+    launchSumSub,
+    handleFrameMessage,
+    handleCheckFrameError,
+    handleAuthFrameError,
+  } = useMoonpayIdentityFlow({ launchSumSubSDK });
+
+  const {
+    resetState,
+    resetError,
+    resetFrameUrl,
+    startReset,
+    dismissReset,
+    handleResetMessage,
+    handleResetError,
+  } = useMoonpayReset();
+
+  return (
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: colors.background.default }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.resetRow}>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            onPress={startReset}
+            isDisabled={resetState === 'resetting'}
+          >
+            {resetState === 'resetting'
+              ? 'Resetting…'
+              : 'Reset MoonPay session'}
+          </Button>
+          {resetState === 'success' && (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.SuccessDefault}
+              onPress={dismissReset}
+            >
+              Session cleared
+            </Text>
+          )}
+          {resetState === 'error' && (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              onPress={dismissReset}
+            >
+              {resetError ?? 'Reset failed'}
+            </Text>
+          )}
+        </View>
+
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          Country (geolocation): {geoCountry ?? 'Resolving…'}
+        </Text>
+
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          Phase: {phase}
+          {statusMessage ? ` — ${statusMessage}` : ''}
+        </Text>
+
+        {phase === 'terms' && (
+          <TermsPanel
+            email={email}
+            onEmailChange={setEmail}
+            onAccept={acceptTermsAndCreateSession}
+            disclaimers={disclaimers}
+            disclaimersError={disclaimersError}
+            disclaimersLoaded={disclaimersLoaded}
+            colors={colors}
+          />
+        )}
+
+        {phase === 'session' && (
+          <LoadingPanel message="Creating session via local UKYC service..." />
+        )}
+
+        {phase === 'check' && (
+          <LoadingPanel message="Authenticating via Check frame (this is invisible)..." />
+        )}
+
+        {phase === 'auth' && (
+          <LoadingPanel message="Auth frame visible below — verify your email." />
+        )}
+
+        {phase === 'form' && (
+          <SubmissionReviewPanel
+            submission={submission}
+            onChange={setSubmission}
+            onSubmit={runKycCheck}
+            colors={colors}
+          />
+        )}
+
+        {phase === 'submit' && <LoadingPanel message={statusMessage} />}
+
+        {phase === 'done' && kycResult && (
+          <DonePanel
+            result={kycResult}
+            colors={colors}
+            onLaunchSumSub={launchSumSub}
+          />
+        )}
+
+        {phase === 'error' && errorMessage && (
+          <ErrorPanel message={errorMessage} colors={colors} />
+        )}
+
+        {debugEvents.length > 0 && (
+          <DebugPanel
+            events={debugEvents}
+            onClear={clearDebug}
+            colors={colors}
+            phase={phase}
+            showCheckFrame={showCheckFrame}
+            onToggleCheckFrameVisibility={() => setShowCheckFrame((v) => !v)}
+          />
+        )}
+      </ScrollView>
+
+      {phase === 'check' && checkFrameUrl && (
+        <View style={showCheckFrame ? styles.frameArea : undefined}>
+          <MoonpayFrame
+            url={checkFrameUrl}
+            onMessage={handleFrameMessage}
+            onError={handleCheckFrameError}
+            invisible={!showCheckFrame}
+          />
+        </View>
+      )}
+
+      {phase === 'auth' && authFrameUrl && (
+        <View style={styles.frameArea}>
+          <MoonpayFrame
+            url={authFrameUrl}
+            onMessage={handleFrameMessage}
+            onError={handleAuthFrameError}
+          />
+        </View>
+      )}
+
+      {resetFrameUrl && (
+        <MoonpayFrame
+          url={resetFrameUrl}
+          onMessage={handleResetMessage}
+          onError={handleResetError}
+          invisible
+        />
+      )}
+    </KeyboardAvoidingView>
+  );
+};
+
+export default MoonpayDemo;
