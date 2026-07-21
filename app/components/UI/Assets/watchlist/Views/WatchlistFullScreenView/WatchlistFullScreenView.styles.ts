@@ -24,6 +24,9 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       paddingTop: 8,
     },
+    emptyContentContainer: {
+      flex: 1,
+    },
     editableRow: {
       flexDirection: 'row',
       alignItems: 'center',

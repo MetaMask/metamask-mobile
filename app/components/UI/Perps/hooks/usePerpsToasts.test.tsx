@@ -658,6 +658,81 @@ describe('usePerpsToasts', () => {
         });
       });
 
+      it('returns cancel all success configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancelAllSuccess(
+            3,
+          );
+
+        expect(config.labelOptions).toEqual([
+          { label: 'Orders canceled', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Successfully canceled 3 order(s)', isBold: false },
+        ]);
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.CheckBold,
+          hapticsType: NotificationMoment.Success,
+        });
+      });
+
+      it('returns cancel all partial success configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancelAllPartialSuccess(
+            2,
+            5,
+          );
+
+        expect(config.labelOptions).toEqual([
+          { label: 'Orders canceled', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Canceled 2 of 5 orders', isBold: false },
+        ]);
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.CheckBold,
+          hapticsType: NotificationMoment.Success,
+        });
+      });
+
+      it('returns cancel all failed configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancelAllFailed(
+            'Network error',
+          );
+
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to cancel orders', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Network error', isBold: false },
+        ]);
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationMoment.Error,
+        });
+      });
+
+      it('returns cancel all failed configuration with default error message', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancelAllFailed();
+
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to cancel orders', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Unknown error', isBold: false },
+        ]);
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationMoment.Error,
+        });
+      });
+
       it('strips hip3 prefix from asset symbol in cancellation in progress', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =

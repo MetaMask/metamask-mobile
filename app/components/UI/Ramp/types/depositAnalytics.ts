@@ -11,6 +11,17 @@ export const RAMP_SURFACE = {
 
 export type RampSurface = (typeof RAMP_SURFACE)[keyof typeof RAMP_SURFACE];
 
+/** Shared across funnel events that support the full buy/sell/deposit ramp taxonomy. */
+type RampTypeFunnel =
+  | 'DEPOSIT'
+  | 'SELL'
+  | 'BUY'
+  | 'UNIFIED_BUY'
+  | 'UNIFIED_BUY_2';
+
+/** Buy / deposit / headless paths that share the same mid-funnel ramp_type set. */
+type RampTypeBuyPath = 'DEPOSIT' | 'UNIFIED_BUY_2' | 'HEADLESS';
+
 /**
  * Provider-assigned order identifier (RampsOrder.providerOrderId), the join key
  * from a terminal analytics event back to the underlying provider order
@@ -23,7 +34,7 @@ interface ProviderOrderId {
 
 interface RampsButtonClicked {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
+  ramp_type: RampTypeFunnel;
   user_id?: string;
   region: string;
   location: string;
@@ -44,7 +55,7 @@ interface RampsDepositCashButtonClicked {
 
 interface RampsPaymentMethodSelected {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'UNIFIED_BUY_2' | 'HEADLESS';
+  ramp_type: RampTypeBuyPath;
   ramp_surface?: RampSurface;
   user_id?: string;
   region: string;
@@ -54,7 +65,7 @@ interface RampsPaymentMethodSelected {
 
 interface RampsTokenSelected {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
+  ramp_type: RampTypeFunnel;
   user_id?: string;
   region: string;
   chain_id: string;
@@ -192,7 +203,7 @@ interface RampsAddressEntered {
 
 interface RampsTransactionConfirmed extends ProviderOrderId {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_type: RampTypeBuyPath;
   ramp_surface?: RampSurface;
   user_id?: string;
   amount_source: number;
@@ -233,7 +244,7 @@ interface RampsTransactionCompleted extends ProviderOrderId {
 
 interface RampsTransactionFailed extends ProviderOrderId {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'UNIFIED_BUY_2' | 'HEADLESS';
+  ramp_type: RampTypeBuyPath;
   ramp_surface?: RampSurface;
   user_id?: string;
   amount_source: number;
