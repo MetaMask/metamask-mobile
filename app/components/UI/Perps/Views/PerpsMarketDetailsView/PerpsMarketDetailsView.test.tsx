@@ -7,6 +7,7 @@ import {
   getPerpsRelatedMarketsSelector,
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
+  PerpsModeToggleSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsRelatedMarketsSelectorsIDs,
 } from '../../Perps.testIds';
@@ -17,10 +18,12 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsProModeEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
 } from '../../selectors/featureFlags';
 import {
   CandlePeriod,
+  PerpsMode,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   TimeDuration,
@@ -205,6 +208,7 @@ jest.mock(
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
+const mockSetPerpsMode = jest.fn();
 
 // usePerpsNavigation mock functions
 const mockNavigateToHome = jest.fn();
@@ -584,6 +588,10 @@ jest.mock('../../hooks', () => ({
     error: null,
     refetch: jest.fn(),
   })),
+  usePerpsMode: jest.fn(() => ({
+    mode: 'lite',
+    setMode: mockSetPerpsMode,
+  })),
   usePerpsTrading: jest.fn(() => ({
     placeOrder: jest.fn(),
     cancelOrder: jest.fn(),
@@ -941,6 +949,7 @@ describe('PerpsMarketDetailsView', () => {
     mockRefreshMarketStats.mockClear();
     mockNavigate.mockClear();
     mockGoBack.mockClear();
+    mockSetPerpsMode.mockClear();
   });
 
   it('renders correctly', () => {
@@ -976,6 +985,78 @@ describe('PerpsMarketDetailsView', () => {
     // The component fires the controller's own optimistic-update/revert toggle
     // (fire-and-forget) rather than maintaining a separate local optimistic copy.
     expect(mockToggleWatchlistMarket).toHaveBeenCalledWith('BTC');
+  });
+
+  const enableProModeFlag = () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      if (selector === selectPerpsProModeEnabledFlag) {
+        return true;
+      }
+      return undefined;
+    });
+  };
+
+  it('shows the active-mode pill next to the star when the Pro mode flag is enabled', () => {
+    enableProModeFlag();
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    // Watchlist star remains, and the active-mode pill (Lite, from the mocked
+    // usePerpsMode) is appended next to it.
+    expect(
+      getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT),
+    ).toBeOnTheScreen();
+  });
+
+  it('flips the mode and shows the transition screen when the active-mode pill is pressed', () => {
+    enableProModeFlag();
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    // Mocked mode is Lite, so pressing the pill flips to Pro.
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
+
+    expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Pro);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODE_TRANSITION, {
+      mode: 'pro',
+    });
+  });
+
+  it('does not show the active-mode pill when the Pro mode flag is disabled', () => {
+    const { queryByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(queryByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT)).toBeNull();
   });
 
   it('renders statistics items', () => {

@@ -29,6 +29,20 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
     SegmentedControlSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
+    ButtonBaseSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
+    ButtonBase: ({
+      children,
+      testID,
+      onPress,
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+      onPress?: () => void;
+    }) => (
+      <TouchableOpacity testID={testID} onPress={onPress}>
+        <Text>{children}</Text>
+      </TouchableOpacity>
+    ),
     SegmentedControl: ({
       value,
       onChange,
@@ -160,12 +174,11 @@ describe('PerpsModeToggle', () => {
     expect(mockTrack).not.toHaveBeenCalled();
   });
 
-  it('renders only the active mode as a read-only pill in the active variant', () => {
-    const onChange = jest.fn();
+  it('renders only the active mode as a single pill in the active variant', () => {
     const { getByTestId, queryByTestId, getByText } = render(
       <PerpsModeToggle
         mode={PerpsMode.Pro}
-        onChange={onChange}
+        onChange={jest.fn()}
         variant="active"
       />,
     );
@@ -175,9 +188,33 @@ describe('PerpsModeToggle', () => {
     ).toBeOnTheScreen();
     expect(queryByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT)).toBeNull();
     expect(getByText('Pro')).toBeOnTheScreen();
+  });
+
+  it('flips to the opposite mode and tracks the change when the active pill is pressed', () => {
+    const onChange = jest.fn();
+    const { getByTestId } = render(
+      <PerpsModeToggle
+        mode={PerpsMode.Pro}
+        onChange={onChange}
+        variant="active"
+        source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
+      />,
+    );
 
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
-    expect(onChange).not.toHaveBeenCalled();
-    expect(mockTrack).not.toHaveBeenCalled();
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith(PerpsMode.Lite);
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PERPS_EVENT_PROPERTY.MODE]: PerpsMode.Lite,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      },
+    );
   });
 });

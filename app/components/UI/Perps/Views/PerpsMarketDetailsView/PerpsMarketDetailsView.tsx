@@ -32,6 +32,7 @@ import React, {
 import { Linking, RefreshControl, ScrollView, View } from 'react-native';
 import {
   CandlePeriod,
+  PerpsMode,
   TimeDuration,
   PERPS_CONSTANTS,
   type Position,
@@ -71,6 +72,7 @@ import {
 } from '../../Perps.testIds';
 import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
 import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
+import PerpsModeToggle from '../../components/PerpsModeToggle';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
 import PerpsMarketTradesList from '../../components/PerpsMarketTradesList';
@@ -95,6 +97,7 @@ import PerpsAdvancedChart from '../../components/PerpsAdvancedChart/PerpsAdvance
 import {
   selectPerpsAdvancedChartEnabledFlag,
   selectPerpsOrderBookEnabledFlag,
+  selectPerpsProModeEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
@@ -106,6 +109,7 @@ import {
   usePositionManagement,
   usePerpsTrading,
   usePerpsMarketData,
+  usePerpsMode,
 } from '../../hooks';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
@@ -336,6 +340,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // component-level optimistic copy is needed — a second copy could disagree with
   // Redux if the controller's optimistic-then-revert collapsed before a reconcile.
   const isWatchlist = useSelector(selectIsWatchlist);
+
+  // Pro-mode active-mode pill in the header (TAT-3551, AC #6.3). Pressing it
+  // flips the shared mode and shows the switch interstitial.
+  const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
+  const handlePerpsModeChange = useCallback(
+    (nextMode: PerpsMode) => {
+      setPerpsMode(nextMode);
+      navigation.navigate(Routes.PERPS.MODE_TRANSITION, {
+        mode: nextMode === PerpsMode.Pro ? 'pro' : 'lite',
+      });
+    },
+    [navigation, setPerpsMode],
+  );
 
   // Keep current market symbol ref in sync for staleness checks in async callbacks
   useEffect(() => {
@@ -1579,6 +1597,31 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         isFavorite={isWatchlist}
         useDetailLayout
         testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
+        // Pro mode: keep the watchlist star and append a read-only pill showing
+        // the active mode. `endAccessory` replaces the header's default end
+        // icons, so the star is re-composed here alongside the pill.
+        endAccessory={
+          isPerpsProModeEnabled ? (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={2}
+            >
+              <ButtonIcon
+                iconName={isWatchlist ? IconName.StarFilled : IconName.Star}
+                size={ButtonIconSize.Md}
+                onPress={handleWatchlistPress}
+                testID={PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON}
+              />
+              <PerpsModeToggle
+                mode={perpsMode}
+                variant="active"
+                onChange={handlePerpsModeChange}
+                source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
+              />
+            </Box>
+          ) : undefined
+        }
       />
 
       <View style={styles.scrollableContentContainer}>

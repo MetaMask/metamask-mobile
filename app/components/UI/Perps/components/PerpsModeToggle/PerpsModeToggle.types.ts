@@ -7,8 +7,8 @@ import type { PerpsMode } from '@metamask/perps-controller';
  * `'toggle'` (default) renders the interactive two-segment pill ("Lite" / "Pro")
  * used in the Trade menu and Perps home header.
  *
- * `'active'` renders a read-only single pill showing only the currently active
- * mode, used in the Market header (AC #6.3).
+ * `'active'` renders a single pill showing only the currently active mode, used
+ * in the Market header (AC #6.3). Pressing it flips to the opposite mode.
  */
 export type PerpsModeToggleVariant = 'toggle' | 'active';
 
@@ -19,8 +19,8 @@ export interface PerpsModeToggleProps {
   mode: PerpsMode;
 
   /**
-   * Called when the user selects a different mode. Not called in the `'active'`
-   * variant (read-only).
+   * Called when the user selects a different mode. In the `'active'` variant,
+   * this fires with the opposite mode when the pill is pressed.
    */
   onChange?: (mode: PerpsMode) => void;
 
