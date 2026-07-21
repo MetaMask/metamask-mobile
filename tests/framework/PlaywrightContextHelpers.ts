@@ -36,6 +36,7 @@ export default class PlaywrightContextHelpers {
     // Falls back to manual polling on any failure (LavaMoat scuttling,
     // stale URL metadata on BrowserStack, platform quirks, etc.).
     try {
+      const switchStart = Date.now();
       await withTimeout(
         getDriver().switchContext({
           url: new RegExp(dappUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
@@ -44,8 +45,16 @@ export default class PlaywrightContextHelpers {
         this.WEBVIEW_SWITCH_TIMEOUT_MS,
         `switchContext for ${dappUrl}`,
       );
+      logger.info(
+        `[webview-trace] switchContext({ url }) succeeded for ${dappUrl} in ${Date.now() - switchStart}ms`,
+      );
       await this.warmWebViewContext();
-      await this.switchToMatchingWebviewWindow(dappUrl);
+      // NOTE: Do NOT call switchToMatchingWebviewWindow here. A successful
+      // switchContext({ url }) has already selected the matching WebView
+      // window by URL. Re-enumerating via getContexts() while attached to the
+      // WebView context deadlocks Android UiAutomator2 + chromedriver (the
+      // call blocks until connectionRetryTimeout). The window is already
+      // correct, so this second lookup is redundant overhead.
       logger.debug(`Switched to webview context for URL: ${dappUrl}`);
       return;
     } catch (err) {
@@ -91,13 +100,50 @@ export default class PlaywrightContextHelpers {
   }
 
   private static async getDetailedWebviews(): Promise<DetailedContext[]> {
-    const contexts: (Context | DetailedContext)[] =
-      await getDriver().getContexts({ returnDetailedContexts: true });
+    // `mobile: getContexts` must be issued from the NATIVE_APP context. When
+    // called while attached to a WebView context, Android UiAutomator2 +
+    // chromedriver deadlocks until connectionRetryTimeout (~45s abort). Save
+    // the current context, enumerate from native, then restore.
+    const wdioDriver = getDriver();
+    let previousContext: string | undefined;
+    try {
+      previousContext = (await wdioDriver.getContext()) as string | undefined;
+    } catch {
+      // getContext unavailable/failed — proceed without restore.
+    }
 
-    return contexts.filter((ctx): ctx is DetailedContext => {
-      if (typeof ctx === 'string') return false;
-      return ctx.id !== NATIVE_APP;
-    });
+    const isAlreadyNative = !previousContext || previousContext === NATIVE_APP;
+    if (!isAlreadyNative) {
+      await wdioDriver.switchContext(NATIVE_APP);
+    }
+
+    try {
+      const getContextsStart = Date.now();
+      const contexts: (Context | DetailedContext)[] = await withTimeout(
+        wdioDriver.getContexts({ returnDetailedContexts: true }),
+        this.WEBVIEW_TIMEOUT_MS,
+        'getContexts (detailed)',
+      );
+      logger.info(
+        `[webview-trace] getContexts(detailed) returned ${contexts.length} context(s) in ${Date.now() - getContextsStart}ms (issued from ${isAlreadyNative ? 'NATIVE_APP' : `native (restored to ${previousContext})`})`,
+      );
+
+      return contexts.filter((ctx): ctx is DetailedContext => {
+        if (typeof ctx === 'string') return false;
+        return ctx.id !== NATIVE_APP;
+      });
+    } finally {
+      if (!isAlreadyNative && previousContext) {
+        try {
+          await wdioDriver.switchContext(previousContext);
+        } catch (error) {
+          logger.debug(
+            'Failed to restore WebView context after getContexts (non-fatal):',
+            this.getErrorMessage(error).slice(0, 200),
+          );
+        }
+      }
+    }
   }
 
   private static async selectBestWebview(
