@@ -41,6 +41,8 @@ export enum TokenDetailsSource {
   WatchlistHomepage = 'watchlist_homepage',
   /** Full-screen watchlist view */
   WatchlistFullscreen = 'watchlist_fullscreen',
+  /** Full-screen watchlist search */
+  WatchlistFullscreenSearch = 'watchlist_fullscreen_search',
   /** Explore Trending Tokens — watchlist filter pill active */
   ExploreWatchlistFilter = 'explore_watchlist_filter',
   /** Swap/Bridge token picker — watchlist filter pill active */
