@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { TransactionType } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import {
@@ -30,7 +31,7 @@ export const PAY_WITH_PREDICT_BALANCE_ROW_TEST_ID =
   'pay-with-predict-section-balance-row';
 
 export function usePayWithPredictSection(): PayWithSectionConfig | null {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const transactionMeta = useTransactionMetadataRequest();
   const { onReject } = useApprovalRequest();
   const formatFiat = useFiatFormatter({ currency: 'usd' });

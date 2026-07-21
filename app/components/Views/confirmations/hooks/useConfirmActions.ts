@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 
@@ -34,7 +35,7 @@ export const useConfirmActions = () => {
     setScannerVisible,
     setSigningConfirmed,
   } = useQRHardwareContext();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const approvalType = approvalRequest?.type;
   const isSignatureReq = approvalType && isSignatureRequest(approvalType);
   const isTransactionReq =

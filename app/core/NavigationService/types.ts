@@ -18,6 +18,8 @@ import type { LedgerTransactionModalParams } from '../../components/UI/LedgerMod
 // Browser params
 import type { BrowserParams } from '../../components/Views/Browser/Browser.types';
 import type { ActivityDetailsParams } from '../../components/Views/ActivityDetails/ActivityDetails.types';
+import type { FullScreenConfirmationParams } from '../../components/Views/confirmations/components/confirm/confirm-component';
+import type { PayWithModalParams } from '../../components/Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import type {
   AssetStackParamList,
   BrowserTabHomeParamList,
@@ -929,7 +931,7 @@ export type RootStackParamList = {
   AgenticCliDashboardConfirmation: AgenticCliDashboardWebviewParams;
   ConfirmationRequestModal: undefined;
   ConfirmationSwitchAccountType: undefined;
-  ConfirmationPayWithModal: undefined;
+  ConfirmationPayWithModal: PayWithModalParams | undefined;
   ConfirmationPayWithBottomSheet:
     | { preferredPaymentToken?: SetPayTokenRequest }
     | undefined;
@@ -963,8 +965,8 @@ export type RootStackParamList = {
   EarnLendingLearnMoreModal: EarnModalsNavigationParamList['EarnLendingLearnMoreModal'];
 
   // Full screen confirmation routes
-  RedesignedConfirmations: undefined;
-  NoHeaderConfirmations: undefined;
+  RedesignedConfirmations: FullScreenConfirmationParams | undefined;
+  NoHeaderConfirmations: FullScreenConfirmationParams | undefined;
 
   // Identity routes
   TurnOnBackupAndSync: undefined;

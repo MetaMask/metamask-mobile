@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   type Dispatch,
   type MutableRefObject,
@@ -14,7 +15,7 @@ const useMMPayNavigation = (
   keyboardEverShown?: MutableRefObject<boolean>,
   skipBackToKeyboard = false,
 ) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { mmPayRequestInProgressNavHandler } = useConfirmationContext();
 
   useEffect(() => {

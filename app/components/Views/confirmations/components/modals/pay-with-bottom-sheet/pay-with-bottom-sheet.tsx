@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -20,7 +21,7 @@ export const PAY_WITH_BOTTOM_SHEET_TEST_ID = 'pay-with-bottom-sheet';
 
 export function PayWithBottomSheet() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { sections } = usePayWithSections();
   const transactionMeta = useTransactionMetadataRequest();
   const surfaceClass = useElevatedSurface();

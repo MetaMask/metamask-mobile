@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
@@ -61,7 +62,7 @@ export const PAY_WITH_CRYPTO_OTHER_ASSETS_ROW_TEST_ID =
   'pay-with-crypto-section-other-assets-row';
 
 export function usePayWithCryptoSection(): PayWithSectionConfig | null {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { preferredPaymentToken } = useParams<PayWithCryptoSectionParams>({});
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const transactionMeta = useTransactionMetadataRequest();

@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
@@ -30,7 +31,7 @@ const styles = StyleSheet.create({
 });
 
 export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
