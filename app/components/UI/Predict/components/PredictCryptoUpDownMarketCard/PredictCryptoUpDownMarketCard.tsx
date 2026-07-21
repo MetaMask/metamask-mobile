@@ -6,7 +6,8 @@ import React, {
   useRef,
   useSyncExternalStore,
 } from 'react';
-import { Image, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
+import { Image } from 'expo-image';
 import Svg, {
   Circle,
   Defs,
@@ -872,7 +873,8 @@ const ProgressLogo = React.memo(
             <Image
               source={{ uri: imageUrl }}
               style={tw.style('h-full w-full')}
-              resizeMode="cover"
+              contentFit="cover"
+              recyclingKey={imageUrl}
             />
           ) : (
             <Box twClassName="h-full w-full bg-muted" />

@@ -15,6 +15,8 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonBaseSize,
+  ButtonFilter,
   ButtonIconSize,
   ButtonIcon,
   ButtonSize,
@@ -25,8 +27,9 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import I18n, { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
+import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import MoneyActivityRow from '../../components/MoneyActivityRow/MoneyActivityRow';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
@@ -87,10 +90,17 @@ function dateKeyUtc(time: number): string {
   return new Date(time).toISOString().slice(0, 10);
 }
 
-function groupByDate(
-  items: MoneyActivityItem[],
-  locale: string,
-): ActivitySection[] {
+// Headers are pinned to en-US per the Money design spec ("Jan 26, 2026") and
+// rendered in UTC so the label always names the same day the row was bucketed
+// under by `dateKeyUtc`.
+const dateHeaderFormatter = getIntlDateTimeFormatter('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+
+function groupByDate(items: MoneyActivityItem[]): ActivitySection[] {
   const groups = new Map<string, MoneyActivityItem[]>();
   for (const item of items) {
     const key = dateKeyUtc(item.time);
@@ -102,11 +112,7 @@ function groupByDate(
     }
   }
   return Array.from(groups.entries()).map(([dateKey, data]) => ({
-    title: new Date(`${dateKey}T00:00:00.000Z`).toLocaleDateString(locale, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    }),
+    title: dateHeaderFormatter.format(new Date(`${dateKey}T00:00:00.000Z`)),
     data,
   }));
 }
@@ -115,13 +121,10 @@ function groupByDate(
  * Builds the list sections: a single "Pending" bucket (in-flight rows) on top,
  * followed by the confirmed/failed rows grouped by date.
  */
-function buildSections(
-  items: MoneyActivityItem[],
-  locale: string,
-): ActivitySection[] {
+function buildSections(items: MoneyActivityItem[]): ActivitySection[] {
   const [pending, settled] = partition(items, isPendingItem);
 
-  const dateSections = groupByDate(settled, locale);
+  const dateSections = groupByDate(settled);
   if (pending.length === 0) {
     return dateSections;
   }
@@ -203,10 +206,7 @@ const MoneyActivityView = () => {
 
   const filtered = buckets[filter];
 
-  const sections = useMemo(
-    () => buildSections(filtered, I18n.locale),
-    [filtered],
-  );
+  const sections = useMemo(() => buildSections(filtered), [filtered]);
 
   const renderSectionHeader = ({ section }: { section: ActivitySection }) => (
     <Box twClassName="px-4 pt-2 pb-1 bg-default">
@@ -316,14 +316,9 @@ const MoneyActivityView = () => {
         style={styles.filterScroll}
         contentContainerStyle={styles.filterRow}
       >
-        <Button
-          variant={
-            isActive(MoneyActivityFilter.All)
-              ? ButtonVariant.Primary
-              : ButtonVariant.Secondary
-          }
-          size={ButtonSize.Md}
-          twClassName="px-3"
+        <ButtonFilter
+          isActive={isActive(MoneyActivityFilter.All)}
+          size={ButtonBaseSize.Md}
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.All,
@@ -334,15 +329,10 @@ const MoneyActivityView = () => {
           testID={MoneyActivityViewTestIds.FILTER_ALL}
         >
           {strings(FILTER_LABEL_KEYS.all)}
-        </Button>
-        <Button
-          variant={
-            isActive(MoneyActivityFilter.Deposits)
-              ? ButtonVariant.Primary
-              : ButtonVariant.Secondary
-          }
-          size={ButtonSize.Md}
-          twClassName="px-3"
+        </ButtonFilter>
+        <ButtonFilter
+          isActive={isActive(MoneyActivityFilter.Deposits)}
+          size={ButtonBaseSize.Md}
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.Deposits,
@@ -353,15 +343,10 @@ const MoneyActivityView = () => {
           testID={MoneyActivityViewTestIds.FILTER_DEPOSITS}
         >
           {strings(FILTER_LABEL_KEYS.deposits)}
-        </Button>
-        <Button
-          variant={
-            isActive(MoneyActivityFilter.Transfers)
-              ? ButtonVariant.Primary
-              : ButtonVariant.Secondary
-          }
-          size={ButtonSize.Md}
-          twClassName="px-3"
+        </ButtonFilter>
+        <ButtonFilter
+          isActive={isActive(MoneyActivityFilter.Transfers)}
+          size={ButtonBaseSize.Md}
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.Transfers,
@@ -372,15 +357,10 @@ const MoneyActivityView = () => {
           testID={MoneyActivityViewTestIds.FILTER_TRANSFERS}
         >
           {strings(FILTER_LABEL_KEYS.transfers)}
-        </Button>
-        <Button
-          variant={
-            isActive(MoneyActivityFilter.Purchases)
-              ? ButtonVariant.Primary
-              : ButtonVariant.Secondary
-          }
-          size={ButtonSize.Md}
-          twClassName="px-3"
+        </ButtonFilter>
+        <ButtonFilter
+          isActive={isActive(MoneyActivityFilter.Purchases)}
+          size={ButtonBaseSize.Md}
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.Purchases,
@@ -391,7 +371,7 @@ const MoneyActivityView = () => {
           testID={MoneyActivityViewTestIds.FILTER_PURCHASES}
         >
           {strings(FILTER_LABEL_KEYS.purchases)}
-        </Button>
+        </ButtonFilter>
       </ScrollView>
 
       {isSettling ? (

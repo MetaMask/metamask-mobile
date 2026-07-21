@@ -43,6 +43,8 @@ export interface PredictFeedTabConfig {
 export interface PredictFeedConfig {
   id: PredictFeedId;
   titleKey: string;
+  /** Whether the feed exposes user-selectable filter chips. Defaults to true. */
+  showFilterBar?: boolean;
   header: {
     showBackButton: boolean;
     showSearchButton: boolean;
@@ -188,6 +190,7 @@ export const PREDICT_FEED_REGISTRY: Record<PredictFeedId, PredictFeedConfig> = {
   live: {
     id: 'live',
     titleKey: 'predict.feed.live',
+    showFilterBar: false,
     header: {
       showBackButton: true,
       showSearchButton: true,

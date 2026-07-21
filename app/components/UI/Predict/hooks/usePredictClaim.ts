@@ -23,6 +23,7 @@ import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import Routes from '../../../../constants/navigation/Routes';
+import { RootState } from '../../../../reducers';
 
 export const usePredictClaim = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
@@ -35,8 +36,8 @@ export const usePredictClaim = () => {
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedAddress = evmAccount?.address ?? '';
 
-  const claimBatchId = useSelector(
-    selectPredictPendingClaimByAddress({ address: selectedAddress }),
+  const claimBatchId = useSelector((state: RootState) =>
+    selectPredictPendingClaimByAddress(state, selectedAddress),
   );
   const isClaimPending = !!claimBatchId;
 

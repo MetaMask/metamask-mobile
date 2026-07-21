@@ -74,6 +74,7 @@ import {
   selectIsNonEvmSourced,
   selectIsSolanaSourced,
   selectIsSubmittingTx,
+  selectIsSlippageUserOverride,
   selectSlippage,
   setDestToken,
   setIsSubmittingTx,
@@ -255,6 +256,8 @@ export function useQuickBuyController(
     [target.chain, target.tokenAddress],
   );
 
+  const [tradeMode, setTradeMode] = useState<QuickBuyTradeMode>('buy');
+
   const {
     refs: { lastInputMethodRef, lastTrackedAmountRef, submitStartedAtRef },
     trackAmountSelected,
@@ -266,9 +269,7 @@ export function useQuickBuyController(
     trackTradeSubmitted,
     trackTradeCompleted,
     markTradeSubmitted,
-  } = useQuickBuyAnalytics(traderAddress, caip19, analyticsContext);
-
-  const [tradeMode, setTradeMode] = useState<QuickBuyTradeMode>('buy');
+  } = useQuickBuyAnalytics(traderAddress, caip19, analyticsContext, tradeMode);
   const [fiatAmount, setFiatAmount] = useState('');
   const [sourceAmountTokens, setSourceAmountTokens] = useState('');
   // True when the user has committed the slider to 100% ("sell all"). In this
@@ -308,6 +309,7 @@ export function useQuickBuyController(
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
   const slippage = useSelector(selectSlippage);
+  const isSlippageUserOverride = useSelector(selectIsSlippageUserOverride);
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
@@ -542,7 +544,6 @@ export function useQuickBuyController(
 
   useRefreshSmartTransactionsLiveness(sourceChainId);
   useIsGasIncludedSTXSendBundleSupported(sourceChainId);
-  useInitialSlippage();
 
   useEffect(() => {
     if (sourceToken && destToken) {
@@ -690,8 +691,15 @@ export function useQuickBuyController(
       caip19,
       amountUsd: quotedAmountUsd,
       source: analyticsContext?.source,
+      originalEntryPoint: analyticsContext?.originalEntryPoint,
     }),
-    [traderAddress, caip19, quotedAmountUsd, analyticsContext?.source],
+    [
+      traderAddress,
+      caip19,
+      quotedAmountUsd,
+      analyticsContext?.source,
+      analyticsContext?.originalEntryPoint,
+    ],
   );
 
   const {
@@ -757,10 +765,11 @@ export function useQuickBuyController(
       return;
     }
     const prev = prevSlippageRef.current;
-    if (prev === slippage) return;
     prevSlippageRef.current = slippage;
-    trackSlippageChanged(slippage ?? '', prev ?? '');
-  }, [slippage, trackSlippageChanged]);
+    if (prev !== slippage && isSlippageUserOverride) {
+      trackSlippageChanged(slippage ?? 'Auto', prev ?? 'Auto');
+    }
+  }, [slippage, isSlippageUserOverride, trackSlippageChanged]);
 
   const formattedNetworkFee = useFormattedNetworkFee(activeQuote ?? null);
 
@@ -779,7 +788,7 @@ export function useQuickBuyController(
   }, [activeQuote]);
 
   const formattedSlippage = useMemo(() => {
-    if (slippage == null) return '-';
+    if (slippage == null) return 'Auto';
     return `${slippage}%`;
   }, [slippage]);
 
@@ -1615,6 +1624,11 @@ export function useQuickBuyController(
     !isPendingQuoteRefresh &&
     !isAmountUncommitted &&
     !isQuoteRequestStale;
+
+  useInitialSlippage(
+    activeQuote?.quote.slippage,
+    isActiveQuoteForCurrentTokenPair && hasUsableQuoteOnScreen,
+  );
 
   // Loading that should block the UI: first load or an input change with no
   // usable quote yet. A plain background refresh is excluded so the CTA and the

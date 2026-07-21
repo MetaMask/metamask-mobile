@@ -26,6 +26,8 @@ import { useTokensData } from '../../hooks/useTokensData/useTokensData';
 const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 const LINEA_MUSD_CHECKSUM_ADDRESS =
   '0xacA92E438df0B2401fF60dA7E4337B687a2435DA';
+const OWNED_ACCOUNT_ADDRESS = '0xAa60919dd0d0964B76620dAaF08bF357e1c9DD73';
+const OWNED_SOLANA_ADDRESS = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
 
 const mockState = {
   user: {
@@ -57,6 +59,45 @@ const mockState = {
           '0x1': {
             [LINEA_MUSD_CHECKSUM_ADDRESS]: {
               price: 0.0004,
+            },
+          },
+        },
+      },
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: 'owned-account-1',
+          accounts: {
+            'owned-account-1': {
+              id: 'owned-account-1',
+              address: OWNED_ACCOUNT_ADDRESS,
+              metadata: { name: 'Account 2' },
+            },
+            'owned-account-solana': {
+              id: 'owned-account-solana',
+              address: OWNED_SOLANA_ADDRESS,
+              metadata: { name: 'Solana Account' },
+            },
+          },
+        },
+      },
+      AccountTreeController: {
+        accountTree: {
+          wallets: {
+            'entropy:wallet-1': {
+              id: 'entropy:wallet-1',
+              metadata: { name: 'Wallet 1' },
+              groups: {
+                'entropy:wallet-1/1': {
+                  id: 'entropy:wallet-1/1',
+                  metadata: { name: 'ETH DeFi' },
+                  accounts: ['owned-account-1'],
+                },
+                'entropy:wallet-1/2': {
+                  id: 'entropy:wallet-1/2',
+                  metadata: { name: 'Solana' },
+                  accounts: ['owned-account-solana'],
+                },
+              },
             },
           },
         },
@@ -222,6 +263,11 @@ jest.mock('@metamask/design-system-react-native', () => {
       severity,
     });
 
+  const AvatarAccount = ({ address }: { address?: string }) =>
+    ReactActual.createElement(View, {
+      testID: `avatar-account-${address ?? 'unknown'}`,
+    });
+
   const BadgeNetwork = ({ src }: { src?: unknown }) =>
     ReactActual.createElement(View, { src });
 
@@ -249,6 +295,13 @@ jest.mock('@metamask/design-system-react-native', () => {
     AvatarIcon,
     AvatarIconSeverity: { Neutral: 'neutral', Danger: 'danger' },
     AvatarIconSize: { Xs: 'xs', Sm: 'sm', Md: 'md', Lg: 'lg', Xl: 'xl' },
+    AvatarAccount,
+    AvatarAccountVariant: {
+      Jazzicon: 'Jazzicon',
+      Blockies: 'Blockies',
+      Maskicon: 'Maskicon',
+    },
+    AvatarBaseSize: { Xs: 'xs', Sm: 'sm', Md: 'md', Lg: 'lg', Xl: 'xl' },
     BadgeNetwork,
     BadgeWrapper,
     BadgeWrapperPosition: { BottomRight: 'BottomRight' },
@@ -453,6 +506,82 @@ describe('ActivityListItemRow — row content', () => {
       '-10 USDC',
     );
     expect(getByTestId('avatar-token-USDC')).toBeOnTheScreen();
+  });
+
+  it('renders the account name in the subtitle when sending to an owned account', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'success',
+      // Lowercased on purpose: the owned-account match is case-insensitive.
+      to: OWNED_ACCOUNT_ADDRESS.toLowerCase(),
+      token: {
+        amount: '10',
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe('To: ');
+    expect(
+      getByTestId('activity-subtitle-account-name-0xabc').props.children,
+    ).toBe('ETH DeFi');
+    expect(
+      getByTestId('activity-subtitle-account-avatar-0xabc'),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the account name and avatar for a non-EVM (Solana) owned counterparty', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'success',
+      to: OWNED_SOLANA_ADDRESS,
+      token: {
+        amount: '10',
+        symbol: 'USDC',
+        direction: 'out',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(
+      getByTestId('activity-subtitle-account-name-0xabc').props.children,
+    ).toBe('Solana');
+    // The non-hex address is passed straight through to the avatar (no
+    // checksumming), so the multichain row renders without error.
+    expect(
+      getByTestId(`avatar-account-${OWNED_SOLANA_ADDRESS}`),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the account name in the subtitle when receiving from an owned account', () => {
+    const item = makeItem({
+      type: 'receive',
+      status: 'success',
+      from: OWNED_ACCOUNT_ADDRESS,
+      token: {
+        amount: '10',
+        symbol: 'USDC',
+        direction: 'in',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'From: ',
+    );
+    expect(
+      getByTestId('activity-subtitle-account-name-0xabc').props.children,
+    ).toBe('ETH DeFi');
+    expect(
+      getByTestId('activity-subtitle-account-avatar-0xabc'),
+    ).toBeOnTheScreen();
   });
 
   it('shows "Send cancelled" and hides the amount for a cancelled send', () => {
@@ -796,19 +925,15 @@ describe('ActivityListItemRow — row content', () => {
       />,
     ).getByTestId('activity-title-0xfail');
 
-    // Cancelled → same neutral color as an ordinary row; the spaced " — Canceled"
-    // suffix still conveys the status. Failed → a distinct (error) color.
     expect(flattenColor(cancelled)).toBe(flattenColor(neutral));
     expect(flattenColor(failed)).not.toBe(flattenColor(neutral));
     expect(cancelled.props.children).toBe(
-      `${strings('transactions.activity_limit_short')} — ${strings(
-        'transaction.canceled',
-      )}`,
+      strings('transactions.activity_limit_short'),
     );
   });
 
-  it('renders limit orders with the market logo, no network badge, and a $ amount', () => {
-    const { getByTestId } = render(
+  it('renders limit orders with the market logo, no network badge, and a status label (not a notional amount)', () => {
+    const { getByTestId, queryByTestId } = render(
       <ActivityListItemRow
         item={makeLimitOrder('cancelled', '0xlimit')}
         index={0}
@@ -820,13 +945,88 @@ describe('ActivityListItemRow — row content', () => {
     expect(logo.props.symbol).toBe('BTC');
     // Perps is single-network (Arbitrum) → no network badge is resolved.
     expect(getNetworkImageSource).not.toHaveBeenCalled();
-    // Fiat-style amount ("$"), not the "<amount> USD" token suffix.
-    const primary = getByTestId('activity-primary-amount-0xlimit').props
-      .children as string;
-    expect(primary).toContain('$');
-    expect(primary).not.toContain('USD');
-    expect(primary.startsWith('-')).toBe(true);
+
+    expect(queryByTestId('activity-secondary-amount-0xlimit')).toBeNull();
+    expect(getByTestId('activity-primary-amount-0xlimit').props.children).toBe(
+      strings('transactions.activity_order_status_canceled'),
+    );
   });
+
+  it.each([
+    ['success', 'activity_order_status_filled'],
+    ['cancelled', 'activity_order_status_canceled'],
+    ['failed', 'activity_order_status_rejected'],
+    ['pending', 'activity_order_status_open'],
+  ] as const)(
+    'shows the order status label "%s" in the right column instead of an amount',
+    (status, i18nKey) => {
+      const { getByTestId, queryByTestId } = render(
+        <ActivityListItemRow
+          item={makeLimitOrder(status, `0x${status}`)}
+          index={0}
+        />,
+      );
+
+      expect(queryByTestId(`activity-secondary-amount-0x${status}`)).toBeNull();
+      expect(
+        getByTestId(`activity-primary-amount-0x${status}`).props.children,
+      ).toBe(strings(`transactions.${i18nKey}`));
+    },
+  );
+
+  it('renders the order status muted (matches the extension TextMuted), distinct from a normal amount color', () => {
+    const orderStatus = flattenColor(
+      render(
+        <ActivityListItemRow
+          item={makeLimitOrder('success', '0xmuted')}
+          index={0}
+        />,
+      ).getByTestId('activity-primary-amount-0xmuted'),
+    );
+    const normalAmount = flattenColor(
+      render(
+        <ActivityListItemRow
+          item={makeItem({
+            type: 'send',
+            status: 'success',
+            token: { amount: '1', symbol: 'ETH', direction: 'out' },
+          })}
+          index={1}
+        />,
+      ).getByTestId('activity-primary-amount-0xabc'),
+    );
+
+    // Muted status color is applied and differs from the default amount color.
+    expect(orderStatus).not.toBe(normalAmount);
+  });
+
+  it.each([
+    ['cancelled', 'transaction.canceled'],
+    ['failed', 'transaction.failed'],
+  ] as const)(
+    'keeps the "— status" suffix on non-order domain rows (%s deposit)',
+    (status, i18nKey) => {
+      const { getByTestId } = render(
+        <ActivityListItemRow
+          item={makeItem({
+            type: 'perpsAddFunds',
+            status,
+            hash: `0xfunds-${status}`,
+          })}
+          index={0}
+        />,
+      );
+
+      // Unlike orders, funds/predict rows still carry the status in the title.
+      expect(
+        getByTestId(`activity-title-0xfunds-${status}`).props.children,
+      ).toBe(
+        `${strings('transactions.activity_perps_account_funded')} — ${strings(
+          i18nKey,
+        )}`,
+      );
+    },
+  );
 
   it('colors a perps trade loss with the error color and a gain with the incoming color', () => {
     const makeClose = (
@@ -851,16 +1051,9 @@ describe('ActivityListItemRow — row content', () => {
     const gain = render(
       <ActivityListItemRow item={makeClose('in', '0xgain')} index={1} />,
     ).getByTestId('activity-primary-amount-0xgain');
-    // An order amount (notional, not PnL) stays neutral even though outgoing.
-    const order = render(
-      <ActivityListItemRow
-        item={makeLimitOrder('cancelled', '0xorder')}
-        index={2}
-      />,
-    ).getByTestId('activity-primary-amount-0xorder');
 
     // Loss shares the error color used for a failed title; gain shares the green
-    // used for an incoming receive amount; the order amount matches neither.
+    // used for an incoming receive amount.
     const errorColor = flattenColor(
       render(
         <ActivityListItemRow
@@ -884,8 +1077,6 @@ describe('ActivityListItemRow — row content', () => {
 
     expect(flattenColor(loss)).toBe(errorColor);
     expect(flattenColor(gain)).toBe(incomingColor);
-    expect(flattenColor(order)).not.toBe(errorColor);
-    expect(flattenColor(order)).not.toBe(incomingColor);
   });
 
   it('strips the HyperLiquid builder prefix from the trade subtitle', () => {
@@ -1531,6 +1722,7 @@ describe('ActivityListItemRow — display currency conversion', () => {
   // reset them), so restore the suite-wide defaults (USD, equal rates) after
   // each test to keep overrides from leaking.
   afterEach(() => {
+    jest.clearAllMocks();
     mockCurrency.mockReturnValue('usd');
     mockConversionRate.mockReturnValue(2500);
     mockUsdConversionRate.mockReturnValue(2500);
@@ -1624,6 +1816,28 @@ describe('ActivityListItemRow — amount display', () => {
     expect(getByText('+$1')).toBeOnTheScreen();
   });
 
+  it('renders ramp buy mUSD amounts as already-human values (no decimal re-scale)', () => {
+    // FiatOrder.cryptoAmount is human-readable ("30"). Injecting mUSD decimals
+    // would scale 30 → 0.00003 via formatUnits.
+    const item = makeItem({
+      type: 'buy',
+      status: 'success',
+      token: {
+        amount: '30',
+        symbol: 'mUSD',
+        assetId: `eip155:1/erc20:${LINEA_MUSD_ADDRESS}`,
+        direction: 'in',
+      },
+    });
+
+    const { getByText, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByText('+30 mUSD')).toBeOnTheScreen();
+    expect(queryByText('+0.00003 mUSD')).toBeNull();
+  });
+
   it('does not render fiat when token market data is unavailable', () => {
     const item = makeItem({
       status: 'success',
@@ -1681,6 +1895,7 @@ describe('ActivityListItemRow — ERC-20 fiat address casing (TMCU-937)', () => 
   // This mock uses a persistent return value (clearAllMocks does not reset it),
   // so restore the suite default (lowercased mUSD key) after each test.
   afterEach(() => {
+    jest.clearAllMocks();
     mockContractExchangeRates.mockReturnValue(ratesFor(LINEA_MUSD_ADDRESS));
   });
 
@@ -1763,6 +1978,13 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'marketCloseShort',
   'limitShort',
   'limitCloseShort',
+  'marketLong',
+  'stopMarketCloseLong',
+  'marketCloseLong',
+  'limitLong',
+  'limitCloseLong',
+  'assetActivation',
+  'assetDeactivation',
 ];
 
 const EXPECTED_TITLES = {
@@ -1838,6 +2060,13 @@ const EXPECTED_TITLES = {
   marketCloseShort: strings('transactions.activity_market_close_short'),
   limitShort: strings('transactions.activity_limit_short'),
   limitCloseShort: strings('transactions.activity_limit_close_short'),
+  marketLong: strings('transactions.activity_market_long'),
+  stopMarketCloseLong: strings('transactions.activity_stop_market_close_long'),
+  marketCloseLong: strings('transactions.activity_market_close_long'),
+  limitLong: strings('transactions.activity_limit_long'),
+  limitCloseLong: strings('transactions.activity_limit_close_long'),
+  assetActivation: strings('transactions.activity_trustline_activated'),
+  assetDeactivation: strings('transactions.activity_trustline_deactivated'),
 } satisfies Record<ActivityListItem['type'], string>;
 
 describe('ActivityListItemRow — title display for all ActivityKind values', () => {

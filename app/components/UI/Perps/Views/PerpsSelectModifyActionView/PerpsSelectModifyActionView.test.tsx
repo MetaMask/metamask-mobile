@@ -210,6 +210,10 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockNavigateToClosePosition).toHaveBeenCalledWith(
       mockLongPosition,
       'position_screen',
+      {
+        buttonClicked: 'reduce_exposure',
+        buttonLocation: 'screen',
+      },
     );
   });
 

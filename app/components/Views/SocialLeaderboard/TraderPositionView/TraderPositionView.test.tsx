@@ -35,6 +35,7 @@ interface MockRouteParams {
   tokenSymbol?: string;
   position?: Position;
   source?: string;
+  originalEntryPoint?: string;
 }
 
 const makeMockTrades = (): Trade[] => [
@@ -108,9 +109,58 @@ jest.mock('../../../../core/ClipboardManager', () => ({
 // for design-system `BottomSheet` (see app/util/test/testSetup.js) can mount
 // QuickBuy provider/controller (bridge selectors, NetworkController, …). This
 // file intentionally uses a minimal Redux store, so we stub the sheet here.
+const mockTraderPositionQuickBuy = jest.fn((_props: unknown) => null);
 jest.mock('./components/QuickBuy', () => ({
   __esModule: true,
-  default: () => null,
+  default: (props: unknown) => mockTraderPositionQuickBuy(props),
+  positionToQuickBuyTarget: (position: {
+    tokenAddress: string;
+    tokenSymbol: string;
+    tokenName: string;
+  }) => ({
+    tokenAddress: position.tokenAddress,
+    tokenSymbol: position.tokenSymbol,
+    tokenName: position.tokenName,
+    chain: 'eip155:8453',
+  }),
+}));
+
+// The spot Buy CTA (TraderPositionBuyCta) is gated by an A/B test. Default to
+// control (Buy opens QuickBuy) for existing behavior; individual tests can
+// override the variant. These hooks reach into bridge selectors / network, so
+// they're stubbed here to keep the minimal-store test deterministic.
+const mockUseABTest = jest.fn((..._args: unknown[]) => ({
+  variant: { openSwaps: false },
+  variantName: 'control',
+  isActive: true,
+}));
+jest.mock('../../../../hooks/useABTest', () => ({
+  useABTest: (...args: unknown[]) => mockUseABTest(...args),
+}));
+
+const mockGoToSwaps = jest.fn();
+jest.mock('../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
+  useSwapBridgeNavigation: () => ({ goToSwaps: mockGoToSwaps }),
+  SwapBridgeNavigationLocation: {
+    TokenView: 'Token View',
+    FollowTradingTokenScreen: 'Follow Trading Token Screen',
+  },
+}));
+
+jest.mock('./components/QuickBuy/hooks/useQuickBuySetup', () => ({
+  useQuickBuySetup: () => ({
+    chainId: '0x2105',
+    destToken: {
+      address: '0x1234567890123456789012345678901234567890',
+      symbol: 'PEPE',
+      name: 'Pepe',
+      decimals: 18,
+      image: '',
+      chainId: '0x2105',
+    },
+    isLoading: false,
+    isUnsupportedChain: false,
+  }),
 }));
 
 // Resolves the tradable perp market set used by the Trade CTA's xyz/HIP-3
@@ -237,6 +287,7 @@ jest.mock('@react-navigation/native', () => {
     useRoute: () => ({
       params: mockRouteParams,
     }),
+    useIsFocused: () => true,
   };
 });
 
@@ -267,6 +318,13 @@ describe('TraderPositionView', () => {
       isLoading: false,
     });
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
+    // Default the A/B test to control (Buy opens QuickBuy). clearAllMocks resets
+    // call data but not implementations, so re-assert it for test isolation.
+    mockUseABTest.mockReturnValue({
+      variant: { openSwaps: false },
+      variantName: 'control',
+      isActive: true,
+    });
     mockRouteParams = {
       traderId: 'trader-1',
       traderName: 'trader1',
@@ -447,10 +505,52 @@ describe('TraderPositionView', () => {
       expect.objectContaining({
         trader_address: '0xabc',
         asset_name: 'PEPE',
+        chain_name: 'base',
         caip19: expect.stringContaining('eip155:8453/erc20:'),
         cta_type: 'buy',
       }),
     );
+  });
+
+  describe('Buy action A/B test', () => {
+    it('opens QuickBuy (not swaps) in the control variant', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      );
+
+      expect(mockGoToSwaps).not.toHaveBeenCalled();
+      expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isVisible: true }),
+      );
+    });
+
+    it('opens the swaps view with the trader token as destination in the treatment variant', () => {
+      mockUseABTest.mockReturnValue({
+        variant: { openSwaps: true },
+        variantName: 'treatment',
+        isActive: true,
+      });
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      );
+
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({ symbol: 'PEPE', chainId: '0x2105' }),
+        undefined,
+        true,
+      );
+      // Still fires CTA-clicked attribution in the treatment variant.
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED,
+        expect.objectContaining({ cta_type: 'buy' }),
+      );
+    });
   });
 
   describe('perp positions', () => {
@@ -462,6 +562,12 @@ describe('TraderPositionView', () => {
         perpPositionType: 'short',
         perpLeverage: 10,
       };
+    });
+
+    it('does not resolve the Buy action A/B test for perps (no exposure)', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(mockUseABTest).not.toHaveBeenCalled();
     });
 
     it('renders the Trade button instead of the Buy button', () => {
@@ -502,6 +608,7 @@ describe('TraderPositionView', () => {
         expect.objectContaining({
           trader_address: '0xabc',
           asset_name: 'ETH',
+          chain_name: 'hyperliquid',
           perps_market: 'ETH',
           source: 'trader_profile',
         }),
@@ -520,6 +627,7 @@ describe('TraderPositionView', () => {
         expect.objectContaining({
           trader_address: '0xabc',
           asset_name: 'ETH',
+          chain_name: 'hyperliquid',
           perps_market: 'ETH',
           cta_type: 'trade',
         }),
@@ -537,6 +645,7 @@ describe('TraderPositionView', () => {
         MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_DISMISSED,
         {
           trader_address: '0xabc',
+          chain_name: 'hyperliquid',
           perps_market: 'ETH',
         },
       );
@@ -1062,40 +1171,61 @@ describe('TraderPositionView', () => {
     });
   });
 
-  describe('analytics source routing', () => {
-    it('uses notification as quickBuySource when source param is notification', () => {
-      mockRouteParams = { ...mockRouteParams, source: 'notification' };
+  describe('Quick Buy analytics routing', () => {
+    it('passes profile_position source and notification original_entry_point from route params', () => {
+      mockRouteParams = {
+        ...mockRouteParams,
+        source: 'notification',
+        originalEntryPoint: 'notification',
+      };
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
       fireEvent.press(
         screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
       );
 
-      expect(
-        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
+      expect(mockTraderPositionQuickBuy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'profile_position',
+          originalEntryPoint: 'notification',
+        }),
+      );
     });
 
-    it('uses leaderboard as quickBuySource when source param is leaderboard', () => {
-      mockRouteParams = { ...mockRouteParams, source: 'leaderboard' };
+    it('passes forwarded original_entry_point from route params', () => {
+      mockRouteParams = {
+        ...mockRouteParams,
+        source: 'profile_position',
+        originalEntryPoint: 'leaderboard',
+      };
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
       fireEvent.press(
         screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
       );
 
-      expect(
-        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
+      expect(mockTraderPositionQuickBuy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'profile_position',
+          originalEntryPoint: 'leaderboard',
+        }),
+      );
     });
 
-    it('defaults quickBuySource to profile_position when source param is deep_link', () => {
+    it('derives original_entry_point from position source when route param is absent', () => {
       mockRouteParams = { ...mockRouteParams, source: 'deep_link' };
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
-      expect(
-        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      );
+
+      expect(mockTraderPositionQuickBuy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'profile_position',
+          originalEntryPoint: 'deep_link',
+        }),
+      );
     });
   });
 
