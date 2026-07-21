@@ -54,7 +54,7 @@ describe('wallet-init/keyrings', () => {
 
   describe('getKeyringBuilders', () => {
     it('registers QR, Ledger, HD, Money, and Snap builders by type', () => {
-      const builders = getKeyringBuilders(getRootMessenger()) ?? [];
+      const builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
       const types = builders.map((b) => b.type);
 
       expect(types).toEqual(
@@ -68,7 +68,7 @@ describe('wallet-init/keyrings', () => {
     });
 
     it('constructs the right keyring instance for each type', () => {
-      const builders = getKeyringBuilders(getRootMessenger()) ?? [];
+      const builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
       const byType = Object.fromEntries(builders.map((b) => [b.type, b]));
 
       expect(byType[LegacyQrKeyring.type]()).toBeInstanceOf(LegacyQrKeyring);
@@ -112,7 +112,7 @@ describe('wallet-init/keyrings', () => {
         handler,
       );
 
-      const builders = getKeyringBuilders(messenger) ?? [];
+      const builders = getKeyringBuilders(messenger, false) ?? [];
       const moneyBuilder = builders.find(
         (b) => b.type === LegacyMoneyKeyring.type,
       );
@@ -149,7 +149,7 @@ describe('wallet-init/keyrings', () => {
           }),
       );
 
-      const builders = getKeyringBuilders(messenger) ?? [];
+      const builders = getKeyringBuilders(messenger, false) ?? [];
       const moneyBuilder = builders.find(
         (b) => b.type === LegacyMoneyKeyring.type,
       );
