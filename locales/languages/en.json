@@ -8429,7 +8429,10 @@
     "you_swapped": "You swapped",
     "you_received": "You received",
     "bridge_to_chain": "Bridge to {{chainName}}",
-    "recipient": "Recipient"
+    "recipient": "Recipient",
+    "swapped": "Swapped",
+    "bridged": "Bridged",
+    "bridged_token": "Bridged {{symbol}}"
   },
   "account_status": {
     "account_already_exists": "Wallet already exists",
