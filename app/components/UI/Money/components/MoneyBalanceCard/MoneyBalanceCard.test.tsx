@@ -431,12 +431,20 @@ describe('MoneyBalanceCard', () => {
       );
     });
 
-    it('renders the mUSD currency suffix next to the APY value', () => {
+    it('renders the mUSD currency suffix next to the balance label', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
-      expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
-        /• mUSD/,
-      );
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.CURRENCY_SUFFIX),
+      ).toHaveTextContent(/• mUSD/);
+    });
+
+    it('does not render the mUSD currency suffix inside the APY tag', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.APY_TAG),
+      ).not.toHaveTextContent(/• mUSD/);
     });
   });
 

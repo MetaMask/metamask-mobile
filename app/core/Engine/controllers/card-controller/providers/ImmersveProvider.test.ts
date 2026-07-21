@@ -6,9 +6,13 @@ import type { ImmersveProviderConfig } from '../services/immersve-config';
 import {
   CardProviderError,
   CardProviderErrorCode,
+  CardStatus,
+  CardType,
+  FundingAssetStatus,
   type CardAuthSession,
   type CardAuthTokens,
 } from '../provider-types';
+import { BASE_SEPOLIA_USDC_TOKEN_ADDRESS } from '../../../../../components/UI/Card/constants';
 import { ImmersveProvider } from './ImmersveProvider';
 
 jest.mock('../../../../../util/Logger');
@@ -24,7 +28,8 @@ const FEATURE_FLAG: CardFeatureFlag = {
   immersve: {
     network: 'base-sepolia',
     cardProgramId: 'program-1',
-    fundingType: 'base-sepolia-usdc-universal-evm',
+    partnerAccountId: 'partner-1',
+    fundingChannelId: 'base-channel',
   },
   immersveCountries: ['GB'],
 };
@@ -146,9 +151,27 @@ describe('ImmersveProvider', () => {
       );
     });
 
+    it('prefers the feature-flag clientApplicationId over the env config', async () => {
+      const { provider, service } = createProvider({
+        immersve: { ...FEATURE_FLAG.immersve, clientApplicationId: 'flag-app' },
+        immersveCountries: ['GB'],
+      });
+      service.post.mockResolvedValue({
+        id: 'login-req-1',
+        signingChallenge: { message: 'sign in' },
+      });
+
+      await provider.initiateAuth('GB', { address: '0xabc' });
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/auth/login-init',
+        expect.objectContaining({ clientApplicationId: 'flag-app' }),
+      );
+    });
+
     it.each([
       [401, CardProviderErrorCode.InvalidCredentials],
-      [403, CardProviderErrorCode.InvalidCredentials],
+      [403, CardProviderErrorCode.Forbidden],
       [404, CardProviderErrorCode.NotFound],
       [409, CardProviderErrorCode.Conflict],
       [408, CardProviderErrorCode.Timeout],
@@ -440,20 +463,8 @@ describe('ImmersveProvider', () => {
   });
 
   describe('onboarding state machine', () => {
-    it('createFundingSource resolves the funding channel by fundingTypeName then posts', async () => {
+    it('createFundingSource posts with the flag fundingChannelId', async () => {
       const { provider, service } = createProvider();
-      service.get.mockResolvedValue({
-        items: [
-          {
-            id: 'arb-channel',
-            fundingTypeName: 'arbitrum-sepolia-usdc-universal-evm',
-          },
-          {
-            id: 'base-channel',
-            fundingTypeName: 'base-sepolia-usdc-universal-evm',
-          },
-        ],
-      });
       service.post.mockResolvedValue({
         id: 'fs-1',
         network: 'base-sepolia',
@@ -463,10 +474,8 @@ describe('ImmersveProvider', () => {
 
       const result = await provider.createFundingSource(TOKENS);
 
-      expect(service.get).toHaveBeenCalledWith(
-        '/api/accounts/cardholder-1/funding-channels',
-        TOKENS,
-      );
+      // No funding-channels lookup — the concrete id comes straight from the flag.
+      expect(service.get).not.toHaveBeenCalled();
       expect(service.post).toHaveBeenCalledWith(
         '/api/funding-sources',
         {
@@ -484,27 +493,11 @@ describe('ImmersveProvider', () => {
       });
     });
 
-    it('createFundingSource throws when no channel matches the configured fundingType', async () => {
-      const { provider, service } = createProvider();
-      service.get.mockResolvedValue({
-        items: [
-          {
-            id: 'arb-channel',
-            fundingTypeName: 'arbitrum-sepolia-usdc-universal-evm',
-          },
-        ],
-      });
+    it('createFundingSource throws when fundingChannelId is unconfigured', async () => {
+      const { provider } = createProvider({ immersve: { cardProgramId: 'p' } });
       await expect(provider.createFundingSource(TOKENS)).rejects.toBeInstanceOf(
         CardProviderError,
       );
-    });
-
-    it('createFundingSource throws when fundingType is unconfigured', async () => {
-      const { provider } = createProvider({ immersve: { cardProgramId: 'p' } });
-      await expect(provider.createFundingSource(TOKENS)).rejects.toMatchObject({
-        code: CardProviderErrorCode.Unknown,
-        message: 'Immersve fundingType is not configured',
-      });
     });
 
     it('createFundingSource throws when cardholder binding fields are missing', async () => {
@@ -523,16 +516,28 @@ describe('ImmersveProvider', () => {
       });
     });
 
+    it('createFundingSource maps a 403 to Forbidden (not a revoked token) and surfaces the errorCode', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockRejectedValue(
+        new CardApiError(
+          403,
+          '/api/funding-sources',
+          JSON.stringify({
+            statusCode: 403,
+            errorCode: 'FUNDING_SOURCE_EXISTS',
+          }),
+        ),
+      );
+
+      await expect(provider.createFundingSource(TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Forbidden,
+        statusCode: 403,
+        errorCode: 'FUNDING_SOURCE_EXISTS',
+      });
+    });
+
     it('createFundingSource maps API failures', async () => {
       const { provider, service } = createProvider();
-      service.get.mockResolvedValue({
-        items: [
-          {
-            id: 'base-channel',
-            fundingTypeName: 'base-sepolia-usdc-universal-evm',
-          },
-        ],
-      });
       service.post.mockRejectedValue(
         new CardApiError(409, '/api/funding-sources', 'exists'),
       );
@@ -540,6 +545,45 @@ describe('ImmersveProvider', () => {
       await expect(provider.createFundingSource(TOKENS)).rejects.toMatchObject({
         code: CardProviderErrorCode.Conflict,
       });
+    });
+
+    it('getFundingSources GETs the account funding-sources and maps items', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [
+          {
+            id: 'fs-1',
+            network: 'base-sepolia',
+            balance: '1000000',
+            balanceCurrency: 'USDC',
+            fundingChannelId: 'base-channel',
+          },
+        ],
+      });
+
+      const result = await provider.getFundingSources(TOKENS);
+
+      expect(service.get).toHaveBeenCalledWith(
+        '/api/accounts/cardholder-1/funding-sources',
+        TOKENS,
+      );
+      expect(result).toStrictEqual([
+        {
+          id: 'fs-1',
+          network: 'base-sepolia',
+          balance: '1000000',
+          balanceCurrency: 'USDC',
+        },
+      ]);
+    });
+
+    it('getFundingSources returns an empty array when there are no items', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({});
+
+      await expect(provider.getFundingSources(TOKENS)).resolves.toStrictEqual(
+        [],
+      );
     });
 
     it('patchContactDetails PATCHes the account contact-details path', async () => {
@@ -690,38 +734,297 @@ describe('ImmersveProvider', () => {
     });
   });
 
-  describe('unimplemented card-read methods', () => {
-    it('getCardHomeData returns empty data', async () => {
+  describe('capabilities (card-read)', () => {
+    it('reveals sensitive details inline and hides funding limits', () => {
       const { provider } = createProvider();
+      expect(provider.capabilities.supportsSensitiveDetailsView).toBe(true);
+      expect(provider.capabilities.supportsFundingLimits).toBe(false);
+      expect(provider.capabilities.supportsPinView).toBe(false);
+      expect(provider.capabilities.supportsTravel).toBe(false);
+    });
+  });
+
+  const activeCard = {
+    id: 'card-1',
+    accountId: 'cardholder-1',
+    type: 'virtual',
+    createdAt: '2024-01-02T00:00:00.000Z',
+    modifiedAt: '2024-01-02T00:00:00.000Z',
+    expiresAt: '2029-01-01T00:00:00.000Z',
+    isBlocked: false,
+    status: 'active',
+    fundingSourceIds: ['fs-1'],
+    panLast4: '1234',
+  };
+
+  const activeCardDetail = {
+    ...activeCard,
+    cardholderName: 'John Doe',
+    unfreezeAllowed: false,
+  };
+
+  const fundingSourceDetail = {
+    id: 'fs-1',
+    accountId: 'cardholder-1',
+    balance: '1000000',
+    balanceCurrency: 'USDC',
+    network: 'base-sepolia',
+    externalId: '0xwallet',
+    purpose: 'card-funding',
+  };
+
+  const routeGet =
+    (responses: {
+      cards?: unknown;
+      cardDetail?: unknown;
+      fundingSource?: unknown;
+      fundingSources?: unknown;
+    }) =>
+    (path: string) => {
+      if (path.includes('/cards?')) return Promise.resolve(responses.cards);
+      if (path.includes('/funding-source/'))
+        return Promise.resolve(responses.fundingSource);
+      if (path.includes('/funding-sources'))
+        return Promise.resolve(responses.fundingSources);
+      if (path.startsWith('/api/cards/'))
+        return Promise.resolve(responses.cardDetail);
+      return Promise.resolve({});
+    };
+
+  describe('getCardHomeData', () => {
+    it('creates a card and returns a provisioning alert when the account has none', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [] },
+          fundingSources: { items: [fundingSourceDetail] },
+        }),
+      );
+      service.post.mockResolvedValue({ cardId: 'card-1' });
+
       const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/cards',
+        { cardProgramId: 'program-1', fundingSourceId: 'fs-1' },
+        TOKENS,
+      );
+      expect(data.card).toBeNull();
+      expect(data.alerts).toStrictEqual([
+        { type: 'card_provisioning', dismissable: false },
+      ]);
+    });
+
+    it('returns a provisioning alert for a card that is still being created', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [{ ...activeCard, status: 'created' }] },
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(service.post).not.toHaveBeenCalled();
+      expect(data.card).toBeNull();
+      expect(data.alerts).toStrictEqual([
+        { type: 'card_provisioning', dismissable: false },
+      ]);
+    });
+
+    it('maps an active card with its funding asset and an add_funds action', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: activeCardDetail,
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.card).toStrictEqual({
+        id: 'card-1',
+        status: CardStatus.ACTIVE,
+        type: CardType.VIRTUAL,
+        lastFour: '1234',
+        holderName: 'John Doe',
+        isFreezable: true,
+      });
+      expect(data.primaryFundingAsset).toStrictEqual({
+        symbol: 'USDC',
+        name: 'USDC',
+        address: BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
+        walletAddress: '0xabc',
+        decimals: 6,
+        chainId: 'eip155:84532',
+        spendableBalance: '',
+        spendingCap: '',
+        priority: 0,
+        status: FundingAssetStatus.Active,
+        assumeUsdParity: true,
+      });
+      expect(data.actions).toStrictEqual([
+        { type: 'add_funds', enabled: true },
+      ]);
+    });
+
+    it('swallows non-auth errors and returns empty data', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockRejectedValue(
+        new CardApiError(500, '/api/accounts/cardholder-1/cards', 'boom'),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
       expect(data.card).toBeNull();
       expect(data.fundingAssets).toStrictEqual([]);
     });
+  });
 
-    it('getCardDetails throws until implemented', async () => {
-      const { provider } = createProvider();
+  describe('getCardDetails', () => {
+    it('throws NoCard when the account has no card', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
+
       await expect(provider.getCardDetails(TOKENS)).rejects.toMatchObject({
-        code: CardProviderErrorCode.Unknown,
-        message: 'Immersve getCardDetails not implemented yet',
+        code: CardProviderErrorCode.NoCard,
       });
     });
 
-    it('freezeCard throws until implemented', async () => {
-      const { provider } = createProvider();
-      await expect(provider.freezeCard('card-1', TOKENS)).rejects.toMatchObject(
-        {
-          message: 'Immersve freezeCard not implemented yet',
-        },
+    it('maps isBlocked + unfreezeAllowed to FROZEN', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: {
+            ...activeCardDetail,
+            isBlocked: true,
+            unfreezeAllowed: true,
+          },
+        }),
+      );
+
+      const card = await provider.getCardDetails(TOKENS);
+      expect(card.status).toBe(CardStatus.FROZEN);
+      expect(card.isFreezable).toBe(true);
+    });
+
+    it('maps isBlocked without unfreezeAllowed to BLOCKED', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: {
+            ...activeCardDetail,
+            isBlocked: true,
+            unfreezeAllowed: false,
+          },
+        }),
+      );
+
+      const card = await provider.getCardDetails(TOKENS);
+      expect(card.status).toBe(CardStatus.BLOCKED);
+      expect(card.isFreezable).toBe(false);
+    });
+  });
+
+  describe('resolveCurrentCard selection', () => {
+    it('prefers an active card over a created one and skips cancelled cards', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: {
+            items: [
+              { ...activeCard, id: 'cancelled', status: 'cancelled' },
+              { ...activeCard, id: 'created', status: 'created' },
+              { ...activeCard, id: 'active', status: 'active' },
+            ],
+          },
+          cardDetail: { ...activeCardDetail, id: 'active' },
+          fundingSource: fundingSourceDetail,
+        }),
+      );
+
+      await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(service.get).toHaveBeenCalledWith('/api/cards/active', TOKENS);
+    });
+  });
+
+  describe('freezeCard / unfreezeCard', () => {
+    it('freezeCard posts to the freeze endpoint', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({});
+
+      await provider.freezeCard('card-1', TOKENS);
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/cards/card-1/freeze',
+        {},
+        TOKENS,
       );
     });
 
-    it('unfreezeCard throws until implemented', async () => {
-      const { provider } = createProvider();
-      await expect(
-        provider.unfreezeCard('card-1', TOKENS),
-      ).rejects.toMatchObject({
-        message: 'Immersve unfreezeCard not implemented yet',
+    it('unfreezeCard posts to the unfreeze endpoint', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({});
+
+      await provider.unfreezeCard('card-1', TOKENS);
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/cards/card-1/unfreeze',
+        {},
+        TOKENS,
+      );
+    });
+  });
+
+  describe('getCardSensitiveDetails', () => {
+    it('exchanges a pan-token and fetches the callback URL without a bearer token', async () => {
+      const { provider, service } = createProvider();
+      const callbackUrl =
+        'https://api-sec.immersve.com/api/cards/secure?tokenId=abc';
+      service.get.mockImplementation((path: string) => {
+        if (path.includes('/cards?')) {
+          return Promise.resolve({ items: [activeCard] });
+        }
+        return Promise.resolve({
+          pan: '1234123412345678',
+          cvv2: '123',
+          expiry: '202501',
+          embossedName: 'DOE/JOHN',
+        });
       });
+      service.post.mockResolvedValue({
+        tokenId: 'token-1',
+        callbackUrl,
+      });
+
+      const details = await provider.getCardSensitiveDetails(TOKENS);
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/cards/card-1/pan-token',
+        {},
+        TOKENS,
+      );
+      expect(service.get).toHaveBeenLastCalledWith(callbackUrl);
+      expect(details).toStrictEqual({
+        pan: '1234123412345678',
+        cvv2: '123',
+        expiry: '202501',
+        embossedName: 'DOE/JOHN',
+      });
+    });
+
+    it('throws NoCard when there is no card', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
+
+      await expect(
+        provider.getCardSensitiveDetails(TOKENS),
+      ).rejects.toMatchObject({ code: CardProviderErrorCode.NoCard });
     });
   });
 });
