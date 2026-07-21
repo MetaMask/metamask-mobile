@@ -9,7 +9,6 @@ import renderWithProvider, {
   renderScreen,
   type ProviderValues,
 } from '../../app/util/test/renderWithProvider';
-import Engine from '../../app/core/Engine';
 import { DATA_SERVICES } from '../../app/constants/data-services';
 import { RootMessengerAdapter } from '../../app/core/ReactQueryService/ReactQueryService';
 
