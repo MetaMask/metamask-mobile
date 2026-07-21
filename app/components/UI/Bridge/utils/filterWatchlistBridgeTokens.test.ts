@@ -43,24 +43,13 @@ describe('filterWatchlistBridgeTokens', () => {
   it('filters by selected network', () => {
     const result = filterWatchlistBridgeTokens(tokens, {
       selectedChainId: MOCK_CHAIN_IDS.ethereum,
-      isSourcePicker: false,
     });
 
     expect(result.map((token) => token.symbol)).toStrictEqual(['ETH', 'USDC']);
   });
 
-  it('hides zero-balance tokens for the source picker', () => {
-    const result = filterWatchlistBridgeTokens(tokens, {
-      isSourcePicker: true,
-    });
-
-    expect(result.map((token) => token.symbol)).toStrictEqual(['ETH', 'POL']);
-  });
-
-  it('keeps zero-balance tokens for the destination picker', () => {
-    const result = filterWatchlistBridgeTokens(tokens, {
-      isSourcePicker: false,
-    });
+  it('keeps zero-balance tokens', () => {
+    const result = filterWatchlistBridgeTokens(tokens, {});
 
     expect(result.map((token) => token.symbol)).toStrictEqual([
       'ETH',
@@ -71,26 +60,19 @@ describe('filterWatchlistBridgeTokens', () => {
 
   it('filters tokens locally by search query', () => {
     const result = filterWatchlistBridgeTokens(tokens, {
-      isSourcePicker: false,
       searchQuery: 'usd',
     });
 
     expect(result.map((token) => token.symbol)).toStrictEqual(['USDC']);
   });
 
-  it('treats hex-encoded balances as positive for the source picker', () => {
-    const result = filterWatchlistBridgeTokens(
-      [
-        makeToken({
-          symbol: 'ETH',
-          balance: '0xde0b6b3a7640000',
-        }),
-      ],
-      {
-        isSourcePicker: true,
-      },
-    );
+  it('sorts tokens by fiat balance descending', () => {
+    const result = filterWatchlistBridgeTokens(tokens, {});
 
-    expect(result.map((token) => token.symbol)).toStrictEqual(['ETH']);
+    expect(result.map((token) => token.symbol)).toStrictEqual([
+      'ETH',
+      'POL',
+      'USDC',
+    ]);
   });
 });

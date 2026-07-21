@@ -1531,7 +1531,7 @@ describe('BridgeTokenSelector', () => {
       await waitFor(() => expect(getByTestId('token-ETH')).toBeTruthy());
     });
 
-    it('shows watchlist tokens for source picker and hides zero-balance items', async () => {
+    it('shows all watchlist tokens including zero balance on source picker', async () => {
       mockIsWatchlistEnabled = true;
       mockUseTokenWatchlistQuery.mockReturnValue({
         data: [
@@ -1560,41 +1560,12 @@ describe('BridgeTokenSelector', () => {
         isLoading: false,
       });
 
-      const { getByTestId, queryByTestId } = renderWithReduxProvider(
-        <BridgeTokenSelector />,
-      );
-
-      fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
-
-      await waitFor(() => expect(getByTestId('token-ETH')).toBeTruthy());
-      expect(queryByTestId('token-USDC')).toBeNull();
-    });
-
-    it('shows zero-balance watchlist tokens on destination picker', async () => {
-      mockRouteParams = { type: 'dest' };
-      mockIsWatchlistEnabled = true;
-      mockUseTokenWatchlistQuery.mockReturnValue({
-        data: [
-          {
-            assetId:
-              'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-            name: 'USD Coin',
-            symbol: 'USDC',
-            decimals: 6,
-            balance: '0',
-            balanceFiat: 0,
-            fiatCurrency: 'usd',
-            isInWallet: false,
-          },
-        ],
-        isLoading: false,
-      });
-
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
 
       fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
 
-      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      await waitFor(() => expect(getByTestId('token-ETH')).toBeTruthy());
+      expect(getByTestId('token-USDC')).toBeTruthy();
     });
 
     it('filters watchlist tokens locally without calling search API', async () => {

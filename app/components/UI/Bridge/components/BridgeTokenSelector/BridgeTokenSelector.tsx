@@ -198,7 +198,6 @@ export const BridgeTokenSelector: React.FC = () => {
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
   const isWatchlistFilterActive = isWatchlistEnabled && showWatchlistOnly;
   const isWatchlistListMode = isWatchlistFilterActive;
-  const isSourcePicker = route.params?.type === TokenSelectorType.Source;
 
   // Set selecting token state to prevent quote expired modal from showing
   useEffect(() => {
@@ -447,11 +446,9 @@ export const BridgeTokenSelector: React.FC = () => {
 
     return filterWatchlistBridgeTokens(mappedTokens, {
       selectedChainId,
-      isSourcePicker,
       searchQuery: searchString,
     });
   }, [
-    isSourcePicker,
     isWatchlistListMode,
     searchString,
     selectedChainId,
