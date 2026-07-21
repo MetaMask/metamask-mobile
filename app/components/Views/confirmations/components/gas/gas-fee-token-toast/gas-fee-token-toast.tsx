@@ -58,7 +58,6 @@ export function GasFeeTokenToast() {
       ],
       variant: ToastVariants.Network,
       hasNoTimeout: false,
-      customBottomOffset: 24, // Add custom offset to avoid overlapping with confirmation buttons
       networkImageSource: tokenSelected?.image
         ? { uri: tokenSelected.image }
         : networkImageSource,

@@ -1417,10 +1417,15 @@ const App: React.FC = () => {
         {/*
           FullWindowOverlay (iOS) renders <Toaster /> in a UIWindow above every native
           layer — including native-stack card screens — which a plain absolute View as a
-          sibling of <AppFlow /> cannot reach. Without this wrapper some Toasts render 
+          sibling of <AppFlow /> cannot reach. Without this wrapper some Toasts render
           behind the native stack card screens and are not visible.
+          unstable_accessibilityContainerViewIsModal={false} prevents react-native-screens
+          from marking the native container as accessibilityViewIsModal=YES, which would
+          otherwise hide the entire app's AX tree from VoiceOver/XCUITest/Appium whenever
+          no toast is active. Toasts are non-blocking so non-modal AX behaviour is correct.
+          See: https://consensyssoftware.atlassian.net/browse/DSYS-931
         */}
-        <FullWindowOverlay>
+        <FullWindowOverlay unstable_accessibilityContainerViewIsModal={false}>
           <Toaster />
         </FullWindowOverlay>
         <PerpsWebSocketHealthToast />

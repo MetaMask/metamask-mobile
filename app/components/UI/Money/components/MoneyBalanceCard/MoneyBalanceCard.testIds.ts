@@ -4,6 +4,7 @@ export const MoneyBalanceCardTestIds = {
   ERROR_CONTAINER: 'money-balance-card-error-container',
   UNAVAILABLE_CONTAINER: 'money-balance-card-unavailable-container',
   LABEL: 'money-balance-card-label',
+  CURRENCY_SUFFIX: 'money-balance-card-currency-suffix',
   INFO_BUTTON: 'money-balance-card-info-button',
   BALANCE: 'money-balance-card-balance',
   BALANCE_SKELETON: 'money-balance-card-balance-skeleton',
