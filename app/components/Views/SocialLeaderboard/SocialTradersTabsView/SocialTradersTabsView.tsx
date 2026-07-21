@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -68,10 +69,28 @@ const SocialTradersTabsView: React.FC = () => {
   // FeedView reports spot availability and triggers the buy via this ref.
   const buyActionRef = useRef<FeedSpotBuyActionHandle>(null);
   const [feedHasSpotItem, setFeedHasSpotItem] = useState(false);
+  // A Buy can be requested in the same tick the feed first renders spot rows —
+  // before the availability effect has mounted the orchestrator. Buffer that
+  // request (and mount the orchestrator now) so the tap is never a silent no-op.
+  const pendingBuyTargetRef = useRef<QuickBuyTarget | null>(null);
 
   const handleQuickBuy = useCallback((target: QuickBuyTarget) => {
-    buyActionRef.current?.open(target);
+    if (buyActionRef.current) {
+      buyActionRef.current.open(target);
+      return;
+    }
+    pendingBuyTargetRef.current = target;
+    setFeedHasSpotItem(true);
   }, []);
+
+  // Flush a buffered Buy synchronously once the orchestrator has mounted.
+  useLayoutEffect(() => {
+    if (!feedHasSpotItem || !pendingBuyTargetRef.current) {
+      return;
+    }
+    buyActionRef.current?.open(pendingBuyTargetRef.current);
+    pendingBuyTargetRef.current = null;
+  }, [feedHasSpotItem]);
 
   const {
     hasNotificationPreferences,

@@ -202,6 +202,19 @@ describe('SocialTradersTabsView', () => {
     expect(screen.queryByTestId('mock-spot-buy-action')).not.toBeOnTheScreen();
   });
 
+  it('buffers a feed spot Buy until the orchestrator mounts', () => {
+    mockHasSpotItem = false;
+
+    renderWithProvider(<SocialTradersTabsView />);
+
+    expect(screen.queryByTestId('mock-spot-buy-action')).not.toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId('mock-feed-quick-buy-trigger'));
+
+    expect(screen.getByTestId('mock-spot-buy-action')).toBeOnTheScreen();
+    expect(mockBuyActionOpen).toHaveBeenCalledWith({ tokenSymbol: 'PEPE' });
+  });
+
   it('routes a feed spot Buy request to the buy action orchestrator', () => {
     renderWithProvider(<SocialTradersTabsView />);
 

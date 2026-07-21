@@ -15,7 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import React, {
   useCallback,
-  useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -143,7 +143,9 @@ const FeedView: React.FC<FeedViewProps> = ({
     [items],
   );
 
-  useEffect(() => {
+  // useLayoutEffect (not useEffect) so the parent mounts FeedSpotBuyAction in the
+  // same commit, before paint — spot Trade must never fire while the ref is null.
+  useLayoutEffect(() => {
     onSpotAvailabilityChange?.(hasSpotItem);
   }, [hasSpotItem, onSpotAvailabilityChange]);
 
