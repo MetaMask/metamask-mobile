@@ -500,6 +500,10 @@ const useMoonpayIdentityFlow = ({
           return;
         }
         if (status === 'termsAcceptanceRequired') {
+          // MoonPay rejected the stored acceptance — invalidate it so the next
+          // launch requires a fresh acceptance instead of auto-starting.
+          clearStoredTerms();
+          setHasSavedTerms(false);
           setPhase('terms');
           setStatusMessage(
             'MoonPay updated its Terms of Use — please re-accept.',
@@ -525,6 +529,10 @@ const useMoonpayIdentityFlow = ({
           return;
         }
         if (status === 'termsAcceptanceRequired') {
+          // MoonPay rejected the stored acceptance — invalidate it so the next
+          // launch requires a fresh acceptance instead of auto-starting.
+          clearStoredTerms();
+          setHasSavedTerms(false);
           setPhase('terms');
           setStatusMessage(
             'MoonPay updated its Terms of Use — please re-accept.',
