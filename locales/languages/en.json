@@ -4399,7 +4399,7 @@
   "price_alerts": {
     "create_title": "Create {{ticker}} price alert",
     "edit_title": "Edit {{ticker}} price alert",
-    "price_reaches": "Price reaches",
+    "price_target": "Price target",
     "price_change": "Price change",
     "enter_target_price": "Enter target price",
     "approx_percent": "≈ {{percent}}%",
@@ -4407,7 +4407,6 @@
     "approx_percent_below": "below current {{ticker}} price",
     "recurring": "Recurring",
     "quick_percentage": "{{percentage}}%",
-    "price_change_under_development": "This experience is currently under development",
     "set_price_alert": "Set price alert",
     "update_price_alert": "Update price alert",
     "save_success": "Price alert for {{ticker}} saved successfully.",
@@ -4421,7 +4420,30 @@
     "add_alert": "Add alert",
     "reaches_threshold": "Reaches {{threshold}}",
     "once_label": "Once",
-    "no_alerts": "No price alerts set for this asset."
+    "moves_up": "When price moves up",
+    "moves_down": "When price moves down",
+    "period_1h": "1hr",
+    "period_24h": "24hr",
+    "period_1h_short": "1h",
+    "period_24h_short": "24h",
+    "moves_up_summary": "Moves up {{percent}}%",
+    "moves_down_summary": "Moves down {{percent}}%",
+    "period_recurrence": "{{period}} • {{recurrence}}",
+    "percent_duplicate": "An alert with this configuration already exists.",
+    "percent_max_down": "Price can't fall by more than 100%."
+  },
+  "share_token": {
+    "title": "Share token info",
+    "share": "Share token info",
+    "market_cap": "Market cap",
+    "price": "Price",
+    "liquidity": "Liquidity",
+    "holders": "Holders",
+    "volume_24h": "24h volume",
+    "change_24h": "24h change",
+    "buy_on_metamask": "Buy on MetaMask",
+    "buy_on": "Buy on",
+    "metamask": "MetaMask"
   },
   "asset_overview": {
     "market_closed": "Market closed",
@@ -7424,6 +7446,7 @@
     },
     "balance_card": {
       "label": "Money balance",
+      "currency_suffix": " • mUSD",
       "add": "Add",
       "info_sheet_title": "Money balance",
       "info_sheet_body": "Your dollar-backed mUSD balance that's always available to spend, send, or trade anytime. We don't calculate this into your total account balance.\n\nWithdrawals process immediately, subject to standard network confirmation times on the relevant blockchain. If liquidity is tight, there may be temporary delays."
@@ -8804,7 +8827,10 @@
         "invalid_email": "Invalid email address",
         "invalid_password": "Password must be 15+ characters long. It cannot contain non-printable characters or consecutive spaces.",
         "join_waitlist": "Join waitlist",
-        "country_not_available": "Card sign-up isn't available in your country yet."
+        "country_not_available": "Card sign-up isn't available in your country yet.",
+        "account_label": "Account",
+        "account_description": "Your MetaMask Card will be associated with this account.",
+        "account_exists_toast": "You already have a card account."
       },
       "confirm_email": {
         "title": "Confirm your email",
@@ -8861,6 +8887,25 @@
         "title": "Awaiting approval",
         "description": "Our partner needs to verify your identity in order to approve your application.",
         "helper_text": "This usually takes a few seconds. Please do not close the app."
+      },
+      "immersve_kyc_processing": {
+        "title": "Awaiting approval",
+        "description": "Our partner needs to verify your identity in order to approve your application.",
+        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "incomplete_title": "Finish verifying your identity",
+        "incomplete_description": "You closed identity verification before it was complete. Continue to finish.",
+        "continue_button": "Continue verification"
+      },
+      "immersve_kyc_modal": {
+        "load_error": "Something went wrong loading identity verification. Please try again.",
+        "try_again": "Try again"
+      },
+      "immersve_funding_approval": {
+        "title": "Set up card funding",
+        "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
+        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "confirm_button": "Approve funding",
+        "retry_button": "Try again"
       },
       "verifying_registration": {
         "title": "Verifying your identity",
@@ -9235,7 +9280,8 @@
         "network_error": "Network error. Please check your connection and try again.",
         "timeout_error": "Request timed out. Please check your connection and try again.",
         "server_error": "Server error. Please try again later.",
-        "configuration_error": "Service is temporarily unavailable. Please try again later."
+        "configuration_error": "Service is temporarily unavailable. Please try again later.",
+        "forbidden_error": "This action isn't available for your account."
       }
     },
     "card_forgot_password": {
@@ -9443,7 +9489,6 @@
       "referee_error_description": "Check your connection and try again.",
       "referee_contact_support": "Contact support",
       "referee_priority_support_disclaimer": "By contacting priority support you will connect your wallet.",
-      "referral_tag_label": "VIP",
       "last_updated": "Last updated: {{time}}",
       "swaps_volume_info_label": "Swaps volume information",
       "swaps_volume_info_title": "Swaps volume",
@@ -10430,6 +10475,9 @@
     "fullscreen_title": "Watchlist",
     "tokens_tab": "Tokens",
     "edit": "Edit",
-    "done": "Done"
+    "done": "Done",
+    "empty_add_tokens_cta": "Add {{count}} token",
+    "empty_add_tokens_cta_plural": "Add {{count}} tokens",
+    "search_placeholder": "Search for any asset to add"
   }
 }
