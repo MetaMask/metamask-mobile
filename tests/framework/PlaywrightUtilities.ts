@@ -262,19 +262,57 @@ export function boxedStep<This, Args extends unknown[], Return>(
  * Lightweight Appium overhead accumulator for performance measurements.
  *
  * Problem: every WebDriver HTTP call (findElement, isExisting, click …) adds
- * infrastructure latency — on BrowserStack this can be 3-18 s per command.
- * Without compensation a 3 s app-load would be reported as 20+ s.
+ * infrastructure latency — on cloud device farms this can dominate the timer.
  *
- * Solution: framework methods call `addOverhead(ms)` for operations whose
- * duration is *pure infra cost* (element resolution, post-detection probes).
- * `TimerHelper.measure()` activates tracking before the action and subtracts
- * the accumulated value after the timer stops.
+ * Conservative model while `TimerHelper.measure()` is active (click stays outside):
+ * - Probe only: post-detect `isExisting` (pure RTT we add after the UI is up).
+ * - Resolution / success confirms are not subtracted — they often include app load and under-reported on-device time when capped as infra.
  *
- * When no `measure()` is active (`_tracking === false`) all functions are
- * no-ops, so regular (non-performance) tests pay zero cost.
+ * When no `measure()` is active all functions are no-ops.
  */
-let _overheadMs = 0;
+export interface OverheadAccumulatorState {
+  directMs: number;
+  sleepMs: number;
+  failedPollDurationsMs: number[];
+  successPollMs: number | null;
+  probeMs: number | null;
+}
+
 let _tracking = false;
+let _directMs = 0;
+let _sleepMs = 0;
+let _failedPollDurationsMs: number[] = [];
+let _successPollMs: number | null = null;
+let _probeMs: number | null = null;
+
+function resetOverheadState(): void {
+  _directMs = 0;
+  _sleepMs = 0;
+  _failedPollDurationsMs = [];
+  _successPollMs = null;
+  _probeMs = null;
+}
+
+/**
+ * Computes infra ms to subtract from wall-clock.
+ *
+ * Only the post-detect probe is subtracted. That call is pure Appium/network
+ * overhead we add after the screen is already visible.
+ *
+ * Resolution and success-confirm durations often include real app load (cold
+ * start findElement / waitForDisplayed). Subtracting them (even capped to RTT)
+ * under-reports app time vs on-device video.
+ *
+ * Exported for unit tests.
+ */
+export function computeAppiumInfraOverheadMs(
+  state: OverheadAccumulatorState,
+): number {
+  if (state.probeMs == null || state.probeMs <= 0) {
+    return 0;
+  }
+  return state.probeMs;
+}
 
 export function startOverheadTracking(): void {
   if (_tracking) {
@@ -283,18 +321,46 @@ export function startOverheadTracking(): void {
     );
     return;
   }
-  _overheadMs = 0;
+  resetOverheadState();
   _tracking = true;
 }
 
 export function addOverhead(ms: number): void {
-  if (_tracking) _overheadMs += ms;
+  if (_tracking) _directMs += ms;
+}
+
+export function addOverheadSleep(ms: number): void {
+  if (_tracking && ms > 0) _sleepMs += ms;
+}
+
+export function recordFailedPollCommand(durationMs: number): void {
+  if (_tracking && durationMs >= 0) {
+    _failedPollDurationsMs.push(durationMs);
+  }
+}
+
+export function recordSuccessPollCommand(durationMs: number): void {
+  if (_tracking && durationMs >= 0) {
+    _successPollMs = durationMs;
+  }
+}
+
+export function recordOverheadProbe(durationMs: number): void {
+  if (_tracking && durationMs >= 0) {
+    _probeMs = durationMs;
+  }
 }
 
 export function stopOverheadTracking(): number {
   _tracking = false;
-  const result = _overheadMs;
-  _overheadMs = 0;
+  const result = computeAppiumInfraOverheadMs({
+    directMs: _directMs,
+    sleepMs: _sleepMs,
+    failedPollDurationsMs: _failedPollDurationsMs,
+    successPollMs: _successPollMs,
+    probeMs: _probeMs,
+  });
+  resetOverheadState();
   return result;
 }
 

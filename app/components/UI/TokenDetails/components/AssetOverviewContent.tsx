@@ -45,6 +45,7 @@ import TokenDetails from '../../AssetOverview/TokenDetails';
 import { TokenDetailsActions } from './TokenDetailsActions';
 import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
 import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
+import MoneyEarnBanner from '../../Money/components/MoneyEarnBanner';
 import { MONEY_HUB_EVENTS_CONSTANTS } from '../../Money/constants/moneyHubEvents';
 import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { isMusdToken } from '../../Earn/constants/musd';
@@ -631,6 +632,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             resetNavigationLockRef={resetNavigationLockRef}
             onActionTapped={trackActionTapped}
           />
+          <MoneyEarnBanner asset={token} />
           {shouldShowMarketInsights ? (
             <View style={styles.marketInsightsWrapper}>
               {marketInsightsReport ? (
