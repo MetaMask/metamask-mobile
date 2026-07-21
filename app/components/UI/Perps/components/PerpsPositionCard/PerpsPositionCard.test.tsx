@@ -240,7 +240,7 @@ describe('PerpsPositionCard', () => {
       ETH: {
         symbol: 'ETH',
         price: '2100.50',
-        timestamp: Date.now(),
+        timestamp: 1700000000000,
         percentChange24h: '2.5',
       },
     });
