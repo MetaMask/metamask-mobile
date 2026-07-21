@@ -18,9 +18,8 @@ async function getBearerToken(): Promise<string> {
 }
 
 interface CreateSessionResponse {
-  sessionId: string;
   wrappedUserKey: string;
-  idosSessionId: string;
+  sessionId: string;
 }
 
 async function createSession(
@@ -60,9 +59,8 @@ interface SubmitWrappedKeyResponse {
 }
 
 async function fetchAccessToken(
-  sessionId: string,
   wrappedUserKey: string,
-  idosSessionId: string,
+  sessionId: string,
   jwtToken: string,
 ): Promise<SubmitWrappedKeyResponse> {
   const bearerToken = await getBearerToken();
@@ -74,7 +72,7 @@ async function fetchAccessToken(
         'Content-Type': 'application/json',
         Authorization: `Bearer ${bearerToken}`,
       },
-      body: JSON.stringify({ wrappedUserKey, jwtToken, idosSessionId }),
+      body: JSON.stringify({ wrappedUserKey, jwtToken }),
     },
   );
 
@@ -116,14 +114,16 @@ const useSumSubDemo = () => {
         if (!moonPayUserId) {
           throw new Error('Auth customer ID not provided');
         }
-        const { sessionId, idosSessionId, wrappedUserKey } =
-          await createSession(mockJwtToken, moonPayAccessToken, moonPayUserId);
+        const { sessionId, wrappedUserKey } = await createSession(
+          mockJwtToken,
+          moonPayAccessToken,
+          moonPayUserId,
+        );
 
         setStatus('Fetching access token...');
         const { applicantAccessToken } = await fetchAccessToken(
-          sessionId,
           wrappedUserKey,
-          idosSessionId,
+          sessionId,
           mockJwtToken,
         );
 
@@ -132,12 +132,7 @@ const useSumSubDemo = () => {
           applicantAccessToken,
           async () => {
             const { applicantAccessToken: refreshedAccessToken } =
-              await fetchAccessToken(
-                sessionId,
-                wrappedUserKey,
-                idosSessionId,
-                mockJwtToken,
-              );
+              await fetchAccessToken(wrappedUserKey, sessionId, mockJwtToken);
             return refreshedAccessToken;
           },
         )
