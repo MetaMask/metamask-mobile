@@ -30,4 +30,12 @@ export interface BaseNotificationProps {
   onPress?: () => void;
   onHide?: () => void;
   autoDismiss?: boolean;
+  /** When false the notification is not rendered. Defaults to true. */
+  isVisible?: boolean;
+  /** Called after the exit spring animation completes. */
+  onDismissComplete?: () => void;
+  /** Auto-dismiss delay in ms. Defaults to NOTIFICATION_VISIBILITY_DURATION (2750ms). */
+  dismissDuration?: number;
+  /** When true, the notification stays visible until manually dismissed. */
+  persistUntilDismiss?: boolean;
 }

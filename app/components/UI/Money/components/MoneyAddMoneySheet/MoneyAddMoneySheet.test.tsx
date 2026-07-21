@@ -71,7 +71,7 @@ jest.mock('../../../../../selectors/tokenBalancesController', () => ({
 
 jest.mock('../../../../../selectors/transactionController', () => ({
   ...jest.requireActual('../../../../../selectors/transactionController'),
-  selectTransactions: jest.fn(() => []),
+  selectHasUnapprovedTransactions: jest.fn(() => false),
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
@@ -202,7 +202,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('mUSD')).toBeOnTheScreen();
   });
 
-  it('shows the move-mUSD row disabled with the "Add mUSD" label when the selected EVM account has no mUSD tokens or fiat balance', () => {
+  it('shows the move-mUSD row with the "Add mUSD" label and starts the MM Pay fiat deposit when the selected EVM account has no mUSD tokens or fiat balance', () => {
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: undefined,
       fiatBalanceAggregatedFormatted: '$0.00',
@@ -222,11 +222,14 @@ describe('MoneyAddMoneySheet', () => {
 
     fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
 
-    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
-    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockInitiateDeposit).toHaveBeenCalledWith({
+      autoSelectFiatPayment: true,
+      intent: 'card',
+    });
   });
 
-  it('shows the move-mUSD row disabled with the "Add mUSD" label when the selected EVM account mUSD fiat balance is zero', () => {
+  it('shows the move-mUSD row with the "Add mUSD" label and starts the MM Pay fiat deposit when the selected EVM account mUSD fiat balance is zero', () => {
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '0',
       fiatBalanceAggregatedFormatted: '$0.00',
@@ -243,6 +246,27 @@ describe('MoneyAddMoneySheet', () => {
       getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
     ).toBeOnTheScreen();
     expect(getByText('Add mUSD')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockInitiateDeposit).toHaveBeenCalledWith({
+      autoSelectFiatPayment: true,
+      intent: 'card',
+    });
+  });
+
+  it('disables the "Add mUSD" row when there is no mUSD and the fiat deposit flow is unavailable', () => {
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregated: '0',
+      fiatBalanceAggregatedFormatted: '$0.00',
+      hasMusdBalanceOnAnyChain: false,
+      tokenBalanceAggregated: '0',
+      tokenBalanceByChain: {},
+    });
+    (useRegionHasFiatProvider as jest.Mock).mockReturnValue(false);
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
     fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
 
@@ -581,6 +605,25 @@ describe('MoneyAddMoneySheet', () => {
     });
 
     it('calls trackSurfaceClicked with MOVE_MUSD component when "Move mUSD" row is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_MUSD,
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      });
+    });
+
+    it('calls trackSurfaceClicked with the MONEY_DEPOSIT redirect target when "Add mUSD" is pressed with no mUSD balance', () => {
+      (useMusdBalance as jest.Mock).mockReturnValue({
+        fiatBalanceAggregated: '0',
+        fiatBalanceAggregatedFormatted: '$0.00',
+        hasMusdBalanceOnAnyChain: false,
+        tokenBalanceAggregated: '0',
+        tokenBalanceByChain: {},
+      });
+
       const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
       fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));

@@ -124,7 +124,11 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
   const customLabel = isCustom ? `${bpsToPercent(selectedBps)}%` : null;
 
   return (
-    <BottomSheet ref={bottomSheetRef} onClose={onClose}>
+    <BottomSheet
+      ref={bottomSheetRef}
+      onClose={onClose}
+      testID={PerpsSlippageConfigSelectorsIDs.BOTTOM_SHEET}
+    >
       <BottomSheetHeader onClose={onClose}>
         {strings('perps.slippage.config_title')}
       </BottomSheetHeader>

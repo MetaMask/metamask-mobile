@@ -1,5 +1,20 @@
+import {
+  TransactionPayQuote,
+  TransactionPayStrategy,
+} from '@metamask/transaction-pay-controller';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
+
+/**
+ * Check whether a quote is a no-op quote. The controller stores one when a
+ * route needs no conversion. No-op quotes cannot be executed and must be
+ * ignored anywhere quotes drive fees, steps, or routing UI.
+ */
+export function isNoOpQuote(
+  quote: Pick<TransactionPayQuote<unknown>, 'strategy'>,
+): boolean {
+  return quote.strategy === TransactionPayStrategy.None;
+}
 
 const selectTransactionPayControllerState = (state: RootState) =>
   state.engine.backgroundState.TransactionPayController ?? {
@@ -23,9 +38,14 @@ export const selectIsTransactionPayLoadingByTransactionId = createSelector(
   (transactionData) => transactionData?.isLoading ?? false,
 );
 
+// Executable quotes only. No-op quotes mark direct routes and must not
+// surface in fee, duration, or step UI, so they are filtered here for all
+// consumers.
 export const selectTransactionPayQuotesByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
-  (transactionData) => transactionData?.quotes,
+  (transactionData) =>
+    transactionData?.quotes &&
+    transactionData.quotes.filter((quote) => !isNoOpQuote(quote)),
 );
 
 export const selectTransactionPayTokensByTransactionId = createSelector(

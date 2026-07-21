@@ -1,5 +1,7 @@
 import React from 'react';
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
@@ -404,6 +406,55 @@ describe('MoneyActivityView', () => {
 
     expect(getByTestId('activity-mock-tx-money-tx-sent')).toBeOnTheScreen();
     expect(queryByTestId('activity-mock-tx-money-tx-converted')).toBeNull();
+  });
+
+  describe('filter tab active state', () => {
+    const backgroundColorOf = (chip: ReactTestInstance) =>
+      StyleSheet.flatten(chip.props.style as StyleProp<ViewStyle>)
+        ?.backgroundColor;
+
+    it('marks the All tab active and the other tabs inactive on first render', () => {
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      const allBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_ALL),
+      );
+      const depositsBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS),
+      );
+      const transfersBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS),
+      );
+      const purchasesBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_PURCHASES),
+      );
+
+      expect(allBackground).toBeDefined();
+      expect(allBackground).not.toEqual(depositsBackground);
+      expect(transfersBackground).toEqual(depositsBackground);
+      expect(purchasesBackground).toEqual(depositsBackground);
+    });
+
+    it('moves the active background to the Deposits tab when it is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+      const activeBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_ALL),
+      );
+      const inactiveBackground = backgroundColorOf(
+        getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS),
+      );
+
+      fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS));
+
+      expect(
+        backgroundColorOf(
+          getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS),
+        ),
+      ).toEqual(activeBackground);
+      expect(
+        backgroundColorOf(getByTestId(MoneyActivityViewTestIds.FILTER_ALL)),
+      ).toEqual(inactiveBackground);
+    });
   });
 
   it('renders empty state when there are no transactions', () => {
