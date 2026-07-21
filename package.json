@@ -391,7 +391,7 @@
     "@react-native-community/cli-server-api": "^17.0.0",
     "@react-native-community/datetimepicker": "^8.5.1",
     "@react-native-community/netinfo": "11.5.2",
-    "@react-native-community/slider": "5.1.2",
+    "@react-native-community/slider": "5.2.0",
     "@react-native-cookies/cookies": "^6.2.1",
     "@react-native-firebase/app": "^20.5.0",
     "@react-native-firebase/messaging": "^20.5.0",
