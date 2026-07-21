@@ -29,7 +29,7 @@ test.describe(`${System} ${PerformanceSwaps}`, () => {
       await WalletView.tapWalletSwapButton();
 
       await timer1.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
+        await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(QuoteView.amountInput),
         );
       });

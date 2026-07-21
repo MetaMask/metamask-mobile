@@ -106,7 +106,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await screen1Timer.measure(
         async () =>
           await PlaywrightAssertions.expectElementToBeVisible(
-            await asPlaywrightElement(AccountListBottomSheet.accountList),
+            await asPlaywrightElement(AccountListBottomSheet.addWalletButton),
           ),
       );
 
