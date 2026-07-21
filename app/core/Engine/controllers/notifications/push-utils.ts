@@ -1,6 +1,7 @@
 import FCMService from '../../../../util/notifications/services/FCMService';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { PressActionId } from '../../../../util/notifications';
+import { toFcmDataStringRecord } from '../../../../util/notifications/utils/fcm-data';
 
 export const createRegToken = FCMService.createRegToken;
 export const deleteRegToken = FCMService.deleteRegToken;
@@ -12,12 +13,13 @@ export const createSubscribeToPushNotifications = () => async () =>
     if (!title) {
       return;
     }
+    const data = toFcmDataStringRecord(rawPayload.data);
     await NotificationsService.displayNotification({
       pressActionId: PressActionId.OPEN_NOTIFICATIONS_VIEW,
-      id: rawPayload.data?.notification_id,
+      id: data?.notification_id,
       title,
       body,
-      data: rawPayload.data,
+      data,
     });
   });
 
