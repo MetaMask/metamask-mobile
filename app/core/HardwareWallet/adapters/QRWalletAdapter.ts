@@ -9,6 +9,7 @@ import {
   DiscoveredDevice,
   HardwareWalletAdapter,
   HardwareWalletAdapterOptions,
+  EnsureDeviceReadyOptions,
 } from '../types';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import { CAMERA_PERMISSION_STATUS } from '../../../constants/permissions';
@@ -96,7 +97,10 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
    * For QR wallets, device readiness requires camera permission.
    * This requests permission for non-granted statuses and emits an error if still denied.
    */
-  async ensureDeviceReady(deviceId: string): Promise<boolean> {
+  async ensureDeviceReady(
+    deviceId: string,
+    _options?: EnsureDeviceReadyOptions,
+  ): Promise<boolean> {
     if (this.#isDestroyed) {
       throw new Error('Adapter has been destroyed');
     }

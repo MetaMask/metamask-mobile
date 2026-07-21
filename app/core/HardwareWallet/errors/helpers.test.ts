@@ -243,6 +243,14 @@ describe('error helpers', () => {
       expect(action).toBe(RecoveryAction.RETRY);
     });
 
+    it('returns RETRY for DeviceStateBlindSignNotSupported', () => {
+      const action = getRecoveryActionForErrorCode(
+        ErrorCode.DeviceStateBlindSignNotSupported,
+      );
+
+      expect(action).toBe(RecoveryAction.RETRY);
+    });
+
     it('returns RETRY for Unknown error', () => {
       const action = getRecoveryActionForErrorCode(ErrorCode.Unknown);
 
