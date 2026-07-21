@@ -3,7 +3,7 @@ import { TokenI } from '../../../UI/Tokens/types';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 const PAYMENT_METHOD_DISPLAY_OVERRIDES: Record<string, string> = {
-  'Debit or Credit': 'Debit',
+  'debit-credit-card': 'Debit',
 };
 
 export const getHostFromUrl = (url: string) => {
@@ -29,20 +29,25 @@ export const isNativeToken = (selectedAsset: TokenI) => {
 /**
  * Returns the user-facing label for a payment method.
  *
- * The on-ramp API sends names like "Debit or Credit", but the product
- * requirement is to show "Debit" only (credit cards are not fully
- * supported). This function maps API names to their display equivalents.
+ * Keys on the stable `paymentType` slug (e.g. "debit-credit-card")
+ * rather than the localizable `name`, so the override survives i18n
+ * changes from the on-ramp API.
  */
-export function getPaymentMethodDisplayName(name: string): string;
 export function getPaymentMethodDisplayName(
-  name: string | undefined,
+  paymentType: string,
+  fallbackName: string,
+): string;
+export function getPaymentMethodDisplayName(
+  paymentType: string | undefined,
+  fallbackName: string | undefined,
 ): string | undefined;
 export function getPaymentMethodDisplayName(
-  name: string | undefined,
+  paymentType: string | undefined,
+  fallbackName: string | undefined,
 ): string | undefined {
-  if (!name) {
-    return name;
+  if (!paymentType) {
+    return fallbackName;
   }
 
-  return PAYMENT_METHOD_DISPLAY_OVERRIDES[name] ?? name;
+  return PAYMENT_METHOD_DISPLAY_OVERRIDES[paymentType] ?? fallbackName;
 }

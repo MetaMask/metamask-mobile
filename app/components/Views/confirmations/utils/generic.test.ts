@@ -128,23 +128,33 @@ describe('generic utils', () => {
   });
 
   describe('getPaymentMethodDisplayName', () => {
-    it('maps "Debit or Credit" to "Debit"', () => {
-      expect(getPaymentMethodDisplayName('Debit or Credit')).toBe('Debit');
+    it('overrides display name when paymentType has a mapping', () => {
+      expect(
+        getPaymentMethodDisplayName('debit-credit-card', 'Debit or Credit'),
+      ).toBe('Debit');
     });
 
-    it('passes through other names unchanged', () => {
-      expect(getPaymentMethodDisplayName('Apple Pay')).toBe('Apple Pay');
-      expect(getPaymentMethodDisplayName('Bank Transfer')).toBe(
-        'Bank Transfer',
+    it('falls back to name when paymentType has no mapping', () => {
+      expect(getPaymentMethodDisplayName('apple-pay', 'Apple Pay')).toBe(
+        'Apple Pay',
+      );
+      expect(
+        getPaymentMethodDisplayName('bank-transfer', 'Bank Transfer'),
+      ).toBe('Bank Transfer');
+    });
+
+    it('returns fallbackName when paymentType is undefined', () => {
+      expect(getPaymentMethodDisplayName(undefined, 'Apple Pay')).toBe(
+        'Apple Pay',
       );
     });
 
-    it('returns undefined for undefined input', () => {
-      expect(getPaymentMethodDisplayName(undefined)).toBeUndefined();
+    it('returns undefined when both args are undefined', () => {
+      expect(getPaymentMethodDisplayName(undefined, undefined)).toBeUndefined();
     });
 
-    it('returns empty string for empty string input', () => {
-      expect(getPaymentMethodDisplayName('')).toBe('');
+    it('returns fallbackName for empty paymentType', () => {
+      expect(getPaymentMethodDisplayName('', 'Some Name')).toBe('Some Name');
     });
   });
 });

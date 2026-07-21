@@ -64,7 +64,10 @@ function toHighlightedItem(
     position: 'outside_of_asset_list',
     icon: paymentMethod.icon,
     paymentType: paymentMethod.paymentType,
-    name: getPaymentMethodDisplayName(paymentMethod.name),
+    name: getPaymentMethodDisplayName(
+      paymentMethod.paymentType,
+      paymentMethod.name,
+    ),
     name_description: paymentMethod.delay
       ? formatDelayFromArray(paymentMethod.delay)
       : '',
