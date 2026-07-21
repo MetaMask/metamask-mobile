@@ -531,7 +531,7 @@
     "react-native-nitro-websockets": "^1.0.3",
     "react-native-os": "patch:react-native-os@npm%3A1.2.6#~/.yarn/patches/react-native-os-npm-1.2.6-65c52ed3dc.patch",
     "react-native-pager-view": "8.0.0",
-    "react-native-permissions": "^3.7.2",
+    "react-native-permissions": "^5.6.0",
     "react-native-progress": "3.5.0",
     "react-native-qrcode-svg": "6.3.21",
     "react-native-quick-base64": "patch:react-native-quick-base64@npm%3A2.2.0#~/.yarn/patches/react-native-quick-base64-npm-2.2.0-9083eb316a.patch",
