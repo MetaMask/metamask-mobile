@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   Button,
@@ -16,6 +17,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import styleSheet from './TokenNotAvailableModal.styles';
@@ -43,7 +45,7 @@ export const createTokenNotAvailableModalNavigationDetails =
 function TokenNotAvailableModal() {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { assetId, buyFlowOrigin } = useParams<TokenNotAvailableModalParams>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(styleSheet, {});
 
@@ -106,8 +108,9 @@ function TokenNotAvailableModal() {
         .build(),
     );
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(
-        ...createProviderSelectionModalNavigationDetails({
+      navigateWithDetails(
+        navigation,
+        createProviderSelectionModalNavigationDetails({
           assetId,
           skipQuotes: true,
         }),
