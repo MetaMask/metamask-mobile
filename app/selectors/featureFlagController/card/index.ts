@@ -177,10 +177,17 @@ export interface CardFeatureFlag {
   immersveCountries?: string[];
 }
 
+export interface CardProgramIdOption {
+  name: string;
+  id: string;
+}
+
 export interface ImmersveProgramConfig {
   enabled?: boolean;
   network?: string;
   cardProgramId?: string;
+  /** Temporary: multi-program list for internal testing selectors. Easy to remove. */
+  cardProgramIds?: CardProgramIdOption[];
   clientApplicationId?: string;
   partnerAccountId?: string;
   fundingChannelId?: string;

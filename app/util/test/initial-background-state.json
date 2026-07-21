@@ -722,6 +722,7 @@
   },
   "CardController": {
     "selectedCountry": null,
+    "selectedCardProgramId": null,
     "activeProviderId": "baanx",
     "cardHomeData": null,
     "cardHomeDataStatus": "idle",

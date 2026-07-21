@@ -8824,7 +8824,8 @@
         "country_not_available": "Card sign-up isn't available in your country yet.",
         "account_label": "Account",
         "account_description": "Your MetaMask Card will be associated with this account.",
-        "account_exists_toast": "You already have a card account."
+        "account_exists_toast": "You already have a card account.",
+        "card_program_label": "Card program (testing)"
       },
       "confirm_email": {
         "title": "Confirm your email",

@@ -384,6 +384,27 @@ describe('CardController — setSelectedCountry', () => {
   });
 });
 
+describe('CardController — setSelectedCardProgramId', () => {
+  it('updates selectedCardProgramId in state', () => {
+    const messenger = buildMockMessenger();
+    const controller = new CardController({
+      messenger,
+      providers: {
+        baanx: buildMockProvider({ id: 'baanx' }),
+        immersve: buildMockProvider({ id: 'immersve' }),
+      },
+    });
+
+    expect(controller.state.selectedCardProgramId).toBeNull();
+
+    controller.setSelectedCardProgramId('program-alpha');
+    expect(controller.state.selectedCardProgramId).toBe('program-alpha');
+
+    controller.setSelectedCardProgramId(null);
+    expect(controller.state.selectedCardProgramId).toBeNull();
+  });
+});
+
 describe('CardController — auth methods', () => {
   beforeEach(() => {
     jest.clearAllMocks();

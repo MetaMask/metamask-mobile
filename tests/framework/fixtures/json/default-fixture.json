@@ -145,7 +145,8 @@
           "cardholderAccounts": [],
           "isAuthenticated": false,
           "providerData": {},
-          "selectedCountry": null
+          "selectedCountry": null,
+          "selectedCardProgramId": null
         },
         "ClientController": {
           "isUiOpen": false

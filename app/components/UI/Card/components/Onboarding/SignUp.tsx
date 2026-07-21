@@ -54,6 +54,8 @@ import {
   selectCardFeatureFlag,
   selectImmersveOnboardingEnabled,
 } from '../../../../../selectors/featureFlagController/card';
+import { selectCardSelectedCardProgramId } from '../../../../../selectors/cardController';
+import RadioButton from '../../../../../component-library/components/RadioButton';
 import { HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 
@@ -88,6 +90,14 @@ const SignUp = () => {
   } = useRegions();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const postAuthRedirect = useCardPostAuthRedirect();
+
+  // Temporary: multi-program selector for internal Immersve testing.
+  const cardProgramIds = cardFeatureFlag.immersve?.cardProgramIds ?? [];
+  const defaultCardProgramId = cardFeatureFlag.immersve?.cardProgramId;
+  const persistedCardProgramId = useSelector(selectCardSelectedCardProgramId);
+  const [selectedCardProgramId, setSelectedCardProgramId] = useState<
+    string | null
+  >(persistedCardProgramId ?? defaultCardProgramId ?? null);
 
   // Immersve onboarding entry: SIWE binds to the currently-selected EVM account.
   const accountName = useAccountGroupName();
@@ -190,6 +200,10 @@ const SignUp = () => {
       selectedCountry &&
       (cardFeatureFlag.immersveCountries ?? []).includes(selectedCountry.key),
   );
+
+  // Temporary: only show the program picker for Immersve onboarding.
+  const showCardProgramSelector =
+    isImmersveCountry && cardProgramIds.length > 1;
 
   const isWaitlistMode = Boolean(
     selectedCountry && !selectedCountry.canSignUp && !isImmersveCountry,
@@ -402,6 +416,11 @@ const SignUp = () => {
     setPhoneNumber(text.replace(/\D/g, ''));
   }, []);
 
+  const handleCardProgramSelect = useCallback((id: string) => {
+    setSelectedCardProgramId(id);
+    Engine.context.CardController.setSelectedCardProgramId(id);
+  }, []);
+
   useEffect(() => () => clearOnValueChange(), []);
 
   const renderFormFields = () => (
@@ -474,6 +493,24 @@ const SignUp = () => {
 
       {isImmersveCountry && (
         <>
+          {showCardProgramSelector ? (
+            <Box testID="signup-card-program-selector">
+              <Label>
+                {strings('card.card_onboarding.sign_up.card_program_label')}
+              </Label>
+              <Box twClassName="gap-2 mt-1">
+                {cardProgramIds.map((program) => (
+                  <RadioButton
+                    key={program.id}
+                    label={program.name}
+                    isChecked={selectedCardProgramId === program.id}
+                    onPress={() => handleCardProgramSelect(program.id)}
+                    testID={`signup-card-program-${program.id}`}
+                  />
+                ))}
+              </Box>
+            </Box>
+          ) : null}
           <Box>
             <Label>
               {strings(

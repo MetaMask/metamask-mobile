@@ -85,6 +85,7 @@ export const initialStateCard = () =>
             cardHomeData: defaultCardHomeData,
             cardHomeDataStatus: 'success',
             selectedCountry: null,
+            selectedCardProgramId: null,
           },
           MoneyAccountController: { moneyAccounts: {} },
           RemoteFeatureFlagController: {
