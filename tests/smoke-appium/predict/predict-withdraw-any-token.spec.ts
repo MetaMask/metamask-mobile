@@ -109,9 +109,8 @@ appiumTest.describe(
             // flow, not the legacy same-token withdraw path.
             await openPredictWithdrawPayConfirmation();
 
-            // New-flow marker (same assertion as the Perps any-token withdraw
-            // smoke): available balance only renders on the shared MetaMask Pay
-            // confirmation.
+            // New-flow marker: available balance renders on PredictWithdrawInfo
+            // (shared CustomAmount confirmation), not on a non-confirm screen.
             await TransactionPayConfirmation.verifyAvailableBalanceVisible();
           },
         );

@@ -162,10 +162,16 @@ class TransactionPayConfirmation {
     });
   }
 
-  // Shared MetaMask Pay withdraw marker (Perps + Predict). No testID — match
-  // the full "Available balance: $X" string (iOS by.text needs the amount).
+  // Shared MetaMask Pay withdraw marker (Perps + Predict). No testID.
+  // Detox matches the full "Available balance: $X" string (iOS by.text needs
+  // the amount). Appium uses contains — Android textMatches on `$` is unreliable
+  // and RN may expose the label via content-desc rather than @text.
   get availableBalance(): EncapsulatedElementType {
-    return Matchers.getElementByText(/Available balance: \$[0-9,.]+/u);
+    return encapsulated({
+      detox: () => Matchers.getElementByText(/Available balance: \$[0-9,.]+/u),
+      appium: () =>
+        PlaywrightMatchers.getElementByText('Available balance', false),
+    });
   }
 
   get transactionFee(): EncapsulatedElementType {
