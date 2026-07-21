@@ -55,7 +55,7 @@ export function applySlippage(value: bigint): bigint {
 export interface MoneyAccountTxParams {
   params: {
     to: Hex;
-    data: Hex;
+    data?: Hex;
     value: Hex;
   };
   type: TransactionType;
@@ -204,10 +204,10 @@ export async function buildMoneyAccountDepositBatch({
         );
 
   const approveData = initialiseWithoutData
-    ? (undefined as Hex)
+    ? undefined
     : buildApproveData(boringVault, amount);
   const depositData = initialiseWithoutData
-    ? (undefined as Hex)
+    ? undefined
     : buildDepositData(musdAddress, amount, minimumMint);
 
   return {
