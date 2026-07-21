@@ -1,13 +1,11 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { getVersion } from 'react-native-device-info';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyMoreSheet from './MoneyMoreSheet';
 import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Engine from '../../../../../core/Engine';
 import AppConstants from '../../../../../core/AppConstants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
@@ -19,16 +17,13 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 
-jest.mock('react-native-device-info', () => ({
-  getVersion: jest.fn(),
-}));
-
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    AuthenticationController: {
-      getCustomerServiceToken: jest.fn(),
-    },
-  },
+const mockOpenSupportWithConsent = jest.fn(
+  (open: (url: string) => void, baseUrl?: string) => open(baseUrl ?? ''),
+);
+jest.mock('../../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
 }));
 
 const mockTrackBottomSheetViewed = jest.fn();
@@ -89,7 +84,6 @@ describe('MoneyMoreSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-    jest.mocked(getVersion).mockReturnValue('7.1.0');
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackSurfaceClicked: mockTrackSurfaceClicked,
@@ -156,55 +150,31 @@ describe('MoneyMoreSheet', () => {
     });
   });
 
-  it('opens the support consent sheet when "Contact support" is pressed', () => {
+  it('shows the support consent sheet with the METAMASK_SUPPORT_URL when "Contact support" is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
     fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(Linking.openURL).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SUPPORT_CONSENT_SHEET,
-      params: {
-        onConfirm: expect.any(Function),
-        onReject: expect.any(Function),
-      },
-    });
+    expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      METAMASK_SUPPORT_URL,
+    );
   });
 
-  it('opens the MetaMask support URL in the in-app browser when consent is rejected', () => {
+  it('opens the support URL in the in-app browser when the opener resolves', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
     fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
-    const { onReject } = mockNavigate.mock.calls[0][1].params;
-    onReject();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: expect.stringContaining(METAMASK_SUPPORT_URL),
-        timestamp: expect.any(Number),
-        fromMoney: true,
-      },
-    });
-  });
-
-  it('opens the MetaMask support URL with profile id and token in the in-app browser when consent is confirmed', async () => {
-    jest
-      .mocked(Engine.context.AuthenticationController.getCustomerServiceToken)
-      .mockResolvedValue('jwt-token');
-    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
-
-    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
-    const { onConfirm } = mockNavigate.mock.calls[0][1].params;
-    await onConfirm();
-
+    // The mock auto-invokes `open` with the base URL as soon as
+    // openSupportWithConsent is called, simulating the consent sheet
+    // resolving with the (possibly enriched) support URL.
     expect(mockNavigate).toHaveBeenLastCalledWith(Routes.BROWSER.HOME, {
       screen: Routes.BROWSER.VIEW,
       params: {
-        newTabUrl: expect.stringContaining(
-          'metamask_version=7.1.0&customer_service_token=jwt-token',
-        ),
+        newTabUrl: METAMASK_SUPPORT_URL,
         timestamp: expect.any(Number),
         fromMoney: true,
       },
