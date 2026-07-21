@@ -105,6 +105,12 @@ export interface PerpsToastOptionsConfig {
         assetSymbol?: string,
       ) => PerpsToastOptions;
       cancellationFailed: PerpsToastOptions;
+      cancelAllSuccess: (count: number) => PerpsToastOptions;
+      cancelAllPartialSuccess: (
+        successCount: number,
+        totalCount: number,
+      ) => PerpsToastOptions;
+      cancelAllFailed: (error?: string) => PerpsToastOptions;
     };
     limit: {
       submitted: (
@@ -719,6 +725,33 @@ const usePerpsToasts = (): {
               strings('perps.order.order_still_active'),
             ),
           },
+          cancelAllSuccess: (count: number) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.cancel_all_modal.success_title'),
+              strings('perps.cancel_all_modal.success_message', { count }),
+            ),
+          }),
+          cancelAllPartialSuccess: (
+            successCount: number,
+            totalCount: number,
+          ) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.cancel_all_modal.success_title'),
+              strings('perps.cancel_all_modal.partial_success', {
+                successCount,
+                totalCount,
+              }),
+            ),
+          }),
+          cancelAllFailed: (error?: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.cancel_all_modal.error_title'),
+              error || 'Unknown error',
+            ),
+          }),
         },
       },
       positionManagement: {

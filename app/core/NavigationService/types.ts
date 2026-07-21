@@ -80,6 +80,7 @@ import type {
 } from '../../components/UI/Money/types/navigation';
 import type {
   CardModalsNavigationParamList,
+  CardOnboardingStackParamList,
   CardRootParamList,
   CardScreensStackParamList,
 } from '../../components/UI/Card/types/navigation';
@@ -1016,17 +1017,17 @@ export type RootStackParamList = {
   ReviewOrder: CardScreensStackParamList['ReviewOrder'];
   OrderCompleted: CardScreensStackParamList['OrderCompleted'];
   CardOnboarding: CardScreensStackParamList['CardOnboarding'];
-  CardOnboardingSignUp: undefined;
-  CardOnboardingConfirmEmail: undefined;
-  CardOnboardingSetPhoneNumber: undefined;
-  CardOnboardingConfirmPhoneNumber: undefined;
-  CardOnboardingVerifyIdentity: undefined;
-  CardOnboardingVerifyingVeriffKYC: undefined;
-  CardOnboardingPersonalDetails: undefined;
-  CardOnboardingPhysicalAddress: undefined;
-  CardOnboardingComplete: undefined;
-  CardOnboardingKYCFailed: undefined;
-  CardOnboardingKYCPending: undefined;
+  CardOnboardingSignUp: CardOnboardingStackParamList['CardOnboardingSignUp'];
+  CardOnboardingConfirmEmail: CardOnboardingStackParamList['CardOnboardingConfirmEmail'];
+  CardOnboardingSetPhoneNumber: CardOnboardingStackParamList['CardOnboardingSetPhoneNumber'];
+  CardOnboardingConfirmPhoneNumber: CardOnboardingStackParamList['CardOnboardingConfirmPhoneNumber'];
+  CardOnboardingVerifyIdentity: CardOnboardingStackParamList['CardOnboardingVerifyIdentity'];
+  CardOnboardingVerifyingVeriffKYC: CardOnboardingStackParamList['CardOnboardingVerifyingVeriffKYC'];
+  CardOnboardingPersonalDetails: CardOnboardingStackParamList['CardOnboardingPersonalDetails'];
+  CardOnboardingPhysicalAddress: CardOnboardingStackParamList['CardOnboardingPhysicalAddress'];
+  CardOnboardingComplete: CardOnboardingStackParamList['CardOnboardingComplete'];
+  CardOnboardingKYCFailed: CardOnboardingStackParamList['CardOnboardingKYCFailed'];
+  CardOnboardingKYCPending: CardOnboardingStackParamList['CardOnboardingKYCPending'];
   CardOnboardingKYCProcessing: CardScreensStackParamList['CardOnboardingKYCProcessing'];
   CardOnboardingFundingApproval: CardScreensStackParamList['CardOnboardingFundingApproval'];
   CardModals: NavigatorScreenParams<CardModalsNavigationParamList> | undefined;

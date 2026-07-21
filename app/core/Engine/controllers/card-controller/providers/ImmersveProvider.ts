@@ -1,10 +1,16 @@
+import type { CaipChainId } from '@metamask/utils';
 import Logger from '../../../../../util/Logger';
 import type { CardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
+import {
+  immersveNetworkToFundingToken,
+  type ImmersveFundingTokenInfo,
+} from '../../../../../components/UI/Card/util/immersveFunding';
 import { CardApiError } from '../services/BaanxService';
 import type { ImmersveService } from '../services/ImmersveService';
 import type { ImmersveProviderConfig } from '../services/immersve-config';
 import {
   AuthTokenValidity,
+  CardAction,
   CardAuthResult,
   CardAuthSession,
   CardAuthTokens,
@@ -12,15 +18,21 @@ import {
   CardCreateResult,
   CardCredentials,
   CardDetails,
+  CardFundingAsset,
   CardFundingSourceResult,
   CardHomeData,
   CardProviderCapabilities,
   CardProviderError,
   CardProviderErrorCode,
+  CardSensitiveDetails,
   CardSpendingPrerequisitesParams,
   CardSpendingPrerequisitesResult,
+  CardStatus,
+  CardType,
   emptyCardHomeData,
+  FundingAssetStatus,
   ICardProvider,
+  isCardAuthTokenError,
 } from '../provider-types';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
@@ -33,6 +45,12 @@ const IMMERSVE_KYC_TYPE = 'immersve-conducted';
 const IMMERSVE_KYC_HIDDEN_STEPS = ['region', 'contact-channels'];
 const IMMERSVE_SPENDABLE_CURRENCY = 'USD';
 const IMMERSVE_SPENDABLE_AMOUNT = 999999999;
+
+const USD_STABLECOIN_SYMBOLS = new Set(['USDC', 'USDT']);
+
+function isUsdStablecoin(symbol: string): boolean {
+  return USD_STABLECOIN_SYMBOLS.has(symbol.toUpperCase());
+}
 
 function getErrorContext(method: string, extra?: Record<string, unknown>) {
   return {
@@ -155,6 +173,51 @@ interface ImmersveFundingSourcesResponse {
   items?: ImmersveFundingSourceListItem[];
 }
 
+type ImmersveCardApiStatus = 'active' | 'cancelled' | 'created' | 'shipped';
+
+interface ImmersveCardListItem {
+  id: string;
+  accountId: string;
+  type: string;
+  createdAt: string;
+  modifiedAt: string;
+  expiresAt: string;
+  isBlocked: boolean;
+  status: ImmersveCardApiStatus;
+  fundingSourceIds: string[];
+  panLast4?: string;
+  network?: string;
+}
+
+interface ImmersveCardListResponse {
+  items?: ImmersveCardListItem[];
+  pageInfo?: { nextCursor?: string };
+}
+
+interface ImmersveCardDetail extends ImmersveCardListItem {
+  panFirst6?: string;
+  currency?: string;
+  expiry?: string;
+  cardholderName?: string;
+  unfreezeAllowed?: boolean;
+}
+
+interface ImmersveFundingSourceDetail {
+  id: string;
+  accountId: string;
+  balance?: string;
+  balanceCurrency?: string;
+  fundingChannelId?: string;
+  externalId?: string;
+  purpose?: string;
+  network?: string;
+}
+
+interface ImmersvePanTokenResponse {
+  tokenId: string;
+  callbackUrl: string;
+}
+
 export class ImmersveProvider implements ICardProvider {
   readonly id = 'immersve' as const;
 
@@ -162,7 +225,7 @@ export class ImmersveProvider implements ICardProvider {
     authMethod: 'siwe',
     supportsOTP: false,
     supportsFundingApproval: true,
-    supportsFundingLimits: true,
+    supportsFundingLimits: false,
     fundingChains: ['eip155:8453', 'eip155:84532'],
     supportsFreeze: true,
     supportsPushProvisioning: false,
@@ -170,6 +233,8 @@ export class ImmersveProvider implements ICardProvider {
     supportsPinView: false,
     supportsCashback: false,
     supportsCredit: false,
+    supportsSensitiveDetailsView: true,
+    supportsTravel: false,
   };
 
   private readonly service: ImmersveService;
@@ -509,31 +574,249 @@ export class ImmersveProvider implements ICardProvider {
     }
   }
 
+  private async resolveCurrentCard(
+    tokens: CardAuthTokens,
+  ): Promise<ImmersveCardListItem | null> {
+    const accountId = tokens.cardholderAccountId;
+    if (!accountId) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'resolveCurrentCard: missing cardholder account id',
+      );
+    }
+
+    const { items } = await this.service.get<ImmersveCardListResponse>(
+      `/api/accounts/${accountId}/cards?excludeExpired=true`,
+      tokens,
+    );
+
+    return this.pickCurrentCard(items ?? []);
+  }
+
+  private pickCurrentCard(
+    items: ImmersveCardListItem[],
+  ): ImmersveCardListItem | null {
+    const candidates = items.filter((card) => card.status !== 'cancelled');
+    if (candidates.length === 0) return null;
+
+    const statusRank = (card: ImmersveCardListItem): number =>
+      card.status === 'active' ? 0 : 1;
+
+    return [...candidates].sort((a, b) => {
+      const rankDiff = statusRank(a) - statusRank(b);
+      if (rankDiff !== 0) return rankDiff;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    })[0];
+  }
+
+  private provisioningHomeData(): CardHomeData {
+    return {
+      ...emptyCardHomeData(),
+      alerts: [{ type: 'card_provisioning', dismissable: false }],
+    };
+  }
+
   async getCardHomeData(
     _address: string,
-    _tokens: CardAuthTokens,
+    tokens: CardAuthTokens,
   ): Promise<CardHomeData> {
-    return emptyCardHomeData();
+    try {
+      const card = await this.resolveCurrentCard(tokens);
+
+      if (!card) {
+        const fundingSources = await this.getFundingSources(tokens);
+        const fundingSourceId = fundingSources[0]?.id;
+        if (!fundingSourceId) {
+          throw new CardProviderError(
+            CardProviderErrorCode.Unknown,
+            'getCardHomeData: no funding source available to create a card',
+          );
+        }
+        await this.createCard(fundingSourceId, tokens);
+        return this.provisioningHomeData();
+      }
+
+      if (card.status === 'created') {
+        return this.provisioningHomeData();
+      }
+
+      const detail = await this.service.get<ImmersveCardDetail>(
+        `/api/cards/${card.id}`,
+        tokens,
+      );
+      const cardDetails = this.mapImmersveCard(detail);
+      const fundingAssets = await this.fetchFundingAssets(
+        detail.fundingSourceIds ?? [],
+        tokens,
+      );
+      const primaryFundingAsset = fundingAssets[0] ?? null;
+      const actions: CardAction[] =
+        cardDetails.status === CardStatus.ACTIVE && primaryFundingAsset
+          ? [{ type: 'add_funds', enabled: true }]
+          : [];
+
+      return {
+        ...emptyCardHomeData(),
+        card: cardDetails,
+        primaryFundingAsset,
+        fundingAssets,
+        availableFundingAssets: fundingAssets,
+        actions,
+      };
+    } catch (error) {
+      if (isCardAuthTokenError(error)) {
+        throw error;
+      }
+      Logger.error(error as Error, getErrorContext('getCardHomeData'));
+      return emptyCardHomeData();
+    }
   }
 
-  async getCardDetails(_tokens: CardAuthTokens): Promise<CardDetails> {
-    throw new CardProviderError(
-      CardProviderErrorCode.Unknown,
-      'Immersve getCardDetails not implemented yet',
-    );
+  async getCardDetails(tokens: CardAuthTokens): Promise<CardDetails> {
+    const card = await this.resolveCurrentCard(tokens);
+    if (!card) {
+      throw new CardProviderError(
+        CardProviderErrorCode.NoCard,
+        'User has no card',
+        404,
+      );
+    }
+
+    try {
+      const detail = await this.service.get<ImmersveCardDetail>(
+        `/api/cards/${card.id}`,
+        tokens,
+      );
+      return this.mapImmersveCard(detail);
+    } catch (error) {
+      throw mapApiError(error, 'getCardDetails');
+    }
   }
 
-  async freezeCard(_cardId: string, _tokens: CardAuthTokens): Promise<void> {
-    throw new CardProviderError(
-      CardProviderErrorCode.Unknown,
-      'Immersve freezeCard not implemented yet',
-    );
+  async freezeCard(cardId: string, tokens: CardAuthTokens): Promise<void> {
+    try {
+      await this.service.post(`/api/cards/${cardId}/freeze`, {}, tokens);
+    } catch (error) {
+      throw mapApiError(error, 'freezeCard');
+    }
   }
 
-  async unfreezeCard(_cardId: string, _tokens: CardAuthTokens): Promise<void> {
-    throw new CardProviderError(
-      CardProviderErrorCode.Unknown,
-      'Immersve unfreezeCard not implemented yet',
+  async unfreezeCard(cardId: string, tokens: CardAuthTokens): Promise<void> {
+    try {
+      await this.service.post(`/api/cards/${cardId}/unfreeze`, {}, tokens);
+    } catch (error) {
+      throw mapApiError(error, 'unfreezeCard');
+    }
+  }
+
+  async getCardSensitiveDetails(
+    tokens: CardAuthTokens,
+  ): Promise<CardSensitiveDetails> {
+    const card = await this.resolveCurrentCard(tokens);
+    if (!card) {
+      throw new CardProviderError(
+        CardProviderErrorCode.NoCard,
+        'User has no card',
+        404,
+      );
+    }
+
+    try {
+      const { callbackUrl } = await this.service.post<ImmersvePanTokenResponse>(
+        `/api/cards/${card.id}/pan-token`,
+        {},
+        tokens,
+      );
+      return await this.service.get<CardSensitiveDetails>(callbackUrl);
+    } catch (error) {
+      throw mapApiError(error, 'getCardSensitiveDetails');
+    }
+  }
+
+  private mapImmersveCard(detail: ImmersveCardDetail): CardDetails {
+    const status = this.mapImmersveCardStatus(detail);
+    return {
+      id: detail.id,
+      status,
+      type: detail.type === 'virtual' ? CardType.VIRTUAL : CardType.PHYSICAL,
+      lastFour: detail.panLast4 ?? '',
+      holderName: detail.cardholderName,
+      isFreezable: status === CardStatus.ACTIVE || status === CardStatus.FROZEN,
+    };
+  }
+
+  private mapImmersveCardStatus(detail: ImmersveCardDetail): CardStatus {
+    if (detail.status === 'cancelled') {
+      return CardStatus.BLOCKED;
+    }
+    if (detail.isBlocked) {
+      return detail.unfreezeAllowed ? CardStatus.FROZEN : CardStatus.BLOCKED;
+    }
+    return CardStatus.ACTIVE;
+  }
+
+  private async fetchFundingAssets(
+    fundingSourceIds: string[],
+    tokens: CardAuthTokens,
+  ): Promise<CardFundingAsset[]> {
+    if (fundingSourceIds.length === 0) return [];
+
+    const details = await Promise.all(
+      fundingSourceIds.map((id) =>
+        this.service
+          .get<ImmersveFundingSourceDetail>(`/api/funding-source/${id}`, tokens)
+          .catch((error) => {
+            if (isCardAuthTokenError(error)) throw error;
+            Logger.error(
+              error as Error,
+              getErrorContext('fetchFundingAssets', { fundingSourceId: id }),
+            );
+            return null;
+          }),
+      ),
     );
+
+    const assets = details.map((detail) =>
+      detail ? this.mapFundingSource(detail, tokens) : null,
+    );
+
+    return assets.filter((asset): asset is CardFundingAsset => asset !== null);
+  }
+
+  private mapFundingSource(
+    fundingSource: ImmersveFundingSourceDetail,
+    tokens: CardAuthTokens,
+  ): CardFundingAsset | null {
+    let tokenInfo: ImmersveFundingTokenInfo;
+    try {
+      tokenInfo = immersveNetworkToFundingToken(fundingSource.network);
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        getErrorContext('mapFundingSource', { network: fundingSource.network }),
+      );
+      return null;
+    }
+
+    const symbol = fundingSource.balanceCurrency ?? 'USDC';
+    // Immersve always reports a funding-source balance of 0, so we leave the
+    // balance empty and let the client resolve the real on-chain balance from
+    // the asset controllers (useAssetBalances) for the wallet address.
+    const walletAddress =
+      tokens.accountAddress ?? fundingSource.externalId ?? '';
+
+    return {
+      symbol,
+      name: symbol,
+      address: tokenInfo.tokenAddress,
+      walletAddress,
+      decimals: tokenInfo.decimals,
+      chainId: tokenInfo.caipChainId as CaipChainId,
+      spendableBalance: '',
+      spendingCap: '',
+      priority: 0,
+      status: FundingAssetStatus.Active,
+      assumeUsdParity: isUsdStablecoin(symbol),
+    };
   }
 }
