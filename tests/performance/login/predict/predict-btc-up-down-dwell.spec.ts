@@ -30,7 +30,7 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
   perfTest(
     'Predict BTC Up or Down - 5 minute dwell for profiling',
     { tag: '@team-predict' },
-    async ({ currentDeviceDetails, performanceTracker }) => {
+    async ({ currentDeviceDetails, driver, performanceTracker }) => {
       await loginToAppPlaywright();
 
       const navigateToPredictTimer = new TimerHelper(
