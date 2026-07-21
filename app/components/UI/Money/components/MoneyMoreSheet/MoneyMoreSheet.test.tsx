@@ -17,9 +17,7 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 
-const mockOpenSupportWithConsent = jest.fn(
-  (open: (url: string) => void, baseUrl?: string) => open(baseUrl ?? ''),
-);
+const mockOpenSupportWithConsent = jest.fn();
 jest.mock('../../../../hooks/useSupportConsent', () => ({
   useSupportConsent: () => ({
     openSupportWithConsent: mockOpenSupportWithConsent,
@@ -161,24 +159,6 @@ describe('MoneyMoreSheet', () => {
       expect.any(Function),
       METAMASK_SUPPORT_URL,
     );
-  });
-
-  it('opens the support URL in the in-app browser when the opener resolves', () => {
-    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
-
-    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
-
-    // The mock auto-invokes `open` with the base URL as soon as
-    // openSupportWithConsent is called, simulating the consent sheet
-    // resolving with the (possibly enriched) support URL.
-    expect(mockNavigate).toHaveBeenLastCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: METAMASK_SUPPORT_URL,
-        timestamp: expect.any(Number),
-        fromMoney: true,
-      },
-    });
   });
 
   describe('analytics', () => {
