@@ -76,20 +76,6 @@ describe('derivePredefinedRecipientParams', () => {
     });
   });
 
-  describe('Stellar addresses', () => {
-    it('returns Stellar chain type for valid Stellar address', () => {
-      const address =
-        'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI';
-
-      const result = derivePredefinedRecipientParams(address);
-
-      expect(result).toEqual({
-        address,
-        chainType: ChainType.STELLAR,
-      });
-    });
-  });
-
   describe('Invalid addresses', () => {
     it('returns undefined for invalid address', () => {
       const address = 'invalid-address';
@@ -135,17 +121,10 @@ describe('derivePredefinedRecipientParams', () => {
       expect(result?.chainType).toBe(ChainType.BITCOIN);
     });
 
-    it('checks Tron address before Stellar', () => {
+    it('checks Tron address last', () => {
       const tronAddress = 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7';
       const result = derivePredefinedRecipientParams(tronAddress);
       expect(result?.chainType).toBe(ChainType.TRON);
-    });
-
-    it('checks Stellar address last', () => {
-      const stellarAddress =
-        'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI';
-      const result = derivePredefinedRecipientParams(stellarAddress);
-      expect(result?.chainType).toBe(ChainType.STELLAR);
     });
   });
 });

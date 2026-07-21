@@ -10,7 +10,6 @@ import {
   validateSolanaAddress,
   validateBitcoinAddress,
   validateTronAddress,
-  validateStellarAddress,
 } from '../../utils/send-address-validations';
 import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
@@ -25,13 +24,8 @@ interface ValidationResult {
 
 export const useToAddressValidation = () => {
   const { asset, chainId, to } = useSendContext();
-  const {
-    isEvmSendType,
-    isSolanaSendType,
-    isBitcoinSendType,
-    isTronSendType,
-    isStellarSendType,
-  } = useSendType();
+  const { isEvmSendType, isSolanaSendType, isBitcoinSendType, isTronSendType } =
+    useSendType();
   const { validateName } = useNameValidation();
   const [result, setResult] = useState<ValidationResult>({});
   const [loading, setLoading] = useState(false);
@@ -73,10 +67,6 @@ export const useToAddressValidation = () => {
         return validateTronAddress(toAddress);
       }
 
-      if (isStellarSendType) {
-        return validateStellarAddress(toAddress);
-      }
-
       if (isENS(toAddress)) {
         return await validateName(chainId, toAddress);
       }
@@ -92,7 +82,6 @@ export const useToAddressValidation = () => {
       isSolanaSendType,
       isBitcoinSendType,
       isTronSendType,
-      isStellarSendType,
       validateName,
     ],
   );

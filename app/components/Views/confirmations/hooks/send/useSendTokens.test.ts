@@ -92,26 +92,6 @@ const mockBitcoinToken: AssetType = {
   rawBalance: '0xdef0',
 } as unknown as AssetType;
 
-const mockStellarToken: AssetType = {
-  address: 'stellar:pubnet/slip44:148',
-  chainId: 'stellar:pubnet',
-  symbol: 'XLM',
-  ticker: 'XLM',
-  decimals: 7,
-  balance: '50',
-  balanceFiat: '$6.00',
-  image: 'https://example.com/xlm.png',
-  aggregators: [],
-  logo: 'https://example.com/xlm.png',
-  isNative: true,
-  accountType: 'stellar:pubnet/slip44:148',
-  networkBadgeSource: 'network-badge-source',
-  balanceInSelectedCurrency: '$6.00',
-  standard: TokenStandard.ERC20,
-  fiat: { balance: '6' },
-  rawBalance: '0xabcd',
-} as unknown as AssetType;
-
 describe('useSendTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -124,12 +104,10 @@ describe('useSendTokens', () => {
       isSolanaSendType: undefined,
       isBitcoinSendType: undefined,
       isTronSendType: undefined,
-      isStellarSendType: undefined,
       isPredefinedEvm: false,
       isPredefinedSolana: false,
       isPredefinedBitcoin: false,
       isPredefinedTron: false,
-      isPredefinedStellar: false,
     });
   });
 
@@ -257,28 +235,6 @@ describe('useSendTokens', () => {
     });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toEqual(mockBitcoinToken);
-  });
-
-  it('filters to Stellar tokens when isPredefinedStellar is true', () => {
-    createMockUseSendType({
-      isPredefinedEvm: false,
-      isPredefinedSolana: false,
-      isPredefinedTron: false,
-      isPredefinedBitcoin: false,
-      isPredefinedStellar: true,
-    });
-    mockUseAccountTokens.mockReturnValue([
-      mockEvmToken,
-      mockSolanaToken,
-      mockTronToken,
-      mockBitcoinToken,
-      mockStellarToken,
-    ]);
-
-    const { result } = renderHook(() => useSendTokens());
-
-    expect(result.current).toHaveLength(1);
-    expect(result.current[0]).toEqual(mockStellarToken);
   });
 
   it('passes includeNoBalance option to useAccountTokens', () => {

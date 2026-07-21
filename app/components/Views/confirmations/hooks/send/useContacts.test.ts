@@ -120,8 +120,6 @@ describe('useContacts', () => {
         isPredefinedSolana: false,
         isPredefinedBitcoin: false,
         isPredefinedTron: false,
-        isStellarSendType: false,
-        isPredefinedStellar: false,
       });
     });
 

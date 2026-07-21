@@ -6,7 +6,6 @@ import {
   buildAddressBookOverridesWithEvmContact,
   buildNonEvmSendAccountsOverrides,
   buildTronSendFixture,
-  buildStellarSendFixture,
   NON_EVM_BTC_ACCOUNT_ID,
   NON_EVM_SOLANA_ACCOUNT_ID,
   sendViewOverrides,
@@ -32,8 +31,6 @@ const SOLANA_MAINNET_CHAIN_ID =
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const;
 
 const TRON_MAINNET_CHAIN_ID = 'tron:728126428' as const;
-
-const STELLAR_MAINNET_CHAIN_ID = 'stellar:pubnet' as const;
 
 const NON_EVM_NETWORK_OVERRIDE = {
   engine: {
@@ -92,16 +89,6 @@ const TRON_NATIVE_ASSET_SEND_FIVE = {
   balance: '10',
   rawBalance: '0x989680', // 10 TRX in sun
   accountId: 'tron-acc-1',
-};
-
-const STELLAR_NATIVE_ASSET_SEND_FIVE = {
-  address: `${STELLAR_MAINNET_CHAIN_ID}/slip44:148`,
-  chainId: STELLAR_MAINNET_CHAIN_ID,
-  symbol: 'XLM',
-  decimals: 7,
-  balance: '10',
-  rawBalance: '100000000', // 10 XLM in stroops
-  accountId: 'stellar-acc-1',
 };
 
 const VALID_SOLANA_RECIPIENT = '11111111111111111111111111111111';
@@ -447,63 +434,6 @@ describeForPlatforms('Send (Non-EVM)', () => {
         {
           screen: Routes.SEND.AMOUNT,
           params: { asset: TRON_NATIVE_ASSET_SEND_FIVE },
-        },
-      );
-
-    expect(
-      getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
-    ).toBeOnTheScreen();
-
-    fireEvent.press(getByText('5'));
-
-    const continueButton = getByRole('button', { name: 'Continue' });
-    await waitFor(() => expect(continueButton).toBeEnabled(), {
-      timeout: 5000,
-    });
-    fireEvent.press(continueButton);
-
-    const recipientInput = await findByTestId(
-      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-      {},
-      { timeout: 5000 },
-    );
-    fireEvent.changeText(recipientInput, recipientAddresses[0]);
-
-    const reviewButton = await findByTestId(
-      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
-      {},
-      { timeout: 5000 },
-    );
-    await waitFor(() => expect(reviewButton).toBeEnabled(), {
-      timeout: 5000,
-    });
-    fireEvent.press(reviewButton);
-
-    await waitFor(() => {
-      expect(snapHandleRequestSpy).toHaveBeenCalledWith(
-        'SnapController:handleRequest',
-        expect.objectContaining({
-          request: expect.objectContaining({ method: 'confirmSend' }),
-        }),
-      );
-    });
-
-    expect(await findByTestId('route-TransactionsView')).toBeOnTheScreen();
-  }, 20000);
-
-  it('STELLAR native: digit 5 submits and opens transfer confirmation route', async () => {
-    const { stellarOverrides, recipientAddresses } = buildStellarSendFixture();
-    const state = initialStateWallet().withOverrides(stellarOverrides).build();
-
-    const { getByTestId, getByText, getByRole, findByTestId } =
-      renderScreenWithRoutes(
-        SendFlowWithHardwareWalletProvider as unknown as React.ComponentType,
-        { name: Routes.SEND.DEFAULT },
-        [{ name: Routes.TRANSACTIONS_VIEW }],
-        { state },
-        {
-          screen: Routes.SEND.AMOUNT,
-          params: { asset: STELLAR_NATIVE_ASSET_SEND_FIVE },
         },
       );
 

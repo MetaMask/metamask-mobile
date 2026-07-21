@@ -117,34 +117,6 @@ describe('useToAddressValidation', () => {
     });
   });
 
-  it('validate stellar address correctly', async () => {
-    mockUseSendContext.mockReturnValue({
-      asset: {
-        name: 'Stellar',
-        address: 'stellar:pubnet/slip44:148',
-        isNative: true,
-        chainId: 'stellar:pubnet',
-        symbol: 'XLM',
-        decimals: 7,
-      },
-      to: 'dummy',
-      chainId: 'stellar:pubnet',
-    } as unknown as ReturnType<typeof useSendContext>);
-    const { result } = renderHookWithProvider(
-      () => useToAddressValidation(),
-      mockState,
-    );
-    await waitFor(() => {
-      expect(result.current).toStrictEqual({
-        loading: false,
-        resolvedAddress: undefined,
-        toAddressError: 'Invalid address',
-        toAddressValidated: 'dummy',
-        toAddressWarning: undefined,
-      });
-    });
-  });
-
   it('validate tron address correctly', async () => {
     mockUseSendContext.mockReturnValue({
       asset: {

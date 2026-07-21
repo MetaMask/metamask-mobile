@@ -14,7 +14,6 @@ import {
   /// BEGIN:ONLY_INCLUDE_IF(tron)
   isTronAccount,
   /// END:ONLY_INCLUDE_IF
-  isStellarAccount,
 } from '../../../../../core/Multichain/utils';
 import { type RecipientType } from '../../components/UI/recipient';
 import { useSendContext } from '../../context/send-context';
@@ -33,7 +32,6 @@ export const useAccounts = (): RecipientType[] => {
     /// BEGIN:ONLY_INCLUDE_IF(tron)
     isTronSendType,
     /// END:ONLY_INCLUDE_IF
-    isStellarSendType,
   } = useSendType();
 
   const isAccountCompatible = useMemo(
@@ -62,9 +60,6 @@ export const useAccounts = (): RecipientType[] => {
         return isTronAccount(account);
       }
       /// END:ONLY_INCLUDE_IF
-      if (isStellarSendType) {
-        return isStellarAccount(account);
-      }
       return false;
     },
     [
@@ -77,7 +72,6 @@ export const useAccounts = (): RecipientType[] => {
       /// BEGIN:ONLY_INCLUDE_IF(tron)
       isTronSendType,
       /// END:ONLY_INCLUDE_IF
-      isStellarSendType,
       from,
     ],
   );
