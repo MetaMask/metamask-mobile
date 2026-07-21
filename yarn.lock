@@ -36273,7 +36273,7 @@ __metadata:
     react-native-url-polyfill: "npm:^1.3.0"
     react-native-vector-icons: "npm:10.2.0"
     react-native-video: "npm:^6.19.0"
-    react-native-view-shot: "npm:4.0.3"
+    react-native-view-shot: "npm:5.1.1"
     react-native-vision-camera: "npm:^4.7.3"
     react-native-worklets: "patch:react-native-worklets@npm%3A0.7.4#~/.yarn/patches/react-native-worklets-npm-0.7.4-072a5d46f9.patch"
     react-redux: "npm:^8.1.3"
@@ -41186,15 +41186,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-view-shot@npm:4.0.3":
-  version: 4.0.3
-  resolution: "react-native-view-shot@npm:4.0.3"
+"react-native-view-shot@npm:5.1.1":
+  version: 5.1.1
+  resolution: "react-native-view-shot@npm:5.1.1"
   dependencies:
     html2canvas: "npm:^1.4.1"
   peerDependencies:
-    react: "*"
-    react-native: "*"
-  checksum: 10/5e4f133a69754cd5fd29bf762bfa5bf399f4c0b192972808cf4194e4775ac5d4415e01079e52be7d31bc5b25fe7efbd5e95f4a33967bab0f36725d4cc8903345
+    react: ">=18.0.0"
+    react-native: ">=0.76.0"
+  checksum: 10/3900501edc2600f27e5e2acc514ce8303556b48906c1fd6ffddfc8c58a4d21ee68f82890b74cddb08bdc8d4a47dc3c775907e3f215d4dcd00ed8d14022705311
   languageName: node
   linkType: hard
 
