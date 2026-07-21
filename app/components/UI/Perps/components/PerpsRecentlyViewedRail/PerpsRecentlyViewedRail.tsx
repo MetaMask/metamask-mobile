@@ -133,7 +133,8 @@ const PerpsRecentlyViewedRail: React.FC<PerpsRecentlyViewedRailProps> = ({
   return (
     <View style={styles.rail} testID={PerpsRecentlyViewedRailSelectorsIDs.RAIL}>
       <SectionHeader
-        title={strings('perps.recently_searched')}
+        title={strings('perps.recently_viewed')}
+        twClassName="pt-1"
         titleProps={{
           variant: DSTextVariant.BodySm,
           color: DSTextColor.TextAlternative,
