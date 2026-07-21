@@ -30,6 +30,11 @@ const getPolyfills = () => [
   // eslint-disable-next-line import-x/no-extraneous-dependencies
   ...require('@react-native/js-polyfills')(),
   require.resolve('reflect-metadata'),
+  // ^ Bootstraps `globalThis.Reflect.metadata` once at app startup. The
+  // Ledger DMK + inversify stack reaches `reflect-metadata` indirectly
+  // via decorator metadata; routing those packages to their ESM builds
+  // (see `LEDGER_DMK_ESM_PACKAGES` below) keeps the polyfill's IIFE
+  // from being re-evaluated by Metro's CJS interop on Fast Refresh.
   // Expo's `expo/fetch` (used by @metamask/bridge-controller for SSE
   // `getQuoteStream`) constructs a `ReadableStream` for the response
   // body. Hermes does not ship `ReadableStream`, and Expo expects Metro
@@ -60,6 +65,53 @@ const isPerpsControllerOrigin = (context) =>
   (context.originModulePath ?? '')
     .replace(/\\/g, '/')
     .includes('/@metamask/perps-controller/');
+
+// Ledger DMK-family packages whose published `exports` field routes
+// `require`/`import` of the bare specifier to a CJS build under
+// `lib/cjs/`. The CJS output wraps `reflect-metadata` (and the rest of
+// the module body) in TypeScript's `__esModule` interop helpers, which
+// causes Metro's CJS interop to re-execute the `reflect-metadata` IIFE
+// whenever Fast Refresh re-evaluates a DMK module group. The IIFE is
+// not idempotent on Hermes (it calls `Object.defineProperty` on
+// `globalThis.Reflect` with `configurable: false`), and re-execution
+// throws `TypeError: property is not configurable`.
+//
+// Each of these packages ships a parallel ESM build at
+// `lib/esm/index.js` whose top-level statement is the single canonical
+// `import "reflect-metadata"`. Routing the bare specifier through the
+// ESM entry keeps the polyfill bootstrap to one execution per JS
+// runtime, matching the working configuration validated on
+// `poc/dmk-test-page`.
+//
+// We bypass the package's `exports` field by resolving the file path
+// directly under `node_modules`; `require.resolve` cannot reach
+// `lib/esm/index.js` while `unstable_enablePackageExports: true` is
+// active.
+const LEDGER_DMK_ESM_PACKAGES = [
+  '@ledgerhq/context-module',
+  '@ledgerhq/device-management-kit',
+  '@ledgerhq/device-signer-kit-ethereum',
+  '@ledgerhq/device-transport-kit-react-native-ble',
+  '@ledgerhq/signer-utils',
+];
+
+// Path fragments matched against `originModulePath` in `resolveRequest`
+// to scope the `reflect-metadata` idempotent shim to the Ledger DMK
+// closure (the only consumer of `reflect-metadata@0.2.x` in this app).
+// All five LEDGER_DMK_ESM_PACKAGES, plus their DI substrate (inversify
+// and `@inversifyjs/*`), live under one of these path fragments. Other
+// consumers (e.g. the nested `reflect-metadata@0.1.14` copies bundled
+// inside `@consensys/*-ramps-sdk`, which use their own package-local
+// copy and don't share the registry symbol) resolve normally to their
+// own `reflect-metadata`.
+//
+// See `app/shims/reflect-metadata-once.js` for the rationale on why
+// the second IIFE execution must be short-circuited.
+const DMK_REFLECT_METADATA_IMPORTERS = [
+  'node_modules/@ledgerhq/',
+  'node_modules/inversify',
+  'node_modules/@inversifyjs/',
+];
 
 module.exports = function (baseConfig) {
   return getSentryExpoConfig(__dirname, {
@@ -141,6 +193,49 @@ module.exports = function (baseConfig) {
               'node:buffer': '@craftzdog/react-native-buffer',
             },
             resolveRequest: (context, moduleName, platform) => {
+              // Redirect Ledger DMK-family bare imports to their ESM build.
+              // See `LEDGER_DMK_ESM_PACKAGES` above for the full rationale;
+              // in short, the CJS build re-evaluates `reflect-metadata`'s
+              // IIFE under Fast Refresh and Hermes rejects the second
+              // `Object.defineProperty` on the registry symbol.
+              if (LEDGER_DMK_ESM_PACKAGES.includes(moduleName)) {
+                return {
+                  filePath: path.resolve(
+                    __dirname,
+                    'node_modules',
+                    moduleName,
+                    'lib/esm/index.js',
+                  ),
+                  type: 'sourceFile',
+                };
+              }
+              // Reroute `reflect-metadata` imports from the Ledger DMK
+              // closure (DMK packages + inversify DI substrate) through an
+              // idempotent shim. The Metro polyfill loads
+              // `reflect-metadata` once at app startup but does not
+              // register it in the `__d` module cache, so the lazy DMK
+              // chunk re-evaluates the file body and the second IIFE
+              // throws "property is not configurable" on the
+              // `Symbol.for("@reflect-metadata:registry")` defineProperty.
+              //
+              // The shim short-circuits whenever Reflect.metadata is
+              // already a function (always true after the polyfill
+              // bootstrap). Other consumers (e.g. `@consensys/*-ramps-sdk`
+              // which carry their own nested `reflect-metadata@0.1.14`)
+              // resolve normally to their package-local copy.
+              if (
+                moduleName === 'reflect-metadata' &&
+                DMK_REFLECT_METADATA_IMPORTERS.some((fragment) =>
+                  context.originModulePath?.includes(fragment),
+                )
+              ) {
+                return {
+                  filePath: require.resolve(
+                    './app/shims/reflect-metadata-once.js',
+                  ),
+                  type: 'sourceFile',
+                };
+              }
               // MYXProvider is intentionally excluded from @metamask/perps-controller's
               // published dist (extension-only). The dynamic import() uses webpackIgnore
               // but babel's dynamicImportToRequire rewrites it to require(), causing Metro

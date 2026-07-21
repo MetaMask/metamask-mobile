@@ -497,6 +497,87 @@ describe('parseErrorByType', () => {
     });
   });
 
+  describe('DMK _tag-based error translation', () => {
+    it('parses DeviceSessionNotFound _tag as device disconnected', () => {
+      const error = {
+        _tag: 'DeviceSessionNotFound',
+        message: 'Session not found',
+      };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceDisconnected);
+    });
+
+    it('parses ConnectionOpeningError _tag as bluetooth connection failed', () => {
+      const error = {
+        _tag: 'ConnectionOpeningError',
+        message: 'Failed to open connection',
+      };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.BluetoothConnectionFailed);
+    });
+
+    it('parses DeviceDisconnectedWhileSendingError _tag as device disconnected', () => {
+      const error = {
+        _tag: 'DeviceDisconnectedWhileSendingError',
+        message: 'Disconnected',
+      };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceDisconnected);
+    });
+
+    it('parses DeviceLockedError _tag as device locked', () => {
+      const error = { _tag: 'DeviceLockedError', message: 'Device is locked' };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.AuthenticationDeviceLocked);
+    });
+
+    it('prefers name over _tag when both present', () => {
+      const error = {
+        name: 'TransportStatusError',
+        statusCode: 0x6985,
+        _tag: 'Ignored',
+      };
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.UserRejected);
+    });
+  });
+
+  describe('DMK message-based error translation', () => {
+    it('parses "session not found" message as device disconnected', () => {
+      const error = new Error('Device session not found');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceDisconnected);
+    });
+
+    it('parses "sessionId is not initialized" message as device disconnected', () => {
+      const error = new Error('Instance sessionId is not initialized.');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceDisconnected);
+    });
+
+    it('parses "device action ended without completion" as device unresponsive', () => {
+      const error = new Error('Ledger device action ended without completion.');
+
+      const result = parseErrorByType(error, walletType);
+
+      expect(result.code).toBe(ErrorCode.DeviceUnresponsive);
+    });
+  });
+
   describe('when error is a non-Error object with known Ledger shape', () => {
     it('parses object with disconnect error name', () => {
       const result = parseErrorByType(
