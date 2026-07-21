@@ -51,7 +51,6 @@ export const useImmersveOnboardingRouter = () => {
 
       switch (action.type) {
         case 'contact':
-          // Contact details are collected on SignUp; resume back there if still needed.
           goToOnboarding(Routes.CARD.ONBOARDING.SIGN_UP, {});
           break;
         case 'kyc':

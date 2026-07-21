@@ -407,8 +407,9 @@ const SignUp = () => {
       setPhoneRegion(region);
     });
 
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createRegionSelectorModalNavigationDetails({
         regions: allRegions,
         renderAreaCode: true,
         selectedRegionKey: phoneRegion?.key ?? selectedCountry?.key ?? null,
