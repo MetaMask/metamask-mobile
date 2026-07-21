@@ -1,18 +1,18 @@
 diff --git a/android/src/main/java/cl/json/social/ShareIntent.java b/android/src/main/java/cl/json/social/ShareIntent.java
-index c9e6d29d965c02c86279a648d40b4de66864038a..7d31b02dc37593bb5df56ea2b4d469bc34b1cb3c 100644
+index 2481000c8d5bdd0a3c8594429eedaefbc7eadfc2..c652aef2177c01a58d534ddfd8d727f5354858de 100644
 --- a/android/src/main/java/cl/json/social/ShareIntent.java
 +++ b/android/src/main/java/cl/json/social/ShareIntent.java
-@@ -278,14 +278,22 @@ public abstract class ShareIntent {
+@@ -296,14 +296,22 @@ public abstract class ShareIntent {
          if (ShareIntent.hasValidKey("excludedActivityTypes", options)) {
              if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                  chooser.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, getExcludedComponentArray(options.getArray("excludedActivityTypes")));
--                activity.startActivityForResult(chooser, RNShareModule.SHARE_REQUEST_CODE);
+-                activity.startActivityForResult(chooser, RNShareImpl.SHARE_REQUEST_CODE);
              } else {
--                activity.startActivityForResult(excludeChooserIntent(this.getIntent(),options), RNShareModule.SHARE_REQUEST_CODE);
+-                activity.startActivityForResult(excludeChooserIntent(this.getIntent(),options), RNShareImpl.SHARE_REQUEST_CODE);
 +                chooser = excludeChooserIntent(this.getIntent(), options);
              }
 -        } else {
--            activity.startActivityForResult(chooser, RNShareModule.SHARE_REQUEST_CODE);
+-            activity.startActivityForResult(chooser, RNShareImpl.SHARE_REQUEST_CODE);
          }
  
 +        // Use startActivity instead of startActivityForResult. The latter
@@ -27,5 +27,5 @@ index c9e6d29d965c02c86279a648d40b4de66864038a..7d31b02dc37593bb5df56ea2b4d469bc
 +        // success even when the user cancels). Only the pre-22 path, which has no
 +        // chosen-target callback, needs the immediate best-effort callback.
          if (intentSender == null) {
-             TargetChosenReceiver.sendCallback(true, true, "OK");
-         }
+             WritableMap reply = Arguments.createMap();
+             reply.putBoolean("success", true);
