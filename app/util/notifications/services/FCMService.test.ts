@@ -213,7 +213,11 @@ describe('FCMService - isPushNotificationsEnabled()', () => {
 
 describe('FCMService - listenToPushNotificationsReceived()', () => {
   beforeEach(() => {
+    FCMService.clearRegistration();
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
     FCMService.clearRegistration();
   });
 
@@ -223,7 +227,7 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
     const mockOnMessageUnsubscribe = jest.fn();
     firebaseMocks.mockOnMessage.mockReturnValue(mockOnMessageUnsubscribe);
 
-    return { firebaseMocks, mockOnMessageUnsubscribe, mockHandler };
+    return { firebaseMocks, mockHandler, mockOnMessageUnsubscribe };
   };
 
   it('sets up listeners for push notifications and returns an unsubscribe handler', async () => {
@@ -233,6 +237,17 @@ describe('FCMService - listenToPushNotificationsReceived()', () => {
       await FCMService.listenToPushNotificationsReceived(mockHandler);
     expect(result).toBeDefined();
     expect(firebaseMocks.mockOnMessage).toHaveBeenCalled();
+  });
+
+  it('registers a new foreground listener after unsubscribe', async () => {
+    const { mockHandler, firebaseMocks } = arrangeMocks();
+    const firstUnsubscribe =
+      await FCMService.listenToPushNotificationsReceived(mockHandler);
+
+    firstUnsubscribe?.();
+    await FCMService.listenToPushNotificationsReceived(mockHandler);
+
+    expect(firebaseMocks.mockOnMessage).toHaveBeenCalledTimes(2);
   });
 
   it('returns null if an error occurs while setting up listeners', async () => {

@@ -320,7 +320,7 @@ describe('QuickBuyRoot', () => {
       expect.objectContaining({
         [QuickBuyEventProperties.ASSET_NAME]: 'PEPE',
         [QuickBuyEventProperties.SOURCE]: 'market_insights',
-        [QuickBuyEventProperties.TRADER_TRADE_TYPE]: 'buy',
+        [QuickBuyEventProperties.TRADE_TYPE]: 'buy',
       }),
     );
   });
@@ -342,7 +342,7 @@ describe('QuickBuyRoot', () => {
     expect(mockTrack).not.toHaveBeenCalled();
   });
 
-  it('includes market_cap, original_entry_point and trader_trade_type from analyticsContext when provided', () => {
+  it('includes market_cap, original_entry_point and trade_type from analyticsContext when provided', () => {
     renderWithProvider(
       <QuickBuyRoot
         isVisible
@@ -369,7 +369,7 @@ describe('QuickBuyRoot', () => {
         [QuickBuyEventProperties.MARKET_CAP]: 1_500_000,
         [QuickBuyEventProperties.SOURCE]: 'profile_position',
         [QuickBuyEventProperties.ORIGINAL_ENTRY_POINT]: 'leaderboard',
-        [QuickBuyEventProperties.TRADER_TRADE_TYPE]: 'sell',
+        [QuickBuyEventProperties.TRADE_TYPE]: 'sell',
       },
     );
   });

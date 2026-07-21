@@ -467,9 +467,7 @@ const AccountsMenu = () => {
 
         {/* Support Row */}
         <ActionListItem
-          startAccessory={
-            <Icon name={IconName.MessageQuestion} size={IconSize.Lg} />
-          }
+          startAccessory={<Icon name={IconName.Sms} size={IconSize.Lg} />}
           label={strings('app_settings.contact_support')}
           onPress={onPressSupport}
           testID={AccountsMenuSelectorsIDs.SUPPORT}
