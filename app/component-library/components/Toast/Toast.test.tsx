@@ -462,6 +462,39 @@ describe('Toast', () => {
       expect(screen.getByText('Second toast')).toBeOnTheScreen();
     });
 
+    it('keeps persistent toast after replacing a timed toast', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const timedOptions: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Timed toast' }],
+        hasNoTimeout: false,
+      };
+      const persistentOptions: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Persistent toast' }],
+        hasNoTimeout: true,
+      };
+
+      await showToast(toastRef, timedOptions);
+
+      await act(async () => {
+        triggerToastLayout(view);
+      });
+
+      await act(async () => {
+        toastRef.current?.showToast(persistentOptions);
+        jest.advanceTimersByTime(100);
+      });
+
+      await act(async () => {
+        triggerToastLayout(view);
+        jest.advanceTimersByTime(visibilityDuration);
+      });
+
+      expect(screen.queryByText('Timed toast')).toBeNull();
+      expect(screen.getByText('Persistent toast')).toBeOnTheScreen();
+    });
+
     it('keeps persistent toast visible after layout when hasNoTimeout is true', async () => {
       const view = render(<Toast ref={toastRef} />);
       const options: ToastOptions = {

@@ -326,10 +326,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
     let timeoutDuration = 0;
     if (toastOptions) {
-      if (!options.hasNoTimeout) {
-        clearScheduledAutoDismiss();
-        cancelAnimation(translateYProgress);
-      }
+      // Always clear any pending auto-dismiss from the previous toast, including
+      // when the replacement is persistent (hasNoTimeout). Otherwise the old
+      // timer can fire and dismiss the new toast.
+      clearScheduledAutoDismiss();
+      cancelAnimation(translateYProgress);
       timeoutDuration = 100;
       // Clear existing toast state to prevent animation conflicts when showing rapid successive toasts
       animationStartedRef.current = false;
@@ -419,8 +420,12 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           translateYProgress.value = withSpring(
             visibleTranslateY.value,
             TOAST_SPRING_CONFIG,
-            () => {
-              runOnJS(resumeAutoDismissFromSwipe)();
+            (finished) => {
+              // A new pan cancels this spring via cancelAnimation; only resume
+              // auto-dismiss when the spring-back completed naturally.
+              if (finished) {
+                runOnJS(resumeAutoDismissFromSwipe)();
+              }
             },
           );
         }),
