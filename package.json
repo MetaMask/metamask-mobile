@@ -96,7 +96,7 @@
     "build:ios:pre-flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/build.sh ios flask --pre",
     "build:attribution": "./scripts/generate-attributions.sh",
     "test": "yarn test:unit",
-    "test:unit": "jest **/*ridge* --testPathIgnorePatterns='.*/tests/(smoke|regression)/.*\\.spec\\.(ts|tsx|js)$|.*/e2e/.*\\.spec\\.(ts|tsx|js)$|.*\\.view(\\..*)?\\.test\\.(ts|tsx|js|jsx)$'",
+    "test:unit": "jest ./app/ ./locales/ ./tests/**/*.test.ts .github/**/*.test.ts ./scripts/**/*.test.ts --testPathIgnorePatterns='.*/tests/(smoke|regression)/.*\\.spec\\.(ts|tsx|js)$|.*/e2e/.*\\.spec\\.(ts|tsx|js)$|.*\\.integration\\.test\\.(ts|tsx|js|jsx)$|.*\\.view(\\..*)?\\.test\\.(ts|tsx|js|jsx)$'",
     "test:view:base": "jest -c jest.config.view.js --no-watchman --silent",
     "test:view": "yarn test:view:base --coverage=false --testPathPattern='.*\\.view(\\..*)?\\.test\\.(ts|tsx|js|jsx)$'",
     "test:view:one": "yarn test:view:base --verbose --coverage=false --testTimeout=30000",
@@ -185,16 +185,16 @@
   "previewBuilds": {
     "@metamask/bridge-controller": {
       "type": "breaking",
-      "previewVersion": "77.6.0-preview-8abc30aca"
+      "previewVersion": "77.6.0-preview-6383bcdfc"
     },
     "@metamask/bridge-status-controller": {
-      "type": "non-breaking",
-      "previewVersion": "74.3.0-preview-8abc30aca"
+      "type": "breaking",
+      "previewVersion": "74.3.0-preview-6383bcdfc"
     }
   },
   "resolutions": {
-    "@metamask/bridge-controller": "npm:@metamask-previews/bridge-controller@77.6.0-preview-8abc30aca",
-    "@metamask/bridge-status-controller": "npm:@metamask-previews/bridge-status-controller@74.3.0-preview-8abc30aca",
+    "@metamask/bridge-controller": "npm:@metamask-previews/bridge-controller@77.6.0-preview-6383bcdfc",
+    "@metamask/bridge-status-controller": "npm:@metamask-previews/bridge-status-controller@74.3.0-preview-6383bcdfc",
     "@metamask/network-controller": "34.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
