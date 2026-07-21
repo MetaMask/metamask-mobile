@@ -1021,6 +1021,144 @@ describe('CustomAmountInfo', () => {
     });
   });
 
+  describe('Max auto-submit', () => {
+    const updateTokenAmountMock = jest.fn();
+    const updatePendingAmountPercentageMock = jest.fn();
+
+    beforeEach(() => {
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '0',
+        amountHuman: '0',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        isDepositPrefillEnabled: false,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageMock,
+        updateTokenAmount: updateTokenAmountMock,
+      });
+    });
+
+    it('hides keyboard immediately when Max is pressed', async () => {
+      const { getByText, queryByTestId } = render({ hasMax: true });
+
+      expect(queryByTestId('deposit-keyboard')).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      expect(queryByTestId('deposit-keyboard')).toBeNull();
+    });
+
+    it('calls updatePendingAmountPercentage with 100 when Max is pressed', async () => {
+      const { getByText } = render({ hasMax: true });
+
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      expect(updatePendingAmountPercentageMock).toHaveBeenCalledWith(100);
+    });
+
+    it('calls handleDone when amountFiat updates after Max press', async () => {
+      const { getByText, rerender } = render({ hasMax: true });
+
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '50',
+        amountHuman: '0.05',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        isDepositPrefillEnabled: false,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageMock,
+        updateTokenAmount: updateTokenAmountMock,
+      });
+
+      await act(async () => {
+        rerender(
+          <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
+            <CustomAmountInfo hasMax />
+          </ToastContext.Provider>,
+        );
+      });
+
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onAmountSubmit after Max auto-submit completes', async () => {
+      const onAmountSubmitMock = jest.fn();
+      const { getByText, rerender } = render({
+        hasMax: true,
+        onAmountSubmit: onAmountSubmitMock,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      useTransactionCustomAmountMock.mockReturnValue({
+        amountFiat: '50',
+        amountHuman: '0.05',
+        amountHumanDebounced: '0',
+        amountFiatDebounced: '0',
+        hasInput: false,
+        isDepositPrefillEnabled: false,
+        isDepositPrefilled: false,
+        isInputChanged: false,
+        isPrefillPending: false,
+        isDepositPrefillLoading: false,
+        updatePendingAmount: noop,
+        updatePendingAmountPercentage: updatePendingAmountPercentageMock,
+        updateTokenAmount: updateTokenAmountMock,
+      });
+
+      await act(async () => {
+        rerender(
+          <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
+            <CustomAmountInfo hasMax onAmountSubmit={onAmountSubmitMock} />
+          </ToastContext.Provider>,
+        );
+      });
+
+      expect(onAmountSubmitMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not auto-submit for non-max percentages', async () => {
+      const { getByText, queryByTestId } = render();
+
+      await act(async () => {
+        fireEvent.press(getByText('10%'));
+      });
+
+      expect(queryByTestId('deposit-keyboard')).toBeOnTheScreen();
+      expect(updateTokenAmountMock).not.toHaveBeenCalled();
+    });
+
+    it('does not auto-submit when amountFiat stays at zero', async () => {
+      const { getByText } = render({ hasMax: true });
+
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
+
+      expect(updateTokenAmountMock).not.toHaveBeenCalled();
+    });
+  });
+
   describe('showPaymentDetails', () => {
     async function pressDone(
       getByText: ReturnType<typeof render>['getByText'],
