@@ -239,11 +239,11 @@ describe('PredictFeedSessionManager', () => {
       sessionManager.startSession('predict_feed');
       mockTrackFeedViewed.mockClear();
 
-      sessionManager.trackTabChange('world-cup');
+      sessionManager.trackTabChange('sports');
 
       expect(mockTrackFeedViewed).toHaveBeenCalledWith({
         sessionId: 'mock-session-id',
-        feedTab: 'world-cup',
+        feedTab: 'sports',
         numPagesViewed: 1,
         sessionTime: 0,
         entryPoint: 'predict_feed',

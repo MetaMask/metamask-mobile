@@ -17,13 +17,9 @@ import {
   PREDICT_EMPTY_STATE_CTA_NAMES,
   type PredictEmptyStateCtaName,
 } from '../../../../abTestConfig';
-import { PREDICT_WORLD_CUP_TAB_KEYS } from '../../../../../../UI/Predict/constants/worldCupTabs';
 import { useCurrentCryptoUpDownMarketData } from '../../../../../../UI/Predict/hooks/useCurrentCryptoUpDownMarketData';
 import { usePredictNavigation } from '../../../../../../UI/Predict/hooks/usePredictNavigation';
-import {
-  selectPredictEnabledFlag,
-  selectPredictWorldCupScreenEnabledFlag,
-} from '../../../../../../UI/Predict/selectors/featureFlags';
+import { selectPredictEnabledFlag } from '../../../../../../UI/Predict/selectors/featureFlags';
 import {
   pickLiveWorldCupGameMarket,
   pickWorldCupWinnerMarket,
@@ -68,9 +64,6 @@ const HomepagePredictWorldCupDiscovery: React.FC<
 }) => {
   const navigation = useNavigation();
   const { navigateToMarketDetails } = usePredictNavigation();
-  const worldCupScreenEnabled = useSelector(
-    selectPredictWorldCupScreenEnabledFlag,
-  );
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const {
     marketId: btcMarketId,
@@ -151,47 +144,22 @@ const HomepagePredictWorldCupDiscovery: React.FC<
     transactionActiveAbTests,
   ]);
 
-  const goToWorldCup = useCallback(
-    (initialTab: string) => {
-      onTreatmentCtaClick?.(
-        PREDICT_EMPTY_STATE_CTA_NAMES.BROWSE_CATEGORY,
-        WORLD_CUP_CTA_CATEGORY_NAME,
-      );
-      const entryPoint = PredictEventValues.ENTRY_POINT.HOME_SECTION;
-      if (worldCupScreenEnabled) {
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.WORLD_CUP,
-          params: {
-            initialTab,
-            entryPoint,
-            ...(transactionActiveAbTests?.length && {
-              transactionActiveAbTests,
-            }),
-          },
-        });
-        return;
-      }
-      navigation.navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-        params: {
-          entryPoint,
-          ...(transactionActiveAbTests?.length && {
-            transactionActiveAbTests,
-          }),
-        },
-      });
-    },
-    [
-      navigation,
-      onTreatmentCtaClick,
-      transactionActiveAbTests,
-      worldCupScreenEnabled,
-    ],
-  );
-  const handleMensRow = useCallback(
-    () => goToWorldCup(PREDICT_WORLD_CUP_TAB_KEYS.ALL),
-    [goToWorldCup],
-  );
+  const handleMensRow = useCallback(() => {
+    onTreatmentCtaClick?.(
+      PREDICT_EMPTY_STATE_CTA_NAMES.BROWSE_CATEGORY,
+      WORLD_CUP_CTA_CATEGORY_NAME,
+    );
+    navigation.navigate(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+        tab: 'sports',
+        ...(transactionActiveAbTests?.length && {
+          transactionActiveAbTests,
+        }),
+      },
+    });
+  }, [navigation, onTreatmentCtaClick, transactionActiveAbTests]);
   const handleViewAll = useCallback(() => {
     onTreatmentCtaClick?.(PREDICT_EMPTY_STATE_CTA_NAMES.EXPLORE_FEATURED);
     onViewAll(transactionActiveAbTests);

@@ -10634,7 +10634,7 @@ describe('PredictController', () => {
         controller.trackFeedViewed({
           sessionId: 'test',
           feedTab: 'test',
-          predictScreen: 'world_cup',
+          predictScreen: 'predict_positions_screen',
           numPagesViewed: 1,
           sessionTime: 1000,
         });
@@ -10646,7 +10646,7 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         controller.trackBannerAction({
           actionType: 'viewed',
-          bannerType: 'world_cup',
+          bannerType: 'predict_the_pitch',
         });
         expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
       });

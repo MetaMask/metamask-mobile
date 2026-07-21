@@ -44,10 +44,6 @@ appiumTest.describe(
           enabled: false,
           minimumVersion: '0.0.0',
         },
-        predictWorldCup: {
-          enabled: false,
-          minimumVersion: '0.0.0',
-        },
       });
 
       await setupMockEvents(mockServer, TRENDING_API_MOCKS);

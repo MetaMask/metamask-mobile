@@ -36,26 +36,3 @@ export {
 
 export { usePredictCashOut } from './usePredictCashOut';
 export { usePredictPortfolio } from './usePredictPortfolio';
-
-export {
-  usePredictWorldCupMarkets,
-  usePredictWorldCupAvailability,
-  usePredictWorldCupAvailableTabs,
-  type UsePredictWorldCupMarketsOptions,
-  type UsePredictWorldCupAvailableTabsOptions,
-  type PredictWorldCupAvailableTab,
-} from './usePredictWorldCup';
-
-export {
-  usePredictWorldCupGamesSections,
-  usePredictWorldCupWinnerMarket,
-  type PredictWorldCupStageSection,
-  type UsePredictWorldCupGamesSectionsResult,
-  type UsePredictWorldCupWinnerMarketResult,
-} from './usePredictWorldCupHub';
-
-export {
-  usePredictWorldCupFeedSession,
-  type UsePredictWorldCupFeedSessionOptions,
-  type UsePredictWorldCupFeedSessionResult,
-} from './usePredictWorldCupFeedSession';

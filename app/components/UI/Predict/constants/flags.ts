@@ -5,7 +5,6 @@ import {
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
   PredictWimbledonTabFlag,
-  PredictWorldCupConfig,
 } from '../types/flags';
 
 export const DEFAULT_FEE_COLLECTION_FLAG = {
@@ -62,20 +61,3 @@ export const DEFAULT_WIMBLEDON_TAB_FLAG = {
   queryParams: PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
   minimumVersion: '',
 } satisfies PredictWimbledonTabFlag;
-
-export const PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG = 'fifa-world-cup';
-export const PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID = '100639';
-
-export const DEFAULT_PREDICT_WORLD_CUP_FLAG: PredictWorldCupConfig = {
-  enabled: false,
-  minimumVersion: '',
-  showMainFeedBanner: false,
-  showMainFeedTab: false,
-  showWorldCupScreen: false,
-  showHubV2: false,
-  showHubBanner: false,
-  tagSlug: PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG,
-  gamesTagId: PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID,
-  winnerEventId: '',
-  stages: [],
-};
