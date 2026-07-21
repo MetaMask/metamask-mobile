@@ -61,7 +61,7 @@ const createQuote = ({
       gasSponsored,
     },
     gasFee: {
-      effective: {
+      total: {
         amount: gasAmount,
       },
     },
@@ -132,7 +132,7 @@ describe('useIsInsufficientBalance', () => {
             gasIncluded: false,
           },
           gasFee: {
-            effective: {
+            total: {
               amount: '0.001', // 0.001 ETH gas
             },
           },
@@ -192,7 +192,7 @@ describe('useIsInsufficientBalance', () => {
             gasIncluded: false, // Cross-chain, needs gas
           },
           gasFee: {
-            effective: {
+            total: {
               amount: '0.01', // 0.01 ETH gas
             },
           },
@@ -220,7 +220,7 @@ describe('useIsInsufficientBalance', () => {
             gasIncluded: false,
           },
           gasFee: {
-            effective: {
+            total: {
               amount: '0.02', // 0.02 ETH gas
             },
           },
@@ -248,7 +248,7 @@ describe('useIsInsufficientBalance', () => {
             gasIncluded: false,
           },
           gasFee: {
-            effective: {
+            total: {
               amount: '0.001',
             },
           },
@@ -275,7 +275,7 @@ describe('useIsInsufficientBalance', () => {
             gasIncluded: false,
           },
           gasFee: {
-            effective: {
+            total: {
               amount: '1.5e-3', // 0.0015 ETH in scientific notation
             },
           },
@@ -304,7 +304,7 @@ describe('useIsInsufficientBalance', () => {
             gasIncluded: false,
           },
           gasFee: {
-            effective: {
+            total: {
               amount: '5e-2', // 0.05 ETH in scientific notation
             },
           },
@@ -341,7 +341,7 @@ describe('useIsInsufficientBalance', () => {
             gasIncluded: false,
           },
           gasFee: {
-            effective: {
+            total: {
               amount: '0.1', // 0.1 MATIC gas
             },
           },
@@ -369,7 +369,7 @@ describe('useIsInsufficientBalance', () => {
             gasIncluded: false,
           },
           gasFee: {
-            effective: {
+            total: {
               amount: '1', // 1 MATIC gas
             },
           },
@@ -639,48 +639,48 @@ describe('useIsInsufficientBalance', () => {
     });
   });
 
-  describe('transformEffectiveToAtomic', () => {
-    it('transforms effective gas fee to atomic gas fee', () => {
-      const effectiveGasFee = '0.000000000000000001';
+  describe('transformtotalToAtomic', () => {
+    it('transforms total gas fee to atomic gas fee', () => {
+      const totalGasFee = '0.000000000000000001';
       const decimals = 18;
-      const atomicGasFee = parseAmount(effectiveGasFee, decimals);
+      const atomicGasFee = parseAmount(totalGasFee, decimals);
       expect(atomicGasFee.toString()).toBe('1');
     });
 
-    it('transforms effective gas fee to atomic gas fee with decimals', () => {
-      const effectiveGasFee = '0.000001426955931521';
+    it('transforms total gas fee to atomic gas fee with decimals', () => {
+      const totalGasFee = '0.000001426955931521';
       const decimals = 6;
-      const atomicGasFee = parseAmount(effectiveGasFee, decimals);
+      const atomicGasFee = parseAmount(totalGasFee, decimals);
       expect(atomicGasFee.toString()).toBe('1');
     });
   });
 
-  describe('formatEffectiveGasFee', () => {
-    it('formats effective gas fee to string', () => {
-      const effectiveGasFee = '0.000000000000000001';
+  describe('formattotalGasFee', () => {
+    it('formats total gas fee to string', () => {
+      const totalGasFee = '0.000000000000000001';
       const decimals = 18;
-      const formattedGasFee = formatAmount(effectiveGasFee, decimals);
-      expect(formattedGasFee).toBe(effectiveGasFee);
+      const formattedGasFee = formatAmount(totalGasFee, decimals);
+      expect(formattedGasFee).toBe(totalGasFee);
     });
 
-    it('formats effective gas fee to string for integer part > 0', () => {
-      const effectiveGasFee = '23.000000000000000001';
+    it('formats total gas fee to string for integer part > 0', () => {
+      const totalGasFee = '23.000000000000000001';
       const decimals = 18;
-      const formattedGasFee = formatAmount(effectiveGasFee, decimals);
-      expect(formattedGasFee).toBe(effectiveGasFee);
+      const formattedGasFee = formatAmount(totalGasFee, decimals);
+      expect(formattedGasFee).toBe(totalGasFee);
     });
 
-    it('formats effective gas fee to string when token decimals is less than effective gas fee decimals', () => {
-      const effectiveGasFee = '0.000005426955931521';
+    it('formats total gas fee to string when token decimals is less than total gas fee decimals', () => {
+      const totalGasFee = '0.000005426955931521';
       const decimals = 6;
-      const formattedGasFee = formatAmount(effectiveGasFee, decimals);
+      const formattedGasFee = formatAmount(totalGasFee, decimals);
       expect(formattedGasFee).toBe('0.000005');
     });
 
-    it('formats effective gas fee to string when token decimals is more than effective gas fee decimals', () => {
-      const effectiveGasFee = '0.000005';
+    it('formats total gas fee to string when token decimals is more than total gas fee decimals', () => {
+      const totalGasFee = '0.000005';
       const decimals = 18;
-      const formattedGasFee = formatAmount(effectiveGasFee, decimals);
+      const formattedGasFee = formatAmount(totalGasFee, decimals);
       expect(formattedGasFee).toBe('0.000005');
     });
   });

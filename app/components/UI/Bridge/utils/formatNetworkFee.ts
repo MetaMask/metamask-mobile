@@ -41,13 +41,13 @@ export const formatNetworkFee = (
   }
 
   if (
-    quote.gasFee?.effective?.valueInCurrency != null &&
-    quote.gasFee?.effective?.amount != null &&
-    isNumberValue(quote.gasFee.effective.amount) &&
-    isNumberValue(quote.gasFee.effective.valueInCurrency)
+    quote.gasFee?.total?.valueInCurrency != null &&
+    quote.gasFee?.total?.amount != null &&
+    isNumberValue(quote.gasFee.total.amount) &&
+    isNumberValue(quote.gasFee.total.valueInCurrency)
   ) {
     return formatFiat(
-      new BigNumber(quote.gasFee.effective.valueInCurrency),
+      new BigNumber(quote.gasFee.total.valueInCurrency),
       currency,
     );
   }

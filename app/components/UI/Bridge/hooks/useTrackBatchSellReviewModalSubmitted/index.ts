@@ -25,7 +25,7 @@ function getQuotedReturnUsdAmount(
     const assetId = formatAddressToAssetId(token.address, token.chainId);
     const quote = assetId ? tokenData[assetId]?.quote : undefined;
 
-    return totalUsdAmount + getUsdAmount(quote?.toTokenAmount.usd);
+    return totalUsdAmount + getUsdAmount(quote?.toTokenAmount?.usd);
   }, 0);
 }
 

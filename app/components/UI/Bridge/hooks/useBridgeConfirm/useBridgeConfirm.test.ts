@@ -147,8 +147,8 @@ describe('useBridgeConfirm', () => {
           status: PostTradeStatus.InProgress,
           transactionMetaId: 'tx-meta-id',
           transactionHash: '0xabc',
-          sourceAmount: mockQuoteWithMetadata.sentAmount.amount,
-          destAmount: mockQuoteWithMetadata.toTokenAmount.amount,
+          sourceAmount: mockQuoteWithMetadata.sentAmount?.amount,
+          destAmount: mockQuoteWithMetadata.toTokenAmount?.amount,
         }),
       });
     });
@@ -352,8 +352,8 @@ describe('useBridgeConfirm', () => {
         screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
         params: expect.objectContaining({
           status: PostTradeStatus.Failed,
-          sourceAmount: mockQuoteWithMetadata.sentAmount.amount,
-          destAmount: mockQuoteWithMetadata.toTokenAmount.amount,
+          sourceAmount: mockQuoteWithMetadata.sentAmount?.amount,
+          destAmount: mockQuoteWithMetadata.toTokenAmount?.amount,
         }),
       });
     });

@@ -34,8 +34,8 @@ describe('usePriceImpactFiat', () => {
 
   it('returns undefined when sentAmount.valueInCurrency is null', () => {
     const { result } = renderHook({
-      sentAmount: { amount: '1', valueInCurrency: null, usd: null },
-      toTokenAmount: { amount: '0.9', valueInCurrency: '90', usd: null },
+      sentAmount: { amount: '1', valueInCurrency: undefined, usd: undefined },
+      toTokenAmount: { amount: '0.9', valueInCurrency: '90', usd: undefined },
     } as Parameters<typeof usePriceImpactFiat>[0]);
 
     expect(result.current).toBeUndefined();
@@ -43,8 +43,12 @@ describe('usePriceImpactFiat', () => {
 
   it('returns undefined when toTokenAmount.valueInCurrency is null', () => {
     const { result } = renderHook({
-      sentAmount: { amount: '1', valueInCurrency: '100', usd: null },
-      toTokenAmount: { amount: '0.9', valueInCurrency: null, usd: null },
+      sentAmount: { amount: '1', valueInCurrency: '100', usd: undefined },
+      toTokenAmount: {
+        amount: '0.9',
+        valueInCurrency: undefined,
+        usd: undefined,
+      },
     } as Parameters<typeof usePriceImpactFiat>[0]);
 
     expect(result.current).toBeUndefined();
@@ -52,8 +56,12 @@ describe('usePriceImpactFiat', () => {
 
   it('returns the formatted absolute difference when source fiat is greater than dest fiat', () => {
     const { result } = renderHook({
-      sentAmount: { amount: '1', valueInCurrency: '100', usd: null },
-      toTokenAmount: { amount: '0.9', valueInCurrency: '92.95', usd: null },
+      sentAmount: { amount: '1', valueInCurrency: '100', usd: undefined },
+      toTokenAmount: {
+        amount: '0.9',
+        valueInCurrency: '92.95',
+        usd: undefined,
+      },
     } as Parameters<typeof usePriceImpactFiat>[0]);
 
     // $100 - $92.95 = $7.05
@@ -64,8 +72,8 @@ describe('usePriceImpactFiat', () => {
     mockSelectCurrentCurrency.mockReturnValue('EUR');
 
     const { result } = renderHook({
-      sentAmount: { amount: '1', valueInCurrency: '50', usd: null },
-      toTokenAmount: { amount: '0.9', valueInCurrency: '45', usd: null },
+      sentAmount: { amount: '1', valueInCurrency: '50', usd: undefined },
+      toTokenAmount: { amount: '0.9', valueInCurrency: '45', usd: undefined },
     } as Parameters<typeof usePriceImpactFiat>[0]);
 
     // €50 - €45 = €5
@@ -75,8 +83,8 @@ describe('usePriceImpactFiat', () => {
 
   it('returns the absolute difference when dest fiat is greater than source fiat', () => {
     const { result } = renderHook({
-      sentAmount: { amount: '1', valueInCurrency: '90', usd: null },
-      toTokenAmount: { amount: '1.1', valueInCurrency: '100', usd: null },
+      sentAmount: { amount: '1', valueInCurrency: '90', usd: undefined },
+      toTokenAmount: { amount: '1.1', valueInCurrency: '100', usd: undefined },
     } as Parameters<typeof usePriceImpactFiat>[0]);
 
     // abs(90 - 100) = 10
@@ -85,8 +93,8 @@ describe('usePriceImpactFiat', () => {
 
   it('returns a formatted zero value when source and dest fiat are equal', () => {
     const { result } = renderHook({
-      sentAmount: { amount: '1', valueInCurrency: '100', usd: null },
-      toTokenAmount: { amount: '1', valueInCurrency: '100', usd: null },
+      sentAmount: { amount: '1', valueInCurrency: '100', usd: undefined },
+      toTokenAmount: { amount: '1', valueInCurrency: '100', usd: undefined },
     } as Parameters<typeof usePriceImpactFiat>[0]);
 
     expect(result.current).toBe('$0.00');

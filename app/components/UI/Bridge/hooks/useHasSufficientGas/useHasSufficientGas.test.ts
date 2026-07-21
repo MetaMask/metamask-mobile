@@ -26,7 +26,7 @@ describe('useHasSufficientGas', () => {
           srcChainId: '0x1',
         },
         gasFee: {
-          effective: { amount: '0.001' },
+          total: { amount: '0.001' },
         },
       } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -46,7 +46,7 @@ describe('useHasSufficientGas', () => {
           srcChainId: '0x1',
         },
         gasFee: {
-          effective: { amount: '0.001' },
+          total: { amount: '0.001' },
         },
       } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -66,7 +66,7 @@ describe('useHasSufficientGas', () => {
           srcChainId: '0x1',
         },
         gasFee: {
-          effective: { amount: '0.001' },
+          total: { amount: '0.001' },
         },
       } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -90,7 +90,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: '0x1',
             },
             gasFee: {
-              effective: { amount: '0.001' }, // 0.001 ETH
+              total: { amount: '0.001' }, // 0.001 ETH
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -117,7 +117,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: '0x1',
             },
             gasFee: {
-              effective: { amount: '0.01' }, // 0.01 ETH
+              total: { amount: '0.01' }, // 0.01 ETH
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -135,7 +135,7 @@ describe('useHasSufficientGas', () => {
         expect(result.current).toBe(false);
       });
 
-      it('should handle scientific notation in effective gas fee', () => {
+      it('should handle scientific notation in total gas fee', () => {
         const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] =
           {
             quote: {
@@ -144,7 +144,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: '0x1',
             },
             gasFee: {
-              effective: { amount: '9.200359292e-8' }, // Scientific notation
+              total: { amount: '9.200359292e-8' }, // Scientific notation
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -172,7 +172,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: '0x1',
             },
             gasFee: {
-              effective: { amount: '0.001' },
+              total: { amount: '0.001' },
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -195,7 +195,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: '0x1',
             },
             gasFee: {
-              effective: undefined,
+              total: undefined,
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -221,7 +221,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: '0x1',
             },
             gasFee: {
-              effective: { amount: '0.001' },
+              total: { amount: '0.001' },
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -249,7 +249,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
             },
             gasFee: {
-              effective: { amount: '0.001' }, // 0.001 SOL
+              total: { amount: '0.001' }, // 0.001 SOL
             },
             totalNetworkFee: {
               amount: '0.02',
@@ -279,7 +279,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
             },
             gasFee: {
-              effective: { amount: '0.01' }, // 0.01 SOL
+              total: { amount: '0.01' }, // 0.01 SOL
             },
             totalNetworkFee: {
               amount: '0.01',
@@ -309,7 +309,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: ChainId.BTC,
             },
             gasFee: {
-              effective: { amount: '0' },
+              total: { amount: '0' },
             },
             totalNetworkFee: {
               amount: '0.0001',

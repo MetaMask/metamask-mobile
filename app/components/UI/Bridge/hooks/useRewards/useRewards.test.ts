@@ -5,7 +5,11 @@ import { getUsdPricePerToken, useRewards } from './useRewards';
 import Engine from '../../../../../core/Engine';
 import { waitFor } from '@testing-library/react-native';
 import { CaipAssetType, Hex } from '@metamask/utils';
-
+import {
+  validateQuoteResponseV1,
+  QuoteResponse,
+  QuoteMetadata,
+} from '@metamask/bridge-controller';
 // Mock dependencies
 jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
@@ -16,7 +20,7 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 // Mock useBridgeQuoteData hook
-const mockActiveQuote = {
+const mockActiveQuote: QuoteResponse & QuoteMetadata = {
   quote: {
     requestId:
       '0xd12f19d577efae2b92748c1abc32d8be78a5e73a99d74e16cada270a2ad99516' as Hex,
@@ -136,26 +140,11 @@ const mockActiveQuote = {
     valueInCurrency: '1.94986624707319270464',
     usd: '1.94986624707319270464',
   },
-  totalMaxNetworkFee: {
-    amount: '0.000908611296073614',
-    valueInCurrency: '4.06209217690446316524',
-    usd: '4.06209217690446316524',
-  },
   gasFee: {
-    effective: {
-      amount: '0.000436147290796704',
-      valueInCurrency: '1.94986624707319270464',
-      usd: '1.94986624707319270464',
-    },
     total: {
       amount: '0.000436147290796704',
       valueInCurrency: '1.94986624707319270464',
       usd: '1.94986624707319270464',
-    },
-    max: {
-      amount: '0.000908611296073614',
-      valueInCurrency: '4.06209217690446316524',
-      usd: '4.06209217690446316524',
     },
   },
   adjustedReturn: {
@@ -168,6 +157,8 @@ const mockActiveQuote = {
   },
   includedTxFees: null,
 };
+
+validateQuoteResponseV1(mockActiveQuote);
 
 describe('useRewards', () => {
   const mockCall = Engine.controllerMessenger.call as jest.Mock;
