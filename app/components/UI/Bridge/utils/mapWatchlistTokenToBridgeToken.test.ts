@@ -68,4 +68,19 @@ describe('mapWatchlistTokenToBridgeToken', () => {
     expect(result.address).toBe('0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48');
     expect(result.chainId).toBe('0x1');
   });
+
+  it('falls back to the static token icon URL when iconUrl is missing', () => {
+    const result = mapWatchlistTokenToBridgeToken(
+      makeWatchlistToken({
+        assetId: 'eip155:1/erc20:0x6982508145454ce325ddbef9b9008f994fce8312',
+        symbol: 'PEPE',
+        name: 'Pepe',
+        iconUrl: undefined,
+      }),
+    );
+
+    expect(result.image).toBe(
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x6982508145454ce325ddbef9b9008f994fce8312.png',
+    );
+  });
 });

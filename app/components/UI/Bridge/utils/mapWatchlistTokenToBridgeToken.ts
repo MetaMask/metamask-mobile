@@ -1,9 +1,11 @@
 import type { CaipAssetType } from '@metamask/utils';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
 
 import type { WatchlistTokenWithBalance } from '../../Assets/watchlist/utils/addBalanceToTokens';
 import I18n from '../../../../../locales/i18n';
 import { formatWithThreshold } from '../../../../util/assets';
 import type { BridgeToken } from '../types';
+import { getTokenIconUrl } from './index';
 import { convertApiTokenToBridgeToken } from './tokenUtils';
 
 export const formatWatchlistBalanceFiat = (
@@ -41,11 +43,17 @@ export const mapWatchlistTokenToBridgeToken = (
     token.fiatCurrency,
   );
 
+  const assetId = String(token.assetId) as CaipAssetType;
+  const fallbackImage = getTokenIconUrl(
+    assetId,
+    isNonEvmChainId(bridgeToken.chainId),
+  );
+
   return {
     ...bridgeToken,
     balance: token.balance,
     balanceFiat,
     tokenFiatAmount: token.balanceFiat,
-    image: token.iconUrl ?? bridgeToken.image,
+    image: token.iconUrl ?? bridgeToken.image ?? fallbackImage,
   };
 };
