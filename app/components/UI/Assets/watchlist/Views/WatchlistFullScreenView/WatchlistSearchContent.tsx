@@ -65,7 +65,7 @@ const WatchlistSearchContent: React.FC<WatchlistSearchContentProps> = ({
 
   const isFeedLoading = isDebouncing || isLoading;
   const hasActiveQuery = debouncedQuery.trim().length > 0;
-  const listData = isFeedLoading ? [] : data;
+  const listData = data;
   const showEmptyResults =
     hasActiveQuery && !isFeedLoading && listData.length === 0;
 

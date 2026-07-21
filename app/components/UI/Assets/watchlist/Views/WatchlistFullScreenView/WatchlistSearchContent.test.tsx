@@ -234,6 +234,42 @@ describe('WatchlistSearchContent', () => {
     expect(getByText('Check out other popular assets')).toBeDefined();
   });
 
+  it('keeps results mounted when loading refetches with existing data', () => {
+    const { getByTestId, getByText, rerender } = render(
+      <WatchlistSearchContent onDismiss={mockOnDismiss} />,
+    );
+
+    fireEvent.changeText(getByTestId('mock-watchlist-search-input'), 'pepe');
+
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
+
+    mockUseTokensFeed.mockReturnValue({
+      data: [makeToken('pepe')],
+      isLoading: false,
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasMore: false,
+    });
+
+    rerender(<WatchlistSearchContent onDismiss={mockOnDismiss} />);
+
+    expect(getByText('pepe')).toBeDefined();
+
+    mockUseTokensFeed.mockReturnValue({
+      data: [makeToken('pepe')],
+      isLoading: true,
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasMore: false,
+    });
+
+    rerender(<WatchlistSearchContent onDismiss={mockOnDismiss} />);
+
+    expect(getByText('pepe')).toBeDefined();
+  });
+
   it('hides skeleton overlay after loading completes', () => {
     mockUseTokensFeed.mockReturnValue({
       data: [],
