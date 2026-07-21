@@ -263,7 +263,7 @@ Only the JS-only **Expo** workflow is supported here (see [Expo setup](./docs/re
 
 ### First-time / full setup vs. the automatic update script
 
-- The startup **update script** only refreshes dependencies: `yarn install` → `yarn allow-scripts` → `yarn patch-package` (the last two must run after every install because they modify `node_modules`). It intentionally omits network-heavy one-time steps.
+- The startup **update script** only refreshes dependencies: `yarn install` → `yarn allow-scripts` → `yarn patch-package` (the last two must run after every install because they modify `node_modules`). It intentionally omits network-heavy one-time steps. The same commands are kept in-repo as [`.cursor/cloud-update.sh`](../.cursor/cloud-update.sh) (idempotent; safe to run by hand). That script is documentation/convenience only — it is not auto-run on boot and does not commit any environment config, so it does not affect other developers' Cloud environments.
 - The one-time, network-dependent artifacts are produced by `yarn setup:expo` and are **gitignored but persisted** in the workspace: `app/core/InpageBridgeWeb3.js` (inpage bridge), `app/util/termsOfUse/termsOfUseContent.ts` (curled from legal.consensys.io), the `.js.env`/`.ios.env`/`.android.env`/`.e2e.env` files, the `ios/branch-ios-sdk` submodule, and the `anvil` binary. If any of these go missing (e.g. clean checkout), re-run `yarn setup:expo` — it needs network access.
 
 ### Running the bundler (hello-world)
