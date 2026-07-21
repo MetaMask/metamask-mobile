@@ -1435,6 +1435,7 @@ export function useQuickBuyController(
       dispatch(setIsSubmittingTx(true));
       const submitResult = await Engine.context.BridgeStatusController.submitTx(
         walletAddress,
+        // @ts-expect-error - TODO: fix this
         { ...activeQuote, approval: activeQuote.approval ?? undefined },
         stxEnabled,
       );
