@@ -222,8 +222,9 @@ const SignUp = () => {
   ]);
 
   const openAccountSelector = useCallback(() => {
-    navigation.navigate(
-      ...createAccountSelectorNavDetails({
+    navigateWithDetails(
+      navigation,
+      createAccountSelectorNavDetails({
         isEvmOnly: true,
         isSelectOnly: true,
         disableAddAccountButton: true,
