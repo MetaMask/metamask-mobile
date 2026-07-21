@@ -136,6 +136,16 @@ const PerpsClosePositionView: React.FC = () => {
   const [closePercentage, setClosePercentage] = useState(100); // Default to 100% (full close)
   const [closeAmountUSDString, setCloseAmountUSDString] = useState('0'); // Raw string for USD input (user input only)
 
+  // Live slider display value for immediate UI feedback while dragging. The
+  // committed `closePercentage` only updates on drag end, since it drives the
+  // expensive fee/rewards/validation recompute pipeline (usePerpsOrderFees et al.).
+  const [displayClosePercentage, setDisplayClosePercentage] =
+    useState(closePercentage);
+
+  useEffect(() => {
+    setDisplayClosePercentage(closePercentage);
+  }, [closePercentage]);
+
   // State for limit price
   const [limitPrice, setLimitPrice] = useState('');
 
@@ -236,11 +246,46 @@ const PerpsClosePositionView: React.FC = () => {
     isLoadingMarketData,
   ]);
 
+  // Live counterpart of closeAmount/calculatedUSDString for display only -
+  // cheap synchronous calc, safe to recompute every drag frame off the live
+  // display percentage. closeAmount/calculatedUSDString above stay tied to
+  // the committed closePercentage and keep feeding fees, validation, and
+  // handleConfirm.
+  const {
+    closeAmount: liveCloseAmount,
+    calculatedUSDString: liveCalculatedUSDString,
+  } = useMemo(() => {
+    if (isLoadingMarketData) {
+      return { closeAmount: '0', calculatedUSDString: '0.00' };
+    }
+
+    const szDecimals =
+      marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
+
+    const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
+      percentage: displayClosePercentage,
+      positionSize: absSize,
+      currentPrice: effectivePrice,
+      szDecimals,
+    });
+
+    return {
+      closeAmount: tokenAmount.toString(),
+      calculatedUSDString: formatCloseAmountUSD(usdValue),
+    };
+  }, [
+    displayClosePercentage,
+    absSize,
+    effectivePrice,
+    marketData?.szDecimals,
+    isLoadingMarketData,
+  ]);
+
   // Use calculated USD string when not in input mode, user input when typing
   const displayUSDString =
     isInputFocused || isUserInputActive
       ? closeAmountUSDString
-      : calculatedUSDString;
+      : liveCalculatedUSDString;
 
   // Use live position data which includes real-time funding fees
   // HyperLiquid's marginUsed already includes accumulated PnL
@@ -613,8 +658,12 @@ const PerpsClosePositionView: React.FC = () => {
     setIsUserInputActive(false);
   };
 
-  const handleSliderChange = (value: number) => {
+  const handleSliderValueChange = (value: number) => {
     inputMethodRef.current = 'slider';
+    setDisplayClosePercentage(value);
+  };
+
+  const handleSliderDragEnd = (value: number) => {
     setClosePercentage(value);
 
     // Update USD input to match calculated value for keypad display consistency
@@ -708,7 +757,10 @@ const PerpsClosePositionView: React.FC = () => {
           showWarning={false}
           onPress={handleAmountPress}
           isActive={isInputFocused}
-          tokenAmount={formatPositionSize(closeAmount, marketData?.szDecimals)}
+          tokenAmount={formatPositionSize(
+            liveCloseAmount,
+            marketData?.szDecimals,
+          )}
           hasError={filteredErrors.length > 0}
           tokenSymbol={position.symbol}
           showMaxAmount={false}
@@ -717,7 +769,7 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Toggle Button for USD/Token Display */}
         <View style={styles.toggleContainer}>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {`${formatPositionSize(closeAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.symbol)}`}
+            {`${formatPositionSize(liveCloseAmount, marketData?.szDecimals)} ${getPerpsDisplaySymbol(position.symbol)}`}
           </Text>
         </View>
 
@@ -725,8 +777,9 @@ const PerpsClosePositionView: React.FC = () => {
         {!isInputFocused && (
           <View style={styles.sliderSection}>
             <PerpsSlider
-              value={closePercentage}
-              onValueChange={handleSliderChange}
+              value={displayClosePercentage}
+              onValueChange={handleSliderValueChange}
+              onDragEnd={handleSliderDragEnd}
               minimumValue={0}
               maximumValue={100}
               step={1}
