@@ -120,7 +120,6 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     const { getByTestId, getByText, findAllByText, findByText } =
       renderSettings({
         socialLeaderboardEnabled: true,
-        priceAlertsEnabled: true,
       });
 
     expect(
@@ -149,16 +148,14 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(await findAllByText('Push, In app')).toHaveLength(3);
   });
 
-  it('hides price alerts section when price alerts feature flag is disabled', async () => {
-    const { getByText, queryByText, findByText } = renderSettings({
-      priceAlertsEnabled: false,
-    });
+  it('renders price alerts section when notifications are enabled', async () => {
+    const { getByText, findByText } = renderSettings();
 
     expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.perps)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
-    expect(queryByText(SECTION_TITLES.priceAlerts)).toBeNull();
+    expect(getByText(SECTION_TITLES.priceAlerts)).toBeOnTheScreen();
   });
 
   it('hides notification sections when main toggle is off', async () => {

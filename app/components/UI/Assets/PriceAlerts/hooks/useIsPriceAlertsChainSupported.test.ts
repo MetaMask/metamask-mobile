@@ -108,19 +108,6 @@ describe('useIsPriceAlertsChainSupported', () => {
     expect(result.current).toBe(false);
   });
 
-  it('does not fetch when enabled is false', () => {
-    const { Wrapper } = createWrapper();
-    renderHook(
-      () =>
-        useIsPriceAlertsChainSupported('eip155:1/slip44:60', {
-          enabled: false,
-        }),
-      { wrapper: Wrapper },
-    );
-
-    expect(mockFetchSupportedChains).not.toHaveBeenCalled();
-  });
-
   it('retries the fetch after a transient failure', async () => {
     jest.useFakeTimers();
 
