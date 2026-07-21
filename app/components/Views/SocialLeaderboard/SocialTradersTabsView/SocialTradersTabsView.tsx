@@ -30,12 +30,11 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import FeedView from '../FeedView';
+import FeedSpotBuyAction, {
+  type FeedSpotBuyActionHandle,
+} from '../FeedView/components/FeedSpotBuyAction';
 import TopTradersView from '../TopTradersView';
-import {
-  QuickBuy,
-  TOP_TRADERS_QUICK_BUY_FEATURES,
-  type QuickBuyTarget,
-} from '../TraderPositionView/components/QuickBuy';
+import type { QuickBuyTarget } from '../TraderPositionView/components/QuickBuy';
 import SocialTradersTabBar, {
   type SocialTradersTab,
 } from './SocialTradersTabBar';
@@ -63,21 +62,15 @@ const SocialTradersTabsView: React.FC = () => {
   const programmaticTabChangeRef = useRef(false);
   const [activeIndex, setActiveIndex] = useState(LEADERBOARD_INDEX);
 
-  // QuickBuy is hosted here (outside the PagerView) rather than inside FeedView
-  // so the sheet isn't clipped by the pager page and the content behind it
-  // stays interactive (no backdrop / tap- and swipe-through).
-  const [quickBuyTarget, setQuickBuyTarget] = useState<QuickBuyTarget | null>(
-    null,
-  );
-  const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
+  // The spot Buy orchestrator (QuickBuy sheet / swaps A/B) is hosted here,
+  // outside the PagerView, so its QuickBuy sheet isn't clipped by the pager page
+  // and the content behind it stays interactive (no backdrop, tap/swipe-through).
+  // FeedView reports spot availability and triggers the buy via this ref.
+  const buyActionRef = useRef<FeedSpotBuyActionHandle>(null);
+  const [feedHasSpotItem, setFeedHasSpotItem] = useState(false);
 
   const handleQuickBuy = useCallback((target: QuickBuyTarget) => {
-    setQuickBuyTarget(target);
-    setIsQuickBuyVisible(true);
-  }, []);
-
-  const handleQuickBuyClose = useCallback(() => {
-    setIsQuickBuyVisible(false);
+    buyActionRef.current?.open(target);
   }, []);
 
   const {
@@ -237,17 +230,17 @@ const SocialTradersTabsView: React.FC = () => {
           <FeedView
             isActive={activeIndex === FEED_INDEX}
             onQuickBuy={handleQuickBuy}
+            onSpotAvailabilityChange={setFeedHasSpotItem}
           />
         </View>
       </PagerView>
 
-      <QuickBuy.Root
-        isVisible={isQuickBuyVisible}
-        target={quickBuyTarget}
-        onClose={handleQuickBuyClose}
-        features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        analyticsContext={{ source: 'trader_feed' }}
-      />
+      {feedHasSpotItem && (
+        <FeedSpotBuyAction
+          ref={buyActionRef}
+          isActive={activeIndex === FEED_INDEX}
+        />
+      )}
     </SafeAreaView>
   );
 };

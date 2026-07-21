@@ -235,6 +235,22 @@ describe('FeedView', () => {
     );
   });
 
+  it('reports spot availability to the parent', () => {
+    const onSpotAvailabilityChange = jest.fn();
+
+    const { rerender } = renderWithProvider(
+      <FeedView onSpotAvailabilityChange={onSpotAvailabilityChange} />,
+    );
+
+    expect(onSpotAvailabilityChange).toHaveBeenLastCalledWith(true);
+
+    onSpotAvailabilityChange.mockClear();
+    mockFeedResult = buildResult({ items: [perpItem] });
+    rerender(<FeedView onSpotAvailabilityChange={onSpotAvailabilityChange} />);
+
+    expect(onSpotAvailabilityChange).toHaveBeenLastCalledWith(false);
+  });
+
   it('navigates to the Perps market detail page when a perps Trade is pressed', () => {
     renderWithProvider(<FeedView />);
 

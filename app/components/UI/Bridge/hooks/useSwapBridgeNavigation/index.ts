@@ -90,6 +90,8 @@ export enum SwapBridgeNavigationLocation {
   TokenView = MetaMetricsSwapsEventSource.TokenView,
   Rewards = 'Rewards',
   TrendingExplore = MetaMetricsSwapsEventSource.TrendingExplore,
+  FollowTradingTokenScreen = MetaMetricsSwapsEventSource.FollowTradingTokenScreen,
+  FollowTradingFeedScreen = MetaMetricsSwapsEventSource.FollowTradingFeedScreen,
 }
 
 /**
@@ -114,6 +116,10 @@ export const toMetaMetricsSwapsEventSource = (
       return MetaMetricsSwapsEventSource.TokenView;
     case SwapBridgeNavigationLocation.TrendingExplore:
       return MetaMetricsSwapsEventSource.TrendingExplore;
+    case SwapBridgeNavigationLocation.FollowTradingTokenScreen:
+      return MetaMetricsSwapsEventSource.FollowTradingTokenScreen;
+    case SwapBridgeNavigationLocation.FollowTradingFeedScreen:
+      return MetaMetricsSwapsEventSource.FollowTradingFeedScreen;
     default:
       return MetaMetricsSwapsEventSource.MainView;
   }

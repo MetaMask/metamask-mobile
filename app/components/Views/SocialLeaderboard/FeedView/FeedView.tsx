@@ -13,7 +13,13 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import type { PerpsMarketData } from '@metamask/perps-controller';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -76,6 +82,13 @@ export interface FeedViewProps {
    * backdrop). Omitting it makes the spot Trade CTA a no-op (standalone use).
    */
   onQuickBuy?: (target: QuickBuyTarget) => void;
+  /**
+   * Reports whether the loaded feed currently contains at least one spot row.
+   * The parent uses this to mount the spot Buy orchestrator (and scope its A/B
+   * exposure) only when a spot Buy is actually offered — perps-only / empty
+   * feeds never expose the experiment.
+   */
+  onSpotAvailabilityChange?: (hasSpotItem: boolean) => void;
 }
 
 /**
@@ -87,7 +100,11 @@ export interface FeedViewProps {
  * pages. The Trade button is wired: spot rows open the QuickBuy sheet, perps
  * rows navigate to the Perps market detail page.
  */
-const FeedView: React.FC<FeedViewProps> = ({ isActive = true, onQuickBuy }) => {
+const FeedView: React.FC<FeedViewProps> = ({
+  isActive = true,
+  onQuickBuy,
+  onSpotAvailabilityChange,
+}) => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation();
@@ -116,6 +133,19 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true, onQuickBuy }) => {
     error,
     refresh,
   } = useTraderFeed({ audience, typeFilter, enabled: isActive });
+
+  // Report spot availability up to the parent so it can mount the Buy Action
+  // orchestrator (and scope its A/B exposure) only when the loaded feed offers
+  // a spot Buy — perps rows navigate to Perps and must not pollute the
+  // experiment.
+  const hasSpotItem = useMemo(
+    () => items.some((item) => item.type === 'spot'),
+    [items],
+  );
+
+  useEffect(() => {
+    onSpotAvailabilityChange?.(hasSpotItem);
+  }, [hasSpotItem, onSpotAvailabilityChange]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);

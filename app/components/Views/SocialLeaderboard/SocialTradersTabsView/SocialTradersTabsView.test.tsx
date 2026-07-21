@@ -63,53 +63,65 @@ jest.mock('../TopTradersView', () => {
   };
 });
 
+let mockHasSpotItem = true;
 jest.mock('../FeedView', () => {
+  const ReactActual = jest.requireActual('react');
   const { View, Pressable } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
       isActive,
       onQuickBuy,
+      onSpotAvailabilityChange,
     }: {
       isActive?: boolean;
       onQuickBuy?: (target: { tokenSymbol: string }) => void;
-    }) => (
-      <View
-        testID="mock-feed"
-        accessibilityState={{ selected: isActive === true }}
-      >
-        <Pressable
-          testID="mock-feed-quick-buy-trigger"
-          onPress={() => onQuickBuy?.({ tokenSymbol: 'PEPE' })}
-        />
-      </View>
-    ),
+      onSpotAvailabilityChange?: (hasSpotItem: boolean) => void;
+    }) => {
+      ReactActual.useEffect(() => {
+        onSpotAvailabilityChange?.(mockHasSpotItem);
+      }, [onSpotAvailabilityChange]);
+      return (
+        <View
+          testID="mock-feed"
+          accessibilityState={{ selected: isActive === true }}
+        >
+          <Pressable
+            testID="mock-feed-quick-buy-trigger"
+            onPress={() => onQuickBuy?.({ tokenSymbol: 'PEPE' })}
+          />
+        </View>
+      );
+    },
   };
 });
 
-let mockQuickBuyProps: {
-  isVisible: boolean;
-  analyticsContext?: { source?: string };
-};
-jest.mock('../TraderPositionView/components/QuickBuy', () => {
+const mockBuyActionOpen = jest.fn();
+jest.mock('../FeedView/components/FeedSpotBuyAction', () => {
+  const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
-    QuickBuy: {
-      Root: (props: {
-        isVisible: boolean;
-        analyticsContext?: { source?: string };
-      }) => {
-        mockQuickBuyProps = props;
-        return props.isVisible ? <View testID="mock-quick-buy-open" /> : null;
+    __esModule: true,
+    default: ReactActual.forwardRef(
+      ({ isActive }: { isActive?: boolean }, ref: React.Ref<unknown>) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          open: mockBuyActionOpen,
+        }));
+        return (
+          <View
+            testID="mock-spot-buy-action"
+            accessibilityState={{ selected: isActive === true }}
+          />
+        );
       },
-    },
-    TOP_TRADERS_QUICK_BUY_FEATURES: {},
+    ),
   };
 });
 
 describe('SocialTradersTabsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHasSpotItem = true;
   });
 
   it('renders the header, tabs, and both pages', () => {
@@ -176,17 +188,26 @@ describe('SocialTradersTabsView', () => {
     ).toBe(true);
   });
 
-  it('hosts QuickBuy (closed by default) and opens it on the feed request', () => {
+  it('mounts the spot Buy orchestrator (outside the pager) when the feed offers a spot Buy', () => {
     renderWithProvider(<SocialTradersTabsView />);
 
-    expect(screen.queryByTestId('mock-quick-buy-open')).not.toBeOnTheScreen();
+    expect(screen.getByTestId('mock-spot-buy-action')).toBeOnTheScreen();
+  });
+
+  it('does not mount the spot Buy orchestrator when the feed has no spot rows', () => {
+    mockHasSpotItem = false;
+
+    renderWithProvider(<SocialTradersTabsView />);
+
+    expect(screen.queryByTestId('mock-spot-buy-action')).not.toBeOnTheScreen();
+  });
+
+  it('routes a feed spot Buy request to the buy action orchestrator', () => {
+    renderWithProvider(<SocialTradersTabsView />);
 
     fireEvent.press(screen.getByTestId('mock-feed-quick-buy-trigger'));
 
-    expect(screen.getByTestId('mock-quick-buy-open')).toBeOnTheScreen();
-    expect(mockQuickBuyProps.analyticsContext).toEqual({
-      source: 'trader_feed',
-    });
+    expect(mockBuyActionOpen).toHaveBeenCalledWith({ tokenSymbol: 'PEPE' });
   });
 
   it('tracks tab changes via Follow Trading Interaction when a different tab is pressed', () => {
