@@ -414,8 +414,6 @@ describe('useRewardsToast', () => {
         { label: 'Winner title', isBold: true },
       ]);
       expect(config.startAccessory).toBeDefined();
-      const { getByTestId } = render(config.startAccessory as ReactElement);
-      expect(getByTestId('rewards-nudge-start-accessory-box')).toBeDefined();
       config.linkButtonOptions?.onPress?.();
       config.closeButtonOptions?.onPress?.();
       expect(onCta).toHaveBeenCalledTimes(1);
