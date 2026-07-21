@@ -41,6 +41,9 @@ export const SUPPORTED_ASSET_NETWORKS: CardNetwork[] = [
   'monad',
 ];
 export const CARD_SUPPORT_EMAIL = 'metamask@cl-cards.com';
+export const IMMERSVE_SUPPORT_EMAIL = 'support@metamask.io';
+export const IMMERSVE_TERMS_URL =
+  'https://immersve.com/terms-and-conditions/uk/general-terms-of-use';
 export const HUBSPOT_WAITLIST_URL =
   'https://share.hsforms.com/1kNZXeod7TU2xEy0BxmQxJw2urwb';
 // Fixed sentinel Immersve redirects the user to when they exit the hosted KYC
