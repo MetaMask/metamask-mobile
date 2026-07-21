@@ -33,6 +33,22 @@ jest.mock('../../components/WatchlistEmptyCTA', () => {
   return Mock;
 });
 
+jest.mock('./WatchlistSearchContent', () => {
+  const { Pressable, View } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+  const Mock = ({ onDismiss }: { onDismiss: () => void }) =>
+    ReactActual.createElement(
+      View,
+      { testID: 'watchlist-search-content' },
+      ReactActual.createElement(Pressable, {
+        testID: 'watchlist-search-dismiss',
+        onPress: onDismiss,
+      }),
+    );
+  Mock.displayName = 'WatchlistSearchContent';
+  return Mock;
+});
+
 jest.mock('./WatchlistEditableRow', () => {
   const { Text, View } = jest.requireActual('react-native');
   const ReactActual = jest.requireActual('react');
@@ -269,13 +285,57 @@ describe('WatchlistFullScreenView', () => {
     ).toBeDefined();
   });
 
-  it('accepts search button press without throwing', () => {
-    const { getByTestId } = render(<WatchlistFullScreenView />);
+  it('opens search mode when the search button is pressed', () => {
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [makeWatchlistToken('eth')],
+      isLoading: false,
+    });
 
-    expect(() => {
-      fireEvent.press(
-        getByTestId(WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON),
-      );
-    }).not.toThrow();
+    const { getByTestId, queryByTestId } = render(<WatchlistFullScreenView />);
+
+    fireEvent.press(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON),
+    );
+
+    expect(getByTestId('watchlist-search-content')).toBeDefined();
+    expect(
+      queryByTestId(WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST),
+    ).toBeNull();
+    expect(queryByTestId('editable-row-eip155:1/erc20:0xeth')).toBeNull();
+    expect(queryByTestId(WatchlistFullScreenViewSelectorsIDs.TITLE)).toBeNull();
+    expect(
+      queryByTestId(WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON),
+    ).toBeNull();
+    expect(
+      queryByTestId(WatchlistFullScreenViewSelectorsIDs.HEADER),
+    ).toBeNull();
+    expect(
+      queryByTestId(WatchlistFullScreenViewSelectorsIDs.BACK_BUTTON),
+    ).toBeNull();
+  });
+
+  it('returns to list view and header when search is dismissed', () => {
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [makeWatchlistToken('eth')],
+      isLoading: false,
+    });
+
+    const { getByTestId, queryByTestId } = render(<WatchlistFullScreenView />);
+
+    fireEvent.press(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON),
+    );
+    fireEvent.press(getByTestId('watchlist-search-dismiss'));
+
+    expect(queryByTestId('watchlist-search-content')).toBeNull();
+    expect(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.TITLE),
+    ).toBeDefined();
+    expect(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.TOKEN_LIST),
+    ).toBeDefined();
+    expect(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.HEADER),
+    ).toBeDefined();
   });
 });
