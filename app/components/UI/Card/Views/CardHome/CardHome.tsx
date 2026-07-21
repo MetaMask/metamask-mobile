@@ -31,6 +31,7 @@ import {
   useRoute,
   RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../../util/theme';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -113,7 +114,7 @@ const CardHome = () => {
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
   );
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
   const theme = useTheme();

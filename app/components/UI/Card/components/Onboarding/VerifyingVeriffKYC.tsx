@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useUserRegistrationStatus from '../../hooks/useUserRegistrationStatus';
@@ -21,7 +22,7 @@ const POLLING_TIMEOUT_MS = 30000;
  * - PENDING: After 30 seconds of polling, navigate to KYC_PENDING
  */
 const VerifyingVeriffKYC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 

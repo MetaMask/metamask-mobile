@@ -1,9 +1,11 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   HeaderStandard,
   Button,
   ButtonVariant,
+  ButtonSize,
   Box,
   BoxFlexDirection,
   BoxAlignItems,
@@ -12,6 +14,8 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextVariant as TextVariantLegacy } from '../../../../../component-library/components/Texts/Text';
 import ScreenView from '../../../../Base/ScreenView';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
@@ -28,19 +32,41 @@ import Icon, {
 import TransactionAsset from './TransactionAsset';
 import { BatchSell7702TransactionAssets } from './BatchSell7702TransactionAssets';
 import { calcTokenAmount } from '../../../../../util/transactions';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { toTokenMinimalUnit } from '../../../../../util/number/bigint';
+import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './BridgeStepList';
 import Routes from '../../../../../constants/navigation/Routes';
-import { BridgeToken } from '../../types';
+import { BridgeToken, BridgeViewMode } from '../../types';
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
   isNonEvmChainId,
   StatusTypes,
   AllowedBridgeChainIds,
+  MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
+import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
+import { selectIsTransactionsRedesignEnabled } from '../../../../../selectors/featureFlagController/activityRedesign';
+/* eslint-disable import-x/no-restricted-paths -- reuse the redesigned Activity-details row components instead of duplicating them; route-isolation backlog */
+import {
+  ActivityDetailsDualAmountHeader,
+  ActivityDetailsBridgeMetadata,
+  ActivityDetailsDoItAgainButton,
+  ActivityDetailsTemplateFrame,
+} from '../../../../Views/ActivityDetails/components';
+import {
+  ActivityDetailRow,
+  ActivityDetailSection,
+} from '../../../../Views/ActivityDetails/components/ActivityDetailsLayout';
+import { getBridgeDestinationCaipChainId } from '../../../../Views/ActivityDetails/templates/bridgeDetailsUtils';
+/* eslint-enable import-x/no-restricted-paths */
+import type {
+  ActivityListItem,
+  Status,
+  TokenAmount,
+} from '../../../../../util/activity-adapters';
 import { Transaction } from '@metamask/keyring-api';
 import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionDisplay/useMultichainTransactionDisplay';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
@@ -49,7 +75,6 @@ import { toDateFormat } from '../../../../../util/date';
 import TagColored, {
   TagColor,
 } from '../../../../../component-library/components-temp/TagColored';
-// import { renderShortAddress } from '../../../../../util/address';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
@@ -194,7 +219,12 @@ export const BridgeTransactionDetails = (
   props: BridgeTransactionDetailsProps,
 ) => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  // Gate the redesigned layout behind the transactions-details redesign flag;
+  // flag off renders the legacy layout untouched.
+  const isRedesign = useSelector(selectIsTransactionsRedesignEnabled);
 
   const evmTxMeta = props.route.params.evmTxMeta;
   const multiChainTx = props.route.params.multiChainTx;
@@ -316,6 +346,11 @@ export const BridgeTransactionDetails = (
     : null;
 
   let multiChainTotalGasFee;
+  // For non-EVM (e.g. Solana) the fee carries its own asset unit ("SOL"); the
+  // source chain's configured nativeCurrency is a raw CAIP asset id there, so
+  // using it as the symbol produces a long string that breaks the row layout.
+  // Prefer the fee asset's unit and fall back to nativeCurrencySymbol.
+  let multiChainGasFeeSymbol = nativeCurrencySymbol;
   if (multiChainTx) {
     const multichainTxFees = getMultichainTxFees(multiChainTx);
     const baseFeeIsFungible = multichainTxFees?.baseFee?.asset.fungible;
@@ -332,6 +367,12 @@ export const BridgeTransactionDetails = (
       multiChainTotalGasFee = (Number(baseFee) + Number(priorityFee)).toFixed(
         5,
       );
+      const feeAsset = baseFeeIsFungible
+        ? multichainTxFees?.baseFee?.asset
+        : multichainTxFees?.priorityFee?.asset;
+      if (feeAsset?.fungible) {
+        multiChainGasFeeSymbol = feeAsset.unit;
+      }
     }
   }
 
@@ -340,6 +381,267 @@ export const BridgeTransactionDetails = (
     status = bridgeStatus.status;
   } else {
     status = evmTxMeta?.status || multiChainTx?.status;
+  }
+
+  const handleViewBlockExplorer = () => {
+    if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+        location: 'bridge_transaction_details',
+        text: strings('bridge_transaction_details.view_on_block_explorer'),
+        url: swapSrcExplorerData.explorerTxUrl,
+      });
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: { url: swapSrcExplorerData.explorerTxUrl },
+      });
+    } else if (isBridge) {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+        params: {
+          evmTxMeta: props.route.params.evmTxMeta,
+          multiChainTx: props.route.params.multiChainTx,
+        },
+      });
+    }
+  };
+
+  if (isRedesign) {
+    const isGasSponsored =
+      isTransactionMarkedAsGasFeeSponsored(evmTxMeta) && !isHardwareWallet;
+    const gasFeeAmount = evmTotalGasFee ?? multiChainTotalGasFee ?? null;
+    const gasFeeSymbol = evmTotalGasFee
+      ? nativeCurrencySymbol
+      : multiChainGasFeeSymbol;
+    const transactionId =
+      evmTxMeta?.hash ?? bridgeStatus.srcChain?.txHash ?? multiChainTx?.id;
+
+    const redesignTitle = isSwap
+      ? strings('bridge_transaction_details.swapped')
+      : destinationToken.symbol
+        ? strings('bridge_transaction_details.bridged_token', {
+            symbol: destinationToken.symbol,
+          })
+        : strings('bridge_transaction_details.bridged');
+
+    const pricing = bridgeTxHistoryItem.pricingData;
+    // Exclude gas from the total when it's sponsored, the network fee row
+    // shows "Paid by MetaMask", so the user never paid that gas.
+    const totalAmountUsd =
+      pricing?.amountSentInUsd != null
+        ? Number(pricing.amountSentInUsd) +
+          (isGasSponsored ? 0 : Number(pricing.quotedGasInUsd ?? 0))
+        : undefined;
+    const totalAmountText =
+      totalAmountUsd !== undefined && Number.isFinite(totalAmountUsd)
+        ? `$${totalAmountUsd.toFixed(2)}`
+        : undefined;
+
+    const activityStatus: Status = isBridge
+      ? bridgeStatus.status === StatusTypes.COMPLETE
+        ? 'success'
+        : bridgeStatus.status === StatusTypes.FAILED ||
+            bridgeStatus.status === StatusTypes.UNKNOWN
+          ? 'failed'
+          : 'pending'
+      : status === TransactionStatus.confirmed
+        ? 'success'
+        : status === TransactionStatus.failed ||
+            status === TransactionStatus.dropped ||
+            status === TransactionStatus.rejected
+          ? 'failed'
+          : 'pending';
+
+    const sourceAmountMinimalUnit =
+      quote.gasSponsored && pricing?.amountSent
+        ? toTokenMinimalUnit(
+            pricing.amountSent,
+            quote.srcAsset.decimals,
+          ).toString()
+        : quote.srcTokenAmount;
+    const sourceTokenModel: TokenAmount = {
+      amount: sourceAmountMinimalUnit,
+      decimals: quote.srcAsset.decimals,
+      symbol: quote.srcAsset.symbol,
+      direction: 'out',
+      ...(quote.srcAsset.assetId ? { assetId: quote.srcAsset.assetId } : {}),
+    };
+    const destinationTokenModel: TokenAmount = {
+      amount: quote.destTokenAmount,
+      decimals: quote.destAsset.decimals,
+      symbol: quote.destAsset.symbol,
+      direction: 'in',
+      ...(quote.destAsset.assetId ? { assetId: quote.destAsset.assetId } : {}),
+    };
+    const bridgeItem: Extract<ActivityListItem, { type: 'bridge' }> = {
+      type: 'bridge',
+      chainId: formatChainIdToCaip(quote.srcChainId),
+      status: activityStatus,
+      timestamp: startTime ?? 0,
+      ...(transactionId ? { hash: transactionId } : {}),
+      data: {
+        sourceToken: sourceTokenModel,
+        destinationToken: destinationTokenModel,
+      },
+    };
+
+    const activityDestinationChainId =
+      getBridgeDestinationCaipChainId(destinationTokenModel) ??
+      formatChainIdToCaip(quote.destChainId);
+
+    const handleBridgeAgain = () => {
+      dispatch(setSourceAmount(undefined));
+      navigation.navigate(Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.BRIDGE_VIEW,
+        params: {
+          sourcePage: 'BridgeTransactionDetails',
+          bridgeViewMode: isBridge
+            ? BridgeViewMode.Bridge
+            : BridgeViewMode.Swap,
+          sourceToken,
+          destToken: destinationToken,
+          location: MetaMetricsSwapsEventSource.MainView,
+          scrollToTopOnNav: true,
+        },
+      });
+    };
+
+    return (
+      <SafeAreaView
+        edges={{ bottom: 'additive' }}
+        style={tw.style('flex-1 bg-default')}
+      >
+        <Box twClassName="flex-1 bg-default">
+          <HeaderStandard
+            title={redesignTitle}
+            onBack={handleHeaderBack}
+            backButtonProps={{
+              testID: 'bridge-transaction-details-back-button',
+            }}
+            includesTopInset
+          />
+          <ScrollView
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('grow p-4')}
+          >
+            <ActivityDetailsTemplateFrame
+              hero={
+                is7702Batch && batchSellHistoryItems?.length ? (
+                  <BatchSell7702TransactionAssets
+                    batchSellHistoryItems={batchSellHistoryItems}
+                  />
+                ) : (
+                  <ActivityDetailsDualAmountHeader
+                    sentToken={sourceTokenModel}
+                    receivedToken={destinationTokenModel}
+                  />
+                )
+              }
+              metadata={
+                <>
+                  <ActivityDetailsBridgeMetadata
+                    item={bridgeItem}
+                    bridgeHistoryItem={bridgeTxHistoryItem}
+                    destinationChainId={activityDestinationChainId}
+                  />
+                  {isBridge &&
+                    bridgeStatus.status === StatusTypes.PENDING &&
+                    estimatedCompletionString && (
+                      <Box style={styles.detailRow}>
+                        <Text
+                          variant={TextVariant.BodyMd}
+                          fontWeight={FontWeight.Medium}
+                        >
+                          {strings(
+                            'bridge_transaction_details.estimated_completion',
+                          )}{' '}
+                        </Text>
+                        <Box
+                          flexDirection={BoxFlexDirection.Row}
+                          gap={1}
+                          alignItems={BoxAlignItems.Center}
+                        >
+                          <Text variant={TextVariant.BodyMd}>
+                            {estimatedCompletionString}
+                          </Text>
+                          <TouchableOpacity
+                            onPress={() =>
+                              setIsStepListExpanded(!isStepListExpanded)
+                            }
+                          >
+                            <Icon
+                              name={
+                                isStepListExpanded
+                                  ? IconName.ArrowUp
+                                  : IconName.ArrowDown
+                              }
+                              color={IconColor.Muted}
+                              size={IconSize.Sm}
+                            />
+                          </TouchableOpacity>
+                        </Box>
+                      </Box>
+                    )}
+                  {bridgeStatus.status !== StatusTypes.COMPLETE &&
+                    isStepListExpanded && (
+                      <Box style={styles.detailRow}>
+                        <BridgeStepList
+                          bridgeHistoryItem={bridgeTxHistoryItem}
+                          srcChainTxMeta={evmTxMeta}
+                        />
+                      </Box>
+                    )}
+                </>
+              }
+              details={
+                <ActivityDetailSection>
+                  <ActivityDetailRow
+                    label={strings('activity_details.network_fee')}
+                    value={
+                      isGasSponsored ? (
+                        <PaidByMetaMask />
+                      ) : gasFeeAmount ? (
+                        `${gasFeeAmount} ${gasFeeSymbol}`
+                      ) : undefined
+                    }
+                  />
+                  {totalAmountText ? (
+                    <ActivityDetailRow
+                      label={strings('activity_details.total_amount')}
+                      value={totalAmountText}
+                    />
+                  ) : null}
+                </ActivityDetailSection>
+              }
+              footer={
+                isIntentNotCompletedItem ? null : (
+                  <>
+                    <Button
+                      variant={ButtonVariant.Secondary}
+                      size={ButtonSize.Lg}
+                      twClassName="w-full"
+                      onPress={handleViewBlockExplorer}
+                      testID="bridge-transaction-details-view-block-explorer"
+                    >
+                      {strings('activity_details.view_on_block_explorer')}
+                    </Button>
+                    {!is7702Batch && (
+                      <ActivityDetailsDoItAgainButton
+                        label={
+                          isSwap
+                            ? strings('activity_details.swap_again')
+                            : strings('activity_details.bridge_again')
+                        }
+                        onPress={handleBridgeAgain}
+                      />
+                    )}
+                  </>
+                )
+              }
+            />
+          </ScrollView>
+        </Box>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -488,7 +790,7 @@ export const BridgeTransactionDetails = (
               )}
               {multiChainTotalGasFee && (
                 <Text variant={TextVariant.BodyMd}>
-                  {multiChainTotalGasFee} {nativeCurrencySymbol}
+                  {multiChainTotalGasFee} {multiChainGasFeeSymbol}
                 </Text>
               )}
             </>
@@ -500,34 +802,7 @@ export const BridgeTransactionDetails = (
           <Button
             style={styles.blockExplorerButton}
             variant={ButtonVariant.Secondary}
-            onPress={() => {
-              // For swaps, go directly to block explorer web view
-              if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
-                trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
-                  location: 'bridge_transaction_details',
-                  text: strings(
-                    'bridge_transaction_details.view_on_block_explorer',
-                  ),
-                  url: swapSrcExplorerData.explorerTxUrl,
-                });
-                navigation.navigate(Routes.WEBVIEW.MAIN, {
-                  screen: Routes.WEBVIEW.SIMPLE,
-                  params: {
-                    url: swapSrcExplorerData.explorerTxUrl,
-                  },
-                });
-              } else if (isBridge) {
-                // For bridges, show the modal with both explorers
-                navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-                  screen:
-                    Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
-                  params: {
-                    evmTxMeta: props.route.params.evmTxMeta,
-                    multiChainTx: props.route.params.multiChainTx,
-                  },
-                });
-              }
-            }}
+            onPress={handleViewBlockExplorer}
           >
             {strings('bridge_transaction_details.view_on_block_explorer')}
           </Button>
