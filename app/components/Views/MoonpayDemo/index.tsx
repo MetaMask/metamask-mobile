@@ -89,6 +89,7 @@ const styles = StyleSheet.create({
   resetRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 12,
   },
   panel: { gap: 12 },
@@ -208,6 +209,7 @@ const TermsPanel: React.FC<{
   disclaimers: Disclaimer[];
   disclaimersError: string | null;
   disclaimersLoaded: boolean;
+  sessionError: string | null;
   colors: ThemeColors;
 }> = ({
   email,
@@ -216,6 +218,7 @@ const TermsPanel: React.FC<{
   disclaimers,
   disclaimersError,
   disclaimersLoaded,
+  sessionError,
   colors,
 }) => {
   const [emailDropdownOpen, setEmailDropdownOpen] = useState(false);
@@ -223,6 +226,12 @@ const TermsPanel: React.FC<{
   return (
     <View style={styles.panel}>
       <Text variant={TextVariant.HeadingSm}>Step 1 — Accept terms</Text>
+
+      {sessionError && (
+        <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+          {sessionError}
+        </Text>
+      )}
 
       <View
         style={[
@@ -690,6 +699,9 @@ const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ launchSumSubSDK }) => {
     disclaimers,
     disclaimersError,
     disclaimersLoaded,
+    initializing,
+    hasSavedTerms,
+    clearSavedTerms,
     debugEvents,
     clearDebug,
     showCheckFrame,
@@ -753,6 +765,14 @@ const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ launchSumSubSDK }) => {
               {resetError ?? 'Reset failed'}
             </Text>
           )}
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            onPress={clearSavedTerms}
+            isDisabled={!hasSavedTerms}
+          >
+            Clear saved terms
+          </Button>
         </View>
 
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
@@ -764,7 +784,11 @@ const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ launchSumSubSDK }) => {
           {statusMessage ? ` — ${statusMessage}` : ''}
         </Text>
 
-        {phase === 'terms' && (
+        {initializing && (
+          <LoadingPanel message="Checking saved terms acceptance..." />
+        )}
+
+        {!initializing && phase === 'terms' && (
           <TermsPanel
             email={email}
             onEmailChange={setEmail}
@@ -772,11 +796,12 @@ const MoonpayDemo: React.FC<MoonpayDemoProps> = ({ launchSumSubSDK }) => {
             disclaimers={disclaimers}
             disclaimersError={disclaimersError}
             disclaimersLoaded={disclaimersLoaded}
+            sessionError={errorMessage || null}
             colors={colors}
           />
         )}
 
-        {phase === 'session' && (
+        {!initializing && phase === 'session' && (
           <LoadingPanel message="Creating session via local UKYC service..." />
         )}
 
