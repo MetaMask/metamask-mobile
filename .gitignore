@@ -218,21 +218,25 @@ release-signoffs.json
 # MetaMask/skills (public) and optionally Consensys/skills (private overlay),
 # or hand-authored locally. (See ADR #57.) Only IDE/bugbot config under
 # `.cursor/` is tracked via the carve-outs below.
+# Use trailing `/*` (not bare dir) so selective `!` carve-outs can re-include files.
 .claude/skills/
 .claude/commands/
-.agents/skills/
+.agents/skills/*
+!.agents/skills/performance-failure-autofix/
+!.agents/skills/performance-failure-autofix/**
 .ai-pr-analyzer/skills/*
 .ai-pr-analyzer/flaky*
 .cursor/rules/*
 !.cursor/rules/*.mdc
 .cursor/skills/
-.cursor/commands/
+.cursor/commands/*
 # Carve-outs: IDE/bugbot config that must stay tracked
 !.cursor/rules/*.mdc
 !.cursor/BUGBOT.md
 !.cursor/hooks.json
 !.cursor/worktrees.json
 !.claude/settings.json
+!.cursor/commands/performance-failure-autofix.md
 
 # Build environment validation
 build-env.json
