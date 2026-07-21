@@ -12,6 +12,7 @@ import {
 import { isHex } from 'viem';
 import AppConstants from '../../../../../core/AppConstants';
 import { getIsStablecoinPair } from '../useStablecoinsDefaultSlippage';
+import { useRWAToken } from '../useRWAToken';
 
 export const useInitialSlippage = () => {
   const dispatch = useDispatch();
@@ -21,6 +22,9 @@ export const useInitialSlippage = () => {
   const isEvmSwap = useSelector(selectIsEvmSwap);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
+  const { isStockToken } = useRWAToken();
+  const isSourceRwa = isStockToken(sourceToken);
+  const isDestRwa = isStockToken(destToken);
 
   useEffect(() => {
     // Solana Swaps
@@ -54,6 +58,13 @@ export const useInitialSlippage = () => {
         );
         return;
       }
+
+      // if it's a RWA swap, use dynamic slippage
+      if (isSourceRwa || isDestRwa) {
+        dispatch(setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE_RWA));
+        return;
+      }
+
       dispatch(setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE.toString()));
       return;
     }
@@ -69,10 +80,12 @@ export const useInitialSlippage = () => {
     isSolanaSwap,
     isRwaSwap,
     isBridge,
+    isEvmSwap,
     dispatch,
     sourceToken?.address,
-    destToken?.address,
     sourceToken?.chainId,
-    isEvmSwap,
+    destToken?.address,
+    isSourceRwa,
+    isDestRwa,
   ]);
 };
