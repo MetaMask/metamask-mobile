@@ -36,6 +36,7 @@ export enum CardMessageBoxVariant {
 export enum CardMessageBoxType {
   CloseSpendingLimit = 'close_spending_limit',
   KYCPending = 'kyc_pending',
+  Blocked = 'blocked',
   CardProvisioning = 'card_provisioning',
   AuthPrompt = 'auth_prompt',
   CashbackFundingRequired = 'cashback_funding_required',
@@ -93,6 +94,7 @@ export type CardFundingToken = {
   originalSpendingCap?: string;
   isMoneyAccountEntry?: boolean;
   displaySymbol?: string;
+  assumeUsdParity?: boolean;
 } & CardToken &
   AuthenticatedCardFundingTokenData;
 
