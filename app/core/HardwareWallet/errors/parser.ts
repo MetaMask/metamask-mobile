@@ -3,7 +3,7 @@ import {
   HardwareWalletError,
   LEDGER_ERROR_MAPPINGS,
   HardwareWalletType,
-  getDMKErrorFromTag,
+  getDmkErrorFromTag,
   DMK_MESSAGE_PATTERNS,
 } from '@metamask/hw-wallet-sdk';
 import { add0x } from '@metamask/utils';
@@ -164,7 +164,7 @@ function parseLedgerStatusCode(
  *
  * Legacy @ledgerhq/errors identify themselves via the standard JS `error.name`
  * (e.g. 'DisconnectedDevice', 'TransportStatusError'). DMK errors do not set
- * `name`; those are resolved via SDK `getDMKErrorFromTag` when no legacy
+ * `name`; those are resolved via SDK `getDmkErrorFromTag` when no legacy
  * `name` is present. This preserves "name over _tag" precedence: when both
  * fields are present, `name` wins and `_tag` is ignored.
  */
@@ -210,7 +210,7 @@ function parseErrorByName(
   // Only entered when `name` is absent, so legacy errors are never accidentally
   // routed through the DMK path.
   if (!name) {
-    const dmk = getDMKErrorFromTag(error);
+    const dmk = getDmkErrorFromTag(error);
     if (dmk) {
       return createHardwareWalletError(dmk.code, walletType, undefined, {
         cause: isErrorLike(error) ? error : undefined,
