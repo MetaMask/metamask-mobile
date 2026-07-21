@@ -478,5 +478,21 @@ describe('NetworkPills', () => {
 
       expect(queryByTestId('bridge-watchlist-filter-watchlist')).toBeNull();
     });
+
+    it('keeps All and network pills inactive when watchlist filter is active', () => {
+      const { getByText } = render(
+        <NetworkPills
+          selectedChainId={'eip155:1' as CaipChainId}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+          showWatchlistFilter
+          isWatchlistFilterActive
+          onWatchlistFilterPress={mockOnWatchlistFilterPress}
+        />,
+      );
+
+      fireEvent.press(getByText('All'));
+      expect(mockOnChainSelect).toHaveBeenCalledWith(undefined);
+    });
   });
 });

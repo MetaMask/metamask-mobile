@@ -126,6 +126,7 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
   }, [selectedChainId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const renderChainPill = (chain: ChainRankingEntry) => {
+    // Only one pill may appear selected at a time (star, All, or one network).
     const isSelected =
       !isWatchlistFilterActive && selectedChainId === chain.chainId;
     const imageSource = getNetworkImageSource({ chainId: chain.chainId });

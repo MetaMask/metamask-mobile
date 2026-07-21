@@ -262,6 +262,15 @@ export const BridgeTokenSelector: React.FC = () => {
     ? reduxFilter
     : (reduxFilter ?? initialFilter);
 
+  // NetworkListModal dispatches `setTokenSelectorNetworkFilter` directly.
+  // Ensure watchlist mode is cleared when a specific network becomes selected
+  // so only one pill (star, All, or network) appears active at a time.
+  useEffect(() => {
+    if (isWatchlistFilterActive && selectedChainId) {
+      setShowWatchlistOnly(false);
+    }
+  }, [isWatchlistFilterActive, selectedChainId]);
+
   // Sync the initial filter into Redux on mount so other consumers
   // (e.g. NetworkListModal) see the correct value. Clear on unmount.
   useEffect(() => {
