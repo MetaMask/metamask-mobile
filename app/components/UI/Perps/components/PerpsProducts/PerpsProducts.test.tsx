@@ -197,7 +197,29 @@ describe('PerpsProducts', () => {
     expect(queryByTestId('perps-products-new')).toBeNull();
   });
 
-  it('renders the "New" pill after category pills and navigates with the "new" filter', () => {
+  it('renders the "New" pill after category pills', () => {
+    mockHasNewMarkets = true;
+    mockCategories = [
+      { id: 'crypto', label: 'Crypto' },
+      { id: 'stock', label: 'Stocks' },
+    ];
+
+    const { getAllByTestId } = render(<PerpsProducts />);
+
+    // Excludes the outer list/row container testIDs (e.g. "perps-products-list",
+    // "perps-products-list-row-0"), which also start with "perps-products-".
+    const pillTestIds = getAllByTestId(/^perps-products-(?!list)/).map(
+      (element) => element.props.testID,
+    );
+
+    expect(pillTestIds).toEqual([
+      'perps-products-crypto',
+      'perps-products-stock',
+      'perps-products-new',
+    ]);
+  });
+
+  it('navigates with the "new" filter when the "New" pill is pressed', () => {
     mockHasNewMarkets = true;
     mockCategories = [{ id: 'crypto', label: 'Crypto' }];
 
