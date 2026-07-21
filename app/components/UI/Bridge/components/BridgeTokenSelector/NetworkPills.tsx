@@ -13,6 +13,11 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import {
   selectAllowedChainRanking,
@@ -35,6 +40,12 @@ interface NetworkPillsProps {
   selectedChainId?: CaipChainId;
   onChainSelect: (chainId?: CaipChainId) => void;
   onMorePress: () => void;
+  /** When true, renders the watchlist star filter before network pills. */
+  showWatchlistFilter?: boolean;
+  /** Whether the watchlist filter is currently active. */
+  isWatchlistFilterActive?: boolean;
+  /** Called when the watchlist star filter is toggled. */
+  onWatchlistFilterPress?: () => void;
 }
 
 interface ChainRankingEntry {
@@ -54,8 +65,12 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
   selectedChainId,
   onChainSelect,
   onMorePress,
+  showWatchlistFilter = false,
+  isWatchlistFilterActive = false,
+  onWatchlistFilterPress,
 }) => {
   const tw = useTailwind();
+  const theme = useTheme();
   const dispatch = useDispatch();
   const scrollViewRef = useRef<ScrollView>(null);
   const chainRanking: ChainRankingEntry[] = useSelector(
@@ -111,7 +126,8 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
   }, [selectedChainId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const renderChainPill = (chain: ChainRankingEntry) => {
-    const isSelected = selectedChainId === chain.chainId;
+    const isSelected =
+      !isWatchlistFilterActive && selectedChainId === chain.chainId;
     const imageSource = getNetworkImageSource({ chainId: chain.chainId });
 
     return (
@@ -159,10 +175,31 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
       style={tw.style('flex-grow-0')}
       contentContainerStyle={tw.style('flex-row items-center gap-2')}
     >
+      {showWatchlistFilter && onWatchlistFilterPress ? (
+        <ButtonToggle
+          label={
+            <Icon
+              name={IconName.StarFilled}
+              size={IconSize.Md}
+              color={
+                isWatchlistFilterActive
+                  ? theme.colors.primary.inverse
+                  : theme.colors.icon.default
+              }
+            />
+          }
+          isActive={isWatchlistFilterActive}
+          onPress={onWatchlistFilterPress}
+          size={ButtonSize.Md}
+          style={tw.style('rounded-xl py-2 px-3')}
+          testID="bridge-watchlist-filter-watchlist"
+          accessibilityLabel={strings('perps.watchlist.filter_badge_label')}
+        />
+      ) : null}
       {/* All CTA - First pill */}
       <ButtonToggle
         label={strings('bridge.all')}
-        isActive={!selectedChainId}
+        isActive={!selectedChainId && !isWatchlistFilterActive}
         onPress={() => onChainSelect(undefined)}
         style={tw.style('rounded-xl py-2 px-3')}
         size={ButtonSize.Md}

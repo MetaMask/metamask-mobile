@@ -429,4 +429,54 @@ describe('NetworkPills', () => {
       });
     });
   });
+
+  describe('watchlist filter', () => {
+    const mockOnWatchlistFilterPress = jest.fn();
+
+    it('renders watchlist filter when enabled', () => {
+      const { getByTestId } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+          showWatchlistFilter
+          isWatchlistFilterActive={false}
+          onWatchlistFilterPress={mockOnWatchlistFilterPress}
+        />,
+      );
+
+      expect(getByTestId('bridge-watchlist-filter-watchlist')).toBeTruthy();
+    });
+
+    it('calls onWatchlistFilterPress when watchlist pill is pressed', () => {
+      const { getByTestId } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+          showWatchlistFilter
+          isWatchlistFilterActive={false}
+          onWatchlistFilterPress={mockOnWatchlistFilterPress}
+        />,
+      );
+
+      fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+
+      expect(mockOnWatchlistFilterPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render watchlist filter when callback is missing', () => {
+      const { queryByTestId } = render(
+        <NetworkPills
+          selectedChainId={undefined}
+          onChainSelect={mockOnChainSelect}
+          onMorePress={mockOnMorePress}
+          showWatchlistFilter
+          isWatchlistFilterActive={false}
+        />,
+      );
+
+      expect(queryByTestId('bridge-watchlist-filter-watchlist')).toBeNull();
+    });
+  });
 });

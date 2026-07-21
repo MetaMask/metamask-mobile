@@ -67,6 +67,15 @@ import { useInitialBridgeTokens } from '../../hooks/useInitialBridgeTokens';
 import { selectRWAEnabledFlag } from '../../../../../selectors/featureFlagController/rwa';
 import { isStockRwaBridgeToken } from '../../utils/isStockRwaBridgeToken';
 import { useABTest } from '../../../../../hooks';
+import { selectTokenWatchlistEnabled } from '../../../Assets/selectors/featureFlags';
+import { useTokenWatchlistQuery } from '../../../Assets/watchlist/hooks/useTokenWatchlistQuery';
+import WatchlistEmptyCTA from '../../../Assets/watchlist/components/WatchlistEmptyCTA';
+import { mapWatchlistTokenToBridgeToken } from '../../utils/mapWatchlistTokenToBridgeToken';
+import { mergeBridgeTokensWithBalances } from '../../utils/mergeBridgeTokensWithBalances';
+import { filterWatchlistBridgeTokens } from '../../utils/filterWatchlistBridgeTokens';
+import { EVENT_NAME } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import {
   TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
   TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
@@ -143,9 +152,17 @@ export const BridgeTokenSelector: React.FC = () => {
   const route =
     useRoute<RouteProp<{ params: BridgeTokenSelectorRouteParams }, 'params'>>();
   const { styles } = useStyles(createStyles, {});
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [searchString, setSearchString] = useState<string>('');
+  const [showWatchlistOnly, setShowWatchlistOnly] = useState(false);
   const flatListRef = useRef<FlashListRef<BridgeToken | null>>(null);
   const [flatListHeight, setFlatListHeight] = useState<number>(0);
+
+  const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
+  const isWatchlistFilterActive = isWatchlistEnabled && showWatchlistOnly;
+  const isWatchlistListMode = isWatchlistFilterActive;
+  const isSourcePicker = route.params?.type === TokenSelectorType.Source;
+  const currentCurrency = useSelector(selectCurrentCurrency);
 
   // Set selecting token state to prevent quote expired modal from showing
   useEffect(() => {
@@ -192,6 +209,37 @@ export const BridgeTokenSelector: React.FC = () => {
   // Use custom hook for token selection
   const { handleTokenPress, selectedToken } = useTokenSelection(
     route.params?.type,
+  );
+
+  const { data: watchlistData, isLoading: isWatchlistLoading } =
+    useTokenWatchlistQuery();
+
+  const handleWatchlistFilterPress = useCallback(() => {
+    setShowWatchlistOnly((previous) => {
+      const next = !previous;
+      if (next) {
+        dispatch(setTokenSelectorNetworkFilter(undefined));
+      }
+      return next;
+    });
+  }, [dispatch]);
+
+  const handleWatchlistTokenPress = useCallback(
+    (token: BridgeToken) => {
+      if (isWatchlistListMode) {
+        trackEvent(
+          createEventBuilder(EVENT_NAME.TOKEN_LIST_ITEM_CLICKED)
+            .addProperties({
+              source: TokenDetailsSource.SwapWatchlistFilter,
+              token_symbol: token.symbol,
+              chain_id: String(token.chainId),
+            })
+            .build(),
+        );
+      }
+      handleTokenPress(token);
+    },
+    [createEventBuilder, handleTokenPress, isWatchlistListMode, trackEvent],
   );
 
   // Compute the initial network filter synchronously so the first render
@@ -286,6 +334,10 @@ export const BridgeTokenSelector: React.FC = () => {
       lastChainIdRef.current = selectedChainId;
       shouldResetListPositionRef.current = true;
 
+      if (isWatchlistListMode) {
+        return;
+      }
+
       // Cancel any pending debounced searches
       debouncedSearch.cancel();
       // Clear old network's data to ensure clean state
@@ -296,7 +348,13 @@ export const BridgeTokenSelector: React.FC = () => {
         shouldResearchAfterChainChange.current = true;
       }
     }
-  }, [selectedChainId, debouncedSearch, resetSearch, isValidSearch]);
+  }, [
+    selectedChainId,
+    debouncedSearch,
+    resetSearch,
+    isValidSearch,
+    isWatchlistListMode,
+  ]);
 
   // Use custom hook for merging balances
   const popularTokensWithBalance = useTokensWithBalances(
@@ -308,7 +366,48 @@ export const BridgeTokenSelector: React.FC = () => {
     balancesByAssetId,
   );
 
+  const watchlistBridgeTokens = useMemo(() => {
+    if (!isWatchlistListMode) {
+      return [];
+    }
+
+    const locale =
+      currentCurrency === 'usd' || currentCurrency === 'USD'
+        ? 'en-US'
+        : undefined;
+
+    const mappedTokens = mergeBridgeTokensWithBalances(
+      (watchlistData ?? []).map((token) =>
+        mapWatchlistTokenToBridgeToken(token, { locale }),
+      ),
+      balancesByAssetId,
+    );
+
+    return filterWatchlistBridgeTokens(mappedTokens, {
+      selectedChainId,
+      isSourcePicker,
+      searchQuery: searchString,
+    });
+  }, [
+    currentCurrency,
+    isSourcePicker,
+    isWatchlistListMode,
+    searchString,
+    selectedChainId,
+    watchlistData,
+    balancesByAssetId,
+  ]);
+
+  const isWatchlistSearchActive = Boolean(searchString.trim());
+
   const displayData = useMemo(() => {
+    if (isWatchlistListMode) {
+      if (isWatchlistLoading) {
+        return Array(8).fill(null);
+      }
+      return watchlistBridgeTokens;
+    }
+
     const isLoading = isPopularTokensLoading || isSearchLoading;
 
     if (isValidSearch) {
@@ -339,6 +438,9 @@ export const BridgeTokenSelector: React.FC = () => {
     }
     return popularTokensWithBalance;
   }, [
+    isWatchlistListMode,
+    isWatchlistLoading,
+    watchlistBridgeTokens,
     isPopularTokensLoading,
     isSearchLoading,
     isValidSearch,
@@ -347,6 +449,11 @@ export const BridgeTokenSelector: React.FC = () => {
     currentSearchQuery,
     searchString,
   ]);
+
+  const showWatchlistEmptyCta =
+    isWatchlistListMode &&
+    !isWatchlistLoading &&
+    (watchlistData?.length ?? 0) === 0;
 
   // Reset only after the replacement dataset has been committed. scrollToIndex
   // engages and lays out the first recycled row before moving the native view.
@@ -425,6 +532,18 @@ export const BridgeTokenSelector: React.FC = () => {
 
   const handleChainSelect = useCallback(
     (chainId?: CaipChainId) => {
+      if (isWatchlistFilterActive) {
+        setShowWatchlistOnly(false);
+        dispatch(setTokenSelectorNetworkFilter(chainId));
+        debouncedSearch.cancel();
+        resetSearch();
+
+        if (isValidSearch) {
+          shouldResearchAfterChainChange.current = true;
+        }
+        return;
+      }
+
       // Do nothing if selecting the same network that's already selected
       if (chainId === selectedChainId) {
         return;
@@ -442,19 +561,30 @@ export const BridgeTokenSelector: React.FC = () => {
         shouldResearchAfterChainChange.current = true;
       }
     },
-    [selectedChainId, dispatch, debouncedSearch, resetSearch, isValidSearch],
+    [
+      selectedChainId,
+      dispatch,
+      debouncedSearch,
+      resetSearch,
+      isValidSearch,
+      isWatchlistFilterActive,
+    ],
   );
 
   const handleSearchTextChange = (text: string) => {
     setSearchString(text);
-    debouncedSearch(text);
+    if (!isWatchlistListMode) {
+      debouncedSearch(text);
+    }
   };
 
   const handleClearSearch = useCallback(() => {
     setSearchString('');
-    debouncedSearch.cancel();
-    resetSearch();
-  }, [debouncedSearch, resetSearch]);
+    if (!isWatchlistListMode) {
+      debouncedSearch.cancel();
+      resetSearch();
+    }
+  }, [debouncedSearch, resetSearch, isWatchlistListMode]);
 
   const handleInfoButtonPress = useCallback(
     (item: BridgeToken) => {
@@ -464,13 +594,16 @@ export const BridgeTokenSelector: React.FC = () => {
           chain.chainId === formatChainIdToCaip(item.chainId),
       );
       const networkName = chainData?.name ?? '';
+      const tokenDetailsSource = isWatchlistListMode
+        ? TokenDetailsSource.SwapWatchlistFilter
+        : TokenDetailsSource.Swap;
 
       // Use push so we always open details for the tapped token.
       // navigate('Asset') can reuse an existing Asset route with stale params.
       navigation.dispatch(
         StackActions.push('Asset', {
           ...item,
-          source: TokenDetailsSource.Swap,
+          source: tokenDetailsSource,
         }),
       );
 
@@ -486,7 +619,7 @@ export const BridgeTokenSelector: React.FC = () => {
         },
       );
     },
-    [navigation, enabledChainRanking],
+    [navigation, enabledChainRanking, isWatchlistListMode],
   );
 
   const renderToken = useCallback<ListRenderItem<BridgeToken | null>>(
@@ -505,7 +638,7 @@ export const BridgeTokenSelector: React.FC = () => {
         <BridgeTokenSelectorRow
           token={item}
           isSelected={isSelected}
-          onTokenPress={handleTokenPress}
+          onTokenPress={handleWatchlistTokenPress}
           onInfoPress={handleInfoButtonPress}
           isNoFeeAsset={getIsNoFeeAsset(item)}
           showStockBadge={isStockRwaBridgeToken(item, isRWAEnabled)}
@@ -515,7 +648,7 @@ export const BridgeTokenSelector: React.FC = () => {
     },
     [
       selectedToken,
-      handleTokenPress,
+      handleWatchlistTokenPress,
       handleInfoButtonPress,
       getIsNoFeeAsset,
       isRWAEnabled,
@@ -592,8 +725,40 @@ export const BridgeTokenSelector: React.FC = () => {
     [],
   );
 
-  // Render empty state when no tokens found
   const renderEmptyState = useCallback(() => {
+    if (isWatchlistListMode) {
+      if (isWatchlistLoading) {
+        return null;
+      }
+
+      if (isWatchlistSearchActive) {
+        return (
+          <TabEmptyState
+            testID="bridge-token-selector-empty-state"
+            icon={<NoSearchResultsIcon width={72} height={78} />}
+            description={strings('bridge.no_tokens_found')}
+            descriptionProps={{
+              variant: TextVariant.HeadingMd,
+              color: TextColor.TextDefault,
+              twClassName: 'text-center',
+            }}
+            style={styles.emptyStateContainer}
+            twClassName="self-center"
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              twClassName="text-center -mt-1"
+            >
+              {strings('bridge.no_tokens_found_description')}
+            </Text>
+          </TabEmptyState>
+        );
+      }
+
+      return null;
+    }
+
     // Only show empty state when search is active and not loading
     if (!isValidSearch || isSearchLoading) {
       return null;
@@ -622,6 +787,9 @@ export const BridgeTokenSelector: React.FC = () => {
       </TabEmptyState>
     );
   }, [
+    isWatchlistListMode,
+    isWatchlistLoading,
+    isWatchlistSearchActive,
     isValidSearch,
     isSearchLoading,
     styles.emptyStateContainer,
@@ -651,6 +819,9 @@ export const BridgeTokenSelector: React.FC = () => {
         <NetworkPills
           selectedChainId={selectedChainId}
           onChainSelect={handleChainSelect}
+          showWatchlistFilter={isWatchlistEnabled}
+          isWatchlistFilterActive={isWatchlistFilterActive}
+          onWatchlistFilterPress={handleWatchlistFilterPress}
           onMorePress={() =>
             navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
               screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
@@ -659,24 +830,28 @@ export const BridgeTokenSelector: React.FC = () => {
         />
       </Box>
 
-      <FlashList
-        ref={flatListRef}
-        testID="bridge-token-list"
-        style={styles.tokensList}
-        contentContainerStyle={styles.tokensListContainer}
-        data={displayData}
-        renderItem={renderToken}
-        keyExtractor={keyExtractor}
-        showsVerticalScrollIndicator
-        showsHorizontalScrollIndicator={false}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        ListFooterComponent={renderFooter}
-        ListHeaderComponent={renderListHeader}
-        ListEmptyComponent={renderEmptyState}
-        onLayout={handleFlatListLayout}
-        maintainVisibleContentPosition={{ disabled: true }}
-      />
+      {showWatchlistEmptyCta ? (
+        <WatchlistEmptyCTA source={TokenDetailsSource.SwapWatchlistFilter} />
+      ) : (
+        <FlashList
+          ref={flatListRef}
+          testID="bridge-token-list"
+          style={styles.tokensList}
+          contentContainerStyle={styles.tokensListContainer}
+          data={displayData}
+          renderItem={renderToken}
+          keyExtractor={keyExtractor}
+          showsVerticalScrollIndicator
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          ListFooterComponent={renderFooter}
+          ListHeaderComponent={renderListHeader}
+          ListEmptyComponent={renderEmptyState}
+          onLayout={handleFlatListLayout}
+          maintainVisibleContentPosition={{ disabled: true }}
+        />
+      )}
     </SafeAreaView>
   );
 };

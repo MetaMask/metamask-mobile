@@ -1,0 +1,52 @@
+import type { CaipAssetType } from '@metamask/utils';
+
+import type { WatchlistTokenWithBalance } from '../../Assets/watchlist/utils/addBalanceToTokens';
+import { formatWithThreshold } from '../../../../util/assets';
+import type { BridgeToken } from '../types';
+import { convertApiTokenToBridgeToken } from './tokenUtils';
+
+export const formatWatchlistBalanceFiat = (
+  balanceFiat: number | undefined,
+  currency: string | undefined,
+  locale = 'en-US',
+): string | undefined => {
+  if (balanceFiat == null || !currency) {
+    return undefined;
+  }
+
+  return formatWithThreshold(balanceFiat, 0.01, locale, {
+    style: 'currency',
+    currency: currency.toUpperCase(),
+  });
+};
+
+/**
+ * Maps a hydrated watchlist token to the `BridgeToken` shape used by
+ * `BridgeTokenSelector` / `TokenSelectorItem`.
+ */
+export const mapWatchlistTokenToBridgeToken = (
+  token: WatchlistTokenWithBalance,
+  options?: { locale?: string },
+): BridgeToken & { assetId: CaipAssetType } => {
+  const bridgeToken = convertApiTokenToBridgeToken({
+    assetId: String(token.assetId),
+    name: token.name,
+    symbol: token.symbol,
+    decimals: token.decimals,
+    iconUrl: token.iconUrl,
+  });
+
+  const balanceFiat = formatWatchlistBalanceFiat(
+    token.balanceFiat,
+    token.fiatCurrency,
+    options?.locale,
+  );
+
+  return {
+    ...bridgeToken,
+    balance: token.balance,
+    balanceFiat,
+    tokenFiatAmount: token.balanceFiat,
+    image: token.iconUrl ?? bridgeToken.image,
+  };
+};
