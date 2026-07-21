@@ -9557,8 +9557,18 @@ describe('PredictController', () => {
       );
     });
 
-    it('increases balance by received amount for SELL orders', async () => {
-      const preview = createMockOrderPreview({ side: Side.SELL });
+    it('increases balance by net proceeds for SELL orders', async () => {
+      const preview = createMockOrderPreview({
+        side: Side.SELL,
+        fees: {
+          metamaskFee: 2.865,
+          providerFee: 0.955,
+          marketFee: 1.2,
+          totalFee: 3.82,
+          totalFeePercentage: 4,
+          collector: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
+        },
+      });
       const mockResult = {
         success: true as const,
         response: {
@@ -9581,7 +9591,7 @@ describe('PredictController', () => {
             controller.state.balances[
               '0x1234567890123456789012345678901234567890'
             ];
-          expect(updatedBalance.balance).toBe(500 + 95.5);
+          expect(updatedBalance.balance).toBeCloseTo(590.48);
         },
         {
           state: {
