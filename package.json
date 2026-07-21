@@ -372,7 +372,7 @@
     "@metamask/storage-service": "^1.0.0",
     "@metamask/superstruct": "^3.2.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
-    "@metamask/transaction-controller": "^69.0.0",
+    "@metamask/transaction-controller": "69.1.0",
     "@metamask/transaction-pay-controller": "^26.0.0",
     "@metamask/tron-wallet-snap": "^1.33.1",
     "@metamask/utils": "^11.11.0",
