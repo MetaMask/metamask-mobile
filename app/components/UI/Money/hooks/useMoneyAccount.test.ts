@@ -305,6 +305,7 @@ describe('useMoneyAccountDeposit', () => {
         disableHook: true,
         disableSequential: true,
         disableUpgrade: true,
+        skipInitialGasEstimate: true,
       }),
     );
   });
@@ -482,6 +483,25 @@ describe('useMoneyAccountDeposit', () => {
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
       expect.objectContaining({
         replace: true,
+      }),
+    );
+  });
+
+  it('always sets skipInitialGasEstimate to true regardless of chain', async () => {
+    setupSelectors({
+      vaultConfig: { ...MOCK_VAULT_CONFIG, chainId: '0x8f' },
+    });
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit();
+    });
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isGasFeeSponsored: true,
+        skipInitialGasEstimate: true,
       }),
     );
   });
@@ -671,7 +691,7 @@ describe('useMoneyAccountWithdrawal', () => {
     );
   });
 
-  it('sets isGasFeeSponsored to false when vault chain is not Monad', async () => {
+  it('sets isGasFeeSponsored to false but skipInitialGasEstimate to true when vault chain is not Monad', async () => {
     const { result } = renderHook(() => useMoneyAccountWithdrawal());
 
     await act(async () => {
@@ -681,6 +701,7 @@ describe('useMoneyAccountWithdrawal', () => {
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
       expect.objectContaining({
         isGasFeeSponsored: false,
+        skipInitialGasEstimate: true,
       }),
     );
   });

@@ -324,6 +324,7 @@ function uniqueTokens(tokens: (TokenAmount | undefined)[]): TokenAmount[] {
 function enrichStablecoinTokenMetadata(
   token: TokenAmount | undefined,
   chainId: string | undefined,
+  options?: { preserveHumanReadableAmount?: boolean },
 ): TokenAmount | undefined {
   const hexChainId = getHexChainId(chainId);
   const isMusd =
@@ -334,9 +335,14 @@ function enrichStablecoinTokenMetadata(
     return token;
   }
 
+  // Ramp buy/sell amounts are already human-readable. Injecting mUSD decimals
+  // would make getHumanReadableTokenAmount treat e.g. "30" as 30 atomic units
+  // (→ 0.00003 mUSD). Still fill assetId for avatars.
   return {
     ...token,
-    decimals: token.decimals ?? MUSD_DECIMALS,
+    ...(options?.preserveHumanReadableAmount
+      ? {}
+      : { decimals: token.decimals ?? MUSD_DECIMALS }),
     assetId: token.assetId ?? MUSD_TOKEN_ASSET_ID_BY_CHAIN[hexChainId],
   };
 }
@@ -1203,9 +1209,15 @@ export function useActivityListItemRowContent(
   } else {
     basePrimaryToken = content.primaryToken;
   }
+  // buy/sell rows today come from ramp orders whose cryptoAmount is human-
+  // readable; do not inject token decimals that would re-scale the amount.
+  const preserveHumanReadableAmount =
+    item.type === 'buy' || item.type === 'sell';
+
   const primaryToken = enrichStablecoinTokenMetadata(
     basePrimaryToken,
     networkChainId,
+    { preserveHumanReadableAmount },
   );
 
   const baseSecondaryToken = isLending
@@ -1214,6 +1226,7 @@ export function useActivityListItemRowContent(
   const secondaryToken = enrichStablecoinTokenMetadata(
     baseSecondaryToken,
     networkChainId,
+    { preserveHumanReadableAmount },
   );
   const isPerpsFunding = isPerpsFundingKind(item.type);
   const isFundsRow = isDomainFundsKind(item.type);
