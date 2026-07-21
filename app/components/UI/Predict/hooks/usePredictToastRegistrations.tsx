@@ -1,5 +1,4 @@
 import {
-  Box,
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
   Spinner,
@@ -60,12 +59,10 @@ const showPendingToast = ({
     iconName: IconName.Loading,
     hasNoTimeout: false,
     startAccessory: (
-      <Box twClassName="pr-3">
-        <Spinner
-          color={ReactNativeDsIconColor.PrimaryDefault}
-          spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
-        />
-      </Box>
+      <Spinner
+        color={ReactNativeDsIconColor.IconDefault}
+        spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
+      />
     ),
     ...(trackLabel && onTrack
       ? {
@@ -109,7 +106,6 @@ const showErrorToast = ({
   description,
   retryLabel,
   onRetry,
-  backgroundColor,
   iconColor,
 }: {
   showToast: ToastRef['showToast'];
@@ -117,7 +113,6 @@ const showErrorToast = ({
   description: string;
   retryLabel?: string;
   onRetry?: () => void;
-  backgroundColor: string;
   iconColor: string;
 }) =>
   showToast({
@@ -129,7 +124,6 @@ const showErrorToast = ({
     ],
     iconName: IconName.Error,
     iconColor,
-    backgroundColor,
     hasNoTimeout: false,
     ...(retryLabel && onRetry
       ? {
@@ -240,7 +234,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
                   },
                 }
               : {}),
-            backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });
           return;
@@ -305,7 +298,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
                   },
                 }
               : {}),
-            backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });
         }
@@ -359,7 +351,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
                   },
                 }
               : {}),
-            backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });
           return;
@@ -385,7 +376,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         if (status === 'confirmed') {
           showToast({
             variant: ToastVariants.Icon,
-            iconName: IconName.Check,
+            iconName: IconName.Confirmation,
             iconColor: theme.colors.success.default,
             labelOptions: [
               {
@@ -410,7 +401,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             showToast,
             title: strings('predict.order.prediction_failed'),
             description: strings('predict.order.order_failed_generic'),
-            backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });
           return;
@@ -424,7 +414,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       navigation,
       normalizedSelectedAddress,
       queryClient,
-      theme.colors.accent04.normal,
       theme.colors.error.default,
       theme.colors.primary.default,
       theme.colors.success.default,
