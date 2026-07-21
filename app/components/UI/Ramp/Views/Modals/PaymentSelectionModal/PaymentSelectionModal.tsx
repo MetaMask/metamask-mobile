@@ -37,7 +37,6 @@ import { getRampCallbackBaseUrl } from '../../../utils/getRampCallbackBaseUrl';
 import { isCustomAction } from '../../../types';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface PaymentSelectionModalParams {
   amount?: number;
@@ -113,7 +112,6 @@ function PaymentSelectionModal() {
 
   const { data: quotes, loading: quotesLoading } =
     useRampsQuotes(quoteFetchParams);
-  const surfaceClass = useElevatedSurface();
 
   const handleChangeProviderPress = useCallback(() => {
     trackEvent(
@@ -125,7 +123,15 @@ function PaymentSelectionModal() {
         })
         .build(),
     );
-    navigation.navigate(Routes.RAMP.MODALS.PROVIDER_SELECTION, { amount });
+    // Close the payment sheet before opening provider selection. Stacking two
+    // modal screens leaves the amount input on BuildQuote invisible behind the
+    // nested overlays (TRAM-3750).
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.RAMP.MODALS.ID, {
+        screen: Routes.RAMP.MODALS.PROVIDER_SELECTION,
+        params: { amount },
+      });
+    });
   }, [
     navigation,
     amount,
@@ -270,11 +276,7 @@ function PaymentSelectionModal() {
   };
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      goBack={navigation.goBack}
-      twClassName={surfaceClass}
-    >
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <View style={styles.containerOuter}>
         <View style={styles.paymentPanelContent}>
           <HeaderStandard

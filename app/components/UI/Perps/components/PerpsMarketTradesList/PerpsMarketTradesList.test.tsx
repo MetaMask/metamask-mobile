@@ -324,7 +324,7 @@ describe('PerpsMarketTradesList', () => {
       render(<PerpsMarketTradesList symbol="ETH" />);
 
       const iconSizes = screen.getAllByTestId('logo-size');
-      expect(iconSizes[0]).toHaveTextContent('36');
+      expect(iconSizes[0]).toHaveTextContent('40');
     });
 
     it('uses custom icon size when provided', () => {

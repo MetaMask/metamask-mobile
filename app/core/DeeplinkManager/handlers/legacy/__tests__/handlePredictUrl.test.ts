@@ -231,6 +231,18 @@ describe('handlePredictUrl', () => {
       });
     });
 
+    it('navigates to market list with Wimbledon tab parameter', async () => {
+      await handlePredictUrl({ predictPath: '?tab=wimbledon' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+          tab: 'wimbledon',
+        },
+      });
+    });
+
     it('normalizes uppercase tab parameter to lowercase', async () => {
       await handlePredictUrl({ predictPath: '?tab=CRYPTO' });
 
@@ -416,7 +428,7 @@ describe('handlePredictUrl', () => {
       });
     });
 
-    it('parses filter separately from tab', async () => {
+    it('redirects Popular Today links to the selected Trending filter', async () => {
       await handlePredictUrl({
         predictPath: '?feed=popular-today&filter=elections',
       });
@@ -424,7 +436,7 @@ describe('handlePredictUrl', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.FEED,
         params: {
-          feedId: 'popular-today',
+          feedId: 'trending',
           initialFilterId: 'elections',
           entryPoint: 'deeplink',
         },
@@ -485,6 +497,21 @@ describe('handlePredictUrl', () => {
       jest.mocked(selectPredictHomeRedesignEnabledFlag).mockReturnValue(false);
 
       await handlePredictUrl({ predictPath: '?feed=sports&tab=all' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+        },
+      });
+    });
+
+    it('keeps the Popular Today redirect behind the home redesign flag', async () => {
+      jest.mocked(selectPredictHomeRedesignEnabledFlag).mockReturnValue(false);
+
+      await handlePredictUrl({
+        predictPath: '?feed=popular-today&filter=elections',
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,

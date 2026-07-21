@@ -1,21 +1,13 @@
 import React from 'react';
 import { View, ViewStyle } from 'react-native';
-import { useStyles } from '../../../../component-library/hooks';
-import Icon, {
-  IconColor,
+import {
   IconName,
-  IconSize,
-} from '../../../../component-library/components/Icons/Icon';
+  Tag,
+  TagSeverity,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import styleSheet from './StockBadge.styles';
-import { Box } from '../../Box/Box';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-} from '@metamask/design-system-react-native';
 
 interface StockBadgeProps {
   /**
@@ -32,24 +24,18 @@ interface StockBadgeProps {
  * Shows a clock icon when the market is closed to indicate trading is not available.
  */
 const StockBadge: React.FC<StockBadgeProps> = ({ token, style }) => {
-  const { styles } = useStyles(styleSheet, { style });
   const { isTokenTradingOpen } = useRWAToken();
+  const showAfterHoursIcon = !isTokenTradingOpen(token);
 
   return (
-    <Box style={styles.stockBadgeWrapper}>
-      <View style={styles.stockBadge}>
-        {!isTokenTradingOpen(token) && (
-          <Icon
-            name={IconName.AfterHours}
-            size={IconSize.Xs}
-            color={IconColor.Alternative}
-          />
-        )}
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-          {strings('token.stock')}
-        </Text>
-      </View>
-    </Box>
+    <View style={style}>
+      <Tag
+        severity={TagSeverity.Neutral}
+        startIconName={showAfterHoursIcon ? IconName.AfterHours : undefined}
+      >
+        {strings('token.stock')}
+      </Tag>
+    </View>
   );
 };
 

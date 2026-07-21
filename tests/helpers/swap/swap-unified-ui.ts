@@ -1,6 +1,6 @@
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import SlippageModal from '../../page-objects/swaps/SlippageModal';
-import { Assertions } from '../../framework';
+import { Assertions, FrameworkDetector } from '../../framework';
 import { createLogger } from '../../framework/logger';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
@@ -12,6 +12,29 @@ interface SwapOptions {
   slippage?: string;
 }
 
+/**
+ * Selects source/destination tokens and enters an amount without waiting for quotes.
+ */
+export async function enterSwapQuote(
+  quantity: string,
+  sourceTokenSymbol: string,
+  destTokenSymbol: string,
+  chainId: string,
+): Promise<void> {
+  await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea, {
+    timeout: 20000,
+  });
+  if (sourceTokenSymbol !== 'ETH') {
+    await QuoteView.tapSourceToken();
+    await QuoteView.tapToken(chainId, sourceTokenSymbol);
+  }
+  await QuoteView.tapSourceAmountInput();
+  await QuoteView.enterAmount(quantity);
+  await QuoteView.tapDestinationToken();
+  await QuoteView.tapToken(chainId, destTokenSymbol);
+  await QuoteView.dismissKeypad();
+}
+
 export async function submitSwapUnifiedUI(
   quantity: string,
   sourceTokenSymbol: string,
@@ -20,7 +43,10 @@ export async function submitSwapUnifiedUI(
   options?: SwapOptions,
 ) {
   const DEFAULT_SLIPPAGE_VALUE = '2';
-  await device.disableSynchronization();
+  // Detox-only: Appium has no synchronization service equivalent.
+  if (!FrameworkDetector.isAppium()) {
+    await device.disableSynchronization();
+  }
   await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea, {
     timeout: 20000,
   });

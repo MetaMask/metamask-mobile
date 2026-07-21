@@ -19,8 +19,11 @@ import {
   selectCampaigns,
   selectDismissedCampaignOutcomeToasts,
 } from '../../../../reducers/rewards/selectors';
+import { buildCampaignOutcomeToastCompositeKey } from '../../../../reducers/rewards/compositeKeys';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { navigateToRewardsRoute } from '../utils';
 import useRewardsToast from './useRewardsToast';
+import type { RewardsStackParamList } from '../types/navigation';
 
 export interface CampaignOutcomeToastConfig {
   campaignType: CampaignType;
@@ -89,7 +92,11 @@ export function useCampaignOutcomeToast(
 
   const isDismissed = useMemo(() => {
     if (!variant || !targetCampaign || !subscriptionId) return true;
-    const key = `${targetCampaign.id}:${subscriptionId}:${variant}`;
+    const key = buildCampaignOutcomeToastCompositeKey(
+      targetCampaign.id,
+      subscriptionId,
+      variant,
+    );
     return dismissed[key] === true;
   }, [variant, targetCampaign, subscriptionId, dismissed]);
 
@@ -112,7 +119,11 @@ export function useCampaignOutcomeToast(
       variant === 'winner'
         ? getWinnerNavigation(targetCampaign)
         : getNonWinnerNavigation(targetCampaign);
-    navigation.navigate(nav.route, nav.params);
+    navigateToRewardsRoute(
+      navigation,
+      nav.route as keyof RewardsStackParamList,
+      nav.params as never,
+    );
   }, [
     variant,
     targetCampaign,

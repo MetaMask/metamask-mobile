@@ -9,10 +9,14 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import { isEvmAccountType } from '@metamask/keyring-api';
-import type { NavigationProp } from '@react-navigation/native';
+import type {
+  NavigationProp,
+  NavigatorScreenParams,
+} from '@react-navigation/native';
 import { isSolanaAccount } from '../../../core/Multichain/utils';
 import { getAddressAccountType } from '../../../util/address';
 import Routes from '../../../constants/navigation/Routes';
+import type { RewardsStackParamList } from './types/navigation';
 
 // Initialize dayjs with relativeTime plugin
 dayjs.extend(relativeTime);
@@ -178,12 +182,44 @@ export const getActiveRouteNameFromNavigationState = (
  * @param screen - The destination route name inside the rewards flow.
  * @param params - Optional params forwarded to the destination screen.
  */
-export const navigateToRewardsRoute = (
+export const navigateToRewardsRoute = <S extends keyof RewardsStackParamList>(
   navigation: Pick<NavigationProp<ReactNavigation.RootParamList>, 'navigate'>,
-  screen: string,
-  params?: Record<string, unknown>,
+  screen: S,
+  params?: RewardsStackParamList[S],
 ): void => {
-  navigation.navigate(Routes.REWARDS_FLOW, { screen, params });
+  navigation.navigate(Routes.REWARDS_FLOW, {
+    screen,
+    params,
+  } as NavigatorScreenParams<RewardsStackParamList>);
+};
+
+type RewardsFlowExitNavigation = Pick<
+  NavigationProp<ReactNavigation.RootParamList>,
+  'navigate' | 'goBack' | 'canGoBack'
+>;
+
+/**
+ * Leaves the pushed `REWARDS_FLOW` stack and returns the user to the Rewards
+ * dashboard in the tab.
+ *
+ * VIP screens previously used `StackActions.replace(Routes.REWARDS_DASHBOARD)`,
+ * but the dashboard lives in the Rewards tab — not inside `RewardsNavigator` —
+ * so that replace could not be handled. Popping the flow (or falling back to the
+ * Rewards tab) keeps navigation consistent with the native-stack migration.
+ *
+ * @param navigation - The navigation object from `useNavigation()`.
+ */
+export const exitRewardsFlow = (
+  navigation: RewardsFlowExitNavigation,
+): void => {
+  if (navigation.canGoBack()) {
+    navigation.goBack();
+    return;
+  }
+
+  navigation.navigate(Routes.HOME_TABS, {
+    screen: Routes.REWARDS_VIEW,
+  });
 };
 
 // Referral URL builder

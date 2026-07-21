@@ -95,7 +95,7 @@ accountActivityWsServer.sendMessage(JSON.stringify(notification));
 
 ### Example spec
 
-See `tests/smoke/account-activity/web-socket-connection.spec.ts` for a complete example with three tests covering subscribe-on-login, resubscribe-after-background, and resubscribe-after-lock.
+See `tests/smoke-appium/account-activity/web-socket-connection.spec.ts` for a complete example with three tests covering subscribe-on-login, resubscribe-after-background, and resubscribe-after-lock.
 
 ## Adding a New WebSocket Service Mock
 

@@ -1,4 +1,5 @@
 import configureMockStore from 'redux-mock-store';
+import { CommonActions } from '@react-navigation/native';
 
 import { NUMBER_OF_REJECTIONS_THRESHOLD } from '../redux/slices/originThrottling';
 import initialBackgroundState from '../../util/test/initial-background-state.json';
@@ -14,8 +15,15 @@ import {
 jest.mock('../NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
+    dispatch: jest.fn(),
   },
 }));
+
+const expectedSpamModalAction = (origin: string) =>
+  CommonActions.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    screen: Routes.SHEET.ORIGIN_SPAM_MODAL,
+    params: { origin },
+  });
 
 const [BLOCKABLE_RPC_METHOD_MOCK] = BLOCKABLE_SPAM_RPC_METHODS;
 const SCAM_ORIGIN_MOCK = 'scam.origin';
@@ -181,12 +189,8 @@ describe('utils', () => {
         store,
       });
 
-      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
-        {
-          screen: Routes.SHEET.ORIGIN_SPAM_MODAL,
-          params: { origin: SCAM_ORIGIN_MOCK },
-        },
+      expect(NavigationService.navigation.dispatch).toHaveBeenCalledWith(
+        expectedSpamModalAction(SCAM_ORIGIN_MOCK),
       );
     });
   });

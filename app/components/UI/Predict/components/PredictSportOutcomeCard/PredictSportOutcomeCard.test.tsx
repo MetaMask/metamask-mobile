@@ -148,6 +148,26 @@ describe('PredictSportOutcomeCard', () => {
       expect(screen.getByTestId('custom-card')).toBeOnTheScreen();
     });
 
+    it('renders the Reg Time tag when enabled', () => {
+      const props = createDefaultProps({ showRegTimeTag: true });
+
+      renderWithProvider(<PredictSportOutcomeCard {...props} />);
+
+      expect(
+        screen.getByTestId(PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.REG_TIME_TAG),
+      ).toHaveTextContent('Reg time');
+    });
+
+    it('does not render the Reg Time tag by default', () => {
+      const props = createDefaultProps();
+
+      renderWithProvider(<PredictSportOutcomeCard {...props} />);
+
+      expect(
+        screen.queryByTestId(PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.REG_TIME_TAG),
+      ).not.toBeOnTheScreen();
+    });
+
     it('assigns indexed testIDs to each button', () => {
       const props = createDefaultProps();
 
@@ -234,6 +254,23 @@ describe('PredictSportOutcomeCard', () => {
 
       expect(buttons[0].onPress).not.toHaveBeenCalled();
       expect(buttons[1].onPress).not.toHaveBeenCalled();
+    });
+
+    it('calls onPressRegTimeInfo when the Reg Time tag is pressed', () => {
+      const onPressRegTimeInfo = jest.fn();
+      const props = createDefaultProps({
+        showRegTimeTag: true,
+        onPressRegTimeInfo,
+      });
+
+      renderWithProvider(<PredictSportOutcomeCard {...props} />);
+      fireEvent.press(
+        screen.getByTestId(
+          PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.REG_TIME_INFO_BUTTON,
+        ),
+      );
+
+      expect(onPressRegTimeInfo).toHaveBeenCalledTimes(1);
     });
   });
 

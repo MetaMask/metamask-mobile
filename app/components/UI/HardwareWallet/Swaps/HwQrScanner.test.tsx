@@ -6,6 +6,37 @@ import { HwQrScannerSelectorsIDs } from './HwQrScanner.testIds';
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
+import Routes from '../../../../constants/navigation/Routes';
+import { resetHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
+import { ToastVariants } from '../../../../component-library/components/Toast';
+
+const mockDispatch = jest.fn();
+
+jest.mock('react-redux', () => ({
+  useDispatch: () => mockDispatch,
+}));
+
+jest.mock('../../../../component-library/components/Toast', () => {
+  const R = require('react'); // eslint-disable-line @typescript-eslint/no-require-imports
+  const showToast = jest.fn();
+  return {
+    getMockShowToast: () => showToast,
+    ToastContext: R.createContext({
+      toastRef: { current: { showToast } },
+    }),
+    ToastVariants: { Icon: 'Icon' },
+  };
+});
+
+jest.mock('../../../../core/redux/slices/bridge', () => ({
+  resetHardwareWalletsSwaps: jest.fn(() => ({
+    type: 'bridge/resetHardwareWalletsSwaps',
+  })),
+}));
+
+jest.mock('../../../../component-library/components/Icons/Icon', () => ({
+  IconName: { Check: 'check' },
+}));
 
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn();
@@ -126,6 +157,13 @@ jest.mock('uuid', () => ({
 }));
 
 const mockUseHardwareWallet = useHardwareWallet as jest.Mock;
+
+const getMockShowToast = () =>
+  (
+    jest.requireMock('../../../../component-library/components/Toast') as {
+      getMockShowToast: () => jest.Mock;
+    }
+  ).getMockShowToast();
 
 const mockScannerResult = {
   cameraDevice: { id: 'mock-camera' },
@@ -369,6 +407,42 @@ describe('HwQrScanner', () => {
       expect(mockRejectPendingScan).not.toHaveBeenCalled();
       expect(mockSetRequestCompleted).toHaveBeenCalledTimes(1);
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(getMockShowToast()).not.toHaveBeenCalled();
+    });
+
+    it('completes success on the last scan: toast, Redux reset, and activity navigation', () => {
+      mockUseRoute.mockReturnValue({
+        params: { currentStep: 2, totalSteps: 2 },
+      });
+
+      render(<HwQrScanner />);
+
+      capturedOnScanSuccess?.({
+        type: 'eth-signature',
+        cbor: Buffer.from('signature'),
+      });
+
+      expect(mockResolvePendingScan).toHaveBeenCalledWith({
+        type: 'eth-signature',
+        cbor: Buffer.from('signature').toString('hex'),
+      });
+      expect(mockSetRequestCompleted).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(getMockShowToast()).toHaveBeenCalledWith({
+        variant: ToastVariants.Icon,
+        iconName: 'check',
+        hasNoTimeout: false,
+        labelOptions: [
+          { label: 'bridge.hardware_wallet_progress.submitted_title' },
+        ],
+      });
+      expect(resetHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'bridge/resetHardwareWalletsSwaps',
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     });
 
     it('shows mismatch message and keeps pending scan when request IDs do not match', () => {

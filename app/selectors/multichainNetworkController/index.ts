@@ -191,6 +191,16 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
   },
 );
 
+/**
+ * All configured non-EVM networks, in CAIP-2 form — independent of which are
+ * "enabled". Use for surfaces that must show all networks (e.g. the Activity
+ * feed) so enabling a single network doesn't collapse the view.
+ */
+export const selectAllConfiguredNonEvmChainIds = createDeepEqualSelector(
+  selectNonEvmNetworkConfigurationsByChainId,
+  (configsByChainId): string[] => Object.keys(configsByChainId ?? {}),
+);
+
 export const selectSelectedNonEvmNetworkDecimals = createSelector(
   selectNonEvmNetworkConfigurationsByChainId,
   selectSelectedNonEvmNetworkChainId,

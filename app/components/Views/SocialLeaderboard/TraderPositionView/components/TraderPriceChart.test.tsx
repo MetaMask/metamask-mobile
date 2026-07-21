@@ -273,6 +273,28 @@ describe('TraderPriceChart', () => {
     });
   });
 
+  // ── Scroll passthrough (pinned-overlay layout) ─────────────────────────────
+
+  describe('scroll passthrough', () => {
+    it('captures touches on the chart surface by default', () => {
+      const { getByTestId } = render(
+        <TraderPriceChart {...defaultProps} prices={makePrices(5)} />,
+      );
+      expect(getByTestId('price-chart-area').props.pointerEvents).toBe('auto');
+    });
+
+    it('passes touches through when scrollPassthrough is set', () => {
+      const { getByTestId } = render(
+        <TraderPriceChart
+          {...defaultProps}
+          prices={makePrices(5)}
+          scrollPassthrough
+        />,
+      );
+      expect(getByTestId('price-chart-area').props.pointerEvents).toBe('none');
+    });
+  });
+
   // ── PriceChartProvider integration ────────────────────────────────────────
 
   describe('PriceChartProvider integration', () => {

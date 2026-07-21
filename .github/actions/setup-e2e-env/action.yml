@@ -8,7 +8,7 @@ inputs:
   node-version:
     description: 'Node.js version'
     required: false
-    default: '20.18.0'
+    default: '24.16.0'
   yarn-version:
     description: Yarn version to use with Corepack
     required: false
@@ -322,7 +322,7 @@ runs:
         command: ${{ steps.get-corepack-command.outputs.COREPACK_COMMAND }}
 
     - name: Restore Yarn cache
-      if: ${{ inputs.runner_provider != 'namespace' }}
+      if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
       uses: actions/cache@v4
       with:
         path: |
@@ -370,7 +370,7 @@ runs:
       shell: bash
 
     - name: Restore Bundler cache
-      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' && inputs.runner_provider != 'namespace' }}
+      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' && inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
       uses: actions/cache@v4
       with:
         path: ios/vendor/bundle
@@ -427,7 +427,7 @@ runs:
       shell: bash
 
     - name: Restore CocoaPods specs cache
-      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' && inputs.runner_provider != 'namespace' }}
+      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' && inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
       id: cocoapods-specs-cache
       uses: actions/cache@v4
       with:

@@ -12,7 +12,6 @@ import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../../app/c
 import NetworkListModal from '../../../../page-objects/Network/NetworkListModal';
 import ToastModal from '../../../../page-objects/wallet/ToastModal';
 import AccountListBottomSheet from '../../../../page-objects/wallet/AccountListBottomSheet';
-import AddNewAccountSheet from '../../../../page-objects/wallet/AddNewAccountSheet';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../../../framework/Constants';
@@ -119,9 +118,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
 
         // connect more accounts through the "connect more accounts" button
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AccountListBottomSheet.tapAddEthereumAccountButton();
-        await AddNewAccountSheet.tapConfirmButton();
+        await AccountListBottomSheet.tapAddAccountButtonV2();
         await Assertions.expectTextDisplayed(accountTwoText);
 
         await AccountListBottomSheet.tapAccountIndex(0);
@@ -137,9 +134,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         // create the third account
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapAccountListBottomSheet();
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AccountListBottomSheet.tapAddEthereumAccountButton();
-        await AddNewAccountSheet.tapConfirmButton();
+        await AccountListBottomSheet.tapAddAccountButtonV2();
 
         // connect the third account
         await AccountListBottomSheet.tapAccountIndex(0); // only the third account is not connected.

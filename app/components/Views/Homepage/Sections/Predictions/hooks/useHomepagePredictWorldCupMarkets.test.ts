@@ -4,7 +4,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../../../../UI/Predict/constants/flags';
 import { usePredictWorldCupMarkets } from '../../../../../UI/Predict/hooks/usePredictWorldCup';
+import { PREDICT_WORLD_CUP_TAB_KEYS } from '../../../../../UI/Predict/constants/worldCupTabs';
 import {
+  useHomepagePredictLiveWorldCupMarkets,
   useHomepagePredictWorldCupEventCount,
   useHomepagePredictWorldCupMarkets,
 } from './useHomepagePredictWorldCupMarkets';
@@ -145,5 +147,29 @@ describe('useHomepagePredictWorldCupMarkets', () => {
 
     expect(result.current).not.toHaveProperty('eventCount');
     expect(result.current).not.toHaveProperty('totalResults');
+  });
+
+  it('loads homepage World Cup markets from the all tab', () => {
+    renderHook(() => useHomepagePredictWorldCupMarkets({ enabled: true }), {
+      wrapper: createWrapper(),
+    });
+
+    expect(mockUsePredictWorldCupMarkets).toHaveBeenCalledWith({
+      tabKey: PREDICT_WORLD_CUP_TAB_KEYS.ALL,
+      config: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+      enabled: true,
+    });
+  });
+
+  it('loads homepage live World Cup markets from the live tab', () => {
+    renderHook(() => useHomepagePredictLiveWorldCupMarkets({ enabled: true }), {
+      wrapper: createWrapper(),
+    });
+
+    expect(mockUsePredictWorldCupMarkets).toHaveBeenCalledWith({
+      tabKey: PREDICT_WORLD_CUP_TAB_KEYS.LIVE,
+      config: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+      enabled: true,
+    });
   });
 });

@@ -1,83 +1,146 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Position } from '@metamask/social-controllers';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
-import type { Hex } from '@metamask/utils';
-import { handleFetch } from '@metamask/controller-utils';
 import { chainNameToId } from '../utils/chainMapping';
+import { isPerpPosition, isClosedPosition } from '../utils/perp';
+import { getAssetImageUrl } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import { usePerpsTraderPositionPrices } from './usePerpsTraderPositionPrices';
+import { useSpotTraderPositionPrices } from './useSpotTraderPositionPrices';
 import {
-  getAssetImageUrl,
-  toAssetId,
-} from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
-import { caipChainIdToHex } from '../../../UI/Rewards/utils/formatUtils';
-import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import Logger from '../../../../util/Logger';
+  derivePercentChange,
+  PERIOD_DURATION_MS,
+  TIME_PERIODS,
+  type TimePeriod,
+} from './traderPositionData';
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
+export type { TimePeriod };
+export { TIME_PERIODS };
 
-const TIME_PERIODS = ['1H', '1D', '1W', '1M', 'All'] as const;
-type TimePeriod = (typeof TIME_PERIODS)[number];
+const normalizeTradeTimestampMs = (timestamp: number): number =>
+  timestamp > 0 && timestamp < 1e12 ? timestamp * 1000 : timestamp;
 
-const PERIOD_TO_API: Record<TimePeriod, string> = {
-  '1H': '1d',
-  '1D': '1d',
-  '1W': '7d',
-  '1M': '1m',
-  All: '3y',
-};
+const PERIODS_BY_SPAN: readonly TimePeriod[] = ['1H', '1D', '1W', '1M', 'All'];
 
-const PERIOD_DURATION_MS: Record<TimePeriod, number> = {
-  '1H': 60 * 60 * 1000,
-  '1D': 24 * 60 * 60 * 1000,
-  '1W': 7 * 24 * 60 * 60 * 1000,
-  '1M': 30 * 24 * 60 * 60 * 1000,
-  All: 3 * 365 * 24 * 60 * 60 * 1000,
-};
-
-/**
- * Derives percentage change from historical price data points.
- * For "1H" we find the point closest to one hour ago within the data set.
- * @param nowMs - Same clock as used to slice 1H prices (avoids mismatched "now").
- */
-function derivePercentChange(
-  prices: TokenPrice[],
+function hasPeriodPrices(
+  pricesByPeriod: Partial<Record<TimePeriod, TokenPrice[]>>,
   period: TimePeriod,
-  nowMs: number,
-): number | undefined {
-  if (!prices.length) return undefined;
-
-  const endPrice = prices[prices.length - 1][1];
-  let startPrice: number;
-
-  if (period === '1H') {
-    const oneHourAgo = nowMs - 60 * 60 * 1000;
-    const closest = prices.reduce((best, pt) =>
-      Math.abs(Number(pt[0]) - oneHourAgo) <
-      Math.abs(Number(best[0]) - oneHourAgo)
-        ? pt
-        : best,
-    );
-    startPrice = closest[1];
-  } else {
-    startPrice = prices[0][1];
-  }
-
-  if (startPrice === 0) return undefined;
-  return ((endPrice - startPrice) / startPrice) * 100;
+): boolean {
+  return Object.prototype.hasOwnProperty.call(pricesByPeriod, period);
 }
 
-// ---------------------------------------------------------------------------
-// Hook
-// ---------------------------------------------------------------------------
+function getTradeTimestampRange(
+  trades: readonly { timestamp: number }[] | undefined,
+): { min: number; max: number } | null {
+  if (!trades?.length) return null;
+
+  let min = Infinity;
+  let max = -Infinity;
+
+  for (const trade of trades) {
+    const timestamp = normalizeTradeTimestampMs(trade.timestamp);
+    if (!Number.isFinite(timestamp)) continue;
+    min = Math.min(min, timestamp);
+    max = Math.max(max, timestamp);
+  }
+
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
+
+  return { min, max };
+}
+
+function getPriceTimestampRange(prices: TokenPrice[]): {
+  min: number;
+  max: number;
+} | null {
+  if (!prices.length) return null;
+
+  let min = Infinity;
+  let max = -Infinity;
+
+  for (const [timestamp] of prices) {
+    const timestampMs = Number(timestamp);
+    if (!Number.isFinite(timestampMs)) continue;
+    min = Math.min(min, timestampMs);
+    max = Math.max(max, timestampMs);
+  }
+
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
+
+  return { min, max };
+}
+
+function pricesCoverTrades(
+  prices: TokenPrice[] | undefined,
+  tradeRange: { min: number; max: number },
+): boolean {
+  const priceRange = prices ? getPriceTimestampRange(prices) : null;
+  return Boolean(
+    priceRange &&
+      tradeRange.min >= priceRange.min &&
+      tradeRange.max <= priceRange.max,
+  );
+}
+
+function getFirstLoadedPeriodCoveringTrades(
+  trades: readonly { timestamp: number }[] | undefined,
+  pricesByPeriod: Partial<Record<TimePeriod, TokenPrice[]>>,
+  minimumPeriod: TimePeriod,
+): TimePeriod | null {
+  const tradeRange = getTradeTimestampRange(trades);
+  if (!tradeRange) return minimumPeriod;
+
+  const startIndex = PERIODS_BY_SPAN.indexOf(minimumPeriod);
+  if (startIndex < 0) return null;
+
+  for (const period of PERIODS_BY_SPAN.slice(startIndex)) {
+    if (!hasPeriodPrices(pricesByPeriod, period)) {
+      return null;
+    }
+    if (pricesCoverTrades(pricesByPeriod[period], tradeRange)) {
+      return period;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Selects the smallest period that can contain the span between the first and
+ * last trade. This keeps a three-day position on 1W, a three-week position on
+ * 1M, and only falls back to All for spans wider than a month.
+ */
+export function getRecommendedTradeSpanPeriod(
+  trades: readonly { timestamp: number }[] | undefined,
+): TimePeriod {
+  const tradeRange = getTradeTimestampRange(trades);
+  if (!tradeRange) return '1M';
+
+  const spanMs = Math.max(0, tradeRange.max - tradeRange.min);
+  return (
+    PERIODS_BY_SPAN.find((period) => spanMs <= PERIOD_DURATION_MS[period]) ??
+    'All'
+  );
+}
+
+function getPositionPeriodIdentity(position: Position | undefined): string {
+  if (!position) return '';
+  return [
+    position.chain,
+    position.tokenAddress,
+    position.tokenSymbol,
+    isPerpPosition(position) ? 'perp' : 'spot',
+  ].join('|');
+}
 
 export interface TraderPositionData {
   // Token
   symbol: string;
   tokenImageUrl: string | undefined;
   marketCap: number | undefined;
+  /** Latest price from the chart feed. Surfaced for perps (no market cap). */
+  currentPrice: number | undefined;
+  isPerp: boolean;
 
   // Chart
   historicalPrices: TokenPrice[];
@@ -97,27 +160,64 @@ export interface TraderPositionData {
 
   // Time period
   activeTimePeriod: TimePeriod;
+  isTimePeriodAutoSelected: boolean;
   setActiveTimePeriod: (period: TimePeriod) => void;
+  setAutomaticTimePeriod: (period: TimePeriod) => void;
   timePeriods: readonly TimePeriod[];
 }
-
-export type { TimePeriod };
-export { TIME_PERIODS };
 
 export function useTraderPositionData(
   positionParam: Position | undefined,
   tokenSymbol?: string,
+  /**
+   * Authoritative closed/open flag from the caller's list context (e.g. the
+   * profile tab). Falls back to {@link isClosedPosition} when omitted.
+   */
+  isClosedOverride?: boolean,
 ): TraderPositionData {
-  const [activeTimePeriod, setActiveTimePeriod] = useState<TimePeriod>('1M');
+  const positionPeriodIdentity = useMemo(
+    () => getPositionPeriodIdentity(positionParam),
+    [positionParam],
+  );
+  const recommendedTradeSpanPeriod = useMemo(
+    () => getRecommendedTradeSpanPeriod(positionParam?.trades),
+    [positionParam?.trades],
+  );
+  const userSelectedTimePeriodRef = useRef(false);
+  const [isTimePeriodAutoSelected, setIsTimePeriodAutoSelected] =
+    useState(true);
+  const lastPositionPeriodIdentityRef = useRef(positionPeriodIdentity);
+  const [activeTimePeriod, setActiveTimePeriodState] = useState<TimePeriod>(
+    () => recommendedTradeSpanPeriod,
+  );
+
+  useEffect(() => {
+    if (!positionPeriodIdentity) return;
+
+    if (lastPositionPeriodIdentityRef.current !== positionPeriodIdentity) {
+      lastPositionPeriodIdentityRef.current = positionPeriodIdentity;
+      userSelectedTimePeriodRef.current = false;
+      setIsTimePeriodAutoSelected(true);
+    }
+
+    if (!userSelectedTimePeriodRef.current) {
+      setActiveTimePeriodState(recommendedTradeSpanPeriod);
+    }
+  }, [positionPeriodIdentity, recommendedTradeSpanPeriod]);
+
+  const setActiveTimePeriod = useCallback((period: TimePeriod) => {
+    userSelectedTimePeriodRef.current = true;
+    setIsTimePeriodAutoSelected(false);
+    setActiveTimePeriodState(period);
+  }, []);
+
+  const setAutomaticTimePeriod = useCallback((period: TimePeriod) => {
+    setActiveTimePeriodState(period);
+  }, []);
 
   const caipChainId = useMemo(
     () => (positionParam ? chainNameToId(positionParam.chain) : undefined),
     [positionParam],
-  );
-
-  const hexChainId = useMemo(
-    () => (caipChainId ? caipChainIdToHex(caipChainId) : undefined),
-    [caipChainId],
   );
 
   const tokenImageUrl = useMemo(() => {
@@ -125,127 +225,79 @@ export function useTraderPositionData(
     return getAssetImageUrl(positionParam.tokenAddress, caipChainId);
   }, [positionParam, caipChainId]);
 
-  // ── Market cap ──────────────────────────────────────────────────────────
+  const isPerp = useMemo(
+    () => positionParam != null && isPerpPosition(positionParam),
+    [positionParam],
+  );
 
-  const allMarketData = useSelector(selectTokenMarketData);
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const cachedMarket = hexChainId
-    ? allMarketData?.[hexChainId]?.[
-        positionParam?.tokenAddress?.toLowerCase() as Hex
-      ]
-    : undefined;
-
-  const [fetchedMarketCap, setFetchedMarketCap] = useState<number>();
-
-  useEffect(() => {
-    setFetchedMarketCap(undefined);
-
-    if (cachedMarket?.marketCap != null || !positionParam || !caipChainId)
-      return;
-    const assetId = toAssetId(positionParam.tokenAddress, caipChainId);
-    if (!assetId) return;
-
-    let cancelled = false;
-    (async () => {
-      try {
-        const url = `https://price.api.cx.metamask.io/v3/spot-prices?${new URLSearchParams(
-          {
-            assetIds: assetId,
-            includeMarketData: 'true',
-            vsCurrency: currentCurrency.toLowerCase(),
-          },
-        )}`;
-        const response = (await handleFetch(url)) as Record<
-          string,
-          Record<string, unknown>
-        >;
-        const cap = response?.[assetId]?.marketCap;
-        if (!cancelled && typeof cap === 'number') {
-          setFetchedMarketCap(cap);
-        }
-      } catch (err) {
-        Logger.error(
-          err as Error,
-          'useTraderPositionData: failed to fetch market data',
-        );
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [cachedMarket?.marketCap, positionParam, caipChainId, currentCurrency]);
-
-  const marketCap = cachedMarket?.marketCap ?? fetchedMarketCap;
-
-  // ── Historical prices ───────────────────────────────────────────────────
-
-  const [allPrices, setAllPrices] = useState<
-    Partial<Record<TimePeriod, TokenPrice[]>>
-  >({});
-  const [isPricesLoading, setIsPricesLoading] = useState(true);
-
-  useEffect(() => {
-    if (!positionParam || !caipChainId) {
-      setAllPrices({});
-      setIsPricesLoading(false);
-      return;
+  const earliestTradeMs = useMemo(() => {
+    const trades = positionParam?.trades;
+    if (!trades?.length) return undefined;
+    let min = Infinity;
+    for (const trade of trades) {
+      const ms =
+        trade.timestamp > 0 && trade.timestamp < 1e12
+          ? trade.timestamp * 1000
+          : trade.timestamp;
+      if (Number.isFinite(ms) && ms < min) min = ms;
     }
-    setIsPricesLoading(true);
-    const assetIdentifier = `erc20:${positionParam.tokenAddress}`;
-    const vsCurrency = currentCurrency.toLowerCase();
-    let cancelled = false;
+    return Number.isFinite(min) ? min : undefined;
+  }, [positionParam?.trades]);
 
-    const fetchPeriod = async (period: TimePeriod) => {
-      const apiPeriod = PERIOD_TO_API[period];
-      const uri = `https://price.api.cx.metamask.io/v3/historical-prices/${caipChainId}/${assetIdentifier}?timePeriod=${apiPeriod}&vsCurrency=${vsCurrency}`;
-      try {
-        const response = await fetch(uri);
-        if (response.status === 204 || !response.ok)
-          return { period, prices: [] as TokenPrice[] };
-        const data: { prices: [number, number][] } = await response.json();
-        const prices: TokenPrice[] = (data.prices ?? []).map(
-          ([timestamp, price]) =>
-            [timestamp.toString(), Number(price)] as TokenPrice,
-        );
-        return { period, prices };
-      } catch (err) {
-        Logger.error(
-          err as Error,
-          `useTraderPositionData: failed to fetch ${period} prices`,
-        );
-        return { period, prices: [] as TokenPrice[] };
-      }
-    };
+  const spotPrices = useSpotTraderPositionPrices(
+    { positionParam, caipChainId },
+    { enabled: !isPerp },
+  );
+  const perpPrices = usePerpsTraderPositionPrices(
+    { positionParam, activeTimePeriod, earliestTradeMs },
+    { enabled: isPerp },
+  );
 
-    // 1H and 1D share the same API call ('1d') — fetch once, reuse.
-    const uniquePeriods: TimePeriod[] = ['1D', '1W', '1M', 'All'];
+  const resolvedPrices = isPerp
+    ? perpPrices.pricesByPeriod
+    : spotPrices.pricesByPeriod;
+  const isPricesLoading = isPerp ? perpPrices.isLoading : spotPrices.isLoading;
+  const marketCap = spotPrices.marketCap;
 
-    Promise.all(uniquePeriods.map(fetchPeriod)).then((results) => {
-      if (cancelled) return;
-      const cache: Partial<Record<TimePeriod, TokenPrice[]>> = {};
-      for (const { period, prices } of results) {
-        cache[period] = prices;
-        if (period === '1D') cache['1H'] = prices;
-      }
-      setAllPrices(cache);
-      setIsPricesLoading(false);
-    });
+  // While the period is still auto-selected (user hasn't tapped one), widen to
+  // the first loaded period whose data actually covers the whole trade range, so
+  // the chart can frame all trades once that period's data arrives.
+  //
+  // PERP ONLY: perps render the price-line arrays (`resolvedPrices`), so their
+  // coverage is the right signal here. Spot renders OHLCV candles and is widened
+  // by `TraderAdvancedChart` against its own OHLCV coverage (which also keeps the
+  // tap-to-focus request in sync). Running both for spot let the two disagree —
+  // price arrays span further back than the OHLCV first page — and fight over
+  // `activeTimePeriod` (period flicker + off-screen trades), so spot is left to
+  // the chart as the single source of truth.
+  useEffect(() => {
+    if (!isPerp) return;
+    if (userSelectedTimePeriodRef.current) return;
 
-    return () => {
-      cancelled = true;
-    };
-  }, [positionParam, caipChainId, currentCurrency]);
+    const coveredPeriod = getFirstLoadedPeriodCoveringTrades(
+      positionParam?.trades,
+      resolvedPrices,
+      recommendedTradeSpanPeriod,
+    );
 
-  // Resolve with fallbacks (single useMemo + one Date.now() per recompute so 1H
-  // slice and derivePercentChange share the same clock; deps omit "now" so
-  // window updates when price data or period changes, not on every parent render).
+    if (coveredPeriod && coveredPeriod !== activeTimePeriod) {
+      setActiveTimePeriodState(coveredPeriod);
+    }
+  }, [
+    activeTimePeriod,
+    isPerp,
+    positionParam?.trades,
+    recommendedTradeSpanPeriod,
+    resolvedPrices,
+  ]);
+
   const { historicalPrices, priceDiff, pricePercentChange } = useMemo(() => {
     const now = Date.now();
-    let prices = allPrices[activeTimePeriod] ?? [];
+    let prices = resolvedPrices[activeTimePeriod] ?? [];
 
     if (activeTimePeriod === 'All' && !prices.length) {
       prices =
-        [allPrices['1M'], allPrices['1W'], allPrices['1D']].find(
+        [resolvedPrices['1M'], resolvedPrices['1W'], resolvedPrices['1D']].find(
           (fallbackPrices) => fallbackPrices?.length,
         ) ?? [];
     }
@@ -256,36 +308,53 @@ export function useTraderPositionData(
       prices = lastHour.length >= 5 ? lastHour : prices;
     }
 
+    const lastPrice = prices.at(-1)?.[1];
     const diff =
-      prices.length < 2 ? 0 : prices[prices.length - 1][1] - prices[0][1];
+      prices.length < 2 || lastPrice == null ? 0 : lastPrice - prices[0][1];
 
     return {
       historicalPrices: prices,
       priceDiff: diff,
       pricePercentChange: derivePercentChange(prices, activeTimePeriod, now),
     };
-  }, [allPrices, activeTimePeriod]);
+  }, [resolvedPrices, activeTimePeriod]);
 
-  // ── Position card ──────────────────────────────────────────────────────
+  const currentPrice = useMemo(() => {
+    const source =
+      resolvedPrices['1H'] ??
+      resolvedPrices['1D'] ??
+      resolvedPrices['1W'] ??
+      resolvedPrices['1M'] ??
+      resolvedPrices.All;
+    if (!source?.length) return undefined;
+    return source.at(-1)?.[1];
+  }, [resolvedPrices]);
 
-  const symbol = positionParam?.tokenSymbol ?? tokenSymbol ?? '';
+  const symbol = getPerpsDisplaySymbol(
+    positionParam?.tokenSymbol ?? tokenSymbol ?? '',
+  );
   const isClosed =
-    positionParam != null &&
-    positionParam.positionAmount === 0 &&
-    positionParam.soldUsd > 0;
+    isClosedOverride ??
+    (positionParam != null && isClosedPosition(positionParam));
 
   const positionValue = isClosed ? null : positionParam?.currentValueUSD;
-  const pnlValue = isClosed
-    ? positionParam?.realizedPnl
-    : positionParam?.pnlValueUsd;
-  const pnlPercent = isClosed
-    ? positionParam?.boughtUsd
-      ? (positionParam.realizedPnl / positionParam.boughtUsd) * 100
-      : null
-    : (positionParam?.pnlPercent ?? null);
-  const isPnlPositive = (pnlValue ?? 0) >= 0;
 
-  // ── Trades ─────────────────────────────────────────────────────────────
+  const pnlValue = isPerp
+    ? (positionParam?.pnlValueUsd ?? positionParam?.realizedPnl)
+    : isClosed
+      ? positionParam?.realizedPnl
+      : positionParam?.pnlValueUsd;
+  const pnlPercent = isPerp
+    ? (positionParam?.pnlPercent ??
+      (positionParam?.boughtUsd
+        ? (positionParam.realizedPnl / positionParam.boughtUsd) * 100
+        : null))
+    : isClosed
+      ? positionParam?.boughtUsd
+        ? (positionParam.realizedPnl / positionParam.boughtUsd) * 100
+        : null
+      : (positionParam?.pnlPercent ?? null);
+  const isPnlPositive = (pnlValue ?? 0) >= 0;
 
   const allTrades = useMemo(
     () => positionParam?.trades ?? [],
@@ -303,12 +372,12 @@ export function useTraderPositionData(
     });
   }, [allTrades, activeTimePeriod]);
 
-  // ── Return ─────────────────────────────────────────────────────────────
-
   return {
     symbol,
     tokenImageUrl,
     marketCap,
+    currentPrice,
+    isPerp,
     historicalPrices,
     priceDiff,
     isPricesLoading,
@@ -321,7 +390,9 @@ export function useTraderPositionData(
     allTrades,
     chartTrades,
     activeTimePeriod,
-    setActiveTimePeriod: setActiveTimePeriod as (period: TimePeriod) => void,
+    isTimePeriodAutoSelected,
+    setActiveTimePeriod,
+    setAutomaticTimePeriod,
     timePeriods: TIME_PERIODS,
   };
 }

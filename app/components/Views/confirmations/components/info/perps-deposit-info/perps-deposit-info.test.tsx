@@ -5,7 +5,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { ARBITRUM_USDC, PERPS_CURRENCY } from '../../../constants/perps';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import useNavbar from '../../../hooks/ui/useNavbar';
-import { useMoneyAccountPaymentOverride } from '../../../hooks/pay/useMoneyAccountPaymentOverride';
+import { useDefaultPaySelectedSection } from '../../../hooks/pay/useDefaultPaySelectedSection';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { PayWithOption } from '../../confirm/confirm-component';
 import { CustomAmountInfo } from '../custom-amount-info';
@@ -13,7 +13,7 @@ import { PerpsDepositInfo } from './perps-deposit-info';
 
 jest.mock('../../../hooks/ui/useNavbar');
 jest.mock('../../../hooks/tokens/useAddToken');
-jest.mock('../../../hooks/pay/useMoneyAccountPaymentOverride');
+jest.mock('../../../hooks/pay/useDefaultPaySelectedSection');
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
   useParams: jest.fn(),
@@ -41,16 +41,14 @@ describe('PerpsDepositInfo', () => {
     );
   });
 
-  it('sets navbar title to "Transfer to Perps" when payWithOption is MoneyAccount', () => {
+  it('sets navbar title to "Send to Perps" when payWithOption is MoneyAccount', () => {
     mockUseParams.mockReturnValue({
       payWithOption: PayWithOption.MoneyAccount,
     });
 
     render(<PerpsDepositInfo />);
 
-    expect(mockUseNavbar).toHaveBeenCalledWith(
-      strings('perps.transfer_to_perps'),
-    );
+    expect(mockUseNavbar).toHaveBeenCalledWith(strings('perps.send_to_perps'));
   });
 
   it('registers Arbitrum USDC token', () => {
@@ -74,9 +72,9 @@ describe('PerpsDepositInfo', () => {
     );
   });
 
-  it('calls useMoneyAccountPaymentOverride', () => {
+  it('calls useDefaultPaySelectedSection', () => {
     render(<PerpsDepositInfo />);
 
-    expect(useMoneyAccountPaymentOverride).toHaveBeenCalled();
+    expect(useDefaultPaySelectedSection).toHaveBeenCalled();
   });
 });

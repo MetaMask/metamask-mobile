@@ -49,7 +49,6 @@ describe(SmokePerps('Perps Position Stop Loss'), () => {
               type: 'erc20',
             },
           ])
-          .withPopularNetworks()
           .build(),
         restartDevice: true,
         permissions: { notifications: 'YES' },

@@ -123,11 +123,10 @@ jobs:
     if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
     permissions:
       contents: write
+      id-token: write
     with:
       base-branch: ${{ needs.validate-and-find-pr.outputs.branch-name }}
       build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
-    secrets:
-      PR_TOKEN: ${{ secrets.PR_TOKEN }}
 
   trigger-ios-rc-build:
     name: Trigger iOS RC Build

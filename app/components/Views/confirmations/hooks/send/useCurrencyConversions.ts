@@ -7,8 +7,10 @@ import { RootState } from '../../../../../reducers';
 import { getCurrencySymbol } from '../../../../../util/number';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { AssetType } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
+import { isNetworkTestnet } from './useNetworkFilter';
 import {
   convertCurrency,
   isValidPositiveNumericString,
@@ -87,6 +89,7 @@ export const getNativeValueFn = ({
 export const useCurrencyConversions = () => {
   const { asset, chainId } = useSendContext();
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, chainId as Hex),
   );
@@ -103,8 +106,17 @@ export const useCurrencyConversions = () => {
     if (!assetAddress) {
       return 0;
     }
+    // "Show conversion on test networks" setting: fiat conversion is not
+    // available for testnet assets unless the user opted in.
+    if (
+      !showFiatOnTestnets &&
+      asset?.chainId &&
+      isNetworkTestnet(String(asset.chainId))
+    ) {
+      return 0;
+    }
     return (asset as AssetType)?.fiat?.conversionRate ?? 0;
-  }, [asset]);
+  }, [asset, showFiatOnTestnets]);
 
   const getFiatDisplayValue = useCallback(
     (amount: string) =>

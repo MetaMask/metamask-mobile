@@ -309,8 +309,10 @@ describe('BaanxProvider', () => {
     const account: CardAccountStatus = {
       verificationStatus: 'VERIFIED',
       provisioningEligible: true,
+      countryOfResidence: 'US',
       holderName: 'Test User',
       shippingAddress: null,
+      usState: 'CA',
     };
 
     const card: CardDetails = {
@@ -661,6 +663,48 @@ describe('BaanxProvider', () => {
 
       expect(result.account).toBeNull();
       expect(result.card).toBeNull();
+    });
+
+    it('maps countryOfResidence from the user payload onto account status', async () => {
+      const get = jest.fn().mockImplementation((path: string) => {
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            verificationState: 'VERIFIED',
+            firstName: 'Jane',
+            countryOfResidence: 'gb',
+          });
+        }
+        return Promise.resolve(null);
+      });
+
+      const result = await buildProvider(get).getCardHomeData('0xabc', tokens);
+
+      expect(result.account).toMatchObject({
+        countryOfResidence: 'GB',
+        usState: null,
+        verificationStatus: 'VERIFIED',
+        holderName: 'Jane',
+      } satisfies Partial<CardAccountStatus>);
+    });
+
+    it('maps usState from the user payload onto account status', async () => {
+      const get = jest.fn().mockImplementation((path: string) => {
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            verificationState: 'VERIFIED',
+            countryOfResidence: 'US',
+            usState: 'ca',
+          });
+        }
+        return Promise.resolve(null);
+      });
+
+      const result = await buildProvider(get).getCardHomeData('0xabc', tokens);
+
+      expect(result.account).toMatchObject({
+        countryOfResidence: 'US',
+        usState: 'CA',
+      } satisfies Partial<CardAccountStatus>);
     });
 
     it('propagates a 401 from the wallet details fetch', async () => {

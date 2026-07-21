@@ -14,17 +14,26 @@ export enum ActionButtonType {
   SWAP = 'swap',
   SEND = 'send',
   RECEIVE = 'receive',
+  SELL = 'sell',
+  PERPS = 'perps',
+  PREDICT = 'predict',
+  BATCH_SWAP = 'batch_swap',
+  TRADERS = 'traders',
 }
 
 /**
- * The position of the button in the action button for remote config use and a/b testing
- * Not in use but will be in the future
+ * The position of the button in the action button for remote config use and a/b testing.
+ * Supports up to 8 slots for the homepage 2×4 action-button grid AB test (TMCU-1103).
  */
 export enum ActionPosition {
   FIRST_POSITION = 0,
   SECOND_POSITION = 1,
   THIRD_POSITION = 2,
   FOURTH_POSITION = 3,
+  FIFTH_POSITION = 4,
+  SIXTH_POSITION = 5,
+  SEVENTH_POSITION = 6,
+  EIGHTH_POSITION = 7,
 }
 
 /**
@@ -44,12 +53,11 @@ export interface ActionButtonProperties extends JsonMap {
 
 /**
  * Track action button click with new consolidated event.
- * Generic over the event type so callers using either MetricsEventBuilder
- * (ITrackingEvent) or AnalyticsEventBuilder (AnalyticsTrackingEvent) are
- * both accepted without a lossy union parameter.
+ * Generic over the event type so callers using AnalyticsEventBuilder
+ * (AnalyticsTrackingEvent) are accepted without a lossy union parameter.
  *
- * @param trackEvent - trackEvent function (MetaMetrics or useAnalytics)
- * @param createEventBuilder - createEventBuilder function (MetricsEventBuilder or AnalyticsEventBuilder)
+ * @param trackEvent - trackEvent function from useAnalytics
+ * @param createEventBuilder - createEventBuilder function from AnalyticsEventBuilder
  * @param properties - Button properties
  */
 export const trackActionButtonClick = <TEvent>(

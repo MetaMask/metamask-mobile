@@ -45,6 +45,11 @@ const styleSheet = (params: { theme: Theme }) => {
     actionButton: {
       marginTop: 8,
     },
+    pressableContent: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+    },
   });
 };
 

@@ -20,6 +20,7 @@ const styleSheet = (params: { theme: Theme }) => {
     sortRow: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'space-between',
       paddingVertical: 6,
       paddingHorizontal: 16,
     },

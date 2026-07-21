@@ -8,6 +8,7 @@ import {
   Theme,
 } from '@metamask/design-system-twrnc-preset';
 import { AppThemeKey } from '../../../util/theme/models';
+import { isPureBlackEnabled } from '../../../util/theme/themeUtils';
 
 const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const theme = useAppTheme();
@@ -16,9 +17,15 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const designSystemTheme =
     theme.themeAppearance === AppThemeKey.dark ? Theme.Dark : Theme.Light;
 
+  const isPureBlack =
+    isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark;
+
   return (
     <ThemeContext.Provider value={theme}>
-      <DesignSystemThemeProvider theme={designSystemTheme}>
+      <DesignSystemThemeProvider
+        theme={designSystemTheme}
+        isPureBlack={isPureBlack}
+      >
         {children}
       </DesignSystemThemeProvider>
     </ThemeContext.Provider>

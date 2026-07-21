@@ -11,6 +11,7 @@ import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/feature
 import {
   CARD_CONTROLLER_NAME,
   DEFAULT_CARD_PROVIDER_ID,
+  type CardUnauthenticatedReason,
   type CardControllerMessenger,
   type CardControllerState,
 } from './types';
@@ -28,7 +29,6 @@ import {
   type CardCredentials,
   type CardDetails,
   type CardFundingAsset,
-  type CardFundingConfig,
   type CardHomeData,
   type CardProviderCapabilities,
   type CardSecureView,
@@ -37,6 +37,10 @@ import {
   type CashbackWithdrawEstimationResponse,
   type CashbackWithdrawParams,
   type CashbackWithdrawResponse,
+  type CreditWalletResponse,
+  type CreditWithdrawEstimationResponse,
+  type CreditWithdrawParams,
+  type CreditWithdrawResponse,
   type DelegationChallengeResponse,
   type FundingApprovalParams,
   type ICardProvider,
@@ -87,6 +91,12 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: true,
     usedInUi: true,
   },
+  lastUnauthenticatedReason: {
+    persist: false,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: true,
+  },
   cardholderAccounts: {
     persist: true,
     includeInDebugSnapshot: true,
@@ -123,6 +133,7 @@ export const defaultCardControllerState: CardControllerState = {
   selectedCountry: null,
   activeProviderId: DEFAULT_CARD_PROVIDER_ID,
   isAuthenticated: false,
+  lastUnauthenticatedReason: null,
   cardholderAccounts: [],
   providerData: {},
   cardHomeData: null,
@@ -408,9 +419,20 @@ export class CardController extends BaseController<
     return provider;
   }
 
-  private markUnauthenticated(): void {
+  private markUnauthenticated(
+    reason: CardUnauthenticatedReason | null = null,
+  ): void {
     this.update((s) => {
       s.isAuthenticated = false;
+      s.lastUnauthenticatedReason = reason;
+    });
+  }
+
+  clearLastUnauthenticatedReason(): void {
+    if (!this.state.lastUnauthenticatedReason) return;
+
+    this.update((s) => {
+      s.lastUnauthenticatedReason = null;
     });
   }
 
@@ -538,6 +560,7 @@ export class CardController extends BaseController<
       }
       this.update((s) => {
         s.isAuthenticated = true;
+        s.lastUnauthenticatedReason = null;
         s.cardHomeData = null;
         s.cardHomeDataStatus = 'idle';
         (s.providerData as unknown as Record<string, Record<string, string>>)[
@@ -586,13 +609,16 @@ export class CardController extends BaseController<
    * Clears stored tokens, drops in-flight fetches, and resets auth state.
    * Does NOT call the provider's remote logout endpoint.
    */
-  async #clearLocalSession(): Promise<void> {
+  async #clearLocalSession(
+    reason: CardUnauthenticatedReason | null = null,
+  ): Promise<void> {
     const pid = this.state.activeProviderId;
     this.currentSession = null;
     await this.clearTokens();
     this.invalidateFetch();
     this.update((s) => {
       s.isAuthenticated = false;
+      s.lastUnauthenticatedReason = reason;
       s.cardHomeData = null;
       s.cardHomeDataStatus = 'idle';
       if (pid) {
@@ -606,8 +632,10 @@ export class CardController extends BaseController<
   /**
    * Forced logout for an unrecoverable session.
    */
-  async #handleSessionExpired(): Promise<void> {
-    await this.#clearLocalSession();
+  async #handleSessionExpired(
+    reason: CardUnauthenticatedReason | null = null,
+  ): Promise<void> {
+    await this.#clearLocalSession(reason);
     this.#fetchCardHomeDataWithLogging('#handleSessionExpired');
   }
 
@@ -703,7 +731,7 @@ export class CardController extends BaseController<
 
     const tokens = await CardTokenStore.get(pid);
     if (!tokens) {
-      this.markUnauthenticated();
+      this.markUnauthenticated(this.state.lastUnauthenticatedReason);
       return null;
     }
 
@@ -724,7 +752,7 @@ export class CardController extends BaseController<
 
     // expired
     await this.clearTokens();
-    this.markUnauthenticated();
+    this.markUnauthenticated(null);
     return null;
   }
 
@@ -774,7 +802,7 @@ export class CardController extends BaseController<
 
     const tokens = await CardTokenStore.get(pid);
     if (!tokens) {
-      this.markUnauthenticated();
+      this.markUnauthenticated(this.state.lastUnauthenticatedReason);
       return null;
     }
 
@@ -785,7 +813,7 @@ export class CardController extends BaseController<
 
     if (!tokens.refreshToken) {
       // 401 with no refresh token to fall back on — session unrecoverable.
-      await this.#handleSessionExpired();
+      await this.#handleSessionExpired('onboarding_token_revoked');
       return null;
     }
 
@@ -835,6 +863,7 @@ export class CardController extends BaseController<
   #markAuthenticatedWithLocation(pid: string, location: string): void {
     this.update((s) => {
       s.isAuthenticated = true;
+      s.lastUnauthenticatedReason = null;
       (s.providerData as unknown as Record<string, Record<string, string>>)[
         pid
       ] = {
@@ -980,18 +1009,6 @@ export class CardController extends BaseController<
       );
     }
     return this.#withAuthRetry((tokens) => getCardPinView(tokens, params));
-  }
-
-  async getFundingConfig(): Promise<CardFundingConfig> {
-    const provider = this.getActiveProvider();
-    const getFundingConfig = provider.getFundingConfig?.bind(provider);
-    if (!getFundingConfig) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'Funding config not supported',
-      );
-    }
-    return this.#withAuthRetry((tokens) => getFundingConfig(tokens));
   }
 
   async updateAssetPriority(
@@ -1438,5 +1455,46 @@ export class CardController extends BaseController<
       );
     }
     return this.#withAuthRetry((tokens) => withdrawCashback(params, tokens));
+  }
+
+  // -- Credit --
+
+  async getCreditWallet(): Promise<CreditWalletResponse> {
+    const provider = this.getActiveProvider();
+    const getCreditWallet = provider.getCreditWallet?.bind(provider);
+    if (!getCreditWallet) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Credit not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getCreditWallet(tokens));
+  }
+
+  async getCreditWithdrawEstimation(): Promise<CreditWithdrawEstimationResponse> {
+    const provider = this.getActiveProvider();
+    const getCreditWithdrawEstimation =
+      provider.getCreditWithdrawEstimation?.bind(provider);
+    if (!getCreditWithdrawEstimation) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Credit not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getCreditWithdrawEstimation(tokens));
+  }
+
+  async withdrawCredit(
+    params: CreditWithdrawParams,
+  ): Promise<CreditWithdrawResponse> {
+    const provider = this.getActiveProvider();
+    const withdrawCredit = provider.withdrawCredit?.bind(provider);
+    if (!withdrawCredit) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Credit withdrawal not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => withdrawCredit(params, tokens));
   }
 }

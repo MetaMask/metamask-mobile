@@ -5,6 +5,7 @@ import {
   selectWatchlistMarkets,
   selectIsWatchlistMarket,
   selectMarketFilterPreferences,
+  selectRecentlyViewedMarkets,
   InitializationState,
   type PerpsActiveProviderMode,
 } from '@metamask/perps-controller';
@@ -92,6 +93,28 @@ const selectPerpsWatchlistMarkets = createSelector(
   },
 );
 
+/**
+ * Symbols of markets the user has recently viewed, newest-first.
+ *
+ * Delegates to the core `selectRecentlyViewedMarkets`, which already
+ * filters out entries older than `RecentlyViewedMarketsTtlMs` (24h) and
+ * caps the list at `RecentlyViewedMarketsLimit` (10).
+ */
+const selectPerpsRecentlyViewedMarkets = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) => {
+    try {
+      return (
+        (perpsControllerState
+          ? selectRecentlyViewedMarkets(perpsControllerState)
+          : undefined) ?? []
+      );
+    } catch {
+      return [];
+    }
+  },
+);
+
 const selectPerpsMarketFilterPreferences = createSelector(
   selectPerpsControllerState,
   (perpsControllerState) => {
@@ -157,6 +180,7 @@ export {
   selectPerpsBalances,
   selectIsFirstTimePerpsUser,
   selectPerpsWatchlistMarkets,
+  selectPerpsRecentlyViewedMarkets,
   selectPerpsMarketFilterPreferences,
   selectPerpsInitializationState,
   selectIsPerpsBalanceSelected,

@@ -21,9 +21,8 @@ import { smokeTags, flaskTags } from '../../../../tags';
  */
 const FEATURE_AREA_DISPLAY_NAMES: Record<string, string> = {
   // Tag names (PascalCase)
-  SmokeAccounts: 'Accounts',
+  SmokeAccounts: 'Accounts (Including Profile Sync)',
   SmokeConfirmations: 'Confirmations (Transactions/Signatures)',
-  SmokeIdentity: 'Identity (Profile Sync)',
   SmokeNetworkAbstractions: 'Networks',
   SmokeNetworkExpansion: 'Multi-Chain (Solana/Non-EVM)',
   SmokeSwap: 'Swap/Bridge',
@@ -47,7 +46,6 @@ const FEATURE_AREA_DISPLAY_NAMES: Record<string, string> = {
   staking: 'Stake/Lending',
   accounts: 'Accounts',
   confirmations: 'Confirmations (Transactions/Signatures)',
-  identity: 'Identity (Profile Sync)',
   networks: 'Networks',
   snaps: 'Snaps (Flask)',
   notifications: 'Notifications',

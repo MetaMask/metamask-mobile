@@ -1,5 +1,8 @@
 import React from 'react';
 import { default as Transactions, UnconnectedTransactions } from '.';
+import TransactionElement from '../TransactionElement';
+import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
+import ActivityListDateHeader from '../ActivityListItemRow/ActivityListDateHeader';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { render, cleanup, act } from '@testing-library/react-native';
@@ -19,10 +22,7 @@ import { TransactionDetailLocation } from '../../../core/Analytics/events/transa
 import { NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 import { isHardwareAccount } from '../../../util/address';
 import NotificationManager from '../../../core/NotificationManager';
-import {
-  updateIncomingTransactions,
-  speedUpTransaction,
-} from '../../../util/transaction-controller';
+import { speedUpTransaction } from '../../../util/transaction-controller';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import { CancelSpeedupModal } from '../../../components/Views/confirmations/components/modals/cancel-speedup-modal';
@@ -66,7 +66,6 @@ jest.mock('../../../core/NotificationManager', () => ({
 }));
 
 jest.mock('../../../util/transaction-controller', () => ({
-  updateIncomingTransactions: jest.fn(),
   speedUpTransaction: jest.fn(),
   getPreviousGasFromController: jest.fn(() => undefined),
 }));
@@ -139,6 +138,15 @@ jest.mock('../../../util/Logger', () => ({
 jest.mock('../TransactionElement', () => ({
   __esModule: true,
   default: () => null,
+}));
+
+jest.mock('../ActivityListItemRow/ActivityListItemRow', () => ({
+  ActivityListItemRow: jest.fn(() => null),
+  resolveActivityListItemTitle: jest.fn(() => 'Activity title'),
+}));
+
+jest.mock('../../../selectors/featureFlagController/activityRedesign', () => ({
+  selectIsActivityRedesignEnabled: jest.fn(() => false),
 }));
 
 // Mock other connected components
@@ -259,10 +267,6 @@ const mockNotificationManagerGetTransactionToView =
   NotificationManager.getTransactionToView as jest.MockedFunction<
     typeof NotificationManager.getTransactionToView
   >;
-const mockUpdateIncomingTransactions =
-  updateIncomingTransactions as jest.MockedFunction<
-    typeof updateIncomingTransactions
-  >;
 const mockSpeedUpTransaction = speedUpTransaction as jest.MockedFunction<
   typeof speedUpTransaction
 >;
@@ -290,6 +294,7 @@ const defaultTestProps = {
   gasFeeEstimates: {
     medium: { suggestedMaxFeePerGas: '20' },
   },
+  isActivityRedesignEnabled: false,
 };
 
 describe('Transactions', () => {
@@ -298,7 +303,6 @@ describe('Transactions', () => {
     mockIsNonEvmChainId.mockReturnValue(false);
     mockIsHardwareAccount.mockReturnValue(false);
     mockNotificationManagerGetTransactionToView.mockReturnValue(null);
-    mockUpdateIncomingTransactions.mockResolvedValue(undefined);
     mockExecuteHardwareWalletOperation.mockResolvedValue(true);
   });
 
@@ -450,13 +454,6 @@ describe('Transactions', () => {
 
       expect(mockIsHardwareAccount('0x123')).toBe(true);
       expect(mockIsHardwareAccount).toHaveBeenCalledWith('0x123');
-    });
-
-    it('refreshes transactions', async () => {
-      mockUpdateIncomingTransactions.mockResolvedValue(undefined);
-
-      await mockUpdateIncomingTransactions();
-      expect(mockUpdateIncomingTransactions).toHaveBeenCalled();
     });
 
     it('manages block explorer state', () => {
@@ -648,11 +645,6 @@ describe('Transactions', () => {
       expect(isLedgerHardware).toBe(false);
     });
 
-    it('should test updateIncomingTransactions is available', () => {
-      expect(mockUpdateIncomingTransactions).toBeDefined();
-      expect(typeof mockUpdateIncomingTransactions).toBe('function');
-    });
-
     it('should test hardware account detection function', () => {
       mockIsHardwareAccount.mockReset();
       mockIsHardwareAccount.mockReturnValue(true);
@@ -734,11 +726,6 @@ describe('Transactions', () => {
       const address = '0x1234567890abcdef1234567890abcdef12345678';
       expect(address.length).toBe(42);
       expect(address.startsWith('0x')).toBe(true);
-    });
-
-    it('should test component refresh functionality', async () => {
-      await mockUpdateIncomingTransactions();
-      expect(mockUpdateIncomingTransactions).toHaveBeenCalled();
     });
 
     it('should test component error handling', () => {
@@ -824,7 +811,6 @@ describe('Transactions', () => {
       mockIsNonEvmChainId.mockReturnValue(false);
       mockIsHardwareAccount.mockReturnValue(false);
       mockNotificationManagerGetTransactionToView.mockReturnValue(null);
-      mockUpdateIncomingTransactions.mockResolvedValue(undefined);
       mockGetBlockExplorerAddressUrl.mockReturnValue({
         url: 'https://etherscan.io/address/0x123',
         title: 'Etherscan',
@@ -1383,7 +1369,6 @@ describe('UnconnectedTransactions Simplified RNTL Tests', () => {
     mockIsNonEvmChainId.mockReturnValue(false);
     mockIsHardwareAccount.mockReturnValue(false);
     mockNotificationManagerGetTransactionToView.mockReturnValue(null);
-    mockUpdateIncomingTransactions.mockResolvedValue(undefined);
   });
 
   it('should render loading state when loading prop is true', () => {
@@ -1473,7 +1458,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     mockIsNonEvmChainId.mockReturnValue(false);
     mockIsHardwareAccount.mockReturnValue(false);
     mockNotificationManagerGetTransactionToView.mockReturnValue(null);
-    mockUpdateIncomingTransactions.mockResolvedValue(undefined);
 
     // Create a component instance for direct method testing
     instance = new UnconnectedTransactions(defaultTestProps);
@@ -1560,7 +1544,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     await instance.onRefresh();
 
     expect(instance.setState).toHaveBeenCalledWith({ refreshing: true });
-    expect(mockUpdateIncomingTransactions).toHaveBeenCalled();
     expect(instance.setState).toHaveBeenCalledWith({ refreshing: false });
   });
 
@@ -1826,10 +1809,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     mockNotificationManagerGetTransactionToView.mockReturnValue('tx-123');
     const txToView = mockNotificationManagerGetTransactionToView();
     expect(txToView).toBe('tx-123');
-
-    // Test update incoming transactions
-    expect(mockUpdateIncomingTransactions).toBeDefined();
-    expect(typeof mockUpdateIncomingTransactions).toBe('function');
   });
 
   it('should test component method patterns for coverage', () => {
@@ -2821,6 +2800,132 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
         'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
       );
       expect(mockFindBlockExplorerUrlForChain).not.toHaveBeenCalled();
+    });
+
+    it('keeps legacy transaction element when renderItem receives asset details props', () => {
+      instance = new UnconnectedTransactions({
+        ...defaultTestProps,
+        isActivityRedesignEnabled: true,
+        location: TransactionDetailLocation.AssetDetails,
+      });
+
+      const element = instance.renderItem({
+        item: {
+          id: 'tx-1',
+          chainId: '0x1',
+          hash: '0xabc',
+          status: 'confirmed',
+          time: 1000000,
+          type: 'simpleSend',
+          txParams: {
+            from: '0x123',
+            to: '0x456',
+            value: '1000000000000000000',
+          },
+        },
+        index: 0,
+      });
+
+      expect(element.type).toBe(TransactionElement);
+    });
+
+    it('renders date headers for grouped redesigned asset details activity', () => {
+      instance = new UnconnectedTransactions({
+        ...defaultTestProps,
+        isActivityRedesignEnabled: true,
+        location: TransactionDetailLocation.AssetDetails,
+      });
+
+      const element = instance.renderGroupedActivityItem({
+        item: { type: 'date-header', date: 1000000 },
+        index: 0,
+      });
+
+      expect(element.type).toBe(ActivityListDateHeader);
+      expect(element.props).toEqual(
+        expect.objectContaining({
+          timestamp: 1000000,
+        }),
+      );
+    });
+
+    it('renders redesigned rows for grouped asset details activity items', () => {
+      instance = new UnconnectedTransactions({
+        ...defaultTestProps,
+        assetSymbol: 'ETH',
+        isActivityRedesignEnabled: true,
+        location: TransactionDetailLocation.AssetDetails,
+      });
+
+      const transaction = {
+        id: 'tx-1',
+        chainId: '0x1',
+        hash: '0xabc',
+        status: 'confirmed',
+        time: 1000000,
+        type: 'simpleSend',
+        txParams: {
+          from: '0x123',
+          to: '0x456',
+          value: '100',
+        },
+      };
+
+      const element = instance.renderGroupedActivityItem({
+        item: {
+          type: 'item',
+          item: {
+            id: 'activity-1',
+            type: 'send',
+            chainId: '0x1',
+            status: 'success',
+            timestamp: 1000000,
+            raw: {
+              type: 'localTransaction',
+              data: {
+                primaryTransaction: transaction,
+                initialTransaction: transaction,
+              },
+            },
+            data: {},
+          },
+        },
+        index: 1,
+      });
+
+      expect(element.type).toBe(AssetDetailsActivityListItem);
+      expect(element.props).toEqual(
+        expect.objectContaining({
+          transaction,
+          index: 1,
+          assetSymbol: 'ETH',
+        }),
+      );
+    });
+
+    it('keeps legacy transaction element when activity redesign is disabled', () => {
+      instance = new UnconnectedTransactions({
+        ...defaultTestProps,
+        isActivityRedesignEnabled: false,
+        location: TransactionDetailLocation.AssetDetails,
+      });
+
+      const element = instance.renderItem({
+        item: {
+          id: 'tx-1',
+          chainId: '0x1',
+          status: 'confirmed',
+          time: 1000000,
+          txParams: {
+            from: '0x123',
+            to: '0x456',
+            value: '100',
+          },
+        },
+        index: 0,
+      });
+
+      expect(element.type).toBe(TransactionElement);
     });
 
     it('viewOnBlockExplore uses asset rpcBlockExplorer when tokenChainId is set', () => {

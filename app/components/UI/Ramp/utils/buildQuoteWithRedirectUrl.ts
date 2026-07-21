@@ -1,4 +1,4 @@
-import type { Quote } from '@metamask/ramps-controller';
+import { isExternalBrowserQuote, type Quote } from '@metamask/ramps-controller';
 import { getRampCallbackBaseUrl } from './getRampCallbackBaseUrl';
 
 /**
@@ -31,13 +31,16 @@ function getProviderDeeplinkRedirectUrl(providerCode: string): string {
 /**
  * Returns redirect config for aggregator flow: deeplink when quote indicates
  * external browser, callbackBaseUrl for Checkout WebView.
+ *
+ * The in-app-vs-external classification comes from `RampsController`'s shared
+ * `isExternalBrowserQuote` helper; only the mobile-specific redirect URL /
+ * deeplink scheme is decided here.
  */
 export function getAggregatorRedirectConfig(
   quote: Quote,
   providerCode: string,
 ): { useExternalBrowser: boolean; redirectUrl: string } {
-  const useExternalBrowser =
-    quote.quote?.buyWidget?.browser === 'IN_APP_OS_BROWSER';
+  const useExternalBrowser = isExternalBrowserQuote(quote);
   return {
     useExternalBrowser,
     redirectUrl: useExternalBrowser

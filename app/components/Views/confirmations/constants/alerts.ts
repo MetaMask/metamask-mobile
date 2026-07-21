@@ -25,6 +25,7 @@ export enum AlertKeys {
   PerpsDepositMinimum = 'perps_deposit_minimum',
   HeadlessBuyError = 'headless_buy_error',
   MMPayHardwareAccount = 'mmpay_hardware_account',
+  DepositLimit = 'deposit_limit',
   SignedOrSubmitted = 'signed_or_submitted',
   TokenContractAddress = 'token_contract_address',
   TokenTrustSignalMalicious = 'token_trust_signal_malicious',

@@ -14,6 +14,7 @@ import {
   PlaywrightGestures,
   PlatformDetector,
   PlaywrightElement,
+  sleep,
 } from '../../framework';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 import {
@@ -29,6 +30,8 @@ const TIMEOUT = {
   NETWORK_SELECT: 10000,
   TOKEN_SELECT: 30000,
   KEYPAD_DIGIT: 10000,
+  /** Matches useSearchTokens debouncedSearch (300ms) + list settle. */
+  TOKEN_SEARCH_SETTLE: 1000,
 } as const;
 
 class QuoteView {
@@ -88,11 +91,17 @@ class QuoteView {
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT,
-          { exact: true },
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            `//*[@name='${QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT}' or @name='textfieldsearch' or contains(@label,'Enter token name') or contains(@name,'Enter token name')]`,
+          ),
+      },
     });
   }
 
@@ -139,13 +148,17 @@ class QuoteView {
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON,
-          {
-            exact: true,
-          },
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            `//*[contains(@name,'${QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON}')]`,
+          ),
+      },
     });
   }
 
@@ -171,12 +184,41 @@ class QuoteView {
   }
 
   async enterAmount(amount: string): Promise<void> {
-    for (const digit of amount) {
-      const button = Matchers.getElementByText(digit);
-      await Gestures.waitAndTap(button, {
-        elemDescription: `Tapping on keyboard digit ${digit}`,
-      });
-    }
+    await encapsulatedAction({
+      detox: async () => {
+        for (const digit of amount) {
+          const button = Matchers.getElementByText(digit);
+          await Gestures.waitAndTap(button, {
+            elemDescription: `Tapping on keyboard digit ${digit}`,
+          });
+        }
+      },
+      appium: async () => {
+        // iOS: keypad keys are not reliably found via accessibility-id / text;
+        // use name XPath (same pattern as enterSourceTokenAmount).
+        const isAndroid = await PlatformDetector.isAndroid();
+        for (const digit of amount.split('')) {
+          const keyName =
+            digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
+          const el = isAndroid
+            ? await PlaywrightMatchers.getElementById(keyName, {
+                exact: true,
+              })
+            : await PlaywrightMatchers.getElementByXPath(
+                `//*[contains(@name,'${keyName}')]`,
+              );
+          await PlaywrightAssertions.expectElementToBeVisible(el, {
+            timeout: TIMEOUT.KEYPAD_DIGIT,
+            description: `Keypad digit ${digit} should be visible`,
+          });
+          await PlaywrightGestures.waitAndTap(el, {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            delay: 1000,
+          });
+        }
+      },
+    });
   }
 
   async tapSearchToken(): Promise<void> {
@@ -221,20 +263,54 @@ class QuoteView {
       },
       appium: async () => {
         const testId = this.getTokenElementId(chainId, symbol);
-        let tokenElement: PlaywrightElement;
-        if (await PlatformDetector.isAndroid()) {
-          tokenElement = await PlaywrightMatchers.getElementById(testId, {
-            exact: false,
-          });
-        } else {
-          tokenElement = await PlaywrightMatchers.getElementByXPath(
+        const isAndroid = await PlatformDetector.isAndroid();
+        const resolveToken = async (): Promise<PlaywrightElement> => {
+          if (isAndroid) {
+            return PlaywrightMatchers.getElementById(testId, {
+              exact: false,
+            });
+          }
+          // Lazy xpath re-queries each poll — a fixed $$ match can stay
+          // displayed:false on iOS after search/list virtualization.
+          return PlaywrightMatchers.getLazyElementByXPath(
             `//*[@name='${testId}']`,
           );
+        };
+
+        let tokenElement = await resolveToken();
+
+        // Prefer waiting first. Forced scrollIntoView on a not-yet-displayed
+        // iOS search hit burns maxScrolls against a stale element (CI fail).
+        try {
+          await PlaywrightAssertions.expectElementToBeVisible(tokenElement, {
+            timeout: 5000,
+            description: `Token ${symbol} visible without scroll`,
+          });
+        } catch {
+          // Keyboard / FlatList clipping can leave rows displayed:false even
+          // after search — force blur again, then wait.
+          await PlaywrightGestures.dismissKeyboardAfterTokenSearch();
+          if (isAndroid) {
+            try {
+              const scrollView = await PlaywrightMatchers.getElementById(
+                QuoteViewSelectorIDs.TOKEN_LIST,
+                { exact: true },
+              );
+              tokenElement = await resolveToken();
+              await PlaywrightGestures.scrollIntoView(tokenElement, {
+                scrollableElement: scrollView,
+                scrollParams: { direction: 'up' },
+              });
+            } catch {
+              // Token may already be visible after search filters the list.
+            }
+          }
+          tokenElement = await resolveToken();
+          await PlaywrightAssertions.expectElementToBeVisible(tokenElement, {
+            timeout: TIMEOUT.TOKEN_SELECT,
+            description: `Token ${symbol} should be visible`,
+          });
         }
-        await PlaywrightAssertions.expectElementToBeVisible(tokenElement, {
-          timeout: TIMEOUT.TOKEN_SELECT,
-          description: `Token ${symbol} should be visible`,
-        });
         await PlaywrightGestures.waitAndTap(tokenElement, {
           checkForDisplayed: true,
           checkForEnabled: true,
@@ -254,6 +330,11 @@ class QuoteView {
       appium: async () => {
         const searchField = await asPlaywrightElement(this.searchToken);
         await searchField.fill(symbol);
+        // Wait for BridgeTokenSelector debouncedSearch (300ms) + result settle.
+        await sleep(TIMEOUT.TOKEN_SEARCH_SETTLE);
+        // iOS soft keyboard covers the list (rows stay displayed:false).
+        // tapOutside alone is flaky — also tap the pills strip to force blur.
+        await PlaywrightGestures.dismissKeyboardAfterTokenSearch();
       },
     });
   }
@@ -303,21 +384,59 @@ class QuoteView {
         });
       },
       appium: async () => {
-        const scrollView = await PlaywrightMatchers.getElementById(
-          QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL,
-          { exact: true },
-        );
-        await PlaywrightGestures.waitAndTap(scrollView, {
-          checkForDisplayed: true,
-          checkForEnabled: true,
-        });
+        // Prefer the "Rate" label (not rate-arrow-button) when a quote is present —
+        // tapping BRIDGE_VIEW_SCROLL can open QuoteSelectorView (swap providers).
+        // When there is no quote (e.g. RWA geo-block), Rate is absent; fall back
+        // to the scroll view so the keypad can still be dismissed.
+        try {
+          await PlaywrightGestures.waitAndTap(
+            await asPlaywrightElement(this.rateLabel),
+            {
+              checkForDisplayed: true,
+              checkForEnabled: true,
+              timeout: 5000,
+            },
+          );
+        } catch {
+          const scrollView = await PlaywrightMatchers.getElementById(
+            QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL,
+            { exact: true },
+          );
+          await PlaywrightGestures.waitAndTap(scrollView, {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+          });
+        }
       },
     });
   }
 
   async tapDestinationToken(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.destinationTokenArea, {
-      description: 'Tap destination asset picker',
+    await encapsulatedAction({
+      detox: async () => {
+        await UnifiedGestures.waitAndTap(this.destinationTokenArea, {
+          description: 'Tap destination asset picker',
+        });
+      },
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.destinationTokenArea),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            delay: 1000,
+          },
+        );
+        // Confirm token selector opened — TextInput can lag behind navigation.
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(this.searchToken),
+          {
+            timeout: TIMEOUT.SWAP_SCREEN_VISIBLE,
+            description:
+              'Token search input visible after opening destination token picker',
+          },
+        );
+      },
     });
   }
 
@@ -477,30 +596,7 @@ class QuoteView {
             delay: 1000,
           },
         );
-        const isAndroid = await PlatformDetector.isAndroid();
-        for (const digit of amount.split('')) {
-          const keyName =
-            digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
-          let el: PlaywrightElement;
-          if (isAndroid) {
-            el = await PlaywrightMatchers.getElementById(keyName, {
-              exact: true,
-            });
-          } else {
-            el = await PlaywrightMatchers.getElementByXPath(
-              `//*[contains(@name,'${keyName}')]`,
-            );
-          }
-          await PlaywrightAssertions.expectElementToBeVisible(el, {
-            timeout: TIMEOUT.KEYPAD_DIGIT,
-            description: `Keypad digit ${digit} should be visible`,
-          });
-          await PlaywrightGestures.waitAndTap(el, {
-            checkForDisplayed: true,
-            checkForEnabled: true,
-            delay: 1000,
-          });
-        }
+        await this.enterAmount(amount);
       },
     });
   }
@@ -521,6 +617,30 @@ class QuoteView {
     await Assertions.expectElementToBeVisible(this.slippageDisplayText(value), {
       timeout: TIMEOUT.SWAP_SCREEN_VISIBLE,
       description: `Slippage should display ${value}%`,
+    });
+  }
+
+  /**
+   * Waits for the RWA geo-restricted quote stream banner.
+   */
+  async checkRwaGeoRestrictedMessageIsDisplayed(): Promise<void> {
+    const timeout = 60000;
+    const message = QuoteViewSelectorText.RWA_GEO_RESTRICTED_MESSAGE;
+    const banner = PlaywrightMatchers.getElementById(
+      QuoteViewSelectorIDs.NO_QUOTES_BANNER,
+      { exact: true },
+    );
+
+    await PlaywrightAssertions.expectElementToBeVisible(banner, {
+      timeout,
+      description:
+        'RWA geo-restricted banner should be visible on the swap screen',
+    });
+
+    await PlaywrightAssertions.expectTextDisplayed(message, {
+      within: banner,
+      timeout,
+      description: `RWA geo-restricted message "${message}" should be visible on the swap screen`,
     });
   }
 }

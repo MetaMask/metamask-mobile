@@ -1,7 +1,7 @@
 import type { WalletHomeOnboardingStepHeroKind } from './walletHomeOnboardingStepHero';
 
 /**
- * Names for `onboard_checklist_v05.riv` — must match Rive artboards / state machine inputs.
+ * Names for `onboard_checklist_v07.riv` — must match Rive artboards / state machine inputs.
  *
  * The file contains three artboards (`01_*` … `03_*`). We drive which one is shown from the
  * wallet-home post-onboarding step (`fund` → 1, `trade` → 2, `notifications` → 3) via

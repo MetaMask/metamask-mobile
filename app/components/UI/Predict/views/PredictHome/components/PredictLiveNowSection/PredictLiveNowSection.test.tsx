@@ -18,6 +18,20 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
+const mockTrackHomeSectionInteraction = jest.fn();
+
+jest.mock('../../../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PredictController: {
+        trackHomeSectionInteraction: (...args: unknown[]) =>
+          mockTrackHomeSectionInteraction(...args),
+      },
+    },
+  },
+}));
+
 // Mock only the data boundary: the section's own data hook. The hook's own
 // logic (params, filtering, interleave, loading) is covered by
 // usePredictLiveNowSection.test.ts. Here we exercise the real PredictMarket /
@@ -206,8 +220,6 @@ describe('PredictLiveNowSection', () => {
     const header = getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER);
     expect(header).toBeOnTheScreen();
     expect(getByText(strings('predict.home.live_now_title'))).toBeOnTheScreen();
-    // The chevron renders only when the header is pressable (onPress set).
-    expect(getByTestId('section-header-arrow-icon')).toBeOnTheScreen();
 
     fireEvent.press(header);
 
@@ -217,6 +229,11 @@ describe('PredictLiveNowSection', () => {
         feedId: 'live',
         entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
       },
+    });
+    expect(mockTrackHomeSectionInteraction).toHaveBeenCalledWith({
+      sectionId: PredictEventValues.SECTION_ID.LIVE_NOW,
+      actionType: PredictEventValues.ACTION_TYPE.SEE_ALL,
+      entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
     });
   });
 

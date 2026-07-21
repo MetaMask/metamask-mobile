@@ -6,7 +6,7 @@ import type {
   MockEventsObject,
 } from '../../framework/types.ts';
 import { sleep } from '../../framework/Utilities.ts';
-import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers.ts';
+import { getDecodedProxiedURL } from '../../smoke-appium/notifications/utils/helpers.ts';
 import { safeGetBodyText } from '../MockServerE2E.ts';
 
 // Creates a logger with INFO level as the mockServer produces too much noise

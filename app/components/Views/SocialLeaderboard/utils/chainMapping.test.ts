@@ -1,4 +1,18 @@
-import { chainNameToId, isSupportedChain } from './chainMapping';
+import {
+  chainNameToId,
+  getPositionNetworkBadge,
+  isSupportedChain,
+} from './chainMapping';
+
+jest.mock('../../../../util/networks', () => ({
+  getNetworkImageSource: jest.fn(({ chainId }: { chainId: string }) => ({
+    uri: `img-${chainId}`,
+  })),
+}));
+
+jest.mock('../../../../constants/network', () => ({
+  NETWORKS_CHAIN_ID: { HYPER_EVM: '0x3e7' },
+}));
 
 describe('chainNameToId', () => {
   it.each([
@@ -70,5 +84,29 @@ describe('isSupportedChain', () => {
 
   it('is case-insensitive — returns true for mixed-case input', () => {
     expect(isSupportedChain('BASE')).toBe(true);
+  });
+});
+
+describe('getPositionNetworkBadge', () => {
+  it('resolves a Hyperliquid badge from the HyperEVM image source', () => {
+    expect(getPositionNetworkBadge('hyperliquid')).toEqual({
+      name: 'Hyperliquid',
+      imageSource: { uri: 'img-0x3e7' },
+    });
+  });
+
+  it('is case-insensitive for hyperliquid', () => {
+    expect(getPositionNetworkBadge('Hyperliquid')?.name).toBe('Hyperliquid');
+  });
+
+  it('resolves a badge for a supported EVM chain', () => {
+    expect(getPositionNetworkBadge('base')).toEqual({
+      name: 'base',
+      imageSource: { uri: 'img-eip155:8453' },
+    });
+  });
+
+  it('returns undefined for an unsupported chain', () => {
+    expect(getPositionNetworkBadge('avalanche')).toBeUndefined();
   });
 });

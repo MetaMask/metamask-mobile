@@ -49,7 +49,7 @@ describe(RegressionTrade('Swap RWA'), (): void => {
             type: LocalNodeType.anvil,
             options: {
               chainId: 1,
-              loadState: './tests/smoke/swap/withTokens.json',
+              loadState: './tests/smoke-appium/swap/withTokens.json',
             },
           },
         ],

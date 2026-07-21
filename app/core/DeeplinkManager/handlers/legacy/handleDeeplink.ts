@@ -14,6 +14,31 @@ import {
 } from '../../types/deepLinkAnalytics.types';
 import { detectAppInstallation } from '../../util/deeplinks/deepLinkAnalytics';
 
+/**
+ * Time window during which an identical deeplink is treated as a duplicate and
+ * ignored.
+ *
+ * On Android, a single user click on a deeplink can be delivered twice when the
+ * app is resumed from the background: once through React Native `Linking`
+ * (`url` event) and once through the Branch SDK (`branch.subscribe`). Without
+ * de-duplication, both deliveries are processed and a dapp link opens two
+ * browser tabs. iOS routes external URL opens through Branch only, so it is not
+ * affected. The two deliveries happen back-to-back, so a short window is enough
+ * to collapse them without interfering with genuine repeat navigations.
+ */
+const DUPLICATE_DEEPLINK_WINDOW_MS = 3000;
+
+let lastHandledDeeplinkUri: string | null = null;
+let lastHandledDeeplinkAt = 0;
+
+/**
+ * Reset the duplicate-deeplink suppression state. Exposed for tests.
+ */
+export function resetDeeplinkDeduplication(): void {
+  lastHandledDeeplinkUri = null;
+  lastHandledDeeplinkAt = 0;
+}
+
 export function handleDeeplink(opts: { uri?: string; source?: string }) {
   // This is the earliest JS entry point for deeplinks. We must handle SDKConnectV2
   // links here immediately to establish the WebSocket connection as fast as possible,
@@ -31,6 +56,20 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
   const { uri, source } = opts;
   try {
     if (uri && typeof uri === 'string') {
+      // Drop duplicate deliveries of the same deeplink (see
+      // DUPLICATE_DEEPLINK_WINDOW_MS) so a single click does not, for example,
+      // open a dapp in two browser tabs on Android.
+      const now = Date.now();
+      if (
+        uri === lastHandledDeeplinkUri &&
+        now - lastHandledDeeplinkAt < DUPLICATE_DEEPLINK_WINDOW_MS
+      ) {
+        Logger.log(`Deeplink: Ignoring duplicate deeplink: ${uri}`);
+        return;
+      }
+      lastHandledDeeplinkUri = uri;
+      lastHandledDeeplinkAt = now;
+
       AppStateEventProcessor.setCurrentDeeplink(uri, source);
       if (
         ReduxService.store.getState().security.dataCollectionForMarketing ===

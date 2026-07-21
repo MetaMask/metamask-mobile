@@ -9,6 +9,7 @@ import { normalizeFilterKey } from './marketCategoryMapping';
 
 export const RELATED_MARKETS_SOURCE = 'related_markets';
 export const RELATED_MARKET_CLICKED = 'related_market_clicked';
+export const RELATED_MARKETS_HEADER_TAPPED = 'related_markets_header_tapped';
 
 export const RELATED_MARKETS_EVENT_PROPERTY = {
   SOURCE_MARKET: 'source_market',
@@ -26,6 +27,21 @@ export interface RelatedMarketsResult {
   collection: RelatedMarketCollection;
   markets: PerpsMarketData[];
 }
+
+/**
+ * Whether a market belongs to a category that can show Related markets.
+ * Does not require the full markets list — `PerpsRelatedMarkets` resolves
+ * related tiles once its own `usePerpsMarkets` subscription delivers data.
+ */
+export const hasRelatedMarketsCategory = (
+  currentMarket: PerpsMarketData | null | undefined,
+): boolean => {
+  if (!currentMarket?.symbol) {
+    return false;
+  }
+
+  return getMarketTypeFilter(currentMarket) !== 'all';
+};
 
 /**
  * Resolve the Related markets rail for a given market.

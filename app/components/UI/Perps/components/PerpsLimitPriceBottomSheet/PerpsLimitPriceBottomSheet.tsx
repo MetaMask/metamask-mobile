@@ -32,6 +32,7 @@ import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
 import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
 import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
+import { isPriceOutsideDeviationBand } from '../../utils/orderUtils';
 import { BigNumber } from 'bignumber.js';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -96,6 +97,18 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   const currentPrice = currentPriceData?.price
     ? parseFloat(currentPriceData.price)
     : passedCurrentPrice;
+
+  // Mark price used as the reference for HyperLiquid's oracle price band. Falls
+  // back to the mid/mark currentPrice when the mark price is missing or does
+  // not parse to a finite positive number (otherwise a NaN reference would
+  // silently skip the band check).
+  const parsedMarkPrice = currentPriceData?.markPrice
+    ? parseFloat(currentPriceData.markPrice)
+    : NaN;
+  const referencePrice =
+    Number.isFinite(parsedMarkPrice) && parsedMarkPrice > 0
+      ? parsedMarkPrice
+      : currentPrice;
 
   // Get top of book (bid/ask) data for Bid/Ask preset buttons
   // Note: Mid price comes from currentPrice above (from allMids stream)
@@ -284,6 +297,29 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   }, [limitPrice, currentPrice, direction, isClosingPosition]);
 
   /**
+   * HyperLiquid rejects orders whose price is more than 95% away from the
+   * reference (mark) price ("oracleRejected"). Shows immediate feedback while
+   * the price is being set; the authoritative gate is the shared rule enforced
+   * in the Close button validation (usePerpsClosePositionValidation), which
+   * re-evaluates as the market moves. Both use isPriceOutsideDeviationBand with
+   * the same reference (mark) price.
+   *
+   * Only applied when closing a position. Opening a normal limit order is left
+   * to the order form's own validation.
+   */
+  const exceedsMaxDeviation = React.useMemo(() => {
+    if (!isClosingPosition) {
+      return false;
+    }
+    const parsedLimit = parseFloat(limitPrice.replace(/[$,]/g, ''));
+    return isPriceOutsideDeviationBand(
+      parsedLimit,
+      referencePrice,
+      LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
+    );
+  }, [isClosingPosition, limitPrice, referencePrice]);
+
+  /**
    * Calculate limit price based on percentage from the current limit price (or
    * market price when no limit price is set yet).
    * @param percentage - Percentage to add/subtract from current price
@@ -323,7 +359,8 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         !limitPrice ||
         limitPrice === '' ||
         limitPrice === '0' ||
-        parseFloat(limitPrice.replace(/[$,]/g, '')) <= 0,
+        parseFloat(limitPrice.replace(/[$,]/g, '')) <= 0 ||
+        exceedsMaxDeviation,
     },
   ];
 
@@ -359,8 +396,14 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
           </View>
           <Text style={styles.limitPriceCurrency}>USD</Text>
         </View>
-        {limitPriceWarning && (
-          <Text style={styles.errorText}>{limitPriceWarning}</Text>
+        {exceedsMaxDeviation ? (
+          <Text style={styles.errorText}>
+            {strings('perps.order.limit_price_modal.limit_price_too_far')}
+          </Text>
+        ) : (
+          limitPriceWarning && (
+            <Text style={styles.errorText}>{limitPriceWarning}</Text>
+          )
         )}
         {/* Current market price below input */}
         <Text style={styles.marketPriceText}>

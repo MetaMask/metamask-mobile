@@ -9,7 +9,10 @@ import { ManualBackUpStepsSelectorsIDs } from './ManualBackUpSteps.testIds';
 import { AppThemeKey } from '../../../util/theme/models';
 import { strings } from '../../../../locales/i18n';
 import { InteractionManager, Platform } from 'react-native';
-import { AccountType } from '../../../constants/onboarding';
+import {
+  AccountType,
+  ONBOARDING_SUCCESS_FLOW,
+} from '../../../constants/onboarding';
 
 const mockStore = configureMockStore();
 const store = mockStore({ user: { appTheme: AppThemeKey.light } });
@@ -488,7 +491,7 @@ describe('ManualBackupStep1', () => {
       expect(navigate).toHaveBeenCalledWith(
         'OptinMetrics',
         expect.objectContaining({
-          onContinue: expect.any(Function),
+          successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
           accountType: AccountType.Metamask,
         }),
       );
@@ -581,7 +584,9 @@ describe('ManualBackupStep1', () => {
       });
 
       await waitFor(() => {
-        expect(mockExportSeedPhrase).toHaveBeenCalledWith('correct-password');
+        expect(mockExportSeedPhrase).toHaveBeenCalledWith({
+          password: 'correct-password',
+        });
       });
     });
 

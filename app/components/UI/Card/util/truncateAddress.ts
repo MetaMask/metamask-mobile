@@ -1,5 +1,6 @@
 import { isHexAddress } from '@metamask/utils';
 import { safeToChecksumAddress } from '../../../../util/address';
+import { isAddress } from '@solana/addresses';
 
 /**
  * Truncates a hex wallet address for display (e.g. `0x1234...5678`).
@@ -14,6 +15,10 @@ export const truncateAddress = (
 ) => {
   if (!address) {
     return undefined;
+  }
+
+  if (isAddress(address)) {
+    return `${address.slice(0, chars)}...${address.slice(-chars)}`;
   }
 
   if (!isHexAddress(address)) {

@@ -7,7 +7,9 @@
 #
 # Produces simulator .app + device IPA (iOS) and APK + test APK (Android).
 # No version bump or TestFlight upload.
-# Artifacts are uploaded as GitHub Actions artifacts.
+# Artifacts are uploaded to GitHub Actions (ios-app-main-dev-expo,
+# android-apk-main-dev-expo, ios-ipa-main-dev-expo, etc.).
+# Local install: yarn install:ios:dev / yarn install:android:dev
 #
 # [skip ci] commits (e.g. version bumps) are automatically skipped by GitHub Actions.
 #

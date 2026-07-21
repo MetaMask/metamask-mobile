@@ -19,7 +19,6 @@ import {
   BottomSheet,
   BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export const PriceImpactModal = () => {
   const { goBack } = useNavigation();
@@ -43,8 +42,6 @@ export const PriceImpactModal = () => {
   const priceImpactViewData = usePriceImpactViewData(
     activeQuote?.quote.priceData?.priceImpact,
   );
-  const surfaceClass = useElevatedSurface();
-
   const isDangerousPriceImpact = useMemo(
     () =>
       exceedsPriceImpactErrorThreshold(
@@ -60,11 +57,15 @@ export const PriceImpactModal = () => {
 
   const handleProceed = useCallback(async () => {
     setLoading(true);
-    await confirmBridge();
+    if (sheetRef.current?.onCloseBottomSheet) {
+      sheetRef.current.onCloseBottomSheet(confirmBridge);
+    } else {
+      await confirmBridge();
+    }
   }, [confirmBridge]);
 
   return (
-    <BottomSheet ref={sheetRef} goBack={goBack} twClassName={surfaceClass}>
+    <BottomSheet ref={sheetRef} goBack={goBack}>
       <PriceImpactHeader
         onClose={handleClose}
         iconName={priceImpactViewData.icon?.name}

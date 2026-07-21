@@ -12,7 +12,7 @@ import { clone } from 'lodash';
 import { fireEvent, waitFor, userEvent } from '@testing-library/react-native';
 import Tokens from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import initialRootState from '../../../util/test/initial-root-state';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { TokenList } from './TokenList/TokenList';
@@ -180,7 +180,7 @@ const arrangeMockInteractionManager = () => {
 const arrangeMockState = () => clone(initialRootState);
 const initialState = arrangeMockState();
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 const renderComponent = (
   state = initialState,
   isFullView: boolean = false,
@@ -322,7 +322,6 @@ describe('Tokens', () => {
             addSensitiveProperties: jest.fn().mockReturnThis(),
             removeProperties: jest.fn().mockReturnThis(),
             removeSensitiveProperties: jest.fn().mockReturnThis(),
-            setSaveDataRecording: jest.fn().mockReturnThis(),
             build: jest.fn(),
           }),
         }),

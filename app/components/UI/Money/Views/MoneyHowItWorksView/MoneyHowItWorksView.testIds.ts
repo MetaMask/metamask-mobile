@@ -9,4 +9,7 @@ export const MoneyHowItWorksViewTestIds = {
   DESCRIPTION_3: 'money-how-it-works-view-description-3',
   FAQ_TITLE: 'money-how-it-works-view-faq-title',
   FAQ_ITEM: (n: number) => `money-how-it-works-view-faq-item-${n}`,
+  FAQ_LINK: 'money-how-it-works-view-faq-link',
+  DISCLOSURES_TITLE: 'money-how-it-works-view-disclosures-title',
+  DISCLOSURES_BODY: 'money-how-it-works-view-disclosures-body',
 };

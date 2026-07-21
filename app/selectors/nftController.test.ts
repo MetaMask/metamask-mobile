@@ -9,6 +9,7 @@ import {
   selectAllNftContracts,
   selectAllNfts,
   selectAllNftsFlat,
+  selectNftByIdentity,
   multichainCollectibleForEvmAccount,
 } from './nftController';
 
@@ -268,6 +269,57 @@ describe('NftController Selectors', () => {
 
       // Assert
       expect(result).toEqual([mockNft1]);
+    });
+  });
+
+  describe('selectNftByIdentity', () => {
+    it('finds an NFT by contract address, token id, and chain (case-insensitive)', () => {
+      const mockState = createMockRootState();
+
+      expect(selectNftByIdentity(mockState, '0xcontract1', '1', '0x1')).toBe(
+        mockNft1,
+      );
+    });
+
+    it('matches the right token id within a contract/chain', () => {
+      const mockState = createMockRootState();
+
+      expect(selectNftByIdentity(mockState, '0xContract3', '3', '0x89')).toBe(
+        mockNft3,
+      );
+    });
+
+    it('searches across accounts for the chain', () => {
+      const crossAccountState: Partial<NftControllerState> = {
+        ...mockNftControllerState,
+        allNfts: {
+          [mockAccountAddress]: {},
+          [mockAccountAddress2]: {
+            '0x1': [mockNft2],
+          },
+        },
+      };
+      const mockState = createMockRootState(crossAccountState);
+
+      expect(selectNftByIdentity(mockState, '0xContract2', '2', '0x1')).toBe(
+        mockNft2,
+      );
+    });
+
+    it('returns undefined for an unknown token id', () => {
+      const mockState = createMockRootState();
+
+      expect(
+        selectNftByIdentity(mockState, '0xContract1', '999', '0x1'),
+      ).toBeUndefined();
+    });
+
+    it('returns undefined when the chain has no NFTs', () => {
+      const mockState = createMockRootState();
+
+      expect(
+        selectNftByIdentity(mockState, '0xContract1', '1', '0xa'),
+      ).toBeUndefined();
     });
   });
 

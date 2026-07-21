@@ -6,7 +6,13 @@
  */
 import '../../../../../../tests/component-view/mocks';
 import type { ComponentType } from 'react';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import type { Position } from '@metamask/perps-controller';
 import {
   MOCK_PERPS_MARKET_INSIGHTS_REPORT,
@@ -355,6 +361,7 @@ describe('PerpsMarketDetailsView', () => {
           price: '2800',
           markPrice: '2800',
           timestamp: Date.now(),
+          isTradable: true,
         },
       });
       stream.emitPositions([]);
@@ -484,21 +491,44 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId(
-          `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
+          PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
         ),
       ).toBeOnTheScreen();
     });
 
-    it('renders header and title section with market title', async () => {
+    it('renders header with full asset name and market pair subtitle', async () => {
       renderEligibleNoPositionPerpsDetails();
 
       expect(
         await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
       ).toBeOnTheScreen();
-      expect(screen.getAllByText('ETH-USD').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Ethereum')).toBeOnTheScreen();
+      expect(screen.getByText('ETH-USD perp')).toBeOnTheScreen();
     });
 
-    it('renders title section with price when market has no maxLeverage', async () => {
+    it('renders live price, 24h change, and fullscreen button inside the market summary row', async () => {
+      renderEligibleNoPositionPerpsDetails();
+
+      const marketSummary = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.MARKET_SUMMARY,
+      );
+
+      expect(
+        within(marketSummary).getByTestId(PerpsMarketHeaderSelectorsIDs.PRICE),
+      ).toBeOnTheScreen();
+      expect(
+        within(marketSummary).getByTestId(
+          PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(marketSummary).getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the market summary price when the market has no maxLeverage', async () => {
       renderPerpsMarketDetailsView({
         initialParams: {
           market: {
@@ -508,11 +538,20 @@ describe('PerpsMarketDetailsView', () => {
             change24h: '$0',
             change24hPercent: '0%',
             volume: '$1M',
+            openInterest: '$500K',
           },
         },
         streamOverrides: {
           positions: [],
-          marketData: [{ symbol: 'BTC', name: 'Bitcoin', maxLeverage: '50x' }],
+          marketData: [
+            {
+              symbol: 'BTC',
+              name: 'Bitcoin',
+              maxLeverage: '50x',
+              volume: '$1M',
+              openInterest: '$500K',
+            },
+          ],
         },
         overrides: {
           engine: {
@@ -526,31 +565,16 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
       ).toBeOnTheScreen();
-      expect(
-        await screen.findByTestId(
-          PerpsMarketHeaderSelectorsIDs.PRICE_TITLE_SECTION,
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        await screen.findByTestId(
-          PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE_TITLE_SECTION,
-        ),
-      ).toBeOnTheScreen();
-    });
-
-    it('title section onLayout sets header height for scroll animation', async () => {
-      renderEligibleNoPositionPerpsDetails();
-
-      const titleSectionWrapper = await screen.findByTestId(
-        PerpsMarketDetailsViewSelectorsIDs.TITLE_SECTION_WRAPPER,
+      const marketSummary = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.MARKET_SUMMARY,
       );
-      fireEvent(titleSectionWrapper, 'layout', {
-        nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 80 } },
-      });
-
-      expect(titleSectionWrapper).toBeOnTheScreen();
       expect(
-        screen.getByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
+        within(marketSummary).getByTestId(PerpsMarketHeaderSelectorsIDs.PRICE),
+      ).toBeOnTheScreen();
+      expect(
+        within(marketSummary).getByTestId(
+          PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE,
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -558,7 +582,7 @@ describe('PerpsMarketDetailsView', () => {
       renderEligibleNoPositionPerpsDetails();
 
       const fullscreenButton = await screen.findByTestId(
-        `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
+        PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
       );
       fireEvent.press(fullscreenButton);
 

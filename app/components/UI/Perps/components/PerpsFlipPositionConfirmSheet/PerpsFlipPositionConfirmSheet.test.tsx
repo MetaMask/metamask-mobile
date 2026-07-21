@@ -98,6 +98,11 @@ jest.mock('../../utils/formatUtils', () => ({
 
 jest.mock('@metamask/perps-controller', () => ({
   getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
+  PERPS_EVENT_VALUE: {
+    SOURCE: {
+      POSITION_SCREEN: 'position_screen',
+    },
+  },
 }));
 
 jest.mock('../PerpsFeesDisplay', () => {

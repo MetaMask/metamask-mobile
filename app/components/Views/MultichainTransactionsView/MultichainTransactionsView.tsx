@@ -22,7 +22,6 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import styles from './MultichainTransactionsView.styles';
 import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
-import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import MultichainTransactionsFooter from './MultichainTransactionsFooter';
 import PriceChartContext, {
   PriceChartProvider,
@@ -34,6 +33,15 @@ import { TabEmptyState } from '../../../component-library/components-temp/TabEmp
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
 import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
+import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
+import {
+  getGroupedActivityListItemKey,
+  groupActivityListItems,
+  type GroupedActivityListItem,
+} from '../../../util/activity-adapters';
+import ActivityListDateHeader from '../../UI/ActivityListItemRow/ActivityListDateHeader';
+import MultichainAssetDetailsActivityListItem from './MultichainAssetDetailsActivityListItem';
+import { mapMultichainTransactionToActivityItem } from './MultichainAssetDetailsActivityListItem.utils';
 
 interface MultichainTransactionsViewProps {
   /**
@@ -124,20 +132,33 @@ const MultichainTransactionsView = ({
   );
 
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
+  const isActivityRedesignEnabled = useSelector(
+    selectIsActivityRedesignEnabled,
+  );
+  const shouldUseActivityRedesign =
+    isActivityRedesignEnabled &&
+    location === TransactionDetailLocation.AssetDetails;
+  const activityListData = useMemo(
+    () =>
+      shouldUseActivityRedesign
+        ? groupActivityListItems(
+            visibleMultichainTransactions.map((transaction) =>
+              mapMultichainTransactionToActivityItem({
+                transaction,
+                chainId,
+              }),
+            ),
+          )
+        : visibleMultichainTransactions,
+    [chainId, shouldUseActivityRedesign, visibleMultichainTransactions],
+  );
 
   const [refreshing, setRefreshing] = React.useState(false);
 
   const onRefresh = React.useCallback(async () => {
     if (!enableRefresh) return;
-
     setRefreshing(true);
-    try {
-      await updateIncomingTransactions();
-    } catch (error) {
-      console.warn('Error refreshing transactions:', error);
-    } finally {
-      setRefreshing(false);
-    }
+    setRefreshing(false);
   }, [enableRefresh]);
 
   const renderEmptyList = () => (
@@ -183,15 +204,34 @@ const MultichainTransactionsView = ({
     const srcTxHash = item.id;
     const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
 
-    return bridgeHistoryItem ? (
-      <MultichainBridgeTransactionListItem
-        transaction={item}
-        bridgeHistoryItem={bridgeHistoryItem}
-        navigation={nav}
-        index={index}
-        location={location}
-      />
-    ) : (
+    if (bridgeHistoryItem) {
+      return (
+        <MultichainBridgeTransactionListItem
+          transaction={item}
+          bridgeHistoryItem={bridgeHistoryItem}
+          navigation={nav}
+          index={index}
+          location={location}
+        />
+      );
+    }
+
+    if (
+      isActivityRedesignEnabled &&
+      location === TransactionDetailLocation.AssetDetails
+    ) {
+      return (
+        <MultichainAssetDetailsActivityListItem
+          transaction={item}
+          navigation={nav}
+          index={index}
+          chainId={chainId}
+          location={location}
+        />
+      );
+    }
+
+    return (
       <MultichainTransactionListItem
         transaction={item}
         navigation={nav}
@@ -202,15 +242,75 @@ const MultichainTransactionsView = ({
     );
   };
 
+  const renderGroupedActivityItem = ({
+    item,
+    index,
+  }: {
+    item: GroupedActivityListItem;
+    index: number;
+  }) => {
+    if (item.type === 'pending-header') {
+      return <ActivityListDateHeader label={strings('transaction.pending')} />;
+    }
+
+    if (item.type === 'date-header') {
+      return <ActivityListDateHeader timestamp={item.date} />;
+    }
+
+    const transaction =
+      item.item.raw?.type === 'keyringTransaction'
+        ? item.item.raw.data
+        : undefined;
+
+    if (!transaction) {
+      return null;
+    }
+
+    return renderTransactionItem({ item: transaction, index });
+  };
+
+  const renderListItem = ({
+    item,
+    index,
+  }: {
+    item: Transaction | GroupedActivityListItem;
+    index: number;
+  }) =>
+    shouldUseActivityRedesign
+      ? renderGroupedActivityItem({
+          item: item as GroupedActivityListItem,
+          index,
+        })
+      : renderTransactionItem({ item: item as Transaction, index });
+
+  const keyExtractor = (
+    item: Transaction | GroupedActivityListItem,
+    index: number,
+  ) => {
+    if ('type' in item && item.type === 'pending-header') {
+      return 'pending-header';
+    }
+
+    if ('type' in item && item.type === 'date-header') {
+      return `date-header-${item.date}`;
+    }
+
+    if ('type' in item && item.type === 'item') {
+      return getGroupedActivityListItemKey(item, index);
+    }
+
+    return item.id;
+  };
+
   return (
     <PriceChartProvider>
       <View style={style.wrapper}>
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlashList
-              data={visibleMultichainTransactions}
-              renderItem={renderTransactionItem}
-              keyExtractor={(item) => item.id}
+              data={activityListData}
+              renderItem={renderListItem}
+              keyExtractor={keyExtractor}
               ListHeaderComponent={header}
               ListEmptyComponent={renderEmptyList}
               ListFooterComponent={footer}
@@ -228,6 +328,7 @@ const MultichainTransactionsView = ({
               }
               onScroll={onScroll}
               scrollEnabled={!isChartBeingTouched}
+              showsVerticalScrollIndicator={false}
             />
           )}
         </PriceChartContext.Consumer>

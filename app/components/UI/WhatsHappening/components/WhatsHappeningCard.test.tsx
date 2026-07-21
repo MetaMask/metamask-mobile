@@ -70,6 +70,13 @@ jest.mock('@metamask/perps-controller', () => ({
   }),
 }));
 
+jest.mock('../hooks', () => ({
+  useTradablePerpsMarketSymbols: () => ({
+    tradableSymbols: new Set(['BTC', 'ETH', 'SOL', 'xyz:BRENT', 'xyz:WTI']),
+    isLoading: false,
+  }),
+}));
+
 const mockRelatedAsset = {
   sourceAssetId: 'btc-mainnet',
   symbol: 'BTC',

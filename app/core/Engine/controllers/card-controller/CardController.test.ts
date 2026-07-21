@@ -256,6 +256,7 @@ describe('CardController', () => {
       selectedCountry: 'US',
       activeProviderId: 'baanx',
       isAuthenticated: true,
+      lastUnauthenticatedReason: null,
       cardholderAccounts: [],
       providerData: {},
       cardHomeData: null,
@@ -553,6 +554,7 @@ describe('CardController — auth methods', () => {
       expect(provider.logout).toHaveBeenCalledWith(mockTokenSet);
       expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
       expect(controller.state.isAuthenticated).toBe(false);
+      expect(controller.state.lastUnauthenticatedReason).toBeNull();
     });
 
     it('still clears local state when provider.logout throws', async () => {
@@ -568,6 +570,7 @@ describe('CardController — auth methods', () => {
 
       expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
       expect(controller.state.isAuthenticated).toBe(false);
+      expect(controller.state.lastUnauthenticatedReason).toBeNull();
     });
 
     it('skips provider.logout call when no tokens exist', async () => {
@@ -597,6 +600,33 @@ describe('CardController — auth methods', () => {
 
       expect(controller.state.cardHomeData).toBeNull();
       expect(controller.state.cardHomeDataStatus).toBe('idle');
+    });
+  });
+
+  describe('clearLastUnauthenticatedReason', () => {
+    it('clears the stored reason when one is set', () => {
+      const provider = buildMockProvider();
+      const controller = buildController(provider, {
+        lastUnauthenticatedReason: 'onboarding_token_revoked',
+      });
+
+      controller.clearLastUnauthenticatedReason();
+
+      expect(controller.state.lastUnauthenticatedReason).toBeNull();
+    });
+
+    it('is a no-op when no reason is set', () => {
+      const provider = buildMockProvider();
+      const controller = buildController(provider);
+      const updateSpy = jest.spyOn(
+        controller as unknown as { update: () => void },
+        'update',
+      );
+
+      controller.clearLastUnauthenticatedReason();
+
+      expect(controller.state.lastUnauthenticatedReason).toBeNull();
+      expect(updateSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -980,6 +1010,7 @@ describe('CardController — 401 retry and forced logout', () => {
 
     expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
     expect(controller.state.isAuthenticated).toBe(false);
+    expect(controller.state.lastUnauthenticatedReason).toBeNull();
     expect(controller.state.providerData.baanx).toStrictEqual({});
     expect(controller.state.cardHomeData).toBeNull();
     expect(controller.state.cardHomeDataStatus).toBe('idle');
@@ -1043,6 +1074,33 @@ describe('CardController — 401 retry and forced logout', () => {
     expect(provider.refreshTokens).not.toHaveBeenCalled();
     expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
     expect(controller.state.isAuthenticated).toBe(false);
+    expect(controller.state.lastUnauthenticatedReason).toBe(
+      'onboarding_token_revoked',
+    );
+  });
+
+  it('keeps onboarding token revoked reason after unauthenticated repaint', async () => {
+    wireTokenStorage({ ...mockTokenSet, refreshToken: undefined });
+    const provider = buildAuthedProvider();
+    (provider.getCashbackWallet as jest.Mock).mockRejectedValue(
+      unauthorizedError,
+    );
+    (provider.getOnChainAssets as jest.Mock).mockResolvedValue(
+      mockCardHomeData,
+    );
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      isAuthenticated: true,
+    });
+
+    await expect(controller.getCashbackWallet()).rejects.toBe(
+      unauthorizedError,
+    );
+    await flushPromises(10);
+
+    expect(provider.getOnChainAssets).toHaveBeenCalledWith('0xabc');
+    expect(controller.state.lastUnauthenticatedReason).toBe(
+      'onboarding_token_revoked',
+    );
   });
 
   it('does not attempt a refresh for non-401 errors', async () => {
@@ -2208,6 +2266,7 @@ describe('CardController — getCapabilities', () => {
     },
     supportsPinView: false,
     supportsCashback: true,
+    supportsCredit: true,
   };
 
   it('returns base capabilities', () => {
@@ -2321,33 +2380,6 @@ describe('CardController — data pass-throughs', () => {
       await expect(
         controller.getCardPinView({ customCss: {} }),
       ).rejects.toThrow('Card PIN view not supported');
-    });
-  });
-
-  describe('getFundingConfig', () => {
-    it('delegates to provider.getFundingConfig', async () => {
-      const mockConfig = {
-        maxLimit: 1000,
-        fundingOptions: [],
-        supportedChains: [],
-      };
-      const mockGetFundingConfig = jest.fn().mockResolvedValue(mockConfig);
-      const provider = buildMockProvider({
-        getFundingConfig: mockGetFundingConfig,
-      });
-      const { controller } = buildAuthenticatedController(provider);
-
-      const result = await controller.getFundingConfig();
-      expect(result).toStrictEqual(mockConfig);
-    });
-
-    it('throws when provider does not support getFundingConfig', async () => {
-      const provider = buildMockProvider({ getFundingConfig: undefined });
-      const { controller } = buildAuthenticatedController(provider);
-
-      await expect(controller.getFundingConfig()).rejects.toThrow(
-        'Funding config not supported',
-      );
     });
   });
 

@@ -1761,6 +1761,56 @@ describe('PhysicalAddress Component', () => {
       );
     });
 
+    it('opens the dynamic auth-settings URLs when provided', () => {
+      mockUseRegistrationSettings.mockReturnValue({
+        data: {
+          usStates: [
+            {
+              id: '1',
+              name: 'California',
+              postalAbbreviation: 'CA',
+              canSignUp: true,
+            },
+          ],
+          links: {
+            us: {
+              termsAndConditions: 'https://docs.baanx.us/metamask/terms.pdf',
+              accountOpeningDisclosure:
+                'https://docs.baanx.us/metamask/account-opening.pdf',
+              noticeOfPrivacy: 'https://docs.baanx.us/metamask/privacy.pdf',
+              eSignConsentDisclosure:
+                'https://docs.baanx.us/metamask/esign.pdf',
+            },
+            intl: { termsAndConditions: '', rightToInformation: '' },
+          },
+        },
+        isLoading: false,
+        error: null,
+        fetchData: jest.fn(),
+      } as unknown as ReturnType<typeof useRegistrationSettings>);
+
+      const { getByText } = render(
+        <Provider store={store}>
+          <PhysicalAddress />
+        </Provider>,
+      );
+
+      fireEvent.press(getByText('Terms & Conditions'));
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://docs.baanx.us/metamask/terms.pdf',
+      );
+
+      fireEvent.press(getByText('Account Opening Disclosures'));
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://docs.baanx.us/metamask/account-opening.pdf',
+      );
+
+      fireEvent.press(getByText('Notice of Privacy Practices'));
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://docs.baanx.us/metamask/privacy.pdf',
+      );
+    });
+
     it('opens CRB CL Privacy Policy URL when link is pressed', () => {
       const { getByText } = render(
         <Provider store={store}>

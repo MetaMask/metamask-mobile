@@ -123,6 +123,15 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
       chainId: NetworkToCaipChainId.ZKSYNC_ERA,
     }),
   },
+  {
+    id: NetworkToCaipChainId.ROBINHOOD,
+    name: 'Robinhood Chain',
+    caipChainId: NetworkToCaipChainId.ROBINHOOD,
+    isSelected: false,
+    imageSource: getNetworkImageSource({
+      chainId: NetworkToCaipChainId.ROBINHOOD,
+    }),
+  },
 ];
 
 /**

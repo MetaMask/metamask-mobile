@@ -451,6 +451,10 @@ export function transformOrdersToTransactions(
       price,
       status,
       timestamp,
+      side,
+      reduceOnly,
+      isTrigger,
+      detailedOrderType,
     } = order;
 
     const isCancelled = status === 'canceled';
@@ -548,6 +552,10 @@ export function transformOrdersToTransactions(
         size: BigNumber(originalSize).multipliedBy(price).toString(),
         limitPrice: price,
         filled: `${filledPercent}%`,
+        side,
+        reduceOnly,
+        isTrigger,
+        detailedOrderType,
       },
     };
   });

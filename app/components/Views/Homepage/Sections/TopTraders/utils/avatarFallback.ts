@@ -2,7 +2,7 @@
 // has no real profile picture. We want those to fall through to the Maskicon
 // fallback rather than render the shared placeholder. Add URLs here if we
 // learn of additional defaults (Farcaster, Twitter, etc.).
-const KNOWN_DEFAULT_AVATAR_URLS: readonly string[] = [
+export const KNOWN_DEFAULT_AVATAR_URLS: readonly string[] = [
   'https://daylight-images.s3.us-east-1.amazonaws.com/ens-fallback.png',
 ];
 

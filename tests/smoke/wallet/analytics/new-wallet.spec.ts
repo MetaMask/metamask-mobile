@@ -57,7 +57,7 @@ describe(SmokeWalletPlatform('Analytics during new wallet flow'), () => {
         ),
       },
       async () => {
-        await CreateNewWallet();
+        await CreateNewWallet({ optInToMarketing: true });
       },
     );
   });

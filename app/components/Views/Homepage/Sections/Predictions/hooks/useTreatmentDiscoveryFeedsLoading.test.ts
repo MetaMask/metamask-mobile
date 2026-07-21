@@ -7,14 +7,13 @@ describe('useTreatmentDiscoveryFeedsLoading', () => {
       useTreatmentDiscoveryFeedsLoading({
         isTreatmentDiscovery: false,
         isWorldCupFetching: true,
-        isNbaChampionFetching: true,
       }),
     );
 
     expect(result.current).toBe(false);
   });
 
-  it('returns true until both feeds have settled at least once', () => {
+  it('returns true until World Cup feeds have settled at least once', () => {
     const { result, rerender } = renderHook(
       (props: Parameters<typeof useTreatmentDiscoveryFeedsLoading>[0]) =>
         useTreatmentDiscoveryFeedsLoading(props),
@@ -22,7 +21,6 @@ describe('useTreatmentDiscoveryFeedsLoading', () => {
         initialProps: {
           isTreatmentDiscovery: true,
           isWorldCupFetching: true,
-          isNbaChampionFetching: false,
         },
       },
     );
@@ -32,7 +30,6 @@ describe('useTreatmentDiscoveryFeedsLoading', () => {
     rerender({
       isTreatmentDiscovery: true,
       isWorldCupFetching: false,
-      isNbaChampionFetching: false,
     });
 
     expect(result.current).toBe(false);
@@ -46,7 +43,6 @@ describe('useTreatmentDiscoveryFeedsLoading', () => {
         initialProps: {
           isTreatmentDiscovery: true,
           isWorldCupFetching: false,
-          isNbaChampionFetching: false,
         },
       },
     );
@@ -56,13 +52,11 @@ describe('useTreatmentDiscoveryFeedsLoading', () => {
     rerender({
       isTreatmentDiscovery: false,
       isWorldCupFetching: false,
-      isNbaChampionFetching: false,
     });
 
     rerender({
       isTreatmentDiscovery: true,
       isWorldCupFetching: true,
-      isNbaChampionFetching: false,
     });
 
     expect(result.current).toBe(true);
@@ -70,7 +64,6 @@ describe('useTreatmentDiscoveryFeedsLoading', () => {
     rerender({
       isTreatmentDiscovery: true,
       isWorldCupFetching: false,
-      isNbaChampionFetching: false,
     });
 
     expect(result.current).toBe(false);

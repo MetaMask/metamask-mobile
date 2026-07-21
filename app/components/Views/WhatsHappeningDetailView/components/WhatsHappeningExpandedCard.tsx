@@ -18,6 +18,8 @@ import {
 import type { Article, MarketInsightsSource } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
 import type { WhatsHappeningSourceValue } from '../../../UI/WhatsHappening/constants';
+import { useTradablePerpsMarketSymbols } from '../../../UI/WhatsHappening/hooks';
+import { isRelatedAssetTradable } from '../../../UI/WhatsHappening/util/tradableAssets';
 import { strings } from '../../../../../locales/i18n';
 import {
   getImpactLabel,
@@ -88,8 +90,18 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
     [item.date],
   );
 
+  const { tradableSymbols } = useTradablePerpsMarketSymbols();
+
+  const tradableRelatedAssets = useMemo(
+    () =>
+      item.relatedAssets.filter((a) =>
+        isRelatedAssetTradable(a, tradableSymbols),
+      ),
+    [item.relatedAssets, tradableSymbols],
+  );
+
   const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(
-    item.relatedAssets,
+    tradableRelatedAssets,
   );
 
   const scrollBottomFadeColors = useMemo((): string[] => {
@@ -127,8 +139,8 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
             style={tw.style('flex-1')}
             contentContainerStyle={tw.style('pt-7 px-5 pb-5 gap-4')}
           >
-            {/* Tag row: AI pill + impact badge */}
-            {item.impact && (
+            {/* Tag row: AI pill + impact badge + outdated badge */}
+            {(item.impact || item.isOutdated) && (
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
@@ -170,13 +182,26 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                   )}
                 </Pressable>
 
-                <Box
-                  twClassName={`${impactBgClass} rounded px-2 py-1 self-start border border-transparent`}
-                >
-                  <Text variant={TextVariant.BodySm} color={impactTextColor}>
-                    {impactLabel}
-                  </Text>
-                </Box>
+                {item.impact ? (
+                  <Box
+                    twClassName={`${impactBgClass} rounded px-2 py-1 self-start border border-transparent`}
+                  >
+                    <Text variant={TextVariant.BodySm} color={impactTextColor}>
+                      {impactLabel}
+                    </Text>
+                  </Box>
+                ) : null}
+
+                {item.isOutdated ? (
+                  <Box twClassName="bg-warning-muted rounded px-2 py-1 self-start border border-transparent">
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.WarningDefault}
+                    >
+                      {strings('whats_happening.outdated')}
+                    </Text>
+                  </Box>
+                ) : null}
               </Box>
             )}
 
@@ -252,7 +277,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
             )}
 
             {/* Related assets section */}
-            {item.relatedAssets.length > 0 && (
+            {tradableRelatedAssets.length > 0 && (
               <Box gap={1}>
                 <Text
                   variant={TextVariant.HeadingSm}
@@ -262,7 +287,7 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                   {strings('homepage.sections.related_assets')}
                 </Text>
 
-                {item.relatedAssets.map((asset, index) => (
+                {tradableRelatedAssets.map((asset, index) => (
                   <PerpsRow
                     key={`${asset.symbol}-${index}`}
                     asset={asset}

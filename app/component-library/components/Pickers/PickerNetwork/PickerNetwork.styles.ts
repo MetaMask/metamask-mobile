@@ -31,7 +31,7 @@ const styleSheet = (params: {
         paddingHorizontal: 8,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: colors.background.alternative,
+        backgroundColor: colors.background.muted,
         alignSelf: 'center',
       } as ViewStyle,
       style,

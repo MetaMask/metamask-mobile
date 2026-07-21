@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   type LayoutChangeEvent,
@@ -20,7 +20,6 @@ import {
   useTailwind,
   useTheme as useDesignSystemTheme,
 } from '@metamask/design-system-twrnc-preset';
-import { v4 as uuidv4 } from 'uuid';
 import {
   Box,
   HeaderStandard,
@@ -29,7 +28,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import {
   selectPredictWorldCupConfig,
@@ -48,6 +46,7 @@ import {
 import {
   usePredictWorldCupAvailableTabs,
   usePredictWorldCupMarkets,
+  usePredictWorldCupFeedSession,
   type PredictWorldCupAvailableTab,
 } from '../../hooks';
 import PredictMarket from '../../components/PredictMarket';
@@ -290,20 +289,14 @@ const WorldCupTabContent = ({
 
 const PredictWorldCup: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
-  const tabsScrollViewRef = useRef<ScrollView>(null);
-  const tabLayoutsRef = useRef<Record<string, { x: number; width: number }>>(
-    {},
-  );
-  const hasScrolledToInitialTabRef = useRef(false);
-  const hasTrackedInitialFeedViewed = useRef(false);
-  const feedSessionId = useMemo(() => uuidv4(), []);
-  const feedSessionStartTime = useMemo(() => Date.now(), []);
-  const feedPageViewCount = useRef(0);
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictWorldCup'>>();
   const config = useSelector(selectPredictWorldCupConfig);
   const isScreenEnabled = useSelector(selectPredictWorldCupScreenEnabledFlag);
+
+  const entryPoint = (route.params?.entryPoint ??
+    PredictEventValues.ENTRY_POINT.PREDICT_FEED) as PredictEntryPoint;
+  const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   const {
     tabs,
@@ -324,14 +317,29 @@ const PredictWorldCup: React.FC = () => {
     [availability, config, route.params?.initialTab],
   );
 
-  const [activeTab, setActiveTab] = useState<PredictWorldCupTabKey>(initialTab);
-  const entryPoint = (route.params?.entryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED) as PredictEntryPoint;
-  const transactionActiveAbTests = route.params?.transactionActiveAbTests;
+  const {
+    activeTab,
+    tabsScrollViewRef,
+    feedSessionId,
+    feedSessionStartTime,
+    getPageViewCount,
+    handleTabLayout,
+    handleTabPress,
+    navigateToMarketList,
+    handleBack,
+  } = usePredictWorldCupFeedSession<PredictWorldCupTabKey>({
+    initialTab,
+    entryPoint,
+    routeEntryPoint: route.params?.entryPoint as PredictEntryPoint | undefined,
+    transactionActiveAbTests,
+  });
+
+  const hasTrackedInitialFeedViewed = useRef(false);
 
   useEffect(() => {
-    setActiveTab(initialTab);
-  }, [initialTab]);
+    if (isScreenEnabled) return;
+    navigateToMarketList();
+  }, [isScreenEnabled, navigateToMarketList]);
 
   useEffect(() => {
     if (
@@ -347,7 +355,7 @@ const PredictWorldCup: React.FC = () => {
       sessionId: feedSessionId,
       feedTab: initialTab,
       predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
-      numPagesViewed: feedPageViewCount.current,
+      numPagesViewed: getPageViewCount(),
       sessionTime: Math.round((Date.now() - feedSessionStartTime) / 1000),
       entryPoint,
       isSessionEnd: false,
@@ -357,97 +365,12 @@ const PredictWorldCup: React.FC = () => {
     entryPoint,
     feedSessionId,
     feedSessionStartTime,
+    getPageViewCount,
     initialTab,
     isAvailabilityFetching,
     isAvailabilityLoading,
     isScreenEnabled,
   ]);
-
-  useEffect(() => {
-    if (isScreenEnabled) {
-      return;
-    }
-
-    navigation.navigate(Routes.PREDICT.MARKET_LIST, {
-      entryPoint: route.params?.entryPoint,
-      ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
-    });
-  }, [
-    isScreenEnabled,
-    navigation,
-    route.params?.entryPoint,
-    transactionActiveAbTests,
-  ]);
-
-  const handleBack = useCallback(() => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
-
-    navigation.navigate(Routes.PREDICT.MARKET_LIST, {
-      entryPoint: route.params?.entryPoint,
-      ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
-    });
-  }, [navigation, route.params?.entryPoint, transactionActiveAbTests]);
-
-  const scrollActiveTabIntoView = useCallback(
-    (tabKey: PredictWorldCupTabKey, animated: boolean) => {
-      const layout = tabLayoutsRef.current[tabKey];
-      if (!layout || !tabsScrollViewRef.current) {
-        return;
-      }
-
-      // Offset so the pill isn't flush against the screen edge (matches px-4).
-      const targetX = Math.max(layout.x - 16, 0);
-      tabsScrollViewRef.current.scrollTo({ x: targetX, animated });
-    },
-    [],
-  );
-
-  const handleTabLayout = useCallback(
-    (tabKey: PredictWorldCupTabKey, event: LayoutChangeEvent) => {
-      const { x, width } = event.nativeEvent.layout;
-      tabLayoutsRef.current[tabKey] = { x, width };
-
-      // The initial tab can be off-screen (e.g. a late-stage bracket); bring it
-      // into view once its layout is measured.
-      if (!hasScrolledToInitialTabRef.current && tabKey === activeTab) {
-        hasScrolledToInitialTabRef.current = true;
-        scrollActiveTabIntoView(tabKey, false);
-      }
-    },
-    [activeTab, scrollActiveTabIntoView],
-  );
-
-  const handleTabPress = useCallback(
-    (tabKey: PredictWorldCupTabKey) => {
-      if (tabKey === activeTab) {
-        return;
-      }
-
-      feedPageViewCount.current += 1;
-
-      Engine.context.PredictController.trackFeedViewed({
-        sessionId: feedSessionId,
-        feedTab: tabKey,
-        predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
-        numPagesViewed: feedPageViewCount.current,
-        sessionTime: Math.round((Date.now() - feedSessionStartTime) / 1000),
-        entryPoint,
-        isSessionEnd: false,
-      });
-      setActiveTab(tabKey);
-    },
-    [activeTab, entryPoint, feedSessionId, feedSessionStartTime],
-  );
-
-  useEffect(() => {
-    // Keep the active pill visible when the tab changes (tap or resolved
-    // initial tab). On first mount the layout may not be measured yet, in which
-    // case `handleTabLayout` performs the initial scroll instead.
-    scrollActiveTabIntoView(activeTab, true);
-  }, [activeTab, scrollActiveTabIntoView]);
 
   if (!isScreenEnabled) {
     return null;

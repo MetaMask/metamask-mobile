@@ -83,6 +83,10 @@ export const TRENDING_NETWORK_THRESHOLDS: Record<
     minLiquidity: 100000, // Minimum filter
     minVolume24h: 25000, // Minimum filter
   },
+  [NetworkToCaipChainId.ROBINHOOD]: {
+    minLiquidity: 100000, // Minimum filter
+    minVolume24h: 25000, // Minimum filter
+  },
 
   'tron:728126428': {
     minLiquidity: 100000, // Minimum filter

@@ -44,10 +44,13 @@ const eventMatchesPropertyRequirements = (
     return true;
   }
 
-  return Object.entries(requirements).every(
-    ([propertyKey, expectedValue]) =>
-      event.properties[propertyKey] === expectedValue,
-  );
+  return Object.entries(requirements).every(([propertyKey, expectedValue]) => {
+    const actual = event.properties[propertyKey];
+    if (Array.isArray(expectedValue)) {
+      return (expectedValue as readonly unknown[]).includes(actual);
+    }
+    return actual === expectedValue;
+  });
 };
 
 const eventMatchesInjectGate = (
@@ -58,9 +61,30 @@ const eventMatchesInjectGate = (
   if (!gate || Object.keys(gate).length === 0) {
     return true;
   }
-  return Object.entries(gate).every(
-    ([propertyKey, expected]) => properties[propertyKey] === expected,
-  );
+  return Object.entries(gate).every(([propertyKey, expected]) => {
+    const actual = properties[propertyKey];
+    if (Array.isArray(expected)) {
+      return (expected as readonly unknown[]).includes(actual);
+    }
+    return actual === expected;
+  });
+};
+
+const eventMatchesExcludeGate = (
+  properties: Record<string, unknown>,
+  mapping: ABTestAnalyticsMapping,
+): boolean => {
+  const gate = mapping.excludeWhenPropertiesMatch;
+  if (!gate || Object.keys(gate).length === 0) {
+    return false;
+  }
+  return Object.entries(gate).some(([propertyKey, excluded]) => {
+    const actual = properties[propertyKey];
+    if (Array.isArray(excluded)) {
+      return (excluded as readonly unknown[]).includes(actual);
+    }
+    return actual === excluded;
+  });
 };
 
 export const getRemoteFeatureFlagsFromState = (
@@ -89,7 +113,8 @@ export const enrichWithABTests = <
     (mapping) =>
       hasEventName(mapping, event.name) &&
       eventMatchesPropertyRequirements(mapping, event) &&
-      eventMatchesInjectGate(event.properties, mapping),
+      eventMatchesInjectGate(event.properties, mapping) &&
+      !eventMatchesExcludeGate(event.properties, mapping),
   );
 
   if (relevantMappings.length === 0) {

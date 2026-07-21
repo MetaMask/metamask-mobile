@@ -11,6 +11,7 @@ import React, {
 import {
   Dimensions,
   LayoutChangeEvent,
+  Pressable,
   StyleProp,
   View,
   ViewStyle,
@@ -292,7 +293,17 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
   return (
     <Animated.View onLayout={onAnimatedViewLayout} style={baseStyle}>
-      {renderToastContent(toastOptions)}
+      {toastOptions.onPress ? (
+        <Pressable
+          style={styles.pressableContent}
+          onPress={toastOptions.onPress}
+          testID={ToastSelectorsIDs.PRESSABLE}
+        >
+          {renderToastContent(toastOptions)}
+        </Pressable>
+      ) : (
+        renderToastContent(toastOptions)
+      )}
     </Animated.View>
   );
 });

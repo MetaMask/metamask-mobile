@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  BoxFlexDirection,
   Text,
   TextVariant,
   TextColor,
@@ -31,7 +30,9 @@ import { getNetworkImageSource } from '../../../../../util/networks';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import type { CaipChainId } from '@metamask/utils';
-import { FilterButton } from '../../../Trending/components/FilterBar/FilterBar';
+import FilterBar, {
+  FilterButton,
+} from '../../../Trending/components/FilterBar/FilterBar';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { BridgeTrendingTokensSectionTestIds } from './BridgeTrendingTokensSection.testIds';
 
@@ -152,27 +153,21 @@ const BridgeTrendingTokensSection = ({
         >
           {strings('trending.trending_tokens')}
         </Text>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          twClassName="gap-2 mb-3 w-full"
-        >
-          <FilterButton
-            testID={BridgeTrendingTokensSectionTestIds.PRICE_FILTER}
-            onPress={() => setActiveBottomSheet('price_change')}
-            label={priceChangeButtonText}
-            twClassName="flex-1"
-          />
-          <FilterButton
-            testID={BridgeTrendingTokensSectionTestIds.NETWORK_FILTER}
-            onPress={() => setActiveBottomSheet('network')}
-            label={selectedNetworkName}
-            twClassName="flex-1"
-          />
-          <FilterButton
-            testID={BridgeTrendingTokensSectionTestIds.TIME_FILTER}
-            onPress={() => setActiveBottomSheet('time')}
-            label={selectedTimeOption}
-            twClassName="w-[72px] shrink-0"
+        <Box twClassName="-mx-4 mb-3">
+          <FilterBar
+            priceChangeButtonText={priceChangeButtonText}
+            onPriceChangePress={() => setActiveBottomSheet('price_change')}
+            networkName={selectedNetworkName}
+            onNetworkPress={() => setActiveBottomSheet('network')}
+            priceChangeTestID={BridgeTrendingTokensSectionTestIds.PRICE_FILTER}
+            networkTestID={BridgeTrendingTokensSectionTestIds.NETWORK_FILTER}
+            extraFilters={
+              <FilterButton
+                testID={BridgeTrendingTokensSectionTestIds.TIME_FILTER}
+                onPress={() => setActiveBottomSheet('time')}
+                label={selectedTimeOption}
+              />
+            }
           />
         </Box>
 

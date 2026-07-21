@@ -14,9 +14,9 @@ import { RootState } from '../../../../reducers';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 
 const GeneralSettings = () => {
-  useOnboardingHeader(strings('default_settings.drawer_general_title'));
   const tw = useTailwind();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -57,6 +57,11 @@ const GeneralSettings = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={tw.style('flex-1')}>
+      <HeaderStandard
+        includesTopInset
+        title={strings('default_settings.drawer_general_title')}
+        onBack={() => navigation.goBack()}
+      />
       <ScrollView style={tw.style('flex-1 pt-4 px-4')}>
         <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
         <BackupAndSyncToggle

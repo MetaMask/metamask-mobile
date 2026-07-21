@@ -1,5 +1,5 @@
 import React, { ReactNode, useCallback, useMemo, useRef } from 'react';
-import { PanResponder } from 'react-native';
+import { PanResponder, Platform } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Text,
@@ -108,6 +108,9 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
   return (
     <KeyboardAwareScrollView
       keyboardShouldPersistTaps="handled"
+      enableOnAndroid
+      enableAutomaticScroll
+      extraScrollHeight={Platform.OS === 'android' ? 120 : 20}
       testID="onboarding-step-container"
       contentContainerStyle={tw.style(
         `min-h-full px-4 ${isLargeDevice ? 'py-8' : 'py-2'}`,

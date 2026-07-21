@@ -41,6 +41,10 @@ import {
 } from '../../../../../selectors/multichain/multichain';
 import { RootState } from '../../../../../reducers';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
+import {
+  ARC_USDC_TOKEN_ADDRESS,
+  NETWORKS_CHAIN_ID,
+} from '../../../../../constants/network';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import {
@@ -93,11 +97,18 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     includeStocks: true,
   });
 
-  // Convert API search results to ImportAsset format
+  // Convert API search results to ImportAsset format, hiding the Arc USDC
+  // ERC-20 token which is a display duplicate of Arc's native USDC gas token.
   const allTokens = useMemo(() => {
     if (!selectedChainId) return [];
 
-    return convertTrendingAssetsToImporAssets(apiResults);
+    const tokens = convertTrendingAssetsToImporAssets(apiResults);
+
+    if (selectedChainId === NETWORKS_CHAIN_ID.ARC) {
+      return tokens.filter((t) => t.address !== ARC_USDC_TOKEN_ADDRESS);
+    }
+
+    return tokens;
   }, [apiResults, selectedChainId]);
 
   const [selectedAssets, setSelectedAssets] = useState<ImportAsset[]>([]);

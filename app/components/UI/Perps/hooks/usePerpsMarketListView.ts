@@ -16,6 +16,7 @@ import {
 import { isHip3Filter } from '../utils/marketCategoryMapping';
 import {
   selectPerpsWatchlistMarkets,
+  selectPerpsRecentlyViewedMarkets,
   selectPerpsMarketFilterPreferences,
 } from '../selectors/perpsController';
 import Engine from '../../../../core/Engine';
@@ -52,6 +53,11 @@ interface UsePerpsMarketListViewParams {
    * @default false
    */
   showZeroVolume?: boolean;
+  /**
+   * Show markets with $0.00 or missing open interest
+   * @default showZeroVolume
+   */
+  showZeroOpenInterest?: boolean;
 }
 
 interface UsePerpsMarketListViewReturn {
@@ -101,6 +107,16 @@ interface UsePerpsMarketListViewReturn {
     setMarketTypeFilter: (filter: MarketTypeFilter) => void;
   };
   /**
+   * Recently viewed markets state
+   */
+  recentlyViewedState: {
+    /**
+     * Full market data objects for recently viewed symbols, newest-first.
+     * Symbols with no matching (tradable) market are dropped.
+     */
+    recentlyViewedMarketObjects: PerpsMarketData[];
+  };
+  /**
    * Market counts by type (for hiding empty tabs/pills)
    */
   marketCounts: Record<Exclude<MarketTypeFilter, 'all'>, number>;
@@ -121,7 +137,7 @@ interface UsePerpsMarketListViewReturn {
  * - Fetches and filters markets data
  * - Manages search state and filtering
  * - Manages sorting state and filtering
- * - Filters markets by volume validity
+ * - Filters markets by volume and open interest validity
  * - Filters markets by watchlist (favorites)
  * - Saves sort preferences to PerpsController
  * - Exposes combined filtered markets ready for display
@@ -150,9 +166,10 @@ export const usePerpsMarketListView = ({
   defaultSortOptionId,
   defaultSortDirection,
   showZeroVolume = false,
+  showZeroOpenInterest = showZeroVolume,
 }: UsePerpsMarketListViewParams = {}): UsePerpsMarketListViewReturn => {
   // Fetch markets data
-  // Volume filtering is handled at the data layer in usePerpsMarkets
+  // Market activity filtering is handled at the data layer in usePerpsMarkets
   const {
     markets: allMarkets,
     isLoading: isLoadingMarkets,
@@ -160,10 +177,12 @@ export const usePerpsMarketListView = ({
   } = usePerpsMarkets({
     enablePolling,
     showZeroVolume,
+    showZeroOpenInterest,
   });
 
   // Get Redux state
   const watchlistMarkets = useSelector(selectPerpsWatchlistMarkets);
+  const recentlyViewedSymbols = useSelector(selectPerpsRecentlyViewedMarkets);
   const savedSortPreference = useSelector(selectPerpsMarketFilterPreferences);
 
   // Favorites filter state
@@ -290,6 +309,19 @@ export const usePerpsMarketListView = ({
     [allMarkets, watchlistMarkets],
   );
 
+  // Full market objects for recently viewed symbols, in newest-first order.
+  // Symbols with no matching entry in allMarkets (e.g. delisted) are dropped.
+  const recentlyViewedMarketObjects = useMemo(() => {
+    const marketsBySymbol = new Map(allMarkets.map((m) => [m.symbol, m]));
+    return recentlyViewedSymbols.reduce<PerpsMarketData[]>((acc, symbol) => {
+      const market = marketsBySymbol.get(symbol);
+      if (market) {
+        acc.push(market);
+      }
+      return acc;
+    }, []);
+  }, [allMarkets, recentlyViewedSymbols]);
+
   // Apply sorting to searched and favorites-filtered markets
   // Use useMemo to ensure sorting is applied with current sortBy/direction when markets change
   const finalMarkets = useMemo(
@@ -346,6 +378,9 @@ export const usePerpsMarketListView = ({
     marketTypeFilterState: {
       marketTypeFilter,
       setMarketTypeFilter: handleSetMarketTypeFilter,
+    },
+    recentlyViewedState: {
+      recentlyViewedMarketObjects,
     },
     marketCounts,
     isLoading: isLoadingMarkets,

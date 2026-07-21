@@ -35,7 +35,6 @@ const POPULAR_TOKENS = [
     name: 'MetaMask USD',
     symbol: 'mUSD',
     // Description will be added dynamically with localized string
-    hasMusdBonus: true,
     iconUrl: buildIconUrl('eip155', '1', 'erc20', MUSD_TOKEN_ADDRESS),
   },
   {

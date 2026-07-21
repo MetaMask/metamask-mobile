@@ -4,7 +4,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
-import useRampsUnifiedV2Enabled from '../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 import { walletHomeOnboardingPrimaryLabelForStep } from './walletHomeOnboardingStepsStrings';
 import { useWalletHomeOnboardingFundRampIntent } from './useWalletHomeOnboardingFundRampIntent';
@@ -22,19 +21,16 @@ export function useWalletHomeOnboardingChecklistFundPress(
 ): () => void {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const buttonClickData = useRampsButtonClickData();
-  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
   const region = useSelector(getDetectedGeolocation);
   const { rampIntent } = useWalletHomeOnboardingFundRampIntent();
 
   return useCallback(() => {
-    const rampType = isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'BUY';
-
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
           button_text: walletHomeOnboardingPrimaryLabelForStep('fund'),
           location: ActionLocation.ONBOARDING_CHECKLIST,
-          ramp_type: rampType,
+          ramp_type: 'UNIFIED_BUY_2',
           region,
           is_authenticated: buttonClickData.is_authenticated,
           preferred_provider: buttonClickData.preferred_provider,
@@ -50,7 +46,6 @@ export function useWalletHomeOnboardingChecklistFundPress(
     buttonClickData.preferred_provider,
     createEventBuilder,
     goToBuy,
-    isV2UnifiedEnabled,
     rampIntent,
     region,
     trackEvent,

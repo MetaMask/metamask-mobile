@@ -286,13 +286,20 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
 
   const [hasEverBeenActive, setHasEverBeenActive] = useState(isActive);
   useEffect(() => {
-    if (isActive && !hasEverBeenActive) {
+    if (isActive) {
       setHasEverBeenActive(true);
     }
-  }, [isActive, hasEverBeenActive]);
+  }, [isActive]);
 
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
   const refine = upDownEnabled ? deduplicateSeriesMarkets : undefined;
+
+  // Skip getMarkets for tabs that have never been visible. PagerView mounts
+  // every PredictTabContent at once, so without this gate each tab fetches on
+  // mount. The `isActive` term covers the first render a tab activates, before
+  // the effect above flips `hasEverBeenActive`; `hasEverBeenActive` then keeps
+  // already-visited tabs warm when swiping back.
+  const fetchEnabled = isActive || hasEverBeenActive;
 
   const {
     marketData,
@@ -307,6 +314,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     pageSize: 20,
     customQueryParams,
     refine,
+    enabled: fetchEnabled,
   });
 
   const [isRefreshing, setIsRefreshing] = useState(false);

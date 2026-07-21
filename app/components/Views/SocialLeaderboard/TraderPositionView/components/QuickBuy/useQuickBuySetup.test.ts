@@ -1,11 +1,13 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import type { CaipChainId } from '@metamask/utils';
+import type { CaipChainId, Hex } from '@metamask/utils';
+import { zeroAddress } from 'ethereumjs-util';
 import {
   useAssetMetadata,
   AssetType,
 } from '../../../../../UI/Bridge/hooks/useAssetMetadata';
 import { selectIsBridgeEnabledSourceFactory } from '../../../../../../core/redux/slices/bridge';
+import { getNativeSourceToken } from '../../../../../UI/Bridge/utils/tokenUtils';
 import { useQuickBuySetup } from './hooks/useQuickBuySetup';
 import type { QuickBuyTarget } from './types';
 
@@ -19,14 +21,25 @@ jest.mock('../../../../../UI/Bridge/hooks/useAssetMetadata', () => ({
   useAssetMetadata: jest.fn(),
 }));
 
+jest.mock('../../../../../UI/Bridge/utils/tokenUtils', () => ({
+  ...jest.requireActual('../../../../../UI/Bridge/utils/tokenUtils'),
+  getNativeSourceToken: jest.fn(),
+}));
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseAssetMetadata = useAssetMetadata as jest.MockedFunction<
   typeof useAssetMetadata
 >;
 
 const BASE_CAIP: CaipChainId = 'eip155:8453';
+const MONAD_CAIP: CaipChainId = 'eip155:143';
+const HYPE_CAIP: CaipChainId = 'eip155:999';
 const SOLANA_CAIP: CaipChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 const UNMAPPED_CAIP = 'eip155:9999' as CaipChainId;
+
+const mockGetNativeSourceToken = getNativeSourceToken as jest.MockedFunction<
+  typeof getNativeSourceToken
+>;
 
 const createTarget = (
   overrides: Partial<QuickBuyTarget> = {},
@@ -42,6 +55,7 @@ const createTarget = (
 describe('useQuickBuySetup', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetNativeSourceToken.mockReset();
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsBridgeEnabledSourceFactory) {
         return () => true;
@@ -183,4 +197,63 @@ describe('useQuickBuySetup', () => {
     expect(result.current.isLoading).toBe(true);
     expect(result.current.isUnsupportedChain).toBe(false);
   });
+
+  it.each<{
+    label: string;
+    chain: CaipChainId;
+    hexChainId: Hex;
+    tokenSymbol: string;
+    tokenName: string;
+    nativeSymbol: string;
+  }>([
+    {
+      label: 'MON on Monad',
+      chain: MONAD_CAIP,
+      hexChainId: '0x8f',
+      tokenSymbol: 'MON',
+      tokenName: 'Monad',
+      nativeSymbol: 'MON',
+    },
+    {
+      label: 'HYPE on HyperEVM',
+      chain: HYPE_CAIP,
+      hexChainId: '0x3e7',
+      tokenSymbol: 'HYPE',
+      tokenName: 'Hyperliquid',
+      nativeSymbol: 'HYPE',
+    },
+  ])(
+    'resolves $label from Token Details zero address without metadata fetch',
+    ({ chain, hexChainId, tokenSymbol, tokenName, nativeSymbol }) => {
+      mockGetNativeSourceToken.mockReturnValue({
+        address: zeroAddress(),
+        symbol: nativeSymbol,
+        name: tokenName,
+        decimals: 18,
+        image: 'https://example.com/native.png',
+        chainId: hexChainId,
+      });
+
+      const target = createTarget({
+        chain,
+        tokenAddress: zeroAddress(),
+        tokenSymbol,
+        tokenName,
+      });
+
+      const { result } = renderHook(() => useQuickBuySetup(target));
+
+      expect(mockUseAssetMetadata).toHaveBeenCalledWith('', false, hexChainId);
+      expect(mockGetNativeSourceToken).toHaveBeenCalledWith(hexChainId);
+      expect(result.current.destToken).toEqual({
+        address: zeroAddress(),
+        chainId: hexChainId,
+        decimals: 18,
+        image: 'https://example.com/native.png',
+        name: tokenName,
+        symbol: tokenSymbol,
+      });
+      expect(result.current.isLoading).toBe(false);
+    },
+  );
 });

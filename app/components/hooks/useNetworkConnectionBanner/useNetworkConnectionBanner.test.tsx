@@ -162,7 +162,6 @@ const mockNetworkController = {
 };
 
 const mockEngine = {
-  lookupEnabledNetworks: jest.fn(),
   controllerMessenger: {
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
@@ -193,7 +192,6 @@ describe('useNetworkConnectionBanner', () => {
     jest.mocked(selectIsDeviceOffline).mockReturnValue(false);
 
     // Mock Engine methods directly (safer than spyOn after jest.mock)
-    Engine.lookupEnabledNetworks = mockEngine.lookupEnabledNetworks;
     // @ts-expect-error - Mocking Engine for testing
     Engine.controllerMessenger = mockEngine.controllerMessenger;
     // @ts-expect-error - Mocking Engine for testing
@@ -271,12 +269,6 @@ describe('useNetworkConnectionBanner', () => {
       ).toBeUndefined();
       expect(typeof result.current.updateRpc).toBe('function');
       expect(typeof result.current.switchToInfura).toBe('function');
-    });
-
-    it('should call Engine.lookupEnabledNetworks on mount', () => {
-      renderHookWithProvider();
-
-      expect(mockEngine.lookupEnabledNetworks).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -624,6 +616,29 @@ describe('useNetworkConnectionBanner', () => {
       expect(actions[0]).toStrictEqual({
         type: 'HIDE_NETWORK_CONNECTION_BANNER',
       });
+    });
+
+    it('should not show banner when networks have no metadata entry', () => {
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: false,
+      });
+
+      // @ts-expect-error - Mocking Engine for testing
+      Engine.context = {
+        NetworkController: {
+          ...mockNetworkController,
+          state: { networksMetadata: {} },
+        },
+      };
+
+      renderHookWithProvider();
+
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      const actions = store.getActions();
+      expect(actions).toHaveLength(0);
     });
 
     it('should show degraded banner after 5 seconds for degraded networks', () => {

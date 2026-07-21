@@ -3,14 +3,6 @@ import type { Theme } from '../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
-    container: {
-      gap: 16,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
     statsRowsContainer: {
       gap: 1,
     },

@@ -1,8 +1,16 @@
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
+import { type MoneyAccountBalanceResponse } from '@metamask/money-account-balance-service';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import useMoneyAccountCardLinkage from '../../Card/hooks/useMoneyAccountCardLinkage';
-import useMoneyAccountBalance from '../hooks/useMoneyAccountBalance';
+import {
+  selectIsCardAuthenticated,
+  selectIsMoneyAccountDelegatedForCard,
+} from '../../../../selectors/cardController';
+import useMoneyAccountInfo from '../hooks/useMoneyAccountInfo';
+import ReactQueryService from '../../../../core/ReactQueryService';
+import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
+import { MUSD_DECIMALS } from '../../Earn/constants/musd';
 import {
   MONEY_BUTTON_TYPES,
   MONEY_SURFACE_TYPES,
@@ -80,14 +88,42 @@ export const useMoneyAnalytics = ({
   component_name,
 }: Partial<MoneyLocationEventProperties> = {}) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { isCardLinkedToMoneyAccount, isCardAuthenticated } =
-    useMoneyAccountCardLinkage();
-
-  const { totalFiatRaw, isBalanceFetching } = useMoneyAccountBalance();
+  const isCardLinkedToMoneyAccount = useSelector(
+    selectIsMoneyAccountDelegatedForCard,
+  );
+  const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
+  const { primaryMoneyAccount } = useMoneyAccountInfo();
+  const moneyAccountAddress = primaryMoneyAccount?.address;
 
   const getBaseProperties = useCallback((): MoneyBaseEventProperties => {
+    // Events fire on user actions, so the balance is read from the shared
+    // query cache at fire time instead of subscribing to it — a subscription
+    // would re-render every consumer on each background poll.
+    const balanceQueryState =
+      ReactQueryService.queryClient.getQueryState<MoneyAccountBalanceResponse>([
+        MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
+        moneyAccountAddress as string,
+      ]);
+
+    // An absent cache entry while a money account exists means the fetch just
+    // hasn't been observed yet, so it must read as loading — mirroring the old
+    // subscription behavior where mounting the hook started the fetch.
+    const isBalanceFetching = balanceQueryState
+      ? balanceQueryState.fetchStatus === 'fetching'
+      : Boolean(moneyAccountAddress);
+
+    // Undefined while loading or on error so a genuine zero can be told apart.
+    const totalFiatRaw =
+      balanceQueryState === undefined ||
+      balanceQueryState.status === 'loading' ||
+      balanceQueryState.status === 'error'
+        ? undefined
+        : new BigNumber(balanceQueryState.data?.totalBalance ?? 0)
+            .shiftedBy(-MUSD_DECIMALS)
+            .toString();
+
     // react-query v4 keeps disabled queries (no money account) at status: 'loading'
-    // forever, so isLoading would falsely flag empty-state users as "loading" permanently.
+    // forever, so status alone would falsely flag empty-state users as "loading" permanently.
     // isBalanceFetching + no settled value = a genuine in-flight first fetch.
     const isMoneyBalanceLoading =
       isBalanceFetching && totalFiatRaw === undefined;
@@ -114,10 +150,9 @@ export const useMoneyAnalytics = ({
     component_name,
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
-    isBalanceFetching,
+    moneyAccountAddress,
     screen_name,
     bottom_sheet_name,
-    totalFiatRaw,
   ]);
 
   /**

@@ -151,5 +151,6 @@ export const onboardingEvents = {
   WALLET_SECURITY_REMINDER_DISMISSED: 'Wallet Security Reminder Dismissed',
   ONBOARDING_TOUR_SKIPPED: 'Onboarding Tour Skipped',
   ONBOARDING_TOUR_COMPLETED: 'Onboarding Tour Completed',
+  ONBOARDING_COMPLETED: 'Onboarding Completed',
   WALLET_SECURITY_SKIP_CONFIRMED: 'Wallet Security Skip Confirmed',
 };

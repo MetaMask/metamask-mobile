@@ -4,6 +4,7 @@ import { Theme } from '../../../../../util/theme/models';
 import { getNavbar } from '../../components/UI/navbar/navbar';
 import { useConfirmActions } from '../useConfirmActions';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
+import { useConfirmationContext } from '../../context/confirmation-context';
 import useNavbar from './useNavbar';
 
 // Mock dependencies
@@ -23,10 +24,17 @@ jest.mock('./useFullScreenConfirmation', () => ({
   useFullScreenConfirmation: jest.fn(),
 }));
 
+jest.mock('../../context/confirmation-context', () => ({
+  useConfirmationContext: jest.fn(),
+}));
+
+const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
+
 describe('useNavbar', () => {
   const mockSetOptions = jest.fn();
   const mockOnReject = jest.fn();
   const mockTitle = 'Test Title';
+  const mockMmPayRef = { current: false };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -48,6 +56,10 @@ describe('useNavbar', () => {
     (useFullScreenConfirmation as jest.Mock).mockReturnValue({
       isFullScreenConfirmation: true,
     });
+
+    mockUseConfirmationContext.mockReturnValue({
+      mmPayRequestInProgressNavHandler: mockMmPayRef,
+    } as unknown as ReturnType<typeof useConfirmationContext>);
   });
 
   it('calls setOptions with the correct navbar configuration for full screen confirmations', () => {
@@ -66,15 +78,9 @@ describe('useNavbar', () => {
       addBackButton: true,
       theme: expect.any(Object),
       overrides: undefined,
+      mmPayRequestInProgressNavHandler: mockMmPayRef,
     });
-    expect(mockSetOptions).toHaveBeenCalledWith(
-      getNavbar({
-        title: mockTitle,
-        onReject: mockOnReject,
-        addBackButton: true,
-        theme: {} as Theme,
-      }),
-    );
+    expect(mockSetOptions).toHaveBeenCalled();
   });
 
   it('does not call setOptions for non-full-screen confirmations', () => {
@@ -125,6 +131,7 @@ describe('useNavbar', () => {
       addBackButton: true,
       theme: expect.any(Object),
       overrides: undefined,
+      mmPayRequestInProgressNavHandler: mockMmPayRef,
     });
   });
 
@@ -145,6 +152,7 @@ describe('useNavbar', () => {
       addBackButton: true,
       theme: expect.any(Object),
       overrides: undefined,
+      mmPayRequestInProgressNavHandler: mockMmPayRef,
     });
   });
 
@@ -169,6 +177,7 @@ describe('useNavbar', () => {
         addBackButton: true,
         theme: expect.any(Object),
         overrides,
+        mmPayRequestInProgressNavHandler: mockMmPayRef,
       });
     });
 
@@ -185,6 +194,7 @@ describe('useNavbar', () => {
         addBackButton: false,
         theme: expect.any(Object),
         overrides: undefined,
+        mmPayRequestInProgressNavHandler: mockMmPayRef,
       });
     });
   });

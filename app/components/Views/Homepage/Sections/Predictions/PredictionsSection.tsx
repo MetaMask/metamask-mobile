@@ -24,10 +24,9 @@ import HomepagePredictPositions from './components/HomepagePredictPositions';
 import {
   usePredictMarketsForHomepage,
   usePredictPositionsForHomepage,
-  useHomepagePredictTaggedMarkets,
+  useHomepagePredictLiveWorldCupMarkets,
   useHomepagePredictWorldCupMarkets,
   useHomepagePredictWorldCupEventCount,
-  HOMEPAGE_PREDICT_TAG_QUERIES,
   usePredictHomepageDiscoveryExperiment,
 } from './hooks';
 import { MAX_MARKETS_DISPLAYED } from './predictionsSectionConstants';
@@ -45,21 +44,21 @@ import { useUnrealizedPnL } from '../../../../UI/Predict/hooks/useUnrealizedPnL'
 import { getPredictHomepageUnrealizedPnlRowState } from './utils/getPredictHomepageUnrealizedPnlRowState';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { PredictEventProperties } from '../../../../UI/Predict/constants/eventNames';
+import {
+  PredictEventProperties,
+  PredictEventValues,
+} from '../../../../UI/Predict/constants/eventNames';
 import {
   PredictPositionsEmptyStateVariant,
   type PredictEmptyStateCtaName,
 } from '../../abTestConfig';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
-/** Loads both feeds the World Cup discovery rail needs (World Cup tag + NBA Champion event). */
+/** Loads the feeds the World Cup discovery rail needs. */
 const useWorldCupDiscoveryFeeds = (enabled: boolean) => ({
   worldCup: useHomepagePredictWorldCupMarkets({ enabled }),
+  liveWorldCup: useHomepagePredictLiveWorldCupMarkets({ enabled }),
   worldCupEventCount: useHomepagePredictWorldCupEventCount({ enabled }),
-  nbaChampion: useHomepagePredictTaggedMarkets({
-    enabled,
-    customQueryParams: HOMEPAGE_PREDICT_TAG_QUERIES.nbaChampion,
-  }),
 });
 
 const mergeActiveAbTests = (
@@ -240,7 +239,9 @@ const usePredictPositionsSectionData = (homepageQueriesEnabled: boolean) => {
     });
 
   const handleClaim = useCallback(async () => {
-    await claim();
+    await claim({
+      entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+    });
   }, [claim]);
 
   const hasPositions = positions.length > 0;
@@ -338,18 +339,19 @@ const PredictionsSectionDefault = forwardRef<
 
     const {
       worldCup: worldCupHomepageMarkets,
+      liveWorldCup: liveWorldCupHomepageMarkets,
       worldCupEventCount,
-      nbaChampion: nbaChampionHomepageMarkets,
     } = useWorldCupDiscoveryFeeds(isPredictEnabled && isTreatmentDiscovery);
     const { refetch: refetchWorldCupHomepageMarkets } = worldCupHomepageMarkets;
+    const { refetch: refetchLiveWorldCupHomepageMarkets } =
+      liveWorldCupHomepageMarkets;
     const { refetch: refetchWorldCupEventCount } = worldCupEventCount;
-    const { refetch: refetchNbaChampionHomepageMarkets } =
-      nbaChampionHomepageMarkets;
     const isLoadingWorldCupHomepage = useTreatmentDiscoveryFeedsLoading({
       isTreatmentDiscovery,
       isWorldCupFetching:
-        worldCupHomepageMarkets.isFetching || worldCupEventCount.isFetching,
-      isNbaChampionFetching: nbaChampionHomepageMarkets.isFetching,
+        worldCupHomepageMarkets.isFetching ||
+        liveWorldCupHomepageMarkets.isFetching ||
+        worldCupEventCount.isFetching,
     });
 
     const {
@@ -415,8 +417,8 @@ const PredictionsSectionDefault = forwardRef<
       const tasks: Promise<unknown>[] = [refreshPositions(), refetchMarkets()];
       if (isTreatmentDiscovery) {
         tasks.push(refetchWorldCupHomepageMarkets());
+        tasks.push(refetchLiveWorldCupHomepageMarkets());
         tasks.push(refetchWorldCupEventCount());
-        tasks.push(refetchNbaChampionHomepageMarkets());
       }
       await Promise.all(tasks);
     }, [
@@ -424,8 +426,8 @@ const PredictionsSectionDefault = forwardRef<
       refetchMarkets,
       isTreatmentDiscovery,
       refetchWorldCupHomepageMarkets,
+      refetchLiveWorldCupHomepageMarkets,
       refetchWorldCupEventCount,
-      refetchNbaChampionHomepageMarkets,
     ]);
 
     const positionsLayout =
@@ -465,8 +467,8 @@ const PredictionsSectionDefault = forwardRef<
                   markets={markets}
                   transactionActiveAbTests={discoveryTransactionActiveAbTests}
                   worldCupHomepage={worldCupHomepageMarkets}
+                  liveWorldCupHomepage={liveWorldCupHomepageMarkets}
                   worldCupEventCount={worldCupEventCount.eventCount}
-                  nbaChampionHomepage={nbaChampionHomepageMarkets}
                   emptyStateTransactionActiveAbTests={
                     discoveryTransactionActiveAbTests
                   }
@@ -503,8 +505,8 @@ const PredictionsSectionDefault = forwardRef<
               markets={markets}
               transactionActiveAbTests={discoveryTransactionActiveAbTests}
               worldCupHomepage={worldCupHomepageMarkets}
+              liveWorldCupHomepage={liveWorldCupHomepageMarkets}
               worldCupEventCount={worldCupEventCount.eventCount}
-              nbaChampionHomepage={nbaChampionHomepageMarkets}
               emptyStateTransactionActiveAbTests={
                 discoveryTransactionActiveAbTests
               }
@@ -635,13 +637,13 @@ const PredictionsSectionTrendingOnly = forwardRef<
     const isListLayout = discoveryLayout === 'list';
     const {
       worldCup: worldCupHomepageMarkets,
+      liveWorldCup: liveWorldCupHomepageMarkets,
       worldCupEventCount,
-      nbaChampion: nbaChampionHomepageMarkets,
     } = useWorldCupDiscoveryFeeds(isPredictEnabled && isListLayout);
     const { refetch: refetchWorldCupHomepageMarkets } = worldCupHomepageMarkets;
+    const { refetch: refetchLiveWorldCupHomepageMarkets } =
+      liveWorldCupHomepageMarkets;
     const { refetch: refetchWorldCupEventCount } = worldCupEventCount;
-    const { refetch: refetchNbaChampionHomepageMarkets } =
-      nbaChampionHomepageMarkets;
 
     const itemCount = isListLayout ? 1 : markets.length;
     const willRender =
@@ -652,16 +654,16 @@ const PredictionsSectionTrendingOnly = forwardRef<
       const tasks: Promise<unknown>[] = [refetchMarkets()];
       if (isListLayout) {
         tasks.push(refetchWorldCupHomepageMarkets());
+        tasks.push(refetchLiveWorldCupHomepageMarkets());
         tasks.push(refetchWorldCupEventCount());
-        tasks.push(refetchNbaChampionHomepageMarkets());
       }
       await Promise.all(tasks);
     }, [
       refetchMarkets,
       isListLayout,
       refetchWorldCupHomepageMarkets,
+      refetchLiveWorldCupHomepageMarkets,
       refetchWorldCupEventCount,
-      refetchNbaChampionHomepageMarkets,
     ]);
 
     return (
@@ -676,8 +678,8 @@ const PredictionsSectionTrendingOnly = forwardRef<
         isLoading={
           isListLayout
             ? worldCupHomepageMarkets.isFetching ||
-              worldCupEventCount.isFetching ||
-              nbaChampionHomepageMarkets.isFetching
+              liveWorldCupHomepageMarkets.isFetching ||
+              worldCupEventCount.isFetching
             : isLoadingMarkets
         }
         isEmpty={isListLayout ? false : !isLoadingMarkets && itemCount === 0}
@@ -699,8 +701,8 @@ const PredictionsSectionTrendingOnly = forwardRef<
               trendingTransactionActiveAbTests
             }
             worldCupHomepage={worldCupHomepageMarkets}
+            liveWorldCupHomepage={liveWorldCupHomepageMarkets}
             worldCupEventCount={worldCupEventCount.eventCount}
-            nbaChampionHomepage={nbaChampionHomepageMarkets}
           />
         </Box>
       </PredictionsSectionShell>
@@ -732,24 +734,24 @@ const PredictionsSectionSportsOnly = forwardRef<
 
     const {
       worldCup: worldCupHomepageMarkets,
+      liveWorldCup: liveWorldCupHomepageMarkets,
       worldCupEventCount,
-      nbaChampion: nbaChampionHomepageMarkets,
     } = useWorldCupDiscoveryFeeds(isPredictEnabled);
     const { refetch: refetchWorldCupHomepageMarkets } = worldCupHomepageMarkets;
+    const { refetch: refetchLiveWorldCupHomepageMarkets } =
+      liveWorldCupHomepageMarkets;
     const { refetch: refetchWorldCupEventCount } = worldCupEventCount;
-    const { refetch: refetchNbaChampionHomepageMarkets } =
-      nbaChampionHomepageMarkets;
 
     const refresh = useCallback(async () => {
       await Promise.all([
         refetchWorldCupHomepageMarkets(),
+        refetchLiveWorldCupHomepageMarkets(),
         refetchWorldCupEventCount(),
-        refetchNbaChampionHomepageMarkets(),
       ]);
     }, [
       refetchWorldCupHomepageMarkets,
+      refetchLiveWorldCupHomepageMarkets,
       refetchWorldCupEventCount,
-      refetchNbaChampionHomepageMarkets,
     ]);
 
     return (
@@ -760,8 +762,8 @@ const PredictionsSectionSportsOnly = forwardRef<
         refresh={refresh}
         isLoading={
           worldCupHomepageMarkets.isFetching ||
-          worldCupEventCount.isFetching ||
-          nbaChampionHomepageMarkets.isFetching
+          liveWorldCupHomepageMarkets.isFetching ||
+          worldCupEventCount.isFetching
         }
         isEmpty={false}
         itemCount={1}
@@ -775,8 +777,8 @@ const PredictionsSectionSportsOnly = forwardRef<
             onViewAll={handleViewAllPredictions}
             headerTestIdKey="trending-predictions"
             worldCup={worldCupHomepageMarkets}
+            liveWorldCup={liveWorldCupHomepageMarkets}
             worldCupEventCount={worldCupEventCount.eventCount}
-            nbaChampion={nbaChampionHomepageMarkets}
           />
         </Box>
       </PredictionsSectionShell>

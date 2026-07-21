@@ -15,7 +15,6 @@ import {
   isMultichainWalletSnap,
   isSnapPreinstalled,
 } from './utils/snaps';
-import { endTrace, TraceName } from '../../util/trace';
 import { store } from '../../store';
 import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
 import { trackSnapAccountEvent } from '../../util/analytics/helpers/snapKeyring/trackSnapAccountEvent';
@@ -35,7 +34,7 @@ export interface SnapKeyringBuilder {
   type: typeof SnapKeyring.type;
 }
 
-class SnapKeyringImpl implements SnapKeyringCallbacks {
+export class SnapKeyringImpl implements SnapKeyringCallbacks {
   readonly #messenger: SnapKeyringBuilderMessenger;
 
   constructor(messenger: SnapKeyringBuilderMessenger) {
@@ -179,10 +178,6 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
           snapName,
         );
 
-        endTrace({
-          name: TraceName.CreateSnapAccount,
-        });
-
         store.dispatch(
           endPerformanceTrace({
             eventName: PerformanceEventNames.AddSnapAccount,
@@ -318,12 +313,14 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
 }
 
 /**
- * Constructs a SnapKeyring builder with specified handlers for managing Snap accounts.
+ * Constructs a (legacy) SnapKeyring builder with specified handlers for managing Snap accounts.
  *
  * @param messenger - The messenger instace.
  * @returns A Snap keyring builder.
  */
-export function snapKeyringBuilder(messenger: SnapKeyringBuilderMessenger) {
+export function legacySnapKeyringBuilder(
+  messenger: SnapKeyringBuilderMessenger,
+) {
   const builder = (() =>
     new SnapKeyring({
       messenger,

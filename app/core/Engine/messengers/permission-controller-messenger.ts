@@ -20,6 +20,11 @@ import { RootMessenger } from '../types.ts';
 import { PermissionControllerMessenger } from '@metamask/permission-controller';
 import { SnapAccountServiceHandleKeyringSnapMessageAction } from '@metamask/snap-account-service';
 
+type PermissionControllerMessengerActions =
+  | MessengerActions<PermissionControllerMessenger>
+  | SnapControllerGetPermittedSnapsAction
+  | SnapControllerInstallSnapsAction;
+
 /**
  * Get the messenger for the permission controller. This is scoped to the
  * actions and events that the permission controller is allowed to handle.
@@ -27,15 +32,17 @@ import { SnapAccountServiceHandleKeyringSnapMessageAction } from '@metamask/snap
  * @param rootMessenger - The root messenger.
  * @returns The PermissionControllerMessenger.
  */
-export function getPermissionControllerMessenger(rootMessenger: RootMessenger) {
-  const messenger = new Messenger<
+export function getPermissionControllerMessenger(
+  rootMessenger: RootMessenger<
+    PermissionControllerMessengerActions,
+    MessengerEvents<PermissionControllerMessenger>
+  >,
+): PermissionControllerMessenger {
+  const messenger: Messenger<
     'PermissionController',
-    | MessengerActions<PermissionControllerMessenger>
-    | SnapControllerGetPermittedSnapsAction
-    | SnapControllerInstallSnapsAction,
-    MessengerEvents<PermissionControllerMessenger>,
-    RootMessenger
-  >({
+    PermissionControllerMessengerActions,
+    MessengerEvents<PermissionControllerMessenger>
+  > = new Messenger({
     namespace: 'PermissionController',
     parent: rootMessenger,
   });

@@ -781,6 +781,31 @@ describe('EncapsulatedElement', () => {
       });
     });
 
+    describe('{ detoxTestID, androidAppiumTestID, iosAppiumXPath }', () => {
+      it('calls EncapsulatedElement.create with ios xpath config', () => {
+        FrameworkDetector.setFramework(TestFramework.DETOX);
+        const spy = createSpyOnEncapsulatedCreate();
+        spy.mockReturnValue(createMockDetoxElement());
+
+        resolve({
+          detoxTestID: 'seed-phrase-input',
+          androidAppiumTestID: 'seed-phrase-input',
+          iosAppiumXPath: '//XCUIElementTypeOther[@name="textfield"]',
+        });
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        const config = spy.mock.calls[0][0] as LocatorConfig;
+        expect(typeof config.detox).toBe('function');
+        expect(
+          typeof (config.appium as { android: unknown; ios: unknown }).android,
+        ).toBe('function');
+        expect(
+          typeof (config.appium as { android: unknown; ios: unknown }).ios,
+        ).toBe('function');
+        spy.mockRestore();
+      });
+    });
+
     describe('{ testID, iosAppiumTestID }', () => {
       it('calls EncapsulatedElement.create with ios-override config', () => {
         FrameworkDetector.setFramework(TestFramework.DETOX);

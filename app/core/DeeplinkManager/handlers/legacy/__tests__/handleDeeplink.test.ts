@@ -1,4 +1,4 @@
-import { handleDeeplink } from '../handleDeeplink';
+import { handleDeeplink, resetDeeplinkDeduplication } from '../handleDeeplink';
 import { checkForDeeplink } from '../../../../../actions/user';
 import { saveAttribution } from '../../../../redux/slices/attribution';
 import ReduxService from '../../../../redux';
@@ -32,6 +32,7 @@ jest.mock('../../../../redux', () => ({
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
+  log: jest.fn(),
 }));
 
 jest.mock('../../../../AppStateEventListener', () => ({
@@ -82,6 +83,7 @@ describe('handleDeeplink', () => {
   const mockDetectAppInstallation = detectAppInstallation as jest.Mock;
   beforeEach(() => {
     jest.clearAllMocks();
+    resetDeeplinkDeduplication();
     mockIsMwpDeeplink.mockReturnValue(false);
     mockGetState.mockReturnValue({
       security: { dataCollectionForMarketing: true },
@@ -216,6 +218,57 @@ describe('handleDeeplink', () => {
     expect(mockSetCurrentDeeplink).not.toHaveBeenCalled();
     expect(mockDispatch).not.toHaveBeenCalled();
     expect(mockCheckForDeeplink).not.toHaveBeenCalled();
+  });
+
+  describe('duplicate deeplink suppression', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('ignores an identical deeplink delivered within the dedup window', () => {
+      const testUri = 'https://link.metamask.io/dapp/example.com';
+
+      handleDeeplink({ uri: testUri });
+      handleDeeplink({ uri: testUri });
+
+      expect(mockSetCurrentDeeplink).toHaveBeenCalledTimes(1);
+      expect(mockCheckForDeeplink).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith({ type: 'CHECK_FOR_DEEPLINK' });
+    });
+
+    it('processes the same deeplink again once the dedup window has elapsed', () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(0);
+      const testUri = 'https://link.metamask.io/dapp/example.com';
+
+      handleDeeplink({ uri: testUri });
+      jest.setSystemTime(3001);
+      handleDeeplink({ uri: testUri });
+
+      expect(mockSetCurrentDeeplink).toHaveBeenCalledTimes(2);
+      expect(mockCheckForDeeplink).toHaveBeenCalledTimes(2);
+    });
+
+    it('processes distinct deeplinks delivered back-to-back', () => {
+      handleDeeplink({ uri: 'https://link.metamask.io/dapp/one.com' });
+      handleDeeplink({ uri: 'https://link.metamask.io/dapp/two.com' });
+
+      expect(mockSetCurrentDeeplink).toHaveBeenCalledTimes(2);
+      expect(mockCheckForDeeplink).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not dispatch when a duplicate is suppressed', () => {
+      const testUri = 'metamask://duplicate';
+
+      handleDeeplink({ uri: testUri });
+      mockDispatch.mockClear();
+      mockSetCurrentDeeplink.mockClear();
+
+      handleDeeplink({ uri: testUri });
+
+      expect(mockSetCurrentDeeplink).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
   });
 
   describe('MWP deeplink handling', () => {

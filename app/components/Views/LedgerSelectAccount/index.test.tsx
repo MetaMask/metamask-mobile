@@ -24,6 +24,7 @@ import { AccountSelectorSelectorsIDs } from '../../UI/HardwareWallet/AccountSele
 import { SELECT_DROP_DOWN } from '../../UI/SelectOptionSheet/constants';
 import { useHardwareWallet } from '../../../core/HardwareWallet';
 import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
+import { strings } from '../../../../locales/i18n';
 
 const mockedGoBack = jest.fn();
 const mockedNavDispatch = jest.fn();
@@ -215,7 +216,9 @@ describe('LedgerSelectAccount', () => {
       mockEnsureDeviceReady.mockReturnValue(new Promise(() => undefined));
       const { queryByText } = renderWithProvider(<LedgerSelectAccount />);
 
-      expect(queryByText('Looking for device')).toBeOnTheScreen();
+      expect(
+        queryByText(strings('ledger.looking_for_device')),
+      ).toBeOnTheScreen();
     });
 
     it('sets target wallet type to Ledger on mount', async () => {
@@ -660,6 +663,44 @@ describe('LedgerSelectAccount', () => {
       });
 
       expect(mockAccountsController.setAccountName).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('HD Path Defaulting', () => {
+    it.each([LEDGER_BIP44_PATH, LEDGER_LEGACY_PATH])(
+      'always sets HD path to Ledger Live on mount regardless of previously stored path (%s)',
+      async (previousPath) => {
+        mockGetHDPath.mockResolvedValue(previousPath);
+        mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
+
+        renderWithProvider(<LedgerSelectAccount />);
+
+        await waitFor(() => {
+          expect(mockSetHDPath).toHaveBeenCalledWith(LEDGER_LIVE_PATH);
+        });
+      },
+    );
+
+    it('sets HD path to Ledger Live before fetching accounts', async () => {
+      const callOrder: string[] = [];
+      mockSetHDPath.mockImplementation(async () => {
+        callOrder.push('setHDPath');
+      });
+      mockGetLedgerAccountsByOperation.mockImplementation(async () => {
+        callOrder.push('getLedgerAccountsByOperation');
+        return mockAccounts;
+      });
+
+      renderWithProvider(<LedgerSelectAccount />);
+
+      await waitFor(() => {
+        expect(callOrder).toContain('setHDPath');
+        expect(callOrder).toContain('getLedgerAccountsByOperation');
+      });
+
+      expect(callOrder.indexOf('setHDPath')).toBeLessThan(
+        callOrder.indexOf('getLedgerAccountsByOperation'),
+      );
     });
   });
 

@@ -60,16 +60,6 @@ jest.mock('../../../../../../util/analytics/analytics', () => ({
   },
 }));
 
-jest.mock('../../../../../../core/Analytics/MetaMetrics', () => ({
-  __esModule: true,
-  default: {
-    getInstance: jest.fn(() => ({})),
-  },
-  MetaMetricsEvents: jest.requireActual(
-    '../../../../../../core/Analytics/MetaMetrics.events',
-  ).MetaMetricsEvents,
-}));
-
 jest.mock('../../../../../../core/OAuthService/OAuthService', () => ({
   updateMarketingOptInStatus: jest.fn(),
   getMarketingOptInStatus: jest.fn(),
@@ -826,7 +816,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           }
 
           expect(mockAnalytics.identify).toHaveBeenNthCalledWith(
-            // if MetaMetrics is initially disabled, addTraitsToUser is called twice and this is 2nd call
+            // if MetaMetrics is initially disabled, identify is called twice and this is 2nd call
             !metaMetricsInitiallyEnabled ? 2 : 1,
             {
               has_marketing_consent: true,

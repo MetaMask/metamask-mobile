@@ -22,7 +22,7 @@ import { ModalAction } from '../../../Rewards/components/RewardsBottomSheetModal
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 
-interface ConfirmModalParams {
+export interface ConfirmModalParams {
   title: string;
   description: string;
   icon: IconName;

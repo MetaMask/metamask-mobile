@@ -18,6 +18,7 @@ interface MockState {
   seedPhrase: Uint8Array | null;
   vault: string | null;
   accessToken: string | null;
+  migrationVersion: number;
   socialLoginEmail: string | null;
 }
 
@@ -28,6 +29,7 @@ const mockState: MockState = {
   seedPhrase: null,
   vault: null,
   accessToken: null,
+  migrationVersion: 0,
   socialLoginEmail: null,
 };
 
@@ -41,6 +43,7 @@ export const resetMockState = () => {
   mockState.seedPhrase = null;
   mockState.vault = null;
   mockState.accessToken = null;
+  mockState.migrationVersion = 0;
   mockState.socialLoginEmail = null;
 };
 
@@ -169,6 +172,7 @@ export class MockSeedlessOnboardingController extends BaseController<
     // Update controller state using BaseController's update() method
     this.update((state) => {
       state.vault = 'mock-vault-data';
+      state.migrationVersion = 1;
     });
 
     console.log(
@@ -199,6 +203,32 @@ export class MockSeedlessOnboardingController extends BaseController<
     resetMockState();
     const defaultState = getDefaultSeedlessOnboardingControllerState();
     this.update(() => defaultState);
+  }
+
+  /**
+   * Mock setMigrationVersion
+   */
+  setMigrationVersion(version: number): void {
+    console.log('[E2E Mock] setMigrationVersion called:', version);
+    mockState.migrationVersion = version;
+    this.update((state) => {
+      state.migrationVersion = version;
+    });
+  }
+
+  /**
+   * Mock runMigrations
+   */
+  async runMigrations(): Promise<boolean> {
+    console.log('[E2E Mock] runMigrations called');
+    if (mockState.migrationVersion < 1) {
+      mockState.migrationVersion = 1;
+      this.update((state) => {
+        state.migrationVersion = 1;
+      });
+      return true;
+    }
+    return false;
   }
 
   /**

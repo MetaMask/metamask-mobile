@@ -4,7 +4,6 @@ import { analytics } from '../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import { UserProfileProperty } from '../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { getSocialAccountType } from '../../constants/onboarding';
-import { updateDataRecordingFlag } from '../../util/analytics/analyticsDataDeletion';
 import { setPendingSocialLoginMarketingConsentBackfill } from '../../actions/onboarding';
 import Logger from '../../util/Logger';
 import type { RootState } from '../../reducers';
@@ -46,7 +45,6 @@ export function* backfillSocialLoginMarketingConsentSaga() {
     const event = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
     )
-      .setSaveDataRecording(true)
       .addProperties({
         [UserProfileProperty.HAS_MARKETING_CONSENT]: resolvedMarketingConsent,
         is_metrics_opted_in: true,
@@ -58,7 +56,6 @@ export function* backfillSocialLoginMarketingConsentSaga() {
 
     yield call([analytics, analytics.trackEvent], event);
 
-    yield call(updateDataRecordingFlag, true);
     yield put(setDataCollectionForMarketing(resolvedMarketingConsent));
     yield put(setPendingSocialLoginMarketingConsentBackfill(null));
   } catch (error) {

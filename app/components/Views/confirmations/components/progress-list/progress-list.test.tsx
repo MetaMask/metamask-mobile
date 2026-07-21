@@ -67,4 +67,29 @@ describe('ProgressList', () => {
     expect(queryAllByTestId('progress-list-divider')).toHaveLength(1);
     expect(queryAllByTestId('progress-list-item-subtitle')).toHaveLength(2);
   });
+
+  it('hides dividers when showConnectors is false', () => {
+    const { queryAllByTestId } = render(
+      <ProgressList showConnectors={false}>
+        <ProgressListItem
+          title="First"
+          subtitle="First subtitle"
+          severity="success"
+        />
+        <ProgressListItem
+          title="Second"
+          subtitle="Second subtitle"
+          severity="success"
+        />
+        <ProgressListItem
+          title="Third"
+          subtitle="Third subtitle"
+          severity="success"
+        />
+      </ProgressList>,
+    );
+
+    expect(queryAllByTestId('progress-list-divider')).toHaveLength(0);
+    expect(queryAllByTestId('progress-list-item-subtitle')).toHaveLength(3);
+  });
 });

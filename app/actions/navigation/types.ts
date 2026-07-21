@@ -5,12 +5,16 @@ import { type Action } from 'redux';
  */
 export enum NavigationActionType {
   ON_NAVIGATION_READY = 'ON_NAVIGATION_READY',
+  MAIN_NAVIGATOR_READY = 'MAIN_NAVIGATOR_READY',
   SET_CURRENT_ROUTE = 'SET_CURRENT_ROUTE',
   SET_CURRENT_BOTTOM_NAV_ROUTE = 'SET_CURRENT_BOTTOM_NAV_ROUTE',
 }
 
 export type OnNavigationReadyAction =
   Action<NavigationActionType.ON_NAVIGATION_READY>;
+
+export type MainNavigatorReadyAction =
+  Action<NavigationActionType.MAIN_NAVIGATOR_READY>;
 
 export type SetCurrentRouteAction =
   Action<NavigationActionType.SET_CURRENT_ROUTE> & {
@@ -27,5 +31,6 @@ export type SetCurrentBottomNavRouteAction =
  */
 export type NavigationAction =
   | OnNavigationReadyAction
+  | MainNavigatorReadyAction
   | SetCurrentRouteAction
   | SetCurrentBottomNavRouteAction;

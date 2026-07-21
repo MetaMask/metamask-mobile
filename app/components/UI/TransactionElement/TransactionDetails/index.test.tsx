@@ -5,7 +5,7 @@ import TransactionDetails from './';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { mockNetworkState } from '../../../../util/test/network';
 import type { NetworkState } from '@metamask/network-controller';
 import { isHardwareAccount } from '../../../../util/address';
@@ -18,7 +18,7 @@ jest.mock('../../../../util/analytics/analytics', () => ({
   },
 }));
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 const mockEthQuery = {
   getBalance: jest.fn(),
 };

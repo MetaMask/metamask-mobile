@@ -82,7 +82,7 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Ramp/Aggregator/hooks/useHandleSuccessfulOrder.ts',
   'app/components/UI/Ramp/Aggregator/hooks/useIntentAmount.ts',
   'app/components/UI/Ramp/Aggregator/utils/index.ts',
-  'app/components/UI/Ramp/Deposit/utils/index.ts',
+  'app/components/UI/Ramp/utils/depositUtils.ts',
   'app/components/UI/Ramp/utils/getOrderAmount.ts',
   'app/components/UI/Ramp/utils/v2OrderToast.ts',
   'app/components/UI/Stake/components/StakingBalance/StakingBanners/ClaimBanner/ClaimBanner.tsx',
@@ -93,16 +93,12 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Stake/hooks/useBalance.ts',
   'app/components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails.test.ts',
   'app/components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails.ts',
-  'app/components/UI/TransactionElement/utils-gas.js',
-  'app/components/UI/TransactionElement/utils.js',
   'app/components/UI/UrlAutocomplete/Result.tsx',
-  'app/components/Views/AssetDetails/index.tsx',
   'app/components/Views/GasEducationCarousel/index.js',
   'app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkValidation.ts',
   'app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyBottomSheet.ts',
   'app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyQuotes.ts',
   'app/components/Views/SocialLeaderboard/utils/formatters.ts',
-  'app/components/Views/UnifiedTransactionsView/useUnifiedTxActions.test.ts',
   'app/components/Views/confirmations/components/gas/max-base-fee-input/max-base-fee-input.tsx',
   'app/components/Views/confirmations/components/gas/priority-fee-input/priority-fee-input.tsx',
   'app/components/Views/confirmations/components/info/typed-sign-v3v4/simulation/components/native-value-display/native-value-display.tsx',
@@ -134,10 +130,9 @@ const utilNumberImportBurndownFiles = [
   // `../number/bigint` (or `./number/bigint` from `app/util/`).
   'app/util/confirm-tx.js',
   'app/util/conversions.js',
-  'app/util/confirmation/gas.ts',
+
   'app/util/confirmation/transactions.ts',
   'app/util/custom-gas/index.js',
-  'app/util/networks/index.js',
   'app/util/transactions/index.js',
   'app/util/transactions/index.test.ts',
 ];
@@ -167,6 +162,22 @@ module.exports = {
     {
       files: ['tests/**/*.{js,ts}'],
       extends: ['./tests/framework/.eslintrc.js'],
+    },
+    {
+      // These files intentionally omit dependencies from a useEffect/useCallback
+      // (documented inline at each call site). The React Compiler refuses to
+      // optimize any file containing an inline `eslint-disable` for a React
+      // rule, so the suppression is relocated here (invisible to the compiler)
+      // instead of being a per-line comment. Runtime behavior is unchanged.
+      files: [
+        'app/components/hooks/useAsyncResult.ts',
+        'app/components/hooks/useOTAUpdates.ts',
+        'app/components/Nav/Main/index.js',
+        'app/components/Nav/App/App.tsx',
+      ],
+      rules: {
+        'react-hooks/exhaustive-deps': 'off',
+      },
     },
     {
       files: ['*.{ts,tsx}'],

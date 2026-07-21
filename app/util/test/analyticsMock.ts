@@ -86,27 +86,22 @@ export const createMockUseAnalyticsHook = (
     addSensitiveProperties: jest.fn().mockReturnThis(),
     removeProperties: jest.fn().mockReturnThis(),
     removeSensitiveProperties: jest.fn().mockReturnThis(),
-    setSaveDataRecording: jest.fn().mockReturnThis(),
     build: jest.fn().mockReturnValue({
       name: 'mock-event',
       properties: {},
       sensitiveProperties: {},
-      saveDataRecording: false,
     }),
   })),
   isEnabled: jest.fn().mockReturnValue(true),
   identify: jest.fn().mockResolvedValue(undefined),
   enable: jest.fn().mockResolvedValue(undefined),
-  addTraitsToUser: jest.fn().mockResolvedValue(undefined),
   createDataDeletionTask: jest.fn().mockResolvedValue({ status: 'ok' }),
   checkDataDeleteStatus: jest.fn().mockResolvedValue({
     deletionRequestDate: undefined,
-    hasCollectedDataSinceDeletionRequest: false,
     dataDeletionRequestStatus: 'UNKNOWN',
   }),
   getDeleteRegulationCreationDate: jest.fn().mockReturnValue('20/04/2024'),
   getDeleteRegulationId: jest.fn().mockReturnValue('mock-regulation-id'),
-  isDataRecorded: jest.fn().mockReturnValue(true),
   getAnalyticsId: jest.fn().mockResolvedValue('mock-analytics-id'),
   ...overrides,
 });
@@ -156,13 +151,11 @@ export const createMockEventBuilder = (
   addSensitiveProperties: jest.fn().mockReturnThis(),
   removeProperties: jest.fn().mockReturnThis(),
   removeSensitiveProperties: jest.fn().mockReturnThis(),
-  setSaveDataRecording: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue(
     buildReturnValue ?? {
       name: 'mock-event',
       properties: {},
       sensitiveProperties: {},
-      saveDataRecording: false,
     },
   ),
 });

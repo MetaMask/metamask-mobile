@@ -143,6 +143,29 @@ describe('PredictMarketOutcome', () => {
     expect(getByText(/35¢/)).toBeOnTheScreen();
   });
 
+  it('shows the mid as the odds % and the ask (buyPrice) on the buttons (wide spread)', () => {
+    // Mirrors the reported Almeria case: mid 63% but ask 92c.
+    const wideSpreadOutcome: PredictOutcome = {
+      ...mockOutcome,
+      tokens: [
+        { id: 'token-yes', title: 'Yes', price: 0.63, buyPrice: 0.92 },
+        { id: 'token-no', title: 'No', price: 0.37, buyPrice: 0.66 },
+      ],
+    };
+
+    const { getByText, queryByText } = renderWithProvider(
+      <PredictMarketOutcome outcome={wideSpreadOutcome} market={mockMarket} />,
+      { state: initialState },
+    );
+
+    // Odds % uses the mid, not the ask.
+    expect(getByText('63%')).toBeOnTheScreen();
+    expect(queryByText('92%')).toBeNull();
+    // Buy buttons use the ask.
+    expect(getByText(/92¢/)).toBeOnTheScreen();
+    expect(getByText(/66¢/)).toBeOnTheScreen();
+  });
+
   it('handles button press events', () => {
     const { getByText } = renderWithProvider(
       <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,

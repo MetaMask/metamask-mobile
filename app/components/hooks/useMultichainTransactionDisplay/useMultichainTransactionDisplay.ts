@@ -7,6 +7,10 @@ import I18n, { strings } from '../../../../locales/i18n';
 import { formatWithThreshold } from '../../../util/assets';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 import { isTransactionIncomplete } from '../../../util/transactions';
+import {
+  resolveAssetActivationActivityTitle,
+  CustomTransactionTypeLabel,
+} from '../../../util/activity-adapters/trustline';
 
 interface Asset {
   unit: string;
@@ -39,7 +43,11 @@ export interface MultichainTransactionDisplayData {
   baseFee?: AggregatedMovementDisplayData;
   priorityFee?: AggregatedMovementDisplayData;
   isRedeposit: boolean;
+  isUnlimitedApproval: boolean;
 }
+
+// Mirrors EVM TOKEN_VALUE_UNLIMITED_THRESHOLD: amounts above 10^15 are treated as unlimited.
+const APPROVE_AMOUNT_UNLIMITED_THRESHOLD = 1e15;
 
 export function useMultichainTransactionDisplay(
   transaction: Transaction,
@@ -76,6 +84,18 @@ export function useMultichainTransactionDisplay(
   );
 
   const isIncomplete = isTransactionIncomplete(transaction.status);
+  const approveUnitSuffix = from?.unit ? ` ${from.unit}` : '';
+
+  const isUnlimitedApproval =
+    transaction.type === TransactionType.TokenApprove &&
+    [
+      ...(transaction.from as Movement[]),
+      ...(transaction.to as Movement[]),
+    ].some(
+      (mv) =>
+        mv?.asset?.fungible === true &&
+        Number.parseFloat(mv.asset.amount) > APPROVE_AMOUNT_UNLIMITED_THRESHOLD,
+    );
 
   const typeToTitle: Partial<Record<TransactionType, string>> = {
     [TransactionType.Send]: isIncomplete
@@ -85,6 +105,7 @@ export function useMultichainTransactionDisplay(
     [TransactionType.Swap]: `${strings('transactions.swap')} ${
       from?.unit
     } ${strings('transactions.to').toLowerCase()} ${to?.unit}`,
+    [TransactionType.TokenApprove]: `${strings('transactions.tx_review_approve')}${approveUnitSuffix}`,
     [TransactionType.StakeDeposit]: strings(
       'transactions.tx_review_staking_deposit',
     ),
@@ -94,15 +115,40 @@ export function useMultichainTransactionDisplay(
     [TransactionType.Unknown]: strings('transactions.interaction'),
   };
 
+  let title = isRedeposit
+    ? strings('transactions.redeposit')
+    : typeToTitle[transaction.type];
+
+  // align with keyring transaction mapping
+  const typeLabel = transaction.details?.typeLabel;
+  if (
+    transaction.type === TransactionType.TokenApprove &&
+    typeLabel === CustomTransactionTypeLabel.TrustlineApprove
+  ) {
+    title = resolveAssetActivationActivityTitle(
+      transaction.status,
+      from?.unit,
+      true,
+    );
+  } else if (
+    transaction.type === TransactionType.TokenDisapprove &&
+    typeLabel === CustomTransactionTypeLabel.TrustlineDisapprove
+  ) {
+    title = resolveAssetActivationActivityTitle(
+      transaction.status,
+      from?.unit,
+      false,
+    );
+  }
+
   return {
-    title: isRedeposit
-      ? strings('transactions.redeposit')
-      : typeToTitle[transaction.type],
+    title,
     from,
     to,
     baseFee,
     priorityFee,
     isRedeposit,
+    isUnlimitedApproval,
   };
 }
 
@@ -121,14 +167,14 @@ function aggregateAmount(
     const assetId = mv.asset.type;
     if (!amountByAsset[assetId]) {
       amountByAsset[assetId] = {
-        amount: parseFloat(mv.asset.amount),
+        amount: Number.parseFloat(mv.asset.amount),
         address: mv.address,
         unit: mv.asset.unit,
       };
       continue;
     }
 
-    amountByAsset[assetId].amount += parseFloat(mv.asset.amount);
+    amountByAsset[assetId].amount += Number.parseFloat(mv.asset.amount);
   }
 
   // We make an assumption that there is only one asset in the transaction.

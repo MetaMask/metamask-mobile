@@ -6,7 +6,7 @@ import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectDefaultEndpointByChainId } from '../../../../selectors/networkController';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { generateTransferData } from '../../../../util/transactions';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -63,7 +63,11 @@ function isUserRejectedError(error: unknown, fallbackMessage: string): boolean {
  * CustomAmount / MetaMask Pay experience.
  */
 export function usePerpsWithdrawConfirmation() {
-  const selectedAccount = useSelector(selectSelectedInternalAccountAddress);
+  // Perps withdraws settle on Arbitrum, so the batch must originate from the
+  // selected group's EVM account (the globally selected account can be non-EVM).
+  const selectedEvmAccountAddress = useSelector(
+    selectSelectedInternalAccountByScope,
+  )('eip155:0')?.address;
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
@@ -87,7 +91,7 @@ export function usePerpsWithdrawConfirmation() {
 
       try {
         await addTransactionBatch({
-          from: selectedAccount as Hex,
+          from: selectedEvmAccountAddress as Hex,
           origin: ORIGIN_METAMASK,
           isInternal: true,
           networkClientId,
@@ -129,7 +133,7 @@ export function usePerpsWithdrawConfirmation() {
       navigation,
       networkClientId,
       PerpsToastOptions.accountManagement.withdrawal,
-      selectedAccount,
+      selectedEvmAccountAddress,
       showToast,
       transferData,
     ],

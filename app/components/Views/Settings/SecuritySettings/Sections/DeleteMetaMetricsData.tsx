@@ -61,6 +61,7 @@ interface DeleteMetaMetricsDataProps {
  *   Then "Delete Metametrics data" section text is "This will delete historical
  *     MetaMetrics data associated with your wallet.[...] View the ConsenSys Privacy Policy."
  *   And user can click the "delete metametrics" button again
+ *   (button availability is driven by metricsOptin state — opted-in means data is being tracked)
  *
  * Feature: opted-out user is back on MetaMetrics settings screen after deletion
  *   Given user has opted-out for metrics
@@ -74,6 +75,7 @@ interface DeleteMetaMetricsDataProps {
  *     This process can take up to 60 days. View the ConsenSys Privacy Policy."
  *   And "delete metametrics" button is disabled
  *   And user can NOT click the "delete metametrics" button again until data deletion task is finished
+ *   (button state is driven by metricsOptin — opted-out means no new data to delete)
  * ```
  */
 const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
@@ -98,21 +100,12 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
   const dataDeletionAvailable = isDataDeletionAvailable();
 
   const checkInitialStatus = useCallback(async () => {
-    const {
-      deletionRequestDate,
-      dataDeletionRequestStatus,
-      hasCollectedDataSinceDeletionRequest,
-    } = await checkDataDeleteStatus();
+    const { deletionRequestDate, dataDeletionRequestStatus } =
+      await checkDataDeleteStatus();
 
-    setDataTrackedSinceLastDeletion(hasCollectedDataSinceDeletionRequest);
     setDeletionTaskDate(deletionRequestDate);
     setDataDeletionTaskStatus(dataDeletionRequestStatus);
-  }, [
-    setDataTrackedSinceLastDeletion,
-    setDeletionTaskDate,
-    setDataDeletionTaskStatus,
-    checkDataDeleteStatus,
-  ]);
+  }, [setDeletionTaskDate, setDataDeletionTaskStatus, checkDataDeleteStatus]);
 
   const showDeleteTaskError = () => {
     Alert.alert(
@@ -139,20 +132,38 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
   };
 
   const deleteMetaMetrics = async () => {
-    try {
-      const deleteResponse = await createDataDeletionTask();
+    let deleteResponse:
+      | Awaited<ReturnType<typeof createDataDeletionTask>>
+      | undefined;
 
-      if (DataDeleteResponseStatus.ok === deleteResponse?.status) {
-        await checkInitialStatus();
-        trackDataDeletionRequest();
-      } else {
-        showDeleteTaskError();
-      }
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    try {
+      deleteResponse = await createDataDeletionTask();
+    } catch (error: unknown) {
       showDeleteTaskError();
       Logger.log('Error deleteMetaMetrics -', error);
+      return;
+    }
+
+    const responseStatus =
+      deleteResponse === null || deleteResponse === undefined
+        ? undefined
+        : deleteResponse.status;
+
+    if (DataDeleteResponseStatus.ok === responseStatus) {
+      try {
+        // Local-to-screen reset: no new event has been generated since this
+        // deletion request was just initiated, so the button must reflect
+        // "no data tracked since last deletion" regardless of metricsOptin.
+        // The mount effect will re-seed from metricsOptin on re-entry.
+        setDataTrackedSinceLastDeletion(false);
+        await checkInitialStatus();
+        trackDataDeletionRequest();
+      } catch (error: unknown) {
+        showDeleteTaskError();
+        Logger.log('Error deleteMetaMetrics -', error);
+      }
+    } else {
+      showDeleteTaskError();
     }
   };
 

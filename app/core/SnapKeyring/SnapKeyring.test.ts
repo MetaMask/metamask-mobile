@@ -10,7 +10,7 @@ import {
   KeyringRpcMethod,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { snapKeyringBuilder } from './SnapKeyring';
+import { legacySnapKeyringBuilder } from './SnapKeyring';
 import {
   SnapKeyringBuilderAllowActions,
   SnapKeyringBuilderMessenger,
@@ -161,7 +161,7 @@ async function waitForAllPromises(): Promise<void> {
 }
 
 const createSnapKeyringBuilder = () =>
-  snapKeyringBuilder(createControllerMessenger());
+  legacySnapKeyringBuilder(createControllerMessenger());
 
 // Mock the isSnapPreinstalled function
 jest.mock('./utils/snaps', () => ({

@@ -38,6 +38,9 @@ import {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
+import { useTheme } from '../../../../../../util/theme';
+import { AppThemeKey } from '../../../../../../util/theme/models';
+import { getProviderWebviewColors } from '../../../utils/getProviderWebviewColors';
 import Device from '../../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../../util/browser';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
@@ -66,9 +69,17 @@ const CheckoutWebView = () => {
   const params = useParams<CheckoutParams>();
   const handleSuccessfulOrder = useHandleSuccessfulOrder();
 
-  const { styles } = useStyles(styleSheet, {});
-
   const { url: uri, customOrderId, provider } = params;
+
+  // Resolve the provider's iframe background color for the current theme.
+  // Applied to both the component-library BottomSheet (via providerBgStyle) and
+  // the WebView (via styles.webview) so the native chrome matches the embedded
+  // checkout seamlessly. Unknown providers fall back to the BottomSheet default surface.
+  const { themeAppearance } = useTheme();
+  const isDark = themeAppearance === AppThemeKey.dark;
+  const providerBg = getProviderWebviewColors(provider?.id, isDark);
+  const { styles } = useStyles(styleSheet, { providerBg });
+  const providerBgStyle = { backgroundColor: providerBg };
 
   const handleCancelPress = useCallback(() => {
     const chainId = selectedAsset?.network?.chainId || '';
@@ -252,6 +263,7 @@ const CheckoutWebView = () => {
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
+        style={providerBgStyle}
       >
         <BottomSheetHeader
           endAccessory={

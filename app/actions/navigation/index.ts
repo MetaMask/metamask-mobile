@@ -1,6 +1,7 @@
 /* eslint-disable import-x/prefer-default-export */
 import {
   type OnNavigationReadyAction,
+  type MainNavigatorReadyAction,
   type SetCurrentRouteAction,
   type SetCurrentBottomNavRouteAction,
   NavigationActionType,
@@ -25,4 +26,14 @@ export const setCurrentBottomNavRoute = (
  */
 export const onNavigationReady = (): OnNavigationReadyAction => ({
   type: NavigationActionType.ON_NAVIGATION_READY,
+});
+
+/**
+ * Dispatched by `MainNavigator` on mount to announce that post-login screens
+ * (Wallet, Ramp, Swap, AssetDetails, ...) are registered with React
+ * Navigation. The deeplink saga waits on this signal so `navigate(target)` is
+ * never silently dropped by the navigator.
+ */
+export const mainNavigatorReady = (): MainNavigatorReadyAction => ({
+  type: NavigationActionType.MAIN_NAVIGATOR_READY,
 });

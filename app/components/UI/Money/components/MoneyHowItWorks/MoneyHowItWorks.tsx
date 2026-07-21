@@ -47,7 +47,7 @@ const MoneyHowItWorks = ({
   }
 
   return (
-    <Box twClassName="px-4 py-3" testID={MoneyHowItWorksTestIds.CONTAINER}>
+    <Box twClassName="px-4 pt-7 pb-3" testID={MoneyHowItWorksTestIds.CONTAINER}>
       <MoneySectionHeader
         title={strings('money.how_it_works.title')}
         onPress={onHeaderPress}

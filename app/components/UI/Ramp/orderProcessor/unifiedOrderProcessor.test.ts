@@ -31,7 +31,7 @@ const mockRampsOrder: RampsOrder = {
   isOnlyLink: false,
   status: RampsOrderStatus.Pending,
   provider: {
-    id: '/providers/transak',
+    id: 'transak',
     name: 'Transak',
     environmentType: 'PRODUCTION' as const,
     description: 'Test provider',

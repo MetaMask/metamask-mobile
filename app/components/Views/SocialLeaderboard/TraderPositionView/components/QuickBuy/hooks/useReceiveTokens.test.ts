@@ -33,6 +33,7 @@ jest.mock('../../../../../../../selectors/tokenRatesController', () => ({
 
 jest.mock('../../../../../../../selectors/currencyRateController', () => ({
   selectCurrencyRates: jest.fn(() => ({})),
+  selectCurrentCurrency: jest.fn(() => 'USD'),
 }));
 
 jest.mock('../../../../../../../selectors/multichain/multichain', () => ({
@@ -41,31 +42,32 @@ jest.mock('../../../../../../../selectors/multichain/multichain', () => ({
 }));
 
 jest.mock(
-  '../../../../../../UI/Bridge/constants/default-swap-dest-tokens',
+  '../../../../../../UI/Bridge/utils/getAllChainDefaultDestTokens',
   () => ({
-    DefaultSwapDestTokens: {
-      'eip155:1/erc20:musd': {
+    getAllChainDefaultDestTokens: jest.fn(() => [
+      {
         symbol: 'mUSD',
         address: '0xmusd',
         chainId: '0x1',
         decimals: 6,
         name: 'MetaMask USD',
       },
-      'eip155:137/erc20:usdc_matic': {
+      {
         symbol: 'USDC',
         address: '0xusdc_matic',
         chainId: '0x89',
         decimals: 6,
         name: 'USD Coin (Polygon)',
       },
-      'eip155:1/erc20:weth': {
+      {
+        // Intentionally non-stablecoin to verify filtering
         symbol: 'WETH',
         address: '0xweth',
         chainId: '0x1',
         decimals: 18,
         name: 'Wrapped Ether',
       },
-      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+      {
         symbol: 'USDC',
         address:
           'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
@@ -73,14 +75,14 @@ jest.mock(
         decimals: 6,
         name: 'USD Coin',
       },
-      'tron:728126428': {
+      {
         symbol: 'USDT',
         address: 'tron:728126428/trc20:TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
         chainId: 'tron:728126428',
         decimals: 6,
         name: 'Tether USD',
       },
-    },
+    ]),
   }),
 );
 
@@ -338,7 +340,7 @@ describe('useReceiveTokens', () => {
   });
 
   describe('Tron and Bitcoin candidates', () => {
-    it('offers native TRX when the account has a Tron address, but never TRC-20 stablecoins', () => {
+    it('offers the curated USDT stablecoin and native TRX when the account has a Tron address', () => {
       givenAccountsForScopes([TRON_CHAIN_ID]);
 
       const { result } = renderHook(() => useReceiveTokens(undefined));
@@ -346,9 +348,35 @@ describe('useReceiveTokens', () => {
       const tronTokens = result.current.filter(
         (t) => t.chainId === TRON_CHAIN_ID,
       );
-      // Native-only: useAssetMetadata cannot resolve Tron token addresses
-      // (e.g. TRC-20 USDT), so only the native asset is offered.
-      expect(tronTokens.map((t) => t.symbol)).toEqual(['TRX']);
+      // The curated TRC-20 USDT (from DefaultSwapDestTokens) is admitted as a
+      // same-chain receive destination, with the stablecoin ordered ahead of
+      // the native asset.
+      expect(tronTokens.map((t) => t.symbol)).toEqual(['USDT', 'TRX']);
+    });
+
+    it('passes the Tron account to balance enrichment so the USDT holding is priced', () => {
+      givenAccountsForScopes([TRON_CHAIN_ID]);
+
+      renderHook(() => useReceiveTokens(undefined));
+
+      expect(mockEnrich).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'USDT', chainId: TRON_CHAIN_ID }),
+        expect.objectContaining({
+          tronAccount: expect.objectContaining({
+            id: NON_EVM_ACCOUNTS[TRON_CHAIN_ID].id,
+          }),
+        }),
+        { includeZeroBalance: true },
+      );
+    });
+
+    it('sorts the Tron USDT stablecoin first when the preferred chain is Tron', () => {
+      givenAccountsForScopes([TRON_CHAIN_ID]);
+
+      const { result } = renderHook(() => useReceiveTokens(TRON_CHAIN_ID));
+
+      expect(result.current[0].chainId).toBe(TRON_CHAIN_ID);
+      expect(result.current[0].symbol).toBe('USDT');
     });
 
     it('offers native BTC when the account has a Bitcoin address', () => {

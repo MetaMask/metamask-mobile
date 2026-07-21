@@ -13,7 +13,6 @@ import {
   ///: END:ONLY_INCLUDE_IF
   Hex,
 } from '@metamask/utils';
-import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import {
   selectEvmNetworkConfigurationsByChainId,
@@ -198,10 +197,6 @@ export function useSwitchNetworks({
         closeRpcModal?.();
         AccountTrackerController.refresh([clientId]);
 
-        // Update incoming transactions after a delay
-        setTimeout(async () => {
-          await updateIncomingTransactions();
-        }, 1000);
         dismissModal?.();
       }
       endTrace({ name: TraceName.SwitchBuiltInNetwork });

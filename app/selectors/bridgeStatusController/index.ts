@@ -1,5 +1,8 @@
 import { createSelector } from 'reselect';
-import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import {
+  BridgeHistoryItem,
+  getBatchSellHistoryItemsForTxHash,
+} from '@metamask/bridge-status-controller';
 import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../multichainAccounts/accountTreeController';
 import { RootState } from '../../reducers';
 import { isEthAddress } from '../../util/address';
@@ -46,4 +49,14 @@ export const selectBridgeHistoryForAccount = createSelector(
       {},
     );
   },
+);
+
+/**
+ * Returns a list of all batch sell history items submitted in the same batch as the given tx hash
+ */
+export const selectBatchSellHistoryItemsForTxHash = createSelector(
+  [selectBridgeHistoryForAccount, (_, txHash?: string) => txHash],
+
+  (bridgeHistory, txHash) =>
+    getBatchSellHistoryItemsForTxHash(bridgeHistory, txHash),
 );

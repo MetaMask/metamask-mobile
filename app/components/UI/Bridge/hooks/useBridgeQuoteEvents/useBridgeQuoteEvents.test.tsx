@@ -4,6 +4,10 @@ import Engine from '../../../../../core/Engine';
 import { createBridgeTestState } from '../../testUtils';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { RequestStatus } from '@metamask/bridge-controller';
+import {
+  selectBridgeQuotes,
+  selectControllerFields,
+} from '../../../../../core/redux/slices/bridge';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -14,16 +18,34 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock(
-  '../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
-  () => ({
-    hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
-  }),
-);
+jest.mock('../../../../../util/remoteFeatureFlag', () => ({
+  hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+}));
 
 describe('useBridgeQuoteEvents', () => {
+  const expectedQuotesReceivedProperties = {
+    best_quote_provider: 'lifi_jupiter',
+    can_submit: true,
+    feature_id: 'unified_swap_bridge',
+    gas_included: false,
+    gas_included_7702: false,
+    has_sufficient_gas_for_quote: null,
+    price_impact: -0.001991570073761955,
+    provider: 'lifi_jupiter',
+    quoted_time_minutes: 0.08333333333333333,
+    token_symbol_destination: 'USDC',
+    token_symbol_source: 'SOL',
+    usd_balance_source: 0,
+    usd_quoted_gas: 0,
+    usd_quoted_return: 0,
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    selectControllerFields.clearCache();
+    selectControllerFields.memoizedResultFunc.clearCache();
+    selectBridgeQuotes.clearCache();
+    selectBridgeQuotes.memoizedResultFunc.clearCache();
   });
 
   it.each([
@@ -113,18 +135,7 @@ describe('useBridgeQuoteEvents', () => {
       expect(
         Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
       ).toHaveBeenCalledWith('Unified SwapBridge Quotes Received', {
-        best_quote_provider: 'lifi_jupiter',
-        can_submit: true,
-        feature_id: 'unified_swap_bridge',
-        gas_included: false,
-        gas_included_7702: false,
-        has_sufficient_gas_for_quote: null,
-        price_impact: -0.001991570073761955,
-        provider: 'lifi_jupiter',
-        quoted_time_minutes: 0.08333333333333333,
-        usd_balance_source: 0,
-        usd_quoted_gas: 0,
-        usd_quoted_return: 0,
+        ...expectedQuotesReceivedProperties,
         warnings,
       });
     },

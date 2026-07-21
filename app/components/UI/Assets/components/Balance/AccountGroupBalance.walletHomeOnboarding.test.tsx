@@ -26,10 +26,6 @@ jest.mock('../../../../../selectors/assets/balances', () => ({
   selectAccountGroupBalanceForEmptyState: jest.fn(() => null),
 }));
 
-jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
-  selectWalletHomeOnboardingStepsEnabled: jest.fn(() => true),
-}));
-
 jest.mock('../../../../../selectors/networkController', () => ({
   ...jest.requireActual('../../../../../selectors/networkController'),
   selectEvmChainId: jest.fn(() => '0x1'),
