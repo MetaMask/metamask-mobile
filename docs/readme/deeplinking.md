@@ -44,7 +44,7 @@ MetaMask Mobile supports multiple deeplink protocols to enable various app inter
 All deeplinks are processed through a unified pipeline that handles security verification, user consent, and routing to appropriate handlers.
 
 > [!IMPORTANT]
-> Each new deeplink must have a matching identical deeplink in the [MetaMask extension](https://github.com/MetaMask/metamask-extension) client and an entry in the Branch LinkHub. Failure to do so will lead to broken user flows.
+> Each new deeplink must have a matching identical deeplink in the [MetaMask extension](https://github.com/MetaMask/metamask-extension) client and an entry in the Branch LinkHub. **Failure to do so will lead to broken user flows.**
 > If you are creating a deeplink for an experience that is only supported on the mobile app, create a matching deeplink on extension that shows a QR code so the user can open it in the mobile app ([example](https://github.com/MetaMask/metamask-extension/pull/44080)) or redirects to a webpage which guides users to try that experience on the mobile app ([example](https://github.com/MetaMask/metamask-extension/pull/39375)). This is very easy to do with a coding agent, just point it to the example and ask it to the same thing for your use case. 
 > To create an entry in the Branch LinkHub, reach out to the Engagement team or the Growth Marketing team for assistance. 
 
