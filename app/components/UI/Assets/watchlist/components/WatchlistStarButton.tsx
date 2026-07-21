@@ -15,6 +15,7 @@ import { IconName as LegacyIconName } from '../../../../../component-library/com
 import { strings } from '../../../../../../locales/i18n';
 import { selectTokenWatchlistEnabled } from '../../selectors/featureFlags';
 import { useTokenWatchlist } from '../hooks/useTokenWatchlist';
+import { WatchlistStarButtonTestIds } from './WatchlistStarButton.testIds';
 
 interface WatchlistStarButtonProps {
   assetId: CaipAssetType | null;
@@ -97,7 +98,7 @@ const WatchlistStarButton = ({
       iconName={isWatched ? IconName.StarFilled : IconName.Star}
       size={ButtonIconSize.Md}
       onPress={handlePress}
-      testID="watchlist-star-button"
+      testID={WatchlistStarButtonTestIds.BUTTON}
       accessibilityLabel={
         isWatched ? 'Remove from watchlist' : 'Add to watchlist'
       }
