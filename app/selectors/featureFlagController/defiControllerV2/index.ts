@@ -26,6 +26,6 @@ export const selectDefiControllerV2Enabled = createSelector(
       | DefiControllerV2FeatureFlag
       | undefined;
 
-    return Boolean(featureFlag?.enabled) || true;
+    return Boolean(featureFlag?.enabled);
   },
 );
