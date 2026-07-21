@@ -63,6 +63,7 @@ export type PerpsOrderRouteParams = {
   orderType?: OrderType;
   existingPosition?: Position; // Pass existing position for leverage consistency when adding to position
   hideTPSL?: boolean; // Hide TP/SL row when modifying existing position
+  fromTokenDetails?: boolean;
   /** When false, confirmation screen uses header: () => null; when true/undefined uses headerLeft/title options */
   showPerpsHeader?: boolean;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
