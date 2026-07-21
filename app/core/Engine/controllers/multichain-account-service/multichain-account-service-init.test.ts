@@ -4,6 +4,9 @@ import {
   SOL_ACCOUNT_PROVIDER_NAME,
   BTC_ACCOUNT_PROVIDER_NAME,
   TRX_ACCOUNT_PROVIDER_NAME,
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  AccountProviderWrapper,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/multichain-account-service';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { MessengerClientInitRequest } from '../../types';
@@ -114,4 +117,15 @@ describe('MultichainAccountServiceInit', () => {
       batched: true,
     });
   });
+
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  it('registers stellar via custom providers with extended create timeout', () => {
+    multichainAccountServiceInit(getInitRequestMock());
+
+    const callArgs = jest.mocked(MultichainAccountService).mock.calls[0][0];
+
+    expect(callArgs.providers).toHaveLength(1);
+    expect(callArgs.providers?.[0]).toBeInstanceOf(AccountProviderWrapper);
+  });
+  ///: END:ONLY_INCLUDE_IF
 });

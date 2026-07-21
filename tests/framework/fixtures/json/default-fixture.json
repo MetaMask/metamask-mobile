@@ -270,6 +270,18 @@
               "isEvm": false,
               "name": "Tron",
               "nativeCurrency": "tron:728126428/slip44:195"
+            },
+            "stellar:pubnet": {
+              "chainId": "stellar:pubnet",
+              "isEvm": false,
+              "name": "Stellar",
+              "nativeCurrency": "stellar:pubnet/slip44:148"
+            },
+            "stellar:testnet": {
+              "chainId": "stellar:testnet",
+              "isEvm": false,
+              "name": "Stellar Testnet",
+              "nativeCurrency": "stellar:testnet/slip44:148"
             }
           },
           "networksWithTransactionActivity": {},
@@ -575,6 +587,11 @@
               "enabled": true,
               "featureVersion": null,
               "minimumVersion": null
+            },
+            "stellarAccounts": {
+              "enabled": true,
+              "featureVersion": null,
+              "minimumVersion": "0.0.0"
             }
           }
         },

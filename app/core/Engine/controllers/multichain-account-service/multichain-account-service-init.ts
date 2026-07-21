@@ -4,6 +4,10 @@ import {
   SOL_ACCOUNT_PROVIDER_NAME,
   BTC_ACCOUNT_PROVIDER_NAME,
   TRX_ACCOUNT_PROVIDER_NAME,
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  AccountProviderWrapper,
+  XlmAccountProvider,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/multichain-account-service';
 import { MessengerClientInitFunction } from '../../types';
 import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
@@ -27,6 +31,7 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     maxConcurrency: 1,
     // Re-use the default config for the rest:
     discovery: {
+      enabled: true,
       timeoutMs: 2000,
       maxAttempts: 3,
       backOffMs: 1000,
@@ -40,10 +45,40 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     },
   };
 
+  const solanaSnapAccountProviderConfig = {
+    ...snapAccountProviderConfig,
+    createAccounts: {
+      ...snapAccountProviderConfig.createAccounts,
+      batched: true,
+    },
+  };
+
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  const stellarSnapAccountProviderConfig = {
+    ...snapAccountProviderConfig,
+    createAccounts: {
+      ...snapAccountProviderConfig.createAccounts,
+      batched: true,
+      timeoutMs: 30000,
+    },
+  };
+  ///: END:ONLY_INCLUDE_IF
+
   const controller = new MultichainAccountService({
     messenger: controllerMessenger,
+    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+    providers: [
+      new AccountProviderWrapper(
+        controllerMessenger,
+        new XlmAccountProvider(
+          controllerMessenger,
+          stellarSnapAccountProviderConfig,
+        ),
+      ),
+    ],
+    ///: END:ONLY_INCLUDE_IF
     providerConfigs: {
-      [SOL_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
+      [SOL_ACCOUNT_PROVIDER_NAME]: solanaSnapAccountProviderConfig,
       /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       [BTC_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
       /// END:ONLY_INCLUDE_IF

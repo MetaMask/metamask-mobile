@@ -25,6 +25,7 @@ const availableFeatures = new Set([
   'sample-feature',
   'tron',
   'experimental',
+  'stellar',
 ]);
 
 // Legacy (main) hardcoded feature sets — used when CODE_FENCING_FEATURES is not set (e.g. local dev)

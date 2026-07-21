@@ -2,6 +2,9 @@ import { SnapId } from '@metamask/snaps-sdk';
 import PREINSTALLED_SNAPS from '../../../lib/snaps/preinstalled-snaps';
 import { BITCOIN_WALLET_SNAP_ID } from '../BitcoinWalletSnap';
 import { SOLANA_WALLET_SNAP_ID } from '../SolanaWalletSnap';
+///: BEGIN:ONLY_INCLUDE_IF(stellar)
+import { STELLAR_WALLET_SNAP_ID } from '../StellarWalletSnap';
+///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { TRON_WALLET_SNAP_ID } from '../TronWalletSnap';
 ///: END:ONLY_INCLUDE_IF
@@ -52,6 +55,9 @@ export function isSnapPreinstalled(snapId: SnapId) {
 const ALLOW_LISTED_SNAPS = [
   BITCOIN_WALLET_SNAP_ID,
   SOLANA_WALLET_SNAP_ID,
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  STELLAR_WALLET_SNAP_ID,
+  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TRON_WALLET_SNAP_ID,
   ///: END:ONLY_INCLUDE_IF

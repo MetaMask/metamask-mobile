@@ -1841,6 +1841,18 @@ class FixtureBuilder {
     return this;
   }
 
+  withStellarEnabled() {
+    return this.withNetworkEnabledMap({
+      stellar: {
+        'stellar:pubnet': true,
+        'stellar:testnet': true,
+      },
+      eip155: {
+        '0x539': true,
+      },
+    }).ensureMultichainIntroModalSuppressed();
+  }
+
   withCleanBannerState() {
     merge(this.fixture.state, {
       banners: {
