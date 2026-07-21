@@ -13,7 +13,10 @@ import {
   type SortDirection,
   type SortOptionId,
 } from '@metamask/perps-controller';
-import { isHip3Filter } from '../utils/marketCategoryMapping';
+import {
+  isHip3Filter,
+  filterMarketsByCategory,
+} from '../utils/marketCategoryMapping';
 import {
   selectPerpsWatchlistMarkets,
   selectPerpsRecentlyViewedMarkets,
@@ -233,26 +236,10 @@ export const usePerpsMarketListView = ({
   const { filteredMarkets: searchedMarkets } = searchHook;
 
   // Apply market type filter to search results (search + category work together)
-  const marketTypeFilteredMarkets = useMemo(() => {
-    if (marketTypeFilter === 'all') {
-      return searchedMarkets;
-    }
-
-    // Special handling for 'crypto' filter - crypto markets are non-HIP3 (main DEX)
-    if (marketTypeFilter === 'crypto') {
-      return searchedMarkets.filter((market) => !market.isHip3);
-    }
-
-    // Special handling for 'new' filter - shows uncategorized HIP-3 markets
-    if (marketTypeFilter === 'new') {
-      return searchedMarkets.filter((market) => market.isNewMarket);
-    }
-
-    // HIP-3 category filter: marketTypeFilter === marketType in v8+
-    return searchedMarkets.filter(
-      (market) => market.marketType === marketTypeFilter,
-    );
-  }, [searchedMarkets, marketTypeFilter]);
+  const marketTypeFilteredMarkets = useMemo(
+    () => filterMarketsByCategory(searchedMarkets, marketTypeFilter),
+    [searchedMarkets, marketTypeFilter],
+  );
 
   // Use sorting hook for sort state and sorting logic.
   // defaultSortOptionId (from navigation params) takes precedence over the saved user
@@ -309,18 +296,24 @@ export const usePerpsMarketListView = ({
     [allMarkets, watchlistMarkets],
   );
 
-  // Full market objects for recently viewed symbols, in newest-first order.
-  // Symbols with no matching entry in allMarkets (e.g. delisted) are dropped.
+  // Full market objects for recently viewed symbols, in newest-first order,
+  // filtered by the active category so the rail only shows markets relevant
+  // to the current product filter. Symbols with no matching entry in
+  // allMarkets (e.g. delisted) are dropped.
   const recentlyViewedMarketObjects = useMemo(() => {
     const marketsBySymbol = new Map(allMarkets.map((m) => [m.symbol, m]));
-    return recentlyViewedSymbols.reduce<PerpsMarketData[]>((acc, symbol) => {
-      const market = marketsBySymbol.get(symbol);
-      if (market) {
-        acc.push(market);
-      }
-      return acc;
-    }, []);
-  }, [allMarkets, recentlyViewedSymbols]);
+    const orderedMarkets = recentlyViewedSymbols.reduce<PerpsMarketData[]>(
+      (acc, symbol) => {
+        const market = marketsBySymbol.get(symbol);
+        if (market) {
+          acc.push(market);
+        }
+        return acc;
+      },
+      [],
+    );
+    return filterMarketsByCategory(orderedMarkets, marketTypeFilter);
+  }, [allMarkets, recentlyViewedSymbols, marketTypeFilter]);
 
   // Apply sorting to searched and favorites-filtered markets
   // Use useMemo to ensure sorting is applied with current sortBy/direction when markets change

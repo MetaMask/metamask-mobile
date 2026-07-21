@@ -320,6 +320,7 @@ jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
     return (
       <TouchableOpacity testID={`row-${hash}`} onPress={() => onPress(item)}>
         <Text testID={`row-kind-${hash}`}>{item.type}</Text>
+        <Text testID={`row-status-${hash}`}>{item.status}</Text>
         <Text testID={`row-raw-${hash}`}>{item.raw?.type}</Text>
         <Text>{title ?? item.hash}</Text>
       </TouchableOpacity>
@@ -327,18 +328,6 @@ jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
   },
   resolveActivityListItemTitle: jest.fn(() => 'Activity title'),
 }));
-
-jest.mock('../../UI/MultichainBridgeTransactionListItem', () => {
-  const { Text, View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ transaction }: { transaction: { id: string } }) => (
-      <View testID={`bridge-${transaction.id}`}>
-        <Text>Bridge tx</Text>
-      </View>
-    ),
-  };
-});
 
 jest.mock('../../UI/Transactions/TransactionsFooter', () => {
   const { Text, TouchableOpacity } = jest.requireActual('react-native');
@@ -381,10 +370,56 @@ jest.mock('../../hooks/useBlockExplorer', () => ({
 }));
 
 jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
+  ...jest.requireActual(
+    '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash',
+  ),
   useBridgeHistoryItemBySrcTxHash: jest.fn(() => ({
     bridgeHistoryItemsBySrcTxHash: {
-      '0xconfirmed': { title: 'bridge-history' },
-      solanaBridge: { title: 'solana-bridge' },
+      '0xconfirmed': {
+        title: 'bridge-history',
+        quote: {
+          srcChainId: '0x1',
+          destChainId: '0x1',
+          srcAsset: { chainId: '0x1' },
+          destAsset: { chainId: '0x1' },
+        },
+      },
+      // Same-chain swap (src and dest chains match → not a cross-chain bridge).
+      solanaBridge: {
+        title: 'solana-bridge',
+        quote: {
+          srcChainId: 'solana:mainnet',
+          destChainId: 'solana:mainnet',
+          srcAsset: { chainId: 'solana:mainnet' },
+          destAsset: { chainId: 'solana:mainnet' },
+        },
+      },
+      // Cross-chain bridge whose destination leg hasn't landed yet.
+      solanaCross: {
+        title: 'solana-cross-bridge',
+        quote: {
+          srcChainId: 'solana:mainnet',
+          destChainId: 1,
+          srcAsset: { chainId: 'solana:mainnet' },
+          destAsset: { chainId: 1 },
+        },
+        status: { status: 'PENDING', srcChain: { txHash: 'solanaCross' } },
+      },
+      // Cross-chain bridge whose destination leg has landed.
+      solanaCrossDone: {
+        title: 'solana-cross-bridge-done',
+        quote: {
+          srcChainId: 'solana:mainnet',
+          destChainId: 1,
+          srcAsset: { chainId: 'solana:mainnet' },
+          destAsset: { chainId: 1 },
+        },
+        status: {
+          status: 'COMPLETE',
+          srcChain: { txHash: 'solanaCrossDone' },
+          destChain: { txHash: '0xdest' },
+        },
+      },
     },
   })),
 }));
@@ -392,6 +427,11 @@ jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
 jest.mock('../../UI/Bridge/utils/transaction-history', () => ({
   getSwapBridgeTxActivityTitle: jest.fn(() => 'Bridge title'),
   handleUnifiedSwapsTxHistoryItemClick: jest.fn(),
+  // Mirrors the real predicate: cross-chain when quote src/dest chains differ.
+  isBridgeTxHistoryItemBridge: jest.fn(
+    (item: { quote: { srcChainId?: unknown; destChainId?: unknown } }) =>
+      item.quote.srcChainId !== item.quote.destChainId,
+  ),
 }));
 
 jest.mock('../../../util/multichain/multichainTransactionTokenScan', () => ({
@@ -433,17 +473,6 @@ jest.mock('./helpers/transformations', () => {
   const actual = jest.requireActual('./helpers/transformations');
   return {
     ...actual,
-    mapNonEvmTransactions: jest.fn((txs) =>
-      txs.map((tx: { id: string; chain: string }) => ({
-        type: 'send',
-        chainId: tx.chain,
-        status: 'success',
-        timestamp: 2,
-        hash: tx.id,
-        data: {},
-        raw: { type: 'keyringTransaction', data: tx },
-      })),
-    ),
     mergeTransactionsByTime: jest.fn(
       (local, confirmed, nonEvm, perps = [], predict = [], ramp = []) => [
         ...perps,
@@ -1892,11 +1921,13 @@ describe('ActivityList', () => {
     });
   });
 
-  it('renders non-EVM bridge rows and footer when only non-EVM chains are enabled', () => {
+  it('renders non-EVM swap/bridge rows through ActivityListItemRow', () => {
     selectorValues.enabledEvm = [];
     selectorValues.enabledNonEvm = ['solana:mainnet'];
     selectorValues.nonEvmState = {
-      transactions: [{ chain: 'solana:mainnet', id: 'solanaBridge' }],
+      transactions: [
+        { chain: 'solana:mainnet', id: 'solanaBridge', from: [], to: [] },
+      ],
     };
     selectorValues.selectedGroupAccounts = [
       { address: 'solana-address', type: 'solana:data-account' },
@@ -1913,11 +1944,140 @@ describe('ActivityList', () => {
 
     render(<ActivityList chainId="solana:mainnet" />);
 
-    expect(screen.getByTestId('bridge-solanaBridge')).toBeOnTheScreen();
+    expect(screen.getByTestId('row-solanaBridge')).toBeOnTheScreen();
     fireEvent.press(screen.getByTestId('non-evm-footer'));
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       params: { url: 'https://solana.explorer/address/sol' },
       screen: 'SimpleWebview',
     });
+  });
+
+  it('routes non-EVM cross-chain bridge taps to the unified swaps detail screen', () => {
+    selectorValues.enabledNonEvm = ['solana:mainnet'];
+    selectorValues.nonEvmState = {
+      transactions: [
+        { chain: 'solana:mainnet', id: 'solanaCross', from: [], to: [] },
+      ],
+    };
+
+    render(<ActivityList header={<></>} />);
+
+    fireEvent.press(screen.getByTestId('row-solanaCross'));
+
+    expect(handleUnifiedSwapsTxHistoryItemClick).toHaveBeenCalledWith({
+      navigation: expect.any(Object),
+      multiChainTx: expect.objectContaining({
+        chain: 'solana:mainnet',
+        id: 'solanaCross',
+      }),
+      bridgeTxHistoryItem: expect.objectContaining({
+        title: 'solana-cross-bridge',
+      }),
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('opens the multichain details sheet for non-EVM same-chain swaps with bridge history', () => {
+    selectorValues.enabledNonEvm = ['solana:mainnet'];
+    selectorValues.nonEvmState = {
+      transactions: [
+        { chain: 'solana:mainnet', id: 'solanaBridge', from: [], to: [] },
+      ],
+    };
+
+    render(<ActivityList header={<></>} />);
+
+    fireEvent.press(screen.getByTestId('row-solanaBridge'));
+
+    expect(handleUnifiedSwapsTxHistoryItemClick).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      expect.objectContaining({
+        screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
+      }),
+    );
+  });
+
+  it('presents in-flight non-EVM cross-chain bridges as pending bridge rows', () => {
+    selectorValues.enabledNonEvm = ['solana:mainnet'];
+    selectorValues.nonEvmState = {
+      transactions: [
+        {
+          chain: 'solana:mainnet',
+          id: 'solanaCross',
+          status: 'confirmed',
+          from: [],
+          to: [],
+        },
+        {
+          chain: 'solana:mainnet',
+          id: 'solanaBridge',
+          type: 'swap',
+          status: 'confirmed',
+          from: [],
+          to: [],
+        },
+      ],
+    };
+
+    render(<ActivityList header={<></>} />);
+
+    // The destination leg hasn't landed, so the confirmed source tx must not
+    // present the row as completed.
+    expect(screen.getByTestId('row-kind-solanaCross')).toHaveTextContent(
+      'bridge',
+    );
+    expect(screen.getByTestId('row-status-solanaCross')).toHaveTextContent(
+      'pending',
+    );
+    // Same-chain swaps keep their mapped kind and source-tx status.
+    expect(screen.getByTestId('row-kind-solanaBridge')).toHaveTextContent(
+      'swap',
+    );
+    expect(screen.getByTestId('row-status-solanaBridge')).toHaveTextContent(
+      'success',
+    );
+  });
+
+  it('marks non-EVM cross-chain bridges successful once the destination leg lands', () => {
+    selectorValues.enabledNonEvm = ['solana:mainnet'];
+    selectorValues.nonEvmState = {
+      transactions: [
+        { chain: 'solana:mainnet', id: 'solanaCrossDone', from: [], to: [] },
+      ],
+    };
+
+    render(<ActivityList header={<></>} />);
+
+    expect(screen.getByTestId('row-kind-solanaCrossDone')).toHaveTextContent(
+      'bridge',
+    );
+    expect(screen.getByTestId('row-status-solanaCrossDone')).toHaveTextContent(
+      'success',
+    );
+  });
+
+  it('keeps failed non-EVM cross-chain bridges failed instead of pending', () => {
+    selectorValues.enabledNonEvm = ['solana:mainnet'];
+    selectorValues.nonEvmState = {
+      transactions: [
+        {
+          chain: 'solana:mainnet',
+          id: 'solanaCross',
+          status: 'failed',
+          from: [],
+          to: [],
+        },
+      ],
+    };
+
+    render(<ActivityList header={<></>} />);
+
+    expect(screen.getByTestId('row-kind-solanaCross')).toHaveTextContent(
+      'bridge',
+    );
+    expect(screen.getByTestId('row-status-solanaCross')).toHaveTextContent(
+      'failed',
+    );
   });
 });

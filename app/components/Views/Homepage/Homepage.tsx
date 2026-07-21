@@ -38,6 +38,7 @@ import {
 } from './abTestConfig';
 import { useOwnedNfts } from './Sections/NFTs/hooks';
 import { useNftDetection } from '../../hooks/useNftDetection';
+import { useThrottledFocusEffect } from '../../hooks/useThrottledFocusEffect';
 import { strings } from '../../../../locales/i18n';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
@@ -127,9 +128,10 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       }, [areAllPopularNetworksEnabled, enableAllPopularNetworks]),
     );
 
-    useFocusEffect(
+    // TODO(ASSETS-3660): Replace with a proper polling mechanism in NftDetectionController.
+    useThrottledFocusEffect(
       useCallback(() => {
-        detectNfts().catch(() => {
+        detectNfts(true, false).catch(() => {
           // AbortError is expected when detection is cancelled on blur
         });
 
@@ -137,6 +139,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           abortDetection();
         };
       }, [detectNfts, abortDetection]),
+      300_000, // 5 minutes
     );
 
     /**
@@ -150,9 +153,9 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         const sections: { name: HomeSectionName; enabled: boolean }[] = [
           { name: HomeSectionNames.CASH, enabled: isCashSectionEnabled },
           { name: HomeSectionNames.TOKENS, enabled: true },
-          { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
           { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
           { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
+          { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
           {
             name: HomeSectionNames.TOP_TRADERS,
             enabled: isTopTradersEnabled,
@@ -181,9 +184,9 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       return [
         { name: HomeSectionNames.CASH, enabled: isCashSectionEnabled },
         { name: HomeSectionNames.TOKENS, enabled: true },
-        { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
         { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
         { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
+        { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
         {
           name: HomeSectionNames.TOP_TRADERS,
           enabled: isTopTradersEnabled,
@@ -243,6 +246,13 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             totalSectionsLoaded={totalSectionsLoaded}
             mode={sectionMode}
           />
+          {isWatchlistEnabled && (
+            <WatchlistSection
+              ref={watchlistSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+          )}
           {isTopTradersEnabled && (
             <TopTradersSection
               ref={topTradersSectionRef}
@@ -324,13 +334,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               totalSectionsLoaded={totalSectionsLoaded}
               mode={sectionMode}
             />
-            {isWatchlistEnabled && (
-              <WatchlistSection
-                ref={watchlistSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
-                totalSectionsLoaded={totalSectionsLoaded}
-              />
-            )}
             {isPerpsEnabled &&
               (() => {
                 const perpsContent = (
@@ -378,13 +381,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             totalSectionsLoaded={totalSectionsLoaded}
             mode={sectionMode}
           />
-          {isWatchlistEnabled && (
-            <WatchlistSection
-              ref={watchlistSectionRef}
-              sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
-              totalSectionsLoaded={totalSectionsLoaded}
-            />
-          )}
           {isPerpsEnabled &&
             (perpsProvidersHoisted ? (
               <HomepagePerpsHomeSlot
@@ -411,6 +407,13 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             totalSectionsLoaded={totalSectionsLoaded}
             mode={sectionMode}
           />
+          {isWatchlistEnabled && (
+            <WatchlistSection
+              ref={watchlistSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+          )}
           {isTopTradersEnabled && (
             <TopTradersSection
               ref={topTradersSectionRef}

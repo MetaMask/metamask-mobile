@@ -1,6 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import type { useBridgeQuoteData } from '../useBridgeQuoteData';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   selectDestToken,
   selectSourceAmount,
@@ -37,7 +38,7 @@ export const useBridgeConfirm = ({
   transactionActiveAbTests,
 }: Params) => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { submitBridgeTx } = useSubmitBridgeTx();
   const walletAddress = useSelector(selectSourceWalletAddress);
   const isHardwareWalletAccount = walletAddress
