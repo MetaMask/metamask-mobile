@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.4.0]
 
+### Uncategorized
+
+- chore(earn): type Earn navigators with feature param lists (Phase 3) (#33291)
+- chore(send): type Send navigator with feature param list (Phase 3) (#33303)
+- chore(card): type Card navigators with feature param lists (Phase 3) (#33283)
+- chore(nav): type Rewards nested navigator with NavigatorScreenParams (#33231)
+- chore(nav): type Predict nested navigators with NavigatorScreenParams (#33219)
+
 ### Added
 
 - Added an "Earn with Money account" banner on the token detail page of supported stablecoins, showing the live Money account APY and opening the Add funds flow with the token pre-selected (#33412)
