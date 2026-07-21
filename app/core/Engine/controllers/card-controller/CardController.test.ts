@@ -866,6 +866,31 @@ describe('CardController — auth methods', () => {
       expect(controller.state.isAuthenticated).toBe(true);
     });
 
+    it('stays authenticated when selected EVM account differs from tokens.accountAddress', async () => {
+      const immersveTokens: CardAuthTokens = {
+        ...mockTokenSet,
+        accountAddress: '0xloginaccount',
+        cardholderAccountId: 'cardholder-1',
+      };
+      const provider = buildMockProvider({ id: 'immersve' });
+      mockTokenStore.get.mockResolvedValue(immersveTokens);
+      provider.validateTokens.mockReturnValue('valid');
+      const messenger = buildMessengerWithEvmAccount('0xotheraccount');
+      const controller = new CardController({
+        messenger,
+        providers: { immersve: provider },
+        state: { activeProviderId: 'immersve', isAuthenticated: true },
+      });
+
+      const result = await controller.validateAndRefreshSession();
+
+      expect(result).toStrictEqual({
+        isAuthenticated: true,
+        location: 'international',
+      });
+      expect(controller.state.isAuthenticated).toBe(true);
+    });
+
     it('refreshes tokens and returns authenticated when needs_refresh', async () => {
       const provider = buildMockProvider();
       const refreshedTokens: CardAuthTokens = {

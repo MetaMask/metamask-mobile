@@ -407,6 +407,11 @@ const CardAuthentication = () => {
     [maskedPhoneNumber, isOtpStep],
   );
 
+  const locationLabelVariant = immersveEnabled
+    ? TextVariant.BodyXs
+    : TextVariant.BodySm;
+  const locationBoxPadding = immersveEnabled ? 'px-2 py-3' : 'p-4';
+
   const formFields = useMemo(
     () =>
       isOtpStep ? (
@@ -492,13 +497,13 @@ const CardAuthentication = () => {
               )}
             >
               <Box
-                twClassName="flex flex-col items-center justify-center w-full p-4"
+                twClassName={`flex flex-col items-center justify-center w-full ${locationBoxPadding}`}
                 testID={CardAuthenticationSelectors.INTERNATIONAL_LOCATION_BOX}
               >
                 <Icon name={IconName.Global} size={IconSize.Lg} />
                 <Text
-                  twClassName="text-center text-body-sm font-medium"
-                  variant={TextVariant.BodySm}
+                  twClassName="text-center font-medium"
+                  variant={locationLabelVariant}
                 >
                   {strings('card.card_authentication.location_button_text')}
                 </Text>
@@ -511,13 +516,13 @@ const CardAuthentication = () => {
               )}
             >
               <Box
-                twClassName="flex flex-col items-center justify-center flex-1 w-full p-4"
+                twClassName={`flex flex-col items-center justify-center flex-1 w-full ${locationBoxPadding}`}
                 testID={CardAuthenticationSelectors.US_LOCATION_BOX}
               >
                 <Text twClassName="text-center">{countryCodeToFlag('US')}</Text>
                 <Text
-                  twClassName="text-center text-body-sm font-medium"
-                  variant={TextVariant.BodySm}
+                  twClassName="text-center font-medium"
+                  variant={locationLabelVariant}
                 >
                   {strings('card.card_authentication.location_button_text_us')}
                 </Text>
@@ -531,15 +536,15 @@ const CardAuthentication = () => {
                 )}
               >
                 <Box
-                  twClassName="flex flex-col items-center justify-center flex-1 w-full p-4"
+                  twClassName={`flex flex-col items-center justify-center flex-1 w-full ${locationBoxPadding}`}
                   testID={CardAuthenticationSelectors.UK_LOCATION_BOX}
                 >
                   <Text twClassName="text-center">
                     {countryCodeToFlag('GB')}
                   </Text>
                   <Text
-                    twClassName="text-center text-body-sm font-medium"
-                    variant={TextVariant.BodySm}
+                    twClassName="text-center font-medium"
+                    variant={locationLabelVariant}
                   >
                     {strings(
                       'card.card_authentication.location_button_text_uk',
@@ -677,6 +682,8 @@ const CardAuthentication = () => {
       selection,
       isUkMode,
       immersveEnabled,
+      locationLabelVariant,
+      locationBoxPadding,
       accountName,
       openAccountSelector,
       ukError,

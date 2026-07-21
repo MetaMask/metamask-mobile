@@ -797,17 +797,6 @@ export class CardController extends BaseController<
       return null;
     }
 
-    if (tokens.accountAddress) {
-      const selected = this.#getSelectedEvmAddress();
-      if (
-        !selected ||
-        selected.toLowerCase() !== tokens.accountAddress.toLowerCase()
-      ) {
-        this.markUnauthenticated(this.state.lastUnauthenticatedReason);
-        return null;
-      }
-    }
-
     const provider = this.getActiveProvider();
     const validity = provider.validateTokens(tokens);
 
