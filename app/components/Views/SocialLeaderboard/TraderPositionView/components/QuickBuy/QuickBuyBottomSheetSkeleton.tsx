@@ -12,7 +12,14 @@ import {
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../../../../locales/i18n';
 
-const QuickBuyBottomSheetSkeleton: React.FC = () => {
+interface QuickBuyBottomSheetSkeletonProps {
+  /** Treatment shows a keypad placeholder instead of the slider placeholder. */
+  useKeyboard?: boolean;
+}
+
+const QuickBuyBottomSheetSkeleton: React.FC<
+  QuickBuyBottomSheetSkeletonProps
+> = ({ useKeyboard = false }) => {
   const tw = useTailwind();
 
   return (
@@ -50,15 +57,17 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
 
       {/* Footer area — mirrors QuickBuyActionFooter px-4 pb-4 */}
       <Box twClassName="px-4 pb-4">
-        {/* Slider — mirrors pt-2 pb-3 */}
-        <Box twClassName="pt-2 pb-3">
-          <Skeleton
-            width="100%"
-            height={24}
-            style={tw.style('rounded-full')}
-            testID="quick-buy-skeleton-slider"
-          />
-        </Box>
+        {/* Slider (control) — mirrors pt-2 pb-3 */}
+        {useKeyboard ? null : (
+          <Box twClassName="pt-2 pb-3">
+            <Skeleton
+              width="100%"
+              height={24}
+              style={tw.style('rounded-full')}
+              testID="quick-buy-skeleton-slider"
+            />
+          </Box>
+        )}
 
         {/* Pay with row */}
         <Box
@@ -86,6 +95,29 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
           testID="quick-buy-skeleton-confirm-button"
         />
       </Box>
+
+      {/* Keypad (treatment) — 4x3 grid placeholder below the CTA */}
+      {useKeyboard ? (
+        <Box twClassName="px-4 py-4 gap-3" testID="quick-buy-skeleton-keypad">
+          {[0, 1, 2, 3].map((row) => (
+            <Box
+              key={row}
+              flexDirection={BoxFlexDirection.Row}
+              justifyContent={BoxJustifyContent.Between}
+              twClassName="gap-3"
+            >
+              {[0, 1, 2].map((col) => (
+                <Skeleton
+                  key={col}
+                  width="30%"
+                  height={48}
+                  style={tw.style('rounded-xl')}
+                />
+              ))}
+            </Box>
+          ))}
+        </Box>
+      ) : null}
     </Box>
   );
 };

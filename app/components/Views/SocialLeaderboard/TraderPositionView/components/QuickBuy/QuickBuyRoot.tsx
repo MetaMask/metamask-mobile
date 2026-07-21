@@ -17,7 +17,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
+import { useABTest } from '../../../../../../hooks/useABTest';
 import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
+import {
+  SOCIAL_AI_QUICK_BUY_KEYBOARD_AB_KEY,
+  SOCIAL_AI_QUICK_BUY_KEYBOARD_EXPOSURE_METADATA,
+  SOCIAL_AI_QUICK_BUY_KEYBOARD_VARIANTS,
+} from './abTestConfig';
 import {
   buildQuickBuySharedAnalyticsProperties,
   QuickBuyEventProperties,
@@ -101,6 +107,15 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const surfaceClass = useElevatedSurface();
 
+  // Keyboard vs slider A/B test. Resolved here so `Experiment Viewed` fires
+  // once the sheet is actually shown (this component only mounts when visible).
+  const { variant } = useABTest(
+    SOCIAL_AI_QUICK_BUY_KEYBOARD_AB_KEY,
+    SOCIAL_AI_QUICK_BUY_KEYBOARD_VARIANTS,
+    SOCIAL_AI_QUICK_BUY_KEYBOARD_EXPOSURE_METADATA,
+  );
+  const useKeyboard = variant.useKeyboard;
+
   const directionSV = useSharedValue<ScreenDirection>(1);
   // Suppresses the enter animation on the initial screen when the sheet opens;
   // transitions only kick in once the user navigates between screens.
@@ -157,7 +172,9 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
 
   const handleContentLayout = useCallback(
     (event: LayoutChangeEvent) => {
-      if (lockedHeight !== null) {
+      // The keyboard treatment sizes each screen to its own content so the
+      // amount screen can grow/shrink with the keypad; skip height locking.
+      if (useKeyboard || lockedHeight !== null) {
         return;
       }
       const { height } = event.nativeEvent.layout;
@@ -165,7 +182,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
         setLockedHeight(height);
       }
     },
-    [lockedHeight],
+    [useKeyboard, lockedHeight],
   );
 
   // Keep the bottom safe-area inset only on screens that pin a CTA at the
@@ -188,6 +205,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
           analyticsContext={analyticsContext}
           activeScreen={activeScreen}
           setActiveScreen={navigateToScreen}
+          useKeyboard={useKeyboard}
         >
           <Box
             testID="quick-buy-content-container"
@@ -218,7 +236,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
           </Box>
         </QuickBuyProvider>
       ) : (
-        <QuickBuyBottomSheetSkeleton />
+        <QuickBuyBottomSheetSkeleton useKeyboard={useKeyboard} />
       )}
     </BottomSheetDialog>
   );

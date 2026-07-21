@@ -37,11 +37,17 @@ const QuickBuyQuickAmounts: React.FC = () => {
     handleQuickAmountPress,
     handleSliderChange,
     handleSliderDragEnd,
+    useKeyboard,
+    setIsKeypadOpen,
   } = useQuickBuyContext();
 
   const handleSellPercentPress = useCallback(
     (percent: number) => {
       playImpact(ImpactMoment.QuickAmountSelection);
+      // Selecting a preset dismisses the keypad on the keyboard treatment.
+      if (useKeyboard) {
+        setIsKeypadOpen(false);
+      }
       if (!hasSourcePrice) {
         handleSliderChange(percent);
         return;
@@ -49,15 +55,25 @@ const QuickBuyQuickAmounts: React.FC = () => {
       handleSliderChange(percent);
       handleSliderDragEnd(percent);
     },
-    [hasSourcePrice, handleSliderChange, handleSliderDragEnd, playImpact],
+    [
+      hasSourcePrice,
+      handleSliderChange,
+      handleSliderDragEnd,
+      playImpact,
+      useKeyboard,
+      setIsKeypadOpen,
+    ],
   );
 
   const handleBuyAmountPress = useCallback(
     (value: number, presetTierUsd: number) => {
       playImpact(ImpactMoment.QuickAmountSelection);
+      if (useKeyboard) {
+        setIsKeypadOpen(false);
+      }
       handleQuickAmountPress(value, presetTierUsd);
     },
-    [handleQuickAmountPress, playImpact],
+    [handleQuickAmountPress, playImpact, useKeyboard, setIsKeypadOpen],
   );
 
   if (tradeMode === 'sell') {

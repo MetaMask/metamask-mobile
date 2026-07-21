@@ -36,4 +36,19 @@ describe('QuickBuyBottomSheetSkeleton', () => {
       screen.queryByTestId('quick-buy-skeleton-preset-20'),
     ).not.toBeOnTheScreen();
   });
+
+  it('renders the keypad placeholder and hides the slider on the treatment', () => {
+    render(<QuickBuyBottomSheetSkeleton useKeyboard />);
+    expect(screen.getByTestId('quick-buy-skeleton-keypad')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('quick-buy-skeleton-slider'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the keypad placeholder on the control variant', () => {
+    render(<QuickBuyBottomSheetSkeleton />);
+    expect(
+      screen.queryByTestId('quick-buy-skeleton-keypad'),
+    ).not.toBeOnTheScreen();
+  });
 });

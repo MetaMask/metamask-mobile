@@ -242,6 +242,12 @@ export function useQuickBuyController(
   target: QuickBuyTarget,
   onClose: () => void,
   analyticsContext?: QuickBuyAnalyticsContext,
+  /**
+   * Keyboard A/B treatment. When true the amount starts empty (`$0`) and the
+   * user types via the keypad; when false (control) the slider auto-defaults to
+   * 50% of spendable balance on open.
+   */
+  useKeyboard = false,
 ): UseQuickBuyControllerResult {
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
@@ -1137,8 +1143,13 @@ export function useQuickBuyController(
     ],
   );
 
-  // Default the slider to 50% once per sheet open when spendable balance is known.
+  // Default the slider to 50% once per sheet open when spendable balance is
+  // known. Skipped on the keyboard treatment, which opens at $0 so the user
+  // types their own amount.
   useEffect(() => {
+    if (useKeyboard) {
+      return;
+    }
     if (hasAppliedOpenDefaultRef.current) {
       return;
     }
@@ -1147,7 +1158,7 @@ export function useQuickBuyController(
     }
     hasAppliedOpenDefaultRef.current = true;
     handleSliderDragEnd(50);
-  }, [hasSourcePrice, maxSpendFiat, handleSliderDragEnd]);
+  }, [useKeyboard, hasSourcePrice, maxSpendFiat, handleSliderDragEnd]);
 
   const handleAmountAreaPress = useCallback(() => {
     // Priced flows are fiat-first, so typing in fiat keeps the keyboard digits

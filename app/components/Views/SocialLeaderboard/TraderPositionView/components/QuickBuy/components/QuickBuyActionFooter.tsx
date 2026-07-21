@@ -42,6 +42,7 @@ const QuickBuyActionFooter: React.FC = () => {
     selectedDestStable,
     features,
     setActiveScreen,
+    useKeyboard,
   } = useQuickBuyContext();
 
   const pickerToken = tradeMode === 'sell' ? selectedDestStable : sourceToken;
@@ -50,15 +51,18 @@ const QuickBuyActionFooter: React.FC = () => {
 
   return (
     <Box twClassName="px-4">
-      {/* Slider — reduced top padding to tighten gap with the amount section */}
-      <Box twClassName="pt-2 pb-3">
-        <QuickBuyPercentageSlider
-          value={sliderPercent}
-          onValueChange={handleSliderChange}
-          disabled={isSliderDisabled}
-          onDragEnd={handleSliderDragEnd}
-        />
-      </Box>
+      {/* Slider — control variant only. The keyboard treatment replaces it with
+          the numeric keypad rendered below the CTA. */}
+      {useKeyboard ? null : (
+        <Box twClassName="pt-2 pb-3">
+          <QuickBuyPercentageSlider
+            value={sliderPercent}
+            onValueChange={handleSliderChange}
+            disabled={isSliderDisabled}
+            onDragEnd={handleSliderDragEnd}
+          />
+        </Box>
+      )}
 
       {features.quickAmountPills ? (
         <Box twClassName="pb-3">

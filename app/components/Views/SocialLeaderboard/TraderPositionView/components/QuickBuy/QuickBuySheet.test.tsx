@@ -38,6 +38,17 @@ jest.mock('../../../analytics', () => {
   };
 });
 
+// Keyboard A/B test — default to the slider (control) variant for this suite.
+// A plain variable (not a jest.fn) survives `resetMocks` between tests.
+let mockUseKeyboard = false;
+jest.mock('../../../../../../hooks/useABTest', () => ({
+  useABTest: () => ({
+    variant: { useKeyboard: mockUseKeyboard },
+    variantName: mockUseKeyboard ? 'treatment' : 'control',
+    isActive: mockUseKeyboard,
+  }),
+}));
+
 // Captures the onOpenDialog callback registered by QuickBuyRootInner.
 // Call storedOnOpenCallback() inside act() after render to simulate the sheet
 // finishing its open animation and make isContentReady become true.
@@ -297,6 +308,7 @@ describe('QuickBuy.Root', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     storedOnOpenCallback = undefined;
+    mockUseKeyboard = false;
     setMockQuickBuyController();
     (useQuickBuySetup as jest.Mock).mockReturnValue({
       chainId: '0x1',
@@ -417,6 +429,44 @@ describe('QuickBuy.Root', () => {
 
       expect(screen.getByTestId('mock-amount-section')).toBeOnTheScreen();
       expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
+    });
+
+    it('does not render the keypad on the slider control variant', () => {
+      mockUseKeyboard = false;
+      setMockQuickBuyController({ isUnsupportedChain: false });
+
+      renderWithProvider(
+        <QuickBuy.Root
+          isVisible
+          target={positionToQuickBuyTarget(createPosition())}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          onClose={jest.fn()}
+        />,
+      );
+      act(() => {
+        storedOnOpenCallback?.();
+      });
+
+      expect(screen.queryByTestId('quick-buy-keypad')).not.toBeOnTheScreen();
+    });
+
+    it('renders the keypad open by default on the keyboard treatment', () => {
+      mockUseKeyboard = true;
+      setMockQuickBuyController({ isUnsupportedChain: false });
+
+      renderWithProvider(
+        <QuickBuy.Root
+          isVisible
+          target={positionToQuickBuyTarget(createPosition())}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          onClose={jest.fn()}
+        />,
+      );
+      act(() => {
+        storedOnOpenCallback?.();
+      });
+
+      expect(screen.getByTestId('quick-buy-keypad')).toBeOnTheScreen();
     });
 
     it('calls handleConfirm from the sticky confirm button', () => {

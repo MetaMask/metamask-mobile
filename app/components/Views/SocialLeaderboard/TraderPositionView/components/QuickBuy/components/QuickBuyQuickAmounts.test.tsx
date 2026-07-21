@@ -41,6 +41,8 @@ const baseContext = {
   handleQuickAmountPress: jest.fn(),
   handleSliderChange: jest.fn(),
   handleSliderDragEnd: jest.fn(),
+  useKeyboard: false,
+  setIsKeypadOpen: jest.fn(),
 };
 
 describe('QuickBuyQuickAmounts', () => {
@@ -104,5 +106,32 @@ describe('QuickBuyQuickAmounts', () => {
       expect(baseContext.handleSliderChange).toHaveBeenCalledWith(50);
       expect(baseContext.handleSliderDragEnd).not.toHaveBeenCalled();
     });
+  });
+
+  it('dismisses the keypad on the keyboard treatment when a buy pill is tapped', async () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      useKeyboard: true,
+    });
+
+    renderWithProvider(<QuickBuyQuickAmounts />);
+
+    fireEvent.press(screen.getByText('$50'));
+
+    await waitFor(() => {
+      expect(baseContext.setIsKeypadOpen).toHaveBeenCalledWith(false);
+      expect(baseContext.handleQuickAmountPress).toHaveBeenCalledWith(50, 50);
+    });
+  });
+
+  it('does not toggle the keypad on the slider control variant', async () => {
+    renderWithProvider(<QuickBuyQuickAmounts />);
+
+    fireEvent.press(screen.getByText('$50'));
+
+    await waitFor(() => {
+      expect(baseContext.handleQuickAmountPress).toHaveBeenCalledWith(50, 50);
+    });
+    expect(baseContext.setIsKeypadOpen).not.toHaveBeenCalled();
   });
 });
