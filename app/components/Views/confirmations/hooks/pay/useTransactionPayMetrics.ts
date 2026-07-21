@@ -14,6 +14,8 @@ import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
 import { hasTransactionType } from '../../utils/transaction';
 import {
+  useIsTransactionPayQuoteLoading,
+  useTransactionPayQuoteError,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
 } from './useTransactionPayData';
@@ -42,7 +44,11 @@ export function useTransactionPayMetrics() {
   const highestBalanceChainId = useHighestBalanceCaipChainId();
   const automaticPayToken = useRef<BridgeToken | undefined>(undefined);
   const hasLoadedQuoteRef = useRef(false);
+  const quoteErrorsRef = useRef<Json[]>([]);
+  const wasQuoteLoadingRef = useRef(false);
   const quotes = useTransactionPayQuotes();
+  const isQuoteLoading = useIsTransactionPayQuoteLoading();
+  const quoteError = useTransactionPayQuoteError();
   const { availableTokens: tokens, hasTokens } =
     useTransactionPayAvailableTokens();
 
@@ -104,6 +110,28 @@ export function useTransactionPayMetrics() {
   );
   const sendingValue = Number(primaryRequiredToken?.amountHuman ?? '0');
 
+  // Detect a failed quote-loading cycle: isLoading transitioned true -> false
+  // AND ended with no quotes. One entry appended per failed cycle, oldest-first.
+  if (wasQuoteLoadingRef.current && !isQuoteLoading && !hasQuotes) {
+    const inputType = storedMetrics?.properties?.mm_pay_amount_input_type as
+      | string
+      | undefined;
+    quoteErrorsRef.current = [
+      ...quoteErrorsRef.current,
+      {
+        pay_token: {
+          symbol: payToken?.symbol ?? null,
+          chainId: payToken?.chainId ?? null,
+          address: payToken?.address ?? null,
+        },
+        amount: sendingValue,
+        amount_input_type: inputType ?? null,
+        error_message: quoteError?.message ?? 'unknown',
+      },
+    ];
+  }
+  wasQuoteLoadingRef.current = isQuoteLoading;
+
   if (!automaticPayToken.current && payToken) {
     automaticPayToken.current = payToken;
   }
@@ -142,6 +170,10 @@ export function useTransactionPayMetrics() {
   if (presentedPaymentMethodRef.current) {
     properties.mm_pay_payment_method_presented =
       presentedPaymentMethodRef.current;
+  }
+
+  if (quoteErrorsRef.current.length > 0) {
+    properties.mm_pay_quote_errors = quoteErrorsRef.current;
   }
 
   if (
