@@ -325,6 +325,8 @@ export const BridgeTokenSelector: React.FC = () => {
   // Track the last chain ID to detect changes
   const lastChainIdRef = useRef(selectedChainId);
   const shouldResetListPositionRef = useRef(false);
+  const prevWatchlistListModeRef = useRef(isWatchlistListMode);
+  const watchlistSessionChainIdRef = useRef(selectedChainId);
 
   const chainIdsToFetch = useMemo(() => {
     if (!enabledChainRanking || enabledChainRanking.length === 0) {
@@ -379,10 +381,6 @@ export const BridgeTokenSelector: React.FC = () => {
       lastChainIdRef.current = selectedChainId;
       shouldResetListPositionRef.current = true;
 
-      if (isWatchlistListMode) {
-        return;
-      }
-
       // Cancel any pending debounced searches
       debouncedSearch.cancel();
       // Clear old network's data to ensure clean state
@@ -393,12 +391,38 @@ export const BridgeTokenSelector: React.FC = () => {
         shouldResearchAfterChainChange.current = true;
       }
     }
+  }, [selectedChainId, debouncedSearch, resetSearch, isValidSearch]);
+
+  // Watchlist search is local-only. When leaving watchlist mode with an active
+  // query and no network change, restart API search for the current query.
+  useEffect(() => {
+    if (isWatchlistListMode) {
+      watchlistSessionChainIdRef.current = selectedChainId;
+    }
+  }, [isWatchlistListMode, selectedChainId]);
+
+  useEffect(() => {
+    const wasWatchlistListMode = prevWatchlistListModeRef.current;
+    prevWatchlistListModeRef.current = isWatchlistListMode;
+
+    if (
+      wasWatchlistListMode &&
+      !isWatchlistListMode &&
+      isValidSearch &&
+      watchlistSessionChainIdRef.current === selectedChainId
+    ) {
+      debouncedSearch.cancel();
+      resetSearch();
+      searchTokens(searchString);
+    }
   }, [
+    isWatchlistListMode,
+    isValidSearch,
+    searchString,
     selectedChainId,
     debouncedSearch,
     resetSearch,
-    isValidSearch,
-    isWatchlistListMode,
+    searchTokens,
   ]);
 
   // Use custom hook for merging balances
