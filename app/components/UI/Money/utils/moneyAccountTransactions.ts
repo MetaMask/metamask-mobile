@@ -271,9 +271,13 @@ export async function updateMoneyAccountDepositTokenAmount(
     provider,
   });
 
+  const approveData = approveTx.params.data;
+  const depositData = depositTx.params.data;
+  if (!approveData || !depositData) return [];
+
   return [
-    { nestedTransactionIndex: 0, transactionData: approveTx.params.data },
-    { nestedTransactionIndex: 1, transactionData: depositTx.params.data },
+    { nestedTransactionIndex: 0, transactionData: approveData },
+    { nestedTransactionIndex: 1, transactionData: depositData },
   ];
 }
 
@@ -315,9 +319,13 @@ export async function updateMoneyAccountWithdrawTokenAmount(
     provider,
   });
 
+  const withdrawData = withdrawTx.params.data;
+  const transferData = transferTx.params.data;
+  if (!withdrawData || !transferData) return [];
+
   return [
-    { nestedTransactionIndex: 0, transactionData: withdrawTx.params.data },
-    { nestedTransactionIndex: 1, transactionData: transferTx.params.data },
+    { nestedTransactionIndex: 0, transactionData: withdrawData },
+    { nestedTransactionIndex: 1, transactionData: transferData },
   ];
 }
 

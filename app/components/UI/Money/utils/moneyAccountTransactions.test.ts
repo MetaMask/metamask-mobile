@@ -307,7 +307,7 @@ describe('moneyAccountTransactions', () => {
 
       expect(result.approveTx.params.data).toBeDefined();
       expect(typeof result.approveTx.params.data).toBe('string');
-      expect(result.approveTx.params.data.startsWith('0x')).toBe(true);
+      expect(result.approveTx.params.data?.startsWith('0x')).toBe(true);
     });
 
     it('calls previewDeposit with correct arguments', async () => {
@@ -384,9 +384,9 @@ describe('moneyAccountTransactions', () => {
       });
 
       expect(result.approveTx.params.data).toBeDefined();
-      expect(result.approveTx.params.data.startsWith('0x')).toBe(true);
+      expect(result.approveTx.params.data?.startsWith('0x')).toBe(true);
       expect(result.depositTx.params.data).toBeDefined();
-      expect(result.depositTx.params.data.startsWith('0x')).toBe(true);
+      expect(result.depositTx.params.data?.startsWith('0x')).toBe(true);
     });
   });
 
@@ -674,10 +674,10 @@ describe('moneyAccountTransactions', () => {
       });
 
       expect(result.withdrawTx.params.data).toBeDefined();
-      expect(result.withdrawTx.params.data.startsWith('0x')).toBe(true);
+      expect(result.withdrawTx.params.data?.startsWith('0x')).toBe(true);
 
       expect(result.transferTx.params.data).toBeDefined();
-      expect(result.transferTx.params.data.startsWith('0x')).toBe(true);
+      expect(result.transferTx.params.data?.startsWith('0x')).toBe(true);
     });
 
     it('calls getRate on the accountant contract', async () => {
@@ -708,8 +708,8 @@ describe('moneyAccountTransactions', () => {
       });
 
       expect(mockGetRate).not.toHaveBeenCalled();
-      expect(result.withdrawTx.params.data.startsWith('0x')).toBe(true);
-      expect(result.transferTx.params.data.startsWith('0x')).toBe(true);
+      expect(result.withdrawTx.params.data?.startsWith('0x')).toBe(true);
+      expect(result.transferTx.params.data?.startsWith('0x')).toBe(true);
     });
 
     it('encodes the recipient address in the transfer calldata', async () => {
@@ -726,7 +726,7 @@ describe('moneyAccountTransactions', () => {
       });
 
       // The recipient address (lowercased, without 0x prefix) should appear in the calldata
-      expect(result.transferTx.params.data.toLowerCase()).toContain(
+      expect(result.transferTx.params.data?.toLowerCase()).toContain(
         MOCK_RECIPIENT_ADDRESS.toLowerCase().slice(2),
       );
     });
@@ -749,10 +749,9 @@ describe('moneyAccountTransactions', () => {
       const iface = new ethers.utils.Interface([
         'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
       ]);
-      const decoded = iface.decodeFunctionData(
-        'withdraw',
-        result.withdrawTx.params.data,
-      );
+      const withdrawData = result.withdrawTx.params.data;
+      if (!withdrawData) throw new Error('Expected withdraw data');
+      const decoded = iface.decodeFunctionData('withdraw', withdrawData);
       const encodedMinimumAssets = BigInt(decoded.minimumAssets.toString());
       expect(encodedMinimumAssets).toBe(amount - 1n);
     });
@@ -771,10 +770,9 @@ describe('moneyAccountTransactions', () => {
       const iface = new ethers.utils.Interface([
         'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
       ]);
-      const decoded = iface.decodeFunctionData(
-        'withdraw',
-        result.withdrawTx.params.data,
-      );
+      const withdrawData = result.withdrawTx.params.data;
+      if (!withdrawData) throw new Error('Expected withdraw data');
+      const decoded = iface.decodeFunctionData('withdraw', withdrawData);
       expect(BigInt(decoded.minimumAssets.toString())).toBe(0n);
     });
 
@@ -796,10 +794,9 @@ describe('moneyAccountTransactions', () => {
       const iface = new ethers.utils.Interface([
         'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
       ]);
-      const decoded = iface.decodeFunctionData(
-        'withdraw',
-        result.withdrawTx.params.data,
-      );
+      const withdrawData = result.withdrawTx.params.data;
+      if (!withdrawData) throw new Error('Expected withdraw data');
+      const decoded = iface.decodeFunctionData('withdraw', withdrawData);
       const shareAmount = BigInt(decoded.shareAmount.toString());
 
       // With ceiling division: (1_960_000 * 1_000_000 + 1_000_094 - 1) / 1_000_094 = 1_959_816
@@ -938,7 +935,7 @@ describe('moneyAccountTransactions', () => {
         MOCK_RECIPIENT,
       );
 
-      expect(result[1].data.toLowerCase()).toContain(
+      expect(result[1].data?.toLowerCase()).toContain(
         MOCK_RECIPIENT.toLowerCase().slice(2),
       );
     });
