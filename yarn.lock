@@ -10680,7 +10680,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:^68.0.1, @metamask/transaction-controller@npm:^68.2.0, @metamask/transaction-controller@npm:^68.2.2, @metamask/transaction-controller@npm:^68.3.0":
+"@metamask/transaction-controller@npm:^68.2.0, @metamask/transaction-controller@npm:^68.2.2, @metamask/transaction-controller@npm:^68.3.0":
   version: 68.4.0
   resolution: "@metamask/transaction-controller@npm:68.4.0"
   dependencies:
