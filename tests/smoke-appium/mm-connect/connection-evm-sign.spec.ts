@@ -8,7 +8,12 @@ import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModa
 import SignModal from '../../page-objects/MMConnect/SignModal.js';
 import SwitchChainModal from '../../page-objects/MMConnect/SwitchChainModal.js';
 import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
-import { DappServer, DappVariants, TestDapps, sleep } from '../../framework/index.js';
+import {
+  DappServer,
+  DappVariants,
+  TestDapps,
+  sleep,
+} from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
   setupAdbReverse,

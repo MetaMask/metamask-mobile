@@ -7,7 +7,12 @@ import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelp
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
 import SignModal from '../../page-objects/MMConnect/SignModal.js';
 import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
-import { DappServer, DappVariants, TestDapps, sleep } from '../../framework/index.js';
+import {
+  DappServer,
+  DappVariants,
+  TestDapps,
+  sleep,
+} from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
   setupAdbReverse,
