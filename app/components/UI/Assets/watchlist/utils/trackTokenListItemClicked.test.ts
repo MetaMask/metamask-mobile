@@ -1,4 +1,5 @@
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import type { UseAnalyticsHook } from '../../../../hooks/useAnalytics/useAnalytics.types';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import {
   isWatchlistTokenListItemSource,
@@ -12,7 +13,7 @@ describe('trackTokenListItemClicked', () => {
   const mockCreateEventBuilder = jest.fn(() => ({
     addProperties: mockAddProperties,
     build: mockBuild,
-  }));
+  })) as unknown as UseAnalyticsHook['createEventBuilder'];
 
   beforeEach(() => {
     jest.clearAllMocks();
