@@ -17,9 +17,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-const mockOpenSupportWithConsent = jest.fn(
-  (open: (url: string) => void, baseUrl?: string) => open(baseUrl ?? ''),
-);
+const mockOpenSupportWithConsent = jest.fn();
 jest.mock('../../../../hooks/useSupportConsent', () => ({
   useSupportConsent: () => ({
     openSupportWithConsent: mockOpenSupportWithConsent,
@@ -92,7 +90,10 @@ describe('PerpsServiceInterruptionBanner', () => {
     );
   });
 
-  it('navigates to the SimpleWebview with the resolved support URL when the opener resolves', () => {
+  // Covers only the call-site opener glue: invoking the opener passed to
+  // openSupportWithConsent navigates to the webview. The consent modal
+  // behavior itself is covered by the core support-consent tests.
+  it('navigates to the SimpleWebview when the provided opener is invoked', () => {
     useSelector.mockImplementation((selector: unknown) => {
       if (selector === selectPerpsServiceInterruptionBannerEnabledFlag) {
         return true;
@@ -103,6 +104,8 @@ describe('PerpsServiceInterruptionBanner', () => {
     const { getByText } = render(<PerpsServiceInterruptionBanner />);
 
     fireEvent.press(getByText('Contact support'));
+    const [open] = mockOpenSupportWithConsent.mock.calls[0];
+    open(SUPPORT_CONFIG.Url);
 
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',

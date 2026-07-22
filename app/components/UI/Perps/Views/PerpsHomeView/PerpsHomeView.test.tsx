@@ -190,9 +190,7 @@ jest.mock('../../hooks/usePerpsProvider', () => ({
 
 // Use real BigNumber library - mocking it causes issues with module initialization
 
-const mockOpenSupportWithConsent = jest.fn(
-  (open: (url: string) => void, baseUrl?: string) => open(baseUrl ?? ''),
-);
+const mockOpenSupportWithConsent = jest.fn();
 jest.mock('../../../../hooks/useSupportConsent', () => ({
   useSupportConsent: () => ({
     openSupportWithConsent: mockOpenSupportWithConsent,
@@ -986,10 +984,15 @@ describe('PerpsHomeView', () => {
       );
     });
 
-    it('navigates to the SimpleWebview with the resolved support URL when the opener resolves', () => {
+    // Covers only the call-site opener glue: invoking the opener passed to
+    // openSupportWithConsent navigates to the webview. The consent modal
+    // behavior itself is covered by the core support-consent tests.
+    it('navigates to the SimpleWebview when the provided opener is invoked', () => {
       const { getByTestId } = render(<PerpsHomeView />);
 
       fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON));
+      const [open] = mockOpenSupportWithConsent.mock.calls[0];
+      open(SUPPORT_CONFIG.Url);
 
       expect(mockNavigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
