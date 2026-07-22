@@ -39,7 +39,6 @@ interface UseMoneyAccountBalanceResult {
   vaultApyQuery: UseQueryResult<NormalizedVaultApyResponse>;
   isBalanceLoading: boolean;
   isBalanceFetchError: boolean;
-  isBalanceFetching: boolean;
   isBalanceUnavailable: boolean;
   lastKnownTotalFiatFormatted: string | undefined;
   refetchBalance: () => void;
@@ -88,12 +87,6 @@ const useMoneyAccountBalance = (
 
   /** Any balance fetch failure → full error state. */
   const isBalanceFetchError = moneyBalanceQuery.isError;
-
-  /**
-   * True while a refetch is in flight. Combined with isError, lets callers
-   * distinguish retry-in-flight (show skeleton) from silent auto-refetch.
-   */
-  const isBalanceFetching = moneyBalanceQuery.isFetching;
 
   const refetchBalance = useCallback(
     () =>
@@ -229,7 +222,6 @@ const useMoneyAccountBalance = (
     vaultApyQuery,
     isBalanceLoading,
     isBalanceFetchError,
-    isBalanceFetching,
     isBalanceUnavailable,
     lastKnownTotalFiatFormatted,
     refetchBalance,
