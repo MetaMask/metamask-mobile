@@ -324,9 +324,11 @@ jest.mock('../../../Assets/watchlist/components/WatchlistEmptyCTA', () => {
 });
 
 const mockAnalyticsTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn(() => ({}));
 const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn(() => ({})),
+  addProperties: mockAddProperties,
+  build: mockBuild,
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -1678,8 +1680,13 @@ describe('BridgeTokenSelector', () => {
 
       expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'Token List Item Clicked',
+        expect.objectContaining({ category: 'Token List Item Clicked' }),
       );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        asset: 'eip155:1/slip44:60',
+        source: TokenDetailsSource.SwapWatchlistFilter,
+        position: 0,
+      });
       expect(mockHandleTokenPress).toHaveBeenCalled();
     });
 

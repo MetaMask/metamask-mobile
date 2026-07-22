@@ -28,7 +28,7 @@ import {
 } from '@shopify/flash-list';
 import { NetworkPills } from './NetworkPills';
 import Routes from '../../../../../constants/navigation/Routes';
-import { CaipChainId } from '@metamask/utils';
+import { CaipChainId, type CaipAssetType } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import {
@@ -83,7 +83,7 @@ import {
 } from '../../utils/mapWatchlistTokenToBridgeToken';
 import { mergeBridgeTokensWithBalances } from '../../utils/mergeBridgeTokensWithBalances';
 import { filterWatchlistBridgeTokens } from '../../utils/filterWatchlistBridgeTokens';
-import { EVENT_NAME } from '../../../../../core/Analytics';
+import { trackTokenListItemClicked } from '../../../Assets/watchlist/utils/trackTokenListItemClicked';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import {
@@ -257,17 +257,13 @@ export const BridgeTokenSelector: React.FC = () => {
     useTokenWatchlistQuery();
 
   const handleWatchlistTokenPress = useCallback(
-    (token: BridgeToken) => {
-      if (isWatchlistListMode) {
-        trackEvent(
-          createEventBuilder(EVENT_NAME.TOKEN_LIST_ITEM_CLICKED)
-            .addProperties({
-              source: TokenDetailsSource.SwapWatchlistFilter,
-              token_symbol: token.symbol,
-              chain_id: String(token.chainId),
-            })
-            .build(),
-        );
+    (token: BridgeToken & { assetId?: CaipAssetType }, position: number) => {
+      if (isWatchlistListMode && token.assetId) {
+        trackTokenListItemClicked(trackEvent, createEventBuilder, {
+          asset: String(token.assetId),
+          source: TokenDetailsSource.SwapWatchlistFilter,
+          position,
+        });
       }
       handleTokenPress(token);
     },
@@ -715,7 +711,7 @@ export const BridgeTokenSelector: React.FC = () => {
   );
 
   const renderToken = useCallback<ListRenderItem<BridgeToken | null>>(
-    ({ item }) => {
+    ({ item, index }) => {
       // This is to support a partial loading state for top tokens
       // We can show tokens with balance immediately, but we need to wait for the top tokens to load
       if (!item) {
@@ -730,7 +726,7 @@ export const BridgeTokenSelector: React.FC = () => {
         <BridgeTokenSelectorRow
           token={item}
           isSelected={isSelected}
-          onTokenPress={handleWatchlistTokenPress}
+          onTokenPress={(token) => handleWatchlistTokenPress(token, index)}
           onInfoPress={handleInfoButtonPress}
           isNoFeeAsset={getIsNoFeeAsset(item)}
           showStockBadge={isStockRwaBridgeToken(item, isRWAEnabled)}
