@@ -94,3 +94,8 @@ export const selectPaymentOverrideByTransactionId = createSelector(
     (transactionData as Record<string, unknown> | undefined)
       ?.paymentOverride as string | undefined,
 );
+
+export const selectTransactionPayQuoteErrorByTransactionId = createSelector(
+  selectTransactionDataByTransactionId,
+  (transactionData) => transactionData?.quoteError,
+);

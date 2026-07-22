@@ -243,12 +243,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       (isDepositPrefillLoading ||
         (isDepositPrefilled && !hasSourceAmount && !isKeyboardVisible));
 
-    const { alertMessage, alertTitle } = useTransactionCustomAmountAlerts({
-      isInputChanged,
-      isKeyboardVisible,
-      pendingTokenAmount: amountHumanDebounced,
-      pendingFiatAmount: amountFiatDebounced,
-    });
+    const { alertContent, alertMessage, alertTitle } =
+      useTransactionCustomAmountAlerts({
+        isInputChanged,
+        isKeyboardVisible,
+        pendingTokenAmount: amountHumanDebounced,
+        pendingFiatAmount: amountFiatDebounced,
+      });
 
     const hasAutoSubmittedPrefill = useRef(false);
 
@@ -398,7 +399,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
           style={styles.bottomBlock}
         >
-          <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
+          <AlertMessage
+            content={alertContent}
+            alertMessage={alertMessage ?? headlessBuyError}
+          />
           {!isResultReady && !(isKeyboardVisible && isAddMusdIntent) && (
             <>
               {supportAccountSelection &&
