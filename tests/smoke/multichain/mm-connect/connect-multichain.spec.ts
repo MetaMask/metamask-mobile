@@ -1,20 +1,15 @@
 /**
- * E2E tests for MMConnect Multichain (@metamask/connect-multichain) flowing
- * through MetaMask Mobile's in-app browser.
+ * E2E tests for MMConnect Multichain (@metamask/connect-multichain) driven
+ * inside MetaMask Mobile's in-app browser (ported from the extension spec
+ * `metamask-extension/test/e2e/tests/mm-connect/connect-multichain.spec.ts`).
+ * `wallet_createSession` / `wallet_invokeMethod` / `wallet_revokeSession`
+ * route via the in-app bridge to `ConnectBottomSheet` and the redesigned
+ * confirmation footer.
  *
- * Ported from the extension spec
- * `metamask-extension/test/e2e/tests/mm-connect/connect-multichain.spec.ts`.
- *
- * Like the Legacy EVM sibling spec, this drives the dapp inside the in-app
- * browser rather than an external Chrome/Safari instance. The dapp talks to
- * MetaMask via the in-app bridge, so `wallet_createSession`,
- * `wallet_invokeMethod`, and `wallet_revokeSession` route directly to the
- * standard `ConnectBottomSheet` / redesigned confirmation footer.
- *
- * Scope: a single Ethereum mainnet (eip155:1) session — that is the default
- * scope pre-selected by the dapp's DynamicInputs UI. Coverage status and
- * deferred multi-scope / Solana / chain-permission scenarios are tracked in
- * `./README.md`.
+ * Scope: a single Localhost/Anvil (eip155:1337) session — the dapp
+ * pre-selects eip155:1337 when served from localhost (always the case under
+ * e2e), and the default fixture ships a matching 0x539 "Localhost" network
+ * backed by the test-run Anvil node.
  */
 import { SmokeMultiChainAPI } from '../../../tags';
 import { DappVariants } from '../../../framework/Constants';
@@ -26,11 +21,11 @@ import FooterActions from '../../../page-objects/Browser/Confirmations/FooterAct
 import Browser from '../../../page-objects/Browser/BrowserView';
 import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal';
 
-const ETHEREUM_MAINNET_SCOPE = 'eip155:1';
-// Hex chain id for `eip155:1` — what `eth_chainId` returns for Ethereum
-// Mainnet. We only assert containment because the dapp wraps the JSON-RPC
-// result in `"<value>"` and may add whitespace/newlines.
-const ETHEREUM_MAINNET_CHAIN_ID_HEX = '0x1';
+const LOCALHOST_SCOPE = 'eip155:1337';
+// Hex chain id for `eip155:1337` — what `eth_chainId` returns for the
+// Localhost/Anvil network. We only assert containment because the dapp wraps
+// the JSON-RPC result in `"<value>"` and may add whitespace/newlines.
+const LOCALHOST_CHAIN_ID_HEX = '0x539';
 
 describe(SmokeMultiChainAPI('MMConnect Multichain (in-app browser)'), () => {
   beforeAll(async () => {
@@ -55,34 +50,33 @@ describe(SmokeMultiChainAPI('MMConnect Multichain (in-app browser)'), () => {
 
         await device.disableSynchronization();
         try {
-          // 1. Multichain connect — the dapp pre-selects eip155:1 in the
+          // 1. Multichain connect — the dapp pre-selects eip155:1337 in the
           //    DynamicInputs section, so we can tap Connect directly.
           await MMConnectBrowserPlaygroundDapp.tapConnectMultichain();
           await ConnectBottomSheet.tapConnectButton();
 
-          // 2. Scope display: the scopes section + per-scope card render
-          //    once `wallet_createSession` resolves with a non-empty
-          //    sessionScopes.
+          // 2. Scopes section + per-scope card render once
+          //    `wallet_createSession` resolves with non-empty sessionScopes.
           await MMConnectBrowserPlaygroundDapp.assertScopesSectionVisible();
           await MMConnectBrowserPlaygroundDapp.assertScopeCardVisible(
-            ETHEREUM_MAINNET_SCOPE,
+            LOCALHOST_SCOPE,
           );
 
           // 3. Signing request via the scope card: select personal_sign in
           //    the per-scope method picker, tap Invoke, confirm in MetaMask,
           //    then verify the result code element contains a hex string.
           await MMConnectBrowserPlaygroundDapp.selectScopeCardMethod(
-            ETHEREUM_MAINNET_SCOPE,
+            LOCALHOST_SCOPE,
             'personal_sign',
           );
           await MMConnectBrowserPlaygroundDapp.invokeScopeCardMethod(
-            ETHEREUM_MAINNET_SCOPE,
+            LOCALHOST_SCOPE,
           );
           // personal_sign uses the redesigned confirmation surface, so confirm
           // via the shared footer rather than the legacy signing bottom sheet.
           await FooterActions.tapConfirmButton();
           await MMConnectBrowserPlaygroundDapp.assertScopeCardResultContains(
-            ETHEREUM_MAINNET_SCOPE,
+            LOCALHOST_SCOPE,
             'personal_sign',
             '0x',
           );
@@ -116,12 +110,12 @@ describe(SmokeMultiChainAPI('MMConnect Multichain (in-app browser)'), () => {
 
         await device.disableSynchronization();
         try {
-          // Establish the multichain session for the default eip155:1 scope.
+          // Establish the multichain session for the default eip155:1337 scope.
           await MMConnectBrowserPlaygroundDapp.tapConnectMultichain();
           await ConnectBottomSheet.tapConnectButton();
           await MMConnectBrowserPlaygroundDapp.assertScopesSectionVisible();
           await MMConnectBrowserPlaygroundDapp.assertScopeCardVisible(
-            ETHEREUM_MAINNET_SCOPE,
+            LOCALHOST_SCOPE,
           );
 
           // Soft refresh the in-app browser tab. The dapp re-mounts and
@@ -130,22 +124,22 @@ describe(SmokeMultiChainAPI('MMConnect Multichain (in-app browser)'), () => {
           await MMConnectBrowserPlaygroundDapp.reloadDapp();
           await MMConnectBrowserPlaygroundDapp.assertScopesSectionVisible();
           await MMConnectBrowserPlaygroundDapp.assertScopeCardVisible(
-            ETHEREUM_MAINNET_SCOPE,
+            LOCALHOST_SCOPE,
           );
 
           // The session is still usable: `eth_chainId` round-trips through
           // `wallet_invokeMethod` without a re-connect.
           await MMConnectBrowserPlaygroundDapp.selectScopeCardMethod(
-            ETHEREUM_MAINNET_SCOPE,
+            LOCALHOST_SCOPE,
             'eth_chainId',
           );
           await MMConnectBrowserPlaygroundDapp.invokeScopeCardMethod(
-            ETHEREUM_MAINNET_SCOPE,
+            LOCALHOST_SCOPE,
           );
           await MMConnectBrowserPlaygroundDapp.assertScopeCardResultContains(
-            ETHEREUM_MAINNET_SCOPE,
+            LOCALHOST_SCOPE,
             'eth_chainId',
-            ETHEREUM_MAINNET_CHAIN_ID_HEX,
+            LOCALHOST_CHAIN_ID_HEX,
           );
         } finally {
           await device.enableSynchronization();
@@ -168,7 +162,7 @@ describe(SmokeMultiChainAPI('MMConnect Multichain (in-app browser)'), () => {
       async () => {
         await MMConnectBrowserPlaygroundDapp.setupAndNavigateToTestDapp();
 
-        // Establish a multichain session for the default eip155:1 scope so
+        // Establish a multichain session for the default eip155:1337 scope so
         // there is something to revoke from the wallet side.
         await device.disableSynchronization();
         try {
@@ -176,21 +170,17 @@ describe(SmokeMultiChainAPI('MMConnect Multichain (in-app browser)'), () => {
           await ConnectBottomSheet.tapConnectButton();
           await MMConnectBrowserPlaygroundDapp.assertScopesSectionVisible();
           await MMConnectBrowserPlaygroundDapp.assertScopeCardVisible(
-            ETHEREUM_MAINNET_SCOPE,
+            LOCALHOST_SCOPE,
           );
         } finally {
           await device.enableSynchronization();
         }
 
-        // Wallet-side revoke: open the dapp's connection bar → Disconnect all
-        // accounts and networks → Confirm. The connected-accounts summary
-        // bottom sheet surfaces "Disconnect all"
-        // (DISCONNECT_ALL_ACCOUNTS_NETWORKS) directly, so there is no
-        // intermediate "Manage permissions" step.
-        // Counterpart of the dapp-initiated `wallet_revokeSession` exercised
-        // by the personal_sign spec; the multichain provider should observe
-        // `wallet_sessionChanged` with empty sessionScopes and tear the
-        // scopes section down without the dapp tapping Disconnect.
+        // Wallet-side revoke (counterpart of the dapp-initiated
+        // `wallet_revokeSession` in the personal_sign spec): connection bar →
+        // Disconnect all accounts and networks → Confirm. The multichain
+        // provider should observe `wallet_sessionChanged` with empty
+        // sessionScopes and tear the scopes section down on its own.
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await ConnectedAccountsModal.tapDisconnectAllAccountsAndNetworksButton();
         await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
@@ -221,27 +211,27 @@ describe(SmokeMultiChainAPI('MMConnect Multichain (in-app browser)'), () => {
 
         await device.disableSynchronization();
         try {
-          // Open the multichain session for the default (eip155:1) scope.
+          // Open the multichain session for the default (eip155:1337) scope.
           await MMConnectBrowserPlaygroundDapp.tapConnectMultichain();
           await ConnectBottomSheet.tapConnectButton();
           await MMConnectBrowserPlaygroundDapp.assertScopeCardVisible(
-            ETHEREUM_MAINNET_SCOPE,
+            LOCALHOST_SCOPE,
           );
 
           // `eth_chainId` is a non-interactive read — no MetaMask confirmation
           // prompt should appear. The dapp's per-scope JSON-RPC routing must
           // return the hex chain id matching the scope it was invoked on.
           await MMConnectBrowserPlaygroundDapp.selectScopeCardMethod(
-            ETHEREUM_MAINNET_SCOPE,
+            LOCALHOST_SCOPE,
             'eth_chainId',
           );
           await MMConnectBrowserPlaygroundDapp.invokeScopeCardMethod(
-            ETHEREUM_MAINNET_SCOPE,
+            LOCALHOST_SCOPE,
           );
           await MMConnectBrowserPlaygroundDapp.assertScopeCardResultContains(
-            ETHEREUM_MAINNET_SCOPE,
+            LOCALHOST_SCOPE,
             'eth_chainId',
-            ETHEREUM_MAINNET_CHAIN_ID_HEX,
+            LOCALHOST_CHAIN_ID_HEX,
           );
         } finally {
           await device.enableSynchronization();

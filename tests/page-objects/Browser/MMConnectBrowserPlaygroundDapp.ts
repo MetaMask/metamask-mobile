@@ -42,28 +42,19 @@ function createTestId(...parts: string[]): string {
 
 /**
  * Page object for the `@metamask/browser-playground` MMConnect dapp loaded
- * inside MetaMask Mobile's in-app browser (BrowserTab WebView).
- *
- * Selector strategy: the dapp generates test IDs at runtime via
- * `@metamask/playground-ui` `TEST_IDS`/`createTestId`. Static IDs live in
- * `MMConnectDappTestIds`; dynamic IDs (scope cards, methods, dynamic-inputs
- * checkboxes) are constructed via the local `createTestId` helper above so
- * the escaping stays in lockstep with the dapp.
- *
- * This page object is the Detox sibling of `BrowserPlaygroundDapp.ts`, which
- * targets the same dapp from an external native browser via Playwright/Appium
- * (perf tests). Both consume the same selector constants.
+ * inside MetaMask Mobile's in-app browser (BrowserTab WebView). Detox sibling
+ * of `BrowserPlaygroundDapp.ts` (Playwright/Appium perf tests); both consume
+ * the same selector constants. Static test IDs live in `MMConnectDappTestIds`;
+ * dynamic IDs (scope cards, methods) are constructed via the local
+ * `createTestId` helper above so the escaping stays in lockstep with the
+ * dapp's `@metamask/playground-ui` runtime IDs.
  */
 class MMConnectBrowserPlaygroundDapp {
   /**
-   * Get an in-WebView element by its `data-testid` attribute.
-   *
-   * Uses CSS attribute selection rather than `by.web.id(...)` because the
-   * dapp sets `data-testid` (not `id`) on most interactive elements.
-   *
-   * Returns the framework's global `WebElement` (a Promise<IndexableWebElement>)
-   * so it composes directly with `Gestures.scrollToWebViewPort` /
-   * `Gestures.waitAndTap`, which await internally.
+   * Get an in-WebView element by its `data-testid` attribute (the dapp sets
+   * `data-testid`, not `id`). Returns the framework's global `WebElement`
+   * (a Promise<IndexableWebElement>) so it composes directly with
+   * `Gestures.scrollToWebViewPort` / `Gestures.waitAndTap`.
    */
   private getByDataTestId(testId: string): WebElement {
     return Matchers.getElementByCSS(
@@ -72,9 +63,7 @@ class MMConnectBrowserPlaygroundDapp {
     ) as WebElement;
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
   // App-level elements
-  // ──────────────────────────────────────────────────────────────────────────
 
   get appContainer(): WebElement {
     return this.getByDataTestId(MMConnectDappTestIds.RM_APP_CONTAINER);
@@ -98,16 +87,10 @@ class MMConnectBrowserPlaygroundDapp {
     return this.getByDataTestId('app-section-scopes');
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
   // Legacy EVM card elements
-  // ──────────────────────────────────────────────────────────────────────────
 
   get legacyEvmCard(): WebElement {
     return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_CARD);
-  }
-
-  get legacyEvmActiveAccount(): WebElement {
-    return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_ACTIVE_ACCOUNT);
   }
 
   get legacyEvmChainIdValue(): WebElement {
@@ -136,9 +119,7 @@ class MMConnectBrowserPlaygroundDapp {
     return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_RESPONSE_TEXT);
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
   // Dynamic selectors — scope cards & DynamicInputs checkboxes
-  // ──────────────────────────────────────────────────────────────────────────
 
   /**
    * Normalize a chain ID into a CAIP-2 scope ('eip155:1', 'solana:...').
@@ -152,17 +133,6 @@ class MMConnectBrowserPlaygroundDapp {
       return `eip155:${parseInt(chainIdOrScope, 16)}`;
     }
     return `eip155:${chainIdOrScope}`;
-  }
-
-  /**
-   * Scope-selection checkbox in the DynamicInputs section
-   * (e.g. `dynamic-inputs-checkbox-eip155-1`).
-   */
-  scopeCheckbox(chainIdOrScope: string): WebElement {
-    const scope = this.toScope(chainIdOrScope);
-    return this.getByDataTestId(
-      createTestId(MMConnectDappTestIds.DYNAMIC_INPUTS_CHECKBOX, scope),
-    );
   }
 
   scopeCard(chainIdOrScope: string): WebElement {
@@ -202,9 +172,7 @@ class MMConnectBrowserPlaygroundDapp {
     );
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
   // Navigation
-  // ──────────────────────────────────────────────────────────────────────────
 
   /**
    * Navigate the in-app browser to the locally-served MMConnect dapp.
@@ -257,9 +225,7 @@ class MMConnectBrowserPlaygroundDapp {
     await this.waitForAppContainer();
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
   // Interactions
-  // ──────────────────────────────────────────────────────────────────────────
 
   /**
    * Tap any in-WebView element, scrolling it into view first. Mirrors
@@ -319,15 +285,6 @@ class MMConnectBrowserPlaygroundDapp {
   }
 
   /**
-   * Toggle (select if not already selected) a multichain scope checkbox.
-   * The dapp pre-selects `eip155:1`, so call this only when a different
-   * scope set is required.
-   */
-  async ensureScopeSelected(chainIdOrScope: string): Promise<void> {
-    await this.tapElement(this.scopeCheckbox(chainIdOrScope));
-  }
-
-  /**
    * Select a method in the per-scope ScopeCard `<select>`. The dapp listens
    * for the native `change` event, so we set `value` and dispatch `change`
    * manually rather than tapping the option (Detox cannot reliably tap
@@ -357,9 +314,7 @@ class MMConnectBrowserPlaygroundDapp {
     await this.tapElement(this.scopeCardInvokeButton(chainIdOrScope));
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
   // Assertions
-  // ──────────────────────────────────────────────────────────────────────────
 
   async assertLegacyEvmCardVisible(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.legacyEvmCard, {

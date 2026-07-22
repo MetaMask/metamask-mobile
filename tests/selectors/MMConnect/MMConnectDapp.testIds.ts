@@ -46,17 +46,10 @@ export const MMConnectDappTestIds = {
   SOLANA_SIGNED_MESSAGE_RESULT: 'solana-signed-message-result',
   SCOPE_CARD: 'scope-card',
   SCOPE_CARD_NETWORK_NAME: 'scope-card-network-name',
-  SCOPE_CARD_ACTIVE_ACCOUNT: 'scope-card-active-account',
   SCOPE_CARD_METHOD_SELECT: 'scope-card-method-select',
-  SCOPE_CARD_METHOD_OPTION: 'scope-card-method-option',
   SCOPE_CARD_INVOKE_BTN: 'scope-card-invoke-btn',
-  SCOPE_CARD_RESULT: 'scope-card-result',
   SCOPE_CARD_RESULT_CODE: 'scope-card-result-code',
   SCOPE_CARD_RESULT_STATUS: 'scope-card-result-status',
-  // DynamicInputs scope-selection checkboxes (e.g.
-  // `dynamic-inputs-checkbox-eip155-1`). Used to pick scopes before tapping the
-  // multichain Connect button.
-  DYNAMIC_INPUTS_CHECKBOX: 'dynamic-inputs-checkbox',
   RM_APP_CONTAINER: 'app-container',
   RM_APP_TITLE: 'app-title',
 } as const;

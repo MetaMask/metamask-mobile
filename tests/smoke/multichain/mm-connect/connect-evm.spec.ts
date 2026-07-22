@@ -1,19 +1,12 @@
 /**
- * E2E tests for MMConnect Legacy EVM (@metamask/connect-evm) flowing through
- * MetaMask Mobile's in-app browser.
- *
- * Ported from the extension spec
- * `metamask-extension/test/e2e/tests/mm-connect/connect-evm.spec.ts`. In
- * contrast to the perf-suite tests under `tests/performance/mm-connect/` —
- * which drive the dapp from an external Chrome/Safari browser over Appium —
- * this spec runs the dapp inside MetaMask's own WebView (BrowserTab) using
- * Detox. The dapp talks to MetaMask via the in-app `window.ethereum` bridge,
- * so EIP-1193 calls route directly to the standard `ConnectBottomSheet` and the
- * redesigned signature / transaction confirmation surfaces (shared footer).
- *
- * Coverage status vs. the extension spec is tracked in `./README.md`. The
- * Wagmi connector variant is intentionally deferred — its dapp interactions
- * differ but the underlying provider path is identical to Legacy EVM.
+ * E2E tests for MMConnect Legacy EVM (@metamask/connect-evm) driven inside
+ * MetaMask Mobile's in-app browser via Detox (ported from the extension spec
+ * `metamask-extension/test/e2e/tests/mm-connect/connect-evm.spec.ts`; the
+ * perf-suite tests under `tests/performance/mm-connect/` instead drive an
+ * external browser over Appium). EIP-1193 calls route via the in-app
+ * `window.ethereum` bridge to `ConnectBottomSheet` and the redesigned
+ * confirmation surfaces (shared footer). The Wagmi connector variant is
+ * deferred — its provider path is identical to Legacy EVM.
  */
 import type { Mockttp } from 'mockttp';
 import { SmokeMultiChainAPI } from '../../../tags';
@@ -140,19 +133,14 @@ describe(SmokeMultiChainAPI('MMConnect Legacy EVM (in-app browser)'), () => {
     );
   });
 
-  // NOTE ON WALLET-SIDE `chainChanged`:
-  // The extension spec's "wallet changes the permitted chain → dapp gets
-  // chainChanged" scenario is not reproducible from the MetaMask Mobile UI for
-  // a *connected* connect-evm dapp. The dapp's displayed chain tracks the
-  // per-dapp network (`SelectedNetworkController.domains[origin]`), which only
-  // changes via `setNetworkClientIdForDomain`. But (a) the connected-accounts
-  // network picker navigates to the network selector without `hostInfo`, so it
-  // switches the *global* network (no per-dapp change); (b) the browser
-  // toolbar's per-dapp network selector is only rendered while *disconnected*
-  // (`selectedAddress` becomes the connected account once connected). So we
-  // instead cover the `chainChanged` delivery path via a dapp-initiated
-  // `wallet_switchEthereumChain`, which does update the per-dapp network and
-  // emits `metamask_chainChanged` to the provider.
+  // NOTE ON WALLET-SIDE `chainChanged`: the extension spec's "wallet changes
+  // the permitted chain" scenario is not reproducible from the mobile UI for a
+  // *connected* dapp — no surface calls `setNetworkClientIdForDomain` there
+  // (the connected-accounts picker switches the *global* network; the
+  // toolbar's per-dapp selector only renders while disconnected). We cover the
+  // `chainChanged` delivery path via a dapp-initiated
+  // `wallet_switchEthereumChain` instead, which does update the per-dapp
+  // network and emits `metamask_chainChanged` to the provider.
   it('notifies the dapp when it switches the active chain', async () => {
     await withFixtures(
       {
