@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 import {
   useFeedScrollManager,
@@ -181,7 +181,7 @@ describe('useFeedScrollManager', () => {
   });
 
   describe('layout measurement', () => {
-    it('measures header height after mount', async () => {
+    it('measures header height after mount', () => {
       const props = createDefaultProps();
 
       const { result } = renderHook(() => useFeedScrollManager(props));
@@ -190,12 +190,10 @@ describe('useFeedScrollManager', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitFor(() => {
-        expect(result.current.headerHeight).toBe(120);
-      });
+      expect(result.current.headerHeight).toBe(120);
     });
 
-    it('measures tabBar height after mount', async () => {
+    it('measures tabBar height after mount', () => {
       const props = createDefaultProps();
 
       const { result } = renderHook(() => useFeedScrollManager(props));
@@ -204,12 +202,10 @@ describe('useFeedScrollManager', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitFor(() => {
-        expect(result.current.tabBarHeight).toBe(48);
-      });
+      expect(result.current.tabBarHeight).toBe(48);
     });
 
-    it('sets layoutReady to true after both measurements complete', async () => {
+    it('sets layoutReady to true after both measurements complete', () => {
       const props = createDefaultProps();
 
       const { result } = renderHook(() => useFeedScrollManager(props));
@@ -218,9 +214,7 @@ describe('useFeedScrollManager', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitFor(() => {
-        expect(result.current.layoutReady).toBe(true);
-      });
+      expect(result.current.layoutReady).toBe(true);
     });
   });
 
@@ -411,7 +405,7 @@ describe('useFeedScrollManager', () => {
       expect(result.current.scrollHandler).toBeDefined();
     });
 
-    it('does not trigger header change when below threshold', async () => {
+    it('does not trigger header change when below threshold', () => {
       const props = createDefaultProps();
 
       const { result } = renderHook(() => useFeedScrollManager(props));
@@ -420,9 +414,7 @@ describe('useFeedScrollManager', () => {
         jest.advanceTimersByTime(100);
       });
 
-      await waitFor(() => {
-        expect(result.current.layoutReady).toBe(true);
-      });
+      expect(result.current.layoutReady).toBe(true);
 
       const handler = result.current.scrollHandler as unknown as ScrollHandler;
 

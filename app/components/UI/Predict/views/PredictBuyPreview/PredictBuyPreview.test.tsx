@@ -254,15 +254,8 @@ const initialState = {
 };
 
 describe('PredictBuyPreview', () => {
-  beforeAll(() => {
-    jest.useFakeTimers();
-  });
-
-  afterAll(() => {
-    jest.useRealTimers();
-  });
-
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
 
     // Reset mock values to defaults
@@ -295,6 +288,8 @@ describe('PredictBuyPreview', () => {
   });
 
   afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
     jest.clearAllMocks();
   });
 
