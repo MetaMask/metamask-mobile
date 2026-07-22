@@ -1,10 +1,22 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { NativeModules, Platform } from 'react-native';
 import SNSMobileSDK from '@sumsub/react-native-mobilesdk-module';
 import Engine from '../../../core/Engine';
 
 // eslint-disable-next-line import-x/no-restricted-paths
 import { UKYC_API_BASE_URL } from '../MoonpayDemo/api';
+
+// How often to poll the UKYC session status after the SumSub SDK completes.
+const SESSION_STATUS_POLL_INTERVAL_MS = 15000;
+
+// Statuses that end the polling loop. Anything else keeps polling.
+const TERMINAL_SESSION_STATUSES: ReadonlySet<string> = new Set([
+  'approved',
+  'completed',
+  'rejected',
+  'failed',
+  'blocked',
+]);
 
 async function getBearerToken(): Promise<string> {
   const bearerToken =
@@ -88,6 +100,37 @@ async function fetchAccessToken(
   return await response.json();
 }
 
+// TODO: type this better
+interface SessionStatusResponse {
+  finalStatus: string
+  statusMessage?: string
+  externalUserId: string
+  kycStatus: string
+  vendor: string
+  vendorStatus: string
+}
+
+async function getSessionStatus(
+  sessionId: string,
+): Promise<SessionStatusResponse> {
+  const bearerToken = await getBearerToken();
+  const response = await fetch(`${UKYC_API_BASE_URL}/sessions/${sessionId}/status`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${bearerToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(
+      `GET /${sessionId}/status failed (${response.status}): ${errorBody}`,
+    );
+  }
+
+  return response.json();
+}
+
 const useSumSubDemo = () => {
   const [sdkResult, setSdkResult] = useState<Record<string, unknown> | null>(
     null,
@@ -95,11 +138,52 @@ const useSumSubDemo = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
+  const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const stopPolling = useCallback(() => {
+    if (pollTimerRef.current) {
+      clearTimeout(pollTimerRef.current);
+      pollTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => () => stopPolling(), [stopPolling]);
+
+  const pollSessionStatus = useCallback(
+    (sessionId: string) => {
+      const tick = async () => {
+        try {
+          const sessionStatus = await getSessionStatus(sessionId);
+          // eslint-disable-next-line no-console
+          console.log('[SumSub] Session status:', JSON.stringify(sessionStatus));
+          setSdkResult({ ...sessionStatus });
+          setStatus(`Session status: ${sessionStatus.finalStatus}`);
+          if (TERMINAL_SESSION_STATUSES.has(sessionStatus.finalStatus)) {
+            stopPolling();
+            return;
+          }
+        } catch (err) {
+          // Keep polling on transient errors; surface the latest one.
+          // eslint-disable-next-line no-console
+          console.error('[SumSubDemo] getSessionStatus failed:', err);
+          setSdkResult({ error: String(err) });
+        }
+        pollTimerRef.current = setTimeout(
+          tick,
+          SESSION_STATUS_POLL_INTERVAL_MS,
+        );
+      };
+      tick();
+    },
+    [stopPolling],
+  );
+
   const launchSumSubSDK = useCallback(
     async (moonPayAccessToken: string | null, moonPayUserId: string | null) => {
       setIsLoading(true);
       setSdkResult(null);
       setStatus(null);
+      stopPolling();
 
       try {
         if (!NativeModules.SNSMobileSDKModule) {
@@ -118,6 +202,8 @@ const useSumSubDemo = () => {
         }
         const { sessionId, idosSessionId, wrappedUserKey } =
           await createSession(mockJwtToken, moonPayAccessToken, moonPayUserId);
+
+        console.log('[SumSubDemo] idosSessionId', idosSessionId);
 
         setStatus('Fetching access token...');
         const { applicantAccessToken } = await fetchAccessToken(
@@ -163,8 +249,9 @@ const useSumSubDemo = () => {
         const result: Record<string, unknown> = await snsMobileSDK.launch();
         // eslint-disable-next-line no-console
         console.log('[SumSub] Result:', JSON.stringify(result));
-        setSdkResult(result);
-        setStatus('Complete');
+
+        setStatus('Polling session status...');
+        pollSessionStatus(idosSessionId);
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('[SumSubDemo] Error:', err);
@@ -174,10 +261,10 @@ const useSumSubDemo = () => {
         setIsLoading(false);
       }
     },
-    [],
+    [pollSessionStatus, stopPolling],
   );
 
-  return { sdkResult, isLoading, status, launchSumSubSDK };
+  return { sdkResult, isLoading, status, launchSumSubSDK, getSessionStatus };
 };
 
 export default useSumSubDemo;
