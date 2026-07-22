@@ -522,8 +522,14 @@ export const BridgeTokenSelector: React.FC = () => {
   ]);
 
   const buildSearchDisplayData = useCallback(
-    (results: BridgeToken[]) => {
-      const isLoading = isPopularTokensLoading || isSearchLoading;
+    (
+      results: BridgeToken[],
+      {
+        includePopularLoading = true,
+      }: { includePopularLoading?: boolean } = {},
+    ) => {
+      const isLoading =
+        isSearchLoading || (includePopularLoading && isPopularTokensLoading);
       const isWaitingForDebounce =
         !isSearchLoading && currentSearchQuery !== searchString.trim();
 
@@ -567,7 +573,9 @@ export const BridgeTokenSelector: React.FC = () => {
     }
 
     if (useWatchlistMergedSearch) {
-      return buildSearchDisplayData(watchlistMergedSearchResults);
+      return buildSearchDisplayData(watchlistMergedSearchResults, {
+        includePopularLoading: false,
+      });
     }
 
     return watchlistBridgeTokens;

@@ -2121,6 +2121,44 @@ describe('BridgeTokenSelector', () => {
       );
     });
 
+    it('shows empty state during watchlist search when popular tokens are still loading', async () => {
+      mockIsWatchlistEnabled = true;
+      mockPopularTokensState = { popularTokens: [], isLoading: true };
+      mockUseTokenWatchlistQuery.mockReturnValue({
+        data: [
+          {
+            assetId: 'eip155:1/slip44:60',
+            name: 'Ethereum',
+            symbol: 'ETH',
+            decimals: 18,
+            balance: '1.5',
+            balanceFiat: 3000,
+            fiatCurrency: 'usd',
+            isInWallet: true,
+          },
+        ],
+        isLoading: false,
+      });
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [],
+        isSearchLoading: false,
+        currentSearchQuery: 'ZZZ',
+      };
+
+      const { getByTestId, queryAllByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ZZZ');
+
+      await waitFor(() =>
+        expect(getByTestId('bridge-token-selector-empty-state')).toBeTruthy(),
+      );
+      expect(queryAllByTestId('skeleton-item')).toHaveLength(0);
+    });
+
     it('uses default swap search when empty watchlist query is active', async () => {
       mockIsWatchlistEnabled = true;
       mockUseTokenWatchlistQuery.mockReturnValue({
