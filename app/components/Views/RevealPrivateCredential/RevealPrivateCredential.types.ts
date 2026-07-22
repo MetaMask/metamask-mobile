@@ -8,11 +8,6 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 export interface RevealPrivateCredentialParams {
   shouldUpdateNav?: boolean;
   selectedAccount?: InternalAccount;
-  /**
-   * Forwarded by some callers (e.g. AccountActions) as `account`; the
-   * RevealPrivateKey sheet currently ignores it. Kept for runtime parity.
-   */
-  account?: InternalAccount;
   keyringId?: string;
   /** When true, skip quiz and show password/action view (e.g. when coming from SRPQuiz modal) */
   skipQuiz?: boolean;

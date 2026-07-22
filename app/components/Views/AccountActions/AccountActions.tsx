@@ -8,6 +8,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
 
@@ -157,12 +158,11 @@ const AccountActions = () => {
         ).build(),
       );
 
-      navigate(
+      // Keep runtime payload; avoid widening web3auth-owned param types.
+      navigateWithDetails({ navigate }, [
         Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
-        {
-          account: selectedAccount,
-        },
-      );
+        { account: selectedAccount },
+      ]);
     });
   };
 
@@ -381,7 +381,11 @@ const AccountActions = () => {
   ]);
 
   const goToEditAccountName = () => {
-    navigate(Routes.EDIT_ACCOUNT_NAME, { selectedAccount });
+    // Keep runtime payload; avoid widening accounts-engineers-owned param types.
+    navigateWithDetails({ navigate }, [
+      Routes.EDIT_ACCOUNT_NAME,
+      { selectedAccount },
+    ]);
   };
 
   const isExplorerVisible = Boolean(
