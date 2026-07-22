@@ -60,7 +60,7 @@ export const mapWatchlistTokenToBridgeToken = (
   options?: { defaultCurrency?: string },
 ): BridgeToken & { assetId: CaipAssetType } => {
   const bridgeToken = convertApiTokenToBridgeToken({
-    assetId: String(token.assetId),
+    assetId: token.assetId,
     name: token.name,
     symbol: token.symbol,
     decimals: token.decimals,
@@ -74,7 +74,7 @@ export const mapWatchlistTokenToBridgeToken = (
 
   const balanceFiat = formatWatchlistBalanceFiat(fiatAmount, fiatCurrency);
 
-  const assetId = String(token.assetId) as CaipAssetType;
+  const assetId = token.assetId as CaipAssetType;
   const fallbackImage = getTokenIconUrl(
     assetId,
     isNonEvmChainId(bridgeToken.chainId),

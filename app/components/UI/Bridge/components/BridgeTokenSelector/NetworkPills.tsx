@@ -176,6 +176,7 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
       style={tw.style('flex-grow-0')}
       contentContainerStyle={tw.style('flex-row items-center gap-2')}
     >
+      {/* Watchlist filter pill — shown before network pills when feature is enabled */}
       {showWatchlistFilter && onWatchlistFilterPress ? (
         <ButtonToggle
           label={
@@ -197,7 +198,7 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
           accessibilityLabel={strings('perps.watchlist.filter_badge_label')}
         />
       ) : null}
-      {/* All CTA - First pill */}
+      {/* All networks pill */}
       <ButtonToggle
         label={strings('bridge.all')}
         isActive={!selectedChainId && !isWatchlistFilterActive}

@@ -25,7 +25,7 @@ export const mergeBridgeTokensWithBalances = <
 
     const normalizedAssetId = isNonEvmChainId(token.chainId)
       ? token.assetId
-      : (String(token.assetId).toLowerCase() as CaipAssetType);
+      : (token.assetId.toLowerCase() as CaipAssetType);
     const balanceData = balancesByAssetId[normalizedAssetId];
 
     if (!balanceData) {
