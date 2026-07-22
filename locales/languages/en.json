@@ -2397,6 +2397,18 @@
       "loading": "Loading order book...",
       "no_data": "No order book data available",
       "error": "Failed to load order book",
+      "connection_error": "Order book connection lost",
+      "reconnect": "Reconnect",
+      "config_title": "Listed by & Group by",
+      "listed_by": "Listed by",
+      "value_type": "Value type",
+      "group_by": "Group by",
+      "apply": "Apply",
+      "view_toggle": "Toggle order book view",
+      "buy_percent": "Buy: {{percent}}%",
+      "sell_percent": "Sell: {{percent}}%",
+      "depth_ratio": "Buy {{buy}}%, sell {{sell}}%",
+      "use_price": "Use {{price}} as limit price",
       "depth_band": {
         "title": "Select Price Grouping"
       }

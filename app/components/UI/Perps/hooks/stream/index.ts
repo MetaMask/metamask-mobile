@@ -35,6 +35,7 @@ export type {
   UsePerpsLiveOrderBookReturn,
   OrderBookData,
   OrderBookLevel,
+  OrderBookConnectionStatus,
 } from './usePerpsLiveOrderBook';
 // Re-export types from controllers
 export {

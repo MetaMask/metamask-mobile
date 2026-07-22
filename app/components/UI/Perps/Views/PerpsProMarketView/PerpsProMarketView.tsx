@@ -27,10 +27,11 @@ import { createStyles } from './PerpsProMarketView.styles';
 /**
  * Pro-mode replacement for `PerpsMarketDetailsView`.
  *
- * Scaffold only: lays out the full Pro trading screen (header, chart, stats
- * bar, two-column order form / order book, and positions/orders section) as
- * placeholder containers matching Figma node 10041:12979. Each panel can be
- * populated by its owning capability without changing the top-level layout.
+ * Lays out the full Pro trading screen (header, chart, stats bar, two-column
+ * order form / order book, and positions/orders section). The order book
+ * column is live: raw mid/spread on the shared controller socket plus a
+ * server-aggregated ladder on a dedicated AggregatedOrderBookConnection
+ * (same dual-stream approach as Extension).
  */
 const PerpsProMarketView = () => {
   const { styles } = useStyles(createStyles, {});
@@ -57,6 +58,14 @@ const PerpsProMarketView = () => {
   }
 
   const symbol = getPerpsDisplaySymbol(market.symbol);
+  const marketPrice = (() => {
+    if (!market.price) {
+      return undefined;
+    }
+    const cleaned = market.price.replace(/[$,]/g, '');
+    const parsed = Number.parseFloat(cleaned);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  })();
 
   return (
     <SafeAreaView
@@ -76,7 +85,12 @@ const PerpsProMarketView = () => {
         <PerpsProStatsBar />
         <PerpsProMarketLayout
           orderForm={<PerpsProOrderFormPanel />}
-          orderBook={<PerpsProOrderBookPanel />}
+          orderBook={
+            <PerpsProOrderBookPanel
+              symbol={market.symbol}
+              marketPrice={marketPrice}
+            />
+          }
         />
         <SectionDivider />
         <PerpsProPositionsPanel />

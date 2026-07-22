@@ -6,11 +6,11 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 
 interface MockRouteParams {
-  market?: { symbol: string };
+  market?: { symbol: string; price?: string };
 }
 
 let mockRouteParams: MockRouteParams | undefined = {
-  market: { symbol: 'BTC' },
+  market: { symbol: 'BTC', price: '$90,000.00' },
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -21,6 +21,23 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../hooks/stream/usePerpsLiveOrderBook', () => ({
+  usePerpsLiveOrderBook: jest.fn(() => ({
+    orderBook: null,
+    isLoading: true,
+    error: null,
+    connectionStatus: 'connecting',
+    reconnect: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
+  usePerpsOrderBookGrouping: jest.fn(() => ({
+    savedGrouping: undefined,
+    saveGrouping: jest.fn(),
+  })),
+}));
+
 const renderView = () =>
   renderWithProvider(<PerpsProMarketView />, {
     state: { engine: { backgroundState } },
@@ -28,7 +45,7 @@ const renderView = () =>
 
 describe('PerpsProMarketView', () => {
   beforeEach(() => {
-    mockRouteParams = { market: { symbol: 'BTC' } };
+    mockRouteParams = { market: { symbol: 'BTC', price: '$90,000.00' } };
   });
 
   it.each([
