@@ -1815,7 +1815,6 @@
     "errors": {
       "minimumDeposit": "Minimum deposit amount is {{amount}} USDC",
       "tokenNotSupported": "Token {{token}} not supported for deposits",
-      "unsupportedCollateral": "This market uses an unsupported collateral token. Only USDC-collateral markets are available.",
       "unknownError": "Unknown error occurred",
       "position_not_found": "Position not found",
       "order_not_found": "Order not found",

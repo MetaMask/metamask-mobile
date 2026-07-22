@@ -110,9 +110,6 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   // Network/service errors
   [PERPS_ERROR_CODES.SERVICE_UNAVAILABLE]: 'perps.errors.serviceUnavailable',
   [PERPS_ERROR_CODES.NETWORK_ERROR]: 'perps.errors.networkErrorSimple',
-  // HIP-3 DEX collateral must be USDC (TAT-3304)
-  [PERPS_ERROR_CODES.UNSUPPORTED_COLLATERAL]:
-    'perps.errors.unsupportedCollateral',
 };
 
 /**
