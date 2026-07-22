@@ -45,18 +45,6 @@ jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
   usePredictionsFeed: () => mockUsePredictionsFeed(),
 }));
 
-const mockUseWorldCupPredictionsFeed = jest.fn<
-  { data: MockPredictionMarket[]; isLoading: boolean; isEnabled: boolean },
-  []
->(() => ({
-  data: [],
-  isLoading: false,
-  isEnabled: false,
-}));
-jest.mock('../feeds/predictions/useWorldCupPredictionsFeed', () => ({
-  useWorldCupPredictionsFeed: () => mockUseWorldCupPredictionsFeed(),
-}));
-
 const mockUseSportsMarketsFeed = jest.fn(() => ({
   pills: [],
   activeKey: 'soccer',
@@ -114,14 +102,9 @@ describe('SportsTab', () => {
       data: [{ id: 'sports-market-1' }],
       isLoading: false,
     });
-    mockUseWorldCupPredictionsFeed.mockReturnValue({
-      data: [],
-      isLoading: false,
-      isEnabled: false,
-    });
   });
 
-  it('opens the sports predictions tab when World Cup predictions are disabled', () => {
+  it('opens the sports predictions tab', () => {
     renderSportsTab();
 
     fireEvent.press(
@@ -133,30 +116,6 @@ describe('SportsTab', () => {
       params: {
         entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
         tab: 'sports',
-      },
-    });
-  });
-
-  it('shows World Cup predictions and opens the World Cup screen when enabled', () => {
-    mockUseWorldCupPredictionsFeed.mockReturnValue({
-      data: [{ id: 'world-cup-market-1' }],
-      isLoading: false,
-      isEnabled: true,
-    });
-
-    renderSportsTab();
-
-    expect(screen.getByText('World Cup predictions')).toBeOnTheScreen();
-
-    fireEvent.press(
-      screen.getByTestId('section-header-view-all-sports_predictions'),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.WORLD_CUP,
-      params: {
-        entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
-        initialTab: 'all',
       },
     });
   });

@@ -10,6 +10,7 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useStyles } from '../../../../../component-library/hooks';
 import { createStyles } from './QuoteSelectorView.styles';
 import { useDispatch, useSelector } from 'react-redux';
@@ -34,7 +35,7 @@ import { fromTokenMinimalUnit } from '../../../../../util/number';
 
 export const QuoteSelectorView = () => {
   const { styles } = useStyles(createStyles, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const selectedQuoteRequestId = useSelector(selectSelectedQuoteRequestId);
   const currency = useSelector(selectCurrentCurrency);

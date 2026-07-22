@@ -30,6 +30,7 @@ import { useHeadlessBuyErrorAlert } from './useHeadlessBuyErrorAlert';
 import { useTokenContractAlert } from './useTokenContractAlert';
 import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
+import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useGasEstimateFailedAlert');
@@ -55,6 +56,7 @@ jest.mock('./useHeadlessBuyErrorAlert');
 jest.mock('./useTokenContractAlert');
 jest.mock('./useAddressPoisoningAlert');
 jest.mock('./useAccountNoFundsAlert');
+jest.mock('./useMMPayHardwareAccountAlert');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -227,6 +229,7 @@ describe('useConfirmationAlerts', () => {
     (useTokenContractAlert as jest.Mock).mockReturnValue([]);
     (useAddressPoisoningAlert as jest.Mock).mockReturnValue([]);
     (useAccountNoFundsAlert as jest.Mock).mockReturnValue([]);
+    (useMMPayHardwareAccountAlert as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
