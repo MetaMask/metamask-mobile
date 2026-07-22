@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';
 import {
@@ -18,7 +19,7 @@ import SettingsDrawer from '../../../UI/SettingsDrawer';
 
 const DefaultSettings = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleLink = () => {
     Linking.openURL(AppConstants.URLS.PRIVACY_BEST_PRACTICES);

@@ -9,6 +9,7 @@ import React, {
 import { Alert, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   KeyboardAwareScrollView,
@@ -95,7 +96,7 @@ function showImportSrpErrorAlert(errorMessage: string): void {
  * View that's displayed when the user is trying to import a new secret recovery phrase
  */
 const ImportNewSecretRecoveryPhrase = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const footerStyle = useMemo(

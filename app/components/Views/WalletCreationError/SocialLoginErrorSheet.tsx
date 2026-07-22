@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { Image, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -42,7 +43,7 @@ const SocialLoginErrorSheet = ({
   error,
   accountType,
 }: SocialLoginErrorSheetProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
 

@@ -8,6 +8,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -58,7 +59,7 @@ import type { ManualBackupStep1RouteProp } from './ManualBackupStep1.types';
  * the backup seed phrase flow
  */
 const ManualBackupStep1 = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<ManualBackupStep1RouteProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();

@@ -1,6 +1,7 @@
 import React from 'react';
 import SRPList from '../../UI/SRPList';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Routes from '../../../constants/navigation/Routes';
 import type { ViewStyle } from 'react-native';
 
@@ -11,7 +12,7 @@ const SelectSRP = ({
   containerStyle?: ViewStyle;
   showArrowName?: string;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const onKeyringSelect = (keyringId: string) => {
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
