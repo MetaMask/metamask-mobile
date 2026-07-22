@@ -41,6 +41,7 @@ import {
 } from '../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import { getBetaSupportUrl } from './AccountsMenu.utils';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
@@ -172,21 +173,25 @@ const AccountsMenu = () => {
   }, [goToBrowserUrl, trackEvent, createEventBuilder]);
 
   const onPressSupport = useCallback(() => {
-    trackEvent(createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build());
-
-    let betaSupportUrl = '';
-    ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    betaSupportUrl = 'https://intercom.help/internal-beta-testing/en/';
-    ///: END:ONLY_INCLUDE_IF
+    const betaSupportUrl = getBetaSupportUrl();
 
     if (betaSupportUrl) {
+      trackEvent(
+        createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build(),
+      );
       goToBrowserUrl(betaSupportUrl, strings('app_settings.contact_support'));
       return;
     }
 
+    // Defer tracking to when support actually opens (consent confirm/reject),
+    // not the mere press that only shows the consent sheet.
     openSupportWithConsent(
       (url) => goToBrowserUrl(url, strings('app_settings.contact_support')),
       METAMASK_SUPPORT_URL,
+      () =>
+        trackEvent(
+          createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build(),
+        ),
     );
   }, [goToBrowserUrl, trackEvent, createEventBuilder, openSupportWithConsent]);
 

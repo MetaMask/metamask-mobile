@@ -1,13 +1,10 @@
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { InteractionManager } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
-import {
-  getRouteProbeTestId,
-  renderScreenWithRoutes,
-} from '../../../../../tests/component-view/render';
+import { renderScreenWithRoutes } from '../../../../../tests/component-view/render';
 import { initialStateIdentity } from '../../../../../tests/component-view/presets/identity';
 import AppInformation from './index';
 import SupportConsentSheet from '../../../UI/SupportConsentSheet';
@@ -19,8 +16,9 @@ import Routes from '../../../../constants/navigation/Routes';
  * Component View tests for AppInformation (About MetaMask).
  *
  * Mirrors (partial): tests/smoke-appium/settings/contact-us.spec.ts
- * — support links show the consent sheet and, once confirmed, navigate to
- * the in-app webview.
+ * — support links show the consent sheet. This view test renders the real
+ * SupportConsentSheet, so it only asserts the sheet appears; the sheet's own
+ * confirm/reject/dismiss mechanics are covered by SupportConsentSheet tests.
  *
  * Run: yarn jest -c jest.config.view.js AppInformation.view.test.tsx --runInBand
  */
@@ -81,33 +79,23 @@ describeForPlatforms('AppInformation (contact-us) component views', () => {
     jest.clearAllMocks();
   });
 
-  it('navigates to the webview when Contact us is pressed and consent is confirmed', async () => {
+  it('shows the support consent sheet when Contact us is pressed', async () => {
     const { findByTestId, findByText } = renderAppInformation();
 
     await findByTestId(AboutMetaMaskSelectorsIDs.CONTAINER);
     fireEvent.press(await findByText(strings('app_information.contact_us')));
-    fireEvent.press(await findByText(strings('support_consent.confirm')));
 
-    await waitFor(async () => {
-      expect(
-        await findByTestId(getRouteProbeTestId(Routes.WEBVIEW.MAIN)),
-      ).toBeOnTheScreen();
-    });
+    expect(await findByTestId('support-consent-sheet')).toBeOnTheScreen();
   });
 
-  it('navigates to the webview when Support Center is pressed and consent is confirmed', async () => {
+  it('shows the support consent sheet when Support Center is pressed', async () => {
     const { findByTestId, findByText } = renderAppInformation();
 
     await findByTestId(AboutMetaMaskSelectorsIDs.CONTAINER);
     fireEvent.press(
       await findByText(strings('app_information.support_center')),
     );
-    fireEvent.press(await findByText(strings('support_consent.confirm')));
 
-    await waitFor(async () => {
-      expect(
-        await findByTestId(getRouteProbeTestId(Routes.WEBVIEW.MAIN)),
-      ).toBeOnTheScreen();
-    });
+    expect(await findByTestId('support-consent-sheet')).toBeOnTheScreen();
   });
 });

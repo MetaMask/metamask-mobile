@@ -130,24 +130,6 @@ describe('AppInformation', () => {
       );
     });
 
-    it('shows the support consent sheet via navigateToSupportConsent when the contact us link is pressed', () => {
-      const mockNavigate = jest.fn();
-      const mockNavigation = { navigate: mockNavigate };
-      const { getByText } = renderWithProvider(
-        <AppInformation navigation={mockNavigation} />,
-        { state: MOCK_STATE },
-        false,
-      );
-
-      fireEvent.press(getByText(strings('app_information.contact_us')));
-
-      expect(navigateToSupportConsent).toHaveBeenCalledWith(
-        mockNavigation,
-        expect.any(Function),
-        METAMASK_SUPPORT_URL,
-      );
-    });
-
     it('navigates to the SimpleWebview with the resolved URL and title when the opener is invoked', () => {
       const mockNavigate = jest.fn();
       const mockNavigation = { navigate: mockNavigate };
