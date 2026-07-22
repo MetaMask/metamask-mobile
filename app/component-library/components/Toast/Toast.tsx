@@ -139,7 +139,9 @@ const mapLegacyButtonVariant = (variant?: ButtonVariants): ButtonVariant => {
   return ButtonVariant.Primary;
 };
 
-const LEGACY_ICON_COLOR_TO_DS: Record<string, IconColor> = {
+// Lazy map so incomplete Jest mocks of design-system-react-native do not
+// crash Toast barrel imports (e.g. ToastContext-only consumers).
+const getLegacyIconColorToDs = (): Record<string, IconColor> => ({
   Default: IconColor.IconDefault,
   Inverse: IconColor.OverlayInverse,
   Alternative: IconColor.IconAlternative,
@@ -151,13 +153,17 @@ const LEGACY_ICON_COLOR_TO_DS: Record<string, IconColor> = {
   ErrorAlternative: IconColor.ErrorAlternative,
   Warning: IconColor.WarningDefault,
   Info: IconColor.InfoDefault,
-};
+});
 
 const resolveToastIconAppearance = (
   iconColor?: string,
-): { color?: IconColor; style?: { color: string } } => {
+): { color?: IconColor; style?: StyleProp<ViewStyle> } => {
   if (!iconColor) {
     return {};
+  }
+
+  if (!IconColor) {
+    return { style: { color: iconColor } as ViewStyle };
   }
 
   const dsIconColors = Object.values(IconColor) as string[];
@@ -165,12 +171,15 @@ const resolveToastIconAppearance = (
     return { color: iconColor as IconColor };
   }
 
-  if (iconColor in LEGACY_ICON_COLOR_TO_DS) {
-    return { color: LEGACY_ICON_COLOR_TO_DS[iconColor] };
+  const legacyIconColorToDs = getLegacyIconColorToDs();
+  if (iconColor in legacyIconColorToDs) {
+    return { color: legacyIconColorToDs[iconColor] };
   }
 
   // Call sites may pass raw theme colors (e.g. theme.colors.success.default).
-  return { style: { color: iconColor } };
+  // Icon uses fill="currentColor"; RN SVG reads `color` from style at runtime
+  // even though ViewStyle does not declare it.
+  return { style: { color: iconColor } as ViewStyle };
 };
 
 /**
