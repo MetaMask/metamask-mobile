@@ -21,6 +21,7 @@ const CHROME_VIEW_INTENT_SETTLE_MS = 3000;
 
 /**
  * Dismisses common Chrome first-run / privacy / default-browser dialogs if present.
+ * Avoid "More" — it expands FRE options rather than dismissing them.
  * @returns void
  */
 const dismissChromeAdPrivacyIfPresent = async () => {
@@ -32,11 +33,13 @@ const dismissChromeAdPrivacyIfPresent = async () => {
     'Accept & continue',
     'Accept and continue',
     'Use without an account',
-    'More',
   ];
   for (const text of dismissTexts) {
     try {
-      const dismissControl = await PlaywrightMatchers.getElementByText(text);
+      const dismissControl = await PlaywrightMatchers.getElementByText(
+        text,
+        true,
+      );
       await PlaywrightGestures.waitAndTap(dismissControl);
       return;
     } catch {
@@ -102,6 +105,7 @@ const safelyOnboardChromeBrowser = async () => {
 /**
  * Wait until Chrome NTP/omnibox is interactable, dismissing leftover dialogs.
  * google_apis emulator Chrome often uses placeholder text instead of stable IDs.
+ * @throws If Chrome never becomes ready within the timeout
  */
 const waitForChromeNavigationReady = async () => {
   const deadline = Date.now() + 20_000;
@@ -133,6 +137,34 @@ const waitForChromeNavigationReady = async () => {
       }
     }
     await new Promise((r) => setTimeout(r, 500));
+  }
+  throw new Error(
+    'Chrome navigation UI (NTP/omnibox) did not become ready within 20s',
+  );
+};
+
+/**
+ * Returns true when the Chrome URL bar appears to show the target URL.
+ */
+const chromeUrlBarShowsTarget = async (url: string): Promise<boolean> => {
+  try {
+    const urlBar = await asPlaywrightElement(ChromeBrowserView.chromeUrlBar);
+    if (!(await urlBar.isVisible())) {
+      return false;
+    }
+    const shown =
+      (await urlBar.getText()) || (await urlBar.getAttribute('text')) || '';
+    let needle = url;
+    try {
+      needle = new URL(url).hostname;
+    } catch {
+      // Use the raw URL string when parsing fails
+    }
+    return (
+      needle.length > 0 && shown.toLowerCase().includes(needle.toLowerCase())
+    );
+  } catch {
+    return false;
   }
 };
 
@@ -195,17 +227,9 @@ export const navigateToDappAndroid = async (url: string) => {
     } catch {
       // No post-navigation dialog
     }
-    // If Chrome is still on the NTP, the intent was ignored — use omnibox.
-    try {
-      const ntpSearch = await PlaywrightMatchers.getElementByText(
-        'Search or type web address',
-        true,
-      );
-      if (!(await ntpSearch.isVisible())) {
-        return;
-      }
-    } catch {
-      // NTP placeholder absent — assume the dapp URL loaded.
+    // Skip omnibox only when the URL bar confirms the VIEW intent succeeded.
+    // Missing NTP alone is not enough (error/blank/dialog screens also hide it).
+    if (await chromeUrlBarShowsTarget(url)) {
       return;
     }
   } catch {
