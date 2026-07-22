@@ -379,18 +379,21 @@ jest.mock(
   },
 );
 jest.mock('../../components/PerpsCard', () => 'PerpsCard');
-jest.mock('../../components/PerpsNavigationCard/PerpsNavigationCard', () => {
+jest.mock('../../components/PerpsMoreSection', () => {
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
 
   return {
     __esModule: true,
-    default: function MockPerpsNavigationCard({
+    default: function MockPerpsMoreSection({
       items,
+      testID,
     }: {
       items: { label: string; onPress: () => void; testID?: string }[];
+      testID?: string;
     }) {
       return (
-        <View testID="perps-navigation-card">
+        <View testID={testID ?? 'perps-more-section'}>
+          <Text>More</Text>
           {items.map(
             (
               item: { label: string; onPress: () => void; testID?: string },
@@ -793,16 +796,14 @@ describe('PerpsHomeView', () => {
   });
 
   // Note: PerpsHomeView does not render a bottom tab bar
-  // The component uses PerpsNavigationCard for navigation instead
-  it('renders navigation card', () => {
-    // Arrange & Act
-    const { getByTestId } = render(<PerpsHomeView />);
+  // The component uses PerpsMoreSection for footer actions
+  it('renders more section', () => {
+    const { getByTestId, getByText } = render(<PerpsHomeView />);
 
-    // Assert - Verify navigation card is rendered (if it has a testID)
-    // Or just verify component renders without error
-    // The navigation card is tested separately
+    expect(getByText('More')).toBeTruthy();
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON)).toBeTruthy();
     expect(
-      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+      getByTestId(PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON),
     ).toBeTruthy();
   });
 
