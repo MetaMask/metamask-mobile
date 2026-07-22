@@ -23,6 +23,7 @@ import NftGridItem from '../../../../UI/NftGrid/NftGridItem';
 import NftGridItemBottomSheet from '../../../../UI/NftGrid/NftGridItemBottomSheet';
 import NftSkeletonCell from '../../../../UI/NftGrid/NftSkeletonCell';
 import { isNftFetchingProgressSelector } from '../../../../../reducers/collectibles';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { useNftRefresh } from '../../../../UI/NftGrid/useNftRefresh';
 import { useNftDetection } from '../../../../hooks/useNftDetection';
 import { SectionRefreshHandle } from '../../types';
@@ -58,6 +59,9 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     const ownedNfts = useOwnedNfts();
     const hasNfts = ownedNfts.length > 0;
     const isDetecting = useSelector(isNftFetchingProgressSelector);
+    const selectedAddress = useSelector(
+      selectSelectedInternalAccountFormattedAddress,
+    );
     const { onRefresh } = useNftRefresh();
     const { detectNfts } = useNftDetection();
     const detectNftsRef = useRef(detectNfts);
@@ -74,19 +78,30 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       { isLoading: false },
     );
     const { visitId } = useHomepageScrollContext();
+
     const lastDetectionRef = useRef<number | null>(null);
-    // Tracks whether detection has ever been attempted for this mount.
-    // Until it has, we show skeletons so the section has non-zero height and
-    // useSectionViewportVisible can measure it and trigger detection.
-    const hasDetectedRef = useRef(hasNfts); // skip pre-detection skeleton if NFTs already present
+    const prevAddressRef = useRef(selectedAddress);
+    // Read via refs to avoid making them deps of the detection effect, which would
+    // cause the effect to re-run when NFTs load in and reset the throttle prematurely.
+    const hasNftsRef = useRef(hasNfts);
+    hasNftsRef.current = hasNfts;
+    const onViewportLayoutRef = useRef(onViewportLayout);
+    onViewportLayoutRef.current = onViewportLayout;
     const [hasDetected, setHasDetected] = useState(hasNfts);
 
     // TODO(ASSETS-3660): Replace with a proper polling mechanism in NftDetectionController.
     // Deferred detection — only runs when the section has scrolled into the viewport.
-    // visitId is included so the effect re-evaluates on each homepage focus: if the
-    // section is already visible when the user returns, detection still re-runs
-    // (subject to the 5-min throttle) without needing isVisible to change.
+    // selectedAddress is in deps so an account switch immediately clears the throttle
+    // and re-checks visibility (in case the section is already in view after switching).
+    // visitId re-evaluates on re-focus when the section is already visible.
     useEffect(() => {
+      if (prevAddressRef.current !== selectedAddress) {
+        prevAddressRef.current = selectedAddress;
+        lastDetectionRef.current = null;
+        setHasDetected(hasNftsRef.current);
+        onViewportLayoutRef.current();
+      }
+
       if (!isVisible) {
         return;
       }
@@ -98,17 +113,13 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       ) {
         return;
       }
+
       lastDetectionRef.current = now;
-
-      if (!hasDetectedRef.current) {
-        hasDetectedRef.current = true;
-        setHasDetected(true);
-      }
-
+      setHasDetected(true);
       detectNftsRef.current(true, false).catch(() => {
         // detection errors are non-fatal
       });
-    }, [isVisible, visitId]);
+    }, [isVisible, visitId, selectedAddress]);
 
     const displayNfts = useMemo(
       () => ownedNfts.slice(0, MAX_NFTS_DISPLAYED),

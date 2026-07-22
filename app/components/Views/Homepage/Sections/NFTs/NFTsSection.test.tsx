@@ -102,6 +102,14 @@ jest.mock('../../../../UI/NftGrid/NftSkeletonCell', () => {
   return () => <View testID="nft-skeleton-cell" />;
 });
 
+let mockSelectedAddress = '0xabc';
+jest.mock('../../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../../selectors/accountsController'),
+  // Selector is called by useSelector — the function must read the variable
+  // lazily (not capture it at mock-creation time) so test mutations propagate.
+  selectSelectedInternalAccountFormattedAddress: jest.fn(),
+}));
+
 // State with preferences needed for NftGridItem/CollectibleMedia
 const stateWithNftPreferences = {
   engine: {
@@ -129,6 +137,13 @@ describe('NFTsSection', () => {
     mockDetectNfts.mockResolvedValue(undefined);
     mockIsVisible = false;
     mockVisitId = 0;
+    mockSelectedAddress = '0xabc';
+    // Re-wire the selector mock to read mockSelectedAddress lazily each call
+    jest
+      .requireMock('../../../../../selectors/accountsController')
+      .selectSelectedInternalAccountFormattedAddress.mockImplementation(
+        () => mockSelectedAddress,
+      );
     jest
       .requireMock('../../hooks/useSectionViewportVisible')
       .default.mockImplementation(() => ({
@@ -413,6 +428,37 @@ describe('NFTsSection', () => {
       await act(async () => undefined);
 
       expect(screen.getByText('NFTs')).toBeOnTheScreen();
+    });
+
+    it('calls detectNfts for a new account even within the throttle window of the previous account', () => {
+      jest
+        .requireMock('./hooks')
+        .useOwnedNfts.mockReturnValue([nftForDetection]);
+      jest
+        .requireMock('../../hooks/useSectionViewportVisible')
+        .default.mockReturnValue({
+          isVisible: true,
+          onLayout: mockOnViewportLayout,
+        });
+
+      // Render with address '0xabc' — detection fires immediately.
+      mockSelectedAddress = '0xabc';
+      const { unmount } = renderWithProvider(
+        <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+        { state: stateWithNftPreferences },
+      );
+      expect(mockDetectNfts).toHaveBeenCalledTimes(1);
+      unmount();
+
+      // Render for address '0xdef' within the same throttle window.
+      // The component resets the throttle ref on mount when the address changes,
+      // so detection fires immediately for the new account.
+      mockSelectedAddress = '0xdef';
+      renderWithProvider(
+        <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+        { state: stateWithNftPreferences },
+      );
+      expect(mockDetectNfts).toHaveBeenCalledTimes(2);
     });
   });
 });
