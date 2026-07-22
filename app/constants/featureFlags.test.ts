@@ -41,7 +41,7 @@ describe('getDefaultFeatureFlags', () => {
   });
 
   it('ignores the reserved context argument (static defaults today)', () => {
-    expect(getDefaultFeatureFlags({ metaMetricsId: 'abc-123' })).toStrictEqual(
+    expect(getDefaultFeatureFlags({ id: 'abc-123' })).toStrictEqual(
       getDefaultFeatureFlags(),
     );
   });

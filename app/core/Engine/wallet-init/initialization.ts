@@ -52,7 +52,7 @@ export function initializeWallet({
     RemoteFeatureFlagController: {
       ...persistedRemoteFeatureFlagState,
       remoteFeatureFlags: {
-        ...getDefaultFeatureFlags({ metaMetricsId: analyticsId }),
+        ...getDefaultFeatureFlags({ id: analyticsId }),
         ...(isObject(persistedRemoteFeatureFlags)
           ? (persistedRemoteFeatureFlags as Record<string, Json>)
           : {}),

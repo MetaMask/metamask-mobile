@@ -87,12 +87,15 @@ export const ADDITIONAL_DEFAULT_FEATURE_FLAG_VALUES: Record<string, Json> = {
  * Optional context for resolving default feature flags.
  *
  * Reserved for future ID-based A/B bucketing (e.g. deterministic variant
- * assignment from `metaMetricsId`). It is intentionally unused today so call
- * sites do not need to change when bucketed defaults are added later.
+ * assignment). It is intentionally unused today so call sites do not need to
+ * change when bucketed defaults are added later.
  */
 export interface FeatureFlagDefaultsContext {
-  /** Stable anonymous id used for A/B bucketing (MetaMetrics id). */
-  metaMetricsId?: string;
+  /**
+   * Stable id used for A/B bucketing. Callers may pass either the analytics
+   * (MetaMetrics) id or the canonical id depending on what is available.
+   */
+  id?: string;
 }
 
 /**
