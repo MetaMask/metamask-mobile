@@ -341,7 +341,10 @@ export function useTransactionCustomAmount({
     }
   }, [isAddMusdFlow, balanceUsd, updatePendingAmountPercentage]);
 
+  const amountCommitTimeRef = useRef<number>(0);
+
   const updateTokenAmount = useCallback(async () => {
+    amountCommitTimeRef.current = Date.now();
     const effectiveHuman = depositMaxHumanRef.current ?? amountHuman;
     await updateTransactionPayAmount(effectiveHuman);
     setIsTokenAmountUpdated(true);
@@ -349,11 +352,17 @@ export function useTransactionCustomAmount({
 
   useEffect(() => {
     if (isTokenAmountUpdated && (hasSourceAmount || isPostQuote)) {
-      setConfirmationMetric({
-        properties: {
-          mm_pay_quote_requested: true,
-        },
-      });
+      const properties: Record<string, unknown> = {
+        mm_pay_quote_requested: true,
+      };
+
+      if (amountCommitTimeRef.current > 0) {
+        properties.mm_pay_time_to_request_quote_ms = Math.round(
+          Date.now() - amountCommitTimeRef.current,
+        );
+      }
+
+      setConfirmationMetric({ properties });
       setIsTokenAmountUpdated(false);
     }
   }, [

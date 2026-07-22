@@ -415,9 +415,9 @@ describe('useTransactionCustomAmount', () => {
     });
 
     expect(setConfirmationMetricMock).toHaveBeenCalledWith({
-      properties: {
+      properties: expect.objectContaining({
         mm_pay_quote_requested: true,
-      },
+      }),
     });
   });
 
@@ -438,9 +438,41 @@ describe('useTransactionCustomAmount', () => {
     });
 
     expect(setConfirmationMetricMock).toHaveBeenCalledWith({
-      properties: {
+      properties: expect.objectContaining({
         mm_pay_quote_requested: true,
-      },
+      }),
+    });
+  });
+
+  it('includes mm_pay_time_to_request_quote_ms alongside mm_pay_quote_requested', async () => {
+    useTransactionPayHasSourceAmountMock.mockReturnValue(false);
+
+    const { result, rerender } = runHook();
+
+    await act(async () => {
+      result.current.updatePendingAmount('100');
+    });
+
+    setConfirmationMetricMock.mockClear();
+
+    jest.spyOn(Date, 'now').mockReturnValue(1746696741000);
+
+    await act(async () => {
+      result.current.updateTokenAmount();
+    });
+
+    jest.spyOn(Date, 'now').mockReturnValue(1746696741250);
+    useTransactionPayHasSourceAmountMock.mockReturnValue(true);
+
+    await act(async () => {
+      rerender({});
+    });
+
+    expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+      properties: expect.objectContaining({
+        mm_pay_quote_requested: true,
+        mm_pay_time_to_request_quote_ms: 250,
+      }),
     });
   });
 
