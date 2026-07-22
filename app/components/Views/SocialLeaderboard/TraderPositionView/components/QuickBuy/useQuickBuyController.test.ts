@@ -3196,7 +3196,7 @@ describe('useQuickBuyController', () => {
         Engine.context.BridgeStatusController.submitTx,
       ).toHaveBeenCalledWith(
         '0xWALLET',
-        expect.objectContaining({ approval: undefined }),
+        expect.objectContaining({ approval: null }),
         true,
       );
     });

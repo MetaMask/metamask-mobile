@@ -1,5 +1,6 @@
 import type { DeepPartial } from '../../app/util/test/renderWithProvider';
 import type { RootState } from '../../app/reducers';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
 // Removed dependency on large JSON snapshot; tests compose state via builder helpers
 
 type PlainObject = Record<string, unknown>;
@@ -222,6 +223,10 @@ export function createStateFixture(): StateFixtureBuilder {
             address: srcTokenAddress,
             decimals: 18,
             symbol: 'ETH',
+            assetId: formatAddressToAssetId(
+              srcTokenAddress,
+              numericChainId,
+            ) as `${string}:${string}/${string}:${string}`,
             name: 'Ether',
           },
           destAsset: {
@@ -230,6 +235,10 @@ export function createStateFixture(): StateFixtureBuilder {
             decimals: 6,
             symbol: 'USDC',
             name: 'USD Coin',
+            assetId: formatAddressToAssetId(
+              destTokenAddress,
+              numericChainId,
+            ) as `${string}:${string}/${string}:${string}`,
           },
           srcTokenAmount: srcAmount,
           destTokenAmount: '1000000', // 1 USDC (6 decimals)
@@ -242,6 +251,10 @@ export function createStateFixture(): StateFixtureBuilder {
                 decimals: 18,
                 symbol: 'ETH',
                 name: 'Ether',
+                assetId: formatAddressToAssetId(
+                  srcTokenAddress,
+                  numericChainId,
+                ) as `${string}:${string}/${string}:${string}`,
               },
             },
           },
