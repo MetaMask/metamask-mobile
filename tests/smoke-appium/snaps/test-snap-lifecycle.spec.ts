@@ -10,7 +10,7 @@ import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 appiumTest.describe(SmokeSnaps('Lifecycle hooks Snap Tests'), () => {
   appiumTest(
     'runs the onInstall lifecycle hook when the Snap is installed',
-    async ({ driver: _driver, currentDeviceDetails }) => {
+    async ({ currentDeviceDetails }) => {
       await withSnapsFixtures(currentDeviceDetails, {}, async () => {
         await loginAndOpenTestSnaps();
         await TestSnaps.installSnap('connectLifeCycleButton');

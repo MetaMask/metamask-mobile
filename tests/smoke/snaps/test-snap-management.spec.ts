@@ -1,9 +1,6 @@
 import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
-import {
-  navigateToBrowserView,
-  ensureSingleBrowserTabView,
-} from '../../flows/browser.flow';
+import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
@@ -21,8 +18,6 @@ import WalletView from '../../page-objects/wallet/WalletView';
  * after closing the browser, so we navigate step-by-step with explicit waits.
  */
 async function navigateFromBrowserToSnapSettings() {
-  await ensureSingleBrowserTabView();
-  await BrowserView.dismissUrlEditorIfOpen();
   await BrowserView.tapCloseBrowserButton();
   await TabBarComponent.tapWallet();
   await WalletView.tapHamburgerMenu();

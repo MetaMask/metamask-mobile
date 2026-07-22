@@ -11,7 +11,7 @@ import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 appiumTest.describe(SmokeSnaps('Client Status Snap Tests'), () => {
   appiumTest(
     'connects to the Client Status Snap and returns the client status',
-    async ({ driver: _driver, currentDeviceDetails }) => {
+    async ({ currentDeviceDetails }) => {
       await withSnapsFixtures(currentDeviceDetails, {}, async () => {
         await loginAndOpenTestSnaps();
         await TestSnaps.installSnap('connectClientStatusSnapButton');

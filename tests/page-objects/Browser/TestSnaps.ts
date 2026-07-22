@@ -550,7 +550,9 @@ class TestSnaps {
     await Assertions.expectTextDisplayed('Confirmation Dialog', options);
 
     if (PlatformDetector.isIOSAppium()) {
-      // Inline SnapUILink renders as Text on iOS; testIDs are not exposed to XCUITest.
+      // Detox / Android can target `snaps-ui-link-icon`. On iOS Appium, XCUITest
+      // does not expose that testID for inline SnapUILink — it surfaces as Text —
+      // so assert the visible link label instead (same coverage as before for Detox).
       await Assertions.expectTextDisplayed('link', options);
       return;
     }
@@ -595,18 +597,7 @@ class TestSnaps {
       const webElement = await this.getTestSnapsWebElement(
         TestSnapInputSelectorWebIDS[locator],
       );
-
-      if (FrameworkDetector.isAppium()) {
-        const input = await webElement;
-        await input.clear();
-        await input.fill(message);
-        return;
-      }
-
-      await Gestures.typeInWebElement(
-        webElement as Promise<IndexableWebElement>,
-        message,
-      );
+      await Gestures.typeInWebElement(webElement, message);
     });
   }
 
