@@ -86,7 +86,7 @@ const MoneyBalanceCard = () => {
     component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
   });
 
-  const isBalanceFetching = moneyBalanceQuery.isFetching;
+  const isBalanceFetching = isBalanceFetchError && moneyBalanceQuery.isFetching;
 
   const isRetrying =
     hasMoneyAccount && isBalanceFetchError && isBalanceFetching;
