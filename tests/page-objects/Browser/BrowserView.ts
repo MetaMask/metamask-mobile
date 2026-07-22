@@ -240,11 +240,8 @@ class Browser {
     const deeplink = `dapp://${hostAndPath}`;
 
     await executeMobileDeepLink(deeplink);
-    const isAndroidCi =
-      FrameworkDetector.isAppium() &&
-      PlatformDetector.isAndroid() &&
-      process.env.CI === 'true';
-    const settleMs = isAndroidCi ? 8_000 : 3_000;
+    const settleMs =
+      FrameworkDetector.isAppium() && process.env.CI === 'true' ? 8_000 : 3_000;
     await sleep(settleMs);
   }
 

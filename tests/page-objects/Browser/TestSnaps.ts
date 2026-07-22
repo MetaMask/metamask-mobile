@@ -361,7 +361,11 @@ class TestSnaps {
       await Browser.closeAllBrowserTabsIfOpen();
     }
 
-    await Browser.tapUrlInputBox();
+    // Appium uses dapp:// deeplink for https test-snaps URLs in navigateToURL.
+    // Tapping the URL bar first is unnecessary and races with browser chrome.
+    if (!FrameworkDetector.isAppium()) {
+      await Browser.tapUrlInputBox();
+    }
     await Browser.navigateToURL(TEST_SNAPS_URL);
     await waitForTestSnapsToLoad();
   }

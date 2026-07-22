@@ -15,7 +15,6 @@ import {
 import PlaywrightMatchers from '../framework/PlaywrightMatchers';
 import { FrameworkDetector } from '../framework/FrameworkDetector';
 import { PlatformDetector } from '../framework/PlatformLocator';
-import PlaywrightWebMatchers from '../framework/PlaywrightWebMatchers';
 import PlaywrightContextHelpers from '../framework/PlaywrightContextHelpers';
 import { waitForAndroidTestSnapsNativeLoad } from '../smoke-appium/snaps/helpers/android-test-snaps-native.helpers';
 import { TEST_SNAPS_URL } from '../selectors/Browser/TestSnaps.selectors';
@@ -82,7 +81,7 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
         return;
       }
 
-      if (FrameworkDetector.isAppium()) {
+      if (PlatformDetector.isIOSAppium()) {
         await Assertions.expectElementToBeVisible(
           Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
           {
@@ -90,6 +89,11 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
             timeout: WEBVIEW_LOAD_TIMEOUT_MS,
           },
         );
+        await Assertions.expectTextDisplayed('Test Snaps', {
+          timeout: WEBVIEW_LOAD_TIMEOUT_MS,
+          description: 'Test Snaps page title should be visible',
+        });
+        return;
       }
 
       const assertLoaded = async () =>
@@ -105,14 +109,7 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
           },
         );
 
-      if (FrameworkDetector.isAppium()) {
-        await PlaywrightWebMatchers.withWebViewAction(
-          TEST_SNAPS_URL,
-          assertLoaded,
-        );
-      } else {
-        await assertLoaded();
-      }
+      await assertLoaded();
       return;
     } catch (error) {
       if (FrameworkDetector.isAppium() && attempt < MAX_RETRIES) {
