@@ -98,14 +98,19 @@ export type OpenSupportUrl = (url: string) => void | Promise<void>;
  *
  * @param open - Callback invoked with the final support URL once resolved.
  * @param baseUrl - Support URL to enrich (defaults to the generic help center URL).
+ * @param onOpenSupport - Optional callback fired once `open` has resolved
+ * successfully, so a call site's "support opened" analytics event reflects
+ * an actual opened URL rather than a mere confirm tap that could still fail.
  */
 export const confirmSupportConsent = async (
   open: OpenSupportUrl,
   baseUrl?: string,
+  onOpenSupport?: () => void,
 ): Promise<void> => {
   const url = await getEnrichedSupportUrl(baseUrl);
   try {
     await open(url);
+    onOpenSupport?.();
   } catch (error) {
     Logger.log('[SupportConsent] Failed to open support URL', error);
   }
@@ -119,10 +124,14 @@ export const confirmSupportConsent = async (
  *
  * @param open - Callback invoked with the final support URL once resolved.
  * @param baseUrl - Support URL to fall back to (defaults to the generic help center URL).
+ * @param onOpenSupport - Optional callback fired once `open` has resolved
+ * successfully, so a call site's "support opened" analytics event reflects
+ * an actual opened URL rather than a mere reject tap that could still fail.
  */
 export const rejectSupportConsent = async (
   open: OpenSupportUrl,
   baseUrl?: string,
+  onOpenSupport?: () => void,
 ): Promise<void> => {
   // Honor the "Don't share" choice literally: open the raw base URL without
   // appending metamask_version (or any device detail), matching the consent copy.
@@ -133,6 +142,7 @@ export const rejectSupportConsent = async (
   );
   try {
     await open(url);
+    onOpenSupport?.();
   } catch (error) {
     Logger.log('[SupportConsent] Failed to open support URL', error);
   }
@@ -153,10 +163,11 @@ export const rejectSupportConsent = async (
  * @param navigation - Navigation object used to open the consent sheet.
  * @param open - Callback invoked with the final support URL once the user responds.
  * @param baseUrl - Support URL to enrich or fall back to (defaults to the generic help center URL).
- * @param onOpenSupport - Optional callback fired when the user opens support (on
- * confirm or reject, never on dismiss). Lets a call site record its "support
- * opened" analytics event at the moment support is actually opened rather than
- * when the sheet is merely shown.
+ * @param onOpenSupport - Optional callback fired once the support URL has
+ * successfully opened (after confirm or reject; never on dismiss, and never
+ * if `open` throws). Lets a call site record its "support opened" analytics
+ * event at the moment support is actually opened rather than when the user
+ * merely taps confirm/reject.
  */
 export const navigateToSupportConsent = (
   // Only `navigate` is needed; Pick avoids coupling to the caller's exact
@@ -169,14 +180,8 @@ export const navigateToSupportConsent = (
   navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
     screen: Routes.MODAL.SUPPORT_CONSENT_SHEET,
     params: {
-      onConfirm: () => {
-        onOpenSupport?.();
-        return confirmSupportConsent(open, baseUrl);
-      },
-      onReject: () => {
-        onOpenSupport?.();
-        return rejectSupportConsent(open, baseUrl);
-      },
+      onConfirm: () => confirmSupportConsent(open, baseUrl, onOpenSupport),
+      onReject: () => rejectSupportConsent(open, baseUrl, onOpenSupport),
     },
   });
 };
