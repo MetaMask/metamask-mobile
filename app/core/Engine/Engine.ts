@@ -287,6 +287,7 @@ export class Engine {
     this.#wallet = initializeWallet({
       messenger: this.controllerMessenger,
       state: mergedInitialState,
+      analyticsId,
     });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
