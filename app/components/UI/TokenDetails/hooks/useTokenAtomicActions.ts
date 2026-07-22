@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useStore } from 'react-redux';
-import { Hex, CaipChainId, isCaipAssetType } from '@metamask/utils';
+import { Hex, CaipAssetType, CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { selectEvmChainId } from '../../../../selectors/networkController';
@@ -30,7 +30,6 @@ import { useSendNonEvmAsset } from '../../../hooks/useSendNonEvmAsset';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../../Views/confirmations/hooks/useSendNavigation';
-import parseRampIntent from '../../Ramp/utils/parseRampIntent';
 import {
   getDetectedGeolocation,
   getOrders,
@@ -41,6 +40,7 @@ import {
   completedOrdersFromFiatOrders,
   completedOrdersFromRampsOrders,
 } from '../../Ramp/utils/determinePreferredProvider';
+import resolveBuyAssetId from '../../Ramp/utils/resolveBuyAssetId';
 import { BridgeToken } from '../../Bridge/types';
 import { adaptTokenSecurityData } from '../../Bridge/utils/tokenSecurityUtils';
 import { getSwapDestToken } from '../../Bridge/utils/getSwapDestToken';
@@ -53,6 +53,8 @@ import type { RootState } from '../../../../reducers';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 export type TokenActionInput = TokenI & {
+  /** Preferred CAIP-19 when already resolved (e.g. Asset route params). */
+  caipAssetId?: CaipAssetType;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   source?: TokenDetailsSource;
 };
@@ -222,7 +224,7 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
   const { goToBuy } = useRampNavigation();
   const isAuthenticated = useIsRampAuthenticated();
 
-  return useCallback(() => {
+  return useCallback(async () => {
     const tokenChainIdHex = token.chainId as Hex;
 
     trackActionButtonClick(trackEvent, createEventBuilder, {
@@ -232,19 +234,7 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
       location: ActionLocation.ASSET_DETAILS,
     });
 
-    let assetId: string | undefined;
-    try {
-      if (isCaipAssetType(token.address)) {
-        assetId = token.address;
-      } else {
-        assetId = parseRampIntent({
-          chainId: getDecimalChainId(tokenChainIdHex),
-          address: token.address,
-        })?.assetId;
-      }
-    } catch {
-      assetId = undefined;
-    }
+    const assetId = await resolveBuyAssetId(token);
 
     const state = store.getState();
     const rampGeodetectedRegion = getDetectedGeolocation(state);
