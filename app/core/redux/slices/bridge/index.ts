@@ -51,7 +51,10 @@ import { selectCanSignTransactions } from '../../../../selectors/accountsControl
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { hasMinimumRequiredVersion } from '../../../../util/remoteFeatureFlag';
 import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
-import { normalizeTokenAddress } from '../../../../components/UI/Bridge/utils/tokenUtils';
+import {
+  isSameBridgeToken,
+  normalizeTokenAddress,
+} from '../../../../components/UI/Bridge/utils/tokenUtils';
 import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/isStockRwaBridgeToken';
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
@@ -69,6 +72,7 @@ export interface BridgeState {
   selectedSourceChainIds: (Hex | CaipChainId)[] | undefined;
   selectedDestChainId: Hex | CaipChainId | undefined;
   slippage: string | undefined;
+  isSlippageUserOverride?: boolean;
   isSubmittingTx: boolean;
   bridgeViewMode: BridgeViewMode | undefined;
   isMaxSourceAmount?: boolean;
@@ -119,7 +123,8 @@ export const initialState: BridgeState = {
   destAddress: undefined,
   selectedSourceChainIds: undefined,
   selectedDestChainId: undefined,
-  slippage: '0.5',
+  slippage: undefined,
+  isSlippageUserOverride: false,
   isSubmittingTx: false,
   bridgeViewMode: undefined,
   isMaxSourceAmount: false,
@@ -156,6 +161,16 @@ const normalizeBridgeToken = <T extends BridgeToken | undefined>(
     ? token
     : ({ ...token, address: normalizedAddress } as T);
 };
+
+const clearSlippageState = (state: BridgeState) => {
+  state.slippage = undefined;
+  state.isSlippageUserOverride = false;
+};
+
+const didTokenChange = (
+  previous: BridgeToken | undefined,
+  next: BridgeToken | undefined,
+) => Boolean(previous || next) && !isSameBridgeToken(previous, next);
 
 export const setSourceTokenExchangeRate = createAsyncThunk(
   'bridge/setSourceTokenExchangeRate',
@@ -214,12 +229,19 @@ const slice = createSlice({
       state.balanceRefreshKey += 1;
     },
     setSourceToken: (state, action: PayloadAction<BridgeToken | undefined>) => {
-      state.sourceToken = normalizeBridgeToken(action.payload);
+      const sourceToken = normalizeBridgeToken(action.payload);
+      if (didTokenChange(state.sourceToken, sourceToken)) {
+        clearSlippageState(state);
+      }
+      state.sourceToken = sourceToken;
     },
     setDestToken: (state, action: PayloadAction<BridgeToken>) => {
       const destToken = normalizeBridgeToken(action.payload);
-      state.destToken = destToken;
+      if (didTokenChange(state.destToken, destToken)) {
+        clearSlippageState(state);
+      }
       // Update selectedDestChainId to match the destination token's chain ID
+      state.destToken = destToken;
       state.selectedDestChainId = destToken.chainId;
     },
     /**
@@ -234,6 +256,13 @@ const slice = createSlice({
     },
     setSlippage: (state, action: PayloadAction<string | undefined>) => {
       state.slippage = action.payload;
+    },
+    setSlippageUserOverride: (
+      state,
+      action: PayloadAction<string | undefined>,
+    ) => {
+      state.slippage = action.payload;
+      state.isSlippageUserOverride = true;
     },
     setIsSubmittingTx: (state, action: PayloadAction<boolean>) => {
       state.isSubmittingTx = action.payload;
@@ -649,6 +678,11 @@ export const selectSlippage = createSelector(
   (bridgeState) => bridgeState.slippage,
 );
 
+export const selectIsSlippageUserOverride = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.isSlippageUserOverride,
+);
+
 export const selectDestAddress = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAddress,
@@ -1011,6 +1045,7 @@ export const {
   setSelectedSourceChainIds,
   setSelectedDestChainId,
   setSlippage,
+  setSlippageUserOverride,
   setDestAddress,
   setIsSubmittingTx,
   setBridgeViewMode,

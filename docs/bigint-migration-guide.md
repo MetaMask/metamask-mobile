@@ -124,8 +124,6 @@ Includes Stake UI and Money paths owned via `**/Earn/**`, `**/earn/**`, `**/Mone
 
 ### @MetaMask/metamask-assets
 
-- `app/components/UI/AssetOverview/Price/Price.advanced.tsx`
-- `app/components/UI/AssetOverview/Price/Price.legacy.tsx`
 - `app/components/UI/AssetOverview/utils/marketDetails.ts`
 - `app/components/UI/CollectibleOverview/index.js`
 - `app/components/UI/Tokens/util/deriveBalanceFromAssetMarketDetails.test.ts`
