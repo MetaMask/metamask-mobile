@@ -8,9 +8,7 @@ import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 
 jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
 
-const mockOpenSupportWithConsent = jest.fn(
-  (open: (url: string) => void, baseUrl?: string) => open(baseUrl ?? ''),
-);
+const mockOpenSupportWithConsent = jest.fn();
 jest.mock('../../hooks/useSupportConsent', () => ({
   useSupportConsent: () => ({
     openSupportWithConsent: mockOpenSupportWithConsent,
@@ -53,10 +51,26 @@ describe('ScamWarning', () => {
     expect(onStop).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the support URL and calls onContactSupport when "Contact support" is tapped', () => {
+  it('opens the support consent flow with the tracker as callback when "Contact support" is tapped', () => {
     const { getByTestId, onContactSupport } = setup();
     fireEvent.press(getByTestId('scam-warning-contact-support'));
-    expect(onContactSupport).toHaveBeenCalledTimes(1);
+
+    expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      METAMASK_SUPPORT_URL,
+      expect.any(Function),
+    );
+    // Tracking is deferred to when support actually opens, so a mere press
+    // (which only shows the consent sheet) must not fire the tracker.
+    expect(onContactSupport).not.toHaveBeenCalled();
+  });
+
+  it('opens the support URL when the consent flow invokes the opener', () => {
+    const { getByTestId } = setup();
+    fireEvent.press(getByTestId('scam-warning-contact-support'));
+
+    const open = mockOpenSupportWithConsent.mock.calls[0][0];
+    open(METAMASK_SUPPORT_URL);
     expect(Linking.openURL).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
   });
 

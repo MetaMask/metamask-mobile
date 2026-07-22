@@ -54,8 +54,13 @@ export const ScamWarning: React.FC<ScamWarningProps> = ({
   }, [secondsRemaining]);
 
   const handleContactSupport = useCallback(() => {
-    onContactSupport();
-    openSupportWithConsent((url) => Linking.openURL(url), METAMASK_SUPPORT_URL);
+    // Defer tracking to when support is actually opened (consent confirm/reject),
+    // rather than firing on the mere press that only shows the consent sheet.
+    openSupportWithConsent(
+      (url) => Linking.openURL(url),
+      METAMASK_SUPPORT_URL,
+      onContactSupport,
+    );
   }, [onContactSupport, openSupportWithConsent]);
 
   return (

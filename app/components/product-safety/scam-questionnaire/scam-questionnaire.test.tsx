@@ -156,7 +156,7 @@ describe('ScamQuestionnaire', () => {
     expect(mockTrackWarningStopped).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the support consent flow and tracks the support event when "Contact support" is tapped', () => {
+  it('opens the support consent flow when "Contact support" is tapped, tracking only when support actually opens', () => {
     const { getByTestId } = setup();
     answerOneRedFlag(getByTestId);
 
@@ -165,7 +165,14 @@ describe('ScamQuestionnaire', () => {
     expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
       expect.any(Function),
       METAMASK_SUPPORT_URL,
+      expect.any(Function),
     );
+    // Pressing only shows the consent sheet; tracking is deferred to the
+    // callback the call site hands the consent flow (fired on open).
+    expect(mockTrackWarningContactSupport).not.toHaveBeenCalled();
+
+    const onOpenSupport = mockOpenSupportWithConsent.mock.calls[0][2];
+    onOpenSupport();
     expect(mockTrackWarningContactSupport).toHaveBeenCalledTimes(1);
   });
 
