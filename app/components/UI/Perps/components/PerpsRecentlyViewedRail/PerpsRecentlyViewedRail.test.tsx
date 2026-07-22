@@ -91,7 +91,7 @@ describe('PerpsRecentlyViewedRail', () => {
     expect(
       screen.getByTestId(PerpsRecentlyViewedRailSelectorsIDs.PILL_GRID),
     ).toBeOnTheScreen();
-    expect(screen.getByText('Recently searched')).toBeOnTheScreen();
+    expect(screen.getByText('Recently viewed')).toBeOnTheScreen();
     expect(
       screen.getByTestId('perps-recently-viewed-tile-BTC'),
     ).toBeOnTheScreen();
