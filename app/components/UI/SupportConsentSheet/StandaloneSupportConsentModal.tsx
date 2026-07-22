@@ -1,14 +1,14 @@
 import React from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 
@@ -46,11 +46,11 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) =>
  * Navigation-free counterpart to `SupportConsentSheet`, for entry points that
  * cannot rely on `NavigationContainer` being mounted (e.g. the root
  * `ErrorBoundary`, which wraps `NavigationProvider` and so is never given a
- * `navigation` prop). Uses the legacy `component-library` primitives (rather
- * than `@metamask/design-system-react-native`, which `SupportConsentSheet`
- * uses) because `useTheme()` and these primitives already fall back to
- * `mockTheme` with no `ThemeProvider` present, matching the rest of
- * `ErrorBoundary`'s crash-safe rendering.
+ * `navigation` prop). Renders crash-safe without an ancestor theme context:
+ * `useTheme()` falls back to `mockTheme` for the overlay/sheet colors, and the
+ * `@metamask/design-system-react-native` primitives fall back to the default
+ * (Light theme) Tailwind context when no `ThemeProvider` is mounted, matching
+ * the rest of `ErrorBoundary`'s crash-safe rendering.
  */
 const StandaloneSupportConsentModal = ({
   visible,
@@ -71,31 +71,33 @@ const StandaloneSupportConsentModal = ({
     >
       <View style={styles.overlay}>
         <SafeAreaView style={styles.sheet}>
-          <Text variant={TextVariant.HeadingSM} color={colors.text.default}>
+          <Text variant={TextVariant.HeadingSm} color={TextColor.TextDefault}>
             {strings('support_consent.title')}
           </Text>
-          <Text variant={TextVariant.BodyMD} color={colors.text.default}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {strings('support_consent.description')}
           </Text>
           <View style={styles.buttonsRow}>
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('support_consent.reject')}
+              isFullWidth
               onPress={onReject}
               style={styles.button}
               testID="standalone-support-consent-reject-button"
-            />
+            >
+              {strings('support_consent.reject')}
+            </Button>
             <Button
-              variant={ButtonVariants.Primary}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('support_consent.confirm')}
+              isFullWidth
               onPress={onConfirm}
               style={styles.button}
               testID="standalone-support-consent-confirm-button"
-            />
+            >
+              {strings('support_consent.confirm')}
+            </Button>
           </View>
         </SafeAreaView>
       </View>
