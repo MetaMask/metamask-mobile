@@ -33,12 +33,13 @@ jest.mock('./providers/ImmersveProvider', () => {
   const actual = jest.requireActual('./providers/ImmersveProvider');
   return {
     ...actual,
-    ImmersveProvider: jest.fn(
-      (args: ConstructorParameters<typeof actual.ImmersveProvider>[0]) => {
-        capturedGetCardFeatureFlag = args.getCardFeatureFlag;
-        return new actual.ImmersveProvider(args);
-      },
-    ),
+    ImmersveProvider: jest.fn((args: unknown) => {
+      const { getCardFeatureFlag } = args as {
+        getCardFeatureFlag?: () => CardFeatureFlag | null | undefined;
+      };
+      capturedGetCardFeatureFlag = getCardFeatureFlag;
+      return new actual.ImmersveProvider(args);
+    }),
   };
 });
 

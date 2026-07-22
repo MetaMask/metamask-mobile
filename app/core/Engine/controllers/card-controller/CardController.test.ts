@@ -70,19 +70,22 @@ const mockOnboardingStore = CardOnboardingStore as jest.Mocked<
 >;
 const mockDispatch = ReduxService.store.dispatch as jest.Mock;
 
-/** Drain microtasks until `predicate` is true (or throw). Prefer this over a
- * fixed N×`Promise.resolve()` barrier — that under-drains under load. */
+/** Drain the event loop until `predicate` is true (or throw).
+ * Uses `setImmediate` so each iteration yields a macrotask — a fixed
+ * N×`Promise.resolve()` microtask barrier under-drains under load. */
 async function waitForCondition(
   predicate: () => boolean,
-  iterations = 50,
+  timeoutMs = 1000,
 ): Promise<void> {
-  for (let i = 0; i < iterations; i++) {
-    if (predicate()) {
-      return;
+  const deadline = Date.now() + timeoutMs;
+  while (!predicate()) {
+    if (Date.now() > deadline) {
+      throw new Error('waitForCondition predicate never became true');
     }
-    await Promise.resolve();
+    await new Promise<void>((resolve) => {
+      setImmediate(resolve);
+    });
   }
-  throw new Error('waitForCondition predicate never became true');
 }
 
 function buildMessenger() {
@@ -269,6 +272,7 @@ describe('CardController', () => {
 
     expect(controller.state).toStrictEqual({
       selectedCountry: 'US',
+      selectedCardProgramId: null,
       activeProviderId: 'baanx',
       isAuthenticated: true,
       lastUnauthenticatedReason: null,
@@ -2809,13 +2813,17 @@ describe('CardController — data pass-throughs', () => {
 
     async function waitFor(
       predicate: () => boolean,
-      iterations = 50,
+      timeoutMs = 1000,
     ): Promise<void> {
-      for (let i = 0; i < iterations; i++) {
-        if (predicate()) return;
-        await Promise.resolve();
+      const deadline = Date.now() + timeoutMs;
+      while (!predicate()) {
+        if (Date.now() > deadline) {
+          throw new Error('waitFor predicate never became true');
+        }
+        await new Promise<void>((resolve) => {
+          setImmediate(resolve);
+        });
       }
-      throw new Error('waitFor predicate never became true');
     }
 
     const mockGenerateSiwe = jest
@@ -3310,7 +3318,7 @@ describe('CardController — data pass-throughs', () => {
         // Let the async prefix run up to where `approveFunding` is awaited.
         await waitFor(() => handle.addTransactionBatchCalls.length > 0);
         handle.emitConfirmed();
-        await waitFor(() => controller.isLinkageInProgress() === true, 100);
+        await waitFor(() => controller.isLinkageInProgress() === true);
 
         expect(controller.isLinkageInProgress()).toBe(true);
         expect(controller.state.moneyAccountCardLinkInProgress).toBe(true);

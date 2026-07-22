@@ -33,6 +33,7 @@ jest.mock('ethers', () => {
 
 const mockAxiosCreate = axios.create as jest.Mock;
 const mockRequest = jest.fn();
+const FIXED_NOW = new Date('2024-06-01T12:00:00.000Z').getTime();
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -95,7 +96,7 @@ describe('BaanxService', () => {
 
       await service.get('/v1/test', {
         accessToken: 'test-token',
-        accessTokenExpiresAt: Date.now() + 3600000,
+        accessTokenExpiresAt: FIXED_NOW + 3_600_000,
         location: 'us',
       });
 
@@ -277,7 +278,7 @@ describe('BaanxService', () => {
       // Pass a tokenSet with location:'us' but no explicit location arg
       await service.get('/v1/test', {
         accessToken: 'tok',
-        accessTokenExpiresAt: Date.now() + 3_600_000,
+        accessTokenExpiresAt: FIXED_NOW + 3_600_000,
         location: 'us',
       });
 

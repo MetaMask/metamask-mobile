@@ -111,9 +111,9 @@ describe('useImmersveCardProvisioning', () => {
 
       jest.useFakeTimers();
       mockIsFocused = false;
-      rerender();
+      rerender(undefined);
       mockIsFocused = true;
-      rerender();
+      rerender(undefined);
       controller.fetchCardHomeData.mockClear();
       act(() => {
         jest.advanceTimersByTime(10000);
