@@ -192,6 +192,7 @@ interface ImmersveCardListItem {
   isBlocked: boolean;
   status: ImmersveCardApiStatus;
   fundingSourceIds: string[];
+  cardProgramId?: string;
   panLast4?: string;
   network?: string;
 }
@@ -223,6 +224,11 @@ interface ImmersveFundingSourceDetail {
 interface ImmersvePanTokenResponse {
   tokenId: string;
   callbackUrl: string;
+}
+
+export interface CardResumeInfo {
+  cardProgramId?: string;
+  fundingSourceIds: string[];
 }
 
 export class ImmersveProvider implements ICardProvider {
@@ -583,6 +589,27 @@ export class ImmersveProvider implements ICardProvider {
       );
     } catch (error) {
       throw mapApiError(error, 'createCard');
+    }
+  }
+
+  async getResumeCardInfo(
+    tokens: CardAuthTokens,
+  ): Promise<CardResumeInfo | null> {
+    try {
+      const card = await this.resolveCurrentCard(tokens);
+      if (!card) {
+        return null;
+      }
+      const detail = await this.service.get<ImmersveCardDetail>(
+        `/api/cards/${card.id}`,
+        tokens,
+      );
+      return {
+        cardProgramId: detail.cardProgramId,
+        fundingSourceIds: detail.fundingSourceIds ?? [],
+      };
+    } catch (error) {
+      throw mapApiError(error, 'getResumeCardInfo');
     }
   }
 

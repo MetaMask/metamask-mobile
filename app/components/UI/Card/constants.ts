@@ -20,6 +20,8 @@ export const BASE_USDC_TOKEN_ADDRESS =
   '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 export const BASE_SEPOLIA_USDC_TOKEN_ADDRESS =
   '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
+export const ARBITRUM_SEPOLIA_USDC_TOKEN_ADDRESS =
+  '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d';
 
 export const CARD_TOKEN_ICON_OVERRIDES: Record<string, string> = {
   [`eip155:84532:${BASE_SEPOLIA_USDC_TOKEN_ADDRESS.toLowerCase()}`]: `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/erc20/${BASE_USDC_TOKEN_ADDRESS.toLowerCase()}.png`,

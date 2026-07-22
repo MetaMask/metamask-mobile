@@ -23,6 +23,9 @@ import { CardTokenStore } from './CardTokenStore';
 import { CardOnboardingStore } from './CardOnboardingStore';
 import ReduxService from '../../../redux';
 import { resetCardState } from '../../../redux/slices/card';
+import { ImmersveProvider } from './providers/ImmersveProvider';
+import type { ImmersveService } from './services/ImmersveService';
+import type { ImmersveProviderConfig } from './services/immersve-config';
 
 jest.mock('./CardTokenStore');
 jest.mock('./CardOnboardingStore');
@@ -277,6 +280,7 @@ describe('CardController', () => {
       cardHomeData: null,
       cardHomeDataStatus: 'idle',
       moneyAccountCardLinkInProgress: false,
+      selectedCardProgramId: null,
     });
   });
 
@@ -3704,6 +3708,51 @@ describe('CardController — Immersve onboarding pass-throughs', () => {
 
     expect(getFundingSources).toHaveBeenCalledWith(mockTokenSet);
     expect(result).toStrictEqual([{ id: 'fs-1' }]);
+  });
+
+  it('getResumeCardInfo delegates to the immersve provider with valid tokens', async () => {
+    const immersve = new ImmersveProvider({
+      service: {
+        get: jest.fn(),
+        post: jest.fn(),
+        patch: jest.fn(),
+      } as unknown as ImmersveService,
+      config: {
+        apiKey: 'test-key',
+        baseUrl: 'https://api.test.immersve.com',
+        clientApplicationId: 'client-app-1',
+        appUrl: 'https://app.immersve.com',
+      } satisfies ImmersveProviderConfig,
+    });
+    const getResumeCardInfo = jest
+      .spyOn(immersve, 'getResumeCardInfo')
+      .mockResolvedValue({
+        cardProgramId: 'program-1',
+        fundingSourceIds: ['fs-1'],
+      });
+
+    const baanx = buildMockProvider({ id: 'baanx' });
+    baanx.validateTokens.mockReturnValue('valid');
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    const controller = new CardController({
+      messenger: buildMessenger(),
+      providers: { baanx, immersve },
+      state: { activeProviderId: 'baanx' },
+    });
+
+    const result = await controller.getResumeCardInfo();
+
+    expect(getResumeCardInfo).toHaveBeenCalledWith(mockTokenSet);
+    expect(result).toStrictEqual({
+      cardProgramId: 'program-1',
+      fundingSourceIds: ['fs-1'],
+    });
+  });
+
+  it('getResumeCardInfo returns null when immersve provider is not registered', async () => {
+    const { controller } = withValidSession();
+
+    await expect(controller.getResumeCardInfo()).resolves.toBeNull();
   });
 
   it('getSpendingPrerequisites forwards fundingSourceId + params with tokens', async () => {

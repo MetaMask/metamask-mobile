@@ -776,6 +776,62 @@ describe('ImmersveProvider', () => {
         code: CardProviderErrorCode.ServerError,
       });
     });
+
+    it('getResumeCardInfo returns null when the account has no card', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({ items: [] });
+
+      await expect(provider.getResumeCardInfo(TOKENS)).resolves.toBeNull();
+    });
+
+    it('getResumeCardInfo returns the card program and funding sources', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation((path: string) => {
+        if (path.includes('/cards?')) {
+          return Promise.resolve({
+            items: [
+              {
+                id: 'card-1',
+                accountId: 'cardholder-1',
+                type: 'virtual',
+                createdAt: '2024-01-02T00:00:00.000Z',
+                modifiedAt: '2024-01-02T00:00:00.000Z',
+                expiresAt: '2029-01-01T00:00:00.000Z',
+                isBlocked: false,
+                status: 'active',
+                fundingSourceIds: ['fs-arbitrum'],
+              },
+            ],
+          });
+        }
+        if (path === '/api/cards/card-1') {
+          return Promise.resolve({
+            id: 'card-1',
+            cardProgramId: 'program-arbitrum',
+            fundingSourceIds: ['fs-arbitrum'],
+            status: 'active',
+            isBlocked: false,
+          });
+        }
+        return Promise.resolve({});
+      });
+
+      await expect(provider.getResumeCardInfo(TOKENS)).resolves.toStrictEqual({
+        cardProgramId: 'program-arbitrum',
+        fundingSourceIds: ['fs-arbitrum'],
+      });
+    });
+
+    it('getResumeCardInfo maps API failures', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockRejectedValue(
+        new CardApiError(500, '/api/accounts/cardholder-1/cards', 'down'),
+      );
+
+      await expect(provider.getResumeCardInfo(TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.ServerError,
+      });
+    });
   });
 
   describe('capabilities (card-read)', () => {
