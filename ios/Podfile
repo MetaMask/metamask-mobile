@@ -134,6 +134,133 @@ end
 
 config = use_native_modules!(config_command)
 
+# E2E-only patch that forces SocketRocket (React Native's WebSocket transport)
+# to route ws:// and wss:// connections through the local E2E HTTP proxy.
+#
+# Why a source patch: SocketRocket reads proxy settings from the device's
+# system proxy configuration, which the iOS Simulator inherits from the host
+# Mac — it cannot be set per-app. The patch injects an early-return hook into
+# SRProxyConnect's `_configureProxy` that reads the `e2eIosProxyPort` launch
+# argument (same contract as E2ENativeAppProxy.swift) and, when present,
+# targets 127.0.0.1:<port> instead.
+#
+# Patched invariants this relies on (re-verify on SocketRocket version bumps):
+#   - `SRProxyConnect.m` lives at Internal/Proxy/ and contains a
+#     `- (void)_configureProxy` method opening with `SRDebugLog(@"configureProxy");`
+#   - `_httpProxyHost` / `_httpProxyPort` ivars carry the proxy target and
+#     `_openConnection` starts the proxied connect
+#   - localhost / 127.0.0.1 / ::1 / *.local destinations bypass the proxy so
+#     the harness's own local servers stay directly reachable
+#
+# Applied only when METAMASK_ENVIRONMENT=e2e. Any failure to apply raises so
+# `pod install` (and therefore CI) fails loudly rather than silently producing
+# an E2E binary whose native WebSocket traffic bypasses the proxy.
+def apply_e2e_socketrocket_proxy_patch(installer)
+  file = File.join(
+    installer.sandbox.root.to_s,
+    'SocketRocket/SocketRocket/Internal/Proxy/SRProxyConnect.m'
+  )
+  marker = 'E2E_IOS_NATIVE_APP_PROXY_WEBSOCKET_ENABLED'
+
+  unless File.exist?(file)
+    raise "SocketRocket E2E native proxy patch: #{file} not found (did the SocketRocket pod layout change?)"
+  end
+
+  contents = File.read(file)
+  if contents.include?(marker)
+    Pod::UI.puts 'SocketRocket E2E native proxy patch already applied'.yellow
+    return
+  end
+
+  helper = <<~'OBJC'
+    static NSString *SRE2ELaunchArgumentValue(NSString *name)
+    {
+        NSArray<NSString *> *arguments = NSProcessInfo.processInfo.arguments;
+
+        for (NSUInteger index = 0; index < arguments.count; index++) {
+            NSString *argument = arguments[index];
+            if ([argument isEqualToString:name] || [argument isEqualToString:[@"-" stringByAppendingString:name]]) {
+                NSUInteger nextIndex = index + 1;
+                return nextIndex < arguments.count ? arguments[nextIndex] : nil;
+            }
+
+            NSArray<NSString *> *prefixes = @[
+                [name stringByAppendingString:@"="],
+                [[@"-" stringByAppendingString:name] stringByAppendingString:@"="]
+            ];
+            for (NSString *prefix in prefixes) {
+                if ([argument hasPrefix:prefix]) {
+                    return [argument substringFromIndex:prefix.length];
+                }
+            }
+        }
+
+        return NSProcessInfo.processInfo.environment[name];
+    }
+
+    static BOOL SRE2EIsLocalHost(NSString *host)
+    {
+        NSString *lowercaseHost = host.lowercaseString ?: @"";
+        return [lowercaseHost isEqualToString:@"localhost"] ||
+            [lowercaseHost isEqualToString:@"127.0.0.1"] ||
+            [lowercaseHost isEqualToString:@"::1"] ||
+            [lowercaseHost isEqualToString:@"10.0.2.2"] ||
+            [lowercaseHost hasSuffix:@".local"];
+    }
+
+    - (BOOL)_configureE2EProxyIfNeeded
+    {
+        NSString *proxyPortString = SRE2ELaunchArgumentValue(@"e2eIosProxyPort");
+        NSInteger proxyPort = proxyPortString.integerValue;
+
+        if (proxyPort <= 0 || proxyPort > 65535 || SRE2EIsLocalHost(_url.host)) {
+            return NO;
+        }
+
+        _httpProxyHost = @"127.0.0.1";
+        _httpProxyPort = (uint32_t)proxyPort;
+
+        NSLog(@"[E2E_IOS_NATIVE_APP_PROXY_WEBSOCKET_ENABLED] SocketRocket %@://%@ will use HTTP proxy %@:%u",
+              _connectionRequiresSSL ? @"wss" : @"ws",
+              _url.host ?: @"unknown",
+              _httpProxyHost,
+              _httpProxyPort);
+
+        [self _openConnection];
+        return YES;
+    }
+  OBJC
+
+  needle = <<~'OBJC'
+    // get proxy setting from device setting
+    - (void)_configureProxy
+    {
+        SRDebugLog(@"configureProxy");
+  OBJC
+
+  replacement = <<~'OBJC'
+    // get proxy setting from device setting
+    - (void)_configureProxy
+    {
+        SRDebugLog(@"configureProxy");
+        if ([self _configureE2EProxyIfNeeded]) {
+            return;
+        }
+  OBJC
+
+  modified = contents.sub(needle, "#{helper}\n#{replacement}")
+  if modified == contents
+    raise 'SocketRocket E2E native proxy patch: expected _configureProxy block not found (SocketRocket source changed — update the patch invariants above)'
+  end
+
+  system "chmod +w #{file}"
+  File.write(file, modified)
+  unless File.read(file).include?(marker)
+    raise 'SocketRocket E2E native proxy patch: marker missing after write — patch did not stick'
+  end
+  Pod::UI.puts 'Applied SocketRocket E2E native proxy patch'.green
+end
+
 post_install do |installer|
   react_native_post_install(
     installer,
@@ -181,6 +308,12 @@ post_install do |installer|
     rescue => e
       Pod::UI.warn "Failed to modify fmt base.h: #{e.message}"
     end
+  end
+
+  if ENV['METAMASK_ENVIRONMENT'] == 'e2e'
+    apply_e2e_socketrocket_proxy_patch(installer)
+  else
+    Pod::UI.puts 'Skipping SocketRocket E2E native proxy patch outside METAMASK_ENVIRONMENT=e2e'.yellow
   end
 
   # This is necessary for Xcode 14, because it signs resource bundles by default

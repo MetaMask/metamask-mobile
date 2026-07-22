@@ -14,6 +14,7 @@ import {
   startResourceWithRetry,
   startMultiInstanceResourceWithRetry,
   cleanupAllAndroidPortForwarding,
+  setupAndroidPortForwarding,
 } from './FixtureUtils';
 import Utilities, { sleep } from '../Utilities';
 import {
@@ -46,6 +47,7 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  FALLBACK_GANACHE_PORT,
   resolveE2EFixtureBootstrapTimeoutMs,
   shouldHandleMetroDevLauncherLocally,
 } from '../Constants';
@@ -64,18 +66,77 @@ import CommandQueueServer from './CommandQueueServer';
 import DappServer from '../DappServer';
 import { PlatformDetector } from '../PlatformLocator';
 import LocalWebSocketServer from '../../websocket/server';
-import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants';
+import {
+  ACCOUNT_ACTIVITY_WS,
+  SOLANA_INFURA_WS,
+} from '../../websocket/constants';
 import {
   setupAccountActivityMocks,
   resetAccountActivityMockState,
 } from '../../websocket/account-activity-mocks';
 import { FrameworkDetector } from '../FrameworkDetector';
 import PlaywrightUtilities from '../PlaywrightUtilities';
-import { DeviceCommandHandler } from '../services/device-commands';
+import {
+  DeviceCommandHandler,
+  type DeviceCommandHandlerOptions,
+} from '../services/device-commands';
+import { setupSolanaInfuraMocks } from '../../websocket/solana-infura-mocks';
+import {
+  IOS_E2E_APP_PROXY_LAUNCH_ARG,
+  createDefaultProxySetupState,
+  ensureNativeProxyCa,
+  setupProxy,
+  cleanupProxy,
+} from '../services/proxy-setup';
+import type { CurrentDeviceDetails } from './playwright';
 
 const logger = createLogger({
   name: 'FixtureHelper',
 });
+
+/**
+ *
+ * @param currentDeviceDetails - The current device details. If not provided, the device command options will be undefined.
+ * @returns The device command options. If the current device details are provided and are not browserstack, the device command options will be returned. If the current device details are not provided and the framework is detox, the device command options will be returned. If the current device details are not provided and the framework is not detox, the device command options will be undefined.
+ */
+function getDeviceCommandOptions(
+  currentDeviceDetails?: CurrentDeviceDetails,
+): DeviceCommandHandlerOptions | undefined {
+  // Appium based devices
+  if (currentDeviceDetails) {
+    if (currentDeviceDetails.isBrowserstack) {
+      return undefined;
+    }
+
+    return {
+      currentDeviceDetails,
+      deviceId: currentDeviceDetails.udid ?? currentDeviceDetails.deviceName,
+      logger,
+    };
+  }
+
+  // Detox based devices
+  if (!FrameworkDetector.isDetox()) {
+    return undefined;
+  }
+
+  const deviceId = process.env.DEVICE_UDID || device.id;
+  if (!deviceId) {
+    return undefined;
+  }
+
+  const platform = device.getPlatform() as 'android' | 'ios';
+  return {
+    currentDeviceDetails: {
+      platform,
+      deviceName: deviceId,
+      udid: platform === 'android' ? deviceId : undefined,
+      isBrowserstack: false,
+    },
+    deviceId,
+    logger,
+  };
+}
 
 /**
  * Handles the dapps by starting the servers and listening to the ports.
@@ -337,19 +398,36 @@ function updateRpcUrlsWithAllocatedPorts(state: Fixture): Fixture {
     for (const chainId of Object.keys(networkConfigs)) {
       const config = networkConfigs[chainId as `0x${string}`];
       if (config.rpcEndpoints) {
+        // Android fixture URLs must carry the FALLBACK port: adb reverse
+        // maps fallback -> actual host port, so an actual host port baked by
+        // a spec (node.getPort()) is unreachable on-device — the shim's
+        // silent raw-URL fallback then dead-ends and the app's RPC/balance
+        // pipeline starves (MMQA-1923 S3, stake-action regression). iOS
+        // shares the host network, so it needs the opposite direction.
+        const isAndroidPlatform = PlatformDetector.isAndroid();
         for (const endpoint of config.rpcEndpoints) {
           if (endpoint.url) {
             if (actualAnvilPort !== undefined) {
-              endpoint.url = endpoint.url.replace(
-                new RegExp(`:${DEFAULT_ANVIL_PORT}(\\/|$)`),
-                `:${actualAnvilPort}$1`,
-              );
+              endpoint.url = isAndroidPlatform
+                ? endpoint.url.replace(
+                    new RegExp(`:${actualAnvilPort}(\\/|$)`),
+                    `:${DEFAULT_ANVIL_PORT}$1`,
+                  )
+                : endpoint.url.replace(
+                    new RegExp(`:${DEFAULT_ANVIL_PORT}(\\/|$)`),
+                    `:${actualAnvilPort}$1`,
+                  );
             }
             if (actualGanachePort !== undefined) {
-              endpoint.url = endpoint.url.replace(
-                new RegExp(`:${DEFAULT_GANACHE_PORT}(\\/|$)`),
-                `:${actualGanachePort}$1`,
-              );
+              endpoint.url = isAndroidPlatform
+                ? endpoint.url.replace(
+                    new RegExp(`:${actualGanachePort}(\\/|$)`),
+                    `:${DEFAULT_GANACHE_PORT}$1`,
+                  )
+                : endpoint.url.replace(
+                    new RegExp(`:${DEFAULT_GANACHE_PORT}(\\/|$)`),
+                    `:${actualGanachePort}$1`,
+                  );
             }
           }
         }
@@ -438,7 +516,7 @@ export const loadFixture = async (
 
   // Update dapp URLs and mock server URLs with actual allocated ports (iOS only)
   // On Android, fixture uses fallback ports which are mapped via adb reverse
-  if (await PlatformDetector.isIOS()) {
+  if (PlatformDetector.isIOS()) {
     state = updateDappUrlsWithAllocatedPorts(state);
     state = updateMockServerUrlsInFixture(state);
   }
@@ -457,21 +535,59 @@ export const loadFixture = async (
   }
 };
 
+/**
+ * The mock server is shared across tests within a spec file instead of being
+ * stopped and restarted per test. On Android the emulator's global proxy
+ * tunnels the Detox tester WebSocket through this server (the proxy exclusion
+ * list is not honored for WS upgrades); stopping the server between tests
+ * cleanly closes that tunnel, which makes the app-side Detox client terminate
+ * permanently and breaks every later test using restartDevice: false.
+ * Per-test isolation comes from MockServerE2E.reconfigure(), which resets all
+ * rules/subscriptions without touching established tunnels. The instance is
+ * stopped once per spec file (afterAll in tests/init.detox.js); on Playwright
+ * workers it lives until the worker process exits.
+ */
+let sharedMockServerInstance: MockServerE2E | undefined;
+
+export const stopSharedMockServer = async (): Promise<void> => {
+  const instance = sharedMockServerInstance;
+  sharedMockServerInstance = undefined;
+  if (instance?.isStarted()) {
+    await instance.stop();
+  }
+};
+
 export const createMockAPIServer = async (
   testSpecificMock?: TestSpecificMock,
 ): Promise<{
   mockServerInstance: MockServerE2E;
   mockServerPort: number;
 }> => {
-  const mockServerInstance = new MockServerE2E({
-    events: DEFAULT_MOCKS,
-    testSpecificMock,
-  });
+  let mockServerInstance: MockServerE2E;
+  let mockServerPort: number;
 
-  const mockServerPort = await startResourceWithRetry(
-    ResourceType.MOCK_SERVER,
-    mockServerInstance,
-  );
+  if (sharedMockServerInstance?.isStarted()) {
+    mockServerInstance = sharedMockServerInstance;
+    mockServerPort = mockServerInstance.getServerPort();
+    await mockServerInstance.reconfigure({
+      events: DEFAULT_MOCKS,
+      testSpecificMock,
+    });
+    // cleanupAllAndroidPortForwarding removed the fallback-port reverse at
+    // the start of this test; the reused server skips startResourceWithRetry,
+    // so re-establish it here.
+    await setupAndroidPortForwarding(ResourceType.MOCK_SERVER, mockServerPort);
+  } else {
+    mockServerInstance = new MockServerE2E({
+      events: DEFAULT_MOCKS,
+      testSpecificMock,
+    });
+    mockServerPort = await startResourceWithRetry(
+      ResourceType.MOCK_SERVER,
+      mockServerInstance,
+    );
+    sharedMockServerInstance = mockServerInstance;
+  }
 
   const mockServer = mockServerInstance.server;
 
@@ -534,10 +650,10 @@ export async function withFixtures(
     currentDeviceDetails,
     disableSynchronization = false,
   } = options;
-  const deviceCommands =
-    currentDeviceDetails && !currentDeviceDetails.isBrowserstack
-      ? new DeviceCommandHandler({ currentDeviceDetails, logger })
-      : undefined;
+  const deviceCommandOptions = getDeviceCommandOptions(currentDeviceDetails);
+  const deviceCommands = deviceCommandOptions
+    ? new DeviceCommandHandler(deviceCommandOptions)
+    : undefined;
 
   // Clean up any stale port forwarding from previous failed tests
   // This ensures we start with a clean slate on Android
@@ -568,11 +684,16 @@ export async function withFixtures(
   const dappServer: DappServer[] = [];
   let mockServerInstance;
   let mockServerPort;
+  let proxySetupState = createDefaultProxySetupState();
   const fixtureServer = new FixtureServer();
   const commandQueueServer = new CommandQueueServer();
   const accountActivityWsServer = new LocalWebSocketServer(
     'accountActivity',
     ResourceType.ACCOUNT_ACTIVITY_WS,
+  );
+  const solanaInfuraWsServer = new LocalWebSocketServer(
+    'solanaInfura',
+    ResourceType.SOLANA_INFURA_WS,
   );
   let testError: Error | null = null;
   let didAttemptPlaywrightDevelopmentServerPickerDismissal = false;
@@ -605,17 +726,63 @@ export async function withFixtures(
       await handleDapps(dapps, dappServer);
     }
 
-    // Step 4: Start mock server (testSpecificMock can reference everything above)
+    // Step 4: Certificate Management
+    // Ensure the native proxy CA exists before Mockttp reads its HTTPS options.
+    await ensureNativeProxyCa(restartDevice);
+
+    // Step 5: Start mock server (testSpecificMock can reference everything above)
     const mockServerResult = await createMockAPIServer(testSpecificMock);
     mockServerInstance = mockServerResult.mockServerInstance;
     mockServerPort = mockServerResult.mockServerPort;
 
-    // Step 4.5: Start WebSocket mock servers
+    // Step 5.1: Start WebSocket mock servers
     await startResourceWithRetry(
       ResourceType.ACCOUNT_ACTIVITY_WS,
       accountActivityWsServer,
     );
     await setupAccountActivityMocks(accountActivityWsServer);
+    await startResourceWithRetry(
+      ResourceType.SOLANA_INFURA_WS,
+      solanaInfuraWsServer,
+    );
+    await setupSolanaInfuraMocks(solanaInfuraWsServer);
+    // Bridge device-proxied WS traffic aimed at the fallback ports to the
+    // actual host-side server ports. On Android the emulator global proxy
+    // does not reliably honor the exclusion list for WebSocket upgrades, so
+    // shim-rerouted WS connections (ws://localhost:<fallbackPort>) can arrive
+    // at mockttp instead of the adb-reverse path; without this bridge they
+    // ECONNREFUSED against a port nothing on the host listens on.
+    await mockServerInstance.bridgeLocalWebSocketPort(
+      ACCOUNT_ACTIVITY_WS.fallbackPort,
+      accountActivityWsServer.getServerPort(),
+    );
+    await mockServerInstance.bridgeLocalWebSocketPort(
+      SOLANA_INFURA_WS.fallbackPort,
+      solanaInfuraWsServer.getServerPort(),
+    );
+    // Local-node RPC is reachable over WS too (snaps' network-access tests
+    // open ws://localhost:8545 from the WebView), and those upgrades get
+    // captured by the device proxy exactly like the bridges above. The
+    // host-side node listens on a dynamic port, so an unbridged upgrade
+    // would dial a dead host port and ECONNREFUSED.
+    const anvilActualPort = PortManager.getInstance().getPort(
+      ResourceType.ANVIL,
+    );
+    if (anvilActualPort !== undefined) {
+      await mockServerInstance.bridgeLocalWebSocketPort(
+        DEFAULT_ANVIL_PORT,
+        anvilActualPort,
+      );
+    }
+    const ganacheActualPort = PortManager.getInstance().getPort(
+      ResourceType.GANACHE,
+    );
+    if (ganacheActualPort !== undefined) {
+      await mockServerInstance.bridgeLocalWebSocketPort(
+        FALLBACK_GANACHE_PORT,
+        ganacheActualPort,
+      );
+    }
     // Resolve fixture after local nodes are started so dynamic ports are known
     let resolvedFixture: FixtureBuilder | Fixture;
     if (typeof fixtureOption === 'function') {
@@ -637,6 +804,18 @@ export async function withFixtures(
         commandQueueServer,
       );
     }
+
+    // Configure platform proxying after local harness resources are listening
+    // and before the app is relaunched. Android still uses fallback ports plus
+    // adb reverse as the normal local-resource path; if global proxy routing
+    // catches those URLs, MockServer bridges known fallback ports back to the
+    // host resources.
+    proxySetupState = await setupProxy(
+      mockServerPort,
+      restartDevice,
+      deviceCommands,
+    );
+
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
 
@@ -644,7 +823,7 @@ export async function withFixtures(
       // On Android, LaunchArguments library integration is unreliable on CI
       // We must pass fallback ports so the app uses them and adb reverse can map them
       // to the actual allocated ports
-      const isAndroid = await PlatformDetector.isAndroid();
+      const isAndroid = PlatformDetector.isAndroid();
       const framework = FrameworkDetector.isDetox() ? 'Detox' : 'Appium';
 
       if (framework === 'Detox') {
@@ -664,6 +843,9 @@ export async function withFixtures(
             [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
               ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
               : `${accountActivityWsServer.getServerPort()}`,
+            [SOLANA_INFURA_WS.launchArgKey]: isAndroid
+              ? `${SOLANA_INFURA_WS.fallbackPort}`
+              : `${solanaInfuraWsServer.getServerPort()}`,
             ...(launchArgs || {}),
           },
           languageAndLocale,
@@ -684,9 +866,15 @@ export async function withFixtures(
           mockServerPort: isAndroid
             ? `${FALLBACK_MOCKSERVER_PORT}`
             : `${mockServerPort}`,
+          ...(isAndroid
+            ? {}
+            : { [IOS_E2E_APP_PROXY_LAUNCH_ARG]: `${mockServerPort}` }),
           [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
             ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
             : `${accountActivityWsServer.getServerPort()}`,
+          [SOLANA_INFURA_WS.launchArgKey]: isAndroid
+            ? `${SOLANA_INFURA_WS.fallbackPort}`
+            : `${solanaInfuraWsServer.getServerPort()}`,
           ...(launchArgs || {}),
         };
 
@@ -801,6 +989,13 @@ export async function withFixtures(
       }
     }
 
+    try {
+      await cleanupProxy(proxySetupState, deviceCommands);
+    } catch (cleanupError) {
+      logger.error('Error during proxy cleanup:', cleanupError);
+      cleanupErrors.push(cleanupError as Error);
+    }
+
     // Enter drain mode AFTER endTestfn / analyticsExpectations so analytics events are still captured,
     // but BEFORE stopping backends — prevents forwarding to dead Anvil/Ganache.
     if (mockServerInstance) {
@@ -846,6 +1041,19 @@ export async function withFixtures(
     }
 
     if (mockServerInstance) {
+      // N4: warn-only summary of OS-proxy-intercepted native traffic and the
+      // unmocked subset. Best-effort — must never fail the test (native-traffic
+      // enforcement is a deliberate later step), so it runs before live-request
+      // validation and swallows its own errors.
+      try {
+        mockServerInstance.summarizeDeviceProxyTraffic();
+      } catch (summaryError) {
+        logger.warn(
+          'Device-proxy traffic summary failed (non-critical):',
+          summaryError,
+        );
+      }
+
       try {
         // Validate live requests
         mockServerInstance.validateLiveRequests();
@@ -859,20 +1067,16 @@ export async function withFixtures(
     try {
       resetAccountActivityMockState();
       await accountActivityWsServer.stop();
+      await solanaInfuraWsServer.stop();
     } catch (cleanupError) {
       logger.error('Error during WebSocket cleanup:', cleanupError);
       cleanupErrors.push(cleanupError as Error);
     }
 
-    // Clean up the mock server
-    if (mockServerInstance?.isStarted()) {
-      try {
-        await mockServerInstance.stop();
-      } catch (cleanupError) {
-        logger.error('Error during mock server cleanup:', cleanupError);
-        cleanupErrors.push(cleanupError as Error);
-      }
-    }
+    // The mock server is intentionally NOT stopped here: it is shared across
+    // tests in this spec file (see sharedMockServerInstance) and stays in
+    // drain mode until the next test reconfigures it. It is stopped once per
+    // spec file via stopSharedMockServer() in tests/init.detox.js.
 
     // Clean up the fixture server
     if (fixtureServer?.isStarted()) {

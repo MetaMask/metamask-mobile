@@ -209,6 +209,27 @@ android {
         manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
         manifestPlaceholders.MM_BRANCH_KEY_LIVE = "$System.env.MM_BRANCH_KEY_LIVE"
 
+        // E2E builds swap in a relaxed network security config that trusts
+        // user-installed CAs so device-proxy mocking can intercept HTTPS
+        // (see tests/framework/DEVICE_PROXY_MOCKING.md). Production builds
+        // keep the standard config. build.sh passes -PmetamaskE2E=true for
+        // E2E builds so a lost/stale METAMASK_ENVIRONMENT fails loudly here
+        // instead of silently falling back to the production config.
+        def isE2EEnvironment = System.getenv("METAMASK_ENVIRONMENT") == 'e2e'
+        if ((findProperty('metamaskE2E')?.toString() == 'true') && !isE2EEnvironment) {
+            throw new GradleException(
+                'E2E build requested (-PmetamaskE2E=true) but METAMASK_ENVIRONMENT is not "e2e" in the Gradle ' +
+                'process environment. The E2E network security config would not be applied. ' +
+                'Check that build.sh exported METAMASK_ENVIRONMENT and that a stale Gradle daemon is not running.'
+            )
+        }
+        manifestPlaceholders.networkSecurityConfig = (
+          isE2EEnvironment
+            ? "@xml/react_native_config_e2e"
+            : "@xml/react_native_config"
+        )
+        println "networkSecurityConfig resolved to ${manifestPlaceholders.networkSecurityConfig}"
+
         // Braze SDK credentials — names match .android.env / build.sh exports
         resValue "string", "com_braze_api_key", "${System.env.MM_BRAZE_API_KEY_ANDROID ?: ''}"
         resValue "string", "com_braze_custom_endpoint", "${System.env.MM_BRAZE_SDK_ENDPOINT ?: ''}"

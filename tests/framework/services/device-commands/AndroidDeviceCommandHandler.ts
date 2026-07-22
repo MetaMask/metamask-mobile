@@ -7,8 +7,10 @@ import {
 } from './commandRunner';
 import type {
   ClearAppDataOptions,
+  ConfigureHttpProxyOptions,
   DeviceCommandHandlerOptions,
   InstallAppOptions,
+  InstallRootCertificateOptions,
   IsAppInstalledOptions,
   PlatformDeviceCommandHandler,
   ReinstallAppOptions,
@@ -19,6 +21,20 @@ const DEFAULT_TIMEOUT_MS = 20_000;
 const PACKAGE_OPERATION_TIMEOUT_MS = 120_000;
 const INSTALL_TIMEOUT_MS = 10 * 60_000;
 const LARGE_OUTPUT_BUFFER = 2 * 1024 * 1024;
+const ANDROID_LEGACY_HTTP_PROXY_SETTING = 'http_proxy';
+const ANDROID_GLOBAL_HTTP_PROXY_HOST_SETTING = 'global_http_proxy_host';
+const ANDROID_GLOBAL_HTTP_PROXY_PORT_SETTING = 'global_http_proxy_port';
+const ANDROID_GLOBAL_HTTP_PROXY_EXCLUSION_LIST_SETTING =
+  'global_http_proxy_exclusion_list';
+const ANDROID_GLOBAL_HTTP_PROXY_PAC_SETTING = 'global_proxy_pac_url';
+const DEFAULT_ANDROID_PROXY_EXCLUSION_LIST = [
+  'localhost',
+  '127.0.0.1',
+  '10.0.2.2',
+  '10.0.3.2',
+  'bs-local.com',
+  '*.local',
+];
 
 /**
  * Android implementation of local device app-management commands backed by `adb`.
@@ -27,12 +43,14 @@ export class AndroidDeviceCommandHandler
   implements PlatformDeviceCommandHandler
 {
   private readonly options: DeviceCommandHandlerOptions;
+  private readonly deviceId?: string;
 
   /**
    * Creates an Android command handler for a resolved local emulator/device.
    */
   constructor(options: DeviceCommandHandlerOptions) {
     this.options = options;
+    this.deviceId = options.deviceId?.trim() || undefined;
   }
 
   /**
@@ -143,6 +161,82 @@ export class AndroidDeviceCommandHandler
   }
 
   /**
+   * Android does not support (or need) runtime CA install.
+   *
+   * Decision DA/A1 (MMQA-1923): the E2E proxy CA is bundled into the E2E APK
+   * at build time (res/raw/e2e_proxy_ca via react_native_config_e2e.xml),
+   * which removes the adb-root dependency the old runtime push required.
+   * Any call here is a wiring bug, so fail loudly instead of silently
+   * attempting an install that needs adb root.
+   */
+  async installRootCertificate(
+    _options: InstallRootCertificateOptions,
+  ): Promise<void> {
+    throw new Error(
+      'Android runtime CA install is not supported: the E2E proxy CA is bundled in the E2E APK (res/raw/e2e_proxy_ca, Decision DA/A1 on MMQA-1923). If the device does not trust the proxy, verify the APK was built with METAMASK_ENVIRONMENT=e2e.',
+    );
+  }
+
+  /**
+   * Configures Android's global HTTP proxy.
+   */
+  async configureHttpProxy({
+    host,
+    port,
+    exclusionList,
+  }: ConfigureHttpProxyOptions): Promise<void> {
+    const proxyHost = host.trim();
+    this.validateProxyConfig(proxyHost, port);
+
+    const proxyAddress = `${proxyHost}:${port}`;
+    const proxyExclusionList = this.normalizeProxyExclusionList(exclusionList);
+
+    await this.putGlobalSetting(
+      ANDROID_GLOBAL_HTTP_PROXY_HOST_SETTING,
+      proxyHost,
+    );
+    await this.putGlobalSetting(
+      ANDROID_GLOBAL_HTTP_PROXY_PORT_SETTING,
+      `${port}`,
+    );
+    await this.putGlobalSetting(
+      ANDROID_GLOBAL_HTTP_PROXY_EXCLUSION_LIST_SETTING,
+      proxyExclusionList,
+    );
+    await this.deleteGlobalSetting(ANDROID_GLOBAL_HTTP_PROXY_PAC_SETTING);
+    const output = await this.putGlobalSetting(
+      ANDROID_LEGACY_HTTP_PROXY_SETTING,
+      proxyAddress,
+    );
+    this.options.logger?.debug(
+      `adb shell settings put global http_proxy ${proxyAddress} with exclusions ${proxyExclusionList}: ${
+        formatCommandOutput(output) || 'done'
+      }`,
+    );
+  }
+
+  /**
+   * Clears Android's global HTTP proxy.
+   */
+  async clearHttpProxy(): Promise<void> {
+    const output = await this.putGlobalSetting(
+      ANDROID_LEGACY_HTTP_PROXY_SETTING,
+      ':0',
+    );
+    await this.deleteGlobalSetting(ANDROID_GLOBAL_HTTP_PROXY_HOST_SETTING);
+    await this.putGlobalSetting(ANDROID_GLOBAL_HTTP_PROXY_PORT_SETTING, '0');
+    await this.deleteGlobalSetting(
+      ANDROID_GLOBAL_HTTP_PROXY_EXCLUSION_LIST_SETTING,
+    );
+    await this.deleteGlobalSetting(ANDROID_GLOBAL_HTTP_PROXY_PAC_SETTING);
+    this.options.logger?.debug(
+      `adb shell settings put global http_proxy :0: ${
+        formatCommandOutput(output) || 'done'
+      }`,
+    );
+  }
+
+  /**
    * Runs an `adb` command scoped to the resolved Android serial.
    */
   private async runAdb(
@@ -156,13 +250,31 @@ export class AndroidDeviceCommandHandler
   }
 
   /**
+   * Writes a global Android setting through adb.
+   */
+  private async putGlobalSetting(
+    key: string,
+    value: string,
+  ): Promise<DeviceCommandOutput> {
+    return this.runAdb(['shell', 'settings', 'put', 'global', key, value]);
+  }
+
+  /**
+   * Deletes a global Android setting through adb.
+   */
+  private async deleteGlobalSetting(key: string): Promise<DeviceCommandOutput> {
+    return this.runAdb(['shell', 'settings', 'delete', 'global', key]);
+  }
+
+  /**
    * Resolves the adb serial from current device details.
    */
   private resolveAdbSerial(): string {
-    const udid = this.options.currentDeviceDetails.udid?.trim();
+    const udid =
+      this.deviceId ?? this.options.currentDeviceDetails.udid?.trim();
     if (!udid) {
       throw new Error(
-        'Android device commands require currentDeviceDetails.udid (adb serial).',
+        'Android device commands require deviceId or currentDeviceDetails.udid (adb serial).',
       );
     }
     return udid;
@@ -192,6 +304,41 @@ export class AndroidDeviceCommandHandler
       throw new Error('Android installApp requires a non-empty buildPath.');
     }
     return path.resolve(trimmedBuildPath);
+  }
+
+  /**
+   * Validates an Android proxy host and port.
+   */
+  private validateProxyConfig(host: string, port: number): void {
+    if (!host) {
+      throw new Error('Android configureHttpProxy requires a non-empty host.');
+    }
+    if (!Number.isInteger(port) || port < 1 || port > 65535) {
+      throw new Error(`Invalid Android HTTP proxy port: ${port}`);
+    }
+  }
+
+  /**
+   * Builds the Android comma-separated proxy exclusion list.
+   */
+  private normalizeProxyExclusionList(exclusionList?: string[]): string {
+    const entries =
+      exclusionList && exclusionList.length > 0
+        ? exclusionList
+        : DEFAULT_ANDROID_PROXY_EXCLUSION_LIST;
+    const normalizedEntries = entries
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+
+    for (const entry of normalizedEntries) {
+      if (entry.includes(',')) {
+        throw new Error(
+          `Android proxy exclusion entries cannot contain commas: ${entry}`,
+        );
+      }
+    }
+
+    return Array.from(new Set(normalizedEntries)).join(',');
   }
 
   /**

@@ -17,6 +17,8 @@ export interface WebSocketServiceConfig {
   fallbackPort: number;
   /** LaunchArgs key used to pass the actual allocated port on iOS */
   launchArgKey: string;
+  /** Optional local path prefix used by shim.js to preserve routing context */
+  localPathPrefix?: string;
 }
 
 export const ACCOUNT_ACTIVITY_WS: WebSocketServiceConfig = {
@@ -25,8 +27,31 @@ export const ACCOUNT_ACTIVITY_WS: WebSocketServiceConfig = {
   launchArgKey: 'accountActivityWsPort',
 };
 
+export const SOLANA_INFURA_WS = {
+  fallbackPort: 8090,
+  launchArgKey: 'solanaInfuraWsPort',
+};
+
+export const SOLANA_MAINNET_INFURA_WS: WebSocketServiceConfig = {
+  url: 'wss://solana-mainnet.infura.io',
+  fallbackPort: SOLANA_INFURA_WS.fallbackPort,
+  launchArgKey: SOLANA_INFURA_WS.launchArgKey,
+  localPathPrefix: '/mainnet',
+};
+
+export const SOLANA_DEVNET_INFURA_WS: WebSocketServiceConfig = {
+  url: 'wss://solana-devnet.infura.io',
+  fallbackPort: SOLANA_INFURA_WS.fallbackPort,
+  launchArgKey: SOLANA_INFURA_WS.launchArgKey,
+  localPathPrefix: '/devnet',
+};
+
 /**
  * All WebSocket service configs, used by shim.js to build the route table.
  * When adding a new service, add it to this array.
  */
-export const WS_SERVICES: WebSocketServiceConfig[] = [ACCOUNT_ACTIVITY_WS];
+export const WS_SERVICES: WebSocketServiceConfig[] = [
+  ACCOUNT_ACTIVITY_WS,
+  SOLANA_MAINNET_INFURA_WS,
+  SOLANA_DEVNET_INFURA_WS,
+];
