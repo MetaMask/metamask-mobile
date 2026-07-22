@@ -8385,17 +8385,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/connectivity-controller@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@metamask/connectivity-controller@npm:0.3.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/messenger": "npm:^2.0.0"
-    reselect: "npm:^5.1.1"
-  checksum: 10/4751d3e4725f6d27d0e91e9213edc5855ab10ddd794200af6095a6c4b9db1c2d5b5ed8c4ec812002a29e0e141fa809e042c8002039f02a64c4dc33b53c2c9945
-  languageName: node
-  linkType: hard
-
 "@metamask/contract-metadata@npm:^2.4.0":
   version: 2.5.0
   resolution: "@metamask/contract-metadata@npm:2.5.0"
