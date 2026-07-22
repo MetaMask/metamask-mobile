@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useDispatch } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -33,7 +34,7 @@ import { useTokenAsset } from '../../../Views/confirmations/hooks/useTokenAsset'
  */
 export function useHandleHwSend() {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { approvalRequest } = useApprovalRequest();
   const selectedGasFeeToken = useSelectedGasFeeToken();
   const { amount: displayAmount } = useTokenAmount();

@@ -8,6 +8,8 @@ import {
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -92,7 +94,7 @@ export function useHwSwapLifecycle({
   isQrHardwareWallet,
 }: UseHwSwapLifecycleInputs) {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isFocused = useIsFocused();
   const toastRef = useContext(ToastContext)?.toastRef;
 
@@ -274,9 +276,9 @@ export function useHwSwapLifecycle({
     if (target.type === CancelTargetType.GoBack) {
       navigation.goBack();
     } else if (target.params) {
-      navigation.navigate(target.route as string, target.params);
+      navigateWithDetails(navigation, [target.route as string, target.params]);
     } else {
-      navigation.navigate(target.route as string);
+      navigateWithDetails(navigation, [target.route as string]);
     }
   }, [navigation, strategy.cancelTarget]);
 
