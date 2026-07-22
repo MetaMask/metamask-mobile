@@ -147,6 +147,22 @@ export interface NetworkLogEntry {
   time?: number;
 }
 
+/**
+ * Per-scenario artifact written under `reports/app-profiling/`.
+ * One file per performance scenario: profiling data + API calls.
+ */
+export interface AppProfilingArtifact {
+  testName: string;
+  projectName: string | null;
+  sessionId: string | null;
+  device: DeviceInfo;
+  timestamp: string;
+  profilingSummary: ProfilingSummary | null;
+  profilingData: ProfilingData | null;
+  apiCalls: NetworkLogEntry[] | null;
+  apiCallsError: string | null;
+}
+
 export interface FailedTestEntry {
   testName: string;
   testFilePath: string;

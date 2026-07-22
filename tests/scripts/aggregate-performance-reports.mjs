@@ -78,6 +78,84 @@ function findJsonFiles(dir, jsonFiles = []) {
 }
 
 /**
+ * Recursively find per-scenario app profiling artifacts.
+ * Filenames follow: app-profiling-<scenario>-<device>-<os>.json
+ * @param {string} dir - Directory to search
+ * @param {string[]} profilingFiles - Array to collect found files
+ * @returns {string[]} Array of app-profiling JSON file paths
+ */
+function findAppProfilingFiles(dir, profilingFiles = []) {
+  if (!fs.existsSync(dir)) {
+    return profilingFiles;
+  }
+
+  const entries = fs.readdirSync(dir);
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry);
+    if (fs.statSync(fullPath).isDirectory()) {
+      findAppProfilingFiles(fullPath, profilingFiles);
+    } else if (
+      entry.endsWith('.json') &&
+      entry.startsWith('app-profiling-')
+    ) {
+      profilingFiles.push(fullPath);
+    }
+  }
+  return profilingFiles;
+}
+
+/**
+ * Copy per-scenario app profiling artifacts into the aggregated reports output
+ * so the pipeline's aggregated-reports artifact includes one file per scenario.
+ * @param {string[]} searchDirs - Directories to search for profiling files
+ * @param {string} outputDir - Aggregated reports directory
+ * @returns {number} Number of profiling files copied
+ */
+function collectAppProfilingArtifacts(searchDirs, outputDir) {
+  const profilingOutputDir = path.join(outputDir, 'app-profiling');
+  const usedNames = new Map();
+  let copiedCount = 0;
+
+  const profilingFiles = [];
+  searchDirs.forEach((dir) => {
+    if (fs.existsSync(dir)) {
+      findAppProfilingFiles(dir, profilingFiles);
+    }
+  });
+
+  if (profilingFiles.length === 0) {
+    console.log('ℹ️ No per-scenario app profiling artifacts found to collect');
+    return 0;
+  }
+
+  if (!fs.existsSync(profilingOutputDir)) {
+    fs.mkdirSync(profilingOutputDir, { recursive: true });
+  }
+
+  for (const sourcePath of profilingFiles) {
+    let fileName = path.basename(sourcePath);
+    const collisionCount = usedNames.get(fileName) ?? 0;
+    usedNames.set(fileName, collisionCount + 1);
+
+    if (collisionCount > 0) {
+      const ext = path.extname(fileName);
+      const base = path.basename(fileName, ext);
+      fileName = `${base}-${collisionCount + 1}${ext}`;
+    }
+
+    const destPath = path.join(profilingOutputDir, fileName);
+    fs.copyFileSync(sourcePath, destPath);
+    copiedCount += 1;
+    console.log(`📦 Collected app profiling artifact: ${destPath}`);
+  }
+
+  console.log(
+    `✅ Collected ${copiedCount} per-scenario app profiling artifact(s) into ${profilingOutputDir}`,
+  );
+  return copiedCount;
+}
+
+/**
  * Extract platform, scenario, and device information from file path
  * @param {string} filePath - Path to the test result file
  * @returns {Object} Platform, scenario, and device information
@@ -1541,6 +1619,8 @@ function aggregateReports() {
     
     if (jsonFiles.length === 0) {
       createEmptyReport(outputPath);
+      // Still collect any per-scenario profiling artifacts that may exist
+      collectAppProfilingArtifacts(searchDirs, outputDir);
       return;
     }
     
@@ -1656,6 +1736,9 @@ function aggregateReports() {
     const htmlReportPath = 'tests/aggregated-reports/performance-report.html';
     fs.writeFileSync(htmlReportPath, htmlReport);
     console.log(`🌐 HTML report saved to: ${htmlReportPath}`);
+
+    // Collect per-scenario app profiling artifacts into aggregated-reports/
+    collectAppProfilingArtifacts(searchDirs, outputDir);
     
   } catch (error) {
     createFallbackReport('tests/aggregated-reports/performance-results.json', error);
@@ -1666,4 +1749,13 @@ function aggregateReports() {
 if (import.meta.url === `file://${process.argv[1]}`) {
   aggregateReports();
 }
-export { aggregateReports, findJsonFiles, extractPlatformScenarioAndDevice, processTestReport, generateHtmlReport, formatDuration };
+export {
+  aggregateReports,
+  findJsonFiles,
+  findAppProfilingFiles,
+  collectAppProfilingArtifacts,
+  extractPlatformScenarioAndDevice,
+  processTestReport,
+  generateHtmlReport,
+  formatDuration,
+};

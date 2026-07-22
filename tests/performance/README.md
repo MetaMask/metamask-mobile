@@ -677,6 +677,7 @@ After each test, the custom reporter generates:
 | HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html` | Visual report with charts |
 | CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`  | Spreadsheet-friendly data |
 | JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`   | Raw metrics data          |
+| Profiling | `reporters/reports/app-profiling/app-profiling-{scenario}-{device}-{os}.json` | Per-scenario BrowserStack app profiling + API calls |
 
 ### HTML Report Contents
 
@@ -713,6 +714,7 @@ node tests/scripts/aggregate-performance-reports.mjs
 | `tests/aggregated-reports/aggregated-performance-report.json` | Same as above (alias)                       |
 | `tests/aggregated-reports/summary.json`                       | Statistics and metadata                     |
 | `tests/aggregated-reports/performance-report.html`            | **Visual HTML dashboard**                   |
+| `tests/aggregated-reports/app-profiling/*.json`               | Per-scenario app profiling + API call files |
 
 ### HTML Dashboard Features
 
