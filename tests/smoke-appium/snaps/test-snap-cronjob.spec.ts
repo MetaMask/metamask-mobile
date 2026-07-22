@@ -8,7 +8,7 @@ import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 appiumTest.describe(SmokeSnaps('Cronjob Snap Tests'), () => {
   appiumTest(
     'can connect to the Cronjob Snap which triggers a dialog',
-    async ({ currentDeviceDetails }) => {
+    async ({ driver: _driver, currentDeviceDetails }) => {
       await withSnapsFixtures(currentDeviceDetails, {}, async () => {
         await loginAndOpenTestSnaps();
         await TestSnaps.installSnap('connectCronjobSnapButton');

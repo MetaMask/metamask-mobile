@@ -8,10 +8,12 @@ import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
 // TODO: Re-introduce locked-client status when we can interact with snaps while locked
 // (the client must be unlocked to interact with the Snap).
+// `driver` must be requested so Playwright starts the Appium session fixture
+// (sets FrameworkDetector + globals), even when unused in the body.
 appiumTest.describe(SmokeSnaps('Client Status Snap Tests'), () => {
   appiumTest(
     'connects to the Client Status Snap and returns the client status',
-    async ({ currentDeviceDetails }) => {
+    async ({ driver: _driver, currentDeviceDetails }) => {
       await withSnapsFixtures(currentDeviceDetails, {}, async () => {
         await loginAndOpenTestSnaps();
         await TestSnaps.installSnap('connectClientStatusSnapButton');

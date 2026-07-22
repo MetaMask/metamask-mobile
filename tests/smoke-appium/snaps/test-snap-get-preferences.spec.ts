@@ -8,7 +8,7 @@ import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 appiumTest.describe(SmokeSnaps('Get Preferences Snap Tests'), () => {
   appiumTest(
     'gets the client preferences',
-    async ({ currentDeviceDetails }) => {
+    async ({ driver: _driver, currentDeviceDetails }) => {
       await withSnapsFixtures(
         currentDeviceDetails,
         {

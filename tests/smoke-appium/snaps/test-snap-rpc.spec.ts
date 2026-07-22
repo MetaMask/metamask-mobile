@@ -8,7 +8,7 @@ import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 appiumTest.describe(SmokeSnaps('Snap RPC Tests'), () => {
   appiumTest(
     'can use the cross-snap RPC endowment and produce a public key',
-    async ({ currentDeviceDetails }) => {
+    async ({ driver: _driver, currentDeviceDetails }) => {
       await withSnapsFixtures(
         currentDeviceDetails,
         {

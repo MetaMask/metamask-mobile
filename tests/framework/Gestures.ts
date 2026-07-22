@@ -455,7 +455,10 @@ export default class Gestures {
     text: string,
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
-      const input = await elem;
+      const input = (await elem) as {
+        clear: () => Promise<void>;
+        fill: (value: string) => Promise<void>;
+      };
       await input.clear();
       await input.fill(text);
       return;

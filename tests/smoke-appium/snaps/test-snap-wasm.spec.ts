@@ -7,7 +7,7 @@ import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 appiumTest.describe(SmokeSnaps('WASM Snap Tests'), () => {
   appiumTest(
     'can connect to the WASM Snap and return a response for the given number',
-    async ({ currentDeviceDetails }) => {
+    async ({ driver: _driver, currentDeviceDetails }) => {
       await withSnapsFixtures(currentDeviceDetails, {}, async () => {
         await loginAndOpenTestSnaps();
         await TestSnaps.installSnap('connectWasmButton');
