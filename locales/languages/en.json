@@ -1499,6 +1499,16 @@
       "metamask_fee_tooltip_deposit": "MetaMask does not charge any fees for deposits to Hyperliquid",
       "metamask_fee_tooltip_withdrawal": "MetaMask does not charge any fees for withdrawals from Hyperliquid"
     },
+    "pro_order_form": {
+      "isolated": "Isolated",
+      "choose_order_type": "Choose order type",
+      "size_usd": "Size USD",
+      "toggle_size_unit": "Switch size denomination",
+      "available_balance_unavailable": "Available balance: --",
+      "tpsl": "Take profit / Stop loss",
+      "place_order": "Place order",
+      "close_keyboard": "Close keyboard"
+    },
     "order": {
       "title": "New order",
       "leverage": "Leverage",

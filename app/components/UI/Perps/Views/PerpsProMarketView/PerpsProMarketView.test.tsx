@@ -3,7 +3,10 @@ import { within } from '@testing-library/react-native';
 import PerpsProMarketView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsProMarketViewSelectorsIDs,
+  PerpsProOrderFormSelectorsIDs,
+} from '../../Perps.testIds';
 
 interface MockRouteParams {
   market?: { symbol: string };
@@ -85,11 +88,27 @@ describe('PerpsProMarketView', () => {
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL),
     ).toBeOnTheScreen();
     expect(
+      getByTestId(PerpsProOrderFormSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL),
     ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL),
     ).toBeOnTheScreen();
+  });
+
+  it('dismisses the native keyboard interactively without swallowing taps', () => {
+    const { getByTestId } = renderView();
+
+    expect(getByTestId(PerpsProMarketViewSelectorsIDs.SCROLL_VIEW)).toHaveProp(
+      'keyboardDismissMode',
+      'interactive',
+    );
+    expect(getByTestId(PerpsProMarketViewSelectorsIDs.SCROLL_VIEW)).toHaveProp(
+      'keyboardShouldPersistTaps',
+      'handled',
+    );
   });
 
   it('keeps the header fixed while the market summary scrolls', () => {

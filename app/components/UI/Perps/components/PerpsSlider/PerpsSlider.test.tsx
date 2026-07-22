@@ -83,6 +83,16 @@ describe('PerpsSlider', () => {
       expect(screen.queryByText('50%')).toBeNull();
       expect(screen.queryByText('75%')).toBeNull();
       expect(screen.queryByText('100%')).toBeNull();
+      expect(screen.getByTestId('perps-slider-marker-25')).toBeOnTheScreen();
+    });
+
+    it('hides markers without hiding percentage labels', () => {
+      render(<PerpsSlider {...defaultProps} showPercentageMarkers={false} />);
+
+      expect(
+        screen.queryByTestId('perps-slider-marker-25'),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByText('25%')).toBeOnTheScreen();
     });
 
     it('renders quick values when provided', () => {

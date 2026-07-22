@@ -70,6 +70,8 @@ const PerpsProMarketView = () => {
         contentContainerStyle={styles.scrollContent}
         testID={PerpsProMarketViewSelectorsIDs.SCROLL_VIEW}
         showsVerticalScrollIndicator={false}
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
       >
         <PerpsProMarketSummary />
         <PerpsProChartPanel />

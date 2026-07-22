@@ -464,6 +464,32 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITIONS_PANEL: 'perps-pro-market-positions-panel',
 };
 
+export const PerpsProOrderFormSelectorsIDs = {
+  CONTAINER: 'perps-pro-order-form',
+  DIRECTION_CONTROL: 'perps-pro-order-form-direction-control',
+  DIRECTION_LONG: 'perps-pro-order-form-direction-long',
+  DIRECTION_SHORT: 'perps-pro-order-form-direction-short',
+  LEVERAGE_BUTTON: 'perps-pro-order-form-leverage',
+  ORDER_TYPE_BUTTON: 'perps-pro-order-form-order-type',
+  LIMIT_PRICE_INPUT: 'perps-pro-order-form-limit-price-input',
+  MID_PRICE_BUTTON: 'perps-pro-order-form-mid-price',
+  SIZE_INPUT: 'perps-pro-order-form-size-input',
+  SIZE_UNIT_BUTTON: 'perps-pro-order-form-size-unit',
+  KEYBOARD_CLOSE: 'perps-pro-order-form-keyboard-close',
+  AVAILABLE_BALANCE: 'perps-pro-order-form-available-balance',
+  ADD_FUNDS_BUTTON: 'perps-pro-order-form-add-funds',
+  REDUCE_ONLY: 'perps-pro-order-form-reduce-only',
+  TPSL: 'perps-pro-order-form-tpsl',
+  NOTICE: 'perps-pro-order-form-notice',
+  PLACE_ORDER_BUTTON: 'perps-pro-order-form-place-order',
+  SUMMARY: 'perps-pro-order-form-summary',
+  SUMMARY_MARGIN: 'perps-pro-order-form-summary-margin',
+  SUMMARY_LIQUIDATION: 'perps-pro-order-form-summary-liquidation',
+  SUMMARY_SLIPPAGE: 'perps-pro-order-form-summary-slippage',
+  SUMMARY_FEES: 'perps-pro-order-form-summary-fees',
+  SUMMARY_FEES_VALUE: 'perps-pro-order-form-summary-fees-value',
+};
+
 // ========================================
 // PERPS MARKET HEADER SELECTORS
 // ========================================

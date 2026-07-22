@@ -39,6 +39,7 @@ interface PerpsSliderProps {
   minimumValue?: number;
   maximumValue?: number;
   step?: number;
+  showPercentageMarkers?: boolean;
   showPercentageLabels?: boolean;
   disabled?: boolean;
   progressColor?: 'default' | 'gradient';
@@ -51,6 +52,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   minimumValue = 0,
   maximumValue = 100,
   step = 1,
+  showPercentageMarkers = true,
   showPercentageLabels = true,
   disabled = false,
   progressColor = 'default',
@@ -254,7 +256,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
           </GestureDetector>
 
           {/* Percentage dots positioned on the track */}
-          {showPercentageLabels &&
+          {showPercentageMarkers &&
             percentageSteps.map((percent) => {
               // Don't show dots at 0% and 100%
 
@@ -282,6 +284,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
               return (
                 <View
                   key={`dot-${percent}`}
+                  testID={`perps-slider-marker-${percent}`}
                   style={[styles.percentageDot, dotStyle]}
                 />
               );
