@@ -1,6 +1,5 @@
 PODS:
   - Base64 (1.1.2)
-  - BEMCheckBox (1.4.1)
   - boost (1.84.0)
   - Branch (1.43.2)
   - braze-react-native-sdk (19.1.0):
@@ -3890,9 +3889,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNCCheckbox (0.5.20):
-    - BEMCheckBox (~> 1.4)
-    - React-Core
   - RNCClipboard (1.16.1):
     - boost
     - DoubleConversion
@@ -4631,7 +4627,6 @@ DEPENDENCIES:
   - "ReactNativePayments (from `../node_modules/@metamask/react-native-payments/lib/ios/`)"
   - rive-react-native (from `../node_modules/rive-react-native`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
-  - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
@@ -4664,7 +4659,6 @@ DEPENDENCIES:
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
     - Base64
-    - BEMCheckBox
     - Branch
     - BrazeKit
     - BrazeLocation
@@ -5004,8 +4998,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/rive-react-native"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
-  RNCCheckbox:
-    :path: "../node_modules/@react-native-community/checkbox"
   RNCClipboard:
     :path: "../node_modules/@react-native-clipboard/clipboard"
   RNCMaskedView:
@@ -5063,7 +5055,6 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Base64: cecfb41a004124895a7bcee567a89bae5a89d49b
-  BEMCheckBox: 5ba6e37ade3d3657b36caecc35c8b75c6c2b1a4e
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
   braze-react-native-sdk: 81f97f9dd9aae9e89e8ff4083e473e6cb8930cd7
@@ -5240,7 +5231,6 @@ SPEC CHECKSUMS:
   rive-react-native: 3692bf8b8b617c8c801e6af54d961a2574fdbf38
   RiveRuntime: 55c7a7badd9a8389d20fc8a75b7c6accc851b69a
   RNCAsyncStorage: 29f0230e1a25f36c20b05f65e2eb8958d6526e82
-  RNCCheckbox: 33b44487ca8008394ce658cc32b26eab04f426ef
   RNCClipboard: 889577746cd7ba699bd497e61a7668e6c0790e7f
   RNCMaskedView: 5ef8c95cbab95334a32763b72896a7b7d07e6299
   RNDateTimePicker: 97a86d7c8b51f2d51f694a9dddfe5996dfd9a407
