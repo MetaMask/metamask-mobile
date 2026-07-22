@@ -4,7 +4,7 @@
 [BannerTip](https://metamask-consensys.notion.site/Banner-Tip-67fdb01ab850472f90abc6f4127395cb)
 ![BannerTip](./variants/BannerTip/BannerTip.png)
 
-This component is a union Banner component, which consists of [BannerAlert](../BannerAlert/BannerAlert.tsx) and [BannerTip](../BannerTip/BannerTip.tsx).
+This component is a union Banner component, which consists of [BannerAlert](./variants/BannerAlert/BannerAlert.tsx) and [BannerTip](./variants/BannerTip/BannerTip.tsx).
 
 ## Banner Props
 
@@ -14,7 +14,7 @@ Variant of Banner.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [BannerVariant](../../Banner.types.ts)               | Yes                                                     |
+| [BannerVariant](./Banner.types.ts)               | Yes                                                     |
 
 ## BannerAlert Props
 
@@ -24,7 +24,7 @@ Optional enum to determine the severity color of the BannerAlert.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [BannerAlertSeverity](./BannerAlert.types.ts)    | No                                                     | BannerAlertSeverity.Info                                |
+| [BannerAlertSeverity](./variants/BannerAlert/BannerAlert.types.ts)    | No                                                     | BannerAlertSeverity.Info                                |
 
 ## BannerTip Props
 
@@ -52,7 +52,7 @@ Optional prop to control the title's props.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [TextProps](../../../../Texts/Text/Text.types.ts)                                         | No                                                     |
+| [TextProps](../../Texts/Text/Text.types.ts)                                         | No                                                     |
 
 ### `description`
 
@@ -68,7 +68,7 @@ Optional prop to control the description's props.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [TextProps](../../../../Texts/Text/Text.types.ts)                                         | No                                                     |
+| [TextProps](../../Texts/Text/Text.types.ts)                                         | No                                                     |
 
 ### `descriptionEl`
 
@@ -100,7 +100,7 @@ Optional prop to control the action button's props.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [ButtonProps](../../../../Buttons/Button/Button.types.ts)                                  | No                                                     |
+| [ButtonProps](../../Buttons/Button/Button.types.ts)                                  | No                                                     |
 
 ### `onClose`
 
@@ -116,7 +116,7 @@ Optional prop to control the close button's props.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [ButtonIconProps](../../../../Buttons/ButtonIcon/ButtonIcon.types.ts)                                  | No                                                     |
+| [ButtonIconProps](../../Buttons/ButtonIcon/ButtonIcon.types.ts)                                  | No                                                     |
 
 ### `children`
 

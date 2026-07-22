@@ -6,7 +6,7 @@ TextFieldSearch is an input component that allows users to enter text to search.
 
 ## Props
 
-This component extends [TextField](./foundation/Input/Input.tsx) component.
+This component extends [TextField](../TextField/foundation/Input/Input.tsx) component.
 
 ### Clear Button Behavior
 

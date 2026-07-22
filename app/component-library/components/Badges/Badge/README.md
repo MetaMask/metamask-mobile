@@ -14,7 +14,7 @@ Variant of badge.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [BadgeVariant](../../Badge.types.ts)                                           | Yes                                                     |
+| [BadgeVariant](./Badge.types.ts)                                           | Yes                                                     |
 
 ## BadgeNetwork Props
 
@@ -42,7 +42,7 @@ Optional prop to control the status of BadgeStatus.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [BadgeStatusState](./BadgeStatus.types.ts)  | No                                                      | Disconnected                                               |
+| [BadgeStatusState](./variants/BadgeStatus/BadgeStatus.types.ts)  | No                                                      | Disconnected                                               |
 
 ### `borderColor`
 

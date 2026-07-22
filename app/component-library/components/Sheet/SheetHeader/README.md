@@ -1,6 +1,6 @@
 # SheetHeader
 
-SheetHeader is a header component and is currently used within the [BottomSheet](../BottomSheet/BottomSheet.tsx) component.
+SheetHeader is a header component and is currently used within the [BottomSheet](../../BottomSheets/BottomSheet/BottomSheet.tsx) component.
 
 ## Props
 

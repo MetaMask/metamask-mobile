@@ -6,7 +6,7 @@ BottomSheetHeader is a Header component specifically used for BottomSheets.
 
 ## Props
 
-This component extends [BottomSheetHeaderProps](../../Header/Header.types.ts) component.
+This component extends [BottomSheetHeaderProps](../../HeaderBase/HeaderBase.types.ts) component.
 
 ### `onBack`
 

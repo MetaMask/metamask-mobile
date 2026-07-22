@@ -1,6 +1,6 @@
 # BadgeWrapper
 
-BadgeWrapper is a wrapper component that attaches a [Badge](./Badge/Badge.tsx) on top of any component.
+BadgeWrapper is a wrapper component that attaches a [Badge](../Badge/Badge.tsx) on top of any component.
 
 ## Props
 

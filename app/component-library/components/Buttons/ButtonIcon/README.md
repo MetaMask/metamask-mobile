@@ -14,7 +14,7 @@ Icon name of the icon that will be displayed.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconName](../Icons/Icon.types.ts)                  | Yes                                                     |
+| [IconName](../../Icons/Icon/Icon.types.ts)                  | Yes                                                     |
 
 ### `size`
 

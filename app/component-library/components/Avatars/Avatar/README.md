@@ -38,7 +38,7 @@ Optional enum to select the avatar type between `JazzIcon` and `Blockies`.
 
 | <span style="color:gray;font-size:14px">TYPE</span>    | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :----------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [AvatarAccountType](./variants/AvatarAccount.types.ts) | Yes                                                     | JazzIcon                                               |
+| [AvatarAccountType](./variants/AvatarAccount/AvatarAccount.types.ts) | Yes                                                     | JazzIcon                                               |
 
 ### `accountAddress`
 
@@ -66,7 +66,7 @@ Name of icon to use.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconName](../Icons/Icon.types.ts)                  | Yes                                                     |
+| [IconName](../../Icons/Icon/Icon.types.ts)                  | Yes                                                     |
 
 ### `iconColor`
 

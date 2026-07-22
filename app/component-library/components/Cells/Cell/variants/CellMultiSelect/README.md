@@ -4,15 +4,15 @@ CellMultiSelect is a component used for accessing account selection.
 
 ## Props
 
-This component extends [ListItemMultiSelectProps](../../List/ListItemMultiSelect/ListItemMultiSelect.types.ts#L7) and [CellBase](../CellBase/CellBase.types.ts#L17).
+This component extends [ListItemMultiSelectProps](../../../../List/ListItemMultiSelect/ListItemMultiSelect.types.ts#L7) and [CellBase](../../foundation/CellBase/CellBase.types.ts#L17).
 
 ### `avatarProps`
 
-Props for the [Avatar](../../../../Avatars/Avatar.tsx) component (with the exception of size). Avatar size is restricted to size Md(32x32) for Cells
+Props for the [Avatar](../../../../Avatars/Avatar/Avatar.tsx) component (with the exception of size). Avatar size is restricted to size Md(32x32) for Cells
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [AvatarProps](../../../../Avatars/Avatar.types.ts#L19)                                              | Yes                                                     |
+| [AvatarProps](../../../../Avatars/Avatar/Avatar.types.ts#L19)                                              | Yes                                                     |
 
 ### `title`
 

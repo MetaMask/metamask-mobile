@@ -4,7 +4,7 @@ AvatarToken is a component that renders a token image.
 
 ## Props
 
-This component extends [AvatarBaseProps](../AvatarBase/AvatarBase.types.ts#L18) from [AvatarBase](../Avatar/Avatar.tsx) component.
+This component extends [AvatarBaseProps](../../foundation/AvatarBase/AvatarBase.types.ts#L18) from [AvatarBase](../../Avatar.tsx) component.
 
 ### `name`
 
