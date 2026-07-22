@@ -18,24 +18,21 @@ import { isRelaySupported } from '../../util/transactions/transaction-relay';
 
 type SessionCapabilities = Awaited<ReturnType<typeof getCapabilities>>;
 
-// In-memory session-capabilities cache (TTL + in-flight deduplication,
-// mirroring `app/util/transactions/sentinel-api.ts`). Computation fans out
-// per-chain RPC calls, which can make `wallet_getSession` too slow for the
-// multichain-api-client SDK's short session-restore timeout on dapp page
-// load; `wallet_createSession` seeds the cache at connect time so the
-// post-reload `wallet_getSession` is a hit. Capabilities depend only on
-// account and chains (never the origin), so entries are shared across dapps.
-const CACHE_TTL_MS = 300_000; // 5 minutes
-
-interface SessionCapabilitiesCacheEntry {
-  value?: SessionCapabilities;
-  timestamp: number;
-  pending?: Promise<SessionCapabilities>;
-}
+// In-memory session-capabilities cache: stale-while-revalidate + in-flight
+// deduplication. Computation fans out per-chain RPC calls, which can make
+// `wallet_getSession` too slow for the multichain-api-client SDK's short
+// session-restore timeout on dapp page load. Only the very first computation
+// for a key (account + chains; entries are origin-independent) ever blocks:
+// stale entries are served immediately and refreshed in the background.
+const CACHE_FRESH_MS = 300_000; // background-refresh cadence: 5 minutes
 
 const sessionCapabilitiesCache = new Map<
   string,
-  SessionCapabilitiesCacheEntry
+  {
+    value?: SessionCapabilities;
+    timestamp: number;
+    pending?: Promise<SessionCapabilities>;
+  }
 >();
 
 // Clears the session capabilities cache. Exported for testing purposes only.
@@ -43,13 +40,39 @@ export function clearSessionCapabilitiesCache(): void {
   sessionCapabilitiesCache.clear();
 }
 
-// Order- and case-insensitive; `undefined`/empty chainIds = all configured
-// chains.
+// Order/case-insensitive; `undefined`/empty chainIds = all configured chains.
 function buildCacheKey(address: string, chainIds?: Hex[]): string {
   const chainsKey = chainIds?.length
     ? [...chainIds].sort((a, b) => a.localeCompare(b)).join(',')
     : '*';
   return `${address.toLowerCase()}:${chainsKey}`;
+}
+
+// Computes capabilities and stores them under `key`. Failures are never
+// cached and never evict a previously cached (servable) value.
+async function computeAndCache(
+  key: string,
+  address: string,
+  chainIds?: Hex[],
+): Promise<SessionCapabilities> {
+  try {
+    const value = await getCapabilities(
+      buildGetCapabilitiesHooks(address as Hex),
+      Engine.controllerMessenger as unknown as EIP5792Messenger,
+      address as Hex,
+      chainIds,
+    );
+    sessionCapabilitiesCache.set(key, { value, timestamp: Date.now() });
+    return value;
+  } catch (error) {
+    const entry = sessionCapabilitiesCache.get(key);
+    if (entry?.value) {
+      entry.pending = undefined;
+    } else {
+      sessionCapabilitiesCache.delete(key);
+    }
+    throw error;
+  }
 }
 
 /**
@@ -112,7 +135,7 @@ export function buildGetCapabilitiesHooks(targetAddress?: Hex) {
  * permitted eip155 chains so we neither fan out RPC calls to, nor disclose,
  * networks the dapp was not granted. Intentional divergence: a direct
  * `wallet_getCapabilities` answered by the wallet still covers all configured
- * chains. Results are cached (see `CACHE_TTL_MS`); failures are never cached.
+ * chains. Stale cached results are served while refreshed in the background.
  * @returns Per-chain capabilities keyed by chain ID.
  */
 export function getSessionCapabilities(
@@ -122,7 +145,12 @@ export function getSessionCapabilities(
   const key = buildCacheKey(address, chainIds);
   const entry = sessionCapabilitiesCache.get(key);
 
-  if (entry?.value && Date.now() - entry.timestamp < CACHE_TTL_MS) {
+  if (entry?.value) {
+    if (Date.now() - entry.timestamp >= CACHE_FRESH_MS && !entry.pending) {
+      // Stale: serve the cached value now, refresh in the background.
+      entry.pending = computeAndCache(key, address, chainIds);
+      entry.pending.catch(() => undefined);
+    }
     return Promise.resolve(entry.value);
   }
 
@@ -130,24 +158,7 @@ export function getSessionCapabilities(
     return entry.pending;
   }
 
-  const pending = Promise.resolve(
-    getCapabilities(
-      buildGetCapabilitiesHooks(address as Hex),
-      Engine.controllerMessenger as unknown as EIP5792Messenger,
-      address as Hex,
-      chainIds,
-    ),
-  ).then(
-    (value) => {
-      sessionCapabilitiesCache.set(key, { value, timestamp: Date.now() });
-      return value;
-    },
-    (error) => {
-      sessionCapabilitiesCache.delete(key);
-      throw error;
-    },
-  );
-
+  const pending = computeAndCache(key, address, chainIds);
   sessionCapabilitiesCache.set(key, { timestamp: 0, pending });
   return pending;
 }

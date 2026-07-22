@@ -225,88 +225,77 @@ describe('getSessionCapabilities', () => {
 
   describe('getSessionCapabilities caching', () => {
     const CAPABILITIES = { '0x1': { atomic: { status: 'supported' } } };
+    const flushBackgroundRefresh = () => new Promise((r) => setTimeout(r, 0));
 
-    it('returns the cached result without recomputing on a repeat call', async () => {
-      mockGetCapabilities.mockResolvedValue(CAPABILITIES as never);
-
-      const first = await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
-      const second = await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
-
-      expect(first).toBe(CAPABILITIES);
-      expect(second).toBe(CAPABILITIES);
-      expect(mockGetCapabilities).toHaveBeenCalledTimes(1);
-    });
-
-    it('deduplicates concurrent in-flight computations', async () => {
-      let resolveCompute: (value: unknown) => void = () => undefined;
-      mockGetCapabilities.mockReturnValue(
-        new Promise((resolve) => {
-          resolveCompute = resolve;
-        }) as never,
-      );
-
-      const first = getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
-      const second = getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
-      resolveCompute(CAPABILITIES);
-
-      expect(await first).toBe(CAPABILITIES);
-      expect(await second).toBe(CAPABILITIES);
-      expect(mockGetCapabilities).toHaveBeenCalledTimes(1);
-    });
-
-    it('treats chain ID order and address casing as irrelevant to the cache key', async () => {
+    it('caches per address and chain set, insensitive to order and casing', async () => {
+      const upper = SELECTED_ADDRESS.toUpperCase();
+      const other = '0xAbcDef0123456789012345678901234567890123';
       mockGetCapabilities.mockResolvedValue(CAPABILITIES as never);
 
       await getSessionCapabilities(SELECTED_ADDRESS, ['0x1', '0xa']);
       await getSessionCapabilities(SELECTED_ADDRESS, ['0xa', '0x1']);
-      await getSessionCapabilities(SELECTED_ADDRESS.toUpperCase(), [
-        '0x1',
-        '0xa',
-      ]);
-
+      await getSessionCapabilities(upper, ['0x1', '0xa']);
       expect(mockGetCapabilities).toHaveBeenCalledTimes(1);
-    });
-
-    it('recomputes for a different address or chain set, or after the cache is cleared', async () => {
-      mockGetCapabilities.mockResolvedValue(CAPABILITIES as never);
-
       await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
-      await getSessionCapabilities(SELECTED_ADDRESS, ['0x1', '0xa']);
-      await getSessionCapabilities(
-        '0xAbcDef0123456789012345678901234567890123',
-        ['0x1'],
-      );
+      await getSessionCapabilities(other, ['0x1']);
       clearSessionCapabilitiesCache();
       await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
-
       expect(mockGetCapabilities).toHaveBeenCalledTimes(4);
     });
 
-    it('recomputes once the TTL has expired', async () => {
-      const dateNowSpy = jest.spyOn(Date, 'now');
+    it('deduplicates concurrent in-flight computations', async () => {
       mockGetCapabilities.mockResolvedValue(CAPABILITIES as never);
 
-      dateNowSpy.mockReturnValue(0);
-      await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
+      const [first, second] = await Promise.all([
+        getSessionCapabilities(SELECTED_ADDRESS, ['0x1']),
+        getSessionCapabilities(SELECTED_ADDRESS, ['0x1']),
+      ]);
 
-      dateNowSpy.mockReturnValue(300_000 + 1);
-      await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
+      expect(first).toBe(CAPABILITIES);
+      expect(first).toBe(second);
+      expect(mockGetCapabilities).toHaveBeenCalledTimes(1);
+    });
 
+    it('serves a stale value immediately and refreshes it in the background', async () => {
+      const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(0);
+      const refreshed = { '0x1': { atomic: { status: 'ready' } } };
+      mockGetCapabilities
+        .mockResolvedValueOnce(CAPABILITIES as never)
+        .mockResolvedValueOnce(refreshed as never);
+
+      await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
+      dateNowSpy.mockReturnValue(300_001);
+      const stale = await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
+      await flushBackgroundRefresh();
+      const fresh = await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
+
+      expect(stale).toBe(CAPABILITIES);
+      expect(fresh).toBe(refreshed);
       expect(mockGetCapabilities).toHaveBeenCalledTimes(2);
       dateNowSpy.mockRestore();
     });
 
-    it('does not cache failed computations', async () => {
-      mockGetCapabilities.mockRejectedValueOnce(new Error('rpc down') as never);
-      mockGetCapabilities.mockResolvedValue(CAPABILITIES as never);
+    it('never caches failures and keeps the stale value when a refresh fails', async () => {
+      const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(0);
+      mockGetCapabilities
+        .mockRejectedValueOnce(new Error('rpc down') as never)
+        .mockResolvedValueOnce(CAPABILITIES as never)
+        .mockRejectedValueOnce(new Error('rpc down again') as never);
 
       await expect(
         getSessionCapabilities(SELECTED_ADDRESS, ['0x1']),
       ).rejects.toThrow('rpc down');
-      const result = await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
+      await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
+      dateNowSpy.mockReturnValue(300_001); // stale: schedules failing refresh
+      const stale = await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
+      await flushBackgroundRefresh();
+      dateNowSpy.mockReturnValue(0); // fresh again: no further refresh
+      const kept = await getSessionCapabilities(SELECTED_ADDRESS, ['0x1']);
 
-      expect(result).toBe(CAPABILITIES);
-      expect(mockGetCapabilities).toHaveBeenCalledTimes(2);
+      expect(stale).toBe(CAPABILITIES);
+      expect(kept).toBe(CAPABILITIES);
+      expect(mockGetCapabilities).toHaveBeenCalledTimes(3);
+      dateNowSpy.mockRestore();
     });
   });
 
