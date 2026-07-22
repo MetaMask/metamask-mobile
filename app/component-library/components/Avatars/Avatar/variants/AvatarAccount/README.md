@@ -4,7 +4,7 @@ AvatarAccount is a component that renders an avatar based on the users account a
 
 ## Props
 
-This component extends [AvatarBaseProps](../AvatarBase/AvatarBase.types.ts#L17) from [AvatarBase](../Avatar/Avatar.tsx) component.
+This component extends [AvatarBaseProps](../../foundation/AvatarBase/AvatarBase.types.ts#L17) from [AvatarBase](../../Avatar.tsx) component.
 
 ### `type`
 

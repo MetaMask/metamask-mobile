@@ -1,6 +1,6 @@
 # TextWithPrefixIcon
 
-TextWithPrefixIcon is a [Text](../Text/Text.tsx) component with a prefix [Icon](../../Icons/Icon.tsx) component.
+TextWithPrefixIcon is a [Text](../Text/Text.tsx) component with a prefix [Icon](../../Icons/Icon/Icon.tsx) component.
 
 ## Props
 
@@ -12,7 +12,7 @@ Props for the Prefix Icon.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [IconProps](../../Icons/Icon.types.ts)              | Yes                                                     |
+| [IconProps](../../Icons/Icon/Icon.types.ts)              | Yes                                                     |
 
 ### `variant`
 

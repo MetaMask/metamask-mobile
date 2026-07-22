@@ -4,7 +4,7 @@ AvatarFavicon is an image component that renders an icon that is provided in the
 
 ## Props
 
-This component extends [AvatarBaseProps](../AvatarBase/AvatarBase.types.ts#L18) from [AvatarBase](../Avatar/Avatar.tsx) component.
+This component extends [AvatarBaseProps](../../foundation/AvatarBase/AvatarBase.types.ts#L18) from [AvatarBase](../../Avatar.tsx) component.
 
 ### `imageSource`
 

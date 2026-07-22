@@ -1,4 +1,4 @@
-BadgeNotifications is used on top of an element to display notifications information. **This component is not meant to be used by itself**. It is used by [BadgeWrapper](../BadgeWrapper/BadgeWrapper.tsx), which can render this component as a badge.
+BadgeNotifications is used on top of an element to display notifications information. **This component is not meant to be used by itself**. It is used by [BadgeWrapper](../../../BadgeWrapper/BadgeWrapper.tsx), which can render this component as a badge.
 
 ## Props
 
