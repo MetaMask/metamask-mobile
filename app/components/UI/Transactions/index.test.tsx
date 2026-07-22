@@ -22,11 +22,36 @@ const mockMapTransactionToActivityItem = jest.fn();
 const mockCreateQRSigningTransactionModalNavDetails = jest.fn();
 const mockExecuteHardwareWalletOperation = jest.fn();
 
+type FlashListItem = Record<string, unknown>;
+
+interface FlashListHarnessRef {
+  scrollToIndex: jest.Mock;
+}
+
+interface FlashListHarnessProps {
+  data: FlashListItem[];
+  keyExtractor: (item: FlashListItem, index: number) => string;
+  ListEmptyComponent?: React.ComponentType | React.ReactNode;
+  ListFooterComponent?: React.ReactNode;
+  onScroll?: (event: { nativeEvent: { contentOffset: { y: number } } }) => void;
+  refreshControl?: React.ReactElement<{ onRefresh?: () => void }>;
+  renderItem: (args: { item: FlashListItem; index: number }) => React.ReactNode;
+  testID?: string;
+}
+
+interface CancelSpeedupModalMockProps {
+  isVisible: boolean;
+  onConfirm: (transaction: Record<string, never>) => void;
+}
+
 jest.mock('@shopify/flash-list', () => {
-  const ReactActual = jest.requireActual('react');
+  const ReactActual: typeof React = jest.requireActual('react');
   const { TouchableOpacity, View } = jest.requireActual('react-native');
   return {
-    FlashList: ReactActual.forwardRef(
+    FlashList: ReactActual.forwardRef<
+      FlashListHarnessRef,
+      FlashListHarnessProps
+    >(
       (
         {
           data,
@@ -37,8 +62,8 @@ jest.mock('@shopify/flash-list', () => {
           refreshControl,
           renderItem,
           testID,
-        },
-        ref,
+        }: FlashListHarnessProps,
+        ref: React.ForwardedRef<FlashListHarnessRef>,
       ) => {
         ReactActual.useImperativeHandle(ref, () => ({
           scrollToIndex: jest.fn(),
@@ -60,7 +85,7 @@ jest.mock('@shopify/flash-list', () => {
             {ListFooterComponent}
             <TouchableOpacity
               testID="flash-list-refresh"
-              onPress={() => refreshControl?.props.onRefresh()}
+              onPress={() => refreshControl?.props.onRefresh?.()}
             />
             <TouchableOpacity
               testID="flash-list-scroll"
@@ -88,7 +113,10 @@ jest.mock(
   () => {
     const { TouchableOpacity } = jest.requireActual('react-native');
     return {
-      CancelSpeedupModal: ({ isVisible, onConfirm }) =>
+      CancelSpeedupModal: ({
+        isVisible,
+        onConfirm,
+      }: CancelSpeedupModalMockProps) =>
         isVisible ? (
           <TouchableOpacity
             testID="cancel-speedup-modal-confirm"
@@ -686,6 +714,27 @@ describe('UnconnectedTransactions', () => {
       );
     });
 
+    it('opens QR signing for a cancellation transaction', async () => {
+      (isHardwareAccount as jest.Mock).mockImplementation(
+        (_address, keyrings?: string[]) =>
+          keyrings?.includes(ExtendedKeyringTypes.qr) ?? false,
+      );
+      openReplacementModal('cancel');
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('cancel-speedup-modal-confirm'));
+      });
+
+      expect(
+        mockCreateQRSigningTransactionModalNavDetails,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          signMode: 'cancel',
+          transactionId: 'replacement',
+        }),
+      );
+    });
+
     it('signs a Ledger replacement through the hardware operation', async () => {
       (isHardwareAccount as jest.Mock).mockImplementation(
         (_address, keyrings?: string[]) =>
@@ -714,6 +763,28 @@ describe('UnconnectedTransactions', () => {
       });
     });
 
+    it('signs a Ledger cancellation through the hardware operation', async () => {
+      (isHardwareAccount as jest.Mock).mockImplementation(
+        (_address, keyrings?: string[]) =>
+          keyrings?.includes(ExtendedKeyringTypes.ledger) ?? false,
+      );
+      mockExecuteHardwareWalletOperation.mockImplementation(
+        async ({ execute }: { execute: () => Promise<void> }) => {
+          await execute();
+          return true;
+        },
+      );
+      openReplacementModal('cancel');
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('cancel-speedup-modal-confirm'));
+      });
+
+      expect(
+        Engine.context.TransactionController.stopTransaction,
+      ).toHaveBeenCalledWith('replacement', { gasPrice: '0x123' });
+    });
+
     it('reports failed speed-up submissions through the transaction toast', async () => {
       const error = new Error('replacement failed');
       (speedUpTransaction as jest.Mock).mockRejectedValue(error);
@@ -726,6 +797,23 @@ describe('UnconnectedTransactions', () => {
       expect(Logger.error).toHaveBeenCalledWith(error, {
         message: 'speedUpTransaction failed ',
         speedUpTxId: 'replacement',
+      });
+    });
+
+    it('reports failed cancellation submissions through the transaction toast', async () => {
+      const error = new Error('cancellation failed');
+      (
+        Engine.context.TransactionController.stopTransaction as jest.Mock
+      ).mockRejectedValue(error);
+      openReplacementModal('cancel');
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('cancel-speedup-modal-confirm'));
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(error, {
+        cancelTxId: 'replacement',
+        message: 'cancelTransaction failed ',
       });
     });
 
