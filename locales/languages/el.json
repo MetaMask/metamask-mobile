@@ -1097,19 +1097,19 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "Κορυφαίοι Traders της Εβδομάδας",
-      "chain_filter": {
-        "all": "Όλα",
-        "tokens": "Token",
-        "perps": "Συμβ.αορ."
-      },
+      "title": "Weekly top traders",
       "notifications_banner": {
         "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
         "open_settings": "Άνοιγμα ρυθμίσεων"
       }
     },
+    "type_filter": {
+      "all": "All types",
+      "tokens": "Tokens",
+      "perps": "Perps"
+    },
     "feed": {
-      "title": "Κορυφαίοι Traders",
+      "title": "Top traders",
       "tabs": {
         "leaderboard": "Πίνακας κατάταξης",
         "feed": "Feed"
@@ -1123,10 +1123,9 @@
         "opened": "άνοιξε",
         "closed": "έκλεισε"
       },
-      "type_filter": {
-        "all": "Όλες οι κατηγορίες",
-        "tokens": "Token",
-        "perps": "Συμβ.αορ."
+      "new_position": {
+        "bought": "Holding",
+        "opened": "Open"
       },
       "empty_following": {
         "title": "Καμία δραστηριότητα μέχρι στιγμής",
@@ -1159,7 +1158,7 @@
       },
       "slide_follow": {
         "title": "Follow the best",
-        "description": "Tap to follow the top three traders who are up big this week."
+        "description": "Tap to follow the top ten traders who are up big this week."
       },
       "slide_notify": {
         "title": "Μην χάνετε καμία κίνηση της αγοράς",
@@ -1167,7 +1166,7 @@
         "description_default": "When you're ready, follow a trader to get notified the moment they make a move."
       },
       "next": "Επόμενο",
-      "follow_top_three": "Follow the top three",
+      "follow_top_ten": "Follow the top ten",
       "maybe_later": "Ίσως αργότερα",
       "got_it": "Κατανοητό",
       "allow_notifications": "Επιτρέψτε τις ειδοποιήσεις"
@@ -1180,6 +1179,11 @@
       "traders_you_follow_desc": "Επιλέξτε από ποιους θέλετε να λαμβάνετε ειδοποιήσεις",
       "traders_you_follow_empty": "Δεν ακολουθείτε ακόμη κανέναν trader.",
       "error_loading_followed": "Δεν είναι δυνατή η φόρτωση των traders που ακολουθείτε."
+    },
+    "settings": {
+      "section_title": "Top Traders",
+      "show_account_on_leaderboard": "Show account on leaderboard",
+      "show_account_on_leaderboard_description": "Appear on top traders leaderboard when your weekly earnings rank."
     },
     "follow": "Ακολουθήστε",
     "following": "Ακολουθείτε",
@@ -1485,6 +1489,7 @@
       "title": "Νέα εντολή",
       "leverage": "Μόχλευση",
       "limit_price": "Τιμή ορίου",
+      "set_price": "Set price",
       "market_price": "Τιμή αγοράς",
       "enter_price": "Εισάγετε τιμή",
       "trigger_price": "Τιμή ενεργοποίησης",
@@ -1572,7 +1577,8 @@
         "bid_price": "Προσφορά",
         "difference_from_market": "Διαφορά από την τιμή αγοράς:",
         "limit_price_above": "Η τιμή ορίου είναι πάνω από την τρέχουσα τιμή",
-        "limit_price_below": "Η τιμή ορίου είναι κάτω από την τρέχουσα τιμή"
+        "limit_price_below": "Η τιμή ορίου είναι κάτω από την τρέχουσα τιμή",
+        "limit_price_too_far": "Price can't be more than 95% away from the market price"
       },
       "leverage_modal": {
         "title": "Μόχλευση",
@@ -1715,6 +1721,8 @@
       "funds_are_available_to_trade": "Τα κεφάλαια είναι διαθέσιμα για συναλλαγές",
       "failed_to_close_position": "Απέτυχε το κλείσιμο της θέσης",
       "failed_to_partially_close_position": "Απέτυχε το μερικό κλείσιμο της θέσης",
+      "failed_to_place_close_order": "Failed to place close order",
+      "failed_to_place_partial_close_order": "Failed to place partial close order",
       "your_position_is_still_active": "Η θέση σας είναι ακόμα ενεργή",
       "fox_points_earned": "Κερδίσατε {{points}} Fox Points!",
       "minimum_remaining_warning": "Η εναπομείνασα θέση πρέπει να είναι τουλάχιστον ${{minimum}}. Τρέχουσα: ${{remaining}}",
@@ -1777,8 +1785,6 @@
       "loss_percent_placeholder": "Ζημιά",
       "profit_roe_placeholder": "% Κέρδος",
       "loss_roe_placeholder": "% Ζημιά",
-      "toggle_take_profit_sign": "Toggle take profit return sign",
-      "toggle_stop_loss_sign": "Toggle stop loss return sign",
       "usd_label": "$",
       "take_profit_invalid_price": "Η τιμή λήψης κέρδους πρέπει να είναι {{direction}} από την τιμή {{priceType}}",
       "stop_loss_invalid_price": "Η τιμή περιορισμού ζημιάς πρέπει να είναι {{direction}} από την τιμή {{priceType}}",
@@ -2450,8 +2456,9 @@
       "referral_code_text": "Χρησιμοποιήστε τον κωδικό παραπομπής μου για να κερδίσετε επιπλέον ανταμοιβές."
     },
     "market_details": {
-      "category_search": "Περιηγηθείτε σε σχετικές αγορές",
-      "fullscreen_chart": "Γράφημα σε πλήρη οθόνη"
+      "fullscreen_chart": "Γράφημα σε πλήρη οθόνη",
+      "market_list": "Browse markets",
+      "perp_pair": "{{ticker}}-{{collateral}} perp"
     }
   },
   "market_insights": {
@@ -3560,7 +3567,8 @@
       "solana_account_name": "Λογαριασμός στο Solana",
       "tron_account_name": "Λογαριασμός Tron",
       "tron_nile_account_name": "Λογαριασμός Tron Nile",
-      "tron_shasta_account_name": "Λογαριασμός Tron Shasta"
+      "tron_shasta_account_name": "Λογαριασμός Tron Shasta",
+      "stellar_account_name": "Stellar Account"
     },
     "error_messages": {
       "failed_to_create_account": "Απέτυχε η δημιουργία λογαριασμού στο {{clientType}}"
@@ -4386,7 +4394,7 @@
   "price_alerts": {
     "create_title": "Δημιουργία ειδοποίησης τιμής για {{ticker}}",
     "edit_title": "Επεξεργασία ειδοποίησης τιμής για {{ticker}}",
-    "price_reaches": "Όταν η τιμή φτάσει",
+    "price_target": "Price target",
     "price_change": "Αλλαγή τιμής",
     "enter_target_price": "Εισάγετε την επιθυμητή τιμή",
     "approx_percent": "≈ {{percent}}%",
@@ -4394,7 +4402,6 @@
     "approx_percent_below": "κάτω από την τρέχουσα τιμή του {{ticker}}",
     "recurring": "Επαναλαμβανόμενα",
     "quick_percentage": "{{percentage}}%",
-    "price_change_under_development": "Αυτή η λειτουργία βρίσκεται υπό ανάπτυξη",
     "set_price_alert": "Ορισμός ειδοποίησης τιμής",
     "update_price_alert": "Ενημέρωση ειδοποίησης τιμής",
     "save_success": "Η ειδοποίηση τιμής για {{ticker}} αποθηκεύτηκε με επιτυχία.",
@@ -4408,7 +4415,30 @@
     "add_alert": "Προσθήκη ειδοποίησης",
     "reaches_threshold": "Όταν φτάσει το {{threshold}}",
     "once_label": "Μόλις",
-    "no_alerts": "Δεν υπάρχουν ενεργές ειδοποιήσεις τιμής για αυτό το περιουσιακό στοιχείο."
+    "moves_up": "When price moves up",
+    "moves_down": "When price moves down",
+    "period_1h": "1hr",
+    "period_24h": "24hr",
+    "period_1h_short": "1h",
+    "period_24h_short": "24h",
+    "moves_up_summary": "Moves up {{percent}}%",
+    "moves_down_summary": "Moves down {{percent}}%",
+    "period_recurrence": "{{period}} • {{recurrence}}",
+    "percent_duplicate": "An alert with this configuration already exists.",
+    "percent_max_down": "Price can't fall by more than 100%."
+  },
+  "share_token": {
+    "title": "Share token info",
+    "share": "Share token info",
+    "market_cap": "Market cap",
+    "price": "Price",
+    "liquidity": "Liquidity",
+    "holders": "Holders",
+    "volume_24h": "24h volume",
+    "change_24h": "24h change",
+    "buy_on_metamask": "Buy on MetaMask",
+    "buy_on": "Buy on",
+    "metamask": "MetaMask"
   },
   "asset_overview": {
     "market_closed": "Κλειστή αγορά",
@@ -5033,6 +5063,21 @@
     "activity_market_close_short": "Αγορά - κλείσιμο θέσης αγοράς",
     "activity_limit_short": "Εντολή πώλησης με όριο",
     "activity_limit_close_short": "Όριο - κλείσιμο θέσης αγοράς",
+    "activity_market_long": "Market long",
+    "activity_stop_market_close_long": "Stop market — close long",
+    "activity_market_close_long": "Market — close long",
+    "activity_limit_long": "Limit long",
+    "activity_limit_close_long": "Limit — close long",
+    "activity_order_status_filled": "Filled",
+    "activity_order_status_canceled": "Canceled",
+    "activity_order_status_rejected": "Rejected",
+    "activity_order_status_open": "Open",
+    "activity_trustline_activated": "Trustline activated",
+    "activity_trustline_activating": "Activating trustline",
+    "activity_trustline_activation_failed": "Activate trustline failed",
+    "activity_trustline_deactivating": "Deactivating trustline",
+    "activity_trustline_deactivated": "Trustline deactivated",
+    "activity_trustline_deactivation_failed": "Deactivate trustline failed",
     "claim": "Εξαργύρωση",
     "sent_ether": "Αποστολή ETH",
     "self_sent_ether": "Στείλτε ETH στον εαυτό σας",
@@ -5057,6 +5102,14 @@
     "receive": "Λήψη",
     "swap": "Ανταλλαγή",
     "send": "Αποστολή",
+    "activity_swapped": "Swapped",
+    "activity_swapping": "Swapping",
+    "activity_swap_failed": "Swap failed",
+    "activity_bridged": "Bridged",
+    "activity_bridging": "Bridging",
+    "activity_bridge_failed": "Bridge failed",
+    "activity_sending": "Sending",
+    "activity_send_failed": "Send failed",
     "redeposit": "Κατάθεση εκ νέου",
     "interaction": "Αλληλεπίδραση",
     "contract_deploy": "Ανάπτυξη Συμβολαίου",
@@ -5757,29 +5810,29 @@
     "lido_stake_ready_to_be_withdrawn_message": "Αίτημα ανάληψης",
     "push_notification_content": {
       "funds_sent_title": "Στάλθηκαν κεφάλαια",
-      "funds_sent_description": "Στείλατε επιτυχώς {{amount}} {{symbol}}",
-      "funds_sent_default_description": "Στείλατε επιτυχώς μερικά tokens",
+      "funds_sent_description": "You sent {{amount}} {{symbol}}.",
+      "funds_sent_default_description": "You sent funds.",
       "funds_received_title": "Ελήφθη κεφάλαια",
-      "funds_received_description": "Λάβατε {{amount}} {{symbol}}",
-      "funds_received_default_description": "Λάβατε μερικά tokens",
-      "metamask_swap_completed_title": "Η ανταλλαγή ολοκληρώθηκε",
-      "metamask_swap_completed_description": "Η ανταλλαγή σας στο MetaMask ήταν επιτυχής",
+      "funds_received_description": "You received {{amount}} {{symbol}}.",
+      "funds_received_default_description": "You received funds.",
+      "metamask_swap_completed_title": "Swap complete",
+      "metamask_swap_completed_description": "Your swap is complete.",
       "nft_sent_title": "Στάλθηκαν NFT",
-      "nft_sent_description": "Στείλατε με επιτυχία ένα NFT",
+      "nft_sent_description": "You sent an NFT.",
       "nft_received_title": "Ελήφθη NFT",
-      "nft_received_description": "Λάβατε νέα NFT",
-      "rocketpool_stake_completed_title": "Ολοκλήρωση πονταρίσματος",
-      "rocketpool_stake_completed_description": "Το ποντάρισμά σας στο RocketPool ήταν επιτυχές",
+      "nft_received_description": "You received new NFTs.",
+      "rocketpool_stake_completed_title": "Stake deposited",
+      "rocketpool_stake_completed_description": "Your Rocket Pool stake deposit is complete.",
       "rocketpool_unstake_completed_title": "Ολοκλήρωση ακύρωσης πονταρίσματος",
-      "rocketpool_unstake_completed_description": "Η ακύρωση του πονταρίσματός σας από το RocketPool ήταν επιτυχής",
-      "lido_stake_completed_title": "Ολοκλήρωση πονταρίσματος",
-      "lido_stake_completed_description": "Το ποντάρισμά σας στο Lido ήταν επιτυχές",
-      "lido_stake_ready_to_be_withdrawn_title": "Έτοιμο το ποντάρισμα για ανάληψη",
-      "lido_stake_ready_to_be_withdrawn_description": "Το ποντάρισμά σας στο Lido είναι τώρα έτοιμο για ανάληψη",
+      "rocketpool_unstake_completed_description": "Your Rocket Pool unstake is complete.",
+      "lido_stake_completed_title": "Stake deposited",
+      "lido_stake_completed_description": "Your Lido stake deposit is complete.",
+      "lido_stake_ready_to_be_withdrawn_title": "Stake ready to withdraw",
+      "lido_stake_ready_to_be_withdrawn_description": "Your Lido stake is ready to withdraw.",
       "lido_withdrawal_requested_title": "Αίτημα ανάληψης",
-      "lido_withdrawal_requested_description": "Υποβλήθηκε το αίτημα ανάληψης από το Lido",
-      "lido_withdrawal_completed_title": "Η ανάληψη ολοκληρώθηκε",
-      "lido_withdrawal_completed_description": "Η ανάληψή σας από το Lido ήταν επιτυχής",
+      "lido_withdrawal_requested_description": "Your Lido withdrawal request was submitted.",
+      "lido_withdrawal_completed_title": "Withdrawal complete",
+      "lido_withdrawal_completed_description": "Your Lido withdrawal is complete.",
       "perps_position_liquidated_title": "Η θέση ρευστοποιήθηκε",
       "perps_position_liquidated_description_long": "Η θέση αγοράς (long) στο {{symbol}} έκλεισε.",
       "perps_position_liquidated_description_short": "Η θέση πώλησης (short) στο {{symbol}} έκλεισε.",
@@ -7376,6 +7429,9 @@
       "transfer": "Αποστολή",
       "card": "Κάρτα"
     },
+    "token_list_cta": {
+      "get_apy": "Get {{apy}}% APY"
+    },
     "earnings": {
       "title": "Εκτιμώμενα κέρδη",
       "estimated_monthly": "Μηνιαία",
@@ -7393,6 +7449,7 @@
     },
     "balance_card": {
       "label": "Υπόλοιπο χρημάτων",
+      "currency_suffix": " • mUSD",
       "add": "Προσθήκη",
       "info_sheet_title": "Υπόλοιπο χρημάτων",
       "info_sheet_body": "Το υπόλοιπό σας σε mUSD, συνδεδεμένο με το δολάριο, είναι πάντα διαθέσιμο για χρήση, αποστολή ή συναλλαγές. Δεν το υπολογίζουμε στο συνολικό υπόλοιπο του λογαριασμού σας.\n\nΟι αναλήψεις επεξεργάζονται άμεσα, με την επιφύλαξη των συνήθων χρόνων επιβεβαίωσης του δικτύου στο αντίστοιχο blockchain. Αν η ρευστότητα είναι περιορισμένη, ενδέχεται να υπάρξουν προσωρινές καθυστερήσεις."
@@ -7449,7 +7506,7 @@
       "verification_pending": "Η επαλήθευση ταυτότητάς σας βρίσκεται υπό εξέταση. Αυτό συνήθως διαρκεί λιγότερο από 12 ώρες."
     },
     "what_you_get": {
-      "title": "Οφέλη του Money Account",
+      "title": "Benefits",
       "benefit_auto_earn": "Αυτόματη απόδοση έως και",
       "benefit_auto_earn_variable": "(μεταβλητό)",
       "benefit_dollar_backed": "Κρατήστε τα χρήματά σας ασφαλή σε mUSD, ένα stablecoin με αναλογία 1:1 σε δολάρια",
@@ -7475,7 +7532,7 @@
     "more_sheet": {
       "title": "Περισσότερα",
       "how_it_works": "Πώς λειτουργεί",
-      "what_you_get": "Οφέλη του Money Account",
+      "what_you_get": "Benefits",
       "contact_support": "Επικοινωνία με την υποστήριξη"
     },
     "transfer_sheet": {
@@ -7603,6 +7660,12 @@
       "learn_more": "Μάθετε περισσότερα",
       "swap": "Ανταλλαγή",
       "buy": "Αγορά"
+    },
+    "earn_banner": {
+      "title": "Earn up to {{apy}}% APY",
+      "title_no_apy": "Earn with your Money account",
+      "description": "Add {{symbol}} to your Money account—no lockups or minimums.",
+      "cta": "Add {{symbol}}"
     },
     "how_it_works_page": {
       "header_title": "Οικονομικά",
@@ -8375,7 +8438,10 @@
     "you_swapped": "Η ανταλλαγή ολοκληρώθηκε",
     "you_received": "Έχετε λάβει",
     "bridge_to_chain": "Διασύνδεση προς {{chainName}}",
-    "recipient": "Αποδέκτης"
+    "recipient": "Αποδέκτης",
+    "swapped": "Swapped",
+    "bridged": "Bridged",
+    "bridged_token": "Bridged {{symbol}}"
   },
   "account_status": {
     "account_already_exists": "Το πορτοφόλι υπάρχει ήδη",
@@ -8767,7 +8833,10 @@
         "invalid_email": "Μη έγκυρη διεύθυνση email",
         "invalid_password": "Ο κωδικός πρέπει να έχει τουλάχιστον 15 χαρακτήρες. Δεν μπορεί να περιέχει μη εκτυπώσιμους χαρακτήρες ή διαδοχικά κενά.",
         "join_waitlist": "Εγγραφή στη λίστα αναμονής",
-        "country_not_available": "Η εγγραφή για κάρτα δεν είναι ακόμη διαθέσιμη στη χώρα σας."
+        "country_not_available": "Η εγγραφή για κάρτα δεν είναι ακόμη διαθέσιμη στη χώρα σας.",
+        "account_label": "Account",
+        "account_description": "Your MetaMask Card will be associated with this account.",
+        "account_exists_toast": "You already have a card account."
       },
       "confirm_email": {
         "title": "Επιβεβαιώστε το email σας",
@@ -8824,6 +8893,29 @@
         "title": "Σε αναμονή έγκρισης",
         "description": "Ο συνεργάτης μας πρέπει να επαληθεύσει την ταυτότητά σας για να εγκρίνει την αίτησή σας.",
         "helper_text": "Αυτό συνήθως διαρκεί λίγα λεπτά. Μην κλείσετε την εφαρμογή."
+      },
+      "immersve_kyc_processing": {
+        "title": "Awaiting approval",
+        "description": "Our partner needs to verify your identity in order to approve your application.",
+        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "incomplete_title": "Finish verifying your identity",
+        "incomplete_description": "You closed identity verification before it was complete. Continue to finish.",
+        "continue_button": "Continue verification",
+        "info_needed_title": "Additional information needed",
+        "info_needed_description": "We need a bit more information to complete your verification. Continue to provide it.",
+        "info_needed_button": "Continue verification",
+        "expiring_error": "Your verification session expired. Please contact support to continue."
+      },
+      "immersve_kyc_modal": {
+        "load_error": "Something went wrong loading identity verification. Please try again.",
+        "try_again": "Try again"
+      },
+      "immersve_funding_approval": {
+        "title": "Set up card funding",
+        "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
+        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "confirm_button": "Approve funding",
+        "retry_button": "Try again"
       },
       "verifying_registration": {
         "title": "Επαλήθευση της ταυτότητάς σας",
@@ -8964,6 +9056,13 @@
       "view_card_details_error": "Δεν ήταν δυνατή η φόρτωση των στοιχείων της κάρτας. Παρακαλούμε δοκιμάστε ξανά.",
       "biometric_verification_required": "Απαιτείται έλεγχος ταυτότητας για να δείτε τα στοιχεία της κάρτας.",
       "unfreeze_auth_required": "Απαιτείται έλεγχος ταυτότητας για να συνεχίσετε τις δαπάνες στην κάρτα σας.",
+      "card_details": {
+        "card_number_label": "Card number",
+        "expiry_label": "Expiry",
+        "cvv_label": "CVV",
+        "name_label": "Name",
+        "copied": "Copied to clipboard"
+      },
       "warnings": {
         "close_spending_limit": {
           "title": "Έχετε σχεδόν φτάσει το όριο δαπανών σας",
@@ -9181,9 +9280,11 @@
       "auth_prompt_info": "Συνδεθείτε στον λογαριασμό της κάρτας σας για να χρησιμοποιήσετε αυτή τη λειτουργία.",
       "location_button_text": "Διεθνής",
       "location_button_text_us": "Ηνωμένες Πολιτείες",
+      "location_button_text_uk": "United Kingdom",
       "email_label": "Email",
       "password_label": "Κωδικός πρόσβασης",
       "login_button": "Σύνδεση",
+      "uk_login_button": "Sign in with this account",
       "signup_button": "Εγγραφή",
       "forgot_password_button": "Ξεχάσατε τον κωδικό πρόσβασης;",
       "errors": {
@@ -9198,7 +9299,8 @@
         "network_error": "Σφάλμα δικτύου. Παρακαλούμε ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.",
         "timeout_error": "Το αίτημα έληξε λόγω καθυστέρησης. Παρακαλούμε ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.",
         "server_error": "Σφάλμα διακομιστή. Παρακαλούμε δοκιμάστε ξανά αργότερα.",
-        "configuration_error": "Η υπηρεσία δεν είναι προσωρινά διαθέσιμη. Παρακαλούμε δοκιμάστε ξανά αργότερα."
+        "configuration_error": "Η υπηρεσία δεν είναι προσωρινά διαθέσιμη. Παρακαλούμε δοκιμάστε ξανά αργότερα.",
+        "forbidden_error": "This action isn't available for your account."
       }
     },
     "card_forgot_password": {
@@ -10026,6 +10128,7 @@
     "bandwidth_fee": "Εύρος ζώνης",
     "energy_fee": "Ενέργεια",
     "bridge_fee": "Τέλη διασύνδεσης",
+    "gas_token_fee": "Gas fee",
     "transaction_fee": "Τέλος συναλλαγής",
     "unknown_token": "Άγνωστο",
     "total_amount": "Συνολικό ποσό",
@@ -10314,6 +10417,17 @@
     }
   },
   "homepage": {
+    "action_buttons": {
+      "buy": "Buy",
+      "sell": "Sell",
+      "send": "Send",
+      "receive": "Receive",
+      "swap": "Swap",
+      "perps": "Perps",
+      "predict": "Predict",
+      "batch_swap": "Batch Swap",
+      "traders": "Traders"
+    },
     "sections": {
       "money": "Οικονομικά",
       "money_empty_description": "Δεν έχετε ακόμη mUSD. Μετατρέψτε stablecoins σε mUSD από την ενότητα Οικονομικά στην αρχική σελίδα.",
@@ -10376,6 +10490,13 @@
     "added_to_watchlist": "Added to Watchlist",
     "removed_from_watchlist": "Removed from Watchlist",
     "home_empty_title": "Λίστα παρακολούθησης",
-    "home_empty_subtitle": "You have no watchlist items yet"
+    "home_empty_subtitle": "You have no watchlist items yet",
+    "fullscreen_title": "Watchlist",
+    "tokens_tab": "Tokens",
+    "edit": "Edit",
+    "done": "Done",
+    "empty_add_tokens_cta": "Add {{count}} token",
+    "empty_add_tokens_cta_plural": "Add {{count}} tokens",
+    "search_placeholder": "Search for any asset to add"
   }
 }

@@ -1097,19 +1097,19 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "Haftanın En İyi Yatırımcıları",
-      "chain_filter": {
-        "all": "Tümü",
-        "tokens": "tokenlar",
-        "perps": "Sürekli Vadeli"
-      },
+      "title": "Weekly top traders",
       "notifications_banner": {
         "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
         "open_settings": "Ayarları aç"
       }
     },
+    "type_filter": {
+      "all": "All types",
+      "tokens": "Tokens",
+      "perps": "Perps"
+    },
     "feed": {
-      "title": "En İyi Yatırımcılar",
+      "title": "Top traders",
       "tabs": {
         "leaderboard": "Liderlik Tablosu",
         "feed": "Feed"
@@ -1123,10 +1123,9 @@
         "opened": "açıldı",
         "closed": "kapatıldı"
       },
-      "type_filter": {
-        "all": "Tüm türler",
-        "tokens": "Token'lar",
-        "perps": "Perps"
+      "new_position": {
+        "bought": "Holding",
+        "opened": "Open"
       },
       "empty_following": {
         "title": "Henüz aktivite yok",
@@ -1159,7 +1158,7 @@
       },
       "slide_follow": {
         "title": "Follow the best",
-        "description": "Tap to follow the top three traders who are up big this week."
+        "description": "Tap to follow the top ten traders who are up big this week."
       },
       "slide_notify": {
         "title": "Hiçbir hamleyi kaçırmayın",
@@ -1167,7 +1166,7 @@
         "description_default": "When you're ready, follow a trader to get notified the moment they make a move."
       },
       "next": "Sonraki",
-      "follow_top_three": "Follow the top three",
+      "follow_top_ten": "Follow the top ten",
       "maybe_later": "Belki daha sonra",
       "got_it": "Anladım",
       "allow_notifications": "Bildirimlere izin ver"
@@ -1180,6 +1179,11 @@
       "traders_you_follow_desc": "Kimlerin hakkında bildirim alacağınızı seçin",
       "traders_you_follow_empty": "Henüz hiçbir yatırımcıyı takip etmiyorsunuz.",
       "error_loading_followed": "Takip ettiğiniz yatırımcılar yüklenemiyor."
+    },
+    "settings": {
+      "section_title": "Top Traders",
+      "show_account_on_leaderboard": "Show account on leaderboard",
+      "show_account_on_leaderboard_description": "Appear on top traders leaderboard when your weekly earnings rank."
     },
     "follow": "Takip Et",
     "following": "Takip Ediliyor",
@@ -1485,6 +1489,7 @@
       "title": "Yeni emir",
       "leverage": "Kaldıraç",
       "limit_price": "Limit fiyatı",
+      "set_price": "Set price",
       "market_price": "Piyasa fiyatı",
       "enter_price": "Fiyatı gir",
       "trigger_price": "Tetikleme fiyatı",
@@ -1572,7 +1577,8 @@
         "bid_price": "Alış",
         "difference_from_market": "Piyasadan farkı:",
         "limit_price_above": "Limit fiyat, güncel fiyatın üzerinde",
-        "limit_price_below": "Limit fiyat, güncel fiyatın altında"
+        "limit_price_below": "Limit fiyat, güncel fiyatın altında",
+        "limit_price_too_far": "Price can't be more than 95% away from the market price"
       },
       "leverage_modal": {
         "title": "Kaldıraç",
@@ -1715,6 +1721,8 @@
       "funds_are_available_to_trade": "Fonlar işlem yapmak için kullanılabilir",
       "failed_to_close_position": "Pozisyon kapatılamadı",
       "failed_to_partially_close_position": "Kısmen pozisyon kapatma başarısız oldu",
+      "failed_to_place_close_order": "Failed to place close order",
+      "failed_to_place_partial_close_order": "Failed to place partial close order",
       "your_position_is_still_active": "Pozisyonunuz halen aktif",
       "fox_points_earned": "{{points}} Fox Puan kazanıldı!",
       "minimum_remaining_warning": "Kalan pozisyon en az {{minimum}}$ olmalıdır. Mevcut: {{remaining}}$",
@@ -1777,8 +1785,6 @@
       "loss_percent_placeholder": "Zarar",
       "profit_roe_placeholder": "% Kazanç",
       "loss_roe_placeholder": "% Zarar",
-      "toggle_take_profit_sign": "Toggle take profit return sign",
-      "toggle_stop_loss_sign": "Toggle stop loss return sign",
       "usd_label": "$",
       "take_profit_invalid_price": "Kazancı al emri {{direction}} yönünde {{priceType}} fiyatta olmalıdır",
       "stop_loss_invalid_price": "Zararda durdur emri {{direction}} yönünde {{priceType}} fiyatında olmalıdır",
@@ -2450,8 +2456,9 @@
       "referral_code_text": "Referans kodumu kullanarak ekstra ödüller kazan."
     },
     "market_details": {
-      "category_search": "İlgili piyasalara gözat",
-      "fullscreen_chart": "Tam ekran grafik"
+      "fullscreen_chart": "Tam ekran grafik",
+      "market_list": "Browse markets",
+      "perp_pair": "{{ticker}}-{{collateral}} perp"
     }
   },
   "market_insights": {
@@ -3560,7 +3567,8 @@
       "solana_account_name": "Solana Hesabı",
       "tron_account_name": "Tron Hesabı",
       "tron_nile_account_name": "Tron Nile Hesabı",
-      "tron_shasta_account_name": "Tron Shasta Hesabı"
+      "tron_shasta_account_name": "Tron Shasta Hesabı",
+      "stellar_account_name": "Stellar Account"
     },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} hesabı oluşturulamadı"
@@ -4386,7 +4394,7 @@
   "price_alerts": {
     "create_title": "{{ticker}} fiyat uyarısı oluştur",
     "edit_title": "{{ticker}} fiyat uyarısını düzenle",
-    "price_reaches": "Fiyat ulaşır",
+    "price_target": "Price target",
     "price_change": "Fiyat değişikliği",
     "enter_target_price": "Hedef fiyatı girin",
     "approx_percent": "≈ {{percent}}%",
@@ -4394,7 +4402,6 @@
     "approx_percent_below": "mevcut {{ticker}} fiyatının altında",
     "recurring": "Tekrarlayan",
     "quick_percentage": "{{percentage}}%",
-    "price_change_under_development": "Bu deneyim şu anda geliştirme aşamasındadır",
     "set_price_alert": "Fiyat uyarısı oluştur",
     "update_price_alert": "Fiyat uyarısını güncelle",
     "save_success": "{{ticker}} için fiyat uyarısı başarıyla kaydedildi.",
@@ -4408,7 +4415,30 @@
     "add_alert": "Uyarı ekle",
     "reaches_threshold": "{{threshold}} ulaşır",
     "once_label": "Bir kez",
-    "no_alerts": "Bu varlık için fiyat uyarısı tanımlanmamış."
+    "moves_up": "When price moves up",
+    "moves_down": "When price moves down",
+    "period_1h": "1hr",
+    "period_24h": "24hr",
+    "period_1h_short": "1h",
+    "period_24h_short": "24h",
+    "moves_up_summary": "Moves up {{percent}}%",
+    "moves_down_summary": "Moves down {{percent}}%",
+    "period_recurrence": "{{period}} • {{recurrence}}",
+    "percent_duplicate": "An alert with this configuration already exists.",
+    "percent_max_down": "Price can't fall by more than 100%."
+  },
+  "share_token": {
+    "title": "Share token info",
+    "share": "Share token info",
+    "market_cap": "Market cap",
+    "price": "Price",
+    "liquidity": "Liquidity",
+    "holders": "Holders",
+    "volume_24h": "24h volume",
+    "change_24h": "24h change",
+    "buy_on_metamask": "Buy on MetaMask",
+    "buy_on": "Buy on",
+    "metamask": "MetaMask"
   },
   "asset_overview": {
     "market_closed": "Piyasa kapalı",
@@ -5033,6 +5063,21 @@
     "activity_market_close_short": "Piyasa — short pozisyonu kapat",
     "activity_limit_short": "Limit short",
     "activity_limit_close_short": "Limit — short pozisyonu kapat",
+    "activity_market_long": "Market long",
+    "activity_stop_market_close_long": "Stop market — close long",
+    "activity_market_close_long": "Market — close long",
+    "activity_limit_long": "Limit long",
+    "activity_limit_close_long": "Limit — close long",
+    "activity_order_status_filled": "Filled",
+    "activity_order_status_canceled": "Canceled",
+    "activity_order_status_rejected": "Rejected",
+    "activity_order_status_open": "Open",
+    "activity_trustline_activated": "Trustline activated",
+    "activity_trustline_activating": "Activating trustline",
+    "activity_trustline_activation_failed": "Activate trustline failed",
+    "activity_trustline_deactivating": "Deactivating trustline",
+    "activity_trustline_deactivated": "Trustline deactivated",
+    "activity_trustline_deactivation_failed": "Deactivate trustline failed",
     "claim": "Al",
     "sent_ether": "ETH gönder",
     "self_sent_ether": "Kendinize ETH gönderdiniz",
@@ -5057,6 +5102,14 @@
     "receive": "Al",
     "swap": "Swap Yap",
     "send": "Gönder",
+    "activity_swapped": "Swapped",
+    "activity_swapping": "Swapping",
+    "activity_swap_failed": "Swap failed",
+    "activity_bridged": "Bridged",
+    "activity_bridging": "Bridging",
+    "activity_bridge_failed": "Bridge failed",
+    "activity_sending": "Sending",
+    "activity_send_failed": "Send failed",
     "redeposit": "Tekrar para yatır",
     "interaction": "Etkileşim",
     "contract_deploy": "Sözleşme dağıtımı",
@@ -5757,29 +5810,29 @@
     "lido_stake_ready_to_be_withdrawn_message": "Para çekme talep edildi",
     "push_notification_content": {
       "funds_sent_title": "Para gönderildi",
-      "funds_sent_description": "Başarılı bir şekilde {{amount}} {{symbol}} gönderdiniz",
-      "funds_sent_default_description": "Başarılı bir şekilde bir miktar token gönderdiniz",
+      "funds_sent_description": "You sent {{amount}} {{symbol}}.",
+      "funds_sent_default_description": "You sent funds.",
       "funds_received_title": "Para alındı",
-      "funds_received_description": "{{amount}} {{symbol}} aldınız",
-      "funds_received_default_description": "Bir miktar token aldınız",
-      "metamask_swap_completed_title": "Swap tamamlandı",
-      "metamask_swap_completed_description": "MetaMask Swap başarılı oldu",
+      "funds_received_description": "You received {{amount}} {{symbol}}.",
+      "funds_received_default_description": "You received funds.",
+      "metamask_swap_completed_title": "Swap complete",
+      "metamask_swap_completed_description": "Your swap is complete.",
       "nft_sent_title": "NFT gönderildi",
-      "nft_sent_description": "Başarılı bir şekilde bir NFT gönderdiniz",
+      "nft_sent_description": "You sent an NFT.",
       "nft_received_title": "NFT alındı",
-      "nft_received_description": "Yeni NFT'ler aldınız",
-      "rocketpool_stake_completed_title": "Stake tamamlandı",
-      "rocketpool_stake_completed_description": "RocketPool stake işleminiz başarılı oldu",
+      "nft_received_description": "You received new NFTs.",
+      "rocketpool_stake_completed_title": "Stake deposited",
+      "rocketpool_stake_completed_description": "Your Rocket Pool stake deposit is complete.",
       "rocketpool_unstake_completed_title": "Unstake tamamlandı",
-      "rocketpool_unstake_completed_description": "RocketPool unstake işleminiz başarılı oldu",
-      "lido_stake_completed_title": "Stake tamamlandı",
-      "lido_stake_completed_description": "Lido stake işleminiz başarılı oldu",
-      "lido_stake_ready_to_be_withdrawn_title": "Stake, para çekme işlemine hazır",
-      "lido_stake_ready_to_be_withdrawn_description": "Lido stake işleminiz şu anda para çekme işlemine hazır",
+      "rocketpool_unstake_completed_description": "Your Rocket Pool unstake is complete.",
+      "lido_stake_completed_title": "Stake deposited",
+      "lido_stake_completed_description": "Your Lido stake deposit is complete.",
+      "lido_stake_ready_to_be_withdrawn_title": "Stake ready to withdraw",
+      "lido_stake_ready_to_be_withdrawn_description": "Your Lido stake is ready to withdraw.",
       "lido_withdrawal_requested_title": "Para çekme talep edildi",
-      "lido_withdrawal_requested_description": "Lido para çekme talebiniz gönderildi",
-      "lido_withdrawal_completed_title": "Para çekme işlemi tamamlandı",
-      "lido_withdrawal_completed_description": "Lido para çekme işleminiz başarılı oldu",
+      "lido_withdrawal_requested_description": "Your Lido withdrawal request was submitted.",
+      "lido_withdrawal_completed_title": "Withdrawal complete",
+      "lido_withdrawal_completed_description": "Your Lido withdrawal is complete.",
       "perps_position_liquidated_title": "Pozisyon likidasyona uğradı",
       "perps_position_liquidated_description_long": "{{symbol}} uzun pozisyonunuz kapandı.",
       "perps_position_liquidated_description_short": "{{symbol}} kısa pozisyonunuz kapandı.",
@@ -7376,6 +7429,9 @@
       "transfer": "Gönder",
       "card": "Kart"
     },
+    "token_list_cta": {
+      "get_apy": "Get {{apy}}% APY"
+    },
     "earnings": {
       "title": "Tahmini kazançlar",
       "estimated_monthly": "Aylık",
@@ -7393,6 +7449,7 @@
     },
     "balance_card": {
       "label": "Para bakiyesi",
+      "currency_suffix": " • mUSD",
       "add": "Ekle",
       "info_sheet_title": "Para bakiyesi",
       "info_sheet_body": "Dilediğiniz zaman harcamaya, gönderime veya işlem yapmaya hazır olan dolar endeksli mUSD bakiyeniz. Bunu toplam hesap bakiyenize dahil etmeyiz. \n\nPara çekme işlemleri, ilgili blokzincirindeki standart ağ onay sürelerine bağlı olarak anında işleme alınır. Likiditenin yetersiz olduğu durumlarda geçici gecikmeler yaşanabilir."
@@ -7449,7 +7506,7 @@
       "verification_pending": "Kimlik doğrulama işleminiz inceleniyor. Bu işlem genellikle 12 saatten kısa sürer."
     },
     "what_you_get": {
-      "title": "Money account hesabının faydaları",
+      "title": "Benefits",
       "benefit_auto_earn": "Otomatik kazanın:",
       "benefit_auto_earn_variable": "(değişkendir)",
       "benefit_dollar_backed": "Paranız 1:1 dolar destekli bir stabil kripto para olan mUSD'de güvende tutun",
@@ -7475,7 +7532,7 @@
     "more_sheet": {
       "title": "Daha fazla",
       "how_it_works": "Nasıl çalışır?",
-      "what_you_get": "Money account hesabının faydaları",
+      "what_you_get": "Benefits",
       "contact_support": "Destek ile iletişime geç"
     },
     "transfer_sheet": {
@@ -7603,6 +7660,12 @@
       "learn_more": "Daha fazla bilgi edin",
       "swap": "Takas",
       "buy": "Satın al"
+    },
+    "earn_banner": {
+      "title": "Earn up to {{apy}}% APY",
+      "title_no_apy": "Earn with your Money account",
+      "description": "Add {{symbol}} to your Money account—no lockups or minimums.",
+      "cta": "Add {{symbol}}"
     },
     "how_it_works_page": {
       "header_title": "Bakiye",
@@ -8375,7 +8438,10 @@
     "you_swapped": "Takas ettiğiniz",
     "you_received": "Aldığınız",
     "bridge_to_chain": "{{chainName}} için köprü",
-    "recipient": "Alıcı"
+    "recipient": "Alıcı",
+    "swapped": "Swapped",
+    "bridged": "Bridged",
+    "bridged_token": "Bridged {{symbol}}"
   },
   "account_status": {
     "account_already_exists": "Cüzdan zaten mevcut",
@@ -8767,7 +8833,10 @@
         "invalid_email": "Geçersiz e-posta adresi",
         "invalid_password": "Şifre en az 15 karakter olmalıdır. Yazdırılamayan karakterler veya ardışık boşluklar içermemelidir.",
         "join_waitlist": "Bekleme listesine katılın",
-        "country_not_available": "Kartla kaydolma henüz ülkenizde kullanılamıyor."
+        "country_not_available": "Kartla kaydolma henüz ülkenizde kullanılamıyor.",
+        "account_label": "Account",
+        "account_description": "Your MetaMask Card will be associated with this account.",
+        "account_exists_toast": "You already have a card account."
       },
       "confirm_email": {
         "title": "E-postanızı onaylayın",
@@ -8824,6 +8893,29 @@
         "title": "Onay bekliyor",
         "description": "Başvurunuzun onaylanması için iş ortağımızın kimliğinizi doğrulaması gerekiyor.",
         "helper_text": "Bu işlem genellikle birkaç saniye sürer. Lütfen uygulamayı kapatmayın."
+      },
+      "immersve_kyc_processing": {
+        "title": "Awaiting approval",
+        "description": "Our partner needs to verify your identity in order to approve your application.",
+        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "incomplete_title": "Finish verifying your identity",
+        "incomplete_description": "You closed identity verification before it was complete. Continue to finish.",
+        "continue_button": "Continue verification",
+        "info_needed_title": "Additional information needed",
+        "info_needed_description": "We need a bit more information to complete your verification. Continue to provide it.",
+        "info_needed_button": "Continue verification",
+        "expiring_error": "Your verification session expired. Please contact support to continue."
+      },
+      "immersve_kyc_modal": {
+        "load_error": "Something went wrong loading identity verification. Please try again.",
+        "try_again": "Try again"
+      },
+      "immersve_funding_approval": {
+        "title": "Set up card funding",
+        "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
+        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "confirm_button": "Approve funding",
+        "retry_button": "Try again"
       },
       "verifying_registration": {
         "title": "Kimliğiniz doğrulanıyor",
@@ -8964,6 +9056,13 @@
       "view_card_details_error": "Kart bilgileri yüklenemedi. Lütfen tekrar deneyin.",
       "biometric_verification_required": "Kart bilgilerini görüntülemek için kimlik doğrulama gereklidir.",
       "unfreeze_auth_required": "Kartınızda harcama yapmaya devam edebilmeniz için doğrulama gereklidir.",
+      "card_details": {
+        "card_number_label": "Card number",
+        "expiry_label": "Expiry",
+        "cvv_label": "CVV",
+        "name_label": "Name",
+        "copied": "Copied to clipboard"
+      },
       "warnings": {
         "close_spending_limit": {
           "title": "Harcama limitinize yakınsınız",
@@ -9181,9 +9280,11 @@
       "auth_prompt_info": "Bu özelliğe erişim sağlamak için kart hesabınızda oturum açın.",
       "location_button_text": "Uluslararası",
       "location_button_text_us": "Amerika Birleşik Devletleri",
+      "location_button_text_uk": "United Kingdom",
       "email_label": "E-posta",
       "password_label": "Şifre",
       "login_button": "Giriş yap",
+      "uk_login_button": "Sign in with this account",
       "signup_button": "Kaydol",
       "forgot_password_button": "Şifreyi mi unuttunuz?",
       "errors": {
@@ -9198,7 +9299,8 @@
         "network_error": "Ağ hatası. Lütfen bağlantınızı kontrol edin ve tekrar deneyin.",
         "timeout_error": "İstek zaman aşımına uğradı. Lütfen bağlantınızı kontrol edin ve tekrar deneyin.",
         "server_error": "Sunucu hatası. Lütfen daha sonra tekrar deneyin.",
-        "configuration_error": "Hizmet geçici olarak kullanılamıyor. Lütfen daha sonra tekrar deneyin."
+        "configuration_error": "Hizmet geçici olarak kullanılamıyor. Lütfen daha sonra tekrar deneyin.",
+        "forbidden_error": "This action isn't available for your account."
       }
     },
     "card_forgot_password": {
@@ -10026,6 +10128,7 @@
     "bandwidth_fee": "Bant genişliği",
     "energy_fee": "Enerji",
     "bridge_fee": "Köprü ücreti",
+    "gas_token_fee": "Gas fee",
     "transaction_fee": "İşlem ücreti",
     "unknown_token": "Bilinmeyen",
     "total_amount": "Toplam tutar",
@@ -10314,6 +10417,17 @@
     }
   },
   "homepage": {
+    "action_buttons": {
+      "buy": "Buy",
+      "sell": "Sell",
+      "send": "Send",
+      "receive": "Receive",
+      "swap": "Swap",
+      "perps": "Perps",
+      "predict": "Predict",
+      "batch_swap": "Batch Swap",
+      "traders": "Traders"
+    },
     "sections": {
       "money": "Bakiye",
       "money_empty_description": "Henüz mUSD'niz yok. Ana sayfada Para kısmından stabil kripto paraları mUSD'ye dönüştürün.",
@@ -10376,6 +10490,13 @@
     "added_to_watchlist": "Added to Watchlist",
     "removed_from_watchlist": "Removed from Watchlist",
     "home_empty_title": "İzleme Listesi",
-    "home_empty_subtitle": "You have no watchlist items yet"
+    "home_empty_subtitle": "You have no watchlist items yet",
+    "fullscreen_title": "Watchlist",
+    "tokens_tab": "Tokens",
+    "edit": "Edit",
+    "done": "Done",
+    "empty_add_tokens_cta": "Add {{count}} token",
+    "empty_add_tokens_cta_plural": "Add {{count}} tokens",
+    "search_placeholder": "Search for any asset to add"
   }
 }

@@ -1097,19 +1097,19 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "Meilleurs traders de la semaine",
-      "chain_filter": {
-        "all": "Tous",
-        "tokens": "Jetons",
-        "perps": "Perps"
-      },
+      "title": "Weekly top traders",
       "notifications_banner": {
         "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
         "open_settings": "Ouvrir « Settings » (Paramètres)"
       }
     },
+    "type_filter": {
+      "all": "All types",
+      "tokens": "Tokens",
+      "perps": "Perps"
+    },
     "feed": {
-      "title": "Meilleurs traders",
+      "title": "Top traders",
       "tabs": {
         "leaderboard": "Classement",
         "feed": "Feed"
@@ -1123,10 +1123,9 @@
         "opened": "ouvert",
         "closed": "fermé"
       },
-      "type_filter": {
-        "all": "Tous les types",
-        "tokens": "Jetons",
-        "perps": "Perps"
+      "new_position": {
+        "bought": "Holding",
+        "opened": "Open"
       },
       "empty_following": {
         "title": "Aucune activité pour l’instant",
@@ -1159,7 +1158,7 @@
       },
       "slide_follow": {
         "title": "Follow the best",
-        "description": "Tap to follow the top three traders who are up big this week."
+        "description": "Tap to follow the top ten traders who are up big this week."
       },
       "slide_notify": {
         "title": "Ne manquez jamais une opportunité",
@@ -1167,7 +1166,7 @@
         "description_default": "When you're ready, follow a trader to get notified the moment they make a move."
       },
       "next": "Suivant",
-      "follow_top_three": "Follow the top three",
+      "follow_top_ten": "Follow the top ten",
       "maybe_later": "Peut-être plus tard",
       "got_it": "J’ai compris",
       "allow_notifications": "Autoriser les notifications"
@@ -1180,6 +1179,11 @@
       "traders_you_follow_desc": "Choisissez les traders pour lesquels vous souhaitez recevoir des notifications",
       "traders_you_follow_empty": "Vous ne suivez pas encore de traders.",
       "error_loading_followed": "Impossible de charger la liste des traders que vous suivez."
+    },
+    "settings": {
+      "section_title": "Top Traders",
+      "show_account_on_leaderboard": "Show account on leaderboard",
+      "show_account_on_leaderboard_description": "Appear on top traders leaderboard when your weekly earnings rank."
     },
     "follow": "Suivre",
     "following": "Vous suivez",
@@ -1485,6 +1489,7 @@
       "title": "Nouvel ordre",
       "leverage": "Effet de levier",
       "limit_price": "Prix limite",
+      "set_price": "Set price",
       "market_price": "Prix du marché",
       "enter_price": "Saisir le prix",
       "trigger_price": "Prix déclencheur",
@@ -1572,7 +1577,8 @@
         "bid_price": "Cours acheteur",
         "difference_from_market": "Différence par rapport au marché :",
         "limit_price_above": "Le prix limite est supérieur au prix actuel",
-        "limit_price_below": "Le prix limite est inférieur au prix actuel"
+        "limit_price_below": "Le prix limite est inférieur au prix actuel",
+        "limit_price_too_far": "Price can't be more than 95% away from the market price"
       },
       "leverage_modal": {
         "title": "Effet de levier",
@@ -1715,6 +1721,8 @@
       "funds_are_available_to_trade": "Fonds disponibles pour le trading",
       "failed_to_close_position": "La position n’a pas pu être fermée",
       "failed_to_partially_close_position": "Échec de la fermeture partielle de la position",
+      "failed_to_place_close_order": "Failed to place close order",
+      "failed_to_place_partial_close_order": "Failed to place partial close order",
       "your_position_is_still_active": "Votre position est toujours active",
       "fox_points_earned": "{{points}} points Fox gagnés !",
       "minimum_remaining_warning": "La position restante doit être d’au moins {{minimum}} $. Actuellement : {{remaining}} $",
@@ -1777,8 +1785,6 @@
       "loss_percent_placeholder": "Pertes",
       "profit_roe_placeholder": "% Profits",
       "loss_roe_placeholder": "% Pertes",
-      "toggle_take_profit_sign": "Toggle take profit return sign",
-      "toggle_stop_loss_sign": "Toggle stop loss return sign",
       "usd_label": "$",
       "take_profit_invalid_price": "Le take profit doit être {{direction}} au prix {{priceType}}",
       "stop_loss_invalid_price": "Le stop loss doit être {{direction}} au prix {{priceType}}",
@@ -2450,8 +2456,9 @@
       "referral_code_text": "Utilisez mon code de parrainage pour obtenir des récompenses supplémentaires."
     },
     "market_details": {
-      "category_search": "Explorer les marchés connexes",
-      "fullscreen_chart": "Graphique en plein écran"
+      "fullscreen_chart": "Graphique en plein écran",
+      "market_list": "Browse markets",
+      "perp_pair": "{{ticker}}-{{collateral}} perp"
     }
   },
   "market_insights": {
@@ -3560,7 +3567,8 @@
       "solana_account_name": "Compte Solana",
       "tron_account_name": "Compte Tron",
       "tron_nile_account_name": "Compte Tron Nile",
-      "tron_shasta_account_name": "Compte Tron Shasta"
+      "tron_shasta_account_name": "Compte Tron Shasta",
+      "stellar_account_name": "Stellar Account"
     },
     "error_messages": {
       "failed_to_create_account": "La création du compte {{clientType}} a échoué"
@@ -4386,7 +4394,7 @@
   "price_alerts": {
     "create_title": "Créer une alerte de prix pour {{ticker}}",
     "edit_title": "Modifier l’alerte de prix {{ticker}}",
-    "price_reaches": "Le prix atteint",
+    "price_target": "Price target",
     "price_change": "Variation du prix",
     "enter_target_price": "Saisissez le prix cible",
     "approx_percent": "≈ {{percent}} %",
@@ -4394,7 +4402,6 @@
     "approx_percent_below": "inférieur au prix actuel du {{ticker}}",
     "recurring": "Récurrent",
     "quick_percentage": "{{percentage}} %",
-    "price_change_under_development": "Cette fonctionnalité est actuellement en cours de développement",
     "set_price_alert": "Définir une alerte de prix",
     "update_price_alert": "Mettre à jour l’alerte de prix",
     "save_success": "Alerte de prix pour {{ticker}} enregistrée avec succès.",
@@ -4408,7 +4415,30 @@
     "add_alert": "Ajouter une alerte",
     "reaches_threshold": "Atteint {{threshold}}",
     "once_label": "Une fois",
-    "no_alerts": "Aucune alerte de prix n’a été définie pour cet actif."
+    "moves_up": "When price moves up",
+    "moves_down": "When price moves down",
+    "period_1h": "1hr",
+    "period_24h": "24hr",
+    "period_1h_short": "1h",
+    "period_24h_short": "24h",
+    "moves_up_summary": "Moves up {{percent}}%",
+    "moves_down_summary": "Moves down {{percent}}%",
+    "period_recurrence": "{{period}} • {{recurrence}}",
+    "percent_duplicate": "An alert with this configuration already exists.",
+    "percent_max_down": "Price can't fall by more than 100%."
+  },
+  "share_token": {
+    "title": "Share token info",
+    "share": "Share token info",
+    "market_cap": "Market cap",
+    "price": "Price",
+    "liquidity": "Liquidity",
+    "holders": "Holders",
+    "volume_24h": "24h volume",
+    "change_24h": "24h change",
+    "buy_on_metamask": "Buy on MetaMask",
+    "buy_on": "Buy on",
+    "metamask": "MetaMask"
   },
   "asset_overview": {
     "market_closed": "Marché fermé",
@@ -5033,6 +5063,21 @@
     "activity_market_close_short": "Ordre au prix du marché — clôture de la position courte",
     "activity_limit_short": "Position courte à cours limité",
     "activity_limit_close_short": "Position à cours limité — clôture de la position courte",
+    "activity_market_long": "Market long",
+    "activity_stop_market_close_long": "Stop market — close long",
+    "activity_market_close_long": "Market — close long",
+    "activity_limit_long": "Limit long",
+    "activity_limit_close_long": "Limit — close long",
+    "activity_order_status_filled": "Filled",
+    "activity_order_status_canceled": "Canceled",
+    "activity_order_status_rejected": "Rejected",
+    "activity_order_status_open": "Open",
+    "activity_trustline_activated": "Trustline activated",
+    "activity_trustline_activating": "Activating trustline",
+    "activity_trustline_activation_failed": "Activate trustline failed",
+    "activity_trustline_deactivating": "Deactivating trustline",
+    "activity_trustline_deactivated": "Trustline deactivated",
+    "activity_trustline_deactivation_failed": "Deactivate trustline failed",
     "claim": "Réclamer",
     "sent_ether": "ETH envoyé(s)",
     "self_sent_ether": "ETH envoyé(s) à vous-même",
@@ -5057,6 +5102,14 @@
     "receive": "Recevoir",
     "swap": "Échanger",
     "send": "Envoyer",
+    "activity_swapped": "Swapped",
+    "activity_swapping": "Swapping",
+    "activity_swap_failed": "Swap failed",
+    "activity_bridged": "Bridged",
+    "activity_bridging": "Bridging",
+    "activity_bridge_failed": "Bridge failed",
+    "activity_sending": "Sending",
+    "activity_send_failed": "Send failed",
     "redeposit": "Refaire un dépôt",
     "interaction": "Interaction",
     "contract_deploy": "Déploiement du contrat",
@@ -5757,29 +5810,29 @@
     "lido_stake_ready_to_be_withdrawn_message": "Retrait demandé",
     "push_notification_content": {
       "funds_sent_title": "Fonds envoyés",
-      "funds_sent_description": "Vous avez envoyé avec succès {{amount}} {{symbol}}",
-      "funds_sent_default_description": "Vous avez envoyé avec succès des jetons",
+      "funds_sent_description": "You sent {{amount}} {{symbol}}.",
+      "funds_sent_default_description": "You sent funds.",
       "funds_received_title": "Fonds reçus",
-      "funds_received_description": "Vous avez reçu {{amount}} {{symbol}}",
-      "funds_received_default_description": "Vous avez reçu des jetons",
-      "metamask_swap_completed_title": "Swap terminé",
-      "metamask_swap_completed_description": "Votre swap MetaMask a été effectué",
+      "funds_received_description": "You received {{amount}} {{symbol}}.",
+      "funds_received_default_description": "You received funds.",
+      "metamask_swap_completed_title": "Swap complete",
+      "metamask_swap_completed_description": "Your swap is complete.",
       "nft_sent_title": "NFT envoyé",
-      "nft_sent_description": "Vous avez envoyé un NFT avec succès",
+      "nft_sent_description": "You sent an NFT.",
       "nft_received_title": "NFT reçu",
-      "nft_received_description": "Vous avez reçu de nouveaux NFT",
-      "rocketpool_stake_completed_title": "Stake terminé",
-      "rocketpool_stake_completed_description": "Votre stake RocketPool a été effectué",
+      "nft_received_description": "You received new NFTs.",
+      "rocketpool_stake_completed_title": "Stake deposited",
+      "rocketpool_stake_completed_description": "Your Rocket Pool stake deposit is complete.",
       "rocketpool_unstake_completed_title": "Déstaking terminé",
-      "rocketpool_unstake_completed_description": "Votre déstaking RocketPool a été effectué",
-      "lido_stake_completed_title": "Stake terminé",
-      "lido_stake_completed_description": "Votre stake Lido a été effectué",
-      "lido_stake_ready_to_be_withdrawn_title": "Stake prêt à être retiré",
-      "lido_stake_ready_to_be_withdrawn_description": "Votre stake Lido est maintenant prêt à être retiré",
+      "rocketpool_unstake_completed_description": "Your Rocket Pool unstake is complete.",
+      "lido_stake_completed_title": "Stake deposited",
+      "lido_stake_completed_description": "Your Lido stake deposit is complete.",
+      "lido_stake_ready_to_be_withdrawn_title": "Stake ready to withdraw",
+      "lido_stake_ready_to_be_withdrawn_description": "Your Lido stake is ready to withdraw.",
       "lido_withdrawal_requested_title": "Retrait demandé",
-      "lido_withdrawal_requested_description": "Votre demande de retrait Lido a été soumise",
-      "lido_withdrawal_completed_title": "Retrait effectué",
-      "lido_withdrawal_completed_description": "Votre retrait Lido a été effectué",
+      "lido_withdrawal_requested_description": "Your Lido withdrawal request was submitted.",
+      "lido_withdrawal_completed_title": "Withdrawal complete",
+      "lido_withdrawal_completed_description": "Your Lido withdrawal is complete.",
       "perps_position_liquidated_title": "Position liquidée",
       "perps_position_liquidated_description_long": "Votre position longue sur {{symbol}} a été fermée.",
       "perps_position_liquidated_description_short": "Votre position courte sur {{symbol}} a été fermée.",
@@ -7376,6 +7429,9 @@
       "transfer": "Envoyer",
       "card": "Carte"
     },
+    "token_list_cta": {
+      "get_apy": "Get {{apy}}% APY"
+    },
     "earnings": {
       "title": "Gains estimés",
       "estimated_monthly": "Mensuelle",
@@ -7393,6 +7449,7 @@
     },
     "balance_card": {
       "label": "Solde du compte Money",
+      "currency_suffix": " • mUSD",
       "add": "Ajouter",
       "info_sheet_title": "Solde du compte Money",
       "info_sheet_body": "Votre solde qui est adossé au dollar et que vous pouvez utiliser à tout moment pour effectuer des achats, des transferts ou des opérations de Bourse n’est pas comptabilisé dans le solde total de votre compte.\n\nLes retraits sont traités immédiatement, sous réserve des délais de confirmation habituels du réseau de la blockchain utilisée. Des retards peuvent survenir en cas de manque de liquidités."
@@ -7449,7 +7506,7 @@
       "verification_pending": "Votre vérification d’identité est en cours d’examen. Cela prend généralement moins de 12 heures."
     },
     "what_you_get": {
-      "title": "Avantages du Money Account",
+      "title": "Benefits",
       "benefit_auto_earn": "Gagnez automatiquement jusqu'à",
       "benefit_auto_earn_variable": "(variable)",
       "benefit_dollar_backed": "Sécurisez vos fonds en achetant des mUSD, un stablecoin adossé au dollar à un ratio de 1:1",
@@ -7475,7 +7532,7 @@
     "more_sheet": {
       "title": "Plus",
       "how_it_works": "Comment ça marche ",
-      "what_you_get": "Avantages du Money Account",
+      "what_you_get": "Benefits",
       "contact_support": "Contacter le service d’assistance"
     },
     "transfer_sheet": {
@@ -7603,6 +7660,12 @@
       "learn_more": "En savoir plus",
       "swap": "Échanger",
       "buy": "Acheter"
+    },
+    "earn_banner": {
+      "title": "Earn up to {{apy}}% APY",
+      "title_no_apy": "Earn with your Money account",
+      "description": "Add {{symbol}} to your Money account—no lockups or minimums.",
+      "cta": "Add {{symbol}}"
     },
     "how_it_works_page": {
       "header_title": "Money",
@@ -8375,7 +8438,10 @@
     "you_swapped": "Vous avez échangé",
     "you_received": "Vous avez reçu",
     "bridge_to_chain": "Passerelle vers {{chainName}}",
-    "recipient": "Destinataire"
+    "recipient": "Destinataire",
+    "swapped": "Swapped",
+    "bridged": "Bridged",
+    "bridged_token": "Bridged {{symbol}}"
   },
   "account_status": {
     "account_already_exists": "Ce portefeuille existe déjà",
@@ -8767,7 +8833,10 @@
         "invalid_email": "Adresse e-mail non valide",
         "invalid_password": "Le mot de passe doit comporter au moins 15 caractères et ne doit pas contenir de caractères non imprimables ni d’espaces consécutifs.",
         "join_waitlist": "Rejoindre la liste d’attente",
-        "country_not_available": "L’inscription à la carte n’est pas encore disponible dans votre pays."
+        "country_not_available": "L’inscription à la carte n’est pas encore disponible dans votre pays.",
+        "account_label": "Account",
+        "account_description": "Your MetaMask Card will be associated with this account.",
+        "account_exists_toast": "You already have a card account."
       },
       "confirm_email": {
         "title": "Confirmez votre adresse e-mail",
@@ -8824,6 +8893,29 @@
         "title": "En attente d’approbation",
         "description": "Notre partenaire doit vérifier votre identité afin d’approuver votre demande.",
         "helper_text": "Cela prend généralement quelques secondes. Veuillez ne pas fermer l’application."
+      },
+      "immersve_kyc_processing": {
+        "title": "Awaiting approval",
+        "description": "Our partner needs to verify your identity in order to approve your application.",
+        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "incomplete_title": "Finish verifying your identity",
+        "incomplete_description": "You closed identity verification before it was complete. Continue to finish.",
+        "continue_button": "Continue verification",
+        "info_needed_title": "Additional information needed",
+        "info_needed_description": "We need a bit more information to complete your verification. Continue to provide it.",
+        "info_needed_button": "Continue verification",
+        "expiring_error": "Your verification session expired. Please contact support to continue."
+      },
+      "immersve_kyc_modal": {
+        "load_error": "Something went wrong loading identity verification. Please try again.",
+        "try_again": "Try again"
+      },
+      "immersve_funding_approval": {
+        "title": "Set up card funding",
+        "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
+        "helper_text": "This usually takes a few seconds. Please do not close the app.",
+        "confirm_button": "Approve funding",
+        "retry_button": "Try again"
       },
       "verifying_registration": {
         "title": "Vérification de votre identité",
@@ -8964,6 +9056,13 @@
       "view_card_details_error": "Impossible de charger les détails de la carte. Veuillez réessayer.",
       "biometric_verification_required": "Authentification requise pour afficher les détails de la carte.",
       "unfreeze_auth_required": "Authentification requise pour réactiver les paiements avec votre carte.",
+      "card_details": {
+        "card_number_label": "Card number",
+        "expiry_label": "Expiry",
+        "cvv_label": "CVV",
+        "name_label": "Name",
+        "copied": "Copied to clipboard"
+      },
       "warnings": {
         "close_spending_limit": {
           "title": "Vous avez presque atteint votre limite de dépenses",
@@ -9181,9 +9280,11 @@
       "auth_prompt_info": "Connectez-vous à votre compte « Card » pour accéder à cette fonctionnalité.",
       "location_button_text": "International",
       "location_button_text_us": "États-Unis",
+      "location_button_text_uk": "United Kingdom",
       "email_label": "Adresse e-mail",
       "password_label": "Mot de passe",
       "login_button": "Se connecter",
+      "uk_login_button": "Sign in with this account",
       "signup_button": "Inscription",
       "forgot_password_button": "Mot de passe oublié ?",
       "errors": {
@@ -9198,7 +9299,8 @@
         "network_error": "Erreur réseau. Veuillez vérifier votre connexion et réessayer.",
         "timeout_error": "Le délai d’attente de la requête a expiré. Veuillez vérifier votre connexion et réessayer.",
         "server_error": "Erreur liée au serveur. Veuillez réessayer plus tard.",
-        "configuration_error": "Le service est temporairement indisponible. Veuillez réessayer plus tard."
+        "configuration_error": "Le service est temporairement indisponible. Veuillez réessayer plus tard.",
+        "forbidden_error": "This action isn't available for your account."
       }
     },
     "card_forgot_password": {
@@ -10026,6 +10128,7 @@
     "bandwidth_fee": "Bande passante",
     "energy_fee": "Énergie",
     "bridge_fee": "Frais de passerelle",
+    "gas_token_fee": "Gas fee",
     "transaction_fee": "Frais de transaction",
     "unknown_token": "Inconnu",
     "total_amount": "Montant total",
@@ -10314,6 +10417,17 @@
     }
   },
   "homepage": {
+    "action_buttons": {
+      "buy": "Buy",
+      "sell": "Sell",
+      "send": "Send",
+      "receive": "Receive",
+      "swap": "Swap",
+      "perps": "Perps",
+      "predict": "Predict",
+      "batch_swap": "Batch Swap",
+      "traders": "Traders"
+    },
     "sections": {
       "money": "Money",
       "money_empty_description": "Vous n’avez pas encore de mUSD. Convertissez des stablecoins en mUSD depuis la section « Money » de la page d’accueil.",
@@ -10376,6 +10490,13 @@
     "added_to_watchlist": "Added to Watchlist",
     "removed_from_watchlist": "Removed from Watchlist",
     "home_empty_title": "Liste de surveillance",
-    "home_empty_subtitle": "You have no watchlist items yet"
+    "home_empty_subtitle": "You have no watchlist items yet",
+    "fullscreen_title": "Watchlist",
+    "tokens_tab": "Tokens",
+    "edit": "Edit",
+    "done": "Done",
+    "empty_add_tokens_cta": "Add {{count}} token",
+    "empty_add_tokens_cta_plural": "Add {{count}} tokens",
+    "search_placeholder": "Search for any asset to add"
   }
 }
