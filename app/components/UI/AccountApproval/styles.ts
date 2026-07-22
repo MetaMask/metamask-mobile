@@ -93,10 +93,6 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
       marginLeft: 20,
       alignItems: 'center',
     },
-    rememberCheckbox: {
-      height: 20,
-      width: 20,
-    },
     rememberText: { paddingLeft: 10, color: colors.text.default },
     option: {
       flex: 1,

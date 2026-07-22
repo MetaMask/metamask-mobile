@@ -537,10 +537,9 @@ describe('ConnectQRHardware', () => {
       fireEvent.press(button);
     });
 
-    // Pressing the address label does not toggle @react-native-community/checkbox; drive onValueChange.
     const [firstRowCheckbox] = getAllByRole('checkbox');
     await act(async () => {
-      fireEvent(firstRowCheckbox, 'onValueChange', true);
+      fireEvent.press(firstRowCheckbox);
     });
 
     const unlockButton = getByText(strings('account_selector.unlock'));

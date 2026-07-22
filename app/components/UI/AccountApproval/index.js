@@ -11,7 +11,7 @@ import TransactionHeader from '../TransactionHeader';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
-import CheckBox from '@react-native-community/checkbox';
+import { Checkbox } from '@metamask/design-system-react-native';
 import { shuffle } from 'lodash';
 import URL from 'url-parse';
 import AppConstants from '../../../../app/core/AppConstants';
@@ -362,16 +362,10 @@ class AccountApproval extends PureComponent {
         )}
         {hasRememberMe && (
           <View style={styles.rememberme}>
-            <CheckBox
-              style={styles.rememberCheckbox}
-              value={this.state.noPersist}
-              onValueChange={(checked) => {
+            <Checkbox
+              isSelected={this.state.noPersist}
+              onChange={(checked) => {
                 this.setState({ noPersist: checked });
-              }}
-              boxType={'square'}
-              tintColors={{
-                true: colors.primary.default,
-                false: colors.border.default,
               }}
             />
             <Text style={styles.rememberText}>

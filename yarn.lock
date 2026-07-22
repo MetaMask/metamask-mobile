@@ -12643,20 +12643,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-community/checkbox@npm:^0.5.20":
-  version: 0.5.20
-  resolution: "@react-native-community/checkbox@npm:0.5.20"
-  peerDependencies:
-    react: "*"
-    react-native: ">= 0.62"
-    react-native-windows: ">=0.62"
-  peerDependenciesMeta:
-    react-native-windows:
-      optional: true
-  checksum: 10/f1ab95f1fbfd4853b4e798cf4b4b18ec20920106bcea9dcc8be05413a3698a0957e5175102a5acb3b45438d03c29167971daf3b0ccd66e0d6ee29f6e8a07f4f4
-  languageName: node
-  linkType: hard
-
 "@react-native-community/cli-clean@npm:20.0.0":
   version: 20.0.0
   resolution: "@react-native-community/cli-clean@npm:20.0.0"
@@ -35997,7 +35983,6 @@ __metadata:
     "@playwright/test": "npm:^1.57.0"
     "@react-native-async-storage/async-storage": "npm:2.2.0"
     "@react-native-clipboard/clipboard": "npm:^1.16.1"
-    "@react-native-community/checkbox": "npm:^0.5.20"
     "@react-native-community/cli": "npm:20.0.0"
     "@react-native-community/cli-platform-android": "npm:20.0.0"
     "@react-native-community/cli-platform-ios": "npm:20.0.0"
