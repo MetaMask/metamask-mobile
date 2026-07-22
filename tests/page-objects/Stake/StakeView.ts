@@ -2,7 +2,14 @@ import { StakeViewSelectors } from '../../selectors/Stake/StakeView.selectors.js
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Utilities from '../../framework/Utilities';
-import { EncapsulatedElementType } from '../../framework';
+import {
+  EncapsulatedElementType,
+  encapsulatedAction,
+  PlatformDetector,
+} from '../../framework';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 
 class StakeView {
   get stakeContainer(): EncapsulatedElementType {
@@ -27,12 +34,40 @@ class StakeView {
   }
 
   async enterAmount(amount: string): Promise<void> {
-    for (const digit of amount) {
-      const button = Matchers.getElementByText(digit);
-      await Gestures.waitAndTap(button, {
-        elemDescription: `Digit ${digit} in Stake Amount`,
-      });
-    }
+    await encapsulatedAction({
+      detox: async () => {
+        for (const digit of amount) {
+          const button = Matchers.getElementByText(digit);
+          await Gestures.waitAndTap(button, {
+            elemDescription: `Digit ${digit} in Stake Amount`,
+          });
+        }
+      },
+      appium: async () => {
+        // Text match for "1"/"0" hits balances on Android; use keypad testIDs.
+        const isAndroid = PlatformDetector.isAndroid();
+        for (const digit of amount.split('')) {
+          const keyName =
+            digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
+          const el = isAndroid
+            ? await PlaywrightMatchers.getElementById(keyName, {
+                exact: true,
+              })
+            : await PlaywrightMatchers.getElementByXPath(
+                `//*[contains(@name,'${keyName}')]`,
+              );
+          await PlaywrightAssertions.expectElementToBeVisible(el, {
+            timeout: 10000,
+            description: `Keypad digit ${digit} should be visible`,
+          });
+          await PlaywrightGestures.waitAndTap(el, {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            delay: 500,
+          });
+        }
+      },
+    });
   }
 
   async tapReview(timeout?: number): Promise<void> {
