@@ -67,6 +67,7 @@ import {
   selectPerpsWatchlistEnabledFlag,
 } from '../../selectors/featureFlags';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
+import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
@@ -113,10 +114,9 @@ import {
 } from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
-import { BottomSheetRef as ComponentLibraryBottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import PerpsNavigationCard, {
-  NavigationItem,
-} from '../../components/PerpsNavigationCard/PerpsNavigationCard';
+import PerpsMoreSection, {
+  type PerpsMoreItem,
+} from '../../components/PerpsMoreSection';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsProducts from '../../components/PerpsProducts';
@@ -172,8 +172,13 @@ const PerpsHomeView = ({
     selectPerpsRecentlyAddedEnabledFlag,
   );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
-  // Mirrors PerpsProducts' own visibility check (enabled + has categories).
+  // Mirrors PerpsProducts' own visibility check (enabled + has categories,
+  // or a "New" pill on its own when there are no categories but at least
+  // one recently listed market — see useHasNewMarkets).
   const productCategories = usePerpsCategories();
+  const hasNewProducts = useHasNewMarkets();
+  const isProductsVisible =
+    isProductsEnabled && (productCategories.length > 0 || hasNewProducts);
   const topMoversFeed = usePerpsTopMovers({
     direction: 'desc',
     enabled: isTopMoversEnabled,
@@ -210,7 +215,7 @@ const PerpsHomeView = ({
   const [showCloseAllSheet, setShowCloseAllSheet] = useState(false);
   const [showCancelAllSheet, setShowCancelAllSheet] = useState(false);
   const closeAllSheetRef = useRef<BottomSheetRef>(null);
-  const cancelAllSheetRef = useRef<ComponentLibraryBottomSheetRef>(null);
+  const cancelAllSheetRef = useRef<BottomSheetRef>(null);
 
   // Use hook for eligibility checks and action handlers
   // Pass button location for tracking deposit entry point
@@ -429,8 +434,9 @@ const PerpsHomeView = ({
     if (isWatchlistVisible) {
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST);
     }
-    // Products self-hides when disabled or when no categories are available.
-    if (isProductsEnabled && productCategories.length > 0)
+    // Products self-hides when disabled, or when there are neither
+    // categories nor a "New" pill to show (see isProductsVisible above).
+    if (isProductsVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS);
     // Top Movers self-hides when its feed finishes empty; mirror that here so
     // PerpsHomeSectionList does not render an orphan divider.
@@ -459,8 +465,7 @@ const PerpsHomeView = ({
     orders,
     isWhatsHappeningVisible,
     isWatchlistVisible,
-    isProductsEnabled,
-    productCategories,
+    isProductsVisible,
     isTopMoversVisible,
     isRecentlyAddedVisible,
     perpsMarkets,
@@ -620,19 +625,20 @@ const PerpsHomeView = ({
     });
   }, [trackEvent, createEventBuilder, navigation]);
 
-  const navigationItems: NavigationItem[] = useMemo(() => {
-    const items: NavigationItem[] = [
+  const moreItems: PerpsMoreItem[] = useMemo(() => {
+    const items: PerpsMoreItem[] = [
       {
         label: strings(SUPPORT_CONFIG.TitleKey),
+        startIconName: IconName.Sms,
         onPress: () => navigateToContactSupport(),
         testID: PerpsHomeViewSelectorsIDs.SUPPORT_BUTTON,
       },
     ];
 
-    // Add feedback button when feature flag is enabled
     if (isFeedbackEnabled) {
       items.push({
         label: strings(FEEDBACK_CONFIG.TitleKey),
+        startIconName: IconName.Mail,
         onPress: handleGiveFeedback,
         testID: PerpsHomeViewSelectorsIDs.FEEDBACK_BUTTON,
       });
@@ -640,6 +646,7 @@ const PerpsHomeView = ({
 
     items.push({
       label: strings(LEARN_MORE_CONFIG.TitleKey),
+      startIconName: IconName.Book,
       onPress: () => navigtateToTutorial(),
       testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
     });
@@ -698,7 +705,7 @@ const PerpsHomeView = ({
             onActionPress={handleCloseAllPress}
             renderSkeleton={() => <PerpsRowSkeleton count={2} />}
           >
-            <View style={styles.positionsOrdersContainer}>
+            <View>
               {positions.map((position, index) => (
                 <PerpsCard
                   key={`${position.symbol}-${index}`}
@@ -725,7 +732,7 @@ const PerpsHomeView = ({
             onActionPress={handleCancelAllPress}
             renderSkeleton={() => <PerpsRowSkeleton count={2} />}
           >
-            <View style={styles.positionsOrdersContainer}>
+            <View>
               {orders.map((order, index) => (
                 <PerpsCard
                   key={order.orderId}
@@ -778,7 +785,7 @@ const PerpsHomeView = ({
       },
       {
         key: 'products',
-        visible: isProductsEnabled && productCategories.length > 0,
+        visible: isProductsVisible,
         onLayout: handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS),
         content: (
           <PerpsProducts transactionActiveAbTests={transactionActiveAbTests} />
@@ -900,6 +907,11 @@ const PerpsHomeView = ({
           />
         ),
       },
+      {
+        key: 'more',
+        visible: true,
+        content: <PerpsMoreSection items={moreItems} />,
+      },
     ],
     [
       isLoading,
@@ -911,7 +923,6 @@ const PerpsHomeView = ({
       positionsSubtitleSuffix,
       handleCloseAllPress,
       handleCancelAllPress,
-      styles.positionsOrdersContainer,
       isWhatsHappeningVisible,
       whatsHappeningFeed,
       handleWhatsHappeningHeaderPress,
@@ -920,8 +931,7 @@ const PerpsHomeView = ({
       suggestedWatchlistMarkets,
       handleWatchlistSeeAllPress,
       transactionActiveAbTests,
-      isProductsEnabled,
-      productCategories.length,
+      isProductsVisible,
       isTopMoversVisible,
       isRecentlyAddedVisible,
       recentlyAddedMarkets,
@@ -934,6 +944,7 @@ const PerpsHomeView = ({
       sortBy,
       recentActivity,
       handleSectionLayout,
+      moreItems,
     ],
   );
 
@@ -1139,10 +1150,6 @@ const PerpsHomeView = ({
         </Box>
 
         <PerpsHomeSectionList sections={homeSections} />
-
-        <View style={styles.sectionContent}>
-          <PerpsNavigationCard items={navigationItems} />
-        </View>
 
         {/* Bottom spacing for tab bar */}
         <View style={bottomSpacerStyle} />

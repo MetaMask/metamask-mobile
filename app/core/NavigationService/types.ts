@@ -78,6 +78,7 @@ import type {
 } from '../../components/UI/Money/types/navigation';
 import type {
   CardModalsNavigationParamList,
+  CardOnboardingStackParamList,
   CardRootParamList,
   CardScreensStackParamList,
 } from '../../components/UI/Card/types/navigation';
@@ -463,7 +464,8 @@ export type RootStackParamList = {
   Quotes: undefined;
   Checkout: undefined;
   OrderDetails: RampOrderDetailsParams | undefined;
-  SendTransaction: undefined;
+  /** Aggregator sell flow — send crypto for an off-ramp order. */
+  SendTransaction: { orderId?: string } | undefined;
   RampSettings: undefined;
   RampActivationKeyForm: undefined;
   RampHeadlessPlayground: undefined;
@@ -549,7 +551,11 @@ export type RootStackParamList = {
   // Misc top-level routes
   OptionsSheet: OptionsSheetParams | undefined;
   QRScanner: QRScannerParams;
-  TransactionsView: TransactionsViewParams | undefined;
+  /**
+   * Flat params (`redirectToOrders`, etc.) or nested navigator params when
+   * opened as the activity / orders stack (e.g. Ramp → OrderDetails).
+   */
+  TransactionsView: TransactionsViewParams | NestedNavigationParams | undefined;
   TransactionDetails: TransactionDetailsParams | undefined;
   ActivityDetails: ActivityDetailsParams;
   RewardsView: undefined;
@@ -619,12 +625,20 @@ export type RootStackParamList = {
   MultichainAccountsIntroModal: undefined;
   MultichainAccountsLearnMoreBottomSheet: undefined;
   Pna25BottomSheet: undefined;
-  RewardsBottomSheetModal: undefined;
-  RewardsClaimBottomSheetModal: undefined;
-  RewardOptInAccountGroupModal: undefined;
+  RewardsBottomSheetModal:
+    | RewardsNavigationParamList['RewardsBottomSheetModal']
+    | undefined;
+  RewardsClaimBottomSheetModal:
+    | RewardsNavigationParamList['RewardsClaimBottomSheetModal']
+    | undefined;
+  RewardOptInAccountGroupModal:
+    | RewardsNavigationParamList['RewardOptInAccountGroupModal']
+    | undefined;
   RewardsReferralBottomSheetModal: undefined;
   OTAUpdatesModal: undefined;
-  EndOfSeasonClaimBottomSheet: undefined;
+  EndOfSeasonClaimBottomSheet:
+    | RewardsNavigationParamList['EndOfSeasonClaimBottomSheet']
+    | undefined;
 
   // Onboarding routes
   OnboardingRootNav: undefined;
@@ -1009,17 +1023,19 @@ export type RootStackParamList = {
   ReviewOrder: CardScreensStackParamList['ReviewOrder'];
   OrderCompleted: CardScreensStackParamList['OrderCompleted'];
   CardOnboarding: CardScreensStackParamList['CardOnboarding'];
-  CardOnboardingSignUp: undefined;
-  CardOnboardingConfirmEmail: undefined;
-  CardOnboardingSetPhoneNumber: undefined;
-  CardOnboardingConfirmPhoneNumber: undefined;
-  CardOnboardingVerifyIdentity: undefined;
-  CardOnboardingVerifyingVeriffKYC: undefined;
-  CardOnboardingPersonalDetails: undefined;
-  CardOnboardingPhysicalAddress: undefined;
-  CardOnboardingComplete: undefined;
-  CardOnboardingKYCFailed: undefined;
-  CardOnboardingKYCPending: undefined;
+  CardOnboardingSignUp: CardOnboardingStackParamList['CardOnboardingSignUp'];
+  CardOnboardingConfirmEmail: CardOnboardingStackParamList['CardOnboardingConfirmEmail'];
+  CardOnboardingSetPhoneNumber: CardOnboardingStackParamList['CardOnboardingSetPhoneNumber'];
+  CardOnboardingConfirmPhoneNumber: CardOnboardingStackParamList['CardOnboardingConfirmPhoneNumber'];
+  CardOnboardingVerifyIdentity: CardOnboardingStackParamList['CardOnboardingVerifyIdentity'];
+  CardOnboardingVerifyingVeriffKYC: CardOnboardingStackParamList['CardOnboardingVerifyingVeriffKYC'];
+  CardOnboardingPersonalDetails: CardOnboardingStackParamList['CardOnboardingPersonalDetails'];
+  CardOnboardingPhysicalAddress: CardOnboardingStackParamList['CardOnboardingPhysicalAddress'];
+  CardOnboardingComplete: CardOnboardingStackParamList['CardOnboardingComplete'];
+  CardOnboardingKYCFailed: CardOnboardingStackParamList['CardOnboardingKYCFailed'];
+  CardOnboardingKYCPending: CardOnboardingStackParamList['CardOnboardingKYCPending'];
+  CardOnboardingKYCProcessing: CardScreensStackParamList['CardOnboardingKYCProcessing'];
+  CardOnboardingFundingApproval: CardScreensStackParamList['CardOnboardingFundingApproval'];
   CardModals: NavigatorScreenParams<CardModalsNavigationParamList> | undefined;
   CardAddFundsModal: CardModalsNavigationParamList['CardAddFundsModal'];
   CardAssetSelectionModal: CardModalsNavigationParamList['CardAssetSelectionModal'];
@@ -1031,6 +1047,7 @@ export type RootStackParamList = {
   CardViewPinModal: CardModalsNavigationParamList['CardViewPinModal'];
   CardSpendingLimitOptionsModal: CardModalsNavigationParamList['CardSpendingLimitOptionsModal'];
   CardWaitlistFormModal: CardModalsNavigationParamList['CardWaitlistFormModal'];
+  CardImmersveKYCModal: CardModalsNavigationParamList['CardImmersveKYCModal'];
   CardForgotPasswordModal: CardModalsNavigationParamList['CardForgotPasswordModal'];
   CardCreditBalanceTooltipModal: CardModalsNavigationParamList['CardCreditBalanceTooltipModal'];
   CardCreditRefundTooltipModal: CardModalsNavigationParamList['CardCreditRefundTooltipModal'];

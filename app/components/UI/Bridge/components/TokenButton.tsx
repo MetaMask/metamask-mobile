@@ -17,12 +17,7 @@ import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
 import TokenIcon from '../../../Base/TokenIcon';
-import { useABTest } from '../../../../hooks';
 import type { CaipAssetType } from '@metamask/utils';
-import {
-  BRIDGE_TOKEN_SELECTOR_VERIFIED_BADGE_AB_KEY,
-  BRIDGE_TOKEN_SELECTOR_VERIFIED_BADGE_VARIANTS,
-} from './TokenButton.abTestConfig';
 import SwapsTokenSecurityBadge from './SwapsTokenSecurityBadge';
 
 interface TokenProps {
@@ -83,12 +78,6 @@ export const TokenButton: React.FC<TokenProps> = ({
   securityBadgeAssetId,
 }) => {
   const { styles } = useStyles(createStyles, {});
-  const { variant } = useABTest(
-    BRIDGE_TOKEN_SELECTOR_VERIFIED_BADGE_AB_KEY,
-    BRIDGE_TOKEN_SELECTOR_VERIFIED_BADGE_VARIANTS,
-  );
-  const shouldShowSecurityBadge =
-    variant.showVerifiedBadge && Boolean(securityBadgeAssetId);
 
   return (
     <TouchableOpacity
@@ -113,7 +102,7 @@ export const TokenButton: React.FC<TokenProps> = ({
         <Text style={styles.tokenSymbol} variant={TextVariant.HeadingMD}>
           {symbol}
         </Text>
-        {shouldShowSecurityBadge && securityBadgeAssetId ? (
+        {securityBadgeAssetId ? (
           <SwapsTokenSecurityBadge caipAssetId={securityBadgeAssetId} />
         ) : null}
       </View>

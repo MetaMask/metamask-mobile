@@ -120,6 +120,7 @@ jest.mock('../../hooks/usePredictRewards', () => ({
 interface MockFees {
   metamaskFee: number;
   providerFee: number;
+  marketFee: number;
   totalFee: number;
   totalFeePercentage: number;
   collector: string;
@@ -146,6 +147,7 @@ interface MockPreview {
 const mockFees: MockFees = {
   metamaskFee: 1.8,
   providerFee: 0.6,
+  marketFee: 0.3,
   totalFee: 2.4,
   totalFeePercentage: 4,
   collector: '0xCollector',
@@ -336,12 +338,12 @@ describe('PredictSellPreview', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows current value from preview minAmountReceived', () => {
+    it('shows estimated net proceeds from the preview', () => {
       renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
-      expect(screen.getByText('$60')).toBeOnTheScreen();
+      expect(screen.getAllByText('$57.30')).toHaveLength(2);
     });
 
     it('shows P&L percentage calculated from net proceeds after fees', () => {
@@ -349,9 +351,9 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      // net = minAmountReceived(60) - metamaskFee(1.8) - exchangeFee(0.6) = $57.60
-      // cashPnl = 57.60 - initialValue(50) = 7.60, percentPnl = 15.2%
-      expect(screen.getByText('+$7.60 (15.2%)')).toBeOnTheScreen();
+      // net = minAmountReceived(60) - metamaskFee(1.8) - exchangeFee(0.9) = $57.30
+      // cashPnl = 57.30 - initialValue(50) = 7.30, percentPnl = 14.6%
+      expect(screen.getByText('+$7.30 (14.6%)')).toBeOnTheScreen();
     });
 
     it('shows negative P&L when minAmountReceived is less than initial value', () => {
@@ -599,9 +601,9 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      expect(screen.getByText('$60')).toBeOnTheScreen();
-      // net proceeds = 60 - 1.8 - 0.6 = $57.60; cashPnl = 57.60 - 50 = $7.60 (15.2%)
-      expect(screen.getByText('+$7.60 (15.2%)')).toBeOnTheScreen();
+      expect(screen.getAllByText('$57.30')).toHaveLength(2);
+      // net proceeds = 60 - 1.8 - 0.9 = $57.30; cashPnl = 57.30 - 50 = $7.30 (14.6%)
+      expect(screen.getByText('+$7.30 (14.6%)')).toBeOnTheScreen();
     });
 
     it('hides position icon row in sheet mode', () => {
@@ -645,7 +647,7 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      expect(screen.getByText('$60')).toBeOnTheScreen();
+      expect(screen.getAllByText('$57.30')).toHaveLength(2);
     });
   });
 
@@ -665,8 +667,8 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      // minAmountReceived(60) - metamaskFee(1.8) - providerFee(0.6) = $57.60
-      expect(screen.getByText('$57.60')).toBeOnTheScreen();
+      // minAmountReceived(60) - metamaskFee(1.8) - providerFee(0.6) - marketFee(0.3) = $57.30
+      expect(screen.getAllByText('$57.30')).toHaveLength(2);
     });
 
     it('hides Total row when preview is unavailable', () => {
