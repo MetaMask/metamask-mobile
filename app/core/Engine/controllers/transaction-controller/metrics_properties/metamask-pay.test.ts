@@ -150,6 +150,8 @@ describe('Metamask Pay Metrics', () => {
         mm_pay_payment_method_selected: 'crypto',
         mm_pay_token_selected: 'USDC',
         mm_pay_use_case: 'money_account_deposit',
+        mm_pay_transaction_step_total: 1,
+        mm_pay_transaction_step: 1,
       },
       sensitiveProperties: {},
     });
@@ -181,6 +183,8 @@ describe('Metamask Pay Metrics', () => {
         mm_pay: true,
         mm_pay_payment_method_selected: 'debit_credit_card',
         mm_pay_use_case: 'money_account_deposit',
+        mm_pay_transaction_step_total: 1,
+        mm_pay_transaction_step: 1,
       },
       sensitiveProperties: {},
     });
@@ -688,16 +692,15 @@ describe('Metamask Pay Metrics', () => {
       },
     } as never);
 
-    const result = getMetaMaskPayProperties(request);
+    const result = getMetaMaskPayProperties(request) as TransactionMetrics;
 
-    expect(result).toStrictEqual({
-      properties: expect.objectContaining({
+    expect(result.properties).toEqual(
+      expect.objectContaining({
         mm_pay: true,
         mm_pay_chain_selected: '0x3',
-        mm_pay_token_selected: undefined,
       }),
-      sensitiveProperties: {},
-    });
+    );
+    expect(result.properties).not.toHaveProperty('mm_pay_token_selected');
   });
 
   it('derives mm_pay_use_case from transaction type', () => {
