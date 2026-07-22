@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { toHex } from '@metamask/controller-utils';
@@ -38,6 +38,12 @@ type MoneyAccountAmountUpdater = (
   recipientOverride?: Hex,
 ) => Promise<UpdateTransactionPayAmountCall[]>;
 
+interface OptimizedAmountUpdate {
+  amountHuman: string;
+  promise: Promise<boolean>;
+  transactionId: string;
+}
+
 export function useUpdateTransactionPayAmount() {
   const transactionMeta = useTransactionMetadataRequest();
   const { updateTokenAmount } = useUpdateTokenAmount();
@@ -46,6 +52,28 @@ export function useUpdateTransactionPayAmount() {
   const accountOverride = useTransactionAccountOverride();
   const isMoneyAccountDepositQuotePipelineEnabled = useSelector(
     selectMoneyAccountDepositQuotePipelineEnabled,
+  );
+  const optimizedAmountUpdateRef = useRef<OptimizedAmountUpdate | undefined>(
+    undefined,
+  );
+  const isMoneyAccountDeposit = Boolean(
+    transactionMeta &&
+      hasTransactionType(transactionMeta, [
+        TransactionType.moneyAccountDeposit,
+      ]),
+  );
+  const depositIntent =
+    isMoneyAccountDeposit && transactionMeta
+      ? getMoneyAccountDepositIntent(transactionMeta.batchId)
+      : undefined;
+  // Initially optimize only generic/convert crypto deposits. addMusd uses the
+  // Relay max/gas-station path and card uses the multi-stage fiat path, so both
+  // retain the existing pipeline until validated separately.
+  const isAmountUpdateQuotePipelineEnabled = Boolean(
+    isMoneyAccountDepositQuotePipelineEnabled &&
+      isMoneyAccountDeposit &&
+      (depositIntent === undefined || depositIntent === 'convert') &&
+      !fiatPayment?.selectedPaymentMethodId,
   );
 
   const applyMoneyAccountAmountUpdates = useCallback(
@@ -87,35 +115,58 @@ export function useUpdateTransactionPayAmount() {
     [transactionMeta],
   );
 
+  const updateOptimizedAmount = useCallback(
+    (amountHuman: string, transactionId: string) => {
+      // Core deduplicates only in-flight intents. Retain a successful prefetch
+      // so Continue can reuse it instead of launching the pipeline again.
+      const existingUpdate = optimizedAmountUpdateRef.current;
+      if (
+        existingUpdate?.amountHuman === amountHuman &&
+        existingUpdate.transactionId === transactionId
+      ) {
+        return existingUpdate.promise;
+      }
+
+      const promise = Engine.context.TransactionPayController.updateAmount({
+        transactionId,
+        amountHuman,
+      });
+      optimizedAmountUpdateRef.current = {
+        amountHuman,
+        promise,
+        transactionId,
+      };
+
+      promise.then(
+        (isPublished) => {
+          if (
+            !isPublished &&
+            optimizedAmountUpdateRef.current?.promise === promise
+          ) {
+            optimizedAmountUpdateRef.current = undefined;
+          }
+        },
+        () => {
+          if (optimizedAmountUpdateRef.current?.promise === promise) {
+            optimizedAmountUpdateRef.current = undefined;
+          }
+        },
+      );
+
+      return promise;
+    },
+    [],
+  );
+
   const updateTransactionPayAmount = useCallback(
     async (amountHuman: string) => {
       if (!transactionMeta) {
         return;
       }
 
-      if (
-        hasTransactionType(transactionMeta, [
-          TransactionType.moneyAccountDeposit,
-        ])
-      ) {
-        const depositIntent = getMoneyAccountDepositIntent(
-          transactionMeta.batchId,
-        );
-        // Initially optimize only generic/convert crypto deposits. addMusd uses
-        // the Relay max/gas-station path and card uses the multi-stage fiat path,
-        // so both retain the existing pipeline until validated separately.
-        const isOptimizedDepositIntent =
-          (depositIntent === undefined || depositIntent === 'convert') &&
-          !fiatPayment?.selectedPaymentMethodId;
-
-        if (
-          isMoneyAccountDepositQuotePipelineEnabled &&
-          isOptimizedDepositIntent
-        ) {
-          await Engine.context.TransactionPayController.updateAmount({
-            transactionId: transactionMeta.id,
-            amountHuman,
-          });
+      if (isMoneyAccountDeposit) {
+        if (isAmountUpdateQuotePipelineEnabled) {
+          await updateOptimizedAmount(amountHuman, transactionMeta.id);
           return;
         }
 
@@ -153,13 +204,17 @@ export function useUpdateTransactionPayAmount() {
       applyMoneyAccountAmountUpdates,
       updateTokenAmount,
       requiredTokens,
-      fiatPayment?.selectedPaymentMethodId,
       accountOverride,
-      isMoneyAccountDepositQuotePipelineEnabled,
+      isMoneyAccountDeposit,
+      isAmountUpdateQuotePipelineEnabled,
+      updateOptimizedAmount,
     ],
   );
 
-  return { updateTransactionPayAmount };
+  return {
+    isAmountUpdateQuotePipelineEnabled,
+    updateTransactionPayAmount,
+  };
 }
 
 function syncMoneyAccountDepositRequiredAssets(

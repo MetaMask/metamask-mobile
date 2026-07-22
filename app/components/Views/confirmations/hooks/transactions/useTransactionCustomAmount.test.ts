@@ -169,18 +169,20 @@ describe('useTransactionCustomAmount', () => {
   const useMMPayFiatConfigMock = jest.mocked(useMMPayFiatConfig);
   const useRampsBuyLimitsMock = jest.mocked(useRampsBuyLimits);
 
-  const updateTransactionPayAmountMock: ReturnType<
-    typeof useUpdateTransactionPayAmount
-  >['updateTransactionPayAmount'] = jest.fn();
+  const updateTransactionPayAmountMock = jest.fn(
+    (_amountHuman: string): Promise<void> => Promise.resolve(),
+  );
 
   const setConfirmationMetricMock = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
 
+    updateTransactionPayAmountMock.mockResolvedValue(undefined);
     useTokenFiatRateMock.mockReturnValue(2);
 
     useUpdateTransactionPayAmountMock.mockReturnValue({
+      isAmountUpdateQuotePipelineEnabled: false,
       updateTransactionPayAmount: updateTransactionPayAmountMock,
     } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
 
@@ -388,6 +390,69 @@ describe('useTransactionCustomAmount', () => {
     });
 
     expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('61.725');
+  });
+
+  it('prefetches an optimized amount update after the typing debounce', async () => {
+    useUpdateTransactionPayAmountMock.mockReturnValue({
+      isAmountUpdateQuotePipelineEnabled: true,
+      updateTransactionPayAmount: updateTransactionPayAmountMock,
+    } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
+    const { result } = runHook({
+      transactionMeta: { type: TransactionType.moneyAccountDeposit },
+    });
+
+    await act(async () => {
+      result.current.updatePendingAmount('12');
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(200);
+      result.current.updatePendingAmount('123.45');
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(299);
+    });
+
+    expect(updateTransactionPayAmountMock).not.toHaveBeenCalled();
+
+    await act(async () => {
+      jest.advanceTimersByTime(1);
+    });
+
+    expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+    expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('61.725');
+  });
+
+  it('does not prefetch an amount update when the optimized pipeline is disabled', async () => {
+    const { result } = runHook({
+      transactionMeta: { type: TransactionType.moneyAccountDeposit },
+    });
+
+    await act(async () => {
+      result.current.updatePendingAmount('123.45');
+    });
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(updateTransactionPayAmountMock).not.toHaveBeenCalled();
+  });
+
+  it('does not prefetch a zero amount', async () => {
+    useUpdateTransactionPayAmountMock.mockReturnValue({
+      isAmountUpdateQuotePipelineEnabled: true,
+      updateTransactionPayAmount: updateTransactionPayAmountMock,
+    } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
+
+    runHook({
+      transactionMeta: { type: TransactionType.moneyAccountDeposit },
+    });
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(updateTransactionPayAmountMock).not.toHaveBeenCalled();
   });
 
   it('sets mm_pay_quote_requested metric only when hasSourceAmount becomes true after updateTokenAmount was called', async () => {
@@ -1143,6 +1208,35 @@ describe('useTransactionCustomAmount', () => {
 
     beforeEach(() => {
       jest.mocked(getMoneyAccountDepositIntent).mockReturnValue('convert');
+    });
+
+    it('prefetches the full-precision balance amount for a 100% deposit', async () => {
+      useUpdateTransactionPayAmountMock.mockReturnValue({
+        isAmountUpdateQuotePipelineEnabled: true,
+        updateTransactionPayAmount: updateTransactionPayAmountMock,
+      } as ReturnType<typeof useUpdateTransactionPayAmountMock>);
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '2.246912',
+          balanceRaw: '1123456',
+          decimals: 6,
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+      const { result } = runHook({
+        transactionMeta: depositTransactionMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledTimes(1);
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('1.123456');
     });
 
     it('updateTokenAmount uses full-precision amount from balanceRaw for 100% deposit', async () => {
